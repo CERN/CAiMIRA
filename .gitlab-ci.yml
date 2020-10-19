@@ -1,0 +1,21 @@
+
+# Use the acc-py-devtools templates found at
+# https://gitlab.cern.ch/-/ide/project/acc-co/devops/python/acc-py-devtools/blob/master/-/acc_py_devtools/templates/gitlab-ci/python.yml.
+include:
+ - project: acc-co/devops/python/acc-py-devtools
+   file: acc_py_devtools/templates/gitlab-ci/python.yml
+
+variables:
+  project_name: CARA
+
+
+# A full installation of CARA, tested with pytest.
+test_install:
+  extends: .acc_py_full_test
+
+
+# A development installation of CARA tested with pytest.
+test_dev:
+  extends: .acc_py_dev_test
+
+
