@@ -96,3 +96,9 @@ def test_periodic_window(periodic_opening_model):
     ts = [t for t in range(11)]
     aes = [periodic_opening_model.ventilation.air_exchange(periodic_opening_model.room, t) for t in ts]
     assert all(ae == (0 if t * 60 % 120 < 105 else 514.74) for ae, t in zip(aes, ts))
+
+
+def test_periodic_hepa(periodic_hepa_model):
+    ts = [t for t in range(11)]
+    aes = [periodic_hepa_model.ventilation.air_exchange(periodic_hepa_model.room, t) for t in ts]
+    assert all(ae == (0 if t * 60 % 120 < 105 else 514.74) for ae, t in zip(aes, ts))
