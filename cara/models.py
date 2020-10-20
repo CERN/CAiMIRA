@@ -45,7 +45,7 @@ class PeriodicWindow(Ventilation):
     # TODO: Figure out what this coefficient represents
     cd_b: float
 
-    def air_exchange(self, room, time: float) -> float:
+    def air_exchange(self, room: Room, time: float) -> float:
         # Returns the rate at which air is being exchanged in the given room per cubic meter at a given time
 
         # If the window is closed, no air is being exchanged
@@ -67,7 +67,7 @@ class PeriodicHEPA(Ventilation):
     # The rate at which the HEPA exchanges air (when switched on)
     q_air_mech: int
 
-    def air_exchange(self, room, time: float) -> float:
+    def air_exchange(self, room: Room, time: float) -> float:
         # Returns the rate at which air is being exchanged in the given room per cubic meter at a given time
 
         # If the HEPA is off, no air is being exchanged
