@@ -61,7 +61,7 @@ class PeriodicHEPA(Ventilation):
     period: int   #: How often the HEPA is switched on (minutes)
     duration: int   #: How long the HEPA remains switched on for (minutes)
 
-    q_air_mech: int   #: The rate at which the HEPA exchanges air (when switched on)
+    q_air_mech: float   #: The rate at which the HEPA exchanges air (when switched on)
 
     def air_exchange(self, room: Room, time: float) -> float:
         # Returns the rate at which air is being exchanged in the given room per cubic meter at a given time
