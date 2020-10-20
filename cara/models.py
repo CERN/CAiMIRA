@@ -1,6 +1,7 @@
 import functools
 import numpy as np
 import typing
+from abc import abstractmethod
 
 
 from dataclasses import dataclass
@@ -8,6 +9,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Room:
+    # The total volume of the room
     volume: int
 
     # The height of the window in the room (assumes one window)
@@ -19,10 +21,60 @@ class Room:
 
 @dataclass(frozen=True)
 class Ventilation:
-    QairNat: float = 514.74
+    """
+    An abstract class for ventilation schemes
+    """
 
-    def air_change_per_hour(self, room: Room):
-        return self.QairNat / room.volume
+    @abstractmethod
+    def air_exchange(self, room: Room, time: float) -> float:
+        # Returns the rate at which air is being exchanged in the given room per cubic meter at a given time
+        pass
+
+
+@dataclass(frozen=True)
+class PeriodicWindow(Ventilation):
+
+    # The window is opened for <duration> minutes every <period> minutes
+    period: int
+    duration: int
+
+    # The temperatures, in Kelvin, inside and outside the window
+    inside_temp: float
+    outside_temp: float
+
+    # TODO: Figure out what this coefficient represents
+    cd_b: float
+
+    def air_exchange(self, room, time: float) -> float:
+        # Returns the rate at which air is being exchanged in the given room per cubic meter at a given time
+
+        # If the window is closed, no air is being exchanged
+        if time % self.period < (self.period - self.duration):
+            return 0
+
+        return ((3600 / (3 * room.volume)) * self.cd_b * room.window_height *
+                room.opening_length * np.sqrt(9.81 * room.window_height * (abs(self.inside_temp - self.outside_temp))
+                                              / self.outside_temp))
+
+
+@dataclass(frozen=True)
+class PeriodicHEPA(Ventilation):
+
+    # The HEPA is switched on for <duration> minutes every <period> minutes
+    period: int
+    duration: int
+
+    # The rate at which the HEPA exchanges air (when switched on)
+    q_air_mech: int
+
+    def air_exchange(self, room, time: float) -> float:
+        # Returns the rate at which air is being exchanged in the given room per cubic meter at a given time
+
+        # If the HEPA is off, no air is being exchanged
+        if time % self.period < (self.period - self.duration):
+            return 0
+
+        return self.q_air_mech / room.volume
 
 
 @dataclass(frozen=True)
