@@ -6,7 +6,7 @@ include:
    file: acc_py_devtools/templates/gitlab-ci/python.yml
 
 variables:
-  project_name: CARA
+  project_name: cara
 
 
 # A full installation of CARA, tested with pytest.

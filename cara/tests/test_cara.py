@@ -3,8 +3,8 @@ High-level tests for the  package.
 
 """
 
-import CARA
+import cara
 
 
 def test_version():
-    assert CARA.__version__ is not None
+    assert cara.__version__ is not None
