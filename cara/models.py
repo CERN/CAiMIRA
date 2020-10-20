@@ -29,18 +29,15 @@ class Ventilation:
 class PeriodicWindow(Ventilation):
 
     # The window is opened for <duration> minutes every <period> minutes
-    period: int
-    duration: int
+    period: int   #: How often the window is opened (minutes)
+    duration: int   #: How long the window remains opened for (minutes)
 
-    # The temperatures, in Kelvin, inside and outside the window
-    inside_temp: float
-    outside_temp: float
+    inside_temp: float   #: The temperature inside the room (Kelvin)
+    outside_temp: float   #: The temperature outside of the window (Kelvin)
 
-    # The height of the window
-    window_height: float
+    window_height: float   #: The height of the window
 
-    # The length of the opening-gap when the window is open
-    opening_length: float
+    opening_length: float   #: The length of the opening-gap when the window is open
 
     # TODO: Figure out what this coefficient represents
     cd_b: float
@@ -61,11 +58,10 @@ class PeriodicWindow(Ventilation):
 class PeriodicHEPA(Ventilation):
 
     # The HEPA is switched on for <duration> minutes every <period> minutes
-    period: int
-    duration: int
+    period: int   #: How often the HEPA is switched on (minutes)
+    duration: int   #: How long the HEPA remains switched on for (minutes)
 
-    # The rate at which the HEPA exchanges air (when switched on)
-    q_air_mech: int
+    q_air_mech: int   #: The rate at which the HEPA exchanges air (when switched on)
 
     def air_exchange(self, room: Room, time: float) -> float:
         # Returns the rate at which air is being exchanged in the given room per cubic meter at a given time
