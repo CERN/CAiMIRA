@@ -261,7 +261,7 @@ class Model:
         # Deposition rate (h^-1)
         k = (vg * 3600) / h
 
-        return k + self.virus.decay_constant + self.ventilation.air_change_per_hour(self.room)
+        return k + self.virus.decay_constant + self.ventilation.air_exchange(self.room, time)
 
     @functools.lru_cache()
     def concentration(self, time: float) -> float:
