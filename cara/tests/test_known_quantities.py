@@ -42,6 +42,45 @@ def baseline_model():
     return model
 
 
+@pytest.fixture
+def periodic_opening_model():
+    model = models.Model(
+        room=models.Room(volume=75),
+        ventilation=models.PeriodicWindow(period=120, duration=15, inside_temp=293, outside_temp=283, cd_b=0.6,
+                                          window_height=1.6, opening_length=0.6),
+        infected=models.InfectedPerson(
+            virus=models.Virus.types['SARS_CoV_2'],
+            present_times=((0, 4), (5, 8)),
+            mask=models.Mask.types['No mask'],
+            activity=models.Activity.types['Light exercise'],
+            expiration=models.Expiration.types['Unmodulated Vocalization'],
+        ),
+        infected_occupants=1,
+        exposed_occupants=10,
+        exposed_activity=models.Activity.types['Light exercise'],
+    )
+    return model
+
+
+@pytest.fixture
+def periodic_hepa_model():
+    model = models.Model(
+        room=models.Room(volume=75),
+        ventilation=models.PeriodicHEPA(period=120, duration=15, q_air_mech=514.74),
+        infected=models.InfectedPerson(
+            virus=models.Virus.types['SARS_CoV_2'],
+            present_times=((0, 4), (5, 8)),
+            mask=models.Mask.types['No mask'],
+            activity=models.Activity.types['Light exercise'],
+            expiration=models.Expiration.types['Unmodulated Vocalization'],
+        ),
+        infected_occupants=1,
+        exposed_occupants=10,
+        exposed_activity=models.Activity.types['Light exercise'],
+    )
+    return model
+
+
 def test_r0(baseline_model):
     saturated = 2.909312e-01
     ts = [0, 4, 5, 7, 10]
