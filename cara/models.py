@@ -10,6 +10,12 @@ from dataclasses import dataclass
 class Room:
     volume: int
 
+    # The height of the window in the room (assumes one window)
+    window_height: float
+
+    # The length of the opening-gap when the window is open
+    opening_length: float
+
 
 @dataclass(frozen=True)
 class Ventilation:
