@@ -52,9 +52,9 @@ class PeriodicWindow(Ventilation):
         if time % self.period < (self.period - self.duration):
             return 0
 
-        return ((3600 / (3 * room.volume)) * self.cd_b * self.window_height *
-                self.opening_length * np.sqrt(9.81 * self.window_height * (abs(self.inside_temp - self.outside_temp))
-                                              / self.outside_temp))
+        root = np.sqrt(9.81 * self.window_height * (abs(self.inside_temp - self.outside_temp)) / self.outside_temp)
+
+        return (3600 / (3 * room.volume)) * self.cd_b * self.window_height * self.opening_length * root
 
 
 @dataclass(frozen=True)
