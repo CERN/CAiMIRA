@@ -25,8 +25,8 @@ def test_no_mask_emission_rate(baseline_model):
 @pytest.fixture
 def baseline_model():
     model = models.Model(
-        room=models.Room(volume=75),
-        ventilation=models.Ventilation(),
+        room=models.Room(volume=75, window_height=1.6, opening_length=0.6),
+        ventilation=models.PeriodicWindow(period=120, duration=120, inside_temp=293, outside_temp=283, cd_b=0.6),
         infected=models.InfectedPerson(
             virus=models.Virus.types['SARS_CoV_2'],
             present_times=((0, 4), (5, 8)),
