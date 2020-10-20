@@ -12,12 +12,6 @@ class Room:
     # The total volume of the room
     volume: int
 
-    # The height of the window in the room (assumes one window)
-    window_height: float
-
-    # The length of the opening-gap when the window is open
-    opening_length: float
-
 
 @dataclass(frozen=True)
 class Ventilation:
@@ -42,6 +36,12 @@ class PeriodicWindow(Ventilation):
     inside_temp: float
     outside_temp: float
 
+    # The height of the window
+    window_height: float
+
+    # The length of the opening-gap when the window is open
+    opening_length: float
+
     # TODO: Figure out what this coefficient represents
     cd_b: float
 
@@ -52,8 +52,8 @@ class PeriodicWindow(Ventilation):
         if time % self.period < (self.period - self.duration):
             return 0
 
-        return ((3600 / (3 * room.volume)) * self.cd_b * room.window_height *
-                room.opening_length * np.sqrt(9.81 * room.window_height * (abs(self.inside_temp - self.outside_temp))
+        return ((3600 / (3 * room.volume)) * self.cd_b * self.window_height *
+                self.opening_length * np.sqrt(9.81 * self.window_height * (abs(self.inside_temp - self.outside_temp))
                                               / self.outside_temp))
 
 
