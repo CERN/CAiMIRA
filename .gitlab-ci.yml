@@ -19,3 +19,9 @@ test_dev:
   extends: .acc_py_dev_test
 
 
+trigger_build_on_openshift:
+    stage: deploy
+    rules:
+        - if: '$OPENSHIFT_BUILD_WEBHOOK_SECRET'
+    script:
+        - curl -X POST -k https://openshift.cern.ch:443/apis/build.openshift.io/v1/namespaces/cara/buildconfigs/cara-app/webhooks/${OPENSHIFT_BUILD_WEBHOOK_SECRET}/generic
