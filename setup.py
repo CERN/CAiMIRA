@@ -16,14 +16,21 @@ with (HERE / 'README.md').open('rt') as fh:
 
 REQUIREMENTS: dict = {
     'core': [
-        # 'mandatory-requirement1',
-        # 'mandatory-requirement2',
+        'dataclasses; python_version < "3.7"',
+        'numpy',
+    ],
+    'app': [
+        'ipykernel',
+        'ipympl',
+        'ipywidgets',
+        'matplotlib',
+        'voila >=0.2.4',
     ],
     'test': [
         'pytest',
     ],
     'dev': [
-        # 'requirement-for-development-purposes-only',
+        'jupyterlab',
     ],
 }
 
