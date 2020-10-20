@@ -90,3 +90,9 @@ def test_r0(baseline_model):
         [0.000000e+00, 2.909211e-01, 1.273836e-04, 2.909210e-01, 5.577662e-08],
         rtol=1e-5
     )
+
+
+def test_periodic_window(periodic_opening_model):
+    ts = [t for t in range(11)]
+    aes = [periodic_opening_model.ventilation.air_exchange(periodic_opening_model.room, t) for t in ts]
+    assert all(ae == (0 if t * 60 % 120 < 105 else 514.74) for ae, t in zip(aes, ts))
