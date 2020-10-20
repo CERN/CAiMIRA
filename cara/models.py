@@ -195,8 +195,7 @@ class Model:
     def virus(self):
         return self.infected.virus
 
-    @property
-    def infectious_virus_removal_rate(self):
+    def infectious_virus_removal_rate(self, time: float) -> float:
         # Particle deposition on the floor
         vg = 1 * 10 ** -4
         # Height of the emission source to the floor - i.e. mouth/nose (m)
@@ -209,7 +208,7 @@ class Model:
     @functools.lru_cache()
     def concentration(self, time: float) -> float:
         t = time
-        IVRR = self.infectious_virus_removal_rate
+        IVRR = self.infectious_virus_removal_rate(time)
         V = self.room.volume
         Ni = self.infected_occupants
         ER = self.infected.emission_rate(time)
