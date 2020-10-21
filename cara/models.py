@@ -39,7 +39,7 @@ class PeriodicWindow(Ventilation):
 
     opening_length: float   #: The length of the opening-gap when the window is open
 
-    cd_b: float   #: Discharge coefficient: what portion effective area is used to exchange air (0 <= cd_b <= 1)
+    cd_b: float = 0.6   #: Discharge coefficient: what portion effective area is used to exchange air (0 <= cd_b <= 1)
 
     def air_exchange(self, room: Room, time: float) -> float:
         # Returns the rate at which air is being exchanged in the given room per cubic meter at a given time
