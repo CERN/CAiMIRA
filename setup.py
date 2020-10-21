@@ -17,17 +17,17 @@ with (HERE / 'README.md').open('rt') as fh:
 REQUIREMENTS: dict = {
     'core': [
         'dataclasses; python_version < "3.7"',
-        'numpy',
-    ],
-    'app': [
         'ipykernel',
         'ipympl',
         'ipywidgets',
         'matplotlib',
+        'numpy',
         'voila >=0.2.4',
     ],
+    'app': [],
     'test': [
         'pytest',
+        'pytest-tornasync',  # Unused, but needed because of a downstream dependency.
     ],
     'dev': [
         'jupyterlab',
