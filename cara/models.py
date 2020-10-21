@@ -1,6 +1,7 @@
 import functools
 import numpy as np
 import typing
+from abc import abstractmethod
 
 
 from dataclasses import dataclass
@@ -8,15 +9,67 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Room:
+    # The total volume of the room
     volume: int
 
 
 @dataclass(frozen=True)
 class Ventilation:
-    QairNat: float = 514.74
+    """
+    An abstract class for ventilation schemes
+    """
 
-    def air_change_per_hour(self, room: Room):
-        return self.QairNat / room.volume
+    @abstractmethod
+    def air_exchange(self, room: Room, time: float) -> float:
+        # Returns the rate at which air is being exchanged in the given room per cubic meter at a given time
+        pass
+
+
+@dataclass(frozen=True)
+class PeriodicWindow(Ventilation):
+
+    # The window is opened for <duration> minutes every <period> minutes
+    period: int   #: How often the window is opened (minutes)
+    duration: int   #: How long the window remains opened for (minutes)
+
+    inside_temp: float   #: The temperature inside the room (Kelvin)
+    outside_temp: float   #: The temperature outside of the window (Kelvin)
+
+    window_height: float   #: The height of the window
+
+    opening_length: float   #: The length of the opening-gap when the window is open
+
+    cd_b: float = 0.6   #: Discharge coefficient: what portion effective area is used to exchange air (0 <= cd_b <= 1)
+
+    def air_exchange(self, room: Room, time: float) -> float:
+        # Returns the rate at which air is being exchanged in the given room per cubic meter at a given time
+
+        # If the window is closed, no air is being exchanged
+        if time % self.period < (self.period - self.duration):
+            return 0
+
+        root = np.sqrt(9.81 * self.window_height * (abs(self.inside_temp - self.outside_temp)) / self.outside_temp)
+
+        return (3600 / (3 * room.volume)) * self.cd_b * self.window_height * self.opening_length * root
+
+
+@dataclass(frozen=True)
+class PeriodicHEPA(Ventilation):
+
+    # The HEPA is switched on for <duration> minutes every <period> minutes
+    period: int   #: How often the HEPA is switched on (minutes)
+    duration: int   #: How long the HEPA remains switched on for (minutes)
+
+    q_air_mech: float   #: The rate at which the HEPA exchanges air (when switched on)
+
+    def air_exchange(self, room: Room, time: float) -> float:
+        # Returns the rate at which air is being exchanged in the given room per cubic meter at a given time
+
+        # If the HEPA is off, no air is being exchanged
+        if time % self.period < (self.period - self.duration):
+            return 0
+
+        return self.q_air_mech / room.volume
 
 
 @dataclass(frozen=True)
@@ -195,8 +248,7 @@ class Model:
     def virus(self):
         return self.infected.virus
 
-    @property
-    def infectious_virus_removal_rate(self):
+    def infectious_virus_removal_rate(self, time: float) -> float:
         # Particle deposition on the floor
         vg = 1 * 10 ** -4
         # Height of the emission source to the floor - i.e. mouth/nose (m)
@@ -204,12 +256,12 @@ class Model:
         # Deposition rate (h^-1)
         k = (vg * 3600) / h
 
-        return k + self.virus.decay_constant + self.ventilation.air_change_per_hour(self.room)
+        return k + self.virus.decay_constant + self.ventilation.air_exchange(self.room, time)
 
     @functools.lru_cache()
     def concentration(self, time: float) -> float:
         t = time
-        IVRR = self.infectious_virus_removal_rate
+        IVRR = self.infectious_virus_removal_rate(time)
         V = self.room.volume
         Ni = self.infected_occupants
         ER = self.infected.emission_rate(time)
