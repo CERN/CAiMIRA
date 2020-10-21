@@ -1,5 +1,6 @@
 import numpy.testing as npt
 import pytest
+from numpy import linspace
 
 import cara.models as models
 
@@ -93,12 +94,14 @@ def test_r0(baseline_model):
 
 
 def test_periodic_window(periodic_opening_model):
-    ts = [t for t in range(11)]
+    ts = linspace(0, 9 * 60, 9)
     aes = [periodic_opening_model.ventilation.air_exchange(periodic_opening_model.room, t) for t in ts]
-    assert all(ae == (0 if t * 60 % 120 < 105 else 514.74) for ae, t in zip(aes, ts))
+    answers = [0, 0, 0, 0, 0, 0, 0, 514.76 / 75, 0]
+    npt.assert_allclose(aes, answers, rtol=1e-5)
 
 
 def test_periodic_hepa(periodic_hepa_model):
-    ts = [t for t in range(11)]
+    ts = linspace(0, 9 * 60, 9)
     aes = [periodic_hepa_model.ventilation.air_exchange(periodic_hepa_model.room, t) for t in ts]
-    assert all(ae == (0 if t * 60 % 120 < 105 else 514.74) for ae, t in zip(aes, ts))
+    answers = [0, 0, 0, 0, 0, 0, 0, 514.74 / 75, 0]
+    npt.assert_allclose(aes, answers, rtol=1e-5)
