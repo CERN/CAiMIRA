@@ -1,4 +1,3 @@
-import numpy as np
 import numpy.testing as npt
 import pytest
 
@@ -59,7 +58,7 @@ def baseline_periodic_hepa():
     return models.PeriodicHEPA(period=120, duration=15, q_air_mech=514.74)
 
 
-def test_r0(baseline_model):
+def test_concentrations(baseline_model):
     ts = [0, 4, 5, 7, 10]
     concentrations = [baseline_model.concentration(t) for t in ts]
     npt.assert_allclose(
@@ -67,6 +66,11 @@ def test_r0(baseline_model):
         [0.000000e+00, 2.891970e-01, 1.266287e-04, 2.891969e-01, 5.544607e-08],
         rtol=1e-5
     )
+
+
+def test_r0(baseline_model):
+    p = baseline_model.infection_probability()
+    npt.assert_allclose(p, 93.196908)
 
 
 def test_periodic_window(baseline_periodic_window, baseline_room):

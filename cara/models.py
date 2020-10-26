@@ -132,7 +132,7 @@ class Mask:
     def exhale_efficiency(self):
         # Overall efficiency with the effect of the leaks for aerosol emission
         #  Gammaitoni et al (1997)
-        return self.η_exhale - (self.η_exhale * self.η_leaks)
+        return self.η_exhale * (1 - self.η_leaks)
 
 
 Mask.types = {
@@ -294,3 +294,27 @@ class Model:
             end_concentration = self.concentration(t1)
             fac = np.exp(IVRR * (t1 - t))
             return end_concentration * fac
+
+    def infection_probability(self):
+        # Infection probability
+        # Probability of COVID-19 Infection
+
+        exposure = 0.0  # q/m3*h
+
+        def integrate(fn, start, stop):
+            values = np.linspace(start, stop)
+            return np.trapz([fn(v) for v in values], values)
+
+        # TODO: Have this for exposed not infected.
+        for start, stop in self.infected.present_times:
+            exposure += (integrate(self.concentration, start, stop))
+
+        inf_aero = (
+            self.exposed_activity.inhalation_rate *
+            (1 - self.infected.mask.η_inhale) *
+            exposure
+        )
+
+        # Probability of infection.
+        return (1 - np.exp(-inf_aero)) * 100
+
