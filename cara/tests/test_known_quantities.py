@@ -1,6 +1,6 @@
+import numpy as np
 import numpy.testing as npt
 import pytest
-from numpy import linspace
 
 import cara.models as models
 
@@ -60,7 +60,6 @@ def baseline_periodic_hepa():
 
 
 def test_r0(baseline_model):
-    saturated = 2.909312e-01
     ts = [0, 4, 5, 7, 10]
     concentrations = [baseline_model.concentration(t) for t in ts]
     npt.assert_allclose(
@@ -71,14 +70,18 @@ def test_r0(baseline_model):
 
 
 def test_periodic_window(baseline_periodic_window, baseline_room):
-    ts = linspace(0, 9 * 60, 9)
+    # Interesting transition times for a period of 120 and duration of 15.
+    ts = [0, 14/60, 15/60, 16/60, 119/60, 120/60, 121/60, 239/60, 240/60]
     aes = [baseline_periodic_window.air_exchange(baseline_room, t) for t in ts]
-    answers = [0, 0, 0, 0, 0, 0, 0, 514.76 / 75, 0]
+    rate = 6.86347
+    answers = [0, 0, 0, 0, rate, 0, 0, rate, 0]
     npt.assert_allclose(aes, answers, rtol=1e-5)
 
 
 def test_periodic_hepa(baseline_periodic_hepa, baseline_room):
-    ts = linspace(0, 9 * 60, 9)
+    # Interesting transition times for a period of 120 and duration of 15.
+    ts = [0, 14 / 60, 15 / 60, 16 / 60, 119 / 60, 120 / 60, 121 / 60, 239 / 60, 240 / 60]
+    rate = 514.74 / 75
     aes = [baseline_periodic_hepa.air_exchange(baseline_room, t) for t in ts]
-    answers = [0, 0, 0, 0, 0, 0, 0, 514.74 / 75, 0]
+    answers = [0, 0, 0, 0, rate, 0, 0, rate, 0]
     npt.assert_allclose(aes, answers, rtol=1e-5)
