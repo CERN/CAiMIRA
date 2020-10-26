@@ -189,11 +189,27 @@ def test_DCS_named():
         s.dcs_update_from(opt2)
 
     s.dcs_select('option 2')
+    opt1_observer.assert_called_once_with()
+    opt1_observer.reset_mock()
 
     s.dcs_update_from(opt2)
     assert s.dcs_instance() == opt2
     # We can't observe individual states directly.
     opt1_observer.assert_called_once_with()
+
+    # Roll back to option 1.
+    s.dcs_select('option 1')
+    opt1_observer.reset_mock()
+
+    # ASDA
+    with s.dcs_state_transaction():
+        s.dcs_select('option 2')
+        s.dcs_update_from(opt2)
+    # TODO: Currently calls twice.
+    # opt1_observer.assert_called_once_with()
+    opt1_observer.reset_mock()
+
+    assert s.dcs_instance() == opt2
 
     s.dcs_select('option 1')
     assert s.dcs_instance() == opt1

@@ -373,3 +373,15 @@ class DataclassStateNamed(DataclassState):
 
     def dcs_set_instance_type(self, instance_dataclass: Datamodel_T):
         return self._selected_state().dcs_set_instance_type(instance_dataclass)
+
+    @contextmanager
+    def dcs_state_transaction(self):
+        orig = [s._hold_fire for s in self._states.values()]
+        for s in self._states.values():
+            s._hold_fire = True
+        yield
+        for orig_hold, s in zip(orig, self._states.values()):
+            s._hold_fire = orig_hold
+            if s._held_events:
+                s._held_events.clear()
+                s._fire_observers()
