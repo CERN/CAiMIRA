@@ -214,8 +214,7 @@ class WidgetView:
         mask_choice = widgets.Select(options=list(models.Mask.types.keys()), value=name)
 
         def on_mask_change(change):
-            mask = models.Mask.types[change['new']]
-            node.dcs_update_from(mask)
+            node.dcs_select(change['new'])
         mask_choice.observe(on_mask_change, names=['value'])
 
         return widget_group(
@@ -322,6 +321,10 @@ class ExpertApplication:
             state_builder=CARAStateBuilder(),
         )
         self.model_state.dcs_update_from(baseline_model)
+        # For the time-being, we have to initialise the select states. Careful
+        # as values might not correspond to what the baseline model says.
+        self.model_state.infected.mask.dcs_select('No mask')
+
         self.view = WidgetView(self.model_state)
 
     @property

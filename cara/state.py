@@ -294,6 +294,7 @@ class DataclassStatePredefined(DataclassInstanceState):
             raise ValueError(f'The choice {name} is not valid. Possible options are {", ".join(self._choices)}')
         self._selected = name
         self._instance = self._choices[name]
+        self._fire_observers()
 
     def dcs_instance(self):
         return self._choices[self._selected]
@@ -351,7 +352,7 @@ class DataclassStateNamed(DataclassState):
         if name not in self._states:
             raise ValueError(f'The choice {name} is not valid. Possible options are {", ".join(self._states)}')
         self._selected = name
-        self._selected_state()._fire_observers()
+        self._fire_observers()
 
     def _selected_state(self):
         return self._states[self._selected]

@@ -158,6 +158,11 @@ def test_DCS_predefined():
     s.dcs_update_from(opt1)
     assert s.dcs_instance() == opt2
 
+    observer = Mock()
+    s.dcs_observe(observer)
+    s.dcs_select('option 1')
+    observer.assert_called_once_with()
+
 
 def test_DCS_named():
     opt1 = DCSimpleSubclass('a', 1, 3.14)
@@ -201,7 +206,6 @@ def test_DCS_named():
     s.dcs_select('option 1')
     opt1_observer.reset_mock()
 
-    # ASDA
     with s.dcs_state_transaction():
         s.dcs_select('option 2')
         s.dcs_update_from(opt2)
