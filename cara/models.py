@@ -287,9 +287,8 @@ class Model:
         elif t0 < t <= t1:
             # Concentration while infected present.
             init_concentration = self.concentration(t0)
-            time_present = t - t0
-            fac = np.exp(-IVRR * time_present)
-            return ((ER + Ni) / (IVRR * V)) * (1 - fac) + init_concentration * fac
+            fac = np.exp(IVRR * (t0 - t))
+            return ((ER * Ni) / (IVRR * V)) * (1 - fac) + init_concentration * fac
         else:
             # Concentration while infected not present.
             end_concentration = self.concentration(t1)
