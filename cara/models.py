@@ -266,6 +266,13 @@ class Model:
 
         return k + self.virus.decay_constant + self.ventilation.air_exchange(self.room, time)
 
+    def collect_time_state_changes(self):
+        """
+        All time dependent entities on this model must provide information about
+        the times at which their state changes.
+
+        """
+
     @functools.lru_cache()
     def concentration(self, time: float) -> float:
         t = time
@@ -286,4 +293,5 @@ class Model:
         else:
             # Concentration while infected not present.
             end_concentration = self.concentration(t1)
-            return (end_concentration + ((np.exp(IVRR * t1) - 1) * end_concentration)) * np.exp(-IVRR * t)
+            fac = np.exp(IVRR * (t1 - t))
+            return end_concentration * fac
