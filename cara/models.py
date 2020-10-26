@@ -70,6 +70,9 @@ class PeriodicHEPA(Ventilation):
     def air_exchange(self, room: Room, time: float) -> float:
         # Returns the rate at which air is being exchanged in the given room per cubic meter at a given time
 
+        period = self.period / 60.
+        duration = self.duration / 60.
+
         # If the HEPA is off, no air is being exchanged
         if time % self.period < (self.period - self.duration):
             return 0

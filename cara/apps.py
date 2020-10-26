@@ -1,3 +1,4 @@
+import dataclasses
 import typing
 import uuid
 
@@ -239,8 +240,8 @@ class WidgetView:
 
     def _build_ventilation(self, node):
         ventilation_widgets = {
-            'Natural': self._build_window(node),
-            # 'HEPA': self._build_hepa(node)
+            'Natural': self._build_window(node._states['Natural']),
+            'HEPA': self._build_hepa(node._states['HEPA']),
         }
         for name, widget in ventilation_widgets.items():
             widget.layout.visible = False
@@ -252,10 +253,9 @@ class WidgetView:
         def toggle_ventilation(value):
             for name, widget in ventilation_widgets.items():
                 widget.layout.display = 'none'
-            # if value == 'Natural':
-            #     node.dcs_update_from(models.PeriodicWindow())
-            # elif value == 'HEPA':
-            #     node.dcs_update_from(models.PeriodicHEPA())
+
+            node.dcs_select(value)
+
             widget = ventilation_widgets[value]
             widget.layout.visible = True
             widget.layout.display = 'block'
@@ -293,9 +293,34 @@ baseline_model = models.Model(
 )
 
 
+class CARAStateBuilder(state.StateBuilder):
+    def build_type_Mask(self, _: dataclasses.Field):
+        return state.DataclassStatePredefined(
+            models.Mask,
+            choices=models.Mask.types,
+        )
+
+    def build_type_Ventilation(self, _: dataclasses.Field):
+        s = state.DataclassStateNamed(
+            states={
+                'Natural': self.build_generic(models.PeriodicWindow),
+                'HEPA': self.build_generic(models.PeriodicHEPA),
+            },
+            state_builder=self,
+        )
+        # Initialise the HEPA state
+        s._states['HEPA'].dcs_update_from(
+            models.PeriodicHEPA(120, 120, 500.)
+        )
+        return s
+
+
 class ExpertApplication:
     def __init__(self):
-        self.model_state = state.DataclassState(models.Model)
+        self.model_state = state.DataclassInstanceState(
+            models.Model,
+            state_builder=CARAStateBuilder(),
+        )
         self.model_state.dcs_update_from(baseline_model)
         self.view = WidgetView(self.model_state)
 
