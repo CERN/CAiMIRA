@@ -77,7 +77,6 @@ class WidgetView:
         self.widget = widgets.VBox([])
         self.widgets = {}
         self.out = widgets.Output()
-        self.widget.children += (self.out, )
         self.plots = []
         self.construct_widgets()
         # Trigger the first result.
@@ -95,6 +94,7 @@ class WidgetView:
         self.widgets['results'] = collapsible([
             widgets.HBox([
                 concentration.figure.canvas,
+                self.out,
             ])
         ], 'Results', start_collapsed=False)
 
@@ -108,6 +108,17 @@ class WidgetView:
         model = self.model_state.dcs_instance()
         for plot in self.plots:
             plot.update(model)
+
+        self.out.clear_output()
+        with self.out:
+            P = model.infection_probability()
+            print(f'Emission rate (quanta/hr): {model.infected.emission_rate(0)}')
+            print(f'Probability of infection: {np.round(P, 0)}%')
+
+            print(f'Number of exposed: {model.exposed_occupants}')
+            R0 = np.round(P / 100 * model.exposed_occupants, 1)
+            print(f'Number of expected new cases (R0): {R0}')
+
 
     def _build_widget(self, node):
         self.widget.children += (self._build_room(node.room),)
