@@ -64,7 +64,7 @@ def test_r0(baseline_model):
     concentrations = [baseline_model.concentration(t) for t in ts]
     npt.assert_allclose(
         concentrations,
-        [0.000000e+00, 2.909211e-01, 1.273836e-04, 2.909210e-01, 5.577662e-08],
+        [0.000000e+00, 2.891970e-01, 1.266287e-04, 2.891969e-01, 5.544607e-08],
         rtol=1e-5
     )
 
