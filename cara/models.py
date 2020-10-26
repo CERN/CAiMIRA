@@ -74,7 +74,7 @@ class PeriodicHEPA(Ventilation):
         duration = self.duration / 60.
 
         # If the HEPA is off, no air is being exchanged
-        if time % self.period < (self.period - self.duration):
+        if (time % period) < (period - duration):
             return 0
 
         return self.q_air_mech / room.volume
