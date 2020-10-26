@@ -40,7 +40,7 @@ class ConcentrationFigure:
             [self.line] = self.ax.plot(ts, concentration)
             ax = self.ax
 
-            ax.text(0.5, 0.9, 'Without masks & window open', transform=ax.transAxes, ha='center')
+            # ax.text(0.5, 0.9, 'Without masks & window open', transform=ax.transAxes, ha='center')
 
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
@@ -49,8 +49,9 @@ class ConcentrationFigure:
             ax.set_ylabel('Concentration ($q/m^3$)')
             ax.set_title('Concentration of infectious quanta aerosols')
             ax.set_ymargin(0.2)
-            ax.set_ylim(bottom=0)
+            # ax.set_ylim(bottom=0)
         else:
+            self.ax.ignore_existing_data_limits = True
             self.line.set_data(ts, concentration)
             self.ax.relim()
             self.ax.autoscale_view()
@@ -74,6 +75,8 @@ class WidgetView:
         #: The widgets that this view produces (inputs and outputs together)
         self.widget = widgets.VBox([])
         self.widgets = {}
+        self.out = widgets.Output()
+        self.widget.children += (self.out, )
         self.plots = []
         self.construct_widgets()
         # Trigger the first result.
@@ -106,26 +109,35 @@ class WidgetView:
             plot.update(model)
 
     def _build_widget(self, node):
-        if isinstance(node, state.DataclassState):
-            if node._base == models.Ventilation:
-                self.widget.children += (self._build_ventilation(node), )
-            elif node._base == models.Room:
-                self.widget.children += (self._build_room(node), )
-            else:
-                # Don't do anything with this state, but recurse down in case
-                # its children want widgets.
-                for name, child in node._data.items():
-                    self._build_widget(child)
+        self.widget.children += (self._build_room(node.room),)
+        self.widget.children += (self._build_ventilation(node.ventilation),)
+        self.widget.children += (self._build_infected(node.infected),)
+        self.widget.children += (self._build_exposed(node),)
+
+    def _build_exposed(self, node):
+        return collapsible(
+            [self._build_activity(node.exposed_activity)],
+            title="Exposed"
+        )
+
+    def _build_infected(self, node):
+        return collapsible([widgets.HBox([
+            self._build_mask(node.mask),
+            self._build_activity(node.activity),
+            self._build_expiration(node.expiration),
+        ])], title="Infected")
 
     def _build_room(self, node):
         room_volume = widgets.IntSlider(value=node.volume, min=10, max=150)
-        mask_used = widgets.Checkbox(value=True, description='Mask worn')
 
         def on_value_change(change):
             node.volume = change['new']
 
         # TODO: Link the state back to the widget, not just the other way around.
         room_volume.observe(on_value_change, names=['value'])
+        def on_state_change():
+            room_volume.value = node.volume
+        node.dcs_observe(on_state_change)
 
         widget = collapsible(
             [widget_group(
@@ -135,10 +147,100 @@ class WidgetView:
         )
         return widget
 
+    def _build_window(self, node):
+        period = widgets.IntSlider(value=node.period, min=0, max=240)
+        interval = widgets.IntSlider(value=node.duration, min=0, max=240)
+
+        def on_period_change(change):
+            node.period = change['new']
+
+        def on_interval_change(change):
+            node.duration = change['new']
+
+        # TODO: Link the state back to the widget, not just the other way around.
+        period.observe(on_period_change, names=['value'])
+        interval.observe(on_interval_change, names=['value'])
+
+        return widget_group(
+                [
+                    [widgets.Label('Open every n minutes'), period],
+                    [widgets.Label('For how long'), interval],
+                 ]
+            )
+
+    def _build_hepa(self, node):
+        period = widgets.IntSlider(value=node.period, min=0, max=240)
+        interval = widgets.IntSlider(value=node.duration, min=0, max=240)
+
+        def on_period_change(change):
+            node.period = change['new']
+
+        def on_interval_change(change):
+            node.duration = change['new']
+
+        # TODO: Link the state back to the widget, not just the other way around.
+        period.observe(on_period_change, names=['value'])
+        interval.observe(on_interval_change, names=['value'])
+
+        return widget_group(
+                [
+                    [widgets.Label('On every n minutes'), period],
+                    [widgets.Label('For how long'), interval],
+                 ]
+            )
+
+    def _build_activity(self, node):
+        activity = node.dcs_instance()
+        for name, activity_ in models.Activity.types.items():
+            if activity == activity_:
+                break
+        activity = widgets.Select(options=list(models.Activity.types.keys()), value=name)
+
+        def on_activity_change(change):
+            act = models.Activity.types[change['new']]
+            node.dcs_update_from(act)
+        activity.observe(on_activity_change, names=['value'])
+
+        return widget_group(
+            [[widgets.Label("Activity"), activity]]
+        )
+
+    def _build_mask(self, node):
+        mask = node.dcs_instance()
+        for name, mask_ in models.Mask.types.items():
+            if mask == mask_:
+                break
+        mask_choice = widgets.Select(options=list(models.Mask.types.keys()), value=name)
+
+        def on_mask_change(change):
+            mask = models.Mask.types[change['new']]
+            node.dcs_update_from(mask)
+        mask_choice.observe(on_mask_change, names=['value'])
+
+        return widget_group(
+            [[widgets.Label("Mask"), mask_choice]]
+        )
+
+    def _build_expiration(self, node):
+        expiration = node.dcs_instance()
+        for name, expiration_ in models.Expiration.types.items():
+            if expiration == expiration_:
+                break
+        expiration_choice = widgets.Select(options=list(models.Expiration.types.keys()), value=name)
+
+        def on_expiration_change(change):
+            expiration = models.Expiration.types[change['new']]
+            node.dcs_update_from(expiration)
+        expiration_choice.observe(on_expiration_change, names=['value'])
+
+        return widget_group(
+            [[widgets.Label("Expiration"), expiration_choice]]
+        )
+
     def _build_ventilation(self, node):
         ventilation_widgets = {
-            'Natural': widgets.Label('Currently hard-coded to window-example from mathematica notebook'),
-            'other': widgets.Label('Not yet implemented.')
+            'Natural': self._build_window(node),
+            # 'HEPA': self._build_hepa(node)
         }
         for name, widget in ventilation_widgets.items():
             widget.layout.visible = False
@@ -150,8 +252,11 @@ class WidgetView:
         def toggle_ventilation(value):
             for name, widget in ventilation_widgets.items():
                 widget.layout.display = 'none'
-            other = ventilation_widgets['other']
-            widget = ventilation_widgets.get(value, other)
+            # if value == 'Natural':
+            #     node.dcs_update_from(models.PeriodicWindow())
+            # elif value == 'HEPA':
+            #     node.dcs_update_from(models.PeriodicHEPA())
+            widget = ventilation_widgets[value]
             widget.layout.visible = True
             widget.layout.display = 'block'
 
@@ -191,11 +296,8 @@ baseline_model = models.Model(
 class ExpertApplication:
     def __init__(self):
         self.model_state = state.DataclassState(models.Model)
-        self.model_state.dcs_update_from(
-            baseline_model
-        )
+        self.model_state.dcs_update_from(baseline_model)
         self.view = WidgetView(self.model_state)
-        # self._widget = widgets.Text("WIP")
 
     @property
     def widget(self):

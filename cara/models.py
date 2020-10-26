@@ -21,7 +21,11 @@ class Ventilation:
 
     @abstractmethod
     def air_exchange(self, room: Room, time: float) -> float:
-        # Returns the rate at which air is being exchanged in the given room per cubic meter at a given time
+        """
+        Returns the rate at which air is being exchanged in the given room per
+        cubic meter at a given time (in hours).
+
+        """
         pass
 
 
@@ -42,10 +46,11 @@ class PeriodicWindow(Ventilation):
     cd_b: float = 0.6   #: Discharge coefficient: what portion effective area is used to exchange air (0 <= cd_b <= 1)
 
     def air_exchange(self, room: Room, time: float) -> float:
+        period = self.period / 60.
+        duration = self.duration / 60.
         # Returns the rate at which air is being exchanged in the given room per cubic meter at a given time
-
         # If the window is closed, no air is being exchanged
-        if time % self.period < (self.period - self.duration):
+        if (time % period) < (period - duration):
             return 0
 
         root = np.sqrt(9.81 * self.window_height * (abs(self.inside_temp - self.outside_temp)) / self.outside_temp)

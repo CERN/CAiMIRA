@@ -79,6 +79,8 @@ class DataclassState:
             self._data = {}
             self._observers: typing.List[callable] = []
             self._state_builder = state_builder
+            self._held_events = []
+            self._hold_fire = False
 
         self.dcs_set_instance_type(dataclass)
 
@@ -91,22 +93,36 @@ class DataclassState:
     def dcs_observe(self, callback: typing.Callable):
         self._observers.append(callback)
 
+    @contextmanager
+    def dcs_state_transaction(self):
+        self._hold_fire = True
+        yield
+        self._hold_fire = False
+        if self._held_events:
+            self._held_events.clear()
+            self._fire_observers()
+
     def dcs_update_from(self, data: dataclass_instance):
-        self.dcs_set_instance_type(data.__class__)
-        for field in dataclasses.fields(data):
-            attr = field.name
-            current_value = self._data.get(attr, None)
-            new_value = getattr(data, attr)
-            if dataclasses.is_dataclass(field.type):
-                assert isinstance(current_value, DataclassState)
-                current_value.dcs_update_from(new_value)
-            else:
-                self._data[attr] = new_value
+        with self.dcs_state_transaction():
+            self.dcs_set_instance_type(data.__class__)
+            for field in dataclasses.fields(data):
+                attr = field.name
+                current_value = self._data.get(attr, None)
+                new_value = getattr(data, attr)
+                if dataclasses.is_dataclass(field.type):
+                    assert isinstance(current_value, DataclassState)
+                    current_value.dcs_update_from(new_value)
+                else:
+                    self._data[attr] = new_value
+            self._fire_observers()
 
     def _fire_observers(self):
-        self._instance = None
-        for observer in self._observers:
-            observer()
+        if self._hold_fire:
+            self._held_events.append(True)
+        else:
+            self._instance = None
+            for observer in self._observers:
+                observer()
 
     @contextmanager
     def _object_setattr(self):
