@@ -49,13 +49,13 @@ class ConcentrationFigure:
             ax.set_xlabel('Time (hours)')
             ax.set_ylabel('Concentration ($q/m^3$)')
             ax.set_title('Concentration of infectious quanta aerosols')
-            ax.set_ymargin(0.2)
-            # ax.set_ylim(bottom=0)
         else:
             self.ax.ignore_existing_data_limits = True
             self.line.set_data(ts, concentration)
-            self.ax.relim()
-            self.ax.autoscale_view()
+        # Update the top limit based on the concentration if it exceeds 5
+        # (rare but possible).
+        top = max([3, max(concentration)])
+        self.ax.set_ylim(bottom=1e-4, top=top)
         self.figure.canvas.draw()
 
 
@@ -160,14 +160,14 @@ class WidgetView:
         return widget
 
     def _build_window(self, node):
-        period = widgets.IntSlider(value=node.period, min=0, max=240)
-        interval = widgets.IntSlider(value=node.duration, min=0, max=240)
+        period = widgets.IntSlider(value=node.active.period, min=0, max=240)
+        interval = widgets.IntSlider(value=node.active.duration, min=0, max=240)
 
         def on_period_change(change):
-            node.period = change['new']
+            node.active.period = change['new']
 
         def on_interval_change(change):
-            node.duration = change['new']
+            node.active.duration = change['new']
 
         # TODO: Link the state back to the widget, not just the other way around.
         period.observe(on_period_change, names=['value'])
@@ -181,14 +181,14 @@ class WidgetView:
             )
 
     def _build_hepa(self, node):
-        period = widgets.IntSlider(value=node.period, min=0, max=240)
-        interval = widgets.IntSlider(value=node.duration, min=0, max=240)
+        period = widgets.IntSlider(value=node.active.period, min=0, max=240, step=5)
+        interval = widgets.IntSlider(value=node.active.duration, min=0, max=240, step=5)
 
         def on_period_change(change):
-            node.period = change['new']
+            node.active.period = change['new']
 
         def on_interval_change(change):
-            node.duration = change['new']
+            node.active.duration = change['new']
 
         # TODO: Link the state back to the widget, not just the other way around.
         period.observe(on_period_change, names=['value'])
@@ -286,13 +286,14 @@ class WidgetView:
 
 baseline_model = models.Model(
     room=models.Room(volume=75),
-    ventilation=models.PeriodicWindow(
-        period=120, duration=120, inside_temp=293, outside_temp=283, cd_b=0.6,
+    ventilation=models.WindowOpening(
+        active=models.PeriodicInterval(period=120, duration=120),
+        inside_temp=293, outside_temp=283, cd_b=0.6,
         window_height=1.6, opening_length=0.6,
     ),
     infected=models.InfectedPerson(
         virus=models.Virus.types['SARS_CoV_2'],
-        present_times=((0, 4), (5, 8)),
+        presence=models.SpecificInterval(((0, 4), (5, 8))),
         mask=models.Mask.types['No mask'],
         activity=models.Activity.types['Light exercise'],
         expiration=models.Expiration.types['Unmodulated Vocalization'],
@@ -313,14 +314,14 @@ class CARAStateBuilder(state.StateBuilder):
     def build_type_Ventilation(self, _: dataclasses.Field):
         s = state.DataclassStateNamed(
             states={
-                'Natural': self.build_generic(models.PeriodicWindow),
-                'HEPA': self.build_generic(models.PeriodicHEPA),
+                'Natural': self.build_generic(models.WindowOpening),
+                'HEPA': self.build_generic(models.HEPAFilter),
             },
             state_builder=self,
         )
         # Initialise the HEPA state
         s._states['HEPA'].dcs_update_from(
-            models.PeriodicHEPA(120, 120, 500.)
+            models.HEPAFilter(models.PeriodicInterval(120, 120), 500.)
         )
         return s
 
