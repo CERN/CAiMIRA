@@ -21,6 +21,11 @@ class Interval:
     The "thing" may be when an action is taken, such as opening a window, or
     entering a room.
 
+    Note that all intervals are closed at the start, and open at the end. So a
+    simple start, stop interval follows::
+
+        start < t <= end
+
     """
     def triggered(self, time: float) -> bool:
         """Whether the given time falls inside this interval."""
@@ -29,6 +34,27 @@ class Interval:
     def boundaries(self) -> typing.Set[float]:
         """Returns the edges of this interval."""
         return set()
+
+
+@dataclass(frozen=True)
+class SpecificInterval(Interval):
+    #: A sequence of times (start, stop), in hours, that the infected person
+    #: is present. The flattened list of times must be strictly monotonically
+    #: increasing.
+    present_times: typing.Tuple[typing.Tuple[float, float], ...]
+
+    def triggered(self, time: float) -> bool:
+        for start, end in self.present_times:
+            if start < time <= end:
+                return True
+        return False
+
+    def boundaries(self) -> typing.Set[float]:
+        state_changes = set()
+        for start, end in self.present_times:
+            state_changes.add(start)
+            state_changes.add(end)
+        return state_changes
 
 
 @dataclass(frozen=True)
@@ -53,34 +79,11 @@ class PeriodicInterval(Interval):
                 return True
         return False
 
-        if self.duration >= self.period:
-            return True
-        if self.duration == 0:
-            return False
-
-        period = self.period / 60.
-        duration = self.duration / 60.
-        t = time % period
-        return 0 <= t < duration
-
     def boundaries(self) -> typing.Set[float]:
         state_changes = set()
         for start, end in self.states():
             state_changes.add(start)
             state_changes.add(end)
-        return state_changes
-
-        if self.duration >= self.period:
-            return set()
-        if self.duration == 0:
-            return set()
-        state_changes = set()
-        period_h = self.period / 60
-        duration_h = self.duration / 60
-        # Take as many steps as we need to get to a full day.
-        for i in np.arange(0, 24, period_h):
-            state_changes.add(i)
-            state_changes.add(i + duration_h)
         return state_changes
 
 
@@ -273,30 +276,14 @@ Activity.types = {
 @dataclass(frozen=True)
 class InfectedPerson:
     virus: Virus
-    #: A sequence of times (start, stop), in hours, that the infected person
-    #: is present. The flattened list of times must be strictly monotonically
-    #: increasing.
-    present_times: typing.Tuple[typing.Tuple[float, float], ...]
+    #: The times in which the person is in the room.
+    presence: Interval
     mask: Mask
     activity: Activity
     expiration: Expiration
 
     def person_present(self, time):
-        for start, end in self.present_times:
-            if start < time <= end:
-                return True
-        return False
-
-    # def start_end_of_presence(self, time) -> typing.Tuple[float, float]:
-    #     """
-    #     Find the most recent start (and associated) end-time (even if the
-    #     given time is after the end-point) given a time.
-    #
-    #     """
-    #     for start, end in self.present_times[::-1]:
-    #         if time > start:
-    #             return start, end
-    #     return start, end
+        return self.presence.triggered(time)
 
     @functools.lru_cache()
     def emission_rate(self, time) -> float:
@@ -350,9 +337,10 @@ class Model:
 
         """
         state_change_times = set()
-        for start, end in self.infected.present_times:
-            state_change_times.add(start)
-            state_change_times.add(end)
+        # for start, end in self.infected.present_times:
+        #     state_change_times.add(start)
+        #     state_change_times.add(end)
+        state_change_times.update(self.infected.presence.boundaries())
         state_change_times.update(self.ventilation.times_of_state_change())
         return sorted(state_change_times)
 
@@ -394,7 +382,7 @@ class Model:
             return np.trapz([fn(v) for v in values], values)
 
         # TODO: Have this for exposed not infected.
-        for start, stop in self.infected.present_times:
+        for start, stop in self.infected.presence.present_times:
             exposure += (integrate(self.concentration, start, stop))
 
         inf_aero = (

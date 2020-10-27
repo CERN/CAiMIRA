@@ -34,8 +34,8 @@ class ConcentrationFigure:
         self.line = None
 
     def update(self, model: models.Model):
-        resolution = 500
-        ts = np.linspace(0, 9.09, resolution)
+        resolution = 600
+        ts = np.linspace(0, 10, resolution)
         concentration = [model.concentration(t) for t in ts]
         if self.line is None:
             [self.line] = self.ax.plot(ts, concentration)
@@ -298,7 +298,7 @@ baseline_model = models.Model(
     ),
     infected=models.InfectedPerson(
         virus=models.Virus.types['SARS_CoV_2'],
-        present_times=((0, 4), (5, 8)),
+        presence=models.SpecificInterval(((0, 4), (5, 8))),
         mask=models.Mask.types['No mask'],
         activity=models.Activity.types['Light exercise'],
         expiration=models.Expiration.types['Unmodulated Vocalization'],

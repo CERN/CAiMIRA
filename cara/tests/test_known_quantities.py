@@ -34,7 +34,7 @@ def baseline_model():
         ),
         infected=models.InfectedPerson(
             virus=models.Virus.types['SARS_CoV_2'],
-            present_times=((0, 4), (5, 8)),
+            presence=models.SpecificInterval(((0, 4), (5, 8))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light exercise'],
             expiration=models.Expiration.types['Unmodulated Vocalization'],
@@ -97,7 +97,7 @@ def build_model(interval_duration):
         ),
         infected=models.InfectedPerson(
             virus=models.Virus.types['SARS_CoV_2'],
-            present_times=((0, 4), (5, 8)),
+            presence=models.SpecificInterval(((0, 4), (5, 8))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light exercise'],
             expiration=models.Expiration.types['Unmodulated Vocalization'],
