@@ -14,10 +14,67 @@ class Room:
 
 
 @dataclass(frozen=True)
+class Interval:
+    """
+    Represents a collection of times in which a "thing" happens.
+
+    The "thing" may be when an action is taken, such as opening a window, or
+    entering a room.
+
+    """
+    def triggered(self, time: float) -> bool:
+        """Whether the given time falls inside this interval."""
+        return False
+
+    def boundaries(self) -> typing.Set[float]:
+        """Returns the edges of this interval."""
+        return set()
+
+
+@dataclass(frozen=True)
+class PeriodicInterval(Interval):
+    #: How often does the interval occur.
+    period: int
+
+    #: How long does the interval occur for.
+    #: A value greater than :data:`period` signifies the event is permanently
+    #: occurring, a value of 0 signifies that the event never happens.
+    duration: int
+
+    def triggered(self, time: float) -> bool:
+        period = self.period / 60.
+        duration = self.duration / 60.
+        return (time % period) >= (period - duration)
+
+    def boundaries(self) -> typing.Set[float]:
+        state_changes = set()
+        period_h = self.period / 60
+        duration_h = self.duration / 60
+        # The current implementation starts at the end of the first period, not at 0.
+        start = period_h
+        # Take as many steps as we need to get to a full day.
+        for i in np.arange(start, 24, period_h):
+            state_changes.add(i)
+            if duration_h < period_h:
+                state_changes.add(i - duration_h)
+
+        return state_changes
+
+
+@dataclass(frozen=True)
 class Ventilation:
     """
-    An abstract class for ventilation schemes
+    Represents a mechanism by which air can be exchanged (replaced/filtered)
+    in a time dependent manner.
+
+    The nature of the various air exchange schemes means that it is expected
+    for subclasses of Ventilation to exist. Known subclasses include
+    WindowOpening for window based air exchange, and HEPAFilter, for
+    mechanical air exchange through a filter.
+
     """
+    #: The times at which the air exchange is taking place.
+    active: Interval
 
     @abstractmethod
     def air_exchange(self, room: Room, time: float) -> float:
@@ -26,15 +83,20 @@ class Ventilation:
         cubic meter at a given time (in hours).
 
         """
-        pass
+        return 0.
+
+    def times_of_state_change(self) -> typing.Set[float]:
+        """
+        Returns the times at which a change in ventilation occurs.
+
+        """
+        return self.active.boundaries()
 
 
 @dataclass(frozen=True)
-class PeriodicWindow(Ventilation):
-
-    # The window is opened for <duration> minutes every <period> minutes
-    period: int   #: How often the window is opened (minutes)
-    duration: int   #: How long the window remains opened for (minutes)
+class WindowOpening(Ventilation):
+    #: The interval in which the window is open.
+    active: Interval
 
     inside_temp: float   #: The temperature inside the room (Kelvin)
     outside_temp: float   #: The temperature outside of the window (Kelvin)
@@ -46,36 +108,27 @@ class PeriodicWindow(Ventilation):
     cd_b: float = 0.6   #: Discharge coefficient: what portion effective area is used to exchange air (0 <= cd_b <= 1)
 
     def air_exchange(self, room: Room, time: float) -> float:
-        period = self.period / 60.
-        duration = self.duration / 60.
-        # Returns the rate at which air is being exchanged in the given room per cubic meter at a given time
-        # If the window is closed, no air is being exchanged
-        if (time % period) < (period - duration):
-            return 0
+        # If the window is shut, no air is being exchanged.
+        if not self.active.triggered(time):
+            return 0.
 
-        root = np.sqrt(9.81 * self.window_height * (abs(self.inside_temp - self.outside_temp)) / self.outside_temp)
+        temp_delta = abs(self.inside_temp - self.outside_temp) / self.outside_temp
+        root = np.sqrt(9.81 * self.window_height * temp_delta)
 
         return (3600 / (3 * room.volume)) * self.cd_b * self.window_height * self.opening_length * root
 
 
 @dataclass(frozen=True)
-class PeriodicHEPA(Ventilation):
-
-    # The HEPA is switched on for <duration> minutes every <period> minutes
-    period: int   #: How often the HEPA is switched on (minutes)
-    duration: int   #: How long the HEPA remains switched on for (minutes)
+class HEPAFilter(Ventilation):
+    #: The interval in which the HEPA filter is operating.
+    active: Interval
 
     q_air_mech: float   #: The rate at which the HEPA exchanges air (when switched on)
 
     def air_exchange(self, room: Room, time: float) -> float:
-        # Returns the rate at which air is being exchanged in the given room per cubic meter at a given time
-
-        period = self.period / 60.
-        duration = self.duration / 60.
-
-        # If the HEPA is off, no air is being exchanged
-        if (time % period) < (period - duration):
-            return 0
+        # If the HEPA is off, no air is being exchanged.
+        if not self.active.triggered(time):
+            return 0.
 
         return self.q_air_mech / room.volume
 
@@ -266,12 +319,29 @@ class Model:
 
         return k + self.virus.decay_constant + self.ventilation.air_exchange(self.room, time)
 
+    @functools.lru_cache()
     def collect_time_state_changes(self):
         """
         All time dependent entities on this model must provide information about
         the times at which their state changes.
 
         """
+        state_change_times = set()
+        for start, end in self.infected.present_times:
+            state_change_times.add(start)
+            state_change_times.add(end)
+        state_change_times.update(self.ventilation.times_of_state_change())
+        return sorted(state_change_times)
+
+    def last_state_change(self, time: float):
+        """
+        Find the most recent state change.
+
+        """
+        for change_time in self.collect_time_state_changes()[::-1]:
+            if time >= change_time:
+                return change_time
+        return 0
 
     @functools.lru_cache()
     def concentration(self, time: float) -> float:
@@ -280,20 +350,17 @@ class Model:
         V = self.room.volume
         Ni = self.infected_occupants
         ER = self.infected.emission_rate(time)
-        t0, t1 = self.infected.start_end_of_presence(time)
-
         if t == 0:
             return 0.0
-        elif t0 < t <= t1:
-            # Concentration while infected present.
-            init_concentration = self.concentration(t0)
-            fac = np.exp(IVRR * (t0 - t))
-            return ((ER * Ni) / (IVRR * V)) * (1 - fac) + init_concentration * fac
+        t_last_state_change = self.last_state_change(time)
+        if t != t_last_state_change:
+            concentration_at_last_state_change = self.concentration(t_last_state_change)
         else:
-            # Concentration while infected not present.
-            end_concentration = self.concentration(t1)
-            fac = np.exp(IVRR * (t1 - t))
-            return end_concentration * fac
+            concentration_at_last_state_change = self.concentration(t - 0.0001)
+
+        fac = np.exp(IVRR * (t_last_state_change - t))
+        concentration_limit = (ER * Ni) / (IVRR * V)
+        return concentration_limit * (1 - fac) + concentration_at_last_state_change * fac
 
     def infection_probability(self):
         # Infection probability
@@ -317,4 +384,3 @@ class Model:
 
         # Probability of infection.
         return (1 - np.exp(-inf_aero)) * 100
-

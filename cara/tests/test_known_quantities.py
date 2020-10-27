@@ -26,8 +26,11 @@ def test_no_mask_emission_rate(baseline_model):
 def baseline_model():
     model = models.Model(
         room=models.Room(volume=75),
-        ventilation=models.PeriodicWindow(period=120, duration=120, inside_temp=293, outside_temp=283, cd_b=0.6,
-                                          window_height=1.6, opening_length=0.6),
+        ventilation=models.WindowOpening(
+            active=models.PeriodicInterval(period=120, duration=120),
+            inside_temp=293, outside_temp=283, cd_b=0.6,
+            window_height=1.6, opening_length=0.6,
+        ),
         infected=models.InfectedPerson(
             virus=models.Virus.types['SARS_CoV_2'],
             present_times=((0, 4), (5, 8)),
@@ -44,8 +47,11 @@ def baseline_model():
 
 @pytest.fixture
 def baseline_periodic_window():
-    return models.PeriodicWindow(period=120, duration=15, inside_temp=293, outside_temp=283, cd_b=0.6,
-                                 window_height=1.6, opening_length=0.6)
+    return models.WindowOpening(
+        active=models.PeriodicInterval(period=120, duration=15),
+        inside_temp=293, outside_temp=283, cd_b=0.6,
+        window_height=1.6, opening_length=0.6,
+    )
 
 
 @pytest.fixture
@@ -55,7 +61,10 @@ def baseline_room():
 
 @pytest.fixture
 def baseline_periodic_hepa():
-    return models.PeriodicHEPA(period=120, duration=15, q_air_mech=514.74)
+    return models.HEPAFilter(
+        active=models.PeriodicInterval(period=120, duration=15),
+        q_air_mech=514.74,
+    )
 
 
 def test_concentrations(baseline_model):
@@ -63,7 +72,7 @@ def test_concentrations(baseline_model):
     concentrations = [baseline_model.concentration(t) for t in ts]
     npt.assert_allclose(
         concentrations,
-        [0.000000e+00, 2.891970e-01, 1.266287e-04, 2.891969e-01, 5.544607e-08],
+        [0.000000e+00, 2.891970e-01, 1.267267e-04, 2.891969e-01, 5.548897e-08],
         rtol=1e-5
     )
 

@@ -160,14 +160,14 @@ class WidgetView:
         return widget
 
     def _build_window(self, node):
-        period = widgets.IntSlider(value=node.period, min=0, max=240)
-        interval = widgets.IntSlider(value=node.duration, min=0, max=240)
+        period = widgets.IntSlider(value=node.active.period, min=0, max=240)
+        interval = widgets.IntSlider(value=node.active.duration, min=0, max=240)
 
         def on_period_change(change):
-            node.period = change['new']
+            node.active.period = change['new']
 
         def on_interval_change(change):
-            node.duration = change['new']
+            node.active.duration = change['new']
 
         # TODO: Link the state back to the widget, not just the other way around.
         period.observe(on_period_change, names=['value'])
@@ -181,14 +181,14 @@ class WidgetView:
             )
 
     def _build_hepa(self, node):
-        period = widgets.IntSlider(value=node.period, min=0, max=240)
-        interval = widgets.IntSlider(value=node.duration, min=0, max=240)
+        period = widgets.IntSlider(value=node.active.period, min=0, max=240, step=5)
+        interval = widgets.IntSlider(value=node.active.duration, min=0, max=240, step=5)
 
         def on_period_change(change):
-            node.period = change['new']
+            node.active.period = change['new']
 
         def on_interval_change(change):
-            node.duration = change['new']
+            node.active.duration = change['new']
 
         # TODO: Link the state back to the widget, not just the other way around.
         period.observe(on_period_change, names=['value'])
@@ -286,8 +286,9 @@ class WidgetView:
 
 baseline_model = models.Model(
     room=models.Room(volume=75),
-    ventilation=models.PeriodicWindow(
-        period=120, duration=120, inside_temp=293, outside_temp=283, cd_b=0.6,
+    ventilation=models.WindowOpening(
+        active=models.PeriodicInterval(period=120, duration=120),
+        inside_temp=293, outside_temp=283, cd_b=0.6,
         window_height=1.6, opening_length=0.6,
     ),
     infected=models.InfectedPerson(
@@ -313,14 +314,14 @@ class CARAStateBuilder(state.StateBuilder):
     def build_type_Ventilation(self, _: dataclasses.Field):
         s = state.DataclassStateNamed(
             states={
-                'Natural': self.build_generic(models.PeriodicWindow),
-                'HEPA': self.build_generic(models.PeriodicHEPA),
+                'Natural': self.build_generic(models.WindowOpening),
+                'HEPA': self.build_generic(models.HEPAFilter),
             },
             state_builder=self,
         )
         # Initialise the HEPA state
         s._states['HEPA'].dcs_update_from(
-            models.PeriodicHEPA(120, 120, 500.)
+            models.HEPAFilter(models.PeriodicInterval(120, 120), 500.)
         )
         return s
 
