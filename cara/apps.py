@@ -34,8 +34,8 @@ class ConcentrationFigure:
         self.line = None
 
     def update(self, model: models.Model):
-        resolution = 600
-        ts = np.linspace(0, 10, resolution)
+        resolution = 500
+        ts = np.linspace(0, 9.09, resolution)
         concentration = [model.concentration(t) for t in ts]
         if self.line is None:
             [self.line] = self.ax.plot(ts, concentration)
@@ -56,6 +56,11 @@ class ConcentrationFigure:
             self.line.set_data(ts, concentration)
             self.ax.relim()
             self.ax.autoscale_view()
+        # self.ax.set_yscale('log')
+        # if max(concentration) > 1:
+        self.ax.set_ylim(bottom=1e-4, top=5)
+        # else:
+        #     self.ax.set_ylim(bottom=0, top=1)
         self.figure.canvas.draw()
 
 

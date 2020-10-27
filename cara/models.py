@@ -33,31 +33,54 @@ class Interval:
 
 @dataclass(frozen=True)
 class PeriodicInterval(Interval):
-    #: How often does the interval occur.
+    #: How often does the interval occur (minutes).
     period: int
 
-    #: How long does the interval occur for.
+    #: How long does the interval occur for (minutes).
     #: A value greater than :data:`period` signifies the event is permanently
     #: occurring, a value of 0 signifies that the event never happens.
     duration: int
 
+    def states(self):
+        result = []
+        for i in np.arange(0, 24, self.period / 60):
+            result.append((i, i+self.duration/60))
+        return tuple(result)
+
     def triggered(self, time: float) -> bool:
+        for start, end in self.states():
+            if start < time <= end:
+                return True
+        return False
+
+        if self.duration >= self.period:
+            return True
+        if self.duration == 0:
+            return False
+
         period = self.period / 60.
         duration = self.duration / 60.
-        return (time % period) >= (period - duration)
+        t = time % period
+        return 0 <= t < duration
 
     def boundaries(self) -> typing.Set[float]:
         state_changes = set()
+        for start, end in self.states():
+            state_changes.add(start)
+            state_changes.add(end)
+        return state_changes
+
+        if self.duration >= self.period:
+            return set()
+        if self.duration == 0:
+            return set()
+        state_changes = set()
         period_h = self.period / 60
         duration_h = self.duration / 60
-        # The current implementation starts at the end of the first period, not at 0.
-        start = period_h
         # Take as many steps as we need to get to a full day.
-        for i in np.arange(start, 24, period_h):
+        for i in np.arange(0, 24, period_h):
             state_changes.add(i)
-            if duration_h < period_h:
-                state_changes.add(i - duration_h)
-
+            state_changes.add(i + duration_h)
         return state_changes
 
 
@@ -260,20 +283,20 @@ class InfectedPerson:
 
     def person_present(self, time):
         for start, end in self.present_times:
-            if start <= time <= end:
+            if start < time <= end:
                 return True
         return False
 
-    def start_end_of_presence(self, time) -> typing.Tuple[float, float]:
-        """
-        Find the most recent start (and associated) end-time (even if the
-        given time is after the end-point) given a time.
-
-        """
-        for start, end in self.present_times[::-1]:
-            if time > start:
-                return start, end
-        return start, end
+    # def start_end_of_presence(self, time) -> typing.Tuple[float, float]:
+    #     """
+    #     Find the most recent start (and associated) end-time (even if the
+    #     given time is after the end-point) given a time.
+    #
+    #     """
+    #     for start, end in self.present_times[::-1]:
+    #         if time > start:
+    #             return start, end
+    #     return start, end
 
     @functools.lru_cache()
     def emission_rate(self, time) -> float:
@@ -339,26 +362,24 @@ class Model:
 
         """
         for change_time in self.collect_time_state_changes()[::-1]:
-            if time >= change_time:
+            if change_time < time:
                 return change_time
         return 0
 
     @functools.lru_cache()
     def concentration(self, time: float) -> float:
-        t = time
+        if time == 0:
+            return 0.0
         IVRR = self.infectious_virus_removal_rate(time)
         V = self.room.volume
         Ni = self.infected_occupants
         ER = self.infected.emission_rate(time)
-        if t == 0:
-            return 0.0
-        t_last_state_change = self.last_state_change(time)
-        if t != t_last_state_change:
-            concentration_at_last_state_change = self.concentration(t_last_state_change)
-        else:
-            concentration_at_last_state_change = self.concentration(t - 0.0001)
 
-        fac = np.exp(IVRR * (t_last_state_change - t))
+        t_last_state_change = self.last_state_change(time)
+        concentration_at_last_state_change = self.concentration(t_last_state_change)
+
+        delta_time = time - t_last_state_change
+        fac = np.exp(-IVRR * delta_time)
         concentration_limit = (ER * Ni) / (IVRR * V)
         return concentration_limit * (1 - fac) + concentration_at_last_state_change * fac
 
