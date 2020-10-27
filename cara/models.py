@@ -21,19 +21,27 @@ class Interval:
     The "thing" may be when an action is taken, such as opening a window, or
     entering a room.
 
-    Note that all intervals are closed at the start, and open at the end. So a
+    Note that all intervals are open at the start, and closed at the end. So a
     simple start, stop interval follows::
 
         start < t <= end
 
     """
+    def boundaries(self) -> typing.Tuple[typing.Tuple[float, float], ...]:
+        return ()
+
+    def transition_times(self) -> typing.Set[float]:
+        transitions = set()
+        for start, end in self.boundaries():
+            transitions.update([start, end])
+        return transitions
+
     def triggered(self, time: float) -> bool:
         """Whether the given time falls inside this interval."""
+        for start, end in self.boundaries():
+            if start < time <= end:
+                return True
         return False
-
-    def boundaries(self) -> typing.Set[float]:
-        """Returns the edges of this interval."""
-        return set()
 
 
 @dataclass(frozen=True)
@@ -43,18 +51,8 @@ class SpecificInterval(Interval):
     #: increasing.
     present_times: typing.Tuple[typing.Tuple[float, float], ...]
 
-    def triggered(self, time: float) -> bool:
-        for start, end in self.present_times:
-            if start < time <= end:
-                return True
-        return False
-
-    def boundaries(self) -> typing.Set[float]:
-        state_changes = set()
-        for start, end in self.present_times:
-            state_changes.add(start)
-            state_changes.add(end)
-        return state_changes
+    def boundaries(self):
+        return self.present_times
 
 
 @dataclass(frozen=True)
@@ -67,24 +65,11 @@ class PeriodicInterval(Interval):
     #: occurring, a value of 0 signifies that the event never happens.
     duration: int
 
-    def states(self):
+    def boundaries(self) -> typing.Tuple[typing.Tuple[float, float], ...]:
         result = []
         for i in np.arange(0, 24, self.period / 60):
             result.append((i, i+self.duration/60))
         return tuple(result)
-
-    def triggered(self, time: float) -> bool:
-        for start, end in self.states():
-            if start < time <= end:
-                return True
-        return False
-
-    def boundaries(self) -> typing.Set[float]:
-        state_changes = set()
-        for start, end in self.states():
-            state_changes.add(start)
-            state_changes.add(end)
-        return state_changes
 
 
 @dataclass(frozen=True)
@@ -108,15 +93,12 @@ class Ventilation:
         Returns the rate at which air is being exchanged in the given room per
         cubic meter at a given time (in hours).
 
+        Note that whilst the time is known inside this function, it may not
+        be used to vary the result unless the specific time used is declared
+        as part of a state change in the interval (e.g. when air_exchange == 0).
+
         """
         return 0.
-
-    def times_of_state_change(self) -> typing.Set[float]:
-        """
-        Returns the times at which a change in ventilation occurs.
-
-        """
-        return self.active.boundaries()
 
 
 @dataclass(frozen=True)
@@ -138,6 +120,8 @@ class WindowOpening(Ventilation):
         if not self.active.triggered(time):
             return 0.
 
+        # Reminder, no dependence on time in the resulting calculation.
+
         temp_delta = abs(self.inside_temp - self.outside_temp) / self.outside_temp
         root = np.sqrt(9.81 * self.window_height * temp_delta)
 
@@ -149,13 +133,14 @@ class HEPAFilter(Ventilation):
     #: The interval in which the HEPA filter is operating.
     active: Interval
 
-    q_air_mech: float   #: The rate at which the HEPA exchanges air (when switched on)
+    #: The rate at which the HEPA exchanges air (when switched on)
+    q_air_mech: float
 
     def air_exchange(self, room: Room, time: float) -> float:
         # If the HEPA is off, no air is being exchanged.
         if not self.active.triggered(time):
             return 0.
-
+        # Reminder, no dependence on time in the resulting calculation.
         return self.q_air_mech / room.volume
 
 
@@ -330,18 +315,15 @@ class Model:
         return k + self.virus.decay_constant + self.ventilation.air_exchange(self.room, time)
 
     @functools.lru_cache()
-    def collect_time_state_changes(self):
+    def state_change_times(self):
         """
         All time dependent entities on this model must provide information about
         the times at which their state changes.
 
         """
         state_change_times = set()
-        # for start, end in self.infected.present_times:
-        #     state_change_times.add(start)
-        #     state_change_times.add(end)
-        state_change_times.update(self.infected.presence.boundaries())
-        state_change_times.update(self.ventilation.times_of_state_change())
+        state_change_times.update(self.infected.presence.transition_times())
+        state_change_times.update(self.ventilation.active.transition_times())
         return sorted(state_change_times)
 
     def last_state_change(self, time: float):
@@ -349,7 +331,7 @@ class Model:
         Find the most recent state change.
 
         """
-        for change_time in self.collect_time_state_changes()[::-1]:
+        for change_time in self.state_change_times()[::-1]:
             if change_time < time:
                 return change_time
         return 0
@@ -382,7 +364,7 @@ class Model:
             return np.trapz([fn(v) for v in values], values)
 
         # TODO: Have this for exposed not infected.
-        for start, stop in self.infected.presence.present_times:
+        for start, stop in self.infected.presence.boundaries():
             exposure += (integrate(self.concentration, start, stop))
 
         inf_aero = (

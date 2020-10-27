@@ -49,18 +49,13 @@ class ConcentrationFigure:
             ax.set_xlabel('Time (hours)')
             ax.set_ylabel('Concentration ($q/m^3$)')
             ax.set_title('Concentration of infectious quanta aerosols')
-            ax.set_ymargin(0.2)
-            # ax.set_ylim(bottom=0)
         else:
             self.ax.ignore_existing_data_limits = True
             self.line.set_data(ts, concentration)
-            self.ax.relim()
-            self.ax.autoscale_view()
-        # self.ax.set_yscale('log')
-        # if max(concentration) > 1:
-        self.ax.set_ylim(bottom=1e-4, top=5)
-        # else:
-        #     self.ax.set_ylim(bottom=0, top=1)
+        # Update the top limit based on the concentration if it exceeds 5
+        # (rare but possible).
+        top = max([3, max(concentration)])
+        self.ax.set_ylim(bottom=1e-4, top=top)
         self.figure.canvas.draw()
 
 
