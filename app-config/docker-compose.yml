@@ -2,8 +2,6 @@ version: "3.8"
 services:
   cara-app:
     image: cara-voila-app
-    #        ports:
-    #    - "8080:8081"
     links:
       - cara-router
   cara-router:
