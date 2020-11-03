@@ -139,3 +139,12 @@ def test_periodic_hepa(baseline_periodic_hepa, baseline_room):
     aes = [baseline_periodic_hepa.air_exchange(baseline_room, t) for t in ts]
     answers = [0, rate, rate, 0, 0, 0, rate, 0, 0]
     npt.assert_allclose(aes, answers, rtol=1e-5)
+
+
+def test_expiration_aerosols():
+    mask = models.Mask.types['Type I']
+    exp1 = models.Expiration((0.751, 0.139, 0.0139, 0.059),
+                            particle_sizes = (0.8e-4, 1.8e-4, 3.5e-4, 5.5e-4))
+    exp2 = models.Expiration((0.059, 0.0139, 0.751, 0.139),
+                            particle_sizes = (5.5e-4, 3.5e-4, 0.8e-4, 1.8e-4))
+    npt.assert_allclose(exp1.aerosols(mask), exp2.aerosols(mask), rtol=1e-5)
