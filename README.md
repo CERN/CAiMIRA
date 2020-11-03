@@ -7,7 +7,17 @@
 
 ## Development guide
 
-### Building the docker image for local execution
+### Running the COVID calculator app locally
+
+```
+pip install -e .   # At the root of the repository
+python -m cara.apps.calculator
+```
+
+Then visit http://localhost:8080/calculator.
+
+
+### Building the whole environment for local execution
 
 **Simulate the docker build that takes place on openshift with:**
 
