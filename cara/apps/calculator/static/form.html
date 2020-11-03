@@ -1,0 +1,86 @@
+<html>
+    <head>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+    </head>
+    <body>
+    
+    <form id="covid-calculator">
+        <label for="room_name">Room name:</label>
+        <input name="room_name" type="text" value="" />
+        <input type="submit" value="Send" />
+    </form>
+
+
+<div id="results">
+    The results will go here:
+</div>
+
+<script>
+
+function objectifyForm(formArray) {
+    //serialize data function
+    var returnArray = {};
+    for (var i = 0; i < formArray.length; i++){
+        returnArray[formArray[i]['name']] = formArray[i]['value'];
+    }
+    return returnArray;
+}
+
+// Contents from https://stackoverflow.com/a/5004276/741316
+
+// Variable to hold request
+var request;
+
+// Bind to the submit event of our form
+$("#covid-calculator").submit(function(event){
+
+    // Prevent default posting of form - put here to work in case of errors
+    event.preventDefault();
+
+    // Abort any pending request
+    if (request) {
+        request.abort();
+    }
+    // setup some local variables
+    var $form = $(this);
+
+    // Let's select and cache all the fields
+    var $inputs = $form.find("input, select, button, textarea");
+
+    // Serialize the data in the form
+    var serializedData = objectifyForm($form.serializeArray());
+
+    console.log(['Sending over', JSON.stringify(serializedData)])
+
+    // Fire off the request to the calculator.
+    request = $.ajax({
+        url: "/calculator/api/calculator",
+        type: "post",
+        data: serializedData,
+        dataType: "json",       
+    });
+
+    // Callback handler that will be called on success
+    request.done(function (response, textStatus, jqXHR){
+        build_report(response);
+    });
+
+    // Callback handler that will be called on failure
+    request.fail(function (jqXHR, textStatus, errorThrown){
+        // Log the error to the console
+        console.error(
+            "The following error occurred: "+
+            textStatus, errorThrown
+        );
+    });
+});
+
+
+function build_report(report_data) {
+    $("#results").html("Results are in: " + JSON.stringify(report_data));
+}
+
+</script>
+
+</body>
+</html>
