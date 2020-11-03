@@ -1,0 +1,11 @@
+version: "3.8"
+services:
+  cara-app:
+    image: cara-voila-app
+    links:
+      - cara-router
+  cara-router:
+    image: cara-nginx-app
+    ports:
+        - "8080:8080"
+
