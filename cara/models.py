@@ -221,11 +221,9 @@ class Expiration:
         def volume(diameter):
             return (4 * np.pi * (diameter/2)**3) / 3
         total = 0
-        for i, (diameter, factor) in enumerate(zip(self.particle_sizes, self.ejection_factor)):
+        for diameter, factor in zip(self.particle_sizes, self.ejection_factor):
             contribution = volume(diameter) * factor
-            if i >= 2:
-                # TODO: It is probably the case that this term comes from the
-                #  particle diameter, rather than arbitrary position in a sequence...
+            if diameter >= 3e-4:
                 contribution = contribution * (1 - mask.exhale_efficiency)
             total += contribution
         return total
