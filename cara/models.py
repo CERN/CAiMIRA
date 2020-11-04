@@ -111,7 +111,7 @@ class PiecewiseconstantFunction:
     def __post_init__(self):
         if len(self.transition_times) != len(self.values)+1:
             raise ValueError("transition_times should contain one more element than values")
-        if sorted(list(set(self.transition_times))) != self.transition_times:
+        if tuple(sorted(set(self.transition_times))) != self.transition_times:
             raise ValueError("transition_times should not contain duplicated elements and should be sorted")
 
     def value(self,time) -> float:
@@ -134,8 +134,8 @@ class PiecewiseconstantFunction:
 
 # Geneva hourly temperatures as piecewise constant function (in Kelvin)
 GenevaTemperatures = {
-    month: PiecewiseconstantFunction(list(range(24)),
-                                     (273.15+np.array(temperatures)).tolist())
+    month: PiecewiseconstantFunction(tuple(range(24)),
+                                     tuple(273.15+np.array(temperatures)))
     for month,temperatures in Geneva_hourly_temperatures_celsius_per_hour.items()
 }
 
