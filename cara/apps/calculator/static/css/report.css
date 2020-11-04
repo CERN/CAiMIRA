@@ -1,0 +1,43 @@
+#body {
+    top: 10px;
+    left: 20px;
+    bottom: 20px;
+    right: 20px;
+    padding: 20px; 
+}
+
+.image {
+	display: flex; 
+	align-items: center; 
+	justify-content: center;
+	font-size: 13pt;
+}
+
+h1{
+	text-align: center;
+}
+
+.subtitle {
+	text-align: center;
+	font-size: 13pt;
+	padding-bottom: 15pt;
+}
+
+p.data_title {
+	font-weight: bold;
+}
+
+p.data_text {
+	padding-left: 30px;
+    padding-left:1em;
+}
+
+p.data_subtext {
+	padding-left: 60px;
+    margin-left:-3em;
+}
+
+p.result_title {
+	font-weight: bold;
+	font-size: 15pt;
+}
