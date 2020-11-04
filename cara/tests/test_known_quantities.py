@@ -187,14 +187,13 @@ def test_piecewiseconstantfunction_vs_interval():
 
 
 def test_windowopening():
-    w1 = models.WindowOpening(active=models.SpecificInterval([(0,24)]),
-                inside_temp=293.15,outside_temp=283.15,
+    tempOutside = models.PiecewiseconstantFunction([0,10,24],[273.15,283.15])
+    tempInside = models.PiecewiseconstantFunction([0,24],[293.15])
+    w = models.WindowOpening(active=models.SpecificInterval([(0,24)]),
+                inside_temp=tempInside,outside_temp=tempOutside,
                 window_height=1.,opening_length=0.6)
-    w2 = models.WindowOpening(active=models.SpecificInterval([(0,24)]),
-                inside_temp=293.15,outside_temp=273.15,
-                window_height=1.,opening_length=0.6)
-    npt.assert_allclose(w1.air_exchange(models.Room(volume=68),10.),
+    npt.assert_allclose(w.air_exchange(models.Room(volume=68),16.),
                         3.7393925,rtol=1e-5)
-    npt.assert_allclose(w2.air_exchange(models.Room(volume=68),10.),
+    npt.assert_allclose(w.air_exchange(models.Room(volume=68),8.),
                         5.3842316,rtol=1e-5)
 
