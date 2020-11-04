@@ -152,18 +152,18 @@ def test_expiration_aerosols():
 
 def test_piecewiseconstantfunction_wrongarguments():
     # number of values should be 1+number of transition times
-    pytest.raises(ValueError,models.PiecewiseconstantFunction([0,1],[0,0]))
-    pytest.raises(ValueError,models.PiecewiseconstantFunction([0],[0,0]))
+    pytest.raises(ValueError,models.PiecewiseconstantFunction,[0,1],[0,0])
+    pytest.raises(ValueError,models.PiecewiseconstantFunction,[0],[0,0])
     # two transition times cannot be equal
-    pytest.raises(ValueError,models.PiecewiseconstantFunction([0,2,2],[0,0]))
+    pytest.raises(ValueError,models.PiecewiseconstantFunction,[0,2,2],[0,0])
     # unsorted transition times are not allowed
-    pytest.raises(ValueError,models.PiecewiseconstantFunction([2,0],[0,0]))
+    pytest.raises(ValueError,models.PiecewiseconstantFunction,[2,0],[0,0])
 
 
 def test_piecewiseconstantfunction():
     transition_times = [0,8,16,24]
     values = [2,5,8]
-    fun = models.PiecewiseconstantFunction(transitions_times,values)
+    fun = models.PiecewiseconstantFunction(transition_times,values)
     assert (fun.value(10) == 5) and (fun.value(20.5) == 8) and \
             (fun.value(8) == 2) and (fun.value(0) == 2) and (fun.value(24) == 8)
 
@@ -180,8 +180,8 @@ def test_piecewiseconstantfunction_vs_interval():
     transition_times = [0,8,16,24]
     values = [0,1,0]
     fun = models.PiecewiseconstantFunction(transition_times,values)
-    interval = models.SpecificInterval(present_times=(8,16))
-    assert interval.transition_times() == set(transition_times)
+    interval = models.SpecificInterval(present_times=[(8,16)])
+    assert interval.transition_times() == fun.interval().transition_times()
     for t in [0,1,8,10,16,20.1,24]:
         assert fun.interval().triggered(t) == interval().triggered(t)
 
