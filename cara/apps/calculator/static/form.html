@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">  
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
@@ -14,60 +14,81 @@
 
 <body onload="clear_form()">
 
-<h1> <p><b>CARA</b> Covid Calculator </p></h1>
-
+<h1> <p><b>CARA</b> Covid Airborne Risk Assessment tool (beta)</p></h1>
+<b> <p style="text-align:right"> Please send feedback to <a href="mailto:CARA-dev@cern.ch">CARA-dev@cern.ch</a></p></b>
 <form id="covid_calculator" name="covid_calculator" onsubmit='return on_submit(this)'>
 <div style="width: 33%; float:left;">
 
     <!-- General Options -->
-    Simulation name: <input type="text" name="simulation_name" placeholder="E.g. Workshop without masks" required><br>
+    <b>Simulation name:</b> <input type="text" name="simulation_name" placeholder="E.g. Workshop without masks" required><br>
     Room number: <input type="text" name="room_number" placeholder="E.g. 17/R-033" required><br>
-    
+    <hr width="80%">
+    <b>Room data:</b><br>
     <input type="radio" id="room_type_volume" name="volume_type" value="room_volume" onclick="require_fields(this)" required>
     Room volume: &nbsp;&nbsp; <input type="number" id="room_volume" name="room_volume" placeholder="Room volume (m³)" min="0"><br>
+    or
     <input type="radio" id="room_type_dimensions" name="volume_type" value="room_dimensions" onclick="require_fields(this)" required>
     Floor area: &nbsp;&nbsp; <input type="number" id="floor_area" name="floor_area" placeholder="Room floor area (m²)" min="0"><br>
-    &nbsp;&nbsp;&nbsp;&nbsp; Ceiling height: &nbsp;&nbsp; <input type="number" id="ceiling_height" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0"><br>    
-
+    &nbsp;&nbsp;&nbsp;&nbsp; Ceiling height: &nbsp;&nbsp; <input type="number" id="ceiling_height" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0"><br>
+<hr width="80%">
     <!-- Ventilation Options -->
-    Ventilation type: 
-    <input type="radio" id="mechanical" name="ventilation_type" value="mechanical" onclick="show_hide('DIVmechanical_ventilation', 'DIVnatural_ventilation', this)" required>Mechanical</input>
-    <input type="radio" id="natural" name="ventilation_type" value="natural" onclick="show_hide('DIVnatural_ventilation', 'DIVmechanical_ventilation', this)" required>Natural</input>
+    Ventilation type:
+    <input type="radio" id="mechanical" name="ventilation_type" value="mechanical" onclick="show_hide('DIVmechanical_ventilation', 'DIVnatural_ventilation', this)" >Mechanical</input>
+    <input type="radio" id="natural" name="ventilation_type" value="natural" onclick="show_hide('DIVnatural_ventilation', 'DIVmechanical_ventilation', this)">Natural</input>
 
     <div id="DIVmechanical_ventilation" style="display:none">
-        <input type="radio" id="air_type_changes" name="air_type" value="air_changes" onclick="require_fields(this)">
-        Air changes per hour &nbsp;&nbsp; <input type="number" id="air_changes" name="air_changes" min="0"><br>
         <input type="radio" id="air_type_supply" name="air_type" value="air_supply" onclick="require_fields(this)">
         Air supply flow rate &nbsp;&nbsp; <input type="number" id="air_supply" name="air_supply" min="0"><br>
-    </div> 
+        <input type="radio" id="air_type_changes" name="air_type" value="air_changes" onclick="require_fields(this)">
+        Air changes per hour &nbsp;&nbsp; <input type="number" id="air_changes" name="air_changes" min="0"><br>
+
+    </div>
 
     <div id="DIVnatural_ventilation" style="display:none">
         Number of windows: <input type="number" id="windows_number" name="windows_number" min="0"><br>
         Height of window: <input type="number" id="window_height"  name="window_height" placeholder="meters" min="0"><br>
         Width of window: <input type="number" id="window_width"  name="window_width" placeholder="meters" min="0"><br>
-        Opening distance: <input type="number" id="opening_distance"  name="opening_distance" placeholder="centimeters" min="0"><br>
+        Opening distance: <input type="number" id="opening_distance"  name="opening_distance" placeholder="meters" min="0"><br>
         Windows open: <input type="radio" id="always" name="windows_open" value="always">
                       <label for="always">Always</label>
                       <input type="radio" id="interval" name="windows_open" value="interval">
-                      <label for="interval">15 min / 2h</label><br>
-    </div> 
-
+                      <label for="interval">10 min / 2h</label>
+                      <input type="radio" id="breaks" name="windows_open" value="breaks">
+                      <label for="breaks">Breaks</label><br>
+    </div>
+    
+    <br>
+      HEPA filtration:
+      
+      <input type="radio" id="hepa_filter" name="filter_type" value="hepa_yes">
+      <label for="hepa_filter">Yes</label>
+      
+      <input type="radio" id="hepa_filter" name="filter_type" value="hepa_no" checked="checked">
+      <label for="hepa_filter">No</label>
+      <hr width="80%">
+    
 </div>
 
 <div style="width: 33%; float:left;">
 
     <!-- Event Options -->
-    Event data:<br>
+    <b>Event data:</b><br>
     Attendees:<br>
-    Total number of people: <input type="number" name="total_people" min="1" required><br>
-    Number of infected people: <input type="number" name="infected_people" min="0" required><br>
+    Total number of occupants: <input type="number" name="total_people" min="1" required><br>
+    Number of infected people: <input type="number" name="infected_people" min="1" required><br>
+    <hr width="80%">
     Activity type: <select id="activity_type" name="activity_type">
-                    <option value="training">Training</option>
-                    <option value="workshop">Workshop</option>
                     <option value="office">Office</option>
+                    <option value="workshop">Workshop</option>
+                    <option value="training">Training</option>
                    </select><br>
     Start: <input type="time" id="activity_start" name="activity_start" required> &nbsp;&nbsp;
     Finish: <input type="time" id="activity_finish" name="activity_finish" required><br>
+    Infected person(s) presence: <br>
+    Start: <input type="time" id="inf_activity_start" name="activity_start" required> &nbsp;&nbsp;
+    Finish: <input type="time" id="inf_activity_finish" name="activity_finish" required><br>
+<hr width="80%">
+When is the event?<br>
 
     <input type="radio" id="event_type_single" name="event_type" value="single_event" onclick="require_fields(this)" required>Single event</input>
     Date: <input type="text" id="datepicker" name="single_event_date" unrequired><br>
@@ -86,89 +107,64 @@
         <option value="November">November</option>
         <option value="December">December</option>
     </select><br>
-
+    <hr width="80%">
     <!-- Lunch Options -->
-    <input type="hidden" id="lunch_option" name="lunch_option" value=0>
-    <button type="button" id="BUTTON_lunch" name="BUTTON_lunch" onclick="show('DIVlunch_break', 'lunch_option', this)">Lunch break</button><br>
-    <div id="DIVlunch_break" style="display:none">
+    Lunch break:
+    <input type="radio" id="lunch_option" name="lunch_option" value=0 checked="checked">      <label for="lunch_option">No</label>
+    <input type="radio" id="lunch_option" name="lunch_option"></input>      <label for="lunch_option">Yes</label><br>
+    
+    <div id="DIVlunch_break">
         Start: <input type="time" id="lunch_start" name="lunch_start" unrequired> &nbsp;&nbsp;
         Finish: <input type="time" id="lunch_finish" name="lunch_finish" unrequired><br>
     </div>
 
     <!-- Coffee Options -->
-    <input type="hidden" id="coffee_option" name="coffee_option" value=0>
-    <button type="button" id="BUTTON_coffee" name="BUTTON_coffee" onclick="show('DIVcoffee_break', 'coffee_option', this)">Coffee breaks</button><br>
-    <div id="DIVcoffee_break" style="display:none">
-        Number of breaks: <input type="number" id="coffee_breaks" name="coffee_breaks" min="0"><br>
+    Coffee Breaks
+    <input type="radio" id="coffee_break" name="coffee_break" value="0" checked="checked"</input>
+        <label for="lunch_option" >No breaks</label>
+    <input type="radio" id="coffee_break" name="coffee_break" value="2" </input>
+        <label for="lunch_option">2</label>
+    <input type="radio" id="coffee_break" name="coffee_break" value="4"</input>
+        <label for="lunch_option">4</label>
+        <br>
         Duration (minutes): <select id="break_duration" name="coffee_duration">
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
                     <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option value="8">8</option>
-                    <option value="9">9</option>
                     <option value="10">10</option>
-                    <option value="11">11</option>
-                    <option value="12">12</option>
-                    <option value="13">13</option>
-                    <option value="14">14</option>
                     <option value="15">15</option>
-                    <option value="16">16</option>
-                    <option value="17">17</option>
-                    <option value="18">18</option>
-                    <option value="19">19</option>
                     <option value="20">20</option>
-                    <option value="21">21</option>
-                    <option value="22">22</option>
-                    <option value="23">23</option>
-                    <option value="24">24</option>
                     <option value="25">25</option>
-                    <option value="26">26</option>
-                    <option value="27">27</option>
-                    <option value="28">28</option>
-                    <option value="29">29</option>
                     <option value="30">30</option>
                  </select><br>
-        Regular breaks are spread evenly throughout the day
-    </div>
-
+        Coffee breaks are spread evenly throughout the day.
+        
+        <br>
+        <hr width="80%">
+    Face masks: <br>
+    Are masks worn when occupants are at workstations? <br>
+    <input type="radio" id="continuous" name="mask_wearing" value="continuous" required>Yes
+                  <input type="radio" id="removed"  name="mask_wearing" value="removed" required checked="checked">No
+ 
+    
+    
 </div>
 
 <div style="width: 33%; float:left;">
-    Mask wearing: <input type="radio" id="continuous" name="mask_wearing" value="continuous" required>Continuous   
-                  <input type="radio" id="removed"  name="mask_wearing" value="removed" required>Removed when seated
-
-    <p>This tool estimates the risk of COVID-19 spread. It is based on current scientific data and can be used to provide an illustration for different real world scenarios.<br><br>
-
-    <b>How to use this tool:</b><br>
-
-    <b>Room data</b><br>
-
-    Enter the data about the area you wish to study. You can find these in GIS, or by measuring them yourself.
-    For mechanical ventilation, you should check with a specialist for the air flow or air change rate.<br><br>
-
-    <b> Event data </b><br>
-
-    Enter the total number of people and how many you assume are infected.<br><br>
-
-    <b>Activity types: </b><br>
-
-    Office = typical scenario all persons seated, talking quietly.<br>
-    Workshop = assembly workshop environment, all persons doing light exercise, talking.<br>
-    Training = one person standing, talking, all others seated, breathing normally.<br>
-    Seminar = As training, but all participants take turns in standing and talking.<br>
-
-    You should specify if the event is a one off (give date) or recurrent use of the same space for the same activity, in which case tick the months when the activity takes place.<br>
-
-    Specify if a lunch break should be included, and when it starts/stops.<br>
-
-    If you will take coffee breaks, they are spread out evenly throughout the day, in addition to lunch.<br>
-
-    Mask wearing: Specify if they are worn all the time, or only when less than 2 meters apart.</p><br>
-
+  This tool simulates the long range airborne spread SARS-CoV-2 virus in a finite volume and estimates the risk of COVID-19 infection. It is based on current scientific data and can be used to measures the effectiveness of different mitigation measures.<br>
+  
+  <b>How to use this tool:</b> <br>
+  <b>Room data</b><br>
+  Enter the data about the area you wish to study. You can find these figures in GIS Portal, or by measuring them yourself.<br>
+  <b>Ventilation data</b> <br>
+  Enter the data on the available means for venting of indoor spaces. For mechanical ventilation, you should check with a specialist for the air flow or air change rate.<br>
+  <b>Event data</b><br>
+  Enter the total number of occupants in the room and how many of them you assume are infected. We have provided common activity types:<br>
+  Office = typical scenario all persons seated, talking.<br>
+  Workshop = assembly workshop environment, all persons doing light exercise, talking.<br>
+  Training = one person (the trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the trainer is the infected person, for the worst case scenario.<br>
+You should specify if the event is a one off (give date) or recurrent use of the same space for the same activity, in which case select the month when the activity takes place.<br>
+  Specify if a lunch break should be included, and when it starts/stops. <br>
+  If you will take coffee breaks, they are spread out evenly throughout the day, in addition to lunch.<br>
+  Mask wearing: Specify if they are worn at occupant workstations, or are removed when a physical distance of 2m is respected.
 </div>
 
 <button type='submit'>Generate report</button><br><br><br><br>
@@ -209,7 +205,7 @@ function on_submit(form){
         url: "/calculator/api/calculator",
         type: "post",
         data: serializedData,
-        dataType: "json",       
+        dataType: "json",
     });
 
     // Callback handler that will be called on success
