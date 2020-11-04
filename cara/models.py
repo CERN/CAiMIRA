@@ -6,7 +6,6 @@ from abc import abstractmethod
 
 from dataclasses import dataclass
 
-
 @dataclass(frozen=True)
 class Room:
     # The total volume of the room
@@ -70,6 +69,38 @@ class PeriodicInterval(Interval):
         for i in np.arange(0, 24, self.period / 60):
             result.append((i, i+self.duration/60))
         return tuple(result)
+
+
+@dataclass(frozen=True)
+class PiecewiseconstantFunction:
+    #: transition times at which the function changes value (hours).
+    transition_times: typing.Tuple[float, ...]
+
+    #: values of the function between transitions
+    values: typing.Tuple[float, ...]
+
+    def __post_init__(self):
+        if len(self.transition_times) != len(self.values)+1:
+            raise ValueError("transition_times should contain one more element than values")
+        if list(set(self.transition_times)) != self.transition_times:
+            raise ValueError("transition_times should not contain duplicated elements and should be sorted")
+
+    def value(self,time) -> float:
+        if self.transition_times[0] == time:
+            return self.values[0]
+        for t1,t2,value in zip(self.transition_times[:-1],
+                               self.transition_times[1:],self.values):
+            if time > t1 and time <= t2:
+                return value
+
+    def interval(self) -> Interval:
+        # build an Interval object
+        present_times = []
+        for t1,t2,value in zip(self.transition_times[:-1],
+                               self.transition_times[1:],self.values):
+            if value:
+                present_times.append((t1,t2))
+        return SpecificInterval(present_times=present_times)
 
 
 @dataclass(frozen=True)
