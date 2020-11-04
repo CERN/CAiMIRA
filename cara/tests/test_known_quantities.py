@@ -148,3 +148,35 @@ def test_expiration_aerosols():
     exp2 = models.Expiration((0.059, 0.0139, 0.751, 0.139),
                             particle_sizes = (5.5e-4, 3.5e-4, 0.8e-4, 1.8e-4))
     npt.assert_allclose(exp1.aerosols(mask), exp2.aerosols(mask), rtol=1e-5)
+
+
+def test_piecewiseconstantfunction_wrongarguments():
+    pytest.raises(ValueError,models.PiecewiseconstantFunction([0,1],[0,0]))
+    pytest.raises(ValueError,models.PiecewiseconstantFunction([0,2,2],[0,0]))
+    pytest.raises(ValueError,models.PiecewiseconstantFunction([0],[0,0]))
+
+
+def test_piecewiseconstantfunction():
+    transitions = [0,8,16,24]
+    values = [2,5,8]
+    fun = models.PiecewiseconstantFunction(transitions,values)
+    assert (fun.value(10) == 5) and (fun.value(20.5) == 8) and \
+            (fun.value(8) == 2) and (fun.value(0) == 2) and (fun.value(24) == 8)
+
+
+def test_constantfunction():
+    transitions = [0,24]
+    values = [20]
+    fun = models.PiecewiseconstantFunction(transitions,values)
+    for t in [0,1,8,10,16,20.1,24]:
+        assert (fun.value(t) == 20)
+
+
+def test_piecewiseconstantfunction_vs_interval():
+    transitions = [0,8,16,24]
+    values = [0,1,0]
+    fun = models.PiecewiseconstantFunction(transitions,values)
+    interval = models.SpecificInterval(present_times=(8,16))
+    for t in [0,1,8,10,16,20.1,24]:
+        assert fun.interval().triggered(t) == interval().triggered(t)
+
