@@ -174,8 +174,8 @@ class WindowOpening(Ventilation):
     #: The interval in which the window is open.
     active: Interval
 
-    inside_temp: float   #: The temperature inside the room (Kelvin)
-    outside_temp: float   #: The temperature outside of the window (Kelvin)
+    inside_temp: PiecewiseconstantFunction   #: The temperature inside the room (Kelvin)
+    outside_temp: PiecewiseconstantFunction   #: The temperature outside of the window (Kelvin)
 
     window_height: float   #: The height of the window
 
@@ -190,7 +190,8 @@ class WindowOpening(Ventilation):
 
         # Reminder, no dependence on time in the resulting calculation.
 
-        temp_delta = abs(self.inside_temp - self.outside_temp) / self.outside_temp
+        temp_delta = abs(self.inside_temp.value(time) - 
+                self.outside_temp.value(time)) / self.outside_temp.value(time)
         root = np.sqrt(9.81 * self.window_height * temp_delta)
 
         return (3600 / (3 * room.volume)) * self.cd_b * self.window_height * self.opening_length * root
