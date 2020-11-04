@@ -111,7 +111,7 @@ class PiecewiseconstantFunction:
     def __post_init__(self):
         if len(self.transition_times) != len(self.values)+1:
             raise ValueError("transition_times should contain one more element than values")
-        if list(set(self.transition_times)) != self.transition_times:
+        if sorted(list(set(self.transition_times))) != self.transition_times:
             raise ValueError("transition_times should not contain duplicated elements and should be sorted")
 
     def value(self,time) -> float:
