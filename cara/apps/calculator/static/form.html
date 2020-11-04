@@ -16,7 +16,7 @@
 
 <h1> <p><b>CARA</b> Covid Calculator </p></h1>
 
-<form name="CARAinputs" onsubmit='return on_submit(this)'>
+<form id="covid_calculator" name="covid_calculator" onsubmit='return on_submit(this)'>
 <div style="width: 33%; float:left;">
 
     <!-- General Options -->
@@ -180,29 +180,27 @@
 
 <script>
 
-// Contents from https://stackoverflow.com/a/5004276/741316
+
+/* -------Submit form------- */
 
 // Variable to hold request
 var request;
 
-// Bind to the submit event of our form
-$("#covid-calculator").submit(function(event){
+// Bind to the submit event of our form - from https://stackoverflow.com/a/5004276/741316
+function on_submit(form){
 
     // Prevent default posting of form - put here to work in case of errors
     event.preventDefault();
 
     // Abort any pending request
-    if (request) {
+    if (request)
         request.abort();
-    }
-    // setup some local variables
-    var $form = $(this);
 
     // Let's select and cache all the fields
-    var $inputs = $form.find("input, select, button, textarea");
+    var $inputs = $(form).find("input, select, button, textarea");
 
     // Serialize the data in the form
-    var serializedData = objectifyForm($form.serializeArray());
+    var serializedData = objectifyForm($(form).serializeArray());
 
     console.log(['Sending over', JSON.stringify(serializedData)])
 
@@ -227,7 +225,24 @@ $("#covid-calculator").submit(function(event){
             textStatus, errorThrown
         );
     });
-});
+}
+
+// Convert all type int in form
+function objectifyForm(formArray) {
+  returnArray = {};
+  for (var i = 0; i < formArray.length; i++) {
+
+    var value = Number(formArray[i]['value']);
+
+    if (formArray[i]['name'] === "simulation_name")
+      returnArray[formArray[i]['name']] = formArray[i]['value'].toString();
+    else if(isNaN(value) || !formArray[i]['value'].trim())
+      returnArray[formArray[i]['name']] = formArray[i]['value'];
+    else
+      returnArray[formArray[i]['name']] = value;
+  }
+  return returnArray;
+}
 
 
 function build_report(report_data) {

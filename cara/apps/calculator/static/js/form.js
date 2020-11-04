@@ -1,5 +1,5 @@
 function clear_form(){
-    document.CARAinputs.reset();
+    document.covid_calculator.reset();
 }
 
 /* -------Show/Hide DIVs------- */
@@ -140,33 +140,3 @@ function require_coffee(option) {
 $(function() {
   $("#datepicker").datepicker();
 });  
-
-/* -------Submit form------- */
-function on_submit(form){
-
-  //Prevent default posting of form - put here to work in case of errors
-  event.preventDefault();
-
-  //Serialize the data in the form
-  var serializedData = objectifyForm($(form).serializeArray());
-
-  console.log( serializedData );
-  return false; //don't submit
-}
-
-//Convert all type int in form
-function objectifyForm(formArray) {
-  returnArray = {};
-  for (var i = 0; i < formArray.length; i++) {
-
-    var value = Number(formArray[i]['value']);
-
-    if (formArray[i]['name'] === "simulation_name")
-      returnArray[formArray[i]['name']] = formArray[i]['value'].toString();
-    else if(isNaN(value) || !formArray[i]['value'].trim())
-      returnArray[formArray[i]['name']] = formArray[i]['value'];
-    else
-      returnArray[formArray[i]['name']] = value;
-  }
-  return returnArray;
-}
