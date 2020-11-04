@@ -7,7 +7,7 @@ from abc import abstractmethod
 from dataclasses import dataclass
 
 # average temperature of each month, hour per hour (from midnight to 11 pm)
-Geneva_hourly_temperatures_per_hour = {
+Geneva_hourly_temperatures_celsius_per_hour = {
     'Jan': [-0.3, -0.5, -0.9, -1.1, -1.4, -1.5, -1.5, -1.1, 0.1, 1.5, 2.8, 
             3.8, 4.4, 4.5, 4.4, 4.4, 3.9, 3.1, 2.7, 2.2, 1.7, 1.5, 1.1],
     'Feb': [0.3, 0.0, -0.5, -0.7, -1.1, -1.2, -1.1, -0.7, 0.8, 2.5, 4.2,
@@ -132,10 +132,13 @@ class PiecewiseconstantFunction:
         return SpecificInterval(present_times=present_times)
 
 
+# Geneva hourly temperatures as piecewise constant function (in Kelvin)
 GenevaTemperatures = {
-    month: PiecewiseconstantFunction(list(range(24)),temperatures)
-    for month,temperatures in Geneva_hourly_temperatures_per_hour.items()
+    month: PiecewiseconstantFunction(list(range(24)),
+                                     (273.15+np.array(temperatures)).tolist())
+    for month,temperatures in Geneva_hourly_temperatures_celsius_per_hour.items()
 }
+
 
 @dataclass(frozen=True)
 class Ventilation:
