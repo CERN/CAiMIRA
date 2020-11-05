@@ -87,8 +87,50 @@ class FormData:
         pass
 
     def present_interval(self) -> models.Interval:
-        # TODO
-        pass
+        coffee_period = (self.activity_finish - self.activity_start) // self.coffee_breaks
+        leave_times = [self.lunch_start]
+        enter_times = [self.lunch_finish]
+        for minute in range(self.activity_start, self.activity_finish, coffee_period):
+            leave_times.append(minute + coffee_period // 2)
+            enter_times.append(minute + coffee_period // 2 + self.coffee_duration)
+
+        # These lists represent the times where the infected person leaves or enters the room, respectively, sorted in
+        # reverse order. Note that these lists allows the person to "leave" when they should not even be present in the
+        # room. The following loop handles this.
+        leave_times.sort(reverse=True)
+        enter_times.sort(reverse=True)
+
+        # This loop iterates through the lists above, populating present_intervals with (enter, leave) intervals
+        # representing the infected person entering and leaving the room. Note that if one of the evenly spaced coffee-
+        # breaks happens to coincide with the lunch-break, it is simply ignored.
+        is_present = True
+        present_intervals = []
+        time = self.activity_start
+        while time < self.activity_finish:
+            if is_present:
+                if not leave_times:
+                    present_intervals.append((time / 60, self.activity_finish / 60))
+                    break
+
+                if leave_times[-1] < time:
+                    leave_times.pop()
+                else:
+                    new_time = leave_times.pop()
+                    present_intervals.append((time / 60, min(new_time, self.activity_finish) / 60))
+                    is_present = False
+                    time = new_time
+
+            else:
+                if not enter_times:
+                    break
+
+                if enter_times[-1] < time:
+                    enter_times.pop()
+                else:
+                    is_present = True
+                    time = enter_times.pop()
+
+        return models.SpecificInterval(tuple(present_intervals))
 
 
 def model_from_form(form: FormData, tmp_raw_form_data) -> models.Model:
@@ -126,57 +168,6 @@ def model_from_form(form: FormData, tmp_raw_form_data) -> models.Model:
     # Initializes the virus as SARS_Cov_2
     virus = models.Virus.types['SARS_CoV_2']
 
-    # Defines all of the parameters required to construct a list of intervals where the infected person is present in
-    # the room
-    activity_start = int(d['activity_start'][:2]) * 60 + int(d['activity_start'][3:])
-    activity_finish = int(d['activity_finish'][:2]) * 60 + int(d['activity_finish'][3:])
-    lunch_start = int(d['lunch_start'][:2]) * 60 + int(d['lunch_start'][3:])
-    lunch_finish = int(d['lunch_finish'][:2]) * 60 + int(d['lunch_finish'][3:])
-    coffee_duration = int(d['coffee_duration'])
-    coffee_breaks = int(d['coffee_breaks'])
-    coffee_period = (activity_finish - activity_start) // coffee_breaks + 1
-    leave_times = [lunch_start]
-    enter_times = [lunch_finish]
-    for minute in range(activity_start, activity_finish, coffee_period):
-        leave_times.append(minute)
-        enter_times.append(minute + coffee_duration)
-
-    # These lists represent the times where the infected person leaves or enters the room, respectively, sorted in
-    # reverse order. Note that these lists allows the person to "leave" when they should not even be present in the room
-    # The following loop handles this.
-    leave_times.sort(reverse=True)
-    enter_times.sort(reverse=True)
-
-    # This loop iterates through the lists above, populating present_intervals with (enter, leave) intervals
-    # representing the infected person entering and leaving the room. Note that if one of the evenly spaced coffee-
-    # breaks happens to coincide with the lunch-break, it is simply ignored.
-    is_present = True
-    present_intervals = []
-    time = activity_start
-    while time < activity_finish:
-        if is_present:
-            if not leave_times:
-                present_intervals.append((time / 60, activity_finish / 60))
-                break
-
-            if leave_times[-1] < time:
-                leave_times.pop()
-            else:
-                new_time = leave_times.pop()
-                present_intervals.append((time / 60, min(new_time, activity_finish) / 60))
-                is_present = False
-                time = new_time
-
-        else:
-            if not enter_times:
-                break
-
-            if enter_times[-1] < time:
-                enter_times.pop()
-            else:
-                is_present = True
-                time = enter_times.pop()
-
     # Initializes a mask of type 1 if mask wearing is "continuous", otherwise instantiates the mask attribute as
     # the "No mask"-mask
     mask = models.Mask.types['Type I' if d['mask_wearing'] == "Continuous" else 'No mask']
@@ -204,7 +195,7 @@ def model_from_form(form: FormData, tmp_raw_form_data) -> models.Model:
         ventilation=ventilation,
         infected=models.InfectedPerson(
             virus=virus,
-            presence=models.SpecificInterval(tuple(present_intervals)),
+            presence=form.present_interval(),
             mask=mask,
             activity=infected_activity,
             expiration=infected_expiration
@@ -224,9 +215,9 @@ def baseline_raw_form_data():
         'air_changes': '',
         'air_supply': '',
         'ceiling_height': '',
-        'coffee_breaks': '',
-        'coffee_duration': '1',
-        'coffee_option': '0',
+        'coffee_breaks': '5',
+        'coffee_duration': '10',
+        'coffee_option': '1',
         'event_type': 'single_event',
         'floor_area': '',
         'infected_people': '1',
