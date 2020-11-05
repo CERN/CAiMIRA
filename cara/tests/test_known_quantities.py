@@ -163,7 +163,7 @@ def test_multiple_ventilation_HEPA_window(baseline_periodic_hepa, time, expected
     window = models.WindowOpening(active=models.SpecificInterval([(0,24)]),
                 inside_temp=tempInside,outside_temp=tempOutside,
                 window_height=1.,opening_length=0.6)
-    vent = models.MultipleVentilation(window, baseline_periodic_hepa)
+    vent = models.MultipleVentilation([window, baseline_periodic_hepa])
     npt.assert_allclose(vent.air_exchange(room,time), expected_value, rtol=1e-5)
 
 
@@ -188,7 +188,7 @@ def test_multiple_ventilation_HEPA_HVAC_AirChange(volume, expected_value):
         active=models.SpecificInterval([(0,24)]),
         air_exch=3.,
     )
-    vent = models.MultipleVentilation(hepa, hvac, airchange)
+    vent = models.MultipleVentilation([hepa, hvac, airchange])
     npt.assert_allclose(vent.air_exchange(room,10.),
                         expected_value,rtol=1e-5)
 
