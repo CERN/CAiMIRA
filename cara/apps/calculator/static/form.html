@@ -8,15 +8,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" integrity="sha512-uto9mlQzrs59VwILcLiRYeLKPPbS/bT71da/OEBYEwcdNUk8jYIy+D176RYoop1Da+f9mvkYrmj5MCLZWEtQuA==" crossorigin="anonymous"></script>
     <script type="text/javascript" src="/calculator/static/js/form.js"></script>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" integrity="sha512-aOG0c6nPNzGk+5zjwyJaoRUgCdOrfSDhmMID2u4+OIslr0GjpLKo7Xm0Ao3xmpM4T8AmIouRkqwj1nrdVsLKEQ==" crossorigin="anonymous" />
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" integrity="sha512-aOG0c6nPNzGk+5zjwyJaoRUgCdOrfSDhmMID2u4+OIslr0GjpLKo7Xm0Ao3xmpM4T8AmIouRkqwj1nrdVsLKEQ==" crossorigin="anonymous"/>
+    <link rel="stylesheet" href="/calculator/static/css/form.css"/>
+</script>
 </head>
 
 <body>
 
-
 Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to <a href="mailto:CARA-dev@cern.ch">CARA-dev@cern.ch</a></span>
 <h1> <p><b>CARA</b> Covid Airborne Risk Assessment tool</p></h1>
+
 <form id="covid_calculator" name="covid_calculator" action="/calculator/report" method="POST">
 
 <div style="width: 33%; float:left;">
@@ -27,10 +28,10 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
     <hr width="80%">
     <b>Room data:</b><br>
     <input type="radio" id="room_type_volume" name="volume_type" value="room_volume" onclick="require_fields(this)" required>
-    Room volume: &nbsp;&nbsp; <input type="number" id="room_volume" name="room_volume" placeholder="Room volume (m³)" min="0"><br>
+    Room volume: &nbsp;&nbsp; <input type="number" step=0.01 id="room_volume" name="room_volume" placeholder="Room volume (m³)" min="0"><br>
     <input type="radio" id="room_type_dimensions" name="volume_type" value="room_dimensions" onclick="require_fields(this)" required>
-    Floor area: &nbsp;&nbsp; <input type="number" id="floor_area" name="floor_area" placeholder="Room floor area (m²)" min="0"><br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ceiling height: &nbsp;&nbsp; <input type="number" id="ceiling_height" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0"><br>
+    Floor area: &nbsp;&nbsp; <input type="number" step=0.01 id="floor_area" name="floor_area" placeholder="Room floor area (m²)" min="0"><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ceiling height: &nbsp;&nbsp; <input type="number" step=0.01 id="ceiling_height" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0"><br>
     <hr width="80%">
 
     <!-- Ventilation Options -->
@@ -41,16 +42,16 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
 
     <div id="DIVmechanical_ventilation" style="display:none">
         <input type="radio" id="air_type_supply" name="air_type" value="air_supply" onclick="require_fields(this)">
-        Air supply flow rate &nbsp;&nbsp; <input type="number" id="air_supply" name="air_supply" min="0"><br>
+        Air supply flow rate &nbsp;&nbsp; <input type="number" step=0.01 id="air_supply" name="air_supply" min="0"><br>
         <input type="radio" id="air_type_changes" name="air_type" value="air_changes" onclick="require_fields(this)">
-        Air changes per hour &nbsp;&nbsp; <input type="number" id="air_changes" name="air_changes" min="0"><br>
+        Air changes per hour &nbsp;&nbsp; <input type="number" step=0.01 id="air_changes" name="air_changes" min="0"><br>
     </div>
 
     <div id="DIVnatural_ventilation" style="display:none">
         Number of windows: <input type="number" id="windows_number" name="windows_number" min="0"><br>
-        Height of window: <input type="number" id="window_height"  name="window_height" placeholder="meters" min="0"><br>
-        Width of window: <input type="number" id="window_width"  name="window_width" placeholder="meters" min="0"><br>
-        Opening distance: <input type="number" id="opening_distance"  name="opening_distance" placeholder="meters" min="0"><br>
+        Height of window: <input type="number" step=0.01 id="window_height" name="window_height" placeholder="meters" min="0"><br>
+        Width of window: <input type="number" step=0.01 id="window_width"  name="window_width" placeholder="meters" min="0"><br>
+        Opening distance: <input type="number" step=0.01 id="opening_distance"  name="opening_distance" placeholder="meters" min="0"><br>
         Windows open: <input type="radio" id="always" name="windows_open" value="always">
                       <label for="always">Always</label>
                       <input type="radio" id="interval" name="windows_open" value="interval">
@@ -81,18 +82,21 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
                     <option value="workshop">Workshop</option>
                     <option value="training">Training</option>
                    </select><br>
-    Start: <input type="time" id="activity_start" name="activity_start" required> &nbsp;&nbsp;
-    Finish: <input type="time" id="activity_finish" name="activity_finish" required><br>
+    Start: <input type="time" id="activity_start" name="activity_start" value="09:00" required> &nbsp;&nbsp;
+    Finish: <input type="time" id="activity_finish" name="activity_finish" value="18:00" required><br>
     Infected person(s) presence: <br>
-    Start: <input type="time" id="inf_activity_start" name="activity_start" required> &nbsp;&nbsp;
-    Finish: <input type="time" id="inf_activity_finish" name="activity_finish" required><br>
+    Start: <input type="time" id="infected_start" name="infected_start" value="09:00" required> &nbsp;&nbsp;
+    Finish: <input type="time" id="infected_finish" name="infected_finish" value="18:00" required><br>
     <hr width="80%">
 
-    When is the event?<br>
-    <input type="radio" id="event_type_single" name="event_type" value="single_event" onclick="require_fields(this)" required>Single event</input>
-    Date: <input type="text" id="datepicker" name="single_event_date" unrequired><br>
-    <input type="radio" id="event_type_recurrent" name="event_type" value="recurrent_event" onclick="require_fields(this)" required>Recurrent usage</input>
-    <select id="recurrent_event_month" name="recurrent_event_month">
+    <span class="natural disabled">When is the event?</span><br>
+    <input type="radio" id="event_type_single" name="event_type" class="natural disabled" value="single_event" onclick="require_fields(this)" disabled></input>
+    <label for="event_type_single" class="natural disabled">Single event</label> &nbsp;&nbsp;
+    <label for="datepicker" class="natural disabled">Date: </label>
+    <input type="text" id="datepicker" class="natural disabled" name="single_event_date" disabled unrequired><br>
+    <input type="radio" id="event_type_recurrent" name="event_type" class="natural disabled" value="recurrent_event" onclick="require_fields(this)" disabled></input>
+    <label for="event_type_recurrent" class="natural disabled">Recurrent usage</label>
+    <select id="recurrent_event_month" name="recurrent_event_month" class="natural disabled" disabled>
         <option value="January">January</option>
         <option value="February">February</option>
         <option value="March">March</option>
@@ -121,11 +125,11 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
 
     <!-- Coffee Options -->
     Coffee Breaks
-    <input type="radio" id="coffee_break" name="coffee_break" value="0" checked="checked"</input>
+    <input type="radio" name="coffee_breaks" value="0" checked="checked"</input>
         <label for="lunch_option" >No breaks</label>
-    <input type="radio" id="coffee_break" name="coffee_break" value="2" </input>
+    <input type="radio" name="coffee_breaks" value="2" </input>
         <label for="lunch_option">2</label>
-    <input type="radio" id="coffee_break" name="coffee_break" value="4"</input>
+    <input type="radio" name="coffee_breaks" value="4"</input>
         <label for="lunch_option">4</label>
         <br>
         Duration (minutes): <select id="break_duration" name="coffee_duration">
@@ -167,6 +171,20 @@ You should specify if the event is a one off (give date) or recurrent use of the
 
 <button type='submit'>Generate report</button><br><br><br><br>
 </form>
+
+<!-- Dialog boxes -->
+<div id="DIALOG_welcome" title="Welcome to CARA!" class="dialog">
+  <p>This software is provided with a disclaimer and code license.<span id="dots"></span><span id="more" style="display: none;"> 
+    <br><br><b>Disclaimer:</b><br><br>
+    <span style="font-size:9pt;">The risk assessment tool simulates the long range airborne spread SARS-CoV-2 virus in a finite volume, assuming a homogenous mixture, and estimates the risk of COVID-19 infection thereto. The results DO NOT include short-range airborne exposure (where the physical distance plays a factor) nor the other know modes of transmission of SARS-CoV-2. Hence, this model implies that proper physical distancing, good hand hygiene and other barrier measures are ensured.<br><br>
+    It is based on current scientific data and can be used to measures the effectiveness of different mitigation measures.<br><br>
+    Note that this model is based on a deterministic approach, i.e., at least one person is infected and shedding viruses into the volume. Nonetheless, it is also important to understand that the absolute risk of infection is uncertain as it will depend on the probability that someone infected attends the event. The model is mostly useful to compare the impact and effectiveness of mitigation measures such as ventilation, filtration, exposure time, activity and the size of the room on long-range airborne transmission of COVID-19 in indoor settings.<br><br>
+    This application is meant for informative and educational purposes. The user can be able to adapt different settings and measure the relative impact on the estimated infection probabilities to allow for a targeted decision making and investment. The user should acknowledge that until the virus is in circulation among the population, the notion of 'zero risk' or a 'completely safe scenario' does not exist. Each event is unique and the results are as accurate as the inputs. The app is based on our scientific understanding of infectious diseases transmission, exposure and aerosol science as of November 2020.<br><br>
+    <b>We do not assume responsibility for any injury or damage to persons or property arising out of or related to any use of this app.</b></span>
+    <br><br><b>Code License:</b><br><br>
+    <span style="font-size:9pt;">THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span></p><br>
+  <button onclick="show_disclaimer()" id="myBtn">Read more</button><br><br>
+</div>
 
 </body>
 </html>

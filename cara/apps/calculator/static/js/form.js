@@ -1,10 +1,3 @@
-function clear_form(){
-    document.covid_calculator.reset();
-}
-
-function test() {
-}
-
 /* -------Show/Hide DIVs------- */
 function show(show, var_id, obj) {
   var show = document.getElementById(show);
@@ -111,7 +104,23 @@ function require_natural_ventilation(option) {
     $("#opening_distance").prop('required',option);
     $("#always").prop('required',option);
     $("#interval").prop('required',option);
-}
+    $("#event_type_single").prop('required',option);
+    $("#event_type_recurrent").prop('required',option);
+
+    document.getElementById("event_type_single").disabled = !option;
+    document.getElementById("event_type_recurrent").disabled = !option;
+
+    if (option) {
+      var elements = document.getElementsByClassName("natural disabled");
+      for(var i = elements.length - 1; i >= 0; --i)
+          elements[i].className = "natural enabled";
+    }
+    else {
+      $(".natural disabled").disabled = true
+      var elements = document.getElementsByClassName("natural enabled");
+      for(var i = elements.length - 1; i >= 0; --i)
+          elements[i].className = "natural disabled";
+} }
 
 function require_air_changes(option) {
     $("#air_changes").prop('required',option);
@@ -134,3 +143,25 @@ function require_lunch(option) {
 $(function() {
   $("#datepicker").datepicker();
 });  
+
+$( function() {
+  $(".dialog").dialog({modal:true});
+});
+
+function show_disclaimer() {
+  var dots = document.getElementById("dots");
+  var moreText = document.getElementById("more");
+  var btnText = document.getElementById("myBtn");
+
+  if (dots.style.display === "none") {
+    dots.style.display = "inline";
+    btnText.innerHTML = "Read more";
+    moreText.style.display = "none";
+    $("#DIALOG_welcome").dialog("option", "height", 185);
+  } else {
+    dots.style.display = "none";
+    btnText.innerHTML = "Read less";
+    moreText.style.display = "inline";
+    $("#DIALOG_welcome").dialog("option", "height", 600);
+  }
+}
