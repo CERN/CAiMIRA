@@ -143,6 +143,56 @@ def test_periodic_hepa(baseline_periodic_hepa, baseline_room):
     npt.assert_allclose(aes, answers, rtol=1e-5)
 
 
+@pytest.mark.parametrize(
+    "time, expected_value",
+    [
+        [0, 3.7393925],
+        [14 / 60, 514.74 / 68 + 3.7393925],
+        [15 / 60, 514.74 / 68 + 3.7393925],
+        [16 / 60, 3.7393925],
+        [1, 5.3842316],
+        [1.5, 514.74 / 68 + 5.3842316],
+        [121 / 60, 514.74 / 68 + 5.3842316],
+        [2.5, 5.3842316],
+    ],
+)
+def test_multiple_ventilation_HEPA_window(baseline_periodic_hepa, time, expected_value):
+    room = models.Room(volume=68.)
+    tempOutside = models.PiecewiseConstant((0,1,2.5),(273.15,283.15))
+    tempInside = models.PiecewiseConstant((0,24),(293.15,))
+    window = models.WindowOpening(active=models.SpecificInterval([(0,24)]),
+                inside_temp=tempInside,outside_temp=tempOutside,
+                window_height=1.,opening_length=0.6)
+    vent = models.MultipleVentilation(window, baseline_periodic_hepa)
+    npt.assert_allclose(vent.air_exchange(room,time), expected_value, rtol=1e-5)
+
+
+@pytest.mark.parametrize(
+    "volume, expected_value",
+    [
+        [24.5, 500 / 24.5 + 100 / 24.5 + 3.],
+        [70, 500 / 70 + 100 / 70 + 3.],
+    ],
+)
+def test_multiple_ventilation_HEPA_HVAC_AirChange(volume, expected_value):
+    room = models.Room(volume=volume)
+    hepa = models.HEPAFilter(
+        active=models.SpecificInterval([(0,24)]),
+        q_air_mech=500.,
+    )
+    hvac = models.HVACMechanical(
+        active=models.SpecificInterval([(0,24)]),
+        q_air_mech=100.,
+    )
+    airchange = models.AirChange(
+        active=models.SpecificInterval([(0,24)]),
+        air_exch=3.,
+    )
+    vent = models.MultipleVentilation(hepa, hvac, airchange)
+    npt.assert_allclose(vent.air_exchange(room,10.),
+                        expected_value,rtol=1e-5)
+
+
 def test_expiration_aerosols():
     mask = models.Mask.types['Type I']
     exp1 = models.Expiration((0.751, 0.139, 0.0139, 0.059),
