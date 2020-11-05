@@ -391,6 +391,10 @@ class Model:
         state_change_times = set()
         state_change_times.update(self.infected.presence.transition_times())
         state_change_times.update(self.ventilation.active.transition_times())
+        if isinstance(self.ventilation,WindowOpening):
+            state_change_times.update(self.ventilation.inside_temp.interval().transition_times())
+            state_change_times.update(self.ventilation.outside_temp.interval().transition_times())
+
         return sorted(state_change_times)
 
     def last_state_change(self, time: float):
