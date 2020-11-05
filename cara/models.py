@@ -165,8 +165,8 @@ class Ventilation:
     @abstractmethod
     def air_exchange(self, room: Room, time: float) -> float:
         """
-        Returns the rate at which air is being exchanged in the given room per
-        cubic meter at a given time (in hours).
+        Returns the rate at which air is being exchanged in the given room
+        at a given time (in hours).
 
         Note that whilst the time is known inside this function, it may not
         be used to vary the result unless the specific time used is declared
