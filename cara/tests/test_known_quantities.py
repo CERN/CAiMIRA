@@ -146,25 +146,39 @@ def test_periodic_hepa(baseline_periodic_hepa, baseline_room):
 @pytest.mark.parametrize(
     "time, expected_value",
     [
-        [0, 3.7393925],
-        [14 / 60, 514.74 / 68 + 3.7393925],
-        [15 / 60, 514.74 / 68 + 3.7393925],
-        [16 / 60, 3.7393925],
-        [1, 5.3842316],
-        [1.5, 514.74 / 68 + 5.3842316],
-        [121 / 60, 514.74 / 68 + 5.3842316],
-        [2.5, 5.3842316],
+        [0., 0.],
+        [1 / 60, 514.74 / 68],
+        [14 / 60, 514.74 / 68 + 5.3842316],
+        [15 / 60, 514.74 / 68 + 5.3842316],
+        [16 / 60, 5.3842316],
+        [1., 5.3842316],
+        [1.5, 3.7393925],
+        [121 / 60, 514.74 / 68 + 3.7393925],
+        [2.5, 3.7393925],
     ],
 )
 def test_multiple_ventilation_HEPA_window(baseline_periodic_hepa, time, expected_value):
     room = models.Room(volume=68.)
-    tempOutside = models.PiecewiseConstant((0,1,2.5),(273.15,283.15))
-    tempInside = models.PiecewiseConstant((0,24),(293.15,))
-    window = models.WindowOpening(active=models.SpecificInterval([(0,24)]),
+    tempOutside = models.PiecewiseConstant((0., 1., 2.5),(273.15, 283.15))
+    tempInside = models.PiecewiseConstant((0., 24.),(293.15,))
+    window = models.WindowOpening(active=models.SpecificInterval([(1 / 60, 24.)]),
                 inside_temp=tempInside,outside_temp=tempOutside,
                 window_height=1.,opening_length=0.6)
     vent = models.MultipleVentilation([window, baseline_periodic_hepa])
     npt.assert_allclose(vent.air_exchange(room,time), expected_value, rtol=1e-5)
+
+
+def test_multiple_ventilation_HEPA_window_transitions(baseline_periodic_hepa):
+    room = models.Room(volume=68.)
+    tempOutside = models.PiecewiseConstant((0., 1., 2.5),(273.15, 283.15))
+    tempInside = models.PiecewiseConstant((0., 24.),(293.15,))
+    window = models.WindowOpening(active=models.SpecificInterval([(1 / 60, 24.)]),
+                inside_temp=tempInside,outside_temp=tempOutside,
+                window_height=1.,opening_length=0.6)
+    vent = models.MultipleVentilation([window, baseline_periodic_hepa])
+    assert set(vent.transition_times()) == set([0.0, 1/60, 0.25, 1.0, 2.0, 2.25,
+            2.5, 4.0, 4.25, 6.0, 6.25, 8.0, 8.25, 10.0, 10.25, 12.0, 12.25,
+            14.0, 14.25, 16.0, 16.25, 18.0, 18.25, 20.0, 20.25, 22.0, 22.25, 24.])
 
 
 @pytest.mark.parametrize(
@@ -249,16 +263,21 @@ def test_piecewiseconstant_vs_interval():
         assert fun.interval().triggered(t) == interval.triggered(t)
 
 
-def test_windowopening():
+@pytest.mark.parametrize(
+    "time, expected_value",
+    [
+        [8., 5.3842316],
+        [16., 3.7393925],
+    ],
+)
+def test_windowopening(time, expected_value):
     tempOutside = models.PiecewiseConstant((0,10,24),(273.15,283.15))
     tempInside = models.PiecewiseConstant((0,24),(293.15,))
     w = models.WindowOpening(active=models.SpecificInterval([(0,24)]),
                 inside_temp=tempInside,outside_temp=tempOutside,
                 window_height=1.,opening_length=0.6)
-    npt.assert_allclose(w.air_exchange(models.Room(volume=68),16.),
-                        3.7393925,rtol=1e-5)
-    npt.assert_allclose(w.air_exchange(models.Room(volume=68),8.),
-                        5.3842316,rtol=1e-5)
+    npt.assert_allclose(w.air_exchange(models.Room(volume=68),time),
+                        expected_value,rtol=1e-5)
 
 
 def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),)):
