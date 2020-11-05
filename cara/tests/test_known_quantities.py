@@ -191,15 +191,15 @@ def test_multiple_ventilation_HEPA_window_transitions(baseline_periodic_hepa):
 def test_multiple_ventilation_HEPA_HVAC_AirChange(volume, expected_value):
     room = models.Room(volume=volume)
     hepa = models.HEPAFilter(
-        active=models.SpecificInterval([(0,24)]),
+        active=models.SpecificInterval(((0,24),)),
         q_air_mech=500.,
     )
     hvac = models.HVACMechanical(
-        active=models.SpecificInterval([(0,24)]),
+        active=models.SpecificInterval(((0,24),)),
         q_air_mech=100.,
     )
     airchange = models.AirChange(
-        active=models.SpecificInterval([(0,24)]),
+        active=models.SpecificInterval(((0,24),)),
         air_exch=3.,
     )
     vent = models.MultipleVentilation([hepa, hvac, airchange])
@@ -334,6 +334,35 @@ def build_constant_temp_model(outside_temp, intervals_open=((7.5, 8.5),)):
     return model
 
 
+def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5, 8.5),)):
+    vent = models.MultipleVentilation((
+        models.WindowOpening(
+            active=models.SpecificInterval(intervals_open),
+            inside_temp=models.PiecewiseConstant((0,24),(293,)),
+            outside_temp=models.GenevaTemperatures[month],
+            cd_b=0.6, window_height=1.6, opening_length=0.6,
+        ),
+        models.HEPAFilter(
+        active=models.SpecificInterval(((0,24),)),
+        q_air_mech=500.,
+        )))
+    model = models.Model(
+        room=models.Room(volume=75),
+        ventilation=vent,
+        infected=models.InfectedPerson(
+            virus=models.Virus.types['SARS_CoV_2'],
+            presence=models.SpecificInterval(((0, 4), (5, 7.5))),
+            mask=models.Mask.types['No mask'],
+            activity=models.Activity.types['Light exercise'],
+            expiration=models.Expiration.types['Unmodulated Vocalization'],
+        ),
+        infected_occupants=1,
+        exposed_occupants=10,
+        exposed_activity=models.Activity.types['Light exercise'],
+    )
+    return model
+
+
 @pytest.mark.parametrize(
     "month, temperatures",
     models.Geneva_hourly_temperatures_celsius_per_hour.items(),
@@ -348,6 +377,11 @@ def test_concentrations_hourly_dep_startup(month, temperatures, time):
     m1 = build_hourly_dependent_model(month)
     m2 = build_constant_temp_model(temperatures[7]+273.15)
     npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-5)
+
+
+def test_concentrations_hourly_dep_multipleventilation():
+    m = build_hourly_dependent_model_multipleventilation('Jan')
+    m.concentration(12.)
 
 
 @pytest.mark.parametrize(
