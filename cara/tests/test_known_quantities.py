@@ -162,12 +162,13 @@ def test_piecewiseconstantfunction_wrongarguments():
     pytest.raises(ValueError,models.PiecewiseConstant,(2,0),(0,0))
 
 
-def test_piecewiseconstantfunction():
+def test_piecewiseconstant():
     transition_times = (0,8,16,24)
     values = (2,5,8)
     fun = models.PiecewiseConstant(transition_times,values)
     assert (fun.value(10) == 5) and (fun.value(20.5) == 8) and \
-            (fun.value(8) == 2) and (fun.value(0) == 2) and (fun.value(24) == 8)
+            (fun.value(8) == 2) and (fun.value(0) == 2) and \
+            (fun.value(24) == 8) and (fun.value(-1) == 2) and (fun.value(25) == 8)
 
 
 def test_constantfunction():
@@ -178,7 +179,7 @@ def test_constantfunction():
         assert (fun.value(t) == 20)
 
 
-def test_piecewiseconstantfunction_vs_interval():
+def test_piecewiseconstant_vs_interval():
     transition_times = (0,8,16,24)
     values = (0,1,0)
     fun = models.PiecewiseConstant(transition_times,values)
