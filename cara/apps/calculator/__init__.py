@@ -56,7 +56,7 @@ def make_app(debug=False, prefix='/calculator'):
     static_dir = Path(__file__).absolute().parent / 'static'
     urls = [
         (
-            prefix + r'()', StaticFileHandler, {'path': static_dir / 'form.html'}
+            prefix + r'/?()', StaticFileHandler, {'path': static_dir / 'form.html'}
         ),
         (
             prefix + r'/report', ConcentrationModel
