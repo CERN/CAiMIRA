@@ -95,8 +95,8 @@ class FormData:
             enter_times.append(minute + coffee_period // 2 + self.coffee_duration)
 
         # These lists represent the times where the infected person leaves or enters the room, respectively, sorted in
-        # reverse order. Note that these lists allows the person to "leave" when they should not even be present in the room
-        # The following loop handles this.
+        # reverse order. Note that these lists allows the person to "leave" when they should not even be present in the
+        # room. The following loop handles this.
         leave_times.sort(reverse=True)
         enter_times.sort(reverse=True)
 
