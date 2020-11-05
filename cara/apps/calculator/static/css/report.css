@@ -6,7 +6,7 @@
     padding: 20px; 
 }
 
-h1{
+h1 {
 	text-align: center;
 }
 
@@ -36,13 +36,10 @@ p.result_title {
 }
 
 .image {
-	display: flex; 
-	justify-content: center;
+	text-align: center;
 	font-size: 13pt;
 }
 
 .discalimer {
-	display: flex; 
-	justify-content: center;
-	font-size: 10pt;
+	font-size: 12pt;
 }
