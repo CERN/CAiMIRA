@@ -38,7 +38,7 @@ Geneva_hourly_temperatures_celsius_per_hour = {
 @dataclass(frozen=True)
 class Room:
     # The total volume of the room
-    volume: int
+    volume: float
 
 
 @dataclass(frozen=True)
@@ -159,14 +159,14 @@ class Ventilation:
     #: The times at which the air exchange is taking place.
     active: Interval
 
-    def transition_times(self):
+    def transition_times(self) -> typing.Set[float]:
         return self.active.transition_times()
 
     @abstractmethod
     def air_exchange(self, room: Room, time: float) -> float:
         """
-        Returns the rate at which air is being exchanged in the given room per
-        cubic meter at a given time (in hours).
+        Returns the rate at which air is being exchanged in the given room
+        at a given time (in hours).
 
         Note that whilst the time is known inside this function, it may not
         be used to vary the result unless the specific time used is declared
@@ -174,6 +174,33 @@ class Ventilation:
 
         """
         return 0.
+
+
+@dataclass(frozen=True)
+class MultipleVentilation:
+    """
+    Represents a mechanism by which air can be exchanged (replaced/filtered)
+    in a time dependent manner.
+
+    Group together different sources of ventilations.
+
+    """
+    ventilations: typing.Tuple[Ventilation, ...]
+
+    def transition_times(self) -> typing.Set[float]:
+        transitions = set()
+        for ventilation in self.ventilations:
+            transitions.update(ventilation.transition_times())
+        return transitions
+
+    @abstractmethod
+    def air_exchange(self, room: Room, time: float) -> float:
+        """
+        Returns the rate at which air is being exchanged in the given room 
+        at a given time (in hours).
+        """
+        return sum([ventilation.air_exchange(room,time)
+                    for ventilation in self.ventilations])
 
 
 @dataclass(frozen=True)
@@ -190,10 +217,10 @@ class WindowOpening(Ventilation):
 
     cd_b: float = 0.6   #: Discharge coefficient: what portion effective area is used to exchange air (0 <= cd_b <= 1)
 
-    def transition_times(self):
+    def transition_times(self) -> typing.Set[float]:
         transitions = super().transition_times()
-        transitions.update(self.inside_temp.interval().transition_times())
-        transitions.update(self.outside_temp.interval().transition_times())
+        transitions.update(self.inside_temp.transition_times)
+        transitions.update(self.outside_temp.transition_times)
         return transitions
 
     def air_exchange(self, room: Room, time: float) -> float:
@@ -216,6 +243,7 @@ class HEPAFilter(Ventilation):
     active: Interval
 
     #: The rate at which the HEPA exchanges air (when switched on)
+    # in m^3/h
     q_air_mech: float
 
     def air_exchange(self, room: Room, time: float) -> float:
@@ -224,6 +252,41 @@ class HEPAFilter(Ventilation):
             return 0.
         # Reminder, no dependence on time in the resulting calculation.
         return self.q_air_mech / room.volume
+
+
+@dataclass(frozen=True)
+class HVACMechanical(Ventilation):
+    #: The interval in which the mechanical ventilation (HVAC) is operating.
+    active: Interval
+
+    #: The rate at which the HVAC exchanges air (when switched on)
+    # in m^3/h
+    q_air_mech: float
+
+    def air_exchange(self, room: Room, time: float) -> float:
+        # If the HVAC is off, no air is being exchanged.
+        if not self.active.triggered(time):
+            return 0.
+        # Reminder, no dependence on time in the resulting calculation.
+        return self.q_air_mech / room.volume
+
+
+@dataclass(frozen=True)
+class AirChange(Ventilation):
+    #: The interval in which the ventilation is operating.
+    active: Interval
+
+    #: The rate (in h^-1) at which the ventilation exchanges all the air 
+    # of the room (when switched on)
+    air_exch: float
+
+    def air_exchange(self, room: Room, time: float) -> float:
+        # No dependence on the room volume.
+        # If off, no air is being exchanged.
+        if not self.active.triggered(time):
+            return 0.
+        # Reminder, no dependence on time in the resulting calculation.
+        return self.air_exch
 
 
 @dataclass(frozen=True)
