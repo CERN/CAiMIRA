@@ -168,16 +168,6 @@ def model_from_form(form: FormData, tmp_raw_form_data) -> models.Model:
     # Initializes the virus as SARS_Cov_2
     virus = models.Virus.types['SARS_CoV_2']
 
-    # Defines all of the parameters required to construct a list of intervals where the infected person is present in
-    # the room
-    activity_start = int(d['activity_start'][:2]) * 60 + int(d['activity_start'][3:])
-    activity_finish = int(d['activity_finish'][:2]) * 60 + int(d['activity_finish'][3:])
-    lunch_start = int(d['lunch_start'][:2]) * 60 + int(d['lunch_start'][3:])
-    lunch_finish = int(d['lunch_finish'][:2]) * 60 + int(d['lunch_finish'][3:])
-    coffee_duration = int(d['coffee_duration'])
-    coffee_breaks = int(d['coffee_breaks'])
-    coffee_period = (activity_finish - activity_start) // coffee_breaks + 1
-
     # Initializes a mask of type 1 if mask wearing is "continuous", otherwise instantiates the mask attribute as
     # the "No mask"-mask
     mask = models.Mask.types['Type I' if d['mask_wearing'] == "Continuous" else 'No mask']
