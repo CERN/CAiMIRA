@@ -102,6 +102,7 @@ class PeriodicInterval(Interval):
 
 @dataclass(frozen=True)
 class PiecewiseConstant:
+
     #: transition times at which the function changes value (hours).
     transition_times: typing.Tuple[float, ...]
 
@@ -115,8 +116,11 @@ class PiecewiseConstant:
             raise ValueError("transition_times should not contain duplicated elements and should be sorted")
 
     def value(self,time) -> float:
-        if self.transition_times[0] == time:
+        if time <= self.transition_times[0]:
             return self.values[0]
+        if time > self.transition_times[-1]:
+            return self.values[-1]
+
         for t1,t2,value in zip(self.transition_times[:-1],
                                self.transition_times[1:],self.values):
             if time > t1 and time <= t2:
