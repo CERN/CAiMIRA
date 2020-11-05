@@ -2,6 +2,9 @@ function clear_form(){
     document.covid_calculator.reset();
 }
 
+function test() {
+}
+
 /* -------Show/Hide DIVs------- */
 function show(show, var_id, obj) {
   var show = document.getElementById(show);
@@ -16,30 +19,21 @@ function show(show, var_id, obj) {
 }
 
 function show_hide(show, hide, obj) {
+
   var show = document.getElementById(show);
   var hide = document.getElementById(hide);
-  
-  if (show.style.display === "none") {
-    show.style.display = "block";
-    hide.style.display = "none";
-  }// else {
-   // show.style.display = "none";
-  //}
+  var no_ventilation = document.getElementById("no_ventilation");
 
-  require_fields(obj);
-
-}
-
-/*$(document).on("click", "input[name='ventilation_type']", function(){
-      thisRadio = $(this);
-      if (thisRadio.hasClass("imChecked")) {
-          thisRadio.removeClass("imChecked");
-          thisRadio.prop('checked', false);
-      } else { 
-          thisRadio.prop('checked', true);
-          thisRadio.addClass("imChecked");
-      };
-  })*/
+  if (show.style.display === "block") {
+      show.style.display = "none";
+      obj.checked = false;
+      no_ventilation.checked = true;
+      unrequire_fields(obj);
+  } else if (show.style.display === "none") {
+      show.style.display = "block";
+      hide.style.display = "none";
+      require_fields(obj);
+} }
 
 /* -------Required fields------- */
 function require_fields(obj){
@@ -74,19 +68,23 @@ function require_fields(obj){
     case "event_type_recurrent":
       require_single_event(false);
       break;
-    case "BUTTON_lunch":
-      var button = document.getElementById("lunch_option");
-      if (button.value == 0)
-        require_lunch(false);
-      else if (button.value == 1)
-        require_lunch(true);
+    case "lunch_option_no":
+      require_lunch(false);
       break;
-    case "BUTTON_coffee":
-      var button = document.getElementById("coffee_option");
-      if (button.value == 0)
-        require_coffee(false);
-      else if (button.value == 1)
-        require_coffee(true);
+    case "lunch_option_yes":
+      require_lunch(true);
+      break;
+    default:
+      break;
+} }
+
+function unrequire_fields(obj){
+  switch(obj.id) {
+    case "mechanical":
+      require_mechanical_ventilation(false);
+      break;
+    case "natural":
+      require_natural_ventilation(false);
       break;
     default:
       break;
@@ -130,10 +128,6 @@ function require_single_event(option) {
 function require_lunch(option) {
   $("#lunch_start").prop('required',option);
   $("#lunch_finish").prop('required',option);
-}
-
-function require_coffee(option) {
-  $("#coffee_breaks").prop('required',option);
 }
 
 /* -------UI------- */
