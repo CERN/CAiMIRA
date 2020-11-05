@@ -3,15 +3,11 @@ from pathlib import Path
 
 from tornado.web import Application, RequestHandler, StaticFileHandler
 
-import cara.models
+from . import model_generator
+from .report_generator import build_report
 
 
-def build_model(request: dict) -> cara.models.Model:
-    return None
-
-
-def build_response(model: cara.models.Model):
-    return {'items': 'foobar'}
+DEBUG = True
 
 
 class ConcentrationModel(RequestHandler):
@@ -19,19 +15,41 @@ class ConcentrationModel(RequestHandler):
         requested_model_config = {
             name: self.get_argument(name) for name in self.request.arguments
         }
+        if DEBUG:
+            from pprint import pprint
+            pprint(requested_model_config)
+
         try:
-            model = build_model(requested_model_config)
+            form = model_generator.FormData.from_dict(requested_model_config)
+            model = form.build_model(
+                # TODO: This argument to be removed.
+                tmp_raw_form_data=requested_model_config,
+            )
         except (KeyboardInterrupt, SystemExit):
             raise
         except Exception as err:
+            if DEBUG:
+                import traceback
+                traceback.print_last()
             response_json = {'code': 400, 'error': f'Your request was invalid {err}'}
             self.set_status(400)
             self.finish(json.dumps(response_json))
             return
 
-        response_json = build_response(model)
-        response_json['room_name'] = requested_model_config.get('room_name', 'unknown')
-        self.write(response_json)
+        report = build_report(model, form)
+        self.finish(report)
+
+
+class StaticModel(RequestHandler):
+    def get(self):
+        requested_model_config = model_generator.baseline_raw_form_data()
+        form = model_generator.FormData.from_dict(model_generator.baseline_raw_form_data())
+        model = form.build_model(
+            # TODO: This argument to be removed.
+            tmp_raw_form_data=requested_model_config,
+        )
+        report = build_report(model, form)
+        self.finish(report)
 
 
 def make_app(debug=False, prefix='/calculator'):
@@ -41,7 +59,10 @@ def make_app(debug=False, prefix='/calculator'):
             prefix + r'()', StaticFileHandler, {'path': static_dir / 'form.html'}
         ),
         (
-            prefix + r'/api/calculator', ConcentrationModel
+            prefix + r'/report', ConcentrationModel
+        ),
+        (
+            prefix + r'/baseline-model/result', StaticModel
         ),
         (
             prefix + r'/static/(.*)',
