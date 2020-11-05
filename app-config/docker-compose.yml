@@ -8,4 +8,5 @@ services:
     image: cara-nginx-app
     ports:
         - "8080:8080"
-
+  cara-webservice:
+    image: cara-webservice
