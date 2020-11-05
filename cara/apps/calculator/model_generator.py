@@ -188,3 +188,12 @@ def baseline_raw_form_data():
         'windows_number': '1',
         'windows_open': 'interval'
     }
+
+
+def time_string_to_minutes(time: str) -> int:
+    """
+    Converts time from string-format to an integer number of minutes after 00:00
+    :param time: A string of the form "HH:MM" representing a time of day
+    :return: The number of minutes between 'time' and 00:00
+    """
+    return 60 * int(time[:2]) + int(time[3:])
