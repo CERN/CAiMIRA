@@ -159,7 +159,7 @@ class Ventilation:
     #: The times at which the air exchange is taking place.
     active: Interval
 
-    def transition_times(self):
+    def transition_times(self) -> typing.Set[float]:
         return self.active.transition_times()
 
     @abstractmethod
@@ -187,11 +187,11 @@ class MultipleVentilation:
     """
     ventilations: typing.Tuple[Ventilation, ...]
 
-    def transition_times(self):
+    def transition_times(self) -> typing.Set[float]:
         transitions = set()
         for ventilation in self.ventilations:
             transitions.update(ventilation.transition_times())
-        return sorted(transitions)
+        return transitions
 
     @abstractmethod
     def air_exchange(self, room: Room, time: float) -> float:
@@ -217,7 +217,7 @@ class WindowOpening(Ventilation):
 
     cd_b: float = 0.6   #: Discharge coefficient: what portion effective area is used to exchange air (0 <= cd_b <= 1)
 
-    def transition_times(self):
+    def transition_times(self) -> typing.Set[float]:
         transitions = super().transition_times()
         transitions.update(self.inside_temp.transition_times)
         transitions.update(self.outside_temp.transition_times)
