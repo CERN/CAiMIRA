@@ -38,7 +38,7 @@ Geneva_hourly_temperatures_celsius_per_hour = {
 @dataclass(frozen=True)
 class Room:
     # The total volume of the room
-    volume: int
+    volume: float
 
 
 @dataclass(frozen=True)
