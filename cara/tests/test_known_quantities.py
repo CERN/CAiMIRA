@@ -199,3 +199,68 @@ def test_windowopening():
     npt.assert_allclose(w.air_exchange(models.Room(volume=68),8.),
                         5.3842316,rtol=1e-5)
 
+
+def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),)):
+    model = models.Model(
+        room=models.Room(volume=75),
+        ventilation=models.WindowOpening(
+            active=models.SpecificInterval(intervals_open),
+            inside_temp=models.PiecewiseconstantFunction((0,24),(293,)),
+            outside_temp=models.GenevaTemperatures[month],
+            cd_b=0.6, window_height=1.6, opening_length=0.6,
+        ),
+        infected=models.InfectedPerson(
+            virus=models.Virus.types['SARS_CoV_2'],
+            presence=models.SpecificInterval(((0, 4), (5, 7.5))),
+            mask=models.Mask.types['No mask'],
+            activity=models.Activity.types['Light exercise'],
+            expiration=models.Expiration.types['Unmodulated Vocalization'],
+        ),
+        infected_occupants=1,
+        exposed_occupants=10,
+        exposed_activity=models.Activity.types['Light exercise'],
+    )
+    return model
+
+
+def build_constant_temp_model(outside_temp, intervals_open=((7.5, 8.5),)):
+    model = models.Model(
+        room=models.Room(volume=75),
+        ventilation=models.WindowOpening(
+            active=models.SpecificInterval(intervals_open),
+            inside_temp=models.PiecewiseconstantFunction((0,24),(293,)),
+            outside_temp=models.PiecewiseconstantFunction((0,24),(outside_temp,)),
+            cd_b=0.6, window_height=1.6, opening_length=0.6,
+        ),
+        infected=models.InfectedPerson(
+            virus=models.Virus.types['SARS_CoV_2'],
+            presence=models.SpecificInterval(((0, 4), (5, 7.5))),
+            mask=models.Mask.types['No mask'],
+            activity=models.Activity.types['Light exercise'],
+            expiration=models.Expiration.types['Unmodulated Vocalization'],
+        ),
+        infected_occupants=1,
+        exposed_occupants=10,
+        exposed_activity=models.Activity.types['Light exercise'],
+    )
+    return model
+
+
+def test_concentrations_hourly_dep_startup():
+    # The concentrations should be the same up to 8 AM (time when the 
+    # temperature changes DURING the window opening).
+    for month,temperatures in models.Geneva_hourly_temperatures_celsius_per_hour.items():
+        m1 = build_hourly_dependent_model(month)
+        m2 = build_constant_temp_model(temperatures[7]+273.15)
+        for t in [0.5, 1.2, 2., 3.5, 5., 6.5, 7.5, 7.9, 8.]:
+            npt.assert_allclose(m1.concentration(t), m2.concentration(t), rtol=1e-5)
+
+
+def test_concentrations_hourly_dep_adding_artificial_transitions():
+    # Adding a second opening inside the first one should not change anything
+    for month,temperatures in models.Geneva_hourly_temperatures_celsius_per_hour.items():
+        m1 = build_hourly_dependent_model(month,intervals_open=((7.5, 8.5),))
+        m2 = build_hourly_dependent_model(month,intervals_open=((7.5, 8.5),(8.,8.1)))
+        for t in [0.5, 1.2, 2., 3.5, 5., 6.5, 7.5, 7.9, 8., 8.5, 9., 12.]:
+            npt.assert_allclose(m1.concentration(t), m2.concentration(t), rtol=1e-5)
+
