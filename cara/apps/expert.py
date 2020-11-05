@@ -288,8 +288,9 @@ baseline_model = models.Model(
     room=models.Room(volume=75),
     ventilation=models.WindowOpening(
         active=models.PeriodicInterval(period=120, duration=120),
-        inside_temp=293, outside_temp=283, cd_b=0.6,
-        window_height=1.6, opening_length=0.6,
+        inside_temp=models.PiecewiseConstant((0,24),(293,)),
+        outside_temp=models.PiecewiseConstant((0,24),(283,)),
+        cd_b=0.6, window_height=1.6, opening_length=0.6,
     ),
     infected=models.InfectedPerson(
         virus=models.Virus.types['SARS_CoV_2'],
