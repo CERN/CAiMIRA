@@ -29,8 +29,8 @@ def baseline_model():
         room=models.Room(volume=75),
         ventilation=models.WindowOpening(
             active=models.PeriodicInterval(period=120, duration=120),
-            inside_temp=models.PiecewiseconstantFunction((0,24),(293,)),
-            outside_temp=models.PiecewiseconstantFunction((0,24),(283,)),
+            inside_temp=models.PiecewiseConstant((0,24),(293,)),
+            outside_temp=models.PiecewiseConstant((0,24),(283,)),
             cd_b=0.6, window_height=1.6, opening_length=0.6,
         ),
         infected=models.InfectedPerson(
@@ -51,8 +51,8 @@ def baseline_model():
 def baseline_periodic_window():
     return models.WindowOpening(
         active=models.PeriodicInterval(period=120, duration=15),
-        inside_temp=models.PiecewiseconstantFunction((0,24),(293,)),
-        outside_temp=models.PiecewiseconstantFunction((0,24),(283,)),
+        inside_temp=models.PiecewiseConstant((0,24),(293,)),
+        outside_temp=models.PiecewiseConstant((0,24),(283,)),
         cd_b=0.6, window_height=1.6, opening_length=0.6,
     )
 
@@ -154,18 +154,18 @@ def test_expiration_aerosols():
 
 def test_piecewiseconstantfunction_wrongarguments():
     # number of values should be 1+number of transition times
-    pytest.raises(ValueError,models.PiecewiseconstantFunction,(0,1),(0,0))
-    pytest.raises(ValueError,models.PiecewiseconstantFunction,(0,),(0,0))
+    pytest.raises(ValueError,models.PiecewiseConstant,(0,1),(0,0))
+    pytest.raises(ValueError,models.PiecewiseConstant,(0,),(0,0))
     # two transition times cannot be equal
-    pytest.raises(ValueError,models.PiecewiseconstantFunction,(0,2,2),(0,0))
+    pytest.raises(ValueError,models.PiecewiseConstant,(0,2,2),(0,0))
     # unsorted transition times are not allowed
-    pytest.raises(ValueError,models.PiecewiseconstantFunction,(2,0),(0,0))
+    pytest.raises(ValueError,models.PiecewiseConstant,(2,0),(0,0))
 
 
 def test_piecewiseconstantfunction():
     transition_times = (0,8,16,24)
     values = (2,5,8)
-    fun = models.PiecewiseconstantFunction(transition_times,values)
+    fun = models.PiecewiseConstant(transition_times,values)
     assert (fun.value(10) == 5) and (fun.value(20.5) == 8) and \
             (fun.value(8) == 2) and (fun.value(0) == 2) and (fun.value(24) == 8)
 
@@ -173,7 +173,7 @@ def test_piecewiseconstantfunction():
 def test_constantfunction():
     transition_times = (0,24)
     values = (20,)
-    fun = models.PiecewiseconstantFunction(transition_times,values)
+    fun = models.PiecewiseConstant(transition_times,values)
     for t in [0,1,8,10,16,20.1,24]:
         assert (fun.value(t) == 20)
 
@@ -181,7 +181,7 @@ def test_constantfunction():
 def test_piecewiseconstantfunction_vs_interval():
     transition_times = (0,8,16,24)
     values = (0,1,0)
-    fun = models.PiecewiseconstantFunction(transition_times,values)
+    fun = models.PiecewiseConstant(transition_times,values)
     interval = models.SpecificInterval(present_times=[(8,16)])
     assert interval.transition_times() == fun.interval().transition_times()
     for t in [0,1,8,10,16,20.1,24]:
@@ -189,8 +189,8 @@ def test_piecewiseconstantfunction_vs_interval():
 
 
 def test_windowopening():
-    tempOutside = models.PiecewiseconstantFunction((0,10,24),(273.15,283.15))
-    tempInside = models.PiecewiseconstantFunction((0,24),(293.15,))
+    tempOutside = models.PiecewiseConstant((0,10,24),(273.15,283.15))
+    tempInside = models.PiecewiseConstant((0,24),(293.15,))
     w = models.WindowOpening(active=models.SpecificInterval([(0,24)]),
                 inside_temp=tempInside,outside_temp=tempOutside,
                 window_height=1.,opening_length=0.6)
@@ -205,7 +205,7 @@ def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),)):
         room=models.Room(volume=75),
         ventilation=models.WindowOpening(
             active=models.SpecificInterval(intervals_open),
-            inside_temp=models.PiecewiseconstantFunction((0,24),(293,)),
+            inside_temp=models.PiecewiseConstant((0,24),(293,)),
             outside_temp=models.GenevaTemperatures[month],
             cd_b=0.6, window_height=1.6, opening_length=0.6,
         ),
@@ -228,8 +228,8 @@ def build_constant_temp_model(outside_temp, intervals_open=((7.5, 8.5),)):
         room=models.Room(volume=75),
         ventilation=models.WindowOpening(
             active=models.SpecificInterval(intervals_open),
-            inside_temp=models.PiecewiseconstantFunction((0,24),(293,)),
-            outside_temp=models.PiecewiseconstantFunction((0,24),(outside_temp,)),
+            inside_temp=models.PiecewiseConstant((0,24),(293,)),
+            outside_temp=models.PiecewiseConstant((0,24),(outside_temp,)),
             cd_b=0.6, window_height=1.6, opening_length=0.6,
         ),
         infected=models.InfectedPerson(

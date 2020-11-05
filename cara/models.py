@@ -101,7 +101,7 @@ class PeriodicInterval(Interval):
 
 
 @dataclass(frozen=True)
-class PiecewiseconstantFunction:
+class PiecewiseConstant:
     #: transition times at which the function changes value (hours).
     transition_times: typing.Tuple[float, ...]
 
@@ -134,7 +134,7 @@ class PiecewiseconstantFunction:
 
 # Geneva hourly temperatures as piecewise constant function (in Kelvin)
 GenevaTemperatures = {
-    month: PiecewiseconstantFunction(tuple(np.arange(25.)),
+    month: PiecewiseConstant(tuple(np.arange(25.)),
                                      tuple(273.15+np.array(temperatures)))
     for month,temperatures in Geneva_hourly_temperatures_celsius_per_hour.items()
 }
@@ -174,8 +174,8 @@ class WindowOpening(Ventilation):
     #: The interval in which the window is open.
     active: Interval
 
-    inside_temp: PiecewiseconstantFunction   #: The temperature inside the room (Kelvin)
-    outside_temp: PiecewiseconstantFunction   #: The temperature outside of the window (Kelvin)
+    inside_temp: PiecewiseConstant   #: The temperature inside the room (Kelvin)
+    outside_temp: PiecewiseConstant   #: The temperature outside of the window (Kelvin)
 
     window_height: float   #: The height of the window
 
