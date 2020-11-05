@@ -42,7 +42,9 @@ class FormData:
     @classmethod
     def from_dict(cls, form_data: typing.Dict) -> "FormData":
         # TODO: This fixup is a problem with the form.html.
-        form_data['ceiling_height'] = 1
+        for key, value in form_data.items():
+            if value == "":
+                form_data[key] = "0"
 
         return cls(
             activity_finish=time_string_to_minutes(form_data['activity_finish']),
