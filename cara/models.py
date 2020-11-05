@@ -155,6 +155,9 @@ class Ventilation:
     #: The times at which the air exchange is taking place.
     active: Interval
 
+    def transition_times(self):
+        return self.active.transition_times()
+
     @abstractmethod
     def air_exchange(self, room: Room, time: float) -> float:
         """
@@ -182,6 +185,12 @@ class WindowOpening(Ventilation):
     opening_length: float   #: The length of the opening-gap when the window is open
 
     cd_b: float = 0.6   #: Discharge coefficient: what portion effective area is used to exchange air (0 <= cd_b <= 1)
+
+    def transition_times(self):
+        transitions = super().transition_times()
+        transitions.update(self.inside_temp.interval().transition_times())
+        transitions.update(self.outside_temp.interval().transition_times())
+        return transitions
 
     def air_exchange(self, room: Room, time: float) -> float:
         # If the window is shut, no air is being exchanged.
@@ -390,10 +399,7 @@ class Model:
         """
         state_change_times = set()
         state_change_times.update(self.infected.presence.transition_times())
-        state_change_times.update(self.ventilation.active.transition_times())
-        if isinstance(self.ventilation,WindowOpening):
-            state_change_times.update(self.ventilation.inside_temp.interval().transition_times())
-            state_change_times.update(self.ventilation.outside_temp.interval().transition_times())
+        state_change_times.update(self.ventilation.transition_times())
 
         return sorted(state_change_times)
 
