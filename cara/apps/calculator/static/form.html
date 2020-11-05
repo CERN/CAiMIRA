@@ -7,9 +7,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" integrity="sha512-uto9mlQzrs59VwILcLiRYeLKPPbS/bT71da/OEBYEwcdNUk8jYIy+D176RYoop1Da+f9mvkYrmj5MCLZWEtQuA==" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js" integrity="sha512-JGKswjfABjJjtSUnz+y8XUBjBlwM1UHNlm2ZJN7A2a9HUYT3Mskq+SacsI35k4lok+/zetSxhZjKS3r3tfAnQg==" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="js/form.js"></script>
+    <script type="text/javascript" src="/calculator/static/js/form.js"></script>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" integrity="sha512-aOG0c6nPNzGk+5zjwyJaoRUgCdOrfSDhmMID2u4+OIslr0GjpLKo7Xm0Ao3xmpM4T8AmIouRkqwj1nrdVsLKEQ==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" integrity="sha512-aOG0c6nPNzGk+5zjwyJaoRUgCdOrfSDhmMID2u4+OIslr0GjpLKo7Xm0Ao3xmpM4T8AmIouRkqwj1nrdVsLKEQ==" crossorigin="anonymous"/>
+    <link rel="stylesheet" href="/calculator/static/css/form.css"/>
 </script>
 </head>
 
@@ -82,18 +83,21 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
                     <option value="workshop">Workshop</option>
                     <option value="training">Training</option>
                    </select><br>
-    Start: <input type="time" id="activity_start" name="activity_start" required> &nbsp;&nbsp;
-    Finish: <input type="time" id="activity_finish" name="activity_finish" required><br>
+    Start: <input type="time" id="activity_start" name="activity_start" value="09:00" required> &nbsp;&nbsp;
+    Finish: <input type="time" id="activity_finish" name="activity_finish" value="18:00" required><br>
     Infected person(s) presence: <br>
-    Start: <input type="time" id="inf_activity_start" name="activity_start" required> &nbsp;&nbsp;
-    Finish: <input type="time" id="inf_activity_finish" name="activity_finish" required><br>
+    Start: <input type="time" id="inf_activity_start" name="activity_start" value="09:00" required> &nbsp;&nbsp;
+    Finish: <input type="time" id="inf_activity_finish" name="activity_finish" value="18:00" required><br>
     <hr width="80%">
 
-    When is the event?<br>
-    <input type="radio" id="event_type_single" name="event_type" value="single_event" onclick="require_fields(this)" required>Single event</input>
-    Date: <input type="text" id="datepicker" name="single_event_date" unrequired><br>
-    <input type="radio" id="event_type_recurrent" name="event_type" value="recurrent_event" onclick="require_fields(this)" required>Recurrent usage</input>
-    <select id="recurrent_event_month" name="recurrent_event_month">
+    <span class="natural disabled">When is the event?</span><br>
+    <input type="radio" id="event_type_single" name="event_type" class="natural disabled" value="single_event" onclick="require_fields(this)" disabled></input>
+    <label for="event_type_single" class="natural disabled">Single event</label> &nbsp;&nbsp;
+    <label for="datepicker" class="natural disabled">Date: </label>
+    <input type="text" id="datepicker" class="natural disabled" name="single_event_date" disabled unrequired><br>
+    <input type="radio" id="event_type_recurrent" name="event_type" class="natural disabled" value="recurrent_event" onclick="require_fields(this)" disabled></input>
+    <label for="event_type_recurrent" class="natural disabled">Recurrent usage</label>
+    <select id="recurrent_event_month" name="recurrent_event_month" class="natural disabled" disabled>
         <option value="January">January</option>
         <option value="February">February</option>
         <option value="March">March</option>
@@ -122,11 +126,11 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
 
     <!-- Coffee Options -->
     Coffee Breaks
-    <input type="radio" id="coffee_break" name="coffee_break" value="0" checked="checked"</input>
+    <input type="radio" name="coffee_breaks" value="0" checked="checked"</input>
         <label for="lunch_option" >No breaks</label>
-    <input type="radio" id="coffee_break" name="coffee_break" value="2" </input>
+    <input type="radio" name="coffee_breaks" value="2" </input>
         <label for="lunch_option">2</label>
-    <input type="radio" id="coffee_break" name="coffee_break" value="4"</input>
+    <input type="radio" name="coffee_breaks" value="4"</input>
         <label for="lunch_option">4</label>
         <br>
         Duration (minutes): <select id="break_duration" name="coffee_duration">

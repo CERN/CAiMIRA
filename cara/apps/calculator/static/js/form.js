@@ -108,7 +108,23 @@ function require_natural_ventilation(option) {
     $("#opening_distance").prop('required',option);
     $("#always").prop('required',option);
     $("#interval").prop('required',option);
-}
+    $("#event_type_single").prop('required',option);
+    $("#event_type_recurrent").prop('required',option);
+
+    document.getElementById("event_type_single").disabled = !option;
+    document.getElementById("event_type_recurrent").disabled = !option;
+
+    if (option) {
+      var elements = document.getElementsByClassName("natural disabled");
+      for(var i = elements.length - 1; i >= 0; --i)
+          elements[i].className = "natural enabled";
+    }
+    else {
+      $(".natural disabled").disabled = true
+      var elements = document.getElementsByClassName("natural enabled");
+      for(var i = elements.length - 1; i >= 0; --i)
+          elements[i].className = "natural disabled";
+} }
 
 function require_air_changes(option) {
     $("#air_changes").prop('required',option);
