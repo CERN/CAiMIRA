@@ -6,13 +6,6 @@
     padding: 20px; 
 }
 
-.image {
-	display: flex; 
-	align-items: center; 
-	justify-content: center;
-	font-size: 13pt;
-}
-
 h1{
 	text-align: center;
 }
@@ -40,4 +33,16 @@ p.data_subtext {
 p.result_title {
 	font-weight: bold;
 	font-size: 15pt;
+}
+
+.image {
+	display: flex; 
+	justify-content: center;
+	font-size: 13pt;
+}
+
+.discalimer {
+	display: flex; 
+	justify-content: center;
+	font-size: 10pt;
 }
