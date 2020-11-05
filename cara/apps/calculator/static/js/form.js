@@ -1,7 +1,3 @@
-function clear_form(){
-    document.covid_calculator.reset();
-}
-
 /* -------Show/Hide DIVs------- */
 function show(show, var_id, obj) {
   var show = document.getElementById(show);
