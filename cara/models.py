@@ -216,6 +216,7 @@ class HEPAFilter(Ventilation):
     active: Interval
 
     #: The rate at which the HEPA exchanges air (when switched on)
+    # in m^3/h
     q_air_mech: float
 
     def air_exchange(self, room: Room, time: float) -> float:
@@ -224,6 +225,41 @@ class HEPAFilter(Ventilation):
             return 0.
         # Reminder, no dependence on time in the resulting calculation.
         return self.q_air_mech / room.volume
+
+
+@dataclass(frozen=True)
+class HVACMechanical(Ventilation):
+    #: The interval in which the mechanical ventilation (HVAC) is operating.
+    active: Interval
+
+    #: The rate at which the HVAC exchanges air (when switched on)
+    # in m^3/h
+    q_air_mech: float
+
+    def air_exchange(self, room: Room, time: float) -> float:
+        # If the HVAC is off, no air is being exchanged.
+        if not self.active.triggered(time):
+            return 0.
+        # Reminder, no dependence on time in the resulting calculation.
+        return self.q_air_mech / room.volume
+
+
+@dataclass(frozen=True)
+class AirChange(Ventilation):
+    #: The interval in which the ventilation is operating.
+    active: Interval
+
+    #: The rate (in h^-1) at which the ventilation exchanges all the air 
+    # of the room (when switched on)
+    air_exch: float
+
+    def air_exchange(self, room: Room, time: float) -> float:
+        # No dependence on the room volume.
+        # If off, no air is being exchanged.
+        if not self.active.triggered(time):
+            return 0.
+        # Reminder, no dependence on time in the resulting calculation.
+        return self.air_exch
 
 
 @dataclass(frozen=True)
