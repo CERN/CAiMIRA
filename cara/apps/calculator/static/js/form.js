@@ -130,4 +130,26 @@ function require_lunch(option) {
 /* -------UI------- */
 $(function() {
   $("#datepicker").datepicker();
+});  
+
+$( function() {
+  $(".dialog").dialog({modal:true});
 });
+
+function show_disclaimer() {
+  var dots = document.getElementById("dots");
+  var moreText = document.getElementById("more");
+  var btnText = document.getElementById("myBtn");
+
+  if (dots.style.display === "none") {
+    dots.style.display = "inline";
+    btnText.innerHTML = "Read more";
+    moreText.style.display = "none";
+    $("#DIALOG_welcome").dialog("option", "height", 185);
+  } else {
+    dots.style.display = "none";
+    btnText.innerHTML = "Read less";
+    moreText.style.display = "inline";
+    $("#DIALOG_welcome").dialog("option", "height", 600);
+  }
+}
