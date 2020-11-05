@@ -7,7 +7,37 @@ from cara import models
 
 @dataclass
 class FormData:
+    # Number of minutes after 00:00
+    activity_start: int
+    activity_finish: int
+    lunch_start: int
+    lunch_finish: int
+
+    activity_type: str
+    air_changes: float
+    air_supply: float
     ceiling_height: float
+    coffee_breaks: int
+    coffee_duration: int
+    coffee_option: bool
+    event_type: str
+    floor_area: float
+    infected_people: int
+    lunch_option: bool
+    mask_wearing: str
+    opening_distance: float
+    recurrent_event_month: str
+    room_number: str
+    room_volume: float
+    simulation_name: str
+    single_event_date: str
+    total_people: int
+    ventilation_type: str
+    volume_type: str
+    window_height: float
+    window_width: float
+    windows_number: int
+    windows_open: str
 
     @classmethod
     def from_dict(cls, form_data: typing.Dict) -> "FormData":
@@ -15,7 +45,35 @@ class FormData:
         form_data['ceiling_height'] = 1
 
         return cls(
+            activity_finish=time_string_to_minutes(form_data['activity_finish']),
+            activity_start=time_string_to_minutes(form_data['activity_start']),
+            activity_type=form_data['activity_type'],
+            air_changes=float(form_data['air_changes']),
+            air_supply=float(form_data['air_supply']),
             ceiling_height=float(form_data['ceiling_height']),
+            coffee_breaks=int(form_data['coffee_breaks']),
+            coffee_duration=int(form_data['coffee_duration']),
+            coffee_option=(form_data['coffee_option'] == '1'),
+            event_type=form_data['event_type'],
+            floor_area=float(form_data['floor_area']),
+            infected_people=int(form_data['infected_people']),
+            lunch_finish=time_string_to_minutes(form_data['lunch_finish']),
+            lunch_option=(form_data['lunch_option'] == '1'),
+            lunch_start=time_string_to_minutes(form_data['lunch_start']),
+            mask_wearing=form_data['mask_wearing'],
+            opening_distance=float(form_data['opening_distance']),
+            recurrent_event_month=form_data['recurrent_event_month'],
+            room_number=form_data['room_number'],
+            room_volume=float(form_data['room_volume']),
+            simulation_name=form_data['simulation_name'],
+            single_event_date=form_data['single_event_date'],
+            total_people=int(form_data['total_people']),
+            ventilation_type=form_data['ventilation_type'],
+            volume_type=form_data['volume_type'],
+            window_height=float(form_data['window_height']),
+            window_width=float(form_data['window_width']),
+            windows_number=int(form_data['windows_number']),
+            windows_open=form_data['windows_open']
         )
 
     # TODO: Remove the tmp_raw_form_data usage.
