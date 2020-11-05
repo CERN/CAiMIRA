@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">  
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link rel="stylesheet" type="text/css" href="/calculator/static/css/report.css"> 
+</head>
+
+<body id="body">
+
+	<p class=image> <img src="/calculator/static/images/disclaimer.jpg" width="40" height="40">
+	VERY IMPORTANT DISCLAIMER</p>
+
+	<h1>Output from CARA - COVID Airborne Risk Assessment tool</h1>
+
+	<p class=subtitle> Created {{ creation_date }} using model version {{ model_version }}</p><br>
+
+	<p>Simulation Name: {{ simulation_name }}</p>
+	<p>Room Number: {{ room_number }}</p>
+
+	<p class="data_title">Input data:</p>
+	<ul>
+		<li><p class="data_text">Room Volume: {{ room_volume }} m³</p></li>
+	</ul>
+
+	<p class="data_title">Ventilation data:</p>
+	<ul>
+		<li><p class="data_text">Mechanical ventilation: {{ mechanical_ventilation }}</p></li>
+		<!--If mechanical ventialtion is yes {-->
+		<ul>
+			<li><p class="data_subtext">Air supply flow rate: {{ air_supply }}</p></li>
+			<li><p class="data_subtext">Air changes per hour: {{ air_changes }}</p></li>
+		</ul>
+		<!--}-->
+		<li><p class="data_text">Natural ventilation: No</li>
+		<!--If natural ventialtion is yes {
+		<ul>
+			<li><p class="data_subtext">Number of windows: {{ windows_number }}</p></li>
+			<li><p class="data_subtext">Height of window: {{ window_height }}</p></li>
+			<li><p class="data_subtext">Width of window: {{ window_width }}</p></li>
+			<li><p class="data_subtext">Opening distance: {{ opening_distance }}</p></li>
+			<li><p class="data_subtext">Windows open: {{ windows_open }}</p></li>
+		</ul>
+		}-->
+		<li><p class="data_text">HEPA Filtration: {{ hepa_filtration }}</li>
+		<!--If HEPA filtration is yes {
+			X type of filter with y flow rate (default model assumption) ?
+		}-->
+	</ul>
+
+	<p class="data_title">Event data:</p>
+	<ul>
+		<li><p class="data_text">Number of attendees and infected people: {{ total_people }} in attendance, of whom {{ infected_people }} are infected.</p></li>
+		<li><p class="data_text">Activity type: {{ activity_type }}</p></li>
+		<ul>
+				<li><p class="data_subtext">Start time: {{ activity_start }}		End time: {{ activity_finish }}</p></li>
+			</ul>
+		<li><p class="data_text">Exposure time (presence of infected person):</p></li>
+		<ul>
+			<li><p class="data_subtext">Start time: {{ exposure_start }}		End time: {{ exposure_finish }}</p></li>
+		</ul>
+		<li><p class="data_text">Single event on {{ single_event_date }}</p></li>
+	</ul>
+
+	<p class="data_title">Break data:</p>
+	<ul>
+		<li><p class="data_text">Lunchbreak: {{ lunch_option }}	Start: {{ lunch_start }} End: {{ lunch_end }}</p></li>
+		<li><p class="data_text">Coffee breaks: {{ coffee_option }}	Number: {{ coffee_number }}		Duration: {{ coffee_duration }}</p></li>
+		<ul>
+			<li><p class="data_subtext">Coffee break 1: Start: {{ coffee_start1 }} 	End: {{ coffee_finish1 }}</p></li>
+			<li><p class="data_subtext">Coffee break 2: Start: {{ coffee_start2 }} 	End: {{ coffee_finish2 }}</p></li>
+			<li><p class="data_subtext">Coffee break 3: Start: {{ coffee_start3 }} 	End: {{ coffee_finish3 }}</p></li>
+			<li><p class="data_subtext">Coffee break 4: Start: {{ coffee_start4 }} 	End: {{ coffee_finish4 }}</p></li>
+		</ul>
+	</ul>
+
+	<!--or Recurrent for months of X, Y and Z…-->
+
+	<p class="data_title">Mask wearing:</p>
+	<ul>
+		<li><p class="data_text">Masks worn at workstations? {{ mask_wearing }}</p></li>
+		<li><p class="data_text">Mask type: Type 1 (default, for now)</p></li>
+	</ul>
+
+	<p class="result_title">Results:</p>
+		<p class="data_text"> In this scenario, the estimated probability of one exposed occupant getting infected (Pi) is {{ infection_probability }} % and the estimated basic reproduction rate (R0) rate is {{ reproduction_rate }}. If you have selected a recurrent event, this is the probability per day, and is cumulative over the number of days.<p>
+	<p class="data_title">Exposure graph:
+
+</body>
+</html>
