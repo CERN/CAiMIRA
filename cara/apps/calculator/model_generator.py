@@ -167,10 +167,10 @@ def model_from_form(form: FormData, tmp_raw_form_data) -> models.Model:
     d['lunch_finish'] = '13:00'
 
     # Initializes room with volume either given directly or as product of area and height
-    if d['volume_type'] == 'room_volume':
-        volume = int(d['room_volume'])
+    if form.volume_type == 'room_volume':
+        volume = form.room_volume
     else:
-        volume = int(float(d['floor_area']) * form.ceiling_height)
+        volume = form.floor_area * form.ceiling_height
     room = models.Room(volume=volume)
 
     # Initializes the virus as SARS_Cov_2
@@ -178,6 +178,7 @@ def model_from_form(form: FormData, tmp_raw_form_data) -> models.Model:
 
     # Initializes a mask of type 1 if mask wearing is "continuous", otherwise instantiates the mask attribute as
     # the "No mask"-mask
+    # TODO: figure out the possible values of mask_wearing in the form
     mask = models.Mask.types['Type I' if d['mask_wearing'] == "Continuous" else 'No mask']
 
     # A dictionary containing the mapping of activities listed in the UI to the activity level and expiration level
@@ -188,14 +189,14 @@ def model_from_form(form: FormData, tmp_raw_form_data) -> models.Model:
                      'Training': (('Light exercise', 'Talking'), ('Seated', 'Whispering')),
                      'Workshop': (('Light exercise', 'Talking'), ('Light exercise', 'Talking'))}
 
-    (infected_activity, infected_expiration), (exposed_activity, exposed_expiration) = activity_dict[d['activity_type']]
+    (infected_activity, infected_expiration), (exposed_activity, exposed_expiration) = activity_dict[form.activity_type]
     # Converts these strings to Activity and Expiration instances
     infected_activity, exposed_activity = models.Activity.types[infected_activity], models.Activity.types[exposed_activity]
     infected_expiration, exposed_expiration = models.Expiration.types[infected_expiration], models.Expiration.types[exposed_expiration]
 
-    infected_occupants = int(d['infected_people'])
+    infected_occupants = form.infected_people
     # Defines the number of exposed occupants as the total number of occupants minus the number of infected occupants
-    exposed_occupants = int(d['total_people']) - infected_occupants
+    exposed_occupants = form.total_people - infected_occupants
 
     # Initializes and returns a model with the attributes defined above
     return models.Model(
