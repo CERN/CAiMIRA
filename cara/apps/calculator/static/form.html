@@ -17,7 +17,7 @@
 
 Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to <a href="mailto:CARA-dev@cern.ch">CARA-dev@cern.ch</a></span>
 <h1> <p><b>CARA</b> Covid Airborne Risk Assessment tool</p></h1>
-<form id="covid_calculator" name="covid_calculator" action="/calculator/report" method="POST" onsubmit='return on_submit(this)'>
+<form id="covid_calculator" name="covid_calculator" action="/calculator/report" method="POST">
 
 <div style="width: 33%; float:left;">
 
@@ -167,111 +167,6 @@ You should specify if the event is a one off (give date) or recurrent use of the
 
 <button type='submit'>Generate report</button><br><br><br><br>
 </form>
-
-<div id="results">
-    The results will go here:
-</div>
-
-<script>
-
-
-/* -------Submit form------- */
-
-// Variable to hold request
-var request;
-
-// Bind to the submit event of our form - from https://stackoverflow.com/a/5004276/741316
-function on_submit(form){
-
-    // Prevent default posting of form - put here to work in case of errors
-    // event.preventDefault();
-
-    // Abort any pending request
-    if (request)
-        request.abort();
-
-    // Let's select and cache all the fields
-    var $inputs = $(form).find("input, select, button, textarea");
-
-<<<<<<< cara/apps/calculator/static/form.html
-    // Serialize the data in the form
-    var serializedData = objectifyForm($(form).serializeArray());
-
-    console.log(['Sending over', JSON.stringify(serializedData)])
-
-    // Fire off the request to the calculator.
-    request = $.ajax({
-        url: "/calculator/api/calculator",
-        type: "post",
-        data: serializedData,
-        dataType: "json",
-    });
-
-    // Callback handler that will be called on success
-    request.done(function (response, textStatus, jqXHR){
-        build_report(response);
-    });
-
-    // Callback handler that will be called on failure
-    request.fail(function (jqXHR, textStatus, errorThrown){
-        // Log the error to the console
-        console.error(
-            "The following error occurred: "+
-            textStatus, errorThrown
-        );
-    });
-    
-    // // Serialize the data in the form
-    // var serializedData = objectifyForm($(form).serializeArray());
-
-    // console.log(['Sending over', JSON.stringify(serializedData)])
-
-    // // Fire off the request to the calculator.
-    // request = $.ajax({
-    //     url: "/calculator/report",
-    //     type: "post",
-    //     data: serializedData,
-    //     dataType: "json",       
-    // });
-
-    // // Callback handler that will be called on success
-    // request.done(function (response, textStatus, jqXHR){
-    //     build_report(response);
-    // });
-
-    // // Callback handler that will be called on failure
-    // request.fail(function (jqXHR, textStatus, errorThrown){
-    //     // Log the error to the console
-    //     console.error(
-    //         "The following error occurred: "+
-    //         textStatus, errorThrown
-    //     );
-    // });
-}
-
-// Convert all type int in form
-function objectifyForm(formArray) {
-  returnArray = {};
-  for (var i = 0; i < formArray.length; i++) {
-
-    var value = Number(formArray[i]['value']);
-
-    if (formArray[i]['name'] === "simulation_name" || formArray[i]['name'] === "room_number")
-      returnArray[formArray[i]['name']] = formArray[i]['value'].toString();
-    else if(isNaN(value) || !formArray[i]['value'].trim())
-      returnArray[formArray[i]['name']] = formArray[i]['value'];
-    else
-      returnArray[formArray[i]['name']] = value;
-  }
-  return returnArray;
-}
-
-
-function build_report(report_data) {
-    $("#results").html("Results are in: " + JSON.stringify(report_data));
-}
-
-</script>
 
 </body>
 </html>
