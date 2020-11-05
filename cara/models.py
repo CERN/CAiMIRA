@@ -177,6 +177,33 @@ class Ventilation:
 
 
 @dataclass(frozen=True)
+class MultipleVentilation:
+    """
+    Represents a mechanism by which air can be exchanged (replaced/filtered)
+    in a time dependent manner.
+
+    Group together different sources of ventilations.
+
+    """
+    ventilations: typing.Tuple[Ventilation, ...]
+
+    def transition_times(self):
+        transitions = set()
+        for ventilation in self.ventilations:
+            transitions.update(ventilation.transition_times())
+        return sorted(transitions)
+
+    @abstractmethod
+    def air_exchange(self, room: Room, time: float) -> float:
+        """
+        Returns the rate at which air is being exchanged in the given room 
+        at a given time (in hours).
+        """
+        return sum([ventilation.air_exchange(room,time)
+                    for ventilation in self.ventilations])
+
+
+@dataclass(frozen=True)
 class WindowOpening(Ventilation):
     #: The interval in which the window is open.
     active: Interval
