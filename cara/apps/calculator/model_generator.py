@@ -157,7 +157,10 @@ def model_from_form(form: FormData, tmp_raw_form_data) -> models.Model:
             period, duration = 15, 120
         # I multiply the opening width by the number of windows to simulate the correct window area
         ventilation = models.WindowOpening(active=models.PeriodicInterval(period=period, duration=duration),
-                                           inside_temp=293, outside_temp=283, cd_b=0.6,
+                                           inside_temp=models.PiecewiseConstant((0, 24), (293, )),
+                                           # TODO: This should be based on the month etc.
+                                           outside_temp=models.PiecewiseConstant((0, 24), (283, )),
+                                           cd_b=0.6,
                                            window_height=float(d['window_height']),
                                            opening_length=float(d['opening_distance']) * int(d['windows_number']))
     else:

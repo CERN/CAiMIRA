@@ -64,4 +64,9 @@ setup(
         # The 'all' extra is the union of all requirements.
         'all': [req for reqs in REQUIREMENTS.values() for req in reqs],
     },
+    package_data={'cara': [
+        'apps/calculator/*',
+        'apps/calculator/*/*',
+        'apps/calculator/*/*/*'
+    ]},
 )
