@@ -219,8 +219,8 @@ class WindowOpening(Ventilation):
 
     def transition_times(self):
         transitions = super().transition_times()
-        transitions.update(self.inside_temp.interval().transition_times())
-        transitions.update(self.outside_temp.interval().transition_times())
+        transitions.update(self.inside_temp.transition_times)
+        transitions.update(self.outside_temp.transition_times)
         return transitions
 
     def air_exchange(self, room: Room, time: float) -> float:
