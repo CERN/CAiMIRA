@@ -253,14 +253,22 @@ def test_constantfunction():
         assert (fun.value(t) == 20)
 
 
-def test_piecewiseconstant_vs_interval():
+@pytest.mark.parametrize(
+    "time",
+    [0,1,8,10,16,20.1,24],
+)
+def test_piecewiseconstant_vs_interval(time):
     transition_times = (0,8,16,24)
     values = (0,1,0)
     fun = models.PiecewiseConstant(transition_times,values)
     interval = models.SpecificInterval(present_times=[(8,16)])
     assert interval.transition_times() == fun.interval().transition_times()
-    for t in [0,1,8,10,16,20.1,24]:
-        assert fun.interval().triggered(t) == interval.triggered(t)
+    assert fun.interval().triggered(time) == interval.triggered(time)
+
+
+def test_piecewiseconstant_transition_times():
+    outside_temp=models.GenevaTemperatures['Jan']
+    assert set(outside_temp.transition_times) == outside_temp.interval().transition_times()
 
 
 @pytest.mark.parametrize(
