@@ -162,13 +162,23 @@ def test_piecewiseconstantfunction_wrongarguments():
     pytest.raises(ValueError,models.PiecewiseConstant,(2,0),(0,0))
 
 
-def test_piecewiseconstant():
-    transition_times = (0,8,16,24)
-    values = (2,5,8)
+@pytest.mark.parametrize(
+    "time, expected_value",
+    [
+        [10, 5],
+        [20.5, 8],
+        [8, 2],
+        [0, 2],
+        [24, 8],
+        [-1, 2],
+        [25, 8],
+    ],
+)
+def test_piecewiseconstant(time, expected_value):
+    transition_times = (0, 8, 16, 24)
+    values = (2, 5, 8)
     fun = models.PiecewiseConstant(transition_times,values)
-    assert (fun.value(10) == 5) and (fun.value(20.5) == 8) and \
-            (fun.value(8) == 2) and (fun.value(0) == 2) and \
-            (fun.value(24) == 8) and (fun.value(-1) == 2) and (fun.value(25) == 8)
+    assert fun.value(time) == expected_value
 
 
 def test_constantfunction():
@@ -247,21 +257,33 @@ def build_constant_temp_model(outside_temp, intervals_open=((7.5, 8.5),)):
     return model
 
 
-def test_concentrations_hourly_dep_startup():
+@pytest.mark.parametrize(
+    "month, temperatures",
+    models.Geneva_hourly_temperatures_celsius_per_hour.items(),
+)
+@pytest.mark.parametrize(
+    "time",
+    [0.5, 1.2, 2., 3.5, 5., 6.5, 7.5, 7.9, 8.],
+)
+def test_concentrations_hourly_dep_startup(month, temperatures, time):
     # The concentrations should be the same up to 8 AM (time when the 
     # temperature changes DURING the window opening).
-    for month,temperatures in models.Geneva_hourly_temperatures_celsius_per_hour.items():
-        m1 = build_hourly_dependent_model(month)
-        m2 = build_constant_temp_model(temperatures[7]+273.15)
-        for t in [0.5, 1.2, 2., 3.5, 5., 6.5, 7.5, 7.9, 8.]:
-            npt.assert_allclose(m1.concentration(t), m2.concentration(t), rtol=1e-5)
+    m1 = build_hourly_dependent_model(month)
+    m2 = build_constant_temp_model(temperatures[7]+273.15)
+    npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-5)
 
 
-def test_concentrations_hourly_dep_adding_artificial_transitions():
+@pytest.mark.parametrize(
+    "month_temp_item",
+    models.Geneva_hourly_temperatures_celsius_per_hour.items(),
+)
+@pytest.mark.parametrize(
+    "time",
+    [0.5, 1.2, 2., 3.5, 5., 6.5, 7.5, 7.9, 8., 8.5, 9., 12.],
+)
+def test_concentrations_hourly_dep_adding_artificial_transitions(month_temp_item, time):
+    month, temperatures = month_temp_item
     # Adding a second opening inside the first one should not change anything
-    for month,temperatures in models.Geneva_hourly_temperatures_celsius_per_hour.items():
-        m1 = build_hourly_dependent_model(month,intervals_open=((7.5, 8.5),))
-        m2 = build_hourly_dependent_model(month,intervals_open=((7.5, 8.5),(8.,8.1)))
-        for t in [0.5, 1.2, 2., 3.5, 5., 6.5, 7.5, 7.9, 8., 8.5, 9., 12.]:
-            npt.assert_allclose(m1.concentration(t), m2.concentration(t), rtol=1e-5)
-
+    m1 = build_hourly_dependent_model(month,intervals_open=((7.5, 8.5),))
+    m2 = build_hourly_dependent_model(month,intervals_open=((7.5, 8.5),(8.,8.1)))
+    npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-5)
