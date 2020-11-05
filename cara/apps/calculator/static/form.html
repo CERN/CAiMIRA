@@ -6,17 +6,17 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" integrity="sha512-uto9mlQzrs59VwILcLiRYeLKPPbS/bT71da/OEBYEwcdNUk8jYIy+D176RYoop1Da+f9mvkYrmj5MCLZWEtQuA==" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="/calculator/static/js/form.js"></script>
+    <script type="text/javascript" src="js/form.js"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" integrity="sha512-aOG0c6nPNzGk+5zjwyJaoRUgCdOrfSDhmMID2u4+OIslr0GjpLKo7Xm0Ao3xmpM4T8AmIouRkqwj1nrdVsLKEQ==" crossorigin="anonymous" />
-
+</script>
 </head>
 
-<body>
-
+<body onload="clear_form()">
 
 Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to <a href="mailto:CARA-dev@cern.ch">CARA-dev@cern.ch</a></span>
 <h1> <p><b>CARA</b> Covid Airborne Risk Assessment tool</p></h1>
+
 <form id="covid_calculator" name="covid_calculator" action="/calculator/report" method="POST">
 
 <div style="width: 33%; float:left;">
@@ -27,10 +27,10 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
     <hr width="80%">
     <b>Room data:</b><br>
     <input type="radio" id="room_type_volume" name="volume_type" value="room_volume" onclick="require_fields(this)" required>
-    Room volume: &nbsp;&nbsp; <input type="number" id="room_volume" name="room_volume" placeholder="Room volume (m³)" min="0"><br>
+    Room volume: &nbsp;&nbsp; <input type="number" step=0.01 id="room_volume" name="room_volume" placeholder="Room volume (m³)" min="0"><br>
     <input type="radio" id="room_type_dimensions" name="volume_type" value="room_dimensions" onclick="require_fields(this)" required>
-    Floor area: &nbsp;&nbsp; <input type="number" id="floor_area" name="floor_area" placeholder="Room floor area (m²)" min="0"><br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ceiling height: &nbsp;&nbsp; <input type="number" id="ceiling_height" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0"><br>
+    Floor area: &nbsp;&nbsp; <input type="number" step=0.01 id="floor_area" name="floor_area" placeholder="Room floor area (m²)" min="0"><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ceiling height: &nbsp;&nbsp; <input type="number" step=0.01 id="ceiling_height" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0"><br>
     <hr width="80%">
 
     <!-- Ventilation Options -->
@@ -41,16 +41,16 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
 
     <div id="DIVmechanical_ventilation" style="display:none">
         <input type="radio" id="air_type_supply" name="air_type" value="air_supply" onclick="require_fields(this)">
-        Air supply flow rate &nbsp;&nbsp; <input type="number" id="air_supply" name="air_supply" min="0"><br>
+        Air supply flow rate &nbsp;&nbsp; <input type="number" step=0.01 id="air_supply" name="air_supply" min="0"><br>
         <input type="radio" id="air_type_changes" name="air_type" value="air_changes" onclick="require_fields(this)">
-        Air changes per hour &nbsp;&nbsp; <input type="number" id="air_changes" name="air_changes" min="0"><br>
+        Air changes per hour &nbsp;&nbsp; <input type="number" step=0.01 id="air_changes" name="air_changes" min="0"><br>
     </div>
 
     <div id="DIVnatural_ventilation" style="display:none">
         Number of windows: <input type="number" id="windows_number" name="windows_number" min="0"><br>
-        Height of window: <input type="number" id="window_height"  name="window_height" placeholder="meters" min="0"><br>
-        Width of window: <input type="number" id="window_width"  name="window_width" placeholder="meters" min="0"><br>
-        Opening distance: <input type="number" id="opening_distance"  name="opening_distance" placeholder="meters" min="0"><br>
+        Height of window: <input type="number" step=0.01 id="window_height" name="window_height" placeholder="meters" min="0"><br>
+        Width of window: <input type="number" step=0.01 id="window_width"  name="window_width" placeholder="meters" min="0"><br>
+        Opening distance: <input type="number" step=0.01 id="opening_distance"  name="opening_distance" placeholder="meters" min="0"><br>
         Windows open: <input type="radio" id="always" name="windows_open" value="always">
                       <label for="always">Always</label>
                       <input type="radio" id="interval" name="windows_open" value="interval">

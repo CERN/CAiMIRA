@@ -2,9 +2,6 @@ function clear_form(){
     document.covid_calculator.reset();
 }
 
-function test() {
-}
-
 /* -------Show/Hide DIVs------- */
 function show(show, var_id, obj) {
   var show = document.getElementById(show);
@@ -133,4 +130,4 @@ function require_lunch(option) {
 /* -------UI------- */
 $(function() {
   $("#datepicker").datepicker();
-});  
+});
