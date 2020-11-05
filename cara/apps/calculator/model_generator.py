@@ -90,7 +90,7 @@ class FormData:
         coffee_period = (self.activity_finish - self.activity_start) // self.coffee_breaks
         leave_times = [self.lunch_start]
         enter_times = [self.lunch_finish]
-        for minute in range(self.lunch_start, self.activity_finish, coffee_period):
+        for minute in range(self.activity_start, self.activity_finish, coffee_period):
             leave_times.append(minute + coffee_period // 2)
             enter_times.append(minute + coffee_period // 2 + self.coffee_duration)
 
