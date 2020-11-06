@@ -41,9 +41,9 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
     <input type="hidden" id="no_ventilation" name="ventilation_type" value="" />
 
     <div id="DIVmechanical_ventilation" style="display:none">
-        <input type="radio" id="air_type_supply" name="air_type" value="air_supply" onclick="require_fields(this)">
+        <input type="radio" id="air_type_supply" name="mechanical_ventilation_type" value="air_supply" onclick="require_fields(this)">
         Air supply flow rate &nbsp;&nbsp; <input type="number" step=0.01 id="air_supply" name="air_supply" min="0" placeholder="(m³)"><br>
-        <input type="radio" id="air_type_changes" name="air_type" value="air_changes" onclick="require_fields(this)">
+        <input type="radio" id="air_type_changes" name="mechanical_ventilation_type" value="air_changes" onclick="require_fields(this)">
         Air changes per hour &nbsp;&nbsp; <input type="number" step=0.01 id="air_changes" name="air_changes" min="0"><br>
     </div>
 
@@ -56,8 +56,8 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
                       <label for="always">Always</label>
                       <input type="radio" id="interval" name="windows_open" value="interval">
                       <label for="interval">10 min / 2h</label>
-                      <input type="radio" id="breaks" name="windows_open" value="breaks">
-                      <label for="breaks">Breaks</label><br>
+                      <!--input type="radio" id="breaks" name="windows_open" value="breaks">
+                      <label for="breaks">Breaks</label--><br>
     </div>
     
     HEPA filtration:

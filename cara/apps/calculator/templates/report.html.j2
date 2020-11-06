@@ -24,7 +24,7 @@
 	<p class="data_title">Ventilation data:</p>
 	<ul>
 		<li><p class="data_text">Mechanical ventilation:
-		{% if ventilation_type == "mechanical_ventilation"%}
+		{% if ventilation_type == "mechanical"%}
 		Yes </p></li>
 		<ul>
 			<li><p class="data_subtext">Air supply flow rate: {{ air_supply }}</p></li>
@@ -34,7 +34,7 @@
 		No </li>
 		{% endif %}
 		<li><p class="data_text">Natural ventilation:
-		{% if ventilation_type == "natural_ventilation"%}
+		{% if ventilation_type == "natural"%}
 		Yes </p></li>
 		<ul>
 			<li><p class="data_subtext">Number of windows: {{ windows_number }}</p></li>
@@ -61,7 +61,7 @@
 		{% endif %}
 		infected.</p></li>
 		<li><p class="data_text">Activity type: 
-		{% if activity_type == "office work" %}
+		{% if activity_type == "office" %}
 		Office work – typical scenario with all persons seated, talking.
 		{% elif activity_type == "workshop" %}
 		Workshop = assembly workshop environment, all persons doing light exercise, talking.
@@ -74,7 +74,7 @@
 			</ul>
 		<li><p class="data_text">Exposure time (presence of infected person):</p></li>
 		<ul>
-			<li><p class="data_subtext">Start time: {{ exposure_start }} &nbsp&nbsp End time: {{ exposure_finish }}</p></li>
+			<li><p class="data_subtext">Start time: {{ infected_start }} &nbsp&nbsp End time: {{ infected_finish }}</p></li>
 		</ul>
 		{% if event_type == "single_event"%}
 		<li><p class="data_text">Single event on {{ single_event_date }}</p></li>

@@ -48,6 +48,17 @@ class FormData:
             if value == "":
                 form_data[key] = "0"
 
+        validation_tuples = [('activity_type', ACTIVITY_TYPES),
+                             ('event_type', EVENT_TYPES),
+                             ('mechanical_ventilation_type', MECHANICAL_VENTILATION_TYPES),
+                             ('mask_wearing', MASK_WEARING),
+                             ('ventilation_type', VENTILATION_TYPES),
+                             ('volume_type', VOLUME_TYPES),
+                             ('windows_open', WINDOWS_OPEN)]
+        for key, valid_set in validation_tuples:
+            if form_data[key] not in valid_set:
+                raise ValueError(f"{form_data[key]} is not a valid value for {key}")
+
         return cls(
             activity_finish=time_string_to_minutes(form_data['activity_finish']),
             activity_start=time_string_to_minutes(form_data['activity_start']),
@@ -89,11 +100,14 @@ class FormData:
     def ventilation(self) -> models.Ventilation:
         # Initializes a ventilation instance as a window if 'natural' is selected, or as a HEPA-filter otherwise
         if self.ventilation_type == 'natural':
-            if self.windows_open == '10 min / 2h':
+            if self.windows_open == 'interval':
                 period, duration = 120, 10
+            elif self.windows_number == 'breaks':
+                # TODO: Implement windows open in breaks
+                period, duration = 120, 120
             else:
                 period, duration = 120, 120
-            # I multiply the opening width by the number of windows to simulate the correct window area
+
             if self.event_type == 'single_event':
                 month_number = int(self.single_event_date.split('/')[1])
                 month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][month_number - 1]
@@ -103,6 +117,7 @@ class FormData:
             inside_temp = models.PiecewiseConstant((0, 24), (293,))
             outside_temp = models.GenevaTemperatures[month]
 
+            # I multiply the opening width by the number of windows to simulate the correct window area
             ventilation = models.WindowOpening(active=models.PeriodicInterval(period=period, duration=duration),
                                                inside_temp=inside_temp, outside_temp=outside_temp, cd_b=0.6,
                                                window_height=self.window_height,
@@ -190,8 +205,7 @@ def model_from_form(form: FormData, tmp_raw_form_data) -> models.Model:
 
     # Initializes a mask of type 1 if mask wearing is "continuous", otherwise instantiates the mask attribute as
     # the "No mask"-mask
-    # TODO: figure out the possible values of mask_wearing in the form
-    mask = models.Mask.types['Type I' if d['mask_wearing'] == "Continuous" else 'No mask']
+    mask = models.Mask.types['Type I' if d['mask_wearing'] == "continuous" else 'No mask']
 
     # A dictionary containing the mapping of activities listed in the UI to the activity level and expiration level
     # of the infected and exposed occupants respectively.
@@ -262,6 +276,15 @@ def baseline_raw_form_data():
         'windows_number': '1',
         'windows_open': 'interval'
     }
+
+
+ACTIVITY_TYPES = {'office', 'training', 'workshop'}
+EVENT_TYPES = {'single_event', 'recurrent_event'}
+MECHANICAL_VENTILATION_TYPES = {'air_changes', 'air_supply'}
+MASK_WEARING = {'continuous', 'removed'}
+VENTILATION_TYPES = {'natural', 'mechanical'}
+VOLUME_TYPES = {'room_volume', 'room_dimensions'}
+WINDOWS_OPEN = {'always', 'interval', 'breaks'}
 
 
 def time_string_to_minutes(time: str) -> int:

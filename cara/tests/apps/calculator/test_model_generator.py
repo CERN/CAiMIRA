@@ -29,7 +29,7 @@ def test_ventilation_window(baseline_form):
         cd_b=0.6, window_height=1.6, opening_length=0.6,
     )
     baseline_form.ventilation_type = 'natural'
-    baseline_form.windows_open = '10 min / 2h'
+    baseline_form.windows_open = 'interval'
     baseline_form.event_type = 'recurrent_event'
     baseline_form.recurrent_event_month = 'December'
     baseline_form.window_height = 1.6
@@ -107,3 +107,9 @@ def test_present_intervals(baseline_form):
     baseline_form.lunch_finish = 13 * 60 + 30
     correct = ((9, 10), (10.25, 12), (12.25, 12.5), (13.5, 14), (14.25, 16), (16.25, 17))
     assert baseline_form.present_interval().present_times == correct
+
+
+def test_key_validation(baseline_form_data):
+    baseline_form_data['activity_type'] = 'invalid key'
+    with pytest.raises(ValueError):
+        model_generator.FormData.from_dict(baseline_form_data)
