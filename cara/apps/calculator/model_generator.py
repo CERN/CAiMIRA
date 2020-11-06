@@ -85,10 +85,10 @@ class FormData:
     def ventilation(self) -> models.Ventilation:
         # Initializes a ventilation instance as a window if 'natural' is selected, or as a HEPA-filter otherwise
         if self.ventilation_type == 'natural':
-            if self.windows_open == 'always':
-                period, duration = 120, 120
+            if self.windows_open == '10 min / 2h':
+                period, duration = 120, 10
             else:
-                period, duration = 15, 120
+                period, duration = 120, 120
             # I multiply the opening width by the number of windows to simulate the correct window area
             if self.event_type == 'single_event':
                 month_number = int(self.single_event_date.split('/')[1])
