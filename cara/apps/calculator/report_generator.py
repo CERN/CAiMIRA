@@ -100,7 +100,6 @@ def build_report(model: models.Model, form: FormData):
         'window_width': form.window_width, 
         'opening_distance': form.opening_distance, 
         'windows_open': form.windows_open, 
-        'hepa_option': 'No', 
         'total_people': form.total_people,
         'infected_people': form.infected_people,
         'activity_type': form.activity_type,
