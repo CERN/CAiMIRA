@@ -44,6 +44,12 @@ class FormData:
 
     @classmethod
     def from_dict(cls, form_data: typing.Dict) -> "FormData":
+
+        valid_na_values = ['windows_open', 'ventilation_type', 'mechanical_ventilation_type']
+        for name in valid_na_values:
+            if not form_data.get(name, ''):
+                form_data[name] = 'not-applicable'
+
         validation_tuples = [('activity_type', ACTIVITY_TYPES),
                              ('event_type', EVENT_TYPES),
                              ('mechanical_ventilation_type', MECHANICAL_VENTILATION_TYPES),
@@ -295,11 +301,11 @@ def baseline_raw_form_data():
 
 ACTIVITY_TYPES = {'office', 'training', 'workshop'}
 EVENT_TYPES = {'single_event', 'recurrent_event'}
-MECHANICAL_VENTILATION_TYPES = {'air_changes', 'air_supply', ''}
+MECHANICAL_VENTILATION_TYPES = {'air_changes', 'air_supply', 'not-applicable'}
 MASK_WEARING = {'continuous', 'removed'}
-VENTILATION_TYPES = {'natural', 'mechanical', ''}
+VENTILATION_TYPES = {'natural', 'mechanical', 'not-applicable'}
 VOLUME_TYPES = {'room_volume', 'room_dimensions'}
-WINDOWS_OPEN = {'always', 'interval', 'breaks'}
+WINDOWS_OPEN = {'always', 'interval', 'breaks', 'not-applicable'}
 
 
 def time_string_to_minutes(time: str) -> int:
