@@ -174,14 +174,6 @@ class FormData:
 
         return models.SpecificInterval(tuple(present_intervals))
 
-    def minutes_to_string(self, minutes: int) -> str:
-        minute_string = str(minutes % 60)
-        minute_string = "0" * (2 - len(minute_string)) + minute_string
-        hour_string = str(minutes // 60)
-        hour_string = "0" * (2 - len(hour_string)) + hour_string
-
-        return f"{hour_string}:{minute_string}"
-
 
 def model_from_form(form: FormData, tmp_raw_form_data) -> models.Model:
     d = tmp_raw_form_data

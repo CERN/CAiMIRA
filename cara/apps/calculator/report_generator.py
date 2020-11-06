@@ -69,6 +69,15 @@ def plot(times, concentrations):
     return fig
 
 
+def minutes_to_string(minutes: int) -> str:
+    minute_string = str(minutes % 60)
+    minute_string = "0" * (2 - len(minute_string)) + minute_string
+    hour_string = str(minutes // 60)
+    hour_string = "0" * (2 - len(hour_string)) + hour_string
+
+    return f"{hour_string}:{minute_string}"
+
+
 def build_report(model: models.Model, form: FormData):
     now = datetime.now()
     time = now.strftime("%d/%m/%Y %H:%M:%S")
