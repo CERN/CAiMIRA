@@ -43,6 +43,7 @@
 			<li><p class="data_subtext">Opening distance: {{ opening_distance }}</p></li>
 			<li><p class="data_subtext">Windows open: {{ windows_open }}</p></li>
 		</ul>
+			<p class="data_subtext data_italic">When using the natural ventilation option, air flows are calculated using averaged hourly temperatures for the Geneva region, based on historical data for the month selected.</p>
 		{% else %}
 		No </p></li>
 		{% endif %}
@@ -52,9 +53,23 @@
 
 	<p class="data_title">Event data:</p>
 	<ul>
-		<li><p class="data_text">Number of attendees and infected people: {{ total_people }} in attendance, of whom {{ infected_people }} are infected.</p></li>
-		<li><p class="data_text">Activity type: {{ activity_type }}</p></li>
-		<ul>
+		<li><p class="data_text">Number of attendees and infected people: {{ total_people }} in attendance, of whom {{ infected_people }} 
+		{% if infected_people == 1 %}
+		is
+		{% else %}
+		are
+		{% endif %}
+		infected.</p></li>
+		<li><p class="data_text">Activity type: 
+		{% if activity_type == "office work" %}
+		Office work – typical scenario with all persons seated, talking.
+		{% elif activity_type == "workshop" %}
+		Workshop = assembly workshop environment, all persons doing light exercise, talking.
+		{% elif activity_type == "training" %}
+		Training – one person (the trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the trainer is the infected person, for the worst case scenario.
+		{% endif %}
+		</p></li>
+			<ul>
 				<li><p class="data_subtext">Start time: {{ activity_start }} &nbsp&nbsp End time: {{ activity_finish }}</p></li>
 			</ul>
 		<li><p class="data_text">Exposure time (presence of infected person):</p></li>
@@ -72,11 +87,14 @@
 
 	<p class="data_title">Break data:</p>
 	<ul>
-		<li><p class="data_text">Lunch break: {{ lunch_option }}</li>
-		{% if lunch_option == "Yes" %}
+		<li><p class="data_text">Lunch break: 
+		{% if lunch_option%}
+		Yes</li>
 		<ul>
 			<li> Start: {{ lunch_start }} &nbsp&nbsp End: {{ lunch_finish }}</p></li>
 		</ul>
+		{% else%}
+		No</li>
 		{% endif %}
 		<li><p class="data_text">Coffee breaks: {{ coffee_breaks }}	
 		{% if coffee_breaks > 0 %}
@@ -92,12 +110,18 @@
 
 	<p class="data_title">Mask wearing:</p>
 	<ul>
-		<li><p class="data_text">Masks worn at workstations? {{ mask_wearing }}</p></li>
-		<li><p class="data_text">Mask type: Type 1 (default, for now)</p></li>
+		<li><p class="data_text">Masks worn at workstations? 
+		{% if mask_wearing == "removed" %}
+		No
+		{% else %}
+		Yes
+		{% endif %}
+		</p></li>
+		<li><p class="data_text">Mask type: Type 1</p></li>
 	</ul>
 
 	<p class="result_title">Results:</p>
-		<p class="data_text"> In this scenario, the estimated probability of one exposed occupant getting infected P(i) is {{ infection_probability }} % and the estimated basic reproduction rate (R0) rate is {{ reproduction_rate }}. This probability estimate is per simulated time period, i.e. if you have simulated a working day, which will be repeated n times per week, the cumulative probability of infection per person is n x P(i).<p>
+		<p class="data_text"> In this scenario, the estimated probability of one exposed occupant getting infected P(i) is {{ infection_probability }} % and the estimated basic reproduction rate (R0) is {{ reproduction_rate }}.<p>
 	<p class="data_title">Exposure graph:</p>
 
 	<br><br><br><br><br><br><br>

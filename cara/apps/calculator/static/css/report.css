@@ -16,6 +16,10 @@ h1 {
 	padding-bottom: 15pt;
 }
 
+p.data_italic {
+	font-style: italic;
+}
+
 p.data_title {
 	font-weight: bold;
 }

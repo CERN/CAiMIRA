@@ -27,7 +27,6 @@ def calculate_report_data(model: models.Model):
         "R0": r0,
     }
 
-
 def build_report(model: models.Model, form: FormData):
     now = datetime.now()
     time = now.strftime("%d/%m/%Y %H:%M:%S")

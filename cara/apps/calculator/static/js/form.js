@@ -21,7 +21,6 @@ function show_hide(show, hide, obj) {
       show.style.display = "none";
       obj.checked = false;
       no_ventilation.checked = true;
-      unrequire_fields(obj);
   } else if (show.style.display === "none") {
       show.style.display = "block";
       hide.style.display = "none";
@@ -71,18 +70,6 @@ function require_fields(obj){
       break;
 } }
 
-function unrequire_fields(obj){
-  switch(obj.id) {
-    case "mechanical":
-      require_mechanical_ventilation(false);
-      break;
-    case "natural":
-      require_natural_ventilation(false);
-      break;
-    default:
-      break;
-} }
-
 function require_room_volume(option) {
     $("#room_volume").prop('required',option);
 }
@@ -106,21 +93,7 @@ function require_natural_ventilation(option) {
     $("#interval").prop('required',option);
     $("#event_type_single").prop('required',option);
     $("#event_type_recurrent").prop('required',option);
-
-    document.getElementById("event_type_single").disabled = !option;
-    document.getElementById("event_type_recurrent").disabled = !option;
-
-    if (option) {
-      var elements = document.getElementsByClassName("natural disabled");
-      for(var i = elements.length - 1; i >= 0; --i)
-          elements[i].className = "natural enabled";
-    }
-    else {
-      $(".natural disabled").disabled = true
-      var elements = document.getElementsByClassName("natural enabled");
-      for(var i = elements.length - 1; i >= 0; --i)
-          elements[i].className = "natural disabled";
-} }
+}
 
 function require_air_changes(option) {
     $("#air_changes").prop('required',option);
