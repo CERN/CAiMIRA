@@ -254,6 +254,15 @@ def baseline_raw_form_data():
     }
 
 
+ACTIVITY_TYPES = {'office', 'training', 'workshop'}
+EVENT_TYPES = {'single_event', 'recurrent_event'}
+MECHANICAL_VENTILATION_TYPES = {'air_changes', 'air_supply'}
+MASK_WEARING = {'continuous', 'removed'}
+VENTILATION_TYPES = {'natural', 'mechanical'}
+VOLUME_TYPES = {'room_volume', 'room_dimensions'}
+WINDOWS_OPEN = {'always', 'interval', 'breaks'}
+
+
 def time_string_to_minutes(time: str) -> int:
     """
     Converts time from string-format to an integer number of minutes after 00:00
