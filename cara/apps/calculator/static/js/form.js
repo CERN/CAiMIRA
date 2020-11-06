@@ -130,7 +130,7 @@ function require_air_supply(option) {
 } }
 
 function require_single_event(option) {
-  $("#datepicker").prop('required',option);
+  $("#single_event_date").prop('required',option);
 }
 
 function require_lunch(option) {
@@ -140,8 +140,9 @@ function require_lunch(option) {
 
 /* -------UI------- */
 $(function() {
-  $("#datepicker").datepicker();
-});  
+  $(".datepicker").datepicker({
+    dateFormat: 'mm/dd/yy'});
+});
 
 $( function() {
   $(".dialog").dialog({modal:true});
@@ -163,6 +164,35 @@ function show_disclaimer() {
     moreText.style.display = "inline";
     $("#DIALOG_welcome").dialog("option", "height", 600);
 } }
+
+/* -------Form validation------- */
+function validate_form(form) {
+
+  var submit = true;
+
+  //Validate all dates
+  $(".datepicker").each(function() {
+    $(this).removeClass("red");
+
+    var fromDate = $(this).val();
+    if (!isValidDate(fromDate)) {
+      $(this).addClass("red");
+      submit = false;
+  } }); 
+
+  return submit;
+}
+
+function isValidDate(date) {
+  var matches = /^(\d+)[-\/](\d+)[-\/](\d+)$/.exec(date);
+  if (matches == null) return false;
+  var d = matches[2];
+  var m = matches[1];
+  var y = matches[3];
+  if (y > 2100 || y < 1900) return false; 
+  var composedDate = new Date(y+'/'+m+'/'+d);
+  return composedDate.getDate() == d && composedDate.getMonth()+1 == m && composedDate.getFullYear() == y;
+}
 
 /* -------Debugging------- */
 function debug_submit(form){
