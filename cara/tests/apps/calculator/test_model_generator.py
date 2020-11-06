@@ -90,7 +90,7 @@ def test_ventilation_window_hepa(baseline_form):
     baseline_form.recurrent_event_month = 'December'
     baseline_form.window_height = 1.6
     baseline_form.opening_distance = 0.6
-    baseline_form.hepa_option = '1'
+    baseline_form.hepa_option = True
 
     ts = np.linspace(8, 16, 100)
     np.testing.assert_allclose([ventilation.air_exchange(room, t) for t in ts],
