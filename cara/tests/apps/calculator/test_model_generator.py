@@ -70,6 +70,33 @@ def test_ventilation_airchanges(baseline_form):
                                [baseline_form.ventilation().air_exchange(room, t) for t in ts])
 
 
+def test_ventilation_window_hepa(baseline_form):
+    room = models.Room(75)
+    window = models.WindowOpening(
+        active=models.PeriodicInterval(period=120, duration=10),
+        inside_temp=models.PiecewiseConstant((0, 24), (293,)),
+        outside_temp=models.GenevaTemperatures['Dec'],
+        cd_b=0.6, window_height=1.6, opening_length=0.6,
+    )
+    hepa = models.HEPAFilter(
+        active=models.PeriodicInterval(period=120, duration=120),
+        q_air_mech=250.,
+    )
+    ventilation = models.MultipleVentilation((window,hepa))
+
+    baseline_form.ventilation_type = 'natural'
+    baseline_form.windows_open = '10 min / 2h'
+    baseline_form.event_type = 'recurrent_event'
+    baseline_form.recurrent_event_month = 'December'
+    baseline_form.window_height = 1.6
+    baseline_form.opening_distance = 0.6
+    baseline_form.hepa_option = '1'
+
+    ts = np.linspace(8, 16, 100)
+    np.testing.assert_allclose([ventilation.air_exchange(room, t) for t in ts],
+                               [baseline_form.ventilation().air_exchange(room, t) for t in ts])
+
+
 def test_present_intervals(baseline_form):
     baseline_form.coffee_duration = 15
     baseline_form.coffee_option = True
