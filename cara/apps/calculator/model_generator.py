@@ -12,6 +12,8 @@ class FormData:
     activity_finish: int
     lunch_start: int
     lunch_finish: int
+    infected_start: int
+    infected_finish: int
 
     activity_type: str
     air_changes: float
@@ -92,7 +94,9 @@ class FormData:
             window_height=float(form_data['window_height']),
             window_width=float(form_data['window_width']),
             windows_number=int(form_data['windows_number']),
-            windows_open=form_data['windows_open']
+            windows_open=form_data['windows_open'],
+            infected_start=time_string_to_minutes(form_data['infected_start']),
+            infected_finish=time_string_to_minutes(form_data['infected_finish']),
         )
 
     # TODO: Remove the tmp_raw_form_data usage.
@@ -139,13 +143,22 @@ class FormData:
         else:
             return ventilation
 
-    def present_interval(self) -> models.Interval:
+    def coffee_break_times(self) -> typing.Tuple[typing.Tuple[int, int]]:
         coffee_period = (self.activity_finish - self.activity_start) // self.coffee_breaks
+        coffee_times = []
+        for minute in range(self.activity_start, self.activity_finish, coffee_period):
+            start = minute + coffee_period // 2
+            end = start + self.coffee_duration
+            coffee_times.append((start, end))
+        return tuple(coffee_times)
+
+    def present_interval(self) -> models.Interval:
         leave_times = [self.lunch_start]
         enter_times = [self.lunch_finish]
-        for minute in range(self.activity_start, self.activity_finish, coffee_period):
-            leave_times.append(minute + coffee_period // 2)
-            enter_times.append(minute + coffee_period // 2 + self.coffee_duration)
+
+        for coffee_start, coffee_end in self.coffee_break_times():
+            leave_times.append(coffee_start)
+            enter_times.append(coffee_end)
 
         # These lists represent the times where the infected person leaves or enters the room, respectively, sorted in
         # reverse order. Note that these lists allows the person to "leave" when they should not even be present in the
@@ -156,20 +169,20 @@ class FormData:
         # This loop iterates through the lists above, populating present_intervals with (enter, leave) intervals
         # representing the infected person entering and leaving the room. Note that if one of the evenly spaced coffee-
         # breaks happens to coincide with the lunch-break, it is simply ignored.
-        is_present = True
         present_intervals = []
-        time = self.activity_start
-        while time < self.activity_finish:
+        time = self.infected_start
+        is_present = True
+        while time < self.infected_finish:
             if is_present:
                 if not leave_times:
-                    present_intervals.append((time / 60, self.activity_finish / 60))
+                    present_intervals.append((time / 60, self.infected_finish / 60))
                     break
 
-                if leave_times[-1] < time:
+                if leave_times[-1] <= time:
                     leave_times.pop()
                 else:
                     new_time = leave_times.pop()
-                    present_intervals.append((time / 60, min(new_time, self.activity_finish) / 60))
+                    present_intervals.append((time / 60, min(new_time, self.infected_finish) / 60))
                     is_present = False
                     time = new_time
 
@@ -252,12 +265,14 @@ def baseline_raw_form_data():
         'air_changes': '',
         'air_supply': '',
         'ceiling_height': '',
-        'coffee_breaks': '5',
+        'coffee_breaks': '2',
         'coffee_duration': '10',
         'coffee_option': '1',
         'event_type': 'single_event',
         'floor_area': '',
         'hepa_option': '0',
+        'infected_finish': '15:00',
+        'infected_start': '10:00',
         'infected_people': '1',
         'lunch_finish': '13:30',
         'lunch_option': '1',

@@ -92,7 +92,7 @@ def test_ventilation_window_hepa(baseline_form):
     baseline_form.opening_distance = 0.6
     baseline_form.hepa_option = True
 
-    ts = np.linspace(8, 16, 100)
+    ts = np.linspace(9, 17, 100)
     np.testing.assert_allclose([ventilation.air_exchange(room, t) for t in ts],
                                [baseline_form.ventilation().air_exchange(room, t) for t in ts])
 
@@ -100,12 +100,14 @@ def test_ventilation_window_hepa(baseline_form):
 def test_present_intervals(baseline_form):
     baseline_form.coffee_duration = 15
     baseline_form.coffee_option = True
-    baseline_form.coffee_breaks = 4
+    baseline_form.coffee_breaks = 2
     baseline_form.activity_start = 9 * 60
     baseline_form.activity_finish = 17 * 60
     baseline_form.lunch_start = 12 * 60 + 30
     baseline_form.lunch_finish = 13 * 60 + 30
-    correct = ((9, 10), (10.25, 12), (12.25, 12.5), (13.5, 14), (14.25, 16), (16.25, 17))
+    baseline_form.infected_start = 10 * 60
+    baseline_form.infected_finish = 15 * 60
+    correct = ((10, 11), (11.25, 12.5), (13.5, 15.0))
     assert baseline_form.present_interval().present_times == correct
 
 
