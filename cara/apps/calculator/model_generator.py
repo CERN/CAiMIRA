@@ -104,7 +104,7 @@ class FormData:
                                                window_height=self.window_height,
                                                opening_length=self.opening_distance * self.windows_number)
         else:
-            q_air_mech = self.air_changes + self.air_supply
+            q_air_mech = self.air_changes * self.room_volume + self.air_supply
             ventilation = models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120),
                                             q_air_mech=q_air_mech)
 
