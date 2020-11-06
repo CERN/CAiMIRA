@@ -47,7 +47,7 @@
 		{% else %}
 		No </p></li>
 		{% endif %}
-		<li><p class="data_text">HEPA Filtration: {{ hepa_option }}</li>
+		<li><p class="data_text">HEPA Filtration: {{ 'Yes' if form.hepa_option else 'No' }}</li>
 		<!--TODO: X type of filter with y flow rate (default model assumption) ? This was in the output doc..? -->
 	</ul>
 
