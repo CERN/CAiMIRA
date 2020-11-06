@@ -6,7 +6,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" integrity="sha512-uto9mlQzrs59VwILcLiRYeLKPPbS/bT71da/OEBYEwcdNUk8jYIy+D176RYoop1Da+f9mvkYrmj5MCLZWEtQuA==" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="/calculator/static/js/form.js"></script>
+    <script type="text/javascript" src="js/form.js"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" integrity="sha512-aOG0c6nPNzGk+5zjwyJaoRUgCdOrfSDhmMID2u4+OIslr0GjpLKo7Xm0Ao3xmpM4T8AmIouRkqwj1nrdVsLKEQ==" crossorigin="anonymous"/>
     <link rel="stylesheet" href="/calculator/static/css/form.css"/>
@@ -18,7 +18,7 @@
 Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to <a href="mailto:CARA-dev@cern.ch">CARA-dev@cern.ch</a></span>
 <h1> <p><b>CARA</b> Covid Airborne Risk Assessment tool</p></h1>
 
-<form id="covid_calculator" name="covid_calculator" action="/calculator/report" method="POST">
+<form id="covid_calculator" name="covid_calculator" onsubmit="debug_submit(this)">
 
 <div style="width: 33%; float:left;">
 
@@ -36,14 +36,15 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
 
     <!-- Ventilation Options -->
     Ventilation type:
-    <input type="radio" id="mechanical" name="ventilation_type" value="mechanical" onclick="show_hide('DIVmechanical_ventilation', 'DIVnatural_ventilation', this)">Mechanical</input>
-    <input type="radio" id="natural" name="ventilation_type" value="natural" onclick="show_hide('DIVnatural_ventilation', 'DIVmechanical_ventilation', this)">Natural</input><br>
-    <input type="hidden" id="no_ventilation" name="ventilation_type" value="" />
+    <input type="hidden" id="ventilation_type" name="ventilation_type" value=""/>
+    <input type="radio" id="mechanical" name="RADIO_ventilation_type" value="mechanical" onclick="show_hide('DIVmechanical_ventilation', 'DIVnatural_ventilation', this)">Mechanical</input>
+    <input type="radio" id="natural" name="RADIO_ventilation_type" value="natural" onclick="show_hide('DIVnatural_ventilation', 'DIVmechanical_ventilation', this)">Natural</input><br>
 
     <div id="DIVmechanical_ventilation" style="display:none">
-        <input type="radio" id="air_type_supply" name="mechanical_ventilation_type" value="air_supply" onclick="require_fields(this)">
-        Air supply flow rate &nbsp;&nbsp; <input type="number" step=0.01 id="air_supply" name="air_supply" min="0" placeholder="(m³)"><br>
-        <input type="radio" id="air_type_changes" name="mechanical_ventilation_type" value="air_changes" onclick="require_fields(this)">
+        <input type="hidden" id="mechanical_ventilation_type" name="mechanical_ventilation_type" value=""/>
+        <input type="radio" id="air_type_supply" name="RADIO_mechanical_ventilation_type" value="air_supply" onclick="require_fields(this)">
+        Air supply flow rate &nbsp;&nbsp; <input type="number" step=0.01 id="air_supply" name="air_supply" min="0" placeholder="(m³ / hour)"><br>
+        <input type="radio" id="air_type_changes" name="RADIO_mechanical_ventilation_type" value="air_changes" onclick="require_fields(this)">
         Air changes per hour &nbsp;&nbsp; <input type="number" step=0.01 id="air_changes" name="air_changes" min="0"><br>
     </div>
 
@@ -90,11 +91,11 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
     <hr width="80%">
 
     When is the event?<br>
-    <input type="radio" id="event_type_single" name="event_type" value="single_event" onclick="require_fields(this)"></input>
+    <input type="radio" id="event_type_single" name="event_type" value="single_event" onclick="require_fields(this)" required></input>
     <label for="event_type_single">Single event</label> &nbsp;&nbsp;
     <label for="datepicker">Date: </label>
     <input type="text" id="datepicker" name="single_event_date"><br>
-    <input type="radio" id="event_type_recurrent" name="event_type" value="recurrent_event" onclick="require_fields(this)"></input>
+    <input type="radio" id="event_type_recurrent" name="event_type" value="recurrent_event" onclick="require_fields(this)" required></input>
     <label for="event_type_recurrent">Recurrent usage</label>
     <select id="recurrent_event_month" name="recurrent_event_month">
         <option value="January">January</option>
