@@ -61,7 +61,7 @@ def plot(times, concentrations):
 
     ax.set_xlabel('Hours from start of event')
     ax.set_ylabel('Concentration ($q/m^3$)')
-    ax.set_title('Concentration of infectious quanta aerosols')
+    ax.set_title('Concentration of infectious quanta')
 
     # top = max([0.75, max(concentrations)])
     # print(max(concentrations))
