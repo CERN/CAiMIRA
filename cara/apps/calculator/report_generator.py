@@ -76,7 +76,8 @@ def build_report(model: models.Model, form: FormData):
 
     context = {
         'model': model,
-        'request': request, 
+        'request': request,
+        'form': form,
         'creation_date': time, 
         'model_version': 'Beta v1.0.0', 
         'simulation_name': form.simulation_name, 
@@ -96,8 +97,8 @@ def build_report(model: models.Model, form: FormData):
         'activity_type': form.activity_type,
         'activity_start': form.activity_start, 
         'activity_finish': form.activity_finish, 
-        'exposure_start': '00:00', 
-        'exposure_finish': '01:15',
+        'infected_start': 826,
+        'infected_finish': 827,
         'event_type': form.event_type, 
         'single_event_date': form.single_event_date, 
         'recurrent_event_month': form.recurrent_event_month,
