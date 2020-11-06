@@ -29,6 +29,11 @@ function show_hide(show, hide, obj) {
       ventilation_type.value = obj.id;
 } }
 
+function update_windows_open(obj) {
+  var windows_open = document.getElementById("windows_open");
+  windows_open.value = obj.id;
+}
+
 /* -------Required fields------- */
 function require_fields(obj){
   switch(obj.id) {
@@ -84,10 +89,7 @@ function require_room_dimensions(option) {
 function require_mechanical_ventilation(option) {
   $("#air_type_changes").prop('required',option);
   $("#air_type_supply").prop('required',option);
-  if (!option) {
-    var mechanical_ventilation_type = document.getElementById("mechanical_ventilation_type");
-    mechanical_ventilation_type.value = "";
-} }
+  }
 
 function require_natural_ventilation(option) {
   $("#windows_number").prop('required',option);
