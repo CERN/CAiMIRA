@@ -59,7 +59,7 @@
 	<p class="data_title">Event data:</p>
 	<ul>
 		<li><p class="data_text">Number of attendees and infected people: {{ total_people }} in attendance, of whom {{ infected_people }} 
-		{{ 'is' if infected_people == 1 else 'are' }}
+		{{ "is" if infected_people == 1 else "are" }}
 		infected.</p></li>
 		<li><p class="data_text">Activity type: 
 		{% if activity_type == "office" %}
