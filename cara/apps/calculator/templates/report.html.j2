@@ -24,13 +24,13 @@
 	<p class="data_title">Ventilation data:</p>
 	<ul>
 		<li><p class="data_text">Mechanical ventilation:
-		{% if ventilation_type == "mechanical"%}
+		{% if form.ventilation_type == "mechanical"%}
 		Yes </p></li>
 		<ul>
 			<li><p class="data_subtext">
-			{% if mechanical_ventilation_type == "air_supply"%}
+			{% if form.mechanical_ventilation_type == "air_supply"%}
 			Air supply flow rate: {{ air_supply }}
-			{% elif mechanical_ventilation_type == "air_changes"%}
+			{% elif form.mechanical_ventilation_type == "air_changes"%}
 			Air changes per hour: {{ air_changes }}
 			{% endif %}
 			</p></li>
@@ -39,14 +39,14 @@
 		No </li>
 		{% endif %}
 		<li><p class="data_text">Natural ventilation:
-		{% if ventilation_type == "natural"%}
+		{% if form.ventilation_type == "natural"%}
 		Yes </p></li>
 		<ul>
-			<li><p class="data_subtext">Number of windows: {{ windows_number }}</p></li>
-			<li><p class="data_subtext">Height of window: {{ window_height }}</p></li>
-			<li><p class="data_subtext">Width of window: {{ window_width }}</p></li>
-			<li><p class="data_subtext">Opening distance: {{ opening_distance }}</p></li>
-			<li><p class="data_subtext">Windows open: {{ windows_open }}</p></li>
+			<li><p class="data_subtext">Number of windows: {{ form.windows_number }}</p></li>
+			<li><p class="data_subtext">Height of window: {{ form.window_height }}</p></li>
+			<li><p class="data_subtext">Width of window: {{ form.window_width }}</p></li>
+			<li><p class="data_subtext">Opening distance: {{ form.opening_distance }}</p></li>
+			<li><p class="data_subtext">Windows open: {{ form.windows_open }}</p></li>
 		</ul>
 			<p class="data_subtext data_italic">When using the natural ventilation option, air flows are calculated using averaged hourly temperatures for the Geneva region, based on historical data for the month selected.</p>
 		{% else %}
