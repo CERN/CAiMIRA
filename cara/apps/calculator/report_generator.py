@@ -106,8 +106,8 @@ def build_report(model: models.Model, form: FormData):
         'activity_type': form.activity_type,
         'activity_start': minutes_to_string(form.activity_start),
         'activity_finish': minutes_to_string(form.activity_finish),
-        'infected_start': minutes_to_string(826),
-        'infected_finish': minutes_to_string(827),
+        'infected_start': minutes_to_string(form.infected_start),
+        'infected_finish': minutes_to_string(form.infected_finish),
         'event_type': form.event_type, 
         'single_event_date': form.single_event_date, 
         'recurrent_event_month': form.recurrent_event_month,
@@ -116,7 +116,7 @@ def build_report(model: models.Model, form: FormData):
         'lunch_finish': minutes_to_string(form.lunch_finish),
         'coffee_breaks': form.coffee_breaks,
         'coffee_duration': form.coffee_duration, 
-        'coffee_times': [['00:00','00:00'], ['00:00','00:00'], ['00:00','00:00'], ['00:00','00:00']], 
+        'coffee_times': [[minutes_to_string(start), minutes_to_string(finish)] for start, finish in form.coffee_times],
         'mask_wearing': form.mask_wearing, 
     }
 
