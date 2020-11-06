@@ -22,6 +22,7 @@ class FormData:
     coffee_option: bool
     event_type: str
     floor_area: float
+    hepa_option: bool
     infected_people: int
     lunch_option: bool
     mask_wearing: str
@@ -59,6 +60,7 @@ class FormData:
             coffee_option=(form_data['coffee_option'] == '1'),
             event_type=form_data['event_type'],
             floor_area=float(form_data['floor_area']),
+            hepa_option=(form_data['hepa_option'] == '1'),
             infected_people=int(form_data['infected_people']),
             lunch_finish=time_string_to_minutes(form_data['lunch_finish']),
             lunch_option=(form_data['lunch_option'] == '1'),
@@ -106,12 +108,19 @@ class FormData:
                                                window_height=self.window_height,
                                                opening_length=self.opening_distance * self.windows_number)
         else:
-            q_air_mech = (self.air_changes * self.room_volume if self.mechanical_ventilation_type == 'air_changes'
-                          else self.air_supply)
-            ventilation = models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120),
-                                            q_air_mech=q_air_mech)
+            if self.mechanical_ventilation_type == 'air_changes':
+                ventilation = models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
+                                               air_exch=self.air_changes)
+            else:
+                ventilation = models.HVACMechanical(active=models.PeriodicInterval(period=120, duration=120),
+                                                    q_air_mech=self.air_supply)
 
-        return ventilation
+        if self.hepa_option:
+            hepa = models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120),
+                                     q_air_mech=250.)
+            return models.MultipleVentilation((ventilation,hepa))
+        else:
+            return ventilation
 
     def present_interval(self) -> models.Interval:
         coffee_period = (self.activity_finish - self.activity_start) // self.coffee_breaks
@@ -232,6 +241,7 @@ def baseline_raw_form_data():
         'coffee_option': '1',
         'event_type': 'single_event',
         'floor_area': '',
+        'hepa_option': '0',
         'infected_people': '1',
         'lunch_finish': '13:30',
         'lunch_option': '1',
