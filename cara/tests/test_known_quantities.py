@@ -288,7 +288,8 @@ def test_windowopening(time, expected_value):
                         expected_value,rtol=1e-5)
 
 
-def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),)):
+def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),),
+                    intervals_presence_infected=((0, 4), (5, 7.5))):
     model = models.Model(
         room=models.Room(volume=75),
         ventilation=models.WindowOpening(
@@ -299,7 +300,7 @@ def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),)):
         ),
         infected=models.InfectedPerson(
             virus=models.Virus.types['SARS_CoV_2'],
-            presence=models.SpecificInterval(((0, 4), (5, 7.5))),
+            presence=models.SpecificInterval(intervals_presence_infected),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light exercise'],
             expiration=models.Expiration.types['Unmodulated Vocalization'],
@@ -371,12 +372,27 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
     "time",
     [0.5, 1.2, 2., 3.5, 5., 6.5, 7.5, 7.9, 8.],
 )
-def test_concentrations_hourly_dep_startup(month, temperatures, time):
+def test_concentrations_hourly_dep_temp_vs_constant(month, temperatures, time):
     # The concentrations should be the same up to 8 AM (time when the 
     # temperature changes DURING the window opening).
     m1 = build_hourly_dependent_model(month)
     m2 = build_constant_temp_model(temperatures[7]+273.15)
     npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-5)
+
+@pytest.mark.parametrize(
+    "month, temperatures",
+    models.Geneva_hourly_temperatures_celsius_per_hour.items(),
+)
+@pytest.mark.parametrize(
+    "time",
+    [0.5, 1.2, 2., 3.5, 5., 6.5, 7.5, 7.9, 8.],
+)
+def test_concentrations_hourly_dep_temp_startup(month, temperatures, time):
+    # The concentrations should be the zero up to the first presence time
+    # of an infecter person.
+    m = build_hourly_dependent_model(month,((0.,0.5),(1,1.5),(4,4.5),(7.5,8)),
+                        ((8,12.),))
+    assert m.concentration(time) == 0.
 
 
 def test_concentrations_hourly_dep_multipleventilation():
