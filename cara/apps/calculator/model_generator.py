@@ -1,5 +1,6 @@
 from cara.models import Model
 from dataclasses import dataclass
+import html
 import typing
 
 from cara import models
@@ -66,6 +67,11 @@ class FormData:
                 raise ValueError(f"Missing key {key}")
             if form_data[key] not in valid_set:
                 raise ValueError(f"{form_data[key]} is not a valid value for {key}")
+
+        # Don't let arbirtrary unescaped HTML through the net.
+        for key, value in form_data.items():
+            if isinstance(value, str):
+                form_data[key] = html.escape(value)
 
         # TODO: This fixup is a problem with the form.html.
         for key, value in form_data.items():

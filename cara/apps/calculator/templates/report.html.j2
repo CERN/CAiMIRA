@@ -13,8 +13,8 @@
 
 	<p class=subtitle> Created {{ creation_date }} using model version {{ model_version }}</p><br>
 
-	<p>Simulation Name: {{ simulation_name }}</p>
-	<p>Room Number: {{ room_number }}</p>
+	<p>Simulation Name: {{ form.simulation_name }}</p>
+	<p>Room Number: {{ form.room_number }}</p>
 
 	<p class="data_title">Input data:</p>
 	<ul>
@@ -29,9 +29,9 @@
 		<ul>
 			<li><p class="data_subtext">
 			{% if form.mechanical_ventilation_type == "air_supply"%}
-			Air supply flow rate: {{ air_supply }}
+			Air supply flow rate: {{ form.air_supply }}
 			{% elif form.mechanical_ventilation_type == "air_changes"%}
-			Air changes per hour: {{ air_changes }}
+			Air changes per hour: {{ form.air_changes }}
 			{% endif %}
 			</p></li>
 		</ul>
@@ -58,51 +58,51 @@
 
 	<p class="data_title">Event data:</p>
 	<ul>
-		<li><p class="data_text">Number of attendees and infected people: {{ total_people }} in attendance, of whom {{ infected_people }} 
-		{{ "is" if infected_people == 1 else "are" }}
+		<li><p class="data_text">Number of attendees and infected people: {{ form.total_people }} in attendance, of whom {{ form.infected_people }} 
+		{{ "is" if form.infected_people == 1 else "are" }}
 		infected.</p></li>
 		<li><p class="data_text">Activity type: 
-		{% if activity_type == "office" %}
+		{% if form.activity_type == "office" %}
 		Office work – typical scenario with all persons seated, talking.
-		{% elif activity_type == "workshop" %}
+		{% elif form.activity_type == "workshop" %}
 		Workshop = assembly workshop environment, all persons doing light exercise, talking.
-		{% elif activity_type == "training" %}
+		{% elif form.activity_type == "training" %}
 		Training – one person (the trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the trainer is the infected person, for the worst case scenario.
 		{% endif %}
 		</p></li>
 			<ul>
-				<li><p class="data_subtext">Start time: {{ activity_start }} &nbsp&nbsp End time: {{ activity_finish }}</p></li>
+				<li><p class="data_subtext">Start time: {{ form.activity_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.activity_finish | minutes_to_time }}</p></li>
 			</ul>
 		<li><p class="data_text">Exposure time (presence of infected person):</p></li>
 		<ul>
-			<li><p class="data_subtext">Start time: {{ infected_start }} &nbsp&nbsp End time: {{ infected_finish }}</p></li>
+			<li><p class="data_subtext">Start time: {{ form.infected_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.infected_finish | minutes_to_time }}</p></li>
 		</ul>
-		{% if event_type == "single_event"%}
-		<li><p class="data_text">Single event on {{ single_event_date }}</p></li>
+		{% if form.event_type == "single_event"%}
+		<li><p class="data_text">Single event on {{ form.single_event_date }}</p></li>
 		{% endif %}
-		{% if event_type == "recurrent_event"%}
-		<li><p class="data_text">Recurrent event for the month of {{ recurrent_event_month }}</p></li>
+		{% if form.event_type == "recurrent_event"%}
+		<li><p class="data_text">Recurrent event for the month of {{ form.recurrent_event_month }}</p></li>
 		{% endif %}
 	</ul>
 
 	<p class="data_title">Break data:</p>
 	<ul>
 		<li><p class="data_text">Lunch break: 
-		{% if lunch_option%}
+		{% if form.lunch_option%}
 		Yes</li>
 		<ul>
-			<li> Start: {{ lunch_start }} &nbsp&nbsp End: {{ lunch_finish }}</p></li>
+			<li> Start: {{ form.lunch_start | minutes_to_time }} &nbsp&nbsp End: {{ form.lunch_finish | minutes_to_time }}</p></li>
 		</ul>
 		{% else%}
 		No</li>
 		{% endif %}
-		<li><p class="data_text">Coffee breaks: {{ coffee_breaks }}	
-		{% if coffee_breaks > 0 %}
-		each of {{ coffee_duration }} minutes duration
+		<li><p class="data_text">Coffee breaks: {{ form.coffee_breaks }}
+		{% if form.coffee_breaks > 0 %}
+		each of {{ form.coffee_duration }} minutes duration
 		</p></li>
 		<ul>
-		{%- for coffee in coffee_times %}
-		<li><p class="data_subtext">Coffee break {{ loop.index }}: Start: {{ coffee[0] }} &nbsp&nbsp End: {{ coffee[1] }}</p></li>
+		{%- for start_time, end_time in form.coffee_break_times() %}
+		<li><p class="data_subtext">Coffee break {{ loop.index }}: Start: {{ start_time | minutes_to_time }} &nbsp&nbsp End: {{ end_time | minutes_to_time }}</p></li>
     	{%- endfor %}
 		</ul>
 		{% endif %}
@@ -111,7 +111,7 @@
 	<p class="data_title">Mask wearing:</p>
 	<ul>
 		<li><p class="data_text">Masks worn at workstations?
-		{{ "No" if mask_wearing == "removed" else "Yes" }}
+		{{ "No" if form.mask_wearing == "removed" else "Yes" }}
 		</p></li>
 		<li><p class="data_text">Mask type: Type 1</p></li>
 	</ul>

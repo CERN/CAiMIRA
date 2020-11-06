@@ -69,7 +69,7 @@ def plot(times, concentrations):
     return fig
 
 
-def minutes_to_string(minutes: int) -> str:
+def minutes_to_time(minutes: int) -> str:
     minute_string = str(minutes % 60)
     minute_string = "0" * (2 - len(minute_string)) + minute_string
     hour_string = str(minutes // 60)
@@ -88,34 +88,16 @@ def build_report(model: models.Model, form: FormData):
         'request': request,
         'form': form,
         'creation_date': time, 
-        'model_version': 'Beta v1.0.0', 
-        'simulation_name': form.simulation_name, 
-        'room_number': form.room_number, 
-        'room_volume': form.room_volume, 
-        'air_supply': form.air_supply, 
-        'air_changes': form.air_changes, 
-        'total_people': form.total_people,
-        'infected_people': form.infected_people,
-        'activity_type': form.activity_type,
-        'activity_start': minutes_to_string(form.activity_start),
-        'activity_finish': minutes_to_string(form.activity_finish),
-        'infected_start': minutes_to_string(form.infected_start),
-        'infected_finish': minutes_to_string(form.infected_finish),
-        'event_type': form.event_type, 
-        'single_event_date': form.single_event_date, 
-        'recurrent_event_month': form.recurrent_event_month,
-        'lunch_option': form.lunch_option, 
-        'lunch_start': minutes_to_string(form.lunch_start),
-        'lunch_finish': minutes_to_string(form.lunch_finish),
-        'coffee_breaks': form.coffee_breaks,
-        'coffee_duration': form.coffee_duration, 
-        'coffee_times': [[minutes_to_string(start), minutes_to_string(finish)] for start, finish in form.coffee_break_times()],
-        'mask_wearing': form.mask_wearing, 
+        'model_version': 'Beta v1.0.0',
     }
 
     context.update(calculate_report_data(model))
 
     p = Path(__file__).parent / "templates"
-    env = jinja2.Environment(loader=jinja2.FileSystemLoader(Path(p)))
+    env = jinja2.Environment(
+        loader=jinja2.FileSystemLoader(Path(p)),
+        undefined=jinja2.StrictUndefined,
+    )
+    env.filters['minutes_to_time'] = minutes_to_time
     template = env.get_template("report.html.j2")
     return template.render(**context)
