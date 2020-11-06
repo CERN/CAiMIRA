@@ -18,7 +18,7 @@
 Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to <a href="mailto:CARA-dev@cern.ch">CARA-dev@cern.ch</a></span>
 <h1> <p><b>CARA</b> Covid Airborne Risk Assessment tool</p></h1>
 
-<form id="covid_calculator" name="covid_calculator" action="/calculator/report" method="POST"> <!--DEBUG onsubmit="debug_submit(this)"-->
+<form id="covid_calculator" name="covid_calculator" action="/calculator/report" onsubmit="return validate_form(this)" method="POST">
 
 <div style="width: 33%; float:left;">
 
@@ -94,8 +94,8 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
     When is the event?<br>
     <input type="radio" id="event_type_single" name="event_type" value="single_event" onclick="require_fields(this)" required></input>
     <label for="event_type_single">Single event</label> &nbsp;&nbsp;
-    <label for="datepicker">Date: </label>
-    <input type="text" id="datepicker" name="single_event_date"><br>
+    <label for="single_event_date">Date: </label>
+    <input type="text" id="single_event_date" class="datepicker" name="single_event_date"><br>
     <input type="radio" id="event_type_recurrent" name="event_type" value="recurrent_event" onclick="require_fields(this)" required></input>
     <label for="event_type_recurrent">Recurrent usage</label>
     <select id="recurrent_event_month" name="recurrent_event_month">
