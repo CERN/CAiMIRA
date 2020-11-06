@@ -121,8 +121,11 @@
 	</ul>
 
 	<p class="result_title">Results:</p>
-		<p class="data_text"> In this scenario, the estimated probability of one exposed occupant getting infected P(i) is {{ infection_probability }} % and the estimated basic reproduction rate (R0) is {{ reproduction_rate }}.<p>
+		<p class="data_text">
+		In this scenario, the estimated probability of one exposed occupant getting infected P(i) is {{ "{:#.2g}".format(prob_inf) }}% and the estimated basic reproduction rate (R0) is {{ "{:#.2g}".format(R0) }}.
+		<p>
 	<p class="data_title">Exposure graph:</p>
+	<img id="scenario_concentration_plot" src="{{ scenario_plot_src }}">
 
 	<br><br><br><br><br><br><br>
 	<div style="border: 2px solid black; padding: 15px;">
