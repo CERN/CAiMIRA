@@ -21,7 +21,6 @@ class FormData:
     ceiling_height: float
     coffee_breaks: int
     coffee_duration: int
-    coffee_option: bool
     event_type: str
     floor_area: float
     hepa_option: bool
@@ -45,11 +44,6 @@ class FormData:
 
     @classmethod
     def from_dict(cls, form_data: typing.Dict) -> "FormData":
-        # TODO: This fixup is a problem with the form.html.
-        for key, value in form_data.items():
-            if value == "":
-                form_data[key] = "0"
-
         validation_tuples = [('activity_type', ACTIVITY_TYPES),
                              ('event_type', EVENT_TYPES),
                              ('mechanical_ventilation_type', MECHANICAL_VENTILATION_TYPES),
@@ -63,6 +57,11 @@ class FormData:
             if form_data[key] not in valid_set:
                 raise ValueError(f"{form_data[key]} is not a valid value for {key}")
 
+        # TODO: This fixup is a problem with the form.html.
+        for key, value in form_data.items():
+            if value == "":
+                form_data[key] = "0"
+
         return cls(
             activity_finish=time_string_to_minutes(form_data['activity_finish']),
             activity_start=time_string_to_minutes(form_data['activity_start']),
@@ -72,7 +71,6 @@ class FormData:
             ceiling_height=float(form_data['ceiling_height']),
             coffee_breaks=int(form_data['coffee_breaks']),
             coffee_duration=int(form_data['coffee_duration']),
-            coffee_option=(form_data['coffee_option'] == '1'),
             event_type=form_data['event_type'],
             floor_area=float(form_data['floor_area']),
             hepa_option=(form_data['hepa_option'] == '1'),
@@ -259,34 +257,34 @@ def model_from_form(form: FormData, tmp_raw_form_data) -> models.Model:
 def baseline_raw_form_data():
     # Note: This isn't a special "baseline". It can be updated as required.
     return {
-        'activity_finish': '17:00',
+        'RADIO_ventilation_type': 'natural',
+        'activity_finish': '18:00',
         'activity_start': '09:00',
-        'activity_type': 'training',
+        'activity_type': 'office',
         'air_changes': '',
         'air_supply': '',
         'ceiling_height': '',
-        'coffee_breaks': '2',
+        'coffee_breaks': '4',
         'coffee_duration': '10',
-        'coffee_option': '1',
-        'event_type': 'single_event',
+        'event_type': 'recurrent_event',
         'floor_area': '',
         'hepa_option': '0',
-        'infected_finish': '15:00',
-        'infected_start': '10:00',
+        'infected_finish': '18:00',
         'infected_people': '1',
+        'infected_start': '09:00',
         'lunch_finish': '13:30',
         'lunch_option': '1',
         'lunch_start': '12:30',
         'mask_wearing': 'removed',
-        'mechanical_ventilation_type': 'air_changes',
-        'opening_distance': '15',
+        'mechanical_ventilation_type': '',
+        'opening_distance': '0.2',
         'recurrent_event_month': 'January',
-        'room_number': 'baseline room',
+        'room_number': '123',
         'room_volume': '75',
-        'simulation_name': 'Baseline simulation',
-        'single_event_date': '11/02/2020',
+        'simulation_name': 'Test',
+        'single_event_date': '',
         'total_people': '10',
-        'ventilation_type': 'natural',
+        'ventilation_type': '',
         'volume_type': 'room_volume',
         'window_height': '2',
         'window_width': '2',
@@ -297,9 +295,9 @@ def baseline_raw_form_data():
 
 ACTIVITY_TYPES = {'office', 'training', 'workshop'}
 EVENT_TYPES = {'single_event', 'recurrent_event'}
-MECHANICAL_VENTILATION_TYPES = {'air_changes', 'air_supply'}
+MECHANICAL_VENTILATION_TYPES = {'air_changes', 'air_supply', ''}
 MASK_WEARING = {'continuous', 'removed'}
-VENTILATION_TYPES = {'natural', 'mechanical'}
+VENTILATION_TYPES = {'natural', 'mechanical', ''}
 VOLUME_TYPES = {'room_volume', 'room_dimensions'}
 WINDOWS_OPEN = {'always', 'interval', 'breaks'}
 

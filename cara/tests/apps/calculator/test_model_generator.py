@@ -99,7 +99,6 @@ def test_ventilation_window_hepa(baseline_form):
 
 def test_present_intervals(baseline_form):
     baseline_form.coffee_duration = 15
-    baseline_form.coffee_option = True
     baseline_form.coffee_breaks = 2
     baseline_form.activity_start = 9 * 60
     baseline_form.activity_finish = 17 * 60
