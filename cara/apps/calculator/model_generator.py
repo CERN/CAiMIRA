@@ -107,9 +107,8 @@ class FormData:
             infected_finish=time_string_to_minutes(form_data['infected_finish']),
         )
 
-    # TODO: Remove the tmp_raw_form_data usage.
-    def build_model(self, tmp_raw_form_data) -> Model:
-        return model_from_form(self, tmp_raw_form_data)
+    def build_model(self) -> Model:
+        return model_from_form(self)
 
     def ventilation(self) -> models.Ventilation:
         # Initializes a ventilation instance as a window if 'natural' is selected, or as a HEPA-filter otherwise
@@ -212,9 +211,7 @@ class FormData:
         return models.SpecificInterval(tuple(present_intervals))
 
 
-def model_from_form(form: FormData, tmp_raw_form_data) -> models.Model:
-    d = tmp_raw_form_data
-
+def model_from_form(form: FormData) -> models.Model:
     # Initializes room with volume either given directly or as product of area and height
     if form.volume_type == 'room_volume':
         volume = form.room_volume
@@ -227,7 +224,7 @@ def model_from_form(form: FormData, tmp_raw_form_data) -> models.Model:
 
     # Initializes a mask of type 1 if mask wearing is "continuous", otherwise instantiates the mask attribute as
     # the "No mask"-mask
-    mask = models.Mask.types['Type I' if d['mask_wearing'] == "continuous" else 'No mask']
+    mask = models.Mask.types['Type I' if form.mask_wearing == "continuous" else 'No mask']
 
     # A dictionary containing the mapping of activities listed in the UI to the activity level and expiration level
     # of the infected and exposed occupants respectively.
