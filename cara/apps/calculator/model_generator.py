@@ -163,8 +163,11 @@ class FormData:
         return tuple(coffee_times)
 
     def present_interval(self) -> models.Interval:
-        leave_times = [self.lunch_start]
-        enter_times = [self.lunch_finish]
+        leave_times = []
+        enter_times = []
+        if self.lunch_option:
+            leave_times.append(self.lunch_start)
+            enter_times.append(self.lunch_finish)
 
         for coffee_start, coffee_end in self.coffee_break_times():
             leave_times.append(coffee_start)
@@ -211,12 +214,6 @@ class FormData:
 
 def model_from_form(form: FormData, tmp_raw_form_data) -> models.Model:
     d = tmp_raw_form_data
-
-    # TODO: This fixup is a problem with the form.html.
-    d['coffee_breaks'] = 1
-    d['activity_type'] = 'Training'
-    d['lunch_start'] = '12:00'
-    d['lunch_finish'] = '13:00'
 
     # Initializes room with volume either given directly or as product of area and height
     if form.volume_type == 'room_volume':
