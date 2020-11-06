@@ -27,8 +27,13 @@
 		{% if ventilation_type == "mechanical"%}
 		Yes </p></li>
 		<ul>
-			<li><p class="data_subtext">Air supply flow rate: {{ air_supply }}</p></li>
-			<li><p class="data_subtext">Air changes per hour: {{ air_changes }}</p></li>
+			<li><p class="data_subtext">
+			{% if mechanical_ventilation_type == "air_supply"%}
+			Air supply flow rate: {{ air_supply }}
+			{% elif mechanical_ventilation_type == "air_changes"%}
+			Air changes per hour: {{ air_changes }}
+			{% endif %}
+			</p></li>
 		</ul>
 		{% else %}
 		No </li>
@@ -54,11 +59,7 @@
 	<p class="data_title">Event data:</p>
 	<ul>
 		<li><p class="data_text">Number of attendees and infected people: {{ total_people }} in attendance, of whom {{ infected_people }} 
-		{% if infected_people == 1 %}
-		is
-		{% else %}
-		are
-		{% endif %}
+		{{ 'is' if infected_people == 1 else 'are' }}
 		infected.</p></li>
 		<li><p class="data_text">Activity type: 
 		{% if activity_type == "office" %}
@@ -82,7 +83,6 @@
 		{% if event_type == "recurrent_event"%}
 		<li><p class="data_text">Recurrent event for the month of {{ recurrent_event_month }}</p></li>
 		{% endif %}
-
 	</ul>
 
 	<p class="data_title">Break data:</p>
@@ -110,19 +110,15 @@
 
 	<p class="data_title">Mask wearing:</p>
 	<ul>
-		<li><p class="data_text">Masks worn at workstations? 
-		{% if mask_wearing == "removed" %}
-		No
-		{% else %}
-		Yes
-		{% endif %}
+		<li><p class="data_text">Masks worn at workstations?
+		{{ "No" if mask_wearing == "removed" else "Yes" }}
 		</p></li>
 		<li><p class="data_text">Mask type: Type 1</p></li>
 	</ul>
 
 	<p class="result_title">Results:</p>
 		<p class="data_text">
-		In this scenario, the estimated probability of one exposed occupant getting infected P(i) is {{ "{:#.2g}".format(prob_inf) }}% and the estimated basic reproduction rate (R0) is {{ "{:#.2g}".format(R0) }}.
+		In this scenario, the estimated probability of one exposed occupant getting infected P(i) is {{ "{0:.2f}".format(prob_inf) }}% and the estimated basic reproduction rate (R0) is {{ "{0:.2f}".format(R0) }}.
 		<p>
 	<p class="data_title">Exposure graph:</p>
 	<img id="scenario_concentration_plot" src="{{ scenario_plot_src }}">
