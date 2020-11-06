@@ -37,29 +37,26 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
     <!-- Ventilation Options -->
     Ventilation type:
     <input type="hidden" id="ventilation_type" name="ventilation_type" value=""/>
-    <input type="radio" id="mechanical" name="RADIO_ventilation_type" value="mechanical" onclick="show_hide('DIVmechanical_ventilation', 'DIVnatural_ventilation', this)">Mechanical</input>
-    <input type="radio" id="natural" name="RADIO_ventilation_type" value="natural" onclick="show_hide('DIVnatural_ventilation', 'DIVmechanical_ventilation', this)">Natural</input><br>
+    <input type="radio" id="mechanical" name="RADIO_ventilation_type" value="mechanical" data-enables="DIVmechanical_ventilation">Mechanical</input>
+    <input type="radio" id="natural" name="RADIO_ventilation_type" value="natural" data-enables="DIVnatural_ventilation">Natural</input><br>
 
     <div id="DIVmechanical_ventilation" style="display:none">
-        <input type="hidden" id="mechanical_ventilation_type" name="mechanical_ventilation_type" value=""/>
-        <input type="radio" id="air_type_supply" name="RADIO_mechanical_ventilation_type" value="air_supply" onclick="require_fields(this)">
+        <input type="radio" id="air_type_supply" name="mechanical_ventilation_type" value="air_supply" onclick="require_fields(this)">
         Air supply flow rate &nbsp;&nbsp; <input type="number" step=0.01 id="air_supply" name="air_supply" min="0" placeholder="(m³ / hour)"><br>
-        <input type="radio" id="air_type_changes" name="RADIO_mechanical_ventilation_type" value="air_changes" onclick="require_fields(this)">
+        <input type="radio" id="air_type_changes" name="mechanical_ventilation_type" value="air_changes" onclick="require_fields(this)">
         Air changes per hour &nbsp;&nbsp; <input type="number" step=0.01 id="air_changes" name="air_changes" min="0"><br>
     </div>
 
     <div id="DIVnatural_ventilation" style="display:none">
-        <input type="hidden" id="windows_open" name="windows_open" value=""/>
         Number of windows: <input type="number" id="windows_number" name="windows_number" min="0"><br>
         Height of window: <input type="number" step=0.01 id="window_height" name="window_height" placeholder="meters" min="0"><br>
         Width of window: <input type="number" step=0.01 id="window_width"  name="window_width" placeholder="meters" min="0"><br>
         Opening distance: <input type="number" step=0.01 id="opening_distance"  name="opening_distance" placeholder="meters" min="0"><br>
-        Windows open: <input type="radio" id="always" name="RADIO_windows_open" value="always", onChange="update_windows_open(this)">
+        Windows open: <input type="radio" id="always" name="windows_open" value="always">
                       <label for="always">Always</label>
-                      <input type="radio" id="interval" name="RADIO_windows_open" value="interval", onChange="update_windows_open(this)">
+                      <input type="radio" id="interval" name="windows_open" value="interval">
                       <label for="interval">10 min / 2h</label>
-                      <!--input type="radio" id="breaks" name="RADIO_windows_open" value="breaks">
-                      <label for="breaks">Breaks</label--><br>
+        <br>
     </div>
     
     HEPA filtration:
