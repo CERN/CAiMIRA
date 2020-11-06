@@ -64,8 +64,10 @@ function require_fields(obj){
       break;
     case "event_type_single":
       require_single_event(true);
+      require_recurrent_event(false);
       break;
     case "event_type_recurrent":
+      require_recurrent_event(true);
       require_single_event(false);
       break;
     case "lunch_option_no":
@@ -133,6 +135,10 @@ function require_single_event(option) {
   $("#single_event_date").prop('required',option);
 }
 
+function require_recurrent_event(option) {
+  $("#recurrent_event_month").prop('required',option);
+}
+
 function require_lunch(option) {
   $("#lunch_start").prop('required',option);
   $("#lunch_finish").prop('required',option);
@@ -171,7 +177,7 @@ function validate_form(form) {
   var submit = true;
 
   //Validate all dates
-  $(".datepicker").each(function() {
+  $("input[required].datepicker").each(function() {
     $(this).removeClass("red");
 
     var fromDate = $(this).val();
@@ -213,3 +219,10 @@ function objectifyForm(formArray) {
         returnArray[formArray[i]['name']] = formArray[i]['value'];
     return returnArray;
 }
+
+$(document).ready(function() {
+  var radioValue = $("input[name='event_type']:checked");
+  if(radioValue.val()){
+    require_fields(radioValue.get(0));
+  }
+})
