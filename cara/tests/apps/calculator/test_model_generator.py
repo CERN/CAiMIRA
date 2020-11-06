@@ -50,3 +50,9 @@ def test_present_intervals(baseline_form):
     baseline_form.lunch_finish = 13 * 60 + 30
     correct = ((9, 10), (10.25, 12), (12.25, 12.5), (13.5, 14), (14.25, 16), (16.25, 17))
     assert baseline_form.present_interval().present_times == correct
+
+
+def test_key_validation(baseline_form_data):
+    baseline_form_data['activity_type'] = 'invalid key'
+    with pytest.raises(ValueError):
+        model_generator.FormData.from_dict(baseline_form_data)
