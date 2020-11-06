@@ -108,10 +108,12 @@ class FormData:
                                                window_height=self.window_height,
                                                opening_length=self.opening_distance * self.windows_number)
         else:
-            q_air_mech = (self.air_changes * self.room_volume if self.mechanical_ventilation_type == 'air_changes'
-                          else self.air_supply)
-            ventilation = models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120),
-                                            q_air_mech=q_air_mech)
+            if self.mechanical_ventilation_type == 'air_changes':
+                ventilation = models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
+                                               air_exch=self.air_changes)
+            else:
+                ventilation = models.HVACMechanical(active=models.PeriodicInterval(period=120, duration=120),
+                                                q_air_mech=self.air_supply)
 
         return ventilation
 
