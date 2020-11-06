@@ -22,6 +22,7 @@ class FormData:
     coffee_option: bool
     event_type: str
     floor_area: float
+    hepa_option: bool
     infected_people: int
     lunch_option: bool
     mask_wearing: str
@@ -59,6 +60,7 @@ class FormData:
             coffee_option=(form_data['coffee_option'] == '1'),
             event_type=form_data['event_type'],
             floor_area=float(form_data['floor_area']),
+            hepa_option=(form_data['hepa_option'] == '1'),
             infected_people=int(form_data['infected_people']),
             lunch_finish=time_string_to_minutes(form_data['lunch_finish']),
             lunch_option=(form_data['lunch_option'] == '1'),
@@ -232,6 +234,7 @@ def baseline_raw_form_data():
         'coffee_option': '1',
         'event_type': 'single_event',
         'floor_area': '',
+        'hepa_option': '0',
         'infected_people': '1',
         'lunch_finish': '13:30',
         'lunch_option': '1',
