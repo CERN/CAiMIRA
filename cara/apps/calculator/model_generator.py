@@ -113,9 +113,14 @@ class FormData:
                                                air_exch=self.air_changes)
             else:
                 ventilation = models.HVACMechanical(active=models.PeriodicInterval(period=120, duration=120),
-                                                q_air_mech=self.air_supply)
+                                                    q_air_mech=self.air_supply)
 
-        return ventilation
+        if self.hepa_option:
+            hepa = models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120),
+                                     q_air_mech=250.)
+            return models.MultipleVentilation((ventilation,hepa))
+        else:
+            return ventilation
 
     def present_interval(self) -> models.Interval:
         coffee_period = (self.activity_finish - self.activity_start) // self.coffee_breaks
