@@ -189,7 +189,7 @@ def model_from_form(form: FormData, tmp_raw_form_data) -> models.Model:
                      'Training': (('Light exercise', 'Talking'), ('Seated', 'Whispering')),
                      'Workshop': (('Light exercise', 'Talking'), ('Light exercise', 'Talking'))}
 
-    (infected_activity, infected_expiration), (exposed_activity, exposed_expiration) = activity_dict[form.activity_type]
+    (infected_activity, infected_expiration), (exposed_activity, exposed_expiration) = activity_dict[form.activity_type.capitalize()]
     # Converts these strings to Activity and Expiration instances
     infected_activity, exposed_activity = models.Activity.types[infected_activity], models.Activity.types[exposed_activity]
     infected_expiration, exposed_expiration = models.Expiration.types[infected_expiration], models.Expiration.types[exposed_expiration]
