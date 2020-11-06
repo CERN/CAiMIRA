@@ -59,7 +59,7 @@ def plot(times, concentrations):
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
 
-    ax.set_xlabel('Hours from start of event')
+    ax.set_xlabel('Time (hour of day)')
     ax.set_ylabel('Concentration ($q/m^3$)')
     ax.set_title('Concentration of infectious quanta')
 
