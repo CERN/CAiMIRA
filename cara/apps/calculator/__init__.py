@@ -52,23 +52,26 @@ class StaticModel(RequestHandler):
         self.finish(report)
 
 
+class LandingPage(RequestHandler):
+    def get(self):
+        import jinja2
+        p = Path(__file__).parent.parent / "templates"
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(Path(p)))
+        template = env.get_template("index.html.j2")
+        report = template.render(**{})
+        self.finish(report)
+
+
 def make_app(debug=False, prefix='/calculator'):
-    static_dir = Path(__file__).absolute().parent / 'static'
+    static_dir = Path(__file__).absolute().parent.parent / 'static'
+    calculator_static_dir = Path(__file__).absolute().parent / 'static'
     urls = [
-        (
-            prefix + r'/?()', StaticFileHandler, {'path': static_dir / 'form.html'}
-        ),
-        (
-            prefix + r'/report', ConcentrationModel
-        ),
-        (
-            prefix + r'/baseline-model/result', StaticModel
-        ),
-        (
-            prefix + r'/static/(.*)',
-            StaticFileHandler,
-            {'path': static_dir}
-        ),
+        (r'/?', LandingPage),
+        (r'/static/(.*)', StaticFileHandler, {'path': static_dir}),
+        (prefix + r'/?()', StaticFileHandler, {'path': calculator_static_dir / 'form.html'}),
+        (prefix + r'/report', ConcentrationModel),
+        (prefix + r'/baseline-model/result', StaticModel),
+        (prefix + r'/static/(.*)', StaticFileHandler, {'path': calculator_static_dir}),
     ]
     return Application(
         urls,

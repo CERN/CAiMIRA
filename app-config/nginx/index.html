@@ -1,3 +1,782 @@
-<p>
-Welcome! Please see <a href="/expert-app">the expert application</a>.
-</p>
+<!DOCTYPE html>
+<html  lang="en" dir="ltr" prefix="content: http://purl.org/rss/1.0/modules/content/  dc: http://purl.org/dc/terms/  foaf: http://xmlns.com/foaf/0.1/  og: http://ogp.me/ns#  rdfs: http://www.w3.org/2000/01/rdf-schema#  schema: http://schema.org/  sioc: http://rdfs.org/sioc/ns#  sioct: http://rdfs.org/sioc/types#  skos: http://www.w3.org/2004/02/skos/core#  xsd: http://www.w3.org/2001/XMLSchema# ">
+  <head>
+    <meta charset="utf-8" />
+<meta name="MobileOptimized" content="width" />
+<meta name="HandheldFriendly" content="true" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<link rel="alternate" hreflang="en" href="https://cara.web.cern.ch/" />
+<link rel="canonical" href="https://cara.web.cern.ch/" />
+
+    <title>Welcome | CARA: The COVID Airborne Risk Assessment tool</title>
+    <link rel="stylesheet" media="all" href="https://against-covid-19.web.cern.ch/files/css/css_82Exl3Ak2twLHfqyjRQebNZT9lnaduIb_e68a6Xxglc.css" />
+    <link rel="stylesheet" media="all" href="https://framework.web.cern.ch/framework/3.0/js/owlcarousel/css/owl.carousel.css" />
+    <link rel="stylesheet" media="all" href="https://framework.web.cern.ch/framework/3.0/js/owlcarousel/css/owl.theme.default.css" />
+
+    <link rel="stylesheet" media="all" href="https://framework.web.cern.ch/framework/3.0/js/prism/prism.css" />
+    <link rel="stylesheet" media="all" href="https://againstcovid19.cern/sites/against-covid-19.web.cern.ch/files/css/css_dT4DeyKsOiY3H0Nvtyj_E9zbQCGtVayFTnI6OkdzJt8.css" />
+    <link rel="stylesheet" media="all" href="https://framework.web.cern.ch/framework/3.0/js/colorbox/colorbox.css" />
+    <link rel="stylesheet" media="all" href="https://against-covid-19.web.cern.ch/files/css/css_JCp5DX48Ge5VEMNJhxoSk7neHyCoScPsB-d7ced1n7M.css" />
+    
+<!--[if lte IE 8]>
+<script src="https://againstcovid19.cern/sites/against-covid-19.web.cern.ch/files/js/js_VtafjXmRvoUgAzqzYTA3Wrjkx9wcWhjP0G4ZnnqRamA.js"></script>
+<![endif]-->
+
+      </head>
+  <body class="cern-theme-on path-frontpage page-node-type-landing-page has-glyphicons">
+        <a href="#main-content" class="visually-hidden focusable skip-link">
+      Skip to main content
+    </a>
+    <div id="cern-global-loading-layout"><span><span></span></span><span></span></div><div  id="cern-toolbar" role="group" aria-label="CERN Toolbar" class="user-not-authenticated">
+    <h1>
+        <a href="//home.cern" title="CERN">
+            CERN
+            <span>Accelerating science</span>
+        </a>
+    </h1>
+    <ul>
+        <li class="signin"> 
+                                                     
+                                        <div class="item-list item-list-length-1">
+                <ul class="cern-signedin toolbar-submenu"><li class="cern-account-links"><a href="/user/login" class="cern-account cern-signin cern-single-mobile-signin">Sign in</a></li></ul>
+            </div>
+        </li>
+        <li><a href="//cern.ch/directory" class="cern-directory" title="Search CERN resources and browse the directory">Directory</a></li>
+    </ul>
+</div>
+
+      <div class="dialog-off-canvas-main-canvas" data-off-canvas-main-canvas>
+    
+
+
+
+
+
+    
+<header  role="banner">
+
+  <div class="header-wrapper">
+
+    
+								<div class="site-info col-sm-2">
+			
+                  <div class="site-info__logo col-lg-3 col-md-2 col-sm-3">
+            <a href="/" title="Home" rel="home">
+              <img src="/sites/against-covid-19.web.cern.ch/files/logo/CERNagainstLogo-02_1.png" alt="home"/>
+            </a>
+          </div>
+        
+        <div class="site-info__text col-lg-9 col-md-10 col-sm-9">
+
+          
+          
+        </div>
+
+      </div>
+
+    
+    
+									<div class="site-nav col-sm-10 ">
+			
+          <div class="region region-header">
+    <nav role="navigation" aria-labelledby="block-cernoverride-main-menu-menu" id="block-cernoverride-main-menu">
+            <h2 class="sr-only" id="block-cernoverride-main-menu-menu">Main navigation</h2>
+
+      <nav class="navbar navbar-default main-menu">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+
+      
+                                                  <ul class="nav navbar-nav">
+                                                              <li>
+                      <a href="/" data-drupal-link-system-path="&lt;front&gt;" class="is-active">Home</a>
+                                                          </li>
+
+                  
+                                                    <li>
+                      <a href="/about" title="About the mission" data-drupal-link-system-path="node/2">About</a>
+                                                          </li>
+
+                  
+                                                  <li class="dropdown">
+
+                    
+                    <a href="/mandate" class="dropdown-toggle" data-drupal-link-system-path="node/7">                    Mandate
+                    <span class="caret"></span>
+                    </a>
+                                                                                                                        <ul class="dropdown-menu">
+                                                                <li>
+                      <a href="/mandate/task-force-members" data-drupal-link-system-path="node/22">Task Force Members</a>
+                                                          </li>
+
+                  
+                              </ul>
+                      
+                                      </li>
+
+                  
+                                                    <li>
+                      <a href="/actions" data-drupal-link-system-path="node/16">Actions</a>
+                                                          </li>
+
+                  
+                                                    <li>
+                      <a href="/news" title="Latest news" data-drupal-link-system-path="news">News</a>
+                                                          </li>
+
+                                                          <li class="search-item cern-search">
+                      <a href="#" class="cern-item-search search-link" onClick="openSearch()">SEARCH</a>
+
+                      <div id="cern-search-overlay">
+                        <div class="close-cern-search" onClick="closeSearch()"></div>
+                        <div class="col-md-offset-2 col-md-8">
+                          <div role="search" class="block block-search block-search-form-block">
+                            <form class="search-block-form" data-drupal-selector="search-block-form" action="/search/node" method="get" id="search-block-form" accept-charset="UTF-8" data-drupal-form-fields="edit-keys">
+                              <div class="form-item js-form-item form-type-search js-form-type-search form-item-keys js-form-item-keys form-no-label form-group">
+                                <input title="Enter the terms you wish to search for." data-drupal-selector="edit-keys" class="form-search form-control" placeholder="E.G. BIRTH OF WEB, LHC PAGE 1, BULLETIN..." type="search" id="edit-keys" name="keys" value="" size="15" maxlength="128">
+                              </div>
+                              <div id="edit-keys--description" class="description help-block">Enter the terms you wish to search for.</div>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  
+                              </ul>
+                      
+
+      
+        </div>
+        <!-- /.navbar-collapse -->
+      </div>
+      <!-- /.container-fluid -->
+    </nav>
+    
+  </nav>
+<section class="language-switcher-language-url block block-language block-language-blocklanguage-interface clearfix" id="block-languageswitcher" role="navigation">
+  
+    
+
+      <ul class="links"><li hreflang="en" data-drupal-link-system-path="&lt;front&gt;" class="en is-active"><a href="/" class="language-link is-active" hreflang="en" data-drupal-link-system-path="&lt;front&gt;">en</a></li><li hreflang="fr" data-drupal-link-system-path="&lt;front&gt;" class="fr"><a href="/fr" class="language-link" hreflang="fr" data-drupal-link-system-path="&lt;front&gt;">fr</a></li></ul>
+  </section>
+
+
+  </div>
+
+      </div>
+    
+  </div>
+
+</div>
+
+</header>
+
+<main role="main">
+	<a id="main-content" tabindex="-1"></a>
+					<div class="container-fluid">
+				<div class="wrapper-center col-md-12 col-sm-12 col-xs-12">
+			  <div class="region region-content">
+    <div data-drupal-messages-fallback class="hidden"></div>
+    <h1 class="page-header"><span>Welcome</span>
+</h1>
+
+    <div data-history-node-id="1" class="layout layout--onecol">
+    <div  class="layout__region layout__region--content">
+      
+			<div class="field field--name-field-component field--type-entity-reference-revisions field--label-hidden field--items">
+							<div class="field--item">
+
+
+
+	
+
+
+
+	
+
+
+
+
+
+		
+
+
+
+
+
+
+	
+	
+
+	
+
+
+<div class="component-row component-row__display__fluid section-navigation component-row__has-header effect_none is_full_height">
+
+			          
+
+	
+	
+		
+		
+		
+		
+			<div class="component-row__row">
+
+						
+										<div class="component-row__column component-row__center section-has-no-column col-md-12 col-sm-12 col-xs-12">
+					<div class="box-effects-wrapper ">
+						
+<div class="cern-component-header-blocks component-header">
+    <div  id="header-blocks--2" class="owl-carousel owl-theme component-header__carousel header-carousel">
+                            
+
+    
+  
+<div class="header-block">
+  <div class="header-block__title">
+              <h3 class="header-block__name"  style="color:#FFFFFF;">
+        
+        <span style="color:#FFFFFF;">CERN against COVID-19</span>
+        <span style="background:#FFFFFF;" class="header-block__name__underline"></span>
+        
+      </h3>
+              <span class="header-block__subhead"  style="color:#FFFFFF;"><p class="text-align-center">CERN technologies and expertise are helping in the collective global fight against COVID-19</p>
+</span>
+      </div>
+            <div class="background__veil"></div>
+              <div class="background-component background__cds_media" style="height: 100%;">
+        <figure class="cds-image" data-record-id="1957174" data-filename="DSC_0966" id="CERN-PHOTO-201410-213-11">
+        <a href="//cds.cern.ch/images/CERN-PHOTO-201410-213-11" 
+          title="View on CDS">
+          <img alt="WANDERING THE IMMEASURABLE" 
+            src="//cds.cern.ch/images/CERN-PHOTO-201410-213-11/file?size=medium"/>
+        </a>
+        <figcaption>
+          WANDERING THE IMMEASURABLE PÉRÉGRINATIONS À L’INFINI Steel sculpture by the Globe of Science and Innovation
+          <span> (Image: CERN)</span>
+        </figcaption>
+      </figure>
+      </div>
+            
+Off
+  </div>
+
+
+
+    
+  
+<div class="header-block">
+  <div class="header-block__title">
+              <h3 class="header-block__name"  style="color:#FFFFFF;">
+        
+        <span style="color:#FFFFFF;">Providing resources</span>
+        <span style="background:#FFFFFF;" class="header-block__name__underline"></span>
+        
+      </h3>
+              <span class="header-block__subhead"  style="color:#FFFFFF;"><p class="text-align-center">From vehicles for local logistical support to the Worldwide LHC Computing Grid,<br />
+particle physics resources are being made available to those who need them.</p>
+</span>
+      </div>
+            <div class="background__veil"></div>
+              <div class="background-component background__cds_media" style="height: 100%;">
+        <figure class="cds-image" data-record-id="2636379" data-filename="IMG_5197" id="IT-PHO-CCC-2018-001-1">
+        <a href="//cds.cern.ch/images/IT-PHO-CCC-2018-001-1" 
+          title="View on CDS">
+          <img alt="CERN computing facilities views from 2018" 
+            src="//cds.cern.ch/images/IT-PHO-CCC-2018-001-1/file?size=large"/>
+        </a>
+        <figcaption>
+          CERN computing facilities views from 2018
+          <span> (Image: CERN)</span>
+        </figcaption>
+      </figure>
+      </div>
+            
+Off
+  </div>
+
+
+
+    
+  
+<div class="header-block">
+  <div class="header-block__title">
+              <h3 class="header-block__name"  style="color:#FFFFFF;">
+        
+        <span style="color:#FFFFFF;">Working with a global community</span>
+        <span style="background:#FFFFFF;" class="header-block__name__underline"></span>
+        
+      </h3>
+              <span class="header-block__subhead"  style="color:#FFFFFF;"><p class="text-align-center">Particle physics is a global community, coming together<br />
+for a common cause.</p>
+</span>
+      </div>
+            <div class="background__veil"></div>
+                          <div class="background-component background__image"  style="background:url(&#039;/sites/against-covid-19.web.cern.ch/files/2020-04/OPEN-VIDEO-2018-041-001-frame-7%20%281%29.jpg&#039;) no-repeat center top / cover; height: 100%;"></div>
+      
+Off
+  </div>
+
+
+            </div>
+        
+        <span class="component-header__scroll"></span>
+    </div>
+<a class="endof-cern-header-blocks"></a>
+
+
+
+						
+						
+						
+					</div>
+				</div>
+
+			
+
+						
+		</div>
+	
+</div>
+
+</div>
+							<div class="field--item">
+
+
+
+
+
+
+
+
+
+
+
+
+
+		
+
+
+
+
+
+
+	
+	
+
+	
+
+
+<div class="component-row component-row__display__fluidcenter section-navigation effect_none">
+
+			
+
+	
+	
+		
+		
+		
+		
+			<div class="component-row__row">
+
+						
+										<div class="component-row__column component-row__center section-has-no-column col-md-12 col-sm-12 col-xs-12">
+					<div class="box-effects-wrapper ">
+						
+
+
+
+
+
+
+<div class="text-component text-component-page clearfix">
+        <h2  class="text-component-title">
+      The initiative
+    </h2>
+          <div  class="text-component-text cern_full_html">
+      <p class="text-align-justify">CERN’s Director-General <a href="/articles/cern-against-covid-19-task-force-launch-message-directorate">established</a> the <strong><i>CERN against COVID-19</i></strong> task force in March 2020 to collect and coordinate ideas and contributions from the CERN community of over 18 000 people worldwide to the societal fight against the COVID-19 pandemic. These initiatives will draw on scientific and technical expertise and facilities at CERN, in the Member State countries and beyond, and will be carried out with that community and in close contacts with the relevant health institutions and experts from other fields.</p>
+
+<p class="text-align-justify">We have been very encouraged by the hundreds of emails we have received, and the enthusiasm of the community. Ideas range from the deployment of CERN’s powerful computing, engineering and technical resources to contribute to the global fight against COVID-19, to assisting the local effort through logistical and emergency response support.</p>
+
+<p class="text-align-justify">The objective of the <strong><i>CERN against COVID-19</i> </strong>initiative is to ensure effective and well-coordinated action, drawing on CERN’s many competencies and advanced technologies and working closely with experts in healthcare, drug development, epidemiology and emergency response so as to maximise the impact of our contributions. Proposals and ideas can be made by members of the CERN community via the form at the bottom of this page. Questions for the task force may be submitted via email to <a href="mailto:fight-covid@cern.ch">fight-covid@cern.ch</a>. We will do our best to answer all of them.</p>
+
+    </div>
+  </div>
+
+
+						
+						
+						
+					</div>
+				</div>
+
+			
+
+						
+		</div>
+	
+</div>
+
+</div>
+							<div class="field--item">
+
+
+
+
+
+
+
+
+	
+
+
+
+
+		
+
+
+
+
+
+
+	
+	
+
+	
+
+
+<div class="component-row component-row__display__centered section-navigation effect_none has_title">
+
+			
+
+	
+			<h1  class="row-component-title">
+			Action Areas
+		</h1>
+	
+		
+		
+		
+		
+			<div class="component-row__row">
+
+						
+										<div class="component-row__column component-row__center section-has-no-column col-md-12 col-sm-12 col-xs-12">
+					<div class="box-effects-wrapper ">
+						
+
+
+                                
+    
+    
+<div  id="preview-card--4" class="component-preview-cards box-pattern simple-display landing_page" style="background:url(&#039;/sites/against-covid-19.web.cern.ch/files/2020-04/201808-209_09.jpg&#039;) no-repeat center center / cover" data-background="/sites/against-covid-19.web.cern.ch/files/2020-04/201808-209_09.jpg"  class="component-preview-cards box-pattern simple-display landing_page">
+  <a class="box-link" href="/actions#medical"></a>
+
+        <div class="component-preview-cards__veil"></div>
+  
+  <div class="component-preview-cards__box_wrapper">
+    <div class="component-preview-cards__box">
+
+                                                      
+      
+            <div class="preview-card__title">
+                                                          <h3><a href="/actions#medical" title="Medical devices">
+            <span>
+              Medical devices
+            </span>
+            </a></h3>
+              </div>
+      <div class="preview-card__body"></div>
+      <div class="preview-cards__subtext">
+                                                              </div>
+    </div>
+  </div>
+</div>
+
+
+
+                                        
+    
+    
+<div  id="preview-card--5" class="component-preview-cards box-pattern simple-display landing_page" style="background:url(&#039;//cds.cern.ch/images/OPEN-PHO-LIFE-2018-024-1/file?size=medium&#039;) no-repeat center center / cover" data-background="//cds.cern.ch/images/OPEN-PHO-LIFE-2018-024-1/file?size=medium"  class="component-preview-cards box-pattern simple-display landing_page">
+  <a class="box-link" target=""  href="/actions#computing"></a>
+
+        <div class="component-preview-cards__veil"></div>
+  
+  <div class="component-preview-cards__box_wrapper">
+    <div class="component-preview-cards__box">
+
+                                                      
+      
+            <div class="preview-card__title">
+                                                          <h3><a href="/actions#computing" title="Computing &amp; data analysis">
+            <span>
+              Computing &amp; data analysis
+            </span>
+            </a></h3>
+              </div>
+      <div class="preview-card__body"></div>
+      <div class="preview-cards__subtext">
+                                                              </div>
+    </div>
+  </div>
+</div>
+
+
+
+                                        
+    
+    
+<div  id="preview-card--6" class="component-preview-cards box-pattern simple-display landing_page" style="background:url(&#039;//cds.cern.ch/images/CERN-PHOTO-201612-329-9/file?size=medium&#039;) no-repeat center center / cover" data-background="//cds.cern.ch/images/CERN-PHOTO-201612-329-9/file?size=medium"  class="component-preview-cards box-pattern simple-display landing_page">
+  <a class="box-link" target=""  href="/actions#help"></a>
+
+        <div class="component-preview-cards__veil"></div>
+  
+  <div class="component-preview-cards__box_wrapper">
+    <div class="component-preview-cards__box">
+
+                                                      
+      
+            <div class="preview-card__title">
+                                                          <h3><a href="/actions#help" title="Help to society">
+            <span>
+              Help to society
+            </span>
+            </a></h3>
+              </div>
+      <div class="preview-card__body"></div>
+      <div class="preview-cards__subtext">
+                                                              </div>
+    </div>
+  </div>
+</div>
+
+						
+						
+						
+					</div>
+				</div>
+
+			
+
+						
+		</div>
+	
+</div>
+
+</div>
+							<div class="field--item">
+
+
+
+
+
+
+
+
+	
+
+
+
+
+		
+
+
+
+
+
+
+	
+	
+
+	
+
+
+<div class="component-row component-row__display__fluid section-navigation effect_none has_title">
+
+			
+
+	
+			<h1  class="row-component-title">
+			CERN against COVID-19
+		</h1>
+	
+		
+		
+		
+		
+			<div class="component-row__row">
+
+						
+										<div class="component-row__column component-row__center section-has-no-column col-md-12 col-sm-12 col-xs-12">
+					<div class="box-effects-wrapper ">
+						
+<div class="cern-component-header-blocks component-header">
+    <div  id="header-blocks--4" class="owl-carousel owl-theme component-header__carousel header-carousel">
+                            
+
+    
+  
+<div class="header-block">
+  <div class="header-block__title">
+              </div>
+                    <div class="background-component background__cds_media" style="height: 100%;">
+        <figure class="cds-video" id="CERN-VIDEO-2020-016-001" data-download-url="https://videos.cern.ch/api/files/7ce6fd36-4163-42d5-8274-6ab3768db989/CERN-VIDEO-2020-016-001.mp4" data-download-sizes="240p,360p,480p,720p,1080p,1080ph265,2160p,2160ph265">
+          <div>
+            <iframe allowfullscreen="true" frameborder="0" height="450" 
+              src="//cds.cern.ch/video/CERN-VIDEO-2020-016-001?responsive=1" width="100%">
+            </iframe>
+          </div>
+          <figcaption>
+            Short clip summarizing CERN's action against COVID19, featuring an interview of Beniamino Di Girolamo, the CERN Against COVID taskforce coordinator, footage of 3 projects as examples of the action (HEV, masks and shields, sanitiser gel) and sound bites of 3 project spokespersons. 
+            <span> (Video: CERN)</span>
+          </figcaption>
+        </figure>
+      </div>
+            
+Off
+  </div>
+
+
+            </div>
+    </div>
+<a class="endof-cern-header-blocks"></a>
+
+
+
+						
+						
+						
+					</div>
+				</div>
+
+			
+
+						
+		</div>
+	
+</div>
+
+</div>
+					</div>
+	
+    </div>
+  </div>
+
+
+
+  </div>
+
+		</div>
+			</div>
+	</main>
+
+<footer role="contentinfo">
+<div class="row cern-footer">
+				<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3 footer-first-col">
+				  <div class="region region-footercolumn1">
+    <section id="block-disclaimer" class="block block-block-content block-block-content112ec55d-2622-43e4-9063-e7433079dfb1 clearfix">
+  
+      <h2 class="block-title">Disclaimer</h2>
+    
+
+      
+						<div class="field field--name-body field--type-text-with-summary field--label-hidden field--item"><p><span style="font-size:10px;"><em>CERN strives to deploy its know-how and technologies to help solve the challenges arising in the local and global fight against COVID-19. As a particle physics research organisation, CERN is not in a position to advise on medical research, health or health policy issues. Any initiative is conducted on a best effort and as-is basis, without liability or warranty.</em></span></p>
+</div>
+			
+  </section>
+
+
+  </div>
+
+	  </div>
+  <div class="col-xs-12 col-sm-8 col-md-8 col-lg-8 footer-second-col">
+    <div class="row">
+      <!-- CONTACT US -->
+      <div class="col-sm-5 col-md-4 col-md-offset-0 col-lg-4 col-lg-offset-0">
+                    <div class="region region-footercolumn2">
+    <nav role="navigation" aria-labelledby="block-cernoverride-footer-menu" id="block-cernoverride-footer">
+            
+  <h2 class="visually-hidden" id="block-cernoverride-footer-menu">Footer menu</h2>
+  
+
+        
+        <ul class="menu nav">
+						<li>
+				<a href="mailto:fight-covid@cern.ch" title="Contact the Task Force">Contact</a>
+							</li>
+					<li>
+				<a href="/resources" title="Information and resources for all" data-drupal-link-system-path="node/23">Public resources</a>
+							</li>
+					<li>
+				<a href="https://against-covid-19.web.cern.ch/cern-community-ways-get-involved" title="CERN community only - ways you can get involved to help">Ways to get involved  (CERN sign-in required)</a>
+							</li>
+			</ul>
+		
+
+</ul>
+  </nav>
+
+  </div>
+
+              </div>
+      <!-- general info -->
+      <div class="col-sm-6 col-sm-offset-1 col-md-4 col-md-offset-0 col-lg-4">
+        <div class=" mb-4">
+                      
+                  </div>
+      </div>
+      <!-- cern and you -->
+      <div class="col-sm-6 col-sm-offset-6 col-md-4 col-md-offset-0 col-lg-4  col-lg-offset-0">
+        <div class=" mb-4">
+                      
+                  </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xs-1 col-sm-1 col-md-1 col-lg-1 footer-last-logo">
+
+          <a href="https://home.cern/" title="CERN" target="_blank"><img src="https://against-covid-19.web.cern.ch/themes/cernoverride-master/logo.svg" alt="CERN"/></a>
+    
+  </div>
+</div>
+
+  <div class="copy-wrapper light">
+  <a href="https://copyright.web.cern.ch/">
+    Copyright
+  </a>
+  &nbsp;&copy;
+  2020
+  CERN</div>
+</footer>
+
+  </div>
+
+    
+    <script type="application/json" data-drupal-selector="drupal-settings-json">{"path":{"baseUrl":"\/","scriptPath":null,"pathPrefix":"","currentPath":"node\/1","currentPathIsAdmin":false,"isFront":true,"currentLanguage":"en"},"pluralDelimiter":"\u0003","suppressDeprecationErrors":true,"ajaxPageState":{"libraries":"bootstrap\/popover,bootstrap\/tooltip,cern_dev_status\/cern-dev-status,cern_loading\/cernloading,cern_toolbar\/cern_toolbar,cernbase\/global-styling,cernclean\/global-styling,cernoverride\/global-styling,core\/html5shiv,extlink\/drupal.extlink,layout_discovery\/onecol,matomo\/matomo,paragraphs\/drupal.paragraphs.unpublished,system\/base,ui_patterns\/background.background,ui_patterns\/header_block.divisions,ui_patterns\/header_blocks.carousel-library,ui_patterns\/preview_card.preview_card,ui_patterns\/row.row,ui_patterns\/text.text","theme":"cernoverride","theme_token":null},"ajaxTrustedUrl":[],"matomo":{"trackMailto":true},"data":{"extlink":{"extTarget":false,"extTargetNoOverride":false,"extNofollow":false,"extNoreferrer":false,"extFollowNoOverride":false,"extClass":"ext","extLabel":"(link is external)","extImgClass":false,"extSubdomains":true,"extExclude":"","extInclude":"","extCssExclude":"","extCssExplicit":"","extAlert":false,"extAlertText":"This link will take you to an external web site. We are not responsible for their content.","mailtoClass":"mailto","mailtoLabel":"(link sends email)","extUseFontAwesome":false,"extIconPlacement":"append","extFaLinkClasses":"fa fa-external-link","extFaMailtoClasses":"fa fa-envelope-o","whitelistedDomains":[]}},"bootstrap":{"forms_has_error_value_toggle":1,"modal_animation":1,"modal_backdrop":"true","modal_focus_input":1,"modal_keyboard":1,"modal_select_text":1,"modal_show":1,"modal_size":"","popover_enabled":1,"popover_animation":1,"popover_auto_close":1,"popover_container":"body","popover_content":"","popover_delay":"0","popover_html":0,"popover_placement":"right","popover_selector":"","popover_title":"","popover_trigger":"click","tooltip_enabled":1,"tooltip_animation":1,"tooltip_container":"body","tooltip_delay":"0","tooltip_html":0,"tooltip_placement":"auto left","tooltip_selector":"","tooltip_trigger":"hover"},"cern_hero_header":{"slide_time":[6000,6000,6000]},"user":{"uid":0,"permissionsHash":"7877894f225ee17e0e9372400c6b2860ca1272cd6186471fecc9afc95055ea88"}}</script>
+<script src="https://againstcovid19.cern/sites/against-covid-19.web.cern.ch/files/js/js_3hzD1FEGoi0jYtOuxNtYr46ChYKZsbeFj2wZJpT7I38.js"></script>
+<script src="https://framework.web.cern.ch/framework/3.0/js/prism/prism.js"></script>
+<script src="https://againstcovid19.cern/sites/against-covid-19.web.cern.ch/files/js/js_ncoy5lDgXfBj_yS7JtTmNyEj4HxeXTDEWdMNCoUQCSo.js"></script>
+<script src="https://framework.web.cern.ch/framework/3.0/js/colorbox/jquery.colorbox-min.js"></script>
+<script src="https://framework.web.cern.ch/framework/3.0/js/scroll-magic/ScrollMagic.min.js"></script>
+<script src="https://framework.web.cern.ch/framework/3.0/js/scroll-magic/text-effects.js"></script>
+<script src="https://againstcovid19.cern/sites/against-covid-19.web.cern.ch/files/js/js_7cypxvxi15jGxFU4E0J-O9Gwp8_9X04mN3WxPhlRLr8.js"></script>
+<script src="https://framework.web.cern.ch/framework/3.0/js/owlcarousel/js/owl.carousel.js"></script>
+<script src="https://framework.web.cern.ch/framework/3.0/js/owlcarousel/js/owl.carousel2.thumbs.js"></script>
+<script src="https://againstcovid19.cern/sites/against-covid-19.web.cern.ch/files/js/js_j6JCAT7IHNMHTen2sCgoa1C3-9YhGxs5z2Y1LE3dDGM.js"></script>
+
+  </body>
+</html>
