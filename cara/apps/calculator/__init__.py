@@ -30,7 +30,7 @@ class ConcentrationModel(RequestHandler):
         except Exception as err:
             if DEBUG:
                 import traceback
-                traceback.print_last()
+                print(traceback.format_exc())
             response_json = {'code': 400, 'error': f'Your request was invalid {err}'}
             self.set_status(400)
             self.finish(json.dumps(response_json))
