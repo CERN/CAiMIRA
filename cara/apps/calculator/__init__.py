@@ -21,10 +21,6 @@ class ConcentrationModel(RequestHandler):
 
         try:
             form = model_generator.FormData.from_dict(requested_model_config)
-            model = form.build_model(
-                # TODO: This argument to be removed.
-                tmp_raw_form_data=requested_model_config,
-            )
         except (KeyboardInterrupt, SystemExit):
             raise
         except Exception as err:
@@ -36,7 +32,7 @@ class ConcentrationModel(RequestHandler):
             self.finish(json.dumps(response_json))
             return
 
-        report = build_report(model, form)
+        report = build_report(form.build_model(), form)
         self.finish(report)
 
 
