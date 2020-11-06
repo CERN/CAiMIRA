@@ -56,6 +56,8 @@ class FormData:
                              ('volume_type', VOLUME_TYPES),
                              ('windows_open', WINDOWS_OPEN)]
         for key, valid_set in validation_tuples:
+            if key not in form_data:
+                raise ValueError(f"Missing key {key}")
             if form_data[key] not in valid_set:
                 raise ValueError(f"{form_data[key]} is not a valid value for {key}")
 
