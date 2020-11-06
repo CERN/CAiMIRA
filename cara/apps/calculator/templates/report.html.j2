@@ -70,11 +70,11 @@
 		{% endif %}
 		</p></li>
 			<ul>
-				<li><p class="data_subtext">Start time: {{ form.minutes_to_string(activity_start) }} &nbsp&nbsp End time: {{ form.minutes_to_string(activity_finish) }}</p></li>
+				<li><p class="data_subtext">Start time: {{ activity_start }} &nbsp&nbsp End time: {{ activity_finish }}</p></li>
 			</ul>
 		<li><p class="data_text">Exposure time (presence of infected person):</p></li>
 		<ul>
-			<li><p class="data_subtext">Start time: {{ form.minutes_to_string(infected_start) }} &nbsp&nbsp End time: {{ form.minutes_to_string(infected_finish) }}</p></li>
+			<li><p class="data_subtext">Start time: {{ infected_start }} &nbsp&nbsp End time: {{ infected_finish }}</p></li>
 		</ul>
 		{% if event_type == "single_event"%}
 		<li><p class="data_text">Single event on {{ single_event_date }}</p></li>
@@ -91,7 +91,7 @@
 		{% if lunch_option%}
 		Yes</li>
 		<ul>
-			<li> Start: {{ form.minutes_to_string(lunch_start) }} &nbsp&nbsp End: {{ form.minutes_to_string(lunch_finish) }}</p></li>
+			<li> Start: {{ lunch_start }} &nbsp&nbsp End: {{ lunch_finish }}</p></li>
 		</ul>
 		{% else%}
 		No</li>
