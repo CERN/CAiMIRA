@@ -29,7 +29,7 @@ def test_ventilation(baseline_form):
         cd_b=0.6, window_height=1.6, opening_length=0.6,
     )
     baseline_form.ventilation_type = 'natural'
-    baseline_form.windows_open = '10 min / 2h'
+    baseline_form.windows_open = 'interval'
     baseline_form.event_type = 'recurrent_event'
     baseline_form.recurrent_event_month = 'December'
     baseline_form.window_height = 1.6
