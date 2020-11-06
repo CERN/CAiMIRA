@@ -92,7 +92,7 @@ class FormData:
             # I multiply the opening width by the number of windows to simulate the correct window area
             if self.event_type == 'single_event':
                 month_number = int(self.single_event_date.split('/')[1])
-                month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][month_number]
+                month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][month_number - 1]
             else:
                 month = self.recurrent_event_month[:3]
 
