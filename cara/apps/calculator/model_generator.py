@@ -1,4 +1,3 @@
-from cara.models import Model
 from dataclasses import dataclass
 import html
 import typing
@@ -46,7 +45,7 @@ class FormData:
     @classmethod
     def from_dict(cls, form_data: typing.Dict) -> "FormData":
 
-        valid_na_values = ['windows_open', 'ventilation_type', 'mechanical_ventilation_type']
+        valid_na_values = ['windows_open', 'mechanical_ventilation_type']
         for name in valid_na_values:
             if not form_data.get(name, ''):
                 form_data[name] = 'not-applicable'
@@ -113,10 +112,11 @@ class FormData:
             infected_finish=time_string_to_minutes(form_data['infected_finish']),
         )
 
-    def build_model(self) -> Model:
+    def build_model(self) -> models.Model:
         return model_from_form(self)
 
     def ventilation(self) -> models.Ventilation:
+        always_on = models.PeriodicInterval(period=120, duration=120)
         # Initializes a ventilation instance as a window if 'natural' is selected, or as a HEPA-filter otherwise
         if self.ventilation_type == 'natural':
             if self.windows_open == 'interval':
@@ -141,17 +141,17 @@ class FormData:
                                                inside_temp=inside_temp, outside_temp=outside_temp, cd_b=0.6,
                                                window_height=self.window_height,
                                                opening_length=self.opening_distance * self.windows_number)
+        elif self.ventilation_type == "no-ventilation":
+            ventilation = models.AirChange(active=always_on, air_exch=0.)
         else:
             if self.mechanical_ventilation_type == 'air_changes':
-                ventilation = models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
-                                               air_exch=self.air_changes)
+                ventilation = models.AirChange(active=always_on, air_exch=self.air_changes)
             else:
-                ventilation = models.HVACMechanical(active=models.PeriodicInterval(period=120, duration=120),
-                                                    q_air_mech=self.air_supply)
+                ventilation = models.HVACMechanical(
+                    active=always_on, q_air_mech=self.air_supply)
 
         if self.hepa_option:
-            hepa = models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120),
-                                     q_air_mech=250.)
+            hepa = models.HEPAFilter(active=always_on, q_air_mech=250.)
             return models.MultipleVentilation((ventilation,hepa))
         else:
             return ventilation
@@ -269,7 +269,6 @@ def model_from_form(form: FormData) -> models.Model:
 def baseline_raw_form_data():
     # Note: This isn't a special "baseline". It can be updated as required.
     return {
-        'RADIO_ventilation_type': 'natural',
         'activity_finish': '18:00',
         'activity_start': '09:00',
         'activity_type': 'office',
@@ -296,7 +295,7 @@ def baseline_raw_form_data():
         'simulation_name': 'Test',
         'single_event_date': '',
         'total_people': '10',
-        'ventilation_type': '',
+        'ventilation_type': 'natural',
         'volume_type': 'room_volume',
         'window_height': '2',
         'window_width': '2',
@@ -309,7 +308,7 @@ ACTIVITY_TYPES = {'office', 'training', 'workshop'}
 EVENT_TYPES = {'single_event', 'recurrent_event'}
 MECHANICAL_VENTILATION_TYPES = {'air_changes', 'air_supply', 'not-applicable'}
 MASK_WEARING = {'continuous', 'removed'}
-VENTILATION_TYPES = {'natural', 'mechanical', 'not-applicable'}
+VENTILATION_TYPES = {'natural', 'mechanical', 'no-ventilation'}
 VOLUME_TYPES = {'room_volume', 'room_dimensions'}
 WINDOWS_OPEN = {'always', 'interval', 'breaks', 'not-applicable'}
 
