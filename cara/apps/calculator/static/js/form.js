@@ -22,11 +22,12 @@ function show_hide(show, hide, obj) {
       obj.checked = false;
       ventilation_type.value = "";
       mechanical_ventilation_type.value = "";
+      unrequire_fields(obj);
   } else if (show.style.display === "none") {
       show.style.display = "block";
       hide.style.display = "none";
-      require_fields(obj);
       ventilation_type.value = obj.id;
+      require_fields(obj);
 } }
 
 function update_windows_open(obj) {
@@ -72,6 +73,18 @@ function require_fields(obj){
       break;
     case "lunch_option_yes":
       require_lunch(true);
+      break;
+    default:
+      break;
+} }
+
+function unrequire_fields(obj){
+  switch(obj.id) {
+    case "mechanical":
+      require_mechanical_ventilation(false);
+      break;
+    case "natural":
+      require_natural_ventilation(false);
       break;
     default:
       break;
