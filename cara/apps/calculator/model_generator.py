@@ -189,8 +189,7 @@ def model_from_form(form: FormData, tmp_raw_form_data) -> models.Model:
 
     # Initializes a mask of type 1 if mask wearing is "continuous", otherwise instantiates the mask attribute as
     # the "No mask"-mask
-    # TODO: figure out the possible values of mask_wearing in the form
-    mask = models.Mask.types['Type I' if d['mask_wearing'] == "Continuous" else 'No mask']
+    mask = models.Mask.types['Type I' if d['mask_wearing'] == "continuous" else 'No mask']
 
     # A dictionary containing the mapping of activities listed in the UI to the activity level and expiration level
     # of the infected and exposed occupants respectively.
