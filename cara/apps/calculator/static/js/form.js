@@ -144,6 +144,10 @@ function require_lunch(option) {
   $("#lunch_finish").prop('required',option);
 }
 
+function setMaxInfectedPeople(){
+  $("#infected_people").attr("max", $("#total_people").val());
+}
+
 /* -------UI------- */
 $(function() {
   $(".datepicker").datepicker({
@@ -221,6 +225,11 @@ function objectifyForm(formArray) {
 }
 
 $(document).ready(function() {
+  // Setup the maximum number of people at page load (to handle back/forward),
+  // and update it when total people is changed.
+  setMaxInfectedPeople();
+  $("#total_people").change(setMaxInfectedPeople);
+
   var radioValue = $("input[name='event_type']:checked");
   if(radioValue.val()){
     require_fields(radioValue.get(0));
