@@ -50,6 +50,10 @@ class FormData:
             if not form_data.get(name, ''):
                 form_data[name] = 'not-applicable'
 
+        for name in ['lunch_start', 'lunch_finish']:
+            if not form_data.get(name, ''):
+                form_data[name] = '00:00'
+
         validation_tuples = [('activity_type', ACTIVITY_TYPES),
                              ('event_type', EVENT_TYPES),
                              ('mechanical_ventilation_type', MECHANICAL_VENTILATION_TYPES),
@@ -148,6 +152,8 @@ class FormData:
             return ventilation
 
     def coffee_break_times(self) -> typing.Tuple[typing.Tuple[int, int]]:
+        if not self.coffee_breaks:
+            return ()
         coffee_period = (self.activity_finish - self.activity_start) // self.coffee_breaks
         coffee_times = []
         for minute in range(self.activity_start, self.activity_finish, coffee_period):
