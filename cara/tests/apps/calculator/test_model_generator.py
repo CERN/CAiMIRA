@@ -107,7 +107,7 @@ def test_present_intervals(baseline_form):
     baseline_form.lunch_finish = 13 * 60 + 30
     baseline_form.infected_start = 10 * 60
     baseline_form.infected_finish = 15 * 60
-    correct = ((10, 11), (11.25, 12.5), (13.5, 15))
+    correct = ((10, 11), (11.25, 12.5), (13.5, 15.0))
     assert baseline_form.present_interval().present_times == correct
 
 

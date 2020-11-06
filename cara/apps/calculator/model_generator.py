@@ -3,7 +3,6 @@ from dataclasses import dataclass
 import typing
 
 from cara import models
-from typing import List, Tuple
 
 
 @dataclass
@@ -43,7 +42,6 @@ class FormData:
     window_width: float
     windows_number: int
     windows_open: str
-    coffee_times: List[Tuple[int, int]]
 
     @classmethod
     def from_dict(cls, form_data: typing.Dict) -> "FormData":
@@ -97,7 +95,6 @@ class FormData:
             windows_open=form_data['windows_open'],
             infected_start=time_string_to_minutes(form_data['infected_start']),
             infected_finish=time_string_to_minutes(form_data['infected_finish']),
-            coffee_times=[]
         )
 
     # TODO: Remove the tmp_raw_form_data usage.
@@ -144,16 +141,22 @@ class FormData:
         else:
             return ventilation
 
-    def present_interval(self) -> models.Interval:
+    def coffee_break_times(self) -> typing.Tuple[typing.Tuple[int, int]]:
         coffee_period = (self.activity_finish - self.activity_start) // self.coffee_breaks
-        leave_times = [self.lunch_start]
-        enter_times = [self.lunch_finish]
+        coffee_times = []
         for minute in range(self.activity_start, self.activity_finish, coffee_period):
             start = minute + coffee_period // 2
             end = start + self.coffee_duration
-            self.coffee_times.append((start, end))
-            leave_times.append(start)
-            enter_times.append(end)
+            coffee_times.append((start, end))
+        return tuple(coffee_times)
+
+    def present_interval(self) -> models.Interval:
+        leave_times = [self.lunch_start]
+        enter_times = [self.lunch_finish]
+
+        for coffee_start, coffee_end in self.coffee_break_times():
+            leave_times.append(coffee_start)
+            enter_times.append(coffee_end)
 
         # These lists represent the times where the infected person leaves or enters the room, respectively, sorted in
         # reverse order. Note that these lists allows the person to "leave" when they should not even be present in the

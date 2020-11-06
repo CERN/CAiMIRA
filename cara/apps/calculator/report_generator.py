@@ -116,7 +116,7 @@ def build_report(model: models.Model, form: FormData):
         'lunch_finish': minutes_to_string(form.lunch_finish),
         'coffee_breaks': form.coffee_breaks,
         'coffee_duration': form.coffee_duration, 
-        'coffee_times': [[minutes_to_string(start), minutes_to_string(finish)] for start, finish in form.coffee_times],
+        'coffee_times': [[minutes_to_string(start), minutes_to_string(finish)] for start, finish in form.coffee_break_times()],
         'mask_wearing': form.mask_wearing, 
     }
 
