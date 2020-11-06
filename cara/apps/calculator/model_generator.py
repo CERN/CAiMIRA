@@ -25,6 +25,7 @@ class FormData:
     infected_people: int
     lunch_option: bool
     mask_wearing: str
+    mechanical_ventilation_type: str
     opening_distance: float
     recurrent_event_month: str
     room_number: str
@@ -63,6 +64,7 @@ class FormData:
             lunch_option=(form_data['lunch_option'] == '1'),
             lunch_start=time_string_to_minutes(form_data['lunch_start']),
             mask_wearing=form_data['mask_wearing'],
+            mechanical_ventilation_type=form_data['mechanical_ventilation_type'],
             opening_distance=float(form_data['opening_distance']),
             recurrent_event_month=form_data['recurrent_event_month'],
             room_number=form_data['room_number'],
@@ -104,7 +106,8 @@ class FormData:
                                                window_height=self.window_height,
                                                opening_length=self.opening_distance * self.windows_number)
         else:
-            q_air_mech = self.air_changes * self.room_volume + self.air_supply
+            q_air_mech = (self.air_changes * self.room_volume if self.mechanical_ventilation_type == 'air_changes'
+                          else self.air_supply)
             ventilation = models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120),
                                             q_air_mech=q_air_mech)
 
@@ -189,7 +192,7 @@ def model_from_form(form: FormData, tmp_raw_form_data) -> models.Model:
                      'Training': (('Light exercise', 'Talking'), ('Seated', 'Whispering')),
                      'Workshop': (('Light exercise', 'Talking'), ('Light exercise', 'Talking'))}
 
-    (infected_activity, infected_expiration), (exposed_activity, exposed_expiration) = activity_dict[form.activity_type.capitalize()]
+    (infected_activity, infected_expiration), (exposed_activity, exposed_expiration) = activity_dict[form.activity_type]
     # Converts these strings to Activity and Expiration instances
     infected_activity, exposed_activity = models.Activity.types[infected_activity], models.Activity.types[exposed_activity]
     infected_expiration, exposed_expiration = models.Expiration.types[infected_expiration], models.Expiration.types[exposed_expiration]
@@ -234,6 +237,7 @@ def baseline_raw_form_data():
         'lunch_option': '1',
         'lunch_start': '12:30',
         'mask_wearing': 'removed',
+        'mechanical_ventilation_type': 'air_changes',
         'opening_distance': '15',
         'recurrent_event_month': 'January',
         'room_number': 'baseline room',
