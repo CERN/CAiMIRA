@@ -42,7 +42,7 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
 
     <div id="DIVmechanical_ventilation" style="display:none">
         <input type="radio" id="air_type_supply" name="air_type" value="air_supply" onclick="require_fields(this)">
-        Air supply flow rate &nbsp;&nbsp; <input type="number" step=0.01 id="air_supply" name="air_supply" min="0"><br>
+        Air supply flow rate &nbsp;&nbsp; <input type="number" step=0.01 id="air_supply" name="air_supply" min="0" placeholder="(m³)"><br>
         <input type="radio" id="air_type_changes" name="air_type" value="air_changes" onclick="require_fields(this)">
         Air changes per hour &nbsp;&nbsp; <input type="number" step=0.01 id="air_changes" name="air_changes" min="0"><br>
     </div>
@@ -89,14 +89,14 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
     Finish: <input type="time" id="infected_finish" name="infected_finish" value="18:00" required><br>
     <hr width="80%">
 
-    <span class="natural disabled">When is the event?</span><br>
-    <input type="radio" id="event_type_single" name="event_type" class="natural disabled" value="single_event" onclick="require_fields(this)" disabled></input>
-    <label for="event_type_single" class="natural disabled">Single event</label> &nbsp;&nbsp;
-    <label for="datepicker" class="natural disabled">Date: </label>
-    <input type="text" id="datepicker" class="natural disabled" name="single_event_date" disabled unrequired><br>
-    <input type="radio" id="event_type_recurrent" name="event_type" class="natural disabled" value="recurrent_event" onclick="require_fields(this)" disabled></input>
-    <label for="event_type_recurrent" class="natural disabled">Recurrent usage</label>
-    <select id="recurrent_event_month" name="recurrent_event_month" class="natural disabled" disabled>
+    When is the event?<br>
+    <input type="radio" id="event_type_single" name="event_type" value="single_event" onclick="require_fields(this)"></input>
+    <label for="event_type_single">Single event</label> &nbsp;&nbsp;
+    <label for="datepicker">Date: </label>
+    <input type="text" id="datepicker" name="single_event_date"><br>
+    <input type="radio" id="event_type_recurrent" name="event_type" value="recurrent_event" onclick="require_fields(this)"></input>
+    <label for="event_type_recurrent">Recurrent usage</label>
+    <select id="recurrent_event_month" name="recurrent_event_month">
         <option value="January">January</option>
         <option value="February">February</option>
         <option value="March">March</option>
