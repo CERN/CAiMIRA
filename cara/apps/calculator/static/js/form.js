@@ -1,39 +1,26 @@
-/* -------Show/Hide DIVs------- */
-function show(show, var_id, obj) {
-  var show = document.getElementById(show);
-  if (show.style.display === "none") {
-    show.style.display = "block";
-    document.getElementById(var_id).value = 1;
-  } else {
-    show.style.display = "none";
-    document.getElementById(var_id).value = 0; 
-  }
-  require_fields(obj);
+function on_ventilation_type_change(){
+    ventilation_types = $('input[type=radio][name=ventilation_type]');
+    ventilation_types.each(function( index ) {
+      if (this.checked) {
+        getChildElement($(this)).show();
+        require_fields(this);
+      } else {
+        getChildElement($(this)).hide();
+        unrequire_fields(this);
+        // Clear the inputs for this newly hidden child element.
+        getChildElement($(this)).find('input').not('input[type=radio]').val('');
+        getChildElement($(this)).find('input[type=radio]').prop("checked", false);
+        getChildElement($(this)).find('input').prop("required", false);
+      }
+    });
 }
 
-function show_hide(show, hide, obj) {
-  var show = document.getElementById(show);
-  var hide = document.getElementById(hide);
-  var ventilation_type = document.getElementById("ventilation_type");
-  var mechanical_ventilation_type = document.getElementById("mechanical_ventilation_type");
 
-  if (show.style.display === "block") {
-      show.style.display = "none";
-      obj.checked = false;
-      ventilation_type.value = "";
-      mechanical_ventilation_type.value = "";
-      unrequire_fields(obj);
-  } else if (show.style.display === "none") {
-      show.style.display = "block";
-      hide.style.display = "none";
-      ventilation_type.value = obj.id;
-      require_fields(obj);
-} }
-
-function update_windows_open(obj) {
-  var windows_open = document.getElementById("windows_open");
-  windows_open.value = obj.id;
+function getChildElement(elem) {
+  // Get the element named in the given element's data-enables attribute.
+  return $("#" + elem.data("enables"));
 }
+
 
 /* -------Required fields------- */
 function require_fields(obj){
@@ -119,17 +106,11 @@ function require_natural_ventilation(option) {
 
 function require_air_changes(option) {
   $("#air_changes").prop('required',option);
-  if (option) {
-    var mechanical_ventilation_type = document.getElementById("mechanical_ventilation_type");
-    mechanical_ventilation_type.value = "air_changes";
-} }
+}
 
 function require_air_supply(option) {
   $("#air_supply").prop('required',option);
-  if (option) {
-    var mechanical_ventilation_type = document.getElementById("mechanical_ventilation_type");
-    mechanical_ventilation_type.value = "air_supply";
-} }
+}
 
 function require_single_event(option) {
   $("#single_event_date").prop('required',option);
@@ -224,7 +205,24 @@ function objectifyForm(formArray) {
     return returnArray;
 }
 
-$(document).ready(function() {
+/* ------ On Load ---------- */
+
+$( document ).ready(function() {
+  // When the document is ready, deal with the fact that we may be here
+  // as a result of a forward/back browser action. If that is the case, update
+  // the visibility of some of our inputs.
+
+  // When the ventilation_type changes we want to make its respective
+  // children show/hide.
+  ventilation_types = $("input[type=radio][name=ventilation_type]");
+  ventilation_types.change(on_ventilation_type_change);
+  // Call the function now to handle forward/back button presses in the browser.
+  on_ventilation_type_change();
+
+  $("input[name=mechanical_ventilation_type]").change(function(){
+    console.log('Changed!');
+  })
+
   // Setup the maximum number of people at page load (to handle back/forward),
   // and update it when total people is changed.
   setMaxInfectedPeople();
@@ -234,4 +232,4 @@ $(document).ready(function() {
   if(radioValue.val()){
     require_fields(radioValue.get(0));
   }
-})
+});
