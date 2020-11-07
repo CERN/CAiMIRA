@@ -1,9 +1,9 @@
 #body {
-    top: 10px;
-    left: 20px;
-    bottom: 20px;
-    right: 20px;
-    padding: 20px; 
+	top: 10px;
+	left: 20px;
+	bottom: 20px;
+	right: 20px;
+	padding: 20px;
 }
 
 h1 {
@@ -26,12 +26,12 @@ p.data_title {
 
 p.data_text {
 	padding-left: 30px;
-    padding-left:1em;
+	padding-left: 1em;
 }
 
 p.data_subtext {
 	padding-left: 60px;
-    margin-left:-3em;
+	margin-left: -3em;
 }
 
 p.result_title {
