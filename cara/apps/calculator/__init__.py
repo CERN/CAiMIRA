@@ -53,8 +53,22 @@ class LandingPage(RequestHandler):
         import jinja2
         p = Path(__file__).parent.parent / "templates"
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(Path(p)))
-        template = env.get_template("index.html.j2")
+        template = env.get_template("layout.html.j2")
         report = template.render(**{})
+        self.finish(report)
+
+
+class CalculatorForm(RequestHandler):
+    def get(self):
+        import jinja2
+        cara_templates = Path(__file__).parent.parent / "templates"
+        calculator_templates = Path(__file__).parent / "templates"
+        env = jinja2.Environment(
+            loader=jinja2.FileSystemLoader([cara_templates, calculator_templates]),
+        )
+
+        template = env.get_template("calculator.form.html.j2")
+        report = template.render()
         self.finish(report)
 
 
@@ -64,7 +78,7 @@ def make_app(debug=False, prefix='/calculator'):
     urls = [
         (r'/?', LandingPage),
         (r'/static/(.*)', StaticFileHandler, {'path': static_dir}),
-        (prefix + r'/?()', StaticFileHandler, {'path': calculator_static_dir / 'form.html'}),
+        (prefix + r'/?', CalculatorForm),
         (prefix + r'/report', ConcentrationModel),
         (prefix + r'/baseline-model/result', StaticModel),
         (prefix + r'/static/(.*)', StaticFileHandler, {'path': calculator_static_dir}),

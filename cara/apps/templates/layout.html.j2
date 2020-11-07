@@ -10,12 +10,20 @@
   <meta name="HandheldFriendly" content="true">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Welcome | CARA</title>
+  <title>
+  {% block title %}
+  CARA | COVID Airborne Risk Assessment
+  {% endblock title %}
+  </title>
+
   <link rel="stylesheet" media="all" href="/static/css/cern-theme.css">
   <link rel="stylesheet" media="all" href="/static/css/cern-theme2.css">
   <link rel="stylesheet" media="all" href="/static/css/cern-theme3.css">
   <link rel="stylesheet" media="all" href="/static/css/colorbox.css">
   <link rel="stylesheet" media="all" href="/static/css/cern-theme4.css">
+
+  {% block extra_headers %}
+  {% endblock extra_headers %}
 
 </head>
 
@@ -324,6 +332,8 @@
   <script src="/static/js/ScrollMagic.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.3/js/bootstrap.min.js" integrity="sha512-8qmis31OQi6hIRgvkht0s6mCOittjMa9GMqtK9hes5iEQBQE/Ca6yGE5FsW36vyipGoWQswBj/QBm2JR086Rkw==" crossorigin="anonymous"></script>
   <script src="/static/js/usage-tracking.js"></script>
+  {% block body_scripts %}
+  {% endblock body_scripts %}
 
   <div id="cboxOverlay" style="display: none;"></div>
   <div id="colorbox" class="" role="dialog" tabindex="-1" style="display: none;">

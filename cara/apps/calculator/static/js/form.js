@@ -146,12 +146,10 @@ function show_disclaimer() {
     dots.style.display = "inline";
     btnText.innerHTML = "Read more";
     moreText.style.display = "none";
-    $("#DIALOG_welcome").dialog("option", "height", 185);
   } else {
     dots.style.display = "none";
     btnText.innerHTML = "Read less";
     moreText.style.display = "inline";
-    $("#DIALOG_welcome").dialog("option", "height", 600);
   }
 }
 
