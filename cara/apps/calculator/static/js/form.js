@@ -102,8 +102,6 @@ function require_natural_ventilation(option) {
   $("#opening_distance").prop('required', option);
   $("#always").prop('required', option);
   $("#interval").prop('required', option);
-  $("#event_type_single").prop('required', option);
-  $("#event_type_recurrent").prop('required', option);
 }
 
 function require_air_changes(option) {
@@ -134,7 +132,7 @@ function setMaxInfectedPeople() {
 /* -------UI------- */
 $(function () {
   $(".datepicker").datepicker({
-    dateFormat: 'mm/dd/yy'
+    dateFormat: 'dd/mm/yy'
   });
 });
 
@@ -179,32 +177,12 @@ function validate_form(form) {
 function isValidDate(date) {
   var matches = /^(\d+)[-\/](\d+)[-\/](\d+)$/.exec(date);
   if (matches == null) return false;
-  var d = matches[2];
-  var m = matches[1];
+  var d = matches[1];
+  var m = matches[2];
   var y = matches[3];
   if (y > 2100 || y < 1900) return false;
   var composedDate = new Date(y + '/' + m + '/' + d);
   return composedDate.getDate() == d && composedDate.getMonth() + 1 == m && composedDate.getFullYear() == y;
-}
-
-/* -------Debugging------- */
-function debug_submit(form) {
-
-  //Prevent default posting of form - put here to work in case of errors
-  event.preventDefault();
-
-  //Serialize the data in the form
-  var serializedData = objectifyForm($(form).serializeArray());
-
-  console.log(serializedData);
-  return false; //don't submit
-}
-
-function objectifyForm(formArray) {
-  var returnArray = {};
-  for (var i = 0; i < formArray.length; i++)
-    returnArray[formArray[i]['name']] = formArray[i]['value'];
-  return returnArray;
 }
 
 /* ------ On Load ---------- */
@@ -236,3 +214,23 @@ $(document).ready(function () {
   }
 
 });
+
+/* -------Debugging------- */
+function debug_submit(form) {
+
+  //Prevent default posting of form - put here to work in case of errors
+  event.preventDefault();
+
+  //Serialize the data in the form
+  var serializedData = objectifyForm($(form).serializeArray());
+
+  console.log(serializedData);
+  return false; //don't submit
+}
+
+function objectifyForm(formArray) {
+  var returnArray = {};
+  for (var i = 0; i < formArray.length; i++)
+    returnArray[formArray[i]['name']] = formArray[i]['value'];
+  return returnArray;
+}
