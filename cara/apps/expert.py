@@ -35,7 +35,8 @@ class ConcentrationFigure:
 
     def update(self, model: models.Model):
         resolution = 600
-        ts = np.linspace(0, 10, resolution)
+        ts = np.linspace(sorted(model.infected.presence.transition_times())[0],
+                         sorted(model.infected.presence.transition_times())[-1], resolution)
         concentration = [model.concentration(t) for t in ts]
         if self.line is None:
             [self.line] = self.ax.plot(ts, concentration)
@@ -55,7 +56,7 @@ class ConcentrationFigure:
         # Update the top limit based on the concentration if it exceeds 5
         # (rare but possible).
         top = max([3, max(concentration)])
-        self.ax.set_ylim(bottom=1e-4, top=top)
+        self.ax.set_ylim(bottom=0., top=top)
         self.figure.canvas.draw()
 
 
@@ -288,13 +289,13 @@ baseline_model = models.Model(
     room=models.Room(volume=75),
     ventilation=models.WindowOpening(
         active=models.PeriodicInterval(period=120, duration=120),
-        inside_temp=models.PiecewiseConstant((0,24),(293,)),
-        outside_temp=models.PiecewiseConstant((0,24),(283,)),
+        inside_temp=models.PiecewiseConstant((0,24),(293.15,)),
+        outside_temp=models.PiecewiseConstant((0,24),(283.15,)),
         cd_b=0.6, window_height=1.6, opening_length=0.6,
     ),
     infected=models.InfectedPerson(
         virus=models.Virus.types['SARS_CoV_2'],
-        presence=models.SpecificInterval(((0, 4), (5, 8))),
+        presence=models.SpecificInterval(((8, 12), (13, 17))),
         mask=models.Mask.types['No mask'],
         activity=models.Activity.types['Light exercise'],
         expiration=models.Expiration.types['Unmodulated Vocalization'],
@@ -316,13 +317,13 @@ class CARAStateBuilder(state.StateBuilder):
         s = state.DataclassStateNamed(
             states={
                 'Natural': self.build_generic(models.WindowOpening),
-                'HEPA': self.build_generic(models.HEPAFilter),
+                'Mechanical': self.build_generic(models.HVACMechanical),
             },
             state_builder=self,
         )
-        # Initialise the HEPA state
-        s._states['HEPA'].dcs_update_from(
-            models.HEPAFilter(models.PeriodicInterval(120, 120), 500.)
+        # Initialise the HVAC state
+        s._states['Mechanical'].dcs_update_from(
+            models.HVACMechanical(models.PeriodicInterval(120, 120), 500.)
         )
         return s
 
