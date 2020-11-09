@@ -245,6 +245,15 @@ def test_piecewiseconstant(time, expected_value):
     assert fun.value(time) == expected_value
 
 
+def test_piecewiseconstant_interp(time, expected_value):
+    transition_times = (0, 8, 16, 24)
+    values = (2, 5, 8)
+    fun = models.PiecewiseConstant(transition_times,values)
+    refined_fun = models.PiecewiseConstant(transition_times,values).refine(refine_factor=2)
+    assert refined_fun.transition_times == (0, 4, 8, 12, 16, 20 ,24)
+    assert refined_fun.values == (2, 3.5, 5, 6.5, 8, 8)
+
+
 def test_constantfunction():
     transition_times = (0,24)
     values = (20,)
@@ -432,3 +441,4 @@ def test_concentrations_refine_times(time):
     m1 = build_hourly_dependent_model(month,intervals_open=((0, 24),))
     m2 = build_hourly_dependent_model(month,intervals_open=((0, 24),),refine=True)
     npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-8)
+
