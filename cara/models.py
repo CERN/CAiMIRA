@@ -137,9 +137,18 @@ class PiecewiseConstant:
 
 
 # Geneva hourly temperatures as piecewise constant function (in Kelvin)
-GenevaTemperatures = {
+GenevaTemperatures_hourly = {
     month: PiecewiseConstant(tuple(np.arange(25.)),
-                                     tuple(273.15+np.array(temperatures)))
+                             tuple(273.15+np.array(temperatures)))
+    for month,temperatures in Geneva_hourly_temperatures_celsius_per_hour.items()
+}
+# same temperatures on a finer temperature mesh
+refine_factor = 10
+refined_times = np.linspace(0.,24.,24*refine_factor+1)
+GenevaTemperatures = {
+    month: PiecewiseConstant(tuple(refined_times),
+                             tuple(273.15+np.interp(refined_times[:-1],np.arange(25.),
+                                            temperatures+[temperatures[0]])))
     for month,temperatures in Geneva_hourly_temperatures_celsius_per_hour.items()
 }
 
