@@ -299,13 +299,20 @@ def test_windowopening(time, expected_value):
 
 
 def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),),
-                    intervals_presence_infected=((0, 4), (5, 7.5)),refine=False):
-    if refine:
-        times_refined = tuple(np.linspace(0.,24,241))
-        temperatures_refined = tuple(np.hstack([[v]*10 for v in data.GenevaTemperatures_hourly[month].values]))
-        outside_temp=models.PiecewiseConstant(times_refined,temperatures_refined)
+                    intervals_presence_infected=((0, 4), (5, 7.5)),
+                    artificial_refinement=False,
+                    temperatures=data.GenevaTemperatures_hourly):
+    if artificial_refinement:
+        # 5-fold increase of number of times, WITHOUT interpolation
+        # (hence transparent for the results)
+        refine_factor = 2
+        times_refined = tuple(np.linspace(0.,24,
+                refine_factor*len(temperatures[month].values)+1))
+        temperatures_refined = tuple(np.hstack([[v]*refine_factor
+                                     for v in temperatures[month].values]))
+        outside_temp = models.PiecewiseConstant(times_refined,temperatures_refined)
     else:
-        outside_temp=data.GenevaTemperatures_hourly[month]
+        outside_temp = temperatures[month]
 
     model = models.Model(
         room=models.Room(volume=75),
@@ -435,11 +442,38 @@ def test_concentrations_hourly_dep_adding_artificial_transitions(month_temp_item
 
 @pytest.mark.parametrize(
     "time",
-    list(np.random.random_sample(20)*24.)+list(np.arange(0,24.5,0.5)),
+    list(np.random.random_sample(10)*24.)+list(np.arange(0,24.5,0.5)),
 )
 def test_concentrations_refine_times(time):
     month = 'Jan'
     m1 = build_hourly_dependent_model(month,intervals_open=((0, 24),))
-    m2 = build_hourly_dependent_model(month,intervals_open=((0, 24),),refine=True)
+    m2 = build_hourly_dependent_model(month,intervals_open=((0, 24),),
+                                      artificial_refinement=True)
     npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-8)
 
+@pytest.mark.parametrize(
+    "month, expected_r0",
+    [
+        ['Jan', 91.06953],
+        ['Jun', 99.46692],
+    ],
+)
+def test_r0_hourly_dep(month,expected_r0):
+    m = build_hourly_dependent_model(month,intervals_open=((0,24),),
+                                     intervals_presence_infected=((8,12),(13,17)))
+    p = m.infection_probability()
+    npt.assert_allclose(p, expected_r0)
+
+@pytest.mark.parametrize(
+    "month, expected_r0",
+    [
+        ['Jan', 91.19912],
+        ['Jun', 99.59226],
+    ],
+)
+def test_r0_hourly_dep_refined(month,expected_r0):
+    m = build_hourly_dependent_model(month,intervals_open=((0,24),),
+                                     intervals_presence_infected=((8,12),(13,17)),
+                                     temperatures=data.GenevaTemperatures)
+    p = m.infection_probability()
+    npt.assert_allclose(p, expected_r0)
