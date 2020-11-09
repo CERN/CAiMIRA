@@ -93,9 +93,10 @@ def build_report(model: models.Model, form: FormData):
 
     context.update(calculate_report_data(model))
 
-    p = Path(__file__).parent / "templates"
+    cara_templates = Path(__file__).parent.parent / "templates"
+    calculator_templates = Path(__file__).parent / "templates"
     env = jinja2.Environment(
-        loader=jinja2.FileSystemLoader(Path(p)),
+        loader=jinja2.FileSystemLoader([cara_templates, calculator_templates]),
         undefined=jinja2.StrictUndefined,
     )
     env.filters['minutes_to_time'] = minutes_to_time

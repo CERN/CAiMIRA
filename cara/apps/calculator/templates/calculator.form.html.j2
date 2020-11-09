@@ -1,19 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+{% extends "layout.html.j2" %}
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+{% set CALCULATOR_ACTIVE=1 %}
+
+{% block extra_headers %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" integrity="sha512-aOG0c6nPNzGk+5zjwyJaoRUgCdOrfSDhmMID2u4+OIslr0GjpLKo7Xm0Ao3xmpM4T8AmIouRkqwj1nrdVsLKEQ==" crossorigin="anonymous">
+    <link rel="stylesheet" href="/calculator/static/css/form.css">
+{% endblock extra_headers %}
+
+{% block body_scripts %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" integrity="sha512-uto9mlQzrs59VwILcLiRYeLKPPbS/bT71da/OEBYEwcdNUk8jYIy+D176RYoop1Da+f9mvkYrmj5MCLZWEtQuA==" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="/calculator/static/js/form.js"></script>
+    <script src="/calculator/static/js/form.js"></script>
+{% endblock body_scripts %}
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" integrity="sha512-aOG0c6nPNzGk+5zjwyJaoRUgCdOrfSDhmMID2u4+OIslr0GjpLKo7Xm0Ao3xmpM4T8AmIouRkqwj1nrdVsLKEQ==" crossorigin="anonymous"/>
-    <link rel="stylesheet" href="/calculator/static/css/form.css"/>
-</script>
-</head>
 
-<body>
+{% block main %}
+<div style="margin: 2em;">
+<div class="text-component text-component-page clearfix"></div>
+<div style="height: 8em; display: block;"></div>
 
 Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to <a href="mailto:CARA-dev@cern.ch">CARA-dev@cern.ch</a></span>
 <h1> <p><b>CARA</b> Covid Airborne Risk Assessment tool</p></h1>
@@ -185,5 +188,7 @@ You should specify if the event is a one off (give date) or recurrent use of the
   <button onclick="show_disclaimer()" id="myBtn">Read more</button><br><br>
 </div>
 
-</body>
-</html>
+<div class="text-component text-component-page clearfix"></div>
+<br>
+</div>
+{% endblock main %}
