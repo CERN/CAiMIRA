@@ -120,12 +120,9 @@ class FormData:
         # Initializes a ventilation instance as a window if 'natural' is selected, or as a HEPA-filter otherwise
         if self.ventilation_type == 'natural':
             if self.windows_open == 'interval':
-                period, duration = 120, 10
-            elif self.windows_number == 'breaks':
-                # TODO: Implement windows open in breaks
-                period, duration = 120, 120
+                window_interval = models.PeriodicInterval(120, 10)
             else:
-                period, duration = 120, 120
+                window_interval = always_on
 
             if self.event_type == 'single_event':
                 month_number = int(self.single_event_date.split('/')[1])
@@ -136,11 +133,13 @@ class FormData:
             inside_temp = models.PiecewiseConstant((0, 24), (293,))
             outside_temp = models.GenevaTemperatures[month]
 
-            # I multiply the opening width by the number of windows to simulate the correct window area
-            ventilation = models.WindowOpening(active=models.PeriodicInterval(period=period, duration=duration),
-                                               inside_temp=inside_temp, outside_temp=outside_temp, cd_b=0.6,
-                                               window_height=self.window_height,
-                                               opening_length=self.opening_distance * self.windows_number)
+            ventilation = models.WindowOpening(
+                active=window_interval,
+                inside_temp=inside_temp, outside_temp=outside_temp, cd_b=0.6,
+                window_height=self.window_height,
+                opening_length=self.opening_distance,
+                number_of_windows=self.windows_number,
+            )
         elif self.ventilation_type == "no-ventilation":
             ventilation = models.AirChange(active=always_on, air_exch=0.)
         else:
