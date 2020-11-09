@@ -2,6 +2,8 @@
 
 This is a guide to help you use the calculator tool.
 If you are using the expert version of the tool,  you should look at the expert notes.
+Please bear in mind that this beta version is for an extensive testing of the functionality of the tool and analyse the results. 
+At this stage, do not use the results as final output of the workplace risk assessment.
 
 
 ## Disclaimer
@@ -29,48 +31,56 @@ We do not assume responsibility for any injury or damage to persons or property 
 In order to be able to trace the risk assessments that you perform with the calculator, you can give each one a unique name - for example "Office use on Tuesday mornings".
 The simulation name has no bearing on the calculation.
  
-A room number is included, if you do not wish to use a formal room number any reference will do.
+A room number is included, if you do not wish to use a formal room number any reference will do - for example "57/2-004"
 
 ### Room Data
 
-Please enter either the room volume (in m3) or both the floor area (m2) and the room height.
-This information is available via GIS.
+Please enter either the room volume (in m3) or both the floor area (m2) and the room height (m).
+This information is available via GIS Portal (https://gis.cern.ch/gisportal/).
 
 ### Ventilation type
 
-There are two main options:
+There are three main options:
 
-#### Mechanical
+#### Mechanical ventilation
 
-If the room has mechanical ventilation (either a local or centralised system), you should select this option.
-In order to make an accurate calculation you will need to know either the flow rate or the number of air changes per hour.  
+If the room has mechanical ventilation, suppling fresh air from outside (either a local or centralised system), you should select this option.
+In order to make an accurate calculation you will need to know either the flow rate of fresh air supplied in the room or th total number of air changes per hour with fresh air.
 
-#### Natural
+Please bear in mind that any of the two inputs only consider the supply of fresh air. If a portion of air is recirculated, it shall not be accounted for in the inputs.
 
-Natural ventilation refers to rooms which have openable windows.
-Please enter the number, height and width of the windows.
+#### Natural ventilation
+
+Natural ventilation refers to rooms which have openable windows. There are many possibilities to calculate natural ventilation air flows, for simplification this tool assumes a single-sided natural ventilation scheme which is a conservative appraoch for the purpose of this tool.
+
+Please enter the number, height and width of the windows (in m).
 If there are multiple windows of different sizes, you should take an average.
 
-The window opening distance is:
+The window opening distance (in m) is:
 
  * In the case of windows that slide, the length the window is moved open.
 
  * For hinged windows, it is the distance between the fixed frame and the movable glazed part when open.
+
+ ![Window Opening Distance](window_opening.png "How to measure window opening distance")
  
 **Notes**: If you are unsure about the opening distance for the window, it is recommended to choose a conservative value (5 cms, 0.05m or 10cms, 0.10m).
 If you open the window at different distances throughout the day, choose an average value.
 
-The width of the window is not currently used as an input to the model (height and opening distance is sufficient to calculate the free area), but is included for completeness.
-When using natural ventilation, the circulation of air is simulated as a function of the difference between the temperature inside the room and the outside air temperature. The average temperature for each hour of the day has been computed for every month of the year based on historical data for Geneva, Switzerland.
+The width of the window is not currently used as an input to the model (height and opening distance is sufficient to calculate the free area), but is included for completeness of the report.
+When using natural ventilation, the circulation of air is simulated as a function of the difference between the temperature inside the room and the outside air temperature. The average outdoor temperature for each hour of the day has been computed for every month of the year based on historical data for Geneva, Switzerland.
 It is therefore very important to enter the correct event time and date in the event data section.
-Finally, you must specify when the windows are open - all the time (always), following HSE recommendations for 10 minutes every 2 hours, or during breaks (lunch and coffee breaks).
-If you are unsure, we recommend choosing the 10 minutes per 2 hours option.
+Finally, you must specify when the windows are open - all the time (always), or for 10 minutes every 2 hours.
+
+#### No ventilation
+This option assumes the is neither Mechanical nor Natural ventilation in the simulation.
+
 
 #### HEPA filtration
 
-A HEPA filter is a high efficiency particulate matter filter, which removes small molecules from the air.
-They can be very useful for removing virus particles from the air in an enclosed space.
-The calculator allows you to simulate the installation of a HEPA air filter within the space.
+A HEPA filter is a high efficiency particulate matter filter, which removes small airborne particles from the air.
+They can be very useful for removing viruses from the air in an enclosed space.
+The calculator allows you to simulate the installation of a HEPA air filter within the room.
 The default air flow rate for the HEPA filter in the model is 250m3/hour.
 
 ### Event Data
@@ -85,16 +95,18 @@ As an example, for a shared office with 4 people, where one person is infected, 
 
 There are three predefined activities in the tool at present.
 
-**Office** = All persons seated, talking. Everyone (occupants and infected occupants) is treated the same in this model.
+**Office / Meeting ** = All persons seated, talking. Everyone (occupants and infected occupants) is treated the same in this model.
 
 **Workshop** = Based on a mechanical assembly workshop, all persons are doing light exercise (standing, moving around, using tools) and talking. Everyone (occupants and infected occupants) is treated the same in this model.
 
-**Training** = Based on a typical training course scenario. One individual (the trainer) is doing light exercise (standing) and talking, with all other individuals seated and talking quietly (whispering). In this case it is assumed that the infected person is the trainer, because this is the worst case in terms of transmission risk.
+**Training** = Based on a typical training course scenario.
+One individual (the trainer) is doing light exercise (standing) and talking, with all other individuals seated and talking quietly (whispering). 
+In this case it is assumed that the infected person is the trainer, because this is the worst case in terms of viral sheeding.
  
 
 ### Timings
 
-You should enter the time (hours:minutes) for the start and end of the simulation period (i.e. 8:30am to 5:30pm for a typical office day).
+You should enter the time (hours:minutes) for the start and end of the simulation period (i.e. 8:30 to 17:30 for a typical office day).
 It is important to enter the correct times for the simulation, in particular when using natural ventilation.
 It is possible to specify a different time for the entry and exit of the infected person, however for most cases (where we do not know apriori which of the occupants is infected), it is recommended to set these to the same values as the activity start and end.
 
@@ -116,17 +128,16 @@ If you plan to eat lunch in the same area where you have been working, you shoul
 
 ### Coffee Breaks
 
-Regular breaks are an important part of maintaining productivity during the day.
 You have the option to choose no coffee breaks, 2 or 4 during the simulated period.
 It is assumed that all occupants vacate the space during the break period.
-If coffee breaks are taken in-situ, this option should be set to no breaks. 
+If coffee breaks are taken in-situ, this option should be set to 'No breaks'. 
 
-When enabled, the breaks are spread evenly throughout the day - for example if we simulate the period from 9am to 6pm, with a lunch break from 1pm to 2pm, with 2 coffee breaks, one will be scheduled at 11am and the second at 4pm.
-The exact timing of the breaks within the day is not particularly critical to an accurate simulation, so you do not need to be concerned about major differences if you take a coffee break at 10am instead of 11am.
+When enabled, the breaks are spread evenly throughout the day - for example if we simulate the period from 9:00 to 18:00, with a lunch break from 13:00 to 14:00, with 2 coffee breaks, one will be scheduled at 11:00 and the second at 16:00.
+The exact timing of the breaks within the day is not particularly critical to an accurate simulation, so you do not need to be concerned about major differences if you take a coffee break at 10:00 instead of 11:00.
 The variation of coffee breaks can be altered in 5 minute increments up to 30 minutes in length.
 Note that this doesn't necessarily have to be a coffee break, it can represent any period where the simulated space is vacated.
  
-It should also be noted that the risk presented in the report does not take into account any potential exposures during break times.
+It should also be noted that the infection probabilities presented in the report does not take into account any potential exposures during the break times.
 
 #### Face Masks
 
@@ -135,6 +146,7 @@ Alternatively, the continuous wearing of masks can be simulated, i.e. all occupa
  
 If you have selected the Training activity type, this equates to the trainer and all participants either wearing masks throughout the training (Yes), or removing them when seated/standing at their socially distanced positions within the training room (No).
 
+For the time being only the Type 1 surgical mask is simulated.
 
 ## Generate Report
 
@@ -149,23 +161,24 @@ It contains a summary of all the input data, which will allow the simulation to 
 ## Results
 
 This part of the report shows the ``P(i)`` or probability of infection.
-It is estimated based on the emission of virus into the simulated volume, and the amount which is inhaled by exposed individuals. This probability is valid for the simulation duration - i.e. if you have simulated one day and plan to work 5 days in these conditions, the cumulative probability of infection is ``(1-(1-P(i))^5)```.
+It is estimated based on the emission rate of virus into the simulated volume, and the amount which is inhaled by exposed individuals.
+This probability is valid for the simulation duration - i.e. if you have simulated one day and plan to work 5 days in these conditions and the infected person emits the same amoung of viruses each day, the cumulative probability of infection is ``(1-(1-P(i))^5)```.
 If you are using the natural ventilation option, the simulation is only valid for the selected month, because the following or preceding month will have a different average temperature profile.
 
 The ``R0`` for the simulation is calculated based on the probability of infection, multiplied by the number of exposed people. 
 
 ### Exposure graph
 
-The graph shows the variation in the concentration of infectious quanta (one quanta is the amount of material which can cause infection if inhaled) within the simulated volume.
+The graph shows the variation in the concentration of infectious quanta (one quanta is the amount of inhaled viruses which can cause infection in 63) within the simulated volume.
 It is determined by:
-* The presence of the infected person, who produces viral load in the space.
-* The rate of production is related to the type of activity of the infected person (sitting, light exercise), their level of vocalisation (whispering or talking).
-* The accumulation of infectious quanta in the space is driven by ventilation (either natural or mechanical, and or HEPA filtration).
+* The presence of the infected person, who emits airborne viruses in the volume.
+* The emission rate is related to the type of activity of the infected person (sitting, light exercise), their level of vocalisation (whispering or talking).
+* The accumulation of infectious quanta in the space is driven by ventilation, if applicable (either natural or mechanical, and or HEPA filtration).
     * In a mechanical ventilation scenario, the removal rate is constant, based on air flow in and out of the simulated space.
-    * Under natural ventilation conditions, the effectiveness of ventilation relies upon the temperature difference between the inside and outside air temperature.
+    * Under natural ventilation conditions, the effectiveness of ventilation relies upon the hourly temperature difference between the inside and outside air temperature.
     * A HEPA filter removes infectious quanta from the air at a constant rate and is modelled in the same way as mechanical ventilation, however air passed through a HEPA filter is recycled not renewed (i.e. it is not fresh air). 
 
 # Conclusion
 
-This tool provides illustrations for COVID-19 Airborne risk only.
+This tool provides illustrations for COVID-19 (long range) airborne risk only - see Disclaimer
 If you have any comments on your experience with the app, or feedback for potential improvements, please share them with the development team at cara-dev@cern.ch.
