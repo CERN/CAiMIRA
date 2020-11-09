@@ -103,6 +103,9 @@ class PeriodicInterval(Interval):
 @dataclass(frozen=True)
 class PiecewiseConstant:
 
+    # TODO: implement rather a periodic version (24-hour period), where
+    # transition_times and values have the same length.
+
     #: transition times at which the function changes value (hours).
     transition_times: typing.Tuple[float, ...]
 
@@ -134,6 +137,15 @@ class PiecewiseConstant:
             if value:
                 present_times.append((t1,t2))
         return SpecificInterval(present_times=present_times)
+
+    def refine(self,refine_factor=10):
+        # build a new PiecewiseConstant object with a refined mesh,
+        # using a linear interpolation in-between the initial mesh points
+        refined_times = np.linspace(self.transition_times[0],self.transition_times[-1],
+                                    (len(self.transition_times)-1)*refine_factor+1)
+        return PiecewiseConstant(tuple(refined_times),
+                tuple(np.interp(refined_times[:-1],self.transition_times,
+                                self.values+(self.values[-1],) ) ) )
 
 
 # Geneva hourly temperatures as piecewise constant function (in Kelvin)
