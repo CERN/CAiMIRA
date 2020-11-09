@@ -168,14 +168,19 @@
         Coffee breaks are spread evenly throughout the day.
         <br>
         <hr width="80%">
+
+    Face masks: <br>
+    Are masks worn when occupants are at workstations? <br>
+    <input type="radio" id="continuous" name="mask_wearing" value="continuous" required>Yes
+    <input type="radio" id="removed"  name="mask_wearing" value="removed" required checked="checked">No
 </div>
 
 <div style="width: 33%; float:left;">
   This tool simulates the long range airborne spread SARS-CoV-2 virus in a finite volume and estimates the risk of COVID-19 infection. It is based on current scientific data and can be used to measures the effectiveness of different mitigation measures.<br>
-  
+
   For detailed explanations on how to use this tool please see the <a href="/calculator/user-guide"> COVID Calculator user-guide </a>. <br>
 
-  <b>Usage summary:</b> <br>
+  <b>Usage summary:</b><br>
 
   <b>Room data</b><br>
   Enter the data about the area you wish to study. You can find these figures in GIS Portal, or by measuring them yourself.<br>
@@ -198,7 +203,7 @@ You should specify if the event is a one off (give date) or recurrent use of the
 
 <!-- Dialog boxes -->
 <div id="DIALOG_welcome" title="Welcome to CARA!" class="dialog">
-  <p>This software is provided with a disclaimer and code license.<span id="dots"></span><span id="more" style="display: none;"> 
+  <p>This software is provided with a disclaimer and code license.<span id="dots"></span><span id="more" style="display: none;">
     <br><br><b>Disclaimer:</b><br><br>
     <span style="font-size:9pt;">The risk assessment tool simulates the long range airborne spread SARS-CoV-2 virus in a finite volume, assuming a homogenous mixture, and estimates the risk of COVID-19 infection thereto. The results DO NOT include short-range airborne exposure (where the physical distance plays a factor) nor the other know modes of transmission of SARS-CoV-2. Hence, this model implies that proper physical distancing, good hand hygiene and other barrier measures are ensured.<br><br>
     It is based on current scientific data and can be used to measures the effectiveness of different mitigation measures.<br><br>

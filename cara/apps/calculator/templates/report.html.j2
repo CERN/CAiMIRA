@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">  
+	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
   	<title>Report | CARA (COVID Airborne Risk Assessment)</title>
@@ -65,10 +65,10 @@
 
 	<p class="data_title">Event data:</p>
 	<ul>
-		<li><p class="data_text">Number of attendees and infected people: {{ form.total_people }} in attendance, of whom {{ form.infected_people }} 
+		<li><p class="data_text">Number of attendees and infected people: {{ form.total_people }} in attendance, of whom {{ form.infected_people }}
 		{{ "is" if form.infected_people == 1 else "are" }}
 		infected.</p></li>
-		<li><p class="data_text">Activity type: 
+		<li><p class="data_text">Activity type:
 		{% if form.activity_type == "office" %}
 		Office/Meeting – typical scenario with all persons seated, talking.
 		{% elif form.activity_type == "workshop" %}
@@ -94,7 +94,7 @@
 
 	<p class="data_title">Break data:</p>
 	<ul>
-		<li><p class="data_text">Lunch break: 
+		<li><p class="data_text">Lunch break:
 		{% if form.lunch_option%}
 		Yes</li>
 		<ul>

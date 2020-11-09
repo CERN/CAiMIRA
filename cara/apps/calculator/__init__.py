@@ -55,6 +55,15 @@ class LandingPage(RequestHandler):
         report = template.render(**{})
         self.finish(report)
 
+class ReadMe(RequestHandler):
+    def get(self):
+        import jinja2
+        p = Path(__file__).parent.parent / "templates"
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(Path(p)))
+        template = env.get_template("readme.html.j2")
+        report = template.render(**{})
+        self.finish(report)
+
 
 class CalculatorForm(RequestHandler):
     def get(self):
@@ -85,6 +94,7 @@ def make_app(debug=False, prefix='/calculator'):
     calculator_static_dir = Path(__file__).absolute().parent / 'static'
     urls = [
         (r'/?', LandingPage),
+        (r'/readme', ReadMe),
         (r'/static/(.*)', StaticFileHandler, {'path': static_dir}),
         (prefix + r'/?', CalculatorForm),
         (prefix + r'/report', ConcentrationModel),
