@@ -208,14 +208,24 @@ class WindowOpening(Ventilation):
     #: The interval in which the window is open.
     active: Interval
 
-    inside_temp: PiecewiseConstant   #: The temperature inside the room (Kelvin)
-    outside_temp: PiecewiseConstant   #: The temperature outside of the window (Kelvin)
+    #: The temperature inside the room (Kelvin).
+    inside_temp: PiecewiseConstant
 
-    window_height: float   #: The height of the window
+    #: The temperature outside of the window (Kelvin).
+    outside_temp: PiecewiseConstant
 
-    opening_length: float   #: The length of the opening-gap when the window is open
+    #: The height of the window.
+    window_height: float
 
-    cd_b: float = 0.6   #: Discharge coefficient: what portion effective area is used to exchange air (0 <= cd_b <= 1)
+    #: The length of the opening-gap when the window is open
+    opening_length: float
+
+    #: The number of windows of the given dimensions.
+    number_of_windows: int = 1
+
+    #: Discharge coefficient: what portion effective area is
+    #: used to exchange air (0 <= cd_b <= 1)
+    cd_b: float = 0.6
 
     def transition_times(self) -> typing.Set[float]:
         transitions = super().transition_times()
@@ -228,13 +238,14 @@ class WindowOpening(Ventilation):
         if not self.active.triggered(time):
             return 0.
 
+        inside_temp = self.inside_temp.value(time)
+        outside_temp = self.outside_temp.value(time)
+
         # Reminder, no dependence on time in the resulting calculation.
-
-        temp_delta = abs(self.inside_temp.value(time) - 
-                self.outside_temp.value(time)) / self.outside_temp.value(time)
+        temp_delta = abs(inside_temp - outside_temp) / outside_temp
         root = np.sqrt(9.81 * self.window_height * temp_delta)
-
-        return (3600 / (3 * room.volume)) * self.cd_b * self.window_height * self.opening_length * root
+        window_area = self.window_height * self.opening_length * self.number_of_windows
+        return (3600 / (3 * room.volume)) * self.cd_b * window_area * root
 
 
 @dataclass(frozen=True)
