@@ -10,6 +10,7 @@ import matplotlib.figure
 
 from cara import models
 from cara import state
+from cara import data
 
 
 def collapsible(widgets_to_collapse: typing.List, title: str, start_collapsed=True):
@@ -160,9 +161,21 @@ class WidgetView:
         )
         return widget
 
+    def _build_outsidetemp(self,node):
+        outside_temp = widgets.IntSlider(value=10., min=-10., max=30.)
+
+        def outsidetemp_change(change):
+            node.values = (change['new']+273.15,)
+        outside_temp.observe(outsidetemp_change, names=['value'])
+        return widgets.VBox(
+                [                   widgets.HBox([widgets.Label('Outside temperature',
+                                    layout=widgets.Layout(width='150px')), outside_temp]),
+                                    ])
+
     def _build_window(self, node):
         period = widgets.IntSlider(value=node.active.period, min=0, max=240)
         interval = widgets.IntSlider(value=node.active.duration, min=0, max=240)
+        inside_temp = widgets.IntSlider(value=node.inside_temp.values[0]-273.15, min=15., max=25.)
 
         def on_period_change(change):
             node.active.period = change['new']
@@ -170,20 +183,54 @@ class WidgetView:
         def on_interval_change(change):
             node.active.duration = change['new']
 
+        def insidetemp_change(change):
+            node.inside_temp.values = (change['new']+273.15,)
+
         # TODO: Link the state back to the widget, not just the other way around.
         period.observe(on_period_change, names=['value'])
         interval.observe(on_interval_change, names=['value'])
+        inside_temp.observe(insidetemp_change, names=['value'])
 
-        return widget_group(
+        outsidetemp_widgets = {
+            'Fixed': self._build_outsidetemp(node.outside_temp),
+            'Daily variation': self._build_month(node),
+        }
+        for name, widget in outsidetemp_widgets.items():
+            widget.layout.visible = False
+
+        outsidetemp_w = widgets.ToggleButtons(
+            options=outsidetemp_widgets.keys(),
+        )
+
+        def toggle_outsidetemp(value):
+            for name, widget in outsidetemp_widgets.items():
+                widget.layout.display = 'none'
+
+            #node.dcs_select(value)
+
+            widget = outsidetemp_widgets[value]
+            widget.layout.visible = True
+            widget.layout.display = 'block'
+
+        outsidetemp_w.observe(lambda event: toggle_outsidetemp(event['new']), 'value')
+        toggle_outsidetemp(outsidetemp_w.value)
+
+        return widgets.VBox(
                 [
-                    [widgets.Label('Open every n minutes'), period],
-                    [widgets.Label('For how long'), interval],
-                 ]
+                    widgets.HBox([widgets.Label('Open every n minutes',
+                                    layout=widgets.Layout(width='150px')), period]),
+                    widgets.HBox([widgets.Label('For how long',
+                                    layout=widgets.Layout(width='150px')), interval]),
+                    widgets.HBox([widgets.Label('Inside temperature',
+                                    layout=widgets.Layout(width='150px')), inside_temp]),
+                    widget_group([[widgets.Label('Outside temp.'), outsidetemp_w]])
+                 ] + list(outsidetemp_widgets.values())
             )
 
     def _build_hepa(self, node):
         period = widgets.IntSlider(value=node.active.period, min=0, max=240, step=5)
         interval = widgets.IntSlider(value=node.active.duration, min=0, max=240, step=5)
+        q_air_mech = widgets.IntSlider(value=node.q_air_mech, min=0, max=1000, step=5)
 
         def on_period_change(change):
             node.active.period = change['new']
@@ -191,16 +238,36 @@ class WidgetView:
         def on_interval_change(change):
             node.active.duration = change['new']
 
+        def q_air_mech_change(change):
+            node.q_air_mech = change['new']
+
         # TODO: Link the state back to the widget, not just the other way around.
         period.observe(on_period_change, names=['value'])
         interval.observe(on_interval_change, names=['value'])
+        q_air_mech.observe(q_air_mech_change, names=['value'])
 
-        return widget_group(
+        return widgets.VBox(
                 [
-                    [widgets.Label('On every n minutes'), period],
-                    [widgets.Label('For how long'), interval],
+                    widgets.HBox([widgets.Label('On every n minutes',
+                                    layout=widgets.Layout(width='150px')), period]),
+                    widgets.HBox([widgets.Label('For how long',
+                                    layout=widgets.Layout(width='150px')), interval]),
+                    widgets.HBox([widgets.Label('Flow rate (m^3/h)',
+                                    layout=widgets.Layout(width='150px')), q_air_mech]),
                  ]
             )
+
+    def _build_month(self, node):
+
+        month_choice = widgets.Select(options=list(data.GenevaTemperatures.keys()), value='Jan')
+
+        def on_month_change(change):
+            node.outside_temp = data.GenevaTemperatures[change['new']]
+        month_choice.observe(on_month_change, names=['value'])
+
+        return widget_group(
+            [[widgets.Label("Month"), month_choice]]
+        )
 
     def _build_activity(self, node):
         activity = node.dcs_instance()
@@ -252,7 +319,7 @@ class WidgetView:
     def _build_ventilation(self, node):
         ventilation_widgets = {
             'Natural': self._build_window(node._states['Natural']),
-            'HEPA': self._build_hepa(node._states['HEPA']),
+            'Mechanical': self._build_hepa(node._states['Mechanical']),
         }
         for name, widget in ventilation_widgets.items():
             widget.layout.visible = False
