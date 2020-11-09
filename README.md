@@ -1,8 +1,19 @@
 # CARA - COVID Airborne Risk Assessment
 
+## Applications
 
+### COVID Calculator
 
-## Credits
+A risk assessment tool which simulates the long range airborne spread of the
+SARS-CoV-2 virus for space managers.
+
+You can find the CARA COVID Calculator at https://cara.web.cern.ch/calculator/.
+Please see the [COVID Calculator README for detailed usage instructions](cara/apps/calculator/README.md).
+
+### CARA Expert App
+
+A tool to interact with various parameters of the CARA model.
+This is currently in beta, and can be found at https://cara.web.cern.ch/expert-app.
 
 
 ## Development guide
@@ -13,6 +24,14 @@
 pip install -e .   # At the root of the repository
 python -m cara.apps.calculator
 ```
+
+### Running the CARA Expert-App app locally
+
+```
+pip install -e .   # At the root of the repository
+voila ./app/cara.ipynb
+```
+
 
 Then visit http://localhost:8080/calculator.
 
@@ -29,9 +48,9 @@ cd app-config
 docker-compose up
 ```
 
-Then visit localhost:8080.
+Then visit http://localhost:8080/.
 
-### Setting up the application
+### Setting up the application on openshift
 
 The https://cern.ch/cara application is running on CERN's OpenShift platform. In order to set it up for the first time, we followed the documentation at https://cern.service-now.com/service-portal?id=kb_article&n=KB0004498. In particular we:
 
