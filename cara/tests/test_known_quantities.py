@@ -3,6 +3,7 @@ import numpy.testing as npt
 import pytest
 
 import cara.models as models
+import cara.data as data
 
 
 def test_no_mask_aerosols(baseline_model):
@@ -245,7 +246,7 @@ def test_piecewiseconstant(time, expected_value):
     assert fun.value(time) == expected_value
 
 
-def test_piecewiseconstant_interp(time, expected_value):
+def test_piecewiseconstant_interp():
     transition_times = (0, 8, 16, 24)
     values = (2, 5, 8)
     fun = models.PiecewiseConstant(transition_times,values)
@@ -276,7 +277,7 @@ def test_piecewiseconstant_vs_interval(time):
 
 
 def test_piecewiseconstant_transition_times():
-    outside_temp=models.GenevaTemperatures['Jan']
+    outside_temp=data.GenevaTemperatures['Jan']
     assert set(outside_temp.transition_times) == outside_temp.interval().transition_times()
 
 
@@ -301,10 +302,10 @@ def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),),
                     intervals_presence_infected=((0, 4), (5, 7.5)),refine=False):
     if refine:
         times_refined = tuple(np.linspace(0.,24,241))
-        temperatures_refined = tuple(np.hstack([[v]*10 for v in models.GenevaTemperatures_hourly[month].values]))
+        temperatures_refined = tuple(np.hstack([[v]*10 for v in data.GenevaTemperatures_hourly[month].values]))
         outside_temp=models.PiecewiseConstant(times_refined,temperatures_refined)
     else:
-        outside_temp=models.GenevaTemperatures_hourly[month]
+        outside_temp=data.GenevaTemperatures_hourly[month]
 
     model = models.Model(
         room=models.Room(volume=75),
@@ -356,7 +357,7 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
         models.WindowOpening(
             active=models.SpecificInterval(intervals_open),
             inside_temp=models.PiecewiseConstant((0,24),(293,)),
-            outside_temp=models.GenevaTemperatures[month],
+            outside_temp=data.GenevaTemperatures[month],
             cd_b=0.6, window_height=1.6, opening_length=0.6,
         ),
         models.HEPAFilter(
@@ -382,7 +383,7 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
 
 @pytest.mark.parametrize(
     "month, temperatures",
-    models.Geneva_hourly_temperatures_celsius_per_hour.items(),
+    data.Geneva_hourly_temperatures_celsius_per_hour.items(),
 )
 @pytest.mark.parametrize(
     "time",
@@ -397,7 +398,7 @@ def test_concentrations_hourly_dep_temp_vs_constant(month, temperatures, time):
 
 @pytest.mark.parametrize(
     "month, temperatures",
-    models.Geneva_hourly_temperatures_celsius_per_hour.items(),
+    data.Geneva_hourly_temperatures_celsius_per_hour.items(),
 )
 @pytest.mark.parametrize(
     "time",
@@ -418,7 +419,7 @@ def test_concentrations_hourly_dep_multipleventilation():
 
 @pytest.mark.parametrize(
     "month_temp_item",
-    models.Geneva_hourly_temperatures_celsius_per_hour.items(),
+    data.Geneva_hourly_temperatures_celsius_per_hour.items(),
 )
 @pytest.mark.parametrize(
     "time",
