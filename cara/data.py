@@ -37,12 +37,8 @@ GenevaTemperatures_hourly = {
     for month,temperatures in Geneva_hourly_temperatures_celsius_per_hour.items()
 }
 # same temperatures on a finer temperature mesh
-refine_factor = 10
-refined_times = np.linspace(0.,24.,24*refine_factor+1)
 GenevaTemperatures = {
-    month: models.PiecewiseConstant(tuple(refined_times),
-                             tuple(273.15+np.interp(refined_times[:-1],np.arange(25.),
-                                            temperatures+[temperatures[0]])))
+    month: GenevaTemperatures_hourly[month].refine(refine_factor=10)
     for month,temperatures in Geneva_hourly_temperatures_celsius_per_hour.items()
 }
 
