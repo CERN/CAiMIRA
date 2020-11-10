@@ -55,7 +55,11 @@
 		No </p></li>
 		{% endif %}
 		<li><p class="data_text">HEPA Filtration: {{ 'Yes' if form.hepa_option else 'No' }}</li>
-		<!--TODO: X type of filter with y flow rate (default model assumption) ? This was in the output doc..? -->
+		{% if form.hepa_option %}
+		<ul>
+			<li><p class="data_text">HEPA amount: {{ form.hepa_amount }}</p></li>
+		</ul>
+		{% endif %}
 	</ul>
 
 	<p class="data_title">Event data:</p>
@@ -112,12 +116,9 @@
 
 	<p class="data_title">Mask wearing:</p>
 	<ul>
-		<li><p class="data_text">Masks worn at workstations?
+		<li><p class="data_text">Masks worn at workstations? {{ 'Yes' if form.mask_wearing == "continuous" else 'No' }} </p></li>
 		{% if form.mask_wearing == "continuous" %}
-		Yes </p></li>
 		<li><p class="data_text">Mask type: {{ form.mask_type }}</p></li>
-		{% else %}
-		No </p></li>
 		{% endif %}
 	</ul>
 

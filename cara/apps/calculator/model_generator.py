@@ -24,6 +24,7 @@ class FormData:
     coffee_duration: int
     event_type: str
     floor_area: float
+    hepa_amount: float
     hepa_option: bool
     infected_people: int
     lunch_option: bool
@@ -91,6 +92,7 @@ class FormData:
             coffee_duration=int(form_data['coffee_duration']),
             event_type=form_data['event_type'],
             floor_area=float(form_data['floor_area']),
+            hepa_amount=float(form_data['hepa_amount']),
             hepa_option=(form_data['hepa_option'] == '1'),
             infected_people=int(form_data['infected_people']),
             lunch_finish=time_string_to_minutes(form_data['lunch_finish']),
@@ -154,7 +156,7 @@ class FormData:
                     active=always_on, q_air_mech=self.air_supply)
 
         if self.hepa_option:
-            hepa = models.HEPAFilter(active=always_on, q_air_mech=250.)
+            hepa = models.HEPAFilter(active=always_on, q_air_mech=self.hepa_amount)
             return models.MultipleVentilation((ventilation,hepa))
         else:
             return ventilation
@@ -282,6 +284,7 @@ def baseline_raw_form_data():
         'coffee_duration': '10',
         'event_type': 'recurrent_event',
         'floor_area': '',
+        'hepa_amount': '250',
         'hepa_option': '0',
         'infected_finish': '18:00',
         'infected_people': '1',
