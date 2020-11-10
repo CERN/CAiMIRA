@@ -289,7 +289,7 @@ def baseline_raw_form_data():
         'lunch_finish': '13:30',
         'lunch_option': '1',
         'lunch_start': '12:30',
-        'mask_type': 'type1',
+        'mask_type': 'Type I',
         'mask_wearing': 'removed',
         'mechanical_ventilation_type': '',
         'opening_distance': '0.2',
