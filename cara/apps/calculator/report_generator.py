@@ -13,20 +13,19 @@ from cara import models
 from .model_generator import FormData
 
 
-def calculate_report_data(model: models.Model):
+def calculate_report_data(model: models.ExposureModel):
     resolution = 600
 
-    # TODO: Have this for exposed not infected.
-    t_start = model.infected.presence.boundaries()[0][0]
-    t_end = model.infected.presence.boundaries()[-1][1]
+    t_start = model.exposed.presence.boundaries()[0][0]
+    t_end = model.exposed.presence.boundaries()[-1][1]
 
     times = list(np.linspace(t_start, t_end, resolution))
-    concentrations = [model.concentration(time) for time in times]
+    concentrations = [model.concentration_model.concentration(time) for time in times]
     highest_const = max(concentrations)
     prob = model.infection_probability()
-    er = model.infected.emission_rate(0.1)
-    exposed_occupants = model.exposed_occupants
-    r0 = prob * exposed_occupants / 100
+    er = model.concentration_model.infected.emission_rate(0.1)
+    exposed_occupants = model.exposed.number
+    r0 = model.reproduction_rate()
 
     return {
         "times": times,
@@ -78,7 +77,7 @@ def minutes_to_time(minutes: int) -> str:
     return f"{hour_string}:{minute_string}"
 
 
-def build_report(model: models.Model, form: FormData):
+def build_report(model: models.ExposureModel, form: FormData):
     now = datetime.now()
     time = now.strftime("%d/%m/%Y %H:%M:%S")
     request = {"the": "form", "request": "data"}

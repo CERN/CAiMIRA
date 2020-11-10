@@ -105,30 +105,29 @@ class WidgetView:
         pass
 
     def update(self):
-        model = self.model_state.dcs_instance()
+        model: models.ExposureModel = self.model_state.dcs_instance()
         for plot in self.plots:
-            plot.update(model)
+            plot.update(model.concentration_model)
 
         self.out.clear_output()
         with self.out:
             P = model.infection_probability()
-            print(f'Emission rate (quanta/hr): {model.infected.emission_rate(0)}')
+            print(f'Emission rate (quanta/hr): {model.concentration_model.infected.emission_rate(0.1)}')
             print(f'Probability of infection: {np.round(P, 0)}%')
 
-            print(f'Number of exposed: {model.exposed_occupants}')
-            R0 = np.round(P / 100 * model.exposed_occupants, 1)
+            print(f'Number of exposed: {model.exposed.number}')
+            R0 = np.round(model.reproduction_rate(), 1)
             print(f'Number of expected new cases (R0): {R0}')
 
-
     def _build_widget(self, node):
-        self.widget.children += (self._build_room(node.room),)
-        self.widget.children += (self._build_ventilation(node.ventilation),)
-        self.widget.children += (self._build_infected(node.infected),)
+        self.widget.children += (self._build_room(node.concentration_model.room),)
+        self.widget.children += (self._build_ventilation(node.concentration_model.ventilation),)
+        self.widget.children += (self._build_infected(node.concentration_model.infected),)
         self.widget.children += (self._build_exposed(node),)
 
     def _build_exposed(self, node):
         return collapsible(
-            [self._build_activity(node.exposed_activity)],
+            [self._build_activity(node.exposed.activity)],
             title="Exposed"
         )
 
@@ -284,24 +283,30 @@ class WidgetView:
         return self.widget
 
 
-baseline_model = models.Model(
-    room=models.Room(volume=75),
-    ventilation=models.WindowOpening(
-        active=models.PeriodicInterval(period=120, duration=120),
-        inside_temp=models.PiecewiseConstant((0,24),(293,)),
-        outside_temp=models.PiecewiseConstant((0,24),(283,)),
-        cd_b=0.6, window_height=1.6, opening_length=0.6,
+baseline_model = models.ExposureModel(
+    concentration_model=models.Model(
+        room=models.Room(volume=75),
+        ventilation=models.WindowOpening(
+            active=models.PeriodicInterval(period=120, duration=120),
+            inside_temp=models.PiecewiseConstant((0,24),(293,)),
+            outside_temp=models.PiecewiseConstant((0,24),(283,)),
+            cd_b=0.6, window_height=1.6, opening_length=0.6,
+        ),
+        infected=models.InfectedPopulation(
+            number=1,
+            virus=models.Virus.types['SARS_CoV_2'],
+            presence=models.SpecificInterval(((0, 4), (5, 8))),
+            mask=models.Mask.types['No mask'],
+            activity=models.Activity.types['Light exercise'],
+            expiration=models.Expiration.types['Unmodulated Vocalization'],
+        ),
     ),
-    infected=models.InfectedPerson(
-        virus=models.Virus.types['SARS_CoV_2'],
+    exposed=models.Population(
+        number=10,
         presence=models.SpecificInterval(((0, 4), (5, 8))),
-        mask=models.Mask.types['No mask'],
         activity=models.Activity.types['Light exercise'],
-        expiration=models.Expiration.types['Unmodulated Vocalization'],
+        mask=models.Mask.types['No mask'],
     ),
-    infected_occupants=1,
-    exposed_occupants=10,
-    exposed_activity=models.Activity.types['Light exercise'],
 )
 
 
@@ -330,13 +335,13 @@ class CARAStateBuilder(state.StateBuilder):
 class ExpertApplication:
     def __init__(self):
         self.model_state = state.DataclassInstanceState(
-            models.Model,
+            models.ExposureModel,
             state_builder=CARAStateBuilder(),
         )
         self.model_state.dcs_update_from(baseline_model)
         # For the time-being, we have to initialise the select states. Careful
         # as values might not correspond to what the baseline model says.
-        self.model_state.infected.mask.dcs_select('No mask')
+        self.model_state.concentration_model.infected.mask.dcs_select('No mask')
 
         self.view = WidgetView(self.model_state)
 
