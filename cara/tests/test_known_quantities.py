@@ -26,7 +26,7 @@ def test_no_mask_emission_rate(baseline_model):
 
 @pytest.fixture
 def baseline_model():
-    model = models.Model(
+    model = models.ConcentrationModel(
         room=models.Room(volume=75),
         ventilation=models.WindowOpening(
             active=models.PeriodicInterval(period=120, duration=120),
@@ -103,7 +103,7 @@ def test_smooth_concentrations(baseline_model):
 
 
 def build_model(interval_duration):
-    model = models.Model(
+    model = models.ConcentrationModel(
         room=models.Room(volume=75),
         ventilation=models.HEPAFilter(
             active=models.PeriodicInterval(period=120, duration=interval_duration),
@@ -322,7 +322,7 @@ def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),),
     else:
         outside_temp = temperatures[month]
 
-    model = models.Model(
+    model = models.ConcentrationModel(
         room=models.Room(volume=75),
         ventilation=models.WindowOpening(
             active=models.SpecificInterval(intervals_open),
@@ -343,7 +343,7 @@ def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),),
 
 
 def build_constant_temp_model(outside_temp, intervals_open=((7.5, 8.5),)):
-    model = models.Model(
+    model = models.ConcentrationModel(
         room=models.Room(volume=75),
         ventilation=models.WindowOpening(
             active=models.SpecificInterval(intervals_open),
@@ -375,7 +375,7 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
         active=models.SpecificInterval(((0,24),)),
         q_air_mech=500.,
         )))
-    model = models.Model(
+    model = models.ConcentrationModel(
         room=models.Room(volume=75),
         ventilation=vent,
         infected=models.InfectedPopulation(

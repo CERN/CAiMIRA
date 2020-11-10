@@ -33,7 +33,7 @@ class ConcentrationFigure:
         self.ax = self.figure.add_subplot(1, 1, 1)
         self.line = None
 
-    def update(self, model: models.Model):
+    def update(self, model: models.ConcentrationModel):
         resolution = 600
         ts = np.linspace(0, 10, resolution)
         concentration = [model.concentration(t) for t in ts]
@@ -284,7 +284,7 @@ class WidgetView:
 
 
 baseline_model = models.ExposureModel(
-    concentration_model=models.Model(
+    concentration_model=models.ConcentrationModel(
         room=models.Room(volume=75),
         ventilation=models.WindowOpening(
             active=models.PeriodicInterval(period=120, duration=120),

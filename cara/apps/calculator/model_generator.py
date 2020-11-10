@@ -113,7 +113,7 @@ class FormData:
             infected_finish=time_string_to_minutes(form_data['infected_finish']),
         )
 
-    def build_model(self) -> models.Model:
+    def build_model(self) -> models.ExposureModel:
         return model_from_form(self)
 
     def ventilation(self) -> models.Ventilation:
@@ -251,7 +251,7 @@ def model_from_form(form: FormData) -> models.ExposureModel:
 
     # Initializes and returns a model with the attributes defined above
     return models.ExposureModel(
-        concentration_model=models.Model(
+        concentration_model=models.ConcentrationModel(
             room=room,
             ventilation=form.ventilation(),
             infected=models.InfectedPopulation(

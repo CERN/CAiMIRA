@@ -467,7 +467,7 @@ class InfectedPopulation(Population):
 
 
 @dataclass(frozen=True)
-class Model:
+class ConcentrationModel:
     room: Room
     ventilation: Ventilation
     infected: InfectedPopulation
@@ -528,7 +528,7 @@ class Model:
 @dataclass(frozen=True)
 class ExposureModel:
     #: The virus concentration model which this exposure model should consider.
-    concentration_model: Model
+    concentration_model: ConcentrationModel
 
     #: The population of non-infected people to be used in the model.
     exposed: Population
