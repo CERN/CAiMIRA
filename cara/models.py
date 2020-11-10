@@ -338,6 +338,11 @@ Mask.types = {
         η_leaks=0.15,  # (Huang 2007)
         η_inhale=0.3,  # (Browen 2010)
     ),
+    'FFP2': Mask(
+        η_exhale=0.95,  # (same outward effect as type 1 - Asadi 2020)
+        η_leaks=0.15,  # (same outward effect as type 1 - Asadi 2020)
+        η_inhale=0.865,  # (94% penetration efficiency + 8% max inward leakage -> EN 149)
+    ),
 }
 
 

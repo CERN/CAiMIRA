@@ -1,6 +1,8 @@
 {% extends "layout.html.j2" %}
 
+{% set MODEL_VERSION="BetaV1.1.0" %}
 {% set CALCULATOR_ACTIVE=1 %}
+{% set DEBUG=False %}
 
 {% block extra_headers %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" integrity="sha512-aOG0c6nPNzGk+5zjwyJaoRUgCdOrfSDhmMID2u4+OIslr0GjpLKo7Xm0Ao3xmpM4T8AmIouRkqwj1nrdVsLKEQ==" crossorigin="anonymous">
@@ -18,10 +20,16 @@
 <div class="text-component text-component-page clearfix"></div>
 <div style="height: 8em; display: block;"></div>
 
-Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to <a href="mailto:CARA-dev@cern.ch">CARA-dev@cern.ch</a></span>
+{{ MODEL_VERSION }} <span style="float:right; font-weight:bold">Please send feedback to <a href="mailto:CARA-dev@cern.ch">CARA-dev@cern.ch</a></span>
 <h1> <p><b>CARA</b> Covid Airborne Risk Assessment tool</p></h1>
 
+{% if DEBUG %}
+<form id="covid_calculator" name="covid_calculator" onsubmit="return debug_submit(this)">
+{% else %}
 <form id="covid_calculator" name="covid_calculator" action="/calculator/report" onsubmit="return validate_form(this)" method="POST">
+{% endif %}
+
+<input type="hidden" name="model_version" value={{ MODEL_VERSION }}></input>
 
 <div style="width: 33%; float:left;">
 
@@ -63,11 +71,20 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
     </div>
     
     HEPA filtration:
-    <input type="radio" id="hepa_filter" name="hepa_option" value=1>
-    <label for="hepa_filter">Yes</label>
-    
-    <input type="radio" id="hepa_filter" name="hepa_option" value=0 checked="checked">
-    <label for="hepa_filter">No</label>
+    <input type="radio" id="hepa_no" name="hepa_option" value=0 onclick="require_fields(this)" checked="checked">
+    <label for="hepa_no">No</label>
+    <input type="radio" id="hepa_yes" name="hepa_option" value=1 onclick="require_fields(this)">
+    <label for="hepa_yes">Yes</label>
+    <input type="number" step=0.01 id="hepa_amount" name="hepa_amount" placeholder="(m³ / hour)" min="0">
+    <hr width="80%">
+
+    <b>Face masks:</b><br>
+    Are masks worn when occupants are at workstations?
+    <input type="radio" id="mask_on" name="mask_wearing" value="continuous" required>Yes
+    <input type="radio" id="mask_off"  name="mask_wearing" value="removed" required checked="checked">No<br>
+    Type of masks used:
+    <input type="radio" id="mask_type1" name="mask_type" value="Type I" checked="checked" onclick="require_fields(this)">Type 1
+    <input type="radio" id="mask_ffp2"  name="mask_type" value="FFP2" onclick="require_fields(this)">FFP2<br>
     <hr width="80%">
 </div>
 
@@ -79,6 +96,7 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
     Total number of occupants: <input type="number" id="total_people" name="total_people" min=1 required><br>
     Number of infected people: <input type="number" id="infected_people" name="infected_people" min=1 required><br>
     <hr width="80%">
+
     Activity type: <select id="activity_type" name="activity_type">
                     <option value="office">Office/Meeting</option>
                     <option value="workshop">Workshop</option>
@@ -91,8 +109,8 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
     Start: <input type="time" id="infected_start" name="infected_start" value="09:00" required> &nbsp;&nbsp;
     Finish: <input type="time" id="infected_finish" class="finish_time" name="infected_finish" value="18:00" required>
     <span id="infected_time_error" class="red_text" hidden>Finish time must be after start</span><br>
-    
     <hr width="80%">
+
     When is the event?<br>
     <input type="radio" id="event_type_single" name="event_type" value="single_event" onclick="require_fields(this)" required></input>
     <label for="event_type_single">Single event</label> &nbsp;&nbsp;
@@ -116,6 +134,7 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
         <option value="December">December</option>
     </select><br>
     <hr width="80%">
+
     <!-- Lunch Options -->
     Lunch break:
     <input type="radio" id="lunch_option_no" name="lunch_option" value=0 checked="checked" onclick="require_fields(this)">
@@ -147,13 +166,8 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
                     <option value="30">30</option>
                  </select><br>
         Coffee breaks are spread evenly throughout the day.
-        
         <br>
         <hr width="80%">
-    Face masks: <br>
-    Are masks worn when occupants are at workstations? <br>
-    <input type="radio" id="continuous" name="mask_wearing" value="continuous" required>Yes
-    <input type="radio" id="removed"  name="mask_wearing" value="removed" required checked="checked">No  
 </div>
 
 <div style="width: 33%; float:left;">
