@@ -34,18 +34,29 @@ def baseline_model():
             outside_temp=models.PiecewiseConstant((0,24),(283,)),
             cd_b=0.6, window_height=1.6, opening_length=0.6,
         ),
-        infected=models.InfectedPerson(
+        infected=models.InfectedPopulation(
+            number=1,
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(((0, 4), (5, 8))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light exercise'],
             expiration=models.Expiration.types['Unmodulated Vocalization'],
         ),
-        infected_occupants=1,
-        exposed_occupants=10,
-        exposed_activity=models.Activity.types['Light exercise'],
     )
     return model
+
+
+@pytest.fixture
+def baseline_exposure_model(baseline_model):
+    return models.ExposureModel(
+        baseline_model,
+        exposed=models.Population(
+            number=10,
+            presence=baseline_model.infected.presence,
+            activity=baseline_model.infected.activity,
+            mask=baseline_model.infected.mask,
+        )
+    )
 
 
 @pytest.fixture
@@ -98,16 +109,14 @@ def build_model(interval_duration):
             active=models.PeriodicInterval(period=120, duration=interval_duration),
             q_air_mech=500.,
         ),
-        infected=models.InfectedPerson(
+        infected=models.InfectedPopulation(
+            number=1,
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(((0, 4), (5, 8))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light exercise'],
             expiration=models.Expiration.types['Unmodulated Vocalization'],
         ),
-        infected_occupants=1,
-        exposed_occupants=10,
-        exposed_activity=models.Activity.types['Light exercise'],
     )
     return model
 
@@ -121,8 +130,8 @@ def test_concentrations_startup(baseline_model):
     assert m1.concentration(1.) == m2.concentration(1.)
 
 
-def test_r0(baseline_model):
-    p = baseline_model.infection_probability()
+def test_r0(baseline_exposure_model):
+    p = baseline_exposure_model.infection_probability()
     npt.assert_allclose(p, 93.196908)
 
 
@@ -170,7 +179,6 @@ def test_multiple_ventilation_HEPA_window(baseline_periodic_hepa, time, expected
 
 
 def test_multiple_ventilation_HEPA_window_transitions(baseline_periodic_hepa):
-    room = models.Room(volume=68.)
     tempOutside = models.PiecewiseConstant((0., 1., 2.5),(273.15, 283.15))
     tempInside = models.PiecewiseConstant((0., 24.),(293.15,))
     window = models.WindowOpening(active=models.SpecificInterval([(1 / 60, 24.)]),
@@ -322,16 +330,14 @@ def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),),
             outside_temp=outside_temp,
             cd_b=0.6, window_height=1.6, opening_length=0.6,
         ),
-        infected=models.InfectedPerson(
+        infected=models.InfectedPopulation(
+            number=1,
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(intervals_presence_infected),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light exercise'],
             expiration=models.Expiration.types['Unmodulated Vocalization'],
         ),
-        infected_occupants=1,
-        exposed_occupants=10,
-        exposed_activity=models.Activity.types['Light exercise'],
     )
     return model
 
@@ -345,16 +351,14 @@ def build_constant_temp_model(outside_temp, intervals_open=((7.5, 8.5),)):
             outside_temp=models.PiecewiseConstant((0,24),(outside_temp,)),
             cd_b=0.6, window_height=1.6, opening_length=0.6,
         ),
-        infected=models.InfectedPerson(
+        infected=models.InfectedPopulation(
+            number=1,
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(((0, 4), (5, 7.5))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light exercise'],
             expiration=models.Expiration.types['Unmodulated Vocalization'],
         ),
-        infected_occupants=1,
-        exposed_occupants=10,
-        exposed_activity=models.Activity.types['Light exercise'],
     )
     return model
 
@@ -374,16 +378,14 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
     model = models.Model(
         room=models.Room(volume=75),
         ventilation=vent,
-        infected=models.InfectedPerson(
+        infected=models.InfectedPopulation(
+            number=1,
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(((0, 4), (5, 7.5))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light exercise'],
             expiration=models.Expiration.types['Unmodulated Vocalization'],
         ),
-        infected_occupants=1,
-        exposed_occupants=10,
-        exposed_activity=models.Activity.types['Light exercise'],
     )
     return model
 
@@ -451,6 +453,20 @@ def test_concentrations_refine_times(time):
                                       artificial_refinement=True)
     npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-8)
 
+
+def build_exposure_model(concentration_model):
+    infected = concentration_model.infected
+    return models.ExposureModel(
+        concentration_model=concentration_model,
+        exposed=models.Population(
+            number=10,
+            presence=infected.presence,
+            activity=infected.activity,
+            mask=infected.mask,
+        )
+    )
+
+
 @pytest.mark.parametrize(
     "month, expected_r0",
     [
@@ -459,8 +475,13 @@ def test_concentrations_refine_times(time):
     ],
 )
 def test_r0_hourly_dep(month,expected_r0):
-    m = build_hourly_dependent_model(month,intervals_open=((0,24),),
-                                     intervals_presence_infected=((8,12),(13,17)))
+    m = build_exposure_model(
+        build_hourly_dependent_model(
+            month,
+            intervals_open=((0,24),),
+            intervals_presence_infected=((8, 12), (13, 17))
+        )
+    )
     p = m.infection_probability()
     npt.assert_allclose(p, expected_r0)
 
@@ -472,8 +493,13 @@ def test_r0_hourly_dep(month,expected_r0):
     ],
 )
 def test_r0_hourly_dep_refined(month,expected_r0):
-    m = build_hourly_dependent_model(month,intervals_open=((0,24),),
-                                     intervals_presence_infected=((8,12),(13,17)),
-                                     temperatures=data.GenevaTemperatures)
+    m = build_exposure_model(
+        build_hourly_dependent_model(
+            month,
+            intervals_open=((0, 24),),
+            intervals_presence_infected=((8, 12), (13, 17)),
+            temperatures=data.GenevaTemperatures,
+        )
+    )
     p = m.infection_probability()
     npt.assert_allclose(p, expected_r0)
