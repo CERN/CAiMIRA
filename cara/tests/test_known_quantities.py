@@ -3,6 +3,7 @@ import numpy.testing as npt
 import pytest
 
 import cara.models as models
+import cara.data as data
 
 
 def test_no_mask_aerosols(baseline_model):
@@ -245,6 +246,15 @@ def test_piecewiseconstant(time, expected_value):
     assert fun.value(time) == expected_value
 
 
+def test_piecewiseconstant_interp():
+    transition_times = (0, 8, 16, 24)
+    values = (2, 5, 8)
+    fun = models.PiecewiseConstant(transition_times,values)
+    refined_fun = models.PiecewiseConstant(transition_times,values).refine(refine_factor=2)
+    assert refined_fun.transition_times == (0, 4, 8, 12, 16, 20 ,24)
+    assert refined_fun.values == (2, 3.5, 5, 6.5, 8, 8)
+
+
 def test_constantfunction():
     transition_times = (0,24)
     values = (20,)
@@ -267,7 +277,7 @@ def test_piecewiseconstant_vs_interval(time):
 
 
 def test_piecewiseconstant_transition_times():
-    outside_temp=models.GenevaTemperatures['Jan']
+    outside_temp=data.GenevaTemperatures['Jan']
     assert set(outside_temp.transition_times) == outside_temp.interval().transition_times()
 
 
@@ -289,13 +299,27 @@ def test_windowopening(time, expected_value):
 
 
 def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),),
-                    intervals_presence_infected=((0, 4), (5, 7.5))):
+                    intervals_presence_infected=((0, 4), (5, 7.5)),
+                    artificial_refinement=False,
+                    temperatures=data.GenevaTemperatures_hourly):
+    if artificial_refinement:
+        # 5-fold increase of number of times, WITHOUT interpolation
+        # (hence transparent for the results)
+        refine_factor = 2
+        times_refined = tuple(np.linspace(0.,24,
+                refine_factor*len(temperatures[month].values)+1))
+        temperatures_refined = tuple(np.hstack([[v]*refine_factor
+                                     for v in temperatures[month].values]))
+        outside_temp = models.PiecewiseConstant(times_refined,temperatures_refined)
+    else:
+        outside_temp = temperatures[month]
+
     model = models.Model(
         room=models.Room(volume=75),
         ventilation=models.WindowOpening(
             active=models.SpecificInterval(intervals_open),
             inside_temp=models.PiecewiseConstant((0,24),(293,)),
-            outside_temp=models.GenevaTemperatures[month],
+            outside_temp=outside_temp,
             cd_b=0.6, window_height=1.6, opening_length=0.6,
         ),
         infected=models.InfectedPerson(
@@ -340,7 +364,7 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
         models.WindowOpening(
             active=models.SpecificInterval(intervals_open),
             inside_temp=models.PiecewiseConstant((0,24),(293,)),
-            outside_temp=models.GenevaTemperatures[month],
+            outside_temp=data.GenevaTemperatures[month],
             cd_b=0.6, window_height=1.6, opening_length=0.6,
         ),
         models.HEPAFilter(
@@ -366,7 +390,7 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
 
 @pytest.mark.parametrize(
     "month, temperatures",
-    models.Geneva_hourly_temperatures_celsius_per_hour.items(),
+    data.Geneva_hourly_temperatures_celsius_per_hour.items(),
 )
 @pytest.mark.parametrize(
     "time",
@@ -381,7 +405,7 @@ def test_concentrations_hourly_dep_temp_vs_constant(month, temperatures, time):
 
 @pytest.mark.parametrize(
     "month, temperatures",
-    models.Geneva_hourly_temperatures_celsius_per_hour.items(),
+    data.Geneva_hourly_temperatures_celsius_per_hour.items(),
 )
 @pytest.mark.parametrize(
     "time",
@@ -402,7 +426,7 @@ def test_concentrations_hourly_dep_multipleventilation():
 
 @pytest.mark.parametrize(
     "month_temp_item",
-    models.Geneva_hourly_temperatures_celsius_per_hour.items(),
+    data.Geneva_hourly_temperatures_celsius_per_hour.items(),
 )
 @pytest.mark.parametrize(
     "time",
@@ -414,3 +438,42 @@ def test_concentrations_hourly_dep_adding_artificial_transitions(month_temp_item
     m1 = build_hourly_dependent_model(month,intervals_open=((7.5, 8.5),))
     m2 = build_hourly_dependent_model(month,intervals_open=((7.5, 8.5),(8.,8.1)))
     npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-5)
+
+
+@pytest.mark.parametrize(
+    "time",
+    list(np.random.random_sample(10)*24.)+list(np.arange(0,24.5,0.5)),
+)
+def test_concentrations_refine_times(time):
+    month = 'Jan'
+    m1 = build_hourly_dependent_model(month,intervals_open=((0, 24),))
+    m2 = build_hourly_dependent_model(month,intervals_open=((0, 24),),
+                                      artificial_refinement=True)
+    npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-8)
+
+@pytest.mark.parametrize(
+    "month, expected_r0",
+    [
+        ['Jan', 91.06953],
+        ['Jun', 99.46692],
+    ],
+)
+def test_r0_hourly_dep(month,expected_r0):
+    m = build_hourly_dependent_model(month,intervals_open=((0,24),),
+                                     intervals_presence_infected=((8,12),(13,17)))
+    p = m.infection_probability()
+    npt.assert_allclose(p, expected_r0)
+
+@pytest.mark.parametrize(
+    "month, expected_r0",
+    [
+        ['Jan', 91.19912],
+        ['Jun', 99.59226],
+    ],
+)
+def test_r0_hourly_dep_refined(month,expected_r0):
+    m = build_hourly_dependent_model(month,intervals_open=((0,24),),
+                                     intervals_presence_infected=((8,12),(13,17)),
+                                     temperatures=data.GenevaTemperatures)
+    p = m.infection_probability()
+    npt.assert_allclose(p, expected_r0)

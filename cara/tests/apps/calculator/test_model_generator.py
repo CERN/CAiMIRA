@@ -2,6 +2,7 @@ import pytest
 
 from cara.apps.calculator import model_generator
 from cara import models
+from cara import data
 import numpy as np
 
 @pytest.fixture
@@ -25,7 +26,7 @@ def test_ventilation_window(baseline_form):
     window = models.WindowOpening(
         active=models.PeriodicInterval(period=120, duration=10),
         inside_temp=models.PiecewiseConstant((0, 24), (293,)),
-        outside_temp=models.GenevaTemperatures['Dec'],
+        outside_temp=data.GenevaTemperatures['Dec'],
         cd_b=0.6, window_height=1.6, opening_length=0.6,
     )
     baseline_form.ventilation_type = 'natural'
@@ -75,7 +76,7 @@ def test_ventilation_window_hepa(baseline_form):
     window = models.WindowOpening(
         active=models.PeriodicInterval(period=120, duration=10),
         inside_temp=models.PiecewiseConstant((0, 24), (293,)),
-        outside_temp=models.GenevaTemperatures['Dec'],
+        outside_temp=data.GenevaTemperatures['Dec'],
         cd_b=0.6, window_height=1.6, opening_length=0.6,
     )
     hepa = models.HEPAFilter(
