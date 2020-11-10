@@ -31,6 +31,7 @@ class FormData:
     mask_type: str
     mask_wearing: str
     mechanical_ventilation_type: str
+    model_version: str
     opening_distance: float
     recurrent_event_month: str
     room_number: str
@@ -101,6 +102,7 @@ class FormData:
             mask_type=form_data['mask_type'],
             mask_wearing=form_data['mask_wearing'],
             mechanical_ventilation_type=form_data['mechanical_ventilation_type'],
+            model_version=form_data['model_version'],
             opening_distance=float(form_data['opening_distance']),
             recurrent_event_month=form_data['recurrent_event_month'],
             room_number=form_data['room_number'],
@@ -295,6 +297,7 @@ def baseline_raw_form_data():
         'mask_type': 'Type I',
         'mask_wearing': 'removed',
         'mechanical_ventilation_type': '',
+        'model_version': 'BetaV1.1.0',
         'opening_distance': '0.2',
         'recurrent_event_month': 'January',
         'room_number': '123',
