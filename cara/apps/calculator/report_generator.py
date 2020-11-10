@@ -87,8 +87,7 @@ def build_report(model: models.Model, form: FormData):
         'model': model,
         'request': request,
         'form': form,
-        'creation_date': time, 
-        'model_version': 'Beta v1.0.0',
+        'creation_date': time,
     }
 
     context.update(calculate_report_data(model))

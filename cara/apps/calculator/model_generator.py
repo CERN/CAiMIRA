@@ -24,11 +24,14 @@ class FormData:
     coffee_duration: int
     event_type: str
     floor_area: float
+    hepa_amount: float
     hepa_option: bool
     infected_people: int
     lunch_option: bool
+    mask_type: str
     mask_wearing: str
     mechanical_ventilation_type: str
+    model_version: str
     opening_distance: float
     recurrent_event_month: str
     room_number: str
@@ -58,6 +61,7 @@ class FormData:
         validation_tuples = [('activity_type', ACTIVITY_TYPES),
                              ('event_type', EVENT_TYPES),
                              ('mechanical_ventilation_type', MECHANICAL_VENTILATION_TYPES),
+                             ('mask_type', MASK_TYPES),
                              ('mask_wearing', MASK_WEARING),
                              ('ventilation_type', VENTILATION_TYPES),
                              ('volume_type', VOLUME_TYPES),
@@ -89,13 +93,16 @@ class FormData:
             coffee_duration=int(form_data['coffee_duration']),
             event_type=form_data['event_type'],
             floor_area=float(form_data['floor_area']),
+            hepa_amount=float(form_data['hepa_amount']),
             hepa_option=(form_data['hepa_option'] == '1'),
             infected_people=int(form_data['infected_people']),
             lunch_finish=time_string_to_minutes(form_data['lunch_finish']),
             lunch_option=(form_data['lunch_option'] == '1'),
             lunch_start=time_string_to_minutes(form_data['lunch_start']),
+            mask_type=form_data['mask_type'],
             mask_wearing=form_data['mask_wearing'],
             mechanical_ventilation_type=form_data['mechanical_ventilation_type'],
+            model_version=form_data['model_version'],
             opening_distance=float(form_data['opening_distance']),
             recurrent_event_month=form_data['recurrent_event_month'],
             room_number=form_data['room_number'],
@@ -151,7 +158,7 @@ class FormData:
                     active=always_on, q_air_mech=self.air_supply)
 
         if self.hepa_option:
-            hepa = models.HEPAFilter(active=always_on, q_air_mech=250.)
+            hepa = models.HEPAFilter(active=always_on, q_air_mech=self.hepa_amount)
             return models.MultipleVentilation((ventilation,hepa))
         else:
             return ventilation
@@ -228,9 +235,9 @@ def model_from_form(form: FormData) -> models.Model:
     # Initializes the virus as SARS_Cov_2
     virus = models.Virus.types['SARS_CoV_2']
 
-    # Initializes a mask of type 1 if mask wearing is "continuous", otherwise instantiates the mask attribute as
+    # Initializes the mask type if mask wearing is "continuous", otherwise instantiates the mask attribute as
     # the "No mask"-mask
-    mask = models.Mask.types['Type I' if form.mask_wearing == "continuous" else 'No mask']
+    mask = models.Mask.types[form.mask_type if form.mask_wearing == "continuous" else 'No mask']
 
     # A dictionary containing the mapping of activities listed in the UI to the activity level and expiration level
     # of the infected and exposed occupants respectively.
@@ -279,6 +286,7 @@ def baseline_raw_form_data():
         'coffee_duration': '10',
         'event_type': 'recurrent_event',
         'floor_area': '',
+        'hepa_amount': '250',
         'hepa_option': '0',
         'infected_finish': '18:00',
         'infected_people': '1',
@@ -286,8 +294,10 @@ def baseline_raw_form_data():
         'lunch_finish': '13:30',
         'lunch_option': '1',
         'lunch_start': '12:30',
+        'mask_type': 'Type I',
         'mask_wearing': 'removed',
         'mechanical_ventilation_type': '',
+        'model_version': 'BetaV1.1.0',
         'opening_distance': '0.2',
         'recurrent_event_month': 'January',
         'room_number': '123',
@@ -307,6 +317,7 @@ def baseline_raw_form_data():
 ACTIVITY_TYPES = {'office', 'training', 'workshop'}
 EVENT_TYPES = {'single_event', 'recurrent_event'}
 MECHANICAL_VENTILATION_TYPES = {'air_changes', 'air_supply', 'not-applicable'}
+MASK_TYPES = {'Type I', 'FFP2'}
 MASK_WEARING = {'continuous', 'removed'}
 VENTILATION_TYPES = {'natural', 'mechanical', 'no-ventilation'}
 VOLUME_TYPES = {'room_volume', 'room_dimensions'}
