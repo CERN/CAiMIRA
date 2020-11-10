@@ -113,9 +113,12 @@
 	<p class="data_title">Mask wearing:</p>
 	<ul>
 		<li><p class="data_text">Masks worn at workstations?
-		{{ "No" if form.mask_wearing == "removed" else "Yes" }}
-		</p></li>
-		<li><p class="data_text">Mask type: Type 1</p></li>
+		{% if form.mask_wearing == "continuous" %}
+		Yes </p></li>
+		<li><p class="data_text">Mask type: {{ form.mask_type }}</p></li>
+		{% else %}
+		No </p></li>
+		{% endif %}
 	</ul>
 
 	<p class="result_title">Results:</p>

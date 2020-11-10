@@ -15,7 +15,6 @@ function on_ventilation_type_change() {
   });
 }
 
-
 function getChildElement(elem) {
   // Get the element named in the given element's data-enables attribute.
   return $("#" + elem.data("enables"));
@@ -62,6 +61,12 @@ function require_fields(obj) {
       break;
     case "lunch_option_yes":
       require_lunch(true);
+      break;
+    case "mask_on":
+      require_mask(true);
+      break;
+    case "mask_off":
+      require_mask(false);
       break;
     default:
       break;
@@ -122,6 +127,11 @@ function require_recurrent_event(option) {
 
 function require_lunch(option) {
   $("#lunch_start").prop('required', option);
+  $("#mask_ffp2").prop('required', option);
+}
+
+function require_lunch(option) {
+  $("#mask_type1").prop('required', option);
   $("#lunch_finish").prop('required', option);
 }
 
@@ -135,7 +145,6 @@ $(function () {
     dateFormat: 'dd/mm/yy'
   });
 });
-
 
 function show_disclaimer() {
   var dots = document.getElementById("dots");
@@ -203,8 +212,7 @@ function parseValToNumber(obj) {
     return parseInt(obj.val().replace(':',''), 10);
 }
 
-/* ------ On Load ---------- */
-
+/* -------On Load------- */
 $(document).ready(function () {
   // When the document is ready, deal with the fact that we may be here
   // as a result of a forward/back browser action. If that is the case, update
@@ -230,7 +238,6 @@ $(document).ready(function () {
   if (radioValue.val()) {
     require_fields(radioValue.get(0));
   }
-
 });
 
 /* -------Debugging------- */
