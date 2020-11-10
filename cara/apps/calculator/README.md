@@ -62,7 +62,7 @@ The window opening distance (in m) is:
 
  * For hinged windows, it is the distance between the fixed frame and the movable glazed part when open.
 
- ![Window Opening Distance](window_opening.png "How to measure window opening distance")
+ ![Window Opening Distance](static/images/window_opening.png "How to measure window opening distance")
  
 **Notes**: If you are unsure about the opening distance for the window, it is recommended to choose a conservative value (5 cms, 0.05m or 10cms, 0.10m).
 If you open the window at different distances throughout the day, choose an average value.

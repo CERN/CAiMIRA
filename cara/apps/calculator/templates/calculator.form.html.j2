@@ -1,8 +1,8 @@
 {% extends "layout.html.j2" %}
 
 {% set MODEL_VERSION="BetaV1.1.0" %}
-{% set CALCULATOR_ACTIVE=1 %}
 {% set DEBUG=False %}
+{% set active_page="calculator/" %}
 
 {% block extra_headers %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" integrity="sha512-aOG0c6nPNzGk+5zjwyJaoRUgCdOrfSDhmMID2u4+OIslr0GjpLKo7Xm0Ao3xmpM4T8AmIouRkqwj1nrdVsLKEQ==" crossorigin="anonymous">
@@ -173,7 +173,10 @@
 <div style="width: 33%; float:left;">
   This tool simulates the long range airborne spread SARS-CoV-2 virus in a finite volume and estimates the risk of COVID-19 infection. It is based on current scientific data and can be used to measures the effectiveness of different mitigation measures.<br>
   
-  <b>How to use this tool:</b> <br>
+  For detailed explanations on how to use this tool please see the <a href="/calculator/user-guide"> COVID Calculator user-guide </a>. <br>
+
+  <b>Usage summary:</b> <br>
+
   <b>Room data</b><br>
   Enter the data about the area you wish to study. You can find these figures in GIS Portal, or by measuring them yourself.<br>
   <b>Ventilation data</b> <br>
