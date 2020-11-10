@@ -68,6 +68,12 @@ function require_fields(obj) {
     case "mask_off":
       require_mask(false);
       break;
+    case "hepa_yes":
+      require_hepa(true);
+      break;
+    case "hepa_no":
+      require_hepa(false);
+      break;
     default:
       break;
   }
@@ -133,6 +139,10 @@ function require_lunch(option) {
 function require_lunch(option) {
   $("#mask_type1").prop('required', option);
   $("#lunch_finish").prop('required', option);
+}
+
+function require_hepa(option) {
+  $("#hepa_amount").prop('required', option);
 }
 
 function setMaxInfectedPeople() {

@@ -68,11 +68,11 @@ Beta v1.0.0 <span style="float:right; font-weight:bold">Please send feedback to 
     </div>
     
     HEPA filtration:
-    <input type="radio" id="hepa_filter" name="hepa_option" value=1>
-    <label for="hepa_filter">Yes</label>
-    
-    <input type="radio" id="hepa_filter" name="hepa_option" value=0 checked="checked">
+    <input type="radio" id="hepa_no" name="hepa_option" value=0 onclick="require_fields(this)" checked="checked">
     <label for="hepa_filter">No</label>
+    <input type="radio" id="hepa_yes" name="hepa_option" value=1 onclick="require_fields(this)">
+    <label for="hepa_filter">Yes</label>
+    <input type="number" step=0.01 id="hepa_amount" name="hepa_amount" placeholder="(m³ / hour)">
     <hr width="80%">
 
     <b>Face masks:</b><br>
