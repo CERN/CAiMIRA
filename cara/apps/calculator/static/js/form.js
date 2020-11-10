@@ -160,12 +160,28 @@ function validate_form(form) {
 
   //Validate all dates
   $("input[required].datepicker").each(function () {
-    $(this).removeClass("red");
+    $(this).removeClass("red_border");
+    $(this).next().hide();
 
     var fromDate = $(this).val();
     if (!isValidDate(fromDate)) {
-      $(this).addClass("red");
+      $(this).addClass("red_border");
       submit = false;
+      $(this).next().show();
+    }
+  });
+
+  //Validate all times
+  $("input[required].finish_time").each(function () {
+    $(this).removeClass("red_border");
+    $(this).next().hide();
+
+    var startTime = parseValToNumber($(this).prev());
+    var finishTime = parseValToNumber($(this));
+    if (startTime > finishTime) {
+      $(this).addClass("red_border");
+      submit = false;
+      $(this).next().show();
     }
   });
 
@@ -181,6 +197,10 @@ function isValidDate(date) {
   if (y > 2100 || y < 1900) return false;
   var composedDate = new Date(y + '/' + m + '/' + d);
   return composedDate.getDate() == d && composedDate.getMonth() + 1 == m && composedDate.getFullYear() == y;
+}
+
+function parseValToNumber(obj) {
+    return parseInt(obj.val().replace(':',''), 10);
 }
 
 /* ------ On Load ---------- */

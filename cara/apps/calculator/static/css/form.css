@@ -6,6 +6,10 @@
 	color: black;
 }
 
-.red {
+.red_border {
 	box-shadow: 0px 0px 2px 1px red;
+}
+
+.red_text {
+	color: red;
 }

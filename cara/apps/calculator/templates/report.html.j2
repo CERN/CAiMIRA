@@ -4,6 +4,8 @@
 	<meta charset="UTF-8">  
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
+  	<title>Report | CARA (COVID Airborne Risk Assessment)</title>
+
 	<link rel="stylesheet" type="text/css" href="/calculator/static/css/report.css"> 
 </head>
 
@@ -63,7 +65,7 @@
 		infected.</p></li>
 		<li><p class="data_text">Activity type: 
 		{% if form.activity_type == "office" %}
-		Office work – typical scenario with all persons seated, talking.
+		Office/Meeting – typical scenario with all persons seated, talking.
 		{% elif form.activity_type == "workshop" %}
 		Workshop = assembly workshop environment, all persons doing light exercise, talking.
 		{% elif form.activity_type == "training" %}
