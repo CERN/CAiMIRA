@@ -3,6 +3,7 @@ import html
 import typing
 
 from cara import models
+from cara import data
 
 
 @dataclass
@@ -131,7 +132,7 @@ class FormData:
                 month = self.recurrent_event_month[:3]
 
             inside_temp = models.PiecewiseConstant((0, 24), (293,))
-            outside_temp = models.GenevaTemperatures[month]
+            outside_temp = data.GenevaTemperatures[month]
 
             ventilation = models.WindowOpening(
                 active=window_interval,
