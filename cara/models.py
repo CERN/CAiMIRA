@@ -419,31 +419,13 @@ class InfectedPopulation(Population):
     #: The type of expiration that is being emitted whilst doing the activity.
     expiration: Expiration
 
-    def emission_rate_if_present(self):
+    def emission_rate_when_present(self) -> float:
         """
         The emission rate if the infected population is present.
 
         Note that the rate is not currently time-dependent.
 
         """
-
-
-    def individual_emission_rate(self, time) -> float:
-        """
-        The emission rate of a single individual in the population.
-
-        """
-        # Note: The original model avoids time dependence on the emission rate
-        # at the cost of implementing a piecewise (on time) concentration function.
-
-        if not self.person_present(time):
-            return 0
-
-        # Note: It is essential that the value of the emission rate is not
-        # itself a function of time. Any change in rate must be accompanied
-        # with a declaration of state change time, as is the case for things
-        # like Ventilation.
-
         # Emission Rate (infectious quantum / h)
         aerosols = self.expiration.aerosols(self.mask)
         if np.isinf(aerosols):
@@ -456,6 +438,24 @@ class InfectedPopulation(Population):
                   10**6 *
                   aerosols)
         return ER
+
+    def individual_emission_rate(self, time) -> float:
+        """
+        The emission rate of a single individual in the population.
+
+        """
+        # Note: The original model avoids time dependence on the emission rate
+        # at the cost of implementing a piecewise (on time) concentration function.
+
+        if not self.person_present(time):
+            return 0.
+
+        # Note: It is essential that the value of the emission rate is not
+        # itself a function of time. Any change in rate must be accompanied
+        # with a declaration of state change time, as is the case for things
+        # like Ventilation.
+
+        return self.emission_rate_when_present()
 
     @functools.lru_cache()
     def emission_rate(self, time) -> float:

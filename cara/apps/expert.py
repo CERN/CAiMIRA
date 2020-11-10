@@ -112,7 +112,7 @@ class WidgetView:
         self.out.clear_output()
         with self.out:
             P = model.infection_probability()
-            print(f'Emission rate (quanta/hr): {model.concentration_model.infected.emission_rate(0.1)}')
+            print(f'Emission rate (quanta/hr): {model.concentration_model.infected.emission_rate_when_present()}')
             print(f'Probability of infection: {np.round(P, 0)}%')
 
             print(f'Number of exposed: {model.exposed.number}')

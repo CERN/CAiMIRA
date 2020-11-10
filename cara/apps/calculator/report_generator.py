@@ -23,7 +23,7 @@ def calculate_report_data(model: models.ExposureModel):
     concentrations = [model.concentration_model.concentration(time) for time in times]
     highest_const = max(concentrations)
     prob = model.infection_probability()
-    er = model.concentration_model.infected.emission_rate(0.1)
+    er = model.concentration_model.infected.emission_rate_when_present()
     exposed_occupants = model.exposed.number
     r0 = model.reproduction_rate()
 
