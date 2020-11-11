@@ -128,10 +128,10 @@ class WidgetView:
         self.widget.children += (self._build_exposed(node),)
 
     def _build_exposed(self, node):
-        return collapsible(
-            [self._build_activity(node.exposed.activity)],
-            title="Exposed"
-        )
+        return collapsible([widgets.HBox([
+            self._build_mask(node.exposed.mask),
+            self._build_activity(node.exposed.activity),
+        ])], title="Exposed")
 
     def _build_infected(self, node):
         return collapsible([widgets.HBox([
