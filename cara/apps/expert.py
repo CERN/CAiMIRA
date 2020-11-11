@@ -166,10 +166,10 @@ class WidgetView:
         def outsidetemp_change(change):
             node.values = (change['new']+273.15,)
         outside_temp.observe(outsidetemp_change, names=['value'])
-        return widgets.VBox(
-                [                   widgets.HBox([widgets.Label('Outside temperature',
-                                    layout=widgets.Layout(width='150px')), outside_temp]),
-                                    ])
+        return widgets.VBox([
+                        widgets.HBox([widgets.Label('Outside temperature',
+                        layout=widgets.Layout(width='150px')), outside_temp]),
+                        ])
 
     def _build_window(self, node):
         period = widgets.IntSlider(value=node.active.period, min=0, max=240)
@@ -226,7 +226,7 @@ class WidgetView:
                  ] + list(outsidetemp_widgets.values())
             )
 
-    def _build_hepa(self, node):
+    def _build_mechanical(self, node):
         period = widgets.IntSlider(value=node.active.period, min=0, max=240, step=5)
         interval = widgets.IntSlider(value=node.active.duration, min=0, max=240, step=5)
         q_air_mech = widgets.IntSlider(value=node.q_air_mech, min=0, max=1000, step=5)
@@ -318,7 +318,7 @@ class WidgetView:
     def _build_ventilation(self, node):
         ventilation_widgets = {
             'Natural': self._build_window(node._states['Natural']),
-            'Mechanical': self._build_hepa(node._states['Mechanical']),
+            'Mechanical': self._build_mechanical(node._states['Mechanical']),
         }
         for name, widget in ventilation_widgets.items():
             widget.layout.visible = False
