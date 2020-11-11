@@ -13,3 +13,7 @@
 .red_text {
 	color: red;
 }
+
+#disclaimer,#code_license {
+	font-size: 9pt;
+}
