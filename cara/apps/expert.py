@@ -403,13 +403,13 @@ class CARAStateBuilder(state.StateBuilder):
 class ExpertApplication:
     def __init__(self):
         default_scenario = state.DataclassInstanceState(
-                models.Model,
+                models.ExposureModel,
                 state_builder=CARAStateBuilder(),
             )
         default_scenario.dcs_update_from(baseline_model)
         # For the time-being, we have to initialise the select states. Careful
         # as values might not correspond to what the baseline model says.
-        default_scenario.infected.mask.dcs_select('No mask')
+        default_scenario.concentration_model.infected.mask.dcs_select('No mask')
         self.scenarios = (default_scenario,)
         self.scenario_names = ('Scenario 1',)
         self.views = (WidgetView(default_scenario),)
@@ -449,7 +449,7 @@ class ExpertApplication:
         def on_duplicate_click(b):
             self.scenario_names += (self.scenario_names[tab_index] + " (copy)",)
             new_scenario = state.DataclassInstanceState(
-                models.Model,
+                models.ExposureModel,
                 state_builder=CARAStateBuilder(),
             )
             new_scenario.dcs_update_from(self.scenarios[tab_index].dcs_instance())
