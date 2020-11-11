@@ -133,12 +133,15 @@ function require_recurrent_event(option) {
 
 function require_lunch(option) {
   $("#lunch_start").prop('required', option);
-  $("#mask_ffp2").prop('required', option);
 }
 
 function require_lunch(option) {
-  $("#mask_type1").prop('required', option);
   $("#lunch_finish").prop('required', option);
+}
+
+function require_mask(option) {
+  $("#mask_type1").prop('required', option);
+  $("#mask_ffp2").prop('required', option);
 }
 
 function require_hepa(option) {
