@@ -203,6 +203,9 @@ class WindowOpening(Ventilation):
     #: used to exchange air (0 <= cd_b <= 1)
     cd_b: float = 0.6
 
+    #: Minimum difference between inside and outside temperature
+    min_deltaT: float = 0.1
+
     def transition_times(self) -> typing.Set[float]:
         transitions = super().transition_times()
         transitions.update(self.inside_temp.transition_times)
@@ -218,7 +221,10 @@ class WindowOpening(Ventilation):
         outside_temp = self.outside_temp.value(time)
 
         # Reminder, no dependence on time in the resulting calculation.
-        temp_delta = abs(inside_temp - outside_temp) / outside_temp
+        if outside_temp < (inside_temp-self.min_deltaT):
+            temp_delta = (inside_temp - outside_temp) / outside_temp
+        else:
+            temp_delta = self.min_deltaT / outside_temp
         root = np.sqrt(9.81 * self.window_height * temp_delta)
         window_area = self.window_height * self.opening_length * self.number_of_windows
         return (3600 / (3 * room.volume)) * self.cd_b * window_area * root
