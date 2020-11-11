@@ -6,4 +6,4 @@ def test_app():
     # do anything fancy to verify how it looks etc., we leave that for manual
     # testing.
     expert_app = cara.apps.ExpertApplication()
-    assert expert_app.model_state.room.volume == 75
+    assert expert_app.model_state.concentration_model.room.volume == 75

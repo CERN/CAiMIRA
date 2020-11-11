@@ -120,7 +120,7 @@ class FormData:
             infected_finish=time_string_to_minutes(form_data['infected_finish']),
         )
 
-    def build_model(self) -> models.Model:
+    def build_model(self) -> models.ExposureModel:
         return model_from_form(self)
 
     def ventilation(self) -> models.Ventilation:
@@ -224,7 +224,7 @@ class FormData:
         return models.SpecificInterval(tuple(present_intervals))
 
 
-def model_from_form(form: FormData) -> models.Model:
+def model_from_form(form: FormData) -> models.ExposureModel:
     # Initializes room with volume either given directly or as product of area and height
     if form.volume_type == 'room_volume':
         volume = form.room_volume
@@ -257,19 +257,25 @@ def model_from_form(form: FormData) -> models.Model:
     exposed_occupants = form.total_people - infected_occupants
 
     # Initializes and returns a model with the attributes defined above
-    return models.Model(
-        room=room,
-        ventilation=form.ventilation(),
-        infected=models.InfectedPerson(
-            virus=virus,
-            presence=form.present_interval(),
-            mask=mask,
-            activity=infected_activity,
-            expiration=infected_expiration
+    return models.ExposureModel(
+        concentration_model=models.ConcentrationModel(
+            room=room,
+            ventilation=form.ventilation(),
+            infected=models.InfectedPopulation(
+                number=infected_occupants,
+                virus=virus,
+                presence=form.present_interval(),
+                mask=mask,
+                activity=infected_activity,
+                expiration=infected_expiration
+            ),
         ),
-        infected_occupants=infected_occupants,
-        exposed_occupants=exposed_occupants,
-        exposed_activity=exposed_activity
+        exposed=models.Population(
+            number=exposed_occupants,
+            presence=form.present_interval(),
+            activity=exposed_activity,
+            mask=mask,
+        )
     )
 
 
