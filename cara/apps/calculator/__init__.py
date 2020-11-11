@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import jinja2
+import mistune
 from tornado.web import Application, RequestHandler, StaticFileHandler
 
 from . import model_generator
@@ -56,16 +58,26 @@ class LandingPage(RequestHandler):
 
 class CalculatorForm(RequestHandler):
     def get(self):
-        import jinja2
+
         cara_templates = Path(__file__).parent.parent / "templates"
         calculator_templates = Path(__file__).parent / "templates"
         env = jinja2.Environment(
             loader=jinja2.FileSystemLoader([cara_templates, calculator_templates]),
         )
 
-        template = env.get_template("calculator.form.html.j2")
+        template = self.settings['template_environment'].get_template("calculator.form.html.j2")
         report = template.render()
         self.finish(report)
+
+
+class ReadmeHandler(RequestHandler):
+    def get(self):
+        template = self.settings['template_environment'].get_template("page.html.j2")
+        markdown = (Path(__file__).parent / 'README.md').read_text()
+        self.write(template.render(
+            active_page="calculator/user-guide",
+            contents=mistune.markdown(markdown)),
+        )
 
 
 def make_app(debug=False, prefix='/calculator'):
@@ -77,9 +89,18 @@ def make_app(debug=False, prefix='/calculator'):
         (prefix + r'/?', CalculatorForm),
         (prefix + r'/report', ConcentrationModel),
         (prefix + r'/baseline-model/result', StaticModel),
+        (prefix + r'/user-guide', ReadmeHandler),
         (prefix + r'/static/(.*)', StaticFileHandler, {'path': calculator_static_dir}),
     ]
+
+    cara_templates = Path(__file__).parent.parent / "templates"
+    calculator_templates = Path(__file__).parent / "templates"
+    template_environment = jinja2.Environment(
+        loader=jinja2.FileSystemLoader([cara_templates, calculator_templates]),
+    )
+
     return Application(
         urls,
         debug=debug,
+        template_environment=template_environment,
     )
