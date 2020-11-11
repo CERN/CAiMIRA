@@ -109,7 +109,6 @@ function require_mechanical_ventilation(option) {
 function require_natural_ventilation(option) {
   $("#windows_number").prop('required', option);
   $("#window_height").prop('required', option);
-  $("#window_width").prop('required', option);
   $("#opening_distance").prop('required', option);
   $("#always").prop('required', option);
   $("#interval").prop('required', option);
