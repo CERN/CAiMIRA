@@ -133,10 +133,15 @@ function require_recurrent_event(option) {
 
 function require_lunch(option) {
   $("#lunch_start").prop('required', option);
-}
-
-function require_lunch(option) {
   $("#lunch_finish").prop('required', option);
+  if (option) {
+    document.getElementById("lunch_start").value = "12:30";
+    document.getElementById("lunch_finish").value = "13:30";
+  } 
+  else {
+    document.getElementById("lunch_start").value = "";
+    document.getElementById("lunch_finish").value = "";
+  }
 }
 
 function require_mask(option) {

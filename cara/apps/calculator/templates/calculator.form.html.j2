@@ -137,14 +137,14 @@
 
     <!-- Lunch Options -->
     Lunch break:
-    <input type="radio" id="lunch_option_no" name="lunch_option" value=0 checked="checked" onclick="require_fields(this)">
+    <input type="radio" id="lunch_option_no" name="lunch_option" value=0 onclick="require_fields(this)">
       <label for="lunch_option">No</label>
-    <input type="radio" id="lunch_option_yes" name="lunch_option" value=1 onclick="require_fields(this)"></input>
+    <input type="radio" id="lunch_option_yes" name="lunch_option" value=1 checked="checked" onclick="require_fields(this)"></input>
       <label for="lunch_option">Yes</label><br>
     
     <div id="DIVlunch_break">
-        Start: <input type="time" id="lunch_start" name="lunch_start" unrequired> &nbsp;&nbsp;
-        Finish: <input type="time" id="lunch_finish" class="finish_time" name="lunch_finish" unrequired>
+        Start: <input type="time" id="lunch_start" name="lunch_start" value="12:30" required> &nbsp;&nbsp;
+        Finish: <input type="time" id="lunch_finish" class="finish_time" name="lunch_finish" value="13:30" required>
         <span id="lunch_time_error" class="red_text" hidden>Finish time must be after start</span><br>
     </div>
 
