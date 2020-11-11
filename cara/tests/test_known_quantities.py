@@ -471,7 +471,7 @@ def build_exposure_model(concentration_model):
     "month, expected_r0",
     [
         ['Jan', 91.06953],
-        ['Jun', 99.46692],
+        ['Jun', 99.995335],
     ],
 )
 def test_r0_hourly_dep(month,expected_r0):
@@ -489,7 +489,7 @@ def test_r0_hourly_dep(month,expected_r0):
     "month, expected_r0",
     [
         ['Jan', 91.19912],
-        ['Jun', 99.59226],
+        ['Jun', 99.997324],
     ],
 )
 def test_r0_hourly_dep_refined(month,expected_r0):
