@@ -5,6 +5,8 @@ If you are using the expert version of the tool,  you should look at the expert 
 Please bear in mind that this beta version is for an extensive testing of the functionality of the tool and analyse the results. 
 At this stage, do not use the results as final output of the workplace risk assessment.
 
+For more information on the Airborne Transmission of SARS-CoV-2, feel free to check out the HSE Seminar: https://cds.cern.ch/record/2743403
+
 
 ## Disclaimer
 
