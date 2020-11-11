@@ -10,6 +10,7 @@ import matplotlib.figure
 
 from cara import models
 from cara import state
+from cara import data
 
 
 def collapsible(widgets_to_collapse: typing.List, title: str, start_collapsed=True):
@@ -35,7 +36,8 @@ class ConcentrationFigure:
 
     def update(self, model: models.ConcentrationModel):
         resolution = 600
-        ts = np.linspace(0, 10, resolution)
+        ts = np.linspace(sorted(model.infected.presence.transition_times())[0],
+                         sorted(model.infected.presence.transition_times())[-1], resolution)
         concentration = [model.concentration(t) for t in ts]
         if self.line is None:
             [self.line] = self.ax.plot(ts, concentration)
@@ -55,7 +57,7 @@ class ConcentrationFigure:
         # Update the top limit based on the concentration if it exceeds 5
         # (rare but possible).
         top = max([3, max(concentration)])
-        self.ax.set_ylim(bottom=1e-4, top=top)
+        self.ax.set_ylim(bottom=0., top=top)
         self.figure.canvas.draw()
 
 
@@ -126,10 +128,10 @@ class WidgetView:
         self.widget.children += (self._build_exposed(node),)
 
     def _build_exposed(self, node):
-        return collapsible(
-            [self._build_activity(node.exposed.activity)],
-            title="Exposed"
-        )
+        return collapsible([widgets.HBox([
+            self._build_mask(node.exposed.mask),
+            self._build_activity(node.exposed.activity),
+        ])], title="Exposed")
 
     def _build_infected(self, node):
         return collapsible([widgets.HBox([
@@ -158,9 +160,21 @@ class WidgetView:
         )
         return widget
 
+    def _build_outsidetemp(self,node):
+        outside_temp = widgets.IntSlider(value=10., min=-10., max=30.)
+
+        def outsidetemp_change(change):
+            node.values = (change['new']+273.15,)
+        outside_temp.observe(outsidetemp_change, names=['value'])
+        return widgets.VBox([
+                        widgets.HBox([widgets.Label('Outside temperature',
+                        layout=widgets.Layout(width='150px')), outside_temp]),
+                        ])
+
     def _build_window(self, node):
         period = widgets.IntSlider(value=node.active.period, min=0, max=240)
         interval = widgets.IntSlider(value=node.active.duration, min=0, max=240)
+        inside_temp = widgets.IntSlider(value=node.inside_temp.values[0]-273.15, min=15., max=25.)
 
         def on_period_change(change):
             node.active.period = change['new']
@@ -168,20 +182,54 @@ class WidgetView:
         def on_interval_change(change):
             node.active.duration = change['new']
 
+        def insidetemp_change(change):
+            node.inside_temp.values = (change['new']+273.15,)
+
         # TODO: Link the state back to the widget, not just the other way around.
         period.observe(on_period_change, names=['value'])
         interval.observe(on_interval_change, names=['value'])
+        inside_temp.observe(insidetemp_change, names=['value'])
 
-        return widget_group(
+        outsidetemp_widgets = {
+            'Fixed': self._build_outsidetemp(node.outside_temp),
+            'Daily variation': self._build_month(node),
+        }
+        for name, widget in outsidetemp_widgets.items():
+            widget.layout.visible = False
+
+        outsidetemp_w = widgets.ToggleButtons(
+            options=outsidetemp_widgets.keys(),
+        )
+
+        def toggle_outsidetemp(value):
+            for name, widget in outsidetemp_widgets.items():
+                widget.layout.display = 'none'
+
+            #node.dcs_select(value)
+
+            widget = outsidetemp_widgets[value]
+            widget.layout.visible = True
+            widget.layout.display = 'block'
+
+        outsidetemp_w.observe(lambda event: toggle_outsidetemp(event['new']), 'value')
+        toggle_outsidetemp(outsidetemp_w.value)
+
+        return widgets.VBox(
                 [
-                    [widgets.Label('Open every n minutes'), period],
-                    [widgets.Label('For how long'), interval],
-                 ]
+                    widgets.HBox([widgets.Label('Open every n minutes',
+                                    layout=widgets.Layout(width='150px')), period]),
+                    widgets.HBox([widgets.Label('For how long',
+                                    layout=widgets.Layout(width='150px')), interval]),
+                    widgets.HBox([widgets.Label('Inside temperature',
+                                    layout=widgets.Layout(width='150px')), inside_temp]),
+                    widget_group([[widgets.Label('Outside temp.'), outsidetemp_w]])
+                 ] + list(outsidetemp_widgets.values())
             )
 
-    def _build_hepa(self, node):
+    def _build_mechanical(self, node):
         period = widgets.IntSlider(value=node.active.period, min=0, max=240, step=5)
         interval = widgets.IntSlider(value=node.active.duration, min=0, max=240, step=5)
+        q_air_mech = widgets.IntSlider(value=node.q_air_mech, min=0, max=1000, step=5)
 
         def on_period_change(change):
             node.active.period = change['new']
@@ -189,16 +237,36 @@ class WidgetView:
         def on_interval_change(change):
             node.active.duration = change['new']
 
+        def q_air_mech_change(change):
+            node.q_air_mech = change['new']
+
         # TODO: Link the state back to the widget, not just the other way around.
         period.observe(on_period_change, names=['value'])
         interval.observe(on_interval_change, names=['value'])
+        q_air_mech.observe(q_air_mech_change, names=['value'])
 
-        return widget_group(
+        return widgets.VBox(
                 [
-                    [widgets.Label('On every n minutes'), period],
-                    [widgets.Label('For how long'), interval],
+                    widgets.HBox([widgets.Label('On every n minutes',
+                                    layout=widgets.Layout(width='150px')), period]),
+                    widgets.HBox([widgets.Label('For how long',
+                                    layout=widgets.Layout(width='150px')), interval]),
+                    widgets.HBox([widgets.Label('Flow rate (m^3/h)',
+                                    layout=widgets.Layout(width='150px')), q_air_mech]),
                  ]
             )
+
+    def _build_month(self, node):
+
+        month_choice = widgets.Select(options=list(data.GenevaTemperatures.keys()), value='Jan')
+
+        def on_month_change(change):
+            node.outside_temp = data.GenevaTemperatures[change['new']]
+        month_choice.observe(on_month_change, names=['value'])
+
+        return widget_group(
+            [[widgets.Label("Month"), month_choice]]
+        )
 
     def _build_activity(self, node):
         activity = node.dcs_instance()
@@ -250,7 +318,7 @@ class WidgetView:
     def _build_ventilation(self, node):
         ventilation_widgets = {
             'Natural': self._build_window(node._states['Natural']),
-            'HEPA': self._build_hepa(node._states['HEPA']),
+            'Mechanical': self._build_mechanical(node._states['Mechanical']),
         }
         for name, widget in ventilation_widgets.items():
             widget.layout.visible = False
@@ -288,14 +356,14 @@ baseline_model = models.ExposureModel(
         room=models.Room(volume=75),
         ventilation=models.WindowOpening(
             active=models.PeriodicInterval(period=120, duration=120),
-            inside_temp=models.PiecewiseConstant((0,24),(293,)),
-            outside_temp=models.PiecewiseConstant((0,24),(283,)),
+            inside_temp=models.PiecewiseConstant((0,24),(293.15,)),
+            outside_temp=models.PiecewiseConstant((0,24),(283.15,)),
             cd_b=0.6, window_height=1.6, opening_length=0.6,
         ),
         infected=models.InfectedPopulation(
             number=1,
             virus=models.Virus.types['SARS_CoV_2'],
-            presence=models.SpecificInterval(((0, 4), (5, 8))),
+            presence=models.SpecificInterval(((8, 12), (13, 17))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light exercise'],
             expiration=models.Expiration.types['Unmodulated Vocalization'],
@@ -303,7 +371,7 @@ baseline_model = models.ExposureModel(
     ),
     exposed=models.Population(
         number=10,
-        presence=models.SpecificInterval(((0, 4), (5, 8))),
+        presence=models.SpecificInterval(((8, 12), (13, 17))),
         activity=models.Activity.types['Light exercise'],
         mask=models.Mask.types['No mask'],
     ),
@@ -321,13 +389,13 @@ class CARAStateBuilder(state.StateBuilder):
         s = state.DataclassStateNamed(
             states={
                 'Natural': self.build_generic(models.WindowOpening),
-                'HEPA': self.build_generic(models.HEPAFilter),
+                'Mechanical': self.build_generic(models.HVACMechanical),
             },
             state_builder=self,
         )
-        # Initialise the HEPA state
-        s._states['HEPA'].dcs_update_from(
-            models.HEPAFilter(models.PeriodicInterval(120, 120), 500.)
+        # Initialise the HVAC state
+        s._states['Mechanical'].dcs_update_from(
+            models.HVACMechanical(models.PeriodicInterval(120, 120), 500.)
         )
         return s
 
