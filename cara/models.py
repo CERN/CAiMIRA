@@ -538,6 +538,9 @@ class ExposureModel:
     #: The population of non-infected people to be used in the model.
     exposed: Population
 
+    #: The number of times the exposure event is repeated (default 1).
+    repeats: int = 1
+
     def quanta_exposure(self) -> float:
         """The number of virus quanta per meter^3."""
         exposure = 0.0
@@ -548,7 +551,7 @@ class ExposureModel:
 
         for start, stop in self.exposed.presence.boundaries():
             exposure += integrate(self.concentration_model.concentration, start, stop)
-        return exposure
+        return exposure * self.repeats
 
     def infection_probability(self):
         exposure = self.quanta_exposure()

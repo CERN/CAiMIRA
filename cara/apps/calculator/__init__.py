@@ -38,12 +38,8 @@ class ConcentrationModel(RequestHandler):
 
 class StaticModel(RequestHandler):
     def get(self):
-        requested_model_config = model_generator.baseline_raw_form_data()
         form = model_generator.FormData.from_dict(model_generator.baseline_raw_form_data())
-        model = form.build_model(
-            # TODO: This argument to be removed.
-            tmp_raw_form_data=requested_model_config,
-        )
+        model = form.build_model()
         report = build_report(model, form)
         self.finish(report)
 

@@ -1,4 +1,5 @@
 import base64
+import dataclasses
 from datetime import datetime
 import io
 from pathlib import Path
@@ -11,6 +12,13 @@ import numpy as np
 
 from cara import models
 from .model_generator import FormData
+
+
+@dataclasses.dataclass(frozen=True)
+class RepeatEvents:
+    repeats: int
+    probability_of_infection: float
+    R0: float
 
 
 def calculate_report_data(model: models.ExposureModel):
@@ -27,6 +35,17 @@ def calculate_report_data(model: models.ExposureModel):
     exposed_occupants = model.exposed.number
     r0 = model.reproduction_rate()
 
+    repeated_events = []
+    for n in [1, 2, 3, 4, 5, 10, 15, 20]:
+        repeat_model = dataclasses.replace(model, repeats=n)
+        repeated_events.append(
+            RepeatEvents(
+                repeats=n,
+                probability_of_infection=repeat_model.infection_probability(),
+                R0=repeat_model.reproduction_rate(),
+            )
+        )
+
     return {
         "times": times,
         "concentrations": concentrations,
@@ -36,6 +55,7 @@ def calculate_report_data(model: models.ExposureModel):
         "exposed_occupants": exposed_occupants,
         "R0": r0,
         "scenario_plot_src": embed_figure(plot(times, concentrations)),
+        "repeated_events": repeated_events,
     }
 
 
@@ -98,5 +118,6 @@ def build_report(model: models.ExposureModel, form: FormData):
         undefined=jinja2.StrictUndefined,
     )
     env.filters['minutes_to_time'] = minutes_to_time
+    env.filters['float_format'] = "{0:.2f}".format
     template = env.get_template("report.html.j2")
     return template.render(**context)

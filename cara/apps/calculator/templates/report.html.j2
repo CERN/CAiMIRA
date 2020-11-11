@@ -6,7 +6,8 @@
 
   	<title>Report | CARA (COVID Airborne Risk Assessment)</title>
 
-	<link rel="stylesheet" type="text/css" href="/calculator/static/css/report.css"> 
+	<link rel="stylesheet" type="text/css" href="/calculator/static/css/report.css">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
 
 <body id="body">
@@ -124,12 +125,36 @@
 
 	<p class="result_title">Results:</p>
 		<p class="data_text">
-		In this scenario, the estimated probability of one exposed occupant getting infected P(i) is {{ "{0:.2f}".format(prob_inf) }}% and the estimated basic reproduction rate (R0) is {{ "{0:.2f}".format(R0) }}.
+		In this scenario, the estimated probability of one exposed occupant getting infected P(i) is {{ prob_inf | float_format }}% and the estimated basic reproduction rate (R0) is {{ R0 | float_format }}.
 		<p>
 	<p class="data_title">Exposure graph:</p>
 	<img id="scenario_concentration_plot" src="{{ scenario_plot_src }}">
 
-	<br><br><br><br><br><br><br>
+    <p class="data_title">Repeated events:</p>
+    <p class="data_text">
+		The P(i) and R0 if repeating this scenario event:
+
+        <table class="table table-striped w-auto">
+            <thead class="thead-light">
+                <tr>
+                    <th  scope="col"># of repeats</th>
+                    <th>P(i)</th>
+                    <th>R0</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for repeat_event in repeated_events %}
+                <tr>
+                    <td>{{ repeat_event.repeats }}</td>
+                    <td>{{ repeat_event.probability_of_infection | float_format }}%</td>
+                    <td>{{ repeat_event.R0 | float_format }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    <p>
+
+	<br><br><br>
 	<div style="border: 2px solid black; padding: 15px;">
 		<p class="image"> <img <img align="middle" src="/calculator/static/images/disclaimer.jpg" width="40" height="40"><b>Disclaimer:</b><br><br></p>
 	    <p class="discalimer">The risk assessment tool simulates the long range airborne spread SARS-CoV-2 virus in a finite volume, assuming a homogenous mixture, and estimates the risk of COVID-19 infection thereto. The results DO NOT include short-range airborne exposure (where the physical distance plays a factor) nor the other know modes of transmission of SARS-CoV-2. Hence, this model implies that proper physical distancing, good hand hygiene and other barrier measures are ensured.<br><br>
