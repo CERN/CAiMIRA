@@ -125,19 +125,19 @@
 
 	<p class="result_title">Results:</p>
 		<p class="data_text">
-		In this scenario, the estimated probability of one exposed occupant getting infected P(i) is {{ prob_inf | float_format }}% and the estimated basic reproduction rate (R0) is {{ R0 | float_format }}.
+		In this scenario, the estimated probability of one exposed occupant getting infected P(i) is {{ prob_inf | int_format }}% and the estimated basic reproduction rate (R0) is {{ R0 | float_format }}.
 		<p>
 	<p class="data_title">Exposure graph:</p>
 	<img id="scenario_concentration_plot" src="{{ scenario_plot_src }}">
 
     <p class="data_title">Repeated events:</p>
     <p class="data_text">
-		The P(i) and R0 if repeating this scenario event:
+		The P(i) and R0 if repeating this scenario event - provided the infected person emits the same amount of viruses each day and the exposed person is subject to the same daily exposure time:
 
         <table class="table table-striped w-auto">
             <thead class="thead-light">
                 <tr>
-                    <th  scope="col"># of repeats</th>
+                    <th># of repeated events</th>
                     <th>P(i)</th>
                     <th>R0</th>
                 </tr>
@@ -146,7 +146,7 @@
             {% for repeat_event in repeated_events %}
                 <tr>
                     <td>{{ repeat_event.repeats }}</td>
-                    <td>{{ repeat_event.probability_of_infection | float_format }}%</td>
+                    <td>{{ repeat_event.probability_of_infection | int_format }}%</td>
                     <td>{{ repeat_event.R0 | float_format }}</td>
                 </tr>
             {% endfor %}

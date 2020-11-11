@@ -119,5 +119,6 @@ def build_report(model: models.ExposureModel, form: FormData):
     )
     env.filters['minutes_to_time'] = minutes_to_time
     env.filters['float_format'] = "{0:.2f}".format
+    env.filters['int_format'] = "{:0.0f}".format
     template = env.get_template("report.html.j2")
     return template.render(**context)
