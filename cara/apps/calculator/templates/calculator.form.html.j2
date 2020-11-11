@@ -37,7 +37,10 @@
     <b>Simulation name:</b> <input type="text" name="simulation_name" placeholder="E.g. Workshop without masks" required><br>
     Room number: <input type="text" name="room_number" placeholder="E.g. 17/R-033" required><br>
     <hr width="80%">
-    <b>Room data:</b><br>
+    <b>Room data:</b>
+    <div data-tooltip="The area you wish to study. Use GIS Portal or measure.">
+        <span class="tooltip_text">?</span>
+    </div><br>
     <input type="radio" id="room_type_volume" name="volume_type" value="room_volume" onclick="require_fields(this)" required>
     Room volume: &nbsp;&nbsp; <input type="number" step=0.01 id="room_volume" name="room_volume" placeholder="Room volume (m³)" min="0.01"><br>
     <input type="radio" id="room_type_dimensions" name="volume_type" value="room_dimensions" onclick="require_fields(this)" required>
@@ -46,6 +49,10 @@
     <hr width="80%">
 
     <!-- Ventilation Options -->
+    <b>Ventilation data:</b>
+    <div data-tooltip="The available means for venting of indoor spaces.">
+        <span class="tooltip_text">?</span>
+    </div><br>
     Ventilation type:
     <input type="radio" id="no-ventilation" name="ventilation_type" value="no-ventilation" checked>No ventilation
     <input type="radio" id="mechanical" name="ventilation_type" value="mechanical" data-enables="DIVmechanical_ventilation">Mechanical
@@ -77,7 +84,10 @@
     <input type="number" step=0.01 id="hepa_amount" name="hepa_amount" placeholder="(m³ / hour)" min="0">
     <hr width="80%">
 
-    <b>Face masks:</b><br>
+    <b>Face masks:</b>
+    <div data-tooltip="Masks worn at workstations or removed when a 2m physical distance is respected.">
+        <span class="tooltip_text">?</span>
+    </div><br>
     Are masks worn when occupants are at workstations?
     <input type="radio" id="mask_on" name="mask_wearing" value="continuous" required>Yes
     <input type="radio" id="mask_off"  name="mask_wearing" value="removed" required checked="checked">No<br>
@@ -90,8 +100,10 @@
 <div style="width: 33%; float:left;">
 
     <!-- Event Options -->
-    <b>Event data:</b><br>
-    Attendees:<br>
+    <b>Event data:</b>
+    <div data-tooltip="The total no. of occupants in the room and how many of them you assume are infected.">
+        <span class="tooltip_text">?</span>
+    </div><br>
     Total number of occupants: <input type="number" id="total_people" name="total_people" min=1 required><br>
     Number of infected people: <input type="number" id="infected_people" name="infected_people" min=1 required><br>
     <hr width="80%">
@@ -110,7 +122,10 @@
     <span id="infected_time_error" class="red_text" hidden>Finish time must be after start</span><br>
     <hr width="80%">
 
-    When is the event?<br>
+    When is the event?
+    <div data-tooltip="Select the date for one-off events or the month if the activity is recurrent in the same space.">
+        <span class="tooltip_text">?</span>
+    </div><br>
     <input type="radio" id="event_type_single" name="event_type" value="single_event" onclick="require_fields(this)" required>
 
     <label for="event_type_single">Single event</label> &nbsp;&nbsp;
@@ -135,6 +150,7 @@
     </select><br>
     <hr width="80%">
 
+    <b>Activity breaks:</b><br>
     <!-- Lunch Options -->
     Lunch break:
     <input type="radio" id="lunch_option_no" name="lunch_option" value=0 onclick="require_fields(this)">
@@ -171,26 +187,32 @@
 </div>
 
 <div style="width: 33%; float:left;">
+
+  <b>Quick Guide:</b><br>
   This tool simulates the long range airborne spread SARS-CoV-2 virus in a finite volume and estimates the risk of COVID-19 infection. It is based on current scientific data and can be used to measures the effectiveness of different mitigation measures.<br>
-
-  For detailed explanations on how to use this tool please see the <a href="/calculator/user-guide"> COVID Calculator user-guide </a>. <br>
-
-  <b>Usage summary:</b><br>
-
-  <b>Room data</b><br>
-  Enter the data about the area you wish to study. You can find these figures in GIS Portal, or by measuring them yourself.<br>
-  <b>Ventilation data</b> <br>
-  Enter the data on the available means for venting of indoor spaces. For mechanical ventilation, you should check with a specialist for the air flow or air change rate.<br>
-  For HEPA filtration, you should enter the air flow of the device. As a first estimate, you may use the following values based on the differnet fan velocities of a specific commercial device proposed by the HSE Unit - Level 6 (max) = 430 m^3/h (noisy); Level 5 = 250 m^3/h (ok w.r.t. noise); Level 4 = 130 m^3/h (silent); Level 3 = 95 m^3/h (silent).<br>
-  <b>Event data</b><br>
-  Enter the total number of occupants in the room and how many of them you assume are infected. We have provided common activity types:<br>
-  Office/Meeting = typical scenario all persons seated, talking.<br>
-  Workshop = assembly workshop environment, all persons doing light exercise, talking.<br>
-  Training = one person (the trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the trainer is the infected person, for the worst case scenario.<br>
-You should specify if the event is a one off (give date) or recurrent use of the same space for the same activity, in which case select the month when the activity takes place.<br>
-  Specify if a lunch break should be included, and when it starts/stops. <br>
-  If you will take coffee breaks, they are spread out evenly throughout the day, in addition to lunch.<br>
-  Mask wearing: Specify if they are worn at occupant workstations, or are removed when a physical distance of 2m is respected.
+  <b>Ventilation data:</b> <br>
+  <ul>
+    <li>Mechanical ventilation = check with a specialist for the air flow or air change rate.</li>
+    <li>HEPA filtration = enter the air flow of the device. The following values are based on the different fan velocities of a specific commercial device proposed by the HSE Unit:</li>
+    <ul>
+        <li>Level 6 (max) = 430 m^3/h (noisy)</li>
+        <li>Level 5 = 250 m^3/h (ok w.r.t. noise)</li>
+        <li>Level 4 = 130 m^3/h (silent)</li>
+        <li>Level 3 = 95 m^3/h (silent)</li>
+    </ul>
+  </ul>
+  <b>Activity types:</b><br>
+  <ul>
+    <li>Office/Meeting = typical scenario all persons seated, talking.</li>
+    <li>Workshop = assembly workshop environment, all persons doing light exercise, talking.</li>
+    <li>Training = one person (the trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the trainer is the infected person, for the worst case scenario.</li>
+  </ul>
+  <b>Activity breaks:</b><br>
+  <ul>
+    <li>Specify if a lunch break should be included, and when it starts/finishes.</li>
+    <li>If you will take coffee breaks, they are spread out evenly throughout the day, in addition to lunch.</li>
+  </ul>
+  Refer to <a href="/calculator/user-guide"> COVID Calculator user-guide </a> for more detailed explanations on how to use this tool. <br>
 </div>
 
 <button type='submit'>Generate report</button><br><br><br><br>
