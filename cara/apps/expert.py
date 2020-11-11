@@ -402,17 +402,73 @@ class CARAStateBuilder(state.StateBuilder):
 
 class ExpertApplication:
     def __init__(self):
-        self.model_state = state.DataclassInstanceState(
-            models.ExposureModel,
-            state_builder=CARAStateBuilder(),
-        )
-        self.model_state.dcs_update_from(baseline_model)
+        default_scenario = state.DataclassInstanceState(
+                models.Model,
+                state_builder=CARAStateBuilder(),
+            )
+        default_scenario.dcs_update_from(baseline_model)
         # For the time-being, we have to initialise the select states. Careful
         # as values might not correspond to what the baseline model says.
-        self.model_state.concentration_model.infected.mask.dcs_select('No mask')
+        default_scenario.infected.mask.dcs_select('No mask')
+        self.scenarios = (default_scenario,)
+        self.scenario_names = ('Scenario 1',)
+        self.views = (WidgetView(default_scenario),)
+        self.selected_tab = 0
+        self.tabs = (widgets.VBox(children=(self.build_settings_menu(0), self.views[0].present())),)
+        self.tab_widget = widgets.Tab(children=self.tabs)
+        self.display_titles()
 
-        self.view = WidgetView(self.model_state)
+    def display_titles(self):
+        for i, name in enumerate(self.scenario_names):
+            self.tab_widget.set_title(i, name)
+
+    def update_tab_widget(self):
+        self.tab_widget.children = self.tabs
+        self.display_titles()
+
+    def build_settings_menu(self, tab_index):
+        delete_button = widgets.Button(description='Delete Scenario', button_style='danger')
+        rename_text_field = widgets.Text(description='Rename Scenario:', value=self.scenario_names[tab_index],
+                                         style={'description_width': 'auto'})
+        duplicate_button = widgets.Button(description='Duplicate Scenario', button_style='success')
+
+        def on_delete_click(b):
+            self.scenario_names = tuple_without_index(self.scenario_names, tab_index)
+            self.scenarios = tuple_without_index(self.scenarios, tab_index)
+            self.views = tuple_without_index(self.views, tab_index)
+            self.selected_tab = min(0, self.selected_tab - 1)
+            self.tabs = tuple(widgets.VBox(children=(self.build_settings_menu(i), view.present()))
+                              for i, view in enumerate(self.views))
+            self.update_tab_widget()
+
+        def on_rename_text_field(change):
+            self.scenario_names = tuple(change['new'] if i == tab_index else value
+                                        for i, value in enumerate(self.scenario_names))
+            self.update_tab_widget()
+
+        def on_duplicate_click(b):
+            self.scenario_names += (self.scenario_names[tab_index] + " (copy)",)
+            new_scenario = state.DataclassInstanceState(
+                models.Model,
+                state_builder=CARAStateBuilder(),
+            )
+            new_scenario.dcs_update_from(self.scenarios[tab_index].dcs_instance())
+            self.scenarios += (new_scenario,)
+
+            self.views += (WidgetView(new_scenario),)
+            self.tabs += (widgets.VBox(children=(self.build_settings_menu(len(self.scenario_names) - 1), self.views[-1].present())),)
+            self.update_tab_widget()
+
+        delete_button.on_click(on_delete_click)
+        duplicate_button.on_click(on_duplicate_click)
+        rename_text_field.observe(on_rename_text_field, 'value')
+        buttons = duplicate_button if tab_index == 0 else widgets.HBox(children=(duplicate_button, delete_button))
+        return widgets.VBox(children=(buttons, rename_text_field))
 
     @property
     def widget(self):
-        return self.view.present()
+        return self.tab_widget
+
+
+def tuple_without_index(t: typing.Tuple, index: int) -> typing.Tuple:
+    return t[:index] + t[index + 1:]
