@@ -2,7 +2,7 @@
 
 This is a guide to help you use the calculator tool.
 If you are using the expert version of the tool,  you should look at the expert notes.
-Please bear in mind that this beta version is for an extensive testing of the functionality of the tool and analyse the results. 
+Please bear in mind that this beta version is for an extensive testing of the functionality of the tool and analyse the results.
 At this stage, do not use the results as final output of the workplace risk assessment.
 
 For more information on the Airborne Transmission of SARS-CoV-2, feel free to check out the HSE Seminar: https://cds.cern.ch/record/2743403
@@ -13,7 +13,7 @@ For more information on the Airborne Transmission of SARS-CoV-2, feel free to ch
 The risk assessment tool simulates the long range airborne spread SARS-CoV-2 virus in a finite volume, assuming a homogenous mixture, and estimates the risk of COVID-19 infection thereto.
 The results DO NOT include short-range airborne exposure (where the physical distance plays a factor) nor the other know modes of transmission of SARS-CoV-2.
 Hence, this model implies that proper physical distancing, good hand hygiene and other barrier measures are ensured.
-It is based on current scientific data and can be used to measures the effectiveness of different mitigation measures. 
+It is based on current scientific data and can be used to measures the effectiveness of different mitigation measures.
 
 Note that this model is based on a deterministic approach, i.e., at least one person is infected and shedding viruses into the volume.
 Nonetheless, it is also important to understand that the absolute risk of infection is uncertain as it will depend on the probability that someone infected attends the event.
@@ -22,7 +22,7 @@ This application is meant for informative and educational purposes.
 The user can be able to adapt different settings and measure the relative impact on the estimated infection probabilities to allow for a targeted decision making and investment.
 The user should acknowledge that until the virus is in circulation among the population, the notion of 'zero risk' or a 'completely safe scenario' does not exist.
 Each event is unique and the results are as accurate as the inputs.
-The app is based on our scientific understanding of infectious diseases transmission, exposure and aerosol science as of November 2020. 
+The app is based on our scientific understanding of infectious diseases transmission, exposure and aerosol science as of November 2020.
 
 We do not assume responsibility for any injury or damage to persons or property arising out of or related to any use of this app.
 
@@ -63,8 +63,8 @@ The window opening distance (in m) is:
  * In the case of windows that slide, the length the window is moved open.
 
  * For hinged windows, it is the distance between the fixed frame and the movable glazed part when open.
+   ![Window Opening Distance](static/images/window_opening.png "How to measure window opening distance")
 
- ![Window Opening Distance](static/images/window_opening.png "How to measure window opening distance")
  
 **Notes**: If you are unsure about the opening distance for the window, it is recommended to choose a conservative value (5 cms, 0.05m or 10cms, 0.10m).
 If you open the window at different distances throughout the day, choose an average value.
@@ -89,7 +89,7 @@ The default air flow rate for the HEPA filter in the model is 250m3/hour.
 
 Here we capture the information about the event being simulated.
 First enter the number of occupants in the space, if you have a (small) variation in the number of people, please input the average or consider using the expert tool.
-Within the number of people occupying the space, you should specify how many are infected. 
+Within the number of people occupying the space, you should specify how many are infected.
 
 As an example, for a shared office with 4 people, where one person is infected, we enter 4 occupants and 1 infected person.
 
@@ -102,7 +102,7 @@ There are three predefined activities in the tool at present.
 **Workshop** = Based on a mechanical assembly workshop, all persons are doing light exercise (standing, moving around, using tools) and talking. Everyone (occupants and infected occupants) is treated the same in this model.
 
 **Training** = Based on a typical training course scenario.
-One individual (the trainer) is doing light exercise (standing) and talking, with all other individuals seated and talking quietly (whispering). 
+One individual (the trainer) is doing light exercise (standing) and talking, with all other individuals seated and talking quietly (whispering).
 In this case it is assumed that the infected person is the trainer, because this is the worst case in terms of viral sheeding.
  
 
@@ -132,7 +132,7 @@ If you plan to eat lunch in the same area where you have been working, you shoul
 
 You have the option to choose no coffee breaks, 2 or 4 during the simulated period.
 It is assumed that all occupants vacate the space during the break period.
-If coffee breaks are taken in-situ, this option should be set to 'No breaks'. 
+If coffee breaks are taken in-situ, this option should be set to 'No breaks'.
 
 When enabled, the breaks are spread evenly throughout the day - for example if we simulate the period from 9:00 to 18:00, with a lunch break from 13:00 to 14:00, with 2 coffee breaks, one will be scheduled at 11:00 and the second at 16:00.
 The exact timing of the breaks within the day is not particularly critical to an accurate simulation, so you do not need to be concerned about major differences if you take a coffee break at 10:00 instead of 11:00.
@@ -167,18 +167,18 @@ It is estimated based on the emission rate of virus into the simulated volume, a
 This probability is valid for the simulation duration - i.e. if you have simulated one day and plan to work 5 days in these conditions and the infected person emits the same amoung of viruses each day, the cumulative probability of infection is ``(1-(1-P(i))^5)```.
 If you are using the natural ventilation option, the simulation is only valid for the selected month, because the following or preceding month will have a different average temperature profile.
 
-The ``R0`` for the simulation is calculated based on the probability of infection, multiplied by the number of exposed people. 
+The ``R0`` for the simulation is calculated based on the probability of infection, multiplied by the number of exposed people.
 
 ### Exposure graph
 
-The graph shows the variation in the concentration of infectious quanta (one quanta is the amount of inhaled viruses which can cause infection in 63) within the simulated volume.
+The graph shows the variation in the concentration of infectious quanta (one quanta is the amount of inhaled viruses which can cause infection with a probability of 63%) within the simulated volume.
 It is determined by:
 * The presence of the infected person, who emits airborne viruses in the volume.
 * The emission rate is related to the type of activity of the infected person (sitting, light exercise), their level of vocalisation (whispering or talking).
 * The accumulation of infectious quanta in the space is driven by ventilation, if applicable (either natural or mechanical, and or HEPA filtration).
     * In a mechanical ventilation scenario, the removal rate is constant, based on air flow in and out of the simulated space.
     * Under natural ventilation conditions, the effectiveness of ventilation relies upon the hourly temperature difference between the inside and outside air temperature.
-    * A HEPA filter removes infectious quanta from the air at a constant rate and is modelled in the same way as mechanical ventilation, however air passed through a HEPA filter is recycled not renewed (i.e. it is not fresh air). 
+    * A HEPA filter removes infectious quanta from the air at a constant rate and is modelled in the same way as mechanical ventilation, however air passed through a HEPA filter is recycled not renewed (i.e. it is not fresh air).
 
 # Conclusion
 
