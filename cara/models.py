@@ -394,24 +394,43 @@ Activity.types = {
 
 
 @dataclass(frozen=True)
-class InfectedPerson:
-    virus: Virus
-    #: The times in which the person is in the room.
+class Population:
+    """
+    Represents a group of people all with exactly the same behaviour and
+    situation.
+
+    """
+    #: How many in the population.
+    number: int
+
+    #: The times in which the people are in the room.
     presence: Interval
+
+    #: The kind of mask being worn by the people.
     mask: Mask
+
+    #: The physical activity being carried out by the people.
     activity: Activity
-    expiration: Expiration
 
     def person_present(self, time):
         return self.presence.triggered(time)
 
-    @functools.lru_cache()
-    def emission_rate(self, time) -> float:
-        # Note: The original model avoids time dependence on the emission rate
-        # at the cost of implementing a piecewise (on time) concentration function.
-        if not self.person_present(time):
-            return 0
 
+@dataclass(frozen=True)
+class InfectedPopulation(Population):
+    #: The virus with which the population is infected.
+    virus: Virus
+
+    #: The type of expiration that is being emitted whilst doing the activity.
+    expiration: Expiration
+
+    def emission_rate_when_present(self) -> float:
+        """
+        The emission rate if the infected population is present.
+
+        Note that the rate is not currently time-dependent.
+
+        """
         # Emission Rate (infectious quantum / h)
         aerosols = self.expiration.aerosols(self.mask)
         if np.isinf(aerosols):
@@ -425,15 +444,38 @@ class InfectedPerson:
                   aerosols)
         return ER
 
+    def individual_emission_rate(self, time) -> float:
+        """
+        The emission rate of a single individual in the population.
+
+        """
+        # Note: The original model avoids time dependence on the emission rate
+        # at the cost of implementing a piecewise (on time) concentration function.
+
+        if not self.person_present(time):
+            return 0.
+
+        # Note: It is essential that the value of the emission rate is not
+        # itself a function of time. Any change in rate must be accompanied
+        # with a declaration of state change time, as is the case for things
+        # like Ventilation.
+
+        return self.emission_rate_when_present()
+
+    @functools.lru_cache()
+    def emission_rate(self, time) -> float:
+        """
+        The emission rate of the entire population.
+
+        """
+        return self.individual_emission_rate(time) * self.number
+
 
 @dataclass(frozen=True)
-class Model:
+class ConcentrationModel:
     room: Room
     ventilation: Ventilation
-    infected: InfectedPerson
-    infected_occupants: int
-    exposed_occupants: int
-    exposed_activity: Activity
+    infected: InfectedPopulation
 
     @property
     def virus(self):
@@ -478,36 +520,49 @@ class Model:
             return 0.0
         IVRR = self.infectious_virus_removal_rate(time)
         V = self.room.volume
-        Ni = self.infected_occupants
-        ER = self.infected.emission_rate(time)
 
         t_last_state_change = self.last_state_change(time)
         concentration_at_last_state_change = self.concentration(t_last_state_change)
 
         delta_time = time - t_last_state_change
         fac = np.exp(-IVRR * delta_time)
-        concentration_limit = (ER * Ni) / (IVRR * V)
+        concentration_limit = (self.infected.emission_rate(time)) / (IVRR * V)
         return concentration_limit * (1 - fac) + concentration_at_last_state_change * fac
 
-    def infection_probability(self):
-        # Infection probability
-        # Probability of COVID-19 Infection
 
-        exposure = 0.0  # q/m3*h
+@dataclass(frozen=True)
+class ExposureModel:
+    #: The virus concentration model which this exposure model should consider.
+    concentration_model: ConcentrationModel
+
+    #: The population of non-infected people to be used in the model.
+    exposed: Population
+
+    def quanta_exposure(self) -> float:
+        """The number of virus quanta per meter^3."""
+        exposure = 0.0
 
         def integrate(fn, start, stop):
             values = np.linspace(start, stop)
             return np.trapz([fn(v) for v in values], values)
 
-        # TODO: Have this for exposed not infected.
-        for start, stop in self.infected.presence.boundaries():
-            exposure += (integrate(self.concentration, start, stop))
+        for start, stop in self.exposed.presence.boundaries():
+            exposure += integrate(self.concentration_model.concentration, start, stop)
+        return exposure
+
+    def infection_probability(self):
+        exposure = self.quanta_exposure()
 
         inf_aero = (
-            self.exposed_activity.inhalation_rate *
-            (1 - self.infected.mask.η_inhale) *
+            self.exposed.activity.inhalation_rate *
+            (1 - self.exposed.mask.η_inhale) *
             exposure
         )
 
         # Probability of infection.
         return (1 - np.exp(-inf_aero)) * 100
+
+    def reproduction_rate(self):
+        prob = self.infection_probability()
+        exposed_occupants = self.exposed.number
+        return prob * exposed_occupants / 100
