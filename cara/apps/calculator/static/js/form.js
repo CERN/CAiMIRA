@@ -109,7 +109,6 @@ function require_mechanical_ventilation(option) {
 function require_natural_ventilation(option) {
   $("#windows_number").prop('required', option);
   $("#window_height").prop('required', option);
-  $("#window_width").prop('required', option);
   $("#opening_distance").prop('required', option);
   $("#always").prop('required', option);
   $("#interval").prop('required', option);
@@ -133,12 +132,20 @@ function require_recurrent_event(option) {
 
 function require_lunch(option) {
   $("#lunch_start").prop('required', option);
-  $("#mask_ffp2").prop('required', option);
+  $("#lunch_finish").prop('required', option);
+  if (option) {
+    document.getElementById("lunch_start").value = "12:30";
+    document.getElementById("lunch_finish").value = "13:30";
+  } 
+  else {
+    document.getElementById("lunch_start").value = "";
+    document.getElementById("lunch_finish").value = "";
+  }
 }
 
-function require_lunch(option) {
+function require_mask(option) {
   $("#mask_type1").prop('required', option);
-  $("#lunch_finish").prop('required', option);
+  $("#mask_ffp2").prop('required', option);
 }
 
 function require_hepa(option) {

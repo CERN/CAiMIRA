@@ -42,7 +42,6 @@ class FormData:
     ventilation_type: str
     volume_type: str
     window_height: float
-    window_width: float
     windows_number: int
     windows_open: str
 
@@ -113,7 +112,6 @@ class FormData:
             ventilation_type=form_data['ventilation_type'],
             volume_type=form_data['volume_type'],
             window_height=float(form_data['window_height']),
-            window_width=float(form_data['window_width']),
             windows_number=int(form_data['windows_number']),
             windows_open=form_data['windows_open'],
             infected_start=time_string_to_minutes(form_data['infected_start']),
@@ -314,7 +312,6 @@ def baseline_raw_form_data():
         'ventilation_type': 'natural',
         'volume_type': 'room_volume',
         'window_height': '2',
-        'window_width': '2',
         'windows_number': '1',
         'windows_open': 'interval'
     }

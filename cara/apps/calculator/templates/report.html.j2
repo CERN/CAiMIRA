@@ -47,7 +47,6 @@
 		<ul>
 			<li><p class="data_subtext">Number of windows: {{ form.windows_number }}</p></li>
 			<li><p class="data_subtext">Height of window: {{ form.window_height }}</p></li>
-			<li><p class="data_subtext">Width of window: {{ form.window_width }}</p></li>
 			<li><p class="data_subtext">Opening distance: {{ form.opening_distance }}</p></li>
 			<li><p class="data_subtext">Windows open: {{ form.windows_open }}</p></li>
 		</ul>
@@ -125,21 +124,21 @@
 
 	<p class="result_title">Results:</p>
 		<p class="data_text">
-		In this scenario, the estimated probability of one exposed occupant getting infected P(i) is {{ prob_inf | int_format }}% and the estimated basic reproduction rate (R0) is {{ R0 | float_format }}.
+		In this scenario, the estimated probability of one exposed occupant getting infected P(i) is {{ prob_inf | int_format }}% and the expected number of new cases is {{ R0 | float_format }}.
 		<p>
 	<p class="data_title">Exposure graph:</p>
 	<img id="scenario_concentration_plot" src="{{ scenario_plot_src }}">
 
     <p class="data_title">Repeated events:</p>
     <p class="data_text">
-		The P(i) and R0 if repeating this scenario event - provided the infected person emits the same amount of viruses each day and the exposed person is subject to the same daily exposure time:
+		The P(i) and expected number of new cases if repeating this scenario event - provided the infected person emits the same amount of viruses each day and the exposed person is subject to the same daily exposure time:
 
         <table class="table table-striped w-auto">
             <thead class="thead-light">
                 <tr>
                     <th># of repeated events</th>
                     <th>P(i)</th>
-                    <th>R0</th>
+                    <th>Expected new cases</th>
                 </tr>
             </thead>
             <tbody>
@@ -147,7 +146,7 @@
                 <tr>
                     <td>{{ repeat_event.repeats }}</td>
                     <td>{{ repeat_event.probability_of_infection | int_format }}%</td>
-                    <td>{{ repeat_event.R0 | float_format }}</td>
+                    <td style="text-align:right">{{ repeat_event.R0 | float_format }}</td>
                 </tr>
             {% endfor %}
             </tbody>
