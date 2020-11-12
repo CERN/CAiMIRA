@@ -120,7 +120,7 @@ def test_exposed_present_intervals(baseline_form):
     baseline_form.lunch_finish = 13 * 60 + 30
     baseline_form.infected_start = 10 * 60
     baseline_form.infected_finish = 15 * 60
-    correct = ((9, 11), (11.25, 12.5), (13.5, 17.0))
+    correct = ((9, 11), (11.25, 12.5), (13.5, 15), (15.25, 17.0))
     assert baseline_form.exposed_present_interval().present_times == correct
 
 def test_key_validation(baseline_form_data):
