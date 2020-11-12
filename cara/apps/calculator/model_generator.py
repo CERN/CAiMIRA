@@ -247,7 +247,8 @@ def model_from_form(form: FormData) -> models.ExposureModel:
     # of the infected and exposed occupants respectively.
     # I.e. (infected_activity, infected_expiration), (exposed_activity, exposed_expiration)
 
-    activity_dict = {'office': (('Seated', 'Talking'), ('Seated', 'Talking')),
+    activity_dict = {'office': (('Seated', 'Conversation'), ('Seated', 'Conversation')),
+                     'callcentre': (('Seated', 'Talking'), ('Seated', 'Talking')),
                      'training': (('Light exercise', 'Talking'), ('Seated', 'Whispering')),
                      'workshop': (('Light exercise', 'Talking'), ('Light exercise', 'Talking'))}
 
@@ -323,7 +324,7 @@ def baseline_raw_form_data():
     }
 
 
-ACTIVITY_TYPES = {'office', 'training', 'workshop'}
+ACTIVITY_TYPES = {'office', 'training', 'callcentre', 'workshop'}
 EVENT_TYPES = {'single_event', 'recurrent_event'}
 MECHANICAL_VENTILATION_TYPES = {'air_changes', 'air_supply', 'not-applicable'}
 MASK_TYPES = {'Type I', 'FFP2'}
