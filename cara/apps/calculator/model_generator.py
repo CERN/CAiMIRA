@@ -2,6 +2,8 @@ from dataclasses import dataclass
 import html
 import typing
 
+import numpy as np
+
 from cara import models
 from cara import data
 
@@ -161,6 +163,67 @@ class FormData:
         else:
             return ventilation
 
+    def mask(self) -> models.Mask:
+        # Initializes the mask type if mask wearing is "continuous", otherwise instantiates the mask attribute as
+        # the "No mask"-mask
+        mask = models.Mask.types[self.mask_type if self.mask_wearing == "continuous" else 'No mask']
+        return mask
+
+    def infected_population(self) -> models.InfectedPopulation:
+        # Initializes the virus as SARS_Cov_2
+        virus = models.Virus.types['SARS_CoV_2']
+
+        scenario_activity_and_expiration = {
+            'office': (
+                'Seated',
+                # Mostly silent in the office, but 1/3rd of time talking.
+                {'Talking': 1, 'Breathing': 2}  
+            ),
+            'callcentre': ('Seated', 'Talking'),
+            'training': ('Light exercise', 'Talking'),
+            'workshop': ('Light exercise', 'Talking'),
+        }
+
+        [activity_defn, expiration_defn] = scenario_activity_and_expiration[self.activity_type]
+        activity = models.Activity.types[activity_defn]
+        expiration = build_expiration(expiration_defn)
+
+        infected_occupants = self.infected_people
+
+        infected = models.InfectedPopulation(
+            number=infected_occupants,
+            virus=virus,
+            presence=self.infected_present_interval(),
+            mask=self.mask(),
+            activity=activity,
+            expiration=expiration
+        )
+        return infected
+
+    def exposed_population(self) -> models.Population:
+        scenario_activity = {
+            'office': 'Seated',
+            'callcentre': 'Seated',
+            'training': 'Light exercise',
+            'workshop': 'Light exercise',
+        }
+
+        activity_defn = scenario_activity[self.activity_type]
+        activity = models.Activity.types[activity_defn]
+
+        infected_occupants = self.infected_people
+        # The number of exposed occupants is the total number of occupants
+        # minus the number of infected occupants.
+        exposed_occupants = self.total_people - infected_occupants
+
+        exposed = models.Population(
+            number=exposed_occupants,
+            presence=self.exposed_present_interval(),
+            activity=activity,
+            mask=self.mask(),
+        )
+        return exposed
+
     def coffee_break_times(self) -> typing.Tuple[typing.Tuple[int, int]]:
         if not self.coffee_breaks:
             return ()
@@ -228,6 +291,38 @@ class FormData:
         return self.present_interval(self.activity_start, self.activity_finish)
 
 
+def build_expiration(expiration_definition) -> models.Expiration:
+    if isinstance(expiration_definition, str):
+        return models.Expiration.types[expiration_definition]
+    elif isinstance(expiration_definition, dict):
+        return expiration_blend({
+            build_expiration(exp): amount
+            for exp, amount in expiration_definition.items()
+            }
+        )
+
+
+def expiration_blend(expiration_weights: typing.Dict[models.Expiration, int]) -> models.Expiration:
+    """
+    Combine together multiple types of Expiration, using a weighted mean to
+    compute their ejection factor and particle sizes.
+
+    """
+    ejection_factor = np.zeros(4)
+    particle_sizes = np.zeros(4)
+
+    total_weight = 0
+    for expiration, weight in expiration_weights.items():
+        total_weight += weight
+        ejection_factor += np.array(expiration.ejection_factor) * weight
+        particle_sizes += np.array(expiration.particle_sizes) * weight
+
+    return models.Expiration(
+        ejection_factor=tuple(ejection_factor/total_weight),
+        particle_sizes=tuple(particle_sizes/total_weight),
+    )
+
+
 def model_from_form(form: FormData) -> models.ExposureModel:
     # Initializes room with volume either given directly or as product of area and height
     if form.volume_type == 'room_volume':
@@ -236,51 +331,14 @@ def model_from_form(form: FormData) -> models.ExposureModel:
         volume = form.floor_area * form.ceiling_height
     room = models.Room(volume=volume)
 
-    # Initializes the virus as SARS_Cov_2
-    virus = models.Virus.types['SARS_CoV_2']
-
-    # Initializes the mask type if mask wearing is "continuous", otherwise instantiates the mask attribute as
-    # the "No mask"-mask
-    mask = models.Mask.types[form.mask_type if form.mask_wearing == "continuous" else 'No mask']
-
-    # A dictionary containing the mapping of activities listed in the UI to the activity level and expiration level
-    # of the infected and exposed occupants respectively.
-    # I.e. (infected_activity, infected_expiration), (exposed_activity, exposed_expiration)
-
-    activity_dict = {'office': (('Seated', 'Conversation'), ('Seated', 'Conversation')),
-                     'callcentre': (('Seated', 'Talking'), ('Seated', 'Talking')),
-                     'training': (('Light exercise', 'Talking'), ('Seated', 'Whispering')),
-                     'workshop': (('Light exercise', 'Talking'), ('Light exercise', 'Talking'))}
-
-    (infected_activity, infected_expiration), (exposed_activity, exposed_expiration) = activity_dict[form.activity_type]
-    # Converts these strings to Activity and Expiration instances
-    infected_activity, exposed_activity = models.Activity.types[infected_activity], models.Activity.types[exposed_activity]
-    infected_expiration, exposed_expiration = models.Expiration.types[infected_expiration], models.Expiration.types[exposed_expiration]
-
-    infected_occupants = form.infected_people
-    # Defines the number of exposed occupants as the total number of occupants minus the number of infected occupants
-    exposed_occupants = form.total_people - infected_occupants
-
     # Initializes and returns a model with the attributes defined above
     return models.ExposureModel(
         concentration_model=models.ConcentrationModel(
             room=room,
             ventilation=form.ventilation(),
-            infected=models.InfectedPopulation(
-                number=infected_occupants,
-                virus=virus,
-                presence=form.infected_present_interval(),
-                mask=mask,
-                activity=infected_activity,
-                expiration=infected_expiration
-            ),
+            infected=form.infected_population(),
         ),
-        exposed=models.Population(
-            number=exposed_occupants,
-            presence=form.exposed_present_interval(),
-            activity=exposed_activity,
-            mask=mask,
-        )
+        exposed=form.exposed_population()
     )
 
 

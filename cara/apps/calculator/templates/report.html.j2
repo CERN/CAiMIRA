@@ -67,12 +67,13 @@
 		<li><p class="data_text">Number of attendees and infected people: {{ form.total_people }} in attendance, of whom {{ form.infected_people }}
 		{{ "is" if form.infected_people == 1 else "are" }}
 		infected.</p></li>
-		<li><p class="data_text">Activity type:
+		<li><p class="data_text">
+		Activity type:
 		{% if form.activity_type == "office" %}
 		Office/Meeting – typical scenario with all persons seated, talking occasionally.
 		{% elif form.activity_type == "callcentre" %}
 		Call Centre = typical office scenario with all persons seated, all talking continuously.
-    {% elif form.activity_type == "workshop" %}
+		{% elif form.activity_type == "workshop" %}
 		Workshop = assembly workshop environment, all persons doing light exercise, talking.
 		{% elif form.activity_type == "training" %}
 		Training – one person (the trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the trainer is the infected person, for the worst case scenario.

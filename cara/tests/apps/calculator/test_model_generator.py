@@ -21,6 +21,15 @@ def test_model_from_dict(baseline_form_data):
     # assert model.ventilation == cara.models.Ventilation()
 
 
+def test_blend_expiration():
+    blend = {'Breathing': 2, 'Talking': 1}
+    r = model_generator.build_expiration(blend)
+    expected = models.Expiration(
+        (0.13466666666666668, 0.02866666666666667, 0.004333333333333334, 0.005)
+    )
+    assert r == expected
+
+
 def test_ventilation_window(baseline_form):
     room = models.Room(75)
     window = models.WindowOpening(

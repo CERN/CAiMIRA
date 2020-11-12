@@ -375,10 +375,8 @@ class Expiration:
 
 
 Expiration.types = {
-    #added new profile - Conversation = weighting of 1/3rd talking, 2/3 breathing.
     'Breathing': Expiration((0.084, 0.009, 0.003, 0.002)),
     'Whispering': Expiration((0.11, 0.014, 0.004, 0.002)),
-    'Conversation': Expiration((0.135, 0.029, 0.004, 0.005)),
     'Talking': Expiration((0.236, 0.068, 0.007, 0.011)),
     'Unmodulated Vocalization': Expiration((0.751, 0.139, 0.0139, 0.059)),
     'Superspreading event': Expiration((np.inf, np.inf, np.inf, np.inf)),
