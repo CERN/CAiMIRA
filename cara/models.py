@@ -217,15 +217,17 @@ class WindowOpening(Ventilation):
         if not self.active.triggered(time):
             return 0.
 
+        # Reminder, no dependence on time in the resulting calculation.
         inside_temp = self.inside_temp.value(time)
         outside_temp = self.outside_temp.value(time)
 
-        # Reminder, no dependence on time in the resulting calculation.
-        if outside_temp < (inside_temp-self.min_deltaT):
-            temp_delta = (inside_temp - outside_temp) / outside_temp
-        else:
-            temp_delta = self.min_deltaT / outside_temp
-        root = np.sqrt(9.81 * self.window_height * temp_delta)
+        # The inside_temperature is forced to be always at least min_deltaT degree
+        # warmer than the outside_temperature. Further research needed to
+        # handle the buoyancy driven ventilation when the temperature gradient
+        # is inverted.
+        inside_temp = max(inside_temp, outside_temp + self.min_deltaT)
+        temp_gradient = (inside_temp - outside_temp) / outside_temp
+        root = np.sqrt(9.81 * self.window_height * temp_gradient)
         window_area = self.window_height * self.opening_length * self.number_of_windows
         return (3600 / (3 * room.volume)) * self.cd_b * window_area * root
 
