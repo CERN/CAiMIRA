@@ -38,7 +38,7 @@
     Room number: <input type="text" name="room_number" placeholder="E.g. 17/R-033" required><br>
     <hr width="80%">
     <b>Room data:</b>
-    <div data-tooltip="The area you wish to study. Use GIS Portal or measure.">
+    <div data-tooltip="The area you wish to study (choose one of the 2 option). Use GIS Portal or measure.">
         <span class="tooltip_text">?</span>
     </div><br>
     <input type="radio" id="room_type_volume" name="volume_type" value="room_volume" onclick="require_fields(this)" required>
@@ -50,7 +50,7 @@
 
     <!-- Ventilation Options -->
     <b>Ventilation data:</b>
-    <div data-tooltip="The available means for venting of indoor spaces.">
+    <div data-tooltip="The available means of venting / filtration of indoor spaces.">
         <span class="tooltip_text">?</span>
     </div><br>
     Ventilation type:
@@ -123,7 +123,7 @@
     <hr width="80%">
 
     When is the event?
-    <div data-tooltip="Select the date for one-off events or the month if the activity is recurrent in the same space.">
+    <div data-tooltip="Select the date for one-off events or the month if the event is recurrent in the same space.">
         <span class="tooltip_text">?</span>
     </div><br>
     <input type="radio" id="event_type_single" name="event_type" value="single_event" onclick="require_fields(this)" required>
@@ -203,6 +203,7 @@
     </ul>
   </ul>
   <b>Activity types:</b><br>
+  The type of activity that includes both the infected and exposed persons:
   <ul>
     <li>Office/Meeting = typical scenario all persons seated, talking.</li>
     <li>Workshop = assembly workshop environment, all persons doing light exercise, talking.</li>
