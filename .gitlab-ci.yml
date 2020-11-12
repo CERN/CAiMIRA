@@ -32,11 +32,7 @@ trigger_build_on_openshift:
 deploy_to_test:
     stage: deploy
     rules:
-        - if: '$CI_MERGE_REQUEST_EVENT_TYPE == "detached"'
-          when: never
-        - if: '$OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET'
-          when: manual
-          allow_failure: true
+        - if: '$CI_COMMIT_BRANCH == "live/test-cara" && $OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET'
     script:
         - curl -X POST -k https://openshift-dev.cern.ch:443/apis/build.openshift.io/v1/namespaces/test-cara/buildconfigs/cara-app/webhooks/${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}/generic
         - curl -X POST -k https://openshift-dev.cern.ch:443/apis/build.openshift.io/v1/namespaces/test-cara/buildconfigs/cara-router/webhooks/${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}/generic
