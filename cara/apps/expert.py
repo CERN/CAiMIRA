@@ -419,15 +419,16 @@ class ExpertApplication:
         self.views = (WidgetView(default_scenario),)
         self.selected_tab = 0
         self.tabs = (widgets.VBox(children=(self.build_settings_menu(0), self.views[0].present())),)
-        self.tab_widget = widgets.Tab(children=self.tabs)
-        self.display_titles()
+        self.tab_widget = widgets.Tab()
+        self.update_tab_widget()
 
     def display_titles(self):
         for i, name in enumerate(self.scenario_names):
             self.tab_widget.set_title(i, name)
+        self.tab_widget.set_title(len(self.scenario_names), 'Comparison')
 
     def update_tab_widget(self):
-        self.tab_widget.children = self.tabs
+        self.tab_widget.children = self.tabs + (widgets.Label('comparison widget'),)
         self.display_titles()
 
     def build_settings_menu(self, tab_index):
