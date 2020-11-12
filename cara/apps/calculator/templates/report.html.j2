@@ -124,7 +124,8 @@
 
 	<p class="result_title">Results:</p>
 		<p class="data_text">
-		In this scenario, the estimated probability of one exposed occupant getting infected P(i) is {{ prob_inf | int_format }}% and the expected number of new cases is {{ R0 | float_format }}.
+		In this scenario, the estimated probability of one exposed occupant getting infected P(i) is {{ prob_inf | int_format }}%
+		and the expected number of new cases is {{ expected_new_cases | float_format }}.
 		<p>
 	<p class="data_title">Exposure graph:</p>
 	<img id="scenario_concentration_plot" src="{{ scenario_plot_src }}">
@@ -146,7 +147,7 @@
                 <tr>
                     <td>{{ repeat_event.repeats }}</td>
                     <td>{{ repeat_event.probability_of_infection | int_format }}%</td>
-                    <td style="text-align:right">{{ repeat_event.R0 | float_format }}</td>
+                    <td style="text-align:right">{{ repeat_event.expected_new_cases | float_format }}</td>
                 </tr>
             {% endfor %}
             </tbody>

@@ -118,8 +118,12 @@ class WidgetView:
             print(f'Probability of infection: {np.round(P, 0)}%')
 
             print(f'Number of exposed: {model.exposed.number}')
-            R0 = np.round(model.reproduction_rate(), 1)
-            print(f'Number of expected new cases (R0): {R0}')
+
+            new_cases = np.round(model.expected_new_cases(), 1)
+            print(f'Number of expected new cases: {new_cases}')
+
+            R0 = np.round(model.reproduction_number(), 1)
+            print(f'Reproduction number (R0): {R0}')
 
     def _build_widget(self, node):
         self.widget.children += (self._build_room(node.concentration_model.room),)
