@@ -172,7 +172,7 @@ class MultipleVentilation:
     @abstractmethod
     def air_exchange(self, room: Room, time: float) -> float:
         """
-        Returns the rate at which air is being exchanged in the given room 
+        Returns the rate at which air is being exchanged in the given room
         at a given time (in hours).
         """
         return sum([ventilation.air_exchange(room,time)
@@ -271,7 +271,7 @@ class AirChange(Ventilation):
     #: The interval in which the ventilation is operating.
     active: Interval
 
-    #: The rate (in h^-1) at which the ventilation exchanges all the air 
+    #: The rate (in h^-1) at which the ventilation exchanges all the air
     # of the room (when switched on)
     air_exch: float
 

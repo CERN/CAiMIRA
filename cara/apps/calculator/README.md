@@ -97,7 +97,9 @@ As an example, for a shared office with 4 people, where one person is infected, 
 
 There are three predefined activities in the tool at present.
 
-**Office / Meeting ** = All persons seated, talking. Everyone (occupants and infected occupants) is treated the same in this model.
+**Office / Meeting ** = All persons seated, talking occasionally (1/3rd of the time, with normal breathing the other 2/3rds of the time). Everyone (occupants and infected occupants) is treated the same in this model.
+
+**Call Centre** = All persons seated, all talking simultaneously, all the time. This is a conservative profile (i.e. will show in increased ``P(i)`` compared to office/meeting) if used for office activity.
 
 **Workshop** = Based on a mechanical assembly workshop, all persons are doing light exercise (standing, moving around, using tools) and talking. Everyone (occupants and infected occupants) is treated the same in this model.
 
