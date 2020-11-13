@@ -18,7 +18,7 @@ from .model_generator import FormData
 class RepeatEvents:
     repeats: int
     probability_of_infection: float
-    R0: float
+    expected_new_cases: float
 
 
 def calculate_report_data(model: models.ExposureModel):
@@ -35,7 +35,7 @@ def calculate_report_data(model: models.ExposureModel):
     prob = model.infection_probability()
     er = model.concentration_model.infected.emission_rate_when_present()
     exposed_occupants = model.exposed.number
-    r0 = model.reproduction_rate()
+    expected_new_cases = model.expected_new_cases()
 
     repeated_events = []
     for n in [1, 2, 3, 4, 5, 10, 15, 20]:
@@ -44,7 +44,7 @@ def calculate_report_data(model: models.ExposureModel):
             RepeatEvents(
                 repeats=n,
                 probability_of_infection=repeat_model.infection_probability(),
-                R0=repeat_model.reproduction_rate(),
+                expected_new_cases=repeat_model.expected_new_cases(),
             )
         )
 
@@ -55,7 +55,7 @@ def calculate_report_data(model: models.ExposureModel):
         "prob_inf": prob,
         "emission_rate": er,
         "exposed_occupants": exposed_occupants,
-        "R0": r0,
+        "expected_new_cases": expected_new_cases,
         "scenario_plot_src": embed_figure(plot(times, concentrations)),
         "repeated_events": repeated_events,
     }
