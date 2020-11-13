@@ -153,7 +153,17 @@ function require_hepa(option) {
 }
 
 function setMaxInfectedPeople() {
-  $("#infected_people").attr("max", $("#total_people").val());
+
+  $("#training_limit_error").hide();
+  var max = $("#total_people").val()
+
+  if ($("#activity_type").val() === "training")
+  {
+    max = 1;
+    $("#training_limit_error").show();
+  }
+
+  $("#infected_people").attr("max", max);
 }
 
 /* -------UI------- */
@@ -250,6 +260,8 @@ $(document).ready(function () {
   // and update it when total people is changed.
   setMaxInfectedPeople();
   $("#total_people").change(setMaxInfectedPeople);
+
+  $("#activity_type").change(setMaxInfectedPeople);
 
   var radioValue = $("input[name='event_type']:checked");
   if (radioValue.val()) {
