@@ -177,7 +177,12 @@ class FormData:
             'office': (
                 'Seated',
                 # Mostly silent in the office, but 1/3rd of time talking.
-                {'Talking': 1, 'Breathing': 2}  
+                {'Talking': 1, 'Breathing': 2}
+            ),
+            'meeting': (
+                'Seated',
+                # Conversation of N people is approximately 1/N% of the time talking.
+                {'Talking': 1, 'Breathing': self.total_people - 1}
             ),
             'callcentre': ('Seated', 'Talking'),
             'training': ('Light exercise', 'Talking'),
@@ -203,6 +208,7 @@ class FormData:
     def exposed_population(self) -> models.Population:
         scenario_activity = {
             'office': 'Seated',
+            'meeting': 'Seated',
             'callcentre': 'Seated',
             'training': 'Light exercise',
             'workshop': 'Light exercise',
@@ -382,7 +388,7 @@ def baseline_raw_form_data():
     }
 
 
-ACTIVITY_TYPES = {'office', 'training', 'callcentre', 'workshop'}
+ACTIVITY_TYPES = {'office', 'meeting', 'training', 'callcentre', 'workshop'}
 EVENT_TYPES = {'single_event', 'recurrent_event'}
 MECHANICAL_VENTILATION_TYPES = {'air_changes', 'air_supply', 'not-applicable'}
 MASK_TYPES = {'Type I', 'FFP2'}
