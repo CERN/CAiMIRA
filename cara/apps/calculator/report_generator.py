@@ -24,8 +24,10 @@ class RepeatEvents:
 def calculate_report_data(model: models.ExposureModel):
     resolution = 600
 
-    t_start = model.exposed.presence.boundaries()[0][0]
-    t_end = model.exposed.presence.boundaries()[-1][1]
+    t_start = min(model.exposed.presence.boundaries()[0][0],
+                  model.concentration_model.infected.presence.boundaries()[0][0])
+    t_end = max(model.exposed.presence.boundaries()[-1][1],
+                model.concentration_model.infected.presence.boundaries()[-1][1])
 
     times = list(np.linspace(t_start, t_end, resolution))
     concentrations = [model.concentration_model.concentration(time) for time in times]

@@ -172,7 +172,7 @@ class FormData:
             coffee_times.append((start, end))
         return tuple(coffee_times)
 
-    def present_interval(self) -> models.Interval:
+    def present_interval(self, start, finish) -> models.Interval:
         leave_times = []
         enter_times = []
         if self.lunch_option:
@@ -193,19 +193,19 @@ class FormData:
         # representing the infected person entering and leaving the room. Note that if one of the evenly spaced coffee-
         # breaks happens to coincide with the lunch-break, it is simply ignored.
         present_intervals = []
-        time = self.infected_start
+        time = start
         is_present = True
-        while time < self.infected_finish:
+        while time < finish:
             if is_present:
                 if not leave_times:
-                    present_intervals.append((time / 60, self.infected_finish / 60))
+                    present_intervals.append((time / 60, finish / 60))
                     break
 
                 if leave_times[-1] <= time:
                     leave_times.pop()
                 else:
                     new_time = leave_times.pop()
-                    present_intervals.append((time / 60, min(new_time, self.infected_finish) / 60))
+                    present_intervals.append((time / 60, min(new_time, finish) / 60))
                     is_present = False
                     time = new_time
 
@@ -220,6 +220,12 @@ class FormData:
                     time = enter_times.pop()
 
         return models.SpecificInterval(tuple(present_intervals))
+
+    def infected_present_interval(self) -> models.Interval:
+        return self.present_interval(self.infected_start, self.infected_finish)
+
+    def exposed_present_interval(self) -> models.Interval:
+        return self.present_interval(self.activity_start, self.activity_finish)
 
 
 def model_from_form(form: FormData) -> models.ExposureModel:
@@ -262,7 +268,7 @@ def model_from_form(form: FormData) -> models.ExposureModel:
             infected=models.InfectedPopulation(
                 number=infected_occupants,
                 virus=virus,
-                presence=form.present_interval(),
+                presence=form.infected_present_interval(),
                 mask=mask,
                 activity=infected_activity,
                 expiration=infected_expiration
@@ -270,7 +276,7 @@ def model_from_form(form: FormData) -> models.ExposureModel:
         ),
         exposed=models.Population(
             number=exposed_occupants,
-            presence=form.present_interval(),
+            presence=form.exposed_present_interval(),
             activity=exposed_activity,
             mask=mask,
         )

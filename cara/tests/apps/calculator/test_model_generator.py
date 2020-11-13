@@ -98,7 +98,7 @@ def test_ventilation_window_hepa(baseline_form):
                                [baseline_form.ventilation().air_exchange(room, t) for t in ts])
 
 
-def test_present_intervals(baseline_form):
+def test_infected_present_intervals(baseline_form):
     baseline_form.coffee_duration = 15
     baseline_form.coffee_breaks = 2
     baseline_form.activity_start = 9 * 60
@@ -108,8 +108,20 @@ def test_present_intervals(baseline_form):
     baseline_form.infected_start = 10 * 60
     baseline_form.infected_finish = 15 * 60
     correct = ((10, 11), (11.25, 12.5), (13.5, 15.0))
-    assert baseline_form.present_interval().present_times == correct
+    assert baseline_form.infected_present_interval().present_times == correct
 
+
+def test_exposed_present_intervals(baseline_form):
+    baseline_form.coffee_duration = 15
+    baseline_form.coffee_breaks = 2
+    baseline_form.activity_start = 9 * 60
+    baseline_form.activity_finish = 17 * 60
+    baseline_form.lunch_start = 12 * 60 + 30
+    baseline_form.lunch_finish = 13 * 60 + 30
+    baseline_form.infected_start = 10 * 60
+    baseline_form.infected_finish = 15 * 60
+    correct = ((9, 11), (11.25, 12.5), (13.5, 15), (15.25, 17.0))
+    assert baseline_form.exposed_present_interval().present_times == correct
 
 def test_key_validation(baseline_form_data):
     baseline_form_data['activity_type'] = 'invalid key'
