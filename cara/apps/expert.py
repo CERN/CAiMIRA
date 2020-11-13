@@ -419,16 +419,22 @@ class ExpertApplication:
         self.views = (WidgetView(default_scenario),)
         self.selected_tab = 0
         self.tabs = (widgets.VBox(children=(self.build_settings_menu(0), self.views[0].present())),)
-        self.tab_widget = widgets.Tab()
+        self.tab_widget = widgets.Tab(children=(widgets.VBox(children=(self.plot_all_concentrations(),)),))
         self.update_tab_widget()
+
+        def handle_tab_change(change):
+            if change['new'] == len(self.scenarios):
+                self.tab_widget.children = self.tabs + (widgets.VBox(children=(self.plot_all_concentrations(),)),)
+
+        self.tab_widget.observe(handle_tab_change, names='selected_index')
 
     def display_titles(self):
         for i, name in enumerate(self.scenario_names):
             self.tab_widget.set_title(i, name)
-        self.tab_widget.set_title(len(self.scenario_names), 'Comparison')
+        self.tab_widget.set_title(len(self.scenario_names), '- Comparison -')
 
     def update_tab_widget(self):
-        self.tab_widget.children = self.tabs + (widgets.Label('comparison widget'),)
+        self.tab_widget.children = self.tabs + (self.tab_widget.children[-1],)
         self.display_titles()
 
     def build_settings_menu(self, tab_index):
@@ -469,6 +475,35 @@ class ExpertApplication:
         rename_text_field.observe(on_rename_text_field, 'value')
         buttons = duplicate_button if tab_index == 0 else widgets.HBox(children=(duplicate_button, delete_button))
         return widgets.VBox(children=(buttons, rename_text_field))
+
+    def plot_all_concentrations(self):
+        figure = matplotlib.figure.Figure(figsize=(9, 6))
+        ax = figure.add_subplot(1, 1, 1)
+        resolution = 600
+        # Uses default time interval currently
+        ts = np.linspace(8, 17, resolution)
+        concentrations = [[s.dcs_instance().concentration_model.concentration(t) for t in ts] for s in self.scenarios]
+        for concentration in concentrations:
+            ax.plot(ts, concentration)
+
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+
+        ax.set_xlabel('Time (hours)')
+        ax.set_ylabel('Concentration ($q/m^3$)')
+        ax.set_title('Concentration of infectious quanta aerosols')
+        top = max(3, max([max(conc) for conc in concentrations]))
+        ax.set_ylim(bottom=0., top=top)
+        figure.canvas.draw()
+        matplotlib.interactive(False)
+        ipympl.backend_nbagg.new_figure_manager_given_figure(uuid.uuid1(), figure)
+        figure.canvas.toolbar_visible = True
+        figure.canvas.toolbar.collapsed = True
+        figure.canvas.footer_visible = False
+        figure.canvas.header_visible = False
+        figure.canvas.draw()
+        figure.legend(self.scenario_names)
+        return figure.canvas
 
     @property
     def widget(self):
