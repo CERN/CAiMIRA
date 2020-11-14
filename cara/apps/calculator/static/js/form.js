@@ -264,6 +264,16 @@ function validateStartTime() {
   }
 }
 
+function removeInvalidDate() {
+  var single_event_date = document.getElementById("single_event_date");
+  if (single_event_date.classList.contains("red_border"))
+  {
+    single_event_date.value = "";
+    $(single_event_date).next().hide();
+    $(single_event_date).removeClass("red_border");
+  }
+}
+
 function isValidDate(date) {
   if (date === "") return true;
   var matches = /^(\d+)[-\/](\d+)[-\/](\d+)$/.exec(date);
@@ -309,6 +319,8 @@ $(document).ready(function () {
   $(".finish_time").each(validateFinishTime);
   $(".finish_time").change(validateFinishTime);
   $(".start_time").change(validateStartTime);
+
+  $("#event_type_recurrent").change(removeInvalidDate);
 
   var radioValue = $("input[name='event_type']:checked");
   if (radioValue.val()) {
