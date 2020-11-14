@@ -116,11 +116,11 @@
                     <option value="workshop">Workshop</option>
                     <option value="training">Training</option>
                    </select><br>
-    Start: <input type="time" id="activity_start" name="activity_start" value="09:00" required> &nbsp;&nbsp;
+    Start: <input type="time" id="activity_start" class="start_time" name="activity_start" value="09:00" required> &nbsp;&nbsp;
     Finish: <input type="time" id="activity_finish" class="finish_time" name="activity_finish" value="18:00" required>
     <span id="activity_time_error" class="red_text" hidden>Finish time must be after start</span><br>
     Infected person(s) presence: <br>
-    Start: <input type="time" id="infected_start" name="infected_start" value="09:00" required> &nbsp;&nbsp;
+    Start: <input type="time" id="infected_start" class="start_time" name="infected_start" value="09:00" required> &nbsp;&nbsp;
     Finish: <input type="time" id="infected_finish" class="finish_time" name="infected_finish" value="18:00" required>
     <span id="infected_time_error" class="red_text" hidden>Finish time must be after start</span><br>
     <hr width="80%">
@@ -162,7 +162,7 @@
       <label for="lunch_option">Yes</label><br>
     
     <div id="DIVlunch_break">
-        Start: <input type="time" id="lunch_start" name="lunch_start" value="12:30" required> &nbsp;&nbsp;
+        Start: <input type="time" id="lunch_start" class="start_time" name="lunch_start" value="12:30" required> &nbsp;&nbsp;
         Finish: <input type="time" id="lunch_finish" class="finish_time" name="lunch_finish" value="13:30" required>
         <span id="lunch_time_error" class="red_text" hidden>Finish time must be after start</span><br>
     </div>

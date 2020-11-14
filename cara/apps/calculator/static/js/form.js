@@ -140,6 +140,8 @@ function require_lunch(option) {
   else {
     document.getElementById("lunch_start").value = "";
     document.getElementById("lunch_finish").value = "";
+    $("#lunch_finish").removeClass("red_border");
+    $("#lunch_time_error").hide();
   }
 }
 
@@ -195,20 +197,22 @@ function validate_form(form) {
   var submit = true;
 
   //Validate all dates
-  $("input[required].datepicker").each(function () {
+  $("input[required].datepicker").each(function() {
+
+    //TODO: Use function validateDate()
     $(this).removeClass("red_border");
     $(this).next().hide();
 
     var fromDate = $(this).val();
     if (!isValidDate(fromDate)) {
       $(this).addClass("red_border");
-      submit = false;
       $(this).next().show();
+      submit = false;
     }
   });
 
   //Validate all times
-  $("input[required].finish_time").each(function () {
+  $("input[required].finish_time").each(function() {
     $(this).removeClass("red_border");
     $(this).next().hide();
 
@@ -224,7 +228,44 @@ function validate_form(form) {
   return submit;
 }
 
+function validateDate() {
+  $(this).removeClass("red_border");
+  $(this).next().hide();
+
+  var fromDate = $(this).val();
+  if (!isValidDate(fromDate)) {
+    $(this).addClass("red_border");
+    $(this).next().show();
+  }
+}
+
+function validateFinishTime() {
+  $(this).removeClass("red_border");
+  $(this).next().hide();
+
+  var startTime = parseValToNumber($(this).prev());
+  var finishTime = parseValToNumber($(this));
+  if (startTime > finishTime) {
+    $(this).addClass("red_border");
+    $(this).next().show();
+  }
+}
+
+//TODO: Merge with validateFinishTime()
+function validateStartTime() {
+  $(this).next().removeClass("red_border");
+  $(this).next().next().hide();
+
+  var startTime = parseValToNumber($(this));
+  var finishTime = parseValToNumber($(this).next());
+  if (startTime > finishTime) {
+    $(this).next().addClass("red_border");
+    $(this).next().next().show();
+  }
+}
+
 function isValidDate(date) {
+  if (date === "") return true;
   var matches = /^(\d+)[-\/](\d+)[-\/](\d+)$/.exec(date);
   if (matches == null) return false;
   var d = matches[1];
@@ -260,8 +301,14 @@ $(document).ready(function () {
   // and update it when total people is changed.
   setMaxInfectedPeople();
   $("#total_people").change(setMaxInfectedPeople);
-
   $("#activity_type").change(setMaxInfectedPeople);
+
+  $(".datepicker").each(validateDate);
+  $(".datepicker").change(validateDate);
+
+  $(".finish_time").each(validateFinishTime);
+  $(".finish_time").change(validateFinishTime);
+  $(".start_time").change(validateStartTime);
 
   var radioValue = $("input[name='event_type']:checked");
   if (radioValue.val()) {
