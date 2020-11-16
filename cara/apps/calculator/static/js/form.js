@@ -214,7 +214,7 @@ function validateDate(obj) {
   $(obj).removeClass("red_border");
   $(obj).next().hide();
 
-  var fromDate = $(obj).value;
+  var fromDate = $(obj).val();
   if (!isValidDate(fromDate)) {
     $(obj).addClass("red_border");
     $(obj).next().show();
