@@ -416,9 +416,9 @@ class ExpertApplication:
         default_scenario.concentration_model.infected.mask.dcs_select('No mask')
         self.scenarios = (default_scenario,)
         self.scenario_names = ('Scenario 1',)
-        self.views = (WidgetView(default_scenario),)
+        self.tab_views = (WidgetView(default_scenario),)
         self.selected_tab = 0
-        self.tabs = (widgets.VBox(children=(self.build_settings_menu(0), self.views[0].present())),)
+        self.tabs = (widgets.VBox(children=(self.build_settings_menu(0), self.tab_views[0].present())),)
         self.tab_widget = widgets.Tab(children=(widgets.VBox(children=(self.plot_all_concentrations(),)),))
         self.update_tab_widget()
 
@@ -446,10 +446,10 @@ class ExpertApplication:
         def on_delete_click(b):
             self.scenario_names = tuple_without_index(self.scenario_names, tab_index)
             self.scenarios = tuple_without_index(self.scenarios, tab_index)
-            self.views = tuple_without_index(self.views, tab_index)
+            self.tab_views = tuple_without_index(self.tab_views, tab_index)
             self.selected_tab = min(0, self.selected_tab - 1)
             self.tabs = tuple(widgets.VBox(children=(self.build_settings_menu(i), view.present()))
-                              for i, view in enumerate(self.views))
+                              for i, view in enumerate(self.tab_views))
             self.update_tab_widget()
 
         def on_rename_text_field(change):
@@ -466,8 +466,9 @@ class ExpertApplication:
             new_scenario.dcs_update_from(self.scenarios[tab_index].dcs_instance())
             self.scenarios += (new_scenario,)
 
-            self.views += (WidgetView(new_scenario),)
-            self.tabs += (widgets.VBox(children=(self.build_settings_menu(len(self.scenario_names) - 1), self.views[-1].present())),)
+            self.tab_views += (WidgetView(new_scenario),)
+            self.tabs += (widgets.VBox(children=(self.build_settings_menu(len(self.scenario_names) - 1),
+                                                 self.tab_views[-1].present())),)
             self.update_tab_widget()
 
         delete_button.on_click(on_delete_click)
