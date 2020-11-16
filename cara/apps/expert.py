@@ -419,22 +419,16 @@ class ExpertApplication:
         self.tab_views = (WidgetView(default_scenario),)
         self.selected_tab = 0
         self.tabs = (widgets.VBox(children=(self.build_settings_menu(0), self.tab_views[0].present())),)
-        self.tab_widget = widgets.Tab(children=(widgets.VBox(children=(self.plot_all_concentrations(),)),))
+        self.tab_widget = widgets.Tab()
         self.update_tab_widget()
-
-        def handle_tab_change(change):
-            if change['new'] == len(self.scenarios):
-                self.tab_widget.children = self.tabs + (widgets.VBox(children=(self.plot_all_concentrations(),)),)
-
-        self.tab_widget.observe(handle_tab_change, names='selected_index')
+        self.comparison_view = ComparisonView()
 
     def display_titles(self):
         for i, name in enumerate(self.scenario_names):
             self.tab_widget.set_title(i, name)
-        self.tab_widget.set_title(len(self.scenario_names), '- Comparison -')
 
     def update_tab_widget(self):
-        self.tab_widget.children = self.tabs + (self.tab_widget.children[-1],)
+        self.tab_widget.children = self.tabs
         self.display_titles()
 
     def build_settings_menu(self, tab_index):
@@ -477,38 +471,51 @@ class ExpertApplication:
         buttons = duplicate_button if tab_index == 0 else widgets.HBox(children=(duplicate_button, delete_button))
         return widgets.VBox(children=(buttons, rename_text_field))
 
-    def plot_all_concentrations(self):
+    @property
+    def widget(self):
+        self.comparison_view.update_plot()
+        return widgets.VBox(children=(self.tab_widget, self.comparison_view.figure.canvas))
+
+
+class ComparisonView:
+    def __init__(self):
+        self.figure = self.initialize_figure()
+        self.ax = self.initialize_axis()
+
+    @staticmethod
+    def initialize_figure() -> matplotlib.figure.Figure:
         figure = matplotlib.figure.Figure(figsize=(9, 6))
-        ax = figure.add_subplot(1, 1, 1)
-        resolution = 600
-        # Uses default time interval currently
-        ts = np.linspace(8, 17, resolution)
-        concentrations = [[s.dcs_instance().concentration_model.concentration(t) for t in ts] for s in self.scenarios]
-        for concentration in concentrations:
-            ax.plot(ts, concentration)
-
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
-
-        ax.set_xlabel('Time (hours)')
-        ax.set_ylabel('Concentration ($q/m^3$)')
-        ax.set_title('Concentration of infectious quanta aerosols')
-        top = max(3, max([max(conc) for conc in concentrations]))
-        ax.set_ylim(bottom=0., top=top)
-        figure.canvas.draw()
         matplotlib.interactive(False)
         ipympl.backend_nbagg.new_figure_manager_given_figure(uuid.uuid1(), figure)
         figure.canvas.toolbar_visible = True
         figure.canvas.toolbar.collapsed = True
         figure.canvas.footer_visible = False
         figure.canvas.header_visible = False
-        figure.canvas.draw()
-        figure.legend(self.scenario_names)
-        return figure.canvas
+        return figure
 
-    @property
-    def widget(self):
-        return self.tab_widget
+    def initialize_axis(self) -> matplotlib.figure.Axes:
+        ax = self.figure.add_subplot(1, 1, 1)
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        ax.set_xlabel('Time (hours)')
+        ax.set_ylabel('Concentration ($q/m^3$)')
+        ax.set_title('Concentration of infectious quanta aerosols')
+        return ax
+
+    def update_plot(self, conc_models: typing.Tuple[models.ConcentrationModel], labels: typing.Tuple[str]):
+        self.figure.clf()
+        # Hard-coded 8:00-17:00 interval
+        ts = np.linspace(8, 17)
+        concentrations = [[conc_model.concentration(t) for t in ts] for conc_model in conc_models]
+        for concentration in concentrations:
+            self.ax.plot(ts, concentration)
+
+        top = max(3., max([max(conc) for conc in concentrations]))
+        self.ax.set_ylim(bottom=0., top=top)
+
+        self.figure.legend(labels)
+
+        self.figure.canvas.draw()
 
 
 def tuple_without_index(t: typing.Tuple, index: int) -> typing.Tuple:
