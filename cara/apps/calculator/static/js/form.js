@@ -20,7 +20,6 @@ function getChildElement(elem) {
   return $("#" + elem.data("enables"));
 }
 
-
 /* -------Required fields------- */
 function require_fields(obj) {
   switch (obj.id) {
@@ -198,57 +197,44 @@ function validate_form(form) {
 
   //Validate all dates
   $("input[required].datepicker").each(function() {
-
-    //TODO: Use function validateDate()
-    $(this).removeClass("red_border");
-    $(this).next().hide();
-
-    var fromDate = $(this).val();
-    if (!isValidDate(fromDate)) {
-      $(this).addClass("red_border");
-      $(this).next().show();
+    if (!validateDate(this))
       submit = false;
-    }
   });
 
   //Validate all times
   $("input[required].finish_time").each(function() {
-    $(this).removeClass("red_border");
-    $(this).next().hide();
-
-    var startTime = parseValToNumber($(this).prev());
-    var finishTime = parseValToNumber($(this));
-    if (startTime > finishTime) {
-      $(this).addClass("red_border");
+    if (!validateFinishTime(this))
       submit = false;
-      $(this).next().show();
-    }
   });
 
   return submit;
 }
 
-function validateDate() {
-  $(this).removeClass("red_border");
-  $(this).next().hide();
+function validateDate(obj) {
+  $(obj).removeClass("red_border");
+  $(obj).next().hide();
 
-  var fromDate = $(this).val();
+  var fromDate = $(obj).value;
   if (!isValidDate(fromDate)) {
-    $(this).addClass("red_border");
-    $(this).next().show();
+    $(obj).addClass("red_border");
+    $(obj).next().show();
+    return false;
   }
+  return true;
 }
 
-function validateFinishTime() {
-  $(this).removeClass("red_border");
-  $(this).next().hide();
+function validateFinishTime(obj) {
+  $(obj).removeClass("red_border");
+  $(obj).next().hide();
 
-  var startTime = parseValToNumber($(this).prev());
-  var finishTime = parseValToNumber($(this));
+  var startTime = parseValToNumber($(obj).prev().val());
+  var finishTime = parseValToNumber(obj.value);
   if (startTime > finishTime) {
-    $(this).addClass("red_border");
-    $(this).next().show();
+    $(obj).addClass("red_border");
+    $(obj).next().show();
+    return false;
   }
+  return true;
 }
 
 //TODO: Merge with validateFinishTime()
@@ -256,8 +242,8 @@ function validateStartTime() {
   $(this).next().removeClass("red_border");
   $(this).next().next().hide();
 
-  var startTime = parseValToNumber($(this));
-  var finishTime = parseValToNumber($(this).next());
+  var startTime = parseValToNumber($(this).val());
+  var finishTime = parseValToNumber($(this).next().val());
   if (startTime > finishTime) {
     $(this).next().addClass("red_border");
     $(this).next().next().show();
@@ -286,8 +272,8 @@ function isValidDate(date) {
   return composedDate.getDate() == d && composedDate.getMonth() + 1 == m && composedDate.getFullYear() == y;
 }
 
-function parseValToNumber(obj) {
-    return parseInt(obj.val().replace(':',''), 10);
+function parseValToNumber(val) {
+    return parseInt(val.replace(':',''), 10);
 }
 
 /* -------On Load------- */
@@ -298,8 +284,7 @@ $(document).ready(function () {
 
   // When the ventilation_type changes we want to make its respective
   // children show/hide.
-  ventilation_types = $("input[type=radio][name=ventilation_type]");
-  ventilation_types.change(on_ventilation_type_change);
+  $("input[type=radio][name=ventilation_type]").change(on_ventilation_type_change);
   // Call the function now to handle forward/back button presses in the browser.
   on_ventilation_type_change();
 
@@ -313,11 +298,13 @@ $(document).ready(function () {
   $("#total_people").change(setMaxInfectedPeople);
   $("#activity_type").change(setMaxInfectedPeople);
 
-  $(".datepicker").each(validateDate);
-  $(".datepicker").change(validateDate);
+  //Validate all dates
+  $("input[required].datepicker").each(function() {validateDate(this)});
+  $(".datepicker").change(function() {validateDate(this)});
 
-  $(".finish_time").each(validateFinishTime);
-  $(".finish_time").change(validateFinishTime);
+  //Validate all finish times
+  $("input[required].finish_time").each(function() {validateFinishTime(this)});
+  $(".finish_time").change(function() {validateFinishTime(this)});
   $(".start_time").change(validateStartTime);
 
   $("#event_type_recurrent").change(removeInvalidDate);
@@ -338,6 +325,7 @@ function debug_submit(form) {
   var serializedData = objectifyForm($(form).serializeArray());
 
   console.log(serializedData);
+
   return false; //don't submit
 }
 
