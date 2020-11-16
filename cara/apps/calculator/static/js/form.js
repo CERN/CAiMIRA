@@ -290,7 +290,9 @@ $(document).ready(function () {
 
   //Same for lunch option
   var lunch_option = $("input[name='lunch_option']:checked");
-  require_fields(lunch_option);
+  var option = (lunch_option.attr('id') === "lunch_option_yes")
+  $("#lunch_start").prop('required', option);
+  $("#lunch_finish").prop('required', option);
 
   // Setup the maximum number of people at page load (to handle back/forward),
   // and update it when total people is changed.
@@ -305,7 +307,7 @@ $(document).ready(function () {
   //Validate all finish times
   $("input[required].finish_time").each(function() {validateFinishTime(this)});
   $(".finish_time").change(function() {validateFinishTime(this)});
-  $(".start_time").change(function() {validateStartTime()});
+  $(".start_time").change(validateStartTime);
 
   $("#event_type_recurrent").change(removeInvalidDate);
 
