@@ -70,13 +70,13 @@
 		<li><p class="data_text">
 		Activity type:
 		{% if form.activity_type == "office" %}
-		Office – typical scenario with all persons seated, talking occasionally.
+		Office – typical scenario with all persons seated, talking occasionally (talking assumed for 1/3rd of the time).
 		{% elif form.activity_type == "meeting" %}
 		Meeting – typical scenario with all persons seated, one person talking at a time.
 		{% elif form.activity_type == "callcentre" %}
 		Call Centre = typical office scenario with all persons seated, all talking continuously.
 		{% elif form.activity_type == "workshop" %}
-		Workshop = assembly workshop environment, all persons doing light exercise, talking.
+		Workshop = assembly workshop environment, all persons standing, talking 50% of the time.
 		{% elif form.activity_type == "training" %}
 		Training – one person (the trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the trainer is the infected person, for the worst case scenario.
 		{% endif %}

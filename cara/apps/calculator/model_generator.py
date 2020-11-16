@@ -185,8 +185,11 @@ class FormData:
                 {'Talking': 1, 'Breathing': self.total_people - 1}
             ),
             'callcentre': ('Seated', 'Talking'),
-            'training': ('Light exercise', 'Talking'),
-            'workshop': ('Light exercise', 'Talking'),
+            'training': ('Standing', 'Talking'),
+            'workshop': (
+                'Standing',
+                #Model 1/2 of time spent talking in a workshop.
+                {'Talking': 1, 'Breathing': 1})
         }
 
         [activity_defn, expiration_defn] = scenario_activity_and_expiration[self.activity_type]
@@ -210,8 +213,8 @@ class FormData:
             'office': 'Seated',
             'meeting': 'Seated',
             'callcentre': 'Seated',
-            'training': 'Light exercise',
-            'workshop': 'Light exercise',
+            'training': 'Seated',
+            'workshop': 'Standing',
         }
 
         activity_defn = scenario_activity[self.activity_type]

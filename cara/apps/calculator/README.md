@@ -103,7 +103,7 @@ There are three predefined activities in the tool at present.
 
 **Call Centre** = All persons seated, all talking simultaneously, all the time. This is a conservative profile (i.e. will show in increased ``P(i)`` compared to office/meeting) if used for office activity.
 
-**Workshop** = Based on a mechanical assembly workshop, all persons are doing light exercise (standing, moving around, using tools) and talking. Everyone (occupants and infected occupants) is treated the same in this model.
+**Workshop** = Based on a mechanical assembly workshop, all persons are standing and talking 50% of the time. Everyone (occupants and infected occupants) is treated the same in this model.
 
 **Training** = Based on a typical training course scenario.
 One individual (the trainer) is doing light exercise (standing) and talking, with all other individuals seated and talking quietly (whispering).
