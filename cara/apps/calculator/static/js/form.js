@@ -22,7 +22,7 @@ function getChildElement(elem) {
 
 /* -------Required fields------- */
 function require_fields(obj) {
-  switch (obj.id) {
+  switch ($(obj).attr('id')) {
     case "room_type_volume":
       require_room_volume(true);
       require_room_dimensions(false);
@@ -288,9 +288,9 @@ $(document).ready(function () {
   // Call the function now to handle forward/back button presses in the browser.
   on_ventilation_type_change();
 
-  $("input[name=mechanical_ventilation_type]").change(function () {
-    console.log('Changed!');
-  })
+  //Same for lunch option
+  var lunch_option = $("input[name='lunch_option']:checked");
+  require_fields(lunch_option);
 
   // Setup the maximum number of people at page load (to handle back/forward),
   // and update it when total people is changed.
@@ -305,14 +305,13 @@ $(document).ready(function () {
   //Validate all finish times
   $("input[required].finish_time").each(function() {validateFinishTime(this)});
   $(".finish_time").change(function() {validateFinishTime(this)});
-  $(".start_time").change(validateStartTime);
+  $(".start_time").change(function() {validateStartTime()});
 
   $("#event_type_recurrent").change(removeInvalidDate);
 
   var radioValue = $("input[name='event_type']:checked");
-  if (radioValue.val()) {
+  if (radioValue.val())
     require_fields(radioValue.get(0));
-  }
 });
 
 /* -------Debugging------- */
