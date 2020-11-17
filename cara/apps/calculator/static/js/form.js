@@ -135,8 +135,12 @@ function require_lunch(option) {
   $("#lunch_start").prop('required', option);
   $("#lunch_finish").prop('required', option);
   if (option) {
-    document.getElementById("lunch_start").value = "12:30";
-    document.getElementById("lunch_finish").value = "13:30";
+    var start = document.getElementById("lunch_start");
+    if (start.value === "")
+      start.value = "12:30";
+    var finish = document.getElementById("lunch_finish");
+    if (finish.value === "")
+      finish.value = "13:30";
   } 
   else {
     document.getElementById("lunch_start").value = "";
@@ -291,10 +295,7 @@ $(document).ready(function () {
   on_ventilation_type_change();
 
   //Same for lunch option
-  var lunch_option = $("input[name='lunch_option']:checked");
-  var option = (lunch_option.attr('id') === "lunch_option_yes")
-  $("#lunch_start").prop('required', option);
-  $("#lunch_finish").prop('required', option);
+  require_fields($("input[name='lunch_option']:checked"));
 
   // Setup the maximum number of people at page load (to handle back/forward),
   // and update it when total people is changed.
