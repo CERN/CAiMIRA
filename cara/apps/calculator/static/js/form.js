@@ -94,8 +94,7 @@ function require_room_dimensions(option) {
 function require_mechanical_ventilation(option) {
   $("#air_type_changes").prop('required', option);
   $("#air_type_supply").prop('required', option);
-  if (!option)
-  {
+  if (!option) {
     removeInvalid("air_changes");
     removeInvalid("air_supply");
   }
@@ -160,7 +159,6 @@ function require_hepa(option) {
 }
 
 function setMaxInfectedPeople() {
-
   $("#training_limit_error").hide();
   var max = $("#total_people").val()
 
@@ -223,8 +221,13 @@ function show_disclaimer() {
 
 /* -------Form validation------- */
 function validate_form(form) {
-
   var submit = true;
+
+  //Validate all non zero values
+  $("input[required].non_zero").each(function() {
+    if (!validateValue(this))
+      submit = false;
+  });
 
   //Validate all dates
   $("input[required].datepicker").each(function() {
@@ -241,16 +244,22 @@ function validate_form(form) {
   return submit;
 }
 
-function validateNonZeroOrEmpty(obj) {
+function validateValue(obj) {
   $(obj).removeClass("red_border");
   $(obj).next('span').remove();
 
-  if ($(obj).val() === "") return true;
-  if ($(obj).val() == 0) {
+  if (!isNonZeroOrEmpty($(obj).val())) {
     $(obj).addClass("red_border");
     insertSpanAfter(obj, "Value must be > 0");
     return false;
   }
+  return true;
+}
+
+function isNonZeroOrEmpty(value) {
+  if (value === "") return true;
+  if (value == 0) 
+    return false;
   return true;
 }
 
@@ -264,6 +273,18 @@ function validateDate(obj) {
     return false;
   }
   return true;
+}
+
+function isValidDateOrEmpty(date) {
+  if (date === "") return true;
+  var matches = /^(\d+)[-\/](\d+)[-\/](\d+)$/.exec(date);
+  if (matches == null) return false;
+  var d = matches[1];
+  var m = matches[2];
+  var y = matches[3];
+  if (y > 2100 || y < 1900) return false;
+  var composedDate = new Date(y + '/' + m + '/' + d);
+  return composedDate.getDate() == d && composedDate.getMonth() + 1 == m && composedDate.getFullYear() == y;
 }
 
 function validateFinishTime(obj) {
@@ -293,20 +314,8 @@ function validateStartTime() {
   }
 }
 
-function isValidDateOrEmpty(date) {
-  if (date === "") return true;
-  var matches = /^(\d+)[-\/](\d+)[-\/](\d+)$/.exec(date);
-  if (matches == null) return false;
-  var d = matches[1];
-  var m = matches[2];
-  var y = matches[3];
-  if (y > 2100 || y < 1900) return false;
-  var composedDate = new Date(y + '/' + m + '/' + d);
-  return composedDate.getDate() == d && composedDate.getMonth() + 1 == m && composedDate.getFullYear() == y;
-}
-
 function parseValToNumber(val) {
-    return parseInt(val.replace(':',''), 10);
+  return parseInt(val.replace(':',''), 10);
 }
 
 /* -------On Load------- */
@@ -330,9 +339,9 @@ $(document).ready(function () {
   $("#total_people").change(setMaxInfectedPeople);
   $("#activity_type").change(setMaxInfectedPeople);
 
-  //Validate non zero values
-  $("input[required].non_zero").each(function() {validateNonZeroOrEmpty(this)});
-  $(".non_zero").change(function() {validateNonZeroOrEmpty(this)});
+  //Validate all non zero values
+  $("input[required].non_zero").each(function() {validateValue(this)});
+  $(".non_zero").change(function() {validateValue(this)});
 
   //Validate all dates
   $("input[required].datepicker").each(function() {validateDate(this)});
