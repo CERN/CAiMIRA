@@ -83,40 +83,45 @@ function unrequire_fields(obj) {
 }
 
 function require_room_volume(option) {
-  require_field("room_volume", option);
+  require_nonzero_field("room_volume", option);
 }
 
 function require_room_dimensions(option) {
-  require_field("floor_area", option);
-  require_field("ceiling_height", option);
+  require_nonzero_field("floor_area", option);
+  require_nonzero_field("ceiling_height", option);
 }
 
 function require_mechanical_ventilation(option) {
   $("#air_type_changes").prop('required', option);
   $("#air_type_supply").prop('required', option);
+  if (!option)
+  {
+    removeInvalid("air_changes");
+    removeInvalid("air_supply");
+  }
 }
 
 function require_natural_ventilation(option) {
-  $("#windows_number").prop('required', option);
-  $("#window_height").prop('required', option);
-  $("#opening_distance").prop('required', option);
+  require_nonzero_field("windows_number", option);
+  require_nonzero_field("window_height", option);
+  require_nonzero_field("opening_distance", option);
   $("#always").prop('required', option);
   $("#interval").prop('required', option);
 }
 
 function require_air_changes(option) {
-  require_field("air_changes", option);
+  require_nonzero_field("air_changes", option);
 }
 
 function require_air_supply(option) {
-  require_field("air_supply", option);
+  require_nonzero_field("air_supply", option);
 }
 
 function require_single_event(option) {
-  require_field("single_event_date", option);
+  require_nonzero_field("single_event_date", option);
 }
 
-function require_field(id, option) {
+function require_nonzero_field(id, option) {
   $("#"+id).prop('required', option);
   if (!option)
     removeInvalid(id);
@@ -151,7 +156,7 @@ function require_mask(option) {
 }
 
 function require_hepa(option) {
-  require_field("hepa_amount", option);
+  require_nonzero_field("hepa_amount", option);
 }
 
 function setMaxInfectedPeople() {
@@ -189,8 +194,6 @@ function on_ventilation_type_change() {
       getChildElement($(this)).find('input').not('input[type=radio]').val('');
       getChildElement($(this)).find('input[type=radio]').prop("checked", false);
       getChildElement($(this)).find('input').prop("required", false);
-      //console.log(getChildElement($(this)).find('input').not('input[type=radio]').attr('id'));
-      //removeInvalid(getChildElement(getChildElement($(this)).find('input').not('input[type=radio]').attr('id')));
     }
   });
 }
@@ -327,7 +330,7 @@ $(document).ready(function () {
   $("#total_people").change(setMaxInfectedPeople);
   $("#activity_type").change(setMaxInfectedPeople);
 
-  //Validate values > 0
+  //Validate non zero values
   $("input[required].non_zero").each(function() {validateNonZeroOrEmpty(this)});
   $(".non_zero").change(function() {validateNonZeroOrEmpty(this)});
 
