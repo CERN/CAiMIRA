@@ -16,7 +16,7 @@ def test_no_mask_aerosols(baseline_model):
 
 
 def test_no_mask_emission_rate(baseline_model):
-    rate = 167.74011998223307
+    rate = 151.938514
     npt.assert_allclose(
         [baseline_model.infected.emission_rate(t) for t in [0, 1, 4, 4.5, 5, 8, 9]],
         [0, rate, rate, 0, 0, rate, 0],
@@ -52,7 +52,7 @@ def test_concentrations(baseline_model):
     concentrations = [baseline_model.concentration(t) for t in ts]
     npt.assert_allclose(
         concentrations,
-        [0.000000e+00, 2.891970e-01, 1.266287e-04, 2.891969e-01, 5.544607e-08],
+        [0.000000e+00, 2.619538e-01, 1.156999e-04, 2.619537e-01, 5.022289e-08],
         rtol=1e-5
     )
 
@@ -97,7 +97,7 @@ def test_concentrations_startup(baseline_model):
 
 def test_r0(baseline_exposure_model):
     p = baseline_exposure_model.infection_probability()
-    npt.assert_allclose(p, 93.196908)
+    npt.assert_allclose(p, 88.977694)
 
 
 def test_periodic_window(baseline_periodic_window, baseline_room):
