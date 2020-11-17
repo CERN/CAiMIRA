@@ -1,23 +1,14 @@
-function on_ventilation_type_change() {
-  ventilation_types = $('input[type=radio][name=ventilation_type]');
-  ventilation_types.each(function (index) {
-    if (this.checked) {
-      getChildElement($(this)).show();
-      require_fields(this);
-    } else {
-      getChildElement($(this)).hide();
-      unrequire_fields(this);
-      // Clear the inputs for this newly hidden child element.
-      getChildElement($(this)).find('input').not('input[type=radio]').val('');
-      getChildElement($(this)).find('input[type=radio]').prop("checked", false);
-      getChildElement($(this)).find('input').prop("required", false);
-    }
-  });
-}
-
+/* ------- HTML structure ------- */
 function getChildElement(elem) {
   // Get the element named in the given element's data-enables attribute.
   return $("#" + elem.data("enables"));
+}
+
+function insertSpanAfter(referenceNode, text) {
+  var element = document.createElement("span");
+  element.classList.add("red_text");
+  element.innerHTML = "&nbsp;&nbsp;" + text; 
+  referenceNode.parentNode.insertBefore(element, referenceNode.nextSibling);
 }
 
 /* -------Required fields------- */
@@ -92,39 +83,47 @@ function unrequire_fields(obj) {
 }
 
 function require_room_volume(option) {
-  $("#room_volume").prop('required', option);
+  require_nonzero_field("room_volume", option);
 }
 
 function require_room_dimensions(option) {
-  $("#floor_area").prop('required', option);
-  $("#ceiling_height").prop('required', option);
+  require_nonzero_field("floor_area", option);
+  require_nonzero_field("ceiling_height", option);
 }
 
 function require_mechanical_ventilation(option) {
   $("#air_type_changes").prop('required', option);
   $("#air_type_supply").prop('required', option);
+  if (!option) {
+    removeInvalid("air_changes");
+    removeInvalid("air_supply");
+  }
 }
 
 function require_natural_ventilation(option) {
-  $("#windows_number").prop('required', option);
-  $("#window_height").prop('required', option);
-  $("#opening_distance").prop('required', option);
+  require_nonzero_field("windows_number", option);
+  require_nonzero_field("window_height", option);
+  require_nonzero_field("opening_distance", option);
   $("#always").prop('required', option);
   $("#interval").prop('required', option);
 }
 
 function require_air_changes(option) {
-  $("#air_changes").prop('required', option);
+  require_nonzero_field("air_changes", option);
 }
 
 function require_air_supply(option) {
-  $("#air_supply").prop('required', option);
+  require_nonzero_field("air_supply", option);
 }
 
 function require_single_event(option) {
-  $("#single_event_date").prop('required', option);
+  require_nonzero_field("single_event_date", option);
+}
+
+function require_nonzero_field(id, option) {
+  $("#"+id).prop('required', option);
   if (!option)
-    removeInvalidDate();
+    removeInvalid(id);
 }
 
 function require_recurrent_event(option) {
@@ -156,21 +155,45 @@ function require_mask(option) {
 }
 
 function require_hepa(option) {
-  $("#hepa_amount").prop('required', option);
+  require_nonzero_field("hepa_amount", option);
 }
 
 function setMaxInfectedPeople() {
-
   $("#training_limit_error").hide();
   var max = $("#total_people").val()
 
-  if ($("#activity_type").val() === "training")
-  {
+  if ($("#activity_type").val() === "training") {
     max = 1;
     $("#training_limit_error").show();
   }
 
   $("#infected_people").attr("max", max);
+}
+
+function removeInvalid(id) {
+  var obj = document.getElementById(id)
+  if (obj.classList.contains("red_border")) {
+    obj.value = "";
+    $(obj).removeClass("red_border");
+    $(obj).next('span').remove();
+  }
+}
+
+function on_ventilation_type_change() {
+  ventilation_types = $('input[type=radio][name=ventilation_type]');
+  ventilation_types.each(function (index) {
+    if (this.checked) {
+      getChildElement($(this)).show();
+      require_fields(this);
+    } else {
+      getChildElement($(this)).hide();
+      unrequire_fields(this);
+      // Clear the inputs for this newly hidden child element.
+      getChildElement($(this)).find('input').not('input[type=radio]').val('');
+      getChildElement($(this)).find('input[type=radio]').prop("checked", false);
+      getChildElement($(this)).find('input').prop("required", false);
+    }
+  });
 }
 
 /* -------UI------- */
@@ -198,8 +221,13 @@ function show_disclaimer() {
 
 /* -------Form validation------- */
 function validate_form(form) {
-
   var submit = true;
+
+  //Validate all non zero values
+  $("input[required].non_zero").each(function() {
+    if (!validateValue(this))
+      submit = false;
+  });
 
   //Validate all dates
   $("input[required].datepicker").each(function() {
@@ -216,28 +244,58 @@ function validate_form(form) {
   return submit;
 }
 
-function validateDate(obj) {
+function validateValue(obj) {
   $(obj).removeClass("red_border");
-  $(obj).next().hide();
+  $(obj).next('span').remove();
 
-  var fromDate = $(obj).val();
-  if (!isValidDateOrEmpty(fromDate)) {
+  if (!isNonZeroOrEmpty($(obj).val())) {
     $(obj).addClass("red_border");
-    $(obj).next().show();
+    insertSpanAfter(obj, "Value must be > 0");
     return false;
   }
   return true;
 }
 
+function isNonZeroOrEmpty(value) {
+  if (value === "") return true;
+  if (value == 0) 
+    return false;
+  return true;
+}
+
+function validateDate(obj) {
+  $(obj).removeClass("red_border");
+  $(obj).next('span').remove();
+
+  if (!isValidDateOrEmpty($(obj).val())) {
+    $(obj).addClass("red_border");
+    insertSpanAfter(obj, "Incorrect date format");
+    return false;
+  }
+  return true;
+}
+
+function isValidDateOrEmpty(date) {
+  if (date === "") return true;
+  var matches = /^(\d+)[-\/](\d+)[-\/](\d+)$/.exec(date);
+  if (matches == null) return false;
+  var d = matches[1];
+  var m = matches[2];
+  var y = matches[3];
+  if (y > 2100 || y < 1900) return false;
+  var composedDate = new Date(y + '/' + m + '/' + d);
+  return composedDate.getDate() == d && composedDate.getMonth() + 1 == m && composedDate.getFullYear() == y;
+}
+
 function validateFinishTime(obj) {
   $(obj).removeClass("red_border");
-  $(obj).next().hide();
+  $(obj).next('span').remove();
 
   var startTime = parseValToNumber($(obj).prev().val());
   var finishTime = parseValToNumber(obj.value);
   if (startTime > finishTime) {
     $(obj).addClass("red_border");
-    $(obj).next().show();
+    insertSpanAfter(obj, "Finish time must be after start");
     return false;
   }
   return true;
@@ -256,30 +314,8 @@ function validateStartTime() {
   }
 }
 
-function removeInvalidDate() {
-  var single_event_date = document.getElementById("single_event_date");
-  if (single_event_date.classList.contains("red_border"))
-  {
-    single_event_date.value = "";
-    $(single_event_date).next().hide();
-    $(single_event_date).removeClass("red_border");
-  }
-}
-
-function isValidDateOrEmpty(date) {
-  if (date === "") return true;
-  var matches = /^(\d+)[-\/](\d+)[-\/](\d+)$/.exec(date);
-  if (matches == null) return false;
-  var d = matches[1];
-  var m = matches[2];
-  var y = matches[3];
-  if (y > 2100 || y < 1900) return false;
-  var composedDate = new Date(y + '/' + m + '/' + d);
-  return composedDate.getDate() == d && composedDate.getMonth() + 1 == m && composedDate.getFullYear() == y;
-}
-
 function parseValToNumber(val) {
-    return parseInt(val.replace(':',''), 10);
+  return parseInt(val.replace(':',''), 10);
 }
 
 /* -------On Load------- */
@@ -302,6 +338,10 @@ $(document).ready(function () {
   setMaxInfectedPeople();
   $("#total_people").change(setMaxInfectedPeople);
   $("#activity_type").change(setMaxInfectedPeople);
+
+  //Validate all non zero values
+  $("input[required].non_zero").each(function() {validateValue(this)});
+  $(".non_zero").change(function() {validateValue(this)});
 
   //Validate all dates
   $("input[required].datepicker").each(function() {validateDate(this)});

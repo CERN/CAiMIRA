@@ -42,10 +42,10 @@
         <span class="tooltip_text">?</span>
     </div><br>
     <input type="radio" id="room_type_volume" name="volume_type" value="room_volume" onclick="require_fields(this)" required>
-    Room volume: &nbsp;&nbsp; <input type="number" step=0.01 id="room_volume" name="room_volume" placeholder="Room volume (m³)" min="0.01"><br>
+    Room volume: &nbsp;&nbsp; <input type="number" step="any" id="room_volume" class="non_zero" name="room_volume" placeholder="Room volume (m³)" min="0"><br>
     <input type="radio" id="room_type_dimensions" name="volume_type" value="room_dimensions" onclick="require_fields(this)" required>
-    Floor area: &nbsp;&nbsp; <input type="number" step=0.01 id="floor_area" name="floor_area" placeholder="Room floor area (m²)" min="0.01"><br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ceiling height: &nbsp;&nbsp; <input type="number" step=0.01 id="ceiling_height" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0.01"><br>
+    Floor area: &nbsp;&nbsp; <input type="number" step="any" id="floor_area" class="non_zero" name="floor_area" placeholder="Room floor area (m²)" min="0"><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ceiling height: &nbsp;&nbsp; <input type="number" step="any" id="ceiling_height" class="non_zero" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0"><br>
     <hr width="80%">
 
     <!-- Ventilation Options -->
@@ -60,15 +60,15 @@
 
     <div id="DIVmechanical_ventilation" style="display:none">
         <input type="radio" id="air_type_supply" name="mechanical_ventilation_type" value="air_supply" onclick="require_fields(this)">
-        Air supply flow rate &nbsp;&nbsp; <input type="number" step=0.01 id="air_supply" name="air_supply" min="0" placeholder="(m³ / hour)"><br>
+        Air supply flow rate &nbsp;&nbsp; <input type="number" step="any" id="air_supply" class="non_zero" name="air_supply" min="0" placeholder="(m³ / hour)"><br>
         <input type="radio" id="air_type_changes" name="mechanical_ventilation_type" value="air_changes" onclick="require_fields(this)">
-        Air changes per hour &nbsp;&nbsp; <input type="number" step=0.01 id="air_changes" name="air_changes" min="0"><br>
+        Air changes per hour &nbsp;&nbsp; <input type="number" step="any" id="air_changes" class="non_zero" name="air_changes" min="0"><br>
     </div>
 
     <div id="DIVnatural_ventilation" style="display:none">
-        Number of windows: <input type="number" id="windows_number" name="windows_number" min="1"><br>
-        Height of window: <input type="number" step=0.01 id="window_height" name="window_height" placeholder="meters" min="0"><br>
-        Opening distance: <input type="number" step=0.01 id="opening_distance"  name="opening_distance" placeholder="meters" min="0"><br>
+        Number of windows: <input type="number" id="windows_number" class="non_zero" name="windows_number" min="1"><br>
+        Height of window: <input type="number" step="any" id="window_height" class="non_zero" name="window_height" placeholder="meters" min="0"><br>
+        Opening distance: <input type="number" step="any" id="opening_distance" class="non_zero" name="opening_distance" placeholder="meters" min="0"><br>
         Windows open: <input type="radio" id="always" name="windows_open" value="always">
                       <label for="always">Always</label>
                       <input type="radio" id="interval" name="windows_open" value="interval">
@@ -81,7 +81,7 @@
     <label for="hepa_no">No</label>
     <input type="radio" id="hepa_yes" name="hepa_option" value=1 onclick="require_fields(this)">
     <label for="hepa_yes">Yes</label>
-    <input type="number" step=0.01 id="hepa_amount" name="hepa_amount" placeholder="(m³ / hour)" min="0">
+    <input type="number" step="any" id="hepa_amount" class="non_zero" name="hepa_amount" placeholder="(m³ / hour)" min="0">
     <hr width="80%">
 
     <b>Face masks:</b>
@@ -106,7 +106,7 @@
     </div><br>
     Total number of occupants: <input type="number" id="total_people" name="total_people" min=1 required><br>
     Number of infected people: <input type="number" id="infected_people" name="infected_people" min=1 required><br>
-    <span id="training_limit_error" class="red_text" hidden>Training activities limited to 1 infected</span><br>
+    <span id="training_limit_error" class="red_text" hidden>Training activities limited to 1 infected<br></span>
     <hr width="80%">
 
     Activity type: <select id="activity_type" name="activity_type">
@@ -119,12 +119,10 @@
                     <option value="gym">Gym</option>
                   </select><br>
     Start: <input type="time" id="activity_start" class="start_time" name="activity_start" value="09:00" required> &nbsp;&nbsp;
-    Finish: <input type="time" id="activity_finish" class="finish_time" name="activity_finish" value="18:00" required>
-    <span id="activity_time_error" class="red_text" hidden>Finish time must be after start</span><br>
+    Finish: <input type="time" id="activity_finish" class="finish_time" name="activity_finish" value="18:00" required><br>
     Infected person(s) presence: <br>
     Start: <input type="time" id="infected_start" class="start_time" name="infected_start" value="09:00" required> &nbsp;&nbsp;
-    Finish: <input type="time" id="infected_finish" class="finish_time" name="infected_finish" value="18:00" required>
-    <span id="infected_time_error" class="red_text" hidden>Finish time must be after start</span><br>
+    Finish: <input type="time" id="infected_finish" class="finish_time" name="infected_finish" value="18:00" required><br>
     <hr width="80%">
 
     When is the event?
@@ -135,8 +133,7 @@
 
     <label for="event_type_single">Single event</label> &nbsp;&nbsp;
     <label for="single_event_date">Date: </label>
-    <input type="text" id="single_event_date" class="datepicker" name="single_event_date" placeholder="dd/mm/yyyy">
-    <span id="event_time_error" class="red_text" hidden> Incorrect date format</span><br>
+    <input type="text" id="single_event_date" class="datepicker" name="single_event_date" placeholder="dd/mm/yyyy"><br>
     <input type="radio" id="event_type_recurrent" name="event_type" value="recurrent_event" onclick="require_fields(this)" required>
     <label for="event_type_recurrent">Recurrent usage</label>
     <select id="recurrent_event_month" name="recurrent_event_month">
@@ -165,8 +162,7 @@
     
     <div id="DIVlunch_break">
         Start: <input type="time" id="lunch_start" class="start_time" name="lunch_start" value="12:30" required> &nbsp;&nbsp;
-        Finish: <input type="time" id="lunch_finish" class="finish_time" name="lunch_finish" value="13:30" required>
-        <span id="lunch_time_error" class="red_text" hidden>Finish time must be after start</span><br>
+        Finish: <input type="time" id="lunch_finish" class="finish_time" name="lunch_finish" value="13:30" required><br>
     </div>
 
     <!-- Coffee Options -->
