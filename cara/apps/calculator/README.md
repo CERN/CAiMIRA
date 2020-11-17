@@ -103,12 +103,16 @@ There are three predefined activities in the tool at present.
 
 **Call Centre** = All persons seated, all talking simultaneously, all the time. This is a conservative profile (i.e. will show in increased ``P(i)`` compared to office/meeting) if used for office activity.
 
-**Workshop** = Based on a mechanical assembly workshop, all persons are standing and talking 50% of the time. Everyone (occupants and infected occupants) is treated the same in this model.
+**Lab** = Based on a typical lab or technical working area, all persons are doing light activity and talking 50% of the time. Everyone (occupants and infected occupants) is treated the same in this model.
+
+**Workshop** = Based on a mechanical assembly workshop or equipment installation scenario, all persons are doing moderate activity and talking 50% of the time. Everyone (occupants and infected occupants) is treated the same in this model. This model is equally applicable to bicycling, or walking on a gradient, in the LHC tunnels.
 
 **Training** = Based on a typical training course scenario.
-One individual (the trainer) is doing light exercise (standing) and talking, with all other individuals seated and talking quietly (whispering).
-In this case it is assumed that the infected person is the trainer, because this is the worst case in terms of viral sheeding.
+One individual (the trainer) is standing and talking, with all other individuals seated and talking quietly (whispering).
+In this case it is assumed that the infected person is the trainer, because this is the worst case in terms of viral sheding.
  
+**Gym** = Included for comparison purposes only, all persons are doing heavy exercise and breathing (no talking). Everyone (occupants and infected occupants) is treated the same in this model.
+
 
 ### Timings
 

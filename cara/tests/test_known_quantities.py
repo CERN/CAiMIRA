@@ -79,7 +79,7 @@ def build_model(interval_duration):
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(((0, 4), (5, 8))),
             mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light exercise'],
+            activity=models.Activity.types['Light activity'],
             expiration=models.Expiration.types['Unmodulated Vocalization'],
         ),
     )
@@ -300,7 +300,7 @@ def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),),
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(intervals_presence_infected),
             mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light exercise'],
+            activity=models.Activity.types['Light activity'],
             expiration=models.Expiration.types['Unmodulated Vocalization'],
         ),
     )
@@ -321,7 +321,7 @@ def build_constant_temp_model(outside_temp, intervals_open=((7.5, 8.5),)):
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(((0, 4), (5, 7.5))),
             mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light exercise'],
+            activity=models.Activity.types['Light activity'],
             expiration=models.Expiration.types['Unmodulated Vocalization'],
         ),
     )
@@ -348,7 +348,7 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(((0, 4), (5, 7.5))),
             mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light exercise'],
+            activity=models.Activity.types['Light activity'],
             expiration=models.Expiration.types['Unmodulated Vocalization'],
         ),
     )
@@ -364,7 +364,7 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
     [0.5, 1.2, 2., 3.5, 5., 6.5, 7.5, 7.9, 8.],
 )
 def test_concentrations_hourly_dep_temp_vs_constant(month, temperatures, time):
-    # The concentrations should be the same up to 8 AM (time when the 
+    # The concentrations should be the same up to 8 AM (time when the
     # temperature changes DURING the window opening).
     m1 = build_hourly_dependent_model(month)
     m2 = build_constant_temp_model(temperatures[7]+273.15)

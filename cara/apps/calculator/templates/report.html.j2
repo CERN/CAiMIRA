@@ -76,9 +76,13 @@
 		{% elif form.activity_type == "callcentre" %}
 		Call Centre = typical office scenario with all persons seated, all talking continuously.
 		{% elif form.activity_type == "workshop" %}
-		Workshop = assembly workshop environment, all persons standing, talking 50% of the time.
+		Workshop = assembly workshop environment, all persons doing moderate physical activity, talking 50% of the time.
 		{% elif form.activity_type == "training" %}
 		Training – one person (the trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the trainer is the infected person, for the worst case scenario.
+		{% elif form.activity_type == "lab" %}
+		Laboratory = Lab or technical environment, all persons doing light physical activity, talking 50% of the time.
+		{% elif form.activity_type == "gym" %}
+		Gym = For comparison only, all persons doing heavy physical exercise, breathing and not talking.
 		{% endif %}
 		</p></li>
 			<ul>

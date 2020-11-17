@@ -369,14 +369,14 @@ baseline_model = models.ExposureModel(
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(((8, 12), (13, 17))),
             mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light exercise'],
+            activity=models.Activity.types['Light activity'],
             expiration=models.Expiration.types['Unmodulated Vocalization'],
         ),
     ),
     exposed=models.Population(
         number=10,
         presence=models.SpecificInterval(((8, 12), (13, 17))),
-        activity=models.Activity.types['Light exercise'],
+        activity=models.Activity.types['Light activity'],
         mask=models.Mask.types['No mask'],
     ),
 )
