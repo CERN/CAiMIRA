@@ -406,10 +406,21 @@ class CARAStateBuilder(state.StateBuilder):
 
 class ExpertApplication:
     def __init__(self):
+        self.multi_model_view = MultiModelView()
+        self.comparison_view = ComparisonView()
+        self.app = widgets.VBox(children=(self.multi_model_view.widget, self.comparison_view.widget))
+
+    @property
+    def widget(self):
+        return self.app
+
+
+class MultiModelView:
+    def __init__(self):
         default_scenario = state.DataclassInstanceState(
-                models.ExposureModel,
-                state_builder=CARAStateBuilder(),
-            )
+            models.ExposureModel,
+            state_builder=CARAStateBuilder(),
+        )
         default_scenario.dcs_update_from(baseline_model)
         # For the time-being, we have to initialise the select states. Careful
         # as values might not correspond to what the baseline model says.
@@ -421,8 +432,6 @@ class ExpertApplication:
         self.tabs = (widgets.VBox(children=(self.build_settings_menu(0), self.tab_views[0].present())),)
         self.tab_widget = widgets.Tab()
         self.update_tab_widget()
-        self.comparison_view = ComparisonView()
-        self.multi_model_view = (widgets.VBox(children=(self.tab_widget, self.comparison_view.widget)))
 
     def display_titles(self):
         for i, name in enumerate(self.scenario_names):
@@ -474,7 +483,7 @@ class ExpertApplication:
 
     @property
     def widget(self):
-        return self.multi_model_view
+        return self.tab_widget
 
 
 class ComparisonView:
