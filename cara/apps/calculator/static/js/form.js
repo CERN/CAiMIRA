@@ -234,9 +234,17 @@ function validate_form(form) {
   return submit;
 }
 
-//function validateValue(obj) {
-//  $(obj).next('span').remove();
-//}
+function validateNonZero(obj) {
+  $(obj).removeClass("red_border");
+  $(obj).next('span').remove();
+
+  if ($(obj).val() == 0) {
+    $(obj).addClass("red_border");
+    insertSpanAfter(obj, "Value must be > 0");
+    return false;
+  }
+  return true;
+}
 
 function validateDate(obj) {
   $(obj).removeClass("red_border");
@@ -313,6 +321,10 @@ $(document).ready(function () {
   setMaxInfectedPeople();
   $("#total_people").change(setMaxInfectedPeople);
   $("#activity_type").change(setMaxInfectedPeople);
+
+  //Validate values > 0
+  $("input[required].non_zero").each(function() {validateNonZero(this)});
+  $(".non_zero").change(function() {validateNonZero(this)});
 
   //Validate all dates
   $("input[required].datepicker").each(function() {validateDate(this)});
