@@ -18,7 +18,7 @@ def baseline_model():
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(((0, 4), (5, 8))),
             mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light exercise'],
+            activity=models.Activity.types['Light activity'],
             expiration=models.Expiration.types['Unmodulated Vocalization'],
         ),
     )
