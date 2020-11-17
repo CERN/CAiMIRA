@@ -422,6 +422,7 @@ class ExpertApplication:
         self.tab_widget = widgets.Tab()
         self.update_tab_widget()
         self.comparison_view = ComparisonView()
+        self.multi_model_view = (widgets.VBox(children=(self.tab_widget, self.comparison_view)))
 
     def display_titles(self):
         for i, name in enumerate(self.scenario_names):
@@ -473,8 +474,7 @@ class ExpertApplication:
 
     @property
     def widget(self):
-        self.comparison_view.update_plot()
-        return widgets.VBox(children=(self.tab_widget, self.comparison_view.widget))
+        return self.multi_model_view
 
 
 class ComparisonView:
