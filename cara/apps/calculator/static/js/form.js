@@ -1,20 +1,3 @@
-function on_ventilation_type_change() {
-  ventilation_types = $('input[type=radio][name=ventilation_type]');
-  ventilation_types.each(function (index) {
-    if (this.checked) {
-      getChildElement($(this)).show();
-      require_fields(this);
-    } else {
-      getChildElement($(this)).hide();
-      unrequire_fields(this);
-      // Clear the inputs for this newly hidden child element.
-      getChildElement($(this)).find('input').not('input[type=radio]').val('');
-      getChildElement($(this)).find('input[type=radio]').prop("checked", false);
-      getChildElement($(this)).find('input').prop("required", false);
-    }
-  });
-}
-
 /* ------- HTML structure ------- */
 function getChildElement(elem) {
   // Get the element named in the given element's data-enables attribute.
@@ -100,12 +83,12 @@ function unrequire_fields(obj) {
 }
 
 function require_room_volume(option) {
-  $("#room_volume").prop('required', option);
+  require_field("room_volume", option);
 }
 
 function require_room_dimensions(option) {
-  $("#floor_area").prop('required', option);
-  $("#ceiling_height").prop('required', option);
+  require_field("floor_area", option);
+  require_field("ceiling_height", option);
 }
 
 function require_mechanical_ventilation(option) {
@@ -122,17 +105,21 @@ function require_natural_ventilation(option) {
 }
 
 function require_air_changes(option) {
-  $("#air_changes").prop('required', option);
+  require_field("air_changes", option);
 }
 
 function require_air_supply(option) {
-  $("#air_supply").prop('required', option);
+  require_field("air_supply", option);
 }
 
 function require_single_event(option) {
-  $("#single_event_date").prop('required', option);
+  require_field("single_event_date", option);
+}
+
+function require_field(id, option) {
+  $("#"+id).prop('required', option);
   if (!option)
-    removeInvalidDate();
+    removeInvalid(id);
 }
 
 function require_recurrent_event(option) {
@@ -164,7 +151,7 @@ function require_mask(option) {
 }
 
 function require_hepa(option) {
-  $("#hepa_amount").prop('required', option);
+  require_field("hepa_amount", option);
 }
 
 function setMaxInfectedPeople() {
@@ -172,8 +159,7 @@ function setMaxInfectedPeople() {
   $("#training_limit_error").hide();
   var max = $("#total_people").val()
 
-  if ($("#activity_type").val() === "training")
-  {
+  if ($("#activity_type").val() === "training") {
     max = 1;
     $("#training_limit_error").show();
   }
@@ -181,14 +167,32 @@ function setMaxInfectedPeople() {
   $("#infected_people").attr("max", max);
 }
 
-function removeInvalidDate() {
-  var single_event_date = document.getElementById("single_event_date");
-  if (single_event_date.classList.contains("red_border"))
-  {
-    single_event_date.value = "";
-    $(single_event_date).next().hide();
-    $(single_event_date).removeClass("red_border");
+function removeInvalid(id) {
+  var obj = document.getElementById(id)
+  if (obj.classList.contains("red_border")) {
+    obj.value = "";
+    $(obj).removeClass("red_border");
+    $(obj).next('span').remove();
   }
+}
+
+function on_ventilation_type_change() {
+  ventilation_types = $('input[type=radio][name=ventilation_type]');
+  ventilation_types.each(function (index) {
+    if (this.checked) {
+      getChildElement($(this)).show();
+      require_fields(this);
+    } else {
+      getChildElement($(this)).hide();
+      unrequire_fields(this);
+      // Clear the inputs for this newly hidden child element.
+      getChildElement($(this)).find('input').not('input[type=radio]').val('');
+      getChildElement($(this)).find('input[type=radio]').prop("checked", false);
+      getChildElement($(this)).find('input').prop("required", false);
+      //console.log(getChildElement($(this)).find('input').not('input[type=radio]').attr('id'));
+      //removeInvalid(getChildElement(getChildElement($(this)).find('input').not('input[type=radio]').attr('id')));
+    }
+  });
 }
 
 /* -------UI------- */
@@ -234,10 +238,11 @@ function validate_form(form) {
   return submit;
 }
 
-function validateNonZero(obj) {
+function validateNonZeroOrEmpty(obj) {
   $(obj).removeClass("red_border");
   $(obj).next('span').remove();
 
+  if ($(obj).val() === "") return true;
   if ($(obj).val() == 0) {
     $(obj).addClass("red_border");
     insertSpanAfter(obj, "Value must be > 0");
@@ -323,8 +328,8 @@ $(document).ready(function () {
   $("#activity_type").change(setMaxInfectedPeople);
 
   //Validate values > 0
-  $("input[required].non_zero").each(function() {validateNonZero(this)});
-  $(".non_zero").change(function() {validateNonZero(this)});
+  $("input[required].non_zero").each(function() {validateNonZeroOrEmpty(this)});
+  $(".non_zero").change(function() {validateNonZeroOrEmpty(this)});
 
   //Validate all dates
   $("input[required].datepicker").each(function() {validateDate(this)});
