@@ -312,8 +312,9 @@ $(document).ready(function () {
   $("#event_type_recurrent").change(removeInvalidDate);
 
   var radioValue = $("input[name='event_type']:checked");
-  if (radioValue.val())
+  if (radioValue.val()) {
     require_fields(radioValue.get(0));
+  }
 });
 
 /* -------Debugging------- */
