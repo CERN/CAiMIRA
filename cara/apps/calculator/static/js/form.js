@@ -1,4 +1,4 @@
-/* ------- HTML structure ------- */
+/* -------HTML structure------- */
 function getChildElement(elem) {
   // Get the element named in the given element's data-enables attribute.
   return $("#" + elem.data("enables"));
@@ -301,19 +301,6 @@ function validateFinishTime(obj) {
   return true;
 }
 
-//TODO: Merge with validateFinishTime()
-function validateStartTime() {
-  $(this).next().removeClass("red_border");
-  $(this).next().next().hide();
-
-  var startTime = parseValToNumber($(this).val());
-  var finishTime = parseValToNumber($(this).next().val());
-  if (startTime > finishTime) {
-    $(this).next().addClass("red_border");
-    $(this).next().next().show();
-  }
-}
-
 function parseValToNumber(val) {
   return parseInt(val.replace(':',''), 10);
 }
@@ -350,7 +337,7 @@ $(document).ready(function () {
   //Validate all finish times
   $("input[required].finish_time").each(function() {validateFinishTime(this)});
   $(".finish_time").change(function() {validateFinishTime(this)});
-  $(".start_time").change(validateStartTime);
+  $(".start_time").change(function() {validateFinishTime(this.nextSibling.nextSibling)});
 
   var radioValue = $("input[name='event_type']:checked");
   if (radioValue.val()) {
