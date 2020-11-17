@@ -15,9 +15,17 @@ function on_ventilation_type_change() {
   });
 }
 
+/* ------- HTML structure ------- */
 function getChildElement(elem) {
   // Get the element named in the given element's data-enables attribute.
   return $("#" + elem.data("enables"));
+}
+
+function insertSpanAfter(referenceNode, text) {
+  var element = document.createElement("span");
+  element.classList.add("red_text");
+  element.innerHTML = "&nbsp;&nbsp;" + text; 
+  referenceNode.parentNode.insertBefore(element, referenceNode.nextSibling);
 }
 
 /* -------Required fields------- */
@@ -173,6 +181,16 @@ function setMaxInfectedPeople() {
   $("#infected_people").attr("max", max);
 }
 
+function removeInvalidDate() {
+  var single_event_date = document.getElementById("single_event_date");
+  if (single_event_date.classList.contains("red_border"))
+  {
+    single_event_date.value = "";
+    $(single_event_date).next().hide();
+    $(single_event_date).removeClass("red_border");
+  }
+}
+
 /* -------UI------- */
 $(function () {
   $(".datepicker").datepicker({
@@ -216,14 +234,17 @@ function validate_form(form) {
   return submit;
 }
 
+//function validateValue(obj) {
+//  $(obj).next('span').remove();
+//}
+
 function validateDate(obj) {
   $(obj).removeClass("red_border");
-  $(obj).next().hide();
+  $(obj).next('span').remove();
 
-  var fromDate = $(obj).val();
-  if (!isValidDateOrEmpty(fromDate)) {
+  if (!isValidDateOrEmpty($(obj).val())) {
     $(obj).addClass("red_border");
-    $(obj).next().show();
+    insertSpanAfter(obj, "Incorrect date format");
     return false;
   }
   return true;
@@ -237,7 +258,7 @@ function validateFinishTime(obj) {
   var finishTime = parseValToNumber(obj.value);
   if (startTime > finishTime) {
     $(obj).addClass("red_border");
-    $(obj).next().show();
+    insertSpanAfter(obj, "Finish time must be after start");
     return false;
   }
   return true;
@@ -253,16 +274,6 @@ function validateStartTime() {
   if (startTime > finishTime) {
     $(this).next().addClass("red_border");
     $(this).next().next().show();
-  }
-}
-
-function removeInvalidDate() {
-  var single_event_date = document.getElementById("single_event_date");
-  if (single_event_date.classList.contains("red_border"))
-  {
-    single_event_date.value = "";
-    $(single_event_date).next().hide();
-    $(single_event_date).removeClass("red_border");
   }
 }
 
