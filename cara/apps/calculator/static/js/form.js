@@ -123,6 +123,8 @@ function require_air_supply(option) {
 
 function require_single_event(option) {
   $("#single_event_date").prop('required', option);
+  if (!option)
+    removeInvalidDate();
 }
 
 function require_recurrent_event(option) {
@@ -308,8 +310,6 @@ $(document).ready(function () {
   $("input[required].finish_time").each(function() {validateFinishTime(this)});
   $(".finish_time").change(function() {validateFinishTime(this)});
   $(".start_time").change(validateStartTime);
-
-  $("#event_type_recurrent").change(removeInvalidDate);
 
   var radioValue = $("input[name='event_type']:checked");
   if (radioValue.val()) {
