@@ -252,7 +252,7 @@ function validateDate(obj) {
 
 function validateFinishTime(obj) {
   $(obj).removeClass("red_border");
-  $(obj).next().hide();
+  $(obj).next('span').remove();
 
   var startTime = parseValToNumber($(obj).prev().val());
   var finishTime = parseValToNumber(obj.value);
