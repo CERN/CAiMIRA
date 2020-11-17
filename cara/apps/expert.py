@@ -474,7 +474,7 @@ class ExpertApplication:
     @property
     def widget(self):
         self.comparison_view.update_plot()
-        return widgets.VBox(children=(self.tab_widget, self.comparison_view.figure.canvas))
+        return widgets.VBox(children=(self.tab_widget, self.comparison_view.widget))
 
 
 class ComparisonView:
@@ -516,6 +516,10 @@ class ComparisonView:
         self.figure.legend(labels)
 
         self.figure.canvas.draw()
+
+    @property
+    def widget(self):
+        return self.figure.canvas
 
 
 def tuple_without_index(t: typing.Tuple, index: int) -> typing.Tuple:
