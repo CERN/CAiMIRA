@@ -390,10 +390,10 @@ class Activity:
 
 
 Activity.types = {
-    'Resting': Activity(0.49, 0.49),
-    'Seated': Activity(0.54, 0.54),
-    'Light exercise': Activity(1.38, 1.38),
-    'Moderate exercise': Activity(2.35, 2.35),
+    'Seated': Activity(0.51, 0.51),
+    'Standing': Activity(0.57, 0.57),
+    'Light activity': Activity(1.25, 1.25),
+    'Moderate activity': Activity(1.78, 1.78),
     'Heavy exercise': Activity(3.30, 3.30),
 }
 

@@ -185,8 +185,16 @@ class FormData:
                 {'Talking': 1, 'Breathing': self.total_people - 1}
             ),
             'callcentre': ('Seated', 'Talking'),
-            'training': ('Light exercise', 'Talking'),
-            'workshop': ('Light exercise', 'Talking'),
+            'training': ('Standing', 'Talking'),
+            'lab': (
+                'Light activity',
+                #Model 1/2 of time spent talking in a lab.
+                {'Talking': 1, 'Breathing': 1}),
+            'workshop': (
+                'Moderate activity',
+                #Model 1/2 of time spent talking in a workshop.
+                {'Talking': 1, 'Breathing': 1}),
+            'gym':('Heavy exercise', 'Breathing'),
         }
 
         [activity_defn, expiration_defn] = scenario_activity_and_expiration[self.activity_type]
@@ -210,8 +218,10 @@ class FormData:
             'office': 'Seated',
             'meeting': 'Seated',
             'callcentre': 'Seated',
-            'training': 'Light exercise',
-            'workshop': 'Light exercise',
+            'training': 'Seated',
+            'workshop': 'Moderate activity',
+            'lab':'Light activity',
+            'gym':'Heavy exercise',
         }
 
         activity_defn = scenario_activity[self.activity_type]
@@ -388,7 +398,7 @@ def baseline_raw_form_data():
     }
 
 
-ACTIVITY_TYPES = {'office', 'meeting', 'training', 'callcentre', 'workshop'}
+ACTIVITY_TYPES = {'office', 'meeting', 'training', 'callcentre', 'workshop', 'lab', 'gym'}
 EVENT_TYPES = {'single_event', 'recurrent_event'}
 MECHANICAL_VENTILATION_TYPES = {'air_changes', 'air_supply', 'not-applicable'}
 MASK_TYPES = {'Type I', 'FFP2'}

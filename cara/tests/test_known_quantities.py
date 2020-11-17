@@ -16,7 +16,7 @@ def test_no_mask_aerosols(baseline_model):
 
 
 def test_no_mask_emission_rate(baseline_model):
-    rate = 167.74011998223307
+    rate = 151.938514
     npt.assert_allclose(
         [baseline_model.infected.emission_rate(t) for t in [0, 1, 4, 4.5, 5, 8, 9]],
         [0, rate, rate, 0, 0, rate, 0],
@@ -52,7 +52,7 @@ def test_concentrations(baseline_model):
     concentrations = [baseline_model.concentration(t) for t in ts]
     npt.assert_allclose(
         concentrations,
-        [0.000000e+00, 2.891970e-01, 1.266287e-04, 2.891969e-01, 5.544607e-08],
+        [0.000000e+00, 2.619538e-01, 1.146999e-04, 2.619537e-01, 5.022289e-08],
         rtol=1e-5
     )
 
@@ -79,7 +79,7 @@ def build_model(interval_duration):
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(((0, 4), (5, 8))),
             mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light exercise'],
+            activity=models.Activity.types['Light activity'],
             expiration=models.Expiration.types['Unmodulated Vocalization'],
         ),
     )
@@ -97,7 +97,7 @@ def test_concentrations_startup(baseline_model):
 
 def test_r0(baseline_exposure_model):
     p = baseline_exposure_model.infection_probability()
-    npt.assert_allclose(p, 93.196908)
+    npt.assert_allclose(p, 88.977694)
 
 
 def test_periodic_window(baseline_periodic_window, baseline_room):
@@ -300,7 +300,7 @@ def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),),
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(intervals_presence_infected),
             mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light exercise'],
+            activity=models.Activity.types['Light activity'],
             expiration=models.Expiration.types['Unmodulated Vocalization'],
         ),
     )
@@ -321,7 +321,7 @@ def build_constant_temp_model(outside_temp, intervals_open=((7.5, 8.5),)):
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(((0, 4), (5, 7.5))),
             mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light exercise'],
+            activity=models.Activity.types['Light activity'],
             expiration=models.Expiration.types['Unmodulated Vocalization'],
         ),
     )
@@ -348,7 +348,7 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(((0, 4), (5, 7.5))),
             mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light exercise'],
+            activity=models.Activity.types['Light activity'],
             expiration=models.Expiration.types['Unmodulated Vocalization'],
         ),
     )
@@ -364,7 +364,7 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
     [0.5, 1.2, 2., 3.5, 5., 6.5, 7.5, 7.9, 8.],
 )
 def test_concentrations_hourly_dep_temp_vs_constant(month, temperatures, time):
-    # The concentrations should be the same up to 8 AM (time when the 
+    # The concentrations should be the same up to 8 AM (time when the
     # temperature changes DURING the window opening).
     m1 = build_hourly_dependent_model(month)
     m2 = build_constant_temp_model(temperatures[7]+273.15)
@@ -435,8 +435,8 @@ def build_exposure_model(concentration_model):
 @pytest.mark.parametrize(
     "month, expected_r0",
     [
-        ['Jan', 91.06953],
-        ['Jun', 99.995335],
+        ['Jan', 86.220749],
+        ['Jun', 99.972046],
     ],
 )
 def test_r0_hourly_dep(month,expected_r0):
@@ -453,8 +453,8 @@ def test_r0_hourly_dep(month,expected_r0):
 @pytest.mark.parametrize(
     "month, expected_r0",
     [
-        ['Jan', 91.19912],
-        ['Jun', 99.997324],
+        ['Jan', 86.385018],
+        ['Jun', 99.982281],
     ],
 )
 def test_r0_hourly_dep_refined(month,expected_r0):
