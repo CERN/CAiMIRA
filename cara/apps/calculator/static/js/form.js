@@ -20,10 +20,9 @@ function getChildElement(elem) {
   return $("#" + elem.data("enables"));
 }
 
-
 /* -------Required fields------- */
 function require_fields(obj) {
-  switch (obj.id) {
+  switch ($(obj).attr('id')) {
     case "room_type_volume":
       require_room_volume(true);
       require_room_dimensions(false);
@@ -124,6 +123,8 @@ function require_air_supply(option) {
 
 function require_single_event(option) {
   $("#single_event_date").prop('required', option);
+  if (!option)
+    removeInvalidDate();
 }
 
 function require_recurrent_event(option) {
@@ -134,12 +135,18 @@ function require_lunch(option) {
   $("#lunch_start").prop('required', option);
   $("#lunch_finish").prop('required', option);
   if (option) {
-    document.getElementById("lunch_start").value = "12:30";
-    document.getElementById("lunch_finish").value = "13:30";
+    var start = document.getElementById("lunch_start");
+    if (start.value === "")
+      start.value = "12:30";
+    var finish = document.getElementById("lunch_finish");
+    if (finish.value === "")
+      finish.value = "13:30";
   } 
   else {
     document.getElementById("lunch_start").value = "";
     document.getElementById("lunch_finish").value = "";
+    $("#lunch_finish").removeClass("red_border");
+    $("#lunch_time_error").hide();
   }
 }
 
@@ -195,36 +202,72 @@ function validate_form(form) {
   var submit = true;
 
   //Validate all dates
-  $("input[required].datepicker").each(function () {
-    $(this).removeClass("red_border");
-    $(this).next().hide();
-
-    var fromDate = $(this).val();
-    if (!isValidDate(fromDate)) {
-      $(this).addClass("red_border");
+  $("input[required].datepicker").each(function() {
+    if (!validateDate(this))
       submit = false;
-      $(this).next().show();
-    }
   });
 
   //Validate all times
-  $("input[required].finish_time").each(function () {
-    $(this).removeClass("red_border");
-    $(this).next().hide();
-
-    var startTime = parseValToNumber($(this).prev());
-    var finishTime = parseValToNumber($(this));
-    if (startTime > finishTime) {
-      $(this).addClass("red_border");
+  $("input[required].finish_time").each(function() {
+    if (!validateFinishTime(this))
       submit = false;
-      $(this).next().show();
-    }
   });
 
   return submit;
 }
 
-function isValidDate(date) {
+function validateDate(obj) {
+  $(obj).removeClass("red_border");
+  $(obj).next().hide();
+
+  var fromDate = $(obj).val();
+  if (!isValidDateOrEmpty(fromDate)) {
+    $(obj).addClass("red_border");
+    $(obj).next().show();
+    return false;
+  }
+  return true;
+}
+
+function validateFinishTime(obj) {
+  $(obj).removeClass("red_border");
+  $(obj).next().hide();
+
+  var startTime = parseValToNumber($(obj).prev().val());
+  var finishTime = parseValToNumber(obj.value);
+  if (startTime > finishTime) {
+    $(obj).addClass("red_border");
+    $(obj).next().show();
+    return false;
+  }
+  return true;
+}
+
+//TODO: Merge with validateFinishTime()
+function validateStartTime() {
+  $(this).next().removeClass("red_border");
+  $(this).next().next().hide();
+
+  var startTime = parseValToNumber($(this).val());
+  var finishTime = parseValToNumber($(this).next().val());
+  if (startTime > finishTime) {
+    $(this).next().addClass("red_border");
+    $(this).next().next().show();
+  }
+}
+
+function removeInvalidDate() {
+  var single_event_date = document.getElementById("single_event_date");
+  if (single_event_date.classList.contains("red_border"))
+  {
+    single_event_date.value = "";
+    $(single_event_date).next().hide();
+    $(single_event_date).removeClass("red_border");
+  }
+}
+
+function isValidDateOrEmpty(date) {
+  if (date === "") return true;
   var matches = /^(\d+)[-\/](\d+)[-\/](\d+)$/.exec(date);
   if (matches == null) return false;
   var d = matches[1];
@@ -235,8 +278,8 @@ function isValidDate(date) {
   return composedDate.getDate() == d && composedDate.getMonth() + 1 == m && composedDate.getFullYear() == y;
 }
 
-function parseValToNumber(obj) {
-    return parseInt(obj.val().replace(':',''), 10);
+function parseValToNumber(val) {
+    return parseInt(val.replace(':',''), 10);
 }
 
 /* -------On Load------- */
@@ -247,21 +290,27 @@ $(document).ready(function () {
 
   // When the ventilation_type changes we want to make its respective
   // children show/hide.
-  ventilation_types = $("input[type=radio][name=ventilation_type]");
-  ventilation_types.change(on_ventilation_type_change);
+  $("input[type=radio][name=ventilation_type]").change(on_ventilation_type_change);
   // Call the function now to handle forward/back button presses in the browser.
   on_ventilation_type_change();
 
-  $("input[name=mechanical_ventilation_type]").change(function () {
-    console.log('Changed!');
-  })
+  //Same for lunch option
+  require_fields($("input[name='lunch_option']:checked"));
 
   // Setup the maximum number of people at page load (to handle back/forward),
   // and update it when total people is changed.
   setMaxInfectedPeople();
   $("#total_people").change(setMaxInfectedPeople);
-
   $("#activity_type").change(setMaxInfectedPeople);
+
+  //Validate all dates
+  $("input[required].datepicker").each(function() {validateDate(this)});
+  $(".datepicker").change(function() {validateDate(this)});
+
+  //Validate all finish times
+  $("input[required].finish_time").each(function() {validateFinishTime(this)});
+  $(".finish_time").change(function() {validateFinishTime(this)});
+  $(".start_time").change(validateStartTime);
 
   var radioValue = $("input[name='event_type']:checked");
   if (radioValue.val()) {
@@ -279,6 +328,7 @@ function debug_submit(form) {
   var serializedData = objectifyForm($(form).serializeArray());
 
   console.log(serializedData);
+
   return false; //don't submit
 }
 
