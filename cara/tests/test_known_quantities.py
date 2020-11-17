@@ -52,7 +52,7 @@ def test_concentrations(baseline_model):
     concentrations = [baseline_model.concentration(t) for t in ts]
     npt.assert_allclose(
         concentrations,
-        [0.000000e+00, 2.619538e-01, 1.156999e-04, 2.619537e-01, 5.022289e-08],
+        [0.000000e+00, 2.619538e-01, 1.146999e-04, 2.619537e-01, 5.022289e-08],
         rtol=1e-5
     )
 
@@ -435,8 +435,8 @@ def build_exposure_model(concentration_model):
 @pytest.mark.parametrize(
     "month, expected_r0",
     [
-        ['Jan', 91.06953],
-        ['Jun', 99.995335],
+        ['Jan', 86.220749],
+        ['Jun', 99.972046],
     ],
 )
 def test_r0_hourly_dep(month,expected_r0):
@@ -453,8 +453,8 @@ def test_r0_hourly_dep(month,expected_r0):
 @pytest.mark.parametrize(
     "month, expected_r0",
     [
-        ['Jan', 91.19912],
-        ['Jun', 99.997324],
+        ['Jan', 86.385018],
+        ['Jun', 99.982281],
     ],
 )
 def test_r0_hourly_dep_refined(month,expected_r0):
