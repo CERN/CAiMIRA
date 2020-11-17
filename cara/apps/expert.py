@@ -513,8 +513,8 @@ class ComparisonView:
 
     def update_plot(self, conc_models: typing.Tuple[models.ConcentrationModel], labels: typing.Tuple[str]):
         self.figure.clf()
-        # Hard-coded 8:00-17:00 interval
-        ts = np.linspace(8, 17)
+        start, finish = models_start_end(conc_models)
+        ts = np.linspace(start, finish)
         concentrations = [[conc_model.concentration(t) for t in ts] for conc_model in conc_models]
         for concentration in concentrations:
             self.ax.plot(ts, concentration)
@@ -533,3 +533,14 @@ class ComparisonView:
 
 def tuple_without_index(t: typing.Tuple, index: int) -> typing.Tuple:
     return t[:index] + t[index + 1:]
+
+
+def models_start_end(models: typing.Iterable[models.ConcentrationModel]) -> typing.Tuple[float, float]:
+    """
+    Returns the union of the presence intervals of a collection of ConcentrationModel objects
+    :param models: An iterable (e.g. list or tuple) of ConcentrationModel objects
+    :return: A tuple (start, finish) corresponding to the union of the presence intervals
+    """
+    start = min(model.infected.presence.boundaries()[0][0] for model in models)
+    finish = min(model.infected.presence.boundaries()[-1][1] for model in models)
+    return start, finish
