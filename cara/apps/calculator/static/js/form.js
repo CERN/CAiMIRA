@@ -83,45 +83,45 @@ function unrequire_fields(obj) {
 }
 
 function require_room_volume(option) {
-  require_nonzero_field("room_volume", option);
+  require_input_field("#room_volume", option);
 }
 
 function require_room_dimensions(option) {
-  require_nonzero_field("floor_area", option);
-  require_nonzero_field("ceiling_height", option);
+  require_input_field("#floor_area", option);
+  require_input_field("#ceiling_height", option);
 }
 
 function require_mechanical_ventilation(option) {
   $("#air_type_changes").prop('required', option);
   $("#air_type_supply").prop('required', option);
   if (!option) {
-    removeInvalid("air_changes");
-    removeInvalid("air_supply");
+    removeInvalid("#air_changes");
+    removeInvalid("#air_supply");
   }
 }
 
 function require_natural_ventilation(option) {
-  require_nonzero_field("windows_number", option);
-  require_nonzero_field("window_height", option);
-  require_nonzero_field("opening_distance", option);
+  require_input_field("#windows_number", option);
+  require_input_field("#window_height", option);
+  require_input_field("#opening_distance", option);
   $("#always").prop('required', option);
   $("#interval").prop('required', option);
 }
 
 function require_air_changes(option) {
-  require_nonzero_field("air_changes", option);
+  require_input_field("#air_changes", option);
 }
 
 function require_air_supply(option) {
-  require_nonzero_field("air_supply", option);
+  require_input_field("#air_supply", option);
 }
 
 function require_single_event(option) {
-  require_nonzero_field("single_event_date", option);
+  require_input_field("#single_event_date", option);
 }
 
-function require_nonzero_field(id, option) {
-  $("#"+id).prop('required', option);
+function require_input_field(id, option) {
+  $(id).prop('required', option);
   if (!option)
     removeInvalid(id);
 }
@@ -155,7 +155,7 @@ function require_mask(option) {
 }
 
 function require_hepa(option) {
-  require_nonzero_field("hepa_amount", option);
+  require_input_field("#hepa_amount", option);
 }
 
 function setMaxInfectedPeople() {
@@ -171,11 +171,10 @@ function setMaxInfectedPeople() {
 }
 
 function removeInvalid(id) {
-  var obj = document.getElementById(id)
-  if (obj.classList.contains("red_border")) {
-    obj.value = "";
-    $(obj).removeClass("red_border");
-    $(obj).next('span').remove();
+  if ($(id).hasClass("red_border")) {
+    $(id).val("");
+    $(id).removeClass("red_border");
+    $(id).next('span').remove();
   }
 }
 
