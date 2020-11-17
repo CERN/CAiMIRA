@@ -215,7 +215,7 @@ function validateDate(obj) {
   $(obj).next().hide();
 
   var fromDate = $(obj).val();
-  if (!isValidDate(fromDate)) {
+  if (!isValidDateOrEmpty(fromDate)) {
     $(obj).addClass("red_border");
     $(obj).next().show();
     return false;
@@ -260,7 +260,7 @@ function removeInvalidDate() {
   }
 }
 
-function isValidDate(date) {
+function isValidDateOrEmpty(date) {
   if (date === "") return true;
   var matches = /^(\d+)[-\/](\d+)[-\/](\d+)$/.exec(date);
   if (matches == null) return false;
