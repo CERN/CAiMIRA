@@ -218,6 +218,10 @@ function show_disclaimer() {
   }
 }
 
+function check_radio(id) {
+  $(id).click();
+}
+
 /* -------Form validation------- */
 function validate_form(form) {
   var submit = true;
