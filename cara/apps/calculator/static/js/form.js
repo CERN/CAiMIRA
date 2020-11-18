@@ -277,6 +277,30 @@ function validate_form(form) {
       submit = false;
   });
 
+  //Check if breaks length >= activity length
+  var button = document.getElementById("activity_breaks");
+  $(button).next('span').remove();
+
+  var lunch_mins = 0;
+  if (document.getElementById('lunch_option_yes').checked) {
+    var lunch_start = document.getElementById("lunch_start");
+    var lunch_finish = document.getElementById("lunch_finish");
+    lunch_mins = parseTimeToMins(lunch_finish.value) - parseTimeToMins(lunch_start.value);
+  }
+  
+  var coffee_breaks = parseInt(document.querySelector('input[name="coffee_breaks"]:checked').value);
+  var coffee_duration = parseInt(document.getElementById("break_duration").value);
+  var coffee_mins = coffee_breaks * coffee_duration;
+  
+  var activity_start = document.getElementById("activity_start");
+  var activity_finish = document.getElementById("activity_finish");
+  var activity_mins = parseTimeToMins(activity_finish.value) - parseTimeToMins(activity_start.value);
+
+  if ((lunch_mins + coffee_mins) >= activity_mins) {
+    insertSpanAfter(button, "Length of breaks >= Length of activity");
+    submit = false;
+  }
+
   return submit;
 }
 
@@ -339,6 +363,13 @@ function validateFinishTime(obj) {
 
 function parseValToNumber(val) {
   return parseInt(val.replace(':',''), 10);
+}
+
+function parseTimeToMins(cTime)
+{
+  var d = new Date();
+  var time = cTime.match(/(\d+)(:(\d\d))?\s*(p?)/);
+  return parseInt(time[1]*60) + parseInt(time[3]);
 }
 
 /* -------On Load------- */
