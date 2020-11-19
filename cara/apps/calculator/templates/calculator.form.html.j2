@@ -34,8 +34,8 @@
 <div style="width: 33%; float:left;">
 
     <!-- General Options -->
-    <b>Simulation name:</b> <input type="text" name="simulation_name" placeholder="E.g. Workshop without masks" tabindex="0" required><br>
-    Room number: <input type="text" name="room_number" placeholder="E.g. 17/R-033" tabindex="0" required><br>
+    <b>Simulation name:</b> <input type="text" name="simulation_name" placeholder="E.g. Workshop without masks" required><br>
+    Room number: <input type="text" name="room_number" placeholder="E.g. 17/R-033" required><br>
     <hr width="80%">
     <b>Room data:</b>
     <div data-tooltip="The area you wish to study (choose one of the 2 options). Use GIS Portal or measure.">
@@ -43,12 +43,12 @@
     </div><br>
     <input type="radio" id="room_type_volume" name="volume_type" value="room_volume" onclick="require_fields(this)" tabindex="-1" required>
       <label for="room_type_volume">Room volume:</label> &nbsp;&nbsp; 
-    <input type="number" step="any" id="room_volume" class="non_zero has_radio" name="room_volume" placeholder="Room volume (m³)" min="0" tabindex="0"><br>
+    <input type="number" step="any" id="room_volume" class="non_zero has_radio" name="room_volume" placeholder="Room volume (m³)" min="0"><br>
     <input type="radio" id="room_type_dimensions" name="volume_type" value="room_dimensions" onclick="require_fields(this)" tabindex="-1" required>
       <label for="room_type_dimensions">Floor area:</label> &nbsp;&nbsp; 
-    <input type="number" step="any" id="floor_area" class="non_zero has_radio" name="floor_area" placeholder="Room floor area (m²)" min="0" tabindex="0"><br>
+    <input type="number" step="any" id="floor_area" class="non_zero has_radio" name="floor_area" placeholder="Room floor area (m²)" min="0"><br>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <label for="room_type_dimensions">Ceiling height:</label> &nbsp;&nbsp; 
-    <input type="number" step="any" id="ceiling_height" class="non_zero has_radio" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0" tabindex="0" ><br>
+    <input type="number" step="any" id="ceiling_height" class="non_zero has_radio" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0" ><br>
     <hr width="80%">
 
     <!-- Ventilation Options -->
@@ -57,39 +57,39 @@
         <span class="tooltip_text">?</span>
     </div><br>
     Ventilation type:
-    <input type="radio" id="no_ventilation" name="ventilation_type" value="no-ventilation" tabindex="0" checked>
+    <input type="radio" id="no_ventilation" name="ventilation_type" value="no-ventilation" checked>
       <label for="no_ventilation">No ventilation</label>&nbsp;&nbsp;
-    <input type="radio" id="mechanical" name="ventilation_type" value="mechanical" data-enables="DIVmechanical_ventilation" tabindex="0">
+    <input type="radio" id="mechanical" name="ventilation_type" value="mechanical" data-enables="DIVmechanical_ventilation">
       <label for="mechanical">Mechanical</label>&nbsp;&nbsp;
-    <input type="radio" id="natural" name="ventilation_type" value="natural" data-enables="DIVnatural_ventilation" tabindex="0">
+    <input type="radio" id="natural" name="ventilation_type" value="natural" data-enables="DIVnatural_ventilation">
       <label for="natural">Natural</label><br>
 
     <div id="DIVmechanical_ventilation" style="display:none">
         <input type="radio" id="air_type_supply" name="mechanical_ventilation_type" value="air_supply" onclick="require_fields(this)" tabindex="-1">
           <label for="air_type_supply">Air supply flow rate</label> &nbsp;&nbsp; 
-        <input type="number" step="any" id="air_supply" class="non_zero has_radio" name="air_supply" min="0" placeholder="(m³ / hour)" tabindex="0"><br>
+        <input type="number" step="any" id="air_supply" class="non_zero has_radio" name="air_supply" min="0" placeholder="(m³ / hour)"><br>
         <input type="radio" id="air_type_changes" name="mechanical_ventilation_type" value="air_changes" onclick="require_fields(this)" tabindex="-1">
           <label for="air_type_changes">Air changes per hour</label> &nbsp;&nbsp; 
-        <input type="number" step="any" id="air_changes" class="non_zero has_radio" name="air_changes" min="0" placeholder="(h⁻¹) only fresh air" tabindex="0"><br>
+        <input type="number" step="any" id="air_changes" class="non_zero has_radio" name="air_changes" min="0" placeholder="(h⁻¹) only fresh air"><br>
     </div>
 
     <div id="DIVnatural_ventilation" style="display:none">
-        Number of windows: <input type="number" id="windows_number" class="non_zero" name="windows_number" min="1" tabindex="0"><br>
-        Height of window: <input type="number" step="any" id="window_height" class="non_zero" name="window_height" placeholder="meters" min="0" tabindex="0"><br>
-        Opening distance: <input type="number" step="any" id="opening_distance" class="non_zero" name="opening_distance" placeholder="meters" min="0" tabindex="0"><br>
-        Windows open: <input type="radio" id="always" name="windows_open" value="always" tabindex="0">
+        Number of windows: <input type="number" id="windows_number" class="non_zero" name="windows_number" min="1"><br>
+        Height of window: <input type="number" step="any" id="window_height" class="non_zero" name="window_height" placeholder="meters" min="0"><br>
+        Opening distance: <input type="number" step="any" id="opening_distance" class="non_zero" name="opening_distance" placeholder="meters" min="0"><br>
+        Windows open: <input type="radio" id="always" name="windows_open" value="always">
                         <label for="always">Always</label> &nbsp;&nbsp;
-                      <input type="radio" id="interval" name="windows_open" value="interval" tabindex="0">
+                      <input type="radio" id="interval" name="windows_open" value="interval">
                         <label for="interval">10 min / 2h</label>
         <br>
     </div>
     
     HEPA filtration:
-    <input type="radio" id="hepa_no" name="hepa_option" value=0 onclick="require_fields(this)" checked="checked" tabindex="0">
+    <input type="radio" id="hepa_no" name="hepa_option" value=0 onclick="require_fields(this)" checked="checked">
       <label for="hepa_no">No</label>&nbsp;&nbsp;
-    <input type="radio" id="hepa_yes" name="hepa_option" value=1 onclick="require_fields(this)" tabindex="0">
+    <input type="radio" id="hepa_yes" name="hepa_option" value=1 onclick="require_fields(this)">
       <label for="hepa_yes">Yes</label>&nbsp;&nbsp;
-    <input type="number" step="any" id="hepa_amount" class="non_zero has_radio" name="hepa_amount" placeholder="(m³ / hour)" min="0" tabindex="0">
+    <input type="number" step="any" id="hepa_amount" class="non_zero has_radio disabled" name="hepa_amount" placeholder="(m³ / hour)" min="0">
     <hr width="80%">
 
     <b>Face masks:</b>
@@ -97,14 +97,14 @@
         <span class="tooltip_text">?</span>
     </div><br>
     Are masks worn when occupants are at workstations?
-    <input type="radio" id="mask_on" name="mask_wearing" value="continuous" required tabindex="0">
+    <input type="radio" id="mask_on" name="mask_wearing" value="continuous" required>
       <label for="mask_on">Yes</label>&nbsp;&nbsp;
-    <input type="radio" id="mask_off"  name="mask_wearing" value="removed" required checked="checked" tabindex="0">
+    <input type="radio" id="mask_off"  name="mask_wearing" value="removed" required checked="checked">
       <label for="mask_off">No</label><br>
     Type of masks used:
-    <input type="radio" id="mask_type1" name="mask_type" value="Type I" checked="checked" onclick="require_fields(this)" tabindex="0">
+    <input type="radio" id="mask_type1" name="mask_type" value="Type I" checked="checked" onclick="require_fields(this)">
       <label for="mask_type1">Type 1</label>&nbsp;&nbsp;
-    <input type="radio" id="mask_ffp2"  name="mask_type" value="FFP2" onclick="require_fields(this)" tabindex="0">
+    <input type="radio" id="mask_ffp2"  name="mask_type" value="FFP2" onclick="require_fields(this)">
       <label for="mask_ffp2">FFP2</label><br>
     <hr width="80%">
 </div>
@@ -116,12 +116,12 @@
     <div data-tooltip="The total no. of occupants in the room and how many of them you assume are infected.">
         <span class="tooltip_text">?</span>
     </div><br>
-    Total number of occupants: <input type="number" id="total_people" name="total_people" min=1 tabindex="0" required><br>
-    Number of infected people: <input type="number" id="infected_people" name="infected_people" tabindex="0" min=1 required><br>
+    Total number of occupants: <input type="number" id="total_people" name="total_people" min=1 required><br>
+    Number of infected people: <input type="number" id="infected_people" name="infected_people" min=1 required><br>
     <span id="training_limit_error" class="red_text" hidden>Training activities limited to 1 infected<br></span>
     <hr width="80%">
 
-    Activity type: <select id="activity_type" name="activity_type" tabindex="0">
+    Activity type: <select id="activity_type" name="activity_type">
                     <option value="office">Office</option>
                     <option value="meeting">Meeting</option>
                     <option value="callcentre">Call Centre</option>
@@ -130,11 +130,11 @@
                     <option value="training">Training</option>
                     <option value="gym">Gym</option>
                   </select><br>
-    Start: <input type="time" id="activity_start" class="start_time" name="activity_start" value="09:00" tabindex="0" required> &nbsp;&nbsp;
-    Finish: <input type="time" id="activity_finish" class="finish_time" name="activity_finish" value="18:00" tabindex="0" required><br>
+    Start: <input type="time" id="activity_start" class="start_time" name="activity_start" value="09:00" required> &nbsp;&nbsp;
+    Finish: <input type="time" id="activity_finish" class="finish_time" name="activity_finish" value="18:00" required><br>
     Infected person(s) presence: <br>
-    Start: <input type="time" id="infected_start" class="start_time" name="infected_start" value="09:00" tabindex="0"required> &nbsp;&nbsp;
-    Finish: <input type="time" id="infected_finish" class="finish_time" name="infected_finish" value="18:00"  tabindex="0" required><br>
+    Start: <input type="time" id="infected_start" class="start_time" name="infected_start" value="09:00"required> &nbsp;&nbsp;
+    Finish: <input type="time" id="infected_finish" class="finish_time" name="infected_finish" value="18:00"  required><br>
     <hr width="80%">
 
     When is the event?
@@ -144,10 +144,10 @@
     <input type="radio" id="event_type_single" name="event_type" value="single_event" onclick="require_fields(this)" tabindex="-1" required>
       <label for="event_type_single">Single event</label> &nbsp;&nbsp;
       <label for="event_type_single">Date: </label>
-    <input type="text" id="single_event_date" class="datepicker has_radio" name="single_event_date" placeholder="dd/mm/yyyy" tabindex="0"><br>
+    <input type="text" id="single_event_date" class="datepicker has_radio" name="single_event_date" placeholder="dd/mm/yyyy"><br>
     <input type="radio" id="event_type_recurrent" name="event_type" value="recurrent_event" onclick="require_fields(this)" tabindex="-1" required>
       <label for="event_type_recurrent">Recurrent usage</label>
-    <select id="recurrent_event_month" name="recurrent_event_month" class="has_radio"  tabindex="0">
+    <select id="recurrent_event_month" name="recurrent_event_month" class="has_radio" >
         <option value="January">January</option>
         <option value="February">February</option>
         <option value="March">March</option>
@@ -168,26 +168,26 @@
     </div>
     <!-- Lunch Options -->
     Lunch break:&nbsp;&nbsp;
-    <input type="radio" id="lunch_option_no" name="lunch_option" value=0 onclick="require_fields(this)" tabindex="0">
+    <input type="radio" id="lunch_option_no" name="lunch_option" value=0 onclick="require_fields(this)">
       <label for="lunch_option_no">No</label>&nbsp;&nbsp;
-    <input type="radio" id="lunch_option_yes" name="lunch_option" value=1 checked="checked" onclick="require_fields(this)" tabindex="0">
+    <input type="radio" id="lunch_option_yes" name="lunch_option" value=1 checked="checked" onclick="require_fields(this)">
       <label for="lunch_option_yes">Yes</label><br>
     
     <div id="DIVlunch_break">
-        Start: <input type="time" id="lunch_start" class="start_time" name="lunch_start" value="12:30" tabindex="0" required> &nbsp;&nbsp;
-        Finish: <input type="time" id="lunch_finish" class="finish_time" name="lunch_finish" value="13:30" tabindex="0" required><br>
+        Start: <input type="time" id="lunch_start" class="start_time" name="lunch_start" value="12:30" required> &nbsp;&nbsp;
+        Finish: <input type="time" id="lunch_finish" class="finish_time" name="lunch_finish" value="13:30" required><br>
     </div>
 
     <!-- Coffee Options -->
     Coffee Breaks:&nbsp;&nbsp;
-    <input type="radio" id="coffee_break_0" name="coffee_breaks" value="0" checked="checked" tabindex="0">
+    <input type="radio" id="coffee_break_0" name="coffee_breaks" value="0" checked="checked">
       <label for="coffee_break_0" >No breaks</label>&nbsp;&nbsp;
-    <input type="radio" id="coffee_break_2" name="coffee_breaks" value="2" tabindex="0">
+    <input type="radio" id="coffee_break_2" name="coffee_breaks" value="2">
       <label for="coffee_break_2">2</label>&nbsp;&nbsp;
-    <input type="radio" id="coffee_break_4" name="coffee_breaks" value="4" tabindex="0">
+    <input type="radio" id="coffee_break_4" name="coffee_breaks" value="4">
       <label for="coffee_break_4">4</label><br>
 
-    Duration (minutes): <select id="break_duration" name="coffee_duration" tabindex="0">
+    Duration (minutes): <select id="break_duration" name="coffee_duration">
                 <option value="5">5</option>
                 <option value="10">10</option>
                 <option value="15">15</option>
@@ -233,7 +233,7 @@
   Refer to <a href="/calculator/user-guide"> COVID Calculator user-guide </a> for more detailed explanations on how to use this tool. <br>
 </div>
 
-<button type='submit' id="generate_report" tabindex="0">Generate report</button><br><br><br><br>
+<button type='submit' id="generate_report">Generate report</button><br><br><br><br>
 </form>
 
 <!-- Dialog boxes -->

@@ -1,9 +1,5 @@
 .disabled {
-	color: gray;
-}
-
-.disabled {
-	color: black;
+  background-color: silver;
 }
 
 .red_border {
