@@ -116,7 +116,7 @@ class ExposureModelResult(View):
     def update_textual_result(self, model: models.ExposureModel):
         lines = []
         P = model.infection_probability()
-        lines.append(f'Emission rate (quanta/hr): {model.concentration_model.infected.emission_rate_when_present()}')
+        lines.append(f'Emission rate (quanta/hr): {np.round(model.concentration_model.infected.emission_rate_when_present(),0)}')
         lines.append(f'Probability of infection: {np.round(P, 0)}%')
 
         lines.append(f'Number of exposed: {model.exposed.number}')
@@ -216,7 +216,7 @@ class ModelWidgets(View):
 
         widget = collapsible(
             [widget_group(
-                [[widgets.Label('Room volume'), room_volume]]
+                [[widgets.Label('Room volume (m<sup>3</sup>'), room_volume]]
             )],
             title='Specification of workplace',
         )
@@ -229,7 +229,7 @@ class ModelWidgets(View):
             node.values = (change['new']+273.15,)
         outside_temp.observe(outsidetemp_change, names=['value'])
         return widgets.VBox([
-                        widgets.HBox([widgets.Label('Outside temperature',
+                        widgets.HBox([widgets.Label('Outside temperature (<sup>o</sup>C)',
                         layout=widgets.Layout(width='150px')), outside_temp]),
                         ])
 
@@ -278,11 +278,11 @@ class ModelWidgets(View):
 
         return widgets.VBox(
                 [
-                    widgets.HBox([widgets.Label('Open every n minutes',
+                    widgets.HBox([widgets.Label('Frequency of opening (min)',
                                     layout=widgets.Layout(width='150px')), period]),
-                    widgets.HBox([widgets.Label('For how long',
+                    widgets.HBox([widgets.Label('Duration of opening (min)',
                                     layout=widgets.Layout(width='150px')), interval]),
-                    widgets.HBox([widgets.Label('Inside temperature',
+                    widgets.HBox([widgets.Label('Inside temperature (<sup>o</sup>C)',
                                     layout=widgets.Layout(width='150px')), inside_temp]),
                     widget_group([[widgets.Label('Outside temp.'), outsidetemp_w]])
                  ] + list(outsidetemp_widgets.values())
@@ -309,11 +309,11 @@ class ModelWidgets(View):
 
         return widgets.VBox(
                 [
-                    widgets.HBox([widgets.Label('On every n minutes',
+                    widgets.HBox([widgets.Label('Frequency of opening (min)',
                                     layout=widgets.Layout(width='150px')), period]),
-                    widgets.HBox([widgets.Label('For how long',
+                    widgets.HBox([widgets.Label('Duration of opening (min)',
                                     layout=widgets.Layout(width='150px')), interval]),
-                    widgets.HBox([widgets.Label('Flow rate (m^3/h)',
+                    widgets.HBox([widgets.Label('Flow rate (m(<sup>3</sup>)/h)',
                                     layout=widgets.Layout(width='150px')), q_air_mech]),
                  ]
             )
@@ -417,7 +417,7 @@ baseline_model = models.ExposureModel(
     concentration_model=models.ConcentrationModel(
         room=models.Room(volume=75),
         ventilation=models.WindowOpening(
-            active=models.PeriodicInterval(period=120, duration=120),
+            active=models.PeriodicInterval(period=0, duration=0),
             inside_temp=models.PiecewiseConstant((0,24),(293.15,)),
             outside_temp=models.PiecewiseConstant((0,24),(283.15,)),
             cd_b=0.6, window_height=1.6, opening_length=0.6,
@@ -457,7 +457,7 @@ class CARAStateBuilder(state.StateBuilder):
         )
         # Initialise the HVAC state
         s._states['Mechanical'].dcs_update_from(
-            models.HVACMechanical(models.PeriodicInterval(120, 120), 500.)
+            models.HVACMechanical(models.PeriodicInterval(0, 0), 500.)
         )
         return s
 
