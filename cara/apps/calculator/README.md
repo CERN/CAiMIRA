@@ -1,4 +1,4 @@
-# Instructions for use (BETA)
+# Instructions for use
 
 This is a guide to help you use the calculator tool.
 If you are using the expert version of the tool,  you should look at the expert notes.
