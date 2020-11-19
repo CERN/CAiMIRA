@@ -13,7 +13,7 @@ from cara import state
 from cara import data
 
 
-def collapsible(widgets_to_collapse: typing.List, title: str, start_collapsed=True):
+def collapsible(widgets_to_collapse: typing.List, title: str, start_collapsed=False):
     collapsed = widgets.Accordion([widgets.VBox(widgets_to_collapse)])
     collapsed.set_title(0, title)
     if start_collapsed:
@@ -35,6 +35,7 @@ ScenarioType = typing.Tuple[str, state.DataclassState]
 class View:
     pass
 
+
 def ipympl_canvas(figure):
     matplotlib.interactive(False)
     ipympl.backend_nbagg.new_figure_manager_given_figure(uuid.uuid1(), figure)
@@ -45,20 +46,26 @@ def ipympl_canvas(figure):
     return figure.canvas
 
 
-class ConcentrationFigure(View):
+class ExposureModelResult(View):
     def __init__(self):
         self.figure = matplotlib.figure.Figure(figsize=(9, 6))
         ipympl_canvas(self.figure)
+        self.html_output = widgets.HTML()
         self.ax = self.figure.add_subplot(1, 1, 1)
         self.line = None
 
     @property
     def widget(self):
-        # Workaround to a bug with ipymlp, which doesn't work well with tabs
-        # unless the widget is wrapped in a container (it is seen on all tabs otherwise!).
-        return widgets.HBox([self.figure.canvas])
+        return widgets.VBox([
+            self.html_output,
+            self.figure.canvas,
+        ])
 
-    def update(self, model: models.ConcentrationModel):
+    def update(self, model: models.ExposureModel):
+        self.update_plot(model.concentration_model)
+        self.update_textual_result(model)
+
+    def update_plot(self, model: models.ConcentrationModel):
         resolution = 600
         ts = np.linspace(sorted(model.infected.presence.transition_times())[0],
                          sorted(model.infected.presence.transition_times())[-1], resolution)
@@ -84,8 +91,19 @@ class ConcentrationFigure(View):
         self.ax.set_ylim(bottom=0., top=top)
         self.figure.canvas.draw()
 
+    def update_textual_result(self, model: models.ExposureModel):
+        lines = []
+        P = model.infection_probability()
+        lines.append(f'Emission rate (quanta/hr): {model.concentration_model.infected.emission_rate_when_present()}')
+        lines.append(f'Probability of infection: {np.round(P, 0)}%')
 
-class ComparisonFigure(View):
+        lines.append(f'Number of exposed: {model.exposed.number}')
+        R0 = np.round(model.reproduction_rate(), 1)
+        lines.append(f'Number of expected new cases (R0): {R0}')
+        self.html_output.value = '<br>\n'.join(lines)
+
+
+class ExposureComparissonResult(View):
     def __init__(self):
         self.figure = matplotlib.figure.Figure(figsize=(9, 6))
         ipympl_canvas(self.figure)
@@ -106,11 +124,7 @@ class ComparisonFigure(View):
         ax.set_title('Concentration of infectious quanta aerosols')
         return ax
 
-    def scenarios_updated(
-            self,
-            scenarios: typing.Sequence[ScenarioType],
-            active_scenario_index: int
-        ):
+    def scenarios_updated(self, scenarios: typing.Sequence[ScenarioType], _):
         labels, models = zip(*scenarios)
         conc_models: typing.Tuple[models.ConcentrationModel] = tuple(
             model.concentration_model.dcs_instance() for model in models
@@ -134,56 +148,13 @@ class ComparisonFigure(View):
 
 class ModelWidgets(View):
     def __init__(self, model_state: state.DataclassState):
-        self.model_state = model_state
-        self.model_state.dcs_observe(self.update)
         #: The widgets that this view produces (inputs and outputs together)
         self.widget = widgets.VBox([])
-        self.widgets = {}
-        self.out = widgets.Output()
-        self.plots = []
-        self.construct_widgets()
-        # Trigger the first result.
-        self.update()
+        self.construct_widgets(model_state)
 
-    def construct_widgets(self):
+    def construct_widgets(self, model_state: state.DataclassState):
         # Build the input widgets.
-        self._build_widget(self.model_state)
-
-        # And the output widget figure.
-        concentration = ConcentrationFigure()
-        self.plots.append(concentration)
-
-        # self.widgets['results'] = collapsible([
-        #     widgets.HBox([
-        #         concentration.widget,
-        #         self.out,
-        #     ])
-        # ], 'Results', start_collapsed=False)
-
-        # Join inputs and outputs together in a single widget for convenience.
-        # self.widget.children += (self.widgets['results'], )
-
-    def prepare_output(self):
-        pass
-
-    def update(self):
-        model: models.ExposureModel = self.model_state.dcs_instance()
-        for plot in self.plots:
-            plot.update(model.concentration_model)
-
-        self.out.clear_output()
-        with self.out:
-            P = model.infection_probability()
-            print(f'Emission rate (quanta/hr): {model.concentration_model.infected.emission_rate_when_present()}')
-            print(f'Probability of infection: {np.round(P, 0)}%')
-
-            print(f'Number of exposed: {model.exposed.number}')
-
-            new_cases = np.round(model.expected_new_cases(), 1)
-            print(f'Number of expected new cases: {new_cases}')
-
-            R0 = np.round(model.reproduction_number(), 1)
-            print(f'Reproduction number (R0): {R0}')
+        self._build_widget(model_state)
 
     def _build_widget(self, node):
         self.widget.children += (self._build_room(node.concentration_model.room),)
@@ -220,7 +191,7 @@ class ModelWidgets(View):
             [widget_group(
                 [[widgets.Label('Room volume'), room_volume]]
             )],
-            title='Specification of workplace', start_collapsed=False,
+            title='Specification of workplace',
         )
         return widget
 
@@ -407,7 +378,7 @@ class ModelWidgets(View):
         w = collapsible(
             [widget_group([[widgets.Label('Ventilation type'), ventilation_w]])]
             + list(ventilation_widgets.values()),
-            title='Ventilation scheme'
+            title='Ventilation scheme',
         )
         return w
 
@@ -473,8 +444,8 @@ class ExpertApplication:
         self._model_scenarios: typing.List[ScenarioType] = []
         self._active_scenario = 0
         self.multi_model_view = MultiModelView(self)
-        self.comparison_view = ComparisonFigure()
-        self.current_scenario_figure = ConcentrationFigure()
+        self.comparison_view = ExposureComparissonResult()
+        self.current_scenario_figure = ExposureModelResult()
         self._results_tab = widgets.Tab(children=(
             self.current_scenario_figure.widget,
             self.comparison_view.widget,
@@ -548,10 +519,10 @@ class ExpertApplication:
         Occurs when *any* value in *any* of the scenarios has been modified.
         """
         self.comparison_view.scenarios_updated(self._model_scenarios, self._active_scenario)
-        self.current_scenario_figure.update(self._model_scenarios[self._active_scenario][1].concentration_model.dcs_instance())
+        self.current_scenario_figure.update(self._model_scenarios[self._active_scenario][1].dcs_instance())
 
 
-class MultiModelView:
+class MultiModelView(View):
     def __init__(self, controller: ExpertApplication):
         self._controller = controller
         self.widget = widgets.Tab()
