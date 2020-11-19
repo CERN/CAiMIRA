@@ -103,7 +103,7 @@ class ExposureModelResult(View):
 
             ax.set_xlabel('Time (hours)')
             ax.set_ylabel('Concentration ($q/m^3$)')
-            ax.set_title('Concentration of infectious quanta aerosols')
+            ax.set_title('Concentration of infectious quanta')
         else:
             self.ax.ignore_existing_data_limits = True
             self.line.set_data(ts, concentration)
@@ -148,7 +148,7 @@ class ExposureComparissonResult(View):
         ax.spines['top'].set_visible(False)
         ax.set_xlabel('Time (hours)')
         ax.set_ylabel('Concentration ($q/m^3$)')
-        ax.set_title('Concentration of infectious quanta aerosols')
+        ax.set_title('Concentration of infectious quanta')
         return ax
 
     def scenarios_updated(self, scenarios: typing.Sequence[ScenarioType], _):
