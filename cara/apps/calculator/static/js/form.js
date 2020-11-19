@@ -365,10 +365,8 @@ function parseValToNumber(val) {
   return parseInt(val.replace(':',''), 10);
 }
 
-function parseTimeToMins(cTime)
-{
-  var d = new Date();
-  var time = cTime.match(/(\d+)(:(\d\d))?\s*(p?)/);
+function parseTimeToMins(cTime) {
+  var time = cTime.match(/(\d+)(:(\d+))/);
   return parseInt(time[1]*60) + parseInt(time[3]);
 }
 
