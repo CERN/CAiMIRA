@@ -33,6 +33,28 @@ ScenarioType = typing.Tuple[str, state.DataclassState]
 
 
 class View:
+    """
+    A thing which exposes a ``.widget`` attribute which is a view on some
+    data. This view is essentially a complex combination of widgets, along with
+    some event handling capabilities, which may or may not be sent back up to
+    the underlying controller.
+
+    We strive hard to keep "Model" data out of the View (and try to avoid
+    storing it at all on the View itself), instead relying on being able
+    to notify, and receive notifications, of important events from the Controller.
+
+    """
+    pass
+
+
+class Controller:
+    """
+    The singleton thing which is the top-level Application.
+
+    It is responsible for owning the Model data and the Views, and
+    orchestrating event messages to each if the Model/View change.
+
+    """
     pass
 
 
@@ -98,8 +120,13 @@ class ExposureModelResult(View):
         lines.append(f'Probability of infection: {np.round(P, 0)}%')
 
         lines.append(f'Number of exposed: {model.exposed.number}')
-        R0 = np.round(model.reproduction_rate(), 1)
-        lines.append(f'Number of expected new cases (R0): {R0}')
+
+        new_cases = np.round(model.expected_new_cases(), 1)
+        lines.append(f'Number of expected new cases: {new_cases}')
+
+        R0 = np.round(model.reproduction_number(), 1)
+        lines.append(f'Reproduction number (R0): {R0}')
+
         self.html_output.value = '<br>\n'.join(lines)
 
 
@@ -435,7 +462,7 @@ class CARAStateBuilder(state.StateBuilder):
         return s
 
 
-class ExpertApplication:
+class ExpertApplication(Controller):
     def __init__(self):
         self._debug_output = widgets.Output()
 
@@ -479,7 +506,7 @@ class ExpertApplication:
         self._model_scenarios.append((name, model))
         self._active_scenario = len(self._model_scenarios) - 1
         model.dcs_observe(self.notify_model_values_changed)
-        self.notify_model_scenario_changed()
+        self.notify_scenarios_changed()
 
     def _find_model_id(self, model_id):
         for index, (name, model) in enumerate(list(self._model_scenarios)):
@@ -491,22 +518,22 @@ class ExpertApplication:
     def rename_scenario(self, model_id, new_name):
         index, _, model = self._find_model_id(model_id)
         self._model_scenarios[index] = (new_name, model)
-        self.notify_model_scenario_changed()
+        self.notify_scenarios_changed()
 
     def remove_scenario(self, model_id):
         index, _, model = self._find_model_id(model_id)
         self._model_scenarios.pop(index)
         if self._active_scenario >= index:
             self._active_scenario = max(self._active_scenario - 1, 0)
-        self.notify_model_scenario_changed()
+        self.notify_scenarios_changed()
 
     def set_active_scenario(self, model_id):
         index, _, model = self._find_model_id(model_id)
         self._active_scenario = index
-        self.notify_model_scenario_changed()
+        self.notify_scenarios_changed()
         self.notify_model_values_changed()
 
-    def notify_model_scenario_changed(self):
+    def notify_scenarios_changed(self):
         """
         Occurs when the set of scenarios has been modified, but not if the values of the scenario has changed.
 
