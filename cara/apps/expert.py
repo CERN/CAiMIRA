@@ -417,7 +417,7 @@ baseline_model = models.ExposureModel(
     concentration_model=models.ConcentrationModel(
         room=models.Room(volume=75),
         ventilation=models.WindowOpening(
-            active=models.PeriodicInterval(period=0, duration=0),
+            active=models.PeriodicInterval(period=120, duration=120),
             inside_temp=models.PiecewiseConstant((0,24),(293.15,)),
             outside_temp=models.PiecewiseConstant((0,24),(283.15,)),
             cd_b=0.6, window_height=1.6, opening_length=0.6,
