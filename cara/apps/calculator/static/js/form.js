@@ -162,8 +162,9 @@ function require_hepa(option) {
 
 function require_input_field(id, option) {
   $(id).prop('required', option);
-  if (!option)
+  if (!option) {
     removeInvalid(id);
+  }
 }
 
 function disable_input_field(id, option) {
@@ -381,8 +382,8 @@ function parseValToNumber(val) {
 }
 
 function parseTimeToMins(cTime) {
-  var time = cTime.match(/(\d+)(:(\d+))/);
-  return parseInt(time[1]*60) + parseInt(time[3]);
+  var time = cTime.match(/(\d+):(\d+)/);
+  return parseInt(time[1]*60) + parseInt(time[2]);
 }
 
 /* -------On Load------- */
