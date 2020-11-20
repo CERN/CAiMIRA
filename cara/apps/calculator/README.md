@@ -101,6 +101,8 @@ There are three predefined activities in the tool at present.
 
 **Meeting** = All persons seated, conversation of N people is approximately (1/N% of the time talking). Everyone (occupants and infected occupants) is treated the same in this model.
 
+**Library** = All persons seated, breathing only (no talking!), all the time.
+
 **Call Centre** = All persons seated, all talking simultaneously, all the time. This is a conservative profile (i.e. will show in increased ``P(i)`` compared to office/meeting) if used for office activity.
 
 **Lab** = Based on a typical lab or technical working area, all persons are doing light activity and talking 50% of the time. Everyone (occupants and infected occupants) is treated the same in this model.

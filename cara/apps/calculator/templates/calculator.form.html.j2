@@ -22,7 +22,7 @@
 
 {{ MODEL_VERSION }} <span style="float:right; font-weight:bold">Please send feedback to <a href="mailto:CARA-dev@cern.ch">CARA-dev@cern.ch</a></span>
 <div>
-    <img src="/static/images/cara_logo.png" style="height:175px; width:100px; display:inline-block; vertical-align:middle; object-fit:cover;"> 
+    <img src="/static/images/cara_logo.png" style="height:175px; width:100px; display:inline-block; vertical-align:middle; object-fit:cover;">
     <h1 style="display:inline-block; vertical-align:middle;"><b>CARA - </b> COVID Airborne Risk Assessment calculator</h1>
 </div>
 
@@ -45,12 +45,12 @@
         <span class="tooltip_text">?</span>
     </div><br>
     <input type="radio" id="room_type_volume" name="volume_type" value="room_volume" onclick="require_fields(this)" tabindex="-1" required>
-      <label for="room_type_volume">Room volume:</label> &nbsp;&nbsp; 
+      <label for="room_type_volume">Room volume:</label> &nbsp;&nbsp;
     <input type="number" step="any" id="room_volume" class="non_zero has_radio" name="room_volume" placeholder="Room volume (m³)" min="0"><br>
     <input type="radio" id="room_type_dimensions" name="volume_type" value="room_dimensions" onclick="require_fields(this)" tabindex="-1" required>
-      <label for="room_type_dimensions">Floor area:</label> &nbsp;&nbsp; 
+      <label for="room_type_dimensions">Floor area:</label> &nbsp;&nbsp;
     <input type="number" step="any" id="floor_area" class="non_zero has_radio" name="floor_area" placeholder="Room floor area (m²)" min="0"><br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <label for="room_type_dimensions">Ceiling height:</label> &nbsp;&nbsp; 
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <label for="room_type_dimensions">Ceiling height:</label> &nbsp;&nbsp;
     <input type="number" step="any" id="ceiling_height" class="non_zero has_radio" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0" ><br>
     <hr width="80%">
 
@@ -69,10 +69,10 @@
 
     <div id="DIVmechanical_ventilation" style="display:none">
         <input type="radio" id="air_type_supply" name="mechanical_ventilation_type" value="air_supply" onclick="require_fields(this)" tabindex="-1">
-          <label for="air_type_supply">Air supply flow rate</label> &nbsp;&nbsp; 
+          <label for="air_type_supply">Air supply flow rate</label> &nbsp;&nbsp;
         <input type="number" step="any" id="air_supply" class="non_zero has_radio" name="air_supply" min="0" placeholder="(m³ / hour)"><br>
         <input type="radio" id="air_type_changes" name="mechanical_ventilation_type" value="air_changes" onclick="require_fields(this)" tabindex="-1">
-          <label for="air_type_changes">Air changes per hour</label> &nbsp;&nbsp; 
+          <label for="air_type_changes">Air changes per hour</label> &nbsp;&nbsp;
         <input type="number" step="any" id="air_changes" class="non_zero has_radio" name="air_changes" min="0" placeholder="(h⁻¹) only fresh air"><br>
     </div>
 
@@ -128,6 +128,7 @@
                     <option value="office">Office</option>
                     <option value="meeting">Meeting</option>
                     <option value="callcentre">Call Centre</option>
+                    <option value="library">Library</option>
                     <option value="lab">Laboratory</option>
                     <option value="workshop">Workshop</option>
                     <option value="training">Training</option>
@@ -224,6 +225,7 @@
     <li>Office = Typical office scenario with all persons seated, in conversation (talking 33% of the time, otherwise breathing normally).</li>
     <li>Meeting = Typical meeting scenario with all persons seated, in conversation (talking time is shared equally between all persons).</li>
     <li>Call Centre = A conservative assumption for office spaces, assumes all occupants are seated and talking continuously.</li>
+    <li>Library = assumes all occupants are seated, breathing and not talking.</li>
     <li>Laboratory =  Typical lab scenario with all persons doing light physical activity and talking 50% of the time.</li>
     <li>Workshop = Typical mechanical assembly workshop or equipment installation scenario with all persons doing moderate activity and talking 50% of the time.</li>
     <li>Training = Training course scenario. One person (Trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the Trainer is the infected person, for the worst case scenario.</li>

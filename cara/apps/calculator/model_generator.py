@@ -185,6 +185,7 @@ class FormData:
                 {'Talking': 1, 'Breathing': self.total_people - 1}
             ),
             'callcentre': ('Seated', 'Talking'),
+            'library': ('Seated', 'Breathing'),
             'training': ('Standing', 'Talking'),
             'lab': (
                 'Light activity',
@@ -218,6 +219,7 @@ class FormData:
             'office': 'Seated',
             'meeting': 'Seated',
             'callcentre': 'Seated',
+            'library': 'Seated',
             'training': 'Seated',
             'workshop': 'Moderate activity',
             'lab':'Light activity',
@@ -398,7 +400,7 @@ def baseline_raw_form_data():
     }
 
 
-ACTIVITY_TYPES = {'office', 'meeting', 'training', 'callcentre', 'workshop', 'lab', 'gym'}
+ACTIVITY_TYPES = {'office', 'meeting', 'training', 'callcentre', 'library', 'workshop', 'lab', 'gym'}
 EVENT_TYPES = {'single_event', 'recurrent_event'}
 MECHANICAL_VENTILATION_TYPES = {'air_changes', 'air_supply', 'not-applicable'}
 MASK_TYPES = {'Type I', 'FFP2'}
