@@ -65,6 +65,8 @@ class PeriodicInterval(Interval):
     duration: int
 
     def boundaries(self) -> typing.Tuple[typing.Tuple[float, float], ...]:
+        if self.period == 0 or self.duration == 0:
+            return tuple()
         result = []
         for i in np.arange(0, 24, self.period / 60):
             result.append((i, i+self.duration/60))
