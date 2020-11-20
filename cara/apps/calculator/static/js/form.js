@@ -1,4 +1,4 @@
-/* ------- HTML structure ------- */
+/* -------HTML structure------- */
 function getChildElement(elem) {
   // Get the element named in the given element's data-enables attribute.
   return $("#" + elem.data("enables"));
@@ -38,6 +38,18 @@ function require_fields(obj) {
       require_air_changes(false);
       require_air_supply(true);
       break;
+    case "hepa_yes":
+      require_hepa(true);
+      break;
+    case "hepa_no":
+      require_hepa(false);
+      break;
+    case "mask_on":
+      require_mask(true);
+      break;
+    case "mask_off":
+      require_mask(false);
+      break;
     case "event_type_single":
       require_single_event(true);
       require_recurrent_event(false);
@@ -51,18 +63,6 @@ function require_fields(obj) {
       break;
     case "lunch_option_yes":
       require_lunch(true);
-      break;
-    case "mask_on":
-      require_mask(true);
-      break;
-    case "mask_off":
-      require_mask(false);
-      break;
-    case "hepa_yes":
-      require_hepa(true);
-      break;
-    case "hepa_no":
-      require_hepa(false);
       break;
     default:
       break;
@@ -83,51 +83,52 @@ function unrequire_fields(obj) {
 }
 
 function require_room_volume(option) {
-  require_nonzero_field("room_volume", option);
+  require_input_field("#room_volume", option);
+  disable_input_field("#room_volume", option);
 }
 
 function require_room_dimensions(option) {
-  require_nonzero_field("floor_area", option);
-  require_nonzero_field("ceiling_height", option);
+  require_input_field("#floor_area", option);
+  require_input_field("#ceiling_height", option);
+  disable_input_field("#floor_area", option);
+  disable_input_field("#ceiling_height", option);
 }
 
 function require_mechanical_ventilation(option) {
   $("#air_type_changes").prop('required', option);
   $("#air_type_supply").prop('required', option);
   if (!option) {
-    removeInvalid("air_changes");
-    removeInvalid("air_supply");
+    removeInvalid("#air_changes");
+    removeInvalid("#air_supply");
   }
 }
 
 function require_natural_ventilation(option) {
-  require_nonzero_field("windows_number", option);
-  require_nonzero_field("window_height", option);
-  require_nonzero_field("opening_distance", option);
+  require_input_field("#windows_number", option);
+  require_input_field("#window_height", option);
+  require_input_field("#opening_distance", option);
   $("#always").prop('required', option);
   $("#interval").prop('required', option);
 }
 
 function require_air_changes(option) {
-  require_nonzero_field("air_changes", option);
+  require_input_field("#air_changes", option);
+  disable_input_field("#air_changes", option);
 }
 
 function require_air_supply(option) {
-  require_nonzero_field("air_supply", option);
+  require_input_field("#air_supply", option);
+  disable_input_field("#air_supply", option);
 }
 
 function require_single_event(option) {
-  require_nonzero_field("single_event_date", option);
-}
-
-function require_nonzero_field(id, option) {
-  $("#"+id).prop('required', option);
-  if (!option)
-    removeInvalid(id);
+  require_input_field("#single_event_date", option);
+  disable_input_field("#single_event_date", option);
 }
 
 function require_recurrent_event(option) {
   $("#recurrent_event_month").prop('required', option);
+  disable_input_field("#recurrent_event_month", option);
 }
 
 function require_lunch(option) {
@@ -155,7 +156,21 @@ function require_mask(option) {
 }
 
 function require_hepa(option) {
-  require_nonzero_field("hepa_amount", option);
+  require_input_field("#hepa_amount", option);
+  disable_input_field("#hepa_amount", option);
+}
+
+function require_input_field(id, option) {
+  $(id).prop('required', option);
+  if (!option)
+    removeInvalid(id);
+}
+
+function disable_input_field(id, option) {
+  if (option)
+    $(id).removeClass("disabled");
+  else
+    $(id).addClass("disabled");
 }
 
 function setMaxInfectedPeople() {
@@ -171,11 +186,10 @@ function setMaxInfectedPeople() {
 }
 
 function removeInvalid(id) {
-  var obj = document.getElementById(id)
-  if (obj.classList.contains("red_border")) {
-    obj.value = "";
-    $(obj).removeClass("red_border");
-    $(obj).next('span').remove();
+  if ($(id).hasClass("red_border")) {
+    $(id).val("");
+    $(id).removeClass("red_border");
+    $(id).next('span').remove();
   }
 }
 
@@ -219,6 +233,43 @@ function show_disclaimer() {
   }
 }
 
+$(".has_radio").on('click', function(event){
+  click_radio(this.id);
+});
+
+$(".has_radio").on('change', function(event){
+  click_radio(this.id);
+});
+
+function click_radio(id) {
+  switch (id) {
+    case "room_volume":
+      $("#room_type_volume").click();
+      break;
+    case "floor_area":
+    case "ceiling_height":
+      $("#room_type_dimensions").click();
+      break;
+    case "air_supply":
+      $("#air_type_supply").click();
+      break;
+    case "air_changes": 
+      $("#air_type_changes").click();
+      break;
+    case "hepa_amount":
+      $("#hepa_yes").click();
+      break;
+    case "single_event_date":
+      $("#event_type_single").click();
+      break;
+    case "recurrent_event_month":
+      $("#event_type_recurrent").click();
+      break;
+    default:
+      break;
+  }
+}
+
 /* -------Form validation------- */
 function validate_form(form) {
   var submit = true;
@@ -240,6 +291,30 @@ function validate_form(form) {
     if (!validateFinishTime(this))
       submit = false;
   });
+
+  //Check if breaks length >= activity length
+  var button = document.getElementById("activity_breaks");
+  $(button).next('span').remove();
+
+  var lunch_mins = 0;
+  if (document.getElementById('lunch_option_yes').checked) {
+    var lunch_start = document.getElementById("lunch_start");
+    var lunch_finish = document.getElementById("lunch_finish");
+    lunch_mins = parseTimeToMins(lunch_finish.value) - parseTimeToMins(lunch_start.value);
+  }
+  
+  var coffee_breaks = parseInt(document.querySelector('input[name="coffee_breaks"]:checked').value);
+  var coffee_duration = parseInt(document.getElementById("break_duration").value);
+  var coffee_mins = coffee_breaks * coffee_duration;
+  
+  var activity_start = document.getElementById("activity_start");
+  var activity_finish = document.getElementById("activity_finish");
+  var activity_mins = parseTimeToMins(activity_finish.value) - parseTimeToMins(activity_start.value);
+
+  if ((lunch_mins + coffee_mins) >= activity_mins) {
+    insertSpanAfter(button, "Length of breaks >= Length of activity");
+    submit = false;
+  }
 
   return submit;
 }
@@ -301,21 +376,13 @@ function validateFinishTime(obj) {
   return true;
 }
 
-//TODO: Merge with validateFinishTime()
-function validateStartTime() {
-  $(this).next().removeClass("red_border");
-  $(this).next().next().hide();
-
-  var startTime = parseValToNumber($(this).val());
-  var finishTime = parseValToNumber($(this).next().val());
-  if (startTime > finishTime) {
-    $(this).next().addClass("red_border");
-    $(this).next().next().show();
-  }
-}
-
 function parseValToNumber(val) {
   return parseInt(val.replace(':',''), 10);
+}
+
+function parseTimeToMins(cTime) {
+  var time = cTime.match(/(\d+)(:(\d+))/);
+  return parseInt(time[1]*60) + parseInt(time[3]);
 }
 
 /* -------On Load------- */
@@ -330,8 +397,11 @@ $(document).ready(function () {
   // Call the function now to handle forward/back button presses in the browser.
   on_ventilation_type_change();
 
-  //Same for lunch option
+  //Same for other options
   require_fields($("input[name='lunch_option']:checked"));
+  require_fields($("input[name='volume_type']:checked"));
+  require_fields($("input[name='mechanical_ventilation_type']:checked"));
+  require_fields($("input[name='hepa_option']:checked"));
 
   // Setup the maximum number of people at page load (to handle back/forward),
   // and update it when total people is changed.
@@ -350,7 +420,7 @@ $(document).ready(function () {
   //Validate all finish times
   $("input[required].finish_time").each(function() {validateFinishTime(this)});
   $(".finish_time").change(function() {validateFinishTime(this)});
-  $(".start_time").change(validateStartTime);
+  $(".start_time").change(function() {validateFinishTime(this.nextSibling.nextSibling)});
 
   var radioValue = $("input[name='event_type']:checked");
   if (radioValue.val()) {

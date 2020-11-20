@@ -44,11 +44,14 @@
     <div data-tooltip="The area you wish to study (choose one of the 2 options). Use GIS Portal or measure.">
         <span class="tooltip_text">?</span>
     </div><br>
-    <input type="radio" id="room_type_volume" name="volume_type" value="room_volume" onclick="require_fields(this)" required>
-    Room volume: &nbsp;&nbsp; <input type="number" step="any" id="room_volume" class="non_zero" name="room_volume" placeholder="Room volume (m³)" min="0"><br>
-    <input type="radio" id="room_type_dimensions" name="volume_type" value="room_dimensions" onclick="require_fields(this)" required>
-    Floor area: &nbsp;&nbsp; <input type="number" step="any" id="floor_area" class="non_zero" name="floor_area" placeholder="Room floor area (m²)" min="0"><br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ceiling height: &nbsp;&nbsp; <input type="number" step="any" id="ceiling_height" class="non_zero" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0"><br>
+    <input type="radio" id="room_type_volume" name="volume_type" value="room_volume" onclick="require_fields(this)" tabindex="-1" required>
+      <label for="room_type_volume">Room volume:</label> &nbsp;&nbsp; 
+    <input type="number" step="any" id="room_volume" class="non_zero has_radio" name="room_volume" placeholder="Room volume (m³)" min="0"><br>
+    <input type="radio" id="room_type_dimensions" name="volume_type" value="room_dimensions" onclick="require_fields(this)" tabindex="-1" required>
+      <label for="room_type_dimensions">Floor area:</label> &nbsp;&nbsp; 
+    <input type="number" step="any" id="floor_area" class="non_zero has_radio" name="floor_area" placeholder="Room floor area (m²)" min="0"><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <label for="room_type_dimensions">Ceiling height:</label> &nbsp;&nbsp; 
+    <input type="number" step="any" id="ceiling_height" class="non_zero has_radio" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0" ><br>
     <hr width="80%">
 
     <!-- Ventilation Options -->
@@ -57,15 +60,20 @@
         <span class="tooltip_text">?</span>
     </div><br>
     Ventilation type:
-    <input type="radio" id="no-ventilation" name="ventilation_type" value="no-ventilation" checked>No ventilation
-    <input type="radio" id="mechanical" name="ventilation_type" value="mechanical" data-enables="DIVmechanical_ventilation">Mechanical
-    <input type="radio" id="natural" name="ventilation_type" value="natural" data-enables="DIVnatural_ventilation">Natural<br>
+    <input type="radio" id="no_ventilation" name="ventilation_type" value="no-ventilation" checked>
+      <label for="no_ventilation">No ventilation</label>&nbsp;&nbsp;
+    <input type="radio" id="mechanical" name="ventilation_type" value="mechanical" data-enables="DIVmechanical_ventilation">
+      <label for="mechanical">Mechanical</label>&nbsp;&nbsp;
+    <input type="radio" id="natural" name="ventilation_type" value="natural" data-enables="DIVnatural_ventilation">
+      <label for="natural">Natural</label><br>
 
     <div id="DIVmechanical_ventilation" style="display:none">
-        <input type="radio" id="air_type_supply" name="mechanical_ventilation_type" value="air_supply" onclick="require_fields(this)">
-        Air supply flow rate &nbsp;&nbsp; <input type="number" step="any" id="air_supply" class="non_zero" name="air_supply" min="0" placeholder="(m³ / hour)"><br>
-        <input type="radio" id="air_type_changes" name="mechanical_ventilation_type" value="air_changes" onclick="require_fields(this)">
-        Air changes per hour &nbsp;&nbsp; <input type="number" step="any" id="air_changes" class="non_zero" name="air_changes" min="0"><br>
+        <input type="radio" id="air_type_supply" name="mechanical_ventilation_type" value="air_supply" onclick="require_fields(this)" tabindex="-1">
+          <label for="air_type_supply">Air supply flow rate</label> &nbsp;&nbsp; 
+        <input type="number" step="any" id="air_supply" class="non_zero has_radio" name="air_supply" min="0" placeholder="(m³ / hour)"><br>
+        <input type="radio" id="air_type_changes" name="mechanical_ventilation_type" value="air_changes" onclick="require_fields(this)" tabindex="-1">
+          <label for="air_type_changes">Air changes per hour</label> &nbsp;&nbsp; 
+        <input type="number" step="any" id="air_changes" class="non_zero has_radio" name="air_changes" min="0" placeholder="(h⁻¹) only fresh air"><br>
     </div>
 
     <div id="DIVnatural_ventilation" style="display:none">
@@ -73,18 +81,18 @@
         Height of window: <input type="number" step="any" id="window_height" class="non_zero" name="window_height" placeholder="meters" min="0"><br>
         Opening distance: <input type="number" step="any" id="opening_distance" class="non_zero" name="opening_distance" placeholder="meters" min="0"><br>
         Windows open: <input type="radio" id="always" name="windows_open" value="always">
-                      <label for="always">Always</label>
+                        <label for="always">Always</label> &nbsp;&nbsp;
                       <input type="radio" id="interval" name="windows_open" value="interval">
-                      <label for="interval">10 min / 2h</label>
+                        <label for="interval">10 min / 2h</label>
         <br>
     </div>
     
     HEPA filtration:
     <input type="radio" id="hepa_no" name="hepa_option" value=0 onclick="require_fields(this)" checked="checked">
-    <label for="hepa_no">No</label>
+      <label for="hepa_no">No</label>&nbsp;&nbsp;
     <input type="radio" id="hepa_yes" name="hepa_option" value=1 onclick="require_fields(this)">
-    <label for="hepa_yes">Yes</label>
-    <input type="number" step="any" id="hepa_amount" class="non_zero" name="hepa_amount" placeholder="(m³ / hour)" min="0">
+      <label for="hepa_yes">Yes</label>&nbsp;&nbsp;
+    <input type="number" step="any" id="hepa_amount" class="non_zero has_radio disabled" name="hepa_amount" placeholder="(m³ / hour)" min="0">
     <hr width="80%">
 
     <b>Face masks:</b>
@@ -92,11 +100,15 @@
         <span class="tooltip_text">?</span>
     </div><br>
     Are masks worn when occupants are at workstations?
-    <input type="radio" id="mask_on" name="mask_wearing" value="continuous" required>Yes
-    <input type="radio" id="mask_off"  name="mask_wearing" value="removed" required checked="checked">No<br>
+    <input type="radio" id="mask_on" name="mask_wearing" value="continuous" required>
+      <label for="mask_on">Yes</label>&nbsp;&nbsp;
+    <input type="radio" id="mask_off"  name="mask_wearing" value="removed" required checked="checked">
+      <label for="mask_off">No</label><br>
     Type of masks used:
-    <input type="radio" id="mask_type1" name="mask_type" value="Type I" checked="checked" onclick="require_fields(this)">Type 1
-    <input type="radio" id="mask_ffp2"  name="mask_type" value="FFP2" onclick="require_fields(this)">FFP2<br>
+    <input type="radio" id="mask_type1" name="mask_type" value="Type I" checked="checked" onclick="require_fields(this)">
+      <label for="mask_type1">Type 1</label>&nbsp;&nbsp;
+    <input type="radio" id="mask_ffp2"  name="mask_type" value="FFP2" onclick="require_fields(this)">
+      <label for="mask_ffp2">FFP2</label><br>
     <hr width="80%">
 </div>
 
@@ -124,22 +136,21 @@
     Start: <input type="time" id="activity_start" class="start_time" name="activity_start" value="09:00" required> &nbsp;&nbsp;
     Finish: <input type="time" id="activity_finish" class="finish_time" name="activity_finish" value="18:00" required><br>
     Infected person(s) presence: <br>
-    Start: <input type="time" id="infected_start" class="start_time" name="infected_start" value="09:00" required> &nbsp;&nbsp;
-    Finish: <input type="time" id="infected_finish" class="finish_time" name="infected_finish" value="18:00" required><br>
+    Start: <input type="time" id="infected_start" class="start_time" name="infected_start" value="09:00"required> &nbsp;&nbsp;
+    Finish: <input type="time" id="infected_finish" class="finish_time" name="infected_finish" value="18:00"  required><br>
     <hr width="80%">
 
     When is the event?
     <div data-tooltip="Select the date for one-off events or the month if the event is recurrent in the same space.">
         <span class="tooltip_text">?</span>
     </div><br>
-    <input type="radio" id="event_type_single" name="event_type" value="single_event" onclick="require_fields(this)" required>
-
-    <label for="event_type_single">Single event</label> &nbsp;&nbsp;
-    <label for="single_event_date">Date: </label>
-    <input type="text" id="single_event_date" class="datepicker" name="single_event_date" placeholder="dd/mm/yyyy"><br>
-    <input type="radio" id="event_type_recurrent" name="event_type" value="recurrent_event" onclick="require_fields(this)" required>
-    <label for="event_type_recurrent">Recurrent usage</label>
-    <select id="recurrent_event_month" name="recurrent_event_month">
+    <input type="radio" id="event_type_single" name="event_type" value="single_event" onclick="require_fields(this)" tabindex="-1" required>
+      <label for="event_type_single">Single event</label> &nbsp;&nbsp;
+      <label for="event_type_single">Date: </label>
+    <input type="text" id="single_event_date" class="datepicker has_radio" name="single_event_date" placeholder="dd/mm/yyyy"><br>
+    <input type="radio" id="event_type_recurrent" name="event_type" value="recurrent_event" onclick="require_fields(this)" tabindex="-1" required>
+      <label for="event_type_recurrent">Recurrent usage</label>
+    <select id="recurrent_event_month" name="recurrent_event_month" class="has_radio" >
         <option value="January">January</option>
         <option value="February">February</option>
         <option value="March">March</option>
@@ -155,13 +166,15 @@
     </select><br>
     <hr width="80%">
 
-    <b>Activity breaks:</b><br>
+    <div id="activity_breaks">
+      <b>Activity breaks:</b>
+    </div>
     <!-- Lunch Options -->
-    Lunch break:
+    Lunch break:&nbsp;&nbsp;
     <input type="radio" id="lunch_option_no" name="lunch_option" value=0 onclick="require_fields(this)">
-      <label for="lunch_option">No</label>
+      <label for="lunch_option_no">No</label>&nbsp;&nbsp;
     <input type="radio" id="lunch_option_yes" name="lunch_option" value=1 checked="checked" onclick="require_fields(this)">
-      <label for="lunch_option">Yes</label><br>
+      <label for="lunch_option_yes">Yes</label><br>
     
     <div id="DIVlunch_break">
         Start: <input type="time" id="lunch_start" class="start_time" name="lunch_start" value="12:30" required> &nbsp;&nbsp;
@@ -169,25 +182,24 @@
     </div>
 
     <!-- Coffee Options -->
-    Coffee Breaks
-    <input type="radio" name="coffee_breaks" value="0" checked="checked">
-        <label for="lunch_option" >No breaks</label>
-    <input type="radio" name="coffee_breaks" value="2">
-        <label for="lunch_option">2</label>
-    <input type="radio" name="coffee_breaks" value="4">
-        <label for="lunch_option">4</label>
-        <br>
-        Duration (minutes): <select id="break_duration" name="coffee_duration">
-                    <option value="5">5</option>
-                    <option value="10">10</option>
-                    <option value="15">15</option>
-                    <option value="20">20</option>
-                    <option value="25">25</option>
-                    <option value="30">30</option>
-                 </select><br>
-        Coffee breaks are spread evenly throughout the day.
-        <br>
-        <hr width="80%">
+    Coffee Breaks:&nbsp;&nbsp;
+    <input type="radio" id="coffee_break_0" name="coffee_breaks" value="0" checked="checked">
+      <label for="coffee_break_0" >No breaks</label>&nbsp;&nbsp;
+    <input type="radio" id="coffee_break_2" name="coffee_breaks" value="2">
+      <label for="coffee_break_2">2</label>&nbsp;&nbsp;
+    <input type="radio" id="coffee_break_4" name="coffee_breaks" value="4">
+      <label for="coffee_break_4">4</label><br>
+
+    Duration (minutes): <select id="break_duration" name="coffee_duration">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+                <option value="20">20</option>
+                <option value="25">25</option>
+                <option value="30">30</option>
+             </select><br>
+    Coffee breaks are spread evenly throughout the day.<br>
+    <hr width="80%">
 </div>
 
 <div style="width: 33%; float:left;">
@@ -224,7 +236,7 @@
   Refer to <a href="/calculator/user-guide"> COVID Calculator user-guide </a> for more detailed explanations on how to use this tool. <br>
 </div>
 
-<button type='submit'>Generate report</button><br><br><br><br>
+<button type='submit' id="generate_report">Generate report</button><br><br><br><br>
 </form>
 
 <!-- Dialog boxes -->
@@ -238,7 +250,7 @@
     <b>We do not assume responsibility for any injury or damage to persons or property arising out of or related to any use of this app.</b></span>
     <br><br><b>Code License:</b><br><br>
     <span id="code_license">THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span></p><br>
-  <button onclick="show_disclaimer()" id="myBtn">Read more</button><br><br>
+  <button onclick="show_disclaimer()" id="myBtn" tabindex="-1">Read more</button><br><br>
 </div>
 
 <div class="text-component text-component-page clearfix"></div>
