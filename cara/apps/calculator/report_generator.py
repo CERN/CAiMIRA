@@ -38,7 +38,7 @@ def calculate_report_data(model: models.ExposureModel):
     expected_new_cases = model.expected_new_cases()
 
     repeated_events = []
-    for n in [1, 2, 3, 4, 5, 10, 15, 20]:
+    for n in [1, 2, 3, 4, 5]:
         repeat_model = dataclasses.replace(model, repeats=n)
         repeated_events.append(
             RepeatEvents(
