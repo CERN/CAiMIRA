@@ -166,7 +166,33 @@
             {% endfor %}
             </tbody>
         </table>
-    <p>
+    </p>
+
+    <p class="data_title">Alternative scenarios:</p>
+    <p class="data_text">
+		<img id="scenario_concentration_plot" src="{{ alternative_scenarios.plot }}" align="left" />
+
+        <table class="table table-striped w-auto">
+            <thead class="thead-light">
+                <tr>
+                    <th>Scenario</th>
+                    <th>P(i)</th>
+                    <th>Expected new cases</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
+                <tr>
+                    <td>{{ scenario_name }}</td>
+                    <td>{{ scenario_stats.probability_of_infection | int_format }}%</td>
+                    <td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    </p>
+    <div style="clear: both;">
 
 	<br><br><br>
 	<div style="border: 2px solid black; padding: 15px;">

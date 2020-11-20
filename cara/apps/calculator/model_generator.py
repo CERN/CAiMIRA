@@ -384,7 +384,7 @@ def baseline_raw_form_data():
         'mask_type': 'Type I',
         'mask_wearing': 'removed',
         'mechanical_ventilation_type': '',
-        'model_version': 'BetaV1.1.0',
+        'model_version': 'v1.1.0',
         'opening_distance': '0.2',
         'recurrent_event_month': 'January',
         'room_number': '123',

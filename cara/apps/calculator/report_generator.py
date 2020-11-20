@@ -3,6 +3,7 @@ import dataclasses
 from datetime import datetime
 import io
 from pathlib import Path
+import typing
 
 import jinja2
 import matplotlib
@@ -99,6 +100,59 @@ def minutes_to_time(minutes: int) -> str:
     return f"{hour_string}:{minute_string}"
 
 
+def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, models.ExposureModel]:
+    scenarios = {}
+
+    with_mask = dataclasses.replace(form, mask_wearing='continuous')
+    without_mask = dataclasses.replace(form, mask_wearing='removed')
+
+    scenarios['With mask'] = with_mask.build_model()
+    scenarios['Without mask'] = without_mask.build_model()
+
+    return scenarios
+
+
+def comparison_plot(scenarios: typing.Dict[str, models.ExposureModel]):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+
+    resolution = 350
+    times = None
+    for name, model in scenarios.items():
+        if times is None:
+            t_start = min(model.exposed.presence.boundaries()[0][0],
+                          model.concentration_model.infected.presence.boundaries()[0][0])
+            t_end = max(model.exposed.presence.boundaries()[-1][1],
+                        model.concentration_model.infected.presence.boundaries()[-1][1])
+            times = np.linspace(t_start, t_end, resolution)
+        concentrations = [model.concentration_model.concentration(time) for time in times]
+
+        ax.plot(times, concentrations, label=name)
+
+    ax.legend()
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+    ax.set_xlabel('Time (hour of day)')
+    ax.set_ylabel('Concentration ($q/m^3$)')
+    ax.set_title('Concentration of infectious quanta')
+
+    return fig
+
+
+def comparison_report(scenarios: typing.Dict[str, models.ExposureModel]):
+    statistics = {}
+    for name, model in scenarios.items():
+        statistics[name] = {
+            'probability_of_infection': model.infection_probability(),
+            'expected_new_cases': model.expected_new_cases(),
+        }
+    return {
+        'plot': embed_figure(comparison_plot(scenarios)),
+        'stats': statistics,
+    }
+
+
 def build_report(model: models.ExposureModel, form: FormData):
     now = datetime.now()
     time = now.strftime("%d/%m/%Y %H:%M:%S")
@@ -112,6 +166,8 @@ def build_report(model: models.ExposureModel, form: FormData):
     }
 
     context.update(calculate_report_data(model))
+    alternative_scenarios = manufacture_alternative_scenarios(form)
+    context['alternative_scenarios'] = comparison_report(alternative_scenarios)
 
     cara_templates = Path(__file__).parent.parent / "templates"
     calculator_templates = Path(__file__).parent / "templates"
