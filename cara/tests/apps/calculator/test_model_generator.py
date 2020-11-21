@@ -116,7 +116,7 @@ def test_infected_present_intervals(baseline_form):
     baseline_form.lunch_finish = 13 * 60 + 30
     baseline_form.infected_start = 10 * 60
     baseline_form.infected_finish = 15 * 60
-    correct = ((10, 11), (11.25, 12.5), (13.5, 15.0))
+    correct = ((10, 10+37/60), (10+52/60, 12.5), (13.5, 15.0))
     assert baseline_form.infected_present_interval().present_times == correct
 
 
@@ -129,8 +129,31 @@ def test_exposed_present_intervals(baseline_form):
     baseline_form.lunch_finish = 13 * 60 + 30
     baseline_form.infected_start = 10 * 60
     baseline_form.infected_finish = 15 * 60
-    correct = ((9, 11), (11.25, 12.5), (13.5, 15), (15.25, 17.0))
+    correct = ((9, 10+37/60), (10+52/60, 12.5), (13.5, 15+7/60), (15+22/60, 17.0))
     assert baseline_form.exposed_present_interval().present_times == correct
+
+
+def test_coffee_lunch_breaks(baseline_form):
+    baseline_form.coffee_duration = 30
+    baseline_form.coffee_breaks = 4
+    baseline_form.activity_start = 9 * 60
+    baseline_form.activity_finish = 18 * 60
+    baseline_form.lunch_start = 12 * 60 + 30
+    baseline_form.lunch_finish = 13 * 60 + 30
+    correct = ((9, 9+50/60), (10+20/60, 11+10/60), (11+40/60, 12+30/60),
+               (13+30/60, 14+40/60), (15+10/60, 16+20/60), (16+50/60, 18))
+    np.testing.assert_allclose(baseline_form.exposed_present_interval().present_times, correct, rtol=1e-14)
+
+
+def test_coffee_breaks(baseline_form):
+    baseline_form.coffee_duration = 10
+    baseline_form.coffee_breaks = 4
+    baseline_form.activity_start = 9 * 60
+    baseline_form.activity_finish = 10 * 60
+    baseline_form.lunch_option = False
+    correct = ((9, 9+4/60), (9+14/60, 9+18/60), (9+28/60, 9+32/60), (9+42/60, 9+46/60), (9+56/60, 10))
+    np.testing.assert_allclose(baseline_form.exposed_present_interval().present_times, correct, rtol=1e-14)
+
 
 def test_key_validation(baseline_form_data):
     baseline_form_data['activity_type'] = 'invalid key'
