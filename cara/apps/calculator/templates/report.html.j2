@@ -121,9 +121,18 @@
 		each of {{ form.coffee_duration }} minutes duration
 		</p></li>
 		<ul>
-		{%- for start_time, end_time in form.coffee_break_times() %}
+		{% if form.lunch_option%}
+		{%- for start_time, end_time in form.coffee_break_times(form.activity_start,form.lunch_start,form.coffee_breaks//2) %}
 		<li><p class="data_subtext">Coffee break {{ loop.index }}: Start: {{ start_time | minutes_to_time }} &nbsp&nbsp End: {{ end_time | minutes_to_time }}</p></li>
     	{%- endfor %}
+		{%- for start_time, end_time in form.coffee_break_times(form.lunch_finish,form.activity_finish,form.coffee_breaks//2) %}
+		<li><p class="data_subtext">Coffee break {{ loop.index }}: Start: {{ start_time | minutes_to_time }} &nbsp&nbsp End: {{ end_time | minutes_to_time }}</p></li>
+    	{%- endfor %}
+		{% else%}
+		{%- for start_time, end_time in form.coffee_break_times(form.activity_start,form.activity_finish,form.coffee_breaks) %}
+		<li><p class="data_subtext">Coffee break {{ loop.index }}: Start: {{ start_time | minutes_to_time }} &nbsp&nbsp End: {{ end_time | minutes_to_time }}</p></li>
+    	{%- endfor %}
+		{% endif %}
 		</ul>
 		{% endif %}
 	</ul>

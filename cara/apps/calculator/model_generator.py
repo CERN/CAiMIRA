@@ -242,27 +242,37 @@ class FormData:
         )
         return exposed
 
-    def coffee_break_times(self) -> typing.Tuple[typing.Tuple[int, int]]:
+    def coffee_break_times(self, start, finish, nbreaks) -> typing.Tuple[typing.Tuple[int, int]]:
         if not self.coffee_breaks:
             return ()
-        coffee_period = (self.activity_finish - self.activity_start) // self.coffee_breaks
+        break_delay = ((finish - start) - (nbreaks * self.coffee_duration)) // (nbreaks+1)
         coffee_times = []
-        for minute in range(self.activity_start, self.activity_finish, coffee_period):
-            start = minute + coffee_period // 2
-            end = start + self.coffee_duration
-            coffee_times.append((start, end))
+        end = start
+        for n in range(nbreaks):
+            begin = end + break_delay
+            end = begin + self.coffee_duration
+            coffee_times.append((begin, end))
         return tuple(coffee_times)
 
     def present_interval(self, start, finish) -> models.Interval:
         leave_times = []
         enter_times = []
         if self.lunch_option:
+            for coffee_start, coffee_end in self.coffee_break_times(
+                    self.activity_start,self.lunch_start,self.coffee_breaks // 2):
+                leave_times.append(coffee_start)
+                enter_times.append(coffee_end)
             leave_times.append(self.lunch_start)
             enter_times.append(self.lunch_finish)
-
-        for coffee_start, coffee_end in self.coffee_break_times():
-            leave_times.append(coffee_start)
-            enter_times.append(coffee_end)
+            for coffee_start, coffee_end in self.coffee_break_times(
+                    self.lunch_finish,self.activity_finish,self.coffee_breaks // 2):
+                leave_times.append(coffee_start)
+                enter_times.append(coffee_end)
+        else:
+            for coffee_start, coffee_end in self.coffee_break_times(
+                    self.activity_start,self.activity_finish,self.coffee_breaks):
+                leave_times.append(coffee_start)
+                enter_times.append(coffee_end)
 
         # These lists represent the times where the infected person leaves or enters the room, respectively, sorted in
         # reverse order. Note that these lists allows the person to "leave" when they should not even be present in the
