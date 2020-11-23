@@ -22,10 +22,8 @@
 	<p>Simulation Name: {{ form.simulation_name }}</p>
 	<p>Room Number: {{ form.room_number }}</p>
 
-  {% if (form.total_people > 5) or (form.ventilation_type == "no-ventilation") or (form.mask_wearing == "removed")%}
-  <p><strong>Rules violation: This simulation doesn't conform to current CERN HSE rules. Please check your input assumptions and try again. </strong></p>
-	{% endif %}
-
+  <p><strong>Applicable rules: Please ensure that this scenario conforms to current CERN HSE rules (ventilation requirements, mask wearing and maximum number of people).</strong></p>
+	
 	<p class="data_title">Input data:</p>
 	<ul>
 		<li><p class="data_text">Room Volume: {{ model.concentration_model.room.volume }} m³</p></li>
