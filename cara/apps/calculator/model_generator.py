@@ -256,7 +256,10 @@ class FormData:
         if not self.coffee_breaks:
             return ()
         if self.lunch_option:
-            n_morning_breaks = self.coffee_breaks // 2
+            time_before_lunch = self.lunch_start - self.activity_start
+            time_after_lunch = self.activity_finish - self.lunch_finish
+            before_lunch_frac = time_before_lunch / (time_before_lunch + time_after_lunch)
+            n_morning_breaks = round(self.coffee_breaks * before_lunch_frac)
             breaks = (
                 self._compute_breaks_in_interval(
                     self.activity_start, self.lunch_start, n_morning_breaks
