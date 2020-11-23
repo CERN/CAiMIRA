@@ -107,6 +107,7 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, models
         hepa_with_mask_ffp2 = dataclasses.replace(form, mask_type = 'FFP2', mask_wearing='continuous')
         
         scenarios['Scenario with HEPA and FFP2 masks'] = hepa_with_mask_ffp2.build_model()
+        
         form =dataclasses.replace(form, mask_type = 'Type I')
         form =dataclasses.replace(form, hepa_option =0)
 
@@ -177,8 +178,11 @@ def comparison_plot(scenarios: typing.Dict[str, models.ExposureModel]):
             times = np.linspace(t_start, t_end, resolution)
         concentrations = [model.concentration_model.concentration(time) for time in times]
 
-        ax.plot(times, concentrations, label=name)
-
+        if name == 'Scenario with FFP2 masks' :
+            ax.plot(times, concentrations, '--', label=name)
+        else :
+            ax.plot(times, concentrations, '-', label=name, alpha=0.5)
+        
     ax.legend()
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
