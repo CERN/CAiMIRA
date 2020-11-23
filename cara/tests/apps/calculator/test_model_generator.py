@@ -145,6 +145,17 @@ def test_coffee_lunch_breaks(baseline_form):
     np.testing.assert_allclose(baseline_form.exposed_present_interval().present_times, correct, rtol=1e-14)
 
 
+def test_coffee_lunch_breaks_unbalance(baseline_form):
+    baseline_form.coffee_duration = 30
+    baseline_form.coffee_breaks = 2
+    baseline_form.activity_start = 9 * 60
+    baseline_form.activity_finish = 13 * 60 + 30
+    baseline_form.lunch_start = 12 * 60 + 30
+    baseline_form.lunch_finish = 13 * 60 + 30
+    correct = ((9, 9+50/60), (10+20/60, 11+10/60), (11+40/60, 12+30/60) )
+    np.testing.assert_allclose(baseline_form.exposed_present_interval().present_times, correct, rtol=1e-14)
+
+
 def test_coffee_breaks(baseline_form):
     baseline_form.coffee_duration = 10
     baseline_form.coffee_breaks = 4
