@@ -22,6 +22,10 @@
 	<p>Simulation Name: {{ form.simulation_name }}</p>
 	<p>Room Number: {{ form.room_number }}</p>
 
+  {% if (form.total_people > 5) or (form.ventilation_type == "no-ventilation") or (form.mask_wearing == "removed")%}
+  <p><strong>Rules violation: This simulation doesn't conform to current CERN HSE rules. Please check your input assumptions and try again. </strong></p>
+	{% endif %}
+
 	<p class="data_title">Input data:</p>
 	<ul>
 		<li><p class="data_text">Room Volume: {{ model.concentration_model.room.volume }} m³</p></li>
@@ -170,8 +174,10 @@
 
     <p class="data_title">Alternative scenarios:</p>
     <p class="data_text">
+    <strong> Note: </strong>this graph shows the concentration of viral quanta in the air.<br>
+    The filtration of Type I and FFP2 masks, if worn, applies to indiviudal exposure (inhalation only).<br>
+    For this reason, scenarios with different types of mask will show the same concentration on the graph.<br>
 		<img id="scenario_concentration_plot" src="{{ alternative_scenarios.plot }}" align="left" />
-
         <table class="table table-striped w-auto">
             <thead class="thead-light">
                 <tr>

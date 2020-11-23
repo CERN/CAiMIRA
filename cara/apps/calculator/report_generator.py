@@ -103,12 +103,62 @@ def minutes_to_time(minutes: int) -> str:
 def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, models.ExposureModel]:
     scenarios = {}
 
-    with_mask = dataclasses.replace(form, mask_wearing='continuous')
-    without_mask = dataclasses.replace(form, mask_wearing='removed')
+    if (form.mask_wearing == 'continuous') and (form.mask_type == 'FFP2') and (form.hepa_option == 1) :
+        hepa_with_mask_ffp2 = dataclasses.replace(form, mask_type = 'FFP2', mask_wearing='continuous')
+        
+        scenarios['Scenario with HEPA and FFP2 masks'] = hepa_with_mask_ffp2.build_model()
+        form =dataclasses.replace(form, mask_type = 'Type I')
+        form =dataclasses.replace(form, hepa_option =0)
 
-    scenarios['With mask'] = with_mask.build_model()
-    scenarios['Without mask'] = without_mask.build_model()
+    if (form.mask_wearing == 'continuous') and (form.mask_type == 'FFP2'):
+        with_mask_ffp2 = dataclasses.replace(form, mask_type = 'FFP2', mask_wearing='continuous')
+        
+        scenarios['Scenario with FFP2 masks'] = with_mask_ffp2.build_model()
+        form =dataclasses.replace(form, mask_type = 'Type I')
 
+    if form.hepa_option == 1:
+        with_hepa = dataclasses.replace(form, hepa_option = 1)
+        
+        scenarios['Scenario with HEPA filter'] = with_hepa.build_model()
+        form =dataclasses.replace(form, hepa_option =0)
+
+    
+    if form.ventilation_type == 'no-ventilation':
+        with_mask_type1 = dataclasses.replace(form, mask_type = 'Type I', mask_wearing='continuous')
+        without_mask = dataclasses.replace(form, mask_wearing='removed')
+
+        scenarios['No ventilation with Type I masks'] = with_mask_type1.build_model()
+        scenarios['No venilation without masks'] = without_mask.build_model()
+    
+    elif form.ventilation_type == 'mechanical':
+        with_mask_type1 = dataclasses.replace(form, mask_type = 'Type I', mask_wearing='continuous')
+        without_mask = dataclasses.replace(form, mask_wearing='removed')
+        with_mask_no_vent = dataclasses.replace(form, mask_type = 'Type I', mask_wearing='continuous', ventilation_type='no-ventilation')
+        without_mask_or_vent = dataclasses.replace(form, mask_wearing='removed', ventilation_type='no-ventilation')
+        
+        scenarios['Mechanical ventilation with Type I masks'] = with_mask_type1.build_model()
+        scenarios['Mechanical ventilation without masks'] = without_mask.build_model()
+        scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_model()
+        scenarios['No ventilation or masks'] = without_mask_or_vent.build_model()
+        
+    elif form.ventilation_type == 'natural':
+        with_mask_type1 = dataclasses.replace(form, mask_type = 'Type I', mask_wearing='continuous')
+        without_mask = dataclasses.replace(form, mask_wearing='removed')
+        with_mask_no_vent = dataclasses.replace(form, mask_wearing='continuous', ventilation_type='no-ventilation')
+        without_mask_or_vent = dataclasses.replace(form, mask_wearing='removed', ventilation_type='no-ventilation')
+        
+        scenarios['Windows open with Type I masks'] = with_mask_type1.build_model()
+        scenarios['Windows open without masks'] = without_mask.build_model()
+        scenarios['Windows closed with Type I mask'] = with_mask_no_vent.build_model()
+        scenarios['Windows closed without masks'] = without_mask_or_vent.build_model()
+            
+    else :
+        with_mask_type1 = dataclasses.replace(form, mask_type = 'Type I', mask_wearing='continuous')
+        without_mask = dataclasses.replace(form, mask_wearing='removed')
+        
+        scenarios['With Type I mask'] = with_mask_type1.build_model()
+        scenarios['Without mask'] = without_mask.build_model()
+        
     return scenarios
 
 
