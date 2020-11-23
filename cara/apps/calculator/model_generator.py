@@ -242,16 +242,35 @@ class FormData:
         )
         return exposed
 
-    def coffee_break_times(self) -> typing.Tuple[typing.Tuple[int, int]]:
+    def _compute_breaks_in_interval(self, start, finish, n_breaks) -> typing.Tuple[typing.Tuple[int, int]]:
+        break_delay = ((finish - start) - (n_breaks * self.coffee_duration)) // (n_breaks+1)
+        break_times = []
+        end = start
+        for n in range(n_breaks):
+            begin = end + break_delay
+            end = begin + self.coffee_duration
+            break_times.append((begin, end))
+        return tuple(break_times)
+
+    def coffee_break_times(self) ->  typing.Tuple[typing.Tuple[int, int]]:
         if not self.coffee_breaks:
             return ()
-        coffee_period = (self.activity_finish - self.activity_start) // self.coffee_breaks
-        coffee_times = []
-        for minute in range(self.activity_start, self.activity_finish, coffee_period):
-            start = minute + coffee_period // 2
-            end = start + self.coffee_duration
-            coffee_times.append((start, end))
-        return tuple(coffee_times)
+        if self.lunch_option:
+            time_before_lunch = self.lunch_start - self.activity_start
+            time_after_lunch = self.activity_finish - self.lunch_finish
+            before_lunch_frac = time_before_lunch / (time_before_lunch + time_after_lunch)
+            n_morning_breaks = round(self.coffee_breaks * before_lunch_frac)
+            breaks = (
+                self._compute_breaks_in_interval(
+                    self.activity_start, self.lunch_start, n_morning_breaks
+                )
+                + self._compute_breaks_in_interval(
+                    self.lunch_finish, self.activity_finish, self.coffee_breaks - n_morning_breaks
+                )
+            )
+        else:
+            breaks = self._compute_breaks_in_interval(self.activity_start, self.activity_finish, self.coffee_breaks)
+        return breaks
 
     def present_interval(self, start, finish) -> models.Interval:
         leave_times = []
