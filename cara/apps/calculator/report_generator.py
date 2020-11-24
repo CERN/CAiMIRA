@@ -129,7 +129,7 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, models
         without_mask = dataclasses.replace(form, mask_wearing='removed')
 
         scenarios['No ventilation with Type I masks'] = with_mask_type1.build_model()
-        scenarios['No venilation without masks'] = without_mask.build_model()
+        scenarios['Neither ventilation nor masks'] = without_mask.build_model()
     
     elif form.ventilation_type == 'mechanical':
         with_mask_type1 = dataclasses.replace(form, mask_type = 'Type I', mask_wearing='continuous')
@@ -140,7 +140,7 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, models
         scenarios['Mechanical ventilation with Type I masks'] = with_mask_type1.build_model()
         scenarios['Mechanical ventilation without masks'] = without_mask.build_model()
         scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_model()
-        scenarios['No ventilation or masks'] = without_mask_or_vent.build_model()
+        scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_model()
         
     elif form.ventilation_type == 'natural':
         with_mask_type1 = dataclasses.replace(form, mask_type = 'Type I', mask_wearing='continuous')
@@ -178,12 +178,12 @@ def comparison_plot(scenarios: typing.Dict[str, models.ExposureModel]):
             times = np.linspace(t_start, t_end, resolution)
         concentrations = [model.concentration_model.concentration(time) for time in times]
 
-        if name == 'Scenario with FFP2 masks' :
+        if (name == 'Scenario with FFP2 masks') or (name == 'Scenario with HEPA filter') or (name == 'Scenario with HEPA and FFP2 masks'):
             ax.plot(times, concentrations, '--', label=name)
         else :
             ax.plot(times, concentrations, '-', label=name, alpha=0.5)
         
-    ax.legend()
+    ax.legend(bbox_to_anchor=(1.05,1), loc='upper left')
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
 
