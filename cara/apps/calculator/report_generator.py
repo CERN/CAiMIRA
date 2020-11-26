@@ -110,11 +110,11 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, models
     # Two special option cases - HEPA and/or FFP2 masks.
     FFP2_being_worn = bool(form.mask_wearing == 'continuous' and form.mask_type == 'FFP2')
     if FFP2_being_worn and form.hepa_option:
-        scenarios['Scenario with HEPA and FFP2 masks'] = form.build_model()
+        scenarios['Base scenario with HEPA and FFP2 masks'] = form.build_model()
     elif FFP2_being_worn:
-        scenarios['Scenario with FFP2 masks'] = form.build_model()
+        scenarios['Base scenario with FFP2 masks'] = form.build_model()
     elif form.hepa_option:
-        scenarios['Scenario with HEPA filter'] = form.build_model()
+        scenarios['Base scenario with HEPA filter'] = form.build_model()
 
     # The remaining scenarios are based on Type I masks (possibly not worn)
     # and no HEPA filtration.
@@ -150,9 +150,9 @@ def comparison_plot(scenarios: typing.Dict[str, models.ExposureModel]):
     times = None
 
     dash_styled_scenarios = [
-        'Scenario with FFP2 masks',
-        'Scenario with HEPA filter',
-        'Scenario with HEPA and FFP2 masks',
+        'Base scenario with FFP2 masks',
+        'Base scenario with HEPA filter',
+        'Base scenario with HEPA and FFP2 masks',
     ]
 
     for name, model in scenarios.items():
