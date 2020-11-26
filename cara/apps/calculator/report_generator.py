@@ -22,14 +22,18 @@ class RepeatEvents:
     expected_new_cases: float
 
 
-def calculate_report_data(model: models.ExposureModel):
-    resolution = 600
-
+def model_start_end(model: models.ExposureModel):
     t_start = min(model.exposed.presence.boundaries()[0][0],
                   model.concentration_model.infected.presence.boundaries()[0][0])
     t_end = max(model.exposed.presence.boundaries()[-1][1],
                 model.concentration_model.infected.presence.boundaries()[-1][1])
+    return t_start, t_end
 
+
+def calculate_report_data(model: models.ExposureModel):
+    resolution = 600
+
+    t_start, t_end = model_start_end(model)
     times = list(np.linspace(t_start, t_end, resolution))
     concentrations = [model.concentration_model.concentration(time) for time in times]
     highest_const = max(concentrations)
@@ -103,60 +107,38 @@ def minutes_to_time(minutes: int) -> str:
 def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, models.ExposureModel]:
     scenarios = {}
 
-    #Setup scenarios for with/without Type 1 masks and fixed variations on selected ventilation options.
+    # Two special option cases - HEPA and/or FFP2 masks.
+    FFP2_being_worn = bool(form.mask_wearing == 'continuous' and form.mask_type == 'FFP2')
+    if FFP2_being_worn and form.hepa_option:
+        scenarios['Scenario with HEPA and FFP2 masks'] = form.build_model()
+    elif FFP2_being_worn:
+        scenarios['Scenario with FFP2 masks'] = form.build_model()
+    elif form.hepa_option:
+        scenarios['Scenario with HEPA filter'] = form.build_model()
 
-    #Two special option cases - HEPA and/or FFP2 masks
-    if (form.mask_wearing == 'continuous') and (form.mask_type == 'FFP2') and (form.hepa_option == 1) :
-        hepa_with_mask_ffp2 = dataclasses.replace(form, mask_type = 'FFP2', mask_wearing='continuous')
-        
-        scenarios['Scenario with HEPA and FFP2 masks'] = hepa_with_mask_ffp2.build_model()
-        
-        form =dataclasses.replace(form, mask_type = 'Type I')
-        form =dataclasses.replace(form, hepa_option =0)
+    # The remaining scenarios are based on Type I masks (possibly not worn)
+    # and no HEPA filtration.
+    form = dataclasses.replace(form, mask_type='Type I')
+    if form.hepa_option:
+        form = dataclasses.replace(form, hepa_option=False)
 
-    elif (form.mask_wearing == 'continuous') and (form.mask_type == 'FFP2'):
-        with_mask_ffp2 = dataclasses.replace(form, mask_type = 'FFP2', mask_wearing='continuous')
-        
-        scenarios['Scenario with FFP2 masks'] = with_mask_ffp2.build_model()
-        form =dataclasses.replace(form, mask_type = 'Type I')
+    with_mask = dataclasses.replace(form, mask_wearing='continuous')
+    without_mask = dataclasses.replace(form, mask_wearing='removed')
 
-    elif form.hepa_option == 1:
-        with_hepa = dataclasses.replace(form, hepa_option = 1)
-        
-        scenarios['Scenario with HEPA filter'] = with_hepa.build_model()
-        form =dataclasses.replace(form, hepa_option =0)
-
-
-    #general cases for with/without Type 1 masks across ventilation types
-    if form.ventilation_type == 'no-ventilation':
-        with_mask_type1 = dataclasses.replace(form, mask_type = 'Type I', mask_wearing='continuous')
-        without_mask = dataclasses.replace(form, mask_wearing='removed')
-
-        scenarios['No ventilation with Type I masks'] = with_mask_type1.build_model()
-        scenarios['Neither ventilation nor masks'] = without_mask.build_model()
-    
-    elif form.ventilation_type == 'mechanical':
-        with_mask_type1 = dataclasses.replace(form, mask_type = 'Type I', mask_wearing='continuous')
-        without_mask = dataclasses.replace(form, mask_wearing='removed')
-        with_mask_no_vent = dataclasses.replace(form, mask_type = 'Type I', mask_wearing='continuous', ventilation_type='no-ventilation')
-        without_mask_or_vent = dataclasses.replace(form, mask_wearing='removed', ventilation_type='no-ventilation')
-        
-        scenarios['Mechanical ventilation with Type I masks'] = with_mask_type1.build_model()
+    if form.ventilation_type == 'mechanical':
+        scenarios['Mechanical ventilation with Type I masks'] = with_mask.build_model()
         scenarios['Mechanical ventilation without masks'] = without_mask.build_model()
-        scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_model()
-        scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_model()
-        
+
     elif form.ventilation_type == 'natural':
-        with_mask_type1 = dataclasses.replace(form, mask_type = 'Type I', mask_wearing='continuous')
-        without_mask = dataclasses.replace(form, mask_wearing='removed')
-        with_mask_no_vent = dataclasses.replace(form, mask_wearing='continuous', ventilation_type='no-ventilation')
-        without_mask_or_vent = dataclasses.replace(form, mask_wearing='removed', ventilation_type='no-ventilation')
-        
-        scenarios['Windows open with Type I masks'] = with_mask_type1.build_model()
+        scenarios['Windows open with Type I masks'] = with_mask.build_model()
         scenarios['Windows open without masks'] = without_mask.build_model()
-        scenarios['Windows closed with Type I mask'] = with_mask_no_vent.build_model()
-        scenarios['Windows closed without masks'] = without_mask_or_vent.build_model()
-    
+
+    # No matter the ventilation scheme, we include scenarios which don't have any ventilation.
+    with_mask_no_vent = dataclasses.replace(with_mask, ventilation_type='no-ventilation')
+    without_mask_or_vent = dataclasses.replace(without_mask, ventilation_type='no-ventilation')
+    scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_model()
+    scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_model()
+
     return scenarios
 
 
@@ -166,21 +148,26 @@ def comparison_plot(scenarios: typing.Dict[str, models.ExposureModel]):
 
     resolution = 350
     times = None
+
+    dash_styled_scenarios = [
+        'Scenario with FFP2 masks',
+        'Scenario with HEPA filter',
+        'Scenario with HEPA and FFP2 masks',
+    ]
+
     for name, model in scenarios.items():
         if times is None:
-            t_start = min(model.exposed.presence.boundaries()[0][0],
-                          model.concentration_model.infected.presence.boundaries()[0][0])
-            t_end = max(model.exposed.presence.boundaries()[-1][1],
-                        model.concentration_model.infected.presence.boundaries()[-1][1])
+            t_start, t_end = model_start_end(model)
             times = np.linspace(t_start, t_end, resolution)
         concentrations = [model.concentration_model.concentration(time) for time in times]
 
-        if (name == 'Scenario with FFP2 masks') or (name == 'Scenario with HEPA filter') or (name == 'Scenario with HEPA and FFP2 masks'):
-            ax.plot(times, concentrations, '--', label=name)
-        else :
-            ax.plot(times, concentrations, '-', label=name, alpha=0.5)
-        
-    ax.legend(bbox_to_anchor=(1.05,1), loc='upper left')
+        if name in dash_styled_scenarios:
+            ax.plot(times, concentrations, label=name, linestyle='--')
+        else:
+            ax.plot(times, concentrations, label=name, linestyle='-', alpha=0.5)
+
+    # Place a legend outside of the axes itself.
+    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
 
