@@ -3,6 +3,7 @@ import dataclasses
 from datetime import datetime
 import io
 from pathlib import Path
+import typing
 
 import jinja2
 import matplotlib
@@ -21,14 +22,18 @@ class RepeatEvents:
     expected_new_cases: float
 
 
-def calculate_report_data(model: models.ExposureModel):
-    resolution = 600
-
+def model_start_end(model: models.ExposureModel):
     t_start = min(model.exposed.presence.boundaries()[0][0],
                   model.concentration_model.infected.presence.boundaries()[0][0])
     t_end = max(model.exposed.presence.boundaries()[-1][1],
                 model.concentration_model.infected.presence.boundaries()[-1][1])
+    return t_start, t_end
 
+
+def calculate_report_data(model: models.ExposureModel):
+    resolution = 600
+
+    t_start, t_end = model_start_end(model)
     times = list(np.linspace(t_start, t_end, resolution))
     concentrations = [model.concentration_model.concentration(time) for time in times]
     highest_const = max(concentrations)
@@ -99,6 +104,93 @@ def minutes_to_time(minutes: int) -> str:
     return f"{hour_string}:{minute_string}"
 
 
+def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, models.ExposureModel]:
+    scenarios = {}
+
+    # Two special option cases - HEPA and/or FFP2 masks.
+    FFP2_being_worn = bool(form.mask_wearing == 'continuous' and form.mask_type == 'FFP2')
+    if FFP2_being_worn and form.hepa_option:
+        scenarios['Base scenario with HEPA and FFP2 masks'] = form.build_model()
+    elif FFP2_being_worn:
+        scenarios['Base scenario with FFP2 masks'] = form.build_model()
+    elif form.hepa_option:
+        scenarios['Base scenario with HEPA filter'] = form.build_model()
+
+    # The remaining scenarios are based on Type I masks (possibly not worn)
+    # and no HEPA filtration.
+    form = dataclasses.replace(form, mask_type='Type I')
+    if form.hepa_option:
+        form = dataclasses.replace(form, hepa_option=False)
+
+    with_mask = dataclasses.replace(form, mask_wearing='continuous')
+    without_mask = dataclasses.replace(form, mask_wearing='removed')
+
+    if form.ventilation_type == 'mechanical':
+        scenarios['Mechanical ventilation with Type I masks'] = with_mask.build_model()
+        scenarios['Mechanical ventilation without masks'] = without_mask.build_model()
+
+    elif form.ventilation_type == 'natural':
+        scenarios['Windows open with Type I masks'] = with_mask.build_model()
+        scenarios['Windows open without masks'] = without_mask.build_model()
+
+    # No matter the ventilation scheme, we include scenarios which don't have any ventilation.
+    with_mask_no_vent = dataclasses.replace(with_mask, ventilation_type='no-ventilation')
+    without_mask_or_vent = dataclasses.replace(without_mask, ventilation_type='no-ventilation')
+    scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_model()
+    scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_model()
+
+    return scenarios
+
+
+def comparison_plot(scenarios: typing.Dict[str, models.ExposureModel]):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+
+    resolution = 350
+    times = None
+
+    dash_styled_scenarios = [
+        'Base scenario with FFP2 masks',
+        'Base scenario with HEPA filter',
+        'Base scenario with HEPA and FFP2 masks',
+    ]
+
+    for name, model in scenarios.items():
+        if times is None:
+            t_start, t_end = model_start_end(model)
+            times = np.linspace(t_start, t_end, resolution)
+        concentrations = [model.concentration_model.concentration(time) for time in times]
+
+        if name in dash_styled_scenarios:
+            ax.plot(times, concentrations, label=name, linestyle='--')
+        else:
+            ax.plot(times, concentrations, label=name, linestyle='-', alpha=0.5)
+
+    # Place a legend outside of the axes itself.
+    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+    ax.set_xlabel('Time (hour of day)')
+    ax.set_ylabel('Concentration ($q/m^3$)')
+    ax.set_title('Concentration of infectious quanta')
+
+    return fig
+
+
+def comparison_report(scenarios: typing.Dict[str, models.ExposureModel]):
+    statistics = {}
+    for name, model in scenarios.items():
+        statistics[name] = {
+            'probability_of_infection': model.infection_probability(),
+            'expected_new_cases': model.expected_new_cases(),
+        }
+    return {
+        'plot': embed_figure(comparison_plot(scenarios)),
+        'stats': statistics,
+    }
+
+
 def build_report(model: models.ExposureModel, form: FormData):
     now = datetime.now()
     time = now.strftime("%d/%m/%Y %H:%M:%S")
@@ -112,6 +204,8 @@ def build_report(model: models.ExposureModel, form: FormData):
     }
 
     context.update(calculate_report_data(model))
+    alternative_scenarios = manufacture_alternative_scenarios(form)
+    context['alternative_scenarios'] = comparison_report(alternative_scenarios)
 
     cara_templates = Path(__file__).parent.parent / "templates"
     calculator_templates = Path(__file__).parent / "templates"
