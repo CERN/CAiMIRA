@@ -381,6 +381,9 @@ function validateFinishTime(obj) {
   if ($(obj).hasClass("finish_time_error")) {
     $(obj).removeClass("red_border");
     $(obj).removeClass("finish_time_error");
+    if (!$(obj).hasClass("lunch_break_error")) {
+      $(obj).next('span').remove();
+    }
   }
 
   var startTime = parseValToNumber($(obj).prev().val());
@@ -413,6 +416,7 @@ function validateLunchBreak(obj) {
   }
 
   $(obj).removeClass("red_border");
+  $(obj).removeClass("lunch_break_error");
   if (!$(otherObj).hasClass("red_border") && !$(spanObj).hasClass("finish_time_error")) {
     $(spanObj).next('span').remove();
   }
@@ -429,6 +433,7 @@ function validateLunchBreak(obj) {
 
   if ((time < globalStart) || (time > globalFinish)) {
     $(obj).addClass("red_border");
+    $(obj).addClass("lunch_break_error");
     if (!$(otherObj).hasClass("red_border") && !$(spanObj).hasClass("finish_time_error")) {
       insertSpanAfter(spanObj, "Lunch break must be within activity times");
     }
