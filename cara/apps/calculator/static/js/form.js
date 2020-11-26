@@ -145,8 +145,9 @@ function require_lunch(option) {
   else {
     document.getElementById("lunch_start").value = "";
     document.getElementById("lunch_finish").value = "";
-    $("#lunch_finish").removeClass("red_border");
-    $("#lunch_time_error").hide();
+    $("#lunch_start").removeClass("red_border finish_time_error lunch_break_error");
+    $("#lunch_finish").removeClass("red_border finish_time_error lunch_break_error");
+    $(document.getElementById("lunch_finish")).next('span').remove();
   }
 }
 
@@ -379,8 +380,7 @@ function isValidDateOrEmpty(date) {
 
 function validateFinishTime(obj) {
   if ($(obj).hasClass("finish_time_error")) {
-    $(obj).removeClass("red_border");
-    $(obj).removeClass("finish_time_error");
+    $(obj).removeClass("red_border finish_time_error");
     if (!$(obj).hasClass("lunch_break_error")) {
       $(obj).next('span').remove();
     }
@@ -389,8 +389,7 @@ function validateFinishTime(obj) {
   var startTime = parseValToNumber($(obj).prev().val());
   var finishTime = parseValToNumber(obj.value);
   if (startTime > finishTime) {
-    $(obj).addClass("red_border");
-    $(obj).addClass("finish_time_error");
+    $(obj).addClass("red_border finish_time_error");
     $(obj).next('span').remove();
     insertSpanAfter(obj, "Finish time must be after start");
     return false;
@@ -415,8 +414,7 @@ function validateLunchBreak(obj) {
     otherObj = obj.previousSibling.previousSibling;
   }
 
-  $(obj).removeClass("red_border");
-  $(obj).removeClass("lunch_break_error");
+  $(obj).removeClass("red_border lunch_break_error");
   if (!$(otherObj).hasClass("red_border") && !$(spanObj).hasClass("finish_time_error")) {
     $(spanObj).next('span').remove();
   }
@@ -432,8 +430,7 @@ function validateLunchBreak(obj) {
   var globalFinish = parseValToNumber(document.getElementById(finishID).value);
 
   if ((time < globalStart) || (time > globalFinish)) {
-    $(obj).addClass("red_border");
-    $(obj).addClass("lunch_break_error");
+    $(obj).addClass("red_border lunch_break_error");
     if (!$(otherObj).hasClass("red_border") && !$(spanObj).hasClass("finish_time_error")) {
       insertSpanAfter(spanObj, "Lunch break must be within activity times");
     }
