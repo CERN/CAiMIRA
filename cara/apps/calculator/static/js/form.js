@@ -282,39 +282,53 @@ function validate_form(form) {
   });
 
   //Validate all dates
-  $("input[required].datepicker").each(function() {
-    if (!validateDate(this))
-      submit = false;
-  });
+  if (submit) {
+    $("input[required].datepicker").each(function() {
+      if (!validateDate(this))
+        submit = false;
+    });
+  }
 
   //Validate all times
-  $("input[required].finish_time").each(function() {
-    if (!validateFinishTime(this))
-      submit = false;
-  });
+  if (submit) {
+    $("input[required].finish_time").each(function() {
+      if (!validateFinishTime(this))
+        submit = false;
+    });
+  }
+
+  //Validate all lunch breaks
+  if (submit) {
+    $("input[required].lunch").each(function() {
+      if (!validateLunchBreak(this))
+        submit = false;
+    });
+  }
 
   //Check if breaks length >= activity length
-  var button = document.getElementById("activity_breaks");
-  $(button).next('span').remove();
+  if (submit) {
+    var button = document.getElementById("activity_breaks");
+    $(button).next('span').remove();
 
-  var lunch_mins = 0;
-  if (document.getElementById('lunch_option_yes').checked) {
-    var lunch_start = document.getElementById("lunch_start");
-    var lunch_finish = document.getElementById("lunch_finish");
-    lunch_mins = parseTimeToMins(lunch_finish.value) - parseTimeToMins(lunch_start.value);
-  }
-  
-  var coffee_breaks = parseInt(document.querySelector('input[name="coffee_breaks"]:checked').value);
-  var coffee_duration = parseInt(document.getElementById("break_duration").value);
-  var coffee_mins = coffee_breaks * coffee_duration;
-  
-  var activity_start = document.getElementById("activity_start");
-  var activity_finish = document.getElementById("activity_finish");
-  var activity_mins = parseTimeToMins(activity_finish.value) - parseTimeToMins(activity_start.value);
+    var lunch_mins = 0;
+    if (document.getElementById('lunch_option_yes').checked) {
+      var lunch_start = document.getElementById("lunch_start");
+      var lunch_finish = document.getElementById("lunch_finish");
+      lunch_mins = parseTimeToMins(lunch_finish.value) - parseTimeToMins(lunch_start.value);
+    }
+    
+    var coffee_breaks = parseInt(document.querySelector('input[name="coffee_breaks"]:checked').value);
+    var coffee_duration = parseInt(document.getElementById("break_duration").value);
+    var coffee_mins = coffee_breaks * coffee_duration;
+    
+    var activity_start = document.getElementById("activity_start");
+    var activity_finish = document.getElementById("activity_finish");
+    var activity_mins = parseTimeToMins(activity_finish.value) - parseTimeToMins(activity_start.value);
 
-  if ((lunch_mins + coffee_mins) >= activity_mins) {
-    insertSpanAfter(button, "Length of breaks >= Length of activity");
-    submit = false;
+    if ((lunch_mins + coffee_mins) >= activity_mins) {
+      insertSpanAfter(button, "Length of breaks >= Length of activity");
+      submit = false;
+    }
   }
 
   return submit;
@@ -364,16 +378,63 @@ function isValidDateOrEmpty(date) {
 }
 
 function validateFinishTime(obj) {
-  $(obj).removeClass("red_border");
-  $(obj).next('span').remove();
+  if ($(obj).hasClass("finish_time_error")) {
+    $(obj).removeClass("red_border");
+    $(obj).removeClass("finish_time_error");
+  }
 
   var startTime = parseValToNumber($(obj).prev().val());
   var finishTime = parseValToNumber(obj.value);
   if (startTime > finishTime) {
     $(obj).addClass("red_border");
+    $(obj).addClass("finish_time_error");
+    $(obj).next('span').remove();
     insertSpanAfter(obj, "Finish time must be after start");
     return false;
   }
+  else {
+    $("input[required].lunch").each(function() {validateLunchBreak(this)});
+  }
+  return true;
+}
+
+function validateLunchBreak(obj) {
+
+  //Span element is only after finish time
+  var spanObj = obj;
+  if ($(obj).hasClass("start_time"))
+    spanObj = obj.nextSibling.nextSibling;
+
+  var time = parseValToNumber(obj.value);
+  
+  var otherObj = spanObj;
+  if ($(obj).hasClass("finish_time")) {
+    otherObj = obj.previousSibling.previousSibling;
+  }
+
+  $(obj).removeClass("red_border");
+  if (!$(otherObj).hasClass("red_border") && !$(spanObj).hasClass("finish_time_error")) {
+    $(spanObj).next('span').remove();
+  }
+
+  var startID = "";
+  var finishID = "";
+  if ($(obj).hasClass("activity")) {
+    startID = "activity_start";
+    finishID = "activity_finish";
+  }
+  
+  var globalStart = parseValToNumber(document.getElementById(startID).value);
+  var globalFinish = parseValToNumber(document.getElementById(finishID).value);
+
+  if ((time < globalStart) || (time > globalFinish)) {
+    $(obj).addClass("red_border");
+    if (!$(otherObj).hasClass("red_border") && !$(spanObj).hasClass("finish_time_error")) {
+      insertSpanAfter(spanObj, "Lunch break must be within activity times");
+    }
+    return false;
+  }
+
   return true;
 }
 
@@ -422,6 +483,10 @@ $(document).ready(function () {
   $("input[required].finish_time").each(function() {validateFinishTime(this)});
   $(".finish_time").change(function() {validateFinishTime(this)});
   $(".start_time").change(function() {validateFinishTime(this.nextSibling.nextSibling)});
+
+  //Validate lunch times
+  $("input[required].lunch").each(function() {validateLunchBreak(this)});
+  $("input[required].lunch").change(function() {validateLunchBreak(this)});
 
   var radioValue = $("input[name='event_type']:checked");
   if (radioValue.val()) {
