@@ -385,15 +385,20 @@ function isValidDateOrEmpty(date) {
 }
 
 function validateFinishTime(obj) {
-  if ($(obj).hasClass("finish_time_error")) {
-    $(obj).removeClass("red_border finish_time_error");
-    if (!$(obj).hasClass("lunch_break_error")) {
-      $(obj).next('span').remove();
+
+  var groupID = $(obj).data('time-group');
+  var startObj = $(".start_time[data-time-group='"+groupID+"']")[0];
+  var finishObj = $(".finish_time[data-time-group='"+groupID+"']")[0];
+
+  if ($(finishObj).hasClass("finish_time_error")) {
+    $(finishObj).removeClass("red_border finish_time_error");
+    if (!$(finishObj).hasClass("lunch_break_error")) {
+      $(finishObj).next('span').remove();
     }
   }
 
-  var startTime = parseValToNumber($(obj).prev().val());
-  var finishTime = parseValToNumber(obj.value);
+  var startTime = parseValToNumber(startObj.value);
+  var finishTime = parseValToNumber(finishObj.value);
   if (startTime > finishTime) {
     $(obj).addClass("red_border finish_time_error");
     $(obj).next('span').remove();
@@ -408,38 +413,31 @@ function validateFinishTime(obj) {
 
 function validateLunchBreak(obj) {
 
-  //Span element is only after finish time
-  var spanObj = obj;
-  if ($(obj).hasClass("start_time")) {
-    spanObj = obj.nextSibling.nextSibling;
-  }
-
+  var groupID = $(obj).data('time-group');
+  var startObj = $(".start_time[data-time-group='"+groupID+"']")[0];
+  var finishObj = $(".finish_time[data-time-group='"+groupID+"']")[0];
   var time = parseValToNumber(obj.value);
-  
-  var otherObj = spanObj;
-  if ($(obj).hasClass("finish_time")) {
-    otherObj = obj.previousSibling.previousSibling;
+
+  var otherObj = startObj;
+  if ($(obj).hasClass("start_time")) {
+    otherObj = finishObj;
   }
 
   $(obj).removeClass("red_border lunch_break_error");
-  if (!$(otherObj).hasClass("red_border") && !$(spanObj).hasClass("finish_time_error")) {
-    $(spanObj).next('span').remove();
+  if (!$(otherObj).hasClass("red_border") && !$(finishObj).hasClass("finish_time_error")) {
+    $(finishObj).next('span').remove();
   }
 
-  var startID = "";
-  var finishID = "";
-  if ($(obj).hasClass("activity")) {
-    startID = "activity_start";
-    finishID = "activity_finish";
-  }
+  var startID = groupID.split("_")[1] + "_start";
+  var finishID = groupID.split("_")[1] + "_finish";
   
   var globalStart = parseValToNumber(document.getElementById(startID).value);
   var globalFinish = parseValToNumber(document.getElementById(finishID).value);
 
   if ((time < globalStart) || (time > globalFinish)) {
     $(obj).addClass("red_border lunch_break_error");
-    if (!$(otherObj).hasClass("red_border") && !$(spanObj).hasClass("finish_time_error")) {
-      insertSpanAfter(spanObj, "Lunch break must be within activity times");
+    if (!$(otherObj).hasClass("red_border") && !$(finishObj).hasClass("finish_time_error")) {
+      insertSpanAfter(finishObj, "Lunch break must be within activity times");
     }
     return false;
   }
@@ -491,7 +489,7 @@ $(document).ready(function () {
   //Validate all finish times
   $("input[required].finish_time").each(function() {validateFinishTime(this)});
   $(".finish_time").change(function() {validateFinishTime(this)});
-  $(".start_time").change(function() {validateFinishTime(this.nextSibling.nextSibling)});
+  $(".start_time").change(function() {validateFinishTime(this)});
 
   //Validate lunch times
   $("input[required].lunch").each(function() {validateLunchBreak(this)});
