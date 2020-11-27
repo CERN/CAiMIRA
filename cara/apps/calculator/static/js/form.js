@@ -136,11 +136,13 @@ function require_lunch(option) {
   $("#lunch_finish").prop('required', option);
   if (option) {
     var start = document.getElementById("lunch_start");
-    if (start.value === "")
+    if (start.value === "") {
       start.value = "12:30";
+    }
     var finish = document.getElementById("lunch_finish");
-    if (finish.value === "")
+    if (finish.value === "") {
       finish.value = "13:30";
+    }
   } 
   else {
     document.getElementById("lunch_start").value = "";
@@ -278,31 +280,35 @@ function validate_form(form) {
 
   //Validate all non zero values
   $("input[required].non_zero").each(function() {
-    if (!validateValue(this))
+    if (!validateValue(this)) {
       submit = false;
+    }
   });
 
   //Validate all dates
   if (submit) {
     $("input[required].datepicker").each(function() {
-      if (!validateDate(this))
+      if (!validateDate(this)) {
         submit = false;
+      }
     });
   }
 
   //Validate all times
   if (submit) {
     $("input[required].finish_time").each(function() {
-      if (!validateFinishTime(this))
+      if (!validateFinishTime(this)) {
         submit = false;
+      }
     });
   }
 
   //Validate all lunch breaks
   if (submit) {
     $("input[required].lunch").each(function() {
-      if (!validateLunchBreak(this))
+      if (!validateLunchBreak(this)) {
         submit = false;
+      }
     });
   }
 
@@ -404,8 +410,9 @@ function validateLunchBreak(obj) {
 
   //Span element is only after finish time
   var spanObj = obj;
-  if ($(obj).hasClass("start_time"))
+  if ($(obj).hasClass("start_time")) {
     spanObj = obj.nextSibling.nextSibling;
+  }
 
   var time = parseValToNumber(obj.value);
   
