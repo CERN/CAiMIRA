@@ -2,7 +2,7 @@
 
 ## Applications
 
-### COVID Calculator
+### COVID Calculator 
 
 A risk assessment tool which simulates the long range airborne spread of the
 SARS-CoV-2 virus for space managers.
