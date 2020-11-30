@@ -428,6 +428,7 @@ function validateLunchBreak(obj) {
     $(finishObj).next('span').remove();
   }
 
+  //Check if lunch times within presence times
   var startID = groupID.split("_")[1] + "_start";
   var finishID = groupID.split("_")[1] + "_finish";
   
