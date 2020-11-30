@@ -8,13 +8,19 @@ For more information on the Airborne Transmission of SARS-CoV-2, feel free to ch
 
 ## Disclaimer
 
-The risk assessment tool simulates the long-range airborne spread SARS-CoV-2 virus in a finite volume, assuming a homogenous mixture, and estimates the risk of COVID-19 infection therein. The results DO NOT include short-range airborne exposure (where the physical distance plays a factor) nor the other known modes of SARS-CoV-2 transmission. Hence, the output from this model is only valid when the other recommended public health & safety instructions are observed, such as adequate physical distancing, good hand hygiene and other barrier measures.
+The risk assessment tool simulates the long-range airborne spread SARS-CoV-2 virus in a finite volume, assuming a homogenous mixture, and estimates the risk of COVID-19 infection therein. 
+The results DO NOT include short-range airborne exposure (where the physical distance plays a factor) nor the other known modes of SARS-CoV-2 transmission. 
+Hence, the output from this model is only valid when the other recommended public health & safety instructions are observed, such as adequate physical distancing, good hand hygiene and other barrier measures.
 
 The model used is based on scientific publications relating to airborne transmission of infectious diseases, dose-response exposures and aerosol science, as of December 2020 . It can be used to compare the effectiveness of different airborne-related risk mitigation measures. 
 
-Note that this model applies a deterministic approach, i.e., it is assumed at least one person is infected and shedding viruses into the simulated volume. Nonetheless, it is also important to understand that the absolute risk of infection is uncertain, as it will depend on the probability that someone infected attends the event. The model is most useful for comparing the impact and effectiveness of different mitigation measures such as ventilation, filtration, exposure time, physical activity and the size of the room, only considering long-range airborne transmission of COVID-19 in indoor settings.
+Note that this model applies a deterministic approach, i.e., it is assumed at least one person is infected and shedding viruses into the simulated volume. 
+Nonetheless, it is also important to understand that the absolute risk of infection is uncertain, as it will depend on the probability that someone infected attends the event. 
+The model is most useful for comparing the impact and effectiveness of different mitigation measures such as ventilation, filtration, exposure time, physical activity and the size of the room, only considering long-range airborne transmission of COVID-19 in indoor settings.
 
-This tool is designed to be informative, allowing the user to adapt different settings and model the relative impact on the estimated infection probabilities. The objective is to facilitate targeted decision-making and investment through comparisons, rather than a singular determination of absolute risk. While the SARS-CoV-2 virus is in circulation among the population, the notion of 'zero risk' or a 'completely safe scenario' does not exist. Each event modelled is unique and the results generated therein are only as accurate as the inputs and assumptions. 
+This tool is designed to be informative, allowing the user to adapt different settings and model the relative impact on the estimated infection probabilities. 
+The objective is to facilitate targeted decision-making and investment through comparisons, rather than a singular determination of absolute risk. While the SARS-CoV-2 virus is in circulation among the population, the notion of 'zero risk' or a 'completely safe scenario' does not exist. 
+Each event modelled is unique and the results generated therein are only as accurate as the inputs and assumptions. 
 
 ## How to use this tool
 
@@ -43,7 +49,8 @@ Please bear in mind that any of the two inputs only consider the supply of fresh
 
 #### Natural ventilation
 
-Natural ventilation refers to rooms which have openable windows. There are many possibilities to calculate natural ventilation air flows, for simplification this tool assumes a single-sided natural ventilation scheme which is a conservative approach for the purpose of this tool.
+Natural ventilation refers to rooms which have openable windows. 
+There are many possibilities to calculate natural ventilation air flows, for simplification this tool assumes a single-sided natural ventilation scheme which is a conservative approach for the purpose of this tool.
 
 Please enter the number, height and width and opening distance of the windows (in m).
 If there are multiple windows of different sizes, you should take an average.
@@ -146,9 +153,12 @@ It should also be noted that the infection probabilities presented in the report
 
 #### Face Masks
 
-The model allows for a simulation with either a continuous wearing of face masks throughout the duration of the event, or have the removed at all times - i.e. all occupants (infected and exposed alike) wear or not masks for the duration of the simulation. Please bear in mind the user inputs shall be aligned with the current applicable public health & safety instructions. Please check what are the applicable rules, before deciding which assumptions are used for the simulation.
+The model allows for a simulation with either a continuous wearing of face masks throughout the duration of the event, or have the removed at all times - i.e. all occupants (infected and exposed alike) wear or not masks for the duration of the simulation. 
+Please bear in mind the user inputs shall be aligned with the current applicable public health & safety instructions. 
+Please check what are the applicable rules, before deciding which assumptions are used for the simulation.
  
-If you have selected the Training activity type, this equates to the trainer and all participants either wearing masks throughout the training (Yes), or removing them when seated/standing at their socially distanced positions within the training room (No). Please confirm what are the applicable rules, before deciding which assumptions are used for the simulation
+If you have selected the Training activity type, this equates to the trainer and all participants either wearing masks throughout the training (Yes), or removing them when seated/standing at their socially distanced positions within the training room (No). 
+Please confirm what are the applicable rules, before deciding which assumptions are used for the simulation
 
 For the time being only the Type 1 surgical and FFP2 masks can be selected.
 
