@@ -137,7 +137,7 @@ You have the option to choose 0(No breaks), 2 or 4 coffee breaks during the simu
 It is assumed that all occupants vacate the space during the break period.
 If coffee breaks are taken in-situ, this option should be set to 'No breaks'.
 
-When enabled, the breaks are spread equally throughout the day - for example if we simulate the period from 9:00 to 18:00, with a lunch break from 13:00 to 14:00 and considering 2 coffee breaks, the app will schedule the first coffee break around 11:00 and the second around 16:00.
+When enabled, the breaks are spread equally throughout the day - for example if we simulate the period from 9:00 to 18:00, with a lunch break from 13:00 to 14:00 and considering 2 coffee breaks, the tool will schedule the first coffee break around 11:00 and the second around 16:00.
 The exact timing of the breaks within the day is not particularly critical to an accurate simulation, so you do not need to be concerned about major differences if you take a coffee break at 10:00 instead of 11:00.
 The variation of coffee breaks can be altered in 5 minute increments up to 30 minutes in length.
 Note that this doesn't necessarily have to be a coffee break, it can represent any period where the simulated space is vacated.
