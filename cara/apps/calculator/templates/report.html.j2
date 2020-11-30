@@ -19,9 +19,12 @@
 
 	<p class=subtitle> Created {{ creation_date }} using model version {{ form.model_version }}</p><br>
 
+  <p><strong>Applicable rules: <br>
+  Please ensure that this scenario conforms to current <a href="https://hse.cern/covid-19-information"> CERN HSE rules<a> (minimum ventilation requirements, mask wearing and the maximum number of people permitted in a space).</strong></p>
+
 	<p>Simulation Name: {{ form.simulation_name }}</p>
 	<p>Room Number: {{ form.room_number }}</p>
-
+	
 	<p class="data_title">Input data:</p>
 	<ul>
 		<li><p class="data_text">Room Volume: {{ model.concentration_model.room.volume }} m³</p></li>
@@ -166,7 +169,40 @@
             {% endfor %}
             </tbody>
         </table>
-    <p>
+    </p>
+
+    <p class="data_title">Alternative scenarios:</p>
+    <p class="data_text">
+    <img id="scenario_concentration_plot" src="{{ alternative_scenarios.plot }}" align="left" />
+        <table class="table table-striped w-auto">
+            <thead class="thead-light">
+                <tr>
+                    <th>Scenario</th>
+                    <th>P(i)</th>
+                    <th>Expected new cases</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
+                <tr>
+                    <td>{{ scenario_name }}</td>
+                    <td>{{ scenario_stats.probability_of_infection | int_format }}%</td>
+                    <td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    </p>
+    <div style="clear: both;">
+
+    <p class="notes"> <strong> Notes for alternative scenarios: </strong><br>
+    1) This graph shows the concentration of infectious quanta in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation ).<br>
+    For this reason, scenarios with different types of mask will show the same concentration on the graph but have different Pi values.<br>
+    2) If you have selected more sophisticated options, such as HEPA filtration or FFP2 masks, this will be indicated in the plot as the "base scenario", representing the inputs inserted in the form.<br>
+    The other alternative scenarios shown for comparison will not include either HEPA filtration or FFP2 masks. <br>
+    <br>
+		</p>
 
 	<br><br><br>
 	<div style="border: 2px solid black; padding: 15px;">

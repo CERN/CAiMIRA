@@ -39,11 +39,15 @@ p.result_title {
 	font-size: 15pt;
 }
 
-.image {
+p.image {
 	text-align: center;
 	font-size: 13pt;
 }
 
-.discalimer {
+p.disclaimer {
 	font-size: 12pt;
+}
+
+p.notes {
+	font-size: 10pt;
 }
