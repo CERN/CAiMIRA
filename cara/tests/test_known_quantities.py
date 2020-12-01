@@ -30,7 +30,7 @@ def baseline_periodic_window():
         active=models.PeriodicInterval(period=120, duration=15),
         inside_temp=models.PiecewiseConstant((0,24),(293,)),
         outside_temp=models.PiecewiseConstant((0,24),(283,)),
-        cd_b=0.6, window_height=1.6, opening_length=0.6,
+        discharge_coefficient=0.6, window_height=1.6, opening_length=0.6,
     )
 
 
@@ -136,7 +136,7 @@ def test_multiple_ventilation_HEPA_window(baseline_periodic_hepa, time, expected
     room = models.Room(volume=68.)
     tempOutside = models.PiecewiseConstant((0., 1., 2.5),(273.15, 283.15))
     tempInside = models.PiecewiseConstant((0., 24.),(293.15,))
-    window = models.WindowOpening(active=models.SpecificInterval([(1 / 60, 24.)]),
+    window = models.SlidingWindow(active=models.SpecificInterval([(1 / 60, 24.)]),
                 inside_temp=tempInside,outside_temp=tempOutside,
                 window_height=1.,opening_length=0.6)
     vent = models.MultipleVentilation([window, baseline_periodic_hepa])
@@ -146,7 +146,7 @@ def test_multiple_ventilation_HEPA_window(baseline_periodic_hepa, time, expected
 def test_multiple_ventilation_HEPA_window_transitions(baseline_periodic_hepa):
     tempOutside = models.PiecewiseConstant((0., 1., 2.5),(273.15, 283.15))
     tempInside = models.PiecewiseConstant((0., 24.),(293.15,))
-    window = models.WindowOpening(active=models.SpecificInterval([(1 / 60, 24.)]),
+    window = models.SlidingWindow(active=models.SpecificInterval([(1 / 60, 24.)]),
                 inside_temp=tempInside,outside_temp=tempOutside,
                 window_height=1.,opening_length=0.6)
     vent = models.MultipleVentilation([window, baseline_periodic_hepa])
@@ -264,7 +264,7 @@ def test_piecewiseconstant_transition_times():
 def test_windowopening(time, expected_value):
     tempOutside = models.PiecewiseConstant((0,10,24),(273.15,283.15))
     tempInside = models.PiecewiseConstant((0,24),(293.15,))
-    w = models.WindowOpening(active=models.SpecificInterval([(0,24)]),
+    w = models.SlidingWindow(active=models.SpecificInterval([(0,24)]),
                 inside_temp=tempInside,outside_temp=tempOutside,
                 window_height=1.,opening_length=0.6)
     npt.assert_allclose(w.air_exchange(models.Room(volume=68),time),
@@ -293,7 +293,7 @@ def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),),
             active=models.SpecificInterval(intervals_open),
             inside_temp=models.PiecewiseConstant((0,24),(293,)),
             outside_temp=outside_temp,
-            cd_b=0.6, window_height=1.6, opening_length=0.6,
+            discharge_coefficient=0.6, window_height=1.6, opening_length=0.6,
         ),
         infected=models.InfectedPopulation(
             number=1,
@@ -314,7 +314,7 @@ def build_constant_temp_model(outside_temp, intervals_open=((7.5, 8.5),)):
             active=models.SpecificInterval(intervals_open),
             inside_temp=models.PiecewiseConstant((0,24),(293,)),
             outside_temp=models.PiecewiseConstant((0,24),(outside_temp,)),
-            cd_b=0.6, window_height=1.6, opening_length=0.6,
+            discharge_coefficient=0.6, window_height=1.6, opening_length=0.6,
         ),
         infected=models.InfectedPopulation(
             number=1,
@@ -334,7 +334,7 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
             active=models.SpecificInterval(intervals_open),
             inside_temp=models.PiecewiseConstant((0,24),(293,)),
             outside_temp=data.GenevaTemperatures[month],
-            cd_b=0.6, window_height=1.6, opening_length=0.6,
+            discharge_coefficient=0.6, window_height=1.6, opening_length=0.6,
         ),
         models.HEPAFilter(
         active=models.SpecificInterval(((0,24),)),

@@ -458,7 +458,7 @@ baseline_model = models.ExposureModel(
             active=models.PeriodicInterval(period=120, duration=15),
             inside_temp=models.PiecewiseConstant((0,24),(293.15,)),
             outside_temp=models.PiecewiseConstant((0,24),(283.15,)),
-            cd_b=0.6, window_height=1.6, opening_length=0.6,
+            discharge_coefficient=0.6, window_height=1.6, opening_length=0.6,
         ),
         infected=models.InfectedPopulation(
             number=1,

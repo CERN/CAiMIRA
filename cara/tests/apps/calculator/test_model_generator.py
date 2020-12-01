@@ -32,11 +32,11 @@ def test_blend_expiration():
 
 def test_ventilation_window(baseline_form):
     room = models.Room(75)
-    window = models.WindowOpening(
+    window = models.SlidingWindow(
         active=models.PeriodicInterval(period=120, duration=10),
         inside_temp=models.PiecewiseConstant((0, 24), (293,)),
         outside_temp=data.GenevaTemperatures['Dec'],
-        cd_b=0.6, window_height=1.6, opening_length=0.6,
+        window_height=1.6, opening_length=0.6,
     )
     baseline_form.ventilation_type = 'natural'
     baseline_form.windows_open = 'interval'
@@ -82,11 +82,11 @@ def test_ventilation_airchanges(baseline_form):
 
 def test_ventilation_window_hepa(baseline_form):
     room = models.Room(75)
-    window = models.WindowOpening(
+    window = models.SlidingWindow(
         active=models.PeriodicInterval(period=120, duration=10),
         inside_temp=models.PiecewiseConstant((0, 24), (293,)),
         outside_temp=data.GenevaTemperatures['Dec'],
-        cd_b=0.6, window_height=1.6, opening_length=0.6,
+        window_height=1.6, opening_length=0.6,
     )
     hepa = models.HEPAFilter(
         active=models.PeriodicInterval(period=120, duration=120),

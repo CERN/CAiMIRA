@@ -141,9 +141,9 @@ class FormData:
             inside_temp = models.PiecewiseConstant((0, 24), (293,))
             outside_temp = data.GenevaTemperatures[month]
 
-            ventilation = models.WindowOpening(
+            ventilation = models.SlidingWindow(
                 active=window_interval,
-                inside_temp=inside_temp, outside_temp=outside_temp, cd_b=0.6,
+                inside_temp=inside_temp, outside_temp=outside_temp,
                 window_height=self.window_height,
                 opening_length=self.opening_distance,
                 number_of_windows=self.windows_number,
