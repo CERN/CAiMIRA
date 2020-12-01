@@ -44,13 +44,15 @@ class FormData:
     ventilation_type: str
     volume_type: str
     window_height: float
+    window_type: str
+    window_width: float
     windows_number: int
     windows_open: str
 
     @classmethod
     def from_dict(cls, form_data: typing.Dict) -> "FormData":
 
-        valid_na_values = ['windows_open', 'mechanical_ventilation_type']
+        valid_na_values = ['windows_open', 'window_type', 'mechanical_ventilation_type']
         for name in valid_na_values:
             if not form_data.get(name, ''):
                 form_data[name] = 'not-applicable'
@@ -66,7 +68,8 @@ class FormData:
                              ('mask_wearing', MASK_WEARING),
                              ('ventilation_type', VENTILATION_TYPES),
                              ('volume_type', VOLUME_TYPES),
-                             ('windows_open', WINDOWS_OPEN)]
+                             ('windows_open', WINDOWS_OPEN),
+                             ('window_type', WINDOWS_TYPES)]
         for key, valid_set in validation_tuples:
             if key not in form_data:
                 raise ValueError(f"Missing key {key}")
@@ -114,6 +117,8 @@ class FormData:
             ventilation_type=form_data['ventilation_type'],
             volume_type=form_data['volume_type'],
             window_height=float(form_data['window_height']),
+            window_type=form_data['window_type'],
+            window_width=float(form_data['window_width']),
             windows_number=int(form_data['windows_number']),
             windows_open=form_data['windows_open'],
             infected_start=time_string_to_minutes(form_data['infected_start']),
@@ -414,6 +419,8 @@ def baseline_raw_form_data():
         'ventilation_type': 'natural',
         'volume_type': 'room_volume',
         'window_height': '2',
+        'window_type': 'hinged',
+        'window_width': '2',
         'windows_number': '1',
         'windows_open': 'interval'
     }
@@ -427,6 +434,7 @@ MASK_WEARING = {'continuous', 'removed'}
 VENTILATION_TYPES = {'natural', 'mechanical', 'no-ventilation'}
 VOLUME_TYPES = {'room_volume', 'room_dimensions'}
 WINDOWS_OPEN = {'always', 'interval', 'breaks', 'not-applicable'}
+WINDOWS_TYPES = {'sliding', 'hinged', 'not-applicable'}
 
 
 def time_string_to_minutes(time: str) -> int:
