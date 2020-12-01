@@ -399,12 +399,14 @@ function validateFinishTime(obj) {
 
   var startTime = parseValToNumber(startObj.value);
   var finishTime = parseValToNumber(finishObj.value);
+  //Check if finish time error (takes presedence over lunch break error)
   if (startTime > finishTime) {
     $(obj).addClass("red_border finish_time_error");
     $(obj).next('span').remove();
     insertSpanAfter(obj, "Finish time must be after start");
     return false;
   }
+  //If no finish time error -> Display any lunch break error
   else {
     $("input[required].lunch").each(function() {validateLunchBreak(this)});
   }
@@ -428,7 +430,7 @@ function validateLunchBreak(obj) {
     $(finishObj).next('span').remove();
   }
 
-  //Check if lunch times within presence times
+  //Check if exposed/infected lunch times within exposed/infected presence times
   var startID = groupID.split("_")[1] + "_start";
   var finishID = groupID.split("_")[1] + "_finish";
   
