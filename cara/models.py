@@ -195,10 +195,6 @@ class WindowOpening(Ventilation):
     #: The length of the opening-gap when the window is open (m).
     opening_length: float
 
-    #: Discharge coefficient: what portion effective area is
-    #: used to exchange air (0 <= discharge_coefficient <= 1).
-    discharge_coefficient: float = None
-
     #: The number of windows of the given dimensions.
     number_of_windows: int = 1
 
@@ -206,8 +202,11 @@ class WindowOpening(Ventilation):
     min_deltaT: float = 0.1
 
     @property
-    def cd_b(self) -> float:
-        return self.discharge_coefficient
+    def discharge_coefficient(self) -> float:
+        #: Discharge coefficient (or cd_b): what portion effective area is
+        #: used to exchange air (0 <= discharge_coefficient <= 1).
+        #: To be implemented in subclasses.
+        return None
 
     def transition_times(self) -> typing.Set[float]:
         transitions = super().transition_times()
@@ -232,13 +231,13 @@ class WindowOpening(Ventilation):
         temp_gradient = (inside_temp - outside_temp) / outside_temp
         root = np.sqrt(9.81 * self.window_height * temp_gradient)
         window_area = self.window_height * self.opening_length * self.number_of_windows
-        return (3600 / (3 * room.volume)) * self.cd_b * window_area * root
+        return (3600 / (3 * room.volume)) * self.discharge_coefficient * window_area * root
 
 
 @dataclass(frozen=True)
 class SlidingWindow(WindowOpening):
     @property
-    def cd_b(self) -> float:
+    def discharge_coefficient(self) -> float:
         return 0.6
 
 
@@ -248,7 +247,7 @@ class HingedWindow(WindowOpening):
     window_width: float = None
 
     @property
-    def cd_b(self) -> float:
+    def discharge_coefficient(self) -> float:
         window_ratio = self.window_width / self.window_height
         M = (0.06 if window_ratio < 0.5 else 0.048 if window_ratio < 1 else
                 0.04 if window_ratio < 2 else 0.038)
