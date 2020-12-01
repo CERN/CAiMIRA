@@ -401,9 +401,9 @@ function validateFinishTime(obj) {
   var finishTime = parseValToNumber(finishObj.value);
   //Check if finish time error (takes presedence over lunch break error)
   if (startTime > finishTime) {
-    $(obj).addClass("red_border finish_time_error");
-    $(obj).next('span').remove();
-    insertSpanAfter(obj, "Finish time must be after start");
+    $(finishObj).addClass("red_border finish_time_error");
+    $(finishObj).next('span').remove();
+    insertSpanAfter(finishObj, "Finish time must be after start");
     return false;
   }
   //If no finish time error -> Display any lunch break error
