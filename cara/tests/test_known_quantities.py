@@ -26,11 +26,11 @@ def test_no_mask_emission_rate(baseline_model):
 
 @pytest.fixture
 def baseline_periodic_window():
-    return models.WindowOpening(
+    return models.SlidingWindow(
         active=models.PeriodicInterval(period=120, duration=15),
         inside_temp=models.PiecewiseConstant((0,24),(293,)),
         outside_temp=models.PiecewiseConstant((0,24),(283,)),
-        discharge_coefficient=0.6, window_height=1.6, opening_length=0.6,
+        window_height=1.6, opening_length=0.6,
     )
 
 
@@ -289,11 +289,11 @@ def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),),
 
     model = models.ConcentrationModel(
         room=models.Room(volume=75),
-        ventilation=models.WindowOpening(
+        ventilation=models.SlidingWindow(
             active=models.SpecificInterval(intervals_open),
             inside_temp=models.PiecewiseConstant((0,24),(293,)),
             outside_temp=outside_temp,
-            discharge_coefficient=0.6, window_height=1.6, opening_length=0.6,
+            window_height=1.6, opening_length=0.6,
         ),
         infected=models.InfectedPopulation(
             number=1,
@@ -310,11 +310,11 @@ def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),),
 def build_constant_temp_model(outside_temp, intervals_open=((7.5, 8.5),)):
     model = models.ConcentrationModel(
         room=models.Room(volume=75),
-        ventilation=models.WindowOpening(
+        ventilation=models.SlidingWindow(
             active=models.SpecificInterval(intervals_open),
             inside_temp=models.PiecewiseConstant((0,24),(293,)),
             outside_temp=models.PiecewiseConstant((0,24),(outside_temp,)),
-            discharge_coefficient=0.6, window_height=1.6, opening_length=0.6,
+            window_height=1.6, opening_length=0.6,
         ),
         infected=models.InfectedPopulation(
             number=1,
@@ -330,11 +330,11 @@ def build_constant_temp_model(outside_temp, intervals_open=((7.5, 8.5),)):
 
 def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5, 8.5),)):
     vent = models.MultipleVentilation((
-        models.WindowOpening(
+        models.SlidingWindow(
             active=models.SpecificInterval(intervals_open),
             inside_temp=models.PiecewiseConstant((0,24),(293,)),
             outside_temp=data.GenevaTemperatures[month],
-            discharge_coefficient=0.6, window_height=1.6, opening_length=0.6,
+            window_height=1.6, opening_length=0.6,
         ),
         models.HEPAFilter(
         active=models.SpecificInterval(((0,24),)),
