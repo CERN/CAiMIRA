@@ -253,7 +253,7 @@ class HingedWindow(WindowOpening):
                 0.04 if window_ratio < 2 else 0.038)
         cd_max = (0.612 if window_ratio < 0.5 else 0.589 if window_ratio < 1
                 else 0.563 if window_ratio < 2 else 0.548)
-        window_angle = np.arccos(1-self.opening_length**2/(2.*self.window_height**2))
+        window_angle = np.arccos(1-self.opening_length**2/(2.*self.window_height**2))*180/np.pi
         return cd_max*(1-np.exp(-M*window_angle))
 
 

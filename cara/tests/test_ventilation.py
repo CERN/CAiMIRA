@@ -39,10 +39,10 @@ def test_number_of_windows(baseline_slidingwindow):
 @pytest.mark.parametrize(
     "window_width, expected_discharge_coefficient",
     [
-        [0.5, 0.01369640075],
-        [1., 0.01056914747],
-        [2., 0.00843150922],
-        [4., 0.00779945967],
+        [0.5, 0.447],
+        [1., 0.379],
+        [2., 0.328],
+        [4., 0.308],
     ],
 )
 def test_hinged_window(baseline_hingedwindow,window_width,
@@ -52,7 +52,7 @@ def test_hinged_window(baseline_hingedwindow,window_width,
                                         window_width=window_width)
 
     npt.assert_allclose(hinged_window.discharge_coefficient,
-                        expected_discharge_coefficient, rtol=1e-8)
+                        expected_discharge_coefficient, rtol=1e-2)
 
 
 def test_sliding_window(baseline_slidingwindow):
