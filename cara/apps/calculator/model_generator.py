@@ -146,13 +146,24 @@ class FormData:
             inside_temp = models.PiecewiseConstant((0, 24), (293,))
             outside_temp = data.GenevaTemperatures[month]
 
-            ventilation = models.SlidingWindow(
-                active=window_interval,
-                inside_temp=inside_temp, outside_temp=outside_temp,
-                window_height=self.window_height,
-                opening_length=self.opening_distance,
-                number_of_windows=self.windows_number,
-            )
+            if self.window_type == 'sliding':
+                ventilation = models.SlidingWindow(
+                    active=window_interval,
+                    inside_temp=inside_temp, outside_temp=outside_temp,
+                    window_height=self.window_height,
+                    opening_length=self.opening_distance,
+                    number_of_windows=self.windows_number,
+                )
+            elif self.window_type == 'hinged':
+                ventilation = models.HingedWindow(
+                    active=window_interval,
+                    inside_temp=inside_temp, outside_temp=outside_temp,
+                    window_height=self.window_height,
+                    window_width=self.window_width,
+                    opening_length=self.opening_distance,
+                    number_of_windows=self.windows_number,
+                )
+
         elif self.ventilation_type == "no-ventilation":
             ventilation = models.AirChange(active=always_on, air_exch=0.)
         else:
@@ -419,7 +430,7 @@ def baseline_raw_form_data():
         'ventilation_type': 'natural',
         'volume_type': 'room_volume',
         'window_height': '2',
-        'window_type': 'hinged',
+        'window_type': 'sliding',
         'window_width': '2',
         'windows_number': '1',
         'windows_open': 'interval'
