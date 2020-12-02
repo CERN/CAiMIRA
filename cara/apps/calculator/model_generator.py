@@ -76,7 +76,12 @@ class FormData:
             if form_data[key] not in valid_set:
                 raise ValueError(f"{form_data[key]} is not a valid value for {key}")
 
-        # Don't let arbirtrary unescaped HTML through the net.
+        if (form_data['ventilation_type'] == 'natural' and
+            form_data['window_type'] == 'not-applicable'):
+            raise ValueError("window_type cannot be ''not-applicable'' if "
+                             "ventilation_type is ''natural''")
+
+        # Don't let arbitrary unescaped HTML through the net.
         for key, value in form_data.items():
             if isinstance(value, str):
                 form_data[key] = html.escape(value)
