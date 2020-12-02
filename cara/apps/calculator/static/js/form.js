@@ -4,11 +4,15 @@ function getChildElement(elem) {
   return $("#" + elem.data("enables"));
 }
 
-function insertSpanAfter(referenceNode, text) {
+function insertErrorSpanAfter(referenceNode, text) {
   var element = document.createElement("span");
+  element.setAttribute("id", "error_text");
   element.classList.add("red_text");
   element.innerHTML = "&nbsp;&nbsp;" + text; 
   referenceNode.parentNode.insertBefore(element, referenceNode.nextSibling);
+}
+
+function removeErrorSpanAfter(referenceNode) {
 }
 
 /* -------Required fields------- */
@@ -333,7 +337,7 @@ function validate_form(form) {
     var activity_mins = parseTimeToMins(activity_finish.value) - parseTimeToMins(activity_start.value);
 
     if ((lunch_mins + coffee_mins) >= activity_mins) {
-      insertSpanAfter(button, "Length of breaks >= Length of activity");
+      insertErrorSpanAfter(button, "Length of breaks >= Length of activity");
       submit = false;
     }
   }
@@ -347,7 +351,7 @@ function validateValue(obj) {
 
   if (!isNonZeroOrEmpty($(obj).val())) {
     $(obj).addClass("red_border");
-    insertSpanAfter(obj, "Value must be > 0");
+    insertErrorSpanAfter(obj, "Value must be > 0");
     return false;
   }
   return true;
@@ -366,7 +370,7 @@ function validateDate(obj) {
 
   if (!isValidDateOrEmpty($(obj).val())) {
     $(obj).addClass("red_border");
-    insertSpanAfter(obj, "Incorrect date format");
+    insertErrorSpanAfter(obj, "Incorrect date format");
     return false;
   }
   return true;
@@ -392,54 +396,49 @@ function validateFinishTime(obj) {
 
   if ($(finishObj).hasClass("finish_time_error")) {
     $(finishObj).removeClass("red_border finish_time_error");
-    if (!$(finishObj).hasClass("lunch_break_error")) {
-      $(finishObj).next('span').remove();
-    }
+    $(finishObj).next('span').remove();
   }
 
+  //Check if finish time error (takes precedence over lunch break error)
   var startTime = parseValToNumber(startObj.value);
   var finishTime = parseValToNumber(finishObj.value);
-  //Check if finish time error (takes presedence over lunch break error)
-  if (startTime > finishTime) {
+  if (startTime >= finishTime) {
     $(finishObj).addClass("red_border finish_time_error");
     $(finishObj).next('span').remove();
-    insertSpanAfter(finishObj, "Finish time must be after start");
+    insertErrorSpanAfter(finishObj, "Finish time must be after start");
     return false;
-  }
-  //If no finish time error -> Display any lunch break error
-  else {
-    $("input[required].lunch").each(function() {validateLunchBreak(this)});
   }
   return true;
 }
 
-function validateLunchBreak(obj) {
+function validateLunchBreak(lunchGroup) {
+  var lunchStartObj = $(".start_time[data-time-group='"+lunchGroup+"']")[0];
+  var lunchFinishObj = $(".finish_time[data-time-group='"+lunchGroup+"']")[0];
 
-  var groupID = $(obj).data('time-group');
-  var startObj = $(".start_time[data-time-group='"+groupID+"']")[0];
-  var finishObj = $(".finish_time[data-time-group='"+groupID+"']")[0];
+  //Skip if finish time error present (it takes precedence over lunch break error)
+  if ($(lunchStartObj).hasClass("finish_time_error") || $(lunchFinishObj).hasClass("finish_time_error"))
+    return true;
+
+  $(lunchFinishObj).next('span').remove();
+  var valid = validateLunchTime(lunchStartObj) & validateLunchTime(lunchFinishObj);
+  if (!valid) {
+    insertErrorSpanAfter(lunchFinishObj, "Lunch break must be within activity times");
+  }
+
+  return valid;
+}
+
+//Check if exposed/infected lunch time within exposed/infected presence times
+function validateLunchTime(obj) {
+
+  var activityGroup = $(obj).data('lunch-for');
+  var activityStart = parseValToNumber($(".start_time[data-time-group='"+activityGroup+"']")[0].value);
+  var activityFinish = parseValToNumber($(".finish_time[data-time-group='"+activityGroup+"']")[0].value);
+
   var time = parseValToNumber(obj.value);
-
-  var otherObj = startObj;
-  if ($(obj).hasClass("start_time")) {
-    otherObj = finishObj;
-  }
-
   $(obj).removeClass("red_border lunch_break_error");
-  if (!$(otherObj).hasClass("red_border") && !$(finishObj).hasClass("finish_time_error")) {
-    $(finishObj).next('span').remove();
-  }
-
-  //Check if exposed/infected lunch times within exposed/infected presence times
-  var activityID = $(obj).data('lunch-for');
-  var activityStart = parseValToNumber($(".start_time[data-time-group='"+activityID+"']")[0].value);
-  var activityFinish = parseValToNumber($(".finish_time[data-time-group='"+activityID+"']")[0].value);
-
   if ((time < activityStart) || (time > activityFinish)) {
     $(obj).addClass("red_border lunch_break_error");
-    if (!$(otherObj).hasClass("red_border") && !$(finishObj).hasClass("finish_time_error")) {
-      insertSpanAfter(finishObj, "Lunch break must be within activity times");
-    }
     return false;
   }
 
@@ -493,15 +492,9 @@ $(document).ready(function () {
   $(".start_time").change(function() {validateFinishTime(this)});
 
   //Validate lunch times
-  $("[data-lunch-for]").each(function() {validateLunchBreak(this)});
-  $("[data-lunch-for]").change(function() {validateLunchBreak(this)});
-  $("[data-lunch-break]").change(function() {
-    var lunchGroup = $(this).data('lunch-break');
-    var lunchStart = $(".start_time[data-time-group='"+lunchGroup+"']")[0];
-    var lunchFinish = $(".finish_time[data-time-group='"+lunchGroup+"']")[0];
-    validateLunchBreak(lunchStart)
-    validateLunchBreak(lunchFinish)
-  });
+  $(".start_time[data-lunch-for]").each(function() {validateLunchBreak($(this).data('time-group'))});
+  $("[data-lunch-for]").change(function() {validateLunchBreak($(this).data('time-group'))});
+  $("[data-lunch-break]").change(function() {validateLunchBreak($(this).data('lunch-break'))});
 
   var radioValue = $("input[name='event_type']:checked");
   if (radioValue.val()) {
