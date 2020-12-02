@@ -203,10 +203,12 @@ class WindowOpening(Ventilation):
 
     @property
     def discharge_coefficient(self) -> float:
-        #: Discharge coefficient (or cd_b): what portion effective area is
-        #: used to exchange air (0 <= discharge_coefficient <= 1).
-        #: To be implemented in subclasses.
-        return None
+        """
+        Discharge coefficient (or cd_b): what portion effective area is
+        used to exchange air (0 <= discharge_coefficient <= 1).
+        To be implemented in subclasses.
+        """
+        raise NotImplementedError("Unknown discharge coefficient")
 
     def transition_times(self) -> typing.Set[float]:
         transitions = super().transition_times()
