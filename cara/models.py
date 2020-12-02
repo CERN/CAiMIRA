@@ -272,11 +272,19 @@ class HingedWindow(WindowOpening):
         ESFA Output Specification Annex 2F on Ventilation opening areas.
         """
         window_ratio = self.window_width / self.window_height
-        M = (0.06 if window_ratio < 0.5 else 0.048 if window_ratio < 1 else
-                0.04 if window_ratio < 2 else 0.038)
-        cd_max = (0.612 if window_ratio < 0.5 else 0.589 if window_ratio < 1
-                else 0.563 if window_ratio < 2 else 0.548)
-        window_angle = np.arccos(1-self.opening_length**2/(2.*self.window_height**2))*180/np.pi
+        if window_ratio < 0.5:
+            M = 0.06
+            cd_max = 0.612
+        elif window_ratio < 1:
+            M = 0.048
+            cd_max = 0.589
+        elif window_ratio < 2:
+            M = 0.04
+            cd_max = 0.563
+        else:
+            M = 0.038
+            cd_max = 0.548
+        window_angle = 2.*np.arcsin(self.opening_length/(2.*self.window_height))*180/np.pi
         return cd_max*(1-np.exp(-M*window_angle))
 
 
