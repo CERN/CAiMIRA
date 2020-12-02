@@ -139,22 +139,23 @@ function require_recurrent_event(option) {
 function require_lunch(option) {
   $("#lunch_start").prop('required', option);
   $("#lunch_finish").prop('required', option);
+
+  var lunchStartObj = document.getElementById("lunch_start");
+  var lunchFinishObj = document.getElementById("lunch_finish");
   if (option) {
-    var start = document.getElementById("lunch_start");
-    if (start.value === "") {
-      start.value = "12:30";
+    if (lunchStartObj.value === "") {
+      lunchStartObj.value = "12:30";
     }
-    var finish = document.getElementById("lunch_finish");
-    if (finish.value === "") {
-      finish.value = "13:30";
+    if (lunchFinishObj.value === "") {
+      lunchFinishObj.value = "13:30";
     }
   } 
   else {
-    document.getElementById("lunch_start").value = "";
-    document.getElementById("lunch_finish").value = "";
-    $("#lunch_start").removeClass("red_border finish_time_error lunch_break_error");
+    lunchStartObj.value = "";
+    lunchFinishObj.value = "";
     $("#lunch_finish").removeClass("red_border finish_time_error lunch_break_error");
-    removeErrorSpanAfter($("#lunch_finish")[0]);
+    $("#lunch_finish").removeClass("red_border finish_time_error lunch_break_error");
+    removeErrorSpanAfter(lunchFinishObj);
   }
 }
 
@@ -319,7 +320,8 @@ function validate_form(form) {
 
   //Check if breaks length >= activity length
   if (submit) {
-    removeErrorSpanAfter($("#activity_breaks")[0]);
+    var activityBreaksObj= document.getElementById("activity_breaks");
+    removeErrorSpanAfter(activityBreaksObj);
 
     var lunch_mins = 0;
     if (document.getElementById('lunch_option_yes').checked) {
@@ -337,7 +339,7 @@ function validate_form(form) {
     var activity_mins = parseTimeToMins(activity_finish.value) - parseTimeToMins(activity_start.value);
 
     if ((lunch_mins + coffee_mins) >= activity_mins) {
-      insertErrorSpanAfter($("#activity_breaks")[0], "Length of breaks >= Length of activity");
+      insertErrorSpanAfter(activityBreaksObj, "Length of breaks >= Length of activity");
       submit = false;
     }
   }
