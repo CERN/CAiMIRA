@@ -238,8 +238,16 @@ class WindowOpening(Ventilation):
 
 @dataclass(frozen=True)
 class SlidingWindow(WindowOpening):
+    """
+    Sliding window, or side-hung window (with the hinge perpendicular to
+    the horizontal plane).
+    """
     @property
     def discharge_coefficient(self) -> float:
+        """
+        Average measured value of discharge coefficient for sliding or
+        side-hung windows.
+        """
         return 0.6
 
 
