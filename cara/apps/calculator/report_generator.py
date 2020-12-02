@@ -61,7 +61,7 @@ def calculate_report_data(model: models.ExposureModel):
         "emission_rate": er,
         "exposed_occupants": exposed_occupants,
         "expected_new_cases": expected_new_cases,
-        "scenario_plot_src": embed_figure(plot(times, concentrations)),
+        "scenario_plot_src": embed_figure(plot(times, concentrations, model)),
         "repeated_events": repeated_events,
     }
 
@@ -78,10 +78,10 @@ def embed_figure(figure) -> str:
     return f'data:image/png;base64,{pic_hash}'
 
 
-def plot(times, concentrations):
+def plot(times, concentrations, model: models.ExposureModel):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    ax.plot(times, concentrations)
+    ax.plot(times, concentrations, lw=2, color='#1f77b4', label='Concentration')
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
 
@@ -89,9 +89,19 @@ def plot(times, concentrations):
     ax.set_ylabel('Concentration ($q/m^3$)')
     ax.set_title('Concentration of infectious quanta')
 
-    # top = max([0.75, max(concentrations)])
-    # print(max(concentrations))
-    # ax.set_ylim(bottom=1e-4, top=top)
+    # Plot presence of exposed person
+    for i, (presence_start, presence_finish) in enumerate(model.exposed.presence.boundaries()):
+        plt.fill_between(
+            times, concentrations, 0,
+            where=(np.array(times)>presence_start) & (np.array(times)<presence_finish),
+            color="#1f77b4", alpha=0.1,
+            label="Presence of exposed person(s)" if i == 0 else ""
+        )
+
+    # Place a legend outside of the axes itself.
+    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    ax.set_ylim(0)
+
     return fig
 
 
