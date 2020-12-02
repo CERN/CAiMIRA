@@ -431,13 +431,11 @@ function validateLunchBreak(obj) {
   }
 
   //Check if exposed/infected lunch times within exposed/infected presence times
-  var startID = groupID.split("_")[1] + "_start";
-  var finishID = groupID.split("_")[1] + "_finish";
-  
-  var globalStart = parseValToNumber(document.getElementById(startID).value);
-  var globalFinish = parseValToNumber(document.getElementById(finishID).value);
+  var activityID = $(obj).data('lunch-for');
+  var activityStart = parseValToNumber($(".start_time[data-time-group='"+activityID+"']")[0].value);
+  var activityFinish = parseValToNumber($(".finish_time[data-time-group='"+activityID+"']")[0].value);
 
-  if ((time < globalStart) || (time > globalFinish)) {
+  if ((time < activityStart) || (time > activityFinish)) {
     $(obj).addClass("red_border lunch_break_error");
     if (!$(otherObj).hasClass("red_border") && !$(finishObj).hasClass("finish_time_error")) {
       insertSpanAfter(finishObj, "Lunch break must be within activity times");
@@ -495,8 +493,15 @@ $(document).ready(function () {
   $(".start_time").change(function() {validateFinishTime(this)});
 
   //Validate lunch times
-  $("input[required].lunch").each(function() {validateLunchBreak(this)});
-  $("input[required].lunch").change(function() {validateLunchBreak(this)});
+  $("[data-lunch-for]").each(function() {validateLunchBreak(this)});
+  $("[data-lunch-for]").change(function() {validateLunchBreak(this)});
+  $("[data-lunch-break]").change(function() {
+    var lunchGroup = $(this).data('lunch-break');
+    var lunchStart = $(".start_time[data-time-group='"+lunchGroup+"']")[0];
+    var lunchFinish = $(".finish_time[data-time-group='"+lunchGroup+"']")[0];
+    validateLunchBreak(lunchStart)
+    validateLunchBreak(lunchFinish)
+  });
 
   var radioValue = $("input[name='event_type']:checked");
   if (radioValue.val()) {
