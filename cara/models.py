@@ -260,6 +260,10 @@ class HingedWindow(WindowOpening):
     #: Window width (m).
     window_width: float = None
 
+    def __post_init__(self):
+        if self.window_width is None:
+            raise ValueError('window_width must be set')
+
     @property
     def discharge_coefficient(self) -> float:
         """
@@ -284,7 +288,7 @@ class HingedWindow(WindowOpening):
         else:
             M = 0.038
             cd_max = 0.548
-        window_angle = 2.*np.arcsin(self.opening_length/(2.*self.window_height))*180/np.pi
+        window_angle = 2.*np.rad2deg(np.arcsin(self.opening_length/(2.*self.window_height)))
         return cd_max*(1-np.exp(-M*window_angle))
 
 
