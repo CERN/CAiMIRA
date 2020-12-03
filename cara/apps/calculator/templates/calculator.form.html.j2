@@ -134,11 +134,11 @@
                     <option value="training">Training</option>
                     <option value="gym">Gym</option>
                   </select><br>
-    Start: <input type="time" id="activity_start" class="start_time" name="activity_start" value="09:00" required> &nbsp;&nbsp;
-    Finish: <input type="time" id="activity_finish" class="finish_time" name="activity_finish" value="18:00" required><br>
+    Start: <input type="time" id="activity_start" class="start_time" data-time-group="activity" data-lunch-break="lunch_activity" name="activity_start" value="09:00" required> &nbsp;&nbsp;
+    Finish: <input type="time" id="activity_finish" class="finish_time" data-time-group="activity" data-lunch-break="lunch_activity" name="activity_finish" value="18:00" required><br>
     Infected person(s) presence: <br>
-    Start: <input type="time" id="infected_start" class="start_time" name="infected_start" value="09:00"required> &nbsp;&nbsp;
-    Finish: <input type="time" id="infected_finish" class="finish_time" name="infected_finish" value="18:00"  required><br>
+    Start: <input type="time" id="infected_start" class="start_time" data-time-group="infected" name="infected_start" value="09:00" required> &nbsp;&nbsp;
+    Finish: <input type="time" id="infected_finish" class="finish_time" data-time-group="infected" name="infected_finish" value="18:00" required><br>
     <hr width="80%">
 
     When is the event?
@@ -167,9 +167,9 @@
     </select><br>
     <hr width="80%">
 
-    <div id="activity_breaks">
+    <span id="activity_breaks">
       <b>Activity breaks:</b>
-    </div>
+    </span><br>
     <!-- Lunch Options -->
     Lunch break:&nbsp;&nbsp;
     <input type="radio" id="lunch_option_no" name="lunch_option" value=0 onclick="require_fields(this)">
@@ -178,8 +178,8 @@
       <label for="lunch_option_yes">Yes</label><br>
     
     <div id="DIVlunch_break">
-        Start: <input type="time" id="lunch_start" class="start_time" name="lunch_start" value="12:30" required> &nbsp;&nbsp;
-        Finish: <input type="time" id="lunch_finish" class="finish_time" name="lunch_finish" value="13:30" required><br>
+        Start: <input type="time" id="lunch_start" class="start_time" data-time-group="lunch_activity" data-lunch-for="activity" name="lunch_start" value="12:30" required> &nbsp;&nbsp;
+        Finish: <input type="time" id="lunch_finish" class="finish_time" data-time-group="lunch_activity" data-lunch-for="activity" name="lunch_finish" value="13:30" required><br>
     </div>
 
     <!-- Coffee Options -->

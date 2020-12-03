@@ -4,11 +4,16 @@ function getChildElement(elem) {
   return $("#" + elem.data("enables"));
 }
 
-function insertSpanAfter(referenceNode, text) {
+function insertErrorFor(referenceNode, text) {
   var element = document.createElement("span");
+  element.setAttribute("class", "error_text");
   element.classList.add("red_text");
   element.innerHTML = "&nbsp;&nbsp;" + text; 
   referenceNode.parentNode.insertBefore(element, referenceNode.nextSibling);
+}
+
+function removeErrorFor(referenceNode) {
+  $(referenceNode).next('span.error_text').remove();
 }
 
 /* -------Required fields------- */
@@ -134,19 +139,23 @@ function require_recurrent_event(option) {
 function require_lunch(option) {
   $("#lunch_start").prop('required', option);
   $("#lunch_finish").prop('required', option);
+
+  var lunchStartObj = document.getElementById("lunch_start");
+  var lunchFinishObj = document.getElementById("lunch_finish");
   if (option) {
-    var start = document.getElementById("lunch_start");
-    if (start.value === "")
-      start.value = "12:30";
-    var finish = document.getElementById("lunch_finish");
-    if (finish.value === "")
-      finish.value = "13:30";
+    if (lunchStartObj.value === "") {
+      lunchStartObj.value = "12:30";
+    }
+    if (lunchFinishObj.value === "") {
+      lunchFinishObj.value = "13:30";
+    }
   } 
   else {
-    document.getElementById("lunch_start").value = "";
-    document.getElementById("lunch_finish").value = "";
-    $("#lunch_finish").removeClass("red_border");
-    $("#lunch_time_error").hide();
+    lunchStartObj.value = "";
+    lunchFinishObj.value = "";
+    $("#lunch_finish").removeClass("red_border finish_time_error lunch_break_error");
+    $("#lunch_finish").removeClass("red_border finish_time_error lunch_break_error");
+    removeErrorFor(lunchFinishObj);
   }
 }
 
@@ -190,7 +199,7 @@ function removeInvalid(id) {
   if ($(id).hasClass("red_border")) {
     $(id).val("");
     $(id).removeClass("red_border");
-    $(id).next('span').remove();
+    removeErrorFor(id);
   }
 }
 
@@ -277,44 +286,62 @@ function validate_form(form) {
 
   //Validate all non zero values
   $("input[required].non_zero").each(function() {
-    if (!validateValue(this))
+    if (!validateValue(this)) {
       submit = false;
+    }
   });
 
   //Validate all dates
-  $("input[required].datepicker").each(function() {
-    if (!validateDate(this))
-      submit = false;
-  });
+  if (submit) {
+    $("input[required].datepicker").each(function() {
+      if (!validateDate(this)) {
+        submit = false;
+      }
+    });
+  }
 
   //Validate all times
-  $("input[required].finish_time").each(function() {
-    if (!validateFinishTime(this))
-      submit = false;
-  });
+  if (submit) {
+    $("input[required].finish_time").each(function() {
+      if (!validateFinishTime(this)) {
+        submit = false;
+      }
+    });
+  }
+
+  //Validate all lunch breaks
+  if (submit) {
+    $("input[required].lunch").each(function() {
+      if (!validateLunchBreak(this)) {
+        submit = false;
+      }
+    });
+  }
 
   //Check if breaks length >= activity length
-  var button = document.getElementById("activity_breaks");
-  $(button).next('span').remove();
+  if (submit) {
+    var activityBreaksObj= document.getElementById("activity_breaks");
+    removeErrorFor(activityBreaksObj);
 
-  var lunch_mins = 0;
-  if (document.getElementById('lunch_option_yes').checked) {
-    var lunch_start = document.getElementById("lunch_start");
-    var lunch_finish = document.getElementById("lunch_finish");
-    lunch_mins = parseTimeToMins(lunch_finish.value) - parseTimeToMins(lunch_start.value);
-  }
-  
-  var coffee_breaks = parseInt(document.querySelector('input[name="coffee_breaks"]:checked').value);
-  var coffee_duration = parseInt(document.getElementById("break_duration").value);
-  var coffee_mins = coffee_breaks * coffee_duration;
-  
-  var activity_start = document.getElementById("activity_start");
-  var activity_finish = document.getElementById("activity_finish");
-  var activity_mins = parseTimeToMins(activity_finish.value) - parseTimeToMins(activity_start.value);
+    var lunch_mins = 0;
+    if (document.getElementById('lunch_option_yes').checked) {
+      var lunch_start = document.getElementById("lunch_start");
+      var lunch_finish = document.getElementById("lunch_finish");
+      lunch_mins = parseTimeToMins(lunch_finish.value) - parseTimeToMins(lunch_start.value);
+    }
+    
+    var coffee_breaks = parseInt(document.querySelector('input[name="coffee_breaks"]:checked').value);
+    var coffee_duration = parseInt(document.getElementById("break_duration").value);
+    var coffee_mins = coffee_breaks * coffee_duration;
+    
+    var activity_start = document.getElementById("activity_start");
+    var activity_finish = document.getElementById("activity_finish");
+    var activity_mins = parseTimeToMins(activity_finish.value) - parseTimeToMins(activity_start.value);
 
-  if ((lunch_mins + coffee_mins) >= activity_mins) {
-    insertSpanAfter(button, "Length of breaks >= Length of activity");
-    submit = false;
+    if ((lunch_mins + coffee_mins) >= activity_mins) {
+      insertErrorFor(activityBreaksObj, "Length of breaks >= Length of activity");
+      submit = false;
+    }
   }
 
   return submit;
@@ -322,11 +349,11 @@ function validate_form(form) {
 
 function validateValue(obj) {
   $(obj).removeClass("red_border");
-  $(obj).next('span').remove();
+  removeErrorFor(obj);
 
   if (!isNonZeroOrEmpty($(obj).val())) {
     $(obj).addClass("red_border");
-    insertSpanAfter(obj, "Value must be > 0");
+    insertErrorFor(obj, "Value must be > 0");
     return false;
   }
   return true;
@@ -341,11 +368,11 @@ function isNonZeroOrEmpty(value) {
 
 function validateDate(obj) {
   $(obj).removeClass("red_border");
-  $(obj).next('span').remove();
+  removeErrorFor(obj);
 
   if (!isValidDateOrEmpty($(obj).val())) {
     $(obj).addClass("red_border");
-    insertSpanAfter(obj, "Incorrect date format");
+    insertErrorFor(obj, "Incorrect date format");
     return false;
   }
   return true;
@@ -364,16 +391,59 @@ function isValidDateOrEmpty(date) {
 }
 
 function validateFinishTime(obj) {
-  $(obj).removeClass("red_border");
-  $(obj).next('span').remove();
 
-  var startTime = parseValToNumber($(obj).prev().val());
-  var finishTime = parseValToNumber(obj.value);
-  if (startTime > finishTime) {
-    $(obj).addClass("red_border");
-    insertSpanAfter(obj, "Finish time must be after start");
+  var groupID = $(obj).data('time-group');
+  var startObj = $(".start_time[data-time-group='"+groupID+"']")[0];
+  var finishObj = $(".finish_time[data-time-group='"+groupID+"']")[0];
+
+  if ($(finishObj).hasClass("finish_time_error")) {
+    $(finishObj).removeClass("red_border finish_time_error");
+    removeErrorFor(finishObj);
+  }
+
+  //Check if finish time error (takes precedence over lunch break error)
+  var startTime = parseValToNumber(startObj.value);
+  var finishTime = parseValToNumber(finishObj.value);
+  if (startTime >= finishTime) {
+    $(finishObj).addClass("red_border finish_time_error");
+    removeErrorFor(finishObj);
+    insertErrorFor(finishObj, "Finish time must be after start");
     return false;
   }
+  return true;
+}
+
+function validateLunchBreak(lunchGroup) {
+  var lunchStartObj = $(".start_time[data-time-group='"+lunchGroup+"']")[0];
+  var lunchFinishObj = $(".finish_time[data-time-group='"+lunchGroup+"']")[0];
+
+  //Skip if finish time error present (it takes precedence over lunch break error)
+  if ($(lunchStartObj).hasClass("finish_time_error") || $(lunchFinishObj).hasClass("finish_time_error"))
+    return false;
+
+  removeErrorFor(lunchFinishObj);
+  var valid = validateLunchTime(lunchStartObj) & validateLunchTime(lunchFinishObj);
+  if (!valid) {
+    insertErrorFor(lunchFinishObj, "Lunch break must be within activity times");
+  }
+
+  return valid;
+}
+
+//Check if exposed/infected lunch time within exposed/infected presence times
+function validateLunchTime(obj) {
+
+  var activityGroup = $(obj).data('lunch-for');
+  var activityStart = parseValToNumber($(".start_time[data-time-group='"+activityGroup+"']")[0].value);
+  var activityFinish = parseValToNumber($(".finish_time[data-time-group='"+activityGroup+"']")[0].value);
+
+  var time = parseValToNumber(obj.value);
+  $(obj).removeClass("red_border lunch_break_error");
+  if ((time < activityStart) || (time > activityFinish)) {
+    $(obj).addClass("red_border lunch_break_error");
+    return false;
+  }
+
   return true;
 }
 
@@ -421,7 +491,12 @@ $(document).ready(function () {
   //Validate all finish times
   $("input[required].finish_time").each(function() {validateFinishTime(this)});
   $(".finish_time").change(function() {validateFinishTime(this)});
-  $(".start_time").change(function() {validateFinishTime(this.nextSibling.nextSibling)});
+  $(".start_time").change(function() {validateFinishTime(this)});
+
+  //Validate lunch times
+  $(".start_time[data-lunch-for]").each(function() {validateLunchBreak($(this).data('time-group'))});
+  $("[data-lunch-for]").change(function() {validateLunchBreak($(this).data('time-group'))});
+  $("[data-lunch-break]").change(function() {validateLunchBreak($(this).data('lunch-break'))});
 
   var radioValue = $("input[name='event_type']:checked");
   if (radioValue.val()) {
