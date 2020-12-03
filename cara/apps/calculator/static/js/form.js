@@ -4,16 +4,16 @@ function getChildElement(elem) {
   return $("#" + elem.data("enables"));
 }
 
-function insertErrorSpanAfter(referenceNode, text) {
+function insertErrorFor(referenceNode, text) {
   var element = document.createElement("span");
-  element.setAttribute("id", "error_text");
+  element.setAttribute("class", "error_text");
   element.classList.add("red_text");
   element.innerHTML = "&nbsp;&nbsp;" + text; 
   referenceNode.parentNode.insertBefore(element, referenceNode.nextSibling);
 }
 
-function removeErrorSpanAfter(referenceNode) {
-  $(referenceNode).next('span#error_text').remove();
+function removeErrorFor(referenceNode) {
+  $(referenceNode).next('span.error_text').remove();
 }
 
 /* -------Required fields------- */
@@ -155,7 +155,7 @@ function require_lunch(option) {
     lunchFinishObj.value = "";
     $("#lunch_finish").removeClass("red_border finish_time_error lunch_break_error");
     $("#lunch_finish").removeClass("red_border finish_time_error lunch_break_error");
-    removeErrorSpanAfter(lunchFinishObj);
+    removeErrorFor(lunchFinishObj);
   }
 }
 
@@ -199,7 +199,7 @@ function removeInvalid(id) {
   if ($(id).hasClass("red_border")) {
     $(id).val("");
     $(id).removeClass("red_border");
-    removeErrorSpanAfter(id);
+    removeErrorFor(id);
   }
 }
 
@@ -321,7 +321,7 @@ function validate_form(form) {
   //Check if breaks length >= activity length
   if (submit) {
     var activityBreaksObj= document.getElementById("activity_breaks");
-    removeErrorSpanAfter(activityBreaksObj);
+    removeErrorFor(activityBreaksObj);
 
     var lunch_mins = 0;
     if (document.getElementById('lunch_option_yes').checked) {
@@ -339,7 +339,7 @@ function validate_form(form) {
     var activity_mins = parseTimeToMins(activity_finish.value) - parseTimeToMins(activity_start.value);
 
     if ((lunch_mins + coffee_mins) >= activity_mins) {
-      insertErrorSpanAfter(activityBreaksObj, "Length of breaks >= Length of activity");
+      insertErrorFor(activityBreaksObj, "Length of breaks >= Length of activity");
       submit = false;
     }
   }
@@ -349,11 +349,11 @@ function validate_form(form) {
 
 function validateValue(obj) {
   $(obj).removeClass("red_border");
-  removeErrorSpanAfter(obj);
+  removeErrorFor(obj);
 
   if (!isNonZeroOrEmpty($(obj).val())) {
     $(obj).addClass("red_border");
-    insertErrorSpanAfter(obj, "Value must be > 0");
+    insertErrorFor(obj, "Value must be > 0");
     return false;
   }
   return true;
@@ -368,11 +368,11 @@ function isNonZeroOrEmpty(value) {
 
 function validateDate(obj) {
   $(obj).removeClass("red_border");
-  removeErrorSpanAfter(obj);
+  removeErrorFor(obj);
 
   if (!isValidDateOrEmpty($(obj).val())) {
     $(obj).addClass("red_border");
-    insertErrorSpanAfter(obj, "Incorrect date format");
+    insertErrorFor(obj, "Incorrect date format");
     return false;
   }
   return true;
@@ -398,7 +398,7 @@ function validateFinishTime(obj) {
 
   if ($(finishObj).hasClass("finish_time_error")) {
     $(finishObj).removeClass("red_border finish_time_error");
-    removeErrorSpanAfter(finishObj);
+    removeErrorFor(finishObj);
   }
 
   //Check if finish time error (takes precedence over lunch break error)
@@ -406,8 +406,8 @@ function validateFinishTime(obj) {
   var finishTime = parseValToNumber(finishObj.value);
   if (startTime >= finishTime) {
     $(finishObj).addClass("red_border finish_time_error");
-    removeErrorSpanAfter(finishObj);
-    insertErrorSpanAfter(finishObj, "Finish time must be after start");
+    removeErrorFor(finishObj);
+    insertErrorFor(finishObj, "Finish time must be after start");
     return false;
   }
   return true;
@@ -419,12 +419,12 @@ function validateLunchBreak(lunchGroup) {
 
   //Skip if finish time error present (it takes precedence over lunch break error)
   if ($(lunchStartObj).hasClass("finish_time_error") || $(lunchFinishObj).hasClass("finish_time_error"))
-    return true;
+    return false;
 
-  removeErrorSpanAfter(lunchFinishObj);
+  removeErrorFor(lunchFinishObj);
   var valid = validateLunchTime(lunchStartObj) & validateLunchTime(lunchFinishObj);
   if (!valid) {
-    insertErrorSpanAfter(lunchFinishObj, "Lunch break must be within activity times");
+    insertErrorFor(lunchFinishObj, "Lunch break must be within activity times");
   }
 
   return valid;
