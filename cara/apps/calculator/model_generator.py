@@ -273,7 +273,7 @@ class FormData:
             break_times.append((begin, end))
         return tuple(break_times)
 
-    def coffee_break_times(self) ->  typing.Tuple[typing.Tuple[int, int]]:
+    def coffee_break_times(self) -> typing.Tuple[typing.Tuple[int, int]]:
         if not self.coffee_breaks:
             return ()
         if self.lunch_option:
