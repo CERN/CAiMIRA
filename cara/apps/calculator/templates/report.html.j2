@@ -38,9 +38,9 @@
 		<ul>
 			<li><p class="data_subtext">
 			{% if form.mechanical_ventilation_type == "air_supply"%}
-			Air supply flow rate: {{ form.air_supply }}
+			Air supply flow rate: {{ form.air_supply }} m³ / hour
 			{% elif form.mechanical_ventilation_type == "air_changes"%}
-			Air changes per hour: {{ form.air_changes }}
+			Air changes per hour: {{ form.air_changes }} h⁻¹
 			{% endif %}
 			</p></li>
 		</ul>
@@ -52,12 +52,15 @@
 		Yes </p></li>
 		<ul>
 			<li><p class="data_subtext">Number of windows: {{ form.windows_number }}</p></li>
-			<li><p class="data_subtext">Height of window: {{ form.window_height }}</p></li>
-			<li><p class="data_subtext">Window type: {{ form.window_type }}</p></li>
+			<li><p class="data_subtext">Height of window: {{ form.window_height }} m</p></li>
+			<li><p class="data_subtext">Window type:
 			{% if form.window_type == "hinged" %}
-			<li><p class="data_subtext">Width of window: {{ form.window_width }}</p></li>
+			Top- or Bottom-Hung</p></li>
+			<li><p class="data_subtext">Width of window: {{ form.window_width }} m</p></li>
+			{% elif form.window_type == "sliding" %}
+			Sliding / Side-Hung</p></li>
 			{% endif %}
-			<li><p class="data_subtext">Opening distance: {{ form.opening_distance }}</p></li>
+			<li><p class="data_subtext">Opening distance: {{ form.opening_distance }} m</p></li>
 			<li><p class="data_subtext">Windows open: {{ form.windows_open }}</p></li>
 		</ul>
 			<p class="data_subtext data_italic">When using the natural ventilation option, air flows are calculated using averaged hourly temperatures for the Geneva region, based on historical data for the month selected.</p>
@@ -67,7 +70,7 @@
 		<li><p class="data_text">HEPA Filtration: {{ 'Yes' if form.hepa_option else 'No' }}</li>
 		{% if form.hepa_option %}
 		<ul>
-			<li><p class="data_text">HEPA amount: {{ form.hepa_amount }}</p></li>
+			<li><p class="data_text">HEPA amount: {{ form.hepa_amount }} m³ / hour</p></li>
 		</ul>
 		{% endif %}
 	</ul>

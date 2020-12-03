@@ -80,11 +80,11 @@
         Number of windows: <input type="number" id="windows_number" class="non_zero" name="windows_number" min="1"><br>
         Height of window: <input type="number" step="any" id="window_height" class="non_zero" name="window_height" placeholder="meters" min="0"><br>
         Window type: 
-        <input type="radio" id="window_sliding" name="window_type" value="sliding" onclick="require_fields(this)">
-          <label for="window_sliding">Sliding</label>&nbsp;&nbsp;
+        <input type="radio" id="window_sliding" name="window_type" value="sliding" onclick="require_fields(this)" checked="checked">
+          <label for="window_sliding">Sliding / Side-Hung</label>&nbsp;&nbsp;
         <input type="radio" id="window_hinged" name="window_type" value="hinged" onclick="require_fields(this)">
-          <label for="window_hinged">Hinged</label>&nbsp;&nbsp;<br>
-        Width of window: <input type="number" step="any" id="window_width" class="non_zero" name="window_width" placeholder="meters" min="0"><br>
+          <label for="window_hinged">Top- or Bottom-Hung</label>&nbsp;&nbsp;<br>
+        Width of window: <input type="number" step="any" id="window_width" class="non_zero has_radio disabled" name="window_width" placeholder="meters" min="0"><br>
         Opening distance: <input type="number" step="any" id="opening_distance" class="non_zero" name="opening_distance" placeholder="meters" min="0"><br>
         Windows open: <input type="radio" id="always" name="windows_open" value="always">
                         <label for="always">Always</label> &nbsp;&nbsp;
@@ -215,8 +215,8 @@
   This tool simulates the long range airborne spread SARS-CoV-2 virus in a finite volume and estimates the risk of COVID-19 infection. It is based on current scientific data and can be used to compare the effectiveness of different mitigation measures.<br>
   <b>Ventilation data:</b> <br>
   <ul>
-    <li>Mechanical ventilation = check the rates with a specialist.</li>
-    <li>Natural ventilation = the window opening distance is between the fixed frame and movable part when open (commonly used values are window height = 1.6m and window opening = 0.15m).</li>
+    <li>Mechanical ventilation = check the flow rates with the concerned technical department.</li>
+    <li>Natural ventilation = the type of window. The  opening distance is between the fixed frame and movable part when open (commonly used values are window height = 1.6m and window opening = 0.15m).</li>
     <li>HEPA filtration = the air flow of the device. The following values are based on the different fan velocities of a specific commercial device proposed by the HSE Unit:</li>
     <ul>
         <li>Level 6 (max) = 430 m<sup>3</sup>/h (noisy)</li>

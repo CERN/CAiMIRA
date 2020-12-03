@@ -52,21 +52,24 @@ Please bear in mind that any of the two inputs only consider the supply of fresh
 Natural ventilation refers to rooms which have openable windows. 
 There are many possibilities to calculate natural ventilation air flows, for simplification this tool assumes a single-sided natural ventilation scheme which is a conservative approach for the purpose of this tool.
 
+Please choose the type of window (see illustration below):
+  *	Sliding or side-hung
+  *	Top- or bottom-hung
+  ![Window type](static/images/window_type.PNG "How to determine the window type") 
+
 Please enter the number, height and width and opening distance of the windows (in m).
 If there are multiple windows of different sizes, you should take an average.
 
 The window opening distance (in m) is:
-
- * In the case of windows that slide, the length the window is moved open.
-
- * For articulated windows, it is the distance between the fixed frame and the movable glazed part when open. Window opening distance example (image of open window and measuring tape):
+* In the case of Sliding or Side-Hung option, the length the window is moved open
+* In case of Top- or Bottom-Hung, the distance between the fixed frame and the movable glazed part when open
+ Window opening distance example (image of open window and measuring tape):
    ![Window Opening Distance](static/images/window_opening.png "How to measure window opening distance")
 
  
 **Notes**: If you are unsure about the opening distance for the window, it is recommended to choose a conservative value (5 cms, 0.05m or 10cms, 0.10m).
 If you open the window at different distances throughout the day, choose an average value.
 
-The width of the window is not currently used as an input to the model (height and opening distance is sufficient to calculate the free area).
 When using natural ventilation, the circulation of air is simulated as a function of the difference between the temperature inside the room and the outside air temperature. The average outdoor temperature for each hour of the day has been computed for every month of the year based on historical data for Geneva, Switzerland.
 It is therefore very important to enter the correct time and date in the event data section.
 Finally, you must specify when the windows are open - all the time (always), or for 10 minutes every 2 hours.

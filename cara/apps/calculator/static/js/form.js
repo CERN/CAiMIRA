@@ -90,14 +90,14 @@ function unrequire_fields(obj) {
 
 function require_room_volume(option) {
   require_input_field("#room_volume", option);
-  disable_input_field("#room_volume", option);
+  disable_input_field("#room_volume", !option);
 }
 
 function require_room_dimensions(option) {
   require_input_field("#floor_area", option);
   require_input_field("#ceiling_height", option);
-  disable_input_field("#floor_area", option);
-  disable_input_field("#ceiling_height", option);
+  disable_input_field("#floor_area", !option);
+  disable_input_field("#ceiling_height", !option);
 }
 
 function require_mechanical_ventilation(option) {
@@ -117,31 +117,34 @@ function require_natural_ventilation(option) {
   $("#window_hinged").prop('required', option);
   $("#always").prop('required', option);
   $("#interval").prop('required', option);
+
+  $("#window_sliding").prop('checked', option);
+  require_window_width(false);
 }
 
 function require_window_width(option) {
   require_input_field("#window_width", option);
-  disable_input_field("#window_width", option);
+  disable_input_field("#window_width", !option);
 }
 
 function require_air_changes(option) {
   require_input_field("#air_changes", option);
-  disable_input_field("#air_changes", option);
+  disable_input_field("#air_changes", !option);
 }
 
 function require_air_supply(option) {
   require_input_field("#air_supply", option);
-  disable_input_field("#air_supply", option);
+  disable_input_field("#air_supply", !option);
 }
 
 function require_single_event(option) {
   require_input_field("#single_event_date", option);
-  disable_input_field("#single_event_date", option);
+  disable_input_field("#single_event_date", !option);
 }
 
 function require_recurrent_event(option) {
   $("#recurrent_event_month").prop('required', option);
-  disable_input_field("#recurrent_event_month", option);
+  disable_input_field("#recurrent_event_month", !option);
 }
 
 function require_lunch(option) {
@@ -170,7 +173,7 @@ function require_mask(option) {
 
 function require_hepa(option) {
   require_input_field("#hepa_amount", option);
-  disable_input_field("#hepa_amount", option);
+  disable_input_field("#hepa_amount", !option);
 }
 
 function require_input_field(id, option) {
@@ -182,9 +185,9 @@ function require_input_field(id, option) {
 
 function disable_input_field(id, option) {
   if (option)
-    $(id).removeClass("disabled");
-  else
     $(id).addClass("disabled");
+  else
+    $(id).removeClass("disabled");
 }
 
 function setMaxInfectedPeople() {
@@ -269,6 +272,9 @@ function click_radio(id) {
       break;
     case "air_changes": 
       $("#air_type_changes").click();
+      break;
+    case "window_width": 
+      $("#window_hinged").click();
       break;
     case "hepa_amount":
       $("#hepa_yes").click();
