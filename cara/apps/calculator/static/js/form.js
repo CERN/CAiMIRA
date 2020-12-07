@@ -285,30 +285,15 @@ $("[data-has-radio]").on('change', function(event){
 function validate_form(form) {
   var submit = true;
 
-  //Validate all non zero values
-  $("input[required].non_zero").each(function() {
-    if (!validateValue(this)) {
+  // Activity times and lunch break times are co-dependent
+  // -> So if 1 fails it doesn't make sense to check the rest
+
+  //Validate all finish times
+  $("input[required].finish_time").each(function() {
+    if (!validateFinishTime(this)) {
       submit = false;
     }
   });
-
-  //Validate all dates
-  if (submit) {
-    $("input[required].datepicker").each(function() {
-      if (!validateDate(this)) {
-        submit = false;
-      }
-    });
-  }
-
-  //Validate all times
-  if (submit) {
-    $("input[required].finish_time").each(function() {
-      if (!validateFinishTime(this)) {
-        submit = false;
-      }
-    });
-  }
 
   //Validate all lunch breaks
   if (submit) {
@@ -345,9 +330,22 @@ function validate_form(form) {
     }
   }
 
-  //Validate window venting duration < venting frequency
-  if (submit && !$("#windows_duration").hasClass("disabled")) {
+  //Validate all non zero values
+  $("input[required].non_zero").each(function() {
+    if (!validateValue(this)) {
+      submit = false;
+    }
+  });
 
+  //Validate all dates
+  $("input[required].datepicker").each(function() {
+    if (!validateDate(this)) {
+      submit = false;
+    }
+  });
+
+  //Validate window venting duration < venting frequency
+  if (!$("#windows_duration").hasClass("disabled")) {
     var windowsDurationObj = document.getElementById("windows_duration");
     var windowsFrequencyObj = document.getElementById("windows_frequency");
     removeErrorFor(windowsFrequencyObj);
