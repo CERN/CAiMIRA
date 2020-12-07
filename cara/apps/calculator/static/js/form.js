@@ -319,7 +319,7 @@ function validate_form(form) {
     });
   }
 
-  //Check if breaks length >= activity length
+  //Validate breaks length < activity length
   if (submit) {
     var activityBreaksObj= document.getElementById("activity_breaks");
     removeErrorFor(activityBreaksObj);
@@ -341,6 +341,19 @@ function validate_form(form) {
 
     if ((lunch_mins + coffee_mins) >= activity_mins) {
       insertErrorFor(activityBreaksObj, "Length of breaks >= Length of activity");
+      submit = false;
+    }
+  }
+
+  //Validate window venting duration < venting frequency
+  if (submit && !$("#windows_duration").hasClass("disabled")) {
+
+    var windowsDurationObj = document.getElementById("windows_duration");
+    var windowsFrequencyObj = document.getElementById("windows_frequency");
+    removeErrorFor(windowsFrequencyObj);
+
+    if (parseInt(windowsDurationObj.value) >= parseInt(windowsFrequencyObj.value) * 60) {
+      insertErrorFor(windowsFrequencyObj, "Duration >= Frequency");
       submit = false;
     }
   }
