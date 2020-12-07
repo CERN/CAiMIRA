@@ -49,6 +49,12 @@ function require_fields(obj) {
       require_air_changes(false);
       require_air_supply(true);
       break;
+    case "interval":
+      require_venting(true);
+      break;
+    case "always":
+      require_venting(false);
+      break;
     case "hepa_yes":
       require_hepa(true);
       break;
@@ -140,6 +146,14 @@ function require_air_changes(option) {
 function require_air_supply(option) {
   require_input_field("#air_supply", option);
   disable_input_field("#air_supply", !option);
+}
+
+function require_venting(option) {
+  require_input_field("#windows_duration", option);
+  require_input_field("#windows_frequency", option);
+  //TODO: Update this after merge 109
+  disable_input_field("#windows_duration", option);
+  disable_input_field("#windows_frequency", option);
 }
 
 function require_single_event(option) {
