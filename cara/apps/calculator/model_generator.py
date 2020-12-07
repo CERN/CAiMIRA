@@ -438,6 +438,8 @@ def baseline_raw_form_data():
         'total_people': '10',
         'ventilation_type': 'natural',
         'volume_type': 'room_volume',
+        'windows_duration': '',
+        'windows_frequency': '',
         'window_height': '2',
         'window_type': 'sliding',
         'window_width': '2',
