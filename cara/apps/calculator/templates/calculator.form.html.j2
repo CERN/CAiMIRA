@@ -67,7 +67,7 @@
     <input type="radio" id="natural" name="ventilation_type" value="natural" data-enables="#DIVnatural_ventilation">
       <label for="natural">Natural</label><br>
 
-    <div id="DIVmechanical_ventilation" style="display:none">
+    <div id="DIVmechanical_ventilation" class="tabbed" style="display:none">
         <input type="radio" id="air_type_supply" name="mechanical_ventilation_type" value="air_supply" onclick="require_fields(this)" tabindex="-1">
           <label for="air_type_supply">Air supply flow rate</label> &nbsp;&nbsp;
         <input type="number" step="any" id="air_supply" class="non_zero" name="air_supply" min="0" placeholder="(m³ / hour)" data-has-radio="#air_type_supply"><br>
@@ -76,7 +76,7 @@
         <input type="number" step="any" id="air_changes" class="non_zero" name="air_changes" min="0" placeholder="(h⁻¹) only fresh air" data-has-radio="#air_type_changes"><br>
     </div>
 
-    <div id="DIVnatural_ventilation" style="display:none">
+    <div id="DIVnatural_ventilation" class="tabbed" style="display:none">
         Number of windows: <input type="number" id="windows_number" class="non_zero" name="windows_number" min="1"><br>
         Height of window: <input type="number" step="any" id="window_height" class="non_zero" name="window_height" placeholder="meters" min="0"><br>
         Window type: 
@@ -86,9 +86,10 @@
           <label for="window_hinged">Top- or Bottom-Hung</label>&nbsp;&nbsp;<br>
         Width of window: <input type="number" step="any" id="window_width" class="non_zero has_radio disabled" name="window_width" placeholder="meters" min="0"><br>
         Opening distance: <input type="number" step="any" id="opening_distance" class="non_zero" name="opening_distance" placeholder="meters" min="0"><br>
-        Windows open: <br> <input type="radio" id="always" name="windows_open" value="always" onclick="require_fields(this)" checked="checked">
+        Windows open:</span><br> 
+                      <span class="tabbed"><input type="radio" id="always" name="windows_open" value="always" onclick="require_fields(this)" checked="checked"></span>
                         <label for="always">Permanently</label><br>
-                      <input type="radio" id="interval" name="windows_open" value="interval" onclick="require_fields(this)">
+                      <span class="tabbed"><input type="radio" id="interval" name="windows_open" value="interval" onclick="require_fields(this)"></span>
                         <label for="interval">Periodically:</label>&nbsp;&nbsp;
                       <input type="number" step="any" id="windows_duration" class="disabled" name="windows_duration" placeholder="Duration (min)" min="1" data-has-radio="#interval"> / 
                       <input type="number" step="any" id="windows_frequency" class="disabled" name="windows_frequency" placeholder="Frequency (min)" min="1" data-has-radio="#interval">

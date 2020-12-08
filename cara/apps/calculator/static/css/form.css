@@ -10,6 +10,10 @@
 	color: red;
 }
 
+.tabbed {
+  padding-left: 15pt;
+}
+
 #disclaimer,#code_license {
 	font-size: 9pt;
 }
