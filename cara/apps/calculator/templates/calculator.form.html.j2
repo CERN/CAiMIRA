@@ -86,12 +86,12 @@
           <label for="window_hinged">Top- or Bottom-Hung</label>&nbsp;&nbsp;<br>
         Width of window: <input type="number" step="any" id="window_width" class="non_zero has_radio disabled" name="window_width" placeholder="meters" min="0"><br>
         Opening distance: <input type="number" step="any" id="opening_distance" class="non_zero" name="opening_distance" placeholder="meters" min="0"><br>
-        Windows open: <input type="radio" id="always" name="windows_open" value="always" onclick="require_fields(this)">
-                        <label for="always">Always</label>&nbsp;&nbsp;
+        Windows open: <br> <input type="radio" id="always" name="windows_open" value="always" onclick="require_fields(this)" checked="checked">
+                        <label for="always">Permanently</label><br>
                       <input type="radio" id="interval" name="windows_open" value="interval" onclick="require_fields(this)">
-                        <label for="interval">Interval:</label>&nbsp;&nbsp;
-                      <input type="number" step="any" id="windows_duration" name="windows_duration" placeholder="mins" min="1" size="5" data-has-radio="#interval"> / 
-                      <input type="number" step="any" id="windows_frequency" name="windows_frequency" placeholder="mins" min="1" size="5" data-has-radio="#interval">
+                        <label for="interval">Periodically:</label>&nbsp;&nbsp;
+                      <input type="number" step="any" id="windows_duration" class="disabled" name="windows_duration" placeholder="Duration (min)" min="1" data-has-radio="#interval"> / 
+                      <input type="number" step="any" id="windows_frequency" class="disabled" name="windows_frequency" placeholder="Frequency (min)" min="1" data-has-radio="#interval">
         <br>
     </div>
     

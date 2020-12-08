@@ -242,10 +242,9 @@ function on_ventilation_type_change() {
     } else {
       getChildElement($(this)).hide();
       unrequire_fields(this);
-      // Clear the inputs for this newly hidden child element.
+
+      // Clear inputs for this newly hidden child element.
       getChildElement($(this)).find('input').not('input[type=radio]').val('');
-      getChildElement($(this)).find('input[type=radio]').prop("checked", false);
-      getChildElement($(this)).find('input').prop("required", false);
     }
   });
 }
