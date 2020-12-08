@@ -189,21 +189,26 @@ class WindowOpening(Ventilation):
     #: The temperature outside of the window (Kelvin).
     outside_temp: PiecewiseConstant
 
-    #: The height of the window.
+    #: The height of the window (m).
     window_height: float
 
-    #: The length of the opening-gap when the window is open
+    #: The length of the opening-gap when the window is open (m).
     opening_length: float
 
     #: The number of windows of the given dimensions.
     number_of_windows: int = 1
 
-    #: Discharge coefficient: what portion effective area is
-    #: used to exchange air (0 <= cd_b <= 1)
-    cd_b: float = 0.6
-
-    #: Minimum difference between inside and outside temperature
+    #: Minimum difference between inside and outside temperature (K).
     min_deltaT: float = 0.1
+
+    @property
+    def discharge_coefficient(self) -> float:
+        """
+        Discharge coefficient (or cd_b): what portion effective area is
+        used to exchange air (0 <= discharge_coefficient <= 1).
+        To be implemented in subclasses.
+        """
+        raise NotImplementedError("Unknown discharge coefficient")
 
     def transition_times(self) -> typing.Set[float]:
         transitions = super().transition_times()
@@ -228,7 +233,63 @@ class WindowOpening(Ventilation):
         temp_gradient = (inside_temp - outside_temp) / outside_temp
         root = np.sqrt(9.81 * self.window_height * temp_gradient)
         window_area = self.window_height * self.opening_length * self.number_of_windows
-        return (3600 / (3 * room.volume)) * self.cd_b * window_area * root
+        return (3600 / (3 * room.volume)) * self.discharge_coefficient * window_area * root
+
+
+@dataclass(frozen=True)
+class SlidingWindow(WindowOpening):
+    """
+    Sliding window, or side-hung window (with the hinge perpendicular to
+    the horizontal plane).
+    """
+    @property
+    def discharge_coefficient(self) -> float:
+        """
+        Average measured value of discharge coefficient for sliding or
+        side-hung windows.
+        """
+        return 0.6
+
+
+@dataclass(frozen=True)
+class HingedWindow(WindowOpening):
+    """
+    Top-hung or bottom-hung hinged window (with the hinge parallel to
+    horizontal plane).
+    """
+    #: Window width (m).
+    window_width: float = None
+
+    def __post_init__(self):
+        if self.window_width is None:
+            raise ValueError('window_width must be set')
+
+    @property
+    def discharge_coefficient(self) -> float:
+        """
+        Simple model to compute discharge coefficient for top or bottom
+        hung hinged windows, in the absence of empirical test results
+        from manufacturers.
+        From an excel spreadsheet calculator (Richard Daniels, Crawford
+        Wright, Benjamin Jones - 2018) from the UK government -
+        see Section 8.3 of BB101 and Section 11.3 of
+        ESFA Output Specification Annex 2F on Ventilation opening areas.
+        """
+        window_ratio = self.window_width / self.window_height
+        if window_ratio < 0.5:
+            M = 0.06
+            cd_max = 0.612
+        elif window_ratio < 1:
+            M = 0.048
+            cd_max = 0.589
+        elif window_ratio < 2:
+            M = 0.04
+            cd_max = 0.563
+        else:
+            M = 0.038
+            cd_max = 0.548
+        window_angle = 2.*np.rad2deg(np.arcsin(self.opening_length/(2.*self.window_height)))
+        return cd_max*(1-np.exp(-M*window_angle))
 
 
 @dataclass(frozen=True)
