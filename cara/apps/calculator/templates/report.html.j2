@@ -63,7 +63,27 @@
 			<li><p class="data_subtext">Opening distance: {{ form.opening_distance }} m</p></li>
 			<li><p class="data_subtext">Windows open: 
 			{% if form.windows_open == "interval" %}
-			{{ form.windows_open }}s of {{ form.windows_duration }} mins every {{ form.windows_frequency }} hours
+			{{ form.windows_open }}s of 
+                {% set windows_duration = form.windows_duration %}
+                {% set unit = "minutes" %}
+				{% if windows_duration % 60 == 0 %}
+					{% set windows_duration = form.windows_duration / 60 %} 
+					{% set unit = "hours" %} 
+				{% endif %}
+				{% if windows_duration.is_integer() %}
+					{% set windows_duration = windows_duration | int_format %}
+				{% endif %}
+				{{ windows_duration }} {{ unit }} every
+                {% set windows_frequency = form.windows_frequency %}
+                {% set unit = "minutes" %}
+				{% if windows_frequency % 60 == 0 %}
+					{% set windows_frequency = form.windows_frequency / 60 %} 
+					{% set unit = "hours" %} 
+				{% endif %}
+				{% if windows_frequency.is_integer() %}
+					{% set windows_frequency = windows_frequency | int_format %}
+				{% endif %}
+				{{ windows_frequency }} {{ unit }}
 			{% else %}
 			{{ form.windows_open }}
 			{% endif %}

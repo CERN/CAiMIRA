@@ -350,7 +350,7 @@ function validate_form(form) {
     var windowsFrequencyObj = document.getElementById("windows_frequency");
     removeErrorFor(windowsFrequencyObj);
 
-    if (parseInt(windowsDurationObj.value) >= parseInt(windowsFrequencyObj.value) * 60) {
+    if (parseInt(windowsDurationObj.value) >= parseInt(windowsFrequencyObj.value)) {
       insertErrorFor(windowsFrequencyObj, "Duration >= Frequency");
       submit = false;
     }

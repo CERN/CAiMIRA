@@ -39,6 +39,8 @@ def test_ventilation_slidingwindow(baseline_form):
         window_height=1.6, opening_length=0.6,
     )
     baseline_form.ventilation_type = 'natural'
+    baseline_form.windows_duration = 10
+    baseline_form.windows_frequency = 120
     baseline_form.windows_open = 'interval'
     baseline_form.window_type = 'sliding'
     baseline_form.event_type = 'recurrent_event'
@@ -118,6 +120,8 @@ def test_ventilation_window_hepa(baseline_form):
     ventilation = models.MultipleVentilation((window,hepa))
 
     baseline_form.ventilation_type = 'natural'
+    baseline_form.windows_duration = 10
+    baseline_form.windows_frequency = 120
     baseline_form.windows_open = 'interval'
     baseline_form.event_type = 'recurrent_event'
     baseline_form.recurrent_event_month = 'December'

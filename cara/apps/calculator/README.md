@@ -72,7 +72,7 @@ If you open the window at different distances throughout the day, choose an aver
 
 When using natural ventilation, the circulation of air is simulated as a function of the difference between the temperature inside the room and the outside air temperature. The average outdoor temperature for each hour of the day has been computed for every month of the year based on historical data for Geneva, Switzerland.
 It is therefore very important to enter the correct time and date in the event data section.
-Finally, you must specify when the windows are open - all the time (always), or for 10 minutes every 2 hours.
+Finally, you must specify when the windows are open - all the time (always), or (interval) in duration and frequency (both in minutes).
 
 #### No ventilation
 This option assumes there is neither Mechanical nor Natural ventilation in the simulation.
