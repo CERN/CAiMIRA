@@ -1,7 +1,7 @@
 /* -------HTML structure------- */
 function getChildElement(elem) {
   // Get the element named in the given element's data-enables attribute.
-  return $("#" + elem.data("enables"));
+  return $(elem.data("enables"));
 }
 
 function insertErrorFor(referenceNode, text) {
@@ -259,45 +259,13 @@ function show_disclaimer() {
   }
 }
 
-$(".has_radio").on('click', function(event){
-  click_radio(this.id);
+$("[data-has-radio]").on('click', function(event){
+  $($(this).data("has-radio")).click();
 });
 
-$(".has_radio").on('change', function(event){
-  click_radio(this.id);
+$("[data-has-radio]").on('change', function(event){
+  $($(this).data("has-radio")).click();
 });
-
-function click_radio(id) {
-  switch (id) {
-    case "room_volume":
-      $("#room_type_volume").click();
-      break;
-    case "floor_area":
-    case "ceiling_height":
-      $("#room_type_dimensions").click();
-      break;
-    case "air_supply":
-      $("#air_type_supply").click();
-      break;
-    case "air_changes": 
-      $("#air_type_changes").click();
-      break;
-    case "window_width": 
-      $("#window_hinged").click();
-      break;
-    case "hepa_amount":
-      $("#hepa_yes").click();
-      break;
-    case "single_event_date":
-      $("#event_type_single").click();
-      break;
-    case "recurrent_event_month":
-      $("#event_type_recurrent").click();
-      break;
-    default:
-      break;
-  }
-}
 
 /* -------Form validation------- */
 function validate_form(form) {
