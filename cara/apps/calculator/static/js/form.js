@@ -128,9 +128,6 @@ function require_natural_ventilation(option) {
   $("#window_hinged").prop('required', option);
   $("#always").prop('required', option);
   $("#interval").prop('required', option);
-
-  $("#window_sliding").prop('checked', option);
-  require_window_width(false);
 }
 
 function require_window_width(option) {
@@ -483,7 +480,9 @@ $(document).ready(function () {
   require_fields($("input[name='volume_type']:checked"));
   require_fields($("input[name='mechanical_ventilation_type']:checked"));
   require_fields($("input[name='window_type']:checked"));
+  require_fields($("input[name='windows_open']:checked"));
   require_fields($("input[name='hepa_option']:checked"));
+  require_fields($("input[name='event_type']:checked"));
 
   // Setup the maximum number of people at page load (to handle back/forward),
   // and update it when total people is changed.
@@ -508,11 +507,6 @@ $(document).ready(function () {
   $(".start_time[data-lunch-for]").each(function() {validateLunchBreak($(this).data('time-group'))});
   $("[data-lunch-for]").change(function() {validateLunchBreak($(this).data('time-group'))});
   $("[data-lunch-break]").change(function() {validateLunchBreak($(this).data('lunch-break'))});
-
-  var radioValue = $("input[name='event_type']:checked");
-  if (radioValue.val()) {
-    require_fields(radioValue.get(0));
-  }
 });
 
 /* -------Debugging------- */
