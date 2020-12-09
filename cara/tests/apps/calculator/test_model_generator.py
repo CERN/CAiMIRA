@@ -62,6 +62,8 @@ def test_ventilation_hingedwindow(baseline_form):
         window_height=1.6, window_width=1., opening_length=0.6,
     )
     baseline_form.ventilation_type = 'natural'
+    baseline_form.windows_duration = 10
+    baseline_form.windows_frequency = 120
     baseline_form.windows_open = 'interval'
     baseline_form.window_type = 'hinged'
     baseline_form.event_type = 'recurrent_event'

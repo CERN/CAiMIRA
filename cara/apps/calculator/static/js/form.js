@@ -101,14 +101,14 @@ function unrequire_fields(obj) {
 
 function require_room_volume(option) {
   require_input_field("#room_volume", option);
-  disable_input_field("#room_volume", !option);
+  set_disabled_status("#room_volume", !option);
 }
 
 function require_room_dimensions(option) {
   require_input_field("#floor_area", option);
   require_input_field("#ceiling_height", option);
-  disable_input_field("#floor_area", !option);
-  disable_input_field("#ceiling_height", !option);
+  set_disabled_status("#floor_area", !option);
+  set_disabled_status("#ceiling_height", !option);
 }
 
 function require_mechanical_ventilation(option) {
@@ -135,35 +135,34 @@ function require_natural_ventilation(option) {
 
 function require_window_width(option) {
   require_input_field("#window_width", option);
-  disable_input_field("#window_width", !option);
+  set_disabled_status("#window_width", !option);
 }
 
 function require_air_changes(option) {
   require_input_field("#air_changes", option);
-  disable_input_field("#air_changes", !option);
+  set_disabled_status("#air_changes", !option);
 }
 
 function require_air_supply(option) {
   require_input_field("#air_supply", option);
-  disable_input_field("#air_supply", !option);
+  set_disabled_status("#air_supply", !option);
 }
 
 function require_venting(option) {
   require_input_field("#windows_duration", option);
   require_input_field("#windows_frequency", option);
-  //TODO: Update this after merge 109
-  disable_input_field("#windows_duration", option);
-  disable_input_field("#windows_frequency", option);
+  set_disabled_status("#windows_duration", !option);
+  set_disabled_status("#windows_frequency", !option);
 }
 
 function require_single_event(option) {
   require_input_field("#single_event_date", option);
-  disable_input_field("#single_event_date", !option);
+  set_disabled_status("#single_event_date", !option);
 }
 
 function require_recurrent_event(option) {
   $("#recurrent_event_month").prop('required', option);
-  disable_input_field("#recurrent_event_month", !option);
+  set_disabled_status("#recurrent_event_month", !option);
 }
 
 function require_lunch(option) {
@@ -196,7 +195,7 @@ function require_mask(option) {
 
 function require_hepa(option) {
   require_input_field("#hepa_amount", option);
-  disable_input_field("#hepa_amount", !option);
+  set_disabled_status("#hepa_amount", !option);
 }
 
 function require_input_field(id, option) {
@@ -206,7 +205,7 @@ function require_input_field(id, option) {
   }
 }
 
-function disable_input_field(id, option) {
+function set_disabled_status(id, option) {
   if (option)
     $(id).addClass("disabled");
   else

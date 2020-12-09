@@ -84,7 +84,7 @@
           <label for="window_sliding">Sliding / Side-Hung</label>&nbsp;&nbsp;
         <input type="radio" id="window_hinged" name="window_type" value="hinged" onclick="require_fields(this)">
           <label for="window_hinged">Top- or Bottom-Hung</label>&nbsp;&nbsp;<br>
-        Width of window: <input type="number" step="any" id="window_width" class="non_zero has_radio disabled" name="window_width" placeholder="meters" min="0"><br>
+        Width of window: <input type="number" step="any" id="window_width" class="non_zero disabled" name="window_width" placeholder="meters" min="0" data-has-radio="#window_hinged"><br>
         Opening distance: <input type="number" step="any" id="opening_distance" class="non_zero" name="opening_distance" placeholder="meters" min="0"><br>
         Windows open:</span><br> 
                       <span class="tabbed"><input type="radio" id="always" name="windows_open" value="always" onclick="require_fields(this)" checked="checked"></span>
