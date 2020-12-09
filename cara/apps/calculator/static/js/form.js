@@ -475,14 +475,8 @@ $(document).ready(function () {
   // Call the function now to handle forward/back button presses in the browser.
   on_ventilation_type_change();
 
-  //Same for other options
-  require_fields($("input[name='lunch_option']:checked"));
-  require_fields($("input[name='volume_type']:checked"));
-  require_fields($("input[name='mechanical_ventilation_type']:checked"));
-  require_fields($("input[name='window_type']:checked"));
-  require_fields($("input[name='windows_open']:checked"));
-  require_fields($("input[name='hepa_option']:checked"));
-  require_fields($("input[name='event_type']:checked"));
+  //Check all radio buttons previously selected
+  $("input[type=radio]:checked").each(function() {require_fields(this)});
 
   // Setup the maximum number of people at page load (to handle back/forward),
   // and update it when total people is changed.
