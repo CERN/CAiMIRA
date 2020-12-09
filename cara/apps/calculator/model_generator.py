@@ -43,6 +43,8 @@ class FormData:
     total_people: int
     ventilation_type: str
     volume_type: str
+    windows_duration: float
+    windows_frequency: float
     window_height: float
     window_type: str
     window_width: float
@@ -121,6 +123,8 @@ class FormData:
             total_people=int(form_data['total_people']),
             ventilation_type=form_data['ventilation_type'],
             volume_type=form_data['volume_type'],
+            windows_duration=float(form_data['windows_duration']),
+            windows_frequency=float(form_data['windows_frequency']),
             window_height=float(form_data['window_height']),
             window_type=form_data['window_type'],
             window_width=float(form_data['window_width']),
@@ -138,7 +142,7 @@ class FormData:
         # Initializes a ventilation instance as a window if 'natural' is selected, or as a HEPA-filter otherwise
         if self.ventilation_type == 'natural':
             if self.windows_open == 'interval':
-                window_interval = models.PeriodicInterval(120, 10)
+                window_interval = models.PeriodicInterval(self.windows_frequency*60, self.windows_duration)
             else:
                 window_interval = always_on
 
@@ -424,7 +428,7 @@ def baseline_raw_form_data():
         'mask_type': 'Type I',
         'mask_wearing': 'removed',
         'mechanical_ventilation_type': '',
-        'model_version': 'v1.1.0',
+        'model_version': 'v1.2.0',
         'opening_distance': '0.2',
         'recurrent_event_month': 'January',
         'room_number': '123',
@@ -438,7 +442,7 @@ def baseline_raw_form_data():
         'window_type': 'sliding',
         'window_width': '2',
         'windows_number': '1',
-        'windows_open': 'interval'
+        'windows_open': 'always'
     }
 
 
@@ -449,7 +453,7 @@ MASK_TYPES = {'Type I', 'FFP2'}
 MASK_WEARING = {'continuous', 'removed'}
 VENTILATION_TYPES = {'natural', 'mechanical', 'no-ventilation'}
 VOLUME_TYPES = {'room_volume', 'room_dimensions'}
-WINDOWS_OPEN = {'always', 'interval', 'breaks', 'not-applicable'}
+WINDOWS_OPEN = {'always', 'interval', 'not-applicable'}
 WINDOWS_TYPES = {'sliding', 'hinged', 'not-applicable'}
 
 
