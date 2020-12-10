@@ -1,7 +1,7 @@
 /* -------HTML structure------- */
 function getChildElement(elem) {
   // Get the element named in the given element's data-enables attribute.
-  return $("#" + elem.data("enables"));
+  return $(elem.data("enables"));
 }
 
 function insertErrorFor(referenceNode, text) {
@@ -49,6 +49,12 @@ function require_fields(obj) {
       require_air_changes(false);
       require_air_supply(true);
       break;
+    case "interval":
+      require_venting(true);
+      break;
+    case "always":
+      require_venting(false);
+      break;
     case "hepa_yes":
       require_hepa(true);
       break;
@@ -95,14 +101,14 @@ function unrequire_fields(obj) {
 
 function require_room_volume(option) {
   require_input_field("#room_volume", option);
-  disable_input_field("#room_volume", !option);
+  set_disabled_status("#room_volume", !option);
 }
 
 function require_room_dimensions(option) {
   require_input_field("#floor_area", option);
   require_input_field("#ceiling_height", option);
-  disable_input_field("#floor_area", !option);
-  disable_input_field("#ceiling_height", !option);
+  set_disabled_status("#floor_area", !option);
+  set_disabled_status("#ceiling_height", !option);
 }
 
 function require_mechanical_ventilation(option) {
@@ -122,34 +128,38 @@ function require_natural_ventilation(option) {
   $("#window_hinged").prop('required', option);
   $("#always").prop('required', option);
   $("#interval").prop('required', option);
-
-  $("#window_sliding").prop('checked', option);
-  require_window_width(false);
 }
 
 function require_window_width(option) {
   require_input_field("#window_width", option);
-  disable_input_field("#window_width", !option);
+  set_disabled_status("#window_width", !option);
 }
 
 function require_air_changes(option) {
   require_input_field("#air_changes", option);
-  disable_input_field("#air_changes", !option);
+  set_disabled_status("#air_changes", !option);
 }
 
 function require_air_supply(option) {
   require_input_field("#air_supply", option);
-  disable_input_field("#air_supply", !option);
+  set_disabled_status("#air_supply", !option);
+}
+
+function require_venting(option) {
+  require_input_field("#windows_duration", option);
+  require_input_field("#windows_frequency", option);
+  set_disabled_status("#windows_duration", !option);
+  set_disabled_status("#windows_frequency", !option);
 }
 
 function require_single_event(option) {
   require_input_field("#single_event_date", option);
-  disable_input_field("#single_event_date", !option);
+  set_disabled_status("#single_event_date", !option);
 }
 
 function require_recurrent_event(option) {
   $("#recurrent_event_month").prop('required', option);
-  disable_input_field("#recurrent_event_month", !option);
+  set_disabled_status("#recurrent_event_month", !option);
 }
 
 function require_lunch(option) {
@@ -182,7 +192,7 @@ function require_mask(option) {
 
 function require_hepa(option) {
   require_input_field("#hepa_amount", option);
-  disable_input_field("#hepa_amount", !option);
+  set_disabled_status("#hepa_amount", !option);
 }
 
 function require_input_field(id, option) {
@@ -192,7 +202,7 @@ function require_input_field(id, option) {
   }
 }
 
-function disable_input_field(id, option) {
+function set_disabled_status(id, option) {
   if (option)
     $(id).addClass("disabled");
   else
@@ -228,10 +238,9 @@ function on_ventilation_type_change() {
     } else {
       getChildElement($(this)).hide();
       unrequire_fields(this);
-      // Clear the inputs for this newly hidden child element.
+
+      // Clear inputs for this newly hidden child element.
       getChildElement($(this)).find('input').not('input[type=radio]').val('');
-      getChildElement($(this)).find('input[type=radio]').prop("checked", false);
-      getChildElement($(this)).find('input').prop("required", false);
     }
   });
 }
@@ -259,74 +268,27 @@ function show_disclaimer() {
   }
 }
 
-$(".has_radio").on('click', function(event){
-  click_radio(this.id);
+$("[data-has-radio]").on('click', function(event){
+  $($(this).data("has-radio")).click();
 });
 
-$(".has_radio").on('change', function(event){
-  click_radio(this.id);
+$("[data-has-radio]").on('change', function(event){
+  $($(this).data("has-radio")).click();
 });
-
-function click_radio(id) {
-  switch (id) {
-    case "room_volume":
-      $("#room_type_volume").click();
-      break;
-    case "floor_area":
-    case "ceiling_height":
-      $("#room_type_dimensions").click();
-      break;
-    case "air_supply":
-      $("#air_type_supply").click();
-      break;
-    case "air_changes": 
-      $("#air_type_changes").click();
-      break;
-    case "window_width": 
-      $("#window_hinged").click();
-      break;
-    case "hepa_amount":
-      $("#hepa_yes").click();
-      break;
-    case "single_event_date":
-      $("#event_type_single").click();
-      break;
-    case "recurrent_event_month":
-      $("#event_type_recurrent").click();
-      break;
-    default:
-      break;
-  }
-}
 
 /* -------Form validation------- */
 function validate_form(form) {
   var submit = true;
 
-  //Validate all non zero values
-  $("input[required].non_zero").each(function() {
-    if (!validateValue(this)) {
+  // Activity times and lunch break times are co-dependent
+  // -> So if 1 fails it doesn't make sense to check the rest
+
+  //Validate all finish times
+  $("input[required].finish_time").each(function() {
+    if (!validateFinishTime(this)) {
       submit = false;
     }
   });
-
-  //Validate all dates
-  if (submit) {
-    $("input[required].datepicker").each(function() {
-      if (!validateDate(this)) {
-        submit = false;
-      }
-    });
-  }
-
-  //Validate all times
-  if (submit) {
-    $("input[required].finish_time").each(function() {
-      if (!validateFinishTime(this)) {
-        submit = false;
-      }
-    });
-  }
 
   //Validate all lunch breaks
   if (submit) {
@@ -337,7 +299,7 @@ function validate_form(form) {
     });
   }
 
-  //Check if breaks length >= activity length
+  //Validate breaks length < activity length
   if (submit) {
     var activityBreaksObj= document.getElementById("activity_breaks");
     removeErrorFor(activityBreaksObj);
@@ -359,6 +321,32 @@ function validate_form(form) {
 
     if ((lunch_mins + coffee_mins) >= activity_mins) {
       insertErrorFor(activityBreaksObj, "Length of breaks >= Length of activity");
+      submit = false;
+    }
+  }
+
+  //Validate all non zero values
+  $("input[required].non_zero").each(function() {
+    if (!validateValue(this)) {
+      submit = false;
+    }
+  });
+
+  //Validate all dates
+  $("input[required].datepicker").each(function() {
+    if (!validateDate(this)) {
+      submit = false;
+    }
+  });
+
+  //Validate window venting duration < venting frequency
+  if (!$("#windows_duration").hasClass("disabled")) {
+    var windowsDurationObj = document.getElementById("windows_duration");
+    var windowsFrequencyObj = document.getElementById("windows_frequency");
+    removeErrorFor(windowsFrequencyObj);
+
+    if (parseInt(windowsDurationObj.value) >= parseInt(windowsFrequencyObj.value)) {
+      insertErrorFor(windowsFrequencyObj, "Duration >= Frequency");
       submit = false;
     }
   }
@@ -487,12 +475,8 @@ $(document).ready(function () {
   // Call the function now to handle forward/back button presses in the browser.
   on_ventilation_type_change();
 
-  //Same for other options
-  require_fields($("input[name='lunch_option']:checked"));
-  require_fields($("input[name='volume_type']:checked"));
-  require_fields($("input[name='mechanical_ventilation_type']:checked"));
-  require_fields($("input[name='window_type']:checked"));
-  require_fields($("input[name='hepa_option']:checked"));
+  //Check all radio buttons previously selected
+  $("input[type=radio]:checked").each(function() {require_fields(this)});
 
   // Setup the maximum number of people at page load (to handle back/forward),
   // and update it when total people is changed.
@@ -517,11 +501,6 @@ $(document).ready(function () {
   $(".start_time[data-lunch-for]").each(function() {validateLunchBreak($(this).data('time-group'))});
   $("[data-lunch-for]").change(function() {validateLunchBreak($(this).data('time-group'))});
   $("[data-lunch-break]").change(function() {validateLunchBreak($(this).data('lunch-break'))});
-
-  var radioValue = $("input[name='event_type']:checked");
-  if (radioValue.val()) {
-    require_fields(radioValue.get(0));
-  }
 });
 
 /* -------Debugging------- */

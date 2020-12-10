@@ -61,10 +61,11 @@ Please enter the number, height and width and opening distance of the windows (i
 If there are multiple windows of different sizes, you should take an average.
 
 The window opening distance (in m) is:
-* In the case of Sliding or Side-Hung option, the length the window is moved open
-* In case of Top- or Bottom-Hung, the distance between the fixed frame and the movable glazed part when open
- Window opening distance example (image of open window and measuring tape):
+* In the case of Sliding or Side-Hung option, the length the window is moved open.
+  _Window opening distance example (image of open window and measuring tape):_
    ![Window Opening Distance](static/images/window_opening.png "How to measure window opening distance")
+* In case of Top- or Bottom-Hung, the distance between the fixed frame and the movable glazed part when open.
+ 
 
  
 **Notes**: If you are unsure about the opening distance for the window, it is recommended to choose a conservative value (5 cms, 0.05m or 10cms, 0.10m).
@@ -72,7 +73,7 @@ If you open the window at different distances throughout the day, choose an aver
 
 When using natural ventilation, the circulation of air is simulated as a function of the difference between the temperature inside the room and the outside air temperature. The average outdoor temperature for each hour of the day has been computed for every month of the year based on historical data for Geneva, Switzerland.
 It is therefore very important to enter the correct time and date in the event data section.
-Finally, you must specify when the windows are open - all the time (always), or for 10 minutes every 2 hours.
+Finally, you must specify if the windows are open permanently (at all the times), or periodically (in intervals for a certain duration and frequency - both in minutes) - e.g. open the window for 10 minutes (duration) every 60 minutes (frequency).
 
 #### No ventilation
 This option assumes there is neither Mechanical nor Natural ventilation in the simulation.

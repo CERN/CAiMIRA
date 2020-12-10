@@ -113,6 +113,29 @@ def minutes_to_time(minutes: int) -> str:
 
     return f"{hour_string}:{minute_string}"
 
+def readable_minutes(minutes: int) -> str:
+
+    time = minutes
+    unit = " minute"
+    if time % 60 == 0:
+        time = minutes/60
+        unit = " hour"
+    if time != 1:
+        unit += "s"
+
+    if time.is_integer():
+        time = "{:0.0f}".format(time)
+    else:
+        time = "{0:.2f}".format(time)
+
+    return time + unit
+
+def non_zero_percentage (percentage: int) -> str:
+
+    if percentage < 0.01:
+        return "<0.01%"
+    else:
+        return "{:0.0f}%".format(percentage)
 
 def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, models.ExposureModel]:
     scenarios = {}
@@ -223,6 +246,8 @@ def build_report(model: models.ExposureModel, form: FormData):
         loader=jinja2.FileSystemLoader([cara_templates, calculator_templates]),
         undefined=jinja2.StrictUndefined,
     )
+    env.filters['non_zero_percentage'] = non_zero_percentage
+    env.filters['readable_minutes'] = readable_minutes
     env.filters['minutes_to_time'] = minutes_to_time
     env.filters['float_format'] = "{0:.2f}".format
     env.filters['int_format'] = "{:0.0f}".format

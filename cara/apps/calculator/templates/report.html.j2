@@ -33,7 +33,7 @@
 	<p class="data_title">Ventilation data:</p>
 	<ul>
 		<li><p class="data_text">Mechanical ventilation:
-		{% if form.ventilation_type == "mechanical"%}
+		{% if form.ventilation_type == "mechanical" %}
 		Yes </p></li>
 		<ul>
 			<li><p class="data_subtext">
@@ -61,7 +61,14 @@
 			Sliding / Side-Hung</p></li>
 			{% endif %}
 			<li><p class="data_subtext">Opening distance: {{ form.opening_distance }} m</p></li>
-			<li><p class="data_subtext">Windows open: {{ form.windows_open }}</p></li>
+			<li><p class="data_subtext">Windows open: 
+			{% if form.windows_open == "interval" %}
+			Periodically for {{ form.windows_duration | readable_minutes}} 
+				every {{ form.windows_frequency | readable_minutes}}
+			{% elif form.windows_open == "always" %}
+			Permanently
+			{% endif %}
+			</p></li>
 		</ul>
 			<p class="data_subtext data_italic">When using the natural ventilation option, air flows are calculated using averaged hourly temperatures for the Geneva region, based on historical data for the month selected.</p>
 		{% else %}
@@ -90,7 +97,7 @@
 		Call Centre = typical office-like scenario with all persons seated, all talking continuously.
 		{% elif form.activity_type == "library" %}
 		Library = Library scenario with all persons seated, breathing and not talking.
-    {% elif form.activity_type == "workshop" %}
+    	{% elif form.activity_type == "workshop" %}
 		Workshop = assembly workshop environment, all persons doing moderate physical activity, talking 50% of the time.
 		{% elif form.activity_type == "training" %}
 		Training – one person (the trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the trainer is the infected person, for the worst case scenario.
@@ -171,7 +178,7 @@
             {% for repeat_event in repeated_events %}
                 <tr>
                     <td>{{ repeat_event.repeats }}</td>
-                    <td>{{ repeat_event.probability_of_infection | int_format }}%</td>
+                    <td>{{ repeat_event.probability_of_infection | non_zero_percentage }}</td>
                     <td style="text-align:right">{{ repeat_event.expected_new_cases | float_format }}</td>
                 </tr>
             {% endfor %}
@@ -194,7 +201,7 @@
             {% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
                 <tr>
                     <td>{{ scenario_name }}</td>
-                    <td>{{ scenario_stats.probability_of_infection | int_format }}%</td>
+                    <td>{{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
                     <td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>
                 </tr>
             {% endfor %}

@@ -1,6 +1,6 @@
 {% extends "layout.html.j2" %}
 
-{% set MODEL_VERSION="v1.1.0" %}
+{% set MODEL_VERSION="v1.2.0" %}
 {% set DEBUG=False %}
 {% set active_page="calculator/" %}
 
@@ -46,12 +46,12 @@
     </div><br>
     <input type="radio" id="room_type_volume" name="volume_type" value="room_volume" onclick="require_fields(this)" tabindex="-1" required>
       <label for="room_type_volume">Room volume:</label> &nbsp;&nbsp;
-    <input type="number" step="any" id="room_volume" class="non_zero has_radio" name="room_volume" placeholder="Room volume (m³)" min="0"><br>
+    <input type="number" step="any" id="room_volume" class="non_zero" name="room_volume" placeholder="Room volume (m³)" min="0" data-has-radio="#room_type_volume"><br>
     <input type="radio" id="room_type_dimensions" name="volume_type" value="room_dimensions" onclick="require_fields(this)" tabindex="-1" required>
       <label for="room_type_dimensions">Floor area:</label> &nbsp;&nbsp;
-    <input type="number" step="any" id="floor_area" class="non_zero has_radio" name="floor_area" placeholder="Room floor area (m²)" min="0"><br>
+    <input type="number" step="any" id="floor_area" class="non_zero" name="floor_area" placeholder="Room floor area (m²)" min="0" data-has-radio="#room_type_dimensions"><br>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <label for="room_type_dimensions">Ceiling height:</label> &nbsp;&nbsp;
-    <input type="number" step="any" id="ceiling_height" class="non_zero has_radio" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0" ><br>
+    <input type="number" step="any" id="ceiling_height" class="non_zero" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0" data-has-radio="#room_type_dimensions"><br>
     <hr width="80%">
 
     <!-- Ventilation Options -->
@@ -62,21 +62,21 @@
     Ventilation type:
     <input type="radio" id="no_ventilation" name="ventilation_type" value="no-ventilation" checked>
       <label for="no_ventilation">No ventilation</label>&nbsp;&nbsp;
-    <input type="radio" id="mechanical" name="ventilation_type" value="mechanical" data-enables="DIVmechanical_ventilation">
+    <input type="radio" id="mechanical" name="ventilation_type" value="mechanical" data-enables="#DIVmechanical_ventilation">
       <label for="mechanical">Mechanical</label>&nbsp;&nbsp;
-    <input type="radio" id="natural" name="ventilation_type" value="natural" data-enables="DIVnatural_ventilation">
+    <input type="radio" id="natural" name="ventilation_type" value="natural" data-enables="#DIVnatural_ventilation">
       <label for="natural">Natural</label><br>
 
-    <div id="DIVmechanical_ventilation" style="display:none">
+    <div id="DIVmechanical_ventilation" class="tabbed" style="display:none">
         <input type="radio" id="air_type_supply" name="mechanical_ventilation_type" value="air_supply" onclick="require_fields(this)" tabindex="-1">
           <label for="air_type_supply">Air supply flow rate</label> &nbsp;&nbsp;
-        <input type="number" step="any" id="air_supply" class="non_zero has_radio" name="air_supply" min="0" placeholder="(m³ / hour)"><br>
+        <input type="number" step="any" id="air_supply" class="non_zero" name="air_supply" min="0" placeholder="(m³ / hour)" data-has-radio="#air_type_supply"><br>
         <input type="radio" id="air_type_changes" name="mechanical_ventilation_type" value="air_changes" onclick="require_fields(this)" tabindex="-1">
           <label for="air_type_changes">Air changes per hour</label> &nbsp;&nbsp;
-        <input type="number" step="any" id="air_changes" class="non_zero has_radio" name="air_changes" min="0" placeholder="(h⁻¹) only fresh air"><br>
+        <input type="number" step="any" id="air_changes" class="non_zero" name="air_changes" min="0" placeholder="(h⁻¹) only fresh air" data-has-radio="#air_type_changes"><br>
     </div>
 
-    <div id="DIVnatural_ventilation" style="display:none">
+    <div id="DIVnatural_ventilation" class="tabbed" style="display:none">
         Number of windows: <input type="number" id="windows_number" class="non_zero" name="windows_number" min="1"><br>
         Height of window: <input type="number" step="any" id="window_height" class="non_zero" name="window_height" placeholder="meters" min="0"><br>
         Window type: 
@@ -84,12 +84,15 @@
           <label for="window_sliding">Sliding / Side-Hung</label>&nbsp;&nbsp;
         <input type="radio" id="window_hinged" name="window_type" value="hinged" onclick="require_fields(this)">
           <label for="window_hinged">Top- or Bottom-Hung</label>&nbsp;&nbsp;<br>
-        Width of window: <input type="number" step="any" id="window_width" class="non_zero has_radio disabled" name="window_width" placeholder="meters" min="0"><br>
+        Width of window: <input type="number" step="any" id="window_width" class="non_zero disabled" name="window_width" placeholder="meters" min="0" data-has-radio="#window_hinged"><br>
         Opening distance: <input type="number" step="any" id="opening_distance" class="non_zero" name="opening_distance" placeholder="meters" min="0"><br>
-        Windows open: <input type="radio" id="always" name="windows_open" value="always">
-                        <label for="always">Always</label> &nbsp;&nbsp;
-                      <input type="radio" id="interval" name="windows_open" value="interval">
-                        <label for="interval">10 min / 2h</label>
+        Windows open:</span><br> 
+        <span class="tabbed"><input type="radio" id="always" name="windows_open" value="always" onclick="require_fields(this)" checked="checked"></span>
+          <label for="always">Permanently</label><br>
+        <span class="tabbed"><input type="radio" id="interval" name="windows_open" value="interval" onclick="require_fields(this)"></span>
+          <label for="interval">Periodically:</label>&nbsp;&nbsp;
+        <input type="number" step="any" id="windows_duration" class="disabled" name="windows_duration" placeholder="Duration (min)" min="1" data-has-radio="#interval"> / 
+        <input type="number" step="any" id="windows_frequency" class="disabled" name="windows_frequency" placeholder="Frequency (min)" min="1" data-has-radio="#interval">
         <br>
     </div>
     
@@ -98,7 +101,7 @@
       <label for="hepa_no">No</label>&nbsp;&nbsp;
     <input type="radio" id="hepa_yes" name="hepa_option" value=1 onclick="require_fields(this)">
       <label for="hepa_yes">Yes</label>&nbsp;&nbsp;
-    <input type="number" step="any" id="hepa_amount" class="non_zero has_radio disabled" name="hepa_amount" placeholder="(m³ / hour)" min="0">
+    <input type="number" step="any" id="hepa_amount" class="non_zero disabled" name="hepa_amount" placeholder="(m³ / hour)" min="0" data-has-radio="#hepa_yes">
     <hr width="80%">
 
     <b>Face masks:</b>
@@ -154,10 +157,10 @@
     <input type="radio" id="event_type_single" name="event_type" value="single_event" onclick="require_fields(this)" tabindex="-1" required>
       <label for="event_type_single">Single event</label> &nbsp;&nbsp;
       <label for="event_type_single">Date: </label>
-    <input type="text" id="single_event_date" class="datepicker has_radio" name="single_event_date" placeholder="dd/mm/yyyy"><br>
+    <input type="text" id="single_event_date" class="datepicker" name="single_event_date" placeholder="dd/mm/yyyy" data-has-radio="#event_type_single"><br>
     <input type="radio" id="event_type_recurrent" name="event_type" value="recurrent_event" onclick="require_fields(this)" tabindex="-1" required>
       <label for="event_type_recurrent">Recurrent usage</label>
-    <select id="recurrent_event_month" name="recurrent_event_month" class="has_radio" >
+    <select id="recurrent_event_month" name="recurrent_event_month" data-has-radio="#event_type_recurrent">
         <option value="January">January</option>
         <option value="February">February</option>
         <option value="March">March</option>
@@ -215,8 +218,8 @@
   This tool simulates the long range airborne spread SARS-CoV-2 virus in a finite volume and estimates the risk of COVID-19 infection. It is based on current scientific data and can be used to compare the effectiveness of different mitigation measures.<br>
   <b>Ventilation data:</b> <br>
   <ul>
-    <li>Mechanical ventilation = check the flow rates with the concerned technical department.</li>
-    <li>Natural ventilation = the type of window. The  opening distance is between the fixed frame and movable part when open (commonly used values are window height = 1.6m and window opening = 0.15m).</li>
+    <li>Mechanical ventilation = the HVAC supply of fresh air. Check the flow rates with the concerned technical department.</li>
+    <li>Natural ventilation = the type of window opening. The opening distance is between the fixed frame and movable part when open (commonly used values are window opening between 0.6 and 0.15 m). In case of periodic opening, specify the duration (e.g. for 10 min) and frequency (e.g. every 60 min).</li>
     <li>HEPA filtration = the air flow of the device. The following values are based on the different fan velocities of a specific commercial device proposed by the HSE Unit:</li>
     <ul>
         <li>Level 6 (max) = 430 m<sup>3</sup>/h (noisy)</li>
