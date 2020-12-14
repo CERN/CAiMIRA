@@ -16,9 +16,8 @@ def baseline_form(baseline_form_data):
 
 
 def test_model_from_dict(baseline_form_data):
-    model = model_generator.FormData.from_dict(baseline_form_data)
-    # TODO:
-    # assert model.ventilation == cara.models.Ventilation()
+    form = model_generator.FormData.from_dict(baseline_form_data)
+    assert isinstance(form.build_model(), models.ExposureModel)
 
 
 def test_blend_expiration():
@@ -156,20 +155,80 @@ def test_exposed_present_intervals(baseline_form):
     baseline_form.activity_finish = 17 * 60
     baseline_form.lunch_start = 12 * 60 + 30
     baseline_form.lunch_finish = 13 * 60 + 30
-    baseline_form.infected_start = 10 * 60
-    baseline_form.infected_finish = 15 * 60
     correct = ((9, 10+37/60), (10+52/60, 12.5), (13.5, 15+7/60), (15+22/60, 17.0))
     assert baseline_form.exposed_present_interval().present_times == correct
+
 
 def test_exposed_present_intervals_starting_with_lunch(baseline_form):
     baseline_form.coffee_breaks = 0
     baseline_form.activity_start = baseline_form.lunch_start = 13 * 60
     baseline_form.activity_finish = 18 * 60
     baseline_form.lunch_finish = 14 * 60
-    baseline_form.infected_start = 9 * 60
-    baseline_form.infected_finish = 13 * 60
     correct = ((14.0, 18.0),)
     assert baseline_form.exposed_present_interval().present_times == correct
+
+
+def test_exposed_present_intervals_ending_with_lunch(baseline_form):
+    baseline_form.coffee_breaks = 0
+    baseline_form.activity_start = 11 * 60
+    baseline_form.activity_finish = baseline_form.lunch_start = 13 * 60
+    baseline_form.lunch_finish = 14 * 60
+    correct = ((11.0, 13.0),)
+    assert baseline_form.exposed_present_interval().present_times == correct
+
+
+def test_exposed_present_lunch_end_before_beginning(baseline_form):
+    baseline_form.coffee_breaks = 0
+    baseline_form.lunch_start = 14 * 60
+    baseline_form.lunch_finish = 13 * 60
+    with pytest.raises(ValueError):
+        baseline_form.validate()
+
+
+@pytest.fixture
+def coffee_break_between_1045_and_1115(baseline_form):
+    baseline_form.coffee_breaks = 1
+    baseline_form.coffee_duration = 30
+    baseline_form.activity_start = 10 * 60
+    baseline_form.activity_finish = 12 * 60
+    baseline_form.lunch_option = False
+
+    coffee_breaks = baseline_form.coffee_break_times()
+    assert coffee_breaks == ((10.75 * 60, 11.25 * 60),)
+    return baseline_form
+
+
+def test_present_before_coffee(coffee_break_between_1045_and_1115):
+    interval = coffee_break_between_1045_and_1115.present_interval(10.5 * 60, 11 * 60)
+    assert interval.boundaries() == ((10.5, 10.75),)
+
+
+def test_present_after_coffee(coffee_break_between_1045_and_1115):
+    interval = coffee_break_between_1045_and_1115.present_interval(11 * 60, 11.5 * 60)
+    assert interval.boundaries() == ((11.25, 11.5),)
+
+
+def test_present_when_coffee_starts(coffee_break_between_1045_and_1115):
+    interval = coffee_break_between_1045_and_1115.present_interval(10.75 * 60, 11.5 * 60)
+    assert interval.boundaries() == ((11.25, 11.5),)
+
+
+def test_present_when_coffee_ends(coffee_break_between_1045_and_1115):
+    interval = coffee_break_between_1045_and_1115.present_interval(10.5 * 60, 11.25 * 60)
+    assert interval.boundaries() == ((10.5, 10.75), )
+
+
+def test_present_only_for_coffee_ends(coffee_break_between_1045_and_1115):
+    interval = coffee_break_between_1045_and_1115.present_interval(10.75 * 60, 11.25 * 60)
+    assert interval.boundaries() == ()
+
+
+def test_no_lunch(baseline_form):
+    baseline_form.lunch_option = False
+    baseline_form.lunch_start = 0
+    baseline_form.lunch_finish = 0
+    baseline_form.validate()
+
 
 def test_coffee_lunch_breaks(baseline_form):
     baseline_form.coffee_duration = 30
@@ -190,7 +249,7 @@ def test_coffee_lunch_breaks_unbalance(baseline_form):
     baseline_form.activity_finish = 13 * 60 + 30
     baseline_form.lunch_start = 12 * 60 + 30
     baseline_form.lunch_finish = 13 * 60 + 30
-    correct = ((9, 9+50/60), (10+20/60, 11+10/60), (11+40/60, 12+30/60) )
+    correct = ((9, 9+50/60), (10+20/60, 11+10/60), (11+40/60, 12+30/60))
     np.testing.assert_allclose(baseline_form.exposed_present_interval().present_times, correct, rtol=1e-14)
 
 

@@ -53,6 +53,8 @@ class FormData:
 
     @classmethod
     def from_dict(cls, form_data: typing.Dict) -> "FormData":
+        # Take a copy of the form data so that we can mutate it.
+        form_data = form_data.copy()
 
         valid_na_values = ['windows_open', 'window_type', 'mechanical_ventilation_type']
         for name in valid_na_values:
@@ -62,26 +64,6 @@ class FormData:
         for name in ['lunch_start', 'lunch_finish']:
             if not form_data.get(name, ''):
                 form_data[name] = '00:00'
-
-        validation_tuples = [('activity_type', ACTIVITY_TYPES),
-                             ('event_type', EVENT_TYPES),
-                             ('mechanical_ventilation_type', MECHANICAL_VENTILATION_TYPES),
-                             ('mask_type', MASK_TYPES),
-                             ('mask_wearing', MASK_WEARING),
-                             ('ventilation_type', VENTILATION_TYPES),
-                             ('volume_type', VOLUME_TYPES),
-                             ('windows_open', WINDOWS_OPEN),
-                             ('window_type', WINDOWS_TYPES)]
-        for key, valid_set in validation_tuples:
-            if key not in form_data:
-                raise ValueError(f"Missing key {key}")
-            if form_data[key] not in valid_set:
-                raise ValueError(f"{form_data[key]} is not a valid value for {key}")
-
-        if (form_data['ventilation_type'] == 'natural' and
-            form_data['window_type'] == 'not-applicable'):
-            raise ValueError("window_type cannot be ''not-applicable'' if "
-                             "ventilation_type is ''natural''")
 
         # Don't let arbitrary unescaped HTML through the net.
         for key, value in form_data.items():
@@ -93,9 +75,22 @@ class FormData:
             if value == "":
                 form_data[key] = "0"
 
-        return cls(
-            activity_finish=time_string_to_minutes(form_data['activity_finish']),
-            activity_start=time_string_to_minutes(form_data['activity_start']),
+        time_attributes = [
+            'activity_start', 'activity_finish', 'lunch_start',
+            'lunch_finish', 'infected_start', 'infected_finish',
+        ]
+        for attr_name in time_attributes:
+            form_data[attr_name] = time_string_to_minutes(form_data[attr_name])
+
+        boolean_attributes = [
+            'hepa_option', 'lunch_option',
+        ]
+        for attr_name in boolean_attributes:
+            form_data[attr_name] = form_data[attr_name] == '1'
+
+        instance = cls(
+            activity_finish=form_data['activity_finish'],
+            activity_start=form_data['activity_start'],
             activity_type=form_data['activity_type'],
             air_changes=float(form_data['air_changes']),
             air_supply=float(form_data['air_supply']),
@@ -105,11 +100,11 @@ class FormData:
             event_type=form_data['event_type'],
             floor_area=float(form_data['floor_area']),
             hepa_amount=float(form_data['hepa_amount']),
-            hepa_option=(form_data['hepa_option'] == '1'),
+            hepa_option=form_data['hepa_option'],
             infected_people=int(form_data['infected_people']),
-            lunch_finish=time_string_to_minutes(form_data['lunch_finish']),
-            lunch_option=(form_data['lunch_option'] == '1'),
-            lunch_start=time_string_to_minutes(form_data['lunch_start']),
+            lunch_finish=form_data['lunch_finish'],
+            lunch_option=form_data['lunch_option'],
+            lunch_start=form_data['lunch_start'],
             mask_type=form_data['mask_type'],
             mask_wearing=form_data['mask_wearing'],
             mechanical_ventilation_type=form_data['mechanical_ventilation_type'],
@@ -130,9 +125,44 @@ class FormData:
             window_width=float(form_data['window_width']),
             windows_number=int(form_data['windows_number']),
             windows_open=form_data['windows_open'],
-            infected_start=time_string_to_minutes(form_data['infected_start']),
-            infected_finish=time_string_to_minutes(form_data['infected_finish']),
+            infected_start=form_data['infected_start'],
+            infected_finish=form_data['infected_finish'],
         )
+        instance.validate()
+        return instance
+
+    def validate(self):
+        time_intervals = [
+            ['activity_start', 'activity_finish'],
+            ['lunch_start', 'lunch_finish'],
+            ['infected_start', 'infected_finish'],
+        ]
+        for start_name, end_name in time_intervals:
+            start = getattr(self, start_name)
+            end = getattr(self, end_name)
+            if start > end:
+                raise ValueError(
+                    f"{start_name} must be less than {end_name}. Got {start} and {end}.")
+
+        validation_tuples = [('activity_type', ACTIVITY_TYPES),
+                             ('event_type', EVENT_TYPES),
+                             ('mechanical_ventilation_type', MECHANICAL_VENTILATION_TYPES),
+                             ('mask_type', MASK_TYPES),
+                             ('mask_wearing', MASK_WEARING),
+                             ('ventilation_type', VENTILATION_TYPES),
+                             ('volume_type', VOLUME_TYPES),
+                             ('windows_open', WINDOWS_OPEN),
+                             ('window_type', WINDOWS_TYPES)]
+        for attr_name, valid_set in validation_tuples:
+            if getattr(self, attr_name) not in valid_set:
+                raise ValueError(f"{getattr(self, attr_name)} is not a valid value for {attr_name}")
+
+        if (
+                self.ventilation_type == 'natural'
+                and self.window_type == 'not-applicable'
+        ):
+            raise ValueError("window_type cannot be 'not-applicable' if "
+                             "ventilation_type is 'natural'")
 
     def build_model(self) -> models.ExposureModel:
         return model_from_form(self)
@@ -320,30 +350,36 @@ class FormData:
         present_intervals = []
         time = start
         is_present = True
+
         while time < finish:
             if is_present:
                 if not leave_times:
+                    # There are no further leave times, so the final interval
+                    # is from the current time to the end.
                     present_intervals.append((time / 60, finish / 60))
                     break
 
-                if leave_times[-1] < time:
-                    leave_times.pop()
+                next_leave_time = leave_times.pop()
+                if next_leave_time > finish:
+                    next_leave_time = finish
+
+                if next_leave_time < time:
+                    # If there is an interval which has been interrupted by the
+                    # end time, we cut it off (e.g. finish happens in the middle
+                    # of a coffee/lunch break).
+                    pass
+                elif time == next_leave_time:
+                    # If the start time and the end time are the same, then
+                    # ignore this interval.
+                    pass
                 else:
-                    new_time = leave_times.pop()
-                    if time / 60 != min(new_time, finish) / 60 :
-                        present_intervals.append((time / 60, min(new_time, finish) / 60))
-                    is_present = False
-                    time = new_time
+                    present_intervals.append((time / 60, next_leave_time / 60))
+                    time = next_leave_time
+                is_present = False
 
             else:
-                if not enter_times:
-                    break
-
-                if enter_times[-1] < time:
-                    enter_times.pop()
-                else:
-                    is_present = True
-                    time = enter_times.pop()
+                is_present = True
+                time = enter_times.pop()
 
         return models.SpecificInterval(tuple(present_intervals))
 
