@@ -107,11 +107,11 @@
 		Gym = For comparison only, all persons doing heavy physical exercise, breathing and not talking.
 		{% endif %}
 		</p></li>
-		<li><p class="data_text">Presence of exposed occupant(s):</p></li>
+		<li><p class="data_text">Exposed occupant(s) activity time:</p></li>
 			<ul>
 				<li><p class="data_subtext">Start time: {{ form.activity_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.activity_finish | minutes_to_time }}</p></li>
 			</ul>
-		<li><p class="data_text">Presence of infected occupant(s):</p></li>
+		<li><p class="data_text">Infected occupant(s) activity time:</p></li>
 		<ul>
 			<li><p class="data_subtext">Start time: {{ form.infected_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.infected_finish | minutes_to_time }}</p></li>
 		</ul>

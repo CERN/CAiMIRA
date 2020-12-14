@@ -292,8 +292,8 @@ function validate_form(form) {
 
   //Validate all lunch breaks
   if (submit) {
-    $("input[required].lunch").each(function() {
-      if (!validateLunchBreak(this)) {
+    $("input[required].start_time[data-lunch-for]").each(function() {
+      if (!validateLunchBreak($(this).data('time-group'))) {
         submit = false;
       }
     });

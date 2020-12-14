@@ -161,6 +161,15 @@ def test_exposed_present_intervals(baseline_form):
     correct = ((9, 10+37/60), (10+52/60, 12.5), (13.5, 15+7/60), (15+22/60, 17.0))
     assert baseline_form.exposed_present_interval().present_times == correct
 
+def test_exposed_present_intervals_starting_with_lunch(baseline_form):
+    baseline_form.coffee_breaks = 0
+    baseline_form.activity_start = baseline_form.lunch_start = 13 * 60
+    baseline_form.activity_finish = 18 * 60
+    baseline_form.lunch_finish = 14 * 60
+    baseline_form.infected_start = 9 * 60
+    baseline_form.infected_finish = 13 * 60
+    correct = ((14.0, 18.0),)
+    assert baseline_form.exposed_present_interval().present_times == correct
 
 def test_coffee_lunch_breaks(baseline_form):
     baseline_form.coffee_duration = 30

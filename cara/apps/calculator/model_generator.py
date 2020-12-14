@@ -326,11 +326,12 @@ class FormData:
                     present_intervals.append((time / 60, finish / 60))
                     break
 
-                if leave_times[-1] <= time:
+                if leave_times[-1] < time:
                     leave_times.pop()
                 else:
                     new_time = leave_times.pop()
-                    present_intervals.append((time / 60, min(new_time, finish) / 60))
+                    if time / 60 != min(new_time, finish) / 60 :
+                        present_intervals.append((time / 60, min(new_time, finish) / 60))
                     is_present = False
                     time = new_time
 
