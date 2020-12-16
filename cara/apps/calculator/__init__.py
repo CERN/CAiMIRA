@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Optional, Awaitable
 
 import jinja2
 import mistune
@@ -7,17 +8,37 @@ from tornado.web import Application, RequestHandler, StaticFileHandler
 
 from . import model_generator
 from .report_generator import build_report
+from .user import AuthenticatedUser, AnonymousUser
 
 
-DEBUG = True
+class BaseRequestHandler(RequestHandler):
+
+    async def prepare(self) -> Optional[Awaitable[None]]:
+        """Called at the beginning of a request before  `get`/`post`/etc."""
+        username = self.request.headers.get("X-ADFS-LOGIN", None)
+        if username:
+            # the following headers must be set when logged in
+            email = self.request.headers["X-ADFS-EMAIL"]
+            firstname = self.request.headers["X-ADFS-FIRSTNAME"]
+            lastname = self.request.headers["X-ADFS-LASTNAME"]
+            fullname = self.request.headers["X-ADFS-FULLNAME"]
+            self.current_user = AuthenticatedUser(
+                username=username,
+                email=email,
+                firstname=firstname,
+                lastname=lastname,
+                fullname=fullname
+            )
+        else:
+            self.current_user = AnonymousUser()
 
 
-class ConcentrationModel(RequestHandler):
+class ConcentrationModel(BaseRequestHandler):
     def post(self):
         requested_model_config = {
             name: self.get_argument(name) for name in self.request.arguments
         }
-        if DEBUG:
+        if self.settings.get("debug", False):
             from pprint import pprint
             pprint(requested_model_config)
 
@@ -26,7 +47,7 @@ class ConcentrationModel(RequestHandler):
         except (KeyboardInterrupt, SystemExit):
             raise
         except Exception as err:
-            if DEBUG:
+            if self.settings.get("debug", False):
                 import traceback
                 print(traceback.format_exc())
             response_json = {'code': 400, 'error': f'Your request was invalid {err}'}
@@ -38,7 +59,7 @@ class ConcentrationModel(RequestHandler):
         self.finish(report)
 
 
-class StaticModel(RequestHandler):
+class StaticModel(BaseRequestHandler):
     def get(self):
         form = model_generator.FormData.from_dict(model_generator.baseline_raw_form_data())
         model = form.build_model()
@@ -46,38 +67,32 @@ class StaticModel(RequestHandler):
         self.finish(report)
 
 
-class LandingPage(RequestHandler):
+class LandingPage(BaseRequestHandler):
     def get(self):
-        import jinja2
-        p = Path(__file__).parent.parent / "templates"
-        env = jinja2.Environment(loader=jinja2.FileSystemLoader(Path(p)))
-        template = env.get_template("index.html.j2")
-        report = template.render(**{})
+        template = self.settings["template_environment"].get_template(
+            "index.html.j2")
+        report = template.render(user=self.current_user)
         self.finish(report)
 
 
-class CalculatorForm(RequestHandler):
+class CalculatorForm(BaseRequestHandler):
     def get(self):
-
-        cara_templates = Path(__file__).parent.parent / "templates"
-        calculator_templates = Path(__file__).parent / "templates"
-        env = jinja2.Environment(
-            loader=jinja2.FileSystemLoader([cara_templates, calculator_templates]),
-        )
-
-        template = self.settings['template_environment'].get_template("calculator.form.html.j2")
-        report = template.render()
+        template = self.settings["template_environment"].get_template(
+            "calculator.form.html.j2")
+        report = template.render(user=self.current_user)
         self.finish(report)
 
 
-class ReadmeHandler(RequestHandler):
+class ReadmeHandler(BaseRequestHandler):
     def get(self):
         template = self.settings['template_environment'].get_template("page.html.j2")
         markdown = (Path(__file__).parent / 'README.md').read_text()
-        self.write(template.render(
+        readme = template.render(
             active_page="calculator/user-guide",
-            contents=mistune.markdown(markdown)),
+            contents=mistune.markdown(markdown),
+            user=self.current_user
         )
+        self.finish(readme)
 
 
 def make_app(debug=False, prefix='/calculator'):
