@@ -378,8 +378,14 @@ class FormData:
                 is_present = False
 
             else:
-                is_present = True
-                time = enter_times.pop()
+                if not enter_times:
+                    break
+
+                if enter_times[-1] < time:
+                    enter_times.pop()
+                else:
+                    is_present = True
+                    time = enter_times.pop()
 
         return models.SpecificInterval(tuple(present_intervals))
 

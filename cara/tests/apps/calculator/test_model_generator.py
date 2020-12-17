@@ -223,11 +223,71 @@ def test_present_only_for_coffee_ends(coffee_break_between_1045_and_1115):
     assert interval.boundaries() == ()
 
 
-def test_no_lunch(baseline_form):
+def time2mins(time: str):
+    # Convert times like "14:30" to decimal, like 14.5 * 60.
+    return int(time.split(':')[0]) * 60 + int(time.split(':')[1])
+
+
+def hours2time(hours: float):
+    # Convert times like 14.5 to strings, like "14:30"
+    return f"{int(np.floor(hours)):02d}:{int(np.round((hours % 1) * 60)):02d}"
+
+
+def assert_boundaries(interval, boundaries_in_time_string_form):
+    boundaries = [(hours2time(start), hours2time(end))
+                  for start, end in interval.boundaries()]
+    assert boundaries == boundaries_in_time_string_form
+
+
+@pytest.fixture
+def breaks_every_25_mins_for_20_mins(baseline_form):
+    baseline_form.coffee_breaks = 4
+    baseline_form.coffee_duration = 20
+    baseline_form.activity_start = time2mins("10:00")
+    baseline_form.activity_finish = time2mins("14:10")
+    baseline_form.lunch_start = time2mins("11:55")
+    baseline_form.lunch_finish = time2mins("12:15")
+    baseline_form.lunch_option = True
+
+    interval = baseline_form.present_interval(
+        baseline_form.activity_start, baseline_form.activity_finish
+    )
+
+    assert_boundaries(interval, [
+        ('10:00', '10:25'),
+        ('10:45', '11:10'),
+        ('11:30', '11:55'),
+        ('12:15', '12:40'),
+        ('13:00', '13:25'),
+        ('13:45', '14:10')
+    ])
+    return baseline_form
+
+
+def test_present_after_two_breaks_for_small_interval(breaks_every_25_mins_for_20_mins):
+    # The first two breaks start at 10:25 and 11:10.
+    interval = breaks_every_25_mins_for_20_mins.present_interval(
+        time2mins("11:35"), time2mins("11:40")
+    )
+    # Only present for a short duration of a presence period.
+    assert_boundaries(interval, [('11:35', '11:40')])
+
+
+def test_present_only_during_second_break(breaks_every_25_mins_for_20_mins):
+    # The first two breaks start at 10:25 and 11:10.
+    interval = breaks_every_25_mins_for_20_mins.present_interval(
+        time2mins("11:15"), time2mins("11:20")
+    )
+    # No presence.
+    assert_boundaries(interval, [])
+
+
+def test_valid_no_lunch(baseline_form):
+    # Check that it is valid to have a 0 length lunch if no lunch is selected.
     baseline_form.lunch_option = False
     baseline_form.lunch_start = 0
     baseline_form.lunch_finish = 0
-    baseline_form.validate()
+    assert baseline_form.validate() is None
 
 
 def test_coffee_lunch_breaks(baseline_form):
