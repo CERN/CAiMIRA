@@ -349,14 +349,6 @@ class FormData:
 
         """
         if not breaks:
-            breaks = []
-            if self.lunch_option:
-                breaks.append((self.lunch_start, self.lunch_finish))
-
-            for coffee_start, coffee_end in self.coffee_break_times():
-                breaks.append((coffee_start, coffee_end))
-
-        if not breaks:
             # If there are no breaks, the interval is the start and end.
             return models.SpecificInterval(((start, finish),))
 
@@ -389,7 +381,7 @@ class FormData:
         # we must cover. Let S=start; E=end; Bs=Break start; Be=Break end:
         #  1. The interval is entirely before the break. S < E <= Bs < Be
         #  2. The interval straddles the start of the break. S < Bs < E <= Be
-        #  3. The break is entirely inside the interval. S < Bs < Be < E
+        #  3. The break is entirely inside the interval. S < Bs < Be <= E
         #  4. The interval is entirely inside the break. Bs <= S < E <= Be
         #  5. The interval straddles the end of the break. Bs <= S < Be <= E
         #  6. The interval is entirely after the break. Bs < Be <= S < E

@@ -199,27 +199,37 @@ def coffee_break_between_1045_and_1115(baseline_form):
 
 
 def test_present_before_coffee(coffee_break_between_1045_and_1115):
-    interval = coffee_break_between_1045_and_1115.present_interval(10.5 * 60, 11 * 60)
+    breaks = coffee_break_between_1045_and_1115.coffee_break_times()
+    interval = coffee_break_between_1045_and_1115.present_interval(
+        10.5 * 60, 11 * 60, breaks=breaks)
     assert interval.boundaries() == ((10.5, 10.75),)
 
 
 def test_present_after_coffee(coffee_break_between_1045_and_1115):
-    interval = coffee_break_between_1045_and_1115.present_interval(11 * 60, 11.5 * 60)
+    breaks = coffee_break_between_1045_and_1115.coffee_break_times()
+    interval = coffee_break_between_1045_and_1115.present_interval(
+        11 * 60, 11.5 * 60, breaks=breaks)
     assert interval.boundaries() == ((11.25, 11.5),)
 
 
 def test_present_when_coffee_starts(coffee_break_between_1045_and_1115):
-    interval = coffee_break_between_1045_and_1115.present_interval(10.75 * 60, 11.5 * 60)
+    breaks = coffee_break_between_1045_and_1115.coffee_break_times()
+    interval = coffee_break_between_1045_and_1115.present_interval(
+        10.75 * 60, 11.5 * 60, breaks=breaks)
     assert interval.boundaries() == ((11.25, 11.5),)
 
 
 def test_present_when_coffee_ends(coffee_break_between_1045_and_1115):
-    interval = coffee_break_between_1045_and_1115.present_interval(10.5 * 60, 11.25 * 60)
+    breaks = coffee_break_between_1045_and_1115.coffee_break_times()
+    interval = coffee_break_between_1045_and_1115.present_interval(
+        10.5 * 60, 11.25 * 60, breaks=breaks)
     assert interval.boundaries() == ((10.5, 10.75), )
 
 
 def test_present_only_for_coffee_ends(coffee_break_between_1045_and_1115):
-    interval = coffee_break_between_1045_and_1115.present_interval(10.75 * 60, 11.25 * 60)
+    breaks = coffee_break_between_1045_and_1115.coffee_break_times()
+    interval = coffee_break_between_1045_and_1115.present_interval(
+        10.75 * 60, 11.25 * 60, breaks=breaks)
     assert interval.boundaries() == ()
 
 
@@ -249,8 +259,9 @@ def breaks_every_25_mins_for_20_mins(baseline_form):
     baseline_form.lunch_finish = time2mins("12:15")
     baseline_form.lunch_option = True
 
+    breaks = baseline_form.coffee_break_times() + baseline_form.lunch_break_times()
     interval = baseline_form.present_interval(
-        baseline_form.activity_start, baseline_form.activity_finish
+        baseline_form.activity_start, baseline_form.activity_finish, breaks=breaks,
     )
 
     assert_boundaries(interval, [
@@ -265,18 +276,20 @@ def breaks_every_25_mins_for_20_mins(baseline_form):
 
 
 def test_present_after_two_breaks_for_small_interval(breaks_every_25_mins_for_20_mins):
+    breaks = breaks_every_25_mins_for_20_mins.coffee_break_times() + breaks_every_25_mins_for_20_mins.lunch_break_times()
     # The first two breaks start at 10:25 and 11:10.
     interval = breaks_every_25_mins_for_20_mins.present_interval(
-        time2mins("11:35"), time2mins("11:40")
+        time2mins("11:35"), time2mins("11:40"), breaks=breaks,
     )
     # Only present for a short duration of a presence period.
     assert_boundaries(interval, [('11:35', '11:40')])
 
 
 def test_present_only_during_second_break(breaks_every_25_mins_for_20_mins):
+    breaks = breaks_every_25_mins_for_20_mins.coffee_break_times() + breaks_every_25_mins_for_20_mins.lunch_break_times()
     # The first two breaks start at 10:25 and 11:10.
     interval = breaks_every_25_mins_for_20_mins.present_interval(
-        time2mins("11:15"), time2mins("11:20")
+        time2mins("11:15"), time2mins("11:20"), breaks=breaks
     )
     # No presence.
     assert_boundaries(interval, [])
