@@ -31,6 +31,7 @@
 {% else %}
 <form id="covid_calculator" name="covid_calculator" action="/calculator/report" onsubmit="return validate_form(this)" method="POST">
 {% endif %}
+{{ xsrf_form_html }}
 
 <input type="hidden" name="model_version" value={{ MODEL_VERSION }}>
 
