@@ -1,3 +1,4 @@
+import html
 import json
 from pathlib import Path
 from typing import Optional, Awaitable
@@ -50,7 +51,7 @@ class ConcentrationModel(BaseRequestHandler):
             if self.settings.get("debug", False):
                 import traceback
                 print(traceback.format_exc())
-            response_json = {'code': 400, 'error': f'Your request was invalid {err}'}
+            response_json = {'code': 400, 'error': f'Your request was invalid {html.escape(str(err))}'}
             self.set_status(400)
             self.finish(json.dumps(response_json))
             return
@@ -79,7 +80,10 @@ class CalculatorForm(BaseRequestHandler):
     def get(self):
         template = self.settings["template_environment"].get_template(
             "calculator.form.html.j2")
-        report = template.render(user=self.current_user)
+        report = template.render(
+            user=self.current_user,
+            xsrf_form_html=self.xsrf_form_html(),
+        )
         self.finish(report)
 
 
@@ -118,4 +122,5 @@ def make_app(debug=False, prefix='/calculator'):
         urls,
         debug=debug,
         template_environment=template_environment,
+        xsrf_cookies=True,
     )
