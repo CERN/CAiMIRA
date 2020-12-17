@@ -380,6 +380,8 @@ class FormData:
             # Convert times like 14.5 to strings, like "14:30"
             return f"{int(np.floor(hours)):02d}:{int(np.round((hours % 1) * 60)):02d}"
 
+        # def add_interval(start, end):
+
         current_time = start
         LOG.debug(f"starting time march at {hours2time(current_time/60)} to {hours2time(finish/60)}")
 
@@ -389,176 +391,56 @@ class FormData:
         #  2. The interval straddles the start of the break. S < Bs < E <= Be
         #  3. The break is entirely inside the interval. S < Bs < Be < E
         #  4. The interval is entirely inside the break. Bs <= S < E <= Be
-        #  5. The interval straddles the end of the break. Bs < S <= Be <= E
+        #  5. The interval straddles the end of the break. Bs <= S < Be <= E
         #  6. The interval is entirely after the break. Bs < Be <= S < E
 
         for current_break in breaks:
-            LOG.debug(f"handling break {hours2time(current_break[0]/60)}-{hours2time(current_break[1]/60)} "
-                      f" (current time: {hours2time(current_time/60)})")
-
-            if current_time == current_break[0]:
-                # For the special case of the marching time being exactly at
-                # the start of the next break, skip this break and move the
-                # current time to the end of the break.
-                current_time = current_break[1]
-                LOG.debug(f"skipping break: it starts at the same time as the current time")
-                continue
-
             if current_time >= finish:
                 break
 
-            break_s, break_e = current_break[0], current_break[1]
-            case1 = finish <= break_s
-            case2 = current_time < break_s < finish <= break_e
-            case3 = current_time <= break_s < break_e <= finish
-            case4 = break_s <= current_time < finish <= break_e
-            case5 = break_s < current_time <= break_e <= finish
-            case6 = break_e <= current_time
+            LOG.debug(f"handling break {hours2time(current_break[0]/60)}-{hours2time(current_break[1]/60)} "
+                      f" (current time: {hours2time(current_time/60)})")
 
-            # LOG.debug(current_time <= break_s)
-            # LOG.debug(break_e <= finish)
-            # LOG.debug(", ".join(str(i) for i in [case1, case2, case3, case4, case5, case6]))
-            assert any([case1, case2, case3, case4, case5, case6])
+            break_s, break_e = current_break
+            case1 = finish <= break_s
+            case2 = current_time < break_s < finish < break_e
+            case3 = current_time < break_s < break_e <= finish
+            case4 = break_s <= current_time < finish <= break_e
+            case5 = break_s <= current_time < break_e < finish
+            case6 = break_e <= current_time
 
             if case1:
                 LOG.debug(f"case 1: interval entirely before break")
                 present_intervals.append((current_time / 60, finish / 60))
+                LOG.debug(f" + added interval {hours2time(present_intervals[-1][0])} "
+                          f"- {hours2time(present_intervals[-1][1])}")
                 current_time = finish
             elif case2:
                 LOG.debug(f"case 2: interval straddles start of break")
                 present_intervals.append((current_time / 60, break_s / 60))
+                LOG.debug(f" + added interval {hours2time(present_intervals[-1][0])} "
+                          f"- {hours2time(present_intervals[-1][1])}")
                 current_time = break_e
             elif case3:
                 LOG.debug(f"case 3: break entirely inside interval")
                 # We add the bit before the break, but not the bit afterwards,
                 # as it may hit another break.
                 present_intervals.append((current_time / 60, break_s / 60))
+                LOG.debug(f" + added interval {hours2time(present_intervals[-1][0])} "
+                          f"- {hours2time(present_intervals[-1][1])}")
                 current_time = break_e
             elif case4:
                 LOG.debug(f"case 4: interval entirely inside break")
                 current_time = finish
             elif case5:
-                LOG.debug(f"case 4: interval straddles end of break")
+                LOG.debug(f"case 5: interval straddles end of break")
                 current_time = break_e
             elif case6:
-                LOG.debug(f"case 4: interval entirely after the break")
-
-            continue
-
-            current_time_before_break = current_time < current_break[0]
-            current_time_inside_break = current_break[0] <= current_time < current_break[1]
-            finish_inside_break = current_break[0] <= finish < current_break[1]
-            break_ends_after_finish = finish < current_break[1]
-            break_starts_before_finish = current_break[0] < finish
-
-            if current_time_inside_break:
-                # If the current time is in the break, we mustn't add it.
-                # If the break ends after the finish time then we move the current
-                # time to the finish, and no more breaks will be added.
-                # Otherwise we move the current time forwards to the end of the
-                # break.
-                if break_ends_after_finish:
-                    LOG.debug(f"skipping break: start is in the break and the finish occurs before the end of the break")
-                    current_time = finish
-                else:
-                    LOG.debug(f"skipping break: finishes before the current time")
-                    current_time = current_break[1]
-                continue
-            elif current_time_before_break:
-                presence_start = current_time
-                presence_end = current_break[0]
-                if break_starts_before_finish:
-                    #
-                    current_time = current_break[1]
-                else:
-                    # If we are supposed to finish before the end of this break
-                    # then move the finish forwards to the start of the break.
-                    if not finish_inside_break:
-                        LOG.debug(f"break covers the finish time: moving the finish to the beginning of the break")
-                        presence_end = finish
-                    current_time = finish
-
-                if presence_start < presence_end:
-                    # If the break starts within the current time and the end time, then we include it.
-                    LOG.debug(f"break added {hours2time(presence_start/60)} {hours2time(presence_end/60)}")
-                    present_intervals.append((presence_start / 60, presence_end / 60))
-            else:
-                LOG.debug("skipping break: it starts after the current time")
+                LOG.debug(f"case 6: interval entirely after the break")
 
         if current_time < finish:
-            LOG.debug("end added")
+            LOG.debug("trailing interval")
             present_intervals.append((current_time / 60, finish / 60))
-
-        return models.SpecificInterval(tuple(present_intervals))
-
-        # If the start happens before the first break, then insert a break
-        # just before the start.
-        first_break = breaks[0]
-        if start < first_break[0]:
-            breaks.insert(0, (start, start))
-        # If the end happens after the last break, then insert a break
-        # just after the finish.
-        last_break = breaks[-1]
-        if finish > last_break[1]:
-            breaks.append((finish, finish))
-
-        # We now know that there are breaks before and after our desired interval, so now step through each break,
-        # and determine the periods that we have presence.
-        prev_break = breaks[0]
-        for break_start, break_end in breaks[1:]:
-            if prev_break[0] >= start and break_end <= finish:
-                present_intervals.append((prev_break[0] / 60, break_end / 60))
-        return models.SpecificInterval(tuple(present_intervals))
-
-
-        # These lists represent the times where the infected person leaves or enters the room, respectively, sorted in
-        # reverse order. Note that these lists allows the person to "leave" when they should not even be present in the
-        # room. The following loop handles this.
-        leave_times.sort(reverse=True)
-        enter_times.sort(reverse=True)
-
-        # This loop iterates through the lists above, populating present_intervals with (enter, leave) intervals
-        # representing the infected person entering and leaving the room. Note that if one of the evenly spaced coffee-
-        # breaks happens to coincide with the lunch-break, it is simply ignored.
-        present_intervals = []
-        time = start
-        is_present = True
-
-        while time < finish:
-            if is_present:
-                if not leave_times:
-                    # There are no further leave times, so the final interval
-                    # is from the current time to the end.
-                    present_intervals.append((time / 60, finish / 60))
-                    break
-
-                next_leave_time = leave_times.pop()
-                if next_leave_time > finish:
-                    next_leave_time = finish
-
-                if next_leave_time < time:
-                    # If there is an interval which has been interrupted by the
-                    # end time, we cut it off (e.g. finish happens in the middle
-                    # of a coffee/lunch break).
-                    pass
-                elif time == next_leave_time:
-                    # If the start time and the end time are the same, then
-                    # ignore this interval.
-                    pass
-                else:
-                    present_intervals.append((time / 60, next_leave_time / 60))
-                    time = next_leave_time
-                is_present = False
-
-            else:
-                if not enter_times:
-                    break
-
-                if enter_times[-1] < time:
-                    enter_times.pop()
-                else:
-                    is_present = True
-                    time = enter_times.pop()
 
         return models.SpecificInterval(tuple(present_intervals))
 
