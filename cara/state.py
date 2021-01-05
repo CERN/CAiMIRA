@@ -122,7 +122,7 @@ class DataclassInstanceState(DataclassState[Datamodel_T]):
 
     """
 
-    def __init__(self, dataclass: Datamodel_T, state_builder=StateBuilder()):
+    def __init__(self, dataclass: typing.Type[Datamodel_T], state_builder=StateBuilder()):
         super().__init__(state_builder=state_builder)
 
         # Note that the constructor does *not* insert any data by default. It
@@ -138,7 +138,7 @@ class DataclassInstanceState(DataclassState[Datamodel_T]):
             self._base = dataclass
             #: The actual instance type that this state represents (i.e. may be a
             #: subclass of _base).
-            self._instance_type = dataclass
+            self._instance_type: typing.Type[Datamodel_T] = dataclass
 
             #: The instance of dataclass which this state represents. Undefined until
             #: sufficient data is provided.
@@ -278,18 +278,18 @@ class DataclassStatePredefined(DataclassInstanceState[Datamodel_T]):
 
     """
     def __init__(self,
-                 dataclass: Datamodel_T,
+                 dataclass: typing.Type[Datamodel_T],
                  choices: typing.Dict[str, Datamodel_T],
                  **kwargs,
                  ):
         super().__init__(dataclass=dataclass, **kwargs)
 
-        # Pick the first choice until we know otherwise.
-        default_selection = list(choices.keys())[0]
         with self._object_setattr():
             self._choices = choices
-            self._selected: str = default_selection
+            self._selected: str = None  # type: ignore
 
+        # Pick the first choice until we know otherwise.
+        default_selection = list(choices.keys())[0]
         self.dcs_select(default_selection)
 
     def dcs_select(self, name: str):
@@ -319,16 +319,17 @@ class DataclassStateNamed(DataclassState[Datamodel_T]):
 
     """
     def __init__(self,
-                 states: typing.Dict[str, DataclassState],
+                 states: typing.Dict[str, DataclassState[Datamodel_T]],
                  **kwargs
                  ):
         # TODO: This is effectively a container type. We shouldn't use the standard constructor for this.
         enabled = list(states.keys())[0]
+        t = states[enabled]
         super().__init__(**kwargs)
 
         with self._object_setattr():
             self._states = states.copy()
-            self._selected: str = enabled
+            self._selected: str = None  # type: ignore
         # Pick the first choice until we know otherwise.
         self.dcs_select(enabled)
 

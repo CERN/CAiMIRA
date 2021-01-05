@@ -191,7 +191,7 @@ class ExposureComparissonResult(View):
 
     def scenarios_updated(self, scenarios: typing.Sequence[ScenarioType], _):
         updated_labels, updated_models = zip(*scenarios)
-        conc_models: typing.Tuple[models.ConcentrationModel, ...] = tuple(
+        conc_models = tuple(
             model.concentration_model.dcs_instance() for model in updated_models
         )
         self.update_plot(conc_models, updated_labels)
@@ -268,12 +268,14 @@ class ModelWidgets(View):
 
         outside_temp.observe(outsidetemp_change, names=['value'])
         auto_width = widgets.Layout(width='auto')
-        return WidgetGroup((
+        return WidgetGroup(
             (
-                widgets.Label('Outside temperature (℃)', layout=auto_width,),
-                outside_temp,
+                (
+                    widgets.Label('Outside temperature (℃)', layout=auto_width,),
+                    outside_temp,
+                ),
             ),
-        ))
+        )
 
     def _build_window(self, node) -> WidgetGroup:
         period = widgets.IntSlider(value=node.active.period, min=0, max=240)
@@ -314,24 +316,26 @@ class ModelWidgets(View):
         toggle_outsidetemp(outsidetemp_w.value)
 
         auto_width = widgets.Layout(width='auto')
-        result = WidgetGroup((
+        result = WidgetGroup(
             (
-                widgets.Label('Interval between openings (minutes)', layout=auto_width),
-                period,
+                (
+                    widgets.Label('Interval between openings (minutes)', layout=auto_width),
+                    period,
+                ),
+                (
+                    widgets.Label('Duration of opening (minutes)', layout=auto_width),
+                    interval,
+                ),
+                (
+                    widgets.Label('Inside temperature (℃)', layout=auto_width),
+                    inside_temp,
+                ),
+                (
+                    widgets.Label('Outside temperature scheme', layout=auto_width),
+                    outsidetemp_w,
+                ),
             ),
-            (
-                widgets.Label('Duration of opening (minutes)', layout=auto_width),
-                interval,
-            ),
-            (
-                widgets.Label('Inside temperature (℃)', layout=auto_width),
-                inside_temp,
-            ),
-            (
-                widgets.Label('Outside temperature scheme', layout=auto_width),
-                outsidetemp_w,
-            )
-        ))
+        )
         for sub_group in outsidetemp_widgets.values():
             result.add_pairs(sub_group.pairs())
         return result
@@ -364,7 +368,7 @@ class ModelWidgets(View):
         return WidgetGroup(
             (
                 (widgets.Label("Month"), month_choice),
-            )
+            ),
         )
 
     def _build_activity(self, node):
@@ -414,7 +418,13 @@ class ModelWidgets(View):
             [[widgets.Label("Expiration"), expiration_choice]]
         )
 
-    def _build_ventilation(self, node):
+    def _build_ventilation(
+            self,
+            node: typing.Union[
+                state.DataclassStateNamed[models.Ventilation],
+                state.DataclassStateNamed[models.MultipleVentilation],
+            ],
+    ) -> widgets.Widget:
         ventilation_widgets = {
             'Natural': self._build_window(node._states['Natural']).build(),
             'Mechanical': self._build_mechanical(node._states['Mechanical']),
@@ -479,13 +489,17 @@ baseline_model = models.ExposureModel(
 
 
 class CARAStateBuilder(state.StateBuilder):
+    # Note: The methods in this class must correspond to the *type* of the data classes.
+    # For example, build_type__VentilationBase is called when dealing with ConcentrationModel
+    # types as it has a ventilation: _VentilationBase field.
+
     def build_type_Mask(self, _: dataclasses.Field):
         return state.DataclassStatePredefined(
-            dataclass=models.Mask,
+            models.Mask,
             choices=models.Mask.types,
         )
 
-    def build_type_Ventilation(self, _: dataclasses.Field):
+    def build_type__VentilationBase(self, _: dataclasses.Field):
         s: state.DataclassStateNamed = state.DataclassStateNamed(
             states={
                 'Natural': self.build_generic(models.WindowOpening),
@@ -526,7 +540,7 @@ class ExpertApplication(Controller):
         )
         self.add_scenario('Scenario 1')
 
-    def build_new_model(self):
+    def build_new_model(self) -> state.DataclassInstanceState[models.ExposureModel]:
         default_model = state.DataclassInstanceState(
             models.ExposureModel,
             state_builder=CARAStateBuilder(),

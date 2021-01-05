@@ -111,24 +111,29 @@ class PiecewiseConstant:
     def interval(self) -> Interval:
         # build an Interval object
         present_times = []
-        for t1,t2,value in zip(self.transition_times[:-1],
-                               self.transition_times[1:],self.values):
+        for t1, t2, value in zip(self.transition_times[:-1],
+                                 self.transition_times[1:], self.values):
             if value:
                 present_times.append((t1,t2))
         return SpecificInterval(present_times=tuple(present_times))
 
-    def refine(self,refine_factor=10):
+    def refine(self, refine_factor=10):
         # build a new PiecewiseConstant object with a refined mesh,
         # using a linear interpolation in-between the initial mesh points
-        refined_times = np.linspace(self.transition_times[0],self.transition_times[-1],
-                                    (len(self.transition_times)-1)*refine_factor+1)
-        return PiecewiseConstant(tuple(refined_times),
-                tuple(np.interp(refined_times[:-1],self.transition_times,
-                                self.values+(self.values[-1],) ) ) )
+        refined_times = np.linspace(self.transition_times[0], self.transition_times[-1],
+                                    (len(self.transition_times)-1) * refine_factor+1)
+        return PiecewiseConstant(
+            tuple(refined_times),
+            tuple(np.interp(
+                refined_times[:-1],
+                self.transition_times,
+                self.values + (self.values[-1], ),
+            )),
+        )
 
 
 @dataclass(frozen=True)
-class Ventilation:
+class _VentilationBase:
     """
     Represents a mechanism by which air can be exchanged (replaced/filtered)
     in a time dependent manner.
@@ -139,11 +144,8 @@ class Ventilation:
     mechanical air exchange through a filter.
 
     """
-    #: The times at which the air exchange is taking place.
-    active: Interval
-
     def transition_times(self) -> typing.Set[float]:
-        return self.active.transition_times()
+        raise NotImplementedError("Subclass must implement")
 
     def air_exchange(self, room: Room, time: float) -> float:
         """
@@ -159,7 +161,16 @@ class Ventilation:
 
 
 @dataclass(frozen=True)
-class MultipleVentilation:
+class Ventilation(_VentilationBase):
+    #: The interval in which the ventilation is active.
+    active: Interval
+
+    def transition_times(self) -> typing.Set[float]:
+        return self.active.transition_times()
+
+
+@dataclass(frozen=True)
+class MultipleVentilation(_VentilationBase):
     """
     Represents a mechanism by which air can be exchanged (replaced/filtered)
     in a time dependent manner.
@@ -167,7 +178,7 @@ class MultipleVentilation:
     Group together different sources of ventilations.
 
     """
-    ventilations: typing.Tuple[Ventilation, ...]
+    ventilations: typing.Tuple[_VentilationBase, ...]
 
     def transition_times(self) -> typing.Set[float]:
         transitions = set()
@@ -180,7 +191,7 @@ class MultipleVentilation:
         Returns the rate at which air is being exchanged in the given room
         at a given time (in hours).
         """
-        return sum([ventilation.air_exchange(room,time)
+        return sum([ventilation.air_exchange(room, time)
                     for ventilation in self.ventilations])
 
 
@@ -551,7 +562,7 @@ class InfectedPopulation(Population):
 @dataclass(frozen=True)
 class ConcentrationModel:
     room: Room
-    ventilation: typing.Union[Ventilation, MultipleVentilation]
+    ventilation: _VentilationBase
     infected: InfectedPopulation
 
     @property

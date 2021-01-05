@@ -1,7 +1,6 @@
 import html
 import json
 from pathlib import Path
-from typing import Coroutine, Any, Optional, Awaitable
 
 import jinja2
 import mistune

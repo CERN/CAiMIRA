@@ -171,7 +171,7 @@ class FormData:
     def build_model(self) -> models.ExposureModel:
         return model_from_form(self)
 
-    def ventilation(self) -> typing.Union[models.Ventilation, models.MultipleVentilation]:
+    def ventilation(self) -> models._VentilationBase:
         always_on = models.PeriodicInterval(period=120, duration=120)
         # Initializes a ventilation instance as a window if 'natural' is selected, or as a HEPA-filter otherwise
         if self.ventilation_type == 'natural':
@@ -344,7 +344,7 @@ class FormData:
             self,
             start: int,
             finish: int,
-            breaks: typing.Tuple[typing.Tuple[int, int], ...] = None,
+            breaks: typing.Optional[models.BoundarySequence_t] = None,
     ) -> models.Interval:
         """
         Calculate the presence interval given the start and end times (in minutes), and
@@ -357,14 +357,14 @@ class FormData:
 
         # Order the breaks by their start-time, and ensure that they are monotonic
         # and that the start of one break happens after the end of another.
-        breaks = sorted(breaks, key=lambda break_pair: break_pair[0])
+        break_boundaries: models.BoundarySequence_t = tuple(sorted(breaks, key=lambda break_pair: break_pair[0]))
 
-        for break_start, break_end in breaks:
+        for break_start, break_end in break_boundaries:
             if break_start >= break_end:
                 raise ValueError("Break ends before it begins.")
 
-        prev_break_end = breaks[0][1]
-        for break_start, break_end in breaks[1:]:
+        prev_break_end = break_boundaries[0][1]
+        for break_start, break_end in break_boundaries[1:]:
             if prev_break_end >= break_start:
                 raise ValueError(f"A break starts before another ends ({break_start}, {break_end}, {prev_break_end}).")
             prev_break_end = break_end
@@ -389,7 +389,7 @@ class FormData:
         #  5. The interval straddles the end of the break. Bs <= S < Be <= E
         #  6. The interval is entirely after the break. Bs < Be <= S < E
 
-        for current_break in breaks:
+        for current_break in break_boundaries:
             if current_time >= finish:
                 break
 
