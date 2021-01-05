@@ -481,12 +481,12 @@ baseline_model = models.ExposureModel(
 class CARAStateBuilder(state.StateBuilder):
     def build_type_Mask(self, _: dataclasses.Field):
         return state.DataclassStatePredefined(
-            models.Mask,
+            dataclass=models.Mask,
             choices=models.Mask.types,
         )
 
     def build_type_Ventilation(self, _: dataclasses.Field):
-        s = state.DataclassStateNamed(
+        s: state.DataclassStateNamed = state.DataclassStateNamed(
             states={
                 'Natural': self.build_generic(models.WindowOpening),
                 'Mechanical': self.build_generic(models.HVACMechanical),
