@@ -278,7 +278,7 @@ class DataclassStatePredefined(DataclassInstanceState):
     """
     def __init__(self,
                  dataclass: Datamodel_T,
-                 choices: typing.Dict[typing.Hashable, dataclass_instance],
+                 choices: typing.Dict[str, dataclass_instance],
                  **kwargs,
                  ):
         super().__init__(dataclass=dataclass, **kwargs)

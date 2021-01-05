@@ -1,7 +1,7 @@
 import html
 import json
 from pathlib import Path
-from typing import Optional, Awaitable
+from typing import Coroutine, Any, Optional, Awaitable
 
 import jinja2
 import mistune
@@ -14,7 +14,7 @@ from .user import AuthenticatedUser, AnonymousUser
 
 class BaseRequestHandler(RequestHandler):
 
-    async def prepare(self) -> Optional[Awaitable[None]]:
+    async def prepare(self):
         """Called at the beginning of a request before  `get`/`post`/etc."""
         username = self.request.headers.get("X-ADFS-LOGIN", None)
         if username:

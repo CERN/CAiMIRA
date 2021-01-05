@@ -171,7 +171,7 @@ class FormData:
     def build_model(self) -> models.ExposureModel:
         return model_from_form(self)
 
-    def ventilation(self) -> models.Ventilation:
+    def ventilation(self) -> typing.Union[models.Ventilation, models.MultipleVentilation]:
         always_on = models.PeriodicInterval(period=120, duration=120)
         # Initializes a ventilation instance as a window if 'natural' is selected, or as a HEPA-filter otherwise
         if self.ventilation_type == 'natural':
@@ -189,10 +189,12 @@ class FormData:
             inside_temp = models.PiecewiseConstant((0, 24), (293,))
             outside_temp = data.GenevaTemperatures[month]
 
+            ventilation: models.Ventilation
             if self.window_type == 'sliding':
                 ventilation = models.SlidingWindow(
                     active=window_interval,
-                    inside_temp=inside_temp, outside_temp=outside_temp,
+                    inside_temp=inside_temp,
+                    outside_temp=outside_temp,
                     window_height=self.window_height,
                     opening_length=self.opening_distance,
                     number_of_windows=self.windows_number,
@@ -200,7 +202,8 @@ class FormData:
             elif self.window_type == 'hinged':
                 ventilation = models.HingedWindow(
                     active=window_interval,
-                    inside_temp=inside_temp, outside_temp=outside_temp,
+                    inside_temp=inside_temp,
+                    outside_temp=outside_temp,
                     window_height=self.window_height,
                     window_width=self.window_width,
                     opening_length=self.opening_distance,
@@ -218,7 +221,7 @@ class FormData:
 
         if self.hepa_option:
             hepa = models.HEPAFilter(active=always_on, q_air_mech=self.hepa_amount)
-            return models.MultipleVentilation((ventilation,hepa))
+            return models.MultipleVentilation((ventilation, hepa))
         else:
             return ventilation
 
@@ -301,7 +304,7 @@ class FormData:
         )
         return exposed
 
-    def _compute_breaks_in_interval(self, start, finish, n_breaks) -> typing.Tuple[typing.Tuple[int, int]]:
+    def _compute_breaks_in_interval(self, start, finish, n_breaks) -> models.BoundarySequence_t:
         break_delay = ((finish - start) - (n_breaks * self.coffee_duration)) // (n_breaks+1)
         break_times = []
         end = start
@@ -311,13 +314,13 @@ class FormData:
             break_times.append((begin, end))
         return tuple(break_times)
 
-    def lunch_break_times(self) -> typing.Tuple[typing.Tuple[int, int]]:
+    def lunch_break_times(self) -> models.BoundarySequence_t:
         result = []
         if self.lunch_option:
             result.append((self.lunch_start, self.lunch_finish))
         return tuple(result)
 
-    def coffee_break_times(self) -> typing.Tuple[typing.Tuple[int, int]]:
+    def coffee_break_times(self) -> models.BoundarySequence_t:
         if not self.coffee_breaks:
             return ()
         if self.lunch_option:
@@ -475,10 +478,10 @@ def expiration_blend(expiration_weights: typing.Dict[models.Expiration, int]) ->
         ejection_factor += np.array(expiration.ejection_factor) * weight
         particle_sizes += np.array(expiration.particle_sizes) * weight
 
-    return models.Expiration(
-        ejection_factor=tuple(ejection_factor/total_weight),
-        particle_sizes=tuple(particle_sizes/total_weight),
-    )
+    r_ejection_factor: typing.Tuple[float, float, float, float] = tuple(ejection_factor/total_weight)  # type: ignore
+    r_particle_sizes: typing.Tuple[float, float, float, float] = tuple(particle_sizes/total_weight)  # type: ignore
+
+    return models.Expiration(ejection_factor=r_ejection_factor, particle_sizes=r_particle_sizes)
 
 
 def model_from_form(form: FormData) -> models.ExposureModel:

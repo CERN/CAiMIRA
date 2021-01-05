@@ -25,7 +25,7 @@ class DCSimpleSubclass(DCSimple):
 
 @dataclass
 class DCOverrideSubclass(DCSimple):
-    attr1: float
+    attr1: float  # type: ignore
 
 
 @dataclass
