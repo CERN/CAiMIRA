@@ -350,7 +350,7 @@ class FormData:
         """
         if not breaks:
             # If there are no breaks, the interval is the start and end.
-            return models.SpecificInterval(((start, finish),))
+            return models.SpecificInterval(((start/60, finish/60),))
 
         # Order the breaks by their start-time, and ensure that they are monotonic
         # and that the start of one break happens after the end of another.
