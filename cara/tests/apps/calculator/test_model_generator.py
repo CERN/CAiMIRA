@@ -303,6 +303,20 @@ def test_valid_no_lunch(baseline_form):
     assert baseline_form.validate() is None
 
 
+def test_no_breaks(baseline_form):
+    # Check that the times are correct in the absence of breaks.
+    baseline_form.lunch_option = False
+    baseline_form.coffee_breaks = 0
+    baseline_form.activity_start = 9 * 60
+    baseline_form.activity_finish = 17 * 60
+    baseline_form.infected_start = 10 * 60
+    baseline_form.infected_finish = 15 * 60
+    exposed_correct = ((9, 17),)
+    infected_correct = ((10, 15),)
+    assert baseline_form.exposed_present_interval().present_times == exposed_correct
+    assert baseline_form.infected_present_interval().present_times == infected_correct
+
+
 def test_coffee_lunch_breaks(baseline_form):
     baseline_form.coffee_duration = 30
     baseline_form.coffee_breaks = 4
