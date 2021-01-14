@@ -20,7 +20,15 @@
 	<p class=subtitle> Created {{ creation_date }} using model version {{ form.model_version }}</p><br>
 
   <p><strong>Applicable rules: <br>
-  Please ensure that this scenario conforms to current <a href="https://hse.cern/covid-19-information"> CERN HSE rules<a> (minimum ventilation requirements, mask wearing and the maximum number of people permitted in a space).</strong></p>
+  Please ensure that this scenario conforms to current <a href="https://hse.cern/covid-19-information"> CERN HSE rules<a> (minimum ventilation requirements, mask wearing and the maximum number of people permitted in a space).</strong> <br>
+  The results of this simulation are colour coded according to the risk values authorized at CERN (approved in December 2020):
+  <ul><li>Events with a <span class="green_bkg">P(i) less than 5%</span> may go ahead without further mitigation measures.</li>
+    <li>Events with a <span class="yellow_bkg">P(i) between 5% and 15%</span> shall be subject to ALARA principles (see footnote) to minimise the risk before proceeding.</li>
+    <li>Events with a <span class="red_bkg">P(i) exceeding 15%</span> may not take place until additional measures are in place and a risk reduction has been performed.</li>
+  </ul>
+  </p>
+
+  <p><strong>Simulation:</strong><p>
 
 	<p>Simulation Name: {{ form.simulation_name }}</p>
 	<p>Room Number: {{ form.room_number }}</p>
@@ -61,9 +69,9 @@
 			Sliding / Side-Hung</p></li>
 			{% endif %}
 			<li><p class="data_subtext">Opening distance: {{ form.opening_distance }} m</p></li>
-			<li><p class="data_subtext">Windows open: 
+			<li><p class="data_subtext">Windows open:
 			{% if form.windows_open == "interval" %}
-			Periodically for {{ form.windows_duration | readable_minutes}} 
+			Periodically for {{ form.windows_duration | readable_minutes}}
 				every {{ form.windows_frequency | readable_minutes}}
 			{% elif form.windows_open == "always" %}
 			Permanently
@@ -156,9 +164,27 @@
 
 	<p class="result_title">Results:</p>
 		<p class="data_text">
-		In this scenario, the estimated probability of one exposed occupant getting infected P(i) is {{ prob_inf | int_format }}%
-		and the expected number of new cases is {{ expected_new_cases | float_format }}.
-		<p>
+ <span
+{% if prob_inf > 15 %}
+    class="red_bkg"><strong>Not Acceptable:</strong>
+{% elif 5 <= prob_inf <= 15 %}
+    class="yellow_bkg"><strong> Attention:</strong>
+{% elif prob_inf < 5 %}
+    class="green_bkg">Acceptable:
+{% endif %}
+ </span>
+
+In this scenario, the estimated probability of one exposed occupant getting infected P(i) is {{ prob_inf | non_zero_percentage }} and the expected number of new cases is {{ expected_new_cases | float_format }}.
+  
+{% if (prob_inf > 15) %}
+  This exceeds the authorised risk threshold.
+  The risk level must be reduced before this activity can be undertaken.
+{% elif (5 <= prob_inf <= 15) %}
+  This activity has an elevated level of risk, ALARA principles must be applied to minimise the level of risk before undertaking the activity.
+  See the footnotes for more details on the ALARA principles.
+{% elif (prob_inf < 5) %}
+  This level of risk is within acceptable parameters, no further actions are required.
+{% endif %}
 	<p class="data_title">Exposure graph:</p>
 	<img id="scenario_concentration_plot" src="{{ scenario_plot_src }}">
 
@@ -189,7 +215,7 @@
     <p class="data_title">Alternative scenarios:</p>
     <p class="data_text">
     <img id="scenario_concentration_plot" src="{{ alternative_scenarios.plot }}" align="left" />
-        <table class="table table-striped w-auto">
+        <table class="table w-auto">
             <thead class="thead-light">
                 <tr>
                     <th>Scenario</th>
@@ -199,9 +225,15 @@
             </thead>
             <tbody>
             {% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
-                <tr>
-                    <td>{{ scenario_name }}</td>
-                    <td>{{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
+                {%if ( scenario_stats.probability_of_infection  > 15) %}
+                  <tr class="red_bkg">
+                {% elif (5 <= scenario_stats.probability_of_infection <= 15) %}
+                  <tr class="yellow_bkg">
+                {% elif (scenario_stats.probability_of_infection < 5) %}
+                  <tr class="green_bkg">
+                {% endif%}
+                    <td> {{ scenario_name }}</td>
+                    <td> {{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
                     <td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>
                 </tr>
             {% endfor %}
@@ -211,14 +243,29 @@
     </p>
     <div style="clear: both;">
 
-    <p class="notes"> <strong> Notes for alternative scenarios: </strong><br>
-    1) This graph shows the concentration of infectious quanta in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation ).<br>
-    For this reason, scenarios with different types of mask will show the same concentration on the graph but have different Pi values.<br>
-    2) If you have selected more sophisticated options, such as HEPA filtration or FFP2 masks, this will be indicated in the plot as the "base scenario", representing the inputs inserted in the form.<br>
-    The other alternative scenarios shown for comparison will not include either HEPA filtration or FFP2 masks. <br>
+    <p class="data_text"> <strong> Notes for alternative scenarios: </strong><br>
+    <ol>
+    <li>This graph shows the concentration of infectious quanta in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation).
+    For this reason, scenarios with different types of mask will show the same concentration on the graph but have different Pi values.</li>
+    <li>If you have selected more sophisticated options, such as HEPA filtration or FFP2 masks, this will be indicated in the plot as the "base scenario", representing the inputs inserted in the form.<br>
+    The other alternative scenarios shown for comparison will not include either HEPA filtration or FFP2 masks.</li>
+    </ol>
     <br>
 		</p>
 
+<p class="data_text">
+    <strong> Footnotes for ALARA: </strong><br>
+    ALARA stands for As Low As Reasonably Achievable. It can be summarised based on 3 main points:
+    <ol>
+    <li>Justification - any exposure of persons has to be justified </li>
+    <li>Limitation - the personal doses have to be kept below the legal limits (in this case the CERN exposure limits)</li>
+    <li>Optimisation - the personal doses and collective doses have to be kept as low as reasonably achievable (ALARA).</li>
+    </ol>
+    For more information, please refer to <a href="https://cds.cern.ch/record/1533023/files/CERN-2013-001-p415.pdf"> this document from CERN HSE </a> and <a href="https://www.cdc.gov/nceh/radiation/safety.html#:~:text=ALARA%20stands%20for%20%E2%80%9Cas%20low,time%2C%20distance%2C%20and%20shielding."> this publication from the CDC.</a> <br>
+
+<br>
+		</p>
+    
 	<br><br><br>
 	<div style="border: 2px solid black; padding: 15px;">
 		<p class="image"> <img <img align="middle" src="/calculator/static/images/disclaimer.jpg" width="40" height="40"><b>Disclaimer:</b><br><br></p>
