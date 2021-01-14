@@ -77,8 +77,8 @@
   border-style: solid;
   border-width: 5px 5px 0px 5px;
   border-color: rgba(55, 64, 70, 0.9) transparent transparent transparent;
-  transition-duration: 0s; /* If the mouse leaves the element, 
-                              the transition effects for the 
+  transition-duration: 0s; /* If the mouse leaves the element,
+                              the transition effects for the
                               tooltip arrow are "turned off" */
   transform-origin: top;   /* Orientation setting for the
                               slide-down effect */

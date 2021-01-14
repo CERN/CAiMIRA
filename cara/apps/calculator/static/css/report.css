@@ -51,3 +51,21 @@ p.disclaimer {
 p.notes {
 	font-size: 10pt;
 }
+
+.red_bkg {
+  color: #000000;
+  background-color: #CD5C5C;
+  text-decoration: none;
+}
+
+.yellow_bkg {
+  color: #000000;
+  background-color: #FFFF00;
+  text-decoration: none;
+}
+
+.green_bkg {
+  color: #000000;
+  background-color: #90EE90;
+  text-decoration: none;
+}
