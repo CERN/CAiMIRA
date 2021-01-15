@@ -135,7 +135,7 @@ def non_zero_percentage (percentage: int) -> str:
     if percentage < 0.01:
         return "<0.01%"
     else:
-        return "{:0.0f}%".format(percentage)
+        return "{:0.2f}%".format(percentage)
 
 def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, models.ExposureModel]:
     scenarios = {}
