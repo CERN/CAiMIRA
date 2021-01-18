@@ -24,3 +24,26 @@ def calculate_qr(viral_load: float, emission: float, diameter: float, mask_effic
     if breathing_rate is None:
         breathing_rate = 1
     return viral_load * emission * volume * (1 - mask_efficiency) * breathing_rate / copies_per_quantum
+
+
+def generate_qr_values(samples: int, expiratory_activity: int, qid: int = 100) -> np.ndarray:
+    """
+    Randomly samples values for the quantum generation rate
+    :param samples: The total number of samples to be generated
+    :param expiratory_activity: An integer signifying the expiratory activity of the infected subject
+    (1 = breathing, 2 = speaking, 3 = speaking loudly)
+    :param qid: The quantum infectious dose to be used in the calculations
+    :return: A numpy array of length = samples, containing randomly generated qr-values
+    """
+    (e_k, e_lambda), (d_k, d_lambda) = weibull_parameters[expiratory_activity]
+    emissions = sct.weibull_min.isf(sct.norm.sf(np.random.normal(size=samples)), e_k, loc=0, scale=e_lambda)
+    diameters = sct.weibull_min.isf(sct.norm.sf(np.random.normal(size=samples)), d_k, loc=0, scale=d_lambda)
+
+    mask_efficiency = [0.75, 0.81, 0.81][expiratory_activity]
+    qr_func = np.vectorize(calculate_qr)
+
+    # TODO: Add distributions for parameters
+    viral_load = 7.8
+    breathing_rate = 1
+
+    return qr_func(viral_load, emissions, diameters, mask_efficiency, qid)
