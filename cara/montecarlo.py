@@ -1,4 +1,7 @@
 import numpy as np
+import scipy.stats as sct
+from typing import Optional
+
 
 # The (k, lambda) parameters for the weibull-distributions corresponding to each quantity
 weibull_parameters = [((0.5951563631241763, 0.027071715346754264),  # emission_concentration
