@@ -20,7 +20,7 @@ def calculate_qr(viral_load: float, emission: float, diameter: float, mask_effic
     # Unit conversions
     diameter *= 1e-4
     viral_load = 10 ** viral_load
-    emission = (emission * 60) if breathing_rate is None else (emission * 1e6)
+    emission = (emission * 3600) if breathing_rate is None else (emission * 1e6)
 
     volume = 4 * np.pi * (diameter / 2) ** 3 / 3
     if breathing_rate is None:
@@ -49,3 +49,5 @@ def generate_qr_values(samples: int, expiratory_activity: int, qid: int = 100) -
     breathing_rate = 1
 
     return qr_func(viral_load, emissions, diameters, mask_efficiency, qid)
+
+print(generate_qr_values(samples=5, expiratory_activity=1))
