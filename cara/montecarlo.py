@@ -11,9 +11,11 @@ weibull_parameters = [((0.5951563631241763, 0.027071715346754264),  # emission_c
 
 
 def calculate_qr(viral_load: float, emission: float, diameter: float, mask_efficiency: float,
-                 copies_per_quantum: float, breathing_rate: float = 1) -> float:
+                 copies_per_quantum: float, breathing_rate: Optional[float] = None) -> float:
     """
     Calculates the quantum generation rate given a set of parameters.
     """
     volume = 4 * np.pi * (diameter / 2) ** 3 / 3
+    if breathing_rate is None:
+        breathing_rate = 1
     return viral_load * emission * volume * (1 - mask_efficiency) * breathing_rate / copies_per_quantum
