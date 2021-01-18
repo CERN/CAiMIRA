@@ -15,6 +15,11 @@ def calculate_qr(viral_load: float, emission: float, diameter: float, mask_effic
     """
     Calculates the quantum generation rate given a set of parameters.
     """
+    # Unit conversions
+    diameter *= 1e-4
+    viral_load = 10 ** viral_load
+    emission = (emission * 60) if breathing_rate is None else (emission * 1e6)
+
     volume = 4 * np.pi * (diameter / 2) ** 3 / 3
     if breathing_rate is None:
         breathing_rate = 1
