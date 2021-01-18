@@ -1,4 +1,3 @@
-import cara.models
 import numpy as np
 
 # The (k, lambda) parameters for the weibull-distributions corresponding to each quantity
