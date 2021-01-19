@@ -44,7 +44,7 @@ def generate_qr_values(samples: int, expiratory_activity: int, masked: bool, qid
     diameters = sct.weibull_min.isf(sct.norm.sf(np.random.normal(size=samples)), d_k, loc=0, scale=d_lambda)
     viral_loads = np.random.normal(size=samples, loc=7.8, scale=1.7)
 
-    mask_efficiency = [0.75, 0.81, 0.81][expiratory_activity]
+    mask_efficiency = [0.75, 0.81, 0.81][expiratory_activity] if masked else 0
     qr_func = np.vectorize(calculate_qr)
 
     # TODO: Add distributions for parameters
