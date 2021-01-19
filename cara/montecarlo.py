@@ -22,7 +22,7 @@ def calculate_qr(viral_load: float, emission: float, diameter: float, mask_effic
     viral_load = 10 ** viral_load
     emission = (emission * 3600) if breathing_rate is None else (emission * 1e6)
 
-    volume = 4 * np.pi * (diameter / 2) ** 3 / 3
+    volume = (4 * np.pi * (diameter / 2)**3) / 3
     if breathing_rate is None:
         breathing_rate = 1
     return viral_load * emission * volume * (1 - mask_efficiency) * breathing_rate / copies_per_quantum
