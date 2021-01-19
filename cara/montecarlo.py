@@ -49,5 +49,3 @@ def generate_qr_values(samples: int, expiratory_activity: int, qid: int = 100) -
     breathing_rate = 1
 
     return qr_func(viral_load, emissions, diameters, mask_efficiency, qid)
-
-print(generate_qr_values(samples=5, expiratory_activity=1))
