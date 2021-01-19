@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.stats as sct
-from typing import Optional
+from typing import Optional, Iterable
 import matplotlib.pyplot as plt
 
 
@@ -53,9 +53,15 @@ def generate_qr_values(samples: int, expiratory_activity: int, masked: bool, qid
     return qr_func(viral_loads, emissions, diameters, mask_efficiency, qid)
 
 
-def logscale_hist(x, bins):
-  hist, bins = np.histogram(x, bins=bins)
-  logscale_bins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]), len(bins))
-  plt.hist(x, bins=logscale_bins)
-  plt.xscale('log')
-  plt.show()
+def logscale_hist(x: Iterable, bins: int) -> None:
+    """
+    Plots the data of x as a log-scale histogram
+    :param x: An array containing the data to be plotted
+    :param bins: The number of bins to be used in the histogram (number of bars)
+    :return: Nothing
+    """
+    hist, bins = np.histogram(x, bins=bins)
+    logscale_bins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]), len(bins))
+    plt.hist(x, bins=logscale_bins)
+    plt.xscale('log')
+    plt.show()
