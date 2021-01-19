@@ -2,13 +2,9 @@ import dataclasses
 import typing
 
 
-DCInst = typing.TypeVar('T')
-
-
-def nested_replace(obj: DCInst, new_values: typing.Dict[str, typing.Any]) -> DCInst:
-    """
-    Replace an attribute on a dataclass, much like dataclasses.replace, except it
-    supports nested replacement definitions. For example:
+def nested_replace(obj, new_values: typing.Dict[str, typing.Any]):
+    """Replace an attribute on a dataclass, much like dataclasses.replace,
+    except it supports nested replacement definitions. For example:
 
     >>> new_obj = nested_replace(obj, {'attr1.sub_attr2.sub_sub_attr3': 4})
     >>> new_obj.attr1.sub_attr2.sub_sub_attr3

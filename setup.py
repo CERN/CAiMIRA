@@ -30,7 +30,9 @@ REQUIREMENTS: dict = {
     'app': [],
     'test': [
         'pytest',
-        'pytest-tornasync',  # Unused, but needed because of a downstream dependency.
+        'pytest-mypy',
+        'pytest-tornasync',
+        'numpy-stubs @ git+https://github.com/numpy/numpy-stubs.git',
     ],
     'dev': [
         'jupyterlab',

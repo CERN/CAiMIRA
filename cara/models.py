@@ -12,6 +12,11 @@ class Room:
     volume: float
 
 
+Time_t = typing.TypeVar('Time_t', float, int)
+BoundaryPair_t = typing.Tuple[Time_t, Time_t]
+BoundarySequence_t = typing.Union[typing.Tuple[BoundaryPair_t, ...], typing.Tuple]
+
+
 @dataclass(frozen=True)
 class Interval:
     """
@@ -26,7 +31,7 @@ class Interval:
         start < t <= end
 
     """
-    def boundaries(self) -> typing.Tuple[typing.Tuple[float, float], ...]:
+    def boundaries(self) -> BoundarySequence_t:
         return ()
 
     def transition_times(self) -> typing.Set[float]:
@@ -48,23 +53,23 @@ class SpecificInterval(Interval):
     #: A sequence of times (start, stop), in hours, that the infected person
     #: is present. The flattened list of times must be strictly monotonically
     #: increasing.
-    present_times: typing.Tuple[typing.Tuple[float, float], ...]
+    present_times: BoundarySequence_t
 
-    def boundaries(self):
+    def boundaries(self) -> BoundarySequence_t:
         return self.present_times
 
 
 @dataclass(frozen=True)
 class PeriodicInterval(Interval):
     #: How often does the interval occur (minutes).
-    period: int
+    period: float
 
     #: How long does the interval occur for (minutes).
     #: A value greater than :data:`period` signifies the event is permanently
     #: occurring, a value of 0 signifies that the event never happens.
-    duration: int
+    duration: float
 
-    def boundaries(self) -> typing.Tuple[typing.Tuple[float, float], ...]:
+    def boundaries(self) -> BoundarySequence_t:
         if self.period == 0 or self.duration == 0:
             return tuple()
         result = []
@@ -91,38 +96,44 @@ class PiecewiseConstant:
         if tuple(sorted(set(self.transition_times))) != self.transition_times:
             raise ValueError("transition_times should not contain duplicated elements and should be sorted")
 
-    def value(self,time) -> float:
+    def value(self, time) -> float:
         if time <= self.transition_times[0]:
             return self.values[0]
-        if time > self.transition_times[-1]:
+        elif time > self.transition_times[-1]:
             return self.values[-1]
 
-        for t1,t2,value in zip(self.transition_times[:-1],
-                               self.transition_times[1:],self.values):
-            if time > t1 and time <= t2:
-                return value
+        for t1, t2, value in zip(self.transition_times[:-1],
+                                 self.transition_times[1:], self.values):
+            if t1 < time <= t2:
+                break
+        return value
 
     def interval(self) -> Interval:
         # build an Interval object
         present_times = []
-        for t1,t2,value in zip(self.transition_times[:-1],
-                               self.transition_times[1:],self.values):
+        for t1, t2, value in zip(self.transition_times[:-1],
+                                 self.transition_times[1:], self.values):
             if value:
                 present_times.append((t1,t2))
-        return SpecificInterval(present_times=present_times)
+        return SpecificInterval(present_times=tuple(present_times))
 
-    def refine(self,refine_factor=10):
+    def refine(self, refine_factor=10):
         # build a new PiecewiseConstant object with a refined mesh,
         # using a linear interpolation in-between the initial mesh points
-        refined_times = np.linspace(self.transition_times[0],self.transition_times[-1],
-                                    (len(self.transition_times)-1)*refine_factor+1)
-        return PiecewiseConstant(tuple(refined_times),
-                tuple(np.interp(refined_times[:-1],self.transition_times,
-                                self.values+(self.values[-1],) ) ) )
+        refined_times = np.linspace(self.transition_times[0], self.transition_times[-1],
+                                    (len(self.transition_times)-1) * refine_factor+1)
+        return PiecewiseConstant(
+            tuple(refined_times),
+            tuple(np.interp(
+                refined_times[:-1],
+                self.transition_times,
+                self.values + (self.values[-1], ),
+            )),
+        )
 
 
 @dataclass(frozen=True)
-class Ventilation:
+class _VentilationBase:
     """
     Represents a mechanism by which air can be exchanged (replaced/filtered)
     in a time dependent manner.
@@ -133,11 +144,8 @@ class Ventilation:
     mechanical air exchange through a filter.
 
     """
-    #: The times at which the air exchange is taking place.
-    active: Interval
-
     def transition_times(self) -> typing.Set[float]:
-        return self.active.transition_times()
+        raise NotImplementedError("Subclass must implement")
 
     def air_exchange(self, room: Room, time: float) -> float:
         """
@@ -153,7 +161,16 @@ class Ventilation:
 
 
 @dataclass(frozen=True)
-class MultipleVentilation:
+class Ventilation(_VentilationBase):
+    #: The interval in which the ventilation is active.
+    active: Interval
+
+    def transition_times(self) -> typing.Set[float]:
+        return self.active.transition_times()
+
+
+@dataclass(frozen=True)
+class MultipleVentilation(_VentilationBase):
     """
     Represents a mechanism by which air can be exchanged (replaced/filtered)
     in a time dependent manner.
@@ -161,7 +178,7 @@ class MultipleVentilation:
     Group together different sources of ventilations.
 
     """
-    ventilations: typing.Tuple[Ventilation, ...]
+    ventilations: typing.Tuple[_VentilationBase, ...]
 
     def transition_times(self) -> typing.Set[float]:
         transitions = set()
@@ -174,7 +191,7 @@ class MultipleVentilation:
         Returns the rate at which air is being exchanged in the given room
         at a given time (in hours).
         """
-        return sum([ventilation.air_exchange(room,time)
+        return sum([ventilation.air_exchange(room, time)
                     for ventilation in self.ventilations])
 
 
@@ -258,10 +275,10 @@ class HingedWindow(WindowOpening):
     horizontal plane).
     """
     #: Window width (m).
-    window_width: float = None
+    window_width: float = 0.0
 
     def __post_init__(self):
-        if self.window_width is None:
+        if not self.window_width > 0:
             raise ValueError('window_width must be set')
 
     @property
@@ -387,7 +404,10 @@ class Mask:
     #: Filtration efficiency of masks when inhaling.
     η_inhale: float
 
-    particle_sizes: typing.Tuple[float] = (0.8e-4, 1.8e-4, 3.5e-4, 5.5e-4)  # In cm.
+    #: Particle sizes in cm.
+    particle_sizes: typing.Tuple[float, float, float, float] = (
+        0.8e-4, 1.8e-4, 3.5e-4, 5.5e-4
+    )
 
     #: Pre-populated examples of Masks.
     types: typing.ClassVar[typing.Dict[str, "Mask"]]
@@ -542,7 +562,7 @@ class InfectedPopulation(Population):
 @dataclass(frozen=True)
 class ConcentrationModel:
     room: Room
-    ventilation: Ventilation
+    ventilation: _VentilationBase
     infected: InfectedPopulation
 
     @property
