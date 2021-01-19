@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.stats as sct
 from typing import Optional
+import matplotlib.pyplot as plt
 
 
 # The (k, lambda) parameters for the weibull-distributions corresponding to each quantity
@@ -41,12 +42,20 @@ def generate_qr_values(samples: int, expiratory_activity: int, masked: bool, qid
     (e_k, e_lambda), (d_k, d_lambda) = weibull_parameters[expiratory_activity]
     emissions = sct.weibull_min.isf(sct.norm.sf(np.random.normal(size=samples)), e_k, loc=0, scale=e_lambda)
     diameters = sct.weibull_min.isf(sct.norm.sf(np.random.normal(size=samples)), d_k, loc=0, scale=d_lambda)
+    viral_loads = np.random.normal(size=samples, loc=7.8, scale=1.7)
 
     mask_efficiency = [0.75, 0.81, 0.81][expiratory_activity]
     qr_func = np.vectorize(calculate_qr)
 
     # TODO: Add distributions for parameters
-    viral_load = 7.8
     breathing_rate = 1
 
-    return qr_func(viral_load, emissions, diameters, mask_efficiency, qid)
+    return qr_func(viral_loads, emissions, diameters, mask_efficiency, qid)
+
+
+def logscale_hist(x, bins):
+  hist, bins = np.histogram(x, bins=bins)
+  logscale_bins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]), len(bins))
+  plt.hist(x, bins=logscale_bins)
+  plt.xscale('log')
+  plt.show()
