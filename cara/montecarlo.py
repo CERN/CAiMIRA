@@ -28,12 +28,13 @@ def calculate_qr(viral_load: float, emission: float, diameter: float, mask_effic
     return viral_load * emission * volume * (1 - mask_efficiency) * breathing_rate / copies_per_quantum
 
 
-def generate_qr_values(samples: int, expiratory_activity: int, qid: int = 100) -> np.ndarray:
+def generate_qr_values(samples: int, expiratory_activity: int, masked: bool, qid: int = 100) -> np.ndarray:
     """
     Randomly samples values for the quantum generation rate
     :param samples: The total number of samples to be generated
     :param expiratory_activity: An integer signifying the expiratory activity of the infected subject
     (1 = breathing, 2 = speaking, 3 = speaking loudly)
+    :param masked: True if infected subject is wearing a mask, False otherwise
     :param qid: The quantum infectious dose to be used in the calculations
     :return: A numpy array of length = samples, containing randomly generated qr-values
     """
