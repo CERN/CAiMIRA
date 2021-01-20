@@ -67,3 +67,12 @@ def logscale_hist(x: typing.Iterable, bins: int) -> None:
     plt.hist(x, bins=logscale_bins)
     plt.xscale('log')
     plt.show()
+
+
+def print_qr_info(qr_values: np.ndarray) -> None:
+    log_qr = np.log10(qr_values)
+    print(f"MEAN of log_10(qR) = {np.mean(log_qr)}\n"
+          f"MEAN of qR = {np.mean(qr_values)}")
+
+    for quantile in (0.01, 0.05, 0.25, 0.50, 0.75, 0.95, 0.99):
+        print(f"qR_{quantile} = {np.quantile(qr_values, quantile)}")
