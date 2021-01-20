@@ -1,6 +1,8 @@
+from dataclasses import dataclass
+from cara import models
 import numpy as np
 import scipy.stats as sct
-from typing import Optional, Iterable
+import typing
 import matplotlib.pyplot as plt
 
 
@@ -14,7 +16,7 @@ weibull_parameters = [((0.5951563631241763, 0.027071715346754264),          # em
 
 
 def calculate_qr(viral_load: float, emission: float, diameter: float, mask_efficiency: float,
-                 copies_per_quantum: float, breathing_rate: Optional[float] = None) -> float:
+                 copies_per_quantum: float, breathing_rate: typing.Optional[float] = None) -> float:
     """
     Calculates the quantum generation rate given a set of parameters.
     """
@@ -53,7 +55,7 @@ def generate_qr_values(samples: int, expiratory_activity: int, masked: bool, qid
     return qr_func(viral_loads, emissions, diameters, mask_efficiency, qid)
 
 
-def logscale_hist(x: Iterable, bins: int) -> None:
+def logscale_hist(x: typing.Iterable, bins: int) -> None:
     """
     Plots the data of x as a log-scale histogram
     :param x: An array containing the data to be plotted
