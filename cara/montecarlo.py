@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import functools
 from cara import models
 import numpy as np
 import scipy.stats as sct
@@ -113,6 +114,65 @@ class MCInfectedPopulation(models.Population):
 
         """
         return self.individual_emission_rate(time) * self.number
+
+
+@dataclass(frozen=True)
+class MCConcentrationModel:
+    room: models.Room
+    ventilation: models.Ventilation
+    infected: MCInfectedPopulation
+
+    @property
+    def virus(self):
+        return self.infected.virus
+
+    def infectious_virus_removal_rate(self, time: float) -> float:
+        # Particle deposition on the floor
+        vg = 1 * 10 ** -4
+        # Height of the emission source to the floor - i.e. mouth/nose (m)
+        h = 1.5
+        # Deposition rate (h^-1)
+        k = (vg * 3600) / h
+
+        return k + self.virus.decay_constant + self.ventilation.air_exchange(self.room, time)
+
+    @functools.lru_cache()
+    def state_change_times(self):
+        """
+        All time dependent entities on this model must provide information about
+        the times at which their state changes.
+
+        """
+        state_change_times = set()
+        state_change_times.update(self.infected.presence.transition_times())
+        state_change_times.update(self.ventilation.transition_times())
+
+        return sorted(state_change_times)
+
+    def last_state_change(self, time: float):
+        """
+        Find the most recent state change.
+
+        """
+        for change_time in self.state_change_times()[::-1]:
+            if change_time < time:
+                return change_time
+        return 0
+
+    @functools.lru_cache()
+    def concentration(self, time: float) -> np.ndarray:
+        if time == 0:
+            return np.zeros(self.infected.samples)
+        IVRR = self.infectious_virus_removal_rate(time)
+        V = self.room.volume
+
+        t_last_state_change = self.last_state_change(time)
+        concentration_at_last_state_change = self.concentration(t_last_state_change)
+
+        delta_time = time - t_last_state_change
+        fac = np.exp(-IVRR * delta_time)
+        concentration_limit = (self.infected.emission_rate(time)) / (IVRR * V)
+        return concentration_limit * (1 - fac) + concentration_at_last_state_change * fac
 
 
 def logscale_hist(x: typing.Iterable, bins: int) -> None:
