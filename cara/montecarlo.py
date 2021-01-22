@@ -243,7 +243,6 @@ def logscale_hist(x: typing.Iterable, bins: int) -> None:
     logscale_bins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]), len(bins))
     plt.hist(x, bins=logscale_bins)
     plt.xscale('log')
-    plt.show()
 
 
 def print_qr_info(qr_values: np.ndarray) -> None:
