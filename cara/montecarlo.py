@@ -34,9 +34,6 @@ class MCVirus:
     #: Biological decay (inactivation of the virus in air)
     halflife: float
 
-    #: RNA copies  / mL
-    viral_load_in_sputum: typing.Tuple[float, float]
-
     @property
     def decay_constant(self):
         # Viral inactivation per hour (h^-1)
@@ -288,7 +285,7 @@ baseline_mc_exposure_model = MCExposureModel(
             presence=models.SpecificInterval(((0, 4), (5, 8))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
-            virus=MCVirus(halflife=1.1, viral_load_in_sputum=(7.8, 1.7)),
+            virus=MCVirus(halflife=1.1),
             expiratory_activity=1,
             samples=200000,
             qid=100
@@ -318,7 +315,7 @@ MCExposureModel(
             presence=models.SpecificInterval(((0, 4), (5, 8))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
-            virus=MCVirus(halflife=1.1, viral_load_in_sputum=(7.8, 1.7)),
+            virus=MCVirus(halflife=1.1),
             expiratory_activity=1,
             samples=2000000,
             qid=100,
