@@ -65,7 +65,7 @@ class MCInfectedPopulation(models.Population):
 
     viral_load: typing.Optional[float] = None
 
-    def _generate_viral_loads(self):
+    def _generate_viral_loads(self) -> np.ndarray:
         kde_model = KernelDensity(kernel='gaussian', bandwidth=0.1)
         kde_model.fit(np.asarray(log_viral_load_frequencies)[0, :][:, np.newaxis],
                       sample_weight=np.asarray(log_viral_load_frequencies)[1, :])
