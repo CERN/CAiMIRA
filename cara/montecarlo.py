@@ -32,6 +32,11 @@ log_viral_load_frequencies = ((1.880302953, 2.958422139, 3.308759599, 3.67692158
                                0.005084746, 0.002966102))
 
 
+def lognormal(csi: float, lamb: float, samples: int) -> np.ndarray:
+    sf_norm = sct.norm.sf(np.random.normal(size=samples))
+    return sct.lognorm.isf(sf_norm, csi, loc=0, scale=np.exp(lamb))
+
+
 @dataclass(frozen=True)
 class MCVirus:
     #: Biological decay (inactivation of the virus in air)
