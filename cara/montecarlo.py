@@ -5,6 +5,7 @@ import numpy as np
 import scipy.stats as sct
 import typing
 import matplotlib.pyplot as plt
+from sklearn.neighbors import KernelDensity
 
 
 # The (k, lambda) parameters for the weibull-distributions corresponding to each quantity
@@ -14,6 +15,18 @@ weibull_parameters = [((0.5951563631241763, 0.027071715346754264),          # em
                        (5.9493671011143965, 1.081521101924364 * 3.33)),     # particle_diameter_speaking
                       ((2.317686940362959, 5.515253884170728),              # emission_rate_speaking_loudly
                        (7.348365409721486, 1.1158159287760463 * 3.33))]     # particle_diameter_speaking_loudly
+
+
+log_viral_load_frequencies = ((1.880302953, 2.958422139, 3.308759599, 3.676921581, 4.036604757, 4.383770594,
+                               4.743136608, 5.094658141, 5.45613857, 5.812946142, 6.160090835, 6.518505362,
+                               6.866918705, 7.225333232, 7.574148314, 7.923640008, 8.283027166, 8.641758855,
+                               9.000448256, 9.35956054, 9.707720153, 10.06554264, 10.41435773, 10.76304594,
+                               11.12198907, 11.47118475),
+                              (0.001694915, 0.00720339, 0.027966102, 0.205932203, 0.213983051, 0.171186441,
+                               0.172881356, 0.217372881, 0.261440678, 0.211864407, 0.168644068, 0.151271186,
+                               0.133474576, 0.116101695, 0.106355932, 0.110169492, 0.112288136, 0.101271186,
+                               0.08940678, 0.086016949, 0.063135593, 0.033898305, 0.024152542, 0.011864407,
+                               0.005084746, 0.002966102))
 
 
 @dataclass(frozen=True)
@@ -46,6 +59,13 @@ class MCInfectedPopulation(models.Population):
     qid: int
 
     viral_load: typing.Optional[float] = None
+
+    def _generate_viral_loads(self):
+        kde_model = KernelDensity(kernel='gaussian', bandwidth=0.1)
+        kde_model.fit(np.asarray(log_viral_load_frequencies)[0, :][:, np.newaxis],
+                      sample_weight=np.asarray(log_viral_load_frequencies)[1, :])
+
+        return kde_model.sample(n_samples=self.samples)[:, 0]
 
     def emission_rate_when_present(self) -> np.ndarray:
         """
