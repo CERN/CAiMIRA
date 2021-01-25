@@ -77,7 +77,7 @@ class MCInfectedPopulation(models.Population):
         emissions = sct.weibull_min.isf(sct.norm.sf(np.random.normal(size=self.samples)), e_k, loc=0, scale=e_lambda)
         diameters = sct.weibull_min.isf(sct.norm.sf(np.random.normal(size=self.samples)), d_k, loc=0, scale=d_lambda)
         if self.viral_load is None:
-            viral_loads = np.random.normal(loc=7.8, scale=1.7, size=self.samples)
+            viral_loads = self._generate_viral_loads()
         else:
             viral_loads = np.full(self.samples, self.viral_load)
 
