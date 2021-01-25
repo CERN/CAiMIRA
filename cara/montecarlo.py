@@ -72,6 +72,8 @@ class MCInfectedPopulation(models.Population):
 
     viral_load: typing.Optional[float] = None
 
+    breathing_category: typing.Optional[int] = None
+
     def _generate_viral_loads(self) -> np.ndarray:
         kde_model = KernelDensity(kernel='gaussian', bandwidth=0.1)
         kde_model.fit(np.asarray(log_viral_load_frequencies)[0, :][:, np.newaxis],
@@ -99,10 +101,19 @@ class MCInfectedPopulation(models.Population):
         mask_efficiency = [0.75, 0.81, 0.81][self.expiratory_activity] if masked else 0
         qr_func = np.vectorize(self._calculate_qr)
 
-        # TODO: Add distributions for parameters
-        breathing_rate = 1
+        if self.expiratory_activity == 0:
+            assert self.breathing_category is not None, \
+                "expiratory_activity specified as 0 (breathing) without specified 'breathing_category'"
+        else:
+            print("'breathing_category' unused as 0 (breathing) was not chosen as 'expiratory_activity'")
 
-        return qr_func(viral_loads, emissions, diameters, mask_efficiency, self.qid)
+        if self.breathing_category is not None:
+            csi, lamb = lognormal_parameters[self.breathing_category]
+            breathing_rates = lognormal(csi, lamb, self.samples)
+        else:
+            breathing_rates = None
+
+        return qr_func(viral_loads, emissions, diameters, mask_efficiency, self.qid, breathing_rates)
 
     @staticmethod
     def _calculate_qr(viral_load: float, emission: float, diameter: float, mask_efficiency: float,
