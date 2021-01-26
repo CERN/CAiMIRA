@@ -316,8 +316,8 @@ baseline_mc_exposure_model = MCExposureModel(
         room=models.Room(volume=75),
         ventilation=models.SlidingWindow(
             active=models.PeriodicInterval(period=120, duration=120),
-            inside_temp=models.PiecewiseConstant((0,24),(293,)),
-            outside_temp=models.PiecewiseConstant((0,24),(283,)),
+            inside_temp=models.PiecewiseConstant((0, 24), (293,)),
+            outside_temp=models.PiecewiseConstant((0, 24), (283,)),
             window_height=1.6, opening_length=0.6,
         ),
         infected=MCInfectedPopulation(
@@ -346,8 +346,8 @@ MCExposureModel(
         room=models.Room(volume=75),
         ventilation=models.SlidingWindow(
             active=models.PeriodicInterval(period=120, duration=120),
-            inside_temp=models.PiecewiseConstant((0,24),(293,)),
-            outside_temp=models.PiecewiseConstant((0,24),(283,)),
+            inside_temp=models.PiecewiseConstant((0, 24), (293,)),
+            outside_temp=models.PiecewiseConstant((0, 24), (283,)),
             window_height=1.6, opening_length=0.6,
         ),
         infected=MCInfectedPopulation(
