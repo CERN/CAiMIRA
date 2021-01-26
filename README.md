@@ -36,6 +36,13 @@ voila ./app/cara.ipynb
 Then visit http://localhost:8080/calculator.
 
 
+### Running the tests
+
+```
+pip install -e .[test]
+pytest ./cara
+```
+
 ### Building the whole environment for local execution
 
 **Simulate the docker build that takes place on openshift with:**
