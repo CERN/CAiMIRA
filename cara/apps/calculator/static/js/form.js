@@ -8,7 +8,7 @@ function insertErrorFor(referenceNode, text) {
   var element = document.createElement("span");
   element.setAttribute("class", "error_text");
   element.classList.add("red_text");
-  element.innerHTML = "&nbsp;&nbsp;" + text; 
+  element.innerHTML = "&nbsp;&nbsp;" + text;
   referenceNode.parentNode.insertBefore(element, referenceNode.nextSibling);
 }
 
@@ -66,14 +66,6 @@ function require_fields(obj) {
       break;
     case "mask_off":
       require_mask(false);
-      break;
-    case "event_type_single":
-      require_single_event(true);
-      require_recurrent_event(false);
-      break;
-    case "event_type_recurrent":
-      require_recurrent_event(true);
-      require_single_event(false);
       break;
     case "lunch_option_no":
       require_lunch(false);
@@ -152,16 +144,6 @@ function require_venting(option) {
   set_disabled_status("#windows_frequency", !option);
 }
 
-function require_single_event(option) {
-  require_input_field("#single_event_date", option);
-  set_disabled_status("#single_event_date", !option);
-}
-
-function require_recurrent_event(option) {
-  $("#recurrent_event_month").prop('required', option);
-  set_disabled_status("#recurrent_event_month", !option);
-}
-
 function require_lunch(option) {
   $("#lunch_start").prop('required', option);
   $("#lunch_finish").prop('required', option);
@@ -175,7 +157,7 @@ function require_lunch(option) {
     if (lunchFinishObj.value === "") {
       lunchFinishObj.value = "13:30";
     }
-  } 
+  }
   else {
     lunchStartObj.value = "";
     lunchFinishObj.value = "";
@@ -246,11 +228,6 @@ function on_ventilation_type_change() {
 }
 
 /* -------UI------- */
-$(function () {
-  $(".datepicker").datepicker({
-    dateFormat: 'dd/mm/yy'
-  });
-});
 
 function show_disclaimer() {
   var dots = document.getElementById("dots");
@@ -332,12 +309,6 @@ function validate_form(form) {
     }
   });
 
-  //Validate all dates
-  $("input[required].datepicker").each(function() {
-    if (!validateDate(this)) {
-      submit = false;
-    }
-  });
 
   //Validate window venting duration < venting frequency
   if (!$("#windows_duration").hasClass("disabled")) {
@@ -368,7 +339,7 @@ function validateValue(obj) {
 
 function isLessThanZeroOrEmpty(value) {
   if (value === "") return true;
-  if (value <= 0) 
+  if (value <= 0)
     return false;
   return true;
 }
@@ -487,10 +458,6 @@ $(document).ready(function () {
   //Validate all non zero values
   $("input[required].non_zero").each(function() {validateValue(this)});
   $(".non_zero").change(function() {validateValue(this)});
-
-  //Validate all dates
-  $("input[required].datepicker").each(function() {validateDate(this)});
-  $(".datepicker").change(function() {validateDate(this)});
 
   //Validate all finish times
   $("input[required].finish_time").each(function() {validateFinishTime(this)});

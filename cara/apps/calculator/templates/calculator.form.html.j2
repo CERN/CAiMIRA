@@ -1,6 +1,6 @@
 {% extends "layout.html.j2" %}
 
-{% set MODEL_VERSION="v1.2.0" %}
+{% set MODEL_VERSION="v1.2.1" %}
 {% set DEBUG=False %}
 {% set active_page="calculator/" %}
 
@@ -80,19 +80,19 @@
     <div id="DIVnatural_ventilation" class="tabbed" style="display:none">
         Number of windows: <input type="number" id="windows_number" class="non_zero" name="windows_number" min="1"><br>
         Height of window: <input type="number" step="any" id="window_height" class="non_zero" name="window_height" placeholder="meters" min="0"><br>
-        Window type: 
+        Window type:
         <input type="radio" id="window_sliding" name="window_type" value="sliding" onclick="require_fields(this)" checked="checked">
           <label for="window_sliding">Sliding / Side-Hung</label>&nbsp;&nbsp;
         <input type="radio" id="window_hinged" name="window_type" value="hinged" onclick="require_fields(this)">
           <label for="window_hinged">Top- or Bottom-Hung</label>&nbsp;&nbsp;<br>
         Width of window: <input type="number" step="any" id="window_width" class="non_zero disabled" name="window_width" placeholder="meters" min="0" data-has-radio="#window_hinged"><br>
         Opening distance: <input type="number" step="any" id="opening_distance" class="non_zero" name="opening_distance" placeholder="meters" min="0"><br>
-        Windows open:</span><br> 
+        Windows open:</span><br>
         <span class="tabbed"><input type="radio" id="always" name="windows_open" value="always" onclick="require_fields(this)" checked="checked"></span>
           <label for="always">Permanently</label><br>
         <span class="tabbed"><input type="radio" id="interval" name="windows_open" value="interval" onclick="require_fields(this)"></span>
           <label for="interval">Periodically:</label>&nbsp;&nbsp;
-        <input type="number" step="any" id="windows_duration" class="disabled" name="windows_duration" placeholder="Duration (min)" min="1" data-has-radio="#interval"> / 
+        <input type="number" step="any" id="windows_duration" class="disabled" name="windows_duration" placeholder="Duration (min)" min="1" data-has-radio="#interval"> /
         <input type="number" step="any" id="windows_frequency" class="disabled" name="windows_frequency" placeholder="Frequency (min)" min="1" data-has-radio="#interval">
         <br>
     </div>
@@ -151,17 +151,8 @@
     Finish: <input type="time" id="infected_finish" class="finish_time" data-time-group="infected" name="infected_finish" value="18:00" required><br>
     <hr width="80%">
 
-    When is the event?
-    <div data-tooltip="Select the date for one-off events or the month if the event is recurrent in the same space.">
-        <span class="tooltip_text">?</span>
-    </div><br>
-    <input type="radio" id="event_type_single" name="event_type" value="single_event" onclick="require_fields(this)" tabindex="-1" required>
-      <label for="event_type_single">Single event</label> &nbsp;&nbsp;
-      <label for="event_type_single">Date: </label>
-    <input type="text" id="single_event_date" class="datepicker" name="single_event_date" placeholder="dd/mm/yyyy" data-has-radio="#event_type_single"><br>
-    <input type="radio" id="event_type_recurrent" name="event_type" value="recurrent_event" onclick="require_fields(this)" tabindex="-1" required>
-      <label for="event_type_recurrent">Recurrent usage</label>
-    <select id="recurrent_event_month" name="recurrent_event_month" data-has-radio="#event_type_recurrent">
+<label>Which month is the event?</label>
+            <select id="event_month" name="event_month" value="January" required>
         <option value="January">January</option>
         <option value="February">February</option>
         <option value="March">March</option>

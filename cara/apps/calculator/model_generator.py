@@ -28,7 +28,6 @@ class FormData:
     ceiling_height: float
     coffee_breaks: int
     coffee_duration: int
-    event_type: str
     floor_area: float
     hepa_amount: float
     hepa_option: bool
@@ -39,11 +38,10 @@ class FormData:
     mechanical_ventilation_type: str
     model_version: str
     opening_distance: float
-    recurrent_event_month: str
+    event_month: str
     room_number: str
     room_volume: float
     simulation_name: str
-    single_event_date: str
     total_people: int
     ventilation_type: str
     volume_type: str
@@ -101,7 +99,6 @@ class FormData:
             ceiling_height=float(form_data['ceiling_height']),
             coffee_breaks=int(form_data['coffee_breaks']),
             coffee_duration=int(form_data['coffee_duration']),
-            event_type=form_data['event_type'],
             floor_area=float(form_data['floor_area']),
             hepa_amount=float(form_data['hepa_amount']),
             hepa_option=form_data['hepa_option'],
@@ -114,11 +111,10 @@ class FormData:
             mechanical_ventilation_type=form_data['mechanical_ventilation_type'],
             model_version=form_data['model_version'],
             opening_distance=float(form_data['opening_distance']),
-            recurrent_event_month=form_data['recurrent_event_month'],
+            event_month=form_data['event_month'],
             room_number=form_data['room_number'],
             room_volume=float(form_data['room_volume']),
             simulation_name=form_data['simulation_name'],
-            single_event_date=form_data['single_event_date'],
             total_people=int(form_data['total_people']),
             ventilation_type=form_data['ventilation_type'],
             volume_type=form_data['volume_type'],
@@ -149,7 +145,6 @@ class FormData:
                     f"{start_name} must be less than {end_name}. Got {start} and {end}.")
 
         validation_tuples = [('activity_type', ACTIVITY_TYPES),
-                             ('event_type', EVENT_TYPES),
                              ('mechanical_ventilation_type', MECHANICAL_VENTILATION_TYPES),
                              ('mask_type', MASK_TYPES),
                              ('mask_wearing', MASK_WEARING),
@@ -180,11 +175,7 @@ class FormData:
             else:
                 window_interval = always_on
 
-            if self.event_type == 'single_event':
-                month_number = int(self.single_event_date.split('/')[1])
-                month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][month_number - 1]
-            else:
-                month = self.recurrent_event_month[:3]
+            month = self.event_month[:3]
 
             inside_temp = models.PiecewiseConstant((0, 24), (293,))
             outside_temp = data.GenevaTemperatures[month]
@@ -514,7 +505,6 @@ def baseline_raw_form_data():
         'ceiling_height': '',
         'coffee_breaks': '4',
         'coffee_duration': '10',
-        'event_type': 'recurrent_event',
         'floor_area': '',
         'hepa_amount': '250',
         'hepa_option': '0',
@@ -529,11 +519,10 @@ def baseline_raw_form_data():
         'mechanical_ventilation_type': '',
         'model_version': 'v1.2.0',
         'opening_distance': '0.2',
-        'recurrent_event_month': 'January',
+        'event_month': 'January',
         'room_number': '123',
         'room_volume': '75',
         'simulation_name': 'Test',
-        'single_event_date': '',
         'total_people': '10',
         'ventilation_type': 'natural',
         'volume_type': 'room_volume',
@@ -548,7 +537,6 @@ def baseline_raw_form_data():
 
 
 ACTIVITY_TYPES = {'office', 'meeting', 'training', 'callcentre', 'library', 'workshop', 'lab', 'gym'}
-EVENT_TYPES = {'single_event', 'recurrent_event'}
 MECHANICAL_VENTILATION_TYPES = {'air_changes', 'air_supply', 'not-applicable'}
 MASK_TYPES = {'Type I', 'FFP2'}
 MASK_WEARING = {'continuous', 'removed'}
