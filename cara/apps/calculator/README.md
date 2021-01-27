@@ -126,7 +126,6 @@ It is possible to specify a different time for the entry and exit of the infecte
 #### When is the event?
 
 This is included for completeness in all simulations, however it is of particular relevance to those using natural ventilation because of variations in outside air temperature.
-If you wish to simulate repetitive events, for example using an office for multiple days in the same month, choose recurrent usage.
  
 Only the month is used by the model to retrieve the average outdoor air temperatures for the Geneva region.
  

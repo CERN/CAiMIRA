@@ -42,8 +42,7 @@ def test_ventilation_slidingwindow(baseline_form):
     baseline_form.windows_frequency = 120
     baseline_form.windows_open = 'interval'
     baseline_form.window_type = 'sliding'
-    baseline_form.event_type = 'recurrent_event'
-    baseline_form.recurrent_event_month = 'December'
+    baseline_form.event_month = 'December'
     baseline_form.window_height = 1.6
     baseline_form.opening_distance = 0.6
 
@@ -65,8 +64,7 @@ def test_ventilation_hingedwindow(baseline_form):
     baseline_form.windows_frequency = 120
     baseline_form.windows_open = 'interval'
     baseline_form.window_type = 'hinged'
-    baseline_form.event_type = 'recurrent_event'
-    baseline_form.recurrent_event_month = 'December'
+    baseline_form.event_month = 'December'
     baseline_form.window_height = 1.6
     baseline_form.window_width = 1.
     baseline_form.opening_distance = 0.6
@@ -124,8 +122,7 @@ def test_ventilation_window_hepa(baseline_form):
     baseline_form.windows_duration = 10
     baseline_form.windows_frequency = 120
     baseline_form.windows_open = 'interval'
-    baseline_form.event_type = 'recurrent_event'
-    baseline_form.recurrent_event_month = 'December'
+    baseline_form.event_month = 'December'
     baseline_form.window_height = 1.6
     baseline_form.opening_distance = 0.6
     baseline_form.hepa_option = True

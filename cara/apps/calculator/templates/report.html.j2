@@ -123,12 +123,7 @@
 		<ul>
 			<li><p class="data_subtext">Start time: {{ form.infected_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.infected_finish | minutes_to_time }}</p></li>
 		</ul>
-		{% if form.event_type == "single_event"%}
-		<li><p class="data_text">Single event on {{ form.single_event_date }}</p></li>
-		{% endif %}
-		{% if form.event_type == "recurrent_event"%}
-		<li><p class="data_text">Recurrent event for the month of {{ form.recurrent_event_month }}</p></li>
-		{% endif %}
+		<li><p class="data_text">Event for the month of {{ form.event_month }}</p></li>
 	</ul>
 
 	<p class="data_title">Break data:</p>
