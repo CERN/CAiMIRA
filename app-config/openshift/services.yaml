@@ -1,0 +1,48 @@
+---
+  kind: "Template"
+  apiVersion: "v1"
+  metadata:
+    name: "cara-services"
+    creationTimestamp: null
+    annotations:
+      description: "CARA services OpenShift template."
+      tags: "cara-services"
+  labels:
+    template: "cara-services"
+  objects:
+    -
+      apiVersion: v1
+      kind: Service
+      metadata:
+        labels:
+          app: cara-router
+        name: cara-router
+      spec:
+        ports:
+          - name: 8080-tcp
+            port: 8080
+            protocol: TCP
+            targetPort: 8080
+          - name: 8443-tcp
+            port: 8443
+            protocol: TCP
+            targetPort: 8443
+        selector:
+          app: cara-router
+    -
+      apiVersion: v1
+      kind: Service
+      metadata:
+        labels:
+          app: cara-webservice
+        name: cara-webservice
+      spec:
+        ports:
+          - name: 8080-tcp
+            port: 8080
+            protocol: TCP
+            targetPort: 8080
+        selector:
+          app: cara-webservice
+
+

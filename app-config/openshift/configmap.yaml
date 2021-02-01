@@ -1,0 +1,66 @@
+---
+  kind: "Template"
+  apiVersion: "v1"
+  metadata:
+    name: "cara-configuration"
+    creationTimestamp: null
+    annotations:
+      description: "CARA Config Maps OpenShift template."
+      tags: "cara-configuration"
+  labels:
+    template: "cara-application"
+  objects:
+    -
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: cern-sso-proxy
+      data:
+        authorize.conf: |-
+          # Make sure clients cannot fake authentication by injecting headers
+          RequestHeader unset X-ADFS-LOGIN
+          RequestHeader unset X-ADFS-EMAIL
+          RequestHeader unset X-ADFS-FIRSTNAME
+          RequestHeader unset X-ADFS-LASTNAME
+          RequestHeader unset X-ADFS-FULLNAME
+
+          #Protected resources
+          <Location "/">
+            ShibRequestSetting requireSession 1
+            AuthType shibboleth
+            <RequireALL>
+              Require valid-user
+              Require shib-attr ADFS_GROUP cern-personnel
+            </RequireALL>
+            RequestHeader set X-ADFS-LOGIN %{ADFS_LOGIN}e
+            RequestHeader set X-ADFS-EMAIL %{ADFS_EMAIL}e
+            RequestHeader set X-ADFS-FIRSTNAME %{ADFS_FIRSTNAME}e
+            RequestHeader set X-ADFS-LASTNAME %{ADFS_LASTNAME}e
+            RequestHeader set X-ADFS-FULLNAME %{ADFS_FULLNAME}e
+          </Location>
+        proxy.conf: |-
+          # Enable reverse proxy for websockets
+          # https://github.com/jupyterhub/jupyterhub/issues/367
+          # https://github.com/websockets/ws/issues/893
+
+          ProxyPreserveHost On
+          ProxyPass / http://${SERVICE_HOST}:${SERVICE_PORT}/
+          ProxyPassReverse / http://${SERVICE_HOST}:${SERVICE_PORT}/
+          ProxyRequests off
+
+          <Location "/voila-server/api/kernels">
+            RequestHeader set X-SCRIPT-NAME /voila-server/
+            ProxyPassReverse http://${SERVICE_HOST}:${SERVICE_PORT}/
+            RewriteEngine on
+            RewriteCond %{HTTP:UPGRADE} =websocket [NC]
+            RewriteRule /voila-server/api/kernels/(.*) ws://${SERVICE_HOST}:${SERVICE_PORT}/voila-server/api/kernels/$1 [P,L]
+            RewriteCond %{HTTP:UPGRADE} !=websocket [NC]
+            RewriteRule /voila-server/api/kernels/(.*) http://${SERVICE_HOST}:${SERVICE_PORT}/voila-server/api/kernels/$1 [P,L]
+          </Location>
+    -
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: cern-sso-shib
+      data:
+        shibboleth2.xml: ''

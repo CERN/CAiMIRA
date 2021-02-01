@@ -69,4 +69,41 @@ but it may be origin if you haven't configured it differently):
     git push --force upstream name-of-local-branch:live/test-cara
 
 
+## OpenShift templates
 
+First, get the [oc](https://docs.okd.io/3.11/cli_reference/get_started_cli.html) client and then login:
+
+```console
+$ oc login https://openshift-dev.cern.ch
+```
+
+Then, switch to the project that you want to update:
+
+```console
+$ oc project test-cara
+```
+
+If you need to create the application in a new project, run:
+
+```console
+$ cd app-config/openshift
+
+$ oc process -f application.yaml | oc create -f -
+$ oc process -f services.yaml | oc create -f -
+$ oc process -f configmap.yaml | oc create -f -
+```
+
+If you need to **replace** existing configuration, then run:
+
+```console
+$ cd app-config/openshift
+
+$ oc process -f application.yaml | oc replace -f -
+$ oc process -f services.yaml | oc replace -f -
+$ oc process -f configmap.yaml | oc replace -f -
+```
+
+### CERN SSO Proxy
+
+You can find documentation on how to setup the CERN SSO Proxy to enable CERN SSO login [here](https://cern.service-now.com/service-portal?id=kb_article_view&sys_kb_id=ffa4398a4f2cb2807db7d3ef0310c7c5).
+The source code of the OpenShift template is available [here](https://gitlab.cern.ch/paas-tools/cern-sso-proxy/-/tree/master/)
