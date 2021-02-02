@@ -362,6 +362,24 @@ baseline_mc_exposure_model = MCExposureModel(
 )
 
 
+buonanno_exposure_model = MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=800),
+        ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
+                                     air_exch=0.5),
+        infected=BuonannoSpecificInfectedPopulation(virus=MCVirus(halflife=1.1),
+                                                    samples=1)
+    ),
+    exposed=models.Population(
+        number=1,
+        presence=models.SpecificInterval(((0, 2),)),
+        activity=models.Activity.types['Light activity'],
+        mask=models.Mask.types['No mask']
+    )
+)
+
+durations = tuple(np.linspace(0, 120, 10))
+
 models = [
 MCExposureModel(
     concentration_model=MCConcentrationModel(
