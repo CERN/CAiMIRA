@@ -119,7 +119,8 @@ class MCInfectedPopulation(models.Population):
             assert self.breathing_category is not None, \
                 "expiratory_activity specified as 0 (breathing) without specified 'breathing_category'"
         else:
-            print("'breathing_category' unused as 0 (breathing) was not chosen as 'expiratory_activity'")
+            if self.breathing_category is not None:
+                print("'breathing_category' unused as 0 (breathing) was not chosen as 'expiratory_activity'")
 
         if self.breathing_category is not None:
             csi, lamb = lognormal_parameters[self.breathing_category]
