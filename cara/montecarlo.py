@@ -338,6 +338,24 @@ def print_qr_info(qr_values: np.ndarray) -> None:
         print(f"qR_{quantile} = {np.quantile(qr_values, quantile)}")
 
 
+def buaonanno_exposure_model():
+    return MCExposureModel(
+        concentration_model=MCConcentrationModel(
+            room=models.Room(volume=800),
+            ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
+                                         air_exch=0.5),
+            infected=BuonannoSpecificInfectedPopulation(virus=MCVirus(halflife=1.1),
+                                                        samples=1)
+        ),
+        exposed=models.Population(
+            number=1,
+            presence=models.SpecificInterval(((0, 2),)),
+            activity=models.Activity.types['Light activity'],
+            mask=models.Mask.types['No mask']
+        )
+    )
+
+
 baseline_mc_exposure_model = MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=75),
@@ -361,23 +379,6 @@ baseline_mc_exposure_model = MCExposureModel(
     exposed=models.Population(
         number=1,
         presence=models.SpecificInterval(((0, 4), (5, 8))),
-        activity=models.Activity.types['Light activity'],
-        mask=models.Mask.types['No mask']
-    )
-)
-
-
-buonanno_exposure_model = MCExposureModel(
-    concentration_model=MCConcentrationModel(
-        room=models.Room(volume=800),
-        ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
-                                     air_exch=0.5),
-        infected=BuonannoSpecificInfectedPopulation(virus=MCVirus(halflife=1.1),
-                                                    samples=1)
-    ),
-    exposed=models.Population(
-        number=1,
-        presence=models.SpecificInterval(((0, 2),)),
         activity=models.Activity.types['Light activity'],
         mask=models.Mask.types['No mask']
     )
