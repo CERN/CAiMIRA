@@ -362,7 +362,8 @@ baseline_mc_exposure_model = MCExposureModel(
             virus=MCVirus(halflife=1.1),
             expiratory_activity=1,
             samples=200000,
-            qid=100
+            qid=100,
+            breathing_category=4
         )
     ),
     exposed=models.Population(
