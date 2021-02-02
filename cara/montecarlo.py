@@ -31,6 +31,7 @@ symptomatic_vl_frequencies = ((2.46032, 2.67431, 2.85434, 3.06155, 3.25856, 3.47
                                0.043944602, 0.048142864, 0.041588741, 0.048762031, 0.027921732, 0.033871788,
                                0.022122693, 0.016927718, 0.008833228, 0.00478598, 0.002807662))
 
+# NOT USED
 # The (k, lambda) parameters for the weibull-distributions corresponding to each quantity
 weibull_parameters = [((0.5951563631241763, 0.027071715346754264),          # emission_concentration
                        (15.312035476444153, 0.8433059432279654 * 3.33)),    # particle_diameter_breathing
@@ -39,16 +40,20 @@ weibull_parameters = [((0.5951563631241763, 0.027071715346754264),          # em
                       ((2.317686940362959, 5.515253884170728),              # emission_rate_speaking_loudly
                        (7.348365409721486, 1.1158159287760463 * 3.33))]     # particle_diameter_speaking_loudly
 
+# NOT USED
 # (Xmin, Xmax, a, b)
 beta_parameters = ((0.0, 0.0558823529411764, 0.40785196091099885, 0.6465433589950477),              # Breathing
                    (0.00735294117647056, 0.094485294117647, 0.5381693341323044, 1.055612645201782)) # Breathing (fast-deep)
 
+# NOT USED
 # (csi, lamb)
 lognormal_parameters = ((0.10498338229297108, -0.6872121723362303),     # BR, seated
                         (0.09373162411398223, -0.5742377578494785),     # BR, standing
                         (0.09435378091059601, 0.21380242785625422),     # BR, light exercise
                         (0.1894616357138137, 0.551771330362601),        # BR, moderate exercise
                         (0.21744554768657565, 1.1644665696723049))      # BR, heavy exercise
+
+emission_concentrations = (3.00079e-7, 1.06008e-4, 5.28837e-4)
 
 log_viral_load_frequencies = scoeh_vl_frequencies if USE_SCOEH else symptomatic_vl_frequencies
 
