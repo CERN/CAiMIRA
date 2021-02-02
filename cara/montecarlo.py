@@ -374,35 +374,10 @@ baseline_mc_exposure_model = MCExposureModel(
     )
 )
 
-durations = tuple(np.linspace(0, 120, 10))
 
-models = [
-MCExposureModel(
-    concentration_model=MCConcentrationModel(
-        room=models.Room(volume=75),
-        ventilation=models.SlidingWindow(
-            active=models.PeriodicInterval(period=120, duration=120),
-            inside_temp=models.PiecewiseConstant((0, 24), (293,)),
-            outside_temp=models.PiecewiseConstant((0, 24), (283,)),
-            window_height=1.6, opening_length=0.6,
-        ),
-        infected=MCInfectedPopulation(
-            number=1,
-            presence=models.SpecificInterval(((0, 4), (5, 8))),
-            mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light activity'],
-            virus=MCVirus(halflife=1.1),
-            expiratory_activity=1,
-            samples=2000000,
-            qid=100,
-            viral_load=vl
-        )
-    ),
-    exposed=models.Population(
-        number=1,
-        presence=models.SpecificInterval(((0, 4), (5, 8))),
-        activity=models.Activity.types['Light activity'],
-        mask=models.Mask.types['No mask']
-    )
-) for vl in (None, 7, 8, 9, 10)
-]
+# pis = baseline_mc_exposure_model.infection_probability()
+# plt.hist(pis, bins=2000)
+# plt.title("Distribution of probabilities of infection")
+# plt.ylabel("Frequency")
+# plt.xlabel("Percentage probability of infection")
+# plt.show()
