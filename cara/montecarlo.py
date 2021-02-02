@@ -230,7 +230,7 @@ class BuonannoSpecificInfectedPopulation:
     # The total number of samples to be generated
     samples: int
 
-    presence: models.Interval = models.SpecificInterval(((0, 2), ))
+    presence: models.Interval = models.SpecificInterval(((0, 2),))
 
     constant_qr: float = 1000
 
@@ -269,9 +269,9 @@ class MCExposureModel:
         exposure = self.quanta_exposure()
 
         inf_aero = (
-            self.exposed.activity.inhalation_rate *
-            (1 - self.exposed.mask.η_inhale) *
-            exposure
+                self.exposed.activity.inhalation_rate *
+                (1 - self.exposed.mask.η_inhale) *
+                exposure
         )
 
         # Probability of infection.
