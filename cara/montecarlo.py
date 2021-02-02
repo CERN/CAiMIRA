@@ -234,6 +234,27 @@ class MCConcentrationModel:
 
 
 @dataclass(frozen=True)
+class BuonannoSpecificInfectedPopulation:
+    #: The virus with which the population is infected.
+    virus: MCVirus
+
+    # The total number of samples to be generated
+    samples: int
+
+    presence: models.Interval = models.SpecificInterval(((0, 2), ))
+
+    constant_qr: float = 1000
+
+    @functools.lru_cache()
+    def emission_rate(self, time) -> float:
+        """
+        The emission rate of the entire population.
+
+        """
+        return self.constant_qr
+
+
+@dataclass(frozen=True)
 class MCExposureModel:
     #: The virus concentration model which this exposure model should consider.
     concentration_model: MCConcentrationModel
