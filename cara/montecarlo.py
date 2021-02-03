@@ -85,17 +85,37 @@ class MCVirus:
 
 
 @dataclass(frozen=True)
-class MCInfectedPopulation(models.Population):
-    #: The virus with which the population is infected.
-    virus: MCVirus
+class MCPopulation:
+    """
+    Represents a group of people all with exactly the same behaviour and
+    situation.
 
-    #: An integer signifying the expiratory activity of the infected subject
+    """
+    #: How many in the population.
+    number: int
+
+    #: The times in which the people are in the room.
+    presence: models.Interval
+
+    #: Indicates whether or not masks are being worn
+    masked: bool
+
+    #: An integer signifying the expiratory activity of the population
     # (1 = breathing, 2 = speaking, 3 = speaking loudly)
     expiratory_activity: int
 
-    #: An integer signifying the breathing category of the infected subject
+    #: An integer signifying the breathing category of the population
     # (1 = seated, 2 = standing, 3 = light exercise, 4 = moderate exercise, 5 = heavy exercise)
     breathing_category: int
+
+    def person_present(self, time):
+        return self.presence.triggered(time)
+
+
+@dataclass(frozen=True)
+class MCInfectedPopulation(MCPopulation):
+    #: The virus with which the population is infected.
+    virus: MCVirus
 
     # The total number of samples to be generated
     samples: int
@@ -126,16 +146,11 @@ class MCInfectedPopulation(models.Population):
         Randomly samples values for the quantum generation rate
         :return: A numpy array of length = samples, containing randomly generated qr-values
         """
-
-        # Extracting only the needed information from the pre-existing Mask class
-        masked = self.mask.exhale_efficiency != 0
-
         viral_loads = self._generate_viral_loads()
 
         emission_concentration = emission_concentrations[self.expiratory_activity - 1]
 
-        mask_efficiency = [0.75, 0.81, 0.81][self.expiratory_activity - 1] if masked else 0
-        qr_func = np.vectorize(self._calculate_qr)
+        mask_efficiency = [0.75, 0.81, 0.81][self.expiratory_activity - 1] if self.masked else 0
 
         breathing_rates = self._generate_breathing_rates()
 
@@ -410,10 +425,9 @@ baseline_mc_exposure_model = MCExposureModel(
         infected=MCInfectedPopulation(
             number=1,
             presence=models.SpecificInterval(((0, 4), (5, 8))),
-            mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light activity'],
+            masked=False,
             virus=MCVirus(halflife=1.1),
-            expiratory_activity=1,
+            expiratory_activity=3,
             samples=200000,
             qid=100,
             breathing_category=4
