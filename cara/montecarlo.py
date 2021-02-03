@@ -365,10 +365,11 @@ def present_model(model: MCConcentrationModel, bins: int = 30) -> None:
     fig.suptitle('Summary of model parameters')
     plt.tight_layout()
     plt.subplots_adjust(hspace=0.2)
+    plt.subplots_adjust(wspace=0.2)
     plt.subplots_adjust(top=0.88)
     fig.set_figheight(10)
 
-    for x, y in ((0, 0), (0, 1), (1, 0), (1, 1)):
+    for x, y in ((0, 0), (1, 0), (1, 1)):
         axs[x, y].set_yticklabels([])
         axs[x, y].set_yticks([])
 
