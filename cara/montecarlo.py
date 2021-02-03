@@ -154,18 +154,9 @@ class MCInfectedPopulation(MCPopulation):
 
         breathing_rates = self._generate_breathing_rates()
 
-        return qr_func(viral_loads, emission_concentration, mask_efficiency, self.qid, breathing_rates)
+        viral_loads = 10 ** viral_loads
 
-    @staticmethod
-    def _calculate_qr(viral_load: float, emission_concentration: float, mask_efficiency: float,
-                      copies_per_quantum: float, breathing_rate: float) -> float:
-        """
-        Calculates the quantum generation rate given a set of parameters.
-        """
-        # Unit conversions
-        viral_load = 10 ** viral_load
-
-        return viral_load * emission_concentration * (1 - mask_efficiency) * breathing_rate / copies_per_quantum
+        return viral_loads * emission_concentration * (1 - mask_efficiency) * breathing_rates / self.qid
 
     def individual_emission_rate(self, time) -> np.ndarray:
         """
