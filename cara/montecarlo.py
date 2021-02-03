@@ -61,7 +61,10 @@ concentration_vs_diameter = (
                  (1 / d) * (0.1 / (np.sqrt(2 * np.pi) * 0.26)) * np.exp(-1 * (np.log(d) - 1.0) ** 2 / (2 * 0.26 ** 2))),
     # L-mode
     np.vectorize(lambda d:
-                 (1 / d) * (1.0 / (np.sqrt(2 * np.pi) * 0.5)) * np.exp(-1 * (np.log(d) - 1.4) ** 2 / (2 * 0.5 ** 2)))
+                 (1 / d) * (1.0 / (np.sqrt(2 * np.pi) * 0.5)) * np.exp(-1 * (np.log(d) - 1.4) ** 2 / (2 * 0.5 ** 2))),
+    # O-mode
+    np.vectorize(lambda d:
+                 (1 / d) * (0.001 / (np.sqrt(2 * np.pi) * 0.56)) * np.exp(-1 * (np.log(d) - 5.49) ** 2 / (2 * 0.56 ** 2)))
 )
 
 
@@ -140,6 +143,17 @@ class MCInfectedPopulation(MCPopulation):
     def _generate_breathing_rates(self) -> np.ndarray:
         br_params = lognormal_parameters[self.breathing_category - 1] + (self.samples,)
         return lognormal(*br_params)
+
+    @functools.lru_cache()
+    def _concentration_distribution(self) -> typing.Callable:
+        if self.expiratory_activity == 1:
+            return concentration_vs_diameter[0]
+
+        if self.expiratory_activity == 2:
+            return np.vectorize(lambda d: concentration_vs_diameter[1](d) + concentration_vs_diameter[2](d))
+
+        if self.expiratory_activity == 3:
+            return np.vectorize(lambda d: 5 * (concentration_vs_diameter[1](d) + concentration_vs_diameter[2](d)))
 
     def emission_rate_when_present(self) -> np.ndarray:
         """
@@ -432,6 +446,7 @@ baseline_mc_exposure_model = MCExposureModel(
     )
 )
 
+present_model(baseline_mc_exposure_model.concentration_model)
 
 # pis = baseline_mc_exposure_model.infection_probability()
 # plt.hist(pis, bins=2000)
