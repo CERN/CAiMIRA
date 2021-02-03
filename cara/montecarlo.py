@@ -53,7 +53,17 @@ lognormal_parameters = ((0.10498338229297108, -0.6872121723362303),     # BR, se
                         (0.1894616357138137, 0.551771330362601),        # BR, moderate exercise
                         (0.21744554768657565, 1.1644665696723049))      # BR, heavy exercise
 
-emission_concentrations = (3.00079e-7, 1.06008e-4, 5.28837e-4)
+emission_concentrations = (1.38924e-6, 1.07098e-4, 5.29935e-4)
+
+concentration_vs_diameter = (
+    # B-mode
+    np.vectorize(lambda d:
+                 (1 / d) * (0.1 / (np.sqrt(2 * np.pi) * 0.26)) * np.exp(-1 * (np.log(d) - 1.0) ** 2 / (2 * 0.26 ** 2))),
+    # L-mode
+    np.vectorize(lambda d:
+                 (1 / d) * (1.0 / (np.sqrt(2 * np.pi) * 0.5)) * np.exp(-1 * (np.log(d) - 1.4) ** 2 / (2 * 0.5 ** 2)))
+)
+
 
 log_viral_load_frequencies = scoeh_vl_frequencies if USE_SCOEH else symptomatic_vl_frequencies
 
