@@ -365,6 +365,7 @@ def present_model(model: MCConcentrationModel, bins: int = 30) -> None:
     fig.suptitle('Summary of model parameters')
     plt.tight_layout()
     plt.subplots_adjust(hspace=0.2)
+    plt.subplots_adjust(top=0.88)
     fig.set_figheight(10)
 
     for x, y in ((0, 0), (0, 1), (1, 0), (1, 1)):
@@ -383,6 +384,13 @@ def present_model(model: MCConcentrationModel, bins: int = 30) -> None:
 
     axs[0, 0].set_title('Viral load in sputum')
     axs[0, 0].set_xlabel('Viral load [log10(RNA copies / mL)]')
+
+    ds = np.linspace(0.1, 30, 2000)
+    concentrations = model.infected._concentration_distribution()(ds)
+    axs[0, 1].plot(ds, concentrations)
+    axs[0, 1].set_title(r'Particle concentration vs diameter')
+    axs[0, 1].set_ylabel('Concentration [cm^-3]')
+    axs[0, 1].set_xlabel(r'Diameter [$\mu$m]')
 
     categories = ("seated", "standing", "light exercise", "moderate exercise", "heavy exercise")
     axs[1, 0].set_title(f'Breathing rate - '
