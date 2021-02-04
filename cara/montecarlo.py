@@ -68,6 +68,19 @@ concentration_vs_diameter = (
 )
 
 
+def mask_leak_out(d: float) -> float:
+    if d < 0.5:
+        return 1
+
+    if d < 1:
+        return 1 - (0.5893 * d + 0.1546)
+
+    if d < 3:
+        return 1 - (0.0509 * d + 0.0664)
+
+    return 1 - 0.8167
+
+
 log_viral_load_frequencies = scoeh_vl_frequencies if USE_SCOEH else symptomatic_vl_frequencies
 
 
