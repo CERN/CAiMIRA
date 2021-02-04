@@ -433,7 +433,7 @@ def present_model(model: MCConcentrationModel, bins: int = 30) -> None:
     axs[1, 0].set_xlabel('Breathing rate [m^3 / h]')
 
     axs[1, 1].set_title('qR')
-    axs[1, 1].set_xlabel('qR [log10(RNA copies / h)]')
+    axs[1, 1].set_xlabel('qR [log10(q / h)]')
 
     mean_patch = patches.Patch(color='red', label='Mean')
     median_patch = patches.Patch(color='green', label='Median')
