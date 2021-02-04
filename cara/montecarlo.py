@@ -64,7 +64,7 @@ concentration_vs_diameter = (
                  (1 / d) * (1.0 / (np.sqrt(2 * np.pi) * 0.5)) * np.exp(-1 * (np.log(d) - 1.4) ** 2 / (2 * 0.5 ** 2))),
     # O-mode
     np.vectorize(lambda d:
-                 (1 / d) * (0.001 / (np.sqrt(2 * np.pi) * 0.56)) * np.exp(-1 * (np.log(d) - 5.49) ** 2 / (2 * 0.56 ** 2)))
+                 (1 / d) * (0.001 / (np.sqrt(2 * np.pi) * 0.56)) * np.exp(-1 * (np.log(d) - 4.98) ** 2 / (2 * 0.56 ** 2)))
 )
 
 
