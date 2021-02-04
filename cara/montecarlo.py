@@ -158,15 +158,26 @@ class MCInfectedPopulation(MCPopulation):
         return lognormal(*br_params)
 
     @functools.lru_cache()
-    def _concentration_distribution(self) -> typing.Callable:
+    def _concentration_distribution_without_mask(self) -> typing.Callable:
         if self.expiratory_activity == 1:
             return concentration_vs_diameter[0]
 
         if self.expiratory_activity == 2:
-            return np.vectorize(lambda d: concentration_vs_diameter[1](d) + concentration_vs_diameter[2](d))
+            return np.vectorize(lambda d: sum(f(d) for f in concentration_vs_diameter))
 
         if self.expiratory_activity == 3:
-            return np.vectorize(lambda d: 5 * (concentration_vs_diameter[1](d) + concentration_vs_diameter[2](d)))
+            return np.vectorize(lambda d: 5 * sum(f(d) for f in concentration_vs_diameter))
+
+    @functools.lru_cache()
+    def _concentration_distribution_with_mask(self) -> typing.Callable:
+        function = self._concentration_distribution_without_mask()
+        return np.vectorize(lambda d: function(d) * mask_leak_out(d))
+
+    def calculate_emission_concentration(self) -> float:
+        function = self._concentration_distribution_with_mask if self.masked else \
+            self._concentration_distribution_without_mask()
+        function = np.vectorize(lambda d: function(d) * np.pi * d ** 3 / 6.0)
+        return quad_vec(function, 0, 30)[0]
 
     def emission_rate_when_present(self) -> np.ndarray:
         """
