@@ -3,6 +3,7 @@ import functools
 from cara import models
 import numpy as np
 import scipy.stats as sct
+from scipy.integrate import quad_vec
 import typing
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
