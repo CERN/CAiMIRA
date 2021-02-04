@@ -410,9 +410,18 @@ def present_model(model: MCConcentrationModel, bins: int = 30) -> None:
     axs[0, 0].set_title('Viral load in sputum')
     axs[0, 0].set_xlabel('Viral load [log10(RNA copies / mL)]')
 
-    ds = np.linspace(0.1, 30, 2000)
-    concentrations = model.infected._concentration_distribution()(ds)
-    axs[0, 1].plot(ds, concentrations)
+    ds = np.linspace(0.1, 15, 2000)
+    unmasked = model.infected._concentration_distribution_without_mask()(ds)
+    masked = model.infected._concentration_distribution_with_mask()(ds)
+    if model.infected.masked:
+        axs[0, 1].plot(ds, masked, 'g', label="With mask")
+        axs[0, 1].plot(ds, unmasked, 'r--', label="Without mask")
+        axs[0, 1].legend(loc="upper right")
+    else:
+        axs[0, 1].plot(ds, masked, 'g--', label="With mask")
+        axs[0, 1].plot(ds, unmasked, 'r', label="Without mask")
+        axs[0, 1].legend(loc="upper right")
+
     axs[0, 1].set_title(r'Particle concentration vs diameter')
     axs[0, 1].set_ylabel('Concentration [cm^-3]')
     axs[0, 1].set_xlabel(r'Diameter [$\mu$m]')
