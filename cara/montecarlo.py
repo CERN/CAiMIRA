@@ -3,7 +3,7 @@ import functools
 from cara import models
 import numpy as np
 import scipy.stats as sct
-from scipy.integrate import quad_vec
+from scipy.integrate import quad
 import typing
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -58,14 +58,14 @@ emission_concentrations = (1.38924e-6, 1.07098e-4, 5.29935e-4)
 
 concentration_vs_diameter = (
     # B-mode
-    np.vectorize(lambda d:
-                 (1 / d) * (0.1 / (np.sqrt(2 * np.pi) * 0.26)) * np.exp(-1 * (np.log(d) - 1.0) ** 2 / (2 * 0.26 ** 2))),
+lambda d:
+                 (1 / d) * (0.1 / (np.sqrt(2 * np.pi) * 0.26)) * np.exp(-1 * (np.log(d) - 1.0) ** 2 / (2 * 0.26 ** 2)),
     # L-mode
-    np.vectorize(lambda d:
-                 (1 / d) * (1.0 / (np.sqrt(2 * np.pi) * 0.5)) * np.exp(-1 * (np.log(d) - 1.4) ** 2 / (2 * 0.5 ** 2))),
+lambda d:
+                 (1 / d) * (1.0 / (np.sqrt(2 * np.pi) * 0.5)) * np.exp(-1 * (np.log(d) - 1.4) ** 2 / (2 * 0.5 ** 2)),
     # O-mode
-    np.vectorize(lambda d:
-                 (1 / d) * (0.001 / (np.sqrt(2 * np.pi) * 0.56)) * np.exp(-1 * (np.log(d) - 4.98) ** 2 / (2 * 0.56 ** 2)))
+lambda d:
+                 (1 / d) * (0.001 / (np.sqrt(2 * np.pi) * 0.56)) * np.exp(-1 * (np.log(d) - 4.98) ** 2 / (2 * 0.56 ** 2))
 )
 
 
@@ -164,21 +164,24 @@ class MCInfectedPopulation(MCPopulation):
             return concentration_vs_diameter[0]
 
         if self.expiratory_activity == 2:
-            return np.vectorize(lambda d: sum(f(d) for f in concentration_vs_diameter))
+            return lambda d: sum(f(d) for f in concentration_vs_diameter)
 
         if self.expiratory_activity == 3:
-            return np.vectorize(lambda d: 5 * sum(f(d) for f in concentration_vs_diameter))
+            return lambda d: 5 * sum(f(d) for f in concentration_vs_diameter)
 
     @functools.lru_cache()
     def _concentration_distribution_with_mask(self) -> typing.Callable:
-        function = self._concentration_distribution_without_mask()
-        return np.vectorize(lambda d: function(d) * mask_leak_out(d))
+        concentration = self._concentration_distribution_without_mask()
+        return lambda d: concentration(d) * mask_leak_out(d)
 
-    def calculate_emission_concentration(self) -> float:
-        function = self._concentration_distribution_with_mask if self.masked else \
+    def _calculate_emission_concentration(self) -> float:
+        function = self._concentration_distribution_with_mask() if self.masked else \
             self._concentration_distribution_without_mask()
-        function = np.vectorize(lambda d: function(d) * np.pi * d ** 3 / 6.0)
-        return quad_vec(function, 0, 30)[0]
+
+        def integrand(d: int) -> float:
+            return function(d) * np.pi * d ** 3 / 6.0
+
+        return quad(integrand, 0.1, 30)[0]
 
     def emission_rate_when_present(self) -> np.ndarray:
         """
@@ -187,15 +190,13 @@ class MCInfectedPopulation(MCPopulation):
         """
         viral_loads = self._generate_viral_loads()
 
-        emission_concentration = emission_concentrations[self.expiratory_activity - 1]
-
-        mask_efficiency = [0.75, 0.81, 0.81][self.expiratory_activity - 1] if self.masked else 0
+        emission_concentration = self._calculate_emission_concentration()
 
         breathing_rates = self._generate_breathing_rates()
 
         viral_loads = 10 ** viral_loads
 
-        return viral_loads * emission_concentration * (1 - mask_efficiency) * breathing_rates / self.qid
+        return viral_loads * emission_concentration * breathing_rates / self.qid
 
     def individual_emission_rate(self, time) -> np.ndarray:
         """
