@@ -464,29 +464,30 @@ def buaonanno_exposure_model():
 
 baseline_mc_exposure_model = MCExposureModel(
     concentration_model=MCConcentrationModel(
-        room=models.Room(volume=75),
+        room=models.Room(volume=45),
         ventilation=models.SlidingWindow(
-            active=models.PeriodicInterval(period=120, duration=120),
+            active=models.PeriodicInterval(period=120, duration=10),
             inside_temp=models.PiecewiseConstant((0, 24), (293,)),
             outside_temp=models.PiecewiseConstant((0, 24), (283,)),
             window_height=1.6, opening_length=0.6,
         ),
         infected=MCInfectedPopulation(
             number=1,
-            presence=models.SpecificInterval(((0, 4), (5, 8))),
-            masked=False,
+            presence=models.SpecificInterval(((0, 4), (5, 9))),
+            masked=True,
             virus=MCVirus(halflife=1.1),
-            expiratory_activity=3,
+            expiratory_activity=1,
             samples=200000,
             qid=100,
-            breathing_category=4
+            breathing_category=1,
+            english_variant=False
         )
     ),
     exposed=models.Population(
-        number=1,
-        presence=models.SpecificInterval(((0, 4), (5, 8))),
-        activity=models.Activity.types['Light activity'],
-        mask=models.Mask.types['No mask']
+        number=2,
+        presence=models.SpecificInterval(((0, 4), (5, 9))),
+        activity=models.Activity.types['Seated'],
+        mask=models.Mask.types['Type I']
     )
 )
 
