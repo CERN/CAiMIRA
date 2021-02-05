@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from sklearn.neighbors import KernelDensity
 
+# This is a test comment
+
 USE_SCOEH = False
 
 scoeh_vl_frequencies = ((1.880302953, 2.958422139, 3.308759599, 3.676921581, 4.036604757, 4.383770594,
@@ -186,6 +188,7 @@ class MCInfectedPopulation(MCPopulation):
 
         return quad(integrand, 0.1, 30)[0] * 1e-6
 
+    @functools.lru_cache()
     def emission_rate_when_present(self) -> np.ndarray:
         """
         Randomly samples values for the quantum generation rate
@@ -485,7 +488,7 @@ baseline_mc_exposure_model = MCExposureModel(
             samples=200000,
             qid=100,
             breathing_category=1,
-            english_variant=False
+            english_variant=True
         )
     ),
     exposed=models.Population(
@@ -496,7 +499,53 @@ baseline_mc_exposure_model = MCExposureModel(
     )
 )
 
+models = [MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=45),
+        ventilation=models.SlidingWindow(
+            active=models.PeriodicInterval(period=120, duration=10),
+            inside_temp=models.PiecewiseConstant((0, 24), (293,)),
+            outside_temp=models.PiecewiseConstant((0, 24), (283,)),
+            window_height=1.6, opening_length=0.6,
+        ),
+        infected=MCInfectedPopulation(
+            number=1,
+            presence=models.SpecificInterval(((0, 4), (5, 9))),
+            masked=True,
+            virus=MCVirus(halflife=1.1),
+            expiratory_activity=1,
+            samples=200000,
+            qid=100,
+            breathing_category=1,
+            english_variant=e
+        )
+    ),
+    exposed=models.Population(
+        number=2,
+        presence=models.SpecificInterval(((0, 4), (5, 9))),
+        activity=models.Activity.types['Seated'],
+        mask=models.Mask.types['No mask']
+    )
+) for e in (False, True)]
+
 present_model(baseline_mc_exposure_model.concentration_model)
+
+original_pi, english_pi = [model.infection_probability() for model in models]
+print(f"Median(P_i) - Original: {'{:.2f}'.format(np.median(original_pi))}%\n"
+      f"Mean(P_i) - Original:   {'{:.2f}'.format(np.mean(original_pi))}%\n\n"
+      f"Median(P_i) - English:  {'{:.2f}'.format(np.median(english_pi))}%\n"
+      f"Mean(P_i) - English:    {'{:.2f}'.format(np.mean(english_pi))}%\n")
+
+plt.hist(original_pi, bins=200)
+plt.yticks([], [])
+plt.xlabel('Percentage Probability of infection')
+plt.show()
+
+plt.violinplot((original_pi, english_pi), positions=(1, 2), showmeans=True, showmedians=True)
+plt.xticks(ticks=[1, 2], labels=['Original', 'English'])
+plt.ylabel('Percentage probability of infection')
+plt.show()
+
 
 # pis = baseline_mc_exposure_model.infection_probability()
 # plt.hist(pis, bins=2000)
