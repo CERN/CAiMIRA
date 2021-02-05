@@ -184,7 +184,7 @@ class MCInfectedPopulation(MCPopulation):
         def integrand(d: int) -> float:
             return function(d) * np.pi * d ** 3 / 6.0
 
-        return quad(integrand, 0.1, 30)[0]
+        return quad(integrand, 0.1, 30)[0] * 1e-6
 
     def emission_rate_when_present(self) -> np.ndarray:
         """
