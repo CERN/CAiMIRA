@@ -384,7 +384,7 @@ def print_qr_info(qr_values: np.ndarray) -> None:
         print(f"qR_{quantile} = {np.quantile(qr_values, quantile)}")
 
 
-def present_model(model: MCConcentrationModel, bins: int = 30) -> None:
+def present_model(model: MCConcentrationModel, bins: int = 200) -> None:
     fig, axs = plt.subplots(2, 2, sharex=False, sharey=False)
     fig.set_figheight(8)
     fig.set_figwidth(10)
@@ -409,12 +409,12 @@ def present_model(model: MCConcentrationModel, bins: int = 30) -> None:
         axs[x, y].vlines(x=(mean, median, mean - std, mean + std), ymin=0, ymax=top,
                          colors=('red', 'green', 'pink', 'pink'))
 
-    axs[0, 0].set_title('Viral load in sputum')
+    axs[0, 0].set_title('Viral load')
     axs[0, 0].set_xlabel('Viral load [log10(RNA copies / mL)]')
 
     ds = np.linspace(0.1, 15, 2000)
-    unmasked = model.infected._concentration_distribution_without_mask()(ds)
-    masked = model.infected._concentration_distribution_with_mask()(ds)
+    unmasked = [model.infected._concentration_distribution_without_mask()(d) for d in ds]
+    masked = [model.infected._concentration_distribution_with_mask()(d) for d in ds]
     if model.infected.masked:
         axs[0, 1].plot(ds, masked, 'g', label="With mask")
         axs[0, 1].plot(ds, unmasked, 'r--', label="Without mask")
@@ -424,8 +424,8 @@ def present_model(model: MCConcentrationModel, bins: int = 30) -> None:
         axs[0, 1].plot(ds, unmasked, 'r', label="Without mask")
         axs[0, 1].legend(loc="upper right")
 
-    axs[0, 1].set_title(r'Particle concentration vs diameter')
-    axs[0, 1].set_ylabel('Concentration [cm^-3]')
+    axs[0, 1].set_title(r'Particle emission concentration vs diameter')
+    axs[0, 1].set_ylabel('Particle emission concentration [cm^-3]')
     axs[0, 1].set_xlabel(r'Diameter [$\mu$m]')
 
     categories = ("seated", "standing", "light exercise", "moderate exercise", "heavy exercise")
