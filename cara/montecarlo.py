@@ -140,6 +140,9 @@ class MCInfectedPopulation(MCPopulation):
     # The quantum infectious dose to be used in the calculations
     qid: int
 
+    # A bool indicating whether or not to use the viral loads corresponding to the english variant
+    english_variant: bool
+
     viral_load: typing.Optional[float] = None
 
     @functools.lru_cache()
@@ -189,6 +192,8 @@ class MCInfectedPopulation(MCPopulation):
         :return: A numpy array of length = samples, containing randomly generated qr-values
         """
         viral_loads = self._generate_viral_loads()
+        if self.english_variant:
+            viral_loads += np.log10(11.5)
 
         emission_concentration = self._calculate_emission_concentration()
 
