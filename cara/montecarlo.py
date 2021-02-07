@@ -440,9 +440,9 @@ def present_model(model: MCConcentrationModel, bins: int = 200) -> None:
         axs[0, 1].plot(ds, unmasked, 'k', label="Without mask")
         axs[0, 1].legend(loc="upper right")
 
-    #  add the label automatically to the title of the plot ??
-    # categories_particles = ("Breathing", "Speaking", "Shouting") ??
-    axs[0, 1].set_title(r'Particle emissions')
+    categories_particles = ("Breathing", "Speaking", "Shouting")
+    axs[0, 1].set_title(r'Particle emissions - '
+                        f'{categories_particles[model.infected.expiratory_activity - 1]}')
     axs[0, 1].set_ylabel('Particle emission concentration [$cm^{-3}$]')
     axs[0, 1].set_xlabel(r'Diameter [$\mu$m]')
 
