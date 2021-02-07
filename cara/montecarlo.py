@@ -338,11 +338,15 @@ class MCExposureModel:
 
     def infection_probability(self):
         exposure = self.quanta_exposure()
+        # f_dep - fraction of the inhaled particles that actually stay here
+        # not present in the CARA model
+        f_dep = 0.6
 
         inf_aero = (
                 self.exposed.activity.inhalation_rate *
                 (1 - self.exposed.mask.η_inhale) *
-                exposure
+                exposure *
+                f_dep
         )
 
         # Probability of infection.
