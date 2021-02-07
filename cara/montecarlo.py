@@ -56,6 +56,7 @@ lognormal_parameters = ((0.10498338229297108, -0.6872121723362303),     # BR, se
                         (0.1894616357138137, 0.551771330362601),        # BR, moderate exercise
                         (0.21744554768657565, 1.1644665696723049))      # BR, heavy exercise
 
+# NOT USED (directly in calculated in concentration_vs_diameter )
 emission_concentrations = (1.38924e-6, 1.07098e-4, 5.29935e-4)
 
 concentration_vs_diameter = (
@@ -393,14 +394,16 @@ def print_qr_info(qr_values: np.ndarray) -> None:
 
 
 def present_model(model: MCConcentrationModel, bins: int = 200) -> None:
+    global data
     fig, axs = plt.subplots(2, 2, sharex=False, sharey=False)
     fig.set_figheight(8)
     fig.set_figwidth(10)
     fig.suptitle('Summary of model parameters')
     plt.tight_layout()
-    plt.subplots_adjust(hspace=0.2)
+    plt.subplots_adjust(hspace=0.4)
     plt.subplots_adjust(wspace=0.2)
     plt.subplots_adjust(top=0.88)
+    plt.subplots_adjust(bottom=0.1)
     fig.set_figheight(10)
 
     for x, y in ((0, 0), (1, 0), (1, 1)):
@@ -415,41 +418,45 @@ def present_model(model: MCConcentrationModel, bins: int = 200) -> None:
         top = axs[x, y].get_ylim()[1]
         mean, median, std = np.mean(data), np.median(data), np.std(data)
         axs[x, y].vlines(x=(mean, median, mean - std, mean + std), ymin=0, ymax=top,
-                         colors=('red', 'green', 'pink', 'pink'))
+                         colors=('grey', 'black', 'lightgrey', 'lightgrey'),
+                         linestyles=('solid', 'solid', 'dashed', 'dashed'))
 
     axs[0, 0].set_title('Viral load')
-    axs[0, 0].set_xlabel('Viral load [log10(RNA copies / mL)]')
+    axs[0, 0].set_xlabel('Viral load [$log10(RNA\,copies\;mL^{-1}$)]')
 
     ds = np.linspace(0.1, 15, 2000)
     unmasked = [model.infected._concentration_distribution_without_mask()(d) for d in ds]
     masked = [model.infected._concentration_distribution_with_mask()(d) for d in ds]
     if model.infected.masked:
-        axs[0, 1].plot(ds, masked, 'g', label="With mask")
-        axs[0, 1].plot(ds, unmasked, 'r--', label="Without mask")
+        axs[0, 1].plot(ds, masked, 'b', label="With mask")
+        axs[0, 1].plot(ds, unmasked, 'k--', label="Without mask")
         axs[0, 1].legend(loc="upper right")
     else:
-        axs[0, 1].plot(ds, masked, 'g--', label="With mask")
-        axs[0, 1].plot(ds, unmasked, 'r', label="Without mask")
+        axs[0, 1].plot(ds, masked, 'b--', label="With mask")
+        axs[0, 1].plot(ds, unmasked, 'k', label="Without mask")
         axs[0, 1].legend(loc="upper right")
 
-    axs[0, 1].set_title(r'Particle emission concentration vs diameter')
-    axs[0, 1].set_ylabel('Particle emission concentration [cm^-3]')
+    #  add the label automatically to the title of the plot ??
+    # categories_particles = ("Breathing", "Speaking", "Shouting") ??
+    axs[0, 1].set_title(r'Particle emissions')
+    axs[0, 1].set_ylabel('Particle emission concentration [$cm^{-3}$]')
     axs[0, 1].set_xlabel(r'Diameter [$\mu$m]')
 
     categories = ("seated", "standing", "light exercise", "moderate exercise", "heavy exercise")
     axs[1, 0].set_title(f'Breathing rate - '
                         f'{categories[model.infected.breathing_category - 1]}')
-    axs[1, 0].set_xlabel('Breathing rate [m^3 / h]')
+    axs[1, 0].set_xlabel('Breathing rate [$m^3\;h^{-1}$]')
 
-    axs[1, 1].set_title('qR')
-    axs[1, 1].set_xlabel('qR [log10(q / h)]')
+    axs[1, 1].set_title('Quantum generation rate')
+    axs[1, 1].set_xlabel('qR [log10($q\;h^{-1}$)]')
 
-    mean_patch = patches.Patch(color='red', label='Mean')
-    median_patch = patches.Patch(color='green', label='Median')
-    std_patch = patches.Patch(color='pink', label='Standard deviations')
-    fig.legend(handles=(mean_patch, median_patch, std_patch))
+    mean_patch = patches.Patch(color='grey',label='Mean')
+    median_patch = patches.Patch(color='black', label='Median')
+    std_patch = patches.Patch(color='lightgrey', linestyle='dashed', label='Standard deviations')
+    fig.legend(handles=(mean_patch, std_patch, median_patch))
 
     plt.show()
+    print(10**np.median(data))
 
 
 def buaonanno_exposure_model():
