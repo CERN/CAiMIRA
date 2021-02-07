@@ -446,7 +446,7 @@ def present_model(model: MCConcentrationModel, bins: int = 200) -> None:
     axs[0, 1].set_ylabel('Particle emission concentration [$cm^{-3}$]')
     axs[0, 1].set_xlabel(r'Diameter [$\mu$m]')
 
-    categories = ("seated", "standing", "light exercise", "moderate exercise", "heavy exercise")
+    categories = ("seated", "standing", "light activity", "moderate activity", "heavy activity")
     axs[1, 0].set_title(f'Breathing rate - '
                         f'{categories[model.infected.breathing_category - 1]}')
     axs[1, 0].set_xlabel('Breathing rate [$m^3\;h^{-1}$]')
@@ -460,7 +460,13 @@ def present_model(model: MCConcentrationModel, bins: int = 200) -> None:
     fig.legend(handles=(mean_patch, std_patch, median_patch))
 
     plt.show()
-    print(10**np.median(data))
+    print(
+        10**np.median(data),
+        np.median(10**data),
+        np.mean(data),
+        np.mean(10**data), # is this correct?
+        np.std(data),
+        np.std(10**data)) # is this correct?
 
 
 def buaonanno_exposure_model():
@@ -556,7 +562,6 @@ plt.violinplot((original_pi, english_pi), positions=(1, 2), showmeans=True, show
 plt.xticks(ticks=[1, 2], labels=['Original', 'English'])
 plt.ylabel('Percentage probability of infection')
 plt.show()
-
 
 # pis = baseline_mc_exposure_model.infection_probability()
 # plt.hist(pis, bins=2000)
