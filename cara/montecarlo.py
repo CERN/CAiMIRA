@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import functools
+from itertools import product
 from cara import models
 import numpy as np
 import scipy.stats as sct
@@ -466,6 +467,36 @@ def present_model(model: MCConcentrationModel, bins: int = 200) -> None:
 
     print_qr_info(qRs)
 
+    plt.show()
+
+
+def generate_boxplot(masked: bool = False, samples: int = 200000, qid: int = 100, english_variant: bool = False):
+    scenarios = [MCInfectedPopulation(
+        number=1,
+        presence=models.SpecificInterval(((0, 4), (5, 9))),
+        masked=masked,
+        virus=MCVirus(halflife=1.1),
+        expiratory_activity=e,
+        samples=samples,
+        qid=qid,
+        breathing_category=b,
+        english_variant=english_variant
+    ) for e, b in product((1, 2, 3), (1, 3, 5))]
+    qr_values = [np.log10(scenario.emission_rate_when_present()) for scenario in scenarios]
+
+    bplot = plt.boxplot(qr_values, positions=(1, 2, 3, 5, 6, 7, 9, 10, 11), patch_artist=True)
+    colors = ['lightgreen', 'lightblue', 'pink']
+
+    for patch, color in zip(bplot['boxes'], colors * 3):
+        patch.set_facecolor(color)
+
+    handles = [patches.Patch(color=c, label=l) for c, l in zip(colors, ('Seated', 'Light activity', 'Heavy activity'))]
+    plt.legend(handles=handles)
+
+    plt.xticks((2, 6, 10), ('Breathing', 'Speaking', 'Shouting'))
+    plt.xlabel('Expiratory activity')
+    plt.ylabel('qR [$q\;h^{-1}$]')
+    plt.yticks(ticks=[2 * i for i in range(-3, 4)], labels=['$\;10^{' + str(2 * i) + '}$' for i in range(-3, 4)])
     plt.show()
 
 
