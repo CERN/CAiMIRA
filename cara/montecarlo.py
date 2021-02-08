@@ -487,6 +487,23 @@ def buaonanno_exposure_model():
     )
 
 
+def display_original_vs_english(original_pi: np.ndarray, english_pi: np.ndarray):
+    print(f"\nMedian(P_i) - Original: {'{:.2f}'.format(np.median(original_pi))}%\n"
+          f"Mean(P_i) - Original:   {'{:.2f}'.format(np.mean(original_pi))}%\n\n"
+          f"Median(P_i) - English:  {'{:.2f}'.format(np.median(english_pi))}%\n"
+          f"Mean(P_i) - English:    {'{:.2f}'.format(np.mean(english_pi))}%\n")
+
+    plt.hist(original_pi, bins=200)
+    plt.yticks([], [])
+    plt.xlabel('Percentage Probability of infection')
+    plt.show()
+
+    plt.violinplot((original_pi, english_pi), positions=(1, 2), showmeans=True, showmedians=True)
+    plt.xticks(ticks=[1, 2], labels=['Original', 'English'])
+    plt.ylabel('Percentage probability of infection')
+    plt.show()
+
+
 models = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=45),
@@ -516,27 +533,5 @@ models = [MCExposureModel(
     )
 ) for e in (False, True)]
 
-present_model(models[0].concentration_model)
-
 original_pi, english_pi = [model.infection_probability() for model in models]
-print(f"\nMedian(P_i) - Original: {'{:.2f}'.format(np.median(original_pi))}%\n"
-      f"Mean(P_i) - Original:   {'{:.2f}'.format(np.mean(original_pi))}%\n\n"
-      f"Median(P_i) - English:  {'{:.2f}'.format(np.median(english_pi))}%\n"
-      f"Mean(P_i) - English:    {'{:.2f}'.format(np.mean(english_pi))}%\n")
-
-plt.hist(original_pi, bins=200)
-plt.yticks([], [])
-plt.xlabel('Percentage Probability of infection')
-plt.show()
-
-plt.violinplot((original_pi, english_pi), positions=(1, 2), showmeans=True, showmedians=True)
-plt.xticks(ticks=[1, 2], labels=['Original', 'English'])
-plt.ylabel('Percentage probability of infection')
-plt.show()
-
-# pis = baseline_mc_exposure_model.infection_probability()
-# plt.hist(pis, bins=2000)
-# plt.title("Distribution of probabilities of infection")
-# plt.ylabel("Frequency")
-# plt.xlabel("Percentage probability of infection")
-# plt.show()
+display_original_vs_english(original_pi, english_pi)
