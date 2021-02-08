@@ -392,7 +392,9 @@ def logscale_hist(x: typing.Iterable, bins: int) -> None:
 def print_qr_info(log_qr: np.ndarray) -> None:
     qr_values = 10 ** log_qr
     print(f"MEAN of log_10(qR) = {np.mean(log_qr)}\n"
-          f"MEAN of qR = {np.mean(qr_values)}")
+          f"SD of log_10(qR) = {np.std(log_qr)}\n"
+          f"MEAN of qR = {np.mean(qr_values)}\n"
+          f"SD of qR = {np.std(qr_values)}\n")
 
     for quantile in (0.01, 0.05, 0.25, 0.50, 0.75, 0.95, 0.99):
         print(f"qR_{quantile} = {np.quantile(qr_values, quantile)}")
@@ -564,6 +566,7 @@ exposure_models = [MCExposureModel(
     )
 ) for e in (False, True)]
 
+present_model(exposure_models[0].concentration_model)
 original_pi, english_pi = [model.infection_probability() for model in exposure_models]
 # display_original_vs_english(original_pi, english_pi)
 generate_boxplot()
