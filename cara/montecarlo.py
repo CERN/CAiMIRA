@@ -388,8 +388,8 @@ def logscale_hist(x: typing.Iterable, bins: int) -> None:
     plt.xscale('log')
 
 
-def print_qr_info(qr_values: np.ndarray) -> None:
-    log_qr = np.log10(qr_values)
+def print_qr_info(log_qr: np.ndarray) -> None:
+    qr_values = 10 ** log_qr
     print(f"MEAN of log_10(qR) = {np.mean(log_qr)}\n"
           f"MEAN of qR = {np.mean(qr_values)}")
 
@@ -464,7 +464,7 @@ def present_model(model: MCConcentrationModel, bins: int = 200) -> None:
     std_patch = patches.Patch(color='lightgrey', linestyle='dashed', label='Standard deviations')
     fig.legend(handles=(mean_patch, std_patch, median_patch))
 
-    # TODO: call print_qr_info
+    print_qr_info(qRs)
 
     plt.show()
 
@@ -519,7 +519,7 @@ models = [MCExposureModel(
 present_model(models[0].concentration_model)
 
 original_pi, english_pi = [model.infection_probability() for model in models]
-print(f"Median(P_i) - Original: {'{:.2f}'.format(np.median(original_pi))}%\n"
+print(f"\nMedian(P_i) - Original: {'{:.2f}'.format(np.median(original_pi))}%\n"
       f"Mean(P_i) - Original:   {'{:.2f}'.format(np.mean(original_pi))}%\n\n"
       f"Median(P_i) - English:  {'{:.2f}'.format(np.median(english_pi))}%\n"
       f"Mean(P_i) - English:    {'{:.2f}'.format(np.mean(english_pi))}%\n")
