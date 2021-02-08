@@ -490,35 +490,6 @@ def buaonanno_exposure_model():
     )
 
 
-baseline_mc_exposure_model = MCExposureModel(
-    concentration_model=MCConcentrationModel(
-        room=models.Room(volume=45),
-        ventilation=models.SlidingWindow(
-            active=models.PeriodicInterval(period=120, duration=10),
-            inside_temp=models.PiecewiseConstant((0, 24), (293,)),
-            outside_temp=models.PiecewiseConstant((0, 24), (283,)),
-            window_height=1.6, opening_length=0.6,
-        ),
-        infected=MCInfectedPopulation(
-            number=1,
-            presence=models.SpecificInterval(((0, 4), (5, 9))),
-            masked=True,
-            virus=MCVirus(halflife=1.1),
-            expiratory_activity=1,
-            samples=200000,
-            qid=100,
-            breathing_category=1,
-            english_variant=True
-        )
-    ),
-    exposed=models.Population(
-        number=2,
-        presence=models.SpecificInterval(((0, 4), (5, 9))),
-        activity=models.Activity.types['Seated'],
-        mask=models.Mask.types['Type I']
-    )
-)
-
 models = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=45),
@@ -548,7 +519,7 @@ models = [MCExposureModel(
     )
 ) for e in (False, True)]
 
-present_model(baseline_mc_exposure_model.concentration_model)
+present_model(models[0].concentration_model)
 
 original_pi, english_pi = [model.infection_probability() for model in models]
 print(f"Median(P_i) - Original: {'{:.2f}'.format(np.median(original_pi))}%\n"
