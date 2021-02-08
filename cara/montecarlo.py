@@ -504,7 +504,7 @@ def display_original_vs_english(original_pi: np.ndarray, english_pi: np.ndarray)
     plt.show()
 
 
-models = [MCExposureModel(
+exposure_models = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=45),
         ventilation=models.SlidingWindow(
@@ -533,5 +533,6 @@ models = [MCExposureModel(
     )
 ) for e in (False, True)]
 
-original_pi, english_pi = [model.infection_probability() for model in models]
-display_original_vs_english(original_pi, english_pi)
+original_pi, english_pi = [model.infection_probability() for model in exposure_models]
+# display_original_vs_english(original_pi, english_pi)
+generate_boxplot()
