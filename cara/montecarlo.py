@@ -453,6 +453,9 @@ def present_model(model: MCConcentrationModel, bins: int = 200) -> None:
 
     axs[1, 1].set_title('Quantum generation rate')
     axs[1, 1].set_xlabel('qR [log10($q\;h^{-1}$)]')
+    axs[1, 1].annotate('', xy=(mean + std, 2000), xytext=(np.max(data), 2000),
+                       arrowprops={'arrowstyle':'<|-|>','ls':'dashed'})
+    axs[1, 1].text(mean + std + 0.1, 2100,'Superspreader',fontsize=8)
 
     mean_patch = patches.Patch(color='grey',label='Mean')
     median_patch = patches.Patch(color='black', label='Median')
