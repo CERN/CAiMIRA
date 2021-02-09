@@ -521,7 +521,16 @@ def buaonanno_exposure_model():
     )
 
 
-def display_original_vs_english(original_pi: np.ndarray, english_pi: np.ndarray):
+def display_original_vs_english(original_pi: np.ndarray, english_pi: np.ndarray) -> None:
+    """
+    Displays a violin-plot of the distributions of probabilities of infection of the original and english virus variant
+    respectively
+    :param original_pi: A numpy-array of percentages [0, 100] representing probabilities of infection associated with
+    the original variant
+    :param english_pi: A numpy-array of percentages [0, 100] representing probabilities of infection associated with
+    the english variant
+    :return: Nothing, a violin-plot is displayed
+    """
     print(f"\nMedian(P_i) - Original: {'{:.2f}'.format(np.median(original_pi))}%\n"
           f"Mean(P_i) - Original:   {'{:.2f}'.format(np.mean(original_pi))}%\n\n"
           f"Median(P_i) - English:  {'{:.2f}'.format(np.median(english_pi))}%\n"
