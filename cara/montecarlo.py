@@ -401,6 +401,12 @@ def print_qr_info(log_qr: np.ndarray) -> None:
 
 
 def present_model(model: MCConcentrationModel, bins: int = 200) -> None:
+    """
+    Displays a number of plots and prints a handful of key parameters and results of a given MCConcentrationModel
+    :param model: The MCConcentrationModel representing the scenario to be presented
+    :param bins: The number of bins (bars) to use for the histograms
+    :return: Nothing, graphs are displayed and parameters are printed
+    """
     fig, axs = plt.subplots(2, 2, sharex=False, sharey=False)
     fig.set_figheight(8)
     fig.set_figwidth(10)
