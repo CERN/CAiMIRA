@@ -296,6 +296,10 @@ class MCConcentrationModel:
 
 @dataclass(frozen=True)
 class BuonannoSpecificInfectedPopulation:
+    """
+    A class representing a specific case described in a paper by Buonanno et al., previously used to compare our
+    results with the results of the paper.
+    """
     #: The virus with which the population is infected.
     virus: MCVirus
 
