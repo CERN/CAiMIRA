@@ -381,7 +381,7 @@ def logscale_hist(x: typing.Iterable, bins: int) -> None:
     Plots the data of x as a log-scale histogram
     :param x: An array containing the data to be plotted
     :param bins: The number of bins to be used in the histogram (number of bars)
-    :return: Nothing
+    :return: Nothing, a graph is displayed
     """
     hist, bins = np.histogram(x, bins=bins)
     logscale_bins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]), len(bins))
@@ -390,6 +390,11 @@ def logscale_hist(x: typing.Iterable, bins: int) -> None:
 
 
 def print_qr_info(log_qr: np.ndarray) -> None:
+    """
+    Prints statistical parameters of a given (logarithmic) distribution of qR-values
+    :param log_qr: A numpy-array of the logarithms of qR-values
+    :return: Nothing, parameters are printed
+    """
     qr_values = 10 ** log_qr
     print(f"MEAN of log_10(qR) = {np.mean(log_qr)}\n"
           f"SD of log_10(qR) = {np.std(log_qr)}\n"
