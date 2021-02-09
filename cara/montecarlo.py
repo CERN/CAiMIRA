@@ -473,7 +473,18 @@ def present_model(model: MCConcentrationModel, bins: int = 200) -> None:
     plt.show()
 
 
-def generate_boxplot(masked: bool = False, samples: int = 200000, qid: int = 100, english_variant: bool = False):
+def generate_boxplot(masked: bool = False, samples: int = 200000, qid: int = 100,
+                     english_variant: bool = False) -> None:
+    """
+    Generates and displays a boxplot for comparing the qR-values in scenarios with various combinations of breathing
+    rates and expiratory activities
+    :param masked: A bool indicating whether or not the infected subject is wearing a mask
+    :param samples: The number of samples to use for the monte carlo simulation
+    :param qid: The number of "viral copies per quantum"
+    :param english_variant: A bool indicating whether or not to perform the simulation using the english variant of the
+    virus
+    :return: Nothing, a graph is displayed
+    """
     scenarios = [MCInfectedPopulation(
         number=1,
         presence=models.SpecificInterval(((0, 4), (5, 9))),
