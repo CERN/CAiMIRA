@@ -503,7 +503,10 @@ def generate_boxplot(masked: bool = False, samples: int = 200000, qid: int = 100
     plt.show()
 
 
-def buaonanno_exposure_model():
+def buonanno_exposure_model() -> MCExposureModel:
+    """
+    :return: An MCExposureModel object corresponding to one of the scenarios outlined in the paper of Buonanno et al.
+    """
     return MCExposureModel(
         concentration_model=MCConcentrationModel(
             room=models.Room(volume=800),
