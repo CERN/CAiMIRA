@@ -121,7 +121,7 @@ In this case it is assumed that the infected person is the trainer, because this
 
 You should enter the time (hours:minutes) for the start and end of the simulation period (i.e. 8:30 to 17:30 for a typical office day).
 It is important to enter the correct times for the simulation, in particular when using natural ventilation.
-It is possible to specify a different time for the entry and exit of the infected person, however for most cases (where we do not know apriori which of the occupants is infected), it is recommended to set these to the same values as the activity start and end.
+It is possible to specify a different time for the entry and exit of both the exposed and infected person, however for most cases (where we do not know apriori which of the occupants is infected), it is recommended to set these to the same values as the activity start and end.
 
 #### When is the event?
 
@@ -131,17 +131,17 @@ Only the month is used by the model to retrieve the average outdoor air temperat
  
 ### Breaks
 
-#### Lunch
+#### Lunch Break
 
 You have the option to specify a lunch break.
 This will be useful if you plan to simulate a typical full working day.
-During the lunch break it is assumed that all occupants will leave the simulated space (to go an eat lunch, somewhere else - restaurant or break room).
+During the lunch break it is assumed that all occupants will leave the simulated space (to go eat lunch somewhere else - restaurant or break room).
 If you plan to eat lunch in the same area where you have been working, you should select 'No' even if a lunch break will be taken, since the risk of infection is related to the occupation of the simulated space.
+See 'Split Breaks' if the occupants do not break at the same time.
 
 It should also be noted that the infection probabilities presented in the report does not take into account any potential exposures during the break times.
 
-
-### Coffee Breaks
+#### Coffee Breaks
 
 You have the option to choose 0(No breaks), 2 or 4 coffee breaks during the simulated period.
 It is assumed that all occupants vacate the space during the break period.
@@ -151,10 +151,22 @@ When enabled, the breaks are spread equally throughout the day - for example if 
 The exact timing of the breaks within the day is not particularly critical to an accurate simulation, so you do not need to be concerned about major differences if you take a coffee break at 10:00 instead of 11:00.
 The variation of coffee breaks can be altered in 5 minute increments up to 30 minutes in length.
 Note that this doesn't necessarily have to be a coffee break, it can represent any period where the simulated space is vacated.
- 
+See 'Split Breaks' if the occupants do not break at the same time.
+
 It should also be noted that the infection probabilities presented in the report does not take into account any potential exposures during the break times.
 
-#### Face Masks
+#### Split breaks
+
+You have the option to specify whether the exposed and infected person(s) break at the same time.
+If not, then you can input separate breaks. This is particularly different when specifying coffee breaks as they are spread evenly throughout the activity times specified.
+
+If we take an example where the exposed person(s) activity time is from 9:00 to 18:00 and the infected person(s) is from 10:00 to 17:00, with both having a lunch break from 13:00 to 14:00 and have 2 coffee breaks each, we can have two different results:
+
+1. Specify the default situtaion where both exposed and infected persons(s) have their breaks at the same time: in this case the coffee break times are calculated based on the activity time of the exposed - both will have their first coffee break around 11:00 and the second around 16:00. 
+
+2. Specify separate breaks for the infected person(s): in this case the coffee breaks will be calculated based on the different activity times (i.e. exposed from 9:00 to 18:00 and infected from 10:00 to 17:00) - the exposed person(s) will have their first coffee break around 11:00 and the second around 16:00, whereas the infected will have their first coffee break around 11:30 and the second around 15:30.
+
+### Face Masks
 
 The model allows for a simulation with either a continuous wearing of face masks throughout the duration of the event, or have the removed at all times - i.e. all occupants (infected and exposed alike) wear or not masks for the duration of the simulation. 
 Please bear in mind the user inputs shall be aligned with the current applicable public health & safety instructions. 
