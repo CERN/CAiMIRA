@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from tqdm import tqdm
 import functools
 from itertools import product
 from cara import models
@@ -38,38 +39,39 @@ symptomatic_vl_frequencies = ((2.46032, 2.67431, 2.85434, 3.06155, 3.25856, 3.47
 
 # NOT USED
 # The (k, lambda) parameters for the weibull-distributions corresponding to each quantity
-weibull_parameters = [((0.5951563631241763, 0.027071715346754264),          # emission_concentration
-                       (15.312035476444153, 0.8433059432279654 * 3.33)),    # particle_diameter_breathing
-                      ((2.0432559401256634, 3.3746316960164147),            # emission_rate_speaking
-                       (5.9493671011143965, 1.081521101924364 * 3.33)),     # particle_diameter_speaking
-                      ((2.317686940362959, 5.515253884170728),              # emission_rate_speaking_loudly
-                       (7.348365409721486, 1.1158159287760463 * 3.33))]     # particle_diameter_speaking_loudly
+weibull_parameters = [((0.5951563631241763, 0.027071715346754264),  # emission_concentration
+                       (15.312035476444153, 0.8433059432279654 * 3.33)),  # particle_diameter_breathing
+                      ((2.0432559401256634, 3.3746316960164147),  # emission_rate_speaking
+                       (5.9493671011143965, 1.081521101924364 * 3.33)),  # particle_diameter_speaking
+                      ((2.317686940362959, 5.515253884170728),  # emission_rate_speaking_loudly
+                       (7.348365409721486, 1.1158159287760463 * 3.33))]  # particle_diameter_speaking_loudly
 
 # NOT USED
 # (Xmin, Xmax, a, b)
-beta_parameters = ((0.0, 0.0558823529411764, 0.40785196091099885, 0.6465433589950477),              # Breathing
-                   (0.00735294117647056, 0.094485294117647, 0.5381693341323044, 1.055612645201782)) # Breathing (fast-deep)
+beta_parameters = ((0.0, 0.0558823529411764, 0.40785196091099885, 0.6465433589950477),  # Breathing
+                   (0.00735294117647056, 0.094485294117647, 0.5381693341323044,
+                    1.055612645201782))  # Breathing (fast-deep)
 
 # (csi, lamb)
-lognormal_parameters = ((0.10498338229297108, -0.6872121723362303),     # BR, seated
-                        (0.09373162411398223, -0.5742377578494785),     # BR, standing
-                        (0.09435378091059601, 0.21380242785625422),     # BR, light exercise
-                        (0.1894616357138137, 0.551771330362601),        # BR, moderate exercise
-                        (0.21744554768657565, 1.1644665696723049))      # BR, heavy exercise
+lognormal_parameters = ((0.10498338229297108, -0.6872121723362303),  # BR, seated
+                        (0.09373162411398223, -0.5742377578494785),  # BR, standing
+                        (0.09435378091059601, 0.21380242785625422),  # BR, light exercise
+                        (0.1894616357138137, 0.551771330362601),  # BR, moderate exercise
+                        (0.21744554768657565, 1.1644665696723049))  # BR, heavy exercise
 
 # NOT USED (directly in calculated in concentration_vs_diameter )
 emission_concentrations = (1.38924e-6, 1.07098e-4, 5.29935e-4)
 
 concentration_vs_diameter = (
     # B-mode
-lambda d:
-                 (1 / d) * (0.1 / (np.sqrt(2 * np.pi) * 0.26)) * np.exp(-1 * (np.log(d) - 1.0) ** 2 / (2 * 0.26 ** 2)),
+    lambda d:
+    (1 / d) * (0.1 / (np.sqrt(2 * np.pi) * 0.26)) * np.exp(-1 * (np.log(d) - 1.0) ** 2 / (2 * 0.26 ** 2)),
     # L-mode
-lambda d:
-                 (1 / d) * (1.0 / (np.sqrt(2 * np.pi) * 0.5)) * np.exp(-1 * (np.log(d) - 1.4) ** 2 / (2 * 0.5 ** 2)),
+    lambda d:
+    (1 / d) * (1.0 / (np.sqrt(2 * np.pi) * 0.5)) * np.exp(-1 * (np.log(d) - 1.4) ** 2 / (2 * 0.5 ** 2)),
     # O-mode
-lambda d:
-                 (1 / d) * (0.001 / (np.sqrt(2 * np.pi) * 0.56)) * np.exp(-1 * (np.log(d) - 4.98) ** 2 / (2 * 0.56 ** 2))
+    lambda d:
+    (1 / d) * (0.001 / (np.sqrt(2 * np.pi) * 0.56)) * np.exp(-1 * (np.log(d) - 4.98) ** 2 / (2 * 0.56 ** 2))
 )
 
 
@@ -204,7 +206,7 @@ class MCInfectedPopulation(MCPopulation):
         :return: A numpy array of length = samples, containing randomly generated qr-values
         """
         viral_loads = self._generate_viral_loads()
-        if self.english_variant:
+        if self.english_variant and self.viral_load is None:
             viral_loads += np.log10(11.5)
 
         emission_concentration = self._calculate_emission_concentration()
@@ -254,7 +256,7 @@ class MCConcentrationModel:
 
     def infectious_virus_removal_rate(self, time: float) -> float:
         # Particle deposition on the floor
-        vg = 1.88 * 10 ** -4 # new value different from initial CARA model (see paper)
+        vg = 1.88 * 10 ** -4  # new value different from initial CARA model (see paper)
         # Height of the emission source to the floor - i.e. mouth/nose (m)
         h = 1.5
         # Deposition rate (h^-1)
@@ -495,6 +497,43 @@ def present_model(model: MCConcentrationModel, bins: int = 200) -> None:
     plt.show()
 
 
+def plot_pi_vs_viral_load(baseline: MCExposureModel, samples_per_vl: int = 20000) -> None:
+    infected = baseline.concentration_model.infected
+    viral_loads = np.linspace(5, 10, 200)
+    pi_means = []
+    pi_medians = []
+    lower_percentiles = []
+    upper_percentiles = []
+    for viral_load in tqdm(viral_loads):
+        model = MCExposureModel(concentration_model=MCConcentrationModel(
+            room=baseline.concentration_model.room,
+            ventilation=baseline.concentration_model.ventilation,
+            infected=MCInfectedPopulation(
+                number=infected.number,
+                presence=infected.presence,
+                masked=infected.masked,
+                expiratory_activity=infected.expiratory_activity,
+                breathing_category=infected.breathing_category,
+                virus=infected.virus,
+                samples=samples_per_vl,
+                qid=infected.qid,
+                english_variant=infected.english_variant,
+                viral_load=viral_load
+            )
+        ),
+            exposed=baseline.exposed)
+
+        infection_probabilities = model.infection_probability()
+        pi_means.append(np.mean(infection_probabilities))
+        pi_medians.append(np.median(infection_probabilities))
+        lower_percentiles.append(np.quantile(infection_probabilities, 0.01))
+        upper_percentiles.append(np.quantile(infection_probabilities, 0.99))
+
+    plt.plot(viral_loads, pi_medians)
+    plt.fill_between(viral_loads, lower_percentiles, upper_percentiles, alpha=0.2)
+    plt.show()
+
+
 def generate_boxplot(masked: bool = False, samples: int = 200000, qid: int = 100,
                      english_variant: bool = False) -> None:
     """
@@ -612,7 +651,3 @@ exposure_models = [MCExposureModel(
     )
 ) for e in (False, True)]
 
-present_model(exposure_models[0].concentration_model)
-original_pi, english_pi = [model.infection_probability() for model in exposure_models]
-# display_original_vs_english(original_pi, english_pi)
-generate_boxplot()
