@@ -117,7 +117,7 @@
 		</p></li>
 		<li><p class="data_text">Exposed occupant(s) activity time:</p></li>
 			<ul>
-				<li><p class="data_subtext">Start time: {{ form.activity_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.activity_finish | minutes_to_time }}</p></li>
+				<li><p class="data_subtext">Start time: {{ form.exposed_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.exposed_finish | minutes_to_time }}</p></li>
 			</ul>
 		<li><p class="data_text">Infected occupant(s) activity time:</p></li>
 		<ul>
@@ -127,27 +127,57 @@
 	</ul>
 
 	<p class="data_title">Break data:</p>
+	{% if form.infected_dont_have_breaks_with_exposed %}
+	<p style="padding-left:15px;"> Exposed occupant(s):</p>
+	{% endif %}
 	<ul>
 		<li><p class="data_text">Lunch break:
-		{% if form.lunch_option%}
+		{% if form.exposed_lunch_option%}
 		Yes</li>
 		<ul>
-			<li> Start: {{ form.lunch_start | minutes_to_time }} &nbsp&nbsp End: {{ form.lunch_finish | minutes_to_time }}</p></li>
+			<li><p class="data_subtext">Start time: {{ form.exposed_lunch_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.exposed_lunch_finish | minutes_to_time }}
 		</ul>
 		{% else%}
-		No</li>
+		No
 		{% endif %}
-		<li><p class="data_text">Coffee breaks: {{ form.coffee_breaks }}
-		{% if form.coffee_breaks > 0 %}
-		each of {{ form.coffee_duration }} minutes duration
+		</p></li>
+		<li><p class="data_text">Coffee breaks: {{ form.exposed_coffee_breaks }}
+		{% if form.exposed_coffee_breaks > 0 %}
+		each of {{ form.exposed_coffee_duration }} minutes duration
 		</p></li>
 		<ul>
-		{%- for start_time, end_time in form.coffee_break_times() %}
+		{%- for start_time, end_time in form.exposed_coffee_break_times() %}
 		<li><p class="data_subtext">Coffee break {{ loop.index }}: Start: {{ start_time | minutes_to_time }} &nbsp&nbsp End: {{ end_time | minutes_to_time }}</p></li>
     	{%- endfor %}
 		</ul>
 		{% endif %}
 	</ul>
+
+	{% if form.infected_dont_have_breaks_with_exposed %}
+	<p style="padding-left:15px;"> Infected occupant(s):</p>
+	<ul>
+		<li><p class="data_text">Lunch break:
+		{% if form.infected_lunch_option%}
+		Yes</li>
+		<ul>
+			<li><p class="data_subtext">Start time: {{ form.infected_lunch_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.infected_lunch_finish | minutes_to_time }}
+		</ul>
+		{% else%}
+		No
+		{% endif %}
+		</p></li>
+		<li><p class="data_text">Coffee breaks: {{ form.infected_coffee_breaks }}
+		{% if form.infected_coffee_breaks > 0 %}
+		each of {{ form.infected_coffee_duration }} minutes duration
+		</p></li>
+		<ul>
+		{%- for start_time, end_time in form.infected_coffee_break_times() %}
+		<li><p class="data_subtext">Coffee break {{ loop.index }}: Start: {{ start_time | minutes_to_time }} &nbsp&nbsp End: {{ end_time | minutes_to_time }}</p></li>
+    	{%- endfor %}
+		</ul>
+		{% endif %}
+	</ul>
+	{% endif %}
 
 	<p class="data_title">Mask wearing:</p>
 	<ul>

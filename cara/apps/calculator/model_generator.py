@@ -15,24 +15,30 @@ LOG = logging.getLogger(__name__)
 @dataclass
 class FormData:
     # Number of minutes after 00:00
-    activity_start: int
-    activity_finish: int
-    lunch_start: int
-    lunch_finish: int
-    infected_start: int
+    exposed_finish: int
+    exposed_lunch_finish: int
+    exposed_lunch_start: int
+    exposed_start: int
     infected_finish: int
+    infected_lunch_finish: int                      #Used if infected_dont_have_breaks_with_exposed
+    infected_lunch_start: int                       #Used if infected_dont_have_breaks_with_exposed
+    infected_start: int
 
     activity_type: str
     air_changes: float
     air_supply: float
     ceiling_height: float
-    coffee_breaks: int
-    coffee_duration: int
+    exposed_coffee_breaks: int
+    exposed_coffee_duration: int
+    exposed_lunch_option: bool
     floor_area: float
     hepa_amount: float
     hepa_option: bool
+    infected_coffee_breaks: int                     #Used if infected_dont_have_breaks_with_exposed
+    infected_coffee_duration: int                   #Used if infected_dont_have_breaks_with_exposed
+    infected_dont_have_breaks_with_exposed: bool
+    infected_lunch_option: bool                     #Used if infected_dont_have_breaks_with_exposed
     infected_people: int
-    lunch_option: bool
     mask_type: str
     mask_wearing: str
     mechanical_ventilation_type: str
@@ -58,12 +64,12 @@ class FormData:
         # Take a copy of the form data so that we can mutate it.
         form_data = form_data.copy()
 
-        valid_na_values = ['windows_open', 'window_type', 'mechanical_ventilation_type']
+        valid_na_values = ['windows_open', 'window_type', 'mechanical_ventilation_type', 'infected_dont_have_breaks_with_exposed']
         for name in valid_na_values:
             if not form_data.get(name, ''):
                 form_data[name] = 'not-applicable'
 
-        for name in ['lunch_start', 'lunch_finish']:
+        for name in ['exposed_lunch_start', 'exposed_lunch_finish', 'infected_lunch_start', 'infected_lunch_finish']:
             if not form_data.get(name, ''):
                 form_data[name] = '00:00'
 
@@ -78,34 +84,42 @@ class FormData:
                 form_data[key] = "0"
 
         time_attributes = [
-            'activity_start', 'activity_finish', 'lunch_start',
-            'lunch_finish', 'infected_start', 'infected_finish',
+            'exposed_lunch_start', 'exposed_lunch_finish', 'exposed_start', 'exposed_finish',
+            'infected_lunch_start', 'infected_lunch_finish', 'infected_start', 'infected_finish',
         ]
         for attr_name in time_attributes:
             form_data[attr_name] = time_string_to_minutes(form_data[attr_name])
 
         boolean_attributes = [
-            'hepa_option', 'lunch_option',
+            'hepa_option', 'exposed_lunch_option', 'infected_lunch_option', 'infected_dont_have_breaks_with_exposed',
         ]
         for attr_name in boolean_attributes:
             form_data[attr_name] = form_data[attr_name] == '1'
 
         instance = cls(
-            activity_finish=form_data['activity_finish'],
-            activity_start=form_data['activity_start'],
             activity_type=form_data['activity_type'],
             air_changes=float(form_data['air_changes']),
             air_supply=float(form_data['air_supply']),
             ceiling_height=float(form_data['ceiling_height']),
-            coffee_breaks=int(form_data['coffee_breaks']),
-            coffee_duration=int(form_data['coffee_duration']),
+            exposed_coffee_breaks=int(form_data['exposed_coffee_breaks']),
+            exposed_coffee_duration=int(form_data['exposed_coffee_duration']),
+            exposed_finish=form_data['exposed_finish'],
+            exposed_lunch_finish=form_data['exposed_lunch_finish'],
+            exposed_lunch_option=form_data['exposed_lunch_option'],
+            exposed_lunch_start=form_data['exposed_lunch_start'],
+            exposed_start=form_data['exposed_start'],
             floor_area=float(form_data['floor_area']),
             hepa_amount=float(form_data['hepa_amount']),
             hepa_option=form_data['hepa_option'],
+            infected_coffee_breaks=int(form_data['infected_coffee_breaks']),
+            infected_coffee_duration=int(form_data['infected_coffee_duration']),
+            infected_dont_have_breaks_with_exposed=form_data['infected_dont_have_breaks_with_exposed'],
+            infected_finish=form_data['infected_finish'],
+            infected_lunch_finish=form_data['infected_lunch_finish'],
+            infected_lunch_option=form_data['infected_lunch_option'],
+            infected_lunch_start=form_data['infected_lunch_start'],
             infected_people=int(form_data['infected_people']),
-            lunch_finish=form_data['lunch_finish'],
-            lunch_option=form_data['lunch_option'],
-            lunch_start=form_data['lunch_start'],
+            infected_start=form_data['infected_start'],
             mask_type=form_data['mask_type'],
             mask_wearing=form_data['mask_wearing'],
             mechanical_ventilation_type=form_data['mechanical_ventilation_type'],
@@ -125,18 +139,21 @@ class FormData:
             window_width=float(form_data['window_width']),
             windows_number=int(form_data['windows_number']),
             windows_open=form_data['windows_open'],
-            infected_start=form_data['infected_start'],
-            infected_finish=form_data['infected_finish'],
         )
         instance.validate()
         return instance
 
     def validate(self):
+        # Validate time intervals selected by user
         time_intervals = [
-            ['activity_start', 'activity_finish'],
-            ['lunch_start', 'lunch_finish'],
+            ['exposed_start', 'exposed_finish'],
             ['infected_start', 'infected_finish'],
         ]
+        if self.exposed_lunch_option:
+            time_intervals.append(['exposed_lunch_start', 'exposed_lunch_finish'])
+        if self.infected_dont_have_breaks_with_exposed and self.infected_lunch_option:
+            time_intervals.append(['infected_lunch_start', 'infected_lunch_finish'])
+
         for start_name, end_name in time_intervals:
             start = getattr(self, start_name)
             end = getattr(self, end_name)
@@ -295,41 +312,66 @@ class FormData:
         )
         return exposed
 
-    def _compute_breaks_in_interval(self, start, finish, n_breaks) -> models.BoundarySequence_t:
-        break_delay = ((finish - start) - (n_breaks * self.coffee_duration)) // (n_breaks+1)
+    def _compute_breaks_in_interval(self, start, finish, n_breaks, duration) -> models.BoundarySequence_t:
+        break_delay = ((finish - start) - (n_breaks * duration)) // (n_breaks+1)
         break_times = []
         end = start
         for n in range(n_breaks):
             begin = end + break_delay
-            end = begin + self.coffee_duration
+            end = begin + duration
             break_times.append((begin, end))
         return tuple(break_times)
 
-    def lunch_break_times(self) -> models.BoundarySequence_t:
+    def exposed_lunch_break_times(self) -> models.BoundarySequence_t:
         result = []
-        if self.lunch_option:
-            result.append((self.lunch_start, self.lunch_finish))
+        if self.exposed_lunch_option:
+            result.append((self.exposed_lunch_start, self.exposed_lunch_finish))
         return tuple(result)
 
-    def coffee_break_times(self) -> models.BoundarySequence_t:
-        if not self.coffee_breaks:
-            return ()
-        if self.lunch_option:
-            time_before_lunch = self.lunch_start - self.activity_start
-            time_after_lunch = self.activity_finish - self.lunch_finish
-            before_lunch_frac = time_before_lunch / (time_before_lunch + time_after_lunch)
-            n_morning_breaks = round(self.coffee_breaks * before_lunch_frac)
-            breaks = (
-                self._compute_breaks_in_interval(
-                    self.activity_start, self.lunch_start, n_morning_breaks
-                )
-                + self._compute_breaks_in_interval(
-                    self.lunch_finish, self.activity_finish, self.coffee_breaks - n_morning_breaks
-                )
-            )
+    def infected_lunch_break_times(self) -> models.BoundarySequence_t:
+        if self.infected_dont_have_breaks_with_exposed:
+            result = []
+            if self.infected_lunch_option:
+                result.append((self.infected_lunch_start, self.infected_lunch_finish))
+            return tuple(result)
         else:
-            breaks = self._compute_breaks_in_interval(self.activity_start, self.activity_finish, self.coffee_breaks)
+            return self.exposed_lunch_break_times()
+
+    def _coffee_break_times(self, activity_start, activity_finish, coffee_breaks, coffee_duration, lunch_start, lunch_finish) -> models.BoundarySequence_t:
+        time_before_lunch = lunch_start - activity_start
+        time_after_lunch = activity_finish - lunch_finish
+        before_lunch_frac = time_before_lunch / (time_before_lunch + time_after_lunch)
+        n_morning_breaks = round(coffee_breaks * before_lunch_frac)
+        breaks = (
+            self._compute_breaks_in_interval(
+                activity_start, lunch_start, n_morning_breaks, coffee_duration
+            )
+            + self._compute_breaks_in_interval(
+                lunch_finish, activity_finish, coffee_breaks - n_morning_breaks, coffee_duration
+            )
+        )
         return breaks
+
+    def exposed_coffee_break_times(self) -> models.BoundarySequence_t:
+        if not self.exposed_coffee_breaks:
+            return ()
+        if self.exposed_lunch_option:
+            breaks = self._coffee_break_times(self.exposed_start, self.exposed_finish, self.exposed_coffee_breaks, self.exposed_coffee_duration, self.exposed_lunch_start, self.exposed_lunch_finish)
+        else:
+            breaks = self._compute_breaks_in_interval(self.exposed_start, self.exposed_finish, self.exposed_coffee_breaks, self.exposed_coffee_duration)
+        return breaks
+
+    def infected_coffee_break_times(self) -> models.BoundarySequence_t:
+        if self.infected_dont_have_breaks_with_exposed:
+            if not self.infected_coffee_breaks:
+                return ()
+            if self.infected_lunch_option:
+                breaks = self._coffee_break_times(self.infected_start, self.infected_finish, self.infected_coffee_breaks, self.infected_coffee_duration, self.infected_lunch_start, self.infected_lunch_finish)
+            else:
+                breaks = self._compute_breaks_in_interval(self.infected_start, self.infected_finish, self.infected_coffee_breaks, self.infected_coffee_duration)
+            return breaks
+        else:
+            return self.exposed_coffee_break_times()
 
     def present_interval(
             self,
@@ -433,13 +475,13 @@ class FormData:
     def infected_present_interval(self) -> models.Interval:
         return self.present_interval(
             self.infected_start, self.infected_finish,
-            breaks=self.lunch_break_times() + self.coffee_break_times(),
+            breaks=self.infected_lunch_break_times() + self.infected_coffee_break_times(),
         )
 
     def exposed_present_interval(self) -> models.Interval:
         return self.present_interval(
-            self.activity_start, self.activity_finish,
-            breaks=self.lunch_break_times() + self.coffee_break_times(),
+            self.exposed_start, self.exposed_finish,
+            breaks=self.exposed_lunch_break_times() + self.exposed_coffee_break_times(),
         )
 
 
@@ -497,23 +539,29 @@ def model_from_form(form: FormData) -> models.ExposureModel:
 def baseline_raw_form_data():
     # Note: This isn't a special "baseline". It can be updated as required.
     return {
-        'activity_finish': '18:00',
-        'activity_start': '09:00',
         'activity_type': 'office',
         'air_changes': '',
         'air_supply': '',
         'ceiling_height': '',
-        'coffee_breaks': '4',
-        'coffee_duration': '10',
+        'exposed_coffee_breaks': '4',
+        'exposed_coffee_duration': '10',
+        'exposed_finish': '18:00',
+        'exposed_lunch_finish': '13:30',
+        'exposed_lunch_option': '1',
+        'exposed_lunch_start': '12:30',
+        'exposed_start': '09:00',
         'floor_area': '',
         'hepa_amount': '250',
         'hepa_option': '0',
+        'infected_coffee_breaks': '4',
+        'infected_coffee_duration': '10',
+        'infected_dont_have_breaks_with_exposed': '1',
         'infected_finish': '18:00',
+        'infected_lunch_finish': '13:30',
+        'infected_lunch_option': '1',
+        'infected_lunch_start': '12:30',
         'infected_people': '1',
         'infected_start': '09:00',
-        'lunch_finish': '13:30',
-        'lunch_option': '1',
-        'lunch_start': '12:30',
         'mask_type': 'Type I',
         'mask_wearing': 'removed',
         'mechanical_ventilation_type': '',
