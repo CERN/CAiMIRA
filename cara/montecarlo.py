@@ -90,6 +90,13 @@ log_viral_load_frequencies = scoeh_vl_frequencies if USE_SCOEH else symptomatic_
 
 
 def lognormal(csi: float, lamb: float, samples: int) -> np.ndarray:
+    """
+    Generates a number of samples from a specified lognormal distribution
+    :param csi: A parameter used to specify the lognormal distribution
+    :param lamb: A parameter used to specify the lognormal distribution
+    :param samples: The number of samples to be generated
+    :return: A numpy-array containing 
+    """
     sf_norm = sct.norm.sf(np.random.normal(size=samples))
     return sct.lognorm.isf(sf_norm, csi, loc=0, scale=np.exp(lamb))
 
