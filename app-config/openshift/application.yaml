@@ -1,0 +1,228 @@
+---
+  kind: "Template"
+  apiVersion: "v1"
+  metadata:
+    name: "cara-application"
+    creationTimestamp: null
+    annotations:
+      description: "CARA application OpenShift template."
+      tags: "cara-application"
+  labels:
+    template: "cara-application"
+  objects:
+    -
+      kind: BuildConfig
+      apiVersion: v1
+      metadata:
+        name: cara-app
+      spec:
+        source:
+          git:
+            ref: master
+            uri: 'ssh://git@gitlab.cern.ch:7999/cara/cara.git'
+          sourceSecret:
+            name: sshdeploykey
+        output:
+        to:
+          kind: ImageStreamTag
+          name: 'cara-app:latest'
+        strategy:
+          sourceStrategy:
+            env:
+              - name: APP_NAME
+                value: cara-voila
+            from:
+              kind: ImageStreamTag
+              name: 'python:3.6'
+              namespace: openshift
+          type: Source
+        triggers:
+          - generic:
+              secretReference:
+                name: gitlab-cara-webhook-secret
+            type: Generic
+    -
+      kind: BuildConfig
+      apiVersion: v1
+      metadata:
+        name: cara-router
+      spec:
+        source:
+          git:
+            ref: master
+            uri: 'ssh://git@gitlab.cern.ch:7999/cara/cara.git'
+          contextDir: app-config/nginx
+          sourceSecret:
+            name: sshdeploykey
+        output:
+        to:
+          kind: ImageStreamTag
+          name: 'cara-router:latest'
+        strategy:
+          sourceStrategy:
+            from:
+              kind: ImageStreamTag
+              name: 'nginx:1.12'
+              namespace: openshift
+          type: Source
+        triggers:
+          - generic:
+              secretReference:
+                name: gitlab-cara-webhook-secret
+            type: Generic
+    -
+      kind: BuildConfig
+      apiVersion: v1
+      metadata:
+        name: cara-webservice
+      spec:
+        source:
+          git:
+            ref: master
+            uri: 'ssh://git@gitlab.cern.ch:7999/cara/cara.git'
+          sourceSecret:
+            name: sshdeploykey
+        output:
+        to:
+          kind: ImageStreamTag
+          name: 'cara-webservice:latest'
+        strategy:
+          sourceStrategy:
+            env:
+              - name: APP_NAME
+                value: cara-webservice
+            from:
+              kind: ImageStreamTag
+              name: 'python:3.6'
+              namespace: openshift
+          type: Source
+        triggers:
+          - generic:
+              secretReference:
+                name: gitlab-cara-webhook-secret
+            type: Generic
+    -
+      apiVersion: v1
+      kind: Route
+      metadata:
+        name: cern-sso-proxy
+      spec:
+        host: cara.web.cern.ch
+        port:
+          targetPort: 8081
+        tls:
+          insecureEdgeTerminationPolicy: Redirect
+          termination: edge
+        to:
+          kind: Service
+          name: cern-sso-proxy
+    -
+      apiVersion: v1
+      kind: DeploymentConfig
+      metadata:
+        name: cara-app
+      spec:
+        replicas;: 1
+        template:
+          metadata:
+            labels:
+              app: cara-app
+          spec:
+            containers:
+              - name: cara-app
+                ports:
+                  - containerPort: 8080
+                    protocol: TCP
+        triggers:
+          - type: ImageChange
+            imageChangeParams:
+              automatic: true
+              containerNames:
+                - cara-app
+              from:
+                kind: ImageStreamTag
+                name: 'cara-app:latest'
+                namespace: cara
+    -
+      apiVersion: v1
+      kind: DeploymentConfig
+      metadata:
+        name: cara-router
+      spec:
+        replicas;: 1
+        template:
+          metadata:
+            labels:
+              app: cara-router
+          spec:
+            containers:
+              - name: cara-router
+                ports:
+                  - containerPort: 8080
+                    protocol: TCP
+                  - containerPort: 8443
+                    protocol: TCP
+        triggers:
+          - type: ImageChange
+            imageChangeParams:
+              automatic: true
+              containerNames:
+                - cara-router
+              from:
+                kind: ImageStreamTag
+                name: 'cara-router:latest'
+                namespace: cara
+    -
+      apiVersion: v1
+      kind: DeploymentConfig
+      metadata:
+        name: cara-webservice
+      spec:
+        replicas;: 1
+        template:
+          metadata:
+            labels:
+              app: cara-webservice
+          spec:
+            containers:
+              - name: cara-webservice
+                ports:
+                  - containerPort: 8080
+                    protocol: TCP
+        triggers:
+          - type: ImageChange
+            imageChangeParams:
+              automatic: true
+              containerNames:
+                - cara-webservice
+              from:
+                kind: ImageStreamTag
+                name: 'cara-webservice:latest'
+                namespace: cara
+    -
+      apiVersion: v1
+      kind: DeploymentConfig
+      metadata:
+        name: cern-sso-proxy
+      spec:
+        replicas;: 1
+        template:
+          metadata:
+            labels:
+              app: cern-sso-proxy
+          spec:
+            containers:
+              - name: cern-sso-proxy
+                ports:
+                  - containerPort: 8080
+                    protocol: TCP
+        triggers:
+          - type: ImageChange
+            imageChangeParams:
+              automatic: true
+              containerNames:
+                - cern-sso-proxy
+              from:
+                kind: ImageStreamTag
+                name: 'cern-sso-proxy:latest'
+                namespace: cara
