@@ -499,7 +499,7 @@ def present_model(model: MCConcentrationModel, bins: int = 200) -> None:
 
 def plot_pi_vs_viral_load(baseline: MCExposureModel, samples_per_vl: int = 20000) -> None:
     infected = baseline.concentration_model.infected
-    viral_loads = np.linspace(5, 10, 200)
+    viral_loads = np.linspace(3, 12, 200)
     pi_means = []
     pi_medians = []
     lower_percentiles = []
