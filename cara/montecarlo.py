@@ -669,10 +669,12 @@ exposure_models = [MCExposureModel(
     )
 ) for e in (False, True)]
 
+plot_pi_vs_viral_load(exposure_models, labels=['Without masks', 'With masks'])
 
-plot_pi_vs_viral_load(exposure_models[0])
-for model in exposure_models:
-    present_model(model.concentration_model)
-    plt.hist(model.infection_probability(), bins=200)
-    plt.xlabel('Percentage probability of infection')
-    plt.show()
+# for model in exposure_models:
+#     present_model(model.concentration_model, title=f'Model summary - {"English" if model.concentration_model.infected.english_variant else "Original"} variant')
+#     plt.hist(model.infection_probability(), bins=200)
+#     plt.xlabel('Percentage probability of infection')
+#     plt.title(f'Probability of infection in baseline case - {"English" if model.concentration_model.infected.english_variant else "Original"} variant')
+#     plt.yticks([], [])
+#     plt.show()
