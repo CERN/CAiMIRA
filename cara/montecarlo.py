@@ -655,3 +655,10 @@ exposure_models = [MCExposureModel(
     )
 ) for e in (False, True)]
 
+
+plot_pi_vs_viral_load(exposure_models[0])
+for model in exposure_models:
+    present_model(model.concentration_model)
+    plt.hist(model.infection_probability(), bins=200)
+    plt.xlabel('Percentage probability of infection')
+    plt.show()
