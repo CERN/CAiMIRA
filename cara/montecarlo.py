@@ -652,13 +652,13 @@ exposure_models = [MCExposureModel(
         infected=MCInfectedPopulation(
             number=1,
             presence=models.SpecificInterval(((0, 4), (5, 9))),
-            masked=True,
+            masked=e,
             virus=MCVirus(halflife=1.1),
             expiratory_activity=1,
-            samples=200000,
+            samples=2000000,
             qid=100,
             breathing_category=1,
-            english_variant=e
+            english_variant=False
         )
     ),
     exposed=models.Population(
