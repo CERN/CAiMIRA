@@ -531,6 +531,10 @@ def plot_pi_vs_viral_load(baseline: MCExposureModel, samples_per_vl: int = 20000
 
     plt.plot(viral_loads, pi_medians)
     plt.fill_between(viral_loads, lower_percentiles, upper_percentiles, alpha=0.2)
+    plt.title('Probability of infection vs viral load')
+    plt.ylabel('Percentage probability of infection')
+    plt.xticks(ticks=[i for i in range(3, 13)], labels=['$10^{' + str(i) + '}$' for i in range(3, 13)])
+    plt.xlabel('Viral load in sputum')
     plt.show()
 
 
