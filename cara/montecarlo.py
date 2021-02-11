@@ -655,7 +655,7 @@ exposure_models = [MCExposureModel(
         number=2,
         presence=models.SpecificInterval(((0, 4), (5, 9))),
         activity=models.Activity.types['Seated'],
-        mask=models.Mask.types['No mask']
+        mask=models.Mask.types['Type I']
     )
 ) for e in (False, True)]
 
