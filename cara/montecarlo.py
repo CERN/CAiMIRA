@@ -454,6 +454,7 @@ def present_model(model: MCConcentrationModel, bins: int = 200) -> None:
 
     axs[0, 0].set_title('Viral load')
     axs[0, 0].set_xlabel('Viral load [$log10(RNA\,copies\;mL^{-1}$)]')
+    axs[0, 0].set_xlim(2, 11.5)
 
     ds = np.linspace(0.1, 15, 2000)
     unmasked = [model.infected._concentration_distribution_without_mask()(d) for d in ds]
