@@ -396,8 +396,8 @@ def logscale_hist(x: typing.Iterable, bins: int) -> None:
     :param bins: The number of bins to be used in the histogram (number of bars)
     :return: Nothing, a graph is displayed
     """
-    hist, bins = np.histogram(x, bins=bins)
-    logscale_bins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]), len(bins))
+    hist, binlist = np.histogram(x, bins=bins)
+    logscale_bins = np.logspace(np.log10(binlist[0]), np.log10(binlist[-1]), len(binlist))
     plt.hist(x, bins=logscale_bins)
     plt.xscale('log')
 
@@ -495,7 +495,7 @@ def present_model(model: MCConcentrationModel, bins: int = 200,
     std_patch = patches.Patch(color='lightgrey', linestyle='dashed', label='Standard deviations')
     fig.legend(handles=(mean_patch, std_patch, median_patch), loc="upper left")
 
-    print_qr_info(qRs)
+    print_qr_info(np.asarray(qRs))
 
     plt.show()
 
@@ -603,7 +603,7 @@ def buonanno_exposure_model() -> MCExposureModel:
             ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
                                          air_exch=0.5),
             infected=BuonannoSpecificInfectedPopulation(virus=MCVirus(halflife=1.1),
-                                                        samples=1)
+                                                        samples=1)  # type: ignore
         ),
         exposed=models.Population(
             number=1,
@@ -669,7 +669,9 @@ exposure_models = [MCExposureModel(
     )
 ) for e in (False, True)]
 
-plot_pi_vs_viral_load(exposure_models, labels=['Without masks', 'With masks'])
+present_model(exposure_models[0].concentration_model)
+
+# plot_pi_vs_viral_load(exposure_models, labels=['Without masks', 'With masks'])
 
 # for model in exposure_models:
 #     present_model(model.concentration_model, title=f'Model summary - {"English" if model.concentration_model.infected.english_variant else "Original"} variant')
