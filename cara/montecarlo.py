@@ -602,7 +602,7 @@ def buonanno_exposure_model() -> MCExposureModel:
             room=models.Room(volume=800),
             ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
                                          air_exch=0.5),
-            infected=BuonannoSpecificInfectedPopulation(virus=MCVirus(halflife=1.1),
+            infected=BuonannoSpecificInfectedPopulation(virus=MCVirus(halflife=1.1),    # type: ignore
                                                         samples=1)  # type: ignore
         ),
         exposed=models.Population(
