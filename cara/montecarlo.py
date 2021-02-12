@@ -485,9 +485,9 @@ def present_model(model: MCConcentrationModel, bins: int = 200,
     axs[1, 1].set_title('Quantum generation rate')
     axs[1, 1].set_xlabel('qR [log10($q\;h^{-1}$)]')
     mean, std = np.mean(qRs), np.std(qRs)
-    axs[1, 1].annotate('', xy=(mean + std, top - 250), xytext=(np.max(qRs), top - 250),
+    axs[1, 1].annotate('', xy=(mean + std, top * 0.88), xytext=(np.max(qRs), top * 0.88),
                        arrowprops={'arrowstyle': '<|-|>', 'ls': 'dashed'})
-    axs[1, 1].text(mean + std + 0.1, top - 150, 'Superspreader', fontsize=8)
+    axs[1, 1].text(mean + std + 0.1, top * 0.92, 'Superspreader', fontsize=8)
 
     # TODO: Markus, possible to replace 'patches' with just lines in the legend?
     mean_patch = patches.Patch(color='grey', label='Mean')
