@@ -691,6 +691,37 @@ def display_original_vs_english(original_pi: np.ndarray, english_pi: np.ndarray)
     plt.show()
 
 
+fixed_vl_exposure_models = [MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=45),
+        ventilation=models.SlidingWindow(
+            active=models.PeriodicInterval(period=120, duration=10),
+            inside_temp=models.PiecewiseConstant((0, 24), (293,)),
+            outside_temp=models.PiecewiseConstant((0, 24), (283,)),
+            window_height=1.6, opening_length=0.6,
+        ),
+        infected=MCInfectedPopulation(
+            number=1,
+            presence=models.SpecificInterval(((0, 4), (5, 9))),
+            masked=True,
+            virus=MCVirus(halflife=1.1),
+            expiratory_activity=1,
+            samples=2000000,
+            qid=100,
+            breathing_category=1,
+            english_variant=False,
+            viral_load=float(vl)
+        )
+    ),
+    exposed=models.Population(
+        number=2,
+        presence=models.SpecificInterval(((0, 4), (5, 9))),
+        activity=models.Activity.types['Seated'],
+        mask=models.Mask.types['Type I']
+    )
+) for vl in range(6, 11)]
+
+
 exposure_models = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=45),
