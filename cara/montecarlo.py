@@ -752,7 +752,13 @@ exposure_models = [MCExposureModel(
     )
 ) for m in (False, True)]
 
-present_model(exposure_models[0].concentration_model)
+# present_model(exposure_models[0].concentration_model)
+plot_pi_vs_qid(fixed_vl_exposure_models, labels=['Viral load = $10^{' + str(i) + '}$' for i in range(6, 11)],
+               qid_min=5, qid_max=2000, qid_samples=200)
+
+plot_pi_vs_qid(fixed_vl_exposure_models, labels=['Viral load = $10^{' + str(i) + '}$' for i in range(6, 11)],
+               qid_min=20, qid_max=200, qid_samples=100)
+
 
 # plot_pi_vs_viral_load(exposure_models, labels=['Without masks', 'With masks'])
 
