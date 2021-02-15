@@ -553,12 +553,13 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
 
 
 def plot_pi_vs_qid(baselines: typing.Union[MCExposureModel, typing.List[MCExposureModel]], samples_per_qid: int = 20000,
-                   title: str = 'Probability of infection vs qID', labels: typing.List[str] = None) -> None:
+                   title: str = 'Probability of infection vs qID', labels: typing.List[str] = None, qid_min: float = 5,
+                   qid_max: float = 2000, qid_samples: int = 200) -> None:
 
     if isinstance(baselines, MCExposureModel):
         baselines = [baselines]
 
-    qids = np.geomspace(5, 2000, 200)
+    qids = np.geomspace(qid_min, qid_max, qid_samples)
 
     for baseline in baselines:
         infected = baseline.concentration_model.infected
