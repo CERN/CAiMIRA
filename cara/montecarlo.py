@@ -703,7 +703,7 @@ exposure_models = [MCExposureModel(
         infected=MCInfectedPopulation(
             number=1,
             presence=models.SpecificInterval(((0, 4), (5, 9))),
-            masked=e,
+            masked=m,
             virus=MCVirus(halflife=1.1),
             expiratory_activity=1,
             samples=2000000,
@@ -718,7 +718,7 @@ exposure_models = [MCExposureModel(
         activity=models.Activity.types['Seated'],
         mask=models.Mask.types['Type I']
     )
-) for e in (False, True)]
+) for m in (False, True)]
 
 present_model(exposure_models[0].concentration_model)
 
