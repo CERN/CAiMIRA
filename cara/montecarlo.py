@@ -552,6 +552,57 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
     plt.show()
 
 
+def plot_pi_vs_qid(baselines: typing.Union[MCExposureModel, typing.List[MCExposureModel]], samples_per_qid: int = 20000,
+                   title: str = 'Probability of infection vs qID', labels: typing.List[str] = None) -> None:
+
+    if isinstance(baselines, MCExposureModel):
+        baselines = [baselines]
+
+    qids = np.geomspace(5, 2000, 200)
+
+    for baseline in baselines:
+        infected = baseline.concentration_model.infected
+        pi_means = []
+        pi_medians = []
+        lower_percentiles = []
+        upper_percentiles = []
+        for qid in tqdm(qids):
+            model = MCExposureModel(concentration_model=MCConcentrationModel(
+                room=baseline.concentration_model.room,
+                ventilation=baseline.concentration_model.ventilation,
+                infected=MCInfectedPopulation(
+                    number=infected.number,
+                    presence=infected.presence,
+                    masked=infected.masked,
+                    expiratory_activity=infected.expiratory_activity,
+                    breathing_category=infected.breathing_category,
+                    virus=infected.virus,
+                    samples=samples_per_qid,
+                    qid=qid,
+                    english_variant=infected.english_variant,
+                    viral_load=infected.viral_load
+                )
+            ),
+                exposed=baseline.exposed)
+
+            infection_probabilities = model.infection_probability()
+            pi_means.append(np.mean(infection_probabilities))
+            pi_medians.append(np.median(infection_probabilities))
+            lower_percentiles.append(np.quantile(infection_probabilities, 0.01))
+            upper_percentiles.append(np.quantile(infection_probabilities, 0.99))
+
+        plt.plot(qids, pi_means)
+        plt.fill_between(qids, lower_percentiles, upper_percentiles, alpha=0.2)
+
+    plt.title(title)
+    plt.ylabel('Percentage probability of infection')
+    plt.xlabel('qID')
+    if labels is not None:
+        plt.legend(labels)
+
+    plt.show()
+
+
 def generate_boxplot(masked: bool = False, samples: int = 200000, qid: int = 100,
                      english_variant: bool = False) -> None:
     """
