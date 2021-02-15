@@ -692,6 +692,47 @@ def display_original_vs_english(original_pi: np.ndarray, english_pi: np.ndarray)
     plt.show()
 
 
+def compare_infection_probabilities_vs_viral_loads(baseline1: MCExposureModel, baseline2: MCExposureModel,
+                                                   samples_per_vl: int = 20000) -> None:
+    mean_ratios = []
+    p1_means, p2_means = [], []
+    viral_loads = np.linspace(3, 10, 200)
+    for vl in tqdm(viral_loads):
+        infected1 = baseline1.concentration_model.infected
+        infected2 = baseline2.concentration_model.infected
+
+        model1, model2 = [MCExposureModel(
+            concentration_model=MCConcentrationModel(
+                room=baseline.concentration_model.room,
+                ventilation=baseline.concentration_model.ventilation,
+                infected=MCInfectedPopulation(
+                    number=infected.number,
+                    presence=infected.presence,
+                    masked=infected.masked,
+                    expiratory_activity=infected.expiratory_activity,
+                    breathing_category=infected.breathing_category,
+                    virus=infected.virus,
+                    samples=samples_per_vl,
+                    qid=infected.qid,
+                    english_variant=infected.english_variant,
+                    viral_load=vl
+                    )
+                ),
+            exposed=baseline.exposed) for baseline, infected in ((baseline1, infected1), (baseline2, infected2))]
+
+        p1_mean, p2_mean = [np.mean(model.infection_probability()) for model in (model1, model2)]
+        p1_means.append(p1_mean)
+        p2_means.append(p2_mean)
+        mean_ratios.append(p1_mean / p2_mean)
+
+    plt.plot(viral_loads, mean_ratios)
+    plt.show()
+
+    plt.plot(viral_loads, p1_means)
+    plt.plot(viral_loads, p2_means)
+    plt.show()
+
+
 fixed_vl_exposure_models = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=45),
