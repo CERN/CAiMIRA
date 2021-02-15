@@ -23,9 +23,9 @@
           sourceSecret:
             name: sshdeploykey
         output:
-        to:
-          kind: ImageStreamTag
-          name: 'cara-app:latest'
+          to:
+            kind: ImageStreamTag
+            name: 'cara-app:latest'
         strategy:
           sourceStrategy:
             env:
@@ -42,6 +42,11 @@
                 name: gitlab-cara-webhook-secret
             type: Generic
     -
+      kind: ImageStream
+      apiVersion: v1
+      metadata:
+        name: cara-app
+    -
       kind: BuildConfig
       apiVersion: v1
       metadata:
@@ -55,9 +60,9 @@
           sourceSecret:
             name: sshdeploykey
         output:
-        to:
-          kind: ImageStreamTag
-          name: 'cara-router:latest'
+          to:
+            kind: ImageStreamTag
+            name: 'cara-router:latest'
         strategy:
           sourceStrategy:
             from:
@@ -71,6 +76,11 @@
                 name: gitlab-cara-webhook-secret
             type: Generic
     -
+      kind: ImageStream
+      apiVersion: v1
+      metadata:
+        name: cara-router
+    -
       kind: BuildConfig
       apiVersion: v1
       metadata:
@@ -83,9 +93,9 @@
           sourceSecret:
             name: sshdeploykey
         output:
-        to:
-          kind: ImageStreamTag
-          name: 'cara-webservice:latest'
+          to:
+            kind: ImageStreamTag
+            name: 'cara-webservice:latest'
         strategy:
           sourceStrategy:
             env:
@@ -102,20 +112,10 @@
                 name: gitlab-cara-webhook-secret
             type: Generic
     -
+      kind: ImageStream
       apiVersion: v1
-      kind: Route
       metadata:
-        name: cern-sso-proxy
-      spec:
-        host: cara.web.cern.ch
-        port:
-          targetPort: 8081
-        tls:
-          insecureEdgeTerminationPolicy: Redirect
-          termination: edge
-        to:
-          kind: Service
-          name: cern-sso-proxy
+        name: cara-webservice
     -
       apiVersion: v1
       kind: DeploymentConfig
@@ -130,6 +130,7 @@
           spec:
             containers:
               - name: cara-app
+                image: '${PROJECT_NAME}/cara-app'
                 ports:
                   - containerPort: 8080
                     protocol: TCP
@@ -142,7 +143,7 @@
               from:
                 kind: ImageStreamTag
                 name: 'cara-app:latest'
-                namespace: cara
+                namespace: ${PROJECT_NAME}
     -
       apiVersion: v1
       kind: DeploymentConfig
@@ -157,6 +158,7 @@
           spec:
             containers:
               - name: cara-router
+                image: '${PROJECT_NAME}/cara-router'
                 ports:
                   - containerPort: 8080
                     protocol: TCP
@@ -171,7 +173,7 @@
               from:
                 kind: ImageStreamTag
                 name: 'cara-router:latest'
-                namespace: cara
+                namespace: ${PROJECT_NAME}
     -
       apiVersion: v1
       kind: DeploymentConfig
@@ -186,6 +188,7 @@
           spec:
             containers:
               - name: cara-webservice
+                image: '${PROJECT_NAME}/cara-webservice'
                 ports:
                   - containerPort: 8080
                     protocol: TCP
@@ -198,31 +201,9 @@
               from:
                 kind: ImageStreamTag
                 name: 'cara-webservice:latest'
-                namespace: cara
-    -
-      apiVersion: v1
-      kind: DeploymentConfig
-      metadata:
-        name: cern-sso-proxy
-      spec:
-        replicas;: 1
-        template:
-          metadata:
-            labels:
-              app: cern-sso-proxy
-          spec:
-            containers:
-              - name: cern-sso-proxy
-                ports:
-                  - containerPort: 8080
-                    protocol: TCP
-        triggers:
-          - type: ImageChange
-            imageChangeParams:
-              automatic: true
-              containerNames:
-                - cern-sso-proxy
-              from:
-                kind: ImageStreamTag
-                name: 'cern-sso-proxy:latest'
-                namespace: cara
+                namespace: ${PROJECT_NAME}
+
+  parameters:
+    - name: PROJECT_NAME
+      description: The name of this project, e.g. test-cara
+      required: true
