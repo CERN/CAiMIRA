@@ -708,7 +708,7 @@ fixed_vl_exposure_models = [MCExposureModel(
             virus=MCVirus(halflife=1.1),
             expiratory_activity=1,
             samples=2000000,
-            qid=100,
+            qid=300,
             breathing_category=1,
             english_variant=False,
             viral_load=float(vl)
@@ -739,7 +739,7 @@ exposure_models = [MCExposureModel(
             virus=MCVirus(halflife=1.1),
             expiratory_activity=1,
             samples=2000000,
-            qid=100,
+            qid=300,
             breathing_category=1,
             english_variant=False
         )
