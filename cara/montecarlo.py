@@ -726,10 +726,20 @@ def compare_infection_probabilities_vs_viral_loads(baseline1: MCExposureModel, b
         mean_ratios.append(p1_mean / p2_mean)
 
     plt.plot(viral_loads, mean_ratios)
+    plt.ylabel(f"Ratio of mean P(i) values - P(i|qID = {baseline1.concentration_model.infected.qid}) / P(i|qID = {baseline2.concentration_model.infected.qid})")
+    plt.xlabel("Viral load in sputum")
+    plt.xticks(ticks=[i for i in range(3, 11)], labels=['$10^{' + str(i) + '}$' for i in range(3, 11)])
     plt.show()
 
     plt.plot(viral_loads, p1_means)
     plt.plot(viral_loads, p2_means)
+    plt.ylim(0, 100)
+    plt.ylabel("Percentage probability of infection")
+    plt.xlabel("Viral load in sputum")
+    plt.legend([f'qID = {baseline1.concentration_model.infected.qid}',
+                f'qID = {baseline2.concentration_model.infected.qid}'])
+    plt.xticks(ticks=[i for i in range(3, 11)], labels=['$10^{' + str(i) + '}$' for i in range(3, 11)])
+
     plt.show()
 
 
