@@ -759,7 +759,7 @@ fixed_vl_exposure_models = [MCExposureModel(
             virus=MCVirus(halflife=1.1),
             expiratory_activity=1,
             samples=2000000,
-            qid=300,
+            qid=100,
             breathing_category=1,
             english_variant=False,
             viral_load=float(vl)
@@ -830,7 +830,8 @@ exposure_models = [MCExposureModel(
         activity=models.Activity.types['Seated'],
         mask=models.Mask.types['Type I']
     )
-) for qid in (300, 100)]
+) for qid in (100, 60)]
+
 
 
 compare_infection_probabilities_vs_viral_loads(*exposure_models)
