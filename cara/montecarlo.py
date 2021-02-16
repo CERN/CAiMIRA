@@ -774,6 +774,35 @@ fixed_vl_exposure_models = [MCExposureModel(
 ) for vl in range(6, 11)]
 
 
+large_population_baselines = [MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=800),
+        ventilation=models.HVACMechanical(
+            active=models.PeriodicInterval(period=120, duration=120),
+            q_air_mech=2000.
+        ),
+        infected=MCInfectedPopulation(
+            number=1,
+            presence=models.SpecificInterval(((0, 4), (5, 9))),
+            masked=False,
+            virus=MCVirus(halflife=1.1),
+            expiratory_activity=2,
+            samples=200000,
+            qid=qid,
+            breathing_category=2,
+            english_variant=False
+        )
+
+    ),
+    exposed=models.Population(
+        number=60,
+        presence=models.SpecificInterval(((0, 4), (5, 9))),
+        activity=models.Activity.types['Standing'],
+        mask=models.Mask.types['No mask']
+    )
+) for qid in (100, 60)]
+
+
 exposure_models = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=45),
