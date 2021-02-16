@@ -108,6 +108,9 @@ class MCVirus:
     #: Biological decay (inactivation of the virus in air)
     halflife: float
 
+    #: RNA-copies per quantum
+    qID: int
+
     @property
     def decay_constant(self):
         # Viral inactivation per hour (h^-1)
@@ -147,14 +150,8 @@ class MCInfectedPopulation(MCPopulation):
     #: The virus with which the population is infected.
     virus: MCVirus
 
-    # The total number of samples to be generated
+    #: The total number of samples to be generated
     samples: int
-
-    # The quantum infectious dose to be used in the calculations
-    qid: int
-
-    # A bool indicating whether or not to use the viral loads corresponding to the english variant
-    english_variant: bool
 
     viral_load: typing.Optional[float] = None
 
@@ -206,8 +203,6 @@ class MCInfectedPopulation(MCPopulation):
         :return: A numpy array of length = samples, containing randomly generated qr-values
         """
         viral_loads = self._generate_viral_loads()
-        if self.english_variant and self.viral_load is None:
-            viral_loads += np.log10(11.5)
 
         emission_concentration = self._calculate_emission_concentration()
 
@@ -242,6 +237,10 @@ class MCInfectedPopulation(MCPopulation):
 
         """
         return self.individual_emission_rate(time) * self.number
+
+    @property
+    def qid(self):
+        return self.virus.qID
 
 
 @dataclass(frozen=True)
@@ -526,8 +525,6 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
                     breathing_category=infected.breathing_category,
                     virus=infected.virus,
                     samples=samples_per_vl,
-                    qid=infected.qid,
-                    english_variant=infected.english_variant,
                     viral_load=viral_load
                 )
             ),
@@ -577,10 +574,8 @@ def plot_pi_vs_qid(baselines: typing.Union[MCExposureModel, typing.List[MCExposu
                     masked=infected.masked,
                     expiratory_activity=infected.expiratory_activity,
                     breathing_category=infected.breathing_category,
-                    virus=infected.virus,
+                    virus=MCVirus(halflife=infected.virus.halflife, qID=qid),
                     samples=samples_per_qid,
-                    qid=qid,
-                    english_variant=infected.english_variant,
                     viral_load=infected.viral_load
                 )
             ),
@@ -604,28 +599,23 @@ def plot_pi_vs_qid(baselines: typing.Union[MCExposureModel, typing.List[MCExposu
     plt.show()
 
 
-def generate_boxplot(masked: bool = False, samples: int = 200000, qid: int = 100,
-                     english_variant: bool = False) -> None:
+def generate_boxplot(masked: bool = False, samples: int = 200000, qid: int = 100) -> None:
     """
     Generates and displays a boxplot for comparing the qR-values in scenarios with various combinations of breathing
     rates and expiratory activities
     :param masked: A bool indicating whether or not the infected subject is wearing a mask
     :param samples: The number of samples to use for the monte carlo simulation
     :param qid: The number of "viral copies per quantum"
-    :param english_variant: A bool indicating whether or not to perform the simulation using the english variant of the
-    virus
     :return: Nothing, a graph is displayed
     """
     scenarios = [MCInfectedPopulation(
         number=1,
         presence=models.SpecificInterval(((0, 4), (5, 9))),
         masked=masked,
-        virus=MCVirus(halflife=1.1),
+        virus=MCVirus(halflife=1.1, qID=qid),
         expiratory_activity=e,
         samples=samples,
-        qid=qid,
         breathing_category=b,
-        english_variant=english_variant
     ) for e, b in product((1, 2, 3), (1, 3, 5))]
     qr_values = [np.log10(scenario.emission_rate_when_present()) for scenario in scenarios]
 
@@ -654,7 +644,7 @@ def buonanno_exposure_model() -> MCExposureModel:
             room=models.Room(volume=800),
             ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
                                          air_exch=0.5),
-            infected=BuonannoSpecificInfectedPopulation(virus=MCVirus(halflife=1.1),    # type: ignore
+            infected=BuonannoSpecificInfectedPopulation(virus=MCVirus(halflife=1.1, qID=100),    # type: ignore
                                                         samples=1)  # type: ignore
         ),
         exposed=models.Population(
@@ -713,8 +703,6 @@ def compare_infection_probabilities_vs_viral_loads(baseline1: MCExposureModel, b
                     breathing_category=infected.breathing_category,
                     virus=infected.virus,
                     samples=samples_per_vl,
-                    qid=infected.qid,
-                    english_variant=infected.english_variant,
                     viral_load=vl
                     )
                 ),
@@ -756,12 +744,10 @@ fixed_vl_exposure_models = [MCExposureModel(
             number=1,
             presence=models.SpecificInterval(((0, 4), (5, 9))),
             masked=True,
-            virus=MCVirus(halflife=1.1),
+            virus=MCVirus(halflife=1.1, qID=100),
             expiratory_activity=1,
             samples=2000000,
-            qid=100,
             breathing_category=1,
-            english_variant=False,
             viral_load=float(vl)
         )
     ),
@@ -785,12 +771,10 @@ large_population_baselines = [MCExposureModel(
             number=1,
             presence=models.SpecificInterval(((0, 4), (5, 9))),
             masked=False,
-            virus=MCVirus(halflife=1.1),
+            virus=MCVirus(halflife=1.1, qID=qid),
             expiratory_activity=2,
             samples=200000,
-            qid=qid,
             breathing_category=2,
-            english_variant=False
         )
 
     ),
@@ -816,12 +800,10 @@ exposure_models = [MCExposureModel(
             number=1,
             presence=models.SpecificInterval(((0, 4), (5, 9))),
             masked=False,
-            virus=MCVirus(halflife=1.1),
+            virus=MCVirus(halflife=1.1, qID=qid),
             expiratory_activity=1,
             samples=2000000,
-            qid=qid,
             breathing_category=1,
-            english_variant=False
         )
     ),
     exposed=models.Population(
@@ -842,20 +824,20 @@ print(f"Ratio between R0's:\t\t{np.mean(rs[1]) / np.mean(rs[0])}")
 # compare_infection_probabilities_vs_viral_loads(*exposure_models)
 
 
-# present_model(exposure_models[0].concentration_model)
-# plot_pi_vs_qid(fixed_vl_exposure_models, labels=['Viral load = $10^{' + str(i) + '}$' for i in range(6, 11)],
-#                qid_min=5, qid_max=2000, qid_samples=200)
+present_model(exposure_models[0].concentration_model)
+plot_pi_vs_qid(fixed_vl_exposure_models, labels=['Viral load = $10^{' + str(i) + '}$' for i in range(6, 11)],
+               qid_min=5, qid_max=2000, qid_samples=200)
 
-# plot_pi_vs_qid(fixed_vl_exposure_models, labels=['Viral load = $10^{' + str(i) + '}$' for i in range(6, 11)],
-#                qid_min=100, qid_max=400, qid_samples=100)
+plot_pi_vs_qid(fixed_vl_exposure_models, labels=['Viral load = $10^{' + str(i) + '}$' for i in range(6, 11)],
+               qid_min=100, qid_max=400, qid_samples=100)
 
 
-# plot_pi_vs_viral_load(exposure_models, labels=['Without masks', 'With masks'])
+plot_pi_vs_viral_load(exposure_models, labels=['Without masks', 'With masks'])
 
-# for model in exposure_models:
-#     present_model(model.concentration_model, title=f'Model summary - {"English" if model.concentration_model.infected.english_variant else "Original"} variant')
-#     plt.hist(model.infection_probability(), bins=200)
-#     plt.xlabel('Percentage probability of infection')
-#     plt.title(f'Probability of infection in baseline case - {"English" if model.concentration_model.infected.english_variant else "Original"} variant')
-#     plt.yticks([], [])
-#     plt.show()
+for model in exposure_models:
+    present_model(model.concentration_model, title=f'Model summary - {"English" if model.concentration_model.infected.qid == 60 else "Original"} variant')
+    plt.hist(model.infection_probability(), bins=200)
+    plt.xlabel('Percentage probability of infection')
+    plt.title(f'Probability of infection in baseline case - {"English" if model.concentration_model.infected.qid == 60 else "Original"} variant')
+    plt.yticks([], [])
+    plt.show()
