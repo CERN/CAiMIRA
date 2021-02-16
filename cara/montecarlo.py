@@ -543,6 +543,10 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
     plt.ylabel('Percentage probability of infection')
     plt.xticks(ticks=[i for i in range(3, 13)], labels=['$10^{' + str(i) + '}$' for i in range(3, 13)])
     plt.xlabel('Viral load')
+    # add vertical lines for the critical viral loads for which pi= 0 or 100
+    # TODO Insert viral_load(Pi = 5) and viral_load(Pi = 95) instead of hard coded values
+    plt.vlines(x=(7, 11.5), ymin=0, ymax=100,
+               colors=('grey', 'black'), linestyles='dashed')
     if labels is not None:
         plt.legend(labels)
 
