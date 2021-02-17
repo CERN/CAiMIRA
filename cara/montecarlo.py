@@ -543,7 +543,11 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
     plt.title(title)
     plt.ylabel('Percentage probability of infection')
     plt.xticks(ticks=[i for i in range(3, 13)], labels=['$10^{' + str(i) + '}$' for i in range(3, 13)])
-    plt.xlabel('Viral load in sputum')
+    plt.xlabel('Viral load')
+    # add vertical lines for the critical viral loads for which pi= 0 or 100
+    # TODO Insert viral_load(Pi = 5) and viral_load(Pi = 95) instead of hard coded values
+    plt.vlines(x=(7, 11.5), ymin=0, ymax=100,
+               colors=('grey', 'black'), linestyles='dashed')
     if labels is not None:
         plt.legend(labels)
 
@@ -771,7 +775,7 @@ def compare_infection_probabilities_vs_viral_loads(baseline1: MCExposureModel, b
 
     plt.plot(viral_loads, mean_ratios)
     plt.ylabel(f"Ratio of mean P(i) values - P(i|qID = {baseline1.concentration_model.infected.qid}) / P(i|qID = {baseline2.concentration_model.infected.qid})")
-    plt.xlabel("Viral load in sputum")
+    plt.xlabel("Viral load")
     plt.xticks(ticks=[i for i in range(3, 11)], labels=['$10^{' + str(i) + '}$' for i in range(3, 11)])
     plt.show()
 
@@ -779,7 +783,7 @@ def compare_infection_probabilities_vs_viral_loads(baseline1: MCExposureModel, b
     plt.plot(viral_loads, p2_means)
     plt.ylim(0, 100)
     plt.ylabel("Percentage probability of infection")
-    plt.xlabel("Viral load in sputum")
+    plt.xlabel("Viral load")
     plt.legend([f'qID = {baseline1.concentration_model.infected.qid}',
                 f'qID = {baseline2.concentration_model.infected.qid}'])
     plt.xticks(ticks=[i for i in range(3, 11)], labels=['$10^{' + str(i) + '}$' for i in range(3, 11)])
