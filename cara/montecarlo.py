@@ -9,6 +9,7 @@ from scipy.integrate import quad
 import typing
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import matplotlib.lines as mlines
 from sklearn.neighbors import KernelDensity
 
 # This is a test comment
@@ -635,6 +636,61 @@ def generate_boxplot(masked: bool = False, samples: int = 200000, qid: int = 100
     plt.show()
 
 
+def generate_cdf_curves_vs_qr(masked: bool = False, samples: int = 200000, qid: int = 100) -> None:
+    """
+    Generates and displays a boxplot for comparing the qR-values in scenarios with various combinations of breathing
+    rates and expiratory activities
+    :param masked: A bool indicating whether or not the infected subject is wearing a mask
+    :param samples: The number of samples to use for the monte carlo simulation
+    :param qid: The number of "viral copies per quantum"
+    :return: Nothing, a graph is displayed
+    """
+    fig, axs = plt.subplots(3, 1, sharex='all')
+
+    # TODO: Insert title and y-label
+    plt.suptitle("INSERT TITLE HERE")
+    fig.text(0.02, 0.5, 'INSERT Y-LABEL HERE', va='center', rotation='vertical')
+
+    scenarios = [MCInfectedPopulation(
+        number=1,
+        presence=models.SpecificInterval(((0, 4), (5, 9))),
+        masked=masked,
+        virus=MCVirus(halflife=1.1, qID=qid),
+        expiratory_activity=e,
+        samples=samples,
+        breathing_category=b,
+    ) for e, b in product((1, 2, 3), (1, 3, 5))]
+    qr_values = [np.log10(scenario.emission_rate_when_present()) for scenario in scenarios]
+    left = min(np.min(qrs) for qrs in qr_values)
+    right = max(np.max(qrs) for qrs in qr_values)
+
+    # Colors can be changed here
+    colors = ['lightgreen', 'lightblue', 'pink']
+
+    breathing_rates = ['Seated', 'Light activity', 'Heavy activity']
+    activities = ['Breathing', 'Speaking', 'Shouting']
+    lines = [mlines.Line2D([], [], color=color, markersize=15, label=label)
+             for color, label in zip(colors, breathing_rates)]
+
+    for i in range(3):
+        axs[i].hist(qr_values[3 * i:3 * (i + 1)], bins=2000, histtype='step',
+                         color=colors, cumulative=True, range=(left, right))
+        axs[i].set_xlim(left, right)
+        axs[i].set_yticks([0, samples / 2, samples])
+        axs[i].set_yticklabels(['0.0', '0.5', '1.0'])
+        axs[i].yaxis.set_label_position("right")
+        axs[i].set_ylabel(activities[i])
+        axs[i].legend(handles=lines, loc='upper left')
+
+    plt.xlabel('qR [$q\;h^{-1}$]')
+    tick_positions = np.arange(int(np.ceil(left)), int(np.ceil(right)), 2)
+    plt.xticks(ticks=tick_positions, labels=['$\;10^{' + str(i) + '}$' for i in tick_positions])
+
+    fig.set_figheight(8)
+    fig.set_figwidth(5)
+    plt.show()
+
+
 def buonanno_exposure_model() -> MCExposureModel:
     """
     :return: An MCExposureModel object corresponding to one of the scenarios outlined in the paper of Buonanno et al.
@@ -814,30 +870,31 @@ exposure_models = [MCExposureModel(
     )
 ) for qid in (100, 60)]
 
+generate_cdf_curves_vs_qr(masked=False)
 
-rs = [model.expected_new_cases() for model in large_population_baselines]
-
-print(f"R0 - original variant:\t{np.mean(rs[0])}")
-print(f"R0 - english variant:\t{np.mean(rs[1])}")
-print(f"Ratio between R0's:\t\t{np.mean(rs[1]) / np.mean(rs[0])}")
-
+# rs = [model.expected_new_cases() for model in large_population_baselines]
+#
+# print(f"R0 - original variant:\t{np.mean(rs[0])}")
+# print(f"R0 - english variant:\t{np.mean(rs[1])}")
+# print(f"Ratio between R0's:\t\t{np.mean(rs[1]) / np.mean(rs[0])}")
+#
 # compare_infection_probabilities_vs_viral_loads(*exposure_models)
-
-
-present_model(exposure_models[0].concentration_model)
-plot_pi_vs_qid(fixed_vl_exposure_models, labels=['Viral load = $10^{' + str(i) + '}$' for i in range(6, 11)],
-               qid_min=5, qid_max=2000, qid_samples=200)
-
-plot_pi_vs_qid(fixed_vl_exposure_models, labels=['Viral load = $10^{' + str(i) + '}$' for i in range(6, 11)],
-               qid_min=100, qid_max=400, qid_samples=100)
-
-
-plot_pi_vs_viral_load(exposure_models, labels=['Without masks', 'With masks'])
-
-for model in exposure_models:
-    present_model(model.concentration_model, title=f'Model summary - {"English" if model.concentration_model.infected.qid == 60 else "Original"} variant')
-    plt.hist(model.infection_probability(), bins=200)
-    plt.xlabel('Percentage probability of infection')
-    plt.title(f'Probability of infection in baseline case - {"English" if model.concentration_model.infected.qid == 60 else "Original"} variant')
-    plt.yticks([], [])
-    plt.show()
+#
+#
+# present_model(exposure_models[0].concentration_model)
+# plot_pi_vs_qid(fixed_vl_exposure_models, labels=['Viral load = $10^{' + str(i) + '}$' for i in range(6, 11)],
+#                qid_min=5, qid_max=2000, qid_samples=200)
+#
+# plot_pi_vs_qid(fixed_vl_exposure_models, labels=['Viral load = $10^{' + str(i) + '}$' for i in range(6, 11)],
+#                qid_min=100, qid_max=400, qid_samples=100)
+#
+#
+# plot_pi_vs_viral_load(exposure_models, labels=['Without masks', 'With masks'])
+#
+# for model in exposure_models:
+#     present_model(model.concentration_model, title=f'Model summary - {"English" if model.concentration_model.infected.qid == 60 else "Original"} variant')
+#     plt.hist(model.infection_probability(), bins=200)
+#     plt.xlabel('Percentage probability of infection')
+#     plt.title(f'Probability of infection in baseline case - {"English" if model.concentration_model.infected.qid == 60 else "Original"} variant')
+#     plt.yticks([], [])
+#     plt.show()
