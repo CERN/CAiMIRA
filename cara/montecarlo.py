@@ -489,11 +489,12 @@ def present_model(model: MCConcentrationModel, bins: int = 200,
                        arrowprops={'arrowstyle': '<|-|>', 'ls': 'dashed'})
     axs[1, 1].text(mean + std + 0.1, top * 0.92, 'Superspreader', fontsize=8)
 
-    # TODO: Markus, possible to replace 'patches' with just lines in the legend?
-    mean_patch = patches.Patch(color='grey', label='Mean')
-    median_patch = patches.Patch(color='black', label='Median')
-    std_patch = patches.Patch(color='lightgrey', linestyle='dashed', label='Standard deviations')
-    fig.legend(handles=(mean_patch, std_patch, median_patch), loc="upper left")
+    lines = [mlines.Line2D([], [], color=color, markersize=15, label=label, linestyle=style)
+             for color, label, style in zip(['grey', 'black', 'lightgrey'],
+                                            ['Mean', 'Median', 'Standard deviation'],
+                                            ['solid', 'solid', 'dashed'])]
+
+    fig.legend(handles=lines, loc="upper left")
 
     print_qr_info(np.asarray(qRs))
 
