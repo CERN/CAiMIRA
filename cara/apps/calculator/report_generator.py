@@ -142,7 +142,7 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, models
     scenarios = {}
 
     # Two special option cases - HEPA and/or FFP2 masks.
-    FFP2_being_worn = bool(form.mask_wearing == 'continuous' and form.mask_type == 'FFP2')
+    FFP2_being_worn = bool(form.mask_wearing_option == 'mask_on' and form.mask_type == 'FFP2')
     if FFP2_being_worn and form.hepa_option:
         scenarios['Base scenario with HEPA and FFP2 masks'] = form.build_model()
     elif FFP2_being_worn:
@@ -156,20 +156,20 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, models
     if form.hepa_option:
         form = dataclasses.replace(form, hepa_option=False)
 
-    with_mask = dataclasses.replace(form, mask_wearing='continuous')
-    without_mask = dataclasses.replace(form, mask_wearing='removed')
+    with_mask = dataclasses.replace(form, mask_wearing_option='mask_on')
+    without_mask = dataclasses.replace(form, mask_wearing_option='mask_off')
 
-    if form.ventilation_type == 'mechanical':
+    if form.ventilation_type == 'mechanical_ventilation':
         scenarios['Mechanical ventilation with Type I masks'] = with_mask.build_model()
         scenarios['Mechanical ventilation without masks'] = without_mask.build_model()
 
-    elif form.ventilation_type == 'natural':
+    elif form.ventilation_type == 'natural_ventilation':
         scenarios['Windows open with Type I masks'] = with_mask.build_model()
         scenarios['Windows open without masks'] = without_mask.build_model()
 
     # No matter the ventilation scheme, we include scenarios which don't have any ventilation.
-    with_mask_no_vent = dataclasses.replace(with_mask, ventilation_type='no-ventilation')
-    without_mask_or_vent = dataclasses.replace(without_mask, ventilation_type='no-ventilation')
+    with_mask_no_vent = dataclasses.replace(with_mask, ventilation_type='no_ventilation')
+    without_mask_or_vent = dataclasses.replace(without_mask, ventilation_type='no_ventilation')
     scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_model()
     scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_model()
 

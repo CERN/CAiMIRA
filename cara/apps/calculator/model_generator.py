@@ -12,35 +12,34 @@ from cara import data
 LOG = logging.getLogger(__name__)
 
 
+minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
 @dataclass
 class FormData:
-    # Number of minutes after 00:00
-    exposed_finish: int
-    exposed_lunch_finish: int
-    exposed_lunch_start: int
-    exposed_start: int
-    infected_finish: int
-    infected_lunch_finish: int                      #Used if infected_dont_have_breaks_with_exposed
-    infected_lunch_start: int                       #Used if infected_dont_have_breaks_with_exposed
-    infected_start: int
-
     activity_type: str
     air_changes: float
     air_supply: float
     ceiling_height: float
-    exposed_coffee_breaks: int
+    exposed_coffee_break_option: str
     exposed_coffee_duration: int
+    exposed_finish: minutes_since_midnight
+    exposed_lunch_finish: minutes_since_midnight
     exposed_lunch_option: bool
+    exposed_lunch_start: minutes_since_midnight
+    exposed_start: minutes_since_midnight
     floor_area: float
     hepa_amount: float
     hepa_option: bool
-    infected_coffee_breaks: int                     #Used if infected_dont_have_breaks_with_exposed
+    infected_coffee_break_option: str               #Used if infected_dont_have_breaks_with_exposed
     infected_coffee_duration: int                   #Used if infected_dont_have_breaks_with_exposed
     infected_dont_have_breaks_with_exposed: bool
+    infected_finish: minutes_since_midnight
+    infected_lunch_finish: minutes_since_midnight   #Used if infected_dont_have_breaks_with_exposed
     infected_lunch_option: bool                     #Used if infected_dont_have_breaks_with_exposed
+    infected_lunch_start: minutes_since_midnight    #Used if infected_dont_have_breaks_with_exposed
     infected_people: int
+    infected_start: minutes_since_midnight
     mask_type: str
-    mask_wearing: str
+    mask_wearing_option: str
     mechanical_ventilation_type: str
     model_version: str
     opening_distance: float
@@ -57,14 +56,14 @@ class FormData:
     window_type: str
     window_width: float
     windows_number: int
-    windows_open: str
+    window_opening_regime: str
 
     @classmethod
     def from_dict(cls, form_data: typing.Dict) -> "FormData":
         # Take a copy of the form data so that we can mutate it.
         form_data = form_data.copy()
 
-        valid_na_values = ['windows_open', 'window_type', 'mechanical_ventilation_type', 'infected_dont_have_breaks_with_exposed']
+        valid_na_values = ['window_opening_regime', 'window_type', 'mechanical_ventilation_type', 'infected_dont_have_breaks_with_exposed']
         for name in valid_na_values:
             if not form_data.get(name, ''):
                 form_data[name] = 'not-applicable'
@@ -101,7 +100,7 @@ class FormData:
             air_changes=float(form_data['air_changes']),
             air_supply=float(form_data['air_supply']),
             ceiling_height=float(form_data['ceiling_height']),
-            exposed_coffee_breaks=int(form_data['exposed_coffee_breaks']),
+            exposed_coffee_break_option=form_data['exposed_coffee_break_option'],
             exposed_coffee_duration=int(form_data['exposed_coffee_duration']),
             exposed_finish=form_data['exposed_finish'],
             exposed_lunch_finish=form_data['exposed_lunch_finish'],
@@ -111,7 +110,7 @@ class FormData:
             floor_area=float(form_data['floor_area']),
             hepa_amount=float(form_data['hepa_amount']),
             hepa_option=form_data['hepa_option'],
-            infected_coffee_breaks=int(form_data['infected_coffee_breaks']),
+            infected_coffee_break_option=form_data['infected_coffee_break_option'],
             infected_coffee_duration=int(form_data['infected_coffee_duration']),
             infected_dont_have_breaks_with_exposed=form_data['infected_dont_have_breaks_with_exposed'],
             infected_finish=form_data['infected_finish'],
@@ -121,7 +120,7 @@ class FormData:
             infected_people=int(form_data['infected_people']),
             infected_start=form_data['infected_start'],
             mask_type=form_data['mask_type'],
-            mask_wearing=form_data['mask_wearing'],
+            mask_wearing_option=form_data['mask_wearing_option'],
             mechanical_ventilation_type=form_data['mechanical_ventilation_type'],
             model_version=form_data['model_version'],
             opening_distance=float(form_data['opening_distance']),
@@ -138,7 +137,7 @@ class FormData:
             window_type=form_data['window_type'],
             window_width=float(form_data['window_width']),
             windows_number=int(form_data['windows_number']),
-            windows_open=form_data['windows_open'],
+            window_opening_regime=form_data['window_opening_regime'],
         )
         instance.validate()
         return instance
@@ -161,13 +160,15 @@ class FormData:
                 raise ValueError(
                     f"{start_name} must be less than {end_name}. Got {start} and {end}.")
 
-        validation_tuples = [('activity_type', ACTIVITY_TYPES),
+        validation_tuples = [('activity_type', ACTIVITY_TYPES),    
+                             ('exposed_coffee_break_option', COFFEE_OPTIONS_INT), 
+                             ('infected_coffee_break_option', COFFEE_OPTIONS_INT),   
                              ('mechanical_ventilation_type', MECHANICAL_VENTILATION_TYPES),
                              ('mask_type', MASK_TYPES),
-                             ('mask_wearing', MASK_WEARING),
+                             ('mask_wearing_option', MASK_WEARING_OPTIONS),
                              ('ventilation_type', VENTILATION_TYPES),
                              ('volume_type', VOLUME_TYPES),
-                             ('windows_open', WINDOWS_OPEN),
+                             ('window_opening_regime', WINDOWS_OPENING_REGIMES),
                              ('window_type', WINDOWS_TYPES)]
         for attr_name, valid_set in validation_tuples:
             if getattr(self, attr_name) not in valid_set:
@@ -185,9 +186,9 @@ class FormData:
 
     def ventilation(self) -> models._VentilationBase:
         always_on = models.PeriodicInterval(period=120, duration=120)
-        # Initializes a ventilation instance as a window if 'natural' is selected, or as a HEPA-filter otherwise
-        if self.ventilation_type == 'natural':
-            if self.windows_open == 'interval':
+        # Initializes a ventilation instance as a window if 'natural_ventilation' is selected, or as a HEPA-filter otherwise
+        if self.ventilation_type == 'natural_ventilation':
+            if self.window_opening_regime == 'windows_open_periodically':
                 window_interval = models.PeriodicInterval(self.windows_frequency, self.windows_duration)
             else:
                 window_interval = always_on
@@ -198,7 +199,7 @@ class FormData:
             outside_temp = data.GenevaTemperatures[month]
 
             ventilation: models.Ventilation
-            if self.window_type == 'sliding':
+            if self.window_type == 'window_sliding':
                 ventilation = models.SlidingWindow(
                     active=window_interval,
                     inside_temp=inside_temp,
@@ -207,7 +208,7 @@ class FormData:
                     opening_length=self.opening_distance,
                     number_of_windows=self.windows_number,
                 )
-            elif self.window_type == 'hinged':
+            elif self.window_type == 'window_hinged':
                 ventilation = models.HingedWindow(
                     active=window_interval,
                     inside_temp=inside_temp,
@@ -218,10 +219,10 @@ class FormData:
                     number_of_windows=self.windows_number,
                 )
 
-        elif self.ventilation_type == "no-ventilation":
+        elif self.ventilation_type == "no_ventilation":
             ventilation = models.AirChange(active=always_on, air_exch=0.)
         else:
-            if self.mechanical_ventilation_type == 'air_changes':
+            if self.mechanical_ventilation_type == 'mech_type_air_changes':
                 ventilation = models.AirChange(active=always_on, air_exch=self.air_changes)
             else:
                 ventilation = models.HVACMechanical(
@@ -236,7 +237,7 @@ class FormData:
     def mask(self) -> models.Mask:
         # Initializes the mask type if mask wearing is "continuous", otherwise instantiates the mask attribute as
         # the "No mask"-mask
-        mask = models.Mask.types[self.mask_type if self.mask_wearing == "continuous" else 'No mask']
+        mask = models.Mask.types[self.mask_type if self.mask_wearing_option == "mask_on" else 'No mask']
         return mask
 
     def infected_population(self) -> models.InfectedPopulation:
@@ -337,6 +338,12 @@ class FormData:
         else:
             return self.exposed_lunch_break_times()
 
+    def exposed_number_of_coffee_breaks(self) -> int:
+        return COFFEE_OPTIONS_INT[self.exposed_coffee_break_option]
+
+    def infected_number_of_coffee_breaks(self) -> int:
+        return COFFEE_OPTIONS_INT[self.infected_coffee_break_option]
+
     def _coffee_break_times(self, activity_start, activity_finish, coffee_breaks, coffee_duration, lunch_start, lunch_finish) -> models.BoundarySequence_t:
         time_before_lunch = lunch_start - activity_start
         time_after_lunch = activity_finish - lunch_finish
@@ -353,22 +360,24 @@ class FormData:
         return breaks
 
     def exposed_coffee_break_times(self) -> models.BoundarySequence_t:
-        if not self.exposed_coffee_breaks:
+        exposed_coffee_breaks = self.exposed_number_of_coffee_breaks()
+        if exposed_coffee_breaks == 0:
             return ()
         if self.exposed_lunch_option:
-            breaks = self._coffee_break_times(self.exposed_start, self.exposed_finish, self.exposed_coffee_breaks, self.exposed_coffee_duration, self.exposed_lunch_start, self.exposed_lunch_finish)
+            breaks = self._coffee_break_times(self.exposed_start, self.exposed_finish, exposed_coffee_breaks, self.exposed_coffee_duration, self.exposed_lunch_start, self.exposed_lunch_finish)
         else:
-            breaks = self._compute_breaks_in_interval(self.exposed_start, self.exposed_finish, self.exposed_coffee_breaks, self.exposed_coffee_duration)
+            breaks = self._compute_breaks_in_interval(self.exposed_start, self.exposed_finish, exposed_coffee_breaks, self.exposed_coffee_duration)
         return breaks
 
     def infected_coffee_break_times(self) -> models.BoundarySequence_t:
         if self.infected_dont_have_breaks_with_exposed:
-            if not self.infected_coffee_breaks:
+            infected_coffee_breaks = self.infected_number_of_coffee_breaks()
+            if infected_coffee_breaks == 0:
                 return ()
             if self.infected_lunch_option:
-                breaks = self._coffee_break_times(self.infected_start, self.infected_finish, self.infected_coffee_breaks, self.infected_coffee_duration, self.infected_lunch_start, self.infected_lunch_finish)
+                breaks = self._coffee_break_times(self.infected_start, self.infected_finish, infected_coffee_breaks, self.infected_coffee_duration, self.infected_lunch_start, self.infected_lunch_finish)
             else:
-                breaks = self._compute_breaks_in_interval(self.infected_start, self.infected_finish, self.infected_coffee_breaks, self.infected_coffee_duration)
+                breaks = self._compute_breaks_in_interval(self.infected_start, self.infected_finish, infected_coffee_breaks, self.infected_coffee_duration)
             return breaks
         else:
             return self.exposed_coffee_break_times()
@@ -519,7 +528,7 @@ def expiration_blend(expiration_weights: typing.Dict[models.Expiration, int]) ->
 
 def model_from_form(form: FormData) -> models.ExposureModel:
     # Initializes room with volume either given directly or as product of area and height
-    if form.volume_type == 'room_volume':
+    if form.volume_type == 'room_volume_explicit':
         volume = form.room_volume
     else:
         volume = form.floor_area * form.ceiling_height
@@ -543,7 +552,7 @@ def baseline_raw_form_data():
         'air_changes': '',
         'air_supply': '',
         'ceiling_height': '',
-        'exposed_coffee_breaks': '4',
+        'exposed_coffee_break_option': 'coffee_break_4',
         'exposed_coffee_duration': '10',
         'exposed_finish': '18:00',
         'exposed_lunch_finish': '13:30',
@@ -553,7 +562,7 @@ def baseline_raw_form_data():
         'floor_area': '',
         'hepa_amount': '250',
         'hepa_option': '0',
-        'infected_coffee_breaks': '4',
+        'infected_coffee_break_option': 'coffee_break_4',
         'infected_coffee_duration': '10',
         'infected_dont_have_breaks_with_exposed': '1',
         'infected_finish': '18:00',
@@ -563,7 +572,7 @@ def baseline_raw_form_data():
         'infected_people': '1',
         'infected_start': '09:00',
         'mask_type': 'Type I',
-        'mask_wearing': 'removed',
+        'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': '',
         'model_version': 'v1.2.0',
         'opening_distance': '0.2',
@@ -572,32 +581,34 @@ def baseline_raw_form_data():
         'room_volume': '75',
         'simulation_name': 'Test',
         'total_people': '10',
-        'ventilation_type': 'natural',
-        'volume_type': 'room_volume',
+        'ventilation_type': 'natural_ventilation',
+        'volume_type': 'room_volume_explicit',
         'windows_duration': '',
         'windows_frequency': '',
         'window_height': '2',
-        'window_type': 'sliding',
+        'window_type': 'window_sliding',
         'window_width': '2',
         'windows_number': '1',
-        'windows_open': 'always'
+        'window_opening_regime': 'windows_open_permanently'
     }
 
 
 ACTIVITY_TYPES = {'office', 'meeting', 'training', 'callcentre', 'library', 'workshop', 'lab', 'gym'}
-MECHANICAL_VENTILATION_TYPES = {'air_changes', 'air_supply', 'not-applicable'}
+MECHANICAL_VENTILATION_TYPES = {'mech_type_air_changes', 'mech_type_air_supply', 'not-applicable'}
 MASK_TYPES = {'Type I', 'FFP2'}
-MASK_WEARING = {'continuous', 'removed'}
-VENTILATION_TYPES = {'natural', 'mechanical', 'no-ventilation'}
-VOLUME_TYPES = {'room_volume', 'room_dimensions'}
-WINDOWS_OPEN = {'always', 'interval', 'not-applicable'}
-WINDOWS_TYPES = {'sliding', 'hinged', 'not-applicable'}
+MASK_WEARING_OPTIONS = {'mask_on', 'mask_off'}
+VENTILATION_TYPES = {'natural_ventilation', 'mechanical_ventilation', 'no_ventilation'}
+VOLUME_TYPES = {'room_volume_explicit', 'room_volume_from_dimensions'}
+WINDOWS_OPENING_REGIMES = {'windows_open_permanently', 'windows_open_periodically', 'not-applicable'}
+WINDOWS_TYPES = {'window_sliding', 'window_hinged', 'not-applicable'}
+
+COFFEE_OPTIONS_INT = {'coffee_break_0':0, 'coffee_break_1':1, 'coffee_break_2':2, 'coffee_break_4':4}
 
 
-def time_string_to_minutes(time: str) -> int:
+def time_string_to_minutes(time: str) -> minutes_since_midnight:
     """
     Converts time from string-format to an integer number of minutes after 00:00
     :param time: A string of the form "HH:MM" representing a time of day
     :return: The number of minutes between 'time' and 00:00
     """
-    return 60 * int(time[:2]) + int(time[3:])
+    return minutes_since_midnight(60 * int(time[:2]) + int(time[3:]))

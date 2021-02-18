@@ -41,13 +41,13 @@
 	<p class="data_title">Ventilation data:</p>
 	<ul>
 		<li><p class="data_text">Mechanical ventilation:
-		{% if form.ventilation_type == "mechanical" %}
+		{% if form.ventilation_type == "mechanical_ventilation" %}
 		Yes </p></li>
 		<ul>
 			<li><p class="data_subtext">
-			{% if form.mechanical_ventilation_type == "air_supply"%}
+			{% if form.mechanical_ventilation_type == "mech_type_air_supply"%}
 			Air supply flow rate: {{ form.air_supply }} m³ / hour
-			{% elif form.mechanical_ventilation_type == "air_changes"%}
+			{% elif form.mechanical_ventilation_type == "mech_type_air_changes"%}
 			Air changes per hour: {{ form.air_changes }} h⁻¹
 			{% endif %}
 			</p></li>
@@ -56,24 +56,24 @@
 		No </li>
 		{% endif %}
 		<li><p class="data_text">Natural ventilation:
-		{% if form.ventilation_type == "natural"%}
+		{% if form.ventilation_type == "natural_ventilation"%}
 		Yes </p></li>
 		<ul>
 			<li><p class="data_subtext">Number of windows: {{ form.windows_number }}</p></li>
 			<li><p class="data_subtext">Height of window: {{ form.window_height }} m</p></li>
 			<li><p class="data_subtext">Window type:
-			{% if form.window_type == "hinged" %}
+			{% if form.window_type == "window_hinged" %}
 			Top- or Bottom-Hung</p></li>
 			<li><p class="data_subtext">Width of window: {{ form.window_width }} m</p></li>
-			{% elif form.window_type == "sliding" %}
+			{% elif form.window_type == "window_sliding" %}
 			Sliding / Side-Hung</p></li>
 			{% endif %}
 			<li><p class="data_subtext">Opening distance: {{ form.opening_distance }} m</p></li>
-			<li><p class="data_subtext">Windows open:
-			{% if form.windows_open == "interval" %}
-			Periodically for {{ form.windows_duration | readable_minutes}}
+			<li><p class="data_subtext">Windows open: 
+			{% if form.window_opening_regime == "windows_open_periodically" %}
+			Periodically for {{ form.windows_duration | readable_minutes}} 
 				every {{ form.windows_frequency | readable_minutes}}
-			{% elif form.windows_open == "always" %}
+			{% elif form.window_opening_regime == "windows_open_permanently" %}
 			Permanently
 			{% endif %}
 			</p></li>
@@ -141,8 +141,8 @@
 		No
 		{% endif %}
 		</p></li>
-		<li><p class="data_text">Coffee breaks: {{ form.exposed_coffee_breaks }}
-		{% if form.exposed_coffee_breaks > 0 %}
+		<li><p class="data_text">Coffee breaks: {{ form.exposed_number_of_coffee_breaks() }}
+		{% if form.exposed_number_of_coffee_breaks() > 0 %}
 		each of {{ form.exposed_coffee_duration }} minutes duration
 		</p></li>
 		<ul>
@@ -166,8 +166,8 @@
 		No
 		{% endif %}
 		</p></li>
-		<li><p class="data_text">Coffee breaks: {{ form.infected_coffee_breaks }}
-		{% if form.infected_coffee_breaks > 0 %}
+		<li><p class="data_text">Coffee breaks: {{ form.infected_number_of_coffee_breaks() }}
+		{% if form.infected_number_of_coffee_breaks() > 0 %}
 		each of {{ form.infected_coffee_duration }} minutes duration
 		</p></li>
 		<ul>
@@ -179,12 +179,13 @@
 	</ul>
 	{% endif %}
 
-	<p class="data_title">Mask wearing:</p>
+	<p class="data_title">Mask wearing:</p>		
 	<ul>
-		<li><p class="data_text">Masks worn at workstations? {{ 'Yes' if form.mask_wearing == "continuous" else 'No' }} </p></li>
-		{% if form.mask_wearing == "continuous" %}
+		<li><p class="data_text">Masks worn at workstations? {{ 'Yes' if form.mask_wearing_option == "mask_on" else 'No' }} </p></li>
+		{% if form.mask_wearing_option == "mask_on" %}
 		<li><p class="data_text">Mask type: {{ form.mask_type }}</p></li>
 		{% endif %}
+
 	</ul>
 
 	<p class="result_title">Results:</p>
