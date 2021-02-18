@@ -890,12 +890,14 @@ exposure_models = [MCExposureModel(
     )
 ) for qid in (100, 60)]
 
-generate_cdf_curves_vs_qr(masked=False)
+print(np.mean(large_population_baselines[0].infection_probability()))
 
-rs = [model.expected_new_cases() for model in large_population_baselines]
-print(f"R0 - original variant:\t{np.mean(rs[0])}")
-print(f"R0 - english variant:\t{np.mean(rs[1])}")
-print(f"Ratio between R0's:\t\t{np.mean(rs[1]) / np.mean(rs[0])}")
+#generate_cdf_curves_vs_qr(masked=False)
+
+# rs = [model.expected_new_cases() for model in large_population_baselines]
+# print(f"R0 - original variant:\t{np.mean(rs[0])}")
+# print(f"R0 - english variant:\t{np.mean(rs[1])}")
+# print(f"Ratio between R0's:\t\t{np.mean(rs[1]) / np.mean(rs[0])}")
 #
 # compare_infection_probabilities_vs_viral_loads(*exposure_models)
 #
