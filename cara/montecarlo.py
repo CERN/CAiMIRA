@@ -344,8 +344,9 @@ class MCExposureModel:
         exposure = np.zeros(self.concentration_model.infected.samples)
 
         for start, stop in self.exposed.presence.boundaries():
-            concentrations = np.asarray([self.concentration_model.concentration(t) for t in np.linspace(start, stop)])
-            integrals = np.trapz(concentrations, axis=0)
+            times = np.arange(start, stop, 0.001)
+            concentrations = np.asarray([self.concentration_model.concentration(t) for t in times])
+            integrals = np.trapz(concentrations, times, axis=0)
             exposure += integrals
 
         return exposure * self.repeats
