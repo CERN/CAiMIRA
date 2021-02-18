@@ -135,7 +135,7 @@ class MCPopulation:
     masked: bool
 
     #: An integer signifying the expiratory activity of the population
-    # (1 = breathing, 2 = speaking, 3 = speaking loudly)
+    # (1 = breathing, 2 = speaking, 3 = speaking loudly, 4 = mixed)
     expiratory_activity: int
 
     #: An integer signifying the breathing category of the population
@@ -153,6 +153,10 @@ class MCInfectedPopulation(MCPopulation):
 
     #: The total number of samples to be generated
     samples: int
+
+    #: A tuple of three floats indicating the relative weighting of time spent breathing, speaking and speaking loudly
+    # respectively. Required if expiratory_activity = 4
+    expiratory_activity_weights: typing.Optional[typing.Tuple[float, float, float]] = None
 
     viral_load: typing.Optional[float] = None
 
@@ -182,6 +186,16 @@ class MCInfectedPopulation(MCPopulation):
 
         if self.expiratory_activity == 3:
             return lambda d: 5 * sum(f(d) for f in concentration_vs_diameter)
+
+        if self.expiratory_activity == 4:
+            assert self.expiratory_activity_weights is not None, \
+                "For mixed expiratory_activity, expiratory_activity_weights is required"
+
+            assert sum(self.expiratory_activity_weights) > 0 and all(e >= 0 for e in self.expiratory_activity_weights),\
+                "The entries of expiratory_activity_weights must be non-negative and cannot all be zero"
+
+            a, b, c = [e / sum(self.expiratory_activity_weights) for e in self.expiratory_activity_weights]
+            return lambda d: a * concentration_vs_diameter[0](d) + (b + 5 * c) * sum(f(d) for f in concentration_vs_diameter)
 
     @functools.lru_cache()
     def _concentration_distribution_with_mask(self) -> typing.Callable:
