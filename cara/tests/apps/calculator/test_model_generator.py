@@ -1,6 +1,7 @@
 import pytest
 
 from cara.apps.calculator import model_generator
+from cara.apps.calculator.model_generator import minutes_since_midnight
 from cara import models
 from cara import data
 import numpy as np
@@ -29,7 +30,7 @@ def test_blend_expiration():
     assert r == expected
 
 
-def test_ventilation_slidingwindow(baseline_form):
+def test_ventilation_slidingwindow(baseline_form: model_generator.FormData):
     room = models.Room(75)
     window = models.SlidingWindow(
         active=models.PeriodicInterval(period=120, duration=10),
@@ -37,11 +38,11 @@ def test_ventilation_slidingwindow(baseline_form):
         outside_temp=data.GenevaTemperatures['Dec'],
         window_height=1.6, opening_length=0.6,
     )
-    baseline_form.ventilation_type = 'natural'
+    baseline_form.ventilation_type = 'natural_ventilation'
     baseline_form.windows_duration = 10
     baseline_form.windows_frequency = 120
-    baseline_form.windows_open = 'interval'
-    baseline_form.window_type = 'sliding'
+    baseline_form.window_opening_regime = 'windows_open_periodically'
+    baseline_form.window_type = 'window_sliding'
     baseline_form.event_month = 'December'
     baseline_form.window_height = 1.6
     baseline_form.opening_distance = 0.6
@@ -51,7 +52,7 @@ def test_ventilation_slidingwindow(baseline_form):
                                [baseline_form.ventilation().air_exchange(room, t) for t in ts])
 
 
-def test_ventilation_hingedwindow(baseline_form):
+def test_ventilation_hingedwindow(baseline_form: model_generator.FormData):
     room = models.Room(75)
     window = models.HingedWindow(
         active=models.PeriodicInterval(period=120, duration=10),
@@ -59,11 +60,11 @@ def test_ventilation_hingedwindow(baseline_form):
         outside_temp=data.GenevaTemperatures['Dec'],
         window_height=1.6, window_width=1., opening_length=0.6,
     )
-    baseline_form.ventilation_type = 'natural'
+    baseline_form.ventilation_type = 'natural_ventilation'
     baseline_form.windows_duration = 10
     baseline_form.windows_frequency = 120
-    baseline_form.windows_open = 'interval'
-    baseline_form.window_type = 'hinged'
+    baseline_form.window_opening_regime = 'windows_open_periodically'
+    baseline_form.window_type = 'window_hinged'
     baseline_form.event_month = 'December'
     baseline_form.window_height = 1.6
     baseline_form.window_width = 1.
@@ -74,14 +75,14 @@ def test_ventilation_hingedwindow(baseline_form):
                                [baseline_form.ventilation().air_exchange(room, t) for t in ts])
 
 
-def test_ventilation_mechanical(baseline_form):
+def test_ventilation_mechanical(baseline_form: model_generator.FormData):
     room = models.Room(75)
     mech = models.HVACMechanical(
         active=models.PeriodicInterval(period=120, duration=120),
         q_air_mech=500.,
     )
-    baseline_form.ventilation_type = 'mechanical'
-    baseline_form.mechanical_ventilation_type = 'mechanical'
+    baseline_form.ventilation_type = 'mechanical_ventilation'
+    baseline_form.mechanical_ventilation_type = 'mech_type_air_supply'
     baseline_form.air_supply = 500.
 
     ts = np.linspace(8, 16, 100)
@@ -89,14 +90,14 @@ def test_ventilation_mechanical(baseline_form):
                                [baseline_form.ventilation().air_exchange(room, t) for t in ts])
 
 
-def test_ventilation_airchanges(baseline_form):
+def test_ventilation_airchanges(baseline_form: model_generator.FormData):
     room = models.Room(75)
     airchange = models.AirChange(
         active=models.PeriodicInterval(period=120, duration=120),
         air_exch=3.,
     )
-    baseline_form.ventilation_type = 'mechanical'
-    baseline_form.mechanical_ventilation_type = 'air_changes'
+    baseline_form.ventilation_type = 'mechanical_ventilation'
+    baseline_form.mechanical_ventilation_type = 'mech_type_air_changes'
     baseline_form.air_changes = 3.
 
     ts = np.linspace(8, 16, 100)
@@ -104,7 +105,7 @@ def test_ventilation_airchanges(baseline_form):
                                [baseline_form.ventilation().air_exchange(room, t) for t in ts])
 
 
-def test_ventilation_window_hepa(baseline_form):
+def test_ventilation_window_hepa(baseline_form: model_generator.FormData):
     room = models.Room(75)
     window = models.SlidingWindow(
         active=models.PeriodicInterval(period=120, duration=10),
@@ -118,10 +119,10 @@ def test_ventilation_window_hepa(baseline_form):
     )
     ventilation = models.MultipleVentilation((window,hepa))
 
-    baseline_form.ventilation_type = 'natural'
+    baseline_form.ventilation_type = 'natural_ventilation'
     baseline_form.windows_duration = 10
     baseline_form.windows_frequency = 120
-    baseline_form.windows_open = 'interval'
+    baseline_form.window_opening_regime = 'windows_open_periodically'
     baseline_form.event_month = 'December'
     baseline_form.window_height = 1.6
     baseline_form.opening_distance = 0.6
@@ -132,97 +133,101 @@ def test_ventilation_window_hepa(baseline_form):
                                [baseline_form.ventilation().air_exchange(room, t) for t in ts])
 
 
-def test_infected_present_intervals(baseline_form):
+def present_times(interval: models.Interval) -> models.BoundarySequence_t:
+    assert isinstance(interval, models.SpecificInterval)
+    return interval.present_times
+
+
+def test_infected_present_intervals(baseline_form: model_generator.FormData):
     baseline_form.infected_dont_have_breaks_with_exposed = False
     baseline_form.exposed_coffee_duration = 15
-    baseline_form.exposed_coffee_breaks = 2
-    baseline_form.exposed_start = 9 * 60
-    baseline_form.exposed_finish = 17 * 60
-    baseline_form.exposed_lunch_start = 12 * 60 + 30
-    baseline_form.exposed_lunch_finish = 13 * 60 + 30
-    baseline_form.infected_start = 10 * 60
-    baseline_form.infected_finish = 15 * 60
+    baseline_form.exposed_coffee_break_option = 'coffee_break_2'
+    baseline_form.exposed_start = minutes_since_midnight(9 * 60)
+    baseline_form.exposed_finish = minutes_since_midnight(17 * 60)
+    baseline_form.exposed_lunch_start = minutes_since_midnight(12 * 60 + 30)
+    baseline_form.exposed_lunch_finish = minutes_since_midnight(13 * 60 + 30)
+    baseline_form.infected_start = minutes_since_midnight(10 * 60)
+    baseline_form.infected_finish = minutes_since_midnight(15 * 60)
     correct = ((10, 10+37/60), (10+52/60, 12.5), (13.5, 15.0))
-    assert baseline_form.infected_present_interval().present_times == correct
+    assert present_times(baseline_form.infected_present_interval()) == correct
 
 
-def test_exposed_present_intervals(baseline_form):
+def test_exposed_present_intervals(baseline_form: model_generator.FormData):
     baseline_form.exposed_coffee_duration = 15
-    baseline_form.exposed_coffee_breaks = 2
-    baseline_form.exposed_start = 9 * 60
-    baseline_form.exposed_finish = 17 * 60
-    baseline_form.exposed_lunch_start = 12 * 60 + 30
-    baseline_form.exposed_lunch_finish = 13 * 60 + 30
+    baseline_form.exposed_coffee_break_option = 'coffee_break_2'
+    baseline_form.exposed_start = minutes_since_midnight(9 * 60)
+    baseline_form.exposed_finish = minutes_since_midnight(17 * 60)
+    baseline_form.exposed_lunch_start = minutes_since_midnight(12 * 60 + 30)
+    baseline_form.exposed_lunch_finish = minutes_since_midnight(13 * 60 + 30)
     correct = ((9, 10+37/60), (10+52/60, 12.5), (13.5, 15+7/60), (15+22/60, 17.0))
-    assert baseline_form.exposed_present_interval().present_times == correct
+    assert present_times(baseline_form.exposed_present_interval()) == correct
 
 
-def test_present_intervals_common_breaks(baseline_form):
+def test_present_intervals_common_breaks(baseline_form: model_generator.FormData):
     baseline_form.infected_dont_have_breaks_with_exposed = False
     baseline_form.infected_coffee_duration = baseline_form.exposed_coffee_duration = 15
-    baseline_form.infected_coffee_breaks = baseline_form.exposed_coffee_breaks = 2
-    baseline_form.exposed_lunch_start = baseline_form.infected_lunch_start = 12 * 60 + 30
-    baseline_form.exposed_lunch_finish = baseline_form.infected_lunch_finish = 13 * 60 + 30
-    baseline_form.exposed_start = 9 * 60
-    baseline_form.exposed_finish = 17 * 60
-    baseline_form.infected_start = 9 * 60
-    baseline_form.infected_finish = 16 * 60
+    baseline_form.infected_coffee_break_option = baseline_form.exposed_coffee_break_option = 'coffee_break_2'
+    baseline_form.exposed_lunch_start = baseline_form.infected_lunch_start = minutes_since_midnight(12 * 60 + 30)
+    baseline_form.exposed_lunch_finish = baseline_form.infected_lunch_finish = minutes_since_midnight(13 * 60 + 30)
+    baseline_form.exposed_start = minutes_since_midnight(9 * 60)
+    baseline_form.exposed_finish = minutes_since_midnight(17 * 60)
+    baseline_form.infected_start = minutes_since_midnight(9 * 60)
+    baseline_form.infected_finish = minutes_since_midnight(16 * 60)
     correct_exposed = ((9, 10+37/60), (10+52/60, 12.5), (13.5, 15+7/60), (15+22/60, 17.0))
     correct_infected = ((9, 10+37/60), (10+52/60, 12.5), (13.5, 15+7/60), (15+22/60, 16.0))
-    assert baseline_form.exposed_present_interval().present_times == correct_exposed
-    assert baseline_form.infected_present_interval().present_times == correct_infected
+    assert present_times(baseline_form.exposed_present_interval()) == correct_exposed
+    assert present_times(baseline_form.infected_present_interval()) == correct_infected
 
 
-def test_present_intervals_split_breaks(baseline_form):
+def test_present_intervals_split_breaks(baseline_form: model_generator.FormData):
     baseline_form.infected_dont_have_breaks_with_exposed = True
     baseline_form.infected_coffee_duration = baseline_form.exposed_coffee_duration = 15
-    baseline_form.infected_coffee_breaks = baseline_form.exposed_coffee_breaks = 2
-    baseline_form.infected_lunch_start = baseline_form.exposed_lunch_start = 12 * 60 + 30
-    baseline_form.infected_lunch_finish = baseline_form.exposed_lunch_finish = 13 * 60 + 30
-    baseline_form.exposed_start = 9 * 60
-    baseline_form.exposed_finish = 17 * 60
-    baseline_form.infected_start = 9 * 60
-    baseline_form.infected_finish = 16 * 60
+    baseline_form.infected_coffee_break_option = baseline_form.exposed_coffee_break_option = 'coffee_break_2'
+    baseline_form.infected_lunch_start = baseline_form.exposed_lunch_start = minutes_since_midnight(12 * 60 + 30)
+    baseline_form.infected_lunch_finish = baseline_form.exposed_lunch_finish = minutes_since_midnight(13 * 60 + 30)
+    baseline_form.exposed_start = minutes_since_midnight(9 * 60)
+    baseline_form.exposed_finish = minutes_since_midnight(17 * 60)
+    baseline_form.infected_start = minutes_since_midnight(9 * 60)
+    baseline_form.infected_finish = minutes_since_midnight(16 * 60)
     correct_exposed = ((9, 10+37/60), (10+52/60, 12.5), (13.5, 15+7/60), (15+22/60, 17.0))
     correct_infected = ((9, 10+37/60), (10+52/60, 12.5), (13.5, 14+37/60), (14+52/60, 16.0))
-    assert baseline_form.exposed_present_interval().present_times == correct_exposed
-    assert baseline_form.infected_present_interval().present_times == correct_infected
+    assert present_times(baseline_form.exposed_present_interval()) == correct_exposed
+    assert present_times(baseline_form.infected_present_interval()) == correct_infected
 
 
-def test_exposed_present_intervals_starting_with_lunch(baseline_form):
-    baseline_form.exposed_coffee_breaks = 0
-    baseline_form.exposed_start = baseline_form.exposed_lunch_start = 13 * 60
-    baseline_form.exposed_finish = 18 * 60
-    baseline_form.exposed_lunch_finish = 14 * 60
+def test_exposed_present_intervals_starting_with_lunch(baseline_form: model_generator.FormData):
+    baseline_form.exposed_coffee_break_option = 'coffee_break_0'
+    baseline_form.exposed_start = baseline_form.exposed_lunch_start = minutes_since_midnight(13 * 60)
+    baseline_form.exposed_finish = minutes_since_midnight(18 * 60)
+    baseline_form.exposed_lunch_finish = minutes_since_midnight(14 * 60)
     correct = ((14.0, 18.0), )
-    assert baseline_form.exposed_present_interval().present_times == correct
+    assert present_times(baseline_form.exposed_present_interval()) == correct
 
 
-def test_exposed_present_intervals_ending_with_lunch(baseline_form):
-    baseline_form.exposed_coffee_breaks = 0
-    baseline_form.exposed_start = 11 * 60
-    baseline_form.exposed_finish = baseline_form.exposed_lunch_start = 13 * 60
-    baseline_form.exposed_lunch_finish = 14 * 60
+def test_exposed_present_intervals_ending_with_lunch(baseline_form: model_generator.FormData):
+    baseline_form.exposed_coffee_break_option = 'coffee_break_0'
+    baseline_form.exposed_start = minutes_since_midnight(11 * 60)
+    baseline_form.exposed_finish = baseline_form.exposed_lunch_start = minutes_since_midnight(13 * 60)
+    baseline_form.exposed_lunch_finish = minutes_since_midnight(14 * 60)
     correct = ((11.0, 13.0),)
-    assert baseline_form.exposed_present_interval().present_times == correct
+    assert present_times(baseline_form.exposed_present_interval()) == correct
 
 
-def test_exposed_present_lunch_end_before_beginning(baseline_form):
-    baseline_form.exposed_coffee_breaks = 0
-    baseline_form.exposed_lunch_start = 14 * 60
-    baseline_form.exposed_lunch_finish = 13 * 60
+def test_exposed_present_lunch_end_before_beginning(baseline_form: model_generator.FormData):
+    baseline_form.exposed_coffee_break_option = 'coffee_break_0'
+    baseline_form.exposed_lunch_start = minutes_since_midnight(14 * 60)
+    baseline_form.exposed_lunch_finish = minutes_since_midnight(13 * 60)
     with pytest.raises(ValueError):
         baseline_form.validate()
 
 
 @pytest.fixture
-def coffee_break_between_1045_and_1115(baseline_form):
-    baseline_form.exposed_coffee_breaks = 1
+def coffee_break_between_1045_and_1115(baseline_form: model_generator.FormData):
+    baseline_form.exposed_coffee_break_option = 'coffee_break_1'
     baseline_form.exposed_coffee_duration = 30
-    baseline_form.exposed_start = 10 * 60
-    baseline_form.exposed_finish = 12 * 60
+    baseline_form.exposed_start = minutes_since_midnight(10 * 60)
+    baseline_form.exposed_finish = minutes_since_midnight(12 * 60)
     baseline_form.exposed_lunch_option = False
-
     coffee_breaks = baseline_form.exposed_coffee_break_times()
     assert coffee_breaks == ((10.75 * 60, 11.25 * 60),)
     return baseline_form
@@ -263,9 +268,9 @@ def test_present_only_for_coffee_ends(coffee_break_between_1045_and_1115):
     assert interval.boundaries() == ()
 
 
-def time2mins(time: str):
+def time2mins(time: str) -> minutes_since_midnight:
     # Convert times like "14:30" to decimal, like 14.5 * 60.
-    return int(time.split(':')[0]) * 60 + int(time.split(':')[1])
+    return minutes_since_midnight(int(time.split(':')[0]) * 60 + int(time.split(':')[1]))
 
 
 def hours2time(hours: float):
@@ -280,8 +285,8 @@ def assert_boundaries(interval, boundaries_in_time_string_form):
 
 
 @pytest.fixture
-def breaks_every_25_mins_for_20_mins(baseline_form):
-    baseline_form.exposed_coffee_breaks = 4
+def breaks_every_25_mins_for_20_mins(baseline_form: model_generator.FormData):
+    baseline_form.exposed_coffee_break_option = 'coffee_break_4'
     baseline_form.exposed_coffee_duration = 20
     baseline_form.exposed_start = time2mins("10:00")
     baseline_form.exposed_finish = time2mins("14:10")
@@ -325,60 +330,60 @@ def test_present_only_during_second_break(breaks_every_25_mins_for_20_mins):
     assert_boundaries(interval, [])
 
 
-def test_valid_no_lunch(baseline_form):
+def test_valid_no_lunch(baseline_form: model_generator.FormData):
     # Check that it is valid to have a 0 length lunch if no lunch is selected.
     baseline_form.exposed_lunch_option = False
-    baseline_form.exposed_lunch_start = 0
-    baseline_form.exposed_lunch_finish = 0
+    baseline_form.exposed_lunch_start = minutes_since_midnight(0)
+    baseline_form.exposed_lunch_finish = minutes_since_midnight(0)
     assert baseline_form.validate() is None
 
 
-def test_no_breaks(baseline_form):
+def test_no_breaks(baseline_form: model_generator.FormData):
     # Check that the times are correct in the absence of breaks.
     baseline_form.infected_dont_have_breaks_with_exposed = False
     baseline_form.exposed_lunch_option = False
-    baseline_form.exposed_coffee_breaks = 0
-    baseline_form.exposed_start = 9 * 60
-    baseline_form.exposed_finish = 17 * 60
-    baseline_form.infected_start = 10 * 60
-    baseline_form.infected_finish = 15 * 60
+    baseline_form.exposed_coffee_break_option = 'coffee_break_0'
+    baseline_form.exposed_start = minutes_since_midnight(9 * 60)
+    baseline_form.exposed_finish = minutes_since_midnight(17 * 60)
+    baseline_form.infected_start = minutes_since_midnight(10 * 60)
+    baseline_form.infected_finish = minutes_since_midnight(15 * 60)
     exposed_correct = ((9, 17),)
     infected_correct = ((10, 15),)
-    assert baseline_form.exposed_present_interval().present_times == exposed_correct
-    assert baseline_form.infected_present_interval().present_times == infected_correct
+    assert present_times(baseline_form.exposed_present_interval()) == exposed_correct
+    assert present_times(baseline_form.infected_present_interval()) == infected_correct
 
 
-def test_coffee_lunch_breaks(baseline_form):
+def test_coffee_lunch_breaks(baseline_form: model_generator.FormData):
     baseline_form.exposed_coffee_duration = 30
-    baseline_form.exposed_coffee_breaks = 4
-    baseline_form.exposed_start = 9 * 60
-    baseline_form.exposed_finish = 18 * 60
-    baseline_form.exposed_lunch_start = 12 * 60 + 30
-    baseline_form.exposed_lunch_finish = 13 * 60 + 30
+    baseline_form.exposed_coffee_break_option = 'coffee_break_4'
+    baseline_form.exposed_start = minutes_since_midnight(9 * 60)
+    baseline_form.exposed_finish = minutes_since_midnight(18 * 60)
+    baseline_form.exposed_lunch_start = minutes_since_midnight(12 * 60 + 30)
+    baseline_form.exposed_lunch_finish = minutes_since_midnight(13 * 60 + 30)
     correct = ((9, 9+50/60), (10+20/60, 11+10/60), (11+40/60, 12+30/60),
                (13+30/60, 14+40/60), (15+10/60, 16+20/60), (16+50/60, 18))
-    np.testing.assert_allclose(baseline_form.exposed_present_interval().present_times, correct, rtol=1e-14)
+    np.testing.assert_allclose(present_times(baseline_form.exposed_present_interval()), correct, rtol=1e-14)
 
 
-def test_coffee_lunch_breaks_unbalance(baseline_form):
+def test_coffee_lunch_breaks_unbalance(baseline_form: model_generator.FormData):
     baseline_form.exposed_coffee_duration = 30
-    baseline_form.exposed_coffee_breaks = 2
-    baseline_form.exposed_start = 9 * 60
-    baseline_form.exposed_finish = 13 * 60 + 30
-    baseline_form.exposed_lunch_start = 12 * 60 + 30
-    baseline_form.exposed_lunch_finish = 13 * 60 + 30
+    baseline_form.exposed_coffee_break_option = 'coffee_break_2'
+    baseline_form.exposed_start = minutes_since_midnight(9 * 60)
+    baseline_form.exposed_finish = minutes_since_midnight(13 * 60 + 30)
+    baseline_form.exposed_lunch_start = minutes_since_midnight(12 * 60 + 30)
+    baseline_form.exposed_lunch_finish = minutes_since_midnight(13 * 60 + 30)
     correct = ((9, 9+50/60), (10+20/60, 11+10/60), (11+40/60, 12+30/60))
-    np.testing.assert_allclose(baseline_form.exposed_present_interval().present_times, correct, rtol=1e-14)
+    np.testing.assert_allclose(present_times(baseline_form.exposed_present_interval()), correct, rtol=1e-14)
 
 
-def test_coffee_breaks(baseline_form):
+def test_coffee_breaks(baseline_form: model_generator.FormData):
     baseline_form.exposed_coffee_duration = 10
-    baseline_form.exposed_coffee_breaks = 4
-    baseline_form.exposed_start = 9 * 60
-    baseline_form.exposed_finish = 10 * 60
+    baseline_form.exposed_coffee_break_option = 'coffee_break_4'
+    baseline_form.exposed_start = minutes_since_midnight(9 * 60)
+    baseline_form.exposed_finish = minutes_since_midnight(10 * 60)
     baseline_form.exposed_lunch_option = False
     correct = ((9, 9+4/60), (9+14/60, 9+18/60), (9+28/60, 9+32/60), (9+42/60, 9+46/60), (9+56/60, 10))
-    np.testing.assert_allclose(baseline_form.exposed_present_interval().present_times, correct, rtol=1e-14)
+    np.testing.assert_allclose(present_times(baseline_form.exposed_present_interval()), correct, rtol=1e-14)
 
 
 def test_key_validation(baseline_form_data):

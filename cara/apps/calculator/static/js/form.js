@@ -19,19 +19,19 @@ function removeErrorFor(referenceNode) {
 /* -------Required fields------- */
 function require_fields(obj) {
   switch ($(obj).attr('id')) {
-    case "room_type_volume":
+    case "room_data_volume":
       require_room_volume(true);
       require_room_dimensions(false);
       break;
-    case "room_type_dimensions":
+    case "room_data_dimensions":
       require_room_volume(false);
       require_room_dimensions(true);
       break;
-    case "mechanical":
+    case "mechanical_ventilation":
       require_mechanical_ventilation(true);
       require_natural_ventilation(false);
       break;
-    case "natural":
+    case "natural_ventilation":
       require_mechanical_ventilation(false);
       require_natural_ventilation(true);
       break;
@@ -41,18 +41,18 @@ function require_fields(obj) {
     case "window_hinged":
       require_window_width(true);
       break;
-    case "air_type_changes":
+    case "mech_type_air_changes":
       require_air_changes(true);
       require_air_supply(false);
       break;
-    case "air_type_supply":
+    case "mech_type_air_supply":
       require_air_changes(false);
       require_air_supply(true);
       break;
-    case "interval":
+    case "windows_open_periodically":
       require_venting(true);
       break;
-    case "always":
+    case "windows_open_permanently":
       require_venting(false);
       break;
     case "hepa_yes":
@@ -82,10 +82,10 @@ function require_fields(obj) {
 
 function unrequire_fields(obj) {
   switch (obj.id) {
-    case "mechanical":
+    case "mechanical_ventilation":
       require_mechanical_ventilation(false);
       break;
-    case "natural":
+    case "natural_ventilation":
       require_natural_ventilation(false);
       break;
     default:
@@ -106,11 +106,11 @@ function require_room_dimensions(option) {
 }
 
 function require_mechanical_ventilation(option) {
-  $("#air_type_changes").prop('required', option);
-  $("#air_type_supply").prop('required', option);
+  $("#mech_type_air_changes").prop('required', option);
+  $("#mech_type_air_supply").prop('required', option);
   if (!option) {
-    removeInvalid("#air_changes");
-    removeInvalid("#air_supply");
+    require_input_field("#air_changes", option);
+    require_input_field("#air_supply", option);
   }
 }
 
@@ -120,8 +120,13 @@ function require_natural_ventilation(option) {
   require_input_field("#opening_distance", option);
   $("#window_sliding").prop('required', option);
   $("#window_hinged").prop('required', option);
-  $("#always").prop('required', option);
-  $("#interval").prop('required', option);
+  $("#windows_open_permanently").prop('required', option);
+  $("#windows_open_periodically").prop('required', option);
+  if (!option) {
+    require_input_field("#window_width", option);
+    require_input_field("#windows_duration", option);
+    require_input_field("#windows_frequency", option);
+  }
 }
 
 function require_window_width(option) {
@@ -172,8 +177,8 @@ function require_lunch(id, option) {
 }
 
 function require_mask(option) {
-  $("#mask_type1").prop('required', option);
-  $("#mask_ffp2").prop('required', option);
+  $("#mask_type_1").prop('required', option);
+  $("#mask_type_ffp2").prop('required', option);
 }
 
 function require_hepa(option) {
@@ -225,8 +230,8 @@ function on_ventilation_type_change() {
       getChildElement($(this)).hide();
       unrequire_fields(this);
 
-      // Clear inputs for this newly hidden child element.
-      getChildElement($(this)).find('input').not('input[type=radio]').val('');
+      //Clear invalid inputs for this newly hidden child element
+      removeInvalid(getChildElement($(this)).find('input').not('input[type=radio]').attr('id'));
     }
   });
 }
@@ -293,14 +298,14 @@ function validate_form(form) {
       var activityBreaksObj= document.getElementById("activity_breaks");
       removeErrorFor(activityBreaksObj);
 
+      var lunch_mins = 0;
       if (document.getElementById(activity+"_lunch_option_yes").checked) {
-        var lunch_mins = 0;
         var lunch_start = document.getElementById(activity+"_lunch_start");
         var lunch_finish = document.getElementById(activity+"_lunch_finish");
         lunch_mins = parseTimeToMins(lunch_finish.value) - parseTimeToMins(lunch_start.value);
       }
     
-      var coffee_breaks = parseInt(document.querySelector('input[name="'+activity+'_coffee_breaks"]:checked').value);
+      var coffee_breaks = parseInt(document.querySelector('input[name="'+activity+'_coffee_break_option"]:checked').value);
       var coffee_duration = parseInt(document.getElementById(activity+"_coffee_duration").value);
       var coffee_mins = coffee_breaks * coffee_duration;
       

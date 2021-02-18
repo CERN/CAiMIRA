@@ -1,6 +1,6 @@
 {% extends "layout.html.j2" %}
 
-{% set MODEL_VERSION="v1.3.0" %}
+{% set MODEL_VERSION="v1.4.0" %}
 {% set DEBUG=False %}
 {% set active_page="calculator/" %}
 
@@ -45,14 +45,14 @@
     <div data-tooltip="The area you wish to study (choose one of the 2 options). Use GIS Portal or measure.">
         <span class="tooltip_text">?</span>
     </div><br>
-    <input type="radio" id="room_type_volume" name="volume_type" value="room_volume" onclick="require_fields(this)" tabindex="-1" required>
-      <label for="room_type_volume">Room volume:</label> &nbsp;&nbsp;
-    <input type="number" step="any" id="room_volume" class="non_zero" name="room_volume" placeholder="Room volume (m³)" min="0" data-has-radio="#room_type_volume"><br>
-    <input type="radio" id="room_type_dimensions" name="volume_type" value="room_dimensions" onclick="require_fields(this)" tabindex="-1" required>
-      <label for="room_type_dimensions">Floor area:</label> &nbsp;&nbsp;
-    <input type="number" step="any" id="floor_area" class="non_zero" name="floor_area" placeholder="Room floor area (m²)" min="0" data-has-radio="#room_type_dimensions"><br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <label for="room_type_dimensions">Ceiling height:</label> &nbsp;&nbsp;
-    <input type="number" step="any" id="ceiling_height" class="non_zero" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0" data-has-radio="#room_type_dimensions"><br>
+    <input type="radio" id="room_data_volume" name="volume_type" value="room_volume_explicit" onclick="require_fields(this)" tabindex="-1" required>
+      <label for="room_data_volume">Room volume:</label> &nbsp;&nbsp;
+    <input type="number" step="any" id="room_volume" class="non_zero" name="room_volume" placeholder="Room volume (m³)" min="0" data-has-radio="#room_data_volume"><br>
+    <input type="radio" id="room_data_dimensions" name="volume_type" value="room_volume_from_dimensions" onclick="require_fields(this)" tabindex="-1" required>
+      <label for="room_data_dimensions">Floor area:</label> &nbsp;&nbsp;
+    <input type="number" step="any" id="floor_area" class="non_zero" name="floor_area" placeholder="Room floor area (m²)" min="0" data-has-radio="#room_data_dimensions"><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <label for="room_data_dimensions">Ceiling height:</label> &nbsp;&nbsp;
+    <input type="number" step="any" id="ceiling_height" class="non_zero" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0" data-has-radio="#room_data_dimensions"><br>
     <hr width="80%">
 
     <!-- Ventilation Options -->
@@ -61,39 +61,39 @@
         <span class="tooltip_text">?</span>
     </div><br>
     Ventilation type:
-    <input type="radio" id="no_ventilation" name="ventilation_type" value="no-ventilation" checked>
+    <input type="radio" id="no_ventilation" name="ventilation_type" value="no_ventilation" checked>
       <label for="no_ventilation">No ventilation</label>&nbsp;&nbsp;
-    <input type="radio" id="mechanical" name="ventilation_type" value="mechanical" data-enables="#DIVmechanical_ventilation">
-      <label for="mechanical">Mechanical</label>&nbsp;&nbsp;
-    <input type="radio" id="natural" name="ventilation_type" value="natural" data-enables="#DIVnatural_ventilation">
-      <label for="natural">Natural</label><br>
+    <input type="radio" id="mechanical_ventilation" name="ventilation_type" value="mechanical_ventilation" data-enables="#DIVmechanical_ventilation">
+      <label for="mechanical_ventilation">Mechanical</label>&nbsp;&nbsp;
+    <input type="radio" id="natural_ventilation" name="ventilation_type" value="natural_ventilation" data-enables="#DIVnatural_ventilation">
+      <label for="natural_ventilation">Natural</label><br>
 
     <div id="DIVmechanical_ventilation" class="tabbed" style="display:none">
-        <input type="radio" id="air_type_supply" name="mechanical_ventilation_type" value="air_supply" onclick="require_fields(this)" tabindex="-1">
-          <label for="air_type_supply">Air supply flow rate</label> &nbsp;&nbsp;
-        <input type="number" step="any" id="air_supply" class="non_zero" name="air_supply" min="0" placeholder="(m³ / hour)" data-has-radio="#air_type_supply"><br>
-        <input type="radio" id="air_type_changes" name="mechanical_ventilation_type" value="air_changes" onclick="require_fields(this)" tabindex="-1">
-          <label for="air_type_changes">Air changes per hour</label> &nbsp;&nbsp;
-        <input type="number" step="any" id="air_changes" class="non_zero" name="air_changes" min="0" placeholder="(h⁻¹) only fresh air" data-has-radio="#air_type_changes"><br>
+        <input type="radio" id="mech_type_air_supply" name="mechanical_ventilation_type" value="mech_type_air_supply" onclick="require_fields(this)" tabindex="-1">
+          <label for="mech_type_air_supply">Air supply flow rate</label> &nbsp;&nbsp;
+        <input type="number" step="any" id="air_supply" class="non_zero" name="air_supply" min="0" placeholder="(m³ / hour)" data-has-radio="#mech_type_air_supply"><br>
+        <input type="radio" id="mech_type_air_changes" name="mechanical_ventilation_type" value="mech_type_air_changes" onclick="require_fields(this)" tabindex="-1">
+          <label for="mech_type_air_changes">Air changes per hour</label> &nbsp;&nbsp;
+        <input type="number" step="any" id="air_changes" class="non_zero" name="air_changes" min="0" placeholder="(h⁻¹) only fresh air" data-has-radio="#mech_type_air_changes"><br>
     </div>
 
     <div id="DIVnatural_ventilation" class="tabbed" style="display:none">
         Number of windows: <input type="number" id="windows_number" class="non_zero" name="windows_number" min="1"><br>
         Height of window: <input type="number" step="any" id="window_height" class="non_zero" name="window_height" placeholder="meters" min="0"><br>
-        Window type:
-        <input type="radio" id="window_sliding" name="window_type" value="sliding" onclick="require_fields(this)" checked="checked">
+        Window type: 
+        <input type="radio" id="window_sliding" name="window_type" value="window_sliding" onclick="require_fields(this)" checked="checked">
           <label for="window_sliding">Sliding / Side-Hung</label>&nbsp;&nbsp;
-        <input type="radio" id="window_hinged" name="window_type" value="hinged" onclick="require_fields(this)">
+        <input type="radio" id="window_hinged" name="window_type" value="window_hinged" onclick="require_fields(this)">
           <label for="window_hinged">Top- or Bottom-Hung</label>&nbsp;&nbsp;<br>
         Width of window: <input type="number" step="any" id="window_width" class="non_zero disabled" name="window_width" placeholder="meters" min="0" data-has-radio="#window_hinged"><br>
         Opening distance: <input type="number" step="any" id="opening_distance" class="non_zero" name="opening_distance" placeholder="meters" min="0"><br>
-        Windows open:</span><br>
-        <span class="tabbed"><input type="radio" id="always" name="windows_open" value="always" onclick="require_fields(this)" checked="checked"></span>
-          <label for="always">Permanently</label><br>
-        <span class="tabbed"><input type="radio" id="interval" name="windows_open" value="interval" onclick="require_fields(this)"></span>
-          <label for="interval">Periodically:</label>&nbsp;&nbsp;
-        <input type="number" step="any" id="windows_duration" class="disabled" name="windows_duration" placeholder="Duration (min)" min="1" data-has-radio="#interval"> /
-        <input type="number" step="any" id="windows_frequency" class="disabled" name="windows_frequency" placeholder="Frequency (min)" min="1" data-has-radio="#interval">
+        Windows open:</span><br> 
+        <span class="tabbed"><input type="radio" id="windows_open_permanently" name="window_opening_regime" value="windows_open_permanently" onclick="require_fields(this)" checked="checked"></span>
+          <label for="windows_open_permanently">Permanently</label><br>
+        <span class="tabbed"><input type="radio" id="windows_open_periodically" name="window_opening_regime" value="windows_open_periodically" onclick="require_fields(this)"></span>
+          <label for="windows_open_periodically">Periodically:</label>&nbsp;&nbsp;
+        <input type="number" step="any" id="windows_duration" class="disabled" name="windows_duration" placeholder="Duration (min)" min="1" data-has-radio="#windows_open_periodically"> / 
+        <input type="number" step="any" id="windows_frequency" class="disabled" name="windows_frequency" placeholder="Frequency (min)" min="1" data-has-radio="#windows_open_periodically">
         <br>
     </div>
     
@@ -110,15 +110,15 @@
         <span class="tooltip_text">?</span>
     </div><br>
     Are masks worn when occupants are at workstations?
-    <input type="radio" id="mask_on" name="mask_wearing" value="continuous" required>
+    <input type="radio" id="mask_on" name="mask_wearing_option" value="mask_on" required>
       <label for="mask_on">Yes</label>&nbsp;&nbsp;
-    <input type="radio" id="mask_off"  name="mask_wearing" value="removed" required checked="checked">
+    <input type="radio" id="mask_off"  name="mask_wearing_option" value="mask_off" required checked="checked">
       <label for="mask_off">No</label><br>
     Type of masks used:
-    <input type="radio" id="mask_type1" name="mask_type" value="Type I" checked="checked" onclick="require_fields(this)">
-      <label for="mask_type1">Type 1</label>&nbsp;&nbsp;
-    <input type="radio" id="mask_ffp2"  name="mask_type" value="FFP2" onclick="require_fields(this)">
-      <label for="mask_ffp2">FFP2</label><br>
+    <input type="radio" id="mask_type_1" name="mask_type" value="Type I" checked="checked" onclick="require_fields(this)">
+      <label for="mask_type_1">Type 1</label>&nbsp;&nbsp;
+    <input type="radio" id="mask_type_ffp2"  name="mask_type" value="FFP2" onclick="require_fields(this)">
+      <label for="mask_type_ffp2">FFP2</label><br>
     <hr width="80%">
 </div>
 
@@ -194,11 +194,11 @@
 
         <!-- Coffee Options -->
         Coffee Breaks:&nbsp;&nbsp;
-        <input type="radio" id="exposed_coffee_break_0" name="exposed_coffee_breaks" value="0" checked="checked">
+        <input type="radio" id="exposed_coffee_break_0" name="exposed_coffee_break_option" value="coffee_break_0" checked="checked">
           <label for="exposed_coffee_break_0" >No breaks</label>&nbsp;&nbsp;
-        <input type="radio" id="exposed_coffee_break_2" name="exposed_coffee_breaks" value="2">
+        <input type="radio" id="exposed_coffee_break_2" name="exposed_coffee_break_option" value="coffee_break_2">
           <label for="exposed_coffee_break_2">2</label>&nbsp;&nbsp;
-        <input type="radio" id="exposed_coffee_break_4" name="exposed_coffee_breaks" value="4">
+        <input type="radio" id="exposed_coffee_break_4" name="exposed_coffee_break_option" value="coffee_break_4">
           <label for="exposed_coffee_break_4">4</label><br>
 
         Duration (minutes): 
@@ -228,11 +228,11 @@
 
         <!-- Coffee Options -->
         Coffee Breaks:&nbsp;&nbsp;
-        <input type="radio" id="infected_coffee_break_0" name="infected_coffee_breaks" value="0" checked="checked">
+        <input type="radio" id="infected_coffee_break_0" name="infected_coffee_break_option" value="coffee_break_0" checked="checked">
           <label for="infected_coffee_break_0" >No breaks</label>&nbsp;&nbsp;
-        <input type="radio" id="infected_coffee_break_2" name="infected_coffee_breaks" value="2">
+        <input type="radio" id="infected_coffee_break_2" name="infected_coffee_break_option" value="coffee_break_2">
           <label for="infected_coffee_break_2">2</label>&nbsp;&nbsp;
-        <input type="radio" id="infected_coffee_break_4" name="infected_coffee_breaks" value="4">
+        <input type="radio" id="infected_coffee_break_4" name="infected_coffee_break_option" value="coffee_break_4">
           <label for="infected_coffee_break_4">4</label><br>
 
         Duration (minutes): 
@@ -247,7 +247,7 @@
       </div>
       <br>
     </div>
-
+    
     <br style="clear:both;">
     <i>Coffee breaks are spread evenly throughout the day.</i><br>
     <hr width="80%">
