@@ -344,7 +344,7 @@ class MCExposureModel:
         exposure = np.zeros(self.concentration_model.infected.samples)
 
         for start, stop in self.exposed.presence.boundaries():
-            times = np.arange(start, stop, 0.001)
+            times = np.arange(start, stop, 0.01)
             concentrations = np.asarray([self.concentration_model.concentration(t) for t in times])
             integrals = np.trapz(concentrations, times, axis=0)
             exposure += integrals
@@ -878,11 +878,10 @@ exposure_models = [MCExposureModel(
 
 generate_cdf_curves_vs_qr(masked=False)
 
-# rs = [model.expected_new_cases() for model in large_population_baselines]
-#
-# print(f"R0 - original variant:\t{np.mean(rs[0])}")
-# print(f"R0 - english variant:\t{np.mean(rs[1])}")
-# print(f"Ratio between R0's:\t\t{np.mean(rs[1]) / np.mean(rs[0])}")
+rs = [model.expected_new_cases() for model in large_population_baselines]
+print(f"R0 - original variant:\t{np.mean(rs[0])}")
+print(f"R0 - english variant:\t{np.mean(rs[1])}")
+print(f"Ratio between R0's:\t\t{np.mean(rs[1]) / np.mean(rs[0])}")
 #
 # compare_infection_probabilities_vs_viral_loads(*exposure_models)
 #
