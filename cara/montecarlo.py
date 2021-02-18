@@ -542,7 +542,8 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
                     breathing_category=infected.breathing_category,
                     virus=infected.virus,
                     samples=samples_per_vl,
-                    viral_load=viral_load
+                    viral_load=viral_load,
+                    expiratory_activity_weights=infected.expiratory_activity_weights
                 )
             ),
                 exposed=baseline.exposed)
@@ -597,7 +598,8 @@ def plot_pi_vs_qid(baselines: typing.Union[MCExposureModel, typing.List[MCExposu
                     breathing_category=infected.breathing_category,
                     virus=MCVirus(halflife=infected.virus.halflife, qID=qid),
                     samples=samples_per_qid,
-                    viral_load=infected.viral_load
+                    viral_load=infected.viral_load,
+                    expiratory_activity_weights=infected.expiratory_activity_weights
                 )
             ),
                 exposed=baseline.exposed)
@@ -779,7 +781,8 @@ def compare_infection_probabilities_vs_viral_loads(baseline1: MCExposureModel, b
                     breathing_category=infected.breathing_category,
                     virus=infected.virus,
                     samples=samples_per_vl,
-                    viral_load=vl
+                    viral_load=vl,
+                    expiratory_activity_weights=infected.expiratory_activity_weights
                     )
                 ),
             exposed=baseline.exposed) for baseline, infected in ((baseline1, infected1), (baseline2, infected2))]
@@ -848,7 +851,7 @@ large_population_baselines = [MCExposureModel(
             presence=models.SpecificInterval(((0, 4), (5, 9))),
             masked=False,
             virus=MCVirus(halflife=1.1, qID=qid),
-            expiratory_activity=4,
+            expiratory_activity=1,
             samples=200000,
             breathing_category=2,
             expiratory_activity_weights=(0.7, 0.3, 0)
