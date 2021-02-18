@@ -848,9 +848,10 @@ large_population_baselines = [MCExposureModel(
             presence=models.SpecificInterval(((0, 4), (5, 9))),
             masked=False,
             virus=MCVirus(halflife=1.1, qID=qid),
-            expiratory_activity=2,
+            expiratory_activity=4,
             samples=200000,
             breathing_category=2,
+            expiratory_activity_weights=(0.7, 0.3, 0)
         )
 
     ),
