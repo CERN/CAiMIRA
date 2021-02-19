@@ -810,6 +810,75 @@ def compare_infection_probabilities_vs_viral_loads(baseline1: MCExposureModel, b
     plt.show()
 
 
+def plot_concentration_curve(model: MCExposureModel):
+    color = "#1f77b4"
+
+    transitions = model.concentration_model.infected.presence.transition_times()
+    start, stop = min(transitions), max(transitions)
+    times = np.arange(start, stop, 0.05)
+
+    concentrations = [model.concentration_model.concentration(t) for t in tqdm(times)]
+
+    means = [np.mean(c) for c in concentrations]
+    upper = [np.quantile(c, 0.95) for c in concentrations]
+    lower = [np.quantile(c, 0.5) for c in concentrations]
+
+    fig = plt.figure()
+    plt.plot(times, upper, color=color, linestyle='dashed', label='95th percentile')
+    plt.plot(times, lower, color=color, linestyle='dashed')
+    plt.plot(times, means, color=color, label='Mean concentration')
+
+    # Plot presence of exposed person
+    for i, (presence_start, presence_finish) in enumerate(model.exposed.presence.boundaries()):
+        plt.fill_between(
+            times, np.max(upper) * 1.1, 0,
+            where=(np.array(times) > presence_start) & (np.array(times) < presence_finish),
+            color=color, alpha=0.1,
+            label="Presence of exposed person(s)" if i == 0 else ""
+        )
+
+    upper_threshold = round(np.max(means) * 1.1, 1)
+    lower_threshold = round(np.max(lower) * 1.1, 1)
+    top = round(np.max(upper) * 1.1, 1)
+    upper_scaling_factor = 200
+    lower_scaling_factor = 20
+
+    def forward(x: np.ndarray) -> np.ndarray:
+        high_indexes = x >= upper_threshold
+        middle_indexes = x >= lower_threshold
+        low_indexes = x < lower_threshold
+        y = np.zeros(shape=x.shape)
+        y[low_indexes] = x[low_indexes]
+        y[middle_indexes] = lower_threshold + (x[middle_indexes] - lower_threshold) / lower_scaling_factor
+        y[high_indexes] = lower_threshold + (upper_threshold - lower_threshold) / lower_scaling_factor + (x[high_indexes] - upper_threshold) / upper_scaling_factor
+        return y
+
+    def inverse(x: np.ndarray) -> np.ndarray:
+        high_indexes = x >= upper_threshold
+        middle_indexes = x >= lower_threshold
+        low_indexes = x < lower_threshold
+        y = np.zeros(shape=x.shape)
+        y[low_indexes] = x[low_indexes]
+        y[middle_indexes] = lower_threshold + (x[middle_indexes] - lower_threshold) * lower_scaling_factor
+        y[high_indexes] += lower_threshold + (upper_threshold - lower_threshold) * lower_scaling_factor + (x[high_indexes] - upper_threshold) * upper_scaling_factor
+        return y
+
+    plt.xlabel('Time [hours]')
+    plt.ylabel('Concentration [$q/m^3$]')
+    plt.title('Concentration of infectious quanta')
+    plt.plot([start, stop], [upper_threshold, upper_threshold], linestyle='dotted', color='grey')
+    plt.plot([start, stop], [lower_threshold, lower_threshold], linestyle='dotted', color='grey')
+    plt.ylim(0, top)
+
+    plt.yscale('function', functions=(forward, inverse))
+
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.yticks([i for i in np.linspace(0, upper_threshold, 5)][:-1] + [i for i in np.linspace(upper_threshold, top, 5)])
+    fig.set_figwidth(10)
+    plt.tight_layout()
+    plt.show()
+
+
 fixed_vl_exposure_models = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=45),
