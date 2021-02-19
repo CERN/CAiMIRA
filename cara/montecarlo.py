@@ -358,7 +358,7 @@ class MCExposureModel:
         exposure = np.zeros(self.concentration_model.infected.samples)
 
         for start, stop in self.exposed.presence.boundaries():
-            times = np.arange(start, stop, 0.01)
+            times = np.arange(start, stop, 0.05)
             concentrations = np.asarray([self.concentration_model.concentration(t) for t in times])
             integrals = np.trapz(concentrations, times, axis=0)
             exposure += integrals
