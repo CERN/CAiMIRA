@@ -670,8 +670,8 @@ def generate_cdf_curves_vs_qr(masked: bool = False, samples: int = 200000, qid: 
     fig, axs = plt.subplots(3, 1, sharex='all')
 
     # TODO: Insert title and y-label
-    plt.suptitle("$F(qR|qID=$" + str(qid) + "$)$", y=0.93)
-    fig.text(0.02, 0.5, 'Cumulative Distribution Function', va='center', rotation='vertical')
+    plt.suptitle("$F(qR|qID=$" + str(qid) + "$)$",fontsize=12, y=0.93)
+    fig.text(0.02, 0.5, 'Cumulative Distribution Function', va='center', rotation='vertical',fontsize=12)
 
     scenarios = [MCInfectedPopulation(
         number=1,
@@ -929,7 +929,7 @@ exposure_models_2 = [MCExposureModel(
 #print(np.mean(exposure_models_2[1].infection_probability()))
 #plot_pi_vs_viral_load([exposure_models[1],exposure_models_2[1]], labels=['B.1.1.7 - Guideline', 'B.1.1.7 - w/o masks'])
 
-generate_cdf_curves_vs_qr(masked=False,qid=100)
+generate_cdf_curves_vs_qr(masked=False,qid=1000)
 
 # rs = [model.expected_new_cases() for model in large_population_baselines]
 # print(f"R0 - original variant:\t{np.mean(rs[0])}")
