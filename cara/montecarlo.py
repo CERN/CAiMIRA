@@ -670,8 +670,8 @@ def generate_cdf_curves_vs_qr(masked: bool = False, samples: int = 200000, qid: 
     fig, axs = plt.subplots(3, 1, sharex='all')
 
     # TODO: Insert title and y-label
-    plt.suptitle("INSERT TITLE HERE")
-    fig.text(0.02, 0.5, 'INSERT Y-LABEL HERE', va='center', rotation='vertical')
+    plt.suptitle("$F(qR|qID=$" + str(qid) + "$)$",fontsize=12, y=0.93)
+    fig.text(0.02, 0.5, 'Cumulative Distribution Function', va='center', rotation='vertical',fontsize=12)
 
     scenarios = [MCInfectedPopulation(
         number=1,
@@ -687,7 +687,7 @@ def generate_cdf_curves_vs_qr(masked: bool = False, samples: int = 200000, qid: 
     right = max(np.max(qrs) for qrs in qr_values)
 
     # Colors can be changed here
-    colors = ['lightgreen', 'lightblue', 'pink']
+    colors = ['lightgrey', 'grey', 'black']
 
     breathing_rates = ['Seated', 'Light activity', 'Heavy activity']
     activities = ['Breathing', 'Speaking', 'Shouting']
@@ -702,7 +702,8 @@ def generate_cdf_curves_vs_qr(masked: bool = False, samples: int = 200000, qid: 
         axs[i].set_yticklabels(['0.0', '0.5', '1.0'])
         axs[i].yaxis.set_label_position("right")
         axs[i].set_ylabel(activities[i])
-        axs[i].legend(handles=lines, loc='upper left')
+        axs[i].grid(linestyle='--')
+        axs[0].legend(handles=lines, loc='upper left')
 
     plt.xlabel('qR [$q\;h^{-1}$]')
     tick_positions = np.arange(int(np.ceil(left)), int(np.ceil(right)), 2)
@@ -940,7 +941,7 @@ exposure_models = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=45),
         ventilation=models.SlidingWindow(
-            active=models.PeriodicInterval(period=120, duration=10),
+            active=models.PeriodicInterval(period=120, duration=120),
             inside_temp=models.PiecewiseConstant((0, 24), (293,)),
             outside_temp=models.PiecewiseConstant((0, 24), (283,)),
             window_height=1.6, opening_length=0.6,
@@ -953,6 +954,7 @@ exposure_models = [MCExposureModel(
             expiratory_activity=1,
             samples=2000000,
             breathing_category=1,
+            expiratory_activity_weights=(0.7, 0.3, 0)
         )
     ),
     exposed=models.Population(
@@ -960,6 +962,34 @@ exposure_models = [MCExposureModel(
         presence=models.SpecificInterval(((0, 4), (5, 9))),
         activity=models.Activity.types['Seated'],
         mask=models.Mask.types['Type I']
+    )
+) for qid in (100, 60)]
+
+exposure_models_2 = [MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=33),
+        ventilation=models.SlidingWindow(
+            active=models.PeriodicInterval(period=120, duration=10),
+            inside_temp=models.PiecewiseConstant((0, 24), (293,)),
+            outside_temp=models.PiecewiseConstant((0, 24), (283,)),
+            window_height=1.6, opening_length=0.6,
+        ),
+        infected=MCInfectedPopulation(
+            number=1,
+            presence=models.SpecificInterval(((0, 4), (5, 9))),
+            masked=True,
+            virus=MCVirus(halflife=1.1, qID=qid),
+            expiratory_activity=4,
+            samples=2000000,
+            breathing_category=1,
+            expiratory_activity_weights=(0.7, 0.1, 0)
+        )
+    ),
+    exposed=models.Population(
+        number=2,
+        presence=models.SpecificInterval(((0, 4), (5, 9))),
+        activity=models.Activity.types['Seated'],
+        mask=models.Mask.types['FFP2']
     )
 ) for qid in (100, 60)]
 
@@ -992,7 +1022,11 @@ classroom_model = MCExposureModel(
 
 plot_concentration_curve(classroom_model)
 
-#generate_cdf_curves_vs_qr(masked=False)
+#print(np.mean(exposure_models_2[1].infection_probability()))
+#print(np.mean(exposure_models_2[1].infection_probability()))
+#plot_pi_vs_viral_load([exposure_models[1],exposure_models_2[1]], labels=['B.1.1.7 - Guideline', 'B.1.1.7 - w/o masks'])
+
+generate_cdf_curves_vs_qr(masked=False,qid=1000)
 
 # rs = [model.expected_new_cases() for model in large_population_baselines]
 # print(f"R0 - original variant:\t{np.mean(rs[0])}")
