@@ -671,7 +671,7 @@ def generate_cdf_curves_vs_qr(masked: bool = False, samples: int = 200000, qid: 
 
     # TODO: Insert title and y-label
     plt.suptitle("$F(qR|qID=$" + str(qid) + "$)$",fontsize=12, y=0.93)
-    fig.text(0.02, 0.5, 'Cumulative Distribution Function', va='center', rotation='vertical',fontsize=12)
+    fig.text(0.02, 0.5, '', va='center', rotation='vertical',fontsize=12)
 
     scenarios = [MCInfectedPopulation(
         number=1,
@@ -701,7 +701,7 @@ def generate_cdf_curves_vs_qr(masked: bool = False, samples: int = 200000, qid: 
         axs[i].set_yticks([0, samples / 2, samples])
         axs[i].set_yticklabels(['0.0', '0.5', '1.0'])
         axs[i].yaxis.set_label_position("right")
-        axs[i].set_ylabel(activities[i])
+        axs[i].set_ylabel(activities[i],fontsize=12)
         axs[i].grid(linestyle='--')
         axs[0].legend(handles=lines, loc='upper left')
 
@@ -944,16 +944,16 @@ exposure_models = [MCExposureModel(
             active=models.PeriodicInterval(period=120, duration=120),
             inside_temp=models.PiecewiseConstant((0, 24), (293,)),
             outside_temp=models.PiecewiseConstant((0, 24), (283,)),
-            window_height=1.6, opening_length=0.6,
+            window_height=1.6, opening_length=0.2,
         ),
         infected=MCInfectedPopulation(
             number=1,
             presence=models.SpecificInterval(((0, 4), (5, 9))),
             masked=False,
             virus=MCVirus(halflife=1.1, qID=qid),
-            expiratory_activity=1,
+            expiratory_activity=3,
             samples=2000000,
-            breathing_category=1,
+            breathing_category=3,
             expiratory_activity_weights=(0.7, 0.3, 0)
         )
     ),
@@ -969,7 +969,7 @@ exposure_models_2 = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=33),
         ventilation=models.SlidingWindow(
-            active=models.PeriodicInterval(period=120, duration=10),
+            active=models.PeriodicInterval(period=120, duration=120),
             inside_temp=models.PiecewiseConstant((0, 24), (293,)),
             outside_temp=models.PiecewiseConstant((0, 24), (283,)),
             window_height=1.6, opening_length=0.6,
@@ -989,7 +989,7 @@ exposure_models_2 = [MCExposureModel(
         number=2,
         presence=models.SpecificInterval(((0, 4), (5, 9))),
         activity=models.Activity.types['Seated'],
-        mask=models.Mask.types['FFP2']
+        mask=models.Mask.types['Type I']
     )
 ) for qid in (100, 60)]
 
@@ -1020,13 +1020,150 @@ classroom_model = MCExposureModel(
     )
 )
 
-plot_concentration_curve(classroom_model)
+shared_office_model = MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=50),
+        ventilation=models.SlidingWindow(
+            active=models.PeriodicInterval(period=120, duration=10),
+            inside_temp=models.PiecewiseConstant((0, 24), (293,)),
+            outside_temp=models.PiecewiseConstant((0, 24), (283,)),
+            window_height=1.6, opening_length=0.6,
+        ),
+        infected=MCInfectedPopulation(
+            number=1,
+            presence=models.SpecificInterval(((0, 2), (2.1, 4), (5, 7), (7.1, 9))),
+            masked=True,
+            virus=MCVirus(halflife=1.1, qID=60),
+            expiratory_activity=4,
+            samples=200000,
+            breathing_category=1,
+            expiratory_activity_weights=(0.7, 0.3, 0)
+        )
+    ),
+    exposed=models.Population(
+        number=3,
+        presence=models.SpecificInterval(((0, 2), (2.1, 4), (5, 7), (7.1, 9))),
+        activity=models.Activity.types['Seated'],
+        mask=models.Mask.types['Type I']
+    )
+)
 
-#print(np.mean(exposure_models_2[1].infection_probability()))
+ski_cabin_model = MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=10),
+        ventilation=models.HVACMechanical(
+            active=models.PeriodicInterval(period=120, duration=120),
+            q_air_mech=0.,
+        ),
+        infected=MCInfectedPopulation(
+            number=1,
+            presence=models.SpecificInterval(((0, 0.33),)),
+            masked=True,
+            virus=MCVirus(halflife=1.1, qID=60),
+            expiratory_activity=2,
+            samples=200000,
+            breathing_category=4,
+            expiratory_activity_weights=(0.7, 0.3, 0)
+        )
+    ),
+    exposed=models.Population(
+        number=3,
+        presence=models.SpecificInterval(((0, 0.33),)),
+        activity=models.Activity.types['Moderate activity'],
+        mask=models.Mask.types['Type I']
+    )
+)
+
+gym_model = MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=300),
+        ventilation=models.AirChange(
+            active=models.PeriodicInterval(period=120, duration=120),
+            air_exch=6.,
+        ),
+        infected=MCInfectedPopulation(
+            number=2,
+            presence=models.SpecificInterval(((0, 1),)),
+            masked=False,
+            virus=MCVirus(halflife=1.1, qID=60),
+            expiratory_activity=1,
+            samples=200000,
+            breathing_category=5,
+            expiratory_activity_weights=(0.7, 0.3, 0)
+        )
+    ),
+    exposed=models.Population(
+        number=28,
+        presence=models.SpecificInterval(((0, 1),)),
+        activity=models.Activity.types['Heavy exercise'],
+        mask=models.Mask.types['No mask']
+    )
+)
+
+waiting_room_model = MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=100),
+        ventilation=models.AirChange(
+            active=models.PeriodicInterval(period=120, duration=120),
+            air_exch=0.,
+        ),
+        infected=MCInfectedPopulation(
+            number=1,
+            presence=models.SpecificInterval(((0, 2),)),
+            masked=False,
+            virus=MCVirus(halflife=1.1, qID=60),
+            expiratory_activity=4,
+            samples=200000,
+            breathing_category=1,
+            expiratory_activity_weights=(0.7, 0.3, 0)
+        )
+    ),
+    exposed=models.Population(
+        number=14,
+        presence=models.SpecificInterval(((0, 2),)),
+        activity=models.Activity.types['Seated'],
+        mask=models.Mask.types['No mask']
+    )
+)
+
+chorale_model = MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=810),
+        ventilation=models.AirChange(
+            active=models.PeriodicInterval(period=120, duration=120),
+            air_exch=0.7,
+        ),
+        infected=MCInfectedPopulation(
+            number=1,
+            presence=models.SpecificInterval(((0, 2.5),)),
+            masked=False,
+            virus=MCVirus(halflife=1.1, qID=60),
+            expiratory_activity=3,
+            samples=200000,
+            breathing_category=3,
+            expiratory_activity_weights=(0.7, 0.3, 0)
+        )
+    ),
+    exposed=models.Population(
+        number=60,
+        presence=models.SpecificInterval(((0, 2.5),)),
+        activity=models.Activity.types['Moderate activity'],
+        mask=models.Mask.types['No mask']
+    )
+)
+
+#plot_concentration_curve(classroom_model)
+
+print(np.mean(chorale_model.infection_probability()))
+print(np.mean(chorale_model.infection_probability())+np.std(chorale_model.infection_probability()))
+print(np.quantile(chorale_model.infection_probability(),0.8))
+
 #print(np.mean(exposure_models_2[1].infection_probability()))
 #plot_pi_vs_viral_load([exposure_models[1],exposure_models_2[1]], labels=['B.1.1.7 - Guideline', 'B.1.1.7 - w/o masks'])
+#plot_pi_vs_viral_load([exposure_models_2[0]], labels=[''])
 
-generate_cdf_curves_vs_qr(masked=False,qid=1000)
+
+#generate_cdf_curves_vs_qr(masked=False,qid=1000)
 
 # rs = [model.expected_new_cases() for model in large_population_baselines]
 # print(f"R0 - original variant:\t{np.mean(rs[0])}")
@@ -1036,7 +1173,7 @@ generate_cdf_curves_vs_qr(masked=False,qid=1000)
 # compare_infection_probabilities_vs_viral_loads(*exposure_models)
 #
 #
-# present_model(exposure_models[0].concentration_model)
+#present_model(exposure_models[0].concentration_model)
 # plot_pi_vs_qid(fixed_vl_exposure_models, labels=['Viral load = $10^{' + str(i) + '}$' for i in range(6, 11)],
 #                qid_min=5, qid_max=2000, qid_samples=200)
 #
