@@ -548,7 +548,7 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
             ),
                 exposed=baseline.exposed)
 
-            infection_probabilities = model.infection_probability()
+            infection_probabilities = model.infection_probability()/100
             pi_means.append(np.mean(infection_probabilities))
             pi_medians.append(np.median(infection_probabilities))
             lower_percentiles.append(np.quantile(infection_probabilities, 0.01))
@@ -558,16 +558,17 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
         plt.fill_between(viral_loads, lower_percentiles, upper_percentiles, alpha=0.2)
 
     plt.title(title)
-    plt.ylabel('Percentage probability of infection')
+    plt.ylabel('Probability of infection')
     plt.xticks(ticks=[i for i in range(3, 13)], labels=['$10^{' + str(i) + '}$' for i in range(3, 13)])
     plt.xlabel('Viral load')
     # add vertical lines for the critical viral loads for which pi= 0 or 100
     # TODO Insert viral_load(Pi = 5) and viral_load(Pi = 95) instead of hard coded values
-    plt.vlines(x=(7, 11.5), ymin=0, ymax=100,
-               colors=('grey', 'black'), linestyles='dashed')
+    plt.vlines(x=(7.8, 9.5), ymin=0, ymax=1,
+               colors=('lightgrey', 'grey'), linestyles='dotted')
+    plt.text(6.5, 0.80, '$vl_{crit1}$', fontsize=12,color='black')
+    plt.text(10.5, 0.80, '$vl_{crit2}$', fontsize=12,color='black')
     if labels is not None:
         plt.legend(labels)
-
     plt.show()
 
 
@@ -1020,7 +1021,7 @@ classroom_model = MCExposureModel(
     )
 )
 
-shared_office_model = MCExposureModel(
+shared_office_model = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=50),
         ventilation=models.SlidingWindow(
@@ -1033,7 +1034,7 @@ shared_office_model = MCExposureModel(
             number=1,
             presence=models.SpecificInterval(((0, 2), (2.1, 4), (5, 7), (7.1, 9))),
             masked=True,
-            virus=MCVirus(halflife=1.1, qID=60),
+            virus=MCVirus(halflife=1.35, qID=qid),
             expiratory_activity=4,
             samples=200000,
             breathing_category=1,
@@ -1046,7 +1047,7 @@ shared_office_model = MCExposureModel(
         activity=models.Activity.types['Seated'],
         mask=models.Mask.types['Type I']
     )
-)
+) for qid in (100, 60)]
 
 ski_cabin_model = MCExposureModel(
     concentration_model=MCConcentrationModel(
@@ -1111,7 +1112,7 @@ waiting_room_model = MCExposureModel(
             number=1,
             presence=models.SpecificInterval(((0, 2),)),
             masked=False,
-            virus=MCVirus(halflife=1.1, qID=60),
+            virus=MCVirus(halflife=1.35, qID=60),
             expiratory_activity=4,
             samples=200000,
             breathing_category=1,
@@ -1137,7 +1138,7 @@ chorale_model = MCExposureModel(
             number=1,
             presence=models.SpecificInterval(((0, 2.5),)),
             masked=False,
-            virus=MCVirus(halflife=1.1, qID=60),
+            virus=MCVirus(halflife=1.1, qID=100),
             expiratory_activity=3,
             samples=200000,
             breathing_category=3,
@@ -1154,13 +1155,17 @@ chorale_model = MCExposureModel(
 
 #plot_concentration_curve(classroom_model)
 
-print(np.mean(chorale_model.infection_probability()))
-print(np.mean(chorale_model.infection_probability())+np.std(chorale_model.infection_probability()))
-print(np.quantile(chorale_model.infection_probability(),0.8))
+#print(np.mean(chorale_model.infection_probability()))
+#print(np.mean(chorale_model.infection_probability())+np.std(chorale_model.infection_probability()))
+#print(np.quantile(chorale_model.infection_probability(),0.8))
+#print(np.quantile(chorale_model.infection_probability(),0.90))
+#print(np.quantile(chorale_model.infection_probability(),0.1))
+
+
 
 #print(np.mean(exposure_models_2[1].infection_probability()))
 #plot_pi_vs_viral_load([exposure_models[1],exposure_models_2[1]], labels=['B.1.1.7 - Guideline', 'B.1.1.7 - w/o masks'])
-#plot_pi_vs_viral_load([exposure_models_2[0]], labels=[''])
+plot_pi_vs_viral_load([shared_office_model[1]], labels=['Baseline, VOC'],title='$P(I|qID)$ - Shared office scenario')
 
 
 #generate_cdf_curves_vs_qr(masked=False,qid=1000)
