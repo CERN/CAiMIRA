@@ -561,22 +561,31 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
     plt.ylabel('Probability of infection')
     plt.xticks(ticks=[i for i in range(3, 13)], labels=['$10^{' + str(i) + '}$' for i in range(3, 13)])
     plt.xlabel('Viral load')
-    # add vertical lines for the critical viral loads for which pi= 0 or 100
+    # add vertical lines for the critical viral loads for which pi= 5 or 95
     # TODO Insert viral_load(Pi = 5) and viral_load(Pi = 95) instead of hard coded values
+    #  7.8 and 9.5
     plt.vlines(x=(7.8, 9.5), ymin=0, ymax=1,
-               colors=('lightgrey', 'grey'), linestyles='dotted')
-    plt.text(6.5, 0.80, '$vl_{crit1}$', fontsize=12,color='black')
-    plt.text(10.5, 0.80, '$vl_{crit2}$', fontsize=12,color='black')
+               colors=('grey', 'grey'), linestyles='dotted')
+    plt.text(6.7, 0.80, '$vl_{crit1}$', fontsize=12,color='black')
+    plt.text(9.6, 0.80, '$vl_{crit2}$', fontsize=12,color='black')
+    # add 3 shaded areas
+    plt.axvspan(3, 7.8, alpha=0.1, color='limegreen')
+    plt.axvspan(7.8, 9.5, alpha=0.1, color='orange')
+    plt.axvspan(9.5, 12, alpha=0.1, color='tomato')
     if labels is not None:
         plt.legend(labels)
     # this is an inset plot inside the main plot
-    a = plt.axes([.2, .25, .25, .2], facecolor='k')
+    a = plt.axes([.25, .25, .1, .3], facecolor='lightgrey')
     #TODO - Markus can you plot the hist using the chosen model instead of hardcoding
     # in the 'exposure_model' str?
-    plt.hist(shared_office_model[1].infection_probability()/100, bins=200)
-    plt.title('PDF',fontsize=10)
-    plt.xticks([0,0.5,1])
-    plt.yticks([])
+    plt.title('Histogram',fontsize=10)
+    #choose between hist or violin plot
+    #plt.hist(shared_office_model[1].infection_probability()/100, bins=200)
+    #plt.xticks([0,0.5,1])
+    #plt.yticks([])
+    plt.violinplot(shared_office_model[1].infection_probability()/100, showmeans=True, showmedians=True)
+    plt.xticks([])
+    plt.yticks([0,0.5,1], fontsize=8)
 
     plt.show()
 
@@ -1058,6 +1067,58 @@ shared_office_model = [MCExposureModel(
     )
 ) for qid in (100, 60)]
 
+shared_office_worst_model = [MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=50),
+        ventilation=models.AirChange(
+            active=models.PeriodicInterval(period=120, duration=120),
+            air_exch=0.,
+        ),
+        infected=MCInfectedPopulation(
+            number=1,
+            presence=models.SpecificInterval(((0, 2), (2.1, 4), (5, 7), (7.1, 9))),
+            masked=False,
+            virus=MCVirus(halflife=1.35, qID=qid),
+            expiratory_activity=4,
+            samples=200000,
+            breathing_category=1,
+            expiratory_activity_weights=(0.7, 0.3, 0)
+        )
+    ),
+    exposed=models.Population(
+        number=3,
+        presence=models.SpecificInterval(((0, 2), (2.1, 4), (5, 7), (7.1, 9))),
+        activity=models.Activity.types['Seated'],
+        mask=models.Mask.types['No mask']
+    )
+) for qid in (100, 60)]
+
+shared_office_better_model = [MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=50),
+        ventilation=models.AirChange(
+            active=models.PeriodicInterval(period=120, duration=120),
+            air_exch=5.,
+        ),
+        infected=MCInfectedPopulation(
+            number=1,
+            presence=models.SpecificInterval(((0, 2), (2.1, 4), (5, 7), (7.1, 9))),
+            masked=True,
+            virus=MCVirus(halflife=1.35, qID=qid),
+            expiratory_activity=4,
+            samples=200000,
+            breathing_category=1,
+            expiratory_activity_weights=(0.7, 0.3, 0)
+        )
+    ),
+    exposed=models.Population(
+        number=3,
+        presence=models.SpecificInterval(((0, 2), (2.1, 4), (5, 7), (7.1, 9))),
+        activity=models.Activity.types['Seated'],
+        mask=models.Mask.types['Type I']
+    )
+) for qid in (100, 60)]
+
 ski_cabin_model = MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=10),
@@ -1174,7 +1235,7 @@ chorale_model = MCExposureModel(
 
 #print(np.mean(exposure_models_2[1].infection_probability()))
 #plot_pi_vs_viral_load([exposure_models[1],exposure_models_2[1]], labels=['B.1.1.7 - Guideline', 'B.1.1.7 - w/o masks'])
-plot_pi_vs_viral_load([shared_office_model[1]], labels=['Baseline, VOC'],title='$P(I|qID)$ - Shared office scenario')
+plot_pi_vs_viral_load([shared_office_model[1], shared_office_better_model[1],shared_office_worst_model[1]], labels=['Baseline, qID=60', 'HEPA, qID=60', 'No mask + windows closed, qID=60'],title='$P(I|qID)$ - Shared office scenario')
 
 
 #generate_cdf_curves_vs_qr(masked=False,qid=1000)
