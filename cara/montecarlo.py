@@ -569,6 +569,15 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
     plt.text(10.5, 0.80, '$vl_{crit2}$', fontsize=12,color='black')
     if labels is not None:
         plt.legend(labels)
+    # this is an inset plot inside the main plot
+    a = plt.axes([.2, .25, .25, .2], facecolor='k')
+    #TODO - Markus can you plot the hist using the chosen model instead of hardcoding
+    # in the 'exposure_model' str?
+    plt.hist(shared_office_model[1].infection_probability()/100, bins=200)
+    plt.title('PDF',fontsize=10)
+    plt.xticks([0,0.5,1])
+    plt.yticks([])
+
     plt.show()
 
 
