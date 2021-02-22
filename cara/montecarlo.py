@@ -564,28 +564,30 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
     # add vertical lines for the critical viral loads for which pi= 5 or 95
     # TODO Insert viral_load(Pi = 5) and viral_load(Pi = 95) instead of hard coded values
     #  7.8 and 9.5
-    plt.vlines(x=(7.8, 9.5), ymin=0, ymax=1,
-               colors=('grey', 'grey'), linestyles='dotted')
-    plt.text(6.7, 0.80, '$vl_{crit1}$', fontsize=12,color='black')
-    plt.text(9.6, 0.80, '$vl_{crit2}$', fontsize=12,color='black')
+    #plt.vlines(x=(7.8, 9.5), ymin=0, ymax=1,
+    #           colors=('grey', 'grey'), linestyles='dotted')
+    #plt.text(6.7, 0.80, '$vl_{crit1}$', fontsize=12,color='black')
+    #plt.text(9.6, 0.80, '$vl_{crit2}$', fontsize=12,color='black')
     # add 3 shaded areas
-    plt.axvspan(3, 7.8, alpha=0.1, color='limegreen')
-    plt.axvspan(7.8, 9.5, alpha=0.1, color='orange')
-    plt.axvspan(9.5, 12, alpha=0.1, color='tomato')
+    #plt.axvspan(3, 7.8, alpha=0.1, color='limegreen')
+    #plt.axvspan(7.8, 9.5, alpha=0.1, color='orange')
+    #plt.axvspan(9.5, 12, alpha=0.1, color='tomato')
     if labels is not None:
         plt.legend(labels)
     # this is an inset plot inside the main plot
-    a = plt.axes([.25, .25, .1, .3], facecolor='lightgrey')
+    a = plt.axes([.2, .25, .3, .2], facecolor='lightgrey')
     #TODO - Markus can you plot the hist using the chosen model instead of hardcoding
     # in the 'exposure_model' str?
     plt.title('Histogram',fontsize=10)
     #choose between hist or violin plot
-    #plt.hist(shared_office_model[1].infection_probability()/100, bins=200)
-    #plt.xticks([0,0.5,1])
-    #plt.yticks([])
-    plt.violinplot(shared_office_model[1].infection_probability()/100, showmeans=True, showmedians=True)
-    plt.xticks([])
-    plt.yticks([0,0.5,1], fontsize=8)
+    plt.hist(shared_office_model[1].infection_probability()/100, bins=50)
+    plt.xticks([0,0.5,1])
+    plt.yticks([])
+   #parts = plt.violinplot((shared_office_worst_model[1].infection_probability()/100, shared_office_model[1].infection_probability()/100, shared_office_better_model[1].infection_probability()/100), positions = (1, 2, 3), showmeans=True, showmedians=True)
+   #for pc in parts['bodies']:
+   #    pc.set_facecolor('#D43F3A')
+   #plt.xticks([])
+   #plt.yticks([0,0.5,1], fontsize=8)
 
     plt.show()
 
@@ -1235,7 +1237,7 @@ chorale_model = MCExposureModel(
 
 #print(np.mean(exposure_models_2[1].infection_probability()))
 #plot_pi_vs_viral_load([exposure_models[1],exposure_models_2[1]], labels=['B.1.1.7 - Guideline', 'B.1.1.7 - w/o masks'])
-plot_pi_vs_viral_load([shared_office_model[1], shared_office_better_model[1],shared_office_worst_model[1]], labels=['Baseline, qID=60', 'HEPA, qID=60', 'No mask + windows closed, qID=60'],title='$P(I|qID)$ - Shared office scenario')
+plot_pi_vs_viral_load([shared_office_model[1]], labels=['Baseline, qID=60', 'HEPA, qID=60', 'No mask + windows closed, qID=60'],title='$P(I|qID)$ - Shared office scenario')
 
 
 #generate_cdf_curves_vs_qr(masked=False,qid=1000)
