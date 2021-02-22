@@ -734,7 +734,7 @@ def generate_cdf_curves_vs_qr(masked: bool = False, samples: int = 200000, qid: 
 
     for i in range(3):
         axs[i].hist(qr_values[3 * i:3 * (i + 1)], bins=2000, histtype='step',
-                         color=colors, cumulative=True, range=(left, right))
+                    color=colors, cumulative=True, range=(left, right))
         axs[i].set_xlim(left, right)
         axs[i].set_yticks([0, samples / 2, samples])
         axs[i].set_yticklabels(['0.0', '0.5', '1.0'])
@@ -863,8 +863,8 @@ def plot_concentration_curve(model: MCExposureModel):
     lower = [np.quantile(c, 0.5) for c in concentrations]
 
     fig = plt.figure()
-    plt.plot(times, upper, color=color, linestyle='dashed', label='95th percentile')
-    plt.plot(times, lower, color=color, linestyle='dashed')
+    plt.plot(times, upper, color='red', linestyle='dashed', label='95th percentile')
+    plt.plot(times, lower, color='green', linestyle='dashed', label='5th percentile')
     plt.plot(times, means, color=color, label='Mean concentration')
 
     # Plot presence of exposed person
@@ -879,8 +879,8 @@ def plot_concentration_curve(model: MCExposureModel):
     upper_threshold = round(np.max(means) * 1.1, 1)
     lower_threshold = round(np.max(lower) * 1.1, 1)
     top = round(np.max(upper) * 1.1, 1)
-    upper_scaling_factor = 200
-    lower_scaling_factor = 20
+    upper_scaling_factor = np.max(upper) / np.max(lower)
+    lower_scaling_factor = np.max(means) * 0.5 / np.max(lower)
 
     def forward(x: np.ndarray) -> np.ndarray:
         high_indexes = x >= upper_threshold
@@ -912,7 +912,9 @@ def plot_concentration_curve(model: MCExposureModel):
     plt.yscale('function', functions=(forward, inverse))
 
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-    plt.yticks([i for i in np.linspace(0, upper_threshold, 5)][:-1] + [i for i in np.linspace(upper_threshold, top, 5)])
+    plt.yticks([i for i in np.linspace(0, lower_threshold, 3)][:-1] +
+               [i for i in np.linspace(lower_threshold, upper_threshold, 6)][:-1] +
+               [i for i in np.linspace(upper_threshold, top, 3)])
     fig.set_figwidth(10)
     plt.tight_layout()
     plt.show()
@@ -1242,7 +1244,7 @@ chorale_model = MCExposureModel(
     )
 )
 
-#plot_concentration_curve(classroom_model)
+plot_concentration_curve(classroom_model)
 
 #print(np.mean(chorale_model.infection_probability()))
 #print(np.mean(chorale_model.infection_probability())+np.std(chorale_model.infection_probability()))
@@ -1254,7 +1256,7 @@ chorale_model = MCExposureModel(
 
 #print(np.mean(exposure_models_2[1].infection_probability()))
 #plot_pi_vs_viral_load([exposure_models[1],exposure_models_2[1]], labels=['B.1.1.7 - Guideline', 'B.1.1.7 - w/o masks'])
-plot_pi_vs_viral_load([shared_office_model[1]], labels=['Baseline, qID=60', 'HEPA, qID=60', 'No mask + windows closed, qID=60'],title='$P(I|qID)$ - Shared office scenario')
+# plot_pi_vs_viral_load([shared_office_model[1]], labels=['Baseline, qID=60', 'HEPA, qID=60', 'No mask + windows closed, qID=60'],title='$P(I|qID)$ - Shared office scenario')
 
 
 #generate_cdf_curves_vs_qr(masked=False,qid=1000)
