@@ -591,18 +591,20 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
         plt.legend(labels)
     # this is an inset plot inside the main plot
     a = plt.axes([.2, .25, .3, .2], facecolor='lightgrey')
-    #TODO - Markus can you plot the hist using the chosen model instead of hardcoding
-    # in the 'exposure_model' str?
-    plt.title('Histogram',fontsize=10)
-    #choose between hist or violin plot
-    plt.hist(shared_office_model[1].infection_probability()/100, bins=50)
-    plt.xticks([0,0.5,1])
-    plt.yticks([])
-   #parts = plt.violinplot((shared_office_worst_model[1].infection_probability()/100, shared_office_model[1].infection_probability()/100, shared_office_better_model[1].infection_probability()/100), positions = (1, 2, 3), showmeans=True, showmedians=True)
-   #for pc in parts['bodies']:
-   #    pc.set_facecolor('#D43F3A')
-   #plt.xticks([])
-   #plt.yticks([0,0.5,1], fontsize=8)
+
+    plt.title('Histogram', fontsize=10)
+    # choose between hist or violin plot
+
+    if len(baselines) == 1:
+        plt.hist(baselines[0].infection_probability()/100, bins=50)
+        plt.xticks([0, 0.5, 1])
+        plt.yticks([])
+
+    # parts = plt.violinplot((shared_office_worst_model[1].infection_probability()/100, shared_office_model[1].infection_probability()/100, shared_office_better_model[1].infection_probability()/100), positions = (1, 2, 3), showmeans=True, showmedians=True)
+    # for pc in parts['bodies']:
+    #     pc.set_facecolor('#D43F3A')
+    # plt.xticks([])
+    # plt.yticks([0,0.5,1], fontsize=8)
 
     plt.show()
 
