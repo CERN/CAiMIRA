@@ -1244,7 +1244,7 @@ chorale_model = MCExposureModel(
     )
 )
 
-plot_concentration_curve(classroom_model)
+plot_concentration_curve(ski_cabin_model)
 
 #print(np.mean(chorale_model.infection_probability()))
 #print(np.mean(chorale_model.infection_probability())+np.std(chorale_model.infection_probability()))
