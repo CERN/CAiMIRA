@@ -12,7 +12,7 @@ import matplotlib.patches as patches
 import matplotlib.lines as mlines
 from sklearn.neighbors import KernelDensity
 
-# This is a test comment
+TIME_STEP = 0.01
 
 USE_SCOEH = False
 
@@ -358,7 +358,7 @@ class MCExposureModel:
         exposure = np.zeros(self.concentration_model.infected.samples)
 
         for start, stop in self.exposed.presence.boundaries():
-            times = np.arange(start, stop, 0.05)
+            times = np.arange(start, stop, TIME_STEP)
             concentrations = np.asarray([self.concentration_model.concentration(t) for t in times])
             integrals = np.trapz(concentrations, times, axis=0)
             exposure += integrals
@@ -854,7 +854,7 @@ def plot_concentration_curve(model: MCExposureModel):
 
     transitions = model.concentration_model.infected.presence.transition_times()
     start, stop = min(transitions), max(transitions)
-    times = np.arange(start, stop, 0.05)
+    times = np.arange(start, stop, TIME_STEP)
 
     concentrations = [model.concentration_model.concentration(t) for t in tqdm(times)]
 
@@ -870,7 +870,7 @@ def plot_concentration_curve(model: MCExposureModel):
     # Plot presence of exposed person
     for i, (presence_start, presence_finish) in enumerate(model.exposed.presence.boundaries()):
         plt.fill_between(
-            times, np.max(upper) * 1.1, 0,
+            times, upper, 0,
             where=(np.array(times) > presence_start) & (np.array(times) < presence_finish),
             color=color, alpha=0.1,
             label="Presence of exposed person(s)" if i == 0 else ""
