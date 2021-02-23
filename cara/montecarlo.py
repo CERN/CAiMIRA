@@ -1085,6 +1085,39 @@ classroom_model = MCExposureModel(
     )
 )
 
+classroom_model_with_hepa = MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=160),
+        ventilation=models.MultipleVentilation(
+            ventilations=(
+                models.SlidingWindow(
+                            active=models.PeriodicInterval(period=120, duration=10),
+                            inside_temp=models.PiecewiseConstant((0, 24), (293,)),
+                            outside_temp=models.PiecewiseConstant((0, 24), (283,)),
+                            window_height=1.6, opening_length=0.6,
+                        ),
+                models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
+                                 air_exch=5)
+            )
+        ),
+        infected=MCInfectedPopulation(
+            number=1,
+            presence=models.SpecificInterval(((0, 2), (2.5, 4), (5, 7), (7.5, 9))),
+            masked=False,
+            virus=MCVirus(halflife=1.1, qID=60),
+            expiratory_activity=2,
+            samples=200000,
+            breathing_category=3,
+        )
+    ),
+    exposed=models.Population(
+        number=19,
+        presence=models.SpecificInterval(((0, 2), (2.5, 4), (5, 7), (7.5, 9))),
+        activity=models.Activity.types['Seated'],
+        mask=models.Mask.types['No mask']
+    )
+)
+
 shared_office_model = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=50),
