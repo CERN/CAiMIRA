@@ -1302,8 +1302,7 @@ chorale_model = MCExposureModel(
     )
 )
 
-plot_concentration_curve(ski_cabin_model)
-
+compare_concentration_curves([classroom_model, classroom_model_with_hepa], ['Just window', 'Window and HEPA'])
 #print(np.mean(chorale_model.infection_probability()))
 #print(np.mean(chorale_model.infection_probability())+np.std(chorale_model.infection_probability()))
 #print(np.quantile(chorale_model.infection_probability(),0.8))
