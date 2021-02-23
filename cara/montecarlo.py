@@ -667,6 +667,7 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
         axs[0, i + 2].hist(data, bins=30, orientation='horizontal', color=color)
         axs[0, i + 2].set_xticks([])
         axs[0, i + 2].set_xticklabels([])
+        axs[0, i + 2].set_xlabel(f"{np.round(np.mean(data) * 100, 1)}%")
 
     axs[1, 0].hist(baselines[0].concentration_model.infected._generate_viral_loads(), bins=30, range=(1, 12))
     axs[1, 0].set_yticks([])
