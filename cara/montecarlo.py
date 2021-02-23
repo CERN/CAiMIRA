@@ -919,6 +919,32 @@ def plot_concentration_curve(model: MCExposureModel):
     plt.show()
 
 
+def compare_concentration_curves(exp_models: typing.List[MCExposureModel], labels: typing.List[str],
+                                 colors: typing.Optional[typing.List[str]] = None, show_qd: bool = True) -> None:
+    assert len(exp_models) == len(labels), "Different numbers of exposure models and labels"
+    if colors is None:
+        colors = ['blue', 'orange', 'green', 'red']
+
+    start = min(min(model.concentration_model.infected.presence.transition_times()) for model in exp_models)
+    stop = max(max(model.concentration_model.infected.presence.transition_times()) for model in exp_models)
+
+    times = np.arange(start, stop, TIME_STEP)
+
+    concentrations = [[np.mean(model.concentration_model.concentration(t)) for t in times] for model in exp_models]
+    for c, label, color in zip(concentrations, labels, colors):
+        plt.plot(times, c, label=label, color=color)
+
+    plt.legend()
+
+    if show_qd:
+        plt.twinx()
+        for c, label, color in zip(concentrations, labels, colors):
+            plt.plot(times, np.cumsum(c), label='qD - ' + label, color=color, linestyle='dotted')
+
+    plt.legend()
+    plt.show()
+
+
 fixed_vl_exposure_models = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=45),
