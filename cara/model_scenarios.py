@@ -1,5 +1,5 @@
-from montecarlo import *
 from cara import models
+from cara.montecarlo import *
 
 
 fixed_vl_exposure_models = [MCExposureModel(
