@@ -1,7 +1,7 @@
 from cara.montecarlo import *
 from cara.model_scenarios import *
 
-compare_concentration_curves([classroom_model, classroom_model_with_hepa], ['Just window', 'Window and HEPA'])
+# compare_concentration_curves([classroom_model, classroom_model_with_hepa], ['Just window', 'Window and HEPA'])
 
 #print(np.mean(chorale_model.infection_probability()))
 #print(np.mean(chorale_model.infection_probability())+np.std(chorale_model.infection_probability()))
@@ -12,7 +12,7 @@ compare_concentration_curves([classroom_model, classroom_model_with_hepa], ['Jus
 
 
 #print(np.mean(exposure_models_2[1].infection_probability()))
-#plot_pi_vs_viral_load([exposure_models[1],exposure_models_2[1]], labels=['B.1.1.7 - Guideline', 'B.1.1.7 - w/o masks'])
+composite_plot_pi_vs_viral_load([exposure_models[1], exposure_models_2[1]], labels=['B.1.1.7 - Guideline', 'B.1.1.7 - w/o masks', 'label'], colors=['red', 'green', 'yellow'])
 # plot_pi_vs_viral_load([shared_office_model[1]], labels=['Baseline, qID=60', 'HEPA, qID=60', 'No mask + windows closed, qID=60'],title='$P(I|qID)$ - Shared office scenario')
 
 
