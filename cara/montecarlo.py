@@ -11,8 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.lines as mlines
 from sklearn.neighbors import KernelDensity
-
-TIME_STEP = 0.01
+TIME_STEP = 0.05
 
 USE_SCOEH = False
 
