@@ -679,6 +679,10 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
     axs[0, 0].set_ylabel('Probability of infection')
     plt.suptitle(title)
 
+    axs[0, 0].text(11, -0.05, '(a)')
+    axs[1, 0].text(11, axs[1, 0].get_ylim()[1] * 0.8, '(b)')
+    axs[0, 2].text(axs[0, 2].get_xlim()[1] * 0.1, -0.05, '(c)')
+
     if show_lines:
         middle_positions = []
         for line in lines:
