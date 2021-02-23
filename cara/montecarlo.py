@@ -260,7 +260,7 @@ class MCInfectedPopulation(MCPopulation):
 @dataclass(frozen=True)
 class MCConcentrationModel:
     room: models.Room
-    ventilation: models.Ventilation
+    ventilation: models._VentilationBase
     infected: MCInfectedPopulation
 
     @property
