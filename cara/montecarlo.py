@@ -1042,6 +1042,7 @@ def compare_concentration_curves(exp_models: typing.List[MCExposureModel], label
         ax.plot(times, c, label=label, color=color)
 
     ax.legend(loc='upper left')
+    ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.2)
 
     factors = [0.6 * model.exposed.activity.inhalation_rate * (1 - model.exposed.mask.η_inhale) for model in exp_models]
     qds = [[np.trapz(c[:i + 1], times[:i + 1]) * factor for i in range(len(times))]
@@ -1056,6 +1057,7 @@ def compare_concentration_curves(exp_models: typing.List[MCExposureModel], label
         for qd, label, color in zip(qds, labels, colors):
             ax1.plot(times, qd, label='qD - ' + label, color=color, linestyle='dotted')
         ax1.set_ylabel('qD LABEL HERE')
+        ax1.set_ylim(ax1.get_ylim()[0], ax1.get_ylim()[1] * 1.2)
 
         ax2 = ax.twinx()
         ax2.spines["right"].set_position(("axes", 1.2))
