@@ -685,7 +685,7 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
     axs[0, 0].text(11, -0.01, '$(i)$')
     axs[1, 0].text(11, axs[1, 0].get_ylim()[1] * 0.8, '$(ii)$')
     #axs[0, 2].text(axs[0, 2].get_xlim()[1] * 0.1, -0.05, '$(iii)$')
-    axs[0, 2].set_title('$(iii)$', fontsize=10)
+    axs[0, 2].set_title('$(iii)$ ', fontsize=10)
 
     crits = []
     for line in lines:
