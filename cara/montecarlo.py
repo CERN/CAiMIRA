@@ -1036,16 +1036,19 @@ def compare_concentration_curves(exp_models: typing.List[MCExposureModel], label
 
     times = np.arange(start, stop, TIME_STEP)
 
-    concentrations = [[np.mean(model.concentration_model.concentration(t)) for t in times] for model in exp_models]
+    concentrations = [[np.median(model.concentration_model.concentration(t)) for t in times] for model in exp_models]
     for c, label, color in zip(concentrations, labels, colors):
         plt.plot(times, c, label=label, color=color)
 
     plt.legend()
+    factors = [0.6 * model.exposed.activity.inhalation_rate * (1 - model.exposed.mask.η_inhale) for model in exp_models]
+    qds = [[np.trapz(c[:i + 1], times[:i + 1]) * factor for i in range(len(times))]
+           for c, factor in zip(concentrations, factors)]
 
     if show_qd:
         plt.twinx()
-        for c, label, color in zip(concentrations, labels, colors):
-            plt.plot(times, np.cumsum(c), label='qD - ' + label, color=color, linestyle='dotted')
+        for qd, label, color in zip(qds, labels, colors):
+            plt.plot(times, qd, label='qD - ' + label, color=color, linestyle='dotted')
 
     plt.legend()
     plt.show()
