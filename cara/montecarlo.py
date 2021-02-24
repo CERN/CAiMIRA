@@ -668,8 +668,11 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
         axs[0, i + 2].set_xticks([])
         axs[0, i + 2].set_xticklabels([])
         axs[0, i + 2].set_xlabel(f"{np.round(np.mean(data) * 100, 1)}%")
+        axs[0, i + 2].set_facecolor("lightgrey")
 
-    axs[1, 0].hist(baselines[0].concentration_model.infected._generate_viral_loads(), bins=30, range=(2, 12))
+    axs[1, 0].hist(baselines[0].concentration_model.infected._generate_viral_loads(),
+                   bins=150, range=(2, 12), color='grey')
+    axs[1, 0].set_facecolor("lightgrey")
     axs[1, 0].set_yticks([])
     axs[1, 0].set_yticklabels([])
     axs[1, 0].set_xticks([i for i in range(2, 13, 2)])
@@ -679,9 +682,14 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
     axs[0, 0].set_ylabel('Probability of infection')
     plt.suptitle(title)
 
-    axs[0, 0].text(11, -0.05, '(a)')
-    axs[1, 0].text(11, axs[1, 0].get_ylim()[1] * 0.8, '(b)')
-    axs[0, 2].text(axs[0, 2].get_xlim()[1] * 0.1, -0.05, '(c)')
+    axs[0, 0].text(11, -0.01, '$(i)$')
+    axs[1, 0].text(11, axs[1, 0].get_ylim()[1] * 0.8, '$(ii)$')
+    #axs[0, 2].text(axs[0, 2].get_xlim()[1] * 0.1, -0.05, '$(iii)$')
+    axs[0, 2].set_title('$(iii)$', fontsize=10)
+
+    axs[0, 0].text(2.5, 0.4, '$vl_{crit2}=$', fontsize=10, color='tomato')
+    axs[0, 0].text(2.5, 0.3, '$vl_{crit2}=$', fontsize=10, color='#1f77b4')
+    axs[0, 0].text(2.5, 0.2, '$vl_{crit2}=$', fontsize=10, color='limegreen')
 
     if show_lines:
         middle_positions = []
@@ -691,9 +699,9 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
                     middle_positions.append(viral_loads[i])
                     break
 
-        axs[0, 0].vlines(middle_positions, colors=colors, linestyles=['dashed']*2, ymin=axs[0, 0].get_ylim()[0],
-                         ymax=axs[0, 0].get_ylim()[1])
-        axs[1, 0].vlines(middle_positions, colors=colors, linestyles=['dashed']*2, ymin=0, ymax=axs[1, 0].get_ylim()[1])
+        axs[0, 0].vlines(middle_positions, colors=colors, linestyles=['dotted']*2, ymin=0.5*1.6,
+                         ymax=0.5*0.4)
+        axs[1, 0].vlines(middle_positions, colors=colors, linestyles=['dotted']*2, ymin=0, ymax=axs[1, 0].get_ylim()[1])
 
     axs[0, 0].legend()
     plt.show()

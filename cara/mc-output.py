@@ -11,9 +11,12 @@ from cara.model_scenarios import *
 
 
 
-#print(np.mean(exposure_models_2[1].infection_probability()))
-composite_plot_pi_vs_viral_load([exposure_models[1], exposure_models_2[1]], labels=['B.1.1.7 - Guideline', 'B.1.1.7 - w/o masks', 'label'], colors=['red', 'green', 'yellow'])
-# plot_pi_vs_viral_load([shared_office_model[1]], labels=['Baseline, qID=60', 'HEPA, qID=60', 'No mask + windows closed, qID=60'],title='$P(I|qID)$ - Shared office scenario')
+#print(np.mean(classroom_model_with_hepa.infection_probability()))
+composite_plot_pi_vs_viral_load([shared_office_worst_model[1], shared_office_model[1],shared_office_better_model[1]],
+                                labels=['No mask &\nwindows closed', 'Baseline', 'Baseline +\nHEPA filter'],
+                                colors=['tomato', '#1f77b4', 'limegreen'],
+                                title='$P(I|qID)$ vs $vl$ - Shared office scenario')
+#plot_pi_vs_viral_load([shared_office_model[1]], labels=['Baseline, qID=60', 'HEPA, qID=60', 'No mask + windows closed, qID=60'],title='$P(I|qID)$ - Shared office scenario')
 
 
 #generate_cdf_curves_vs_qr(masked=False,qid=1000)

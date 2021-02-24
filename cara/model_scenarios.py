@@ -188,7 +188,7 @@ shared_office_model = [MCExposureModel(
             number=1,
             presence=models.SpecificInterval(((0, 2), (2.1, 4), (5, 7), (7.1, 9))),
             masked=True,
-            virus=MCVirus(halflife=1.35, qID=qid),
+            virus=MCVirus(halflife=3.8, qID=qid),
             expiratory_activity=4,
             samples=200000,
             breathing_category=1,
@@ -214,7 +214,7 @@ shared_office_worst_model = [MCExposureModel(
             number=1,
             presence=models.SpecificInterval(((0, 2), (2.1, 4), (5, 7), (7.1, 9))),
             masked=False,
-            virus=MCVirus(halflife=1.35, qID=qid),
+            virus=MCVirus(halflife=3.8, qID=qid),
             expiratory_activity=4,
             samples=200000,
             breathing_category=1,
@@ -232,15 +232,23 @@ shared_office_worst_model = [MCExposureModel(
 shared_office_better_model = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=50),
-        ventilation=models.AirChange(
-            active=models.PeriodicInterval(period=120, duration=120),
-            air_exch=5.,
+        ventilation=models.MultipleVentilation(
+            ventilations=(
+                models.SlidingWindow(
+                    active=models.PeriodicInterval(period=120, duration=10),
+                    inside_temp=models.PiecewiseConstant((0, 24), (293,)),
+                    outside_temp=models.PiecewiseConstant((0, 24), (283,)),
+                    window_height=1.6, opening_length=0.6,
+                ),
+                models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
+                                 air_exch=5.)
+            )
         ),
         infected=MCInfectedPopulation(
             number=1,
             presence=models.SpecificInterval(((0, 2), (2.1, 4), (5, 7), (7.1, 9))),
             masked=True,
-            virus=MCVirus(halflife=1.35, qID=qid),
+            virus=MCVirus(halflife=3.8, qID=qid),
             expiratory_activity=4,
             samples=200000,
             breathing_category=1,
@@ -318,7 +326,7 @@ waiting_room_model = MCExposureModel(
             number=1,
             presence=models.SpecificInterval(((0, 2),)),
             masked=False,
-            virus=MCVirus(halflife=1.35, qID=60),
+            virus=MCVirus(halflife=3.8, qID=60),
             expiratory_activity=4,
             samples=200000,
             breathing_category=1,
