@@ -15,7 +15,8 @@ from cara.model_scenarios import *
 composite_plot_pi_vs_viral_load([shared_office_worst_model[1], shared_office_model[1],shared_office_better_model[1]],
                                 labels=['No mask &\nwindows closed', 'Baseline', 'Baseline +\nHEPA filter'],
                                 colors=['tomato', '#1f77b4', 'limegreen'],
-                                title='$P(I|qID)$ vs $vl$ - Shared office scenario')
+                                title='$P(I|qID)$ vs $vl$ - Shared office scenario',
+                                vl_points=200)
 #plot_pi_vs_viral_load([shared_office_model[1]], labels=['Baseline, qID=60', 'HEPA, qID=60', 'No mask + windows closed, qID=60'],title='$P(I|qID)$ - Shared office scenario')
 
 

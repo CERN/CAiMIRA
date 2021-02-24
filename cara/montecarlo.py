@@ -687,15 +687,21 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
     #axs[0, 2].text(axs[0, 2].get_xlim()[1] * 0.1, -0.05, '$(iii)$')
     axs[0, 2].set_title('$(iii)$', fontsize=10)
 
-    axs[0, 0].text(2.5, 0.4, '$vl_{crit2}=$', fontsize=10, color='tomato')
-    axs[0, 0].text(2.5, 0.3, '$vl_{crit2}=$', fontsize=10, color='#1f77b4')
-    axs[0, 0].text(2.5, 0.2, '$vl_{crit2}=$', fontsize=10, color='limegreen')
+    crits = []
+    for line in lines:
+        for i, point in enumerate(line):
+            if point >= 0.95:
+                crits.append(viral_loads[i])
+                break
+
+    for i, (crit, color) in enumerate(zip(crits, colors)):
+        axs[0, 0].text(2.5, 0.4 - i * 0.1, f'$vl_{"{crit2}"}=' + '10^{' + str(np.round(crits[i], 1)) + '}$', fontsize=10, color=color)
 
     if show_lines:
         middle_positions = []
         for line in lines:
             for i, point in enumerate(line):
-                if point > 0.5:
+                if point >= 0.5:
                     middle_positions.append(viral_loads[i])
                     break
 
