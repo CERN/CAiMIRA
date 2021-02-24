@@ -558,9 +558,9 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
         plt.fill_between(viral_loads, lower_percentiles, upper_percentiles, alpha=0.2)
 
     plt.title(title)
-    plt.ylabel('Probability of infection')
+    plt.ylabel('Probability of infection\n$P(I|qID=60)$')
     plt.xticks(ticks=[i for i in range(3, 13)], labels=['$10^{' + str(i) + '}$' for i in range(3, 13)])
-    plt.xlabel('Viral load')
+    plt.xlabel('Viral load\n$vl$')
     # add vertical lines for the critical viral loads for which pi= 5 or 95
 
     if len(baselines) == 1:
@@ -678,8 +678,8 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
     axs[1, 0].set_xticks([i for i in range(2, 13, 2)])
     axs[1, 0].set_xticklabels(['$10^{' + str(i) + '}$' for i in range(2, 13, 2)])
     axs[1, 0].set_xlim(2, 12)
-    axs[1, 0].set_xlabel('Viral load')
-    axs[0, 0].set_ylabel('Probability of infection')
+    axs[1, 0].set_xlabel('Viral load\n$vl$')
+    axs[0, 0].set_ylabel('Probability of infection\n$P(I|qID=60)$')
     plt.suptitle(title)
 
     axs[0, 0].text(11, -0.01, '$(i)$')
@@ -695,7 +695,8 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
                 break
 
     for i, (crit, color) in enumerate(zip(crits, colors)):
-        axs[0, 0].text(2.5, 0.4 - i * 0.1, f'$vl_{"{crit2}"}=' + '10^{' + str(np.round(crits[i], 1)) + '}$', fontsize=10, color=color)
+        axs[0, 0].text(2.5, 0.4 - i * 0.1, f'x $vl_{"{crit2}"}=' + '10^{' + str(np.round(crits[i], 1)) + '}$', fontsize=10, color=color)
+        axs[0, 0].plot(crits[i], 0.95, 'x', color=color)
 
     if show_lines:
         middle_positions = []
@@ -705,8 +706,8 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
                     middle_positions.append(viral_loads[i])
                     break
 
-        axs[0, 0].vlines(middle_positions, colors=colors, linestyles=['dotted']*2, ymin=0.5*1.6,
-                         ymax=0.5*0.4)
+        axs[0, 0].vlines(middle_positions, colors=colors, linestyles=['dotted']*2, ymin=axs[0, 0].get_ylim()[0],
+                         ymax=0.5*1.3)
         axs[1, 0].vlines(middle_positions, colors=colors, linestyles=['dotted']*2, ymin=0, ymax=axs[1, 0].get_ylim()[1])
 
     axs[0, 0].legend()
