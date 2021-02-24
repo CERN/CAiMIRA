@@ -610,7 +610,8 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
 
 def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], labels: typing.List[str],
                                     colors: typing.List[str], samples_per_vl: int = 2000, vl_points: int = 200,
-                                    title: str = 'Probability of infection vs viral load', show_lines: bool = True) -> None:
+                                    title: str = 'Probability of infection vs viral load', show_lines: bool = True,
+                                    show_vl_crit: bool = True) -> None:
     viral_loads = np.linspace(1, 12, vl_points)
     lines, lowers, uppers = [], [], []
     for baseline in baselines:
@@ -695,7 +696,7 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
                 break
 
     for i, (crit, color) in enumerate(zip(crits, colors)):
-        axs[0, 0].text(2.5, 0.4 - i * 0.1, f'x $vl_{"{crit2}"}=' + '10^{' + str(np.round(crits[i], 1)) + '}$', fontsize=10, color=color)
+        axs[0, 0].text(2.5, 0.4 - i * 0.1, f'x $vl_{"{0.95}"}=' + '10^{' + str(np.round(crits[i], 1)) + '}$', fontsize=10, color=color)
         axs[0, 0].plot(crits[i], 0.95, 'x', color=color)
 
     if show_lines:
