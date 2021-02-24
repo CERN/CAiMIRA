@@ -1037,16 +1037,35 @@ def compare_concentration_curves(exp_models: typing.List[MCExposureModel], label
 
     times = np.arange(start, stop, TIME_STEP)
 
-    concentrations = [[np.mean(model.concentration_model.concentration(t)) for t in times] for model in exp_models]
+    concentrations = [[np.median(model.concentration_model.concentration(t)) for t in times] for model in exp_models]
+    fig, ax = plt.subplots()
     for c, label, color in zip(concentrations, labels, colors):
-        plt.plot(times, c, label=label, color=color)
+        ax.plot(times, c, label=label, color=color)
 
-    plt.legend()
+    ax.legend(loc='upper left')
+    ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.2)
 
+    factors = [0.6 * model.exposed.activity.inhalation_rate * (1 - model.exposed.mask.η_inhale) for model in exp_models]
+    qds = [[np.trapz(c[:i + 1], times[:i + 1]) * factor for i in range(len(times))]
+           for c, factor in zip(concentrations, factors)]
+
+    plt.suptitle("SUPTITLE HERE")
+    plt.xlabel("XLABEL HERE")
+    plt.ylabel("YLABEL HERE")
     if show_qd:
-        plt.twinx()
-        for c, label, color in zip(concentrations, labels, colors):
-            plt.plot(times, np.cumsum(c), label='qD - ' + label, color=color, linestyle='dotted')
 
-    plt.legend()
+        ax1 = ax.twinx()
+        for qd, label, color in zip(qds, labels, colors):
+            ax1.plot(times, qd, label='qD - ' + label, color=color, linestyle='dotted')
+        ax1.set_ylabel('qD LABEL HERE')
+        ax1.set_ylim(ax1.get_ylim()[0], ax1.get_ylim()[1] * 1.2)
+
+        ax2 = ax.twinx()
+        ax2.spines["right"].set_position(("axes", 1.2))
+        ax2.set_ylabel('RNA LABEL HERE')
+        ax2.set_ylim(tuple(y * exp_models[0].concentration_model.virus.qID for y in ax1.get_ylim()))
+        ax1.legend(loc='upper right')
+
+    plt.tight_layout()
+
     plt.show()
