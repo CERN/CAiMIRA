@@ -668,8 +668,16 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
         axs[0, i + 2].hist(data, bins=30, orientation='horizontal', color=color)
         axs[0, i + 2].set_xticks([])
         axs[0, i + 2].set_xticklabels([])
-        axs[0, i + 2].set_xlabel(f"{np.round(np.mean(data) * 100, 1)}%")
+        # axs[0, i + 2].set_xlabel(f"{np.round(np.mean(data) * 100, 1)}%")
         axs[0, i + 2].set_facecolor("lightgrey")
+
+    highest_bar = max(axs[0, i + 2].get_xlim()[1] for i in range(len(histogram_data)))
+    for i in range(len(histogram_data)):
+        axs[0, i + 2].set_xlim(0, highest_bar)
+
+        axs[0, i + 2].text(highest_bar * 0.5, 0.5,
+                           "$P(I)=$\n" + rf"$\bf{np.round(np.mean(histogram_data[i]) * 100, 1)}$%",
+                           color=colors[i], ha='center', va='center')
 
     axs[1, 0].hist(baselines[0].concentration_model.infected._generate_viral_loads(),
                    bins=150, range=(2, 12), color='grey')
@@ -700,12 +708,17 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
         axs[0, 0].plot(crits[i], 0.95, 'x', color=color)
 
     if show_lines:
+        axs[0, 0].hlines([0.5], colors=['lightgrey'], linestyles=['dashed'], xmin=2, xmax=12)
+        axs[0, 0].text(9.7, 0.52, "$P(I) = 0.5$", color='lightgrey')
         middle_positions = []
         for line in lines:
             for i, point in enumerate(line):
                 if point >= 0.5:
                     middle_positions.append(viral_loads[i])
                     break
+
+        for mpos, color in zip(middle_positions, colors):
+            axs[0, 0].plot(mpos, 0.5, 'ro', color=color)
 
         axs[0, 0].vlines(middle_positions, colors=colors, linestyles=['dotted']*2, ymin=axs[0, 0].get_ylim()[0],
                          ymax=0.5*1.3)
