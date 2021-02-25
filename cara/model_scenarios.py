@@ -58,7 +58,7 @@ large_population_baselines = [MCExposureModel(
     )
 ) for qid in (100, 60)]
 
-
+######### Standard exposure models ###########
 exposure_models = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=45),
@@ -115,6 +115,7 @@ exposure_models_2 = [MCExposureModel(
     )
 ) for qid in (100, 60)]
 
+######## Classroom exposure models ###########
 classroom_model = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=160),
@@ -223,6 +224,60 @@ classroom_model_full_open_summer = [MCExposureModel(
     )
 )for qid in (100, 60)]
 
+classroom_model_no_vent = [MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=160),
+        ventilation=models.SlidingWindow(
+            active=models.PeriodicInterval(period=120, duration=120),
+            inside_temp=models.PiecewiseConstant((0, 24), (293,)),
+            outside_temp=models.PiecewiseConstant((0, 24), (291,)),
+            window_height=1.6, opening_length=0.,
+        ),
+        infected=MCInfectedPopulation(
+            number=1,
+            presence=models.SpecificInterval(((0, 2), (2.5, 4), (5, 7), (7.5, 9))),
+            masked=False,
+            virus=MCVirus(halflife=1.1, qID=qid),
+            expiratory_activity=2,
+            samples=200000,
+            breathing_category=3,
+        )
+    ),
+    exposed=models.Population(
+        number=19,
+        presence=models.SpecificInterval(((0, 2), (2.5, 4), (5, 7), (7.5, 9))),
+        activity=models.Activity.types['Seated'],
+        mask=models.Mask.types['No mask']
+    )
+)for qid in (100, 60)]
+
+classroom_model_teacher_mask_full_open = [MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=160),
+        ventilation=models.SlidingWindow(
+            active=models.PeriodicInterval(period=120, duration=120),
+            inside_temp=models.PiecewiseConstant((0, 24), (293,)),
+            outside_temp=models.PiecewiseConstant((0, 24), (291,)),
+            window_height=1.6, opening_length=4*0.6,
+        ),
+        infected=MCInfectedPopulation(
+            number=1,
+            presence=models.SpecificInterval(((0, 2), (2.5, 4), (5, 7), (7.5, 9))),
+            masked=True,
+            virus=MCVirus(halflife=1.1, qID=qid),
+            expiratory_activity=2,
+            samples=200000,
+            breathing_category=3,
+        )
+    ),
+    exposed=models.Population(
+        number=19,
+        presence=models.SpecificInterval(((0, 2), (2.5, 4), (5, 7), (7.5, 9))),
+        activity=models.Activity.types['Seated'],
+        mask=models.Mask.types['No mask']
+    )
+)for qid in (100, 60)]
+
 classroom_model_with_hepa = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=160),
@@ -234,8 +289,8 @@ classroom_model_with_hepa = [MCExposureModel(
                             outside_temp=models.PiecewiseConstant((0, 24), (283,)),
                             window_height=1.6, opening_length=0.6,
                         ),
-                models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
-                                 air_exch=5)
+                models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120),
+                                 q_air_mech=1000)
             )
         ),
         infected=MCInfectedPopulation(
@@ -256,6 +311,40 @@ classroom_model_with_hepa = [MCExposureModel(
     )
 )for qid in (100, 60)]
 
+classroom_model_full_open_hepa = [MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=160),
+        ventilation=models.MultipleVentilation(
+            ventilations=(
+                models.SlidingWindow(
+                            active=models.PeriodicInterval(period=120, duration=120),
+                            inside_temp=models.PiecewiseConstant((0, 24), (293,)),
+                            outside_temp=models.PiecewiseConstant((0, 24), (283,)),
+                            window_height=1.6, opening_length=4*0.6,
+                        ),
+                models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120),
+                                 q_air_mech=1000)
+            )
+        ),
+        infected=MCInfectedPopulation(
+            number=1,
+            presence=models.SpecificInterval(((0, 2), (2.5, 4), (5, 7), (7.5, 9))),
+            masked=False,
+            virus=MCVirus(halflife=1.1, qID=qid),
+            expiratory_activity=2,
+            samples=200000,
+            breathing_category=3,
+        )
+    ),
+    exposed=models.Population(
+        number=19,
+        presence=models.SpecificInterval(((0, 2), (2.5, 4), (5, 7), (7.5, 9))),
+        activity=models.Activity.types['Seated'],
+        mask=models.Mask.types['No mask']
+    )
+)for qid in (100, 60)]
+
+######### Shared office exposure models ###########
 shared_office_model = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=50),
@@ -344,6 +433,7 @@ shared_office_better_model = [MCExposureModel(
     )
 ) for qid in (100, 60)]
 
+######### Ski cabine exposure models ###########
 ski_cabin_model = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=10),
@@ -370,6 +460,7 @@ ski_cabin_model = [MCExposureModel(
     )
 )for qid in (100, 60)]
 
+######### Gym exposure models ###########
 gym_model = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=300),
@@ -396,6 +487,7 @@ gym_model = [MCExposureModel(
     )
 )for qid in (100, 60)]
 
+######### Waiting room exposure models ###########
 waiting_room_model = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=100),
@@ -422,6 +514,7 @@ waiting_room_model = [MCExposureModel(
     )
 )for qid in (100, 60)]
 
+######### S V Chorale exposure models ###########
 chorale_model = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=810),
