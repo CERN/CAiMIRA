@@ -1,7 +1,7 @@
 from cara.montecarlo import *
 from cara.model_scenarios import *
 
-#classroom_model.infection_probability()
+classroom_model.infection_probability()
 #compare_concentration_curves([classroom_model, classroom_model_with_hepa], ['Just window', 'Window and HEPA'])
 
 #print(np.mean(chorale_model.infection_probability()))
@@ -12,13 +12,18 @@ from cara.model_scenarios import *
 
 
 
-# #print(np.mean(classroom_model_with_hepa.infection_probability()))
-composite_plot_pi_vs_viral_load([shared_office_worst_model[1], shared_office_model[1],shared_office_better_model[1]],
-                                labels=['No mask &\nwindows closed', 'Baseline', 'Baseline +\nHEPA filter'],
-                                colors=['tomato', '#1f77b4', 'limegreen'],
-                                title='$P(I|qID)$ vs $vl$ - Shared office scenario',
-                                vl_points=200)
-#plot_pi_vs_viral_load([shared_office_model[1]], labels=['Baseline, qID=60', 'HEPA, qID=60', 'No mask + windows closed, qID=60'],title='$P(I|qID)$ - Shared office scenario')
+print(np.mean(shared_office_model[1].infection_probability()))
+composite_plot_pi_vs_viral_load([shared_office_worst_model[1], shared_office_model[1], shared_office_better_model[1]],
+                                 labels=['No mask &\nwindows closed', 'Baseline', 'Baseline +\nHEPA filter'],
+                                 colors=['tomato', '#1f77b4', 'limegreen'],
+                                 title='$P(I|qID)$ vs $vl$ - Shared office scenario',
+                                 vl_points=200)
+composite_plot_pi_vs_viral_load([classroom_model[1], classroom_model_with_hepa[1]],
+                                 labels=['No mask &\nwindows closed', 'Baseline', 'Baseline +\nHEPA filter'],
+                                 colors=['tomato', '#1f77b4', 'limegreen'],
+                                 title='$P(I|qID)$ vs $vl$ - Shared office scenario',
+                                 vl_points=200)
+#plot_pi_vs_viral_load([shared_office_model[1]], labels=['Baseline'],title='')
 
 
 #generate_cdf_curves_vs_qr(masked=False,qid=1000)

@@ -579,8 +579,8 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
 
         plt.vlines(x=(left, right), ymin=0, ymax=1,
                    colors=('grey', 'grey'), linestyles='dotted')
-        plt.text(left - 1.1, 0.80, '$vl_{crit1}$', fontsize=12,color='black')
-        plt.text(right + 0.1, 0.80, '$vl_{crit2}$', fontsize=12,color='black')
+        plt.text(left - 1.1, 0.80, '$vl_{0.05}$', fontsize=12,color='black')
+        plt.text(right + 0.1, 0.80, '$vl_{0.95}$', fontsize=12,color='black')
         # add 3 shaded areas
         plt.axvspan(3, left, alpha=0.1, color='limegreen')
         plt.axvspan(left, right, alpha=0.1, color='orange')
@@ -589,16 +589,16 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
     if labels is not None:
         plt.legend(labels)
     # this is an inset plot inside the main plot
-    a = plt.axes([.2, .25, .3, .2], facecolor='lightgrey')
-
-    plt.title('Histogram', fontsize=10)
-    # choose between hist or violin plot
-
-    if len(baselines) == 1:
-        plt.hist(baselines[0].infection_probability()/100, bins=50)
-        plt.xticks([0, 0.5, 1])
-        plt.yticks([])
-
+    #a = plt.axes([.2, .25, .3, .2], facecolor='lightgrey')
+    #
+    #plt.title('Histogram', fontsize=10)
+    ## choose between hist or violin plot
+    #
+    #if len(baselines) == 1:
+    #    plt.hist(baselines[0].infection_probability()/100, bins=50)
+    #    plt.xticks([0, 0.5, 1])
+    #    plt.yticks([])
+    #
     # parts = plt.violinplot((shared_office_worst_model[1].infection_probability()/100, shared_office_model[1].infection_probability()/100, shared_office_better_model[1].infection_probability()/100), positions = (1, 2, 3), showmeans=True, showmedians=True)
     # for pc in parts['bodies']:
     #     pc.set_facecolor('#D43F3A')
