@@ -718,7 +718,7 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
                     break
 
         for mpos, color in zip(middle_positions, colors):
-            axs[0, 0].plot(mpos, 0.5, 'ro', color=color)
+            axs[0, 0].plot(mpos, 0.5, '.', color=color)
 
         axs[0, 0].vlines(middle_positions, colors=colors, linestyles=['dotted']*2, ymin=axs[0, 0].get_ylim()[0],
                          ymax=0.5*1.3)
