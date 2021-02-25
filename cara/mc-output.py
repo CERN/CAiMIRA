@@ -1,7 +1,6 @@
 from cara.montecarlo import *
 from cara.model_scenarios import *
 
-classroom_model.infection_probability()
 #compare_concentration_curves([classroom_model, classroom_model_with_hepa], ['Just window', 'Window and HEPA'])
 
 #print(np.mean(chorale_model.infection_probability()))
