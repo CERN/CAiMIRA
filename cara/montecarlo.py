@@ -1022,9 +1022,9 @@ def plot_concentration_curve(model: MCExposureModel):
         y[high_indexes] += lower_threshold + (upper_threshold - lower_threshold) * lower_scaling_factor + (x[high_indexes] - upper_threshold) * upper_scaling_factor
         return y
 
-    plt.xlabel('Time ($h$)')
-    plt.ylabel('Concentration ($q\;m^{-3}$)')
-    plt.title('Concentration of infectious quantum')
+    plt.xlabel('Time ($h$)', fontsize=12)
+    plt.ylabel('Concentration ($q\;m^{-3}$)', fontsize=12)
+    plt.title('Concentration of infectious quantum', fontsize=12)
     plt.plot([start, stop], [upper_threshold, upper_threshold], linestyle='dotted', color='grey')
     plt.plot([start, stop], [lower_threshold, lower_threshold], linestyle='dotted', color='grey')
     plt.ylim(0, top)
@@ -1038,7 +1038,9 @@ def plot_concentration_curve(model: MCExposureModel):
     fig.set_figwidth(10)
     plt.tight_layout()
     plt.show()
-
+    #print(np.max(upper))
+    #print(np.max(means))
+    #print(np.max(lower))
 
 def compare_concentration_curves(exp_models: typing.List[MCExposureModel], labels: typing.List[str],
                                  colors: typing.Optional[typing.List[str]] = None, show_qd: bool = True) -> None:
