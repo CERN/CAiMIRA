@@ -469,7 +469,7 @@ def present_model(model: MCConcentrationModel, bins: int = 200,
                          linestyles=('solid', 'solid', 'dashed', 'dashed'))
 
     axs[0, 0].set_title('Viral load')
-    axs[0, 0].set_xlabel('Viral load [$log10(RNA\,copies\;mL^{-1}$)]')
+    axs[0, 0].set_xlabel('Viral load (log10(RNA copies mL$^{-1}$))')
     axs[0, 0].set_xlim(2, 11.5)
 
     ds = np.linspace(0.1, 15, 2000)
@@ -487,17 +487,17 @@ def present_model(model: MCConcentrationModel, bins: int = 200,
     categories_particles = ("Breathing", "Speaking", "Shouting")
     axs[0, 1].set_title(r'Particle emissions - '
                         f'{categories_particles[model.infected.expiratory_activity - 1]}')
-    axs[0, 1].set_ylabel('Particle emission concentration [$cm^{-3}$]')
-    axs[0, 1].set_xlabel(r'Diameter [$\mu$m]')
+    axs[0, 1].set_ylabel('Particle emission concentration ($cm^{-3}$)')
+    axs[0, 1].set_xlabel(r'Diameter ($\mu$m)')
 
     categories = ("seated", "standing", "light activity", "moderate activity", "heavy activity")
     axs[1, 0].set_title(f'Breathing rate - '
                         f'{categories[model.infected.breathing_category - 1]}')
-    axs[1, 0].set_xlabel('Breathing rate [$m^3\;h^{-1}$]')
+    axs[1, 0].set_xlabel('Breathing rate ($m^3\;h^{-1}$)')
 
     top = axs[1, 1].get_ylim()[1]
     axs[1, 1].set_title('Quantum generation rate')
-    axs[1, 1].set_xlabel('qR [log10($q\;h^{-1}$)]')
+    axs[1, 1].set_xlabel('qR (log10($q\;h^{-1}$))')
     mean, std = np.mean(qRs), np.std(qRs)
     axs[1, 1].annotate('', xy=(mean + std, top * 0.88), xytext=(np.max(qRs), top * 0.88),
                        arrowprops={'arrowstyle': '<|-|>', 'ls': 'dashed'})
@@ -558,9 +558,9 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
         plt.fill_between(viral_loads, lower_percentiles, upper_percentiles, alpha=0.2)
 
     plt.title(title)
-    plt.ylabel('Probability of infection\n$P(I|qID=60)$')
+    plt.ylabel('Probability of infection (%)\n$P(I|qID=60)$')
     plt.xticks(ticks=[i for i in range(3, 13)], labels=['$10^{' + str(i) + '}$' for i in range(3, 13)])
-    plt.xlabel('Viral load\n$vl$')
+    plt.xlabel('Viral load (RNA copies mL$^{-1}$)\n$vl$')
     # add vertical lines for the critical viral loads for which pi= 5 or 95
 
     if len(baselines) == 1:
@@ -687,8 +687,8 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
     axs[1, 0].set_xticks([i for i in range(2, 13, 2)])
     axs[1, 0].set_xticklabels(['$10^{' + str(i) + '}$' for i in range(2, 13, 2)])
     axs[1, 0].set_xlim(2, 12)
-    axs[1, 0].set_xlabel('Viral load\n$vl$')
-    axs[0, 0].set_ylabel('Probability of infection\n$P(I|qID=60)$')
+    axs[1, 0].set_xlabel('Viral load (RNA copies mL$^{-1}$)\n$vl$')
+    axs[0, 0].set_ylabel('Probability of infection (%)\n$P(I|qID=60)$')
     plt.suptitle(title)
 
     axs[0, 0].text(11, -0.01, '$(i)$')
@@ -811,7 +811,7 @@ def generate_boxplot(masked: bool = False, samples: int = 200000, qid: int = 100
 
     plt.xticks((2, 6, 10), ('Breathing', 'Speaking', 'Shouting'))
     plt.xlabel('Expiratory activity')
-    plt.ylabel('qR [$q\;h^{-1}$]')
+    plt.ylabel('qR ($q\;h^{-1}$)')
     plt.yticks(ticks=[2 * i for i in range(-3, 4)], labels=['$\;10^{' + str(2 * i) + '}$' for i in range(-3, 4)])
     plt.show()
 
@@ -863,7 +863,7 @@ def generate_cdf_curves_vs_qr(masked: bool = False, samples: int = 200000, qid: 
         axs[i].grid(linestyle='--')
         axs[0].legend(handles=lines, loc='upper left')
 
-    plt.xlabel('qR [$q\;h^{-1}$]')
+    plt.xlabel('qR ($q\;h^{-1}$)')
     tick_positions = np.arange(int(np.ceil(left)), int(np.ceil(right)), 2)
     plt.xticks(ticks=tick_positions, labels=['$\;10^{' + str(i) + '}$' for i in tick_positions])
 
@@ -1022,9 +1022,9 @@ def plot_concentration_curve(model: MCExposureModel):
         y[high_indexes] += lower_threshold + (upper_threshold - lower_threshold) * lower_scaling_factor + (x[high_indexes] - upper_threshold) * upper_scaling_factor
         return y
 
-    plt.xlabel('Time [hours]')
-    plt.ylabel('Concentration [$q/m^3$]')
-    plt.title('Concentration of infectious quanta')
+    plt.xlabel('Time ($h$)')
+    plt.ylabel('Concentration ($q\;m^{-3}$)')
+    plt.title('Concentration of infectious quantum')
     plt.plot([start, stop], [upper_threshold, upper_threshold], linestyle='dotted', color='grey')
     plt.plot([start, stop], [lower_threshold, lower_threshold], linestyle='dotted', color='grey')
     plt.ylim(0, top)
@@ -1067,7 +1067,7 @@ def compare_concentration_curves(exp_models: typing.List[MCExposureModel], label
            for c, factor in zip(concentrations, factors)]
 
     plt.suptitle("")
-    plt.xlabel("Exposure time ($h$)")
+    plt.xlabel("Time ($h$)")
     plt.ylabel("Quantum concentration ($q\;h^{-1}$)\nmedian values $C_{0.5}(t)$")
     if show_qd:
 
