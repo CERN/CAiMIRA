@@ -1056,7 +1056,7 @@ def compare_concentration_curves(exp_models: typing.List[MCExposureModel], label
 
     times = np.arange(start, stop, TIME_STEP)
 
-    concentrations = [[np.median(model.concentration_model.concentration(t)) for t in times] for model in exp_models]
+    concentrations = [[np.mean(model.concentration_model.concentration(t)) for t in times] for model in exp_models]
     fig, ax = plt.subplots()
     for c, label, color in zip(concentrations, labels, colors):
         ax.plot(times, c, label=label, color=color)
@@ -1073,23 +1073,24 @@ def compare_concentration_curves(exp_models: typing.List[MCExposureModel], label
     qds = [[np.trapz(c[:i + 1], times[:i + 1]) * factor for i in range(len(times))]
            for c, factor in zip(modified_concentrations, factors)]
 
-    plt.suptitle("")
-    plt.xlabel("Time ($h$)")
-    plt.ylabel("Quantum concentration ($q\;h^{-1}$)\nmedian values $C_{0.5}(t)$")
+    plt.suptitle("x scenario")
+    plt.xlabel("Time ($h$)", fontsize=12)
+    plt.ylabel("Quantum concentration ($q\;m^{-3}$)\nmean values of $C(t)$", fontsize=12)
     if show_qd:
 
         ax1 = ax.twinx()
         for qd, label, color in zip(qds, labels, colors):
             ax1.plot(times, qd, label='qD - ' + label, color=color, linestyle='dotted')
-        ax1.set_ylabel('Dose ($q$)')
+        ax1.set_ylabel('Dose ($q$)', fontsize=12)
         ax1.set_ylim(ax1.get_ylim()[0], ax1.get_ylim()[1] * 1.2)
 
         ax2 = ax.twinx()
         ax2.spines["right"].set_position(("axes", 1.2))
-        ax2.set_ylabel('Dose (RNA copies)\nmedian values $qD_{0.5}$')
+        ax2.set_ylabel('Dose (RNA copies)\nmean values $qD$', fontsize=12)
         ax2.set_ylim(tuple(y * exp_models[0].concentration_model.virus.qID for y in ax1.get_ylim()))
         #ax1.legend(loc='upper right')
 
     plt.tight_layout()
-
+    plt.hlines([60], colors=['lightgrey'], linestyles=['dashed'], xmin=start, xmax=stop)
+    plt.text(7, 65, "$qID = 60$", color='lightgrey')
     plt.show()
