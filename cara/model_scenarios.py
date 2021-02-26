@@ -290,7 +290,7 @@ classroom_model_with_hepa = [MCExposureModel(
                             window_height=1.6, opening_length=0.6,
                         ),
                 models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120),
-                                 q_air_mech=1000)
+                                 q_air_mech=800)
             )
         ),
         infected=MCInfectedPopulation(
@@ -323,7 +323,7 @@ classroom_model_full_open_hepa = [MCExposureModel(
                             window_height=1.6, opening_length=4*0.6,
                         ),
                 models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120),
-                                 q_air_mech=1000)
+                                 q_air_mech=800)
             )
         ),
         infected=MCInfectedPopulation(
@@ -577,6 +577,34 @@ waiting_room_model_periodic_winter = [MCExposureModel(
             active=models.PeriodicInterval(period=20, duration=5),
             inside_temp=models.PiecewiseConstant((0, 24), (293,)),
             outside_temp=models.PiecewiseConstant((0, 24), (283,)),
+            window_height=1.6, opening_length=0.6,
+        ),
+        infected=MCInfectedPopulation(
+            number=1,
+            presence=models.SpecificInterval(((0, 2),)),
+            masked=False,
+            virus=MCVirus(halflife=3.8, qID=qid),
+            expiratory_activity=4,
+            samples=200000,
+            breathing_category=1,
+            expiratory_activity_weights=(0.7, 0.3, 0)
+        )
+    ),
+    exposed=models.Population(
+        number=14,
+        presence=models.SpecificInterval(((0, 2),)),
+        activity=models.Activity.types['Seated'],
+        mask=models.Mask.types['No mask']
+    )
+)for qid in (100, 60)]
+
+waiting_room_model_periodic_summer = [MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=100),
+        ventilation=models.SlidingWindow(
+            active=models.PeriodicInterval(period=60, duration=10),
+            inside_temp=models.PiecewiseConstant((0, 24), (293,)),
+            outside_temp=models.PiecewiseConstant((0, 24), (291,)),
             window_height=1.6, opening_length=0.6,
         ),
         infected=MCInfectedPopulation(
