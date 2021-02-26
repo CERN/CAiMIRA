@@ -12,22 +12,17 @@ from .user import AuthenticatedUser, AnonymousUser
 
 
 class BaseRequestHandler(RequestHandler):
-
     async def prepare(self):
         """Called at the beginning of a request before  `get`/`post`/etc."""
-        username = self.request.headers.get("X-ADFS-LOGIN", None)
+
+        # For unauthenticated endpoints we have the username cookie if the
+        # user is logged in.
+        # For authenticated endpoints, we can expect X-Forwarded-User to be set.
+        username = self.get_cookie('username')
+
         if username:
-            # the following headers must be set when logged in
-            email = self.request.headers["X-ADFS-EMAIL"]
-            firstname = self.request.headers["X-ADFS-FIRSTNAME"]
-            lastname = self.request.headers["X-ADFS-LASTNAME"]
-            fullname = self.request.headers["X-ADFS-FULLNAME"]
             self.current_user = AuthenticatedUser(
-                username=username,
-                email=email,
-                firstname=firstname,
-                lastname=lastname,
-                fullname=fullname
+                username=html.escape(username),
             )
         else:
             self.current_user = AnonymousUser()

@@ -68,11 +68,14 @@
       <li class="signin">
         <span>
             Signed in as:
-            <a href="https://cern.ch/account" class="account cern-multiple-mobile-signin">
-            {{ user.fullname }}
+            {{ user.username }}
             </a>
         </span>
       </li>
+      <!--
+        // Disabled until we tidy up the CSS... ;)
+        <li><a href="/auth/logout">Sign out</a></li>
+      -->
       {% endif %}
       <li><a href="https://cern.ch/directory" class="cern-directory ext"title="Search CERN resources and browse the directory" data-extlink="">Directory</a></li>
     </ul>
