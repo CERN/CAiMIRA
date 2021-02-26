@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.lines as mlines
 from sklearn.neighbors import KernelDensity
-TIME_STEP = 0.05
+TIME_STEP = 0.01
 
 USE_SCOEH = False
 
@@ -1043,6 +1043,7 @@ def plot_concentration_curve(model: MCExposureModel):
     #print(np.max(lower))
 
 def compare_concentration_curves(exp_models: typing.List[MCExposureModel], labels: typing.List[str],
+                                 title: str = 'Concentration profile',
                                  colors: typing.Optional[typing.List[str]] = None, show_qd: bool = True) -> None:
     assert len(exp_models) == len(labels), "Different numbers of exposure models and labels"
     assert all(model.concentration_model.virus.qID == exp_models[0].concentration_model.virus.qID
@@ -1073,7 +1074,7 @@ def compare_concentration_curves(exp_models: typing.List[MCExposureModel], label
     qds = [[np.trapz(c[:i + 1], times[:i + 1]) * factor for i in range(len(times))]
            for c, factor in zip(modified_concentrations, factors)]
 
-    plt.suptitle("x scenario")
+    plt.suptitle(title)
     plt.xlabel("Time ($h$)", fontsize=12)
     plt.ylabel("Quantum concentration ($q\;m^{-3}$)\nmean values of $C(t)$", fontsize=12)
     if show_qd:
