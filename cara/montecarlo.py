@@ -1063,8 +1063,13 @@ def compare_concentration_curves(exp_models: typing.List[MCExposureModel], label
     ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.2)
 
     factors = [0.6 * model.exposed.activity.inhalation_rate * (1 - model.exposed.mask.η_inhale) for model in exp_models]
+    present_indexes = np.array([exp_models[0].exposed.person_present(t) for t in times])
+    modified_concentrations = [np.array(c) for c in concentrations]
+    for mc in modified_concentrations:
+        mc[~present_indexes] = 0
+
     qds = [[np.trapz(c[:i + 1], times[:i + 1]) * factor for i in range(len(times))]
-           for c, factor in zip(concentrations, factors)]
+           for c, factor in zip(modified_concentrations, factors)]
 
     plt.suptitle("")
     plt.xlabel("Exposure time ($h$)")
