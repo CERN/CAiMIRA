@@ -1064,6 +1064,7 @@ def compare_concentration_curves(exp_models: typing.List[MCExposureModel], label
 
     ax.legend(loc='upper left')
     ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.2)
+    ax.spines["right"].set_visible(False)
 
     factors = [0.6 * model.exposed.activity.inhalation_rate * (1 - model.exposed.mask.η_inhale) for model in exp_models]
     present_indexes = np.array([exp_models[0].exposed.person_present(t) for t in times])
@@ -1075,23 +1076,27 @@ def compare_concentration_curves(exp_models: typing.List[MCExposureModel], label
            for c, factor in zip(modified_concentrations, factors)]
 
     plt.suptitle(title)
-    plt.xlabel("Time ($h$)", fontsize=12)
-    plt.ylabel("Quantum concentration ($q\;m^{-3}$)\nmean values of $C(t)$", fontsize=12)
+    plt.xlabel("Time ($h$)", fontsize=14)
+    plt.ylabel("Quantum concentration ($q\;m^{-3}$)\nmean values", fontsize=14)
     if show_qd:
 
         ax1 = ax.twinx()
         for qd, label, color in zip(qds, labels, colors):
             ax1.plot(times, qd, label='qD - ' + label, color=color, linestyle='dotted')
-        ax1.set_ylabel('Dose ($q$)', fontsize=12)
+        ax1.spines["right"].set_linestyle("--")
+        ax1.spines["right"].set_linestyle((0,(1,5)))
+        ax1.set_ylabel('Dose ($q$)', fontsize=14)
         ax1.set_ylim(ax1.get_ylim()[0], ax1.get_ylim()[1] * 1.2)
 
         ax2 = ax.twinx()
-        ax2.spines["right"].set_position(("axes", 1.2))
-        ax2.set_ylabel('Dose (RNA copies)\nmean values $qD$', fontsize=12)
+        ax2.spines["right"].set_position(("axes", 1.15))
+        ax2.spines["right"].set_linestyle((0,(1,5)))
+        ax2.set_ylabel('Dose (RNA copies)\nmean values', fontsize=14)
         ax2.set_ylim(tuple(y * exp_models[0].concentration_model.virus.qID for y in ax1.get_ylim()))
         #ax1.legend(loc='upper right')
 
     plt.tight_layout()
     plt.hlines([60], colors=['lightgrey'], linestyles=['dashed'], xmin=start, xmax=stop)
-    plt.text(7, 65, "$qID = 60$", color='lightgrey')
+    plt.text(7, 65, "$qID = 60$", color='grey')
     plt.show()
+    print()
