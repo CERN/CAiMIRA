@@ -17,14 +17,15 @@ Once running, visit http://localhost:8080/auth/probe to find out if you are
 already authenticated. Since you just started the app, you won't be authenticated,
 so a 401 will be returned. Now go and visit http://localhost:8080/auth/login, which
 will take you through the OIDC code authorization flow. Once complete you will eventually
-be redirected to http://localhost:8080 and get a 404 error. Now go back to
-http://localhost:8080/auth/probe to observe that your now authenticated.
+be redirected to http://localhost:8080 and be told that you are now logged in.
+Now go back to http://localhost:8080/auth/probe to observe that your now authenticated.
 
-To logout, hit http://localhost:8080/auth/logout (you'll be redirected again to
-a 404) then re-visit http://localhost:8080/auth/probe to confirm you get a 401 again.
+To logout, hit http://localhost:8080/auth/logout. You'll be redirected to
+http://localhost:8080 with no login setup. Confirm this by again visiting
+http://localhost:8080/auth/probe and getting a 401 again.
 
-At this point, you may be wondering why would you want so many 401 & 404 errors.
-The idea of this service is to be able to use it using
+At this point, you may be wondering why would you want so many 401 errors.
+The idea of this service is to be able to use
 [nginx's ``ngx_http_auth_request_module``](
 http://nginx.org/en/docs/http/ngx_http_auth_request_module.html).
 A nice tutorial of using it inspired the creation of this package and may be

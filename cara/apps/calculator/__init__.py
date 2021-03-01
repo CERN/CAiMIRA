@@ -1,5 +1,6 @@
 import html
 import json
+import os
 from pathlib import Path
 
 import jinja2
@@ -15,14 +16,15 @@ class BaseRequestHandler(RequestHandler):
     async def prepare(self):
         """Called at the beginning of a request before  `get`/`post`/etc."""
 
-        # For unauthenticated endpoints we have the username cookie if the
-        # user is logged in.
-        # For authenticated endpoints, we can expect X-Forwarded-User to be set.
-        username = self.get_cookie('username')
+        # Read the secure cookie which exists if we are in an authenticated
+        # context (though not if the cara webservice is running standalone).
+        session = json.loads(self.get_secure_cookie('session') or 'null')
 
-        if username:
+        if session:
             self.current_user = AuthenticatedUser(
-                username=html.escape(username),
+                username=session['username'],
+                email=session['email'],
+                fullname=session['fullname'],
             )
         else:
             self.current_user = AnonymousUser()
@@ -117,4 +119,7 @@ def make_app(debug=False, prefix='/calculator'):
         debug=debug,
         template_environment=template_environment,
         xsrf_cookies=True,
+        # COOKIE_SECRET being undefined will result in no login information being
+        # presented to the user.
+        cookie_secret=os.environ.get('COOKIE_SECRET', '<undefined>'),
     )

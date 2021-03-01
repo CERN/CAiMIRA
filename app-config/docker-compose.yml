@@ -5,6 +5,8 @@ services:
 
   cara-webservice:
     image: cara-webservice
+    environment:
+      - COOKIE_SECRET
 
   auth-service:
     image: auth-service

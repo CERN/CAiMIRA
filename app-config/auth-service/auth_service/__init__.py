@@ -3,9 +3,10 @@ try:
 except ImportError:
     # Python 3.6
     from asyncio_extras import async_contextmanager as asynccontextmanager
-import datetime
+import json
 import logging
 import os
+import typing
 
 import aiohttp
 from keycloak.aio.realm import KeycloakRealm
@@ -14,6 +15,19 @@ import tornado.web
 
 
 LOG = logging.getLogger(__name__)
+
+
+class BaseHandler(tornado.web.RequestHandler):
+    def set_session_cookie(self, session_data: dict, expiry_in_seconds: int) -> None:
+        seconds_per_day = 60 * 60 * 24
+        self.set_secure_cookie(
+            'session', json.dumps(session_data),
+            expires_days=expiry_in_seconds / seconds_per_day,
+        )
+
+    def get_session_cookie(self) -> typing.Optional[dict]:
+        session_data = json.loads(self.get_secure_cookie('session') or 'null')
+        return session_data
 
 
 class OIDCClientMixin:
@@ -33,13 +47,13 @@ class OIDCClientMixin:
             yield oidc_client
 
 
-class Login(tornado.web.RequestHandler):
+class Login(BaseHandler):
     async def get(self):
         # Initiate the OICD flow.
         return self.redirect('/auth/authenticate')
 
 
-class Authentication(tornado.web.RequestHandler, OIDCClientMixin):
+class Authentication(BaseHandler, OIDCClientMixin):
     async def get(self):
         async with self.get_oidc_client() as oidc_cli:
             redirect_uri = f'{self.request.protocol}://{self.request.host}/auth/authorize'
@@ -47,7 +61,7 @@ class Authentication(tornado.web.RequestHandler, OIDCClientMixin):
             return self.redirect(oidc_cli.authorization_url(redirect_uri=redirect_uri))
 
 
-class Authorization(tornado.web.RequestHandler, OIDCClientMixin):
+class Authorization(BaseHandler, OIDCClientMixin):
     async def get(self):
         code = self.get_argument('code', None)
         if code is None:
@@ -67,21 +81,28 @@ class Authorization(tornado.web.RequestHandler, OIDCClientMixin):
                 # Happens when the code is no longer valid (e.g. if you re-visit a
                 # url that was tracked in the browser devtools).
                 self.finish('Error logging in. Would you like to <a href="/auth/login">try again?</a>')
-            seconds_per_day = 60 * 60 * 24
 
-            self.set_secure_cookie(
-                'refresh_token', result['refresh_token'],
-                expires_days=result['refresh_expires_in'] / seconds_per_day,
-            )
+
             LOG.info(f'Fetching user info')
             user_info = await oidc_cli.userinfo(result['access_token'] or '')
 
-        self.set_cookie('username', user_info['preferred_username'], expires_days=0.1)
-        LOG.info(f'User {user_info["preferred_username"]} successfully logged in. Redirecting to complete.')
+            session_data = {
+                'refresh_token': result['refresh_token'],
+                'username': user_info['preferred_username'],
+                'fullname': user_info['name'],
+                'email': user_info['email'],
+            }
+
+            self.set_session_cookie(
+                session_data,
+                expiry_in_seconds=result['refresh_expires_in'],
+            )
+
+        LOG.info(f'User {session_data["username"]} successfully logged in. Redirecting to complete.')
         return self.redirect(f'/auth/complete')
 
 
-class LoginComplete(tornado.web.RequestHandler):
+class LoginComplete(BaseHandler):
     def get(self):
         redirect = self.get_cookie('POST_AUTH_REDIRECT')
         self.clear_cookie('POST_AUTH_REDIRECT')
@@ -93,47 +114,57 @@ class LoginComplete(tornado.web.RequestHandler):
             self.redirect(redirect)
 
 
-class ProbeAuthentication(tornado.web.RequestHandler):
+class ProbeAuthentication(BaseHandler):
     """A handler to return 200 if the user is logged in, and 401 if not"""
-    def get(self):
-        # Our "session" cookie is effectively the refresh_token.
-        refresh_token = self.get_secure_cookie('refresh_token')
-        self.set_header('Cache-Control', 'no-cache')
+    def check_etag_header(self):
+        # We should never cache the result.
+        return False
 
-        if refresh_token is None:
+    def get(self):
+        session = self.get_secure_cookie('session')
+        if session is None:
             self.set_status(401)
         else:
             self.set_status(200)
-
-        username = self.get_cookie('username')
-        if username:
-            self.set_header('x_forwarded_user', username)
-
-        # Return some unique content to prevent tornado returning a 304
-        # (there is probably a better way).
-        self.finish(f'{datetime.datetime.now()}')
+        self.set_header('Cache-Control', 'no-cache')
+        self.finish()
 
 
-class Logout(tornado.web.RequestHandler, OIDCClientMixin):
+class Logout(BaseHandler, OIDCClientMixin):
     async def get(self):
-        username = self.get_cookie('username')
-        if username:
-            LOG.info(f"Logging user {username} out")
-            self.clear_cookie('username')
-
-        refresh_token = self.get_secure_cookie('refresh_token')
-        if refresh_token:
-            self.clear_cookie('refresh_token')
-            refresh_token = refresh_token.decode()
+        session = self.get_session_cookie()
+        if session:
+            LOG.info(f"Logging user {session['username']} out")
+            self.clear_cookie('session')
+            refresh_token = session['refresh_token']
             async with self.get_oidc_client() as oicd_cli:
-                await oicd_cli.logout(refresh_token)
-
+                try:
+                    await oicd_cli.logout(refresh_token)
+                except aiohttp.client_exceptions.ClientConnectionError:
+                    LOG.warn(
+                        'There was a problem logging out (refresh_token expired?).'
+                    )
         self.redirect('/')
+
+
+class MainHandler(BaseHandler):
+    async def get(self):
+        session = self.get_session_cookie()
+        if session is None:
+            return self.finish("""
+                You are currently not logged in: <a href="/auth/login">Login</a>        
+            """)
+        else:
+            return self.finish(f"""
+                You are currently logged in as "{session['username']}":
+                <a href="/auth/logout">Logout</a>        
+            """)
 
 
 def make_app():
     return tornado.web.Application(
         [
+            (r"/", MainHandler),
             (r"/auth/probe", ProbeAuthentication),
             (r'/auth/login', Login),
             (r'/auth/authenticate', Authentication),

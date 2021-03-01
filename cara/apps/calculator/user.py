@@ -16,6 +16,8 @@ class User:
 @dataclass
 class AuthenticatedUser(User):
     username: str
+    email: str
+    fullname: str
 
     def is_authenticated(self) -> bool:
         return True
