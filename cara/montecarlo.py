@@ -538,7 +538,7 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
                     number=infected.number,
                     presence=infected.presence,
                     masked=infected.masked,
-                    expiratory_activity=infected.exquantapiratory_activity,
+                    expiratory_activity=infected.expiratory_activity,
                     breathing_category=infected.breathing_category,
                     virus=infected.virus,
                     samples=samples_per_vl,
