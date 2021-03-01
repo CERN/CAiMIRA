@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.lines as mlines
 from sklearn.neighbors import KernelDensity
-TIME_STEP = 0.001
+TIME_STEP = 0.01
 
 USE_SCOEH = False
 
@@ -687,9 +687,9 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
     axs[1, 0].set_xticks([i for i in range(2, 13, 2)])
     axs[1, 0].set_xticklabels(['$10^{' + str(i) + '}$' for i in range(2, 13, 2)])
     axs[1, 0].set_xlim(2, 12)
-    axs[1, 0].set_xlabel('Viral load (RNA copies mL$^{-1}$)', fontsize=12)
-    axs[0, 0].set_ylabel('Probability of infection (%)\n$P(I|qID=60)$', fontsize=12)
-    plt.suptitle(title, fontsize=12)
+    axs[1, 0].set_xlabel('Viral load (RNA copies mL$^{-1}$)\n$vl$')
+    axs[0, 0].set_ylabel('Probability of infection (%)\n$P(I|qID=60)$')
+    plt.suptitle(title)
 
     axs[0, 0].text(11, -0.01, '$(i)$')
     axs[1, 0].text(11, axs[1, 0].get_ylim()[1] * 0.8, '$(ii)$')
@@ -704,12 +704,12 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
                 break
 
     for i, (crit, color) in enumerate(zip(crits, colors)):
-        axs[0, 0].text(2.5, 0.45 - i * 0.1, f'x $vl_{"{0.95}"}=' + '10^{' + str(np.round(crits[i], 1)) + '}$', fontsize=10, color=color)
+        axs[0, 0].text(2.5, 0.4 - i * 0.1, f'x $vl_{"{0.95}"}=' + '10^{' + str(np.round(crits[i], 1)) + '}$', fontsize=10, color=color)
         axs[0, 0].plot(crits[i], 0.95, 'x', color=color)
 
     if show_lines:
         axs[0, 0].hlines([0.5], colors=['lightgrey'], linestyles=['dashed'], xmin=2, xmax=12)
-        axs[0, 0].text(9.7, 0.52, "$P(I) = 0.5$", color='grey')
+        axs[0, 0].text(9.7, 0.52, "$P(I) = 0.5$", color='lightgrey')
         middle_positions = []
         for line in lines:
             for i, point in enumerate(line):
@@ -1064,7 +1064,6 @@ def compare_concentration_curves(exp_models: typing.List[MCExposureModel], label
 
     ax.legend(loc='upper left')
     ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.2)
-    ax.spines["right"].set_visible(False)
 
     factors = [0.6 * model.exposed.activity.inhalation_rate * (1 - model.exposed.mask.η_inhale) for model in exp_models]
     present_indexes = np.array([exp_models[0].exposed.person_present(t) for t in times])
@@ -1076,27 +1075,37 @@ def compare_concentration_curves(exp_models: typing.List[MCExposureModel], label
            for c, factor in zip(modified_concentrations, factors)]
 
     plt.suptitle(title)
-    plt.xlabel("Time ($h$)", fontsize=14)
-    plt.ylabel("Quantum concentration ($q\;m^{-3}$)\nmean values", fontsize=14)
+    plt.xlabel("Time ($h$)", fontsize=12)
+    plt.ylabel("Quantum concentration ($q\;m^{-3}$)\nmean values of $C(t)$", fontsize=12)
     if show_qd:
 
         ax1 = ax.twinx()
         for qd, label, color in zip(qds, labels, colors):
             ax1.plot(times, qd, label='qD - ' + label, color=color, linestyle='dotted')
-        ax1.spines["right"].set_linestyle("--")
-        ax1.spines["right"].set_linestyle((0,(1,5)))
-        ax1.set_ylabel('Dose ($q$)', fontsize=14)
+        ax1.set_ylabel('Dose ($q$)', fontsize=12)
         ax1.set_ylim(ax1.get_ylim()[0], ax1.get_ylim()[1] * 1.2)
 
         ax2 = ax.twinx()
-        ax2.spines["right"].set_position(("axes", 1.15))
-        ax2.spines["right"].set_linestyle((0,(1,5)))
-        ax2.set_ylabel('Dose (RNA copies)\nmean values', fontsize=14)
+        ax2.spines["right"].set_position(("axes", 1.2))
+        ax2.set_ylabel('Dose (RNA copies)\nmean values $qD$', fontsize=12)
         ax2.set_ylim(tuple(y * exp_models[0].concentration_model.virus.qID for y in ax1.get_ylim()))
         #ax1.legend(loc='upper right')
 
     plt.tight_layout()
     plt.hlines([60], colors=['lightgrey'], linestyles=['dashed'], xmin=start, xmax=stop)
-    plt.text(7, 65, "$qID = 60$", color='grey')
+    plt.text(7, 65, "$qID = 60$", color='lightgrey')
     plt.show()
-    print()
+
+
+def print_qd_info(model: MCExposureModel) -> None:
+    qds = model.exposed.activity.inhalation_rate * (1 - model.exposed.mask.η_inhale) * model.quanta_exposure() * 0.6
+    print(f"----- qD distribution -----\n"
+          f"Mean:\t{np.mean(qds)}\n"
+          f"Median:\t{np.median(qds)}\n\n"
+          f"Percentiles\n"
+          f"1st:\t{np.percentile(qds, 1)}\n"
+          f"5th:\t{np.percentile(qds, 5)}\n"
+          f"10th:\t{np.percentile(qds, 10)}\n"
+          f"90th:\t{np.percentile(qds, 90)}\n"
+          f"95th:\t{np.percentile(qds, 95)}\n"
+          f"99th:\t{np.percentile(qds, 99)}\n")
