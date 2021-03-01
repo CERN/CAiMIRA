@@ -1109,3 +1109,48 @@ def print_qd_info(model: MCExposureModel) -> None:
           f"90th:\t{np.percentile(qds, 90)}\n"
           f"95th:\t{np.percentile(qds, 95)}\n"
           f"99th:\t{np.percentile(qds, 99)}\n")
+
+
+def compare_viruses_qr() -> False:
+    # A list of 7 colors corresponding to each of the boxes
+    # Can be represented as hex-strings (e.g. '#FF0000') or tuples of numbers on the interval [0, 1] (e.g. (1, 0, 0))
+    colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1)] + [(x, x, x) for x in np.linspace(0.1, 0.9, 4)]
+    line_color = (0.8, 0.8, 0.8)
+    whisker_width = 0.8
+
+    positions = [1, 2, 3, 5, 7, 9, 11]
+    line_positions = [4, 6, 8, 10]
+    ranges = [(1.5, 9.8), (114, 740), (574, 3678), (28, 28), (15, 128), (480, 5580), (1, 30000)]
+    data = [(x, x, y, y) for x, y in ranges]
+
+    fig, ax = plt.subplots()
+    ax.set_xlim((0, 12))
+    bp = ax.boxplot(data[3:], patch_artist=True, medianprops={'linewidth': 0}, whiskerprops={'linewidth': 0},
+                    positions=positions[3:], widths=[0.8]*4)
+
+    for patch, color in zip(bp['boxes'], colors[3:]):
+        patch.set(facecolor=color)
+
+    ax.vlines(x=positions[:3], ymin=[x[0] for x in ranges[:3]], ymax=[x[1] for x in ranges[:3]], colors=colors[:3])
+    ax.hlines(y=[x for r in ranges[:3] for x in r],
+              xmin=[pos - whisker_width / 2 for pos in positions[:3] for _ in range(2)],
+              xmax=[pos + whisker_width / 2 for pos in positions[:3] for _ in range(2)],
+              colors=[c for c in colors[:3] for _ in range(2)])
+
+    ax.vlines(x=line_positions, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1], colors=[line_color for _ in line_positions])
+
+    ax.set_xticks([2, 5, 7, 9, 11])
+    ax.set_xticklabels(['SARS-CoV-2', 'SARS-CoV', 'Influenza', 'Measles', 'Tuberculosis'])
+    ax.hlines(y=[970], linestyles=['dashed'], colors=['red'], xmin=0, xmax=4)
+
+    plt.yscale('log')
+    handles = [patches.Patch(color=c, label=l) for c, l in zip(colors[:3], ('Breathing', 'Speaking', 'Shouting'))]
+    handles += [mlines.Line2D([], [], linestyle='dashed', color='red', label='Chorale')]
+    plt.legend(handles=handles, loc='upper left')
+
+    plt.suptitle('SUPTITLE HERE')
+    ax.set_xlabel('XLABEL HERE')
+    ax.set_ylabel('YLABEL HERE')
+
+    plt.tight_layout()
+    plt.show()

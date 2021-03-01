@@ -11,7 +11,10 @@ from cara.model_scenarios import *
 #print(np.quantile(chorale_model.infection_probability(),0.90))
 #print(np.quantile(chorale_model.infection_probability(),0.1))
 
-print_qd_info(large_population_baselines[0])
+
+compare_viruses_qr()
+
+# print_qd_info(large_population_baselines[0])
 
 
 #print(np.mean(shared_office_model[1].infection_probability()))
