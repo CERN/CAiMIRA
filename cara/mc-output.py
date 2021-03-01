@@ -17,26 +17,32 @@ from cara.model_scenarios import *
 #composite_plot_pi_vs_viral_load([shared_office_worst_model[1], shared_office_model[1], shared_office_better_model[1]],
 #                                 labels=['No mask &\nwindows closed', 'Baseline', 'Baseline +\nHEPA filter'],
 #                                 colors=['tomato', '#1f77b4', 'limegreen'],
-#                                 title='$P(I|qID)$ vs $vl$ - Shared office scenario',
+#                                 title='Shared office scenario',
 #                                 vl_points=200)
-#composite_plot_pi_vs_viral_load([classroom_model_no_vent[1], classroom_model[1], classroom_model_with_hepa[1], classroom_model_full_open_hepa[1]],
-#                                 labels=['Windows closed', 'Baseline:\n(windows 10min/2h)', 'Baseline:\n(windows 10min/2h)+\nHEPA', 'Multiple windows open +\nHEPA filter'],
-#                                 colors=['tomato','#1f77b4', 'seagreen', 'limegreen'],
-#                                 title='',
+#composite_plot_pi_vs_viral_load([classroom_model_no_vent[1], classroom_model[1], classroom_model_with_hepa[1], classroom_model_full_open_multi[1], classroom_model_full_open_multi_masks[1]],
+#                                 labels=['Windows closed', 'Baseline:(windows 10min/2h)', 'Baseline:(windows 10min/2h)\n+ HEPA', 'Multiple windows open', 'Multiple windows open\n+masks'],
+#                                 colors=['tomato','#1f77b4', 'dodgerblue', 'seagreen', 'limegreen'],
+#                                 title='Classroom scenario',
 #                                 vl_points=200)
 
-#compare_concentration_curves([classroom_model_no_vent[1], classroom_model[1], classroom_model_with_hepa[1], classroom_model_full_open_hepa[1]],
-#                             labels=['Windows closed', 'Baseline:(windows 10min/2h)', 'Baseline:(windows 10min/2h) + HEPA', 'Multiple windows open + HEPA filter'],
+composite_plot_pi_vs_viral_load([ski_cabin_model_60[1], ski_cabin_model_30[1], ski_cabin_model_20[1], ski_cabin_model_10[1]],
+                                 labels=['60 min', '30 min', 'Baseline: 20 min', '10 min'],
+                                 colors=['tomato', 'lightsalmon', '#1f77b4', 'limegreen'],
+                                 title='Ski cabin scenario',
+                                 vl_points=200)
+
+#compare_concentration_curves([classroom_model_no_vent[1], classroom_model[1], classroom_model_with_hepa[1], classroom_model_full_open_multi[1]],
+#                             labels=['Windows closed', 'Baseline:(windows 10min/2h)', 'Baseline:(windows 10min/2h) + HEPA', 'Multiple windows open'],
 #                             colors=['tomato','#1f77b4', 'seagreen', 'limegreen'],
 #                             title='Classroom scenario'
 #                             )
 
-compare_concentration_curves([waiting_room_model[1], waiting_room_model_full_summer[1],
-                              waiting_room_model_full_winter[1], waiting_room_model_periodic_winter[1]],
-                             labels=['Baseline:(windows closed)', 'Windows open (summer)', 'Windows open (winter)', 'Windows open 5min/20min (winter)'],
-                             colors=['#1f77b4', 'darkorange', 'deepskyblue', 'lightskyblue'],
-                             title='Waiting room scenario'
-                             )
+#compare_concentration_curves([waiting_room_model[1], waiting_room_model_full_summer[1],
+#                              waiting_room_model_full_winter[1], waiting_room_model_periodic_winter[1]],
+#                             labels=['Baseline:(windows closed)', 'Windows open (summer)', 'Windows open (winter)', 'Windows open 5min/20min (winter)'],
+#                             colors=['#1f77b4', 'darkorange', 'deepskyblue', 'lightskyblue'],
+#                             title='Waiting room scenario'
+#                             )
 
 #plot_pi_vs_viral_load([shared_office_model[1]], labels=['Baseline'],title='')
 
