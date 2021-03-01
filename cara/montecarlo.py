@@ -1111,7 +1111,7 @@ def print_qd_info(model: MCExposureModel) -> None:
           f"99th:\t{np.percentile(qds, 99)}\n")
 
 
-def compare_viruses_qr() -> False:
+def compare_viruses_qr() -> None:
     # A list of 7 colors corresponding to each of the boxes
     # Can be represented as hex-strings (e.g. '#FF0000') or tuples of numbers on the interval [0, 1] (e.g. (1, 0, 0))
     colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1)] + [(x, x, x) for x in np.linspace(0.1, 0.9, 4)]
