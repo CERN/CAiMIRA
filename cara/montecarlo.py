@@ -538,7 +538,7 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
                     number=infected.number,
                     presence=infected.presence,
                     masked=infected.masked,
-                    expiratory_activity=infected.expiratory_activity,
+                    expiratory_activity=infected.exquantapiratory_activity,
                     breathing_category=infected.breathing_category,
                     virus=infected.virus,
                     samples=samples_per_vl,
@@ -1095,3 +1095,17 @@ def compare_concentration_curves(exp_models: typing.List[MCExposureModel], label
     plt.hlines([60], colors=['lightgrey'], linestyles=['dashed'], xmin=start, xmax=stop)
     plt.text(7, 65, "$qID = 60$", color='lightgrey')
     plt.show()
+
+
+def print_qd_info(model: MCExposureModel) -> None:
+    qds = model.exposed.activity.inhalation_rate * (1 - model.exposed.mask.η_inhale) * model.quanta_exposure() * 0.6
+    print(f"----- qD distribution -----\n"
+          f"Mean:\t{np.mean(qds)}\n"
+          f"Median:\t{np.median(qds)}\n\n"
+          f"Percentiles\n"
+          f"1st:\t{np.percentile(qds, 1)}\n"
+          f"5th:\t{np.percentile(qds, 5)}\n"
+          f"10th:\t{np.percentile(qds, 10)}\n"
+          f"90th:\t{np.percentile(qds, 90)}\n"
+          f"95th:\t{np.percentile(qds, 95)}\n"
+          f"99th:\t{np.percentile(qds, 99)}\n")

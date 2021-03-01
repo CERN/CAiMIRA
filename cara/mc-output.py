@@ -11,6 +11,7 @@ from cara.model_scenarios import *
 #print(np.quantile(chorale_model.infection_probability(),0.90))
 #print(np.quantile(chorale_model.infection_probability(),0.1))
 
+print_qd_info(large_population_baselines[0])
 
 
 #print(np.mean(shared_office_model[1].infection_probability()))
@@ -31,12 +32,12 @@ from cara.model_scenarios import *
 #                             title='Classroom scenario'
 #                             )
 
-compare_concentration_curves([waiting_room_model[1], waiting_room_model_full_summer[1],
-                              waiting_room_model_full_winter[1], waiting_room_model_periodic_winter[1]],
-                             labels=['Baseline:(windows closed)', 'Windows open (summer)', 'Windows open (winter)', 'Windows open 5min/20min (winter)'],
-                             colors=['#1f77b4', 'darkorange', 'deepskyblue', 'lightskyblue'],
-                             title='Waiting room scenario'
-                             )
+# compare_concentration_curves([waiting_room_model[1], waiting_room_model_full_summer[1],
+#                               waiting_room_model_full_winter[1], waiting_room_model_periodic_winter[1]],
+#                              labels=['Baseline:(windows closed)', 'Windows open (summer)', 'Windows open (winter)', 'Windows open 5min/20min (winter)'],
+#                              colors=['#1f77b4', 'darkorange', 'deepskyblue', 'lightskyblue'],
+#                              title='Waiting room scenario'
+#                              )
 
 #plot_pi_vs_viral_load([shared_office_model[1]], labels=['Baseline'],title='')
 
