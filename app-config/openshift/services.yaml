@@ -15,6 +15,21 @@
       kind: Service
       metadata:
         labels:
+          app: cara-app
+        name: cara-app
+      spec:
+        ports:
+          - name: 8080-tcp
+            port: 8080
+            protocol: TCP
+            targetPort: 8080
+        selector:
+          app: cara-app
+    -
+      apiVersion: v1
+      kind: Service
+      metadata:
+        labels:
           app: cara-router
         name: cara-router
       spec:
@@ -44,5 +59,3 @@
             targetPort: 8080
         selector:
           app: cara-webservice
-
-

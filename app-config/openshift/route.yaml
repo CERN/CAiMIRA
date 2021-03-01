@@ -1,0 +1,33 @@
+---
+  kind: "Template"
+  apiVersion: "v1"
+  metadata:
+    name: "cara-route"
+    creationTimestamp: null
+    annotations:
+      description: "CARA route OpenShift template."
+      tags: "cara-route"
+  labels:
+    template: "cara-route"
+  objects:
+    -
+      apiVersion: v1
+      kind: Route
+      metadata:
+        name: cara-router
+      spec:
+        host: ${HOST}
+        port:
+          targetPort: 8081
+        tls:
+          insecureEdgeTerminationPolicy: Redirect
+          termination: edge
+        to:
+          kind: Service
+          name: cara-router
+
+  parameters:
+    - name: HOST
+      description: The hostname of the site, e.g. test-cara.web.cern.ch
+      required: true
+
