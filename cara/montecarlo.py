@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.lines as mlines
 from sklearn.neighbors import KernelDensity
-TIME_STEP = 0.01
+TIME_STEP = 0.001
 
 USE_SCOEH = False
 
@@ -687,9 +687,9 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
     axs[1, 0].set_xticks([i for i in range(2, 13, 2)])
     axs[1, 0].set_xticklabels(['$10^{' + str(i) + '}$' for i in range(2, 13, 2)])
     axs[1, 0].set_xlim(2, 12)
-    axs[1, 0].set_xlabel('Viral load (RNA copies mL$^{-1}$)\n$vl$')
-    axs[0, 0].set_ylabel('Probability of infection (%)\n$P(I|qID=60)$')
-    plt.suptitle(title)
+    axs[1, 0].set_xlabel('Viral load (RNA copies mL$^{-1}$)', fontsize=12)
+    axs[0, 0].set_ylabel('Probability of infection (%)\n$P(I|qID=60)$', fontsize=12)
+    plt.suptitle(title, fontsize=12)
 
     axs[0, 0].text(11, -0.01, '$(i)$')
     axs[1, 0].text(11, axs[1, 0].get_ylim()[1] * 0.8, '$(ii)$')
@@ -704,12 +704,12 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
                 break
 
     for i, (crit, color) in enumerate(zip(crits, colors)):
-        axs[0, 0].text(2.5, 0.4 - i * 0.1, f'x $vl_{"{0.95}"}=' + '10^{' + str(np.round(crits[i], 1)) + '}$', fontsize=10, color=color)
+        axs[0, 0].text(2.5, 0.45 - i * 0.1, f'x $vl_{"{0.95}"}=' + '10^{' + str(np.round(crits[i], 1)) + '}$', fontsize=10, color=color)
         axs[0, 0].plot(crits[i], 0.95, 'x', color=color)
 
     if show_lines:
         axs[0, 0].hlines([0.5], colors=['lightgrey'], linestyles=['dashed'], xmin=2, xmax=12)
-        axs[0, 0].text(9.7, 0.52, "$P(I) = 0.5$", color='lightgrey')
+        axs[0, 0].text(9.7, 0.52, "$P(I) = 0.5$", color='grey')
         middle_positions = []
         for line in lines:
             for i, point in enumerate(line):
