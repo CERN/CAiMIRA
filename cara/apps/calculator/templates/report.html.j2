@@ -265,33 +265,36 @@ In this scenario, the estimated probability of one exposed occupant getting infe
             {% endfor %}
             </tbody>
         </table>
-
     </p>
     <div style="clear: both;">
 
     <p class="data_text"> <strong> Notes for alternative scenarios: </strong><br>
-    <ol>
-    <li>This graph shows the concentration of infectious quanta in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation).
-    For this reason, scenarios with different types of mask will show the same concentration on the graph but have different Pi values.</li>
-    <li>If you have selected more sophisticated options, such as HEPA filtration or FFP2 masks, this will be indicated in the plot as the "base scenario", representing the inputs inserted in the form.<br>
-    The other alternative scenarios shown for comparison will not include either HEPA filtration or FFP2 masks.</li>
-    </ol>
-    <br>
-		</p>
+	    <ol>
+	    	<li>This graph shows the concentration of infectious quanta in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation).
+	    For this reason, scenarios with different types of mask will show the same concentration on the graph but have different Pi values.</li>
+	   		<li>If you have selected more sophisticated options, such as HEPA filtration or FFP2 masks, this will be indicated in the plot as the "base scenario", representing the inputs inserted in the form.<br>
+	    	The other alternative scenarios shown for comparison will not include either HEPA filtration or FFP2 masks.</li>
+	    </ol>
+	    <br>
+	</p>
 
-<p class="data_text">
-    <strong> Footnotes for ALARA: </strong><br>
-    ALARA stands for As Low As Reasonably Achievable. It can be summarised based on 3 main points:
-    <ol>
-    <li>Justification - any exposure of persons has to be justified </li>
-    <li>Limitation - the personal doses have to be kept below the legal limits (in this case the CERN exposure limits)</li>
-    <li>Optimisation - the personal doses and collective doses have to be kept as low as reasonably achievable (ALARA).</li>
-    </ol>
-    For more information, please refer to <a href="https://cds.cern.ch/record/1533023/files/CERN-2013-001-p415.pdf"> this document from CERN HSE </a> and <a href="https://www.cdc.gov/nceh/radiation/safety.html#:~:text=ALARA%20stands%20for%20%E2%80%9Cas%20low,time%2C%20distance%2C%20and%20shielding."> this publication from the CDC.</a> <br>
+	<p class="data_text">
+	    <strong> Footnotes for ALARA: </strong><br>
+	    ALARA stands for As Low As Reasonably Achievable. It can be summarised based on 3 main points:
+	    <ol>
+	    	<li>Justification - any exposure of persons has to be justified </li>
+	    	<li>Limitation - the personal doses have to be kept below the legal limits (in this case the CERN exposure limits)</li>
+	    	<li>Optimisation - the personal doses and collective doses have to be kept as low as reasonably achievable (ALARA).</li>
+	    </ol>
+	    For more information, please refer to <a href="https://cds.cern.ch/record/1533023/files/CERN-2013-001-p415.pdf"> this document from CERN HSE </a> and <a href="https://www.cdc.gov/nceh/radiation/safety.html#:~:text=ALARA%20stands%20for%20%E2%80%9Cas%20low,time%2C%20distance%2C%20and%20shielding."> this publication from the CDC.</a> 
+	    <br><br>
+	</p>
 
-<br>
-		</p>
-    
+	<div>
+		<a href="{{ qr_code.link }}"><img style="width:250pt;" id="qr_code" src="{{ qr_code.image }}"/></a>
+		<i style="position:absolute; margin-top:3.5cm">Click the QR code to regenerate the report and get a shareable link.<br>Alternatively, scan to regenerate the report.<br> Mobile-friendly app coming soon!</i>
+	</div>
+
 	<br><br><br>
 	<div style="border: 2px solid black; padding: 15px;">
 		<p class="image"> <img <img align="middle" src="/calculator/static/images/disclaimer.jpg" width="40" height="40"><b>Disclaimer:</b><br><br></p>

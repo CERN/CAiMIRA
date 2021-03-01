@@ -24,6 +24,7 @@ REQUIREMENTS: dict = {
         'matplotlib',
         'mistune',
         'numpy',
+        'qrcode[pil]',
         'tornado',
         'voila >=0.2.4',
     ],

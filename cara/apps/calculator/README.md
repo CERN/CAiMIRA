@@ -33,7 +33,7 @@ A room number is included, if you do not wish to use a formal room number any re
 
 ### Room Data
 
-Please enter either the room volume (in m<sup>3</sup>) or both the floor area (m<sup>2</sup>) and the room height (m).
+Please enter either the room volume (in m³) or both the floor area (m²) and the room height (m).
 This information is available via GIS Portal (https://gis.cern.ch/gisportal/).
 
 ### Ventilation type
@@ -99,7 +99,6 @@ As an example, for a shared office with 4 people, where one person is infected, 
 There are a few predefined activities in the tool at present.
 
 **Office ** = All persons seated, talking occasionally (1/3rd of the time, with normal breathing the other 2/3rds of the time). Everyone (exposed and infected occupants) is treated the same in this model.
-
 **Meeting** = All persons seated, having a conversation (approximately each occupant is 1/N % of the time talking, where N is the number of occupants). Everyone (exposed and infected occupants) is treated the same in this model.
 
 **Library** = All persons seated, breathing only (not talking), all the time.
@@ -191,9 +190,8 @@ It contains a summary of all the input data, which will allow the simulation to 
 
 This part of the report shows the ``P(i)`` or probability of one exposed person getting infected.
 It is estimated based on the emission rate of virus into the simulated volume, and the amount which is inhaled by exposed individuals.
-This probability is valid for the simulation duration - i.e. if you have simulated one day and plan to work 5 days in these conditions and the infected person emits the same amount of virus each day, the cumulative probability of infection is ``(1-(1-P(i))^5)```.
+This probability is valid for the simulation duration - i.e. if you have simulated one day and plan to work 5 days in these conditions and the infected person emits the same amount of virus each day, the cumulative probability of infection is ``(1-(1-P(i))^5)``.
 If you are using the natural ventilation option, the simulation is only valid for the selected month, because the following or preceding month will have a different average temperature profile.
-
 The ``expected number of new cases`` for the simulation is calculated based on the probability of infection, multiplied by the number of exposed occupants.
 
 ### Exposure graph
@@ -206,6 +204,13 @@ It is determined by:
     * In a mechanical ventilation scenario, the removal rate is constant, based on fresh airflow supply in and out of the simulated space.
     * Under natural ventilation conditions, the effectiveness of ventilation relies upon the hourly temperature difference between the inside and outside air temperature.
     * A HEPA filter removes infectious quanta from the air at a constant rate and is modelled in the same way as mechanical ventilation, however air passed through a HEPA filter is recycled (i.e. it is not fresh air).
+
+### QR code
+
+At the end of the report you can find a unique QR code / hyperlink for this report. This provides an automatic way to review the calculator form with the corresponding specified parameters.
+This allows for:
+* sharing reports by either scanning or clicking on the QR code to obtain a shareable link.
+* easily regenerating reports with any new versions of the CARA model released in the future.
 
 # Conclusion
 

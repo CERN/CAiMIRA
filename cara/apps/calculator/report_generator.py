@@ -5,6 +5,8 @@ import io
 from pathlib import Path
 import typing
 
+import qrcode
+import urllib
 import jinja2
 import matplotlib
 matplotlib.use('agg')
@@ -61,16 +63,46 @@ def calculate_report_data(model: models.ExposureModel):
         "emission_rate": er,
         "exposed_occupants": exposed_occupants,
         "expected_new_cases": expected_new_cases,
-        "scenario_plot_src": embed_figure(plot(times, concentrations, model)),
+        "scenario_plot_src": img2base64(_figure2bytes(plot(times, concentrations, model))),
         "repeated_events": repeated_events,
     }
 
 
-def embed_figure(figure) -> str:
-    # Draw the scenario graph.
-    img_data = io.BytesIO()
+def generate_qr_code(prefix, form: FormData):
+    form_dict = FormData.to_dict(form)
+    url = prefix + "?" + urllib.parse.urlencode(form_dict)
 
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
+
+    return {
+        'image': img2base64(_img2bytes(img)),
+        'link': url,
+    }
+
+
+def _img2bytes(figure):
+    # Draw the image
+    img_data = io.BytesIO()
+    figure.save(img_data, format='png', bbox_inches="tight")
+    return img_data
+
+
+def _figure2bytes(figure):
+    # Draw the image
+    img_data = io.BytesIO()
     figure.savefig(img_data, format='png', bbox_inches="tight")
+    return img_data
+
+
+def img2base64(img_data) -> str:
     plt.close()
     img_data.seek(0)
     pic_hash = base64.b64encode(img_data.read()).decode('ascii')
@@ -220,12 +252,12 @@ def comparison_report(scenarios: typing.Dict[str, models.ExposureModel]):
             'expected_new_cases': model.expected_new_cases(),
         }
     return {
-        'plot': embed_figure(comparison_plot(scenarios)),
+        'plot': img2base64(_figure2bytes(comparison_plot(scenarios))),
         'stats': statistics,
     }
 
 
-def build_report(model: models.ExposureModel, form: FormData):
+def build_report(base_url: str, model: models.ExposureModel, form: FormData):
     now = datetime.now()
     time = now.strftime("%d/%m/%Y %H:%M:%S")
     request = {"the": "form", "request": "data"}
@@ -240,6 +272,7 @@ def build_report(model: models.ExposureModel, form: FormData):
     context.update(calculate_report_data(model))
     alternative_scenarios = manufacture_alternative_scenarios(form)
     context['alternative_scenarios'] = comparison_report(alternative_scenarios)
+    context['qr_code'] = generate_qr_code(f'{base_url}/calculator', form)
 
     cara_templates = Path(__file__).parent.parent / "templates"
     calculator_templates = Path(__file__).parent / "templates"

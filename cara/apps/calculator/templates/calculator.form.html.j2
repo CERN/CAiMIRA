@@ -1,6 +1,6 @@
 {% extends "layout.html.j2" %}
 
-{% set MODEL_VERSION="v1.4.0" %}
+{% set MODEL_VERSION="v1.4.1" %}
 {% set DEBUG=False %}
 {% set active_page="calculator/" %}
 
@@ -92,8 +92,8 @@
           <label for="windows_open_permanently">Permanently</label><br>
         <span class="tabbed"><input type="radio" id="windows_open_periodically" name="window_opening_regime" value="windows_open_periodically" onclick="require_fields(this)"></span>
           <label for="windows_open_periodically">Periodically:</label>&nbsp;&nbsp;
-        <input type="number" step="any" id="windows_duration" class="disabled" name="windows_duration" placeholder="Duration (min)" min="1" data-has-radio="#windows_open_periodically"> / 
-        <input type="number" step="any" id="windows_frequency" class="disabled" name="windows_frequency" placeholder="Frequency (min)" min="1" data-has-radio="#windows_open_periodically">
+        <input type="number" step="any" id="windows_duration" class="non_zero disabled" name="windows_duration" placeholder="Duration (min)" min="1" data-has-radio="#windows_open_periodically"> / 
+        <input type="number" step="any" id="windows_frequency" class="non_zero disabled" name="windows_frequency" placeholder="Frequency (min)" min="1" data-has-radio="#windows_open_periodically">
         <br>
     </div>
     
