@@ -55,7 +55,8 @@ class ConcentrationModel(BaseRequestHandler):
             self.finish(json.dumps(response_json))
             return
 
-        report = build_report(form.build_model(), form)
+        base_url = self.request.protocol + "://" + self.request.host
+        report = build_report(base_url, form.build_model(), form)
         self.finish(report)
 
 
@@ -63,7 +64,8 @@ class StaticModel(BaseRequestHandler):
     def get(self):
         form = model_generator.FormData.from_dict(model_generator.baseline_raw_form_data())
         model = form.build_model()
-        report = build_report(model, form)
+        base_url = self.request.protocol + "://" + self.request.host
+        report = build_report(base_url, model, form)
         self.finish(report)
 
 

@@ -82,65 +82,28 @@ class FormData:
             if value == "":
                 form_data[key] = "0"
 
-        time_attributes = [
-            'exposed_lunch_start', 'exposed_lunch_finish', 'exposed_start', 'exposed_finish',
-            'infected_lunch_start', 'infected_lunch_finish', 'infected_start', 'infected_finish',
-        ]
-        for attr_name in time_attributes:
+        for attr_name in BOOLEAN_ATTRIBUTES:
+            form_data[attr_name] = form_data[attr_name] == '1'
+        for attr_name in FLOAT_ATTRIBUTES:
+            form_data[attr_name] = float(form_data[attr_name])
+        for attr_name in INT_ATTRIBUTES:
+            form_data[attr_name] = int(form_data[attr_name])
+        for attr_name in TIME_ATTRIBUTES:
             form_data[attr_name] = time_string_to_minutes(form_data[attr_name])
 
-        boolean_attributes = [
-            'hepa_option', 'exposed_lunch_option', 'infected_lunch_option', 'infected_dont_have_breaks_with_exposed',
-        ]
-        for attr_name in boolean_attributes:
-            form_data[attr_name] = form_data[attr_name] == '1'
-
-        instance = cls(
-            activity_type=form_data['activity_type'],
-            air_changes=float(form_data['air_changes']),
-            air_supply=float(form_data['air_supply']),
-            ceiling_height=float(form_data['ceiling_height']),
-            exposed_coffee_break_option=form_data['exposed_coffee_break_option'],
-            exposed_coffee_duration=int(form_data['exposed_coffee_duration']),
-            exposed_finish=form_data['exposed_finish'],
-            exposed_lunch_finish=form_data['exposed_lunch_finish'],
-            exposed_lunch_option=form_data['exposed_lunch_option'],
-            exposed_lunch_start=form_data['exposed_lunch_start'],
-            exposed_start=form_data['exposed_start'],
-            floor_area=float(form_data['floor_area']),
-            hepa_amount=float(form_data['hepa_amount']),
-            hepa_option=form_data['hepa_option'],
-            infected_coffee_break_option=form_data['infected_coffee_break_option'],
-            infected_coffee_duration=int(form_data['infected_coffee_duration']),
-            infected_dont_have_breaks_with_exposed=form_data['infected_dont_have_breaks_with_exposed'],
-            infected_finish=form_data['infected_finish'],
-            infected_lunch_finish=form_data['infected_lunch_finish'],
-            infected_lunch_option=form_data['infected_lunch_option'],
-            infected_lunch_start=form_data['infected_lunch_start'],
-            infected_people=int(form_data['infected_people']),
-            infected_start=form_data['infected_start'],
-            mask_type=form_data['mask_type'],
-            mask_wearing_option=form_data['mask_wearing_option'],
-            mechanical_ventilation_type=form_data['mechanical_ventilation_type'],
-            model_version=form_data['model_version'],
-            opening_distance=float(form_data['opening_distance']),
-            event_month=form_data['event_month'],
-            room_number=form_data['room_number'],
-            room_volume=float(form_data['room_volume']),
-            simulation_name=form_data['simulation_name'],
-            total_people=int(form_data['total_people']),
-            ventilation_type=form_data['ventilation_type'],
-            volume_type=form_data['volume_type'],
-            windows_duration=float(form_data['windows_duration']),
-            windows_frequency=float(form_data['windows_frequency']),
-            window_height=float(form_data['window_height']),
-            window_type=form_data['window_type'],
-            window_width=float(form_data['window_width']),
-            windows_number=int(form_data['windows_number']),
-            window_opening_regime=form_data['window_opening_regime'],
-        )
+        form_data.pop('_xsrf', None)
+        instance = cls(**form_data)
         instance.validate()
         return instance
+
+    @classmethod
+    def to_dict(self, form: "FormData") -> dict:
+        form_dict = form.__dict__.copy()
+        for attr_name in TIME_ATTRIBUTES:
+            form_dict[attr_name] = time_minutes_to_string(form_dict[attr_name])
+        for attr_name in BOOLEAN_ATTRIBUTES:
+            form_dict[attr_name] = form_dict[attr_name] & 1
+        return form_dict
 
     def validate(self):
         # Validate time intervals selected by user
@@ -604,6 +567,12 @@ WINDOWS_TYPES = {'window_sliding', 'window_hinged', 'not-applicable'}
 
 COFFEE_OPTIONS_INT = {'coffee_break_0':0, 'coffee_break_1':1, 'coffee_break_2':2, 'coffee_break_4':4}
 
+BOOLEAN_ATTRIBUTES = {'hepa_option', 'exposed_lunch_option', 'infected_lunch_option', 'infected_dont_have_breaks_with_exposed'}
+FLOAT_ATTRIBUTES = {'air_changes', 'air_supply', 'ceiling_height', 'floor_area', 'hepa_amount', 'opening_distance', 
+        'room_volume', 'windows_duration', 'windows_frequency', 'window_height', 'window_width'}
+INT_ATTRIBUTES = {'exposed_coffee_duration', 'infected_coffee_duration', 'infected_people', 'total_people', 'windows_number'}
+TIME_ATTRIBUTES = {'exposed_lunch_start', 'exposed_lunch_finish', 'exposed_start', 'exposed_finish',
+                'infected_lunch_start', 'infected_lunch_finish', 'infected_start', 'infected_finish'}        
 
 def time_string_to_minutes(time: str) -> minutes_since_midnight:
     """
@@ -612,3 +581,11 @@ def time_string_to_minutes(time: str) -> minutes_since_midnight:
     :return: The number of minutes between 'time' and 00:00
     """
     return minutes_since_midnight(60 * int(time[:2]) + int(time[3:]))
+
+def time_minutes_to_string(time: int) -> str:
+    """
+    Converts time from an integer number of minutes after 00:00 to string-format
+    :param time: The number of minutes between 'time' and 00:00
+    :return: A string of the form "HH:MM" representing a time of day
+    """
+    return "{0:0=2d}".format(int(time/60)) + ":" + "{0:0=2d}".format(time%60)

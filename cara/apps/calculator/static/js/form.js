@@ -231,7 +231,7 @@ function on_ventilation_type_change() {
       unrequire_fields(this);
 
       //Clear invalid inputs for this newly hidden child element
-      removeInvalid(getChildElement($(this)).find('input').not('input[type=radio]').attr('id'));
+      removeInvalid("#"+getChildElement($(this)).find('input').not('input[type=radio]').attr('id'));
     }
   });
 }
@@ -456,6 +456,32 @@ function parseTimeToMins(cTime) {
 
 /* -------On Load------- */
 $(document).ready(function () {
+
+  //Pre-fill form with known values
+  (new URL(decodeURIComponent(window.location.href))).searchParams.forEach((value, name) => {
+
+    //If element exists
+    if(document.getElementsByName(name).length > 0) {
+      var elemObj = document.getElementsByName(name)[0];
+
+      //Pre-select checked radios
+      if (elemObj.type === 'radio') {
+        if (value !== 'not-applicable') {
+          $('[name="'+name+'"][value="'+value+'"]').prop('checked',true);
+        }
+      }
+      //Pre-select checkboxes
+      else if (elemObj.type === 'checkbox') {
+        elemObj.checked = (value==1);
+      }
+      //Ignore 0 (default) values from server side
+      else if (!(elemObj.classList.contains("non_zero") || elemObj.classList.contains("remove_zero")) || (value != "0.0" && value != "0")) {
+        elemObj.value = value;
+        validateValue(elemObj);
+      }
+    }
+  });
+
   // When the document is ready, deal with the fact that we may be here
   // as a result of a forward/back browser action. If that is the case, update
   // the visibility of some of our inputs.
