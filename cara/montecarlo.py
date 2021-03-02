@@ -558,9 +558,9 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
         plt.fill_between(viral_loads, lower_percentiles, upper_percentiles, alpha=0.2)
 
     plt.title(title)
-    plt.ylabel('Probability of infection (%)\n$P(I|qID=60)$')
+    plt.ylabel('Probability of infection (%)', fontsize=14)
     plt.xticks(ticks=[i for i in range(3, 13)], labels=['$10^{' + str(i) + '}$' for i in range(3, 13)])
-    plt.xlabel('Viral load (RNA copies mL$^{-1}$)\n$vl$')
+    plt.xlabel('Viral load (RNA copies mL$^{-1}$)', fontsize=14)
     # add vertical lines for the critical viral loads for which pi= 5 or 95
 
     if len(baselines) == 1:
@@ -579,8 +579,8 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
 
         plt.vlines(x=(left, right), ymin=0, ymax=1,
                    colors=('grey', 'grey'), linestyles='dotted')
-        plt.text(left - 1.1, 0.80, '$vl_{0.05}$', fontsize=12,color='black')
-        plt.text(right + 0.1, 0.80, '$vl_{0.95}$', fontsize=12,color='black')
+        plt.text(left - 1.1, 0.80, '$vl_{0.05}$', fontsize=14,color='black')
+        plt.text(right + 0.1, 0.80, '$vl_{0.95}$', fontsize=14,color='black')
         # add 3 shaded areas
         plt.axvspan(3, left, alpha=0.1, color='limegreen')
         plt.axvspan(left, right, alpha=0.1, color='orange')
