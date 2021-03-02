@@ -1116,12 +1116,12 @@ def print_qd_info(model: MCExposureModel) -> None:
 
 def compare_viruses_qr(violins: bool = True) -> None:
     # A list of 7 colors corresponding to each of the boxes
-    # Can be represented as hex-strings (e.g. '#FF0000') or tuples of numbers on the interval [0, 1] (e.g. (1, 0, 0))
+    # Represented as tuples of three numbers on the interval [0, 1] (e.g. (1, 0, 0)) (R, G, B)
     colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1)] + [(x, x, x) for x in np.linspace(0.1, 0.9, 4)]
     pastels = [x + (0.3, ) for x in colors[:3]]
 
     # The colors of the borders surrounding the violin plots
-    border_colors = [(0, 0, 0), (0, 0, 0), (0, 0, 0)]
+    border_colors = [(0, 0, 0, 1), (0, 0, 0, 1), (0, 0, 0, 1)]
 
     line_color = (0.8, 0.8, 0.8)
     whisker_width = 0.8
