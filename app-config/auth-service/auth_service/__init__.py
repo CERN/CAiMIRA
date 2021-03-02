@@ -82,13 +82,12 @@ class Authorization(BaseHandler, OIDCClientMixin):
                 # url that was tracked in the browser devtools).
                 self.finish('Error logging in. Would you like to <a href="/auth/login">try again?</a>')
 
-
             LOG.info(f'Fetching user info')
             user_info = await oidc_cli.userinfo(result['access_token'] or '')
 
             session_data = {
                 'refresh_token': result['refresh_token'],
-                'username': user_info['preferred_username'],
+                'username': user_info.get('preferred_username', user_info['email']),
                 'fullname': user_info['name'],
                 'email': user_info['email'],
             }
