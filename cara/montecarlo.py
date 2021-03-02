@@ -1176,7 +1176,7 @@ def compare_viruses_qr(violins: bool = True) -> None:
     ax.set_xticklabels(['SARS-CoV-2', 'SARS-CoV', 'Influenza', 'Measles', 'Tuberculosis'])
     ax.hlines(y=[np.log10(970)], linestyles=['dashed'], colors=['red'], xmin=0, xmax=4)
 
-    handles = [patches.Patch(color=c, label=l) for c, l in zip(pastels, ('Breathing', 'Speaking', 'Shouting'))]
+    handles = [patches.Patch(color=c, label=l) for c, l in zip([p + (0.3,) for p in pastels], ('Breathing', 'Speaking', 'Shouting'))]
     handles += [mlines.Line2D([], [], linestyle='dashed', color='red', label='Chorale')]
     plt.legend(handles=handles, loc='lower left', bbox_to_anchor=(0.2, 0.03))
     ax.set_yticks([i for i in range(-6, 7, 2)])
