@@ -1117,7 +1117,7 @@ def print_qd_info(model: MCExposureModel) -> None:
 def compare_viruses_qr(violins: bool = True) -> None:
     # A list of 7 colors corresponding to each of the boxes
     # Represented as tuples of three numbers on the interval [0, 1] (e.g. (1, 0, 0)) (R, G, B)
-    colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1)] + [(x, x, x) for x in np.linspace(0.1, 0.9, 4)]
+    colors = [(0, 0.5, 0), (0, 0, 0.5), (0.5, 0, 0)] + [(x, x, x) for x in np.linspace(0.1, 0.5, 4)[::-1]]
     pastels = [x for x in colors[:3]]
 
     # The colors of the borders surrounding the violin plots
@@ -1177,7 +1177,7 @@ def compare_viruses_qr(violins: bool = True) -> None:
     ax.hlines(y=[np.log10(970)], linestyles=['dashed'], colors=['red'], xmin=0, xmax=4)
 
     handles = [patches.Patch(color=c, label=l) for c, l in zip([p + (0.3,) for p in pastels], ('Breathing', 'Speaking', 'Shouting'))]
-    handles += [mlines.Line2D([], [], linestyle='dashed', color='red', label='Chorale')]
+    handles += [mlines.Line2D([], [], linestyle='dashed', color='red', label='S V Chorale (qR=970)')]
     plt.legend(handles=handles, loc='lower left', bbox_to_anchor=(0.2, 0.03))
     ax.set_yticks([i for i in range(-6, 7, 2)])
     ax.set_yticklabels(['$10^{' + str(i) + '}$' for i in range(-6, 7, 2)])
