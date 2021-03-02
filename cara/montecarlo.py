@@ -1076,7 +1076,7 @@ def compare_concentration_curves(exp_models: typing.List[MCExposureModel], label
 
     plt.suptitle(title)
     plt.xlabel("Time ($h$)", fontsize=14)
-    plt.ylabel("Quantum concentration ($q\;m^{-3}$)\nmean values of $C(t)$", fontsize=14)
+    plt.ylabel("Quantum concentration (q m$^{-3}$)", fontsize=14)
     if show_qd:
 
         ax1 = ax.twinx()
@@ -1084,13 +1084,13 @@ def compare_concentration_curves(exp_models: typing.List[MCExposureModel], label
             ax1.plot(times, qd, label='qD - ' + label, color=color, linestyle='dotted')
         ax1.spines["right"].set_linestyle("--")
         ax1.spines["right"].set_linestyle((0,(1,5)))
-        ax1.set_ylabel('Dose ($q$)', fontsize=14)
+        ax1.set_ylabel('Dose (q)', fontsize=14)
         ax1.set_ylim(ax1.get_ylim()[0], ax1.get_ylim()[1] * 1.2)
 
         ax2 = ax.twinx()
         ax2.spines["right"].set_position(("axes", 1.15))
         ax2.spines["right"].set_linestyle((0,(1,5)))
-        ax2.set_ylabel('Dose (RNA copies)\nmean values $qD$', fontsize=14)
+        ax2.set_ylabel('Dose (RNA copies)', fontsize=14)
         ax2.set_ylim(tuple(y * exp_models[0].concentration_model.virus.qID for y in ax1.get_ylim()))
         #ax1.legend(loc='upper right')
 
