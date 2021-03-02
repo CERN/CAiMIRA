@@ -1,5 +1,6 @@
 import html
 import json
+import os
 from pathlib import Path
 
 import jinja2
@@ -12,22 +13,18 @@ from .user import AuthenticatedUser, AnonymousUser
 
 
 class BaseRequestHandler(RequestHandler):
-
     async def prepare(self):
         """Called at the beginning of a request before  `get`/`post`/etc."""
-        username = self.request.headers.get("X-ADFS-LOGIN", None)
-        if username:
-            # the following headers must be set when logged in
-            email = self.request.headers["X-ADFS-EMAIL"]
-            firstname = self.request.headers["X-ADFS-FIRSTNAME"]
-            lastname = self.request.headers["X-ADFS-LASTNAME"]
-            fullname = self.request.headers["X-ADFS-FULLNAME"]
+
+        # Read the secure cookie which exists if we are in an authenticated
+        # context (though not if the cara webservice is running standalone).
+        session = json.loads(self.get_secure_cookie('session') or 'null')
+
+        if session:
             self.current_user = AuthenticatedUser(
-                username=username,
-                email=email,
-                firstname=firstname,
-                lastname=lastname,
-                fullname=fullname
+                username=session['username'],
+                email=session['email'],
+                fullname=session['fullname'],
             )
         else:
             self.current_user = AnonymousUser()
@@ -124,4 +121,7 @@ def make_app(debug=False, prefix='/calculator'):
         debug=debug,
         template_environment=template_environment,
         xsrf_cookies=True,
+        # COOKIE_SECRET being undefined will result in no login information being
+        # presented to the user.
+        cookie_secret=os.environ.get('COOKIE_SECRET', '<undefined>'),
     )

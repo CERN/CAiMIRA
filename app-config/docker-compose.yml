@@ -2,11 +2,29 @@ version: "3.8"
 services:
   cara-app:
     image: cara-voila-app
-    links:
-      - cara-router
+
+  cara-webservice:
+    image: cara-webservice
+    environment:
+      - COOKIE_SECRET
+
+  auth-service:
+    image: auth-service
+    environment:
+      - COOKIE_SECRET
+      - OIDC_SERVER
+      - OIDC_REALM
+      - CLIENT_ID
+      - CLIENT_SECRET
+
   cara-router:
     image: cara-nginx-app
     ports:
-        - "8080:8080"
-  cara-webservice:
-    image: cara-webservice
+      - "8080:8080"
+    depends_on:
+      cara-webservice:
+          condition: service_started
+      cara-app:
+          condition: service_started
+      auth-service:
+          condition: service_started

@@ -1,7 +1,6 @@
 import argparse
 
 from tornado.ioloop import IOLoop
-from tornado.options import define, options
 
 from . import make_app
 
@@ -16,7 +15,7 @@ def configure_parser(parser):
 
 def main():
     parser = argparse.ArgumentParser()
-    args = configure_parser(parser)
+    configure_parser(parser)
     args = parser.parse_args()
     app = make_app(debug=args.no_debug)
     app.listen(8080)
