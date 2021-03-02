@@ -433,7 +433,7 @@ def print_qr_info(log_qr: np.ndarray) -> None:
 
 
 def present_model(model: MCConcentrationModel, bins: int = 200,
-                  title: str = 'Summary of model parameters') -> None:
+                  title: str = 'Summary of $qR$ model parameters') -> None:
     """
     Displays a number of plots and prints a handful of key parameters and results of a given MCConcentrationModel
     :param model: The MCConcentrationModel representing the scenario to be presented
@@ -444,7 +444,7 @@ def present_model(model: MCConcentrationModel, bins: int = 200,
     fig, axs = plt.subplots(2, 2, sharex=False, sharey=False)
     fig.set_figheight(8)
     fig.set_figwidth(10)
-    fig.suptitle(title)
+    fig.suptitle(title, fontsize=12)
     plt.tight_layout()
     plt.subplots_adjust(hspace=0.4)
     plt.subplots_adjust(wspace=0.2)
@@ -469,7 +469,7 @@ def present_model(model: MCConcentrationModel, bins: int = 200,
                          linestyles=('solid', 'solid', 'dashed', 'dashed'))
 
     axs[0, 0].set_title('Viral load')
-    axs[0, 0].set_xlabel('Viral load (log10(RNA copies mL$^{-1}$))')
+    axs[0, 0].set_xlabel('Viral load (log$_{10}$(RNA copies mL$^{-1}$))')
     axs[0, 0].set_xlim(2, 11.5)
 
     ds = np.linspace(0.1, 15, 2000)
@@ -487,21 +487,21 @@ def present_model(model: MCConcentrationModel, bins: int = 200,
     categories_particles = ("Breathing", "Speaking", "Shouting")
     axs[0, 1].set_title(r'Particle emissions - '
                         f'{categories_particles[model.infected.expiratory_activity - 1]}')
-    axs[0, 1].set_ylabel('Particle emission concentration ($cm^{-3}$)')
+    axs[0, 1].set_ylabel('Particle emission concentration (cm$^{-3}$)')
     axs[0, 1].set_xlabel(r'Diameter ($\mu$m)')
 
     categories = ("seated", "standing", "light activity", "moderate activity", "heavy activity")
     axs[1, 0].set_title(f'Breathing rate - '
                         f'{categories[model.infected.breathing_category - 1]}')
-    axs[1, 0].set_xlabel('Breathing rate ($m^3\;h^{-1}$)')
+    axs[1, 0].set_xlabel('Breathing rate (m$^3$ h$^{-1}$)')
 
     top = axs[1, 1].get_ylim()[1]
     axs[1, 1].set_title('Quantum generation rate')
-    axs[1, 1].set_xlabel('qR (log10($q\;h^{-1}$))')
+    axs[1, 1].set_xlabel('qR (log$_{10}$(q h$^{-1}$))')
     mean, std = np.mean(qRs), np.std(qRs)
     axs[1, 1].annotate('', xy=(mean + std, top * 0.88), xytext=(np.max(qRs), top * 0.88),
                        arrowprops={'arrowstyle': '<|-|>', 'ls': 'dashed'})
-    axs[1, 1].text(mean + std + 0.1, top * 0.92, 'Superspreader', fontsize=8)
+    axs[1, 1].text(mean + std + 0.1, top * 0.92, 'Superspreader', fontsize=10)
 
     lines = [mlines.Line2D([], [], color=color, markersize=15, label=label, linestyle=style)
              for color, label, style in zip(['grey', 'black', 'lightgrey'],
@@ -827,7 +827,6 @@ def generate_cdf_curves_vs_qr(masked: bool = False, samples: int = 200000, qid: 
     """
     fig, axs = plt.subplots(3, 1, sharex='all')
 
-    # TODO: Insert title and y-label
     plt.suptitle("$F(qR|qID=$" + str(qid) + "$)$",fontsize=12, y=0.93)
     fig.text(0.02, 0.5, '', va='center', rotation='vertical',fontsize=12)
 
