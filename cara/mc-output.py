@@ -12,7 +12,7 @@ from cara.model_scenarios import *
 #print(np.quantile(chorale_model.infection_probability(),0.1))
 
 
-compare_viruses_qr()
+compare_viruses_qr(violins=True)
 
 # print_qd_info(large_population_baselines[0])
 
@@ -29,11 +29,11 @@ compare_viruses_qr()
 #                                 title='Classroom scenario',
 #                                 vl_points=200)
 
-composite_plot_pi_vs_viral_load([ski_cabin_model_60[1], ski_cabin_model_30[1], ski_cabin_model_20[1], ski_cabin_model_10[1]],
-                                 labels=['60 min', '30 min', 'Baseline: 20 min', '10 min'],
-                                 colors=['tomato', 'lightsalmon', '#1f77b4', 'limegreen'],
-                                 title='Ski cabin scenario',
-                                 vl_points=200)
+# composite_plot_pi_vs_viral_load([ski_cabin_model_60[1], ski_cabin_model_30[1], ski_cabin_model_20[1], ski_cabin_model_10[1]],
+#                                  labels=['60 min', '30 min', 'Baseline: 20 min', '10 min'],
+#                                  colors=['tomato', 'lightsalmon', '#1f77b4', 'limegreen'],
+#                                  title='Ski cabin scenario',
+#                                  vl_points=200)
 
 #compare_concentration_curves([classroom_model_no_vent[1], classroom_model[1], classroom_model_with_hepa[1], classroom_model_full_open_multi[1]],
 #                             labels=['Windows closed', 'Baseline:(windows 10min/2h)', 'Baseline:(windows 10min/2h) + HEPA', 'Multiple windows open'],
@@ -61,7 +61,7 @@ composite_plot_pi_vs_viral_load([ski_cabin_model_60[1], ski_cabin_model_30[1], s
 # compare_infection_probabilities_vs_viral_loads(*exposure_models)
 #
 #
-#present_model(exposure_models[0].concentration_model)
+# present_model(exposure_models[0].concentration_model)
 # plot_pi_vs_qid(fixed_vl_exposure_models, labels=['Viral load = $10^{' + str(i) + '}$' for i in range(6, 11)],
 #                qid_min=5, qid_max=2000, qid_samples=200)
 #
