@@ -98,14 +98,15 @@ If you need to create the application in a new project, run:
 ```console
 $ cd app-config/openshift
 
-$ oc process -f application.yaml --param PROJECT_NAME='test-cara' | oc create -f -
+$ oc process -f application.yaml --param PROJECT_NAME='test-cara' --param GIT_BRANCH='live/test-cara' | oc create -f -
+$ oc process -f configmap.yaml | oc create -f -
 $ oc process -f services.yaml | oc create -f -
 $ oc process -f route.yaml --param HOST='test-cara.web.cern.ch' | oc create -f -
 ```
 
 Then, create the webhook secret to be able to trigger automatic builds from GitLab.
 
-Create and store the secret:
+Create and store the secret. Copy the secret above and add it to the GitLab project under `CI /CD` -> `Variables` with the name `OPENSHIFT_CARA_TEST_WEBHOOK_SECRET`.
 
 ```console
 $ WEBHOOKSECRET=$(openssl rand -hex 50)
@@ -114,7 +115,45 @@ $ oc create secret generic \
   gitlab-cara-webhook-secret
 ```
 
-Copy the secret above and add it to the GitLab project under `CI /CD` -> `Variables` with the name `OPENSHIFT_CARA_TEST_WEBHOOK_SECRET`
+### CERN SSO integration
+
+The SSO integration uses OpenID credentials configured in [CERN Applications portal](https://application-portal.web.cern.ch/).
+How to configure the application:
+
+* Application Identifier: `cara-test`
+* Homepage: `https://test-cara.web.cern.ch`
+* Administrators: `cara-dev`
+* SSO Registration:
+    * Protocol: `OpenID (OIDC)`
+    * Redirect URI: `https://test-cara.web.cern.ch/auth/authorize`
+    * Leave unchecked all the other checkboxes
+* Define new roles:
+    * Name: `CERN Users`
+        * Role Identifier: `external-users`
+        * Leave unchecked checkboxes
+        * Minimum Level Of Assurance: `CERN (highest)`
+        * Assign role to groups: `cern-accounts-primary` e-group
+    * Name: `External accounts`
+        * Role Identifier: `admin`
+        * Leave unchecked checkboxes
+        * Minimum Level Of Assurance: `Any (no restrictions)`
+        * Assign role to groups: `cara-app-external-access` e-group
+    * Name: `Allowed users`
+        * Role Identifier: `allowed-users`
+        * Check `This role is required to access my application`
+        * Minimum Level Of Assurance:`Any (no restrictions)`
+        * Assign role to groups: `cern-accounts-primary` and `cara-app-external-access` e-groups
+
+Copy the client id and client secret and use it below.
+
+```console
+$ COOKIE_SECRET=$(openssl rand -hex 50)
+$ oc create secret generic \
+  --from-literal="CLIENT_ID=$CLIENT_ID" \
+  --from-literal="CLIENT_SECRET=$CLIENT_SECRET" \
+  --from-literal="COOKIE_SECRET=$COOKIE_SECRET" \
+  auth-service-secrets
+```
 
 ## Update configuration
 
@@ -123,7 +162,8 @@ If you need to **update** existing configuration, then modify this repository an
 ```console
 $ cd app-config/openshift
 
-$ oc process -f application.yaml --param PROJECT_NAME='test-cara' | oc replace -f -
+$ oc process -f application.yaml --param PROJECT_NAME='test-cara' --param GIT_BRANCH='live/test-cara' | oc replace -f -
+$ oc process -f configmap.yaml | oc replace -f -
 $ oc process -f services.yaml | oc replace -f -
 $ oc process -f route.yaml --param HOST='test-cara.web.cern.ch' | oc replace -f -
 ```

@@ -1,0 +1,19 @@
+---
+  kind: "Template"
+  apiVersion: "v1"
+  metadata:
+    name: "cara-configuration"
+    annotations:
+      description: "CARA configuration OpenShift template."
+      tags: "cara-configuration"
+  labels:
+    template: "cara-configuration"
+  objects:
+    -
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: auth-service
+      data:
+        OIDC_REALM: CERN
+        OIDC_SERVER: 'https://auth.cern.ch/auth'

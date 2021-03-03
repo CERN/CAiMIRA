@@ -14,12 +14,77 @@
       kind: BuildConfig
       apiVersion: v1
       metadata:
+        name: auth-service
+      spec:
+        source:
+          git:
+            ref: ${GIT_BRANCH}
+            uri: ${GIT_REPO}
+          contextDir: app-config/auth-service
+          sourceSecret:
+            name: sshdeploykey
+        output:
+          to:
+            kind: ImageStreamTag
+            name: 'auth-service:latest'
+        strategy:
+          sourceStrategy:
+            from:
+              kind: ImageStreamTag
+              name: 'python:3.6'
+              namespace: openshift
+          type: Source
+        triggers:
+          - imageChange:
+            type: ImageChange
+          - generic:
+              secretReference:
+                name: gitlab-cara-webhook-secret
+            type: Generic
+    -
+      kind: ImageStream
+      apiVersion: v1
+      metadata:
+        name: auth-service
+    -
+      kind: BuildConfig
+      apiVersion: v1
+      metadata:
+        name: cara-router
+      spec:
+        source:
+          git:
+            ref: ${GIT_BRANCH}
+            uri: ${GIT_REPO}
+          contextDir: app-config/nginx
+          sourceSecret:
+            name: sshdeploykey
+        output:
+          to:
+            kind: ImageStreamTag
+            name: 'cara-router:latest'
+        strategy:
+          sourceStrategy:
+            from:
+              kind: ImageStreamTag
+              name: 'nginx:1.12'
+              namespace: openshift
+          type: Source
+        triggers:
+          - generic:
+              secretReference:
+                name: gitlab-cara-webhook-secret
+            type: Generic
+    -
+      kind: BuildConfig
+      apiVersion: v1
+      metadata:
         name: cara-app
       spec:
         source:
           git:
-            ref: master
-            uri: 'ssh://git@gitlab.cern.ch:7999/cara/cara.git'
+            ref: ${GIT_BRANCH}
+            uri: ${GIT_REPO}
           sourceSecret:
             name: sshdeploykey
         output:
@@ -54,8 +119,8 @@
       spec:
         source:
           git:
-            ref: master
-            uri: 'ssh://git@gitlab.cern.ch:7999/cara/cara.git'
+            ref: ${GIT_BRANCH}
+            uri: ${GIT_REPO}
           contextDir: app-config/nginx
           sourceSecret:
             name: sshdeploykey
@@ -88,8 +153,8 @@
       spec:
         source:
           git:
-            ref: master
-            uri: 'ssh://git@gitlab.cern.ch:7999/cara/cara.git'
+            ref: ${GIT_BRANCH}
+            uri: ${GIT_REPO}
           sourceSecret:
             name: sshdeploykey
         output:
@@ -120,6 +185,40 @@
       apiVersion: v1
       kind: DeploymentConfig
       metadata:
+        name: auth-service
+      spec:
+        replicas;: 1
+        template:
+          metadata:
+            labels:
+              app: auth-service
+          spec:
+            containers:
+              - name: auth-service
+                image: '${PROJECT_NAME}/auth-service'
+                ports:
+                  - containerPort: 8080
+                    protocol: TCP
+              - envFrom:
+                - configMapRef:
+                    name: auth-service
+                - secretRef:
+                    name: auth-service-secrets
+        triggers:
+          - type: ConfigChange
+          - type: ImageChange
+            imageChangeParams:
+              automatic: true
+              containerNames:
+                - auth-service
+              from:
+                kind: ImageStreamTag
+                name: 'auth-service:latest'
+                namespace: ${PROJECT_NAME}
+    -
+      apiVersion: v1
+      kind: DeploymentConfig
+      metadata:
         name: cara-app
       spec:
         replicas;: 1
@@ -135,6 +234,7 @@
                   - containerPort: 8080
                     protocol: TCP
         triggers:
+          - type: ConfigChange
           - type: ImageChange
             imageChangeParams:
               automatic: true
@@ -165,6 +265,7 @@
                   - containerPort: 8443
                     protocol: TCP
         triggers:
+          - type: ConfigChange
           - type: ImageChange
             imageChangeParams:
               automatic: true
@@ -174,6 +275,7 @@
                 kind: ImageStreamTag
                 name: 'cara-router:latest'
                 namespace: ${PROJECT_NAME}
+          - type: ConfigChange
     -
       apiVersion: v1
       kind: DeploymentConfig
@@ -193,6 +295,7 @@
                   - containerPort: 8080
                     protocol: TCP
         triggers:
+          - type: ConfigChange
           - type: ImageChange
             imageChangeParams:
               automatic: true
@@ -202,8 +305,15 @@
                 kind: ImageStreamTag
                 name: 'cara-webservice:latest'
                 namespace: ${PROJECT_NAME}
+          - type: ConfigChange
 
   parameters:
     - name: PROJECT_NAME
       description: The name of this project, e.g. test-cara
+      required: true
+    - name: GIT_REPO
+      description: The GIT repo URL
+      value: 'ssh://git@gitlab.cern.ch:7999/cara/cara.git'
+    - name: GIT_BRANCH
+      description: The name of the GIT branch to use when building the app, e.g. `live/test-cara` in TEST, `master` in prod
       required: true
