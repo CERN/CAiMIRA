@@ -558,7 +558,7 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
         plt.fill_between(viral_loads, lower_percentiles, upper_percentiles, alpha=0.2)
 
     plt.title(title)
-    plt.ylabel('Probability of infection (%)', fontsize=14)
+    plt.ylabel('Probability of infection', fontsize=14)
     plt.xticks(ticks=[i for i in range(3, 13)], labels=['$10^{' + str(i) + '}$' for i in range(3, 13)])
     plt.xlabel('Viral load (RNA copies mL$^{-1}$)', fontsize=14)
     # add vertical lines for the critical viral loads for which pi= 5 or 95
@@ -688,7 +688,7 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
     axs[1, 0].set_xticklabels(['$10^{' + str(i) + '}$' for i in range(2, 13, 2)])
     axs[1, 0].set_xlim(2, 12)
     axs[1, 0].set_xlabel('Viral load (RNA copies mL$^{-1}$)', fontsize=12)
-    axs[0, 0].set_ylabel('Probability of infection (%)\n$P(I|qID=60)$', fontsize=12)
+    axs[0, 0].set_ylabel('Probability of infection\n$P(I|qID=60)$', fontsize=12)
     plt.suptitle(title, fontsize=12)
 
     axs[0, 0].text(11, -0.01, '$(i)$')
@@ -1238,8 +1238,8 @@ def plot_pi_vs_exposure_time(exp_models: typing.List[MCExposureModel], labels: t
     if normalize_y_axis:
         plt.ylim((0, 1))
 
-    plt.title('TITLE HERE')
-    plt.xlabel(f'XLABEL HERE ({"min" if time_in_minutes else "h"})')
-    plt.ylabel('YLABEL HERE')
+    plt.title('')
+    plt.xlabel(f'Travel time ({"min" if time_in_minutes else "h"})')
+    plt.ylabel('Probability of infection\n$P(I|qID=60)$')
     plt.legend()
     plt.show()
