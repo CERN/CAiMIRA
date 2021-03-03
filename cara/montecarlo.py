@@ -1211,7 +1211,7 @@ def plot_pi_vs_exposure_time(exp_models: typing.List[MCExposureModel], labels: t
     assert all_equal, \
         "The presence intervals of the exposed populations must match and be single intervals of the form ((start, stop),)"
 
-    pis = [[] for _ in exp_models]
+    pis: typing.List[typing.List[float]] = [[] for _ in exp_models]
 
     start, final = first_interval[0]
     times = np.linspace(start, final, points)
