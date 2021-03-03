@@ -11,8 +11,8 @@ from cara.model_scenarios import *
 #print(np.quantile(chorale_model.infection_probability(),0.90))
 #print(np.quantile(chorale_model.infection_probability(),0.1))
 
-plot_pi_vs_exposure_time(chorale_model, ['model1', 'model2'])
-plot_pi_vs_exposure_time(chorale_model, ['model1', 'model2'],
+#plot_pi_vs_exposure_time(chorale_model, ['model1', 'model2'])
+plot_pi_vs_exposure_time(ski_cabin_model_baseline_exposure_time, ['model1', 'model2'],
                          colors=['red', 'green'],
                          linestyles=['dotted', 'dashed'],
                          points=20,
@@ -21,7 +21,6 @@ plot_pi_vs_exposure_time(chorale_model, ['model1', 'model2'],
 # compare_viruses_qr(violins=True)
 
 # print_qd_info(large_population_baselines[0])
-
 
 #print(np.mean(shared_office_model[1].infection_probability()))
 #composite_plot_pi_vs_viral_load([shared_office_worst_model[1], shared_office_model[1], shared_office_better_model[1]],
