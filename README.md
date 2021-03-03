@@ -16,6 +16,19 @@ A tool to interact with various parameters of the CARA model.
 This is currently in beta, and can be found at https://cara.web.cern.ch/expert-app.
 
 
+## Disclaimer
+
+The code and data of this repository are provided to promote reproducible research.
+They are not intended for clinical care or commercial use.
+
+The software is provided "as is", without warranty of any kind, express or implied,
+including but not limited to the warranties of merchantability, fitness for a particular
+purpose and non infringement.
+In no event shall the authors or copyright holders be liable for any claim, damages
+or other liability, whether in an action of contract, tort or otherwise, arising from,
+out of or in connection with the software or the use or other dealings in the software.
+
+
 ## Development guide
 
 ### Running the COVID calculator app locally
@@ -71,7 +84,7 @@ The https://cern.ch/cara application is running on CERN's OpenShift platform. In
 We have a replica of https://cara.web.cern.ch running on http://test-cara.web.cern.ch. Its purpose is to simulate what will happen when
 a feature is merged. To push your changes to test-cara, simply push your branch to `live/test-cara` and the CI pipeline will trigger the
 deployment. To push to this branch, there is a good chance that you will need to force push - you should always force push with care and
-understanding why you are doing it. Syntactically, it will looks something like (assuming that you have "upstream" as your remote name,
+understanding why you are doing it. Syntactically, it will look something like (assuming that you have "upstream" as your remote name,
 but it may be origin if you haven't configured it differently):
 
     git push --force upstream name-of-local-branch:live/test-cara
