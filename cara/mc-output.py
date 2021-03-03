@@ -11,8 +11,14 @@ from cara.model_scenarios import *
 #print(np.quantile(chorale_model.infection_probability(),0.90))
 #print(np.quantile(chorale_model.infection_probability(),0.1))
 
+plot_pi_vs_exposure_time(chorale_model, ['model1', 'model2'])
+plot_pi_vs_exposure_time(chorale_model, ['model1', 'model2'],
+                         colors=['red', 'green'],
+                         linestyles=['dotted', 'dashed'],
+                         points=20,
+                         time_in_minutes=True)
 
-compare_viruses_qr(violins=True)
+# compare_viruses_qr(violins=True)
 
 # print_qd_info(large_population_baselines[0])
 
