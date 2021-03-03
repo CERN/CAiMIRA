@@ -777,7 +777,7 @@ chorale_model = [MCExposureModel(
             masked=False,
             virus=MCVirus(halflife=1.1, qID=qid),
             expiratory_activity=3,
-            samples=200000,
+            samples=20000,
             breathing_category=3,
             expiratory_activity_weights=(0.7, 0.3, 0)
         )
