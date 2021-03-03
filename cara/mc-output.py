@@ -16,7 +16,8 @@ plot_pi_vs_exposure_time(ski_cabin_model_baseline_exposure_time, ['model1', 'mod
                          colors=['red', 'green'],
                          linestyles=['dotted', 'dashed'],
                          points=20,
-                         time_in_minutes=True)
+                         time_in_minutes=True,
+                         normalize_y_axis=True)
 
 # compare_viruses_qr(violins=True)
 

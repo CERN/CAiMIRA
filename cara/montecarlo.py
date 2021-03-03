@@ -1193,7 +1193,7 @@ def compare_viruses_qr(violins: bool = True) -> None:
 def plot_pi_vs_exposure_time(exp_models: typing.List[MCExposureModel], labels: typing.List[str],
                              colors: typing.Optional[typing.List] = None,
                              linestyles: typing.Optional[typing.List[str]] = None,
-                             points: int = 50, time_in_minutes: bool = False) -> None:
+                             points: int = 50, time_in_minutes: bool = False, normalize_y_axis: bool = False) -> None:
     conc_models = [m.concentration_model for m in exp_models]
     if colors is None:
         colors = [None for _ in exp_models]
@@ -1234,6 +1234,9 @@ def plot_pi_vs_exposure_time(exp_models: typing.List[MCExposureModel], labels: t
 
     for i, pi in enumerate(pis):
         plt.plot(times, pi, color=colors[i], linestyle=linestyles[i], label=labels[i])
+
+    if normalize_y_axis:
+        plt.ylim((0, 1))
 
     plt.title('TITLE HERE')
     plt.xlabel(f'XLABEL HERE ({"min" if time_in_minutes else "h"})')
