@@ -634,7 +634,7 @@ ski_cabin_model_baseline_exposure_time = [MCExposureModel(
         ),
         infected=MCInfectedPopulation(
             number=1,
-            presence=models.SpecificInterval(((0, 20),)),
+            presence=models.SpecificInterval(((0, 60/60),)),
             masked=mi,
             virus=MCVirus(halflife=1.1, qID=60),
             expiratory_activity=2,
@@ -645,7 +645,7 @@ ski_cabin_model_baseline_exposure_time = [MCExposureModel(
     ),
     exposed=models.Population(
         number=3,
-        presence=models.SpecificInterval(((0, 20),)),
+        presence=models.SpecificInterval(((0, 60/60),)),
         activity=models.Activity.types['Moderate activity'],
         mask=models.Mask.types[me]
     )
@@ -677,6 +677,32 @@ gym_model = [MCExposureModel(
         mask=models.Mask.types['No mask']
     )
 )for qid in (100, 60)]
+
+gym_model_exposure_time = [MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=300),
+        ventilation=models.AirChange(
+            active=models.PeriodicInterval(period=120, duration=120),
+            air_exch=6.,
+        ),
+        infected=MCInfectedPopulation(
+            number=2,
+            presence=models.SpecificInterval(((0, 1),)),
+            masked=mi,
+            virus=MCVirus(halflife=1.1, qID=60),
+            expiratory_activity=1,
+            samples=200000,
+            breathing_category=5,
+            expiratory_activity_weights=(0.7, 0.3, 0)
+        )
+    ),
+    exposed=models.Population(
+        number=28,
+        presence=models.SpecificInterval(((0, 1),)),
+        activity=models.Activity.types['Heavy exercise'],
+        mask=models.Mask.types[me]
+    )
+)for mi, me in zip((True, False), ('Type I', 'No mask'))]
 
 ######### Waiting room exposure models ###########
 waiting_room_model = [MCExposureModel(
