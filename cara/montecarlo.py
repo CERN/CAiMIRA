@@ -1238,8 +1238,26 @@ def plot_pi_vs_exposure_time(exp_models: typing.List[MCExposureModel], labels: t
     if normalize_y_axis:
         plt.ylim((0, 1))
 
+    plt.vlines(x=(20), ymin=0, ymax=0.25,
+               colors='lightgrey', linestyles='dotted')
+    plt.hlines(y=(0.161, 0.05), xmin=0, xmax=60,
+               colors=('lightgrey', 'grey'), linestyles='dotted')
+    plt.xlim((0, 60))
+    plt.text(35, 0.18, r'$P(I)\approx0.16$', color='grey')
+    plt.text(35, 0.07, r'$P(I)\approx0.05$', color='grey')
+
+    plt.text(7.2, 0.18, "7 min", color='k')
+    plt.plot(7.2, 0.161, '.', color='lightgrey')
+
+    plt.text(7.83, 0.07, "8 min", color='k')
+    plt.plot(7.83, 0.05, '.', color='grey')
+
+    plt.text(0, 0.07, "3 min", color='k')
+    plt.plot(2.6, 0.05, '.', color='grey')
+
+
     plt.title('')
-    plt.xlabel(f'Travel time ({"min" if time_in_minutes else "h"})')
-    plt.ylabel('Probability of infection\n$P(I|qID=60)$')
+    plt.xlabel(f'Travel time ({"min" if time_in_minutes else "h"})', fontsize=12)
+    plt.ylabel('Probability of infection\n$P(I|qID=60)$', fontsize=12)
     plt.legend()
     plt.show()
