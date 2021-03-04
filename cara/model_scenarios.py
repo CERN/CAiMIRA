@@ -547,6 +547,58 @@ ski_cabin_model_baseline_20 = [MCExposureModel(
     )
 )for qid in (100, 60)]
 
+ski_cabin_model_baseline_20_FFP2 = [MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=10),
+        ventilation=models.HVACMechanical(
+            active=models.PeriodicInterval(period=120, duration=120),
+            q_air_mech=0.,
+        ),
+        infected=MCInfectedPopulation(
+            number=1,
+            presence=models.SpecificInterval(((0, 20/60),)),
+            masked=True,
+            virus=MCVirus(halflife=1.1, qID=qid),
+            expiratory_activity=2,
+            samples=200000,
+            breathing_category=4,
+            expiratory_activity_weights=(0.7, 0.3, 0)
+        )
+    ),
+    exposed=models.Population(
+        number=3,
+        presence=models.SpecificInterval(((0, 20/60),)),
+        activity=models.Activity.types['Moderate activity'],
+        mask=models.Mask.types['FFP2']
+    )
+)for qid in (100, 60)]
+
+ski_cabin_model_baseline_20_no_mask = [MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=10),
+        ventilation=models.HVACMechanical(
+            active=models.PeriodicInterval(period=120, duration=120),
+            q_air_mech=0.,
+        ),
+        infected=MCInfectedPopulation(
+            number=1,
+            presence=models.SpecificInterval(((0, 20/60),)),
+            masked=False,
+            virus=MCVirus(halflife=1.1, qID=qid),
+            expiratory_activity=2,
+            samples=200000,
+            breathing_category=4,
+            expiratory_activity_weights=(0.7, 0.3, 0)
+        )
+    ),
+    exposed=models.Population(
+        number=3,
+        presence=models.SpecificInterval(((0, 20/60),)),
+        activity=models.Activity.types['Moderate activity'],
+        mask=models.Mask.types['No mask']
+    )
+)for qid in (100, 60)]
+
 ski_cabin_model_25 = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=10),
@@ -649,7 +701,33 @@ ski_cabin_model_baseline_exposure_time = [MCExposureModel(
         activity=models.Activity.types['Moderate activity'],
         mask=models.Mask.types[me]
     )
-)for mi, me in zip((True, False), ('Type I', 'No mask'))]
+)for mi, me in zip((True, False), ('Type I', 'No mask', 'FFP2'))]
+
+ski_cabin_model_baseline_exposure_time_FFP2 = [MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=10),
+        ventilation=models.HVACMechanical(
+            active=models.PeriodicInterval(period=120, duration=120),
+            q_air_mech=0.,
+        ),
+        infected=MCInfectedPopulation(
+            number=1,
+            presence=models.SpecificInterval(((0, 60/60),)),
+            masked=True,
+            virus=MCVirus(halflife=1.1, qID=60),
+            expiratory_activity=2,
+            samples=200000,
+            breathing_category=4,
+            expiratory_activity_weights=(0.7, 0.3, 0)
+        )
+    ),
+    exposed=models.Population(
+        number=3,
+        presence=models.SpecificInterval(((0, 60/60),)),
+        activity=models.Activity.types['Moderate activity'],
+        mask=models.Mask.types['FFP2']
+    )
+)for mi in (True, False)]
 
 ######### Gym exposure models ###########
 gym_model = [MCExposureModel(
