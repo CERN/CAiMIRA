@@ -468,8 +468,8 @@ def present_model(model: MCConcentrationModel, bins: int = 200,
                          colors=('grey', 'black', 'lightgrey', 'lightgrey'),
                          linestyles=('solid', 'solid', 'dashed', 'dashed'))
 
-    axs[0, 0].set_title('Viral load')
-    axs[0, 0].set_xlabel('Viral load (log$_{10}$(RNA copies mL$^{-1}$))')
+    axs[0, 0].set_title('Viral load', fontsize=14)
+    axs[0, 0].set_xlabel('vl (log$_{10}$(RNA copies mL$^{-1}$))', fontsize=12)
     axs[0, 0].set_xlim(2, 11.5)
 
     ds = np.linspace(0.1, 15, 2000)
@@ -486,29 +486,29 @@ def present_model(model: MCConcentrationModel, bins: int = 200,
 
     categories_particles = ("Breathing", "Speaking", "Shouting")
     axs[0, 1].set_title(r'Particle emissions - '
-                        f'{categories_particles[model.infected.expiratory_activity - 1]}')
-    axs[0, 1].set_ylabel('Particle emission concentration (cm$^{-3}$)')
-    axs[0, 1].set_xlabel(r'Diameter ($\mu$m)')
+                        f'{categories_particles[model.infected.expiratory_activity - 1]}', fontsize=14)
+    axs[0, 1].set_ylabel('Particle emission\nconcentration (cm$^{-3}$)', fontsize=12)
+    axs[0, 1].set_xlabel(r'Diameter ($\mu$m)', fontsize=12)
 
-    categories = ("seated", "standing", "light activity", "moderate activity", "heavy activity")
+    categories = ("Seated", "Standing", "Light activity", "Moderate activity", "Heavy activity")
     axs[1, 0].set_title(f'Breathing rate - '
-                        f'{categories[model.infected.breathing_category - 1]}')
-    axs[1, 0].set_xlabel('Breathing rate (m$^3$ h$^{-1}$)')
+                        f'{categories[model.infected.breathing_category - 1]}', fontsize=14)
+    axs[1, 0].set_xlabel('BR (m$^3$ h$^{-1}$)', fontsize=12)
 
     top = axs[1, 1].get_ylim()[1]
-    axs[1, 1].set_title('Quantum generation rate')
-    axs[1, 1].set_xlabel('qR (log$_{10}$(q h$^{-1}$))')
+    axs[1, 1].set_title('Quantum generation rate', fontsize=14)
+    axs[1, 1].set_xlabel('qR (log$_{10}$(q h$^{-1}$))', fontsize=12)
     mean, std = np.mean(qRs), np.std(qRs)
     axs[1, 1].annotate('', xy=(mean + std, top * 0.88), xytext=(np.max(qRs), top * 0.88),
                        arrowprops={'arrowstyle': '<|-|>', 'ls': 'dashed'})
-    axs[1, 1].text(mean + std + 0.1, top * 0.92, 'Superspreader', fontsize=10)
+    axs[1, 1].text(mean + std + 0.1, top * 0.92, 'Superspreader', fontsize=11)
 
     lines = [mlines.Line2D([], [], color=color, markersize=15, label=label, linestyle=style)
              for color, label, style in zip(['grey', 'black', 'lightgrey'],
                                             ['Mean', 'Median', 'Standard deviation'],
                                             ['solid', 'solid', 'dashed'])]
 
-    fig.legend(handles=lines, loc="upper left")
+    fig.legend(handles=lines, loc="upper left", fontsize=12)
 
     print_qr_info(np.asarray(qRs))
 
@@ -1023,7 +1023,7 @@ def plot_concentration_curve(model: MCExposureModel):
 
     plt.xlabel('Time (h)', fontsize=14)
     plt.ylabel('Concentration (q m$^{-3}$)', fontsize=14)
-    plt.title('Concentration of infectious quantum', fontsize=14)
+    #plt.title('Concentration of infectious quantum', fontsize=14)
     plt.plot([start, stop], [upper_threshold, upper_threshold], linestyle='dotted', color='grey')
     plt.plot([start, stop], [lower_threshold, lower_threshold], linestyle='dotted', color='grey')
     plt.ylim(0, top)
@@ -1182,8 +1182,8 @@ def compare_viruses_qr(violins: bool = True) -> None:
     ax.set_yticks([i for i in range(-6, 7, 2)])
     ax.set_yticklabels(['$10^{' + str(i) + '}$' for i in range(-6, 7, 2)])
 
-    plt.suptitle('Quantum generation rates using\nWells-Riley infection model', y=0.92, fontsize=12)
-    ax.set_xlabel('Respiratory Viruses', fontsize=12)
+    #plt.suptitle('Quantum generation rates using\nWells-Riley infection model', y=0.92, fontsize=12)
+    ax.set_xlabel('\nRespiratory Viruses', fontsize=12)
     ax.set_ylabel('Quantum generation rate (q h$^{-1}$)', fontsize=12)
 
     plt.tight_layout()
