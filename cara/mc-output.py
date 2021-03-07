@@ -12,34 +12,41 @@ from cara.model_scenarios import *
 #print(np.quantile(chorale_model.infection_probability(),0.1))
 
 #plot_pi_vs_exposure_time(chorale_model, ['model1', 'model2'])
-plot_pi_vs_exposure_time(ski_cabin_model_baseline_exposure_time, ['model1', 'model2'],
-                         colors=['red', 'green'],
-                         linestyles=['dotted', 'dashed'],
-                         points=20,
-                         time_in_minutes=True,
-                         normalize_y_axis=True)
+#print(np.mean(ski_cabin_model_baseline_20[1].infection_probability()))
+#plot_pi_vs_exposure_time(ski_cabin_model_baseline_exposure_time+ski_cabin_model_baseline_exposure_time_FFP2, ['Ski cabin - surgical masks', 'Ski cabin - no masks','Ski cabin - FFP2 masks',''],
+#                         colors=['#1f77b4','tomato', 'seagreen', 'seagreen'],
+#                         linestyles=['solid', 'dashed', '-.', '-.'],
+#                         points=20,
+#                         time_in_minutes=True,
+#                         normalize_y_axis=True)
 
-# compare_viruses_qr(violins=True)
+compare_viruses_qr(violins=True)
 
 # print_qd_info(large_population_baselines[0])
 
 #print(np.mean(shared_office_model[1].infection_probability()))
 #composite_plot_pi_vs_viral_load([shared_office_worst_model[1], shared_office_model[1], shared_office_better_model[1]],
-#                                 labels=['No mask &\nwindows closed', 'Baseline', 'Baseline +\nHEPA filter'],
+#                                 labels=['No mask &\nwindows closed', 'Baseline:Windows\nopen (10min/2h)', 'Windows open\n(10min/2h) +\nHEPA filter'],
 #                                 colors=['tomato', '#1f77b4', 'limegreen'],
 #                                 title='Shared office scenario',
 #                                 vl_points=200)
 #composite_plot_pi_vs_viral_load([classroom_model_no_vent[1], classroom_model[1], classroom_model_with_hepa[1], classroom_model_full_open_multi[1], classroom_model_full_open_multi_masks[1]],
-#                                 labels=['Windows closed', 'Baseline:(windows 10min/2h)', 'Baseline:(windows 10min/2h)\n+ HEPA', 'Multiple windows open', 'Multiple windows open\n+masks'],
+#                                 labels=['Windows closed', 'Baseline:Windows\nopen (10min/2h)', 'Windows open\n(10min/2h) + HEPA', 'Multiple windows open', 'Multiple windows open\n+masks'],
 #                                 colors=['tomato','#1f77b4', 'dodgerblue', 'seagreen', 'limegreen'],
 #                                 title='Classroom scenario',
 #                                 vl_points=200)
 
-# composite_plot_pi_vs_viral_load([ski_cabin_model_60[1], ski_cabin_model_30[1], ski_cabin_model_20[1], ski_cabin_model_10[1]],
-#                                  labels=['60 min', '30 min', 'Baseline: 20 min', '10 min'],
-#                                  colors=['tomato', 'lightsalmon', '#1f77b4', 'limegreen'],
-#                                  title='Ski cabin scenario',
-#                                  vl_points=200)
+#composite_plot_pi_vs_viral_load([ski_cabin_model_60[1], ski_cabin_model_30[1], ski_cabin_model_baseline_20[1], ski_cabin_model_10[1]],
+#                                 labels=['60 min', '30 min', 'Baseline: 20 min', '10 min'],
+#                                 colors=['tomato', 'lightsalmon', '#1f77b4', 'limegreen'],
+#                                 title='',
+#                                 vl_points=200)
+#
+#composite_plot_pi_vs_viral_load([ski_cabin_model_baseline_20_no_mask[1], ski_cabin_model_baseline_20[1], ski_cabin_model_baseline_20_FFP2[1]],
+#                                 labels=['20min\nno masks', 'Baseline: 20 min\nsurgical mask', '20 min\nFFP2 mask'],
+#                                 colors=['tomato', '#1f77b4','seagreen'],
+#                                 title='',
+#                                 vl_points=200)
 
 #compare_concentration_curves([classroom_model_no_vent[1], classroom_model[1], classroom_model_with_hepa[1], classroom_model_full_open_multi[1]],
 #                             labels=['Windows closed', 'Baseline:(windows 10min/2h)', 'Baseline:(windows 10min/2h) + HEPA', 'Multiple windows open'],
@@ -67,7 +74,7 @@ plot_pi_vs_exposure_time(ski_cabin_model_baseline_exposure_time, ['model1', 'mod
 # compare_infection_probabilities_vs_viral_loads(*exposure_models)
 #
 #
-# present_model(exposure_models[0].concentration_model)
+#present_model(exposure_models[0].concentration_model, title='')
 # plot_pi_vs_qid(fixed_vl_exposure_models, labels=['Viral load = $10^{' + str(i) + '}$' for i in range(6, 11)],
 #                qid_min=5, qid_max=2000, qid_samples=200)
 #
