@@ -384,11 +384,22 @@ class Virus:
 Virus.types = {
     'SARS_CoV_2': Virus(
         halflife=1.1,
-        viral_load_in_sputum=10e8,
+        viral_load_in_sputum=1e9,
         # No data on coefficient for SARS-CoV-2 yet.
         # It is somewhere between 0.001 and 0.01 to have a 50% chance
         # to cause infection. i.e. 1000 or 100 SARS-CoV viruses to cause infection.
         coefficient_of_infectivity=0.02,
+    ),
+    'SARS_CoV_2_B117': Virus(
+        # also called VOC-202012/01
+        halflife=1.1,
+        viral_load_in_sputum=1e9,
+        coefficient_of_infectivity=1/30.,
+    ),
+    'SARS_CoV_2_P1': Virus(
+        halflife=1.1,
+        viral_load_in_sputum=1e9,
+        coefficient_of_infectivity=0.045,
     ),
 }
 

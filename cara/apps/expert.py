@@ -226,6 +226,7 @@ class ModelWidgets(View):
         self.widget.children += (self._build_ventilation(node.concentration_model.ventilation),)
         self.widget.children += (self._build_infected(node.concentration_model.infected),)
         self.widget.children += (self._build_exposed(node),)
+        self.widget.children += (self._build_infectivity(node.concentration_model.infected),)
 
     def _build_exposed(self, node):
         return collapsible([widgets.HBox([
@@ -457,6 +458,27 @@ class ModelWidgets(View):
         )
         return w
 
+    def _build_infectivity(self,node):
+        return collapsible([widgets.HBox([
+            self._build_virus(node.virus),
+        ])], title="Virus variant")
+
+    def _build_virus(self, node):
+        virus = node.dcs_instance()
+        for name, virus_ in models.Virus.types.items():
+            if virus == virus_:
+                break
+        virus_choice = widgets.Select(options=list(models.Virus.types.keys()), value=name)
+
+        def on_virus_change(change):
+            node.dcs_select(change['new'])
+        virus_choice.observe(on_virus_change, names=['value'])
+
+        return widget_group(
+            [[widgets.Label("Virus"), virus_choice]]
+        )
+
+
     def present(self):
         return self.widget
 
@@ -497,6 +519,12 @@ class CARAStateBuilder(state.StateBuilder):
         return state.DataclassStatePredefined(
             models.Mask,
             choices=models.Mask.types,
+        )
+
+    def build_type_Virus(self, _: dataclasses.Field):
+        return state.DataclassStatePredefined(
+            models.Virus,
+            choices=models.Virus.types,
         )
 
     def build_type__VentilationBase(self, _: dataclasses.Field):

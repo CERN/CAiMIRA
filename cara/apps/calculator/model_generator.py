@@ -49,6 +49,7 @@ class FormData:
     simulation_name: str
     total_people: int
     ventilation_type: str
+    virus_type: str
     volume_type: str
     windows_duration: float
     windows_frequency: float
@@ -130,6 +131,7 @@ class FormData:
                              ('mask_type', MASK_TYPES),
                              ('mask_wearing_option', MASK_WEARING_OPTIONS),
                              ('ventilation_type', VENTILATION_TYPES),
+                             ('virus_type', VIRUS_TYPES),
                              ('volume_type', VOLUME_TYPES),
                              ('window_opening_regime', WINDOWS_OPENING_REGIMES),
                              ('window_type', WINDOWS_TYPES)]
@@ -204,8 +206,8 @@ class FormData:
         return mask
 
     def infected_population(self) -> models.InfectedPopulation:
-        # Initializes the virus as SARS_Cov_2
-        virus = models.Virus.types['SARS_CoV_2']
+        # Initializes the virus
+        virus = models.Virus.types[self.virus_type]
 
         scenario_activity_and_expiration = {
             'office': (
@@ -545,6 +547,7 @@ def baseline_raw_form_data():
         'simulation_name': 'Test',
         'total_people': '10',
         'ventilation_type': 'natural_ventilation',
+        'virus_type': 'SARS_CoV_2',
         'volume_type': 'room_volume_explicit',
         'windows_duration': '',
         'windows_frequency': '',
@@ -561,6 +564,7 @@ MECHANICAL_VENTILATION_TYPES = {'mech_type_air_changes', 'mech_type_air_supply',
 MASK_TYPES = {'Type I', 'FFP2'}
 MASK_WEARING_OPTIONS = {'mask_on', 'mask_off'}
 VENTILATION_TYPES = {'natural_ventilation', 'mechanical_ventilation', 'no_ventilation'}
+VIRUS_TYPES = {'SARS_CoV_2', 'SARS_CoV_2_B117', 'SARS_CoV_2_P1'}
 VOLUME_TYPES = {'room_volume_explicit', 'room_volume_from_dimensions'}
 WINDOWS_OPENING_REGIMES = {'windows_open_permanently', 'windows_open_periodically', 'not-applicable'}
 WINDOWS_TYPES = {'window_sliding', 'window_hinged', 'not-applicable'}

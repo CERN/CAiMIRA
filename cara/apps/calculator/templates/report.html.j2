@@ -20,7 +20,7 @@
 	<p class=subtitle> Created {{ creation_date }} using model version {{ form.model_version }}</p><br>
 
   <p><strong>Applicable rules: <br>
-  Please ensure that this scenario conforms to current <a href="https://hse.cern/covid-19-information"> CERN HSE rules<a> (minimum ventilation requirements, mask wearing and the maximum number of people permitted in a space).</strong> <br>
+  Please ensure that this scenario conforms to current <a href="https://hse.cern/covid-19-information"> CERN HSE rules</a> (minimum ventilation requirements, mask wearing and the maximum number of people permitted in a space).</strong> <br>
   The results of this simulation are colour coded according to the risk values authorized at CERN (approved in December 2020):
   <ul><li>Events with a <span class="green_bkg">P(i) less than 5%</span> may go ahead without further mitigation measures.</li>
     <li>Events with a <span class="yellow_bkg">P(i) between 5% and 15%</span> shall be subject to ALARA principles (see footnote) to minimise the risk before proceeding.</li>
@@ -28,13 +28,22 @@
   </ul>
   </p>
 
-  <p><strong>Simulation:</strong><p>
+  <p><strong>Simulation:</strong></p>
 
 	<p>Simulation Name: {{ form.simulation_name }}</p>
 	<p>Room Number: {{ form.room_number }}</p>
 	
 	<p class="data_title">Input data:</p>
 	<ul>
+		<li><p class="data_text">Virus variant:
+        {% if form.virus_type == "SARS_CoV_2" %}
+        SARS-CoV-2 (nominal strain)
+        {% elif form.virus_type == "SARS_CoV_2_B117" %}
+        <a href="https://www.ecdc.europa.eu/en/publications-data/covid-19-risk-assessment-spread-new-sars-cov-2-variants-eueea">SARS-CoV-2 (B.1.1.7)</a>
+        {% elif form.virus_type == "SARS_CoV_2_P1" %}
+        <a href="https://github.com/CADDE-CENTRE/Novel-SARS-CoV-2-P1-Lineage-in-Brazil/blob/main/manuscript/FINAL_P1_MANUSCRIPT_25-02-2021_combined.pdf">SARS-CoV-2 (P.1)</a>
+        {% endif %}
+        </p></li>
 		<li><p class="data_text">Room Volume: {{ model.concentration_model.room.volume }} m³</p></li>
 	</ul>
 
@@ -210,7 +219,7 @@ In this scenario, the estimated probability of one exposed occupant getting infe
   See the footnotes for more details on the ALARA principles.
 {% elif (prob_inf < 5) %}
   This level of risk is within acceptable parameters, no further actions are required.
-{% endif %}
+{% endif %}</p>
 	<p class="data_title">Exposure graph:</p>
 	<img id="scenario_concentration_plot" src="{{ scenario_plot_src }}">
 
