@@ -39,11 +39,16 @@ This has a significant effect on the probability of infection.
 The choices are:
   * `SARS-CoV-2 (nominal strain)`, covering typical strains and varaints which are not of concern from an epidemiologic point of view of the virus;
   * `SARS-CoV-2 (B.1.1.7)`, the VOC first identified in the UK at the end of 2020 which is found to be approximately 1.5x more transmissible compared to the non-VOCs; 
-  * `SARS-CoV-2 (P.1)`, the VOC first identified in Brazil in January 2021 which is found to be approximately 2.25x more transmissible compared to the non-VOCs.
+  * `SARS-CoV-2 (P.1)`, the VOC first identified in Brazil in January 2021 which is found to be approximately 2.2x more transmissible compared to the non-VOCs.
 
 The user can base their choice according to the prevalence of the different variants in the local area. Access to this information can be found here:
   * Geneva: https://www.covid19.admin.ch/fr/epidemiologic/virus-variants?detGeo=GE
   * Ain (France): https://www.santepubliquefrance.fr/dossiers/coronavirus-covid-19/covid-19-cartographie-des-variants-en-france-donnees-par-region-et-par-departement
+
+N.B. The transmission data for the P.1 variant has been taken from a study data gathered in Manaus, Brazil where the variant was first observed.
+The local population in Manaus had very high levels of Covid-19 antibodies (>67%) in recent months.
+This factor has been taken into account by the authors of the study, via statistical adjustments to the transmission value (i.e. it has been increased, to account for spread in a population with significant acquired Covid-19 immunity).
+However, this value may be revised in the future as more studies of P.1 transmission in different geographical locations become available.  
 
 ### Room Data
 
