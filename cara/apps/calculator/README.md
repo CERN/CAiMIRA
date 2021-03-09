@@ -31,6 +31,20 @@ The simulation name has no bearing on the calculation.
  
 A room number is included, if you do not wish to use a formal room number any reference will do - for example "57/2-004"
 
+### Virus Data
+
+Please choose the correct virus strain or any reported Variant of Concern (VOC) from the list. 
+Changing this setting alters the properties of the virus which are used for the simulation.
+This has a significant effect on the probability of infection. 
+The choices are:
+  * `SARS-CoV-2 (nominal strain)`, covering typical strains and varaints which are not of concern from an epidemiologic point of view of the virus;
+  * `SARS-CoV-2 (B.1.1.7)`, the VOC first identified in the UK at the end of 2020 which is found to be approximately 1.5x more transmissible compared to the non-VOCs; 
+  * `SARS-CoV-2 (P.1)`, the VOC first identified in Brazil in January 2021 which is found to be approximately 2.25x more transmissible compared to the non-VOCs.
+
+The user can base their choice according to the prevalence of the different variants in the local area. Access to this information can be found here:
+  * Geneva: https://www.covid19.admin.ch/fr/epidemiologic/virus-variants?detGeo=GE
+  * Ain (France): https://www.santepubliquefrance.fr/dossiers/coronavirus-covid-19/covid-19-cartographie-des-variants-en-france-donnees-par-region-et-par-departement
+
 ### Room Data
 
 Please enter either the room volume (in m³) or both the floor area (m²) and the room height (m).
