@@ -166,8 +166,10 @@ def readable_minutes(minutes: int) -> str:
 def non_zero_percentage(percentage: int) -> str:
     if percentage < 0.01:
         return "<0.01%"
-    else:
+    elif percentage < 1:
         return "{:0.2f}%".format(percentage)
+    else:
+        return "{:0.0f}%".format(percentage)
 
 
 def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, models.ExposureModel]:
