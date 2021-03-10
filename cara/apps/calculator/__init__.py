@@ -87,11 +87,9 @@ class CalculatorForm(BaseRequestHandler):
 
 class ReadmeHandler(BaseRequestHandler):
     def get(self):
-        template = self.settings['template_environment'].get_template("page.html.j2")
-        markdown = (Path(__file__).parent / 'README.md').read_text()
+        template = self.settings['template_environment'].get_template("userguide.html.j2")
         readme = template.render(
             active_page="calculator/user-guide",
-            contents=mistune.markdown(markdown),
             user=self.current_user
         )
         self.finish(readme)

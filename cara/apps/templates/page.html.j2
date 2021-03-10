@@ -9,7 +9,9 @@
           <div class="component-row__column component-row__center section-has-no-column col-md-12 col-sm-12 col-xs-12">
             <div class="box-effects-wrapper ">
               <div class="text-component text-component-page clearfix">
+                {% block contents %}
                 {{ contents }}
+                {% endblock contents %}
               </div>
             </div>
           </div>
