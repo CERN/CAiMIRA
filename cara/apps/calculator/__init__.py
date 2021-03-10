@@ -1,10 +1,12 @@
 import datetime
+import base64
 import html
 import json
 import os
 from pathlib import Path
 import traceback
 import uuid
+import zlib
 
 import jinja2
 from tornado.web import Application, RequestHandler, StaticFileHandler
@@ -131,6 +133,14 @@ class CalculatorForm(BaseRequestHandler):
         self.finish(report)
 
 
+class CompressedCalculatorFormInputs(BaseRequestHandler):
+    def get(self, compressed_args: str):
+        # Convert a base64 zlib encoded shortened URL into a non compressed
+        # URL, and redirect.
+        args = zlib.decompress(base64.b64decode(compressed_args)).decode()
+        self.redirect(f'/calculator?{args}')
+
+
 class ReadmeHandler(BaseRequestHandler):
     def get(self):
         template = self.settings['template_environment'].get_template("userguide.html.j2")
@@ -146,6 +156,7 @@ def make_app(debug=False, prefix='/calculator'):
     calculator_static_dir = Path(__file__).absolute().parent / 'static'
     urls = [
         (r'/?', LandingPage),
+        (r'/c/(.*)', CompressedCalculatorFormInputs),
         (r'/static/(.*)', StaticFileHandler, {'path': static_dir}),
         (prefix + r'/?', CalculatorForm),
         (prefix + r'/report', ConcentrationModel),
