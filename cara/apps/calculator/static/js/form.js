@@ -486,12 +486,6 @@ $(document).ready(function () {
   // as a result of a forward/back browser action. If that is the case, update
   // the visibility of some of our inputs.
 
-  // When the ventilation_type changes we want to make its respective
-  // children show/hide.
-  $("input[type=radio][name=ventilation_type]").change(on_ventilation_type_change);
-  // Call the function now to handle forward/back button presses in the browser.
-  on_ventilation_type_change();
-
   // Chrome fix - on back button infected break DIV not shown
   if (document.getElementById("infected_dont_have_breaks_with_exposed").checked) {
     $("#DIVinfected_breaks").show();
@@ -501,6 +495,12 @@ $(document).ready(function () {
 
   //Check all radio buttons previously selected
   $("input[type=radio]:checked").each(function() {require_fields(this)});
+
+  // When the ventilation_type changes we want to make its respective
+  // children show/hide.
+  $("input[type=radio][name=ventilation_type]").change(on_ventilation_type_change);
+  // Call the function now to handle forward/back button presses in the browser.
+  on_ventilation_type_change();
 
   // Setup the maximum number of people at page load (to handle back/forward),
   // and update it when total people is changed.
