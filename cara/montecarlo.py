@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.lines as mlines
 from sklearn.neighbors import KernelDensity
-TIME_STEP = 0.01
+TIME_STEP = 0.001
 
 USE_SCOEH = False
 
@@ -688,7 +688,7 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
     axs[1, 0].set_xticklabels(['$10^{' + str(i) + '}$' for i in range(2, 13, 2)])
     axs[1, 0].set_xlim(2, 12)
     axs[1, 0].set_xlabel('Viral load (RNA copies mL$^{-1}$)', fontsize=12)
-    axs[0, 0].set_ylabel('Probability of infection\n$P(I|qID=60)$', fontsize=12)
+    axs[0, 0].set_ylabel('Probability of infection\n$P(\,\mathtt{I}\,|\,\mathrm{vl}\,)$', fontsize=12)
     plt.suptitle(title, fontsize=12)
 
     axs[0, 0].text(11, -0.01, '$(i)$')
@@ -827,8 +827,8 @@ def generate_cdf_curves_vs_qr(masked: bool = False, samples: int = 200000, qid: 
     """
     fig, axs = plt.subplots(3, 1, sharex='all')
 
-    plt.suptitle("$F(qR|qID=$" + str(qid) + "$)$",fontsize=14, y=0.93)
-    fig.text(0.02, 0.5, 'Cumulative Distribution Function', va='center', rotation='vertical',fontsize=14)
+    plt.suptitle("$F(\mathrm{qR}|\mathrm{qID}=$" + str(qid) + "$)$",fontsize=16, y=0.93)
+    fig.text(0.02, 0.5, '', va='center', rotation='vertical',fontsize=16)
 
     scenarios = [MCInfectedPopulation(
         number=1,
@@ -853,17 +853,17 @@ def generate_cdf_curves_vs_qr(masked: bool = False, samples: int = 200000, qid: 
 
     for i in range(3):
         axs[i].hist(qr_values[3 * i:3 * (i + 1)], bins=2000, histtype='step',
-                    color=colors, cumulative=True, range=(left, right))
-        axs[i].set_xlim(left, right)
+                    color=colors, cumulative=True, range=(-7, 6))
+        axs[i].set_xlim(-6, 6)
         axs[i].set_yticks([0, samples / 2, samples])
         axs[i].set_yticklabels(['0.0', '0.5', '1.0'])
         axs[i].yaxis.set_label_position("right")
-        axs[i].set_ylabel(activities[i],fontsize=12)
+        axs[i].set_ylabel(activities[i], fontsize=14)
         axs[i].grid(linestyle='--')
         axs[0].legend(handles=lines, loc='upper left')
 
-    plt.xlabel('qR (q h$^{-1}$)', fontsize=12)
-    tick_positions = np.arange(int(np.ceil(left)), int(np.ceil(right)), 2)
+    plt.xlabel('$\mathrm{qR}$ (q h$^{-1}$)', fontsize=16)
+    tick_positions = np.arange(-6, 6, 2)
     plt.xticks(ticks=tick_positions, labels=['$\;10^{' + str(i) + '}$' for i in tick_positions])
 
     fig.set_figheight(8)
@@ -1258,6 +1258,6 @@ def plot_pi_vs_exposure_time(exp_models: typing.List[MCExposureModel], labels: t
 
     plt.title('')
     plt.xlabel(f'Travel time ({"min" if time_in_minutes else "h"})', fontsize=12)
-    plt.ylabel('Probability of infection\n$P(I|qID=60)$', fontsize=12)
+    plt.ylabel('Probability of infection\n$P(\,\mathtt{I}\,|\,\mathrm{vl}\,)$', fontsize=12)
     plt.legend()
     plt.show()
