@@ -1,6 +1,6 @@
 {% extends "layout.html.j2" %}
 
-{% set MODEL_VERSION="v1.5.0" %}
+{% set MODEL_VERSION="v1.5.1" %}
 {% set DEBUG=False %}
 {% set active_page="calculator/" %}
 
@@ -152,6 +152,8 @@
       <option value="office">Office</option>
       <option value="meeting">Meeting</option>
       <option value="callcentre">Call Centre</option>
+      <option value="controlroom-day">Control Room - Day shift</option>
+      <option value="controlroom-night">Control Room - Night shift</option>
       <option value="library">Library</option>
       <option value="lab">Laboratory</option>
       <option value="workshop">Workshop</option>
@@ -296,6 +298,8 @@
     <li>Office = all seated, talking 33% of the time,</li>
     <li>Meeting = all seated, talking time shared between all persons,</li>
     <li>Call Centre = all seated, continuous talking,</li>
+    <li>Control Room (day shift) = all seated, talking 50% of the time,</li>
+    <li>Control Room (night shift) = all seated, talking 10% of the time,</li>
     <li>Library = all seated, no talking, just breathing,</li>
     <li>Laboratory = light physical activity, talking 50% of the time,</li>
     <li>Workshop = moderate physical activity, talking 50% of the time,</li>

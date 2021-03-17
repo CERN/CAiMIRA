@@ -215,6 +215,16 @@ class FormData:
                 # Mostly silent in the office, but 1/3rd of time talking.
                 {'Talking': 1, 'Breathing': 2}
             ),
+            'controlroom-day': (
+                'Seated',
+                # Daytime control room shift, 50% talking.
+                {'Talking': 1, 'Breathing': 1}
+            ),
+            'controlroom-night': (
+                'Seated',
+                # Nightshift control room, 10% talking.
+                {'Talking': 1, 'Breathing': 9}
+            ),
             'meeting': (
                 'Seated',
                 # Conversation of N people is approximately 1/N% of the time talking.
@@ -253,6 +263,8 @@ class FormData:
     def exposed_population(self) -> models.Population:
         scenario_activity = {
             'office': 'Seated',
+            'controlroom-day': 'Seated',
+            'controlroom-night': 'Seated',
             'meeting': 'Seated',
             'callcentre': 'Seated',
             'library': 'Seated',
@@ -559,7 +571,7 @@ def baseline_raw_form_data():
     }
 
 
-ACTIVITY_TYPES = {'office', 'meeting', 'training', 'callcentre', 'library', 'workshop', 'lab', 'gym'}
+ACTIVITY_TYPES = {'office', 'meeting', 'training', 'callcentre', 'controlroom-day', 'controlroom-night', 'library', 'workshop', 'lab', 'gym'}
 MECHANICAL_VENTILATION_TYPES = {'mech_type_air_changes', 'mech_type_air_supply', 'not-applicable'}
 MASK_TYPES = {'Type I', 'FFP2'}
 MASK_WEARING_OPTIONS = {'mask_on', 'mask_off'}

@@ -112,6 +112,10 @@
 		Meeting – typical scenario with all persons seated, one person talking at a time.
 		{% elif form.activity_type == "callcentre" %}
 		Call Centre = typical office-like scenario with all persons seated, all talking continuously.
+		{% elif form.activity_type == "controlroom-day" %}
+		Control Room (Day Shift) = specific control room scenario, all persons seated, all talking 50% of the time.
+		{% elif form.activity_type == "controlroom-night" %}
+		Control Room (Night Shift) = specific control room scenario with all persons seated, all talking for 10% of the time.
 		{% elif form.activity_type == "library" %}
 		Library = Library scenario with all persons seated, breathing and not talking.
     	{% elif form.activity_type == "workshop" %}
