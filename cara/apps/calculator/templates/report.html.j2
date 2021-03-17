@@ -24,7 +24,7 @@
   The results of this simulation are colour coded according to the risk values authorized at CERN (approved in December 2020):
   <ul><li>Events with a <span class="green_bkg">P(i) less than 5%</span> may go ahead without further mitigation measures.</li>
     <li>Events with a <span class="yellow_bkg">P(i) between 5% and 15%</span> shall be subject to ALARA principles (see footnote) to minimise the risk before proceeding.</li>
-    <li>Events with a <span class="red_bkg">P(i) exceeding 15%</span> may not take place until additional measures are in place and a risk reduction has been performed.</li>
+    <li>Events with a <span class="red_bkg">P(i) exceeding 15% or a number of expected new cases that exceeds 1</span> may not take place until additional measures are in place and a risk reduction has been performed.</li>
   </ul>
   </p>
 
@@ -204,7 +204,7 @@
 	<p class="result_title">Results:</p>
 		<p class="data_text">
  <span
-{% if prob_inf > 15 %}
+{% if ((prob_inf > 15) or (expected_new_cases >= 1)) %}
     class="red_bkg"><strong>Not Acceptable:</strong>
 {% elif 5 <= prob_inf <= 15 %}
     class="yellow_bkg"><strong> Attention:</strong>
@@ -215,8 +215,8 @@
 
 In this scenario, the estimated probability of one exposed occupant getting infected P(i) is {{ prob_inf | non_zero_percentage }} and the expected number of new cases is {{ expected_new_cases | float_format }}.
   
-{% if (prob_inf > 15) %}
-  This exceeds the authorised risk threshold.
+{% if ((prob_inf > 15) or (expected_new_cases >= 1)) %}
+  This exceeds the authorised risk threshold or number of expected new cases.
   The risk level must be reduced before this activity can be undertaken.
 {% elif (5 <= prob_inf <= 15) %}
   This activity has an elevated level of risk, ALARA principles must be applied to minimise the level of risk before undertaking the activity.
@@ -264,7 +264,7 @@ In this scenario, the estimated probability of one exposed occupant getting infe
             </thead>
             <tbody>
             {% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
-                {%if ( scenario_stats.probability_of_infection  > 15) %}
+                {%if (( scenario_stats.probability_of_infection  > 15) or (scenario_stats.expected_new_cases >= 1)) %}
                   <tr class="red_bkg">
                 {% elif (5 <= scenario_stats.probability_of_infection <= 15) %}
                   <tr class="yellow_bkg">
