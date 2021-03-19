@@ -426,11 +426,22 @@ def print_qr_info(log_qr: np.ndarray) -> None:
     print(f"MEAN of log_10(qR) = {np.mean(log_qr)}\n"
           f"SD of log_10(qR) = {np.std(log_qr)}\n"
           f"MEAN of qR = {np.mean(qr_values)}\n"
-          f"SD of qR = {np.std(qr_values)}\n")
+          f"SD of qR = {np.std(qr_values)}\n"
+          f"Median of qR = {np.quantile(qr_values, 0.5)}\n")
 
     for quantile in (0.01, 0.05, 0.25, 0.50, 0.75, 0.95, 0.99):
         print(f"qR_{quantile} = {np.quantile(qr_values, quantile)}")
 
+def present_qR_values(model: MCConcentrationModel) -> None:
+    """
+    Displays a handful of key parameters and results of qR from a given MCConcentrationModel
+    :param model: The MCConcentrationModel representing the scenario to be presented
+    :return: Nothing, parameters are printed
+    """
+
+    qRs = (np.log10(model.infected.emission_rate_when_present()))
+
+    print_qr_info(np.asarray(qRs))
 
 def present_model(model: MCConcentrationModel, bins: int = 200,
                   title: str = 'Summary of $qR$ model parameters') -> None:
