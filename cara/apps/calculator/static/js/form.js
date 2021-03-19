@@ -277,48 +277,56 @@ function validate_form(form) {
 
   //Validate all finish times
   $("input[required].finish_time").each(function() {
-    if (!validateFinishTime(this)) {
-      submit = false;
+    var activity = $(this).data('lunch-for');
+    if (document.getElementById("infected_dont_have_breaks_with_exposed").checked || activity!="infected") {
+      if (!validateFinishTime(this)) {
+        submit = false;
+      }
     }
   });
 
   //Validate all lunch breaks
   if (submit) {
     $("input[required].start_time[data-lunch-for]").each(function() {
-      if (!validateLunchBreak($(this).data('time-group'))) {
-        submit = false;
+      var activity = $(this).data('lunch-for');
+      if (document.getElementById("infected_dont_have_breaks_with_exposed").checked || activity!="infected") {
+        if (!validateLunchBreak($(this).data('time-group'))) {
+          submit = false;
+        }
       }
     });
   }
 
   //Check if breaks length >= activity length
-  $("[data-lunch-for]").each(function() {
-    if (submit) {
-      var activity = $(this).data('lunch-for')
-      var activityBreaksObj= document.getElementById("activity_breaks");
-      removeErrorFor(activityBreaksObj);
+  if (submit) {
+    $("[data-lunch-for]").each(function() {
+      var activity = $(this).data('lunch-for');
+      if (document.getElementById("infected_dont_have_breaks_with_exposed").checked || activity!="infected") {
+        var activityBreaksObj= document.getElementById("activity_breaks");
+        removeErrorFor(activityBreaksObj);
 
-      var lunch_mins = 0;
-      if (document.getElementById(activity+"_lunch_option_yes").checked) {
-        var lunch_start = document.getElementById(activity+"_lunch_start");
-        var lunch_finish = document.getElementById(activity+"_lunch_finish");
-        lunch_mins = parseTimeToMins(lunch_finish.value) - parseTimeToMins(lunch_start.value);
-      }
-    
-      var coffee_breaks = parseInt(document.querySelector('input[name="'+activity+'_coffee_break_option"]:checked').value);
-      var coffee_duration = parseInt(document.getElementById(activity+"_coffee_duration").value);
-      var coffee_mins = coffee_breaks * coffee_duration;
+        var lunch_mins = 0;
+        if (document.getElementById(activity+"_lunch_option_yes").checked) {
+          var lunch_start = document.getElementById(activity+"_lunch_start");
+          var lunch_finish = document.getElementById(activity+"_lunch_finish");
+          lunch_mins = parseTimeToMins(lunch_finish.value) - parseTimeToMins(lunch_start.value);
+        }
       
-      var activity_start = document.getElementById(activity+"_start");
-      var activity_finish = document.getElementById(activity+"_finish");
-      var activity_mins = parseTimeToMins(activity_finish.value) - parseTimeToMins(activity_start.value);
+        var coffee_breaks = parseInt(document.querySelector('input[name="'+activity+'_coffee_break_option"]:checked').value);
+        var coffee_duration = parseInt(document.getElementById(activity+"_coffee_duration").value);
+        var coffee_mins = coffee_breaks * coffee_duration;
+        
+        var activity_start = document.getElementById(activity+"_start");
+        var activity_finish = document.getElementById(activity+"_finish");
+        var activity_mins = parseTimeToMins(activity_finish.value) - parseTimeToMins(activity_start.value);
 
-      if ((lunch_mins + coffee_mins) >= activity_mins) {
-        insertErrorFor(activityBreaksObj, "Length of breaks >= Length of "+activity+" presence");
-        submit = false;
+        if ((lunch_mins + coffee_mins) >= activity_mins) {
+          insertErrorFor(activityBreaksObj, "Length of breaks >= Length of "+activity+" presence");
+          submit = false;
+        }
       }
-    }
-  });
+    });
+  }
 
   //Validate all non zero values
   $("input[required].non_zero").each(function() {
