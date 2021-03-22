@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.lines as mlines
 from sklearn.neighbors import KernelDensity
-TIME_STEP = 0.001
+TIME_STEP = 0.01
 
 USE_SCOEH = False
 
@@ -429,6 +429,7 @@ def print_qr_info(log_qr: np.ndarray) -> None:
           f"SD of qR = {np.std(qr_values)}\n"
           f"Median of qR = {np.quantile(qr_values, 0.5)}\n")
 
+    print(f"Percentiles of qR:")
     for quantile in (0.01, 0.05, 0.25, 0.50, 0.75, 0.95, 0.99):
         print(f"qR_{quantile} = {np.quantile(qr_values, quantile)}")
 
