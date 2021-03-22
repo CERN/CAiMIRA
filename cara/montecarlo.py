@@ -105,6 +105,11 @@ def lognormal(csi: float, lamb: float, samples: int) -> np.ndarray:
 
 @dataclass(frozen=True)
 class MCVirus:
+    """
+    halflife and decay_constant are used indentically as before
+    qID replaces coefficient_of_infectivity to be more in-line with the paper (qID = 1 / COI)
+    no pre-defined virus types
+    """
     #: Biological decay (inactivation of the virus in air)
     halflife: float
 
@@ -119,6 +124,14 @@ class MCVirus:
 
 @dataclass(frozen=True)
 class MCPopulation:
+    """
+    The mask-attribute of original CARA has been reduced to a simple bool indicating whether or not masks are being worn
+    expiratory_activity and breathing_category are integer values corresponding to pre-defined values
+    Unlike original CARA, expiratory activity is an attribute of a general population, not just an infected one. This
+    modification turned out to be unnecessary, so the expiratory activity can be places back into MCInfectedPopulation.
+    The exposed population in the MCExposureModel is currently an instance of the original Population class, as the new
+    MC-specific features were never needed for the exposed subject.
+    """
     """
     Represents a group of people all with exactly the same behaviour and
     situation.
@@ -147,6 +160,27 @@ class MCPopulation:
 
 @dataclass(frozen=True)
 class MCInfectedPopulation(MCPopulation):
+    """
+    The new samples-attribute indicates the number of samples to use for the monte-carlo simulation. Having this as an
+    attribute of the infected population is quite messy, and should probably be changed.
+    The expiratory_activity_weights are added as a way to simulate scenarios of combined expiratory activities. Should
+    be placed in the same class as the expiratory_activity attribute.
+    viral_load can optionally be set to a single float in order to over-ride the use of a distribution. This was mainly
+    used for testing.
+    _generate_viral_loads uses the data defined at the top of this file to generate a kernel density estimation
+    distribution in order to sample randomly from the distribution suggested by the data. This is messy and should be
+    changed.
+    _generate_breathing_rates similarly samples an array from a lognormal distribution specified by parameters at the
+    top of the file.
+    The functions for generating these samples are cached in order to avoid having to re-sample from
+    the distributions when we wanted to plot the histograms of the distributions after running the model.
+    The function _concentration_distribution_without_mask returns a lambda-function which determines the concentration
+    of particles of a given diameter being expirated by the infected subject, which depends on their expiratory
+    activity. In the case that masks are being worn, a pre-defined function for mask-leakage vs diameter is applied in
+    order to simulate the filtration of particles as a function of their diameter. This function is defined at the top
+    of this file in mask_leakage_out. If it is desirable to model different kinds of masks, this function should
+    probably a member function of some Mask-class.
+    """
     #: The virus with which the population is infected.
     virus: MCVirus
 
@@ -259,6 +293,9 @@ class MCInfectedPopulation(MCPopulation):
 
 @dataclass(frozen=True)
 class MCConcentrationModel:
+    """
+    No significant modifications compared to models.py
+    """
     room: models.Room
     ventilation: models._VentilationBase
     infected: MCInfectedPopulation
@@ -320,7 +357,8 @@ class MCConcentrationModel:
 class BuonannoSpecificInfectedPopulation:
     """
     A class representing a specific case described in a paper by Buonanno et al., previously used to compare our
-    results with the results of the paper.
+    results with the results of the paper. Not used anywhere in the paper or elsewhere as far as I am aware, and can
+    most likely be discarded.
     """
     #: The virus with which the population is infected.
     virus: MCVirus
@@ -343,6 +381,14 @@ class BuonannoSpecificInfectedPopulation:
 
 @dataclass(frozen=True)
 class MCExposureModel:
+    """
+    The quanta_exposure function has been modified in order to process arrays of a different shape compared to original
+    CARA, but essentially does the exact same thing.
+    The infection_probability function now takes into account a deposition factor (f_dep) which indicates the portion
+    of inhaled particles which are not subsequently exhaled.
+    The reproduction_number function was never needed and thus not implemented for the MC approach, but doing so would
+    probably be trivial.
+    """
     #: The virus concentration model which this exposure model should consider.
     concentration_model: MCConcentrationModel
 
