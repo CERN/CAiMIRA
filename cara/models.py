@@ -236,7 +236,7 @@ class WindowOpening(Ventilation):
     def air_exchange(self, room: Room, time: float) -> float:
         # If the window is shut, no air is being exchanged.
         if not self.active.triggered(time):
-            return 0.
+            return 0.25
 
         # Reminder, no dependence on time in the resulting calculation.
         inside_temp = self.inside_temp.value(time)

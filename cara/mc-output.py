@@ -7,7 +7,7 @@ from cara.model_scenarios import *
 #print(np.mean(classroom_model[0].infection_probability()))
 #print(np.mean(classroom_model[1].infection_probability()))
 #print(np.mean(chorale_model.infection_probability())+np.std(chorale_model.infection_probability()))
-#print(np.quantile(chorale_model.infection_probability(),0.8))
+#print(np.quantile(chorale_model[0].infection_probability(),0.8))
 #print(np.quantile(chorale_model.infection_probability(),0.90))
 #print(np.quantile(chorale_model.infection_probability(),0.1))
 
@@ -20,20 +20,20 @@ from cara.model_scenarios import *
 #                         time_in_minutes=True,
 #                         normalize_y_axis=True)
 
-compare_viruses_qr(violins=True)
+#compare_viruses_qr(violins=True)
 
-# print_qd_info(large_population_baselines[0])
+#print_qd_info(waiting_room_model_full_winter[1])
 
 #print(np.mean(shared_office_model[1].infection_probability()))
 #composite_plot_pi_vs_viral_load([shared_office_worst_model[1], shared_office_model[1], shared_office_better_model[1]],
 #                                 labels=['No mask &\nwindows closed', 'Baseline:Windows\nopen (10min/2h)', 'Windows open\n(10min/2h) +\nHEPA filter'],
 #                                 colors=['tomato', '#1f77b4', 'limegreen'],
-#                                 title='Shared office scenario',
+#                                 title='',
 #                                 vl_points=200)
 #composite_plot_pi_vs_viral_load([classroom_model_no_vent[1], classroom_model[1], classroom_model_with_hepa[1], classroom_model_full_open_multi[1], classroom_model_full_open_multi_masks[1]],
 #                                 labels=['Windows closed', 'Baseline:Windows\nopen (10min/2h)', 'Windows open\n(10min/2h) + HEPA', 'Multiple windows open', 'Multiple windows open\n+masks'],
 #                                 colors=['tomato','#1f77b4', 'dodgerblue', 'seagreen', 'limegreen'],
-#                                 title='Classroom scenario',
+#                                 title='',
 #                                 vl_points=200)
 
 #composite_plot_pi_vs_viral_load([ski_cabin_model_60[1], ski_cabin_model_30[1], ski_cabin_model_baseline_20[1], ski_cabin_model_10[1]],
@@ -49,16 +49,16 @@ compare_viruses_qr(violins=True)
 #                                 vl_points=200)
 
 #compare_concentration_curves([classroom_model_no_vent[1], classroom_model[1], classroom_model_with_hepa[1], classroom_model_full_open_multi[1]],
-#                             labels=['Windows closed', 'Baseline:(windows 10min/2h)', 'Baseline:(windows 10min/2h) + HEPA', 'Multiple windows open'],
+#                             labels=['Windows closed', 'Baseline: Windows open (10min/2h)', 'Windows open (10min/2h) + HEPA', 'Multiple windows open'],
 #                             colors=['tomato','#1f77b4', 'seagreen', 'limegreen'],
-#                             title='Classroom scenario'
+#                             title=''
 #                             )
-
+#
 #compare_concentration_curves([waiting_room_model[1], waiting_room_model_full_summer[1],
 #                              waiting_room_model_full_winter[1], waiting_room_model_periodic_winter[1]],
-#                             labels=['Baseline:(windows closed)', 'Windows open (summer)', 'Windows open (winter)', 'Windows open 5min/20min (winter)'],
+#                             labels=['Baseline: Windows closed', 'Windows open (summer)', 'Windows open (winter)', 'Windows open 5min/20min (winter)'],
 #                             colors=['#1f77b4', 'darkorange', 'deepskyblue', 'lightskyblue'],
-#                             title='Waiting room scenario'
+#                             title=''
 #                             )
 
 #plot_pi_vs_viral_load([shared_office_model[1]], labels=['Baseline'],title='')
@@ -91,3 +91,9 @@ compare_viruses_qr(violins=True)
 #     plt.title(f'Probability of infection in baseline case - {"English" if model.concentration_model.infected.qid == 60 else "Original"} variant')
 #     plt.yticks([], [])
 #     plt.show()
+
+#composite_plot_pi_vs_viral_load([shared_office_worst_model[1], shared_office_worst_model_infiltration[1]],
+#                                 labels=['No mask &\nwindows closed', 'Baseline:Windows\nopen (10min/2h)', 'Windows open\n(10min/2h) +\nHEPA filter'],
+#                                 colors=['tomato', '#1f77b4', 'limegreen'],
+#                                 title='Shared office scenario',
+#                                 vl_points=200)
