@@ -21,10 +21,21 @@ print('\n<<<<<<<<<<< qR for Shouting / Singing, light activity >>>>>>>>>>>')
 present_qR_values(qR_models[2].concentration_model)
 
 # qR values for shouting and light activity - qID=100, 500 and 1000
-print('\n<<<<<<<<<<< shouting and light activity - qID=100 >>>>>>>>>>>')
+print('\n<<<<<<<<<<< Shouting and light activity - qID=100 >>>>>>>>>>>')
 present_qR_values(qR_models_shout_light[0].concentration_model)
-print('\n<<<<<<<<<<< shouting and light activity - qID=500 >>>>>>>>>>>')
+print('\n<<<<<<<<<<< Shouting and light activity - qID=500 >>>>>>>>>>>')
 present_qR_values(qR_models_shout_light[1].concentration_model)
-print('\n<<<<<<<<<<< shouting and light activity - qID=1000 >>>>>>>>>>>')
+print('\n<<<<<<<<<<< Shouting and light activity - qID=1000 >>>>>>>>>>>')
 present_qR_values(qR_models_shout_light[2].concentration_model)
+print('\n<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>')
 
+present_model(qR_models[2].concentration_model, title='')
+
+# qR for the S V Chorale superspreading event
+print('\n<<<<<<<<<<< S V Chorale: Shouting and light activity - qID=100 >>>>>>>>>>>')
+present_qR_quantiles(qR_models_shout_light[0].concentration_model, quantile=0.8)
+
+# CDF plots of qR
+generate_cdf_curves_vs_qr(masked=False,qid=100)
+generate_cdf_curves_vs_qr(masked=False,qid=500)
+generate_cdf_curves_vs_qr(masked=False,qid=1000)
