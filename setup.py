@@ -71,6 +71,8 @@ setup(
         'all': [req for reqs in REQUIREMENTS.values() for req in reqs],
     },
     package_data={'cara': [
+        'apps/templates/*.j2',
+        'apps/calculator/templates/*.j2',
         'apps/calculator/*',
         'apps/calculator/*/*',
         'apps/calculator/*/*/*'

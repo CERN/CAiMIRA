@@ -88,8 +88,6 @@ class ConcentrationModel(BaseRequestHandler):
 
         try:
             form = model_generator.FormData.from_dict(requested_model_config)
-        except (KeyboardInterrupt, SystemExit):
-            raise
         except Exception as err:
             if self.settings.get("debug", False):
                 import traceback
@@ -137,7 +135,11 @@ class CompressedCalculatorFormInputs(BaseRequestHandler):
     def get(self, compressed_args: str):
         # Convert a base64 zlib encoded shortened URL into a non compressed
         # URL, and redirect.
-        args = zlib.decompress(base64.b64decode(compressed_args)).decode()
+        try:
+            args = zlib.decompress(base64.b64decode(compressed_args)).decode()
+        except Exception as err:  # noqa
+            self.set_status(400)
+            return self.finish("Invalid calculator data: it seems incomplete. Was there an error copying & pasting the URL?")
         self.redirect(f'/calculator?{args}')
 
 
@@ -156,7 +158,7 @@ def make_app(debug=False, prefix='/calculator'):
     calculator_static_dir = Path(__file__).absolute().parent / 'static'
     urls = [
         (r'/?', LandingPage),
-        (r'/c/(.*)', CompressedCalculatorFormInputs),
+        (r'/_c/(.*)', CompressedCalculatorFormInputs),
         (r'/static/(.*)', StaticFileHandler, {'path': static_dir}),
         (prefix + r'/?', CalculatorForm),
         (prefix + r'/report', ConcentrationModel),

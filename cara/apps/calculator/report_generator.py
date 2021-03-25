@@ -77,16 +77,11 @@ def generate_qr_code(prefix, form: FormData):
     args = urllib.parse.urlencode(form_dict)
 
     # Then zlib compress + base64 encode the string. To be inverted by the
-    # /c/ endpoint.
-    qr_url = prefix + "/c/" + base64.b64encode(
+    # /_c/ endpoint.
+    qr_url = prefix + "/_c/" + base64.b64encode(
         zlib.compress(args.encode())
     ).decode()
-
-    # We show the human-friendly URL when hovering over the link, but for now
-    # let's keep it the same as the QR URL to ensure everything continues to work
-    # as expected (it takes more effort to validate QR barcodes than it does links).
-    # url = prefix + "/calculator/?" + args
-    url = qr_url
+    url = prefix + "/calculator?" + args
 
     qr = qrcode.QRCode(
         version=1,
@@ -101,6 +96,7 @@ def generate_qr_code(prefix, form: FormData):
     return {
         'image': img2base64(_img2bytes(img)),
         'link': url,
+        'qr_url': qr_url,
     }
 
 
