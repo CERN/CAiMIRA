@@ -7,6 +7,7 @@ import numpy as np
 
 from cara import models
 from cara import data
+from .. import calculator
 
 
 LOG = logging.getLogger(__name__)
@@ -551,7 +552,7 @@ def baseline_raw_form_data():
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': '',
-        'model_version': 'v1.2.0',
+        'model_version': calculator.__version__,
         'opening_distance': '0.2',
         'event_month': 'January',
         'room_number': '123',

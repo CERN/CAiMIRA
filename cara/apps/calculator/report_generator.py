@@ -260,13 +260,11 @@ def comparison_report(scenarios: typing.Dict[str, models.ExposureModel]):
 
 
 def build_report(base_url: str, model: models.ExposureModel, form: FormData):
-    now = datetime.now()
-    time = now.strftime("%d/%m/%Y %H:%M:%S")
-    request = {"the": "form", "request": "data"}
+    now = datetime.utcnow().astimezone()
+    time = now.strftime("%Y-%m-%d %H:%M:%S UTC")
 
     context = {
         'model': model,
-        'request': request,
         'form': form,
         'creation_date': time,
     }
