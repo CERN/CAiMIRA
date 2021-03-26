@@ -62,8 +62,7 @@ pytest ./cara
 
 ```
 s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./app-config/nginx/ centos/nginx-112-centos7 cara-nginx-app
-s2i build file://$(pwd) --copy --keep-symlinks --env APP_NAME=cara-voila --context-dir ./ centos/python-36-centos7 cara-voila-app
-s2i build file://$(pwd) --copy --keep-symlinks --env APP_NAME=cara-webservice --context-dir ./  centos/python-36-centos7 cara-webservice
+s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./ centos/python-36-centos7 cara-webservice
 s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./app-config/auth-service centos/python-36-centos7 auth-service
 cd app-config
 docker-compose up

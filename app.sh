@@ -1,4 +1,3 @@
-env
 if [[ "$APP_NAME" == "cara-webservice" ]]; then
     echo "Starting the cara webservice"
     python -m cara.apps.calculator

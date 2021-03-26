@@ -1,12 +1,15 @@
 version: "3.8"
 services:
   cara-app:
-    image: cara-voila-app
+    image: cara-webservice
+    environment:
+      - APP_NAME=cara-voila
 
   cara-webservice:
     image: cara-webservice
     environment:
       - COOKIE_SECRET
+      - APP_NAME=cara-webservice
 
   auth-service:
     image: auth-service
