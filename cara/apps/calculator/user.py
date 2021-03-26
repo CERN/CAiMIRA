@@ -12,6 +12,10 @@ class User:
         """Return True if current user is not authenticated."""
         raise NotImplementedError
 
+    def domain(self) -> str:
+        """Return a domain for this user. The domain must not be specific enough to identify a single user."""
+        return 'other'
+
 
 @dataclass
 class AuthenticatedUser(User):
@@ -25,9 +29,16 @@ class AuthenticatedUser(User):
     def is_anonymous(self) -> bool:
         return False
 
+    def domain(self) -> str:
+        if self.email.lower() == "cara.un@cern.ch" or self.email.endswith('@un.org'):
+            return 'UN.org'
+        elif self.email.lower().endswith('@cern.ch'):
+            return 'CERN'
+        else:
+            return 'other'
+
 
 class AnonymousUser(User):
-
     def is_authenticated(self) -> bool:
         return False
 

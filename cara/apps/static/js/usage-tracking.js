@@ -1,5 +1,8 @@
 if (document.location.hostname == "test-cara.web.cern.ch") {
   var _paq = _paq || [];
+  if (typeof AuthUserDomain !== 'undefined') {
+      _paq.push(["setCustomVariable", 1, "AuthUserDomain", AuthUserDomain, "visit"]);
+  }
   _paq.push(["trackPageView"]);
   _paq.push(["enableLinkTracking"]);
   (function () {
@@ -17,6 +20,10 @@ if (document.location.hostname == "test-cara.web.cern.ch") {
   })();
 } else if (document.location.hostname == "cara.web.cern.ch") {
   var _paq = _paq || [];
+  if (typeof AuthUserDomain !== 'undefined') {
+      _paq.push(["setCustomVariable", 1, "AuthUserDomain", AuthUserDomain, "visit"]);
+  }
+  _paq.push(["setCustomVariable", 1, "AuthUserDomain", AuthUserDomain, "visit"]);
   _paq.push(["trackPageView"]);
   _paq.push(["enableLinkTracking"]);
   (function () {
