@@ -76,37 +76,6 @@
                 name: gitlab-cara-webhook-secret
             type: Generic
     -
-      kind: BuildConfig
-      apiVersion: v1
-      metadata:
-        name: cara-app
-      spec:
-        source:
-          git:
-            ref: ${GIT_BRANCH}
-            uri: ${GIT_REPO}
-          sourceSecret:
-            name: sshdeploykey
-        output:
-          to:
-            kind: ImageStreamTag
-            name: 'cara-app:latest'
-        strategy:
-          sourceStrategy:
-            env:
-              - name: APP_NAME
-                value: cara-voila
-            from:
-              kind: ImageStreamTag
-              name: 'python:3.6'
-              namespace: openshift
-          type: Source
-        triggers:
-          - generic:
-              secretReference:
-                name: gitlab-cara-webhook-secret
-            type: Generic
-    -
       kind: ImageStream
       apiVersion: v1
       metadata:
@@ -163,9 +132,6 @@
             name: 'cara-webservice:latest'
         strategy:
           sourceStrategy:
-            env:
-              - name: APP_NAME
-                value: cara-webservice
             from:
               kind: ImageStreamTag
               name: 'python:3.6'
@@ -229,7 +195,10 @@
           spec:
             containers:
               - name: cara-app
-                image: '${PROJECT_NAME}/cara-app'
+                env:
+                - name: APP_NAME
+                  value: cara-voila
+                image: '${PROJECT_NAME}/cara-webservice'
                 ports:
                   - containerPort: 8080
                     protocol: TCP
@@ -242,7 +211,7 @@
                 - cara-app
               from:
                 kind: ImageStreamTag
-                name: 'cara-app:latest'
+                name: 'cara-webservice:latest'
                 namespace: ${PROJECT_NAME}
     -
       apiVersion: v1
@@ -290,6 +259,9 @@
           spec:
             containers:
               - name: cara-webservice
+                env:
+                - name: APP_NAME
+                  value: cara-webservice
                 image: '${PROJECT_NAME}/cara-webservice'
                 ports:
                   - containerPort: 8080

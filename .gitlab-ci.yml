@@ -24,7 +24,6 @@ trigger_build_on_openshift:
     rules:
         - if: '$OPENSHIFT_BUILD_WEBHOOK_SECRET'
     script:
-        - curl -X POST -k https://openshift.cern.ch:443/apis/build.openshift.io/v1/namespaces/cara/buildconfigs/cara-app/webhooks/${OPENSHIFT_BUILD_WEBHOOK_SECRET}/generic
         - curl -X POST -k https://openshift.cern.ch:443/apis/build.openshift.io/v1/namespaces/cara/buildconfigs/cara-router/webhooks/${OPENSHIFT_BUILD_WEBHOOK_SECRET}/generic
         - curl -X POST -k https://openshift.cern.ch:443/apis/build.openshift.io/v1/namespaces/cara/buildconfigs/cara-webservice/webhooks/${OPENSHIFT_BUILD_WEBHOOK_SECRET}/generic
         - curl -X POST -k https://openshift.cern.ch:443/apis/build.openshift.io/v1/namespaces/cara/buildconfigs/auth-service/webhooks/${OPENSHIFT_BUILD_WEBHOOK_SECRET}/generic
@@ -35,7 +34,6 @@ deploy_to_test:
     rules:
         - if: '$CI_COMMIT_BRANCH == "live/test-cara" && $OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET'
     script:
-        - curl -X POST -k https://openshift-dev.cern.ch:443/apis/build.openshift.io/v1/namespaces/test-cara/buildconfigs/cara-app/webhooks/${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}/generic
         - curl -X POST -k https://openshift-dev.cern.ch:443/apis/build.openshift.io/v1/namespaces/test-cara/buildconfigs/cara-router/webhooks/${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}/generic
         - curl -X POST -k https://openshift-dev.cern.ch:443/apis/build.openshift.io/v1/namespaces/test-cara/buildconfigs/cara-webservice/webhooks/${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}/generic
         - curl -X POST -k https://openshift-dev.cern.ch:443/apis/build.openshift.io/v1/namespaces/test-cara/buildconfigs/auth-service/webhooks/${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}/generic
