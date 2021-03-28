@@ -1,3 +1,35 @@
+"""
+This module implements the core CARA models.
+
+The CARA model is a flexible, object-oriented numerical model. It is designed
+to allow the user to swap-out and extend its various components. One of the
+major abstractions of the model is the distinction between virus concentration
+(:class:`ConcentrationModel`) and virus exposure (:class:`ExposureModel`).
+
+The concentration component is a recursive (on model time) model and therefore in order
+to optimise its execution certain layers of caching are implemented. This caching
+mandates that the models in this module, once instantiated, are immutable and
+deterministic (i.e. running the same model twice will result in the same answer).
+
+In order to apply stochastic / non-deterministic analyses therefore you must
+introduce the randomness before constructing the models themselves; the
+:mod:`cara.monte_carlo` module is a good example of doing this - that module uses
+the models defined here to allow you to construct a ConcentrationModel containing
+parameters which are expressed as probability distributions. Under the hood the
+``cara.monte_carlo.ConcentrationModel`` implementation simply samples all of those
+probability distributions to produce many instances of the deterministic model.
+
+The models in this module have been designed for flexibility above performance,
+particularly in the single-model case. By using the natural expressiveness of
+Python we benefit from a powerful, readable and extendable implementation. A
+useful feature of the implementation is that we are able to benefit from numpy
+vectorisation in the case of wanting to run multiple-parameterisations of the model
+at the same time. In order to benefit from this feature you must construct the models
+with an array of parameter values. The values must be either scalar, length 1 arrays,
+or length N arrays, where N is the number of parameterisations to run; N must be
+the same for all parameters of a single model.
+
+"""
 from dataclasses import dataclass
 import functools
 import numpy as np
