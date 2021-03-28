@@ -44,10 +44,17 @@ else:
 from .dataclass_utils import nested_replace
 
 
+# Define types for items supporting vectorisation. In the future this may be replaced
+# by ``np.ndarray[<type>]`` once/if that syntax is supported. Note that vectorization
+# implies 1d arrays: multi-dimensional arrays are not supported.
+_VectorisedFloat = typing.Union[float, np.ndarray]
+_VectorisedInt = typing.Union[int, np.ndarray]
+
+
 @dataclass(frozen=True)
 class Room:
-    # The total volume of the room
-    volume: float
+    #: The total volume of the room
+    volume: _VectorisedFloat
 
 
 Time_t = typing.TypeVar('Time_t', float, int)
@@ -185,7 +192,7 @@ class _VentilationBase:
     def transition_times(self) -> typing.Set[float]:
         raise NotImplementedError("Subclass must implement")
 
-    def air_exchange(self, room: Room, time: float) -> float:
+    def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
         """
         Returns the rate at which air is being exchanged in the given room
         at a given time (in hours).
@@ -224,13 +231,15 @@ class MultipleVentilation(_VentilationBase):
             transitions.update(ventilation.transition_times())
         return transitions
 
-    def air_exchange(self, room: Room, time: float) -> float:
+    def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
         """
         Returns the rate at which air is being exchanged in the given room
         at a given time (in hours).
         """
-        return sum([ventilation.air_exchange(room, time)
-                    for ventilation in self.ventilations])
+        return np.array([
+            ventilation.air_exchange(room, time)
+            for ventilation in self.ventilations
+        ]).sum(axis=0)
 
 
 @dataclass(frozen=True)
@@ -271,7 +280,7 @@ class WindowOpening(Ventilation):
         transitions.update(self.outside_temp.transition_times)
         return transitions
 
-    def air_exchange(self, room: Room, time: float) -> float:
+    def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
         # If the window is shut, no air is being exchanged.
         if not self.active.triggered(time):
             return 0.
@@ -356,7 +365,7 @@ class HEPAFilter(Ventilation):
     # in m^3/h
     q_air_mech: float
 
-    def air_exchange(self, room: Room, time: float) -> float:
+    def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
         # If the HEPA is off, no air is being exchanged.
         if not self.active.triggered(time):
             return 0.
@@ -373,7 +382,7 @@ class HVACMechanical(Ventilation):
     # in m^3/h
     q_air_mech: float
 
-    def air_exchange(self, room: Room, time: float) -> float:
+    def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
         # If the HVAC is off, no air is being exchanged.
         if not self.active.triggered(time):
             return 0.
@@ -388,9 +397,9 @@ class AirChange(Ventilation):
 
     #: The rate (in h^-1) at which the ventilation exchanges all the air
     # of the room (when switched on)
-    air_exch: float
+    air_exch: _VectorisedFloat
 
-    def air_exchange(self, room: Room, time: float) -> float:
+    def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
         # No dependence on the room volume.
         # If off, no air is being exchanged.
         if not self.active.triggered(time):

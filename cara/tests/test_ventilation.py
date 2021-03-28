@@ -1,7 +1,8 @@
 import dataclasses
 
-import pytest
+import numpy as np
 import numpy.testing as npt
+import pytest
 
 from cara import models
 
@@ -59,3 +60,32 @@ def test_sliding_window(baseline_slidingwindow):
     room = models.Room(75)
 
     assert baseline_slidingwindow.discharge_coefficient == 0.6
+
+
+def test_multiple(baseline_slidingwindow, baseline_hingedwindow):
+    v = models.MultipleVentilation([baseline_hingedwindow, baseline_slidingwindow])
+    room = models.Room(75)
+    t = 1
+    assert v.air_exchange(room, t) == (
+            baseline_slidingwindow.air_exchange(room, t) +
+            baseline_hingedwindow.air_exchange(room, t)
+    )
+
+
+def test_multiple_vectorisation():
+    interval = models.SpecificInterval(((0, 4), (5, 9)))
+    v1 = models.AirChange(interval, np.arange(10))
+    v2 = models.AirChange(interval, np.arange(5))
+    v3 = models.AirChange(interval, 10)
+
+    room = models.Room(75)
+    t_active = 2
+    t_inactive = 4.5
+
+    assert models.MultipleVentilation([v1, v2]).air_exchange(room, t_inactive) == 0
+    with pytest.raises(ValueError, match='operands could not be broadcast together'):
+        models.MultipleVentilation([v1, v2]).air_exchange(room, t_active)
+
+    r = models.MultipleVentilation([v2, v3]).air_exchange(room, t_active)
+    assert isinstance(r, np.ndarray)
+    assert r == np.array([10, 11, 12, 13, 14])
