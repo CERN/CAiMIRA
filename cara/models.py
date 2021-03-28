@@ -31,9 +31,15 @@ the same for all parameters of a single model.
 
 """
 from dataclasses import dataclass
-import functools
 import numpy as np
 import typing
+
+if not typing.TYPE_CHECKING:
+    from memoization import cached
+else:
+    # Workaround issue https://github.com/lonelyenvoy/python-memoization/issues/18
+    # by providing a no-op cache decorator when type-checking.
+    cached = lambda *cached_args, **cached_kwargs: lambda function: function  # noqa
 
 from .dataclass_utils import nested_replace
 
@@ -593,7 +599,7 @@ class InfectedPopulation(Population):
 
         return self.emission_rate_when_present()
 
-    @functools.lru_cache()
+    @cached()
     def emission_rate(self, time) -> float:
         """
         The emission rate of the entire population.
@@ -622,7 +628,7 @@ class ConcentrationModel:
 
         return k + self.virus.decay_constant + self.ventilation.air_exchange(self.room, time)
 
-    @functools.lru_cache()
+    @cached()
     def state_change_times(self):
         """
         All time dependent entities on this model must provide information about
@@ -645,8 +651,11 @@ class ConcentrationModel:
                 return change_time
         return 0
 
-    @functools.lru_cache()
+    @cached()
     def concentration(self, time: float) -> float:
+        # Note that time is not vectorised. You can only pass a single float
+        # to this method.
+
         if time == 0:
             return 0.0
         IVRR = self.infectious_virus_removal_rate(time)

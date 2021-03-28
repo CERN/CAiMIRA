@@ -22,6 +22,7 @@ REQUIREMENTS: dict = {
         'ipywidgets',
         'Jinja2',
         'matplotlib',
+        'memoization',
         'mistune',
         'numpy',
         'qrcode[pil]',
