@@ -88,4 +88,4 @@ def test_multiple_vectorisation():
 
     r = models.MultipleVentilation([v2, v3]).air_exchange(room, t_active)
     assert isinstance(r, np.ndarray)
-    assert r == np.array([10, 11, 12, 13, 14])
+    np.testing.assert_array_equal(r, [10, 11, 12, 13, 14])

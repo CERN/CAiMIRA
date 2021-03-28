@@ -411,19 +411,19 @@ class AirChange(Ventilation):
 @dataclass(frozen=True)
 class Virus:
     #: Biological decay (inactivation of the virus in air)
-    halflife: float
+    halflife: _VectorisedFloat
 
     #: RNA copies  / mL
-    viral_load_in_sputum: float
+    viral_load_in_sputum: _VectorisedFloat
 
     #: Ratio between infectious aerosols and dose to cause infection.
-    coefficient_of_infectivity: float
+    coefficient_of_infectivity: _VectorisedFloat
 
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
 
     @property
-    def decay_constant(self):
+    def decay_constant(self) -> _VectorisedFloat:
         # Viral inactivation per hour (h^-1)
         return np.log(2) / self.halflife
 
@@ -454,10 +454,10 @@ Virus.types = {
 @dataclass(frozen=True)
 class Mask:
     #: Filtration efficiency. (In %/100)
-    η_exhale: float
+    η_exhale: _VectorisedFloat
 
     #: Leakage through side of masks.
-    η_leaks: float
+    η_leaks: _VectorisedFloat
 
     #: Filtration efficiency of masks when inhaling.
     η_inhale: float
@@ -570,7 +570,7 @@ class InfectedPopulation(Population):
     #: The type of expiration that is being emitted whilst doing the activity.
     expiration: Expiration
 
-    def emission_rate_when_present(self) -> float:
+    def emission_rate_when_present(self) -> _VectorisedFloat:
         """
         The emission rate if the infected population is present.
 
@@ -579,18 +579,23 @@ class InfectedPopulation(Population):
         """
         # Emission Rate (infectious quantum / h)
         aerosols = self.expiration.aerosols(self.mask)
-        if np.isinf(aerosols):
-            # A superspreading event. Miller et al. (2020)
+
+        ER = (self.virus.viral_load_in_sputum *
+              self.virus.coefficient_of_infectivity *
+              self.activity.exhalation_rate *
+              10 ** 6 *
+              aerosols)
+
+        # For superspreading event, where ejection_factor is infinite we fix the ER
+        # based on Miller et al. (2020).
+        if isinstance(aerosols, np.ndarray):
+            ER[np.isinf(aerosols)] = 970
+        elif np.isinf(aerosols):
             ER = 970
-        else:
-            ER = (self.virus.viral_load_in_sputum *
-                  self.virus.coefficient_of_infectivity *
-                  self.activity.exhalation_rate *
-                  10**6 *
-                  aerosols)
+
         return ER
 
-    def individual_emission_rate(self, time) -> float:
+    def individual_emission_rate(self, time) -> _VectorisedFloat:
         """
         The emission rate of a single individual in the population.
 
@@ -609,7 +614,7 @@ class InfectedPopulation(Population):
         return self.emission_rate_when_present()
 
     @cached()
-    def emission_rate(self, time) -> float:
+    def emission_rate(self, time) -> _VectorisedFloat:
         """
         The emission rate of the entire population.
 
