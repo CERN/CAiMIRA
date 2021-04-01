@@ -1,6 +1,5 @@
 {% extends "layout.html.j2" %}
 
-{% set MODEL_VERSION="v1.5.1" %}
 {% set DEBUG=False %}
 {% set active_page="calculator/" %}
 
@@ -20,7 +19,7 @@
 <div class="text-component text-component-page clearfix"></div>
 <div style="height: 8em; display: block;"></div>
 
-{{ MODEL_VERSION }} <span style="float:right; font-weight:bold">Please send feedback to <a href="mailto:CARA-dev@cern.ch">CARA-dev@cern.ch</a></span>
+v{{ calculator_version }} <span style="float:right; font-weight:bold">Please send feedback to <a href="mailto:CARA-dev@cern.ch">CARA-dev@cern.ch</a></span>
 <div>
     <img src="/static/images/cara_logo.png" style="height:175px; width:100px; display:inline-block; vertical-align:middle; object-fit:cover;">
     <h1 style="display:inline-block; vertical-align:middle;"><b>CARA - </b> COVID Airborne Risk Assessment calculator</h1>
@@ -33,7 +32,7 @@
 {% endif %}
 {{ xsrf_form_html }}
 
-<input type="hidden" name="model_version" value={{ MODEL_VERSION }}>
+<input type="hidden" name="calculator_version" value="{{ calculator_version }}">
 
 <div style="width: 33%; float:left;">
 

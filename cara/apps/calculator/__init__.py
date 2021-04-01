@@ -4,12 +4,21 @@ import os
 from pathlib import Path
 
 import jinja2
-import mistune
 from tornado.web import Application, RequestHandler, StaticFileHandler
 
 from . import model_generator
 from .report_generator import build_report
 from .user import AuthenticatedUser, AnonymousUser
+
+
+# The calculator version is based on a combination of the model version and the
+# semantic version of the calculator itself. The version uses the terms
+# "{MAJOR}.{MINOR}.{PATCH}" to describe the 3 distinct numbers constituing a version.
+# Effectively, if the model increases its MAJOR version then so too should this
+# calculator version. If the calculator needs to make breaking changes (e.g. change
+# form attributes) then it can also increase its MAJOR version without needing to
+# increase the overall CARA version (found at ``cara.__version__``).
+__version__ = "1.5.0"
 
 
 class BaseRequestHandler(RequestHandler):
@@ -81,6 +90,7 @@ class CalculatorForm(BaseRequestHandler):
         report = template.render(
             user=self.current_user,
             xsrf_form_html=self.xsrf_form_html(),
+            calculator_version=__version__,
         )
         self.finish(report)
 
