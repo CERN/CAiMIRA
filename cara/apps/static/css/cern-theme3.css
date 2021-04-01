@@ -384,6 +384,10 @@ body header .site-info {
     display: flex;
 }
 
+header .site-info__text img {
+    height: 58pt;
+}
+
 body header .site-info__logo {
     padding: 0 10px 0 0;
 }
@@ -874,6 +878,10 @@ body.has-header.cern-toolbar:not(.toolbar-vertical).toolbar-tray-open main nav.t
     header .site-info__text {
         width: 90%;
         max-height: 60px;
+    }
+
+    header .site-info__text img {
+        height: 60px;
     }
 }
 
