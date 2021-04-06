@@ -6,15 +6,6 @@ from cara import models
 from cara import data
 import numpy as np
 
-@pytest.fixture
-def baseline_form_data():
-    return model_generator.baseline_raw_form_data()
-
-
-@pytest.fixture
-def baseline_form(baseline_form_data):
-    return model_generator.FormData.from_dict(baseline_form_data)
-
 
 def test_model_from_dict(baseline_form_data):
     form = model_generator.FormData.from_dict(baseline_form_data)

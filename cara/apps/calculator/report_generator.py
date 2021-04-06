@@ -4,6 +4,7 @@ from datetime import datetime
 import io
 from pathlib import Path
 import typing
+import zlib
 
 import qrcode
 import urllib
@@ -70,7 +71,17 @@ def calculate_report_data(model: models.ExposureModel):
 
 def generate_qr_code(prefix, form: FormData):
     form_dict = FormData.to_dict(form)
-    url = prefix + "?" + urllib.parse.urlencode(form_dict)
+
+    # Generate the calculator URL arguments that would be needed to re-create this
+    # form.
+    args = urllib.parse.urlencode(form_dict)
+
+    # Then zlib compress + base64 encode the string. To be inverted by the
+    # /_c/ endpoint.
+    qr_url = prefix + "/_c/" + base64.b64encode(
+        zlib.compress(args.encode())
+    ).decode()
+    url = prefix + "/calculator?" + args
 
     qr = qrcode.QRCode(
         version=1,
@@ -78,13 +89,14 @@ def generate_qr_code(prefix, form: FormData):
         box_size=10,
         border=4,
     )
-    qr.add_data(url)
+    qr.add_data(qr_url)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
 
     return {
         'image': img2base64(_img2bytes(img)),
         'link': url,
+        'qr_url': qr_url,
     }
 
 
@@ -272,7 +284,7 @@ def build_report(base_url: str, model: models.ExposureModel, form: FormData):
     context.update(calculate_report_data(model))
     alternative_scenarios = manufacture_alternative_scenarios(form)
     context['alternative_scenarios'] = comparison_report(alternative_scenarios)
-    context['qr_code'] = generate_qr_code(f'{base_url}/calculator', form)
+    context['qr_code'] = generate_qr_code(base_url, form)
 
     cara_templates = Path(__file__).parent.parent / "templates"
     calculator_templates = Path(__file__).parent / "templates"
