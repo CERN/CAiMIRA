@@ -1,15 +1,60 @@
+"""
+This module implements the core CARA models.
+
+The CARA model is a flexible, object-oriented numerical model. It is designed
+to allow the user to swap-out and extend its various components. One of the
+major abstractions of the model is the distinction between virus concentration
+(:class:`ConcentrationModel`) and virus exposure (:class:`ExposureModel`).
+
+The concentration component is a recursive (on model time) model and therefore in order
+to optimise its execution certain layers of caching are implemented. This caching
+mandates that the models in this module, once instantiated, are immutable and
+deterministic (i.e. running the same model twice will result in the same answer).
+
+In order to apply stochastic / non-deterministic analyses therefore you must
+introduce the randomness before constructing the models themselves; the
+:mod:`cara.monte_carlo` module is a good example of doing this - that module uses
+the models defined here to allow you to construct a ConcentrationModel containing
+parameters which are expressed as probability distributions. Under the hood the
+``cara.monte_carlo.ConcentrationModel`` implementation simply samples all of those
+probability distributions to produce many instances of the deterministic model.
+
+The models in this module have been designed for flexibility above performance,
+particularly in the single-model case. By using the natural expressiveness of
+Python we benefit from a powerful, readable and extendable implementation. A
+useful feature of the implementation is that we are able to benefit from numpy
+vectorisation in the case of wanting to run multiple-parameterisations of the model
+at the same time. In order to benefit from this feature you must construct the models
+with an array of parameter values. The values must be either scalar, length 1 arrays,
+or length N arrays, where N is the number of parameterisations to run; N must be
+the same for all parameters of a single model.
+
+"""
 from dataclasses import dataclass
-import functools
 import numpy as np
 import typing
+
+if not typing.TYPE_CHECKING:
+    from memoization import cached
+else:
+    # Workaround issue https://github.com/lonelyenvoy/python-memoization/issues/18
+    # by providing a no-op cache decorator when type-checking.
+    cached = lambda *cached_args, **cached_kwargs: lambda function: function  # noqa
 
 from .dataclass_utils import nested_replace
 
 
+# Define types for items supporting vectorisation. In the future this may be replaced
+# by ``np.ndarray[<type>]`` once/if that syntax is supported. Note that vectorization
+# implies 1d arrays: multi-dimensional arrays are not supported.
+_VectorisedFloat = typing.Union[float, np.ndarray]
+_VectorisedInt = typing.Union[int, np.ndarray]
+
+
 @dataclass(frozen=True)
 class Room:
-    # The total volume of the room
-    volume: float
+    #: The total volume of the room
+    volume: _VectorisedFloat
 
 
 Time_t = typing.TypeVar('Time_t', float, int)
@@ -147,7 +192,7 @@ class _VentilationBase:
     def transition_times(self) -> typing.Set[float]:
         raise NotImplementedError("Subclass must implement")
 
-    def air_exchange(self, room: Room, time: float) -> float:
+    def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
         """
         Returns the rate at which air is being exchanged in the given room
         at a given time (in hours).
@@ -186,13 +231,15 @@ class MultipleVentilation(_VentilationBase):
             transitions.update(ventilation.transition_times())
         return transitions
 
-    def air_exchange(self, room: Room, time: float) -> float:
+    def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
         """
         Returns the rate at which air is being exchanged in the given room
         at a given time (in hours).
         """
-        return sum([ventilation.air_exchange(room, time)
-                    for ventilation in self.ventilations])
+        return np.array([
+            ventilation.air_exchange(room, time)
+            for ventilation in self.ventilations
+        ]).sum(axis=0)
 
 
 @dataclass(frozen=True)
@@ -233,7 +280,7 @@ class WindowOpening(Ventilation):
         transitions.update(self.outside_temp.transition_times)
         return transitions
 
-    def air_exchange(self, room: Room, time: float) -> float:
+    def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
         # If the window is shut, no air is being exchanged.
         if not self.active.triggered(time):
             return 0.
@@ -318,7 +365,7 @@ class HEPAFilter(Ventilation):
     # in m^3/h
     q_air_mech: float
 
-    def air_exchange(self, room: Room, time: float) -> float:
+    def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
         # If the HEPA is off, no air is being exchanged.
         if not self.active.triggered(time):
             return 0.
@@ -335,7 +382,7 @@ class HVACMechanical(Ventilation):
     # in m^3/h
     q_air_mech: float
 
-    def air_exchange(self, room: Room, time: float) -> float:
+    def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
         # If the HVAC is off, no air is being exchanged.
         if not self.active.triggered(time):
             return 0.
@@ -350,9 +397,9 @@ class AirChange(Ventilation):
 
     #: The rate (in h^-1) at which the ventilation exchanges all the air
     # of the room (when switched on)
-    air_exch: float
+    air_exch: _VectorisedFloat
 
-    def air_exchange(self, room: Room, time: float) -> float:
+    def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
         # No dependence on the room volume.
         # If off, no air is being exchanged.
         if not self.active.triggered(time):
@@ -364,19 +411,19 @@ class AirChange(Ventilation):
 @dataclass(frozen=True)
 class Virus:
     #: Biological decay (inactivation of the virus in air)
-    halflife: float
+    halflife: _VectorisedFloat
 
     #: RNA copies  / mL
-    viral_load_in_sputum: float
+    viral_load_in_sputum: _VectorisedFloat
 
     #: Ratio between infectious aerosols and dose to cause infection.
-    coefficient_of_infectivity: float
+    coefficient_of_infectivity: _VectorisedFloat
 
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
 
     @property
-    def decay_constant(self):
+    def decay_constant(self) -> _VectorisedFloat:
         # Viral inactivation per hour (h^-1)
         return np.log(2) / self.halflife
 
@@ -407,10 +454,10 @@ Virus.types = {
 @dataclass(frozen=True)
 class Mask:
     #: Filtration efficiency. (In %/100)
-    η_exhale: float
+    η_exhale: _VectorisedFloat
 
     #: Leakage through side of masks.
-    η_leaks: float
+    η_leaks: _VectorisedFloat
 
     #: Filtration efficiency of masks when inhaling.
     η_inhale: float
@@ -424,7 +471,7 @@ class Mask:
     types: typing.ClassVar[typing.Dict[str, "Mask"]]
 
     @property
-    def exhale_efficiency(self):
+    def exhale_efficiency(self) -> _VectorisedFloat:
         # Overall efficiency with the effect of the leaks for aerosol emission
         #  Gammaitoni et al (1997)
         return self.η_exhale * (1 - self.η_leaks)
@@ -523,7 +570,7 @@ class InfectedPopulation(Population):
     #: The type of expiration that is being emitted whilst doing the activity.
     expiration: Expiration
 
-    def emission_rate_when_present(self) -> float:
+    def emission_rate_when_present(self) -> _VectorisedFloat:
         """
         The emission rate if the infected population is present.
 
@@ -532,18 +579,23 @@ class InfectedPopulation(Population):
         """
         # Emission Rate (infectious quantum / h)
         aerosols = self.expiration.aerosols(self.mask)
-        if np.isinf(aerosols):
-            # A superspreading event. Miller et al. (2020)
+
+        ER = (self.virus.viral_load_in_sputum *
+              self.virus.coefficient_of_infectivity *
+              self.activity.exhalation_rate *
+              10 ** 6 *
+              aerosols)
+
+        # For superspreading event, where ejection_factor is infinite we fix the ER
+        # based on Miller et al. (2020).
+        if isinstance(aerosols, np.ndarray):
+            ER[np.isinf(aerosols)] = 970
+        elif np.isinf(aerosols):
             ER = 970
-        else:
-            ER = (self.virus.viral_load_in_sputum *
-                  self.virus.coefficient_of_infectivity *
-                  self.activity.exhalation_rate *
-                  10**6 *
-                  aerosols)
+
         return ER
 
-    def individual_emission_rate(self, time) -> float:
+    def individual_emission_rate(self, time) -> _VectorisedFloat:
         """
         The emission rate of a single individual in the population.
 
@@ -561,8 +613,8 @@ class InfectedPopulation(Population):
 
         return self.emission_rate_when_present()
 
-    @functools.lru_cache()
-    def emission_rate(self, time) -> float:
+    @cached()
+    def emission_rate(self, time) -> _VectorisedFloat:
         """
         The emission rate of the entire population.
 
@@ -580,7 +632,7 @@ class ConcentrationModel:
     def virus(self):
         return self.infected.virus
 
-    def infectious_virus_removal_rate(self, time: float) -> float:
+    def infectious_virus_removal_rate(self, time: float) -> _VectorisedFloat:
         # Particle deposition on the floor
         vg = 1 * 10 ** -4
         # Height of the emission source to the floor - i.e. mouth/nose (m)
@@ -590,7 +642,7 @@ class ConcentrationModel:
 
         return k + self.virus.decay_constant + self.ventilation.air_exchange(self.room, time)
 
-    @functools.lru_cache()
+    @cached()
     def state_change_times(self):
         """
         All time dependent entities on this model must provide information about
@@ -613,8 +665,11 @@ class ConcentrationModel:
                 return change_time
         return 0
 
-    @functools.lru_cache()
-    def concentration(self, time: float) -> float:
+    @cached()
+    def concentration(self, time: float) -> _VectorisedFloat:
+        # Note that time is not vectorised. You can only pass a single float
+        # to this method.
+
         if time == 0:
             return 0.0
         IVRR = self.infectious_virus_removal_rate(time)

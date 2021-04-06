@@ -1,13 +1,23 @@
+import time
+
 import pytest
 
 from cara.apps.calculator import report_generator
 
 
 def test_generate_report(baseline_form):
-    model = baseline_form.build_model()
+    # This is a simple test that confirms that given a model, we can actually
+    # generate a report for it. Because this is what happens in the cara
+    # calculator, we confirm that the generation happens within a reasonable
+    # time threshold.
+    time_limit: float = 5.0  # seconds
 
+    start = time.perf_counter()
+    model = baseline_form.build_model()
     report = report_generator.build_report("", model, baseline_form)
+    end = time.perf_counter()
     assert report != ""
+    assert end - start < time_limit
 
 
 @pytest.mark.parametrize(
