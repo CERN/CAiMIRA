@@ -1,7 +1,10 @@
+import datetime
 import html
 import json
 import os
 from pathlib import Path
+import traceback
+import uuid
 
 import jinja2
 from tornado.web import Application, RequestHandler, StaticFileHandler
@@ -37,6 +40,39 @@ class BaseRequestHandler(RequestHandler):
             )
         else:
             self.current_user = AnonymousUser()
+
+    def write_error(self, status_code: int, **kwargs) -> None:
+        template = self.settings["template_environment"].get_template(
+            "page.html.j2")
+
+        error_id = uuid.uuid4()
+        contents = (
+            f'Unfortunately an error occurred when processing your request. '
+            f'Please let us know about this issue with as much detail as possible at '
+            f'<a href="mailto:CARA-dev@cern.ch">CARA-dev@cern.ch</a>, reporting status '
+            f'code {status_code}, the error id of "{error_id}" and the time of the '
+            f'request ({datetime.datetime.utcnow()}).<br><br><br><br>'
+        )
+        # Print the error to the log (and not to the browser!)
+        if "exc_info" in kwargs:
+            print(f"ERROR UUID {error_id}")
+            print(traceback.format_exc())
+        self.finish(template.render(
+            user=self.current_user,
+            contents=contents
+        ))
+
+
+class Missing404Handler(BaseRequestHandler):
+    async def prepare(self):
+        await super().prepare()
+        self.set_status(404)
+        template = self.settings["template_environment"].get_template(
+            "page.html.j2")
+        self.finish(template.render(
+            user=self.current_user,
+            contents='Unfortunately the page you were looking for does not exist.<br><br><br><br>'
+        ))
 
 
 class ConcentrationModel(BaseRequestHandler):
@@ -128,6 +164,7 @@ def make_app(debug=False, prefix='/calculator'):
         urls,
         debug=debug,
         template_environment=template_environment,
+        default_handler_class=Missing404Handler,
         xsrf_cookies=True,
         # COOKIE_SECRET being undefined will result in no login information being
         # presented to the user.
