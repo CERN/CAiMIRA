@@ -471,7 +471,7 @@ class Mask:
     types: typing.ClassVar[typing.Dict[str, "Mask"]]
 
     @property
-    def exhale_efficiency(self):
+    def exhale_efficiency(self) -> _VectorisedFloat:
         # Overall efficiency with the effect of the leaks for aerosol emission
         #  Gammaitoni et al (1997)
         return self.η_exhale * (1 - self.η_leaks)
@@ -632,7 +632,7 @@ class ConcentrationModel:
     def virus(self):
         return self.infected.virus
 
-    def infectious_virus_removal_rate(self, time: float) -> float:
+    def infectious_virus_removal_rate(self, time: float) -> _VectorisedFloat:
         # Particle deposition on the floor
         vg = 1 * 10 ** -4
         # Height of the emission source to the floor - i.e. mouth/nose (m)
@@ -666,7 +666,7 @@ class ConcentrationModel:
         return 0
 
     @cached()
-    def concentration(self, time: float) -> float:
+    def concentration(self, time: float) -> _VectorisedFloat:
         # Note that time is not vectorised. You can only pass a single float
         # to this method.
 
