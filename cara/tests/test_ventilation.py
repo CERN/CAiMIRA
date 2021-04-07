@@ -60,7 +60,9 @@ def test_hinged_window(baseline_hingedwindow, window_width,
         {'window_height': np.array([0.15, 0.20])},
         {'window_width': np.array([0.15, 0.20])},
         {'opening_length': np.array([0.15, 0.20])},
-        {'outside_temp': models.PiecewiseConstant((1, 2, 3), (np.array([20, 30]), 25))},
+        {'outside_temp': models.PiecewiseConstant(
+            (1, 2, 3), (np.array([20, 30]), np.array([25, 30]))),
+        },
         {'outside_temp': np.array([20, 30])},
         {'inside_temp': np.array([20, 30])},
     ]

@@ -14,6 +14,13 @@ def test_piecewiseconstantfunction_wrongarguments():
     # unsorted transition times are not allowed
     pytest.raises(ValueError, models.PiecewiseConstant, (2, 0), (0, 0))
 
+    # If vectors, must all be same length.
+    with pytest.raises(ValueError, match="All values must have the same shape"):
+        models.PiecewiseConstant(
+            (0, 8, 16), (np.array([5, 7]), np.array([8, 9, 10])),
+        )
+
+
 
 @pytest.mark.parametrize(
     "time, expected_value",

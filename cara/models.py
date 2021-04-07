@@ -142,6 +142,9 @@ class PiecewiseConstant:
             raise ValueError("transition_times should contain one more element than values")
         if tuple(sorted(set(self.transition_times))) != self.transition_times:
             raise ValueError("transition_times should not contain duplicated elements and should be sorted")
+        shapes = [np.array(v).shape for v in self.values]
+        if not all(shapes[0] == shape for shape in shapes):
+            raise ValueError("All values must have the same shape")
 
     def value(self, time) -> _VectorisedFloat:
         if time <= self.transition_times[0]:
