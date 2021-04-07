@@ -13,7 +13,6 @@ import cara.models
         {'coefficient_of_infectivity': np.array([0.02, 0.05])},
         {'η_exhale': np.array([0.92, 0.95])},
         {'η_leaks': np.array([0.15, 0.20])},
-
     ]
 )
 def test_concentration_model_vectorisation(override_params):

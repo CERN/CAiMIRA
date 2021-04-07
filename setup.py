@@ -26,6 +26,7 @@ REQUIREMENTS: dict = {
         'mistune',
         'numpy',
         'qrcode[pil]',
+        'scipy',
         'tornado',
         'voila >=0.2.4',
     ],
