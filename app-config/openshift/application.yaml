@@ -260,8 +260,15 @@
             containers:
               - name: cara-webservice
                 env:
+                - name: COOKIE_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      key: COOKIE_SECRET
+                      name: auth-service-secrets
                 - name: APP_NAME
                   value: cara-webservice
+                - name: CARA_THEME
+                    value: cara/apps/calculator/themes/cern
                 image: '${PROJECT_NAME}/cara-webservice'
                 ports:
                   - containerPort: 8080
