@@ -76,6 +76,7 @@ setup(
         'apps/calculator/templates/*.j2',
         'apps/calculator/*',
         'apps/calculator/*/*',
-        'apps/calculator/*/*/*'
+        'apps/calculator/*/*/*',
+        'apps/calculator/*/*/*/*',
     ]},
 )

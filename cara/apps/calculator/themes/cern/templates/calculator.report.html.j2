@@ -1,0 +1,107 @@
+{% extends "base/calculator.report.html.j2" %}
+
+{% block report_header %}
+	<div style="position:relative; text-align:center; margin-left:-200pt; max-height:180pt; margin-bottom: 1em;">
+		<img src="/static/images/cara_logo_text.png" style="height:150px; display:inline-block; vertical-align:middle; object-fit:cover;">
+		<h1 style="display:inline; vertical-align:middle; margin-left:1em;">Report</h1>
+	</div>
+
+	{{ super() }}
+{% endblock report_header %}
+
+{% block report_preamble %}
+  <p><strong>Applicable rules: <br>
+  Please ensure that this scenario conforms to current <a href="https://hse.cern/covid-19-information"> CERN HSE rules</a> (minimum ventilation requirements, mask wearing and the maximum number of people permitted in a space).</strong> <br>
+  The results of this simulation are colour coded according to the risk values authorized at CERN (approved in December 2020):
+  <ul><li>Events with a <span class="green_bkg">P(i) less than 5%</span> may go ahead without further mitigation measures.</li>
+    <li>Events with a <span class="yellow_bkg">P(i) between 5% and 15%</span> shall be subject to ALARA principles (see footnote) to minimise the risk before proceeding.</li>
+    <li>Events with a <span class="red_bkg">P(i) exceeding 15% or a number of expected new cases that exceeds 1</span> may not take place until additional measures are in place and a risk reduction has been performed.</li>
+  </ul>
+  </p>
+
+{% endblock report_preamble %}
+
+
+{% block report_summary %}
+ <span
+{% if ((prob_inf > 15) or (expected_new_cases >= 1)) %}
+    class="red_bkg"><strong>Not Acceptable:</strong>
+{% elif 5 <= prob_inf <= 15 %}
+    class="yellow_bkg"><strong> Attention:</strong>
+{% elif prob_inf < 5 %}
+    class="green_bkg">Acceptable:
+{% endif %}
+ </span>
+
+{{ super() }}
+
+{% if ((prob_inf > 15) or (expected_new_cases >= 1)) %}
+  This exceeds the authorised risk threshold or number of expected new cases.
+  The risk level must be reduced before this activity can be undertaken.
+{% elif (5 <= prob_inf <= 15) %}
+  This activity has an elevated level of risk, ALARA principles must be applied to minimise the level of risk before undertaking the activity.
+  See the footnotes for more details on the ALARA principles.
+{% elif (prob_inf < 5) %}
+  This level of risk is within acceptable parameters, no further actions are required.
+{% endif %}
+{% endblock report_summary %}
+
+
+{% block report_scenarios_summary_table %}
+        <table class="table w-auto">
+            <thead class="thead-light">
+                <tr>
+                    <th>Scenario</th>
+                    <th>P(i)</th>
+                    <th>Expected new cases</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
+                {%if (( scenario_stats.probability_of_infection  > 15) or (scenario_stats.expected_new_cases >= 1)) %}
+                  <tr class="red_bkg">
+                {% elif (5 <= scenario_stats.probability_of_infection <= 15) %}
+                  <tr class="yellow_bkg">
+                {% elif (scenario_stats.probability_of_infection < 5) %}
+                  <tr class="green_bkg">
+                {% endif%}
+                    <td> {{ scenario_name }}</td>
+                    <td> {{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
+                    <td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+{% endblock report_scenarios_summary_table %}
+
+
+{% block report_footer %}
+	<p class="data_text">
+	    <strong> Footnotes for ALARA: </strong><br>
+	    ALARA stands for As Low As Reasonably Achievable. It can be summarised based on 3 main points:
+	    <ol>
+	    	<li>Justification - any exposure of persons has to be justified </li>
+	    	<li>Limitation - the personal doses have to be kept below the legal limits (in this case the CERN exposure limits)</li>
+	    	<li>Optimisation - the personal doses and collective doses have to be kept as low as reasonably achievable (ALARA).</li>
+	    </ol>
+	    For more information, please refer to <a href="https://cds.cern.ch/record/1533023/files/CERN-2013-001-p415.pdf"> this document from CERN HSE </a> and <a href="https://www.cdc.gov/nceh/radiation/safety.html#:~:text=ALARA%20stands%20for%20%E2%80%9Cas%20low,time%2C%20distance%2C%20and%20shielding."> this publication from the CDC.</a> 
+	    <br><br>
+	</p>
+
+	<div>
+		<a href="{{ qr_code.link }}"><img style="width:250pt;" id="qr_code" src="{{ qr_code.image }}"/></a>
+		<i style="position:absolute; margin-top:3.5cm">Click the QR code to regenerate the report and get a shareable link.<br>Alternatively, scan to regenerate the report.<br> Mobile-friendly app coming soon!</i>
+	</div>
+
+	<br><br><br>
+	<div style="border: 2px solid black; padding: 15px;">
+		<p class="image"> <img align="middle" src="/calculator/static/images/disclaimer.jpg" width="40" height="40"><b>Disclaimer:</b><br><br></p>
+	    <p class="discalimer">The risk assessment tool simulates the long-range airborne spread SARS-CoV-2 virus in a finite volume, assuming a homogenous mixture, and estimates the risk of COVID-19 infection therein. The results DO NOT include short-range airborne exposure (where the physical distance plays a factor) nor the other known modes of SARS-CoV-2 transmission. Hence, the output from this model is only valid when the other recommended public health & safety instructions are observed, such as adequate physical distancing, good hand hygiene and other barrier measures.<br><br>
+	    The model used is based on scientific publications relating to airborne transmission of infectious diseases, dose-response exposures and aerosol science, as of December 2020 . It can be used to compare the effectiveness of different airborne-related risk mitigation measures.<br><br>
+	    Note that this model applies a deterministic approach, i.e., it is assumed at least one person is infected and shedding viruses into the simulated volume. Nonetheless, it is also important to understand that the absolute risk of infection is uncertain, as it will depend on the probability that someone infected attends the event. The model is most useful for comparing the impact and effectiveness of different mitigation measures such as ventilation, filtration, exposure time, physical activity and the size of the room, only considering long-range airborne transmission of COVID-19 in indoor settings.<br><br>
+	    This tool is designed to be informative, allowing the user to adapt different settings and model the relative impact on the estimated infection probabilities. The objective is to facilitate targeted decision-making and investment through comparisons, rather than a singular determination of absolute risk. While the SARS-CoV-2 virus is in circulation among the population, the notion of 'zero risk' or a 'completely safe scenario' does not exist. Each event modelled is unique and the results generated therein are only as accurate as the inputs and assumptions.<br><br>
+    	CARA is made available for internal CERN use only. It is intended for Members of Personnel with roles related to Supervision, Health & Safety or Space Management, in order to simulate the concerned workplaces on CERN sites. For use outside of this scope, it has to be performed under a pre-defined framework and licence agreement issued by CERN Knowledge Transfer (<a href="mailto:kt@cern.ch">kt@cern.ch</a>).</p>
+	</div>
+{% endblock report_footer %}
+</body>
+</html>

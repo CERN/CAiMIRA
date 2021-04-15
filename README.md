@@ -38,6 +38,12 @@ pip install -e .   # At the root of the repository
 python -m cara.apps.calculator
 ```
 
+To run with the CERN theme:
+
+```
+python -m cara.apps.calculator --theme=cara/apps/calculator/themes/cern
+```
+
 ### Running the CARA Expert-App app locally
 
 ```

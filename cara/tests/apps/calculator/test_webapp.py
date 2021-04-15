@@ -1,12 +1,15 @@
-import pytest
+from pathlib import Path
 
-from cara.apps.calculator import make_app
+import pytest
+import tornado.testing
+
+import cara.apps.calculator
 from cara.apps.calculator.report_generator import generate_qr_code
 
 
 @pytest.fixture
 def app():
-    return make_app()
+    return cara.apps.calculator.make_app()
 
 
 async def test_homepage(http_server_client):
@@ -14,13 +17,36 @@ async def test_homepage(http_server_client):
     assert response.code == 200
 
 
-async def test_calculator(http_server_client):
+async def test_calculator_form(http_server_client):
     # Both with and without a trailing slash.
     response = await http_server_client.fetch('/calculator')
     assert response.code == 200
 
     response = await http_server_client.fetch('/calculator/')
     assert response.code == 200
+
+
+class TestBasicApp(tornado.testing.AsyncHTTPTestCase):
+    def get_app(self):
+        return cara.apps.calculator.make_app()
+
+    def test_report(self):
+        response = self.fetch('/calculator/baseline-model/result')
+        self.assertEqual(response.code, 200)
+        assert 'CERN HSE rules' not in response.body.decode()
+        assert 'the expected number of new cases is' in response.body.decode()
+
+
+class TestCernApp(tornado.testing.AsyncHTTPTestCase):
+    def get_app(self):
+        cern_theme = Path(cara.apps.calculator.__file__).parent / 'themes' / 'cern'
+        return cara.apps.calculator.make_app(theme_dir=cern_theme)
+
+    def test_report(self):
+        response = self.fetch('/calculator/baseline-model/result')
+        self.assertEqual(response.code, 200)
+        assert 'CERN HSE rules' in response.body.decode()
+        assert 'the expected number of new cases is' in response.body.decode()
 
 
 async def test_qrcode_urls(http_server_client, baseline_form):

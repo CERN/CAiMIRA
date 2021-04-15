@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import traceback
+import typing
 import uuid
 import zlib
 
@@ -12,13 +13,13 @@ import jinja2
 from tornado.web import Application, RequestHandler, StaticFileHandler
 
 from . import model_generator
-from .report_generator import build_report
+from .report_generator import ReportGenerator
 from .user import AuthenticatedUser, AnonymousUser
 
 
 # The calculator version is based on a combination of the model version and the
 # semantic version of the calculator itself. The version uses the terms
-# "{MAJOR}.{MINOR}.{PATCH}" to describe the 3 distinct numbers constituing a version.
+# "{MAJOR}.{MINOR}.{PATCH}" to describe the 3 distinct numbers constituting a version.
 # Effectively, if the model increases its MAJOR version then so too should this
 # calculator version. If the calculator needs to make breaking changes (e.g. change
 # form attributes) then it can also increase its MAJOR version without needing to
@@ -98,16 +99,17 @@ class ConcentrationModel(BaseRequestHandler):
             return
 
         base_url = self.request.protocol + "://" + self.request.host
-        report = build_report(base_url, form.build_model(), form)
+        report_generator = self.settings['report_generator']
+        report = report_generator.build_report(base_url, form)
         self.finish(report)
 
 
 class StaticModel(BaseRequestHandler):
     def get(self):
         form = model_generator.FormData.from_dict(model_generator.baseline_raw_form_data())
-        model = form.build_model()
         base_url = self.request.protocol + "://" + self.request.host
-        report = build_report(base_url, model, form)
+        report_generator = self.settings['report_generator']
+        report = report_generator.build_report(base_url, form)
         self.finish(report)
 
 
@@ -153,10 +155,14 @@ class ReadmeHandler(BaseRequestHandler):
         self.finish(readme)
 
 
-def make_app(debug=False, prefix='/calculator'):
+def make_app(
+        debug: bool = False,
+        prefix: str = '/calculator',
+        theme_dir: typing.Optional[Path] = None,
+) -> Application:
     static_dir = Path(__file__).absolute().parent.parent / 'static'
     calculator_static_dir = Path(__file__).absolute().parent / 'static'
-    urls = [
+    urls: typing.Any = [
         (r'/?', LandingPage),
         (r'/_c/(.*)', CompressedCalculatorFormInputs),
         (r'/static/(.*)', StaticFileHandler, {'path': static_dir}),
@@ -169,8 +175,12 @@ def make_app(debug=False, prefix='/calculator'):
 
     cara_templates = Path(__file__).parent.parent / "templates"
     calculator_templates = Path(__file__).parent / "templates"
+    templates_directories = [cara_templates, calculator_templates]
+    if theme_dir:
+        templates_directories.insert(0, theme_dir / 'templates')
+    loader = jinja2.FileSystemLoader([str(path) for path in templates_directories])
     template_environment = jinja2.Environment(
-        loader=jinja2.FileSystemLoader([cara_templates, calculator_templates]),
+        loader=loader,
     )
 
     return Application(
@@ -178,6 +188,7 @@ def make_app(debug=False, prefix='/calculator'):
         debug=debug,
         template_environment=template_environment,
         default_handler_class=Missing404Handler,
+        report_generator=ReportGenerator(loader),
         xsrf_cookies=True,
         # COOKIE_SECRET being undefined will result in no login information being
         # presented to the user.

@@ -2,7 +2,6 @@ import base64
 import dataclasses
 from datetime import datetime
 import io
-from pathlib import Path
 import typing
 import zlib
 
@@ -137,7 +136,7 @@ def plot(times, concentrations, model: models.ExposureModel):
     for i, (presence_start, presence_finish) in enumerate(model.exposed.presence.boundaries()):
         plt.fill_between(
             times, concentrations, 0,
-            where=(np.array(times)>presence_start) & (np.array(times)<presence_finish),
+            where=(np.array(times) > presence_start) & (np.array(times) < presence_finish),
             color="#1f77b4", alpha=0.1,
             label="Presence of exposed person(s)" if i == 0 else ""
         )
@@ -271,31 +270,43 @@ def comparison_report(scenarios: typing.Dict[str, models.ExposureModel]):
     }
 
 
-def build_report(base_url: str, model: models.ExposureModel, form: FormData):
-    now = datetime.utcnow().astimezone()
-    time = now.strftime("%Y-%m-%d %H:%M:%S UTC")
+@dataclasses.dataclass
+class ReportGenerator:
+    jinja_loader: jinja2.BaseLoader
 
-    context = {
-        'model': model,
-        'form': form,
-        'creation_date': time,
-    }
+    def build_report(self, base_url: str, form: FormData) -> str:
+        model = form.build_model()
+        context = self.prepare_context(base_url, model, form)
+        return self.render(context)
 
-    context.update(calculate_report_data(model))
-    alternative_scenarios = manufacture_alternative_scenarios(form)
-    context['alternative_scenarios'] = comparison_report(alternative_scenarios)
-    context['qr_code'] = generate_qr_code(base_url, form)
+    def prepare_context(self, base_url: str, model: models.ExposureModel, form: FormData) -> dict:
+        now = datetime.utcnow().astimezone()
+        time = now.strftime("%Y-%m-%d %H:%M:%S UTC")
 
-    cara_templates = Path(__file__).parent.parent / "templates"
-    calculator_templates = Path(__file__).parent / "templates"
-    env = jinja2.Environment(
-        loader=jinja2.FileSystemLoader([str(cara_templates), str(calculator_templates)]),
-        undefined=jinja2.StrictUndefined,
-    )
-    env.filters['non_zero_percentage'] = non_zero_percentage
-    env.filters['readable_minutes'] = readable_minutes
-    env.filters['minutes_to_time'] = minutes_to_time
-    env.filters['float_format'] = "{0:.2f}".format
-    env.filters['int_format'] = "{:0.0f}".format
-    template = env.get_template("report.html.j2")
-    return template.render(**context)
+        context = {
+            'model': model,
+            'form': form,
+            'creation_date': time,
+        }
+
+        context.update(calculate_report_data(model))
+        alternative_scenarios = manufacture_alternative_scenarios(form)
+        context['alternative_scenarios'] = comparison_report(alternative_scenarios)
+        context['qr_code'] = generate_qr_code(base_url, form)
+        return context
+
+    def _template_environment(self) -> jinja2.Environment:
+        env = jinja2.Environment(
+            loader=self.jinja_loader,
+            undefined=jinja2.StrictUndefined,
+        )
+        env.filters['non_zero_percentage'] = non_zero_percentage
+        env.filters['readable_minutes'] = readable_minutes
+        env.filters['minutes_to_time'] = minutes_to_time
+        env.filters['float_format'] = "{0:.2f}".format
+        env.filters['int_format'] = "{:0.0f}".format
+        return env
+
+    def render(self, context: dict) -> str:
+        template = self._template_environment().get_template("calculator.report.html.j2")
+        return template.render(**context)
