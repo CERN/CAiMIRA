@@ -57,14 +57,15 @@ def test_hinged_window(baseline_hingedwindow, window_width,
 
 @pytest.mark.parametrize(
     "override_params", [
-        {'window_height': np.array([0.15, 0.20])},
-        {'window_width': np.array([0.15, 0.20])},
-        {'opening_length': np.array([0.15, 0.20])},
+        {'window_height': np.array([0.15, 0.20, 0.25])},
+        {'window_width': np.array([0.15, 0.20, 0.25])},
+        {'opening_length': np.array([0.15, 0.20, 0.25])},
         {'outside_temp': models.PiecewiseConstant(
-            (1, 2, 3), (np.array([20, 30]), np.array([25, 30]))),
-        },
-        {'outside_temp': np.array([20, 30])},
-        {'inside_temp': np.array([20, 30])},
+            (0, 2, 3), (np.array([20, 30, 28]), np.array([25, 30, 27]))
+        )},
+        {'inside_temp': models.PiecewiseConstant(
+            (0, 20), (np.array([20, 30, 25]), )
+        )},
     ]
 )
 def test_HingedWindow_vectorisation(override_params):
@@ -72,16 +73,19 @@ def test_HingedWindow_vectorisation(override_params):
         'window_height': 0.15,
         'window_width': 0.15,
         'opening_length': 0.15,
-        'inside_temp': 20,
-        'outside_temp': 10,
+        'inside_temp': models.PiecewiseConstant((0, 2, 3), (20, 25)),
+        'outside_temp': models.PiecewiseConstant((0, 2, 3), (10, 15)),
     }
     defaults.update(override_params)
-
+    room = models.Room(volume=75)
+    t = 0.5
     window = models.HingedWindow(models.PeriodicInterval(60, 30), **defaults)
     if {'window_height', 'opening_length', 'window_width'}.intersection(override_params):
         assert isinstance(window.discharge_coefficient, np.ndarray)
     else:
         assert isinstance(window.discharge_coefficient, float)
+
+    assert isinstance(window.air_exchange(room, t), np.ndarray)
 
 
 def test_sliding_window(baseline_slidingwindow):

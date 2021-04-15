@@ -271,7 +271,7 @@ class WindowOpening(Ventilation):
     min_deltaT: float = 0.1
 
     @property
-    def discharge_coefficient(self) -> float:
+    def discharge_coefficient(self) -> _VectorisedFloat:
         """
         Discharge coefficient (or cd_b): what portion effective area is
         used to exchange air (0 <= discharge_coefficient <= 1).
@@ -291,14 +291,14 @@ class WindowOpening(Ventilation):
             return 0.
 
         # Reminder, no dependence on time in the resulting calculation.
-        inside_temp = self.inside_temp.value(time)
-        outside_temp = self.outside_temp.value(time)
+        inside_temp: _VectorisedFloat = self.inside_temp.value(time)
+        outside_temp: _VectorisedFloat = self.outside_temp.value(time)
 
         # The inside_temperature is forced to be always at least min_deltaT degree
         # warmer than the outside_temperature. Further research needed to
         # handle the buoyancy driven ventilation when the temperature gradient
         # is inverted.
-        inside_temp = max(inside_temp, outside_temp + self.min_deltaT)
+        inside_temp = np.maximum(inside_temp, outside_temp + self.min_deltaT)  # type: ignore
         temp_gradient = (inside_temp - outside_temp) / outside_temp
         root = np.sqrt(9.81 * self.window_height * temp_gradient)
         window_area = self.window_height * self.opening_length * self.number_of_windows
@@ -312,7 +312,7 @@ class SlidingWindow(WindowOpening):
     the horizontal plane).
     """
     @property
-    def discharge_coefficient(self) -> float:
+    def discharge_coefficient(self) -> _VectorisedFloat:
         """
         Average measured value of discharge coefficient for sliding or
         side-hung windows.
@@ -334,7 +334,7 @@ class HingedWindow(WindowOpening):
             raise ValueError('window_width must be set')
 
     @property
-    def discharge_coefficient(self) -> float:
+    def discharge_coefficient(self) -> _VectorisedFloat:
         """
         Simple model to compute discharge coefficient for top or bottom
         hung hinged windows, in the absence of empirical test results
@@ -351,7 +351,7 @@ class HingedWindow(WindowOpening):
         coefs[np.bitwise_and(0.5 <= window_ratio, window_ratio < 1)] = (0.048, 0.589)
         coefs[np.bitwise_and(1 <= window_ratio, window_ratio < 2)] = (0.04, 0.563)
         coefs[window_ratio >= 2] = (0.038, 0.548)
-        M, cd_max = coefs
+        M, cd_max = coefs.T
 
         window_angle = 2.*np.rad2deg(np.arcsin(self.opening_length/(2.*self.window_height)))
         return cd_max*(1-np.exp(-M*window_angle))
