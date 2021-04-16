@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.lines as mlines
 from sklearn.neighbors import KernelDensity
+from pathlib import Path
+
 TIME_STEP = 0.01
 
 USE_SCOEH = False
@@ -1339,3 +1341,26 @@ def plot_pi_vs_exposure_time(exp_models: typing.List[MCExposureModel], labels: t
     plt.ylabel('Probability of infection\n$P(\,\mathtt{I}\,|\,\mathrm{vl}\,)$', fontsize=12)
     plt.legend()
     plt.show()
+
+
+def generate_qr_csv(filename: str, qid: int = 100, masked: bool = False, samples: int = 2000000) -> None:
+    infected_populations = [MCInfectedPopulation(
+        number=1,
+        presence=models.SpecificInterval(((0, 1),)),
+        masked=masked,
+        virus=MCVirus(halflife=1.1, qID=qid),
+        expiratory_activity=a + 1,
+        samples=samples,
+        breathing_category=b
+    ) for a in range(3) for b in (1, 3, 5)]
+
+    qr_values = [ip.emission_rate_when_present() for ip in infected_populations]
+    percentiles = [1, 5, 50, 95, 99]
+    table_data = [['{:0.2e}'.format(np.percentile(values, percentile)) for values in qr_values] for percentile in percentiles]
+    first_column = ["1st", "5th", "50th", "95th", "99th"]
+    table_data = [[cell] + row for cell, row in zip(first_column, table_data)]
+
+    with open(Path(__file__).parent.joinpath('output-files').joinpath(filename + '.csv'), 'w') as file:
+        file.write(',,Breathing,,,Speaking,,,Shouting,\n')
+        file.write('Percentiles' + ',Seated,Light,Heavy' * 3 + '\n')
+        file.write('\n'.join(','.join(row) for row in table_data))
