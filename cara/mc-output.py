@@ -97,3 +97,6 @@ from cara.model_scenarios import *
 #                                 colors=['tomato', '#1f77b4', 'limegreen'],
 #                                 title='Shared office scenario',
 #                                 vl_points=200)
+
+generate_qr_csv('qR_unmasked')
+generate_qr_csv('qr_masked', masked=True)
