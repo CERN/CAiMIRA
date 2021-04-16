@@ -26,6 +26,7 @@ REQUIREMENTS: dict = {
         'mistune',
         'numpy',
         'qrcode[pil]',
+        'scipy',
         'tornado',
         'voila >=0.2.4',
     ],
@@ -58,6 +59,7 @@ setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
+        "License :: OSI Approved :: Apache Software License",  # Apache 2.0
     ],
 
     install_requires=REQUIREMENTS['core'],
