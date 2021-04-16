@@ -1355,9 +1355,9 @@ def generate_qr_csv(filename: str, qid: int = 100, masked: bool = False, samples
     ) for a in range(3) for b in (1, 3, 5)]
 
     qr_values = [ip.emission_rate_when_present() for ip in infected_populations]
-    percentiles = [1, 5, 50, 95, 99]
+    percentiles = [1, 5, 20, 50, 80, 95, 99]
     table_data = [['{:0.2e}'.format(np.percentile(values, percentile)) for values in qr_values] for percentile in percentiles]
-    first_column = ["1st", "5th", "50th", "95th", "99th"]
+    first_column = ["1st", "5th", "20th", "50th", "80th", "95th", "99th"]
     table_data = [[cell] + row for cell, row in zip(first_column, table_data)]
 
     with open(Path(__file__).parent.joinpath('output-files').joinpath(filename + '.csv'), 'w') as file:
