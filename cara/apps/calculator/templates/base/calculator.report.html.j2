@@ -149,7 +149,7 @@
 		{% if form.exposed_lunch_option%}
 		Yes</li>
 		<ul>
-			<li><p class="data_subtext">Start time: {{ form.exposed_lunch_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.exposed_lunch_finish | minutes_to_time }}
+			<li><p class="data_subtext">Start time: {{ form.exposed_lunch_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.exposed_lunch_finish | minutes_to_time }}</p></li>
 		</ul>
 		{% else%}
 		No
@@ -174,7 +174,7 @@
 		{% if form.infected_lunch_option%}
 		Yes</li>
 		<ul>
-			<li><p class="data_subtext">Start time: {{ form.infected_lunch_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.infected_lunch_finish | minutes_to_time }}
+			<li><p class="data_subtext">Start time: {{ form.infected_lunch_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.infected_lunch_finish | minutes_to_time }}</p></li>
 		</ul>
 		{% else%}
 		No
@@ -279,9 +279,14 @@
 
 {% block report_footer %}
 	<div>
-		<a href="{{ qr_code.link }}"><img style="width:250pt;" id="qr_code" src="{{ qr_code.image }}"/></a>
-		<i style="position:absolute; margin-top:3.5cm">Click the QR code to regenerate the report and get a shareable link.<br>Alternatively, scan to regenerate the report.<br> Mobile-friendly app coming soon!</i>
+		<a href="{{ qr_code.link }}" style="float: left;"><img style="width:250pt;" id="qr_code" src="{{ qr_code.image }}"/></a>
+		<span style="float: left; min-height: 250pt; line-height: 250pt; vertical-align: middle; display: inline-block;">
+		<p style="display: inline-block; vertical-align: middle; line-height: normal;">
+		Click the QR code to regenerate the report and get a shareable link.<br>Alternatively, scan to regenerate the report.<br> Mobile-friendly app coming soon!
+		</p>
+		</span>
 	</div>
+	<div style="clear: both;"></div>
 
     {% block disclaimer_container %}
 	<br><br><br>
