@@ -97,3 +97,9 @@ from cara.model_scenarios import *
 #                                 colors=['tomato', '#1f77b4', 'limegreen'],
 #                                 title='Shared office scenario',
 #                                 vl_points=200)
+
+#compare_concentration_curves([classroom_model_no_vent[1], classroom_model[1], classroom_model_with_hepa[1], classroom_model_full_open_multi[1]],
+#                             labels=['Windows closed', 'Windows open (for 10min every 2h)', 'Windows open (for 10min every 2h) + HEPA', 'Multiple windows open (at all times)'],
+#                             colors=['tomato','#1f77b4', 'seagreen', 'limegreen'],
+#                             title='Median concentration of infectious quantum and\ncumulative dose ($\mathrm{qD}$) over exposure time'
+#                             )
