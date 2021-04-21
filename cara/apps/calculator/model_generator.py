@@ -1,3 +1,4 @@
+import dataclasses
 from dataclasses import dataclass
 import html
 import logging
@@ -14,6 +15,13 @@ LOG = logging.getLogger(__name__)
 
 
 minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
+
+
+# Used to declare when an attribute of a class must have a value provided, and
+# there should be no default value used.
+_NO_DEFAULT = object()
+
+
 @dataclass
 class FormData:
     activity_type: str
@@ -60,51 +68,100 @@ class FormData:
     windows_number: int
     window_opening_regime: str
 
+    #: The default values for undefined fields. Note that the defaults here
+    #: and the defaults in the html form must not be contradictory.
+    _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = {
+        'activity_type': 'office',
+        'air_changes': 0.,
+        'air_supply': 0.,
+        'calculator_version': _NO_DEFAULT,
+        'ceiling_height': 0.,
+        'exposed_coffee_break_option': 'coffee_break_0',
+        'exposed_coffee_duration': 5,
+        'exposed_finish': '17:30',
+        'exposed_lunch_finish': '13:30',
+        'exposed_lunch_option': True,
+        'exposed_lunch_start': '12:30',
+        'exposed_start': '08:30',
+        'event_month': 'January',
+        'floor_area': 0.,
+        'hepa_amount': 0.,
+        'hepa_option': False,
+        'infected_coffee_break_option': 'coffee_break_0',
+        'infected_coffee_duration': 5,
+        'infected_dont_have_breaks_with_exposed': False,
+        'infected_finish': '17:30',
+        'infected_lunch_finish': '13:30',
+        'infected_lunch_option': True,
+        'infected_lunch_start': '12:30',
+        'infected_people': _NO_DEFAULT,
+        'infected_start': '08:30',
+        'mask_type': 'Type I',
+        'mask_wearing_option': 'mask_off',
+        'mechanical_ventilation_type': 'not-applicable',
+        'opening_distance': 0.,
+        'room_number': _NO_DEFAULT,
+        'room_volume': 0.,
+        'simulation_name': _NO_DEFAULT,
+        'total_people': _NO_DEFAULT,
+        'ventilation_type': 'no_ventilation',
+        'virus_type': 'SARS_CoV_2',
+        'volume_type': _NO_DEFAULT,
+        'window_type': 'window_sliding',
+        'window_height': 0.,
+        'window_width': 0.,
+        'windows_duration': 0.,
+        'windows_frequency': 0.,
+        'windows_number': 0,
+        'window_opening_regime': 'windows_open_permanently',
+    }
+
     @classmethod
     def from_dict(cls, form_data: typing.Dict) -> "FormData":
         # Take a copy of the form data so that we can mutate it.
         form_data = form_data.copy()
-
-        valid_na_values = ['window_opening_regime', 'window_type', 'mechanical_ventilation_type', 'infected_dont_have_breaks_with_exposed']
-        for name in valid_na_values:
-            if not form_data.get(name, ''):
-                form_data[name] = 'not-applicable'
-
-        for name in ['exposed_lunch_start', 'exposed_lunch_finish', 'infected_lunch_start', 'infected_lunch_finish']:
-            if not form_data.get(name, ''):
-                form_data[name] = '00:00'
+        form_data.pop('_xsrf', None)
 
         # Don't let arbitrary unescaped HTML through the net.
         for key, value in form_data.items():
             if isinstance(value, str):
                 form_data[key] = html.escape(value)
 
-        # TODO: This fixup is a problem with the form.html.
+        for key, default_value in cls._DEFAULTS.items():
+            if form_data.get(key, '') == '':
+                if default_value is _NO_DEFAULT:
+                    raise ValueError(f"{key} must be specified")
+                form_data[key] = default_value
+
         for key, value in form_data.items():
-            if value == "":
-                form_data[key] = "0"
+            if key in _CAST_RULES_FORM_ARG_TO_NATIVE:
+                form_data[key] = _CAST_RULES_FORM_ARG_TO_NATIVE[key](value)
 
-        for attr_name in BOOLEAN_ATTRIBUTES:
-            form_data[attr_name] = form_data[attr_name] == '1'
-        for attr_name in FLOAT_ATTRIBUTES:
-            form_data[attr_name] = float(form_data[attr_name])
-        for attr_name in INT_ATTRIBUTES:
-            form_data[attr_name] = int(form_data[attr_name])
-        for attr_name in TIME_ATTRIBUTES:
-            form_data[attr_name] = time_string_to_minutes(form_data[attr_name])
+            if key not in cls._DEFAULTS:
+                raise ValueError(f'Invalid argument "{html.escape(key)}" given')
 
-        form_data.pop('_xsrf', None)
         instance = cls(**form_data)
         instance.validate()
         return instance
 
     @classmethod
-    def to_dict(self, form: "FormData") -> dict:
-        form_dict = form.__dict__.copy()
-        for attr_name in TIME_ATTRIBUTES:
-            form_dict[attr_name] = time_minutes_to_string(form_dict[attr_name])
-        for attr_name in BOOLEAN_ATTRIBUTES:
-            form_dict[attr_name] = form_dict[attr_name] & 1
+    def to_dict(cls, form: "FormData", strip_defaults: bool = False) -> dict:
+        form_dict = {
+            field.name: getattr(form, field.name)
+            for field in dataclasses.fields(form)
+        }
+
+        for attr, value in form_dict.items():
+            if attr in _CAST_RULES_NATIVE_TO_FORM_ARG:
+                form_dict[attr] = _CAST_RULES_NATIVE_TO_FORM_ARG[attr](value)
+
+        if strip_defaults:
+            del form_dict['calculator_version']
+
+            for attr, value in list(form_dict.items()):
+                default = cls._DEFAULTS.get(attr, _NO_DEFAULT)
+                if default is not _NO_DEFAULT and value in [default, 'not-applicable']:
+                    form_dict.pop(attr)
         return form_dict
 
     def validate(self):
@@ -140,12 +197,22 @@ class FormData:
             if getattr(self, attr_name) not in valid_set:
                 raise ValueError(f"{getattr(self, attr_name)} is not a valid value for {attr_name}")
 
-        if (
-                self.ventilation_type == 'natural'
-                and self.window_type == 'not-applicable'
-        ):
-            raise ValueError("window_type cannot be 'not-applicable' if "
-                             "ventilation_type is 'natural'")
+        if self.ventilation_type == 'natural_ventilation':
+            if self.window_type == 'not-applicable':
+                raise ValueError(
+                    "window_type cannot be 'not-applicable' if "
+                    "ventilation_type is 'natural_ventilation'"
+                )
+            if self.window_opening_regime == 'not-applicable':
+                raise ValueError(
+                    "window_opening_regime cannot be 'not-applicable' if "
+                    "ventilation_type is 'natural_ventilation'"
+                )
+
+        if (self.ventilation_type == 'mechanical_ventilation'
+                and self.mechanical_ventilation_type == 'not-applicable'):
+            raise ValueError("mechanical_ventilation_type cannot be 'not-applicable' if "
+                             "ventilation_type is 'mechanical_ventilation'")
 
     def build_model(self) -> models.ExposureModel:
         return model_from_form(self)
@@ -582,14 +649,8 @@ VOLUME_TYPES = {'room_volume_explicit', 'room_volume_from_dimensions'}
 WINDOWS_OPENING_REGIMES = {'windows_open_permanently', 'windows_open_periodically', 'not-applicable'}
 WINDOWS_TYPES = {'window_sliding', 'window_hinged', 'not-applicable'}
 
-COFFEE_OPTIONS_INT = {'coffee_break_0':0, 'coffee_break_1':1, 'coffee_break_2':2, 'coffee_break_4':4}
+COFFEE_OPTIONS_INT = {'coffee_break_0': 0, 'coffee_break_1': 1, 'coffee_break_2': 2, 'coffee_break_4': 4}
 
-BOOLEAN_ATTRIBUTES = {'hepa_option', 'exposed_lunch_option', 'infected_lunch_option', 'infected_dont_have_breaks_with_exposed'}
-FLOAT_ATTRIBUTES = {'air_changes', 'air_supply', 'ceiling_height', 'floor_area', 'hepa_amount', 'opening_distance', 
-        'room_volume', 'windows_duration', 'windows_frequency', 'window_height', 'window_width'}
-INT_ATTRIBUTES = {'exposed_coffee_duration', 'infected_coffee_duration', 'infected_people', 'total_people', 'windows_number'}
-TIME_ATTRIBUTES = {'exposed_lunch_start', 'exposed_lunch_finish', 'exposed_start', 'exposed_finish',
-                'infected_lunch_start', 'infected_lunch_finish', 'infected_start', 'infected_finish'}        
 
 def time_string_to_minutes(time: str) -> minutes_since_midnight:
     """
@@ -599,6 +660,7 @@ def time_string_to_minutes(time: str) -> minutes_since_midnight:
     """
     return minutes_since_midnight(60 * int(time[:2]) + int(time[3:]))
 
+
 def time_minutes_to_string(time: int) -> str:
     """
     Converts time from an integer number of minutes after 00:00 to string-format
@@ -606,3 +668,37 @@ def time_minutes_to_string(time: int) -> str:
     :return: A string of the form "HH:MM" representing a time of day
     """
     return "{0:0=2d}".format(int(time/60)) + ":" + "{0:0=2d}".format(time%60)
+
+
+def _safe_int_cast(value) -> int:
+    if isinstance(value, int):
+        return value
+    elif isinstance(value, float) and int(value) == value:
+        return int(value)
+    elif isinstance(value, str) and value.isdecimal():
+        return int(value)
+    else:
+        raise TypeError(f"Unable to safely cast {value} ({type(value)} type) to int")
+
+
+#: Mapping of field name to a callable which can convert values from form
+#: input (URL encoded arguments / string) into the correct type.
+_CAST_RULES_FORM_ARG_TO_NATIVE: typing.Dict[str, typing.Callable] = {}
+
+#: Mapping of field name to callable which can convert native type to values
+#: that can be encoded to URL arguments.
+_CAST_RULES_NATIVE_TO_FORM_ARG: typing.Dict[str, typing.Callable] = {}
+
+
+for _field in dataclasses.fields(FormData):
+    if _field.type is minutes_since_midnight:
+        _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = time_string_to_minutes
+        _CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = time_minutes_to_string
+    elif _field.type is int:
+        _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = _safe_int_cast
+    elif _field.type is float:
+        _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = float
+    elif _field.type is bool:
+        _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = lambda v: v == '1'
+        _CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = int
+

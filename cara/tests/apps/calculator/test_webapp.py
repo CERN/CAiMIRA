@@ -26,7 +26,7 @@ async def test_calculator(http_server_client):
 async def test_qrcode_urls(http_server_client, baseline_form):
     prefix = 'proto://hostname/prefix'
     qr_data = generate_qr_code(prefix, baseline_form)
-    expected = f'{prefix}/calculator?activity_type=office&air_changes=0.0'
+    expected = f'{prefix}/calculator?exposed_coffee_break_option={baseline_form.exposed_coffee_break_option}&'
     assert qr_data['link'].startswith(expected)
 
     # We should get a 200 for the link.

@@ -1,3 +1,5 @@
+import dataclasses
+
 import pytest
 
 from cara.apps.calculator import model_generator
@@ -10,6 +12,12 @@ import numpy as np
 def test_model_from_dict(baseline_form_data):
     form = model_generator.FormData.from_dict(baseline_form_data)
     assert isinstance(form.build_model(), models.ExposureModel)
+
+
+def test_model_from_dict_invalid(baseline_form_data):
+    baseline_form_data['invalid_item'] = 'foobar'
+    with pytest.raises(ValueError, match='Invalid argument "invalid_item" given'):
+        model_generator.FormData.from_dict(baseline_form_data)
 
 
 def test_blend_expiration():
@@ -381,3 +389,60 @@ def test_key_validation(baseline_form_data):
     baseline_form_data['activity_type'] = 'invalid key'
     with pytest.raises(ValueError):
         model_generator.FormData.from_dict(baseline_form_data)
+
+
+def test_key_validation_natural_ventilation_window_type_na(baseline_form_data):
+    baseline_form_data['ventilation_type'] = 'natural_ventilation'
+    baseline_form_data['window_type'] = 'not-applicable'
+    with pytest.raises(ValueError, match='window_type cannot be \'not-applicable\''):
+        model_generator.FormData.from_dict(baseline_form_data)
+
+
+def test_key_validation_natural_ventilation_window_opening_regime_na(baseline_form_data):
+    baseline_form_data['ventilation_type'] = 'natural_ventilation'
+    baseline_form_data['window_opening_regime'] = 'not-applicable'
+    with pytest.raises(ValueError, match='window_opening_regime cannot be \'not-applicable\''):
+        model_generator.FormData.from_dict(baseline_form_data)
+
+
+def test_key_validation_mech_ventilation_type_na(baseline_form_data):
+    baseline_form_data['ventilation_type'] = 'mechanical_ventilation'
+    baseline_form_data['mechanical_ventilation_type'] = 'not-applicable'
+    with pytest.raises(ValueError, match='mechanical_ventilation_type cannot be \'not-applicable\''):
+        model_generator.FormData.from_dict(baseline_form_data)
+
+
+def test_default_types():
+    # Validate that FormData._DEFAULTS are complete and of the correct type.
+    # Validate that we have the right types and matching attributes to the DEFAULTS.
+    fields = {field.name: field for field in dataclasses.fields(model_generator.FormData)}
+    for field, value in model_generator.FormData._DEFAULTS.items():
+        if field not in fields:
+            raise ValueError(f"Unmatched default {field}")
+
+        field_type = fields[field].type
+        if not isinstance(field_type, type):
+            # Handle typing.NewType definitions.
+            field_type = field_type.__supertype__
+
+        if value is model_generator._NO_DEFAULT:
+            continue
+
+        if field in model_generator._CAST_RULES_FORM_ARG_TO_NATIVE:
+            value = model_generator._CAST_RULES_FORM_ARG_TO_NATIVE[field](value)
+
+        if not isinstance(value, field_type):
+            raise TypeError(f'{field} has type {field_type}, got {type(value)}')
+
+    for field in fields.values():
+        assert field.name in model_generator.FormData._DEFAULTS, f"No default set for field name {field.name}"
+
+
+def test_form_to_dict(baseline_form):
+    full = baseline_form.to_dict(baseline_form)
+    stripped = baseline_form.to_dict(baseline_form, strip_defaults=True)
+    assert 1 < len(stripped) < len(full)
+    assert 'exposed_coffee_break_option' in stripped
+    # If we set the value to the default one, it should no longer turn up in the dictionary.
+    baseline_form.exposed_coffee_break_option = model_generator.FormData._DEFAULTS['exposed_coffee_break_option']
+    assert 'exposed_coffee_break_option' not in baseline_form.to_dict(baseline_form, strip_defaults=True)
