@@ -3,6 +3,7 @@ import time
 import pytest
 
 from cara.apps.calculator import report_generator
+from cara.apps.calculator import make_app
 
 
 def test_generate_report(baseline_form):
@@ -13,8 +14,9 @@ def test_generate_report(baseline_form):
     time_limit: float = 5.0  # seconds
 
     start = time.perf_counter()
-    model = baseline_form.build_model()
-    report = report_generator.build_report("", model, baseline_form)
+
+    generator: report_generator.ReportGenerator = make_app().settings['report_generator']
+    report = generator.build_report("", baseline_form)
     end = time.perf_counter()
     assert report != ""
     assert end - start < time_limit
