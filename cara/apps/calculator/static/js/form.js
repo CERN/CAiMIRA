@@ -474,6 +474,8 @@ $(document).ready(function () {
 
       //Pre-select checked radios
       if (elemObj.type === 'radio') {
+        // Calculator <= 1.5.0 used to send not-applicable in the URL for radios that
+        // weren't set. Now those are not sent at all, but we keep the behaviour for compatibility.
         if (value !== 'not-applicable') {
           $('[name="'+name+'"][value="'+value+'"]').prop('checked',true);
         }

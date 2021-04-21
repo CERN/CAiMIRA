@@ -15,6 +15,7 @@ import numpy as np
 
 from cara import models
 from .model_generator import FormData
+from ... import dataclass_utils
 
 
 @dataclasses.dataclass(frozen=True)
@@ -46,7 +47,8 @@ def calculate_report_data(model: models.ExposureModel):
 
     repeated_events = []
     for n in [1, 2, 3, 4, 5]:
-        repeat_model = dataclasses.replace(model, repeats=n)
+
+        repeat_model = dataclass_utils.replace(model, repeats=n)
         repeated_events.append(
             RepeatEvents(
                 repeats=n,
@@ -69,7 +71,7 @@ def calculate_report_data(model: models.ExposureModel):
 
 
 def generate_qr_code(prefix, form: FormData):
-    form_dict = FormData.to_dict(form)
+    form_dict = FormData.to_dict(form, strip_defaults=True)
 
     # Generate the calculator URL arguments that would be needed to re-create this
     # form.
@@ -197,12 +199,12 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, models
 
     # The remaining scenarios are based on Type I masks (possibly not worn)
     # and no HEPA filtration.
-    form = dataclasses.replace(form, mask_type='Type I')
+    form = dataclass_utils.replace(form, mask_type='Type I')
     if form.hepa_option:
-        form = dataclasses.replace(form, hepa_option=False)
+        form = dataclass_utils.replace(form, hepa_option=False)
 
-    with_mask = dataclasses.replace(form, mask_wearing_option='mask_on')
-    without_mask = dataclasses.replace(form, mask_wearing_option='mask_off')
+    with_mask = dataclass_utils.replace(form, mask_wearing_option='mask_on')
+    without_mask = dataclass_utils.replace(form, mask_wearing_option='mask_off')
 
     if form.ventilation_type == 'mechanical_ventilation':
         scenarios['Mechanical ventilation with Type I masks'] = with_mask.build_model()
@@ -213,8 +215,8 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, models
         scenarios['Windows open without masks'] = without_mask.build_model()
 
     # No matter the ventilation scheme, we include scenarios which don't have any ventilation.
-    with_mask_no_vent = dataclasses.replace(with_mask, ventilation_type='no_ventilation')
-    without_mask_or_vent = dataclasses.replace(without_mask, ventilation_type='no_ventilation')
+    with_mask_no_vent = dataclass_utils.replace(with_mask, ventilation_type='no_ventilation')
+    without_mask_or_vent = dataclass_utils.replace(without_mask, ventilation_type='no_ventilation')
     scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_model()
     scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_model()
 
