@@ -71,3 +71,33 @@ def test_exposure_model_vectorisation(override_params):
     assert isinstance(expected_new_cases, np.ndarray)
     assert expected_new_cases.shape == (2, )
 
+
+@pytest.mark.parametrize(
+    "vector_param", [
+        'volume', 'air_change', 'virus_halflife',
+        'viral_load_in_sputum', 'coefficient_of_infectivity', 'η_exhale',
+        'η_leaks', 'η_inhale',
+    ]
+)
+def test_exposure_model_compare_scalar_vector(vector_param):
+    defaults = {
+        'volume': 75,
+        'air_change': 100,
+        'virus_halflife': 1.1,
+        'viral_load_in_sputum': 1e9,
+        'coefficient_of_infectivity': 0.02,
+        'η_exhale': 0.95,
+        'η_leaks': 0.15,
+        'η_inhale': 0.3,
+    }
+    e_model_scalar = exposure_model_from_params(defaults)
+    expected_new_cases_scalar = e_model_scalar.expected_new_cases()
+    assert isinstance(expected_new_cases_scalar, float)
+
+    defaults[vector_param] = np.ones(3)*defaults[vector_param]
+    e_model_vector = exposure_model_from_params(defaults)
+    expected_new_cases_vector = e_model_vector.expected_new_cases()
+    assert isinstance(expected_new_cases_vector, np.ndarray)
+    assert expected_new_cases_vector.shape == (3, )
+    assert np.all(expected_new_cases_vector==expected_new_cases_scalar)
+
