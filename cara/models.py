@@ -701,7 +701,7 @@ class ExposureModel:
 
         def integrate(fn, start, stop):
             values = np.linspace(start, stop)
-            return np.trapz([fn(v) for v in values], values)
+            return np.trapz([fn(v) for v in values], values, axis=0)
 
         for start, stop in self.exposed.presence.boundaries():
             exposure += integrate(self.concentration_model.concentration, start, stop)
