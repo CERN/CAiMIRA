@@ -3,6 +3,43 @@ import pytest
 
 import cara.models
 
+def exposure_model_from_params(params):
+    always = cara.models.PeriodicInterval(240, 240)  # TODO: This should be a thing on an interval.
+    office_hours = cara.models.SpecificInterval(present_times=[(8,17)])
+    c_model = cara.models.ConcentrationModel(
+        cara.models.Room(params['volume']),
+        cara.models.AirChange(always, params['air_change']),
+        cara.models.InfectedPopulation(
+            number=1,
+            presence=office_hours,
+            mask=cara.models.Mask(
+                η_exhale=params['η_exhale'],
+                η_leaks=params['η_leaks'],
+                η_inhale=params['η_inhale'],
+            ),
+            activity=cara.models.Activity(
+                0.51,
+                0.75,
+            ),
+            virus=cara.models.Virus(
+                halflife=params['virus_halflife'],
+                viral_load_in_sputum=params['viral_load_in_sputum'],
+                coefficient_of_infectivity=params['coefficient_of_infectivity'],
+            ),
+            expiration=cara.models.Expiration(
+                ejection_factor=(0.084, 0.009, 0.003, 0.002),
+            ),
+        )
+    )
+    return cara.models.ExposureModel(
+        concentration_model=c_model,
+        exposed=cara.models.Population(
+            number=10,
+            presence=office_hours,
+            activity=c_model.infected.activity,
+            mask=c_model.infected.mask,
+        )
+    )
 
 @pytest.mark.parametrize(
     "override_params", [
@@ -29,42 +66,8 @@ def test_exposure_model_vectorisation(override_params):
     }
     defaults.update(override_params)
 
-    always = cara.models.PeriodicInterval(240, 240)  # TODO: This should be a thing on an interval.
-    office_hours = cara.models.SpecificInterval(present_times=[(8,17)])
-    c_model = cara.models.ConcentrationModel(
-        cara.models.Room(defaults['volume']),
-        cara.models.AirChange(always, defaults['air_change']),
-        cara.models.InfectedPopulation(
-            number=1,
-            presence=office_hours,
-            mask=cara.models.Mask(
-                η_exhale=defaults['η_exhale'],
-                η_leaks=defaults['η_leaks'],
-                η_inhale=defaults['η_inhale'],
-            ),
-            activity=cara.models.Activity(
-                0.51,
-                0.75,
-            ),
-            virus=cara.models.Virus(
-                halflife=defaults['virus_halflife'],
-                viral_load_in_sputum=defaults['viral_load_in_sputum'],
-                coefficient_of_infectivity=defaults['coefficient_of_infectivity'],
-            ),
-            expiration=cara.models.Expiration(
-                ejection_factor=(0.084, 0.009, 0.003, 0.002),
-            ),
-        )
-    )
-    e_model = cara.models.ExposureModel(
-        concentration_model=c_model,
-        exposed=cara.models.Population(
-            number=10,
-            presence=office_hours,
-            activity=c_model.infected.activity,
-            mask=c_model.infected.mask,
-        )
-    )
+    e_model = exposure_model_from_params(defaults)
     expected_new_cases = e_model.expected_new_cases()
     assert isinstance(expected_new_cases, np.ndarray)
     assert expected_new_cases.shape == (2, )
+
