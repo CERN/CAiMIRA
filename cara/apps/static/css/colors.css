@@ -136,9 +136,9 @@ body > footer {
     color: #fffeee !important; }
     body > footer h2:after {
       background: #fffeee !important; }
-  body > footer nav ul.menu.nav li a {
+  body > footer a, footer a {
     color: #fffefe; }
-    body > footer nav ul.menu.nav li a:hover, body > footer nav ul.menu.nav li a.is-active {
+    body > footer a:hover, body > footer a.is-active {
       color: #fffefe; }
       body > footer nav ul.menu.nav li a:hover:before, body > footer nav ul.menu.nav li a.is-active:before {
         color: #2d8af1; }
