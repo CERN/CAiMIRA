@@ -364,7 +364,7 @@ class HEPAFilter(Ventilation):
 
     #: The rate at which the HEPA exchanges air (when switched on)
     # in m^3/h
-    q_air_mech: float
+    q_air_mech: _VectorisedFloat
 
     def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
         # If the HEPA is off, no air is being exchanged.
@@ -381,7 +381,7 @@ class HVACMechanical(Ventilation):
 
     #: The rate at which the HVAC exchanges air (when switched on)
     # in m^3/h
-    q_air_mech: float
+    q_air_mech: _VectorisedFloat
 
     def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
         # If the HVAC is off, no air is being exchanged.
