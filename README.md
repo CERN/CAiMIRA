@@ -1,32 +1,47 @@
 # CARA - COVID Airborne Risk Assessment
 
+CARA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions. 
+
+CARA models the concentration profile of potential infectious viruses in enclosed spaces with clear and intuitive graphs.
+The user can set a number of parameters, including room volume, exposure time, activity type, mask-wearing and ventilation.
+The report generated indicates how to avoid exceeding critical concentrations and chains of airborne transmission in spaces such as individual offices, meeting rooms and labs.
+
+The risk assessment tool simulates the long-range airborne spread SARS-CoV-2 virus in a finite volume, assuming a homogenous mixture, and estimates the risk of COVID-19 infection therein.
+The results DO NOT include short-range airborne exposure (where the physical distance is a significant factor) nor the other known modes of SARS-CoV-2 transmission.
+Hence, the output from this model is only valid when the other recommended public health & safety instructions are observed, such as adequate physical distancing, good hand hygiene and other barrier measures.
+
+The model used is based on scientific publications relating to airborne transmission of infectious diseases, dose-response exposures and aerosol science, as of February 2021.
+It can be used to compare the effectiveness of different airborne-related risk mitigation measures.
+
+Note that this model applies a deterministic approach, i.e., it is assumed at least one person is infected and shedding viruses into the simulated volume.
+Nonetheless, it is also important to understand that the absolute risk of infection is uncertain, as it will depend on the probability that someone infected attends the event.
+The model is most useful for comparing the impact and effectiveness of different mitigation measures such as ventilation, filtration, exposure time, physical activity and
+the size of the room, only considering long-range airborne transmission of COVID-19 in indoor settings.
+
+This tool is designed to be informative, allowing the user to adapt different settings and model the relative impact on the estimated infection probabilities.
+The objective is to facilitate targeted decision-making and investment through comparisons, rather than a singular determination of absolute risk.
+While the SARS-CoV-2 virus is in circulation among the population, the notion of 'zero risk' or 'completely safe scenario' does not exist.
+Each event modelled is unique, and the results generated therein are only as accurate as the inputs and assumptions.
+
+
 ## Applications
 
 ### COVID Calculator
 
-A risk assessment tool which simulates the long range airborne spread of the
-SARS-CoV-2 virus for space managers.
+A risk assessment tool which simulates the long range airborne spread of the SARS-CoV-2 virus for space managers.
 
-You can find the CARA COVID Calculator at https://cara.web.cern.ch/calculator/.
-Please see the [COVID Calculator README for detailed usage instructions](cara/apps/calculator/README.md).
 
 ### CARA Expert App
 
 A tool to interact with various parameters of the CARA model.
-This is currently in beta, and can be found at https://cara.web.cern.ch/expert-app.
 
 
 ## Disclaimer
 
-The code and data of this repository are provided to promote reproducible research.
-They are not intended for clinical care or commercial use.
+CARA has not undergone review, approval or certification by competent authorities, and as a result, it cannot be considered as a fully endorsed and reliable tool, namely in the assessment of potential viral emissions from infected hosts to be modelled.
 
-The software is provided "as is", without warranty of any kind, express or implied,
-including but not limited to the warranties of merchantability, fitness for a particular
-purpose and non infringement.
-In no event shall the authors or copyright holders be liable for any claim, damages
-or other liability, whether in an action of contract, tort or otherwise, arising from,
-out of or in connection with the software or the use or other dealings in the software.
+The software is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and non-infringement.
+In no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software or the use or other dealings in the software.
 
 
 ## Development guide
