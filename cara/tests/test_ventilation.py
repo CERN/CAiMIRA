@@ -46,9 +46,8 @@ def test_number_of_windows(baseline_slidingwindow):
         [4., 0.308],
     ],
 )
-def test_hinged_window(baseline_hingedwindow,window_width,
+def test_hinged_window(baseline_hingedwindow, window_width,
                        expected_discharge_coefficient):
-    room = models.Room(75)
     hinged_window = dataclasses.replace(baseline_hingedwindow,
                                         window_width=window_width)
 
@@ -56,9 +55,40 @@ def test_hinged_window(baseline_hingedwindow,window_width,
                         expected_discharge_coefficient, rtol=1e-2)
 
 
-def test_sliding_window(baseline_slidingwindow):
-    room = models.Room(75)
+@pytest.mark.parametrize(
+    "override_params", [
+        {'window_height': np.array([0.15, 0.20, 0.25])},
+        {'window_width': np.array([0.15, 0.20, 0.25])},
+        {'opening_length': np.array([0.15, 0.20, 0.25])},
+        {'outside_temp': models.PiecewiseConstant(
+            (0, 2, 3), (np.array([20, 30, 28]), np.array([25, 30, 27]))
+        )},
+        {'inside_temp': models.PiecewiseConstant(
+            (0, 20), (np.array([20, 30, 25]), )
+        )},
+    ]
+)
+def test_HingedWindow_vectorisation(override_params):
+    defaults = {
+        'window_height': 0.15,
+        'window_width': 0.15,
+        'opening_length': 0.15,
+        'inside_temp': models.PiecewiseConstant((0, 2, 3), (20, 25)),
+        'outside_temp': models.PiecewiseConstant((0, 2, 3), (10, 15)),
+    }
+    defaults.update(override_params)
+    room = models.Room(volume=75)
+    t = 0.5
+    window = models.HingedWindow(models.PeriodicInterval(60, 30), **defaults)
+    if {'window_height', 'opening_length', 'window_width'}.intersection(override_params):
+        assert isinstance(window.discharge_coefficient, np.ndarray)
+    else:
+        assert isinstance(window.discharge_coefficient, float)
 
+    assert isinstance(window.air_exchange(room, t), np.ndarray)
+
+
+def test_sliding_window(baseline_slidingwindow):
     assert baseline_slidingwindow.discharge_coefficient == 0.6
 
 

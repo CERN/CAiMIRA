@@ -31,8 +31,10 @@ the same for all parameters of a single model.
 
 """
 from dataclasses import dataclass
-import numpy as np
 import typing
+
+import numpy as np
+from scipy.interpolate import interp1d
 
 if not typing.TYPE_CHECKING:
     from memoization import cached
@@ -133,15 +135,18 @@ class PiecewiseConstant:
     transition_times: typing.Tuple[float, ...]
 
     #: values of the function between transitions
-    values: typing.Tuple[float, ...]
+    values: typing.Tuple[_VectorisedFloat, ...]
 
     def __post_init__(self):
         if len(self.transition_times) != len(self.values)+1:
             raise ValueError("transition_times should contain one more element than values")
         if tuple(sorted(set(self.transition_times))) != self.transition_times:
             raise ValueError("transition_times should not contain duplicated elements and should be sorted")
+        shapes = [np.array(v).shape for v in self.values]
+        if not all(shapes[0] == shape for shape in shapes):
+            raise ValueError("All values must have the same shape")
 
-    def value(self, time) -> float:
+    def value(self, time) -> _VectorisedFloat:
         if time <= self.transition_times[0]:
             return self.values[0]
         elif time > self.transition_times[-1]:
@@ -159,21 +164,21 @@ class PiecewiseConstant:
         for t1, t2, value in zip(self.transition_times[:-1],
                                  self.transition_times[1:], self.values):
             if value:
-                present_times.append((t1,t2))
+                present_times.append((t1, t2))
         return SpecificInterval(present_times=tuple(present_times))
 
-    def refine(self, refine_factor=10):
+    def refine(self, refine_factor=10) -> "PiecewiseConstant":
         # build a new PiecewiseConstant object with a refined mesh,
         # using a linear interpolation in-between the initial mesh points
         refined_times = np.linspace(self.transition_times[0], self.transition_times[-1],
                                     (len(self.transition_times)-1) * refine_factor+1)
+        interpolator = interp1d(
+            self.transition_times,
+            np.concatenate([self.values, self.values[-1:]], axis=0),
+            axis=0)
         return PiecewiseConstant(
             tuple(refined_times),
-            tuple(np.interp(
-                refined_times[:-1],
-                self.transition_times,
-                self.values + (self.values[-1], ),
-            )),
+            tuple(interpolator(refined_times)[:-1]),
         )
 
 
@@ -254,10 +259,10 @@ class WindowOpening(Ventilation):
     outside_temp: PiecewiseConstant
 
     #: The height of the window (m).
-    window_height: float
+    window_height: _VectorisedFloat
 
     #: The length of the opening-gap when the window is open (m).
-    opening_length: float
+    opening_length: _VectorisedFloat
 
     #: The number of windows of the given dimensions.
     number_of_windows: int = 1
@@ -266,7 +271,7 @@ class WindowOpening(Ventilation):
     min_deltaT: float = 0.1
 
     @property
-    def discharge_coefficient(self) -> float:
+    def discharge_coefficient(self) -> _VectorisedFloat:
         """
         Discharge coefficient (or cd_b): what portion effective area is
         used to exchange air (0 <= discharge_coefficient <= 1).
@@ -286,14 +291,14 @@ class WindowOpening(Ventilation):
             return 0.
 
         # Reminder, no dependence on time in the resulting calculation.
-        inside_temp = self.inside_temp.value(time)
-        outside_temp = self.outside_temp.value(time)
+        inside_temp: _VectorisedFloat = self.inside_temp.value(time)
+        outside_temp: _VectorisedFloat = self.outside_temp.value(time)
 
         # The inside_temperature is forced to be always at least min_deltaT degree
         # warmer than the outside_temperature. Further research needed to
         # handle the buoyancy driven ventilation when the temperature gradient
         # is inverted.
-        inside_temp = max(inside_temp, outside_temp + self.min_deltaT)
+        inside_temp = np.maximum(inside_temp, outside_temp + self.min_deltaT)  # type: ignore
         temp_gradient = (inside_temp - outside_temp) / outside_temp
         root = np.sqrt(9.81 * self.window_height * temp_gradient)
         window_area = self.window_height * self.opening_length * self.number_of_windows
@@ -307,7 +312,7 @@ class SlidingWindow(WindowOpening):
     the horizontal plane).
     """
     @property
-    def discharge_coefficient(self) -> float:
+    def discharge_coefficient(self) -> _VectorisedFloat:
         """
         Average measured value of discharge coefficient for sliding or
         side-hung windows.
@@ -322,14 +327,14 @@ class HingedWindow(WindowOpening):
     horizontal plane).
     """
     #: Window width (m).
-    window_width: float = 0.0
+    window_width: _VectorisedFloat = 0.0
 
     def __post_init__(self):
-        if not self.window_width > 0:
+        if self.window_width is 0.0:
             raise ValueError('window_width must be set')
 
     @property
-    def discharge_coefficient(self) -> float:
+    def discharge_coefficient(self) -> _VectorisedFloat:
         """
         Simple model to compute discharge coefficient for top or bottom
         hung hinged windows, in the absence of empirical test results
@@ -339,19 +344,15 @@ class HingedWindow(WindowOpening):
         see Section 8.3 of BB101 and Section 11.3 of
         ESFA Output Specification Annex 2F on Ventilation opening areas.
         """
-        window_ratio = self.window_width / self.window_height
-        if window_ratio < 0.5:
-            M = 0.06
-            cd_max = 0.612
-        elif window_ratio < 1:
-            M = 0.048
-            cd_max = 0.589
-        elif window_ratio < 2:
-            M = 0.04
-            cd_max = 0.563
-        else:
-            M = 0.038
-            cd_max = 0.548
+        window_ratio = np.array(self.window_width / self.window_height)
+        coefs = np.empty(window_ratio.shape + (2, ), dtype=np.float64)
+
+        coefs[window_ratio < 0.5] = (0.06, 0.612)
+        coefs[np.bitwise_and(0.5 <= window_ratio, window_ratio < 1)] = (0.048, 0.589)
+        coefs[np.bitwise_and(1 <= window_ratio, window_ratio < 2)] = (0.04, 0.563)
+        coefs[window_ratio >= 2] = (0.038, 0.548)
+        M, cd_max = coefs.T
+
         window_angle = 2.*np.rad2deg(np.arcsin(self.opening_length/(2.*self.window_height)))
         return cd_max*(1-np.exp(-M*window_angle))
 
