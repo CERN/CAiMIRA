@@ -68,7 +68,7 @@ def test_hinged_window(baseline_hingedwindow, window_width,
         )},
     ]
 )
-def test_HingedWindow_vectorisation(override_params):
+def test_hinged_window_vectorisation(override_params):
     defaults = {
         'window_height': 0.15,
         'window_width': 0.15,
