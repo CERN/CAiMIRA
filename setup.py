@@ -1,3 +1,5 @@
+# This module is part of CARA. Please see the repository at
+# https://gitlab.cern.ch/cara/cara for details of the license and terms of use.
 """
 setup.py for CARA.
 
@@ -59,6 +61,7 @@ setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
+        "License :: OSI Approved :: Apache Software License",  # Apache 2.0
     ],
 
     install_requires=REQUIREMENTS['core'],
@@ -73,11 +76,9 @@ setup(
         'all': [req for reqs in REQUIREMENTS.values() for req in reqs],
     },
     package_data={'cara': [
-        'apps/templates/*.j2',
-        'apps/calculator/templates/*.j2',
-        'apps/calculator/*',
-        'apps/calculator/*/*',
-        'apps/calculator/*/*/*',
-        'apps/calculator/*/*/*/*',
+        'apps/*/*',
+        'apps/*/*/*',
+        'apps/*/*/*/*',
+        'apps/*/*/*/*/*',
     ]},
 )

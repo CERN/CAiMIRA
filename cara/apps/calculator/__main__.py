@@ -6,7 +6,7 @@ from tornado.ioloop import IOLoop
 from . import make_app
 
 
-def configure_parser(parser):
+def configure_parser(parser) -> argparse.ArgumentParser:
     parser.add_argument(
         "--no-debug", help="Don't enable debug mode",
         action="store_false",
@@ -20,8 +20,7 @@ def configure_parser(parser):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    configure_parser(parser)
+    parser = configure_parser(argparse.ArgumentParser())
     args = parser.parse_args()
     theme_dir = args.theme
     if theme_dir is not None:
