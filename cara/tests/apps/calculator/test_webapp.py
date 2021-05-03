@@ -26,6 +26,11 @@ async def test_calculator_form(http_server_client):
     assert response.code == 200
 
 
+async def test_user_guide(http_server_client):
+    resp = await http_server_client.fetch('/calculator/user-guide')
+    assert resp.code == 200
+
+
 class TestBasicApp(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return cara.apps.calculator.make_app()
