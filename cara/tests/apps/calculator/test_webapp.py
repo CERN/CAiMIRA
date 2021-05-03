@@ -31,6 +31,17 @@ async def test_user_guide(http_server_client):
     assert resp.code == 200
 
 
+@pytest.mark.xfail(reason="about page not yet implemented")
+async def test_about(http_server_client):
+    resp = await http_server_client.fetch('/about')
+    assert resp.code == 200
+
+
+async def test_404(http_server_client):
+    resp = await http_server_client.fetch('/doesnt-exist', raise_error=False)
+    assert resp.code == 404
+
+
 class TestBasicApp(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return cara.apps.calculator.make_app()
@@ -83,3 +94,20 @@ async def test_invalid_compressed_url(http_server_client, baseline_form):
         raise_error=False,
     )
     assert response.code == 400
+
+
+class TestError500(tornado.testing.AsyncHTTPTestCase):
+    def get_app(self):
+        class ProcessingErrorPage(cara.apps.calculator.BaseRequestHandler):
+            def get(self):
+                raise ValueError('some unexpected error')
+        app = cara.apps.calculator.make_app()
+        page = [
+            (r'/', ProcessingErrorPage),
+        ]
+        return tornado.web.Application(page, **app.settings)
+
+    def test_500(self):
+        response = self.fetch('/')
+        assert response.code == 500
+        assert 'Unfortunately an error occurred when processing your request' in response.body.decode()

@@ -63,6 +63,7 @@ class BaseRequestHandler(RequestHandler):
             print(traceback.format_exc())
         self.finish(template.render(
             user=self.current_user,
+            active_page='Error',
             contents=contents
         ))
 
@@ -75,6 +76,7 @@ class Missing404Handler(BaseRequestHandler):
             "page.html.j2")
         self.finish(template.render(
             user=self.current_user,
+            active_page='Error',
             contents='Unfortunately the page you were looking for does not exist.<br><br><br><br>'
         ))
 
@@ -182,6 +184,7 @@ def make_app(
     loader = jinja2.FileSystemLoader([str(path) for path in templates_directories])
     template_environment = jinja2.Environment(
         loader=loader,
+        undefined=jinja2.StrictUndefined,  # fail when rendering any undefined template context variable
     )
 
     template_environment.globals['common_text'] = markdown_tools.extract_rendered_markdown_blocks(
