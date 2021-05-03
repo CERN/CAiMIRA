@@ -645,6 +645,13 @@ class ConcentrationModel:
                                     self.room, self.next_state_change(time))
 
     @cached()
+    def concentration_limit(self, time: float) -> _VectorisedFloat:
+        V = self.room.volume
+        IVRR = self.infectious_virus_removal_rate(time)
+
+        return (self.infected.emission_rate(self.next_state_change(time))) / (IVRR * V)
+
+    @cached()
     def state_change_times(self):
         """
         All time dependent entities on this model must provide information about
