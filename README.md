@@ -23,6 +23,20 @@ The objective is to facilitate targeted decision-making and investment through c
 While the SARS-CoV-2 virus is in circulation among the population, the notion of 'zero risk' or 'completely safe scenario' does not exist.
 Each event modelled is unique, and the results generated therein are only as accurate as the inputs and assumptions.
 
+## Authors 
+CARA was developed by following members of CERN - European Council for Nuclear Research (visit https://home.cern/):
+
+Andre Henriques<sup>1</sup>, Marco Andreini<sup>1</sup>, Gabriella Azzopardi<sup>2</sup>, James Devine<sup>3</sup>, Philip Elson<sup>4</sup>, Nicolas Mounet<sup>2</sup>, Markus Kongstein Rognlien<sup>2,6</sup>, Nicola Tarocco<sup>5</sup>
+
+    <sup>1</sup>HSE Unit, Occupational Health & Safety Group, CERN<br>
+    <sup>2</sup>Beams Department, Accelerators and Beam Physics Group, CERN<br>
+    <sup>3</sup>Experimental Physics Department, Safety Office, CERN<br>
+    <sup>4</sup>Beams Department, Controls Group, CERN<br>
+    <sup>5</sup>Information Technology Department, Collaboration, Devices & Applications Group, CERN<br>
+
+###citation
+A. Henriques, M. Andreini, G. Azzopardi, J. Devine, P. Elson, N. Mounet, M. Kongstein, N. Tarocco. CARA - COVID Airborne Risk Assessment tools. CERN (2021).
+
 
 ## Applications
 
