@@ -641,7 +641,8 @@ class ConcentrationModel:
         # Deposition rate (h^-1)
         k = (vg * 3600) / h
 
-        return k + self.virus.decay_constant + self.ventilation.air_exchange(self.room, time)
+        return k + self.virus.decay_constant + self.ventilation.air_exchange(
+                                    self.room, self.next_state_change(time))
 
     @cached()
     def state_change_times(self):
@@ -663,6 +664,16 @@ class ConcentrationModel:
         """
         for change_time in self.state_change_times()[::-1]:
             if change_time < time:
+                return change_time
+        return 0
+
+    def next_state_change(self, time: float):
+        """
+        Find the nearest future state change.
+
+        """
+        for change_time in self.state_change_times():
+            if change_time >= time:
                 return change_time
         return 0
 
