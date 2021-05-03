@@ -3,6 +3,7 @@ import dataclasses
 import pytest
 
 from cara.apps.calculator import model_generator
+from cara.apps.calculator.model_generator import _hours2timestring
 from cara.apps.calculator.model_generator import minutes_since_midnight
 from cara import models
 from cara import data
@@ -272,13 +273,8 @@ def time2mins(time: str) -> minutes_since_midnight:
     return minutes_since_midnight(int(time.split(':')[0]) * 60 + int(time.split(':')[1]))
 
 
-def hours2time(hours: float):
-    # Convert times like 14.5 to strings, like "14:30"
-    return f"{int(np.floor(hours)):02d}:{int(np.round((hours % 1) * 60)):02d}"
-
-
 def assert_boundaries(interval, boundaries_in_time_string_form):
-    boundaries = [(hours2time(start), hours2time(end))
+    boundaries = [(_hours2timestring(start), _hours2timestring(end))
                   for start, end in interval.boundaries()]
     assert boundaries == boundaries_in_time_string_form
 
