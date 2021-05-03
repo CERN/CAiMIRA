@@ -44,9 +44,20 @@ The software is provided "as is", without warranty of any kind, express or impli
 In no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software or the use or other dealings in the software.
 
 
+## Running CARA locally
+
+The easiest way to run a version of CARA Calculator is to use docker. A pre-built
+image of CARA is made available at https://gitlab.cern.ch/cara/cara/container_registry.
+In order to run cara locally with docker, run the following:
+
+    $ docker run -it -p 8080:8080 gitlab-registry.cern.ch/cara/cara/calculator
+
+This will start a local version of CARA, which can be visited at http://localhost:8080/. 
+
+
 ## Development guide
 
-### Running the COVID calculator app locally
+### Running the COVID calculator app in development mode
 
 ```
 pip install -e .   # At the root of the repository
@@ -59,7 +70,7 @@ To run with the CERN theme:
 python -m cara.apps.calculator --theme=cara/apps/calculator/themes/cern
 ```
 
-### Running the CARA Expert-App app locally
+### Running the CARA Expert-App app in development mode
 
 ```
 pip install -e .   # At the root of the repository
@@ -77,7 +88,7 @@ pip install -e .[test]
 pytest ./cara
 ```
 
-### Building the whole environment for local execution
+### Building the whole environment for local development
 
 **Simulate the docker build that takes place on openshift with:**
 
@@ -202,3 +213,4 @@ $ oc process -f route.yaml --param HOST='test-cara.web.cern.ch' | oc replace -f 
 ```
 
 Be aware that if you change/replace the **route** of the PROD instance, it will loose the annotation to be exposed outside CERN (not committed in this repo).
+
