@@ -458,14 +458,10 @@ class FormData:
 
         present_intervals = []
 
-        def hours2time(hours: float):
-            # Convert times like 14.5 to strings, like "14:30"
-            return f"{int(np.floor(hours)):02d}:{int(np.round((hours % 1) * 60)):02d}"
-
         # def add_interval(start, end):
 
         current_time = start
-        LOG.debug(f"starting time march at {hours2time(current_time/60)} to {hours2time(finish/60)}")
+        LOG.debug(f"starting time march at {_hours2timestring(current_time/60)} to {_hours2timestring(finish/60)}")
 
         # As we step through the breaks. For each break there are 6 important cases
         # we must cover. Let S=start; E=end; Bs=Break start; Be=Break end:
@@ -480,8 +476,8 @@ class FormData:
             if current_time >= finish:
                 break
 
-            LOG.debug(f"handling break {hours2time(current_break[0]/60)}-{hours2time(current_break[1]/60)} "
-                      f" (current time: {hours2time(current_time/60)})")
+            LOG.debug(f"handling break {_hours2timestring(current_break[0]/60)}-{_hours2timestring(current_break[1]/60)} "
+                      f" (current time: {_hours2timestring(current_time/60)})")
 
             break_s, break_e = current_break
             case1 = finish <= break_s
@@ -494,22 +490,22 @@ class FormData:
             if case1:
                 LOG.debug(f"case 1: interval entirely before break")
                 present_intervals.append((current_time / 60, finish / 60))
-                LOG.debug(f" + added interval {hours2time(present_intervals[-1][0])} "
-                          f"- {hours2time(present_intervals[-1][1])}")
+                LOG.debug(f" + added interval {_hours2timestring(present_intervals[-1][0])} "
+                          f"- {_hours2timestring(present_intervals[-1][1])}")
                 current_time = finish
             elif case2:
                 LOG.debug(f"case 2: interval straddles start of break")
                 present_intervals.append((current_time / 60, break_s / 60))
-                LOG.debug(f" + added interval {hours2time(present_intervals[-1][0])} "
-                          f"- {hours2time(present_intervals[-1][1])}")
+                LOG.debug(f" + added interval {_hours2timestring(present_intervals[-1][0])} "
+                          f"- {_hours2timestring(present_intervals[-1][1])}")
                 current_time = break_e
             elif case3:
                 LOG.debug(f"case 3: break entirely inside interval")
                 # We add the bit before the break, but not the bit afterwards,
                 # as it may hit another break.
                 present_intervals.append((current_time / 60, break_s / 60))
-                LOG.debug(f" + added interval {hours2time(present_intervals[-1][0])} "
-                          f"- {hours2time(present_intervals[-1][1])}")
+                LOG.debug(f" + added interval {_hours2timestring(present_intervals[-1][0])} "
+                          f"- {_hours2timestring(present_intervals[-1][1])}")
                 current_time = break_e
             elif case4:
                 LOG.debug(f"case 4: interval entirely inside break")
@@ -650,6 +646,11 @@ WINDOWS_OPENING_REGIMES = {'windows_open_permanently', 'windows_open_periodicall
 WINDOWS_TYPES = {'window_sliding', 'window_hinged', 'not-applicable'}
 
 COFFEE_OPTIONS_INT = {'coffee_break_0': 0, 'coffee_break_1': 1, 'coffee_break_2': 2, 'coffee_break_4': 4}
+
+
+def _hours2timestring(hours: float):
+    # Convert times like 14.5 to strings, like "14:30"
+    return f"{int(np.floor(hours)):02d}:{int(np.round((hours % 1) * 60)):02d}"
 
 
 def time_string_to_minutes(time: str) -> minutes_since_midnight:
