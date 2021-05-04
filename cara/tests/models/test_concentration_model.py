@@ -96,6 +96,10 @@ class DummyVentilation(models.Ventilation):
     active: models.Interval
 
     def air_exchange(self, room: models.Room, time: float) -> models._VectorisedFloat:
+        """
+        Here we put an explicit function of time, hence breaking the rules
+        set in cara.models. For testing purposes only.
+        """
         if not self.active.triggered(time):
             return 0.
         return time*0.5
@@ -114,6 +118,8 @@ class DummyPopulation(models.Population):
     def individual_emission_rate(self, time) -> models._VectorisedFloat:
         """
         The emission rate of a single individual in the population.
+        Here we put an explicit function of time, hence breaking the rules
+        set in cara.models. For testing purposes only.
         """
 
         if not self.person_present(time):
