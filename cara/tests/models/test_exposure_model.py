@@ -49,7 +49,9 @@ def test_exposure_model_ndarray(population, cm, expected_exposure):
     )
 
     assert isinstance(model.infection_probability(), np.ndarray)
+    assert isinstance(model.expected_new_cases(), np.ndarray)
     assert model.infection_probability().shape == (2,)
+    assert model.expected_new_cases().shape == (2,)
 
 
 @pytest.mark.parametrize("population", populations)
@@ -63,6 +65,7 @@ def test_exposure_model_ndarray_and_float_mix(population):
     )
 
     assert isinstance(model.infection_probability(), np.ndarray)
+    assert isinstance(model.expected_new_cases(), np.ndarray)
 
 
 @pytest.mark.parametrize("population", populations)
