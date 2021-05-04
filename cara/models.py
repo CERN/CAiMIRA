@@ -644,14 +644,14 @@ class ConcentrationModel:
         k = (vg * 3600) / h
 
         return k + self.virus.decay_constant + self.ventilation.air_exchange(
-                                    self.room, self.next_state_change(time))
+                                    self.room, self._next_state_change(time))
 
     @cached()
     def concentration_limit(self, time: float) -> _VectorisedFloat:
         V = self.room.volume
         IVRR = self.infectious_virus_removal_rate(time)
 
-        return (self.infected.emission_rate(self.next_state_change(time))) / (IVRR * V)
+        return (self.infected.emission_rate(self._next_state_change(time))) / (IVRR * V)
 
     @cached()
     def state_change_times(self):
@@ -676,7 +676,7 @@ class ConcentrationModel:
                 return change_time
         return 0
 
-    def next_state_change(self, time: float):
+    def _next_state_change(self, time: float):
         """
         Find the nearest future state change.
 
@@ -684,7 +684,7 @@ class ConcentrationModel:
         for change_time in self.state_change_times():
             if change_time >= time:
                 return change_time
-        return 0
+        raise ValueError("Time higher than largest state change")
 
     @cached()
     def concentration(self, time: float) -> _VectorisedFloat:
