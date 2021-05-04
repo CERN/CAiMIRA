@@ -684,7 +684,7 @@ class ConcentrationModel:
         for change_time in self.state_change_times():
             if change_time >= time:
                 return change_time
-        raise ValueError("Time higher than largest state change")
+        raise ValueError("Time larger than highest state change")
 
     @cached()
     def concentration(self, time: float) -> _VectorisedFloat:

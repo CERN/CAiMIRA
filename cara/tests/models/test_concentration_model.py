@@ -61,6 +61,33 @@ def test_concentration_model_vectorisation(override_params):
     assert concentrations.shape == (2, )
 
 
+@pytest.mark.parametrize(
+    "time, expected_next_state_change", [
+        [0, 0],
+        [1, 4],
+        [4, 4],
+        [24, 24],
+    ]
+)
+def test_concentration_model_next_state_change(time,expected_next_state_change):
+    always = models.PeriodicInterval(240, 240)
+    c_model = models.ConcentrationModel(
+        models.Room(75),
+        models.AirChange(always, 100),
+        models.InfectedPopulation(
+            number=1,
+            presence=always,
+            mask=models.Mask.types['Type I'],
+            activity=models.Activity.types['Seated'],
+            virus=models.Virus.types['SARS_CoV_2'],
+            expiration=models.Expiration.types['Breathing'],
+        )
+    )
+    assert c_model._next_state_change(time) == expected_next_state_change
+    with pytest.raises(ValueError, match="Time larger than highest state change"):
+        c_model._next_state_change(24.1)
+
+
 @dataclass(frozen=True)
 class DummyVentilation(models.Ventilation):
     # Dummy ventilation where air_exchange depends on time explicitly
