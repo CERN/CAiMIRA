@@ -37,3 +37,18 @@ deploy_to_test:
         - curl -X POST -k https://openshift-dev.cern.ch:443/apis/build.openshift.io/v1/namespaces/test-cara/buildconfigs/cara-router/webhooks/${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}/generic
         - curl -X POST -k https://openshift-dev.cern.ch:443/apis/build.openshift.io/v1/namespaces/test-cara/buildconfigs/cara-webservice/webhooks/${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}/generic
         - curl -X POST -k https://openshift-dev.cern.ch:443/apis/build.openshift.io/v1/namespaces/test-cara/buildconfigs/auth-service/webhooks/${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}/generic
+
+
+oci_calculator:
+  # A convenient way for users to run the CARA calculator.
+  stage: deploy
+  image:
+        name: gitlab-registry.cern.ch/ci-tools/docker-image-builder
+        entrypoint: [""]
+  script:
+        # Prepare Kaniko configuration file
+        - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+        # Build and push the image from the Dockerfile at the root of the project.
+        # To push to a specific docker tag, amend the --destination parameter, e.g. --destination $CI_REGISTRY_IMAGE:$CI_BUILD_REF_NAME
+        # See https://docs.gitlab.com/ee/ci/variables/predefined_variables.html#variables-reference for available variables
+        - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_REGISTRY_IMAGE/calculator:latest

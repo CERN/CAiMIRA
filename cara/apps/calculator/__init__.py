@@ -1,3 +1,6 @@
+# This module is part of CARA. Please see the repository at
+# https://gitlab.cern.ch/cara/cara for details of the license and terms of use.
+
 import datetime
 import base64
 import html
@@ -12,6 +15,7 @@ import zlib
 import jinja2
 from tornado.web import Application, RequestHandler, StaticFileHandler
 
+from . import markdown_tools
 from . import model_generator
 from .report_generator import ReportGenerator
 from .user import AuthenticatedUser, AnonymousUser
@@ -181,6 +185,10 @@ def make_app(
     loader = jinja2.FileSystemLoader([str(path) for path in templates_directories])
     template_environment = jinja2.Environment(
         loader=loader,
+    )
+
+    template_environment.globals['common_text'] = markdown_tools.extract_rendered_markdown_blocks(
+        template_environment.get_template('common_text.md.j2')
     )
 
     return Application(

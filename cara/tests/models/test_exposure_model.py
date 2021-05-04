@@ -1,103 +1,83 @@
+import typing
+
 import numpy as np
+import numpy.testing
 import pytest
 
-import cara.models
+from cara import models
+from cara.models import ExposureModel
 
-def exposure_model_from_params(params):
-    always = cara.models.PeriodicInterval(240, 240)  # TODO: This should be a thing on an interval.
-    office_hours = cara.models.SpecificInterval(present_times=[(8,17)])
-    c_model = cara.models.ConcentrationModel(
-        cara.models.Room(params['volume']),
-        cara.models.AirChange(always, params['air_change']),
-        cara.models.InfectedPopulation(
-            number=1,
-            presence=office_hours,
-            mask=cara.models.Mask(
-                η_exhale=params['η_exhale'],
-                η_leaks=params['η_leaks'],
-                η_inhale=params['η_inhale'],
-            ),
-            activity=cara.models.Activity(
-                0.51,
-                0.75,
-            ),
-            virus=cara.models.Virus(
-                halflife=params['virus_halflife'],
-                viral_load_in_sputum=params['viral_load_in_sputum'],
-                coefficient_of_infectivity=params['coefficient_of_infectivity'],
-            ),
-            expiration=cara.models.Expiration(
-                ejection_factor=(0.084, 0.009, 0.003, 0.002),
-            ),
-        )
-    )
-    return cara.models.ExposureModel(
-        concentration_model=c_model,
-        exposed=cara.models.Population(
-            number=10,
-            presence=office_hours,
-            activity=c_model.infected.activity,
-            mask=c_model.infected.mask,
-        )
-    )
 
-@pytest.mark.parametrize(
-    "override_params", [
-        {'volume': np.array([100, 120])},
-        {'air_change': np.array([100, 120])},
-        {'virus_halflife': np.array([1.1, 1.5])},
-        {'viral_load_in_sputum': np.array([5e8, 1e9])},
-        {'coefficient_of_infectivity': np.array([0.02, 0.05])},
-        {'η_exhale': np.array([0.92, 0.95])},
-        {'η_leaks': np.array([0.15, 0.20])},
-        {'η_inhale': np.array([0.3, 0.35])},
-    ]
-)
-def test_exposure_model_vectorisation(override_params):
-    defaults = {
-        'volume': 75,
-        'air_change': 100,
-        'virus_halflife': 1.1,
-        'viral_load_in_sputum': 1e9,
-        'coefficient_of_infectivity': 0.02,
-        'η_exhale': 0.95,
-        'η_leaks': 0.15,
-        'η_inhale': 0.3,
-    }
-    defaults.update(override_params)
+class KnownConcentrations(models.ConcentrationModel):
+    """
+    A ConcentrationModel which is based on pre-known quanta concentrations and
+    which therefore doesn't need other components. Useful for testing.
 
-    e_model = exposure_model_from_params(defaults)
-    expected_new_cases = e_model.expected_new_cases()
-    assert isinstance(expected_new_cases, np.ndarray)
-    assert expected_new_cases.shape == (2, )
+    """
+    def __init__(self, concentration_function: typing.Callable) -> None:
+        self._func = concentration_function
+
+    def concentration(self, time: float) -> models._VectorisedFloat:  # noqa
+        return self._func(time)
+
+
+halftime = models.PeriodicInterval(120, 60)
+populations = [
+    # A simple scalar population.
+    models.Population(
+        10, halftime, models.Mask.types['Type I'],
+        models.Activity.types['Standing'],
+    ),
+    # A population with some array component for η_inhale.
+    models.Population(
+        10, halftime, models.Mask(0.95, 0.15, np.array([0.3, 0.35])),
+        models.Activity.types['Standing'],
+    ),
+]
 
 
 @pytest.mark.parametrize(
-    "vector_param", [
-        'volume', 'air_change', 'virus_halflife',
-        'viral_load_in_sputum', 'coefficient_of_infectivity', 'η_exhale',
-        'η_leaks', 'η_inhale',
-    ]
-)
-def test_exposure_model_compare_scalar_vector(vector_param):
-    defaults = {
-        'volume': 75,
-        'air_change': 100,
-        'virus_halflife': 1.1,
-        'viral_load_in_sputum': 1e9,
-        'coefficient_of_infectivity': 0.02,
-        'η_exhale': 0.95,
-        'η_leaks': 0.15,
-        'η_inhale': 0.3,
-    }
-    e_model_scalar = exposure_model_from_params(defaults)
-    expected_new_cases_scalar = e_model_scalar.expected_new_cases()
-    assert isinstance(expected_new_cases_scalar, float)
+    "population, cm, expected_exposure",[
+    [populations[1], KnownConcentrations(lambda t: 1.2), np.array([14.4, 14.4])],
+    [populations[0], KnownConcentrations(lambda t: np.array([1.2, 2.4])), np.array([14.4, 28.8])],
+    [populations[1], KnownConcentrations(lambda t: np.array([1.2, 2.4])), np.array([14.4, 28.8])],
+    ])
+def test_exposure_model_ndarray(population, cm, expected_exposure):
+    model = ExposureModel(cm, population)
+    np.testing.assert_almost_equal(
+        model.quanta_exposure(), expected_exposure
+    )
 
-    defaults[vector_param] = np.ones(3)*defaults[vector_param]
-    e_model_vector = exposure_model_from_params(defaults)
-    expected_new_cases_vector = e_model_vector.expected_new_cases()
-    assert isinstance(expected_new_cases_vector, np.ndarray)
-    assert expected_new_cases_vector.shape == (3, )
-    assert np.all(expected_new_cases_vector==expected_new_cases_scalar)
+    assert isinstance(model.infection_probability(), np.ndarray)
+    assert isinstance(model.expected_new_cases(), np.ndarray)
+    assert model.infection_probability().shape == (2,)
+    assert model.expected_new_cases().shape == (2,)
 
+
+@pytest.mark.parametrize("population", populations)
+def test_exposure_model_ndarray_and_float_mix(population):
+    cm = KnownConcentrations(lambda t: 1.2 if np.floor(t) % 2 else np.array([1.2, 1.2]))
+    model = ExposureModel(cm, population)
+
+    expected_exposure = np.array([14.4, 14.4])
+    np.testing.assert_almost_equal(
+        model.quanta_exposure(), expected_exposure
+    )
+
+    assert isinstance(model.infection_probability(), np.ndarray)
+    assert isinstance(model.expected_new_cases(), np.ndarray)
+
+
+@pytest.mark.parametrize("population", populations)
+def test_exposure_model_compare_scalar_vector(population):
+    cm_scalar = KnownConcentrations(lambda t: 1.2)
+    cm_array = KnownConcentrations(lambda t: np.array([1.2, 1.2]))
+    model_scalar = ExposureModel(cm_scalar, population)
+    model_array = ExposureModel(cm_array, population)
+    expected_exposure = 14.4
+    np.testing.assert_almost_equal(
+        model_scalar.quanta_exposure(), expected_exposure
+    )
+    np.testing.assert_almost_equal(
+        model_array.quanta_exposure(), np.array([expected_exposure]*2)
+    )

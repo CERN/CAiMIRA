@@ -1,6 +1,6 @@
 import base64
 import dataclasses
-from datetime import datetime
+from datetime import datetime, timedelta
 import io
 import typing
 import zlib
@@ -126,18 +126,20 @@ def img2base64(img_data) -> str:
 def plot(times, concentrations, model: models.ExposureModel):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    ax.plot(times, concentrations, lw=2, color='#1f77b4', label='Concentration')
+    datetimes = [datetime(1970, 1, 1) + timedelta(hours=time) for time in times]
+    ax.plot(datetimes, concentrations, lw=2, color='#1f77b4', label='Concentration')
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
 
-    ax.set_xlabel('Time (hour of day)')
+    ax.set_xlabel('Time of day')
     ax.set_ylabel('Concentration ($q/m^3$)')
     ax.set_title('Concentration of infectious quanta')
+    ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
 
     # Plot presence of exposed person
     for i, (presence_start, presence_finish) in enumerate(model.exposed.presence.boundaries()):
         plt.fill_between(
-            times, concentrations, 0,
+            datetimes, concentrations, 0,
             where=(np.array(times) > presence_start) & (np.array(times) < presence_finish),
             color="#1f77b4", alpha=0.1,
             label="Presence of exposed person(s)" if i == 0 else ""
@@ -240,19 +242,21 @@ def comparison_plot(scenarios: typing.Dict[str, models.ExposureModel]):
         if times is None:
             t_start, t_end = model_start_end(model)
             times = np.linspace(t_start, t_end, resolution)
+        datetimes = [datetime(1970, 1, 1) + timedelta(hours=time) for time in times]
         concentrations = [model.concentration_model.concentration(time) for time in times]
 
         if name in dash_styled_scenarios:
-            ax.plot(times, concentrations, label=name, linestyle='--')
+            ax.plot(datetimes, concentrations, label=name, linestyle='--')
         else:
-            ax.plot(times, concentrations, label=name, linestyle='-', alpha=0.5)
+            ax.plot(datetimes, concentrations, label=name, linestyle='-', alpha=0.5)
 
     # Place a legend outside of the axes itself.
     ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
+    ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
 
-    ax.set_xlabel('Time (hour of day)')
+    ax.set_xlabel('Time of day')
     ax.set_ylabel('Concentration ($q/m^3$)')
     ax.set_title('Concentration of infectious quanta')
 
