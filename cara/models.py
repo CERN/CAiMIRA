@@ -694,14 +694,13 @@ class ConcentrationModel:
         if time == 0:
             return 0.0
         IVRR = self.infectious_virus_removal_rate(time)
-        V = self.room.volume
 
         t_last_state_change = self.last_state_change(time)
         concentration_at_last_state_change = self.concentration(t_last_state_change)
 
         delta_time = time - t_last_state_change
         fac = np.exp(-IVRR * delta_time)
-        concentration_limit = (self.infected.emission_rate(time)) / (IVRR * V)
+        concentration_limit = self.concentration_limit(time)
         return concentration_limit * (1 - fac) + concentration_at_last_state_change * fac
 
 
