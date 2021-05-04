@@ -68,7 +68,7 @@ def test_hinged_window(baseline_hingedwindow, window_width,
         )},
     ]
 )
-def test_HingedWindow_vectorisation(override_params):
+def test_hinged_window_vectorisation(override_params):
     defaults = {
         'window_height': 0.15,
         'window_width': 0.15,
@@ -90,6 +90,28 @@ def test_HingedWindow_vectorisation(override_params):
 
 def test_sliding_window(baseline_slidingwindow):
     assert baseline_slidingwindow.discharge_coefficient == 0.6
+
+
+def test_hvac_mechanical_vectorisation():
+    room = models.Room(volume=50)
+    interval = models.SpecificInterval(((0, 4), (5, 9)))
+    t = 0.5
+    q_air_mech = np.array([250., 500.])
+    v = models.HVACMechanical(interval,q_air_mech)
+    assert isinstance(v.air_exchange(room, t), np.ndarray)
+    npt.assert_array_equal(v.air_exchange(room, t),
+                        np.array([250/room.volume, 500/room.volume]))
+
+
+def test_hepa_filter_vectorisation():
+    room = models.Room(volume=50)
+    interval = models.SpecificInterval(((0, 4), (5, 9)))
+    t = 0.5
+    q_air_mech = np.array([250., 500.])
+    v = models.HEPAFilter(interval,q_air_mech)
+    assert isinstance(v.air_exchange(room, t), np.ndarray)
+    npt.assert_array_equal(v.air_exchange(room, t),
+                        np.array([250/room.volume, 500/room.volume]))
 
 
 def test_multiple(baseline_slidingwindow, baseline_hingedwindow):
