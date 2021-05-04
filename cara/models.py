@@ -647,7 +647,13 @@ class ConcentrationModel:
                                     self.room, self._next_state_change(time))
 
     @cached()
-    def concentration_limit(self, time: float) -> _VectorisedFloat:
+    def _concentration_limit(self, time: float) -> _VectorisedFloat:
+        """
+        Provides a constant that represents the theoretical asymptotic 
+        value reached by the concentration when time goes to infinity.
+        It's a piecewise constant function - at any time it takes the
+        value it would have at the end of the current interval.
+        """
         V = self.room.volume
         IVRR = self.infectious_virus_removal_rate(time)
 
@@ -700,8 +706,7 @@ class ConcentrationModel:
 
         delta_time = time - t_last_state_change
         fac = np.exp(-IVRR * delta_time)
-        concentration_limit = self.concentration_limit(time)
-        return concentration_limit * (1 - fac) + concentration_at_last_state_change * fac
+        return self._concentration_limit(time) * (1 - fac) + concentration_at_last_state_change * fac
 
 
 @dataclass(frozen=True)

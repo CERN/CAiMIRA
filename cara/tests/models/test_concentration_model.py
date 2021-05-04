@@ -156,7 +156,7 @@ def test_concentration_model_constant_parameters():
         )
     )
     times = [0.1, 10, 20, 24]
-    concentration_limits = np.array([c_model.concentration_limit(t)
+    concentration_limits = np.array([c_model._concentration_limit(t)
                                      for t in times])
     IVRRs = np.array([c_model.infectious_virus_removal_rate(t)
                       for t in times])
