@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import re
 
 import numpy as np
 import numpy.testing as npt
@@ -86,85 +87,8 @@ def test_concentration_model_next_state_change(time,expected_next_state_change):
     assert c_model._next_state_change(time) == expected_next_state_change
     with pytest.raises(ValueError, match="Time larger than highest state change"):
         c_model._next_state_change(24.1)
+    with pytest.raises(ValueError, match=re.escape("Concentration cannot "
+            "be computed at a time larger than last state change "
+            "(parameters are not defined)")):
+        c_model.concentration(24.1)
 
-
-@dataclass(frozen=True)
-class DummyVentilation(models.Ventilation):
-    # Dummy ventilation where air_exchange depends on time explicitly
-
-    #: The interval in which the ventilation is operating.
-    active: models.Interval
-
-    def air_exchange(self, room: models.Room, time: float) -> models._VectorisedFloat:
-        """
-        Here we put an explicit function of time, hence breaking the rules
-        set in cara.models. For testing purposes only.
-        """
-        if not self.active.triggered(time):
-            return 0.
-        return time*0.5
-
-
-@dataclass(frozen=True)
-class DummyPopulation(models.Population):
-    # Dummy infected population where emission rate depends on time 
-    # explicitly
-    virus: models.Virus
-    expiration: models.Expiration
-
-    def emission_rate_when_present(self) -> models._VectorisedFloat:
-        return 50.
-
-    def individual_emission_rate(self, time) -> models._VectorisedFloat:
-        """
-        The emission rate of a single individual in the population.
-        Here we put an explicit function of time, hence breaking the rules
-        set in cara.models. For testing purposes only.
-        """
-
-        if not self.person_present(time):
-            return 0.
-
-        return self.emission_rate_when_present()*time
-
-    def emission_rate(self, time) -> models._VectorisedFloat:
-        """
-        The emission rate of the entire population.
-        """
-        return self.individual_emission_rate(time) * self.number
-
-
-def test_concentration_model_constant_parameters():
-    always = models.SpecificInterval(present_times=[(0,24)])
-    c_model = models.ConcentrationModel(
-        models.Room(75),
-        DummyVentilation(always),
-        DummyPopulation(
-            number=1,
-            presence=always,
-            mask=models.Mask(
-                η_exhale=0.95,
-                η_leaks=0.15,
-                η_inhale=0.3,
-            ),
-            activity=models.Activity(
-                0.51,
-                0.75,
-            ),
-            virus=models.Virus(
-                halflife=1.1,
-                viral_load_in_sputum=1e9,
-                coefficient_of_infectivity=0.02,
-            ),
-            expiration=models.Expiration(
-                ejection_factor=(0.084, 0.009, 0.003, 0.002),
-            ),
-        )
-    )
-    times = [0.1, 10, 20, 24]
-    concentration_limits = np.array([c_model._concentration_limit(t)
-                                     for t in times])
-    IVRRs = np.array([c_model.infectious_virus_removal_rate(t)
-                      for t in times])
-    assert np.all(concentration_limits==concentration_limits[-1])
-    assert np.all(IVRRs==IVRRs[-1])
