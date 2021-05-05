@@ -1,8 +1,6 @@
-from dataclasses import dataclass
 import re
 
 import numpy as np
-import numpy.testing as npt
 import pytest
 
 from cara import models
@@ -62,33 +60,43 @@ def test_concentration_model_vectorisation(override_params):
     assert concentrations.shape == (2, )
 
 
-@pytest.mark.parametrize(
-    "time, expected_next_state_change", [
-        [0, 0],
-        [1, 4],
-        [4, 4],
-        [24, 24],
-    ]
-)
-def test_concentration_model_next_state_change(time,expected_next_state_change):
-    always = models.PeriodicInterval(240, 240)
-    c_model = models.ConcentrationModel(
+@pytest.fixture
+def simple_conc_model():
+    interesting_times = models.SpecificInterval(([0, 1], [1.1, 1.999], [2, 3]), )
+    return models.ConcentrationModel(
         models.Room(75),
-        models.AirChange(always, 100),
+        models.AirChange(interesting_times, 100),
         models.InfectedPopulation(
             number=1,
-            presence=always,
+            presence=interesting_times,
             mask=models.Mask.types['Type I'],
             activity=models.Activity.types['Seated'],
             virus=models.Virus.types['SARS_CoV_2'],
             expiration=models.Expiration.types['Breathing'],
         )
     )
-    assert c_model._next_state_change(time) == expected_next_state_change
-    with pytest.raises(ValueError, match="Time larger than highest state change"):
-        c_model._next_state_change(24.1)
-    with pytest.raises(ValueError, match=re.escape("Concentration cannot "
-            "be computed at a time larger than last state change "
-            "(parameters are not defined)")):
-        c_model.concentration(24.1)
 
+
+@pytest.mark.parametrize(
+    "time, expected_next_state_change", [
+        [0, 0],
+        [1, 1],
+        [1.1, 1.999],
+        [2, 3],
+        [3, 3],
+    ]
+)
+def test_next_state_change_time(
+        simple_conc_model: models.ConcentrationModel,
+        time,
+        expected_next_state_change,
+):
+    simple_conc_model._next_state_change(time) == expected_next_state_change
+
+
+def test_next_state_change_time_out_of_range(simple_conc_model: models.ConcentrationModel):
+    with pytest.raises(
+            ValueError,
+            match=re.escape("The requested time (3.1) is greater than last available state change time (3)")
+    ):
+        simple_conc_model._next_state_change(3.1)

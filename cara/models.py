@@ -644,7 +644,8 @@ class ConcentrationModel:
         k = (vg * 3600) / h
 
         return k + self.virus.decay_constant + self.ventilation.air_exchange(
-                                                    self.room, time)
+            self.room, time
+        )
 
     @cached()
     def _concentration_limit(self, time: float) -> _VectorisedFloat:
@@ -689,7 +690,10 @@ class ConcentrationModel:
         for change_time in self.state_change_times():
             if change_time >= time:
                 return change_time
-        raise ValueError("Time larger than highest state change")
+        raise ValueError(
+            f"The requested time ({time}) is greater than last available "
+            f"state change time ({change_time})"
+        )
 
     @cached()
     def concentration(self, time: float) -> _VectorisedFloat:
@@ -705,13 +709,9 @@ class ConcentrationModel:
 
         if time == 0:
             return 0.0
-        try:
-            IVRR = self.infectious_virus_removal_rate(self._next_state_change(time))
-            concentration_limit = self._concentration_limit(self._next_state_change(time))
-        except ValueError:
-            raise ValueError("Concentration cannot be computed at a time"
-                             " larger than last state change (parameters"
-                             " are not defined)")
+        next_state_change_time = self._next_state_change(time)
+        IVRR = self.infectious_virus_removal_rate(next_state_change_time)
+        concentration_limit = self._concentration_limit(next_state_change_time)
 
         t_last_state_change = self.last_state_change(time)
         concentration_at_last_state_change = self.concentration(t_last_state_change)
