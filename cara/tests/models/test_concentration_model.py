@@ -81,8 +81,10 @@ def simple_conc_model():
     "time, expected_next_state_change", [
         [0, 0],
         [1, 1],
-        [1.1, 1.999],
-        [2, 3],
+        [1.1, 1.1],
+        [1.11, 1.999],
+        [2, 2],
+        [2.1, 3],
         [3, 3],
     ]
 )
@@ -91,7 +93,7 @@ def test_next_state_change_time(
         time,
         expected_next_state_change,
 ):
-    simple_conc_model._next_state_change(time) == expected_next_state_change
+    assert simple_conc_model._next_state_change(time) == expected_next_state_change
 
 
 def test_next_state_change_time_out_of_range(simple_conc_model: models.ConcentrationModel):
