@@ -643,7 +643,21 @@ class ConcentrationModel:
         # Deposition rate (h^-1)
         k = (vg * 3600) / h
 
-        return k + self.virus.decay_constant + self.ventilation.air_exchange(self.room, time)
+        return k + self.virus.decay_constant + self.ventilation.air_exchange(
+            self.room, time
+        )
+
+    @cached()
+    def _concentration_limit(self, time: float) -> _VectorisedFloat:
+        """
+        Provides a constant that represents the theoretical asymptotic 
+        value reached by the concentration when time goes to infinity,
+        if all parameters were to stay time-independent.
+        """
+        V = self.room.volume
+        IVRR = self.infectious_virus_removal_rate(time)
+
+        return (self.infected.emission_rate(time)) / (IVRR * V)
 
     @cached()
     def state_change_times(self):
@@ -668,22 +682,42 @@ class ConcentrationModel:
                 return change_time
         return 0
 
+    def _next_state_change(self, time: float):
+        """
+        Find the nearest future state change.
+
+        """
+        for change_time in self.state_change_times():
+            if change_time >= time:
+                return change_time
+        raise ValueError(
+            f"The requested time ({time}) is greater than last available "
+            f"state change time ({change_time})"
+        )
+
     @cached()
     def concentration(self, time: float) -> _VectorisedFloat:
-        # Note that time is not vectorised. You can only pass a single float
-        # to this method.
+        """
+        Virus quanta concentration, as a function of time.
+        The formulas used here assume that all parameters (ventilation,
+        emission rate) are constant between two state changes - only
+        the value of these parameters at the next state change, are used.
+
+        Note that time is not vectorised. You can only pass a single float
+        to this method.
+        """
 
         if time == 0:
             return 0.0
-        IVRR = self.infectious_virus_removal_rate(time)
-        V = self.room.volume
+        next_state_change_time = self._next_state_change(time)
+        IVRR = self.infectious_virus_removal_rate(next_state_change_time)
+        concentration_limit = self._concentration_limit(next_state_change_time)
 
         t_last_state_change = self.last_state_change(time)
         concentration_at_last_state_change = self.concentration(t_last_state_change)
 
         delta_time = time - t_last_state_change
         fac = np.exp(-IVRR * delta_time)
-        concentration_limit = (self.infected.emission_rate(time)) / (IVRR * V)
         return concentration_limit * (1 - fac) + concentration_at_last_state_change * fac
 
 
