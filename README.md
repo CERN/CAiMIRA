@@ -58,6 +58,13 @@ CARA has not undergone review, approval or certification by competent authoritie
 The software is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and non-infringement.
 In no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software or the use or other dealings in the software.
 
+## Adapting CARA to your location
+
+The default weather data (hourly outdoor temperature) used in CARA is for Geneva, Switzerland.
+In order for the natural ventilation option to work correctly for other geographic locations, the outdoor temperatures must be updated.
+There are some scripts to help download and process the temperature data from your nearest weather station in the https://gitlab.cern.ch/cara/climatology-data repository.
+Once you have used the scripts, the hourly temperature data for your location should be added to the file `data.py` in place of the default values for Geneva.
+CARA currently supports only one geographic location for weather data per instance. 
 
 ## Running CARA locally
 
