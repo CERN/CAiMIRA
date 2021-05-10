@@ -736,7 +736,7 @@ class ConcentrationModel:
         req_start, req_stop = start, stop
         total_concentration = 0.
         for interval_start, interval_stop in zip(state_change_times[:-1], state_change_times[1:]):
-            if start > interval_stop or stop < interval_start:
+            if req_start > interval_stop or req_stop < interval_start:
                 continue
             # Clip the current interval to the requested range.
             start = max([interval_start, req_start])
