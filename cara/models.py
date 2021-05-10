@@ -695,6 +695,14 @@ class ConcentrationModel:
             f"state change time ({change_time})"
         )
 
+    def _is_interval_between_state_changes(self, start: float, stop: float) -> bool:
+        """
+        Check that the times start and stop are in-between two state
+        changes of the concentration model (to ensure sure that all
+        model parameters stay constant between start and stop).
+        """
+        return (self.last_state_change(stop) <= start)
+
     @cached()
     def concentration(self, time: float) -> _VectorisedFloat:
         """
@@ -720,6 +728,32 @@ class ConcentrationModel:
         fac = np.exp(-IVRR * delta_time)
         return concentration_limit * (1 - fac) + concentration_at_last_state_change * fac
 
+    def integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
+        """
+        Get the integrated concentration dose between the times start and stop.
+        """
+        state_change_times = self.state_change_times()
+        req_start, req_stop = start, stop
+        total_concentration = 0.
+        for interval_start, interval_stop in zip(state_change_times[:-1], state_change_times[1:]):
+            if start > interval_stop or stop < interval_start:
+                continue
+            # Clip the current interval to the requested range.
+            start = max([interval_start, req_start])
+            stop = min([interval_stop, req_stop])
+
+            conc_start = self.concentration(start)
+
+            next_conc_state = self._next_state_change(stop)
+            conc_limit = self._concentration_limit(next_conc_state)
+            IVRR = self.infectious_virus_removal_rate(next_conc_state)
+            delta_time = stop - start
+            total_concentration += (
+                conc_limit * delta_time +
+                (conc_limit - conc_start) * (np.exp(-IVRR*delta_time)-1) / IVRR
+            )
+        return total_concentration
+
 
 @dataclass(frozen=True)
 class ExposureModel:
@@ -736,12 +770,9 @@ class ExposureModel:
         """The number of virus quanta per meter^3."""
         exposure = 0.0
 
-        def integrate(fn, start, stop):
-            values = np.linspace(start, stop)
-            return np.trapz([fn(v) for v in values], values, axis=0)
-
         for start, stop in self.exposed.presence.boundaries():
-            exposure += integrate(self.concentration_model.concentration, start, stop)
+            exposure += self.concentration_model.integrated_concentration(start, stop)
+
         return exposure * self.repeats
 
     def infection_probability(self) -> _VectorisedFloat:
