@@ -96,8 +96,10 @@ def test_concentrations_startup(baseline_model):
 
 
 def test_r0(baseline_exposure_model):
+    # expected r0 was computed with a trapezoidal integration, using
+    # a mesh of 100'000 pts per exposed presence interval.
     p = baseline_exposure_model.infection_probability()
-    npt.assert_allclose(p, 88.977694)
+    npt.assert_allclose(p, 89.001748)
 
 
 def test_periodic_window(baseline_periodic_window, baseline_room):
@@ -368,11 +370,13 @@ def build_exposure_model(concentration_model):
     )
 
 
+# expected r0 were computed with a trapezoidal integration, using
+# a mesh of 100'000 pts per exposed presence interval.
 @pytest.mark.parametrize(
     "month, expected_r0",
     [
-        ['Jan', 86.220749],
-        ['Jun', 99.972046],
+        ['Jan', 86.258533],
+        ['Jun', 99.972103],
     ],
 )
 def test_r0_hourly_dep(month,expected_r0):
@@ -386,11 +390,13 @@ def test_r0_hourly_dep(month,expected_r0):
     p = m.infection_probability()
     npt.assert_allclose(p, expected_r0)
 
+# expected r0 were computed with a trapezoidal integration, using
+# a mesh of 100'000 pts per exposed presence interval.
 @pytest.mark.parametrize(
     "month, expected_r0",
     [
-        ['Jan', 86.385018],
-        ['Jun', 99.982281],
+        ['Jan', 86.422736],
+        ['Jun', 99.982323],
     ],
 )
 def test_r0_hourly_dep_refined(month,expected_r0):

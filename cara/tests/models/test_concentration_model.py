@@ -81,8 +81,10 @@ def simple_conc_model():
     "time, expected_next_state_change", [
         [0, 0],
         [1, 1],
+        [1.05, 1.1],
         [1.1, 1.1],
         [1.11, 1.999],
+        [1.9991, 2],
         [2, 2],
         [2.1, 3],
         [3, 3],
@@ -102,3 +104,29 @@ def test_next_state_change_time_out_of_range(simple_conc_model: models.Concentra
             match=re.escape("The requested time (3.1) is greater than last available state change time (3)")
     ):
         simple_conc_model._next_state_change(3.1)
+
+
+@pytest.mark.parametrize(
+    "start, stop, is_valid", [
+        [0, 1.05, False],
+        [0.99, 1.1, False],
+        [0.5, 1.01, False],
+        [0, 1, True],
+        [1.01, 1.1, True],
+        [0.01, 1, True],
+        [1.11, 1.99, True],
+    ]
+)
+def test_valid_interval(
+        start, stop, is_valid,
+        simple_conc_model: models.ConcentrationModel
+):
+    assert simple_conc_model._is_interval_between_state_changes(start, stop) == is_valid
+
+
+def test_integrated_concentration(simple_conc_model):
+    c1 = simple_conc_model.integrated_concentration(0, 2)
+    c2 = simple_conc_model.integrated_concentration(0, 1)
+    c3 = simple_conc_model.integrated_concentration(1, 2)
+    assert c1 != 0
+    assert c1 == c2 + c3
