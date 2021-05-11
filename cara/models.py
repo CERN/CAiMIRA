@@ -526,8 +526,8 @@ Expiration.types = {
 
 @dataclass(frozen=True)
 class Activity:
-    inhalation_rate: float
-    exhalation_rate: float
+    inhalation_rate: _VectorisedFloat
+    exhalation_rate: _VectorisedFloat
 
     #: Pre-populated examples of activities.
     types: typing.ClassVar[typing.Dict[str, "Activity"]]
