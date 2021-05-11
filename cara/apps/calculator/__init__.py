@@ -127,6 +127,18 @@ class LandingPage(BaseRequestHandler):
         self.finish(report)
 
 
+class AboutPage(BaseRequestHandler):
+    def get(self):
+        template_environment = self.settings["template_environment"]
+        template = template_environment.get_template("about.html.j2")
+        report = template.render(
+            user=self.current_user,
+            active_page="about",
+            text_blocks=template_environment.globals['common_text']
+        )
+        self.finish(report)
+
+
 class CalculatorForm(BaseRequestHandler):
     def get(self):
         template = self.settings["template_environment"].get_template(
@@ -171,6 +183,7 @@ def make_app(
     urls: typing.Any = [
         (r'/?', LandingPage),
         (r'/_c/(.*)', CompressedCalculatorFormInputs),
+        (r'/about', AboutPage),
         (r'/static/(.*)', StaticFileHandler, {'path': static_dir}),
         (prefix + r'/?', CalculatorForm),
         (prefix + r'/report', ConcentrationModel),

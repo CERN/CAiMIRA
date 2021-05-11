@@ -31,7 +31,6 @@ async def test_user_guide(http_server_client):
     assert resp.code == 200
 
 
-@pytest.mark.xfail(reason="about page not yet implemented")
 async def test_about(http_server_client):
     resp = await http_server_client.fetch('/about')
     assert resp.code == 200
