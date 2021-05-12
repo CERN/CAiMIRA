@@ -174,12 +174,12 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
 
     <div class="row">
       <label class="col-xl-3 col-lg-4 col-sm-3 col-form-label">Total number of occupants:</label>
-      <input type="number" id="total_people" class="col-xl-3 col-lg-5 col-md-7 col-sm-3 col-3" name="total_people" min=1 required>
+      <input type="number" id="total_people" class="col-lg-4 col-md-5 col-sm-3" name="total_people" min=1 required>
     </div>
 
     <div class="row">
       <label class="col-xl-3 col-lg-4 col-sm-3 col-form-label">Number of infected people: </label>
-      <input type="number" id="infected_people" class="col-xl-3 col-lg-5 col-md-7 col-sm-3 col-3" name="infected_people" min=1 required><br>
+      <input type="number" id="infected_people" class="col-lg-4 col-md-5 col-sm-3" name="infected_people" min=1 required><br>
     </div>
 
     <span id="training_limit_error" class="red_text" hidden>Training activities limited to 1 infected<br></span>
@@ -304,8 +304,11 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
     <br style="clear:both;">
     <i>Coffee breaks are spread evenly throughout the day.</i><br>
     <hr width="80%">
-
-    <button type='submit' class="btn btn-primary" id="generate_report">Generate report</button>
+    <div class="row">
+    <div class="col-md-4 col-md-offset-4">
+        <button type='submit' class="btn btn-primary" id="generate_report">Generate report</button>
+    </div>
+    </div>
     <br><br>
 </div>
 
