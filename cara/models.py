@@ -492,7 +492,7 @@ def _generate_virus_distribution(params: typing.Tuple[int, float]) -> Virus:
     kde_model = KernelDensity(kernel='gaussian', bandwidth=0.1)
     kde_model.fit(np.asarray(log_symptomatic_vl_frequencies)[0, :][:, np.newaxis],
                   sample_weight=np.asarray(log_symptomatic_vl_frequencies)[1, :])
-    viral_load_distribution = kde_model.sample(n_samples=samples)[:, 0]
+    viral_load_distribution = 10 ** kde_model.sample(n_samples=samples)[:, 0]
     return Virus(
         halflife=1.1,
         viral_load_in_sputum=viral_load_distribution,
