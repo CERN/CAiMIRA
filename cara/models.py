@@ -432,8 +432,8 @@ class Virus:
     #: RNA copies  / mL
     viral_load_in_sputum: _VectorisedFloat
 
-    #: Ratio between infectious aerosols and dose to cause infection.
-    coefficient_of_infectivity: _VectorisedFloat
+    #: RNA-copies per quantum
+    qID: _VectorisedFloat
 
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
@@ -443,26 +443,31 @@ class Virus:
         # Viral inactivation per hour (h^-1)
         return np.log(2) / self.halflife
 
+    @property
+    def coefficient_of_infectivity(self) -> _VectorisedFloat:
+        # Ratio between infectious aerosols and dose to cause infection.
+        return 1/self.qID
+
 
 Virus.types = {
     'SARS_CoV_2': Virus(
         halflife=1.1,
         viral_load_in_sputum=1e9,
         # No data on coefficient for SARS-CoV-2 yet.
-        # It is somewhere between 0.001 and 0.01 to have a 50% chance
-        # to cause infection. i.e. 1000 or 100 SARS-CoV viruses to cause infection.
-        coefficient_of_infectivity=0.02,
+        # It is somewhere between 1000 or 100 SARS-CoV viruses to have 
+        # a 50% chance to cause infection.
+        qID=50.,
     ),
     'SARS_CoV_2_B117': Virus(
         # also called VOC-202012/01
         halflife=1.1,
         viral_load_in_sputum=1e9,
-        coefficient_of_infectivity=1/30.,
+        qID=30.,
     ),
     'SARS_CoV_2_P1': Virus(
         halflife=1.1,
         viral_load_in_sputum=1e9,
-        coefficient_of_infectivity=0.045,
+        qID=1/0.045,
     ),
 }
 
