@@ -12,7 +12,7 @@ from cara import models
         {'air_change': np.array([100, 120])},
         {'virus_halflife': np.array([1.1, 1.5])},
         {'viral_load_in_sputum': np.array([5e8, 1e9])},
-        {'coefficient_of_infectivity': np.array([0.02, 0.05])},
+        {'qID': np.array([50, 20])},
         {'η_exhale': np.array([0.92, 0.95])},
         {'η_leaks': np.array([0.15, 0.20])},
     ]
@@ -23,7 +23,7 @@ def test_concentration_model_vectorisation(override_params):
         'air_change': 100,
         'virus_halflife': 1.1,
         'viral_load_in_sputum': 1e9,
-        'coefficient_of_infectivity': 0.02,
+        'qID': 50,
         'η_exhale': 0.95,
         'η_leaks': 0.15,
     }
@@ -48,7 +48,7 @@ def test_concentration_model_vectorisation(override_params):
             virus=models.Virus(
                 halflife=defaults['virus_halflife'],
                 viral_load_in_sputum=defaults['viral_load_in_sputum'],
-                coefficient_of_infectivity=defaults['coefficient_of_infectivity'],
+                qID=defaults['qID'],
             ),
             expiration=models.Expiration(
                 ejection_factor=(0.084, 0.009, 0.003, 0.002),

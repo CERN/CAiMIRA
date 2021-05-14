@@ -7,7 +7,7 @@ import cara.models
 @pytest.mark.parametrize(
     "override_params", [
         {'viral_load_in_sputum': np.array([5e8, 1e9])},
-        {'coefficient_of_infectivity': np.array([0.02, 0.05])},
+        {'qID': np.array([50, 20])},
         {'η_exhale': np.array([0.92, 0.95])},
         {'η_leaks': np.array([0.15, 0.20])},
         {'exhalation_rate': np.array([0.75, 0.81])},
@@ -17,7 +17,7 @@ def test_infected_population_vectorisation(override_params):
     defaults = {
         'virus_halflife': 1.1,
         'viral_load_in_sputum': 1e9,
-        'coefficient_of_infectivity': 0.02,
+        'qID': 50,
         'η_exhale': 0.95,
         'η_leaks': 0.15,
         'exhalation_rate': 0.75,
@@ -40,7 +40,7 @@ def test_infected_population_vectorisation(override_params):
             virus=cara.models.Virus(
                 halflife=defaults['virus_halflife'],
                 viral_load_in_sputum=defaults['viral_load_in_sputum'],
-                coefficient_of_infectivity=defaults['coefficient_of_infectivity'],
+                qID=defaults['qID'],
             ),
             expiration=cara.models.Expiration(
                 ejection_factor=(0.084, 0.009, 0.003, 0.002),
