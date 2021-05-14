@@ -38,6 +38,8 @@ import typing
 import numpy as np
 from scipy.interpolate import interp1d
 import scipy.stats as sct
+from sklearn.neighbors import KernelDensity
+
 
 if not typing.TYPE_CHECKING:
     from memoization import cached
@@ -438,6 +440,9 @@ class Virus:
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
 
+    #: Pre-defined examples of virus distributions.
+    distributions: typing.ClassVar[typing.Dict[str, typing.Callable[[int], "Virus"]]]
+
     @property
     def decay_constant(self) -> _VectorisedFloat:
         # Viral inactivation per hour (h^-1)
@@ -469,6 +474,34 @@ Virus.types = {
         viral_load_in_sputum=1e9,
         qID=1/0.045,
     ),
+}
+
+#@cached
+def _generate_virus_distribution(samples: int, qID: float=100) -> Virus:
+    log_symptomatic_vl_frequencies = ((2.46032, 2.67431, 2.85434, 3.06155, 3.25856, 3.47256, 3.66957, 3.85979, 4.09927, 4.27081,
+                                   4.47631, 4.66653, 4.87204, 5.10302, 5.27456, 5.46478, 5.6533, 5.88428, 6.07281, 6.30549,
+                                   6.48552, 6.64856, 6.85407, 7.10373, 7.30075, 7.47229, 7.66081, 7.85782, 8.05653, 8.27053,
+                                   8.48453, 8.65607, 8.90573, 9.06878, 9.27429, 9.473, 9.66152, 9.87552),
+                                  (0.001206885, 0.007851618, 0.008078144, 0.01502491, 0.013258014, 0.018528495, 0.020053765,
+                                   0.021896167, 0.022047184, 0.018604005, 0.01547796, 0.018075445, 0.021503523, 0.022349217,
+                                   0.025097721, 0.032875078, 0.030594727, 0.032573045, 0.034717482, 0.034792991,
+                                   0.033267721, 0.042887485, 0.036846816, 0.03876473, 0.045016819, 0.040063473, 0.04883754,
+                                   0.043944602, 0.048142864, 0.041588741, 0.048762031, 0.027921732, 0.033871788,
+                                   0.022122693, 0.016927718, 0.008833228, 0.00478598, 0.002807662))
+    kde_model = KernelDensity(kernel='gaussian', bandwidth=0.1)
+    kde_model.fit(np.asarray(log_symptomatic_vl_frequencies)[0, :][:, np.newaxis],
+                  sample_weight=np.asarray(log_symptomatic_vl_frequencies)[1, :])
+    viral_load_distribution = kde_model.sample(n_samples=samples)[:, 0]
+    return Virus(
+        halflife=1.1,
+        viral_load_in_sputum=viral_load_distribution,
+        qID=qID,
+    )
+
+Virus.distributions = {
+    'SARS_CoV_2': lambda n: _generate_virus_distribution(n, qID=100),
+    'SARS_CoV_2_B117': lambda n: _generate_virus_distribution(n, qID=60),
+    'SARS_CoV_2_P1': lambda n: _generate_virus_distribution(n, qID=100/2.25),
 }
 
 
