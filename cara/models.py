@@ -557,27 +557,29 @@ Activity.types = {
     'Heavy exercise': Activity(3.30, 3.30),
 }
 
-def _generate_activity_distribution(csi: float, lamb: float, samples: int):
+@cached
+def _generate_activity_distribution(params: typing.Tuple[float, float, int]) -> Activity:
+    csi, lamb, samples = params
     return Activity(
         _lognormal_distribution(csi, lamb, samples),
         _lognormal_distribution(csi, lamb, samples),
     )
 
 Activity.distributions = {
-    'Seated': lambda n: _generate_activity_distribution(
-                            0.10498338229297108, -0.6872121723362303, n),
+    'Seated': lambda n: _generate_activity_distribution((
+                            0.10498338229297108, -0.6872121723362303, n)),
 
-    'Standing': lambda n: _generate_activity_distribution(
-                            0.09373162411398223, -0.5742377578494785, n),
+    'Standing': lambda n: _generate_activity_distribution((
+                            0.09373162411398223, -0.5742377578494785, n)),
 
-    'Light activity': lambda n: _generate_activity_distribution(
-                            0.09435378091059601, 0.21380242785625422, n),
+    'Light activity': lambda n: _generate_activity_distribution((
+                            0.09435378091059601, 0.21380242785625422, n)),
 
-    'Moderate activity': lambda n: _generate_activity_distribution(
-                            0.1894616357138137, 0.551771330362601, n),
+    'Moderate activity': lambda n: _generate_activity_distribution((
+                            0.1894616357138137, 0.551771330362601, n)),
 
-    'Heavy exercise': lambda n: _generate_activity_distribution(
-                            0.21744554768657565, 1.1644665696723049, n),
+    'Heavy exercise': lambda n: _generate_activity_distribution((
+                            0.21744554768657565, 1.1644665696723049, n)),
 }
 
 
