@@ -60,11 +60,17 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 
 ## Adapting CARA to your location
 
-The default weather data (hourly outdoor temperature) used in CARA is for Geneva, Switzerland.
+The default weather data (average hourly outdoor temperature in Celcius for each month of the year) used in CARA is for Geneva, Switzerland.
 In order for the natural ventilation option to work correctly for other geographic locations, the outdoor temperatures must be updated.
 There are some scripts to help download and process the temperature data from your nearest weather station in the https://gitlab.cern.ch/cara/climatology-data repository.
-Once you have used the scripts, the hourly temperature data for your location should be added to the file `data.py` in place of the default values for Geneva.
-CARA currently supports only one geographic location for weather data per instance. 
+Once you have used the scripts, the hourly temperature data for your location should be added to the file `data.py` in place of the default values for Geneva. The temperature values for your locations should be pasted into the `Geneva_hourly_temperatures_celsius_per_hour` variable, **without changing the variable name** in the following format:
+
+    `'Jan': [0.2, -0.3, -0.5, -0.9, -1.1, -1.4, -1.5, -1.5, -1.1, 0.1, 1.5,
+    2.8, 3.8, 4.4, 4.5, 4.4, 4.4, 3.9, 3.1, 2.7, 2.2, 1.7, 1.5, 1.1],
+    'Feb': [0.9, 0.3, 0.0, -0.5, -0.7, -1.1, -1.2, -1.1, -0.7, 0.8, 2.5,
+    4.2, 5.4, 6.2, 6.3, 6.2, 6.1, 5.5, 4.5, 4.1, 3.5, 2.8, 2.5, 2.0],...`
+
+CARA currently supports **only one geographic location for weather data per instance**. 
 
 ## Running CARA locally
 
