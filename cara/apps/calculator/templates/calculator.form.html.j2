@@ -26,7 +26,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
 </div>
 
 {% if DEBUG %}
-<form id="covid_calculator" name="covid_calculator" onsubmit="return debug_submit(this)">
+<form id="covid_calculator" name="covid_calculator" onsubmit="return debug_submit(this)" class="form-inline">
 {% else %}
 <form id="covid_calculator" name="covid_calculator" action="/calculator/report" onsubmit="return validate_form(this)" method="POST">
 {% endif %}
@@ -34,37 +34,67 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
 
 <input type="hidden" name="calculator_version" value="{{ calculator_version }}">
 
-<div style="width: 33%; float:left;">
+<div class="container-fluid">
+  <div class="row">
+<div class="col-lg-4 col-md-6">
 
     <!-- General Options -->
-    <b>Simulation name:</b> <input type="text" name="simulation_name" placeholder="E.g. Workshop without masks" required><br>
-    Room number: <input type="text" name="room_number" placeholder="E.g. 17/R-033" required><br>
-    <hr width="80%">
 
+    <div class="row">
+      <label class="col-xl-3 col-lg-4 col-sm-3 col-form-label">Simulation name:</label>
+      <input type="text" class="col-xl-5 col-lg-7 col-sm-7 col-7" name="simulation_name" placeholder="E.g. Workshop without masks" required>
+    </div>
+
+    <div class="row">
+      <label class="col-xl-3 col-lg-4 col-sm-3 col-form-label">Room number:</label>
+      <input type="text" class="col-xl-5 col-lg-7 col-sm-7 col-7" name="room_number" placeholder="E.g. 17/R-033" required>
+    </div>
+
+    <hr width="80%">
     <b>Virus data:</b>
+
     <div data-tooltip="Choose the SARS-CoV-2 Variant of Concern (VOC).">
         <span class="tooltip_text">?</span>
     </div><br>
-    Variant:
-    <select id="Variant" name="virus_type">
-      <option value="SARS_CoV_2">SARS-CoV-2 (nominal strain)</option>
-      <option value="SARS_CoV_2_B117">SARS-CoV-2 (B.1.1.7)</option>
-      <option value="SARS_CoV_2_P1">SARS-CoV-2 (P.1)</option>
-    </select><br>
+
+    <div class="row">
+        <label class="col-xl-3 col-lg-4 col-sm-3 col-form-label">Variant:</label>
+        <select id="Variant" name="virus_type" class="col-xl-5 col-lg-7 col-sm-7 col-7">
+          <option value="SARS_CoV_2">SARS-CoV-2 (nominal strain)</option>
+          <option value="SARS_CoV_2_B117">SARS-CoV-2 (B.1.1.7)</option>
+          <option value="SARS_CoV_2_P1">SARS-CoV-2 (P.1)</option>
+        </select>
+    </div>
+
     <hr width="80%">
 
     <b>Room data:</b>
     <div data-tooltip="The area you wish to study (choose one of the 2 options). Use GIS Portal or measure.">
         <span class="tooltip_text">?</span>
     </div><br>
-    <input type="radio" id="room_data_volume" name="volume_type" value="room_volume_explicit" onclick="require_fields(this)" tabindex="-1" required>
-      <label for="room_data_volume">Room volume:</label> &nbsp;&nbsp;
-    <input type="number" step="any" id="room_volume" class="non_zero" name="room_volume" placeholder="Room volume (m³)" min="0" data-has-radio="#room_data_volume"><br>
-    <input type="radio" id="room_data_dimensions" name="volume_type" value="room_volume_from_dimensions" onclick="require_fields(this)" tabindex="-1" required>
-      <label for="room_data_dimensions">Floor area:</label> &nbsp;&nbsp;
-    <input type="number" step="any" id="floor_area" class="non_zero" name="floor_area" placeholder="Room floor area (m²)" min="0" data-has-radio="#room_data_dimensions"><br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <label for="room_data_dimensions">Ceiling height:</label> &nbsp;&nbsp;
-    <input type="number" step="any" id="ceiling_height" class="non_zero" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0" data-has-radio="#room_data_dimensions"><br>
+    <div class="row">
+
+      <div class="col-xl-3 col-lg-4 col-sm-3">
+        <input type="radio" id="room_data_volume" name="volume_type" value="room_volume_explicit" onclick="require_fields(this)" tabindex="-1" required>
+        <label class="col-form-label">Room volume:</label>
+      </div>
+      <input type="number" step="any" id="room_volume" class="non_zero col-xl-3 col-lg-5 col-md-7 col-sm-3 col-3" name="room_volume" placeholder="Room volume (m³)" min="0" data-has-radio="#room_data_volume">
+    </div>
+
+    <div class="row">
+      <div class="col-xl-3 col-lg-4 col-sm-3">
+        <input type="radio" id="room_data_dimensions" name="volume_type" value="room_volume_from_dimensions" onclick="require_fields(this)" tabindex="-1" required>
+        <label for="room_data_dimensions">Floor area:</label> &nbsp;&nbsp;
+      </div>
+      <input type="number" step="any" id="floor_area" class="non_zero col-xl-3 col-lg-5 col-md-7 col-sm-3 col-3" name="floor_area" placeholder="Room floor area (m²)" min="0" data-has-radio="#room_data_dimensions">
+    </div>
+    <div class="row">
+      <div class="col-xl-3 col-lg-4 col-sm-3">
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <label for="room_data_dimensions">Ceiling height:</label> &nbsp;&nbsp;
+      </div>
+      <input type="number" step="any" id="ceiling_height" class="non_zero col-xl-3 col-lg-5 col-md-7 col-sm-3 col-3" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0" data-has-radio="#room_data_dimensions">
+    </div>
+
     <hr width="80%">
 
     <!-- Ventilation Options -->
@@ -134,15 +164,24 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
     <hr width="80%">
 </div>
 
-<div style="width: 33%; float:left;">
+<div class="col-lg-4 col-md-6">
 
     <!-- Event Options -->
     <b>Event data:</b>
     <div data-tooltip="The total no. of occupants in the room and how many of them you assume are infected.">
         <span class="tooltip_text">?</span>
     </div><br>
-    Total number of occupants: <input type="number" id="total_people" name="total_people" min=1 required><br>
-    Number of infected people: <input type="number" id="infected_people" name="infected_people" min=1 required><br>
+
+    <div class="row">
+      <label class="col-xl-3 col-lg-4 col-sm-3 col-form-label">Total number of occupants:</label>
+      <input type="number" id="total_people" class="col-lg-4 col-md-5 col-sm-3" name="total_people" min=1 required>
+    </div>
+
+    <div class="row">
+      <label class="col-xl-3 col-lg-4 col-sm-3 col-form-label">Number of infected people: </label>
+      <input type="number" id="infected_people" class="col-lg-4 col-md-5 col-sm-3" name="infected_people" min=1 required><br>
+    </div>
+
     <span id="training_limit_error" class="red_text" hidden>Training activities limited to 1 infected<br></span>
     <hr width="80%">
 
@@ -265,9 +304,15 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
     <br style="clear:both;">
     <i>Coffee breaks are spread evenly throughout the day.</i><br>
     <hr width="80%">
+    <div class="row">
+    <div class="col-md-4 col-md-offset-4">
+        <button type='submit' class="btn btn-primary" id="generate_report">Generate report</button>
+    </div>
+    </div>
+    <br><br>
 </div>
 
-<div style="width: 33%; float:left;">
+<div class="col-lg-4 col-sm-12">
 
   <b>Quick Guide:</b><br>
   This tool simulates the long range airborne spread SARS-CoV-2 virus in a finite volume and estimates the risk of COVID-19 infection. It is based on current scientific data and can be used to compare the effectiveness of different mitigation measures.<br>
@@ -315,7 +360,9 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
   for more detailed explanations on how to use this tool. <br>
 </div>
 
-<button type='submit' id="generate_report">Generate report</button><br><br><br><br>
+</div>
+</div>
+<br><br><br><br>
 </form>
 
 <div>
