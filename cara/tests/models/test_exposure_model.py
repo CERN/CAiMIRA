@@ -46,19 +46,36 @@ populations = [
         10, halftime, models.Mask(0.95, 0.15, np.array([0.3, 0.35])),
         models.Activity.types['Standing'],
     ),
+    # A population with some array component for inhalation_rate.
+    models.Population(
+        10, halftime, models.Mask.types['Type I'],
+        models.Activity(np.array([0.51,0.57]), 0.57),
+    ),
 ]
 
 
 @pytest.mark.parametrize(
-    "population, cm, expected_exposure",[
-    [populations[1], KnownConcentrations(lambda t: 1.2), np.array([14.4, 14.4])],
-    [populations[0], KnownConcentrations(lambda t: np.array([1.2, 2.4])), np.array([14.4, 28.8])],
-    [populations[1], KnownConcentrations(lambda t: np.array([1.2, 2.4])), np.array([14.4, 28.8])],
+    "population, cm, expected_exposure, expected_probability",[
+    [populations[1], KnownConcentrations(lambda t: 1.2),
+     np.array([14.4, 14.4]), np.array([99.6803184113, 99.5181053773])],
+
+    [populations[2], KnownConcentrations(lambda t: 1.2),
+     np.array([14.4, 14.4]), np.array([99.4146994564, 99.6803184113])],
+
+    [populations[0], KnownConcentrations(lambda t: np.array([1.2, 2.4])),
+     np.array([14.4, 28.8]), np.array([99.6803184113, 99.9989780368])],
+
+    [populations[1], KnownConcentrations(lambda t: np.array([1.2, 2.4])),
+     np.array([14.4, 28.8]), np.array([99.6803184113, 99.9976777757])],
     ])
-def test_exposure_model_ndarray(population, cm, expected_exposure):
+def test_exposure_model_ndarray(population, cm, 
+                                expected_exposure, expected_probability):
     model = ExposureModel(cm, population)
     np.testing.assert_almost_equal(
         model.quanta_exposure(), expected_exposure
+    )
+    np.testing.assert_almost_equal(
+        model.infection_probability(), expected_probability, decimal=10
     )
 
     assert isinstance(model.infection_probability(), np.ndarray)
