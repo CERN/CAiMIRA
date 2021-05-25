@@ -37,9 +37,6 @@ import typing
 
 import numpy as np
 from scipy.interpolate import interp1d
-import scipy.stats as sct
-from sklearn.neighbors import KernelDensity # type: ignore
-
 
 if not typing.TYPE_CHECKING:
     from memoization import cached
@@ -56,18 +53,6 @@ from .dataclass_utils import nested_replace
 # implies 1d arrays: multi-dimensional arrays are not supported.
 _VectorisedFloat = typing.Union[float, np.ndarray]
 _VectorisedInt = typing.Union[int, np.ndarray]
-
-
-def _lognormal_distribution(csi: float, lamb: float, samples: int) -> np.ndarray:
-    """
-    Generates a number of samples from a specified lognormal distribution
-    :param csi: parameter used to specify the lognormal distribution
-    :param lamb: parameter used to specify the lognormal distribution
-    :param samples: number of samples to be generated
-    :return: numpy-array containing the samples
-    """
-    sf_norm = sct.norm.sf(np.random.normal(size=samples))
-    return sct.lognorm.isf(sf_norm, csi, loc=0, scale=np.exp(lamb))
 
 
 @dataclass(frozen=True)
@@ -584,9 +569,6 @@ class Activity:
     #: Pre-populated examples of activities.
     types: typing.ClassVar[typing.Dict[str, "Activity"]]
 
-    #: Pre-defined examples of activity distributions.
-    distributions: typing.ClassVar[typing.Dict[str, typing.Callable[[int], "Activity"]]]
-
 
 Activity.types = {
     'Seated': Activity(0.51, 0.51),
@@ -594,29 +576,6 @@ Activity.types = {
     'Light activity': Activity(1.25, 1.25),
     'Moderate activity': Activity(1.78, 1.78),
     'Heavy exercise': Activity(3.30, 3.30),
-}
-
-def _generate_activity_distribution(csi: float, lamb: float, samples: int):
-    return Activity(
-        _lognormal_distribution(csi, lamb, samples),
-        _lognormal_distribution(csi, lamb, samples),
-    )
-
-Activity.distributions = {
-    'Seated': lambda n: _generate_activity_distribution(
-                            0.10498338229297108, -0.6872121723362303, n),
-
-    'Standing': lambda n: _generate_activity_distribution(
-                            0.09373162411398223, -0.5742377578494785, n),
-
-    'Light activity': lambda n: _generate_activity_distribution(
-                            0.09435378091059601, 0.21380242785625422, n),
-
-    'Moderate activity': lambda n: _generate_activity_distribution(
-                            0.1894616357138137, 0.551771330362601, n),
-
-    'Heavy exercise': lambda n: _generate_activity_distribution(
-                            0.21744554768657565, 1.1644665696723049, n),
 }
 
 
