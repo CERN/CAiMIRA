@@ -465,19 +465,17 @@ class Mask:
     #: Filtration efficiency of masks when inhaling.
     η_inhale: _VectorisedFloat
 
-    #: Particle sizes in cm.
-    particle_sizes: typing.Tuple[float, float, float, float] = (
-        0.8e-4, 1.8e-4, 3.5e-4, 5.5e-4
-    )
-
     #: Pre-populated examples of Masks.
     types: typing.ClassVar[typing.Dict[str, "Mask"]]
 
-    @property
-    def exhale_efficiency(self) -> _VectorisedFloat:
+    def exhale_efficiency(self, diameter: float) -> _VectorisedFloat:
         # Overall efficiency with the effect of the leaks for aerosol emission
-        #  Gammaitoni et al (1997)
-        return self.η_exhale * (1 - self.η_leaks)
+        #  Gammaitoni et al (1997). Diameter is in cm.
+        if diameter < 3e-4:
+            eta_out = 0.
+        else:
+            eta_out = self.η_exhale * (1 - self.η_leaks)
+        return eta_out
 
 
 Mask.types = {
@@ -497,8 +495,8 @@ Mask.types = {
 
 @dataclass(frozen=True)
 class Expiration:
-    ejection_factor: typing.Tuple[float, float, float, float]
-    particle_sizes: typing.Tuple[float, float, float, float] = (0.8e-4, 1.8e-4, 3.5e-4, 5.5e-4)  # In cm.
+    ejection_factor: typing.Tuple[float, ...]
+    particle_sizes: typing.Tuple[float, ...] = (0.8e-4, 1.8e-4, 3.5e-4, 5.5e-4)  # In cm.
 
     #: Pre-populated examples of Expiration.
     types: typing.ClassVar[typing.Dict[str, "Expiration"]]
@@ -508,9 +506,8 @@ class Expiration:
             return (4 * np.pi * (diameter/2)**3) / 3
         total = 0
         for diameter, factor in zip(self.particle_sizes, self.ejection_factor):
-            contribution = volume(diameter) * factor
-            if diameter >= 3e-4:
-                contribution = contribution * (1 - mask.exhale_efficiency)
+            contribution = (volume(diameter) * factor *
+                            (1 - mask.exhale_efficiency(diameter)))
             total += contribution
         return total
 
