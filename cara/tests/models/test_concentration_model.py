@@ -9,8 +9,8 @@ from cara import models
 @pytest.mark.parametrize(
     "override_params", [
         {'volume': np.array([100, 120])},
+        {'humidity': np.array([0.5, 0.4])},
         {'air_change': np.array([100, 120])},
-        {'virus_halflife': np.array([1.1, 1.5])},
         {'viral_load_in_sputum': np.array([5e8, 1e9])},
         {'quantum_infectious_dose': np.array([50, 20])},
         {'η_exhale': np.array([0.92, 0.95])},
@@ -20,8 +20,8 @@ from cara import models
 def test_concentration_model_vectorisation(override_params):
     defaults = {
         'volume': 75,
+        'humidity': 0.5,
         'air_change': 100,
-        'virus_halflife': 1.1,
         'viral_load_in_sputum': 1e9,
         'quantum_infectious_dose': 50,
         'η_exhale': 0.95,
@@ -31,7 +31,7 @@ def test_concentration_model_vectorisation(override_params):
 
     always = models.PeriodicInterval(240, 240)  # TODO: This should be a thing on an interval.
     c_model = models.ConcentrationModel(
-        models.Room(defaults['volume']),
+        models.Room(defaults['volume'], defaults['humidity']),
         models.AirChange(always, defaults['air_change']),
         models.InfectedPopulation(
             number=1,
@@ -45,8 +45,7 @@ def test_concentration_model_vectorisation(override_params):
                 0.51,
                 0.75,
             ),
-            virus=models.Virus(
-                halflife=defaults['virus_halflife'],
+            virus=models.SARSCoV2(
                 viral_load_in_sputum=defaults['viral_load_in_sputum'],
                 quantum_infectious_dose=defaults['quantum_infectious_dose'],
             ),

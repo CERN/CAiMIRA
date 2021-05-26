@@ -53,6 +53,7 @@ class FormData:
     calculator_version: str
     opening_distance: float
     event_month: str
+    room_heating_option: bool
     room_number: str
     room_volume: float
     simulation_name: str
@@ -100,6 +101,7 @@ class FormData:
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': 'not-applicable',
         'opening_distance': 0.,
+        'room_heating_option': False,
         'room_number': _NO_DEFAULT,
         'room_volume': 0.,
         'simulation_name': _NO_DEFAULT,
@@ -573,7 +575,11 @@ def model_from_form(form: FormData) -> models.ExposureModel:
         volume = form.room_volume
     else:
         volume = form.floor_area * form.ceiling_height
-    room = models.Room(volume=volume)
+    if form.room_heating_option:
+        humidity = 0.3
+    else:
+        humidity = 0.5
+    room = models.Room(volume=volume, humidity=humidity)
 
     # Initializes and returns a model with the attributes defined above
     return models.ExposureModel(
@@ -618,6 +624,7 @@ def baseline_raw_form_data():
         'calculator_version': calculator.__version__,
         'opening_distance': '0.2',
         'event_month': 'January',
+        'room_heating_option': '0',
         'room_number': '123',
         'room_volume': '75',
         'simulation_name': 'Test',
