@@ -419,8 +419,8 @@ class Virus:
     #: RNA copies  / mL
     viral_load_in_sputum: _VectorisedFloat
 
-    #: Ratio between infectious aerosols and dose to cause infection.
-    coefficient_of_infectivity: _VectorisedFloat
+    #: RNA-copies per quantum
+    quantum_infectious_dose: _VectorisedFloat
 
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
@@ -436,20 +436,20 @@ Virus.types = {
         halflife=1.1,
         viral_load_in_sputum=1e9,
         # No data on coefficient for SARS-CoV-2 yet.
-        # It is somewhere between 0.001 and 0.01 to have a 50% chance
-        # to cause infection. i.e. 1000 or 100 SARS-CoV viruses to cause infection.
-        coefficient_of_infectivity=0.02,
+        # It is somewhere between 1000 or 100 SARS-CoV viruses to have 
+        # a 50% chance to cause infection.
+        quantum_infectious_dose=50.,
     ),
     'SARS_CoV_2_B117': Virus(
         # also called VOC-202012/01
         halflife=1.1,
         viral_load_in_sputum=1e9,
-        coefficient_of_infectivity=1/30.,
+        quantum_infectious_dose=30.,
     ),
     'SARS_CoV_2_P1': Virus(
         halflife=1.1,
         viral_load_in_sputum=1e9,
-        coefficient_of_infectivity=0.045,
+        quantum_infectious_dose=1/0.045,
     ),
 }
 
@@ -584,10 +584,10 @@ class InfectedPopulation(Population):
         aerosols = self.expiration.aerosols(self.mask)
 
         ER = (self.virus.viral_load_in_sputum *
-              self.virus.coefficient_of_infectivity *
               self.activity.exhalation_rate *
               10 ** 6 *
-              aerosols)
+              aerosols /
+              self.virus.quantum_infectious_dose)
 
         # For superspreading event, where ejection_factor is infinite we fix the ER
         # based on Miller et al. (2020).
