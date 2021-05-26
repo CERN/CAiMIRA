@@ -454,8 +454,9 @@ Virus.types = {
     'SARS_CoV_2': SARSCoV2(
         viral_load_in_sputum=1e9,
         # No data on coefficient for SARS-CoV-2 yet.
-        # It is somewhere between 1000 or 100 SARS-CoV viruses to have 
-        # a 50% chance to cause infection.
+        # It is somewhere between 1000 or 10 SARS-CoV viruses, 
+        # as per https://www.dhs.gov/publication/st-master-question-list-covid-19
+        # 50 comes from Buonanno et al.
         quantum_infectious_dose=50.,
     ),
     'SARS_CoV_2_B117': SARSCoV2(
