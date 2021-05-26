@@ -60,6 +60,9 @@ class Room:
     #: The total volume of the room
     volume: _VectorisedFloat
 
+    #: The humidity in the room (from 0 to 1 - e.g. 0.5 is 50% humidity)
+    humidity: _VectorisedFloat=0.5
+
 
 Time_t = typing.TypeVar('Time_t', float, int)
 BoundaryPair_t = typing.Tuple[Time_t, Time_t]
@@ -413,9 +416,6 @@ class AirChange(Ventilation):
 
 @dataclass(frozen=True)
 class Virus:
-    #: Biological decay (inactivation of the virus in air)
-    halflife: _VectorisedFloat
-
     #: RNA copies  / mL
     viral_load_in_sputum: _VectorisedFloat
 
@@ -425,29 +425,45 @@ class Virus:
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
 
-    @property
-    def decay_constant(self) -> _VectorisedFloat:
-        # Viral inactivation per hour (h^-1)
-        return np.log(2) / self.halflife
+    def halflife(self, humidity: _VectorisedFloat) -> _VectorisedFloat:
+        # Biological decay (inactivation of the virus in air) - virus 
+        # dependent and function of humidity
+        raise NotImplementedError
+
+    def decay_constant(self, humidity: _VectorisedFloat) -> _VectorisedFloat:
+        # Viral inactivation per hour (h^-1) (function of humidity)
+        return np.log(2) / self.halflife(humidity)
+
+
+@dataclass(frozen=True)
+class SARSCoV2(Virus):
+
+    def halflife(self, humidity: _VectorisedFloat) -> _VectorisedFloat:
+        """
+        Half-life changes with humidity level. Here is implemented a simple
+        piecewise constant model (for more details see A. Henriques et al,
+        CERN-OPEN-2021-004, DOI: 10.17181/CERN.1GDQ.5Y75)
+        """
+        halflife = np.empty_like(humidity)
+        halflife[humidity <= 0.4] = 3.8
+        halflife[humidity > 0.4] = 1.1
+        return halflife
 
 
 Virus.types = {
-    'SARS_CoV_2': Virus(
-        halflife=1.1,
+    'SARS_CoV_2': SARSCoV2(
         viral_load_in_sputum=1e9,
         # No data on coefficient for SARS-CoV-2 yet.
         # It is somewhere between 0.001 and 0.01 to have a 50% chance
         # to cause infection. i.e. 1000 or 100 SARS-CoV viruses to cause infection.
         coefficient_of_infectivity=0.02,
     ),
-    'SARS_CoV_2_B117': Virus(
+    'SARS_CoV_2_B117': SARSCoV2(
         # also called VOC-202012/01
-        halflife=1.1,
         viral_load_in_sputum=1e9,
         coefficient_of_infectivity=1/30.,
     ),
-    'SARS_CoV_2_P1': Virus(
-        halflife=1.1,
+    'SARS_CoV_2_P1': SARSCoV2(
         viral_load_in_sputum=1e9,
         coefficient_of_infectivity=0.045,
     ),
@@ -643,9 +659,8 @@ class ConcentrationModel:
         # Deposition rate (h^-1)
         k = (vg * 3600) / h
 
-        return k + self.virus.decay_constant + self.ventilation.air_exchange(
-            self.room, time
-        )
+        return k + self.virus.decay_constant(self.room.humidity
+                    ) + self.ventilation.air_exchange(self.room, time)
 
     @cached()
     def _concentration_limit(self, time: float) -> _VectorisedFloat:

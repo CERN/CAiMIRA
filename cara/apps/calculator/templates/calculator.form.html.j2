@@ -69,9 +69,10 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
     <hr width="80%">
 
     <b>Room data:</b>
-    <div data-tooltip="The area you wish to study (choose one of the 2 options). Use GIS Portal or measure.">
+    <div data-tooltip="The area you wish to study (choose one of the 2 options). Use GIS Portal or measure. Also indicate if a central (radiator-type) heating system is in use.">
         <span class="tooltip_text">?</span>
     </div><br>
+
     <div class="row">
 
       <div class="col-xl-3 col-lg-4 col-sm-3">
@@ -93,7 +94,13 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <label for="room_data_dimensions">Ceiling height:</label> &nbsp;&nbsp;
       </div>
       <input type="number" step="any" id="ceiling_height" class="non_zero col-xl-3 col-lg-5 col-md-7 col-sm-3 col-3" name="ceiling_height" placeholder="Room ceiling height (m²)" min="0" data-has-radio="#room_data_dimensions">
-    </div>
+    </div><br>
+
+    Central heating system in use:
+    <input type="radio" id="heating_no" name="room_heating_option" value=0 checked="checked">
+      <label for="heating_no">No</label>&nbsp;&nbsp;
+    <input type="radio" id="heating_yes" name="room_heating_option" value=1>
+      <label for="heating_yes">Yes</label>&nbsp;&nbsp;
 
     <hr width="80%">
 
