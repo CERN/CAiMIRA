@@ -420,7 +420,7 @@ class Virus:
     viral_load_in_sputum: _VectorisedFloat
 
     #: RNA-copies per quantum
-    qID: _VectorisedFloat
+    quantum_infectious_dose: _VectorisedFloat
 
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
@@ -438,18 +438,18 @@ Virus.types = {
         # No data on coefficient for SARS-CoV-2 yet.
         # It is somewhere between 1000 or 100 SARS-CoV viruses to have 
         # a 50% chance to cause infection.
-        qID=50.,
+        quantum_infectious_dose=50.,
     ),
     'SARS_CoV_2_B117': Virus(
         # also called VOC-202012/01
         halflife=1.1,
         viral_load_in_sputum=1e9,
-        qID=30.,
+        quantum_infectious_dose=30.,
     ),
     'SARS_CoV_2_P1': Virus(
         halflife=1.1,
         viral_load_in_sputum=1e9,
-        qID=1/0.045,
+        quantum_infectious_dose=1/0.045,
     ),
 }
 
@@ -587,7 +587,7 @@ class InfectedPopulation(Population):
               self.activity.exhalation_rate *
               10 ** 6 *
               aerosols /
-              self.virus.qID)
+              self.virus.quantum_infectious_dose)
 
         # For superspreading event, where ejection_factor is infinite we fix the ER
         # based on Miller et al. (2020).
