@@ -472,8 +472,21 @@ Virus.types = {
 
 
 @dataclass(frozen=True)
-class Mask:
-    #: Filtration efficiency. (In %/100)
+class _MaskBase:
+    """
+    Represents the filtration of aerosols by a mask, both inward and 
+    outward.
+    The nature of the various air exchange schemes means that it is expected
+    for subclasses of _MaskBase to exist.
+    """
+    def exhale_efficiency(self, diameter: float) -> _VectorisedFloat:
+        # Overall efficiency, including the effect of the leaks.
+        raise NotImplementedError("Subclass must implement")
+
+
+@dataclass(frozen=True)
+class Mask(_MaskBase):
+    #: Filtration efficiency.
     η_exhale: _VectorisedFloat
 
     #: Leakage through side of masks.
