@@ -572,8 +572,8 @@ class _ExpirationBase:
     #: Pre-populated examples of Masks.
     types: typing.ClassVar[typing.Dict[str, "_ExpirationBase"]]
 
-    def aerosols(self, mask: Mask):
-        # total volume of aerosols expired per volume of air (mL/cm^3).
+    def aerosols(self, mask: _MaskBase):
+        # total volume of aerosols expired (cm^3).
         raise NotImplementedError("Subclass must implement")
 
 
@@ -617,7 +617,7 @@ class MultipleExpiration(_ExpirationBase):
             raise ValueError("expirations and weigths should contain the"
                              "same number of elements")
 
-    def aerosols(self, mask: Mask):
+    def aerosols(self, mask: _MaskBase):
         return np.array([
             weight * expiration.aerosols(mask) / sum(self.weights)
             for weight,expiration in zip(self.weights,self.expirations)
