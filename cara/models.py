@@ -476,7 +476,7 @@ class _MaskBase:
     """
     Represents the filtration of aerosols by a mask, both inward and
     outward.
-    The nature of the various air exchange schemes means that it is expected
+    The nature of the various mask models means that it is expected
     for subclasses of _MaskBase to exist.
     """
     #: Pre-populated examples of Masks.
