@@ -537,36 +537,14 @@ class FormData:
         )
 
 
-def build_expiration(expiration_definition) -> models.Expiration:
+def build_expiration(expiration_definition) -> models._ExpirationBase:
     if isinstance(expiration_definition, str):
-        return models.Expiration.types[expiration_definition]
+        return models._ExpirationBase.types[expiration_definition]
     elif isinstance(expiration_definition, dict):
-        return expiration_blend({
-            build_expiration(exp): amount
-            for exp, amount in expiration_definition.items()
-            }
+        return models.MultipleExpiration(
+            tuple([build_expiration(exp) for exp in expiration_definition.keys()]),
+            tuple(expiration_definition.values())
         )
-
-
-def expiration_blend(expiration_weights: typing.Dict[models.Expiration, int]) -> models.Expiration:
-    """
-    Combine together multiple types of Expiration, using a weighted mean to
-    compute their ejection factor and particle sizes.
-
-    """
-    ejection_factor = np.zeros(4)
-    particle_sizes = np.zeros(4)
-
-    total_weight = 0
-    for expiration, weight in expiration_weights.items():
-        total_weight += weight
-        ejection_factor += np.array(expiration.ejection_factor) * weight
-        particle_sizes += np.array(expiration.particle_sizes) * weight
-
-    r_ejection_factor: typing.Tuple[float, float, float, float] = tuple(ejection_factor/total_weight)  # type: ignore
-    r_particle_sizes: typing.Tuple[float, float, float, float] = tuple(particle_sizes/total_weight)  # type: ignore
-
-    return models.Expiration(ejection_factor=r_ejection_factor, particle_sizes=r_particle_sizes)
 
 
 def model_from_form(form: FormData) -> models.ExposureModel:

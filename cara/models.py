@@ -564,12 +564,27 @@ _MaskBase.types = {
 
 
 @dataclass(frozen=True)
-class Expiration:
+class _ExpirationBase:
+    """
+    Represents the expiration of aerosols by a person.
+    Subclasses of _ExpirationBase represent different models.
+    """
+    #: Pre-populated examples of Masks.
+    types: typing.ClassVar[typing.Dict[str, "_ExpirationBase"]]
+
+    def aerosols(self, mask: _MaskBase):
+        # total volume of aerosols expired (cm^3).
+        raise NotImplementedError("Subclass must implement")
+
+
+@dataclass(frozen=True)
+class Expiration(_ExpirationBase):
+    """
+    Simple model based on four different sizes of particles emitted,
+    with different ejection factors.
+    """
     ejection_factor: typing.Tuple[float, ...]
     particle_sizes: typing.Tuple[float, ...] = (0.8e-4, 1.8e-4, 3.5e-4, 5.5e-4)  # In cm.
-
-    #: Pre-populated examples of Expiration.
-    types: typing.ClassVar[typing.Dict[str, "Expiration"]]
 
     def aerosols(self, mask: _MaskBase):
         def volume(diameter):
@@ -582,7 +597,31 @@ class Expiration:
         return total
 
 
-Expiration.types = {
+@dataclass(frozen=True)
+class MultipleExpiration(_ExpirationBase):
+    """
+    Represents an expiration of aerosols.
+    Group together different modes of expiration, that represent
+    each the main expiration mode for a certain fraction of time (given by
+    the weights).
+
+    """
+    expirations: typing.Tuple[_ExpirationBase, ...]
+    weights: typing.Tuple[float, ...]
+
+    def __post_init__(self):
+        if len(self.expirations) != len(self.weights):
+            raise ValueError("expirations and weigths should contain the"
+                             "same number of elements")
+
+    def aerosols(self, mask: _MaskBase):
+        return np.array([
+            weight * expiration.aerosols(mask) / sum(self.weights)
+            for weight,expiration in zip(self.weights,self.expirations)
+        ]).sum(axis=0)
+
+
+_ExpirationBase.types = {
     'Breathing': Expiration((0.084, 0.009, 0.003, 0.002)),
     'Whispering': Expiration((0.11, 0.014, 0.004, 0.002)),
     'Talking': Expiration((0.236, 0.068, 0.007, 0.011)),
@@ -638,7 +677,7 @@ class InfectedPopulation(Population):
     virus: Virus
 
     #: The type of expiration that is being emitted whilst doing the activity.
-    expiration: Expiration
+    expiration: _ExpirationBase
 
     def emission_rate_when_present(self) -> _VectorisedFloat:
         """
