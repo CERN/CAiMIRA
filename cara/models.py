@@ -555,7 +555,7 @@ _MaskBase.types = {
         η_inhale=0.865,  # (94% penetration efficiency + 8% max inward leakage -> EN 149)
     ),
     'Type I measured': MeasuredMask(
-        η_inhale=0.3,  # (Browen 2010)
+        η_inhale=0.5,  # (CERN-OPEN-2021-004)
     ),
     'FFP2 measured': MeasuredMask(
         η_inhale=0.865,  # (94% penetration efficiency + 8% max inward leakage -> EN 149)
