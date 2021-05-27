@@ -37,6 +37,7 @@ import typing
 
 import numpy as np
 from scipy.interpolate import interp1d
+from scipy.integrate import quad
 
 if not typing.TYPE_CHECKING:
     from memoization import cached
@@ -621,12 +622,62 @@ class MultipleExpiration(_ExpirationBase):
         ]).sum(axis=0)
 
 
+@dataclass(frozen=True)
+class ExpirationBLO(_ExpirationBase):
+    """
+    BLO model for the expiration (G. Johnson et al., Modality of human
+    expired aerosol size distributions, Journal of Aerosol Science,
+    vol. 42, no. 12, pp. 839 – 851, 2011,
+    https://doi.org/10.1016/j.jaerosci.2011.07.009).
+    All diameters are in cm.
+    """
+    #: factors assigned to resp. the B, L and O modes. Depends on the
+    # kind of expiratory activity (e.g. breathing, speaking, singing,
+    # or shouting).
+    BLO_factors: typing.Tuple[float, float, float]
+
+    def aerosols(self, mask: _MaskBase):
+
+        def volume(diameter):
+            return (np.pi * diameter**3) / 6.
+
+        def _Bmode(diameter: float) -> float:
+            # B-mode (see ref. above).
+            d = diameter * 1e4 # microns
+            return ( (1 / d) * (0.1 / (np.sqrt(2 * np.pi) * 0.26)) *
+                    np.exp(-1 * (np.log(d) - 1.0) ** 2 / (2 * 0.26 ** 2)))
+
+        def _Lmode(diameter: float) -> float:
+            # L-mode (see ref. above).
+            d = diameter * 1e4 # microns
+            return ( (1 / d) * (1.0 / (np.sqrt(2 * np.pi) * 0.5)) *
+                    np.exp(-1 * (np.log(d) - 1.4) ** 2 / (2 * 0.5 ** 2)))
+
+        def _Omode(diameter: float) -> float:
+            # O-mode (see ref. above).
+            d = diameter * 1e4 # microns
+            return ( (1 / d) * (0.001 / (np.sqrt(2 * np.pi) * 0.56)) *
+                    np.exp(-1 * (np.log(d) - 4.98) ** 2 / (2 * 0.56 ** 2)))
+
+        def integrand(diameter: float) -> float:
+            return (self.BLO_factors[0] * _Bmode(diameter) +
+                    self.BLO_factors[1] * _Lmode(diameter) +
+                    self.BLO_factors[2] * _Omode(diameter)
+                    ) * volume(diameter) * (1 - mask.exhale_efficiency(diameter))
+
+        return quad(integrand, 0.1, 30)[0]
+
+
 _ExpirationBase.types = {
     'Breathing': Expiration((0.084, 0.009, 0.003, 0.002)),
     'Whispering': Expiration((0.11, 0.014, 0.004, 0.002)),
     'Talking': Expiration((0.236, 0.068, 0.007, 0.011)),
     'Unmodulated Vocalization': Expiration((0.751, 0.139, 0.0139, 0.059)),
     'Superspreading event': Expiration((np.inf, np.inf, np.inf, np.inf)),
+    'Breathing BLO': ExpirationBLO((1., 0., 0.)),
+    'Talking BLO': ExpirationBLO((1., 1., 1.)),
+    'Shouting BLO': ExpirationBLO((5., 5., 5.)),
+    'Singing BLO': ExpirationBLO((5., 5., 5.)),
 }
 
 
