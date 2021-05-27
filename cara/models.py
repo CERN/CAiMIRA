@@ -631,9 +631,9 @@ class ExpirationBLO(_ExpirationBase):
     https://doi.org/10.1016/j.jaerosci.2011.07.009).
     All diameters are in cm.
     """
-    #: factors assigned to resp. the B, L and O modes. Depends on the
-    # kind of expiratory activity (e.g. breathing, speaking, singing,
-    # or shouting).
+    #: factors assigned to resp. the B, L and O modes. They are
+    # charateristics of the kind of expiratory activity (e.g. breathing,
+    # speaking, singing, or shouting).
     BLO_factors: typing.Tuple[float, float, float]
 
     def aerosols(self, mask: _MaskBase):
