@@ -8,6 +8,7 @@ from cara.apps.calculator.model_generator import minutes_since_midnight
 from cara import models
 from cara import data
 import numpy as np
+import numpy.testing as npt
 
 
 def test_model_from_dict(baseline_form_data):
@@ -24,10 +25,11 @@ def test_model_from_dict_invalid(baseline_form_data):
 def test_blend_expiration():
     blend = {'Breathing': 2, 'Talking': 1}
     r = model_generator.build_expiration(blend)
+    mask = models.Mask.types['Type I']
     expected = models.Expiration(
         (0.13466666666666668, 0.02866666666666667, 0.004333333333333334, 0.005)
     )
-    assert r == expected
+    npt.assert_almost_equal(r.aerosols(mask), expected.aerosols(mask))
 
 
 def test_ventilation_slidingwindow(baseline_form: model_generator.FormData):
