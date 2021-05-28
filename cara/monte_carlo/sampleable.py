@@ -16,12 +16,12 @@ class SampleableDistribution:
 
 
 class Normal(SampleableDistribution):
-    def __init__(self, mean: float, scale: float):
+    def __init__(self, mean: float, standard_deviation: float):
         self.mean = mean
-        self.scale = scale
+        self.standard_deviation = standard_deviation
 
     def generate_samples(self, size: int) -> float_array_size_n:
-        return np.random.normal(self.mean, self.scale, size=size)
+        return np.random.normal(self.mean, self.standard_deviation, size=size)
 
 
 _VectorisedFloatOrSampleable = typing.Union[
