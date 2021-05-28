@@ -574,7 +574,7 @@ class _ExpirationBase:
     types: typing.ClassVar[typing.Dict[str, "_ExpirationBase"]]
 
     def aerosols(self, mask: _MaskBase):
-        # total volume of aerosols expired (cm^3).
+        # total volume of aerosols expired per volume of air (mL/cm^3).
         raise NotImplementedError("Subclass must implement")
 
 
@@ -582,7 +582,10 @@ class _ExpirationBase:
 class Expiration(_ExpirationBase):
     """
     Simple model based on four different sizes of particles emitted,
-    with different ejection factors.
+    with different ejection factors. See Fig. 4 in L. Morawska et al,
+    Size distribution and sites of origin of droplets expelled from the
+    human respiratory tract during expiratory activities,
+    Aerosol Science 40 (2009) pp. 256 - 269.
     """
     ejection_factor: typing.Tuple[float, ...]
     particle_sizes: typing.Tuple[float, ...] = (0.8e-4, 1.8e-4, 3.5e-4, 5.5e-4)  # In cm.
