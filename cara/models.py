@@ -632,7 +632,7 @@ class ExpirationBLO(_ExpirationBase):
     expired aerosol size distributions, Journal of Aerosol Science,
     vol. 42, no. 12, pp. 839 – 851, 2011,
     https://doi.org/10.1016/j.jaerosci.2011.07.009).
-    All diameters are in cm.
+    Here all diameters (d) are in microns.
     """
     #: factors assigned to resp. the B, L and O modes. They are
     # charateristics of the kind of expiratory activity (e.g. breathing,
@@ -640,33 +640,30 @@ class ExpirationBLO(_ExpirationBase):
     BLO_factors: typing.Tuple[float, float, float]
 
     def aerosols(self, mask: _MaskBase):
+        # result is in mL.cm^-3
+        def volume(d):
+            return (np.pi * d**3) / 6.
 
-        def volume(diameter):
-            return (np.pi * diameter**3) / 6.
-
-        def _Bmode(diameter: float) -> float:
+        def _Bmode(d: float) -> float:
             # B-mode (see ref. above).
-            d = diameter * 1e4 # microns
             return ( (1 / d) * (0.1 / (np.sqrt(2 * np.pi) * 0.26)) *
                     np.exp(-1 * (np.log(d) - 1.0) ** 2 / (2 * 0.26 ** 2)))
 
-        def _Lmode(diameter: float) -> float:
+        def _Lmode(d: float) -> float:
             # L-mode (see ref. above).
-            d = diameter * 1e4 # microns
             return ( (1 / d) * (1.0 / (np.sqrt(2 * np.pi) * 0.5)) *
                     np.exp(-1 * (np.log(d) - 1.4) ** 2 / (2 * 0.5 ** 2)))
 
-        def _Omode(diameter: float) -> float:
+        def _Omode(d: float) -> float:
             # O-mode (see ref. above).
-            d = diameter * 1e4 # microns
             return ( (1 / d) * (0.001 / (np.sqrt(2 * np.pi) * 0.56)) *
                     np.exp(-1 * (np.log(d) - 4.98) ** 2 / (2 * 0.56 ** 2)))
 
-        def integrand(diameter: float) -> float:
-            return (self.BLO_factors[0] * _Bmode(diameter) +
-                    self.BLO_factors[1] * _Lmode(diameter) +
-                    self.BLO_factors[2] * _Omode(diameter)
-                    ) * volume(diameter) * (1 - mask.exhale_efficiency(diameter))
+        def integrand(d: float) -> float:
+            return (self.BLO_factors[0] * _Bmode(d) +
+                    self.BLO_factors[1] * _Lmode(d) +
+                    self.BLO_factors[2] * _Omode(d)
+                    ) * volume(d*1e-4) * (1 - mask.exhale_efficiency(d*1e-4))
 
         return quad(integrand, 0.1, 30)[0]
 
