@@ -573,7 +573,7 @@ class _ExpirationBase:
     types: typing.ClassVar[typing.Dict[str, "_ExpirationBase"]]
 
     def aerosols(self, mask: _MaskBase):
-        # total volume of aerosols expired (cm^3).
+        # total volume of aerosols expired per volume of air (mL/cm^3).
         raise NotImplementedError("Subclass must implement")
 
 
