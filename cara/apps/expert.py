@@ -390,10 +390,10 @@ class ModelWidgets(View):
 
     def _build_mask(self, node):
         mask = node.dcs_instance()
-        for name, mask_ in models._MaskBase.types.items():
+        for name, mask_ in models.Mask.types.items():
             if mask == mask_:
                 break
-        mask_choice = widgets.Select(options=list(models._MaskBase.types.keys()), value=name)
+        mask_choice = widgets.Select(options=list(models.Mask.types.keys()), value=name)
 
         def on_mask_change(change):
             node.dcs_select(change['new'])
@@ -496,7 +496,7 @@ baseline_model = models.ExposureModel(
             number=1,
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(((8, 12), (13, 17))),
-            mask=models._MaskBase.types['No mask'],
+            mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Seated'],
             expiration=models.Expiration.types['Talking'],
         ),
@@ -505,7 +505,7 @@ baseline_model = models.ExposureModel(
         number=10,
         presence=models.SpecificInterval(((8, 12), (13, 17))),
         activity=models.Activity.types['Seated'],
-        mask=models._MaskBase.types['No mask'],
+        mask=models.Mask.types['No mask'],
     ),
 )
 
@@ -515,10 +515,10 @@ class CARAStateBuilder(state.StateBuilder):
     # For example, build_type__VentilationBase is called when dealing with ConcentrationModel
     # types as it has a ventilation: _VentilationBase field.
 
-    def build_type__MaskBase(self, _: dataclasses.Field):
+    def build_type_Mask(self, _: dataclasses.Field):
         return state.DataclassStatePredefined(
-            models._MaskBase,
-            choices=models._MaskBase.types,
+            models.Mask,
+            choices=models.Mask.types,
         )
 
     def build_type_Virus(self, _: dataclasses.Field):
