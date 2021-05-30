@@ -43,7 +43,7 @@ populations = [
     ),
     # A population with some array component for η_inhale.
     models.Population(
-        10, halftime, models.Mask(0.95, 0.15, np.array([0.3, 0.35])),
+        10, halftime, models.Mask(np.array([0.3, 0.35])),
         models.Activity.types['Standing'],
     ),
     # A population with some array component for inhalation_rate.
