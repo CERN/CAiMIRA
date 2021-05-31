@@ -43,7 +43,7 @@ populations = [
     ),
     # A population with some array component for η_inhale.
     models.Population(
-        10, halftime, models.Mask(0.95, 0.15, np.array([0.3, 0.35])),
+        10, halftime, models.Mask(np.array([0.3, 0.35])),
         models.Activity.types['Standing'],
     ),
     # A population with some array component for inhalation_rate.
@@ -60,10 +60,10 @@ populations = [
      np.array([14.4, 14.4]), np.array([99.6803184113, 99.5181053773])],
 
     [populations[2], KnownConcentrations(lambda t: 1.2),
-     np.array([14.4, 14.4]), np.array([99.4146994564, 99.6803184113])],
+     np.array([14.4, 14.4]), np.array([97.4574432074, 98.3493482895])],
 
     [populations[0], KnownConcentrations(lambda t: np.array([1.2, 2.4])),
-     np.array([14.4, 28.8]), np.array([99.6803184113, 99.9989780368])],
+     np.array([14.4, 28.8]), np.array([98.3493482895, 99.9727534893])],
 
     [populations[1], KnownConcentrations(lambda t: np.array([1.2, 2.4])),
      np.array([14.4, 28.8]), np.array([99.6803184113, 99.9976777757])],
@@ -123,22 +123,22 @@ def conc_model():
         models.InfectedPopulation(
             number=1,
             presence=interesting_times,
-            mask=models.Mask.types['Type I'],
+            mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Seated'],
             virus=models.Virus.types['SARS_CoV_2'],
-            expiration=models.Expiration.types['Breathing'],
+            expiration=models.Expiration.types['Superspreading event'],
         )
     )
 
 # expected quanta were computed with a trapezoidal integration, using
 # a mesh of 10'000 pts per exposed presence interval.
 @pytest.mark.parametrize("exposed_time_interval, expected_quanta", [
-        [(0, 1), 0.0055680845],
-        [(1, 1.01), 6.4960491e-05],
-        [(1.01, 1.02), 6.3187723e-05],
-        [(12, 12.01), 1.9307359e-06],
-        [(12, 24), 0.079347465],
-        [(0, 24), 0.086122050],
+        [(0, 1), 5.4869151],
+        [(1, 1.01), 0.064013521],
+        [(1.01, 1.02), 0.062266596],
+        [(12, 12.01), 0.0019025904],
+        [(12, 24), 78.190763],
+        [(0, 24), 84.866592],
     ]
 )
 def test_exposure_model_integral_accuracy(exposed_time_interval,
