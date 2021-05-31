@@ -489,14 +489,14 @@ class Mask:
         therein (Asadi 2020).
         Obtained from measurements of filtration efficiency and of
         the leakage through the sides.
-        Diameter is in cm.
+        Diameter is in microns.
         """
-        if diameter < 0.5e-4:
+        if diameter < 0.5:
             eta_out = 0.
-        elif diameter < 0.94614e-4:
-            eta_out = 0.5893 * diameter * 1e4 + 0.1546
-        elif diameter < 3e-4:
-            eta_out = 0.0509 * diameter * 1e4 + 0.664
+        elif diameter < 0.94614:
+            eta_out = 0.5893 * diameter + 0.1546
+        elif diameter < 3.:
+            eta_out = 0.0509 * diameter + 0.664
         else:
             eta_out = 0.8167
         return eta_out*self.factor_exhale
@@ -551,7 +551,7 @@ class Expiration(_ExpirationBase):
         total = 0
         for diameter, factor in zip(self.particle_sizes, self.ejection_factor):
             contribution = (volume(diameter) * factor *
-                            (1 - mask.exhale_efficiency(diameter)))
+                            (1 - mask.exhale_efficiency(diameter*1e4)))
             total += contribution
         return total
 

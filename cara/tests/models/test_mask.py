@@ -11,7 +11,7 @@ from cara import models
         [np.array([0.3, 0.5]), np.array([0.3, 0.5])],
     ],
 )
-def test_masks_inhale(η_inhale, expected_inhale_efficiency):
+def test_mask_inhale(η_inhale, expected_inhale_efficiency):
     mask = models.Mask(η_inhale=η_inhale)
     npt.assert_equal(mask.inhale_efficiency(), 
                      expected_inhale_efficiency)
@@ -20,11 +20,11 @@ def test_masks_inhale(η_inhale, expected_inhale_efficiency):
 @pytest.mark.parametrize(
     "diameter, factor_exhale, expected_exhale_efficiency",
     [
-        [0.3e-4, 1., 0.],
-        [0.7e-4, 0.3, 0.56711*0.3],
-        [1.e-4, 1., 0.7149],
-        [4.e-4, 0.5, 0.8167*0.5],
-        [5.e-4, 0., 0.],
+        [0.3, 1., 0.],
+        [0.7, 0.3, 0.56711*0.3],
+        [1., 1., 0.7149],
+        [4., 0.5, 0.8167*0.5],
+        [5., 0., 0.],
     ],
 )
 def test_mask_exhale(diameter, factor_exhale, expected_exhale_efficiency):
