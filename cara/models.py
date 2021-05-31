@@ -472,8 +472,28 @@ Virus.types = {
 
 
 @dataclass(frozen=True)
-class Mask:
-    #: Filtration efficiency. (In %/100)
+class _MaskBase:
+    """
+    Represents the filtration of aerosols by a mask, both inward and
+    outward.
+    The nature of the various mask models means that it is expected
+    for subclasses of _MaskBase to exist.
+    """
+    #: Pre-populated examples of Masks.
+    types: typing.ClassVar[typing.Dict[str, "_MaskBase"]]
+
+    def exhale_efficiency(self, diameter: float) -> _VectorisedFloat:
+        # Overall exhale efficiency, including the effect of the leaks.
+        raise NotImplementedError("Subclass must implement")
+
+    def inhale_efficiency(self) -> _VectorisedFloat:
+        # Overall inhale efficiency, including the effect of the leaks.
+        raise NotImplementedError("Subclass must implement")
+
+
+@dataclass(frozen=True)
+class Mask(_MaskBase):
+    #: Filtration efficiency.
     η_exhale: _VectorisedFloat
 
     #: Leakage through side of masks.
@@ -481,9 +501,6 @@ class Mask:
 
     #: Filtration efficiency of masks when inhaling.
     η_inhale: _VectorisedFloat
-
-    #: Pre-populated examples of Masks.
-    types: typing.ClassVar[typing.Dict[str, "Mask"]]
 
     def exhale_efficiency(self, diameter: float) -> _VectorisedFloat:
         # Overall efficiency with the effect of the leaks for aerosol emission
@@ -494,8 +511,38 @@ class Mask:
             eta_out = self.η_exhale * (1 - self.η_leaks)
         return eta_out
 
+    def inhale_efficiency(self) -> _VectorisedFloat:
+        # Overall inhale efficiency, including the effect of the leaks.
+        return self.η_inhale
 
-Mask.types = {
+
+@dataclass(frozen=True)
+class MeasuredMask(_MaskBase):
+    #: Filtration efficiency of masks when inhaling.
+    η_inhale: _VectorisedFloat
+
+    def exhale_efficiency(self, diameter: float) -> _VectorisedFloat:
+        # See CERN-OPEN-2021-004 (doi: 10.17181/CERN.1GDQ.5Y75), and Ref.
+        # therein (Asadi 2020).
+        # Obtained from measurements of filtration efficiency and of 
+        # the leakage through the sides.
+        # Diameter is in cm.
+        if diameter < 0.5e-4:
+            eta_out = 0.
+        elif diameter < 0.94614e-4:
+            eta_out = 0.5893 * diameter * 1e4 + 0.1546
+        elif diameter < 3e-4:
+            eta_out = 0.0509 * diameter * 1e4 + 0.664
+        else:
+            eta_out = 0.8167
+        return eta_out
+
+    def inhale_efficiency(self) -> _VectorisedFloat:
+        # Overall inhale efficiency, including the effect of the leaks.
+        return self.η_inhale
+
+
+_MaskBase.types = {
     'No mask': Mask(0, 0, 0),
     'Type I': Mask(
         η_exhale=0.95,
@@ -505,6 +552,12 @@ Mask.types = {
     'FFP2': Mask(
         η_exhale=0.95,  # (same outward effect as type 1 - Asadi 2020)
         η_leaks=0.15,  # (same outward effect as type 1 - Asadi 2020)
+        η_inhale=0.865,  # (94% penetration efficiency + 8% max inward leakage -> EN 149)
+    ),
+    'Type I measured': MeasuredMask(
+        η_inhale=0.5,  # (CERN-OPEN-2021-004)
+    ),
+    'FFP2 measured': MeasuredMask(
         η_inhale=0.865,  # (94% penetration efficiency + 8% max inward leakage -> EN 149)
     ),
 }
@@ -519,8 +572,8 @@ class _ExpirationBase:
     #: Pre-populated examples of Masks.
     types: typing.ClassVar[typing.Dict[str, "_ExpirationBase"]]
 
-    def aerosols(self, mask: Mask):
-        # total volume of aerosols expired per volume of air (mL/cm^3).
+    def aerosols(self, mask: _MaskBase):
+        # total volume of aerosols expired (cm^3).
         raise NotImplementedError("Subclass must implement")
 
 
@@ -536,7 +589,7 @@ class Expiration(_ExpirationBase):
     ejection_factor: typing.Tuple[float, ...]
     particle_sizes: typing.Tuple[float, ...] = (0.8e-4, 1.8e-4, 3.5e-4, 5.5e-4)  # In cm.
 
-    def aerosols(self, mask: Mask):
+    def aerosols(self, mask: _MaskBase):
         def volume(diameter):
             return (4 * np.pi * (diameter/2)**3) / 3
         total = 0
@@ -564,7 +617,7 @@ class MultipleExpiration(_ExpirationBase):
             raise ValueError("expirations and weigths should contain the"
                              "same number of elements")
 
-    def aerosols(self, mask: Mask):
+    def aerosols(self, mask: _MaskBase):
         return np.array([
             weight * expiration.aerosols(mask) / sum(self.weights)
             for weight,expiration in zip(self.weights,self.expirations)
@@ -612,7 +665,7 @@ class Population:
     presence: Interval
 
     #: The kind of mask being worn by the people.
-    mask: Mask
+    mask: _MaskBase
 
     #: The physical activity being carried out by the people.
     activity: Activity
@@ -835,7 +888,7 @@ class ExposureModel:
 
         inf_aero = (
             self.exposed.activity.inhalation_rate *
-            (1 - self.exposed.mask.η_inhale) *
+            (1 - self.exposed.mask.inhale_efficiency()) *
             exposure
         )
 

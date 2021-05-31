@@ -269,10 +269,10 @@ class FormData:
         else:
             return ventilation
 
-    def mask(self) -> models.Mask:
+    def mask(self) -> models._MaskBase:
         # Initializes the mask type if mask wearing is "continuous", otherwise instantiates the mask attribute as
         # the "No mask"-mask
-        mask = models.Mask.types[self.mask_type if self.mask_wearing_option == "mask_on" else 'No mask']
+        mask = models._MaskBase.types[self.mask_type if self.mask_wearing_option == "mask_on" else 'No mask']
         return mask
 
     def infected_population(self) -> models.InfectedPopulation:
