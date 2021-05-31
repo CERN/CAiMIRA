@@ -478,7 +478,7 @@ class Mask:
     η_inhale: _VectorisedFloat
 
     #: Global factor applied to filtration efficiency of masks when exhaling.
-    factor_exhale: _VectorisedFloat = 1.
+    factor_exhale: float = 1.
 
     #: Pre-populated examples of Masks.
     types: typing.ClassVar[typing.Dict[str, "Mask"]]
