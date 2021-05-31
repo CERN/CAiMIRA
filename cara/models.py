@@ -539,53 +539,6 @@ class _ExpirationBase:
 @dataclass(frozen=True)
 class Expiration(_ExpirationBase):
     """
-    Simple model based on four different sizes of particles emitted,
-    with different ejection factors. See Fig. 4 in L. Morawska et al,
-    Size distribution and sites of origin of droplets expelled from the
-    human respiratory tract during expiratory activities,
-    Aerosol Science 40 (2009) pp. 256 - 269.
-    """
-    ejection_factor: typing.Tuple[float, ...]
-    particle_sizes: typing.Tuple[float, ...] = (0.8e-4, 1.8e-4, 3.5e-4, 5.5e-4)  # In cm.
-
-    def aerosols(self, mask: Mask):
-        def volume(diameter):
-            return (4 * np.pi * (diameter/2)**3) / 3
-        total = 0
-        for diameter, factor in zip(self.particle_sizes, self.ejection_factor):
-            contribution = (volume(diameter) * factor *
-                            (1 - mask.exhale_efficiency(diameter*1e4)))
-            total += contribution
-        return total
-
-
-@dataclass(frozen=True)
-class MultipleExpiration(_ExpirationBase):
-    """
-    Represents an expiration of aerosols.
-    Group together different modes of expiration, that represent
-    each the main expiration mode for a certain fraction of time (given by
-    the weights).
-
-    """
-    expirations: typing.Tuple[_ExpirationBase, ...]
-    weights: typing.Tuple[float, ...]
-
-    def __post_init__(self):
-        if len(self.expirations) != len(self.weights):
-            raise ValueError("expirations and weigths should contain the"
-                             "same number of elements")
-
-    def aerosols(self, mask: Mask):
-        return np.array([
-            weight * expiration.aerosols(mask) / sum(self.weights)
-            for weight,expiration in zip(self.weights,self.expirations)
-        ]).sum(axis=0)
-
-
-@dataclass(frozen=True)
-class ExpirationBLO(_ExpirationBase):
-    """
     BLO model for the expiration (G. Johnson et al., Modality of human
     expired aerosol size distributions, Journal of Aerosol Science,
     vol. 42, no. 12, pp. 839 – 851, 2011,
@@ -597,7 +550,7 @@ class ExpirationBLO(_ExpirationBase):
     # speaking, singing, or shouting).
     BLO_factors: typing.Tuple[float, float, float]
 
-    def aerosols(self, mask: _MaskBase):
+    def aerosols(self, mask: Mask):
         """ Result is in mL.cm^-3 """
         def volume(d):
             return (np.pi * d**3) / 6.
@@ -626,16 +579,36 @@ class ExpirationBLO(_ExpirationBase):
         return quad(integrand, 0.1, 30)[0]
 
 
+@dataclass(frozen=True)
+class MultipleExpiration(_ExpirationBase):
+    """
+    Represents an expiration of aerosols.
+    Group together different modes of expiration, that represent
+    each the main expiration mode for a certain fraction of time (given by
+    the weights).
+
+    """
+    expirations: typing.Tuple[_ExpirationBase, ...]
+    weights: typing.Tuple[float, ...]
+
+    def __post_init__(self):
+        if len(self.expirations) != len(self.weights):
+            raise ValueError("expirations and weigths should contain the"
+                             "same number of elements")
+
+    def aerosols(self, mask: Mask):
+        return np.array([
+            weight * expiration.aerosols(mask) / sum(self.weights)
+            for weight,expiration in zip(self.weights,self.expirations)
+        ]).sum(axis=0)
+
+
 _ExpirationBase.types = {
-    'Breathing': Expiration((0.084, 0.009, 0.003, 0.002)),
-    'Whispering': Expiration((0.11, 0.014, 0.004, 0.002)),
-    'Talking': Expiration((0.236, 0.068, 0.007, 0.011)),
-    'Unmodulated Vocalization': Expiration((0.751, 0.139, 0.0139, 0.059)),
-    'Superspreading event': Expiration((np.inf, np.inf, np.inf, np.inf)),
-    'Breathing BLO': ExpirationBLO((1., 0., 0.)),
-    'Talking BLO': ExpirationBLO((1., 1., 1.)),
-    'Shouting BLO': ExpirationBLO((5., 5., 5.)),
-    'Singing BLO': ExpirationBLO((5., 5., 5.)),
+    'Breathing': Expiration((1., 0., 0.)),
+    'Talking': Expiration((1., 1., 1.)),
+    'Shouting': Expiration((5., 5., 5.)),
+    'Singing': Expiration((5., 5., 5.)),
+    'Superspreading event': Expiration((np.inf, 0., 0.)),
 }
 
 
