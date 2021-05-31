@@ -26,3 +26,18 @@ def test_multiple():
     e = models.MultipleExpiration([e1, e2], weights)
     mask = models.Mask.types['Type I']
     npt.assert_almost_equal(e_expected.aerosols(mask), e.aerosols(mask))
+
+
+# expected values obtained from separate model
+@pytest.mark.parametrize(
+    "BLO_weights, expected_aerosols",
+    [
+        [(1.,0.,0.), 1.38924e-12],
+        [(1.,1.,1.), 1.07129e-10],
+        [(1.,5.,5.), 5.30088e-10],
+    ],
+)
+def test_expiration_aerosols(BLO_weights, expected_aerosols):
+    mask = models.Mask.types['No mask']
+    e = models.Expiration(BLO_weights)
+    npt.assert_allclose(e.aerosols(mask), expected_aerosols, rtol=1e-4)
