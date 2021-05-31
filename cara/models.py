@@ -557,26 +557,27 @@ class Expiration(_ExpirationBase):
 
         def _Bmode(d: float) -> float:
             # B-mode (see ref. above).
-            return ( (1 / d) * (0.1 / (np.sqrt(2 * np.pi) * 0.26)) *
-                    np.exp(-1 * (np.log(d) - 1.0) ** 2 / (2 * 0.26 ** 2)))
+            return ( (1 / d) * (0.1 / (np.sqrt(2 * np.pi) * 0.262364)) *
+                    np.exp(-1 * (np.log(d) - 0.989541) ** 2 / (2 * 0.262364 ** 2)))
 
         def _Lmode(d: float) -> float:
             # L-mode (see ref. above).
-            return ( (1 / d) * (1.0 / (np.sqrt(2 * np.pi) * 0.5)) *
-                    np.exp(-1 * (np.log(d) - 1.4) ** 2 / (2 * 0.5 ** 2)))
+            return ( (1 / d) * (1.0 / (np.sqrt(2 * np.pi) * 0.506818)) *
+                    np.exp(-1 * (np.log(d) - 1.38629) ** 2 / (2 * 0.506818 ** 2)))
 
         def _Omode(d: float) -> float:
             # O-mode (see ref. above).
-            return ( (1 / d) * (0.001 / (np.sqrt(2 * np.pi) * 0.56)) *
-                    np.exp(-1 * (np.log(d) - 4.98) ** 2 / (2 * 0.56 ** 2)))
+            return ( (1 / d) * (0.0010008 / (np.sqrt(2 * np.pi) * 0.585005)) *
+                    np.exp(-1 * (np.log(d) - 4.97673) ** 2 / (2 * 0.585005 ** 2)))
 
         def integrand(d: float) -> float:
             return (self.BLO_factors[0] * _Bmode(d) +
                     self.BLO_factors[1] * _Lmode(d) +
                     self.BLO_factors[2] * _Omode(d)
-                    ) * volume(d*1e-4) * (1 - mask.exhale_efficiency(d*1e-4))
+                    ) * volume(d) * (1 - mask.exhale_efficiency(d))
 
-        return scipy.integrate.quad(integrand, 0.1, 30)[0]
+        # final result converted from microns^3/cm3 to mL/cm^3
+        return scipy.integrate.quad(integrand, 0.1, 30.)[0]*1e-12
 
 
 @dataclass(frozen=True)
@@ -606,8 +607,8 @@ class MultipleExpiration(_ExpirationBase):
 _ExpirationBase.types = {
     'Breathing': Expiration((1., 0., 0.)),
     'Talking': Expiration((1., 1., 1.)),
-    'Shouting': Expiration((5., 5., 5.)),
-    'Singing': Expiration((5., 5., 5.)),
+    'Shouting': Expiration((1., 5., 5.)),
+    'Singing': Expiration((1., 5., 5.)),
     'Superspreading event': Expiration((np.inf, 0., 0.)),
 }
 
