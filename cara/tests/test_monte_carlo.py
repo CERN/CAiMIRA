@@ -53,7 +53,7 @@ def baseline_mc_model() -> cara.monte_carlo.ConcentrationModel:
             presence=cara.models.SpecificInterval(((0, 4), (5, 8))),
             mask=cara.models.Mask.types['No mask'],
             activity=cara.models.Activity.types['Light activity'],
-            expiration=cara.models.Expiration.types['Unmodulated Vocalization'],
+            expiration=cara.models.Expiration.types['Breathing'],
         ),
     )
     return mc_model

@@ -28,7 +28,7 @@ def test_multiple():
     npt.assert_almost_equal(e_expected.aerosols(mask), e.aerosols(mask))
 
 
-# expected values obtained from separate model
+# expected values obtained from another code
 @pytest.mark.parametrize(
     "BLO_weights, expected_aerosols",
     [
