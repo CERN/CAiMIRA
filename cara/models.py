@@ -37,7 +37,7 @@ import typing
 
 import numpy as np
 from scipy.interpolate import interp1d
-from scipy.integrate import quad
+import scipy.integrate
 
 if not typing.TYPE_CHECKING:
     from memoization import cached
@@ -576,7 +576,7 @@ class Expiration(_ExpirationBase):
                     self.BLO_factors[2] * _Omode(d)
                     ) * volume(d*1e-4) * (1 - mask.exhale_efficiency(d*1e-4))
 
-        return quad(integrand, 0.1, 30)[0]
+        return scipy.integrate.quad(integrand, 0.1, 30)[0]
 
 
 @dataclass(frozen=True)
