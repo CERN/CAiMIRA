@@ -550,6 +550,7 @@ class Expiration(_ExpirationBase):
     # speaking, singing, or shouting).
     BLO_factors: typing.Tuple[float, float, float]
 
+    @cached()
     def aerosols(self, mask: Mask):
         """ Result is in mL.cm^-3 """
         def volume(d):
