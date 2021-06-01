@@ -37,6 +37,7 @@ import typing
 
 import numpy as np
 from scipy.interpolate import interp1d
+import scipy.integrate
 
 if not typing.TYPE_CHECKING:
     from memoization import cached
@@ -477,7 +478,7 @@ class Mask:
     η_inhale: _VectorisedFloat
 
     #: Global factor applied to filtration efficiency of masks when exhaling.
-    factor_exhale: _VectorisedFloat = 1.
+    factor_exhale: float = 1.
 
     #: Pre-populated examples of Masks.
     types: typing.ClassVar[typing.Dict[str, "Mask"]]
@@ -529,31 +530,55 @@ class _ExpirationBase:
     types: typing.ClassVar[typing.Dict[str, "_ExpirationBase"]]
 
     def aerosols(self, mask: Mask):
-        # total volume of aerosols expired (cm^3).
+        """
+        total volume of aerosols expired per volume of air (mL/cm^3).
+        """
         raise NotImplementedError("Subclass must implement")
 
 
 @dataclass(frozen=True)
 class Expiration(_ExpirationBase):
     """
-    Simple model based on four different sizes of particles emitted,
-    with different ejection factors. See Fig. 4 in L. Morawska et al,
-    Size distribution and sites of origin of droplets expelled from the
-    human respiratory tract during expiratory activities,
-    Aerosol Science 40 (2009) pp. 256 - 269.
+    BLO model for the expiration (G. Johnson et al., Modality of human
+    expired aerosol size distributions, Journal of Aerosol Science,
+    vol. 42, no. 12, pp. 839 – 851, 2011,
+    https://doi.org/10.1016/j.jaerosci.2011.07.009).
+    Here all diameters (d) are in microns.
     """
-    ejection_factor: typing.Tuple[float, ...]
-    particle_sizes: typing.Tuple[float, ...] = (0.8e-4, 1.8e-4, 3.5e-4, 5.5e-4)  # In cm.
+    #: factors assigned to resp. the B, L and O modes. They are
+    # charateristics of the kind of expiratory activity (e.g. breathing,
+    # speaking, singing, or shouting).
+    BLO_factors: typing.Tuple[float, float, float]
 
+    @cached()
     def aerosols(self, mask: Mask):
-        def volume(diameter):
-            return (4 * np.pi * (diameter/2)**3) / 3
-        total = 0
-        for diameter, factor in zip(self.particle_sizes, self.ejection_factor):
-            contribution = (volume(diameter) * factor *
-                            (1 - mask.exhale_efficiency(diameter*1e4)))
-            total += contribution
-        return total
+        """ Result is in mL.cm^-3 """
+        def volume(d):
+            return (np.pi * d**3) / 6.
+
+        def _Bmode(d: float) -> float:
+            # B-mode (see ref. above).
+            return ( (1 / d) * (0.1 / (np.sqrt(2 * np.pi) * 0.262364)) *
+                    np.exp(-1 * (np.log(d) - 0.989541) ** 2 / (2 * 0.262364 ** 2)))
+
+        def _Lmode(d: float) -> float:
+            # L-mode (see ref. above).
+            return ( (1 / d) * (1.0 / (np.sqrt(2 * np.pi) * 0.506818)) *
+                    np.exp(-1 * (np.log(d) - 1.38629) ** 2 / (2 * 0.506818 ** 2)))
+
+        def _Omode(d: float) -> float:
+            # O-mode (see ref. above).
+            return ( (1 / d) * (0.0010008 / (np.sqrt(2 * np.pi) * 0.585005)) *
+                    np.exp(-1 * (np.log(d) - 4.97673) ** 2 / (2 * 0.585005 ** 2)))
+
+        def integrand(d: float) -> float:
+            return (self.BLO_factors[0] * _Bmode(d) +
+                    self.BLO_factors[1] * _Lmode(d) +
+                    self.BLO_factors[2] * _Omode(d)
+                    ) * volume(d) * (1 - mask.exhale_efficiency(d))
+
+        # final result converted from microns^3/cm3 to mL/cm^3
+        return scipy.integrate.quad(integrand, 0.1, 30.)[0]*1e-12
 
 
 @dataclass(frozen=True)
@@ -581,11 +606,11 @@ class MultipleExpiration(_ExpirationBase):
 
 
 _ExpirationBase.types = {
-    'Breathing': Expiration((0.084, 0.009, 0.003, 0.002)),
-    'Whispering': Expiration((0.11, 0.014, 0.004, 0.002)),
-    'Talking': Expiration((0.236, 0.068, 0.007, 0.011)),
-    'Unmodulated Vocalization': Expiration((0.751, 0.139, 0.0139, 0.059)),
-    'Superspreading event': Expiration((np.inf, np.inf, np.inf, np.inf)),
+    'Breathing': Expiration((1., 0., 0.)),
+    'Talking': Expiration((1., 1., 1.)),
+    'Shouting': Expiration((1., 5., 5.)),
+    'Singing': Expiration((1., 5., 5.)),
+    'Superspreading event': Expiration((np.inf, 0., 0.)),
 }
 
 

@@ -14,7 +14,6 @@ from cara import models
         {'air_change': np.array([100, 120])},
         {'viral_load_in_sputum': np.array([5e8, 1e9])},
         {'quantum_infectious_dose': np.array([50, 20])},
-        {'factor_exhale': np.array([0.92, 0.95])},
     ]
 )
 def test_concentration_model_vectorisation(override_params):
@@ -24,7 +23,6 @@ def test_concentration_model_vectorisation(override_params):
         'air_change': 100,
         'viral_load_in_sputum': 1e9,
         'quantum_infectious_dose': 50,
-        'factor_exhale': 0.95,
     }
     defaults.update(override_params)
 
@@ -36,7 +34,7 @@ def test_concentration_model_vectorisation(override_params):
             number=1,
             presence=always,
             mask=models.Mask(
-                factor_exhale=defaults['factor_exhale'],
+                factor_exhale=0.95,
                 η_inhale=0.3,
             ),
             activity=models.Activity(
@@ -47,9 +45,7 @@ def test_concentration_model_vectorisation(override_params):
                 viral_load_in_sputum=defaults['viral_load_in_sputum'],
                 quantum_infectious_dose=defaults['quantum_infectious_dose'],
             ),
-            expiration=models.Expiration(
-                ejection_factor=(0.084, 0.009, 0.003, 0.002),
-            ),
+            expiration=models.Expiration((1., 0., 0.)),
         )
     )
     concentrations = c_model.concentration(10)
