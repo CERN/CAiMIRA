@@ -349,7 +349,8 @@ def build_exposure_model(concentration_model):
             presence=infected.presence,
             activity=infected.activity,
             mask=infected.mask,
-        )
+        ),
+        fraction_deposited = 1.,
     )
 
 

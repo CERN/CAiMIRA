@@ -32,5 +32,6 @@ def baseline_exposure_model(baseline_model):
             presence=baseline_model.infected.presence,
             activity=baseline_model.infected.activity,
             mask=baseline_model.infected.mask,
-        )
+        ),
+        fraction_deposited = 1.,
     )

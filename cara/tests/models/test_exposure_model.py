@@ -55,22 +55,25 @@ populations = [
 
 
 @pytest.mark.parametrize(
-    "population, cm, expected_exposure, expected_probability",[
-    [populations[1], KnownConcentrations(lambda t: 1.2),
+    "population, cm, f_dep, expected_exposure, expected_probability",[
+    [populations[1], KnownConcentrations(lambda t: 1.2), 1.,
      np.array([14.4, 14.4]), np.array([99.6803184113, 99.5181053773])],
 
-    [populations[2], KnownConcentrations(lambda t: 1.2),
+    [populations[2], KnownConcentrations(lambda t: 1.2), 1.,
      np.array([14.4, 14.4]), np.array([97.4574432074, 98.3493482895])],
 
-    [populations[0], KnownConcentrations(lambda t: np.array([1.2, 2.4])),
+    [populations[0], KnownConcentrations(lambda t: np.array([1.2, 2.4])), 1.,
      np.array([14.4, 28.8]), np.array([98.3493482895, 99.9727534893])],
 
-    [populations[1], KnownConcentrations(lambda t: np.array([1.2, 2.4])),
+    [populations[1], KnownConcentrations(lambda t: np.array([1.2, 2.4])), 1.,
      np.array([14.4, 28.8]), np.array([99.6803184113, 99.9976777757])],
+
+    [populations[0], KnownConcentrations(lambda t: 2.4), np.array([0.5, 1.]),
+     28.8, np.array([98.3493482895, 99.9727534893])],
     ])
-def test_exposure_model_ndarray(population, cm, 
+def test_exposure_model_ndarray(population, cm, f_dep,
                                 expected_exposure, expected_probability):
-    model = ExposureModel(cm, population)
+    model = ExposureModel(cm, population, fraction_deposited = f_dep)
     np.testing.assert_almost_equal(
         model.quanta_exposure(), expected_exposure
     )
@@ -148,5 +151,5 @@ def test_exposure_model_integral_accuracy(exposed_time_interval,
         10, presence_interval, models.Mask.types['Type I'],
         models.Activity.types['Standing'],
     )
-    model = ExposureModel(conc_model, population)
+    model = ExposureModel(conc_model, population, fraction_deposited=1.)
     np.testing.assert_allclose(model.quanta_exposure(), expected_quanta)
