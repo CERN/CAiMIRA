@@ -79,7 +79,7 @@ class CustomKernel(SampleableDistribution):
     def __init__(self, variable: float_array_size_n,
                  frequencies: float_array_size_n,
                  kernel_bandwidth: float):
-        # these are resp. the random variable, the distribution 
+        # these are resp. the random variable, the distribution
         # frequencies at these values, and the bandwidth of the Gaussian
         # kernel
         self.variable = variable
