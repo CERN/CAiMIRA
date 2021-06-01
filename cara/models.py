@@ -616,7 +616,10 @@ _ExpirationBase.types = {
 
 @dataclass(frozen=True)
 class Activity:
+    #: Inhalation rate in m^3/h
     inhalation_rate: _VectorisedFloat
+
+    #: Exhalation rate in m^3/h
     exhalation_rate: _VectorisedFloat
 
     #: Pre-populated examples of activities.
@@ -671,6 +674,8 @@ class InfectedPopulation(Population):
 
         """
         # Emission Rate (infectious quantum / h)
+        # Note on units: exhalation rate is in m^3/h, aerosols in mL/cm^3
+        # and viral load in virus/mL -> 1e6 conversion factor
         aerosols = self.expiration.aerosols(self.mask)
 
         ER = (self.virus.viral_load_in_sputum *
@@ -855,6 +860,9 @@ class ExposureModel:
     #: The number of times the exposure event is repeated (default 1).
     repeats: int = 1
 
+    #: The fraction of viruses actually deposited in the respiratory tract
+    fraction_deposited: _VectorisedFloat = 0.6
+
     def quanta_exposure(self) -> _VectorisedFloat:
         """The number of virus quanta per meter^3."""
         exposure = 0.0
@@ -870,7 +878,7 @@ class ExposureModel:
         inf_aero = (
             self.exposed.activity.inhalation_rate *
             (1 - self.exposed.mask.inhale_efficiency()) *
-            exposure
+            exposure * self.fraction_deposited
         )
 
         # Probability of infection.
