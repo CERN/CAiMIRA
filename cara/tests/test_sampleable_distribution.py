@@ -3,6 +3,8 @@ import numpy.testing as npt
 import pytest
 
 from cara.monte_carlo import sampleable
+# TODO: seed deterministically the random number generators, here (to
+# avoid random issues with tests)
 
 @pytest.mark.parametrize(
     "mean, std",[
