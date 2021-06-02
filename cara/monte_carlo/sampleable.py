@@ -94,6 +94,30 @@ class CustomKernel(SampleableDistribution):
         return kde_model.sample(n_samples=size)[:, 0]
 
 
+class LogCustomKernel(SampleableDistribution):
+    """
+    Defines a distribution which follows a custom curve vs. the log
+    (in base 10) of the random variable. Uses a Gaussian kernel density
+    fit. This is more appropriate for a noisy distribution function.
+    """
+    def __init__(self, log_variable: float_array_size_n,
+                 frequencies: float_array_size_n,
+                 kernel_bandwidth: float):
+        # these are resp. the log of the random variable, the distribution
+        # frequencies at these values, and the bandwidth of the Gaussian
+        # kernel
+        self.log_variable = log_variable
+        self.frequencies = frequencies
+        self.kernel_bandwidth = kernel_bandwidth
+
+    def generate_samples(self, size: int) -> float_array_size_n:
+        kde_model = KernelDensity(kernel='gaussian',
+                                  bandwidth=self.kernel_bandwidth)
+        kde_model.fit(self.log_variable.reshape(-1, 1),
+                      sample_weight=self.frequencies)
+        return 10 ** kde_model.sample(n_samples=size)[:, 0]
+
+
 _VectorisedFloatOrSampleable = typing.Union[
     SampleableDistribution, cara.models._VectorisedFloat,
 ]
