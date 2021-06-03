@@ -24,7 +24,7 @@ activity_distributions = {
 
 
 # From CERN-OPEN-2021-04 and refererences therein
-log_symptomatic_vl_frequencies = LogCustomKernel(
+symptomatic_vl_frequencies = LogCustomKernel(
     np.array((2.46032, 2.67431, 2.85434, 3.06155, 3.25856, 3.47256, 3.66957, 3.85979, 4.09927, 4.27081,
      4.47631, 4.66653, 4.87204, 5.10302, 5.27456, 5.46478, 5.6533, 5.88428, 6.07281, 6.30549,
      6.48552, 6.64856, 6.85407, 7.10373, 7.30075, 7.47229, 7.66081, 7.85782, 8.05653, 8.27053,
@@ -42,15 +42,15 @@ log_symptomatic_vl_frequencies = LogCustomKernel(
 # From CERN-OPEN-2021-04 and refererences therein
 virus_distributions = {
     'SARS_CoV_2': mc.SARSCoV2(
-                viral_load_in_sputum=log_symptomatic_vl_frequencies,
+                viral_load_in_sputum=symptomatic_vl_frequencies,
                 quantum_infectious_dose=100,
                 ),
     'SARS_CoV_2_B117': mc.SARSCoV2(
-                viral_load_in_sputum=log_symptomatic_vl_frequencies,
+                viral_load_in_sputum=symptomatic_vl_frequencies,
                 quantum_infectious_dose=60,
                 ),
     'SARS_CoV_2_P1': mc.SARSCoV2(
-                viral_load_in_sputum=log_symptomatic_vl_frequencies,
+                viral_load_in_sputum=symptomatic_vl_frequencies,
                 quantum_infectious_dose=100/2.25,
                 ),
 }
