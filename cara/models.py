@@ -250,7 +250,7 @@ class WindowOpening(Ventilation):
         temp_gradient = (inside_temp - outside_temp) / outside_temp
         root = np.sqrt(9.81 * self.window_height * temp_gradient)
         window_area = self.window_height * self.opening_length * self.number_of_windows
-        return (3600 / (3 * room.volume)) * self.discharge_coefficient * window_area * root
+        return 0.25+(3600 / (3 * room.volume)) * self.discharge_coefficient * window_area * root
 
 
 @dataclass(frozen=True)
