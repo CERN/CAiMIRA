@@ -29,6 +29,7 @@ REQUIREMENTS: dict = {
         'numpy',
         'qrcode[pil]',
         'scipy',
+        'sklearn',
         'tornado',
         'voila >=0.2.4',
     ],
