@@ -8,7 +8,9 @@ import numpy as np
 
 from cara import models
 from cara import data
+import cara.monte_carlo as mc
 from .. import calculator
+from cara.monte_carlo.data import activity_distributions, virus_distributions
 
 
 LOG = logging.getLogger(__name__)
@@ -20,7 +22,7 @@ minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
 # Used to declare when an attribute of a class must have a value provided, and
 # there should be no default value used.
 _NO_DEFAULT = object()
-
+_SAMPLE_SIZE = 50000
 
 @dataclass
 class FormData:
@@ -275,9 +277,9 @@ class FormData:
         mask = models.Mask.types[self.mask_type if self.mask_wearing_option == "mask_on" else 'No mask']
         return mask
 
-    def infected_population(self) -> models.InfectedPopulation:
+    def infected_population(self) -> mc.InfectedPopulation:
         # Initializes the virus
-        virus = models.Virus.types[self.virus_type]
+        virus = virus_distributions[self.virus_type]
 
         scenario_activity_and_expiration = {
             'office': (
@@ -315,12 +317,12 @@ class FormData:
         }
 
         [activity_defn, expiration_defn] = scenario_activity_and_expiration[self.activity_type]
-        activity = models.Activity.types[activity_defn]
+        activity = activity_distributions[activity_defn]
         expiration = build_expiration(expiration_defn)
 
         infected_occupants = self.infected_people
 
-        infected = models.InfectedPopulation(
+        infected = mc.InfectedPopulation(
             number=infected_occupants,
             virus=virus,
             presence=self.infected_present_interval(),
@@ -330,7 +332,7 @@ class FormData:
         )
         return infected
 
-    def exposed_population(self) -> models.Population:
+    def exposed_population(self) -> mc.Population:
         scenario_activity = {
             'office': 'Seated',
             'controlroom-day': 'Seated',
@@ -345,14 +347,14 @@ class FormData:
         }
 
         activity_defn = scenario_activity[self.activity_type]
-        activity = models.Activity.types[activity_defn]
+        activity = activity_distributions[activity_defn]
 
         infected_occupants = self.infected_people
         # The number of exposed occupants is the total number of occupants
         # minus the number of infected occupants.
         exposed_occupants = self.total_people - infected_occupants
 
-        exposed = models.Population(
+        exposed = mc.Population(
             number=exposed_occupants,
             presence=self.exposed_present_interval(),
             activity=activity,
@@ -560,14 +562,14 @@ def model_from_form(form: FormData) -> models.ExposureModel:
     room = models.Room(volume=volume, humidity=humidity)
 
     # Initializes and returns a model with the attributes defined above
-    return models.ExposureModel(
-        concentration_model=models.ConcentrationModel(
+    return mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
             room=room,
             ventilation=form.ventilation(),
             infected=form.infected_population(),
         ),
         exposed=form.exposed_population()
-    )
+    ).build_model(size=_SAMPLE_SIZE)
 
 
 def baseline_raw_form_data():

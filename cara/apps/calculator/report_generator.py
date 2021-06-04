@@ -38,12 +38,13 @@ def calculate_report_data(model: models.ExposureModel):
 
     t_start, t_end = model_start_end(model)
     times = list(np.linspace(t_start, t_end, resolution))
-    concentrations = [model.concentration_model.concentration(time) for time in times]
+    concentrations = [np.mean(model.concentration_model.concentration(time))
+                      for time in times]
     highest_const = max(concentrations)
-    prob = model.infection_probability()
-    er = model.concentration_model.infected.emission_rate_when_present()
+    prob = np.mean(model.infection_probability())
+    er = np.mean(model.concentration_model.infected.emission_rate_when_present())
     exposed_occupants = model.exposed.number
-    expected_new_cases = model.expected_new_cases()
+    expected_new_cases = np.mean(model.expected_new_cases())
 
     repeated_events = []
     for n in [1, 2, 3, 4, 5]:
@@ -52,8 +53,8 @@ def calculate_report_data(model: models.ExposureModel):
         repeated_events.append(
             RepeatEvents(
                 repeats=n,
-                probability_of_infection=repeat_model.infection_probability(),
-                expected_new_cases=repeat_model.expected_new_cases(),
+                probability_of_infection=np.mean(repeat_model.infection_probability()),
+                expected_new_cases=np.mean(repeat_model.expected_new_cases()),
             )
         )
 
@@ -243,7 +244,8 @@ def comparison_plot(scenarios: typing.Dict[str, models.ExposureModel]):
             t_start, t_end = model_start_end(model)
             times = np.linspace(t_start, t_end, resolution)
         datetimes = [datetime(1970, 1, 1) + timedelta(hours=time) for time in times]
-        concentrations = [model.concentration_model.concentration(time) for time in times]
+        concentrations = [np.mean(model.concentration_model.concentration(time))
+                          for time in times]
 
         if name in dash_styled_scenarios:
             ax.plot(datetimes, concentrations, label=name, linestyle='--')
@@ -267,8 +269,8 @@ def comparison_report(scenarios: typing.Dict[str, models.ExposureModel]):
     statistics = {}
     for name, model in scenarios.items():
         statistics[name] = {
-            'probability_of_infection': model.infection_probability(),
-            'expected_new_cases': model.expected_new_cases(),
+            'probability_of_infection': np.mean(model.infection_probability()),
+            'expected_new_cases': np.mean(model.expected_new_cases()),
         }
     return {
         'plot': img2base64(_figure2bytes(comparison_plot(scenarios))),
