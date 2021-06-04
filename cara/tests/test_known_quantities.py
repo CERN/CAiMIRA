@@ -375,12 +375,13 @@ def test_quanta_hourly_dep(month,expected_quanta):
     npt.assert_allclose(quanta, expected_quanta)
 
 # expected quanta were computed with a trapezoidal integration, using
-# a mesh of 100'000 pts per exposed presence interval.
+# a mesh of 100'000 pts per exposed presence interval and 25 pts per hour
+# for the temperature discretization.
 @pytest.mark.parametrize(
     "month, expected_quanta",
     [
-        ['Jan', 9.989881],
-        ['Jun', 39.99636],
+        ['Jan', 9.993842],
+        ['Jun', 40.151985],
     ],
 )
 def test_quanta_hourly_dep_refined(month,expected_quanta):
@@ -393,4 +394,4 @@ def test_quanta_hourly_dep_refined(month,expected_quanta):
         )
     )
     quanta = m.quanta_exposure()
-    npt.assert_allclose(quanta, expected_quanta)
+    npt.assert_allclose(quanta, expected_quanta, rtol=0.02)
