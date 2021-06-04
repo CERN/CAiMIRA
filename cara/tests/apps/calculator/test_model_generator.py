@@ -50,7 +50,7 @@ def test_ventilation_slidingwindow(baseline_form: model_generator.FormData):
     baseline_form.opening_distance = 0.6
 
     ts = np.linspace(8, 16, 100)
-    np.testing.assert_allclose([window.air_exchange(room, t) for t in ts],
+    np.testing.assert_allclose([window.air_exchange(room, t)+0.25 for t in ts],
                                [baseline_form.ventilation().air_exchange(room, t) for t in ts])
 
 
@@ -73,7 +73,7 @@ def test_ventilation_hingedwindow(baseline_form: model_generator.FormData):
     baseline_form.opening_distance = 0.6
 
     ts = np.linspace(8, 16, 100)
-    np.testing.assert_allclose([window.air_exchange(room, t) for t in ts],
+    np.testing.assert_allclose([window.air_exchange(room, t)+0.25 for t in ts],
                                [baseline_form.ventilation().air_exchange(room, t) for t in ts])
 
 
@@ -88,7 +88,7 @@ def test_ventilation_mechanical(baseline_form: model_generator.FormData):
     baseline_form.air_supply = 500.
 
     ts = np.linspace(8, 16, 100)
-    np.testing.assert_allclose([mech.air_exchange(room, t) for t in ts],
+    np.testing.assert_allclose([mech.air_exchange(room, t)+0.25 for t in ts],
                                [baseline_form.ventilation().air_exchange(room, t) for t in ts])
 
 
@@ -103,7 +103,7 @@ def test_ventilation_airchanges(baseline_form: model_generator.FormData):
     baseline_form.air_changes = 3.
 
     ts = np.linspace(8, 16, 100)
-    np.testing.assert_allclose([airchange.air_exchange(room, t) for t in ts],
+    np.testing.assert_allclose([airchange.air_exchange(room, t)+0.25 for t in ts],
                                [baseline_form.ventilation().air_exchange(room, t) for t in ts])
 
 
@@ -131,7 +131,7 @@ def test_ventilation_window_hepa(baseline_form: model_generator.FormData):
     baseline_form.hepa_option = True
 
     ts = np.linspace(9, 17, 100)
-    np.testing.assert_allclose([ventilation.air_exchange(room, t) for t in ts],
+    np.testing.assert_allclose([ventilation.air_exchange(room, t)+0.25 for t in ts],
                                [baseline_form.ventilation().air_exchange(room, t) for t in ts])
 
 

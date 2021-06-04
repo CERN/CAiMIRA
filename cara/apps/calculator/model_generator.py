@@ -265,11 +265,15 @@ class FormData:
                 ventilation = models.HVACMechanical(
                     active=always_on, q_air_mech=self.air_supply)
 
+        # this is a minimal, always present source of ventilation, due
+        # to the air infiltration from the outside.
+        # See CERN-OPEN-2021-004, p. 12.
+        infiltration_ventilation = models.AirChange(active=always_on, air_exch=0.25)
         if self.hepa_option:
             hepa = models.HEPAFilter(active=always_on, q_air_mech=self.hepa_amount)
-            return models.MultipleVentilation((ventilation, hepa))
+            return models.MultipleVentilation((ventilation, hepa, infiltration_ventilation))
         else:
-            return ventilation
+            return models.MultipleVentilation((ventilation, infiltration_ventilation))
 
     def mask(self) -> models.Mask:
         # Initializes the mask type if mask wearing is "continuous", otherwise instantiates the mask attribute as
