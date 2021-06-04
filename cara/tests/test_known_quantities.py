@@ -44,7 +44,7 @@ def test_concentrations(baseline_model):
     concentrations = [baseline_model.concentration(t) for t in ts]
     npt.assert_allclose(
         concentrations,
-        [0.000000e+00, 0.4189594, 1.6422648e-14, 0.4189594, 6.4374587e-28],
+        [0.000000e+00, 0.41611256, 1.3205628e-14, 0.41611256, 4.1909001e-28],
         rtol=1e-6
     )
 
@@ -91,7 +91,7 @@ def test_r0(baseline_exposure_model):
     # expected r0 was computed with a trapezoidal integration, using
     # a mesh of 100'000 pts per exposed presence interval.
     r0 = baseline_exposure_model.reproduction_number()
-    npt.assert_allclose(r0, 973.535888)
+    npt.assert_allclose(r0, 972.880852)
 
 
 def test_periodic_window(baseline_periodic_window, baseline_room):
@@ -359,8 +359,8 @@ def build_exposure_model(concentration_model):
 @pytest.mark.parametrize(
     "month, expected_quanta",
     [
-        ['Jan', 10.136783],
-        ['Jun', 41.800377],
+        ['Jan', 9.930854],
+        ['Jun', 37.962708],
     ],
 )
 def test_quanta_hourly_dep(month,expected_quanta):
@@ -379,8 +379,8 @@ def test_quanta_hourly_dep(month,expected_quanta):
 @pytest.mark.parametrize(
     "month, expected_quanta",
     [
-        ['Jan', 10.19818],
-        ['Jun', 44.130683],
+        ['Jan', 9.989881],
+        ['Jun', 39.99636],
     ],
 )
 def test_quanta_hourly_dep_refined(month,expected_quanta):

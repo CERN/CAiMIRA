@@ -53,7 +53,7 @@ def test_lognormal(mean_gaussian, std_gaussian):
     assert len(samples) == sample_size
     npt.assert_allclose([samples.mean(), samples.std()],
                         [exact_mean, exact_std], rtol=0.01)
-    npt.assert_allclose(selected_histogram, exact_dist, rtol=0.02)
+    npt.assert_allclose(selected_histogram, exact_dist, rtol=0.03)
 
 
 @pytest.mark.parametrize(
