@@ -3,8 +3,10 @@ import numpy.testing as npt
 import pytest
 
 from cara.monte_carlo import sampleable
+
 # TODO: seed better the random number generators
 np.random.seed(2000)
+
 
 @pytest.mark.parametrize(
     "mean, std",[
