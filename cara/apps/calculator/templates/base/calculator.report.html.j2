@@ -216,30 +216,6 @@
 	<p class="data_title">Exposure graph:</p>
 	<img id="scenario_concentration_plot" src="{{ scenario_plot_src }}">
 
-    <p class="data_title">Repeated events:</p>
-    <p class="data_text">
-		The P(i) and expected number of new cases if repeating this scenario event - provided the infected person emits the same amount of viruses each day and the exposed person is subject to the same daily exposure time:
-
-        <table class="table table-striped w-auto">
-            <thead class="thead-light">
-                <tr>
-                    <th># of repeated events</th>
-                    <th>P(i)</th>
-                    <th>Expected new cases</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for repeat_event in repeated_events %}
-                <tr>
-                    <td>{{ repeat_event.repeats }}</td>
-                    <td>{{ repeat_event.probability_of_infection | non_zero_percentage }}</td>
-                    <td style="text-align:right">{{ repeat_event.expected_new_cases | float_format }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </p>
-
     <p class="data_title">Alternative scenarios:</p>
     <p class="data_text">
     <img id="scenario_concentration_plot" src="{{ alternative_scenarios.plot }}" align="left" />
