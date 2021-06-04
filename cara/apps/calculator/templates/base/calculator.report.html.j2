@@ -210,11 +210,11 @@
 		<p class="data_text">
 		{% block report_summary %}
         Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected P(i) is {{ prob_inf | non_zero_percentage }}</b><a href="#section1">[*]</a> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>.
-	<p id="section1">[*] The results are based on the parameters and assumptions published in the <a href="https://cds.cern.ch/record/2756083"> CERN Open Report CERN-OPEN-2021-004</a></p>
+		<p id="section1">[*] The results are based on the parameters and assumptions published in the <a href="https://cds.cern.ch/record/2756083"> CERN Open Report CERN-OPEN-2021-004</a></p>
         {% endblock report_summary %}
         </p>
-	<p class="data_title">Exposure graph:</p>
-	<img id="scenario_concentration_plot" src="{{ scenario_plot_src }}">
+
+		<img id="scenario_concentration_plot" src="{{ scenario_plot_src }}">
 
     <p class="data_title">Alternative scenarios:</p>
     <p class="data_text">
@@ -246,7 +246,7 @@
     <p class="data_text"> <strong> Notes for alternative scenarios: </strong><br>
 	    <ol>
 	    	<li>This graph shows the concentration of infectious quanta in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation).
-	    For this reason, scenarios with different types of mask will show the same concentration on the graph but have different Pi values.</li>
+	    For this reason, scenarios with different types of mask will show the same concentration on the graph but have different absorbed doses and infection probabilities.</li>
 	   		<li>If you have selected more sophisticated options, such as HEPA filtration or FFP2 masks, this will be indicated in the plot as the "base scenario", representing the inputs inserted in the form.<br>
 	    	The other alternative scenarios shown for comparison will not include either HEPA filtration or FFP2 masks.</li>
 	    </ol>
