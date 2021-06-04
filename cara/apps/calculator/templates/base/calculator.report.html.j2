@@ -209,35 +209,12 @@
 	<p class="result_title">Results:</p>
 		<p class="data_text">
 		{% block report_summary %}
-        In this scenario, the estimated probability of one exposed occupant getting infected P(i) is {{ prob_inf | non_zero_percentage }} and the expected number of new cases is {{ expected_new_cases | float_format }}.
+        Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected P(i) is {{ prob_inf | non_zero_percentage }}</b><a href="#section1">[*]</a> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>.
+	<p id="section1">[*] The results are based on the parameters and assumptions published in the <a href="https://cds.cern.ch/record/2756083"> CERN Open Report CERN-OPEN-2021-004</a></p>
         {% endblock report_summary %}
         </p>
 	<p class="data_title">Exposure graph:</p>
 	<img id="scenario_concentration_plot" src="{{ scenario_plot_src }}">
-
-    <p class="data_title">Repeated events:</p>
-    <p class="data_text">
-		The P(i) and expected number of new cases if repeating this scenario event - provided the infected person emits the same amount of viruses each day and the exposed person is subject to the same daily exposure time:
-
-        <table class="table table-striped w-auto">
-            <thead class="thead-light">
-                <tr>
-                    <th># of repeated events</th>
-                    <th>P(i)</th>
-                    <th>Expected new cases</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for repeat_event in repeated_events %}
-                <tr>
-                    <td>{{ repeat_event.repeats }}</td>
-                    <td>{{ repeat_event.probability_of_infection | non_zero_percentage }}</td>
-                    <td style="text-align:right">{{ repeat_event.expected_new_cases | float_format }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </p>
 
     <p class="data_title">Alternative scenarios:</p>
     <p class="data_text">
