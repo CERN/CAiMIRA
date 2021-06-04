@@ -732,7 +732,7 @@ class ConcentrationModel:
 
     def infectious_virus_removal_rate(self, time: float) -> _VectorisedFloat:
         # Particle deposition on the floor
-        vg = 1 * 10 ** -4
+        vg = 1.88e-4
         # Height of the emission source to the floor - i.e. mouth/nose (m)
         h = 1.5
         # Deposition rate (h^-1)
