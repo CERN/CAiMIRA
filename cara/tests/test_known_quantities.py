@@ -394,4 +394,4 @@ def test_quanta_hourly_dep_refined(month,expected_quanta):
         )
     )
     quanta = m.quanta_exposure()
-    npt.assert_allclose(quanta, expected_quanta, rtol=0.02)
+    npt.assert_allclose(quanta, expected_quanta, rtol=0.01)

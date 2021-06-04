@@ -22,7 +22,7 @@ minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
 # Used to declare when an attribute of a class must have a value provided, and
 # there should be no default value used.
 _NO_DEFAULT = object()
-_SAMPLE_SIZE = 10000
+_SAMPLE_SIZE = 50000
 
 @dataclass
 class FormData:

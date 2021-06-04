@@ -45,11 +45,12 @@ class TestBasicApp(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return cara.apps.calculator.make_app()
 
+    @tornado.testing.gen_test(timeout=20)
     def test_report(self):
-        response = self.fetch('/calculator/baseline-model/result')
+        response = yield self.http_client.fetch(self.get_url('/calculator/baseline-model/result'))
         self.assertEqual(response.code, 200)
-        assert 'CERN HSE rules' not in response.body.decode()
-        assert 'the expected number of new cases is' in response.body.decode()
+        assert 'CERN HSE' not in response.body.decode()
+        assert 'expected number of new cases is' in response.body.decode()
 
 
 class TestCernApp(tornado.testing.AsyncHTTPTestCase):
@@ -57,11 +58,12 @@ class TestCernApp(tornado.testing.AsyncHTTPTestCase):
         cern_theme = Path(cara.apps.calculator.__file__).parent / 'themes' / 'cern'
         return cara.apps.calculator.make_app(theme_dir=cern_theme)
 
+    @tornado.testing.gen_test(timeout=20)
     def test_report(self):
-        response = self.fetch('/calculator/baseline-model/result')
+        response = yield self.http_client.fetch(self.get_url('/calculator/baseline-model/result'))
         self.assertEqual(response.code, 200)
-        assert 'CERN HSE rules' in response.body.decode()
-        assert 'the expected number of new cases is' in response.body.decode()
+        assert 'CERN HSE' in response.body.decode()
+        assert 'expected number of new cases is' in response.body.decode()
 
 
 async def test_qrcode_urls(http_server_client, baseline_form):
