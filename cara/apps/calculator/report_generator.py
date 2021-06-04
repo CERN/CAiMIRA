@@ -128,13 +128,13 @@ def plot(times, concentrations, model: models.ExposureModel):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
     datetimes = [datetime(1970, 1, 1) + timedelta(hours=time) for time in times]
-    ax.plot(datetimes, concentrations, lw=2, color='#1f77b4', label='Concentration')
+    ax.plot(datetimes, concentrations, lw=2, color='#1f77b4', label='Mean concentration')
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
 
     ax.set_xlabel('Time of day')
-    ax.set_ylabel('Concentration ($q/m^3$)')
-    ax.set_title('Concentration of infectious quanta')
+    ax.set_ylabel('Mean concentration ($q/m^3$)')
+    ax.set_title('Mean concentration of infectious quanta')
     ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
 
     # Plot presence of exposed person
