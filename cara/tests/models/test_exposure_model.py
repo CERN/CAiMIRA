@@ -136,12 +136,12 @@ def conc_model():
 # expected quanta were computed with a trapezoidal integration, using
 # a mesh of 10'000 pts per exposed presence interval.
 @pytest.mark.parametrize("exposed_time_interval, expected_quanta", [
-        [(0, 1), 5.4869151],
-        [(1, 1.01), 0.064013521],
-        [(1.01, 1.02), 0.062266596],
-        [(12, 12.01), 0.0019025904],
-        [(12, 24), 78.190763],
-        [(0, 24), 84.866592],
+        [(0, 1), 5.3334352],
+        [(1, 1.01), 0.061759078],
+        [(1.01, 1.02), 0.060016487],
+        [(12, 12.01), 0.0019012647],
+        [(12, 24), 75.513005],
+        [(0, 24), 81.956988],
     ]
 )
 def test_exposure_model_integral_accuracy(exposed_time_interval,

@@ -5,7 +5,7 @@ import pytest
 from cara.monte_carlo.data import activity_distributions, virus_distributions
 
 # TODO: seed better the random number generators
-np.random.seed(0)
+np.random.seed(2000)
 
 
 # mean & std deviations from CERN-OPEN-2021-04 (Table 4)
