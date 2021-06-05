@@ -76,7 +76,9 @@ def test_build_concentration_model(baseline_mc_model: cara.monte_carlo.Concentra
     model = baseline_mc_model.build_model(7)
     assert isinstance(model, cara.models.ConcentrationModel)
     assert isinstance(model.concentration(time=0), float)
-    assert model.concentration(time=1).shape == (7, )
+    conc = model.concentration(time=1)
+    assert isinstance(conc, np.ndarray)
+    assert conc.shape == (7, )
 
 
 def test_build_exposure_model(baseline_mc_exposure_model: cara.monte_carlo.ExposureModel):
