@@ -259,8 +259,8 @@ def comparison_plot(scenarios: typing.Dict[str, models.ExposureModel]):
     ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
 
     ax.set_xlabel('Time of day')
-    ax.set_ylabel('Concentration ($q/m^3$)')
-    ax.set_title('Concentration of infectious quanta')
+    ax.set_ylabel('Mean concentration ($q/m^3$)')
+    ax.set_title('Mean concentration of infectious quanta')
 
     return fig
 
