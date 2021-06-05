@@ -11,7 +11,7 @@ def test_generate_report(baseline_form):
     # generate a report for it. Because this is what happens in the cara
     # calculator, we confirm that the generation happens within a reasonable
     # time threshold.
-    time_limit: float = 30.0  # seconds
+    time_limit: float = 20.0  # seconds
 
     start = time.perf_counter()
 

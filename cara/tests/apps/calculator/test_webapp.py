@@ -6,7 +6,7 @@ import tornado.testing
 import cara.apps.calculator
 from cara.apps.calculator.report_generator import generate_qr_code
 
-_TIMEOUT = 30.
+_TIMEOUT = 20.
 
 @pytest.fixture
 def app():
