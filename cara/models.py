@@ -711,7 +711,6 @@ class InfectedPopulation(Population):
 
         return self.emission_rate_when_present()
 
-    @cached()
     def emission_rate(self, time) -> _VectorisedFloat:
         """
         The emission rate of the entire population.
@@ -741,7 +740,6 @@ class ConcentrationModel:
         return k + self.virus.decay_constant(self.room.humidity
                     ) + self.ventilation.air_exchange(self.room, time)
 
-    @cached()
     def _concentration_limit(self, time: float) -> _VectorisedFloat:
         """
         Provides a constant that represents the theoretical asymptotic 
@@ -753,7 +751,6 @@ class ConcentrationModel:
 
         return (self.infected.emission_rate(time)) / (IVRR * V)
 
-    @cached()
     def state_change_times(self):
         """
         All time dependent entities on this model must provide information about
@@ -798,6 +795,9 @@ class ConcentrationModel:
         return (self.last_state_change(stop) <= start)
 
     @cached()
+    def _concentration_at_state_change(self, time: float) -> _VectorisedFloat:
+        return self.concentration(time)
+
     def concentration(self, time: float) -> _VectorisedFloat:
         """
         Virus quanta concentration, as a function of time.
@@ -816,7 +816,7 @@ class ConcentrationModel:
         concentration_limit = self._concentration_limit(next_state_change_time)
 
         t_last_state_change = self.last_state_change(time)
-        concentration_at_last_state_change = self.concentration(t_last_state_change)
+        concentration_at_last_state_change = self._concentration_at_state_change(t_last_state_change)
 
         delta_time = time - t_last_state_change
         fac = np.exp(-IVRR * delta_time)

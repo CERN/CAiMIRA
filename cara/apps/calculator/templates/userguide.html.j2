@@ -8,7 +8,7 @@
 <p>This is a guide to help you use the calculator app.
 If you are using the expert version of the tool,  you should look at the expert notes.</p>
 <p>For more information on the Airborne Transmission of SARS-CoV-2, feel free to check out the HSE Seminar: <a href="https://cds.cern.ch/record/2743403">https://cds.cern.ch/record/2743403</a></p>
-<p>The methodology, mathematical equations and parameters of the model are described here: <a href="https://edms.cern.ch/ui/file/2566402/1/CARA_Deterministic_parameters_2020.pdf">https://edms.cern.ch/ui/file/2566402/1/CARA_Deterministic_parameters_2020.pdf</a></p> 
+<p>The methodology, mathematical equations and parameters of the model are described here in the CERN Report: <a href="https://cds.cern.ch/record/2756083"> CERN-OPEN-2021-004</a></p> 
 <h2>Disclaimer</h2>
 
     <p>
@@ -172,26 +172,25 @@ Please check what are the applicable rules, before deciding which assumptions ar
 Please confirm what are the applicable rules, before deciding which assumptions are used for the simulation</p>
 <p>For the time being only the Type 1 surgical and FFP2 masks can be selected.</p>
 <h2>Generate Report</h2>
-<p>When you have entered all the necessary information, please click on the Generate Report button to execute the model.</p>
+<p>When you have entered all the necessary information, please click on the Generate Report button to execute the model. With the implementation of Monte Carlo simulations, the browser might take a few secounds to react.</p>
 <h1>Report</h1>
 <p>The report will open in your web browser.
 It contains a summary of all the input data, which will allow the simulation to be repeated if required in the future as we improve the model.</p>
 <h2>Results</h2>
-<p>This part of the report shows the <code>P(i)</code> or probability of one exposed person getting infected.
+<p>This part of the report shows the <code>P(I)</code> or probability of one exposed person getting infected.
 It is estimated based on the emission rate of virus into the simulated volume, and the amount which is inhaled by exposed individuals.
-This probability is valid for the simulation duration - i.e. if you have simulated one day and plan to work 5 days in these conditions and the infected person emits the same amount of virus each day, the cumulative probability of infection is <code>(1-(1-P(i))^5)</code>.
+This probability is valid for the simulation duration - i.e. the start and end time.
 If you are using the natural ventilation option, the simulation is only valid for the selected month, because the following or preceding month will have a different average temperature profile.
 The <code>expected number of new cases</code> for the simulation is calculated based on the probability of infection, multiplied by the number of exposed occupants.</p>
-<h3>Exposure graph</h3>
-<p>The graph shows the variation in the concentration of infectious quanta (one quanta is the amount of inhaled virus that can cause infection in 63% of the exposed occupants) within the simulated volume.
+<p>The graph shows the variation in the concentration of infectious viruses within the simulated volume.
 It is determined by:</p>
 <ul>
 <li>The presence of the infected person, who emits airborne viruses in the volume.</li>
-<li>The emission rate is related to the type of activity of the infected person (sitting, light exercise), their level of vocalisation (breathing, whispering or talking).</li>
+<li>The emission rate is related to the type of activity of the infected person (sitting, light exercise), their level of vocalisation (breathing, talking or shouting).</li>
 <li>The accumulation of infectious quanta in the volume, which is driven, among other factors, by ventilation (if applicable).<ul>
 <li>In a mechanical ventilation scenario, the removal rate is constant, based on fresh airflow supply in and out of the simulated space.</li>
 <li>Under natural ventilation conditions, the effectiveness of ventilation relies upon the hourly temperature difference between the inside and outside air temperature.</li>
-<li>A HEPA filter removes infectious quanta from the air at a constant rate and is modelled in the same way as mechanical ventilation, however air passed through a HEPA filter is recycled (i.e. it is not fresh air).</li>
+<li>A HEPA filter removes infectious virus from the air at a constant rate and is modelled in the same way as mechanical ventilation, however air passed through a HEPA filter is recycled (i.e. it is not fresh air).</li>
 </ul>
 </li>
 </ul>
@@ -204,7 +203,7 @@ This allows for:</p>
 </ul>
 <h1>Conclusion</h1>
 <p>This tool provides informative comparisons for COVID-19 (long-range) airborne risk only - see Disclaimer
-If you have any comments on your experience with the app, or feedback for potential improvements, please share them with the development team at cara-dev@cern.ch.</p>
+If you have any comments on your experience with the app, or feedback for potential improvements, please share them with the development team <a href="mailto:cara-dev@cern.ch">Send email</a>.</p>
 
 
 {% endblock contents %}
