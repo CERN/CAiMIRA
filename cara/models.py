@@ -37,6 +37,7 @@ import typing
 
 import numpy as np
 from scipy.interpolate import interp1d
+import scipy.integrate
 
 if not typing.TYPE_CHECKING:
     from memoization import cached
@@ -473,38 +474,47 @@ Virus.types = {
 
 @dataclass(frozen=True)
 class Mask:
-    #: Filtration efficiency. (In %/100)
-    η_exhale: _VectorisedFloat
-
-    #: Leakage through side of masks.
-    η_leaks: _VectorisedFloat
-
     #: Filtration efficiency of masks when inhaling.
     η_inhale: _VectorisedFloat
+
+    #: Global factor applied to filtration efficiency of masks when exhaling.
+    factor_exhale: float = 1.
 
     #: Pre-populated examples of Masks.
     types: typing.ClassVar[typing.Dict[str, "Mask"]]
 
     def exhale_efficiency(self, diameter: float) -> _VectorisedFloat:
-        # Overall efficiency with the effect of the leaks for aerosol emission
-        #  Gammaitoni et al (1997). Diameter is in cm.
-        if diameter < 3e-4:
+        """
+        Overall exhale efficiency, including the effect of the leaks.
+        See CERN-OPEN-2021-004 (doi: 10.17181/CERN.1GDQ.5Y75), and Ref.
+        therein (Asadi 2020).
+        Obtained from measurements of filtration efficiency and of
+        the leakage through the sides.
+        Diameter is in microns.
+        """
+        if diameter < 0.5:
             eta_out = 0.
+        elif diameter < 0.94614:
+            eta_out = 0.5893 * diameter + 0.1546
+        elif diameter < 3.:
+            eta_out = 0.0509 * diameter + 0.664
         else:
-            eta_out = self.η_exhale * (1 - self.η_leaks)
-        return eta_out
+            eta_out = 0.8167
+        return eta_out*self.factor_exhale
+
+    def inhale_efficiency(self) -> _VectorisedFloat:
+        """
+        Overall inhale efficiency, including the effect of the leaks.
+        """
+        return self.η_inhale
 
 
 Mask.types = {
-    'No mask': Mask(0, 0, 0),
+    'No mask': Mask(0, 0),
     'Type I': Mask(
-        η_exhale=0.95,
-        η_leaks=0.15,  # (Huang 2007)
-        η_inhale=0.3,  # (Browen 2010)
+        η_inhale=0.5,  # (CERN-OPEN-2021-004)
     ),
     'FFP2': Mask(
-        η_exhale=0.95,  # (same outward effect as type 1 - Asadi 2020)
-        η_leaks=0.15,  # (same outward effect as type 1 - Asadi 2020)
         η_inhale=0.865,  # (94% penetration efficiency + 8% max inward leakage -> EN 149)
     ),
 }
@@ -516,35 +526,59 @@ class _ExpirationBase:
     Represents the expiration of aerosols by a person.
     Subclasses of _ExpirationBase represent different models.
     """
-    #: Pre-populated examples of Masks.
+    #: Pre-populated examples of Expirations.
     types: typing.ClassVar[typing.Dict[str, "_ExpirationBase"]]
 
     def aerosols(self, mask: Mask):
-        # total volume of aerosols expired per volume of air (mL/cm^3).
+        """
+        total volume of aerosols expired per volume of air (mL/cm^3).
+        """
         raise NotImplementedError("Subclass must implement")
 
 
 @dataclass(frozen=True)
 class Expiration(_ExpirationBase):
     """
-    Simple model based on four different sizes of particles emitted,
-    with different ejection factors. See Fig. 4 in L. Morawska et al,
-    Size distribution and sites of origin of droplets expelled from the
-    human respiratory tract during expiratory activities,
-    Aerosol Science 40 (2009) pp. 256 - 269.
+    BLO model for the expiration (G. Johnson et al., Modality of human
+    expired aerosol size distributions, Journal of Aerosol Science,
+    vol. 42, no. 12, pp. 839 – 851, 2011,
+    https://doi.org/10.1016/j.jaerosci.2011.07.009).
+    Here all diameters (d) are in microns.
     """
-    ejection_factor: typing.Tuple[float, ...]
-    particle_sizes: typing.Tuple[float, ...] = (0.8e-4, 1.8e-4, 3.5e-4, 5.5e-4)  # In cm.
+    #: factors assigned to resp. the B, L and O modes. They are
+    # charateristics of the kind of expiratory activity (e.g. breathing,
+    # speaking, singing, or shouting).
+    BLO_factors: typing.Tuple[float, float, float]
 
+    @cached()
     def aerosols(self, mask: Mask):
-        def volume(diameter):
-            return (4 * np.pi * (diameter/2)**3) / 3
-        total = 0
-        for diameter, factor in zip(self.particle_sizes, self.ejection_factor):
-            contribution = (volume(diameter) * factor *
-                            (1 - mask.exhale_efficiency(diameter)))
-            total += contribution
-        return total
+        """ Result is in mL.cm^-3 """
+        def volume(d):
+            return (np.pi * d**3) / 6.
+
+        def _Bmode(d: float) -> float:
+            # B-mode (see ref. above).
+            return ( (1 / d) * (0.1 / (np.sqrt(2 * np.pi) * 0.262364)) *
+                    np.exp(-1 * (np.log(d) - 0.989541) ** 2 / (2 * 0.262364 ** 2)))
+
+        def _Lmode(d: float) -> float:
+            # L-mode (see ref. above).
+            return ( (1 / d) * (1.0 / (np.sqrt(2 * np.pi) * 0.506818)) *
+                    np.exp(-1 * (np.log(d) - 1.38629) ** 2 / (2 * 0.506818 ** 2)))
+
+        def _Omode(d: float) -> float:
+            # O-mode (see ref. above).
+            return ( (1 / d) * (0.0010008 / (np.sqrt(2 * np.pi) * 0.585005)) *
+                    np.exp(-1 * (np.log(d) - 4.97673) ** 2 / (2 * 0.585005 ** 2)))
+
+        def integrand(d: float) -> float:
+            return (self.BLO_factors[0] * _Bmode(d) +
+                    self.BLO_factors[1] * _Lmode(d) +
+                    self.BLO_factors[2] * _Omode(d)
+                    ) * volume(d) * (1 - mask.exhale_efficiency(d))
+
+        # final result converted from microns^3/cm3 to mL/cm^3
+        return scipy.integrate.quad(integrand, 0.1, 30.)[0]*1e-12
 
 
 @dataclass(frozen=True)
@@ -572,17 +606,20 @@ class MultipleExpiration(_ExpirationBase):
 
 
 _ExpirationBase.types = {
-    'Breathing': Expiration((0.084, 0.009, 0.003, 0.002)),
-    'Whispering': Expiration((0.11, 0.014, 0.004, 0.002)),
-    'Talking': Expiration((0.236, 0.068, 0.007, 0.011)),
-    'Unmodulated Vocalization': Expiration((0.751, 0.139, 0.0139, 0.059)),
-    'Superspreading event': Expiration((np.inf, np.inf, np.inf, np.inf)),
+    'Breathing': Expiration((1., 0., 0.)),
+    'Talking': Expiration((1., 1., 1.)),
+    'Shouting': Expiration((1., 5., 5.)),
+    'Singing': Expiration((1., 5., 5.)),
+    'Superspreading event': Expiration((np.inf, 0., 0.)),
 }
 
 
 @dataclass(frozen=True)
 class Activity:
+    #: Inhalation rate in m^3/h
     inhalation_rate: _VectorisedFloat
+
+    #: Exhalation rate in m^3/h
     exhalation_rate: _VectorisedFloat
 
     #: Pre-populated examples of activities.
@@ -637,6 +674,8 @@ class InfectedPopulation(Population):
 
         """
         # Emission Rate (infectious quantum / h)
+        # Note on units: exhalation rate is in m^3/h, aerosols in mL/cm^3
+        # and viral load in virus/mL -> 1e6 conversion factor
         aerosols = self.expiration.aerosols(self.mask)
 
         ER = (self.virus.viral_load_in_sputum *
@@ -672,7 +711,6 @@ class InfectedPopulation(Population):
 
         return self.emission_rate_when_present()
 
-    @cached()
     def emission_rate(self, time) -> _VectorisedFloat:
         """
         The emission rate of the entire population.
@@ -692,8 +730,8 @@ class ConcentrationModel:
         return self.infected.virus
 
     def infectious_virus_removal_rate(self, time: float) -> _VectorisedFloat:
-        # Particle deposition on the floor
-        vg = 1 * 10 ** -4
+        # Particle deposition on the floor (value from CERN-OPEN-2021-04)
+        vg = 1.88e-4
         # Height of the emission source to the floor - i.e. mouth/nose (m)
         h = 1.5
         # Deposition rate (h^-1)
@@ -702,7 +740,6 @@ class ConcentrationModel:
         return k + self.virus.decay_constant(self.room.humidity
                     ) + self.ventilation.air_exchange(self.room, time)
 
-    @cached()
     def _concentration_limit(self, time: float) -> _VectorisedFloat:
         """
         Provides a constant that represents the theoretical asymptotic 
@@ -714,7 +751,6 @@ class ConcentrationModel:
 
         return (self.infected.emission_rate(time)) / (IVRR * V)
 
-    @cached()
     def state_change_times(self):
         """
         All time dependent entities on this model must provide information about
@@ -759,6 +795,9 @@ class ConcentrationModel:
         return (self.last_state_change(stop) <= start)
 
     @cached()
+    def _concentration_at_state_change(self, time: float) -> _VectorisedFloat:
+        return self.concentration(time)
+
     def concentration(self, time: float) -> _VectorisedFloat:
         """
         Virus quanta concentration, as a function of time.
@@ -777,7 +816,7 @@ class ConcentrationModel:
         concentration_limit = self._concentration_limit(next_state_change_time)
 
         t_last_state_change = self.last_state_change(time)
-        concentration_at_last_state_change = self.concentration(t_last_state_change)
+        concentration_at_last_state_change = self._concentration_at_state_change(t_last_state_change)
 
         delta_time = time - t_last_state_change
         fac = np.exp(-IVRR * delta_time)
@@ -821,6 +860,9 @@ class ExposureModel:
     #: The number of times the exposure event is repeated (default 1).
     repeats: int = 1
 
+    #: The fraction of viruses actually deposited in the respiratory tract
+    fraction_deposited: _VectorisedFloat = 0.6
+
     def quanta_exposure(self) -> _VectorisedFloat:
         """The number of virus quanta per meter^3."""
         exposure = 0.0
@@ -835,8 +877,8 @@ class ExposureModel:
 
         inf_aero = (
             self.exposed.activity.inhalation_rate *
-            (1 - self.exposed.mask.η_inhale) *
-            exposure
+            (1 - self.exposed.mask.inhale_efficiency()) *
+            exposure * self.fraction_deposited
         )
 
         # Probability of infection.

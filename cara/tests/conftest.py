@@ -7,11 +7,9 @@ import pytest
 def baseline_model():
     model = models.ConcentrationModel(
         room=models.Room(volume=75),
-        ventilation=models.SlidingWindow(
-            active=models.PeriodicInterval(period=120, duration=120),
-            inside_temp=models.PiecewiseConstant((0,24),(293,)),
-            outside_temp=models.PiecewiseConstant((0,24),(283,)),
-            window_height=1.6, opening_length=0.6,
+        ventilation=models.AirChange(
+            active=models.SpecificInterval(((0,24),)),
+            air_exch=30.,
         ),
         infected=models.InfectedPopulation(
             number=1,
@@ -19,7 +17,7 @@ def baseline_model():
             presence=models.SpecificInterval(((0, 4), (5, 8))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
-            expiration=models.Expiration.types['Unmodulated Vocalization'],
+            expiration=models.Expiration.types['Superspreading event'],
         ),
     )
     return model
@@ -30,9 +28,10 @@ def baseline_exposure_model(baseline_model):
     return models.ExposureModel(
         baseline_model,
         exposed=models.Population(
-            number=10,
+            number=1000,
             presence=baseline_model.infected.presence,
             activity=baseline_model.infected.activity,
             mask=baseline_model.infected.mask,
-        )
+        ),
+        fraction_deposited = 1.,
     )

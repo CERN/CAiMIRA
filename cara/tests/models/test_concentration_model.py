@@ -1,6 +1,7 @@
 import re
 
 import numpy as np
+import numpy.testing as npt
 import pytest
 
 from cara import models
@@ -13,8 +14,6 @@ from cara import models
         {'air_change': np.array([100, 120])},
         {'viral_load_in_sputum': np.array([5e8, 1e9])},
         {'quantum_infectious_dose': np.array([50, 20])},
-        {'η_exhale': np.array([0.92, 0.95])},
-        {'η_leaks': np.array([0.15, 0.20])},
     ]
 )
 def test_concentration_model_vectorisation(override_params):
@@ -24,8 +23,6 @@ def test_concentration_model_vectorisation(override_params):
         'air_change': 100,
         'viral_load_in_sputum': 1e9,
         'quantum_infectious_dose': 50,
-        'η_exhale': 0.95,
-        'η_leaks': 0.15,
     }
     defaults.update(override_params)
 
@@ -37,8 +34,7 @@ def test_concentration_model_vectorisation(override_params):
             number=1,
             presence=always,
             mask=models.Mask(
-                η_exhale=defaults['η_exhale'],
-                η_leaks=defaults['η_leaks'],
+                factor_exhale=0.95,
                 η_inhale=0.3,
             ),
             activity=models.Activity(
@@ -49,9 +45,7 @@ def test_concentration_model_vectorisation(override_params):
                 viral_load_in_sputum=defaults['viral_load_in_sputum'],
                 quantum_infectious_dose=defaults['quantum_infectious_dose'],
             ),
-            expiration=models.Expiration(
-                ejection_factor=(0.084, 0.009, 0.003, 0.002),
-            ),
+            expiration=models.Expiration((1., 0., 0.)),
         )
     )
     concentrations = c_model.concentration(10)
@@ -128,4 +122,4 @@ def test_integrated_concentration(simple_conc_model):
     c2 = simple_conc_model.integrated_concentration(0, 1)
     c3 = simple_conc_model.integrated_concentration(1, 2)
     assert c1 != 0
-    assert c1 == c2 + c3
+    npt.assert_almost_equal(c1, c2 + c3, decimal=15)

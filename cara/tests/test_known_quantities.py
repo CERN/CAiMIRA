@@ -6,21 +6,12 @@ import cara.models as models
 import cara.data as data
 
 
-def test_no_mask_aerosols(baseline_model):
-    exp = models.Expiration.types['Unmodulated Vocalization']
-    npt.assert_allclose(
-        exp.aerosols(models.Mask.types['No mask']),
-        6.077541e-12,
-        rtol=1e-5,
-    )
-
-
-def test_no_mask_emission_rate(baseline_model):
-    rate = 151.938514
+def test_no_mask_superspeading_emission_rate(baseline_model):
+    expected_rate = 970.
     npt.assert_allclose(
         [baseline_model.infected.emission_rate(t) for t in [0, 1, 4, 4.5, 5, 8, 9]],
-        [0, rate, rate, 0, 0, rate, 0],
-        rtol=1e-5
+        [0, expected_rate, expected_rate, 0, 0, expected_rate, 0],
+        rtol=1e-12
     )
 
 
@@ -48,23 +39,24 @@ def baseline_periodic_hepa():
 
 
 def test_concentrations(baseline_model):
+    # expected concentrations were computed analytically
     ts = [0, 4, 5, 7, 10]
     concentrations = [baseline_model.concentration(t) for t in ts]
     npt.assert_allclose(
         concentrations,
-        [0.000000e+00, 2.619538e-01, 1.146999e-04, 2.619537e-01, 5.022289e-08],
-        rtol=1e-5
+        [0.000000e+00, 0.41611256, 1.3205628e-14, 0.41611256, 4.1909001e-28],
+        rtol=1e-6
     )
 
 
 def test_smooth_concentrations(baseline_model):
     # We don't care about the actual concentrations in this test, but rather
     # that the curve itself is smooth.
-    dx = 0.1
-    dy_limit = dx * 2  # Anything more than this is a bit steep.
+    dx = 0.002
+    dy_limit = 0.2  # Anything more than this (in relative) is a bit steep.
     ts = np.arange(0, 10, dx)
     concentrations = [baseline_model.concentration(t) for t in ts]
-    assert np.abs(np.diff(concentrations)).max() < dy_limit
+    assert np.abs(np.diff(concentrations)).max()/np.mean(concentrations) < dy_limit
 
 
 def build_model(interval_duration):
@@ -80,7 +72,7 @@ def build_model(interval_duration):
             presence=models.SpecificInterval(((0, 4), (5, 8))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
-            expiration=models.Expiration.types['Unmodulated Vocalization'],
+            expiration=models.Expiration.types['Superspreading event'],
         ),
     )
     return model
@@ -98,8 +90,8 @@ def test_concentrations_startup(baseline_model):
 def test_r0(baseline_exposure_model):
     # expected r0 was computed with a trapezoidal integration, using
     # a mesh of 100'000 pts per exposed presence interval.
-    p = baseline_exposure_model.infection_probability()
-    npt.assert_allclose(p, 89.001748)
+    r0 = baseline_exposure_model.reproduction_number()
+    npt.assert_allclose(r0, 972.880852)
 
 
 def test_periodic_window(baseline_periodic_window, baseline_room):
@@ -183,15 +175,6 @@ def test_multiple_ventilation_HEPA_HVAC_AirChange(volume, expected_value):
                         expected_value,rtol=1e-5)
 
 
-def test_expiration_aerosols():
-    mask = models.Mask.types['Type I']
-    exp1 = models.Expiration((0.751, 0.139, 0.0139, 0.059),
-                            particle_sizes = (0.8e-4, 1.8e-4, 3.5e-4, 5.5e-4))
-    exp2 = models.Expiration((0.059, 0.0139, 0.751, 0.139),
-                            particle_sizes = (5.5e-4, 3.5e-4, 0.8e-4, 1.8e-4))
-    npt.assert_allclose(exp1.aerosols(mask), exp2.aerosols(mask), rtol=1e-5)
-
-
 @pytest.mark.parametrize(
     "time, expected_value",
     [
@@ -239,7 +222,7 @@ def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),),
             presence=models.SpecificInterval(intervals_presence_infected),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
-            expiration=models.Expiration.types['Unmodulated Vocalization'],
+            expiration=models.Expiration.types['Superspreading event'],
         ),
     )
     return model
@@ -260,7 +243,7 @@ def build_constant_temp_model(outside_temp, intervals_open=((7.5, 8.5),)):
             presence=models.SpecificInterval(((0, 4), (5, 7.5))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
-            expiration=models.Expiration.types['Unmodulated Vocalization'],
+            expiration=models.Expiration.types['Superspreading event'],
         ),
     )
     return model
@@ -287,7 +270,7 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
             presence=models.SpecificInterval(((0, 4), (5, 7.5))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
-            expiration=models.Expiration.types['Unmodulated Vocalization'],
+            expiration=models.Expiration.types['Superspreading event'],
         ),
     )
     return model
@@ -366,20 +349,21 @@ def build_exposure_model(concentration_model):
             presence=infected.presence,
             activity=infected.activity,
             mask=infected.mask,
-        )
+        ),
+        fraction_deposited = 1.,
     )
 
 
-# expected r0 were computed with a trapezoidal integration, using
+# expected quanta were computed with a trapezoidal integration, using
 # a mesh of 100'000 pts per exposed presence interval.
 @pytest.mark.parametrize(
-    "month, expected_r0",
+    "month, expected_quanta",
     [
-        ['Jan', 86.258533],
-        ['Jun', 99.972103],
+        ['Jan', 9.930854],
+        ['Jun', 37.962708],
     ],
 )
-def test_r0_hourly_dep(month,expected_r0):
+def test_quanta_hourly_dep(month,expected_quanta):
     m = build_exposure_model(
         build_hourly_dependent_model(
             month,
@@ -387,19 +371,20 @@ def test_r0_hourly_dep(month,expected_r0):
             intervals_presence_infected=((8, 12), (13, 17))
         )
     )
-    p = m.infection_probability()
-    npt.assert_allclose(p, expected_r0)
+    quanta = m.quanta_exposure()
+    npt.assert_allclose(quanta, expected_quanta)
 
-# expected r0 were computed with a trapezoidal integration, using
-# a mesh of 100'000 pts per exposed presence interval.
+# expected quanta were computed with a trapezoidal integration, using
+# a mesh of 100'000 pts per exposed presence interval and 25 pts per hour
+# for the temperature discretization.
 @pytest.mark.parametrize(
-    "month, expected_r0",
+    "month, expected_quanta",
     [
-        ['Jan', 86.422736],
-        ['Jun', 99.982323],
+        ['Jan', 9.993842],
+        ['Jun', 40.151985],
     ],
 )
-def test_r0_hourly_dep_refined(month,expected_r0):
+def test_quanta_hourly_dep_refined(month,expected_quanta):
     m = build_exposure_model(
         build_hourly_dependent_model(
             month,
@@ -408,5 +393,5 @@ def test_r0_hourly_dep_refined(month,expected_r0):
             temperatures=data.GenevaTemperatures,
         )
     )
-    p = m.infection_probability()
-    npt.assert_allclose(p, expected_r0)
+    quanta = m.quanta_exposure()
+    npt.assert_allclose(quanta, expected_quanta, rtol=0.02)
