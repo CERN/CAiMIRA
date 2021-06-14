@@ -198,7 +198,7 @@
                 env:
                 - name: APP_NAME
                   value: cara-voila
-                image: '${PROJECT_NAME}/cara-webservice'
+                image: '${PROJECT_NAME}/cara-app'
                 ports:
                   - containerPort: 8080
                     protocol: TCP
@@ -211,7 +211,7 @@
                 - cara-app
               from:
                 kind: ImageStreamTag
-                name: 'cara-webservice:latest'
+                name: 'cara-app:latest'
                 namespace: ${PROJECT_NAME}
     -
       apiVersion: v1
@@ -267,8 +267,10 @@
                       name: auth-service-secrets
                 - name: APP_NAME
                   value: cara-webservice
+                - name: CARA_CALCULATOR_PREFIX
+                  value: /calculator-cern
                 - name: CARA_THEME
-                    value: cara/apps/calculator/themes/cern
+                  value: cara/apps/calculator/themes/cern
                 image: '${PROJECT_NAME}/cara-webservice'
                 ports:
                   - containerPort: 8080
@@ -280,6 +282,41 @@
               automatic: true
               containerNames:
                 - cara-webservice
+              from:
+                kind: ImageStreamTag
+                name: 'cara-webservice:latest'
+                namespace: ${PROJECT_NAME}
+          - type: ConfigChange
+    -
+      apiVersion: v1
+      kind: DeploymentConfig
+      metadata:
+        name: cara-calculator-open
+      spec:
+        replicas;: 1
+        template:
+          metadata:
+            labels:
+              app: cara-calculator-open
+          spec:
+            containers:
+              - name: cara-calculator-open
+                env:
+                - name: APP_NAME
+                  value: cara-webservice
+                - name: CARA_CALCULATOR_PREFIX
+                  value: /calculator-open
+                image: '${PROJECT_NAME}/cara-webservice'
+                ports:
+                  - containerPort: 8080
+                    protocol: TCP
+        triggers:
+          - type: ConfigChange
+          - type: ImageChange
+            imageChangeParams:
+              automatic: true
+              containerNames:
+                - cara-calculator-open
               from:
                 kind: ImageStreamTag
                 name: 'cara-webservice:latest'

@@ -66,27 +66,40 @@ class TestCernApp(tornado.testing.AsyncHTTPTestCase):
         assert 'CERN HSE' in response.body.decode()
         assert 'expected number of new cases is' in response.body.decode()
 
+class TestOpenApp(tornado.testing.AsyncHTTPTestCase):
+    def get_app(self):
+        return cara.apps.calculator.make_app(calculator_prefix="/mycalc")
+
+    @tornado.testing.gen_test(timeout=_TIMEOUT)
+    def test_report(self):
+        response = yield self.http_client.fetch(self.get_url('/mycalc/baseline-model/result'))
+        self.assertEqual(response.code, 200)
+
+    def test_calculator_404(self):
+        response = self.fetch('/calculator')
+        assert response.code == 404
+
 
 async def test_qrcode_urls(http_server_client, baseline_form):
-    prefix = 'proto://hostname/prefix'
-    qr_data = generate_qr_code(prefix, baseline_form)
-    expected = f'{prefix}/calculator?exposed_coffee_break_option={baseline_form.exposed_coffee_break_option}&'
+    base_url = 'proto://hostname/prefix'
+    qr_data = generate_qr_code(base_url, "/calculator", baseline_form)
+    expected = f'{base_url}/calculator?exposed_coffee_break_option={baseline_form.exposed_coffee_break_option}&'
     assert qr_data['link'].startswith(expected)
 
     # We should get a 200 for the link.
-    response = await http_server_client.fetch(qr_data['link'].replace(prefix, ''))
+    response = await http_server_client.fetch(qr_data['link'].replace(base_url, ''))
     assert response.code == 200
 
     # And a 302 for the QR url itself. The redirected URL should be the same as
     # in the link.
-    assert qr_data['qr_url'].startswith(prefix)
+    assert qr_data['qr_url'].startswith(base_url)
     response = await http_server_client.fetch(
-        qr_data['qr_url'].replace(prefix, ''),
+        qr_data['qr_url'].replace(base_url, ''),
         max_redirects=0,
         raise_error=False,
     )
     assert response.code == 302
-    assert response.headers['Location'] == qr_data['link'].replace(prefix, '')
+    assert response.headers['Location'] == qr_data['link'].replace(base_url, '')
 
 
 async def test_invalid_compressed_url(http_server_client, baseline_form):

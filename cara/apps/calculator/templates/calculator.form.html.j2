@@ -5,12 +5,12 @@
 
 {% block extra_headers %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" integrity="sha512-aOG0c6nPNzGk+5zjwyJaoRUgCdOrfSDhmMID2u4+OIslr0GjpLKo7Xm0Ao3xmpM4T8AmIouRkqwj1nrdVsLKEQ==" crossorigin="anonymous">
-    <link rel="stylesheet" href="/calculator/static/css/form.css">
+    <link rel="stylesheet" href="{{ calculator_prefix }}/static/css/form.css">
 {% endblock extra_headers %}
 
 {% block body_scripts %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" integrity="sha512-uto9mlQzrs59VwILcLiRYeLKPPbS/bT71da/OEBYEwcdNUk8jYIy+D176RYoop1Da+f9mvkYrmj5MCLZWEtQuA==" crossorigin="anonymous"></script>
-    <script src="/calculator/static/js/form.js"></script>
+    <script src="{{ calculator_prefix }}/static/js/form.js"></script>
 {% endblock body_scripts %}
 
 
@@ -28,7 +28,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
 {% if DEBUG %}
 <form id="covid_calculator" name="covid_calculator" onsubmit="return debug_submit(this)" class="form-inline">
 {% else %}
-<form id="covid_calculator" name="covid_calculator" action="/calculator/report" onsubmit="return validate_form(this)" method="POST">
+<form id="covid_calculator" name="covid_calculator" action="{{ calculator_prefix }}/report" onsubmit="return validate_form(this)" method="POST">
 {% endif %}
 {{ xsrf_form_html }}
 
@@ -129,23 +129,23 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
     <div id="DIVnatural_ventilation" class="tabbed" style="display:none">
         Number of windows: <input type="number" id="windows_number" class="non_zero" name="windows_number" min="1"><br>
         Height of window: <input type="number" step="any" id="window_height" class="non_zero" name="window_height" placeholder="meters" min="0"><br>
-        Window type: 
+        Window type:
         <input type="radio" id="window_sliding" name="window_type" value="window_sliding" onclick="require_fields(this)" checked="checked">
           <label for="window_sliding">Sliding / Side-Hung</label>&nbsp;&nbsp;
         <input type="radio" id="window_hinged" name="window_type" value="window_hinged" onclick="require_fields(this)">
           <label for="window_hinged">Top- or Bottom-Hung</label>&nbsp;&nbsp;<br>
         Width of window: <input type="number" step="any" id="window_width" class="non_zero disabled" name="window_width" placeholder="meters" min="0" data-has-radio="#window_hinged"><br>
         Opening distance: <input type="number" step="any" id="opening_distance" class="non_zero" name="opening_distance" placeholder="meters" min="0"><br>
-        Windows open:</span><br> 
+        Windows open:</span><br>
         <span class="tabbed"><input type="radio" id="windows_open_permanently" name="window_opening_regime" value="windows_open_permanently" onclick="require_fields(this)" checked="checked"></span>
           <label for="windows_open_permanently">Permanently</label><br>
         <span class="tabbed"><input type="radio" id="windows_open_periodically" name="window_opening_regime" value="windows_open_periodically" onclick="require_fields(this)"></span>
           <label for="windows_open_periodically">Periodically:</label>&nbsp;&nbsp;
-        <input type="number" step="any" id="windows_duration" class="non_zero disabled" name="windows_duration" placeholder="Duration (min)" min="1" data-has-radio="#windows_open_periodically"> / 
+        <input type="number" step="any" id="windows_duration" class="non_zero disabled" name="windows_duration" placeholder="Duration (min)" min="1" data-has-radio="#windows_open_periodically"> /
         <input type="number" step="any" id="windows_frequency" class="non_zero disabled" name="windows_frequency" placeholder="Frequency (min)" min="1" data-has-radio="#windows_open_periodically">
         <br>
     </div>
-    
+
     HEPA filtration:
     <input type="radio" id="hepa_no" name="hepa_option" value=0 onclick="require_fields(this)" checked="checked">
       <label for="hepa_no">No</label>&nbsp;&nbsp;
@@ -192,7 +192,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
     <span id="training_limit_error" class="red_text" hidden>Training activities limited to 1 infected<br></span>
     <hr width="80%">
 
-    Activity type: 
+    Activity type:
     <select id="activity_type" name="activity_type">
       <option value="office">Office</option>
       <option value="meeting">Meeting</option>
@@ -205,7 +205,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
       <option value="training">Training</option>
       <option value="gym">Gym</option>
     </select><br>
-    Exposed person(s) presence: <br>         
+    Exposed person(s) presence: <br>
     <span class="tabbed">Start: </span><input type="time" id="exposed_start" class="start_time" data-time-group="exposed" data-lunch-break="exposed_lunch" name="exposed_start" value="08:30" required> &nbsp;&nbsp;
     Finish: <input type="time" id="exposed_finish" class="finish_time" data-time-group="exposed" data-lunch-break="exposed_lunch" name="exposed_finish" value="17:30" required><br>
     Infected person(s) presence: <br>
@@ -236,7 +236,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
         <span class="tooltip_text">?</span>
       </div>
     </span><br>
-    
+
     <!-- Lunch Options -->
     <input type="checkbox" id="infected_dont_have_breaks_with_exposed" name="infected_dont_have_breaks_with_exposed" value='1' onclick="toggle_split_breaks()">
       <label for="infected_dont_have_breaks_with_exposed">Input separate breaks for infected and exposed person(s)</label><br>
@@ -248,7 +248,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
           <label for="exposed_lunch_option_no">No</label>&nbsp;&nbsp;
         <input type="radio" id="exposed_lunch_option_yes" data-lunch-select="exposed" name="exposed_lunch_option" value=1 checked="checked" onclick="require_fields(this)">
           <label for="exposed_lunch_option_yes">Yes</label><br>
-        
+
         Start: <input type="time" id="exposed_lunch_start" class="start_time" data-time-group="exposed_lunch" data-lunch-for="exposed" data-has-radio="#exposed_lunch_option_yes" name="exposed_lunch_start" value="12:30" required> &nbsp;&nbsp;
         Finish: <input type="time" id="exposed_lunch_finish" class="finish_time" data-time-group="exposed_lunch" data-lunch-for="exposed" data-has-radio="#exposed_lunch_option_yes" name="exposed_lunch_finish" value="13:30" required><br>
 
@@ -261,7 +261,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
         <input type="radio" id="exposed_coffee_break_4" name="exposed_coffee_break_option" value="coffee_break_4">
           <label for="exposed_coffee_break_4">4</label><br>
 
-        Duration (minutes): 
+        Duration (minutes):
         <select id="exposed_coffee_duration" name="exposed_coffee_duration">
           <option value="5">5</option>
           <option value="10">10</option>
@@ -282,7 +282,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
           <label for="infected_lunch_option_no">No</label>&nbsp;&nbsp;
         <input type="radio" id="infected_lunch_option_yes" data-lunch-select="infected" name="infected_lunch_option" value=1 checked="checked" onclick="require_fields(this)">
           <label for="infected_lunch_option_yes">Yes</label><br>
-        
+
         Start: <input type="time" id="infected_lunch_start" class="start_time" data-time-group="infected_lunch" data-lunch-for="infected" data-has-radio="#infected_lunch_option_yes" name="infected_lunch_start" value="12:30"> &nbsp;&nbsp;
         Finish: <input type="time" id="infected_lunch_finish" class="finish_time" data-time-group="infected_lunch" data-lunch-for="infected" data-has-radio="#infected_lunch_option_yes" name="infected_lunch_finish" value="13:30"><br>
 
@@ -295,7 +295,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
         <input type="radio" id="infected_coffee_break_4" name="infected_coffee_break_option" value="coffee_break_4">
           <label for="infected_coffee_break_4">4</label><br>
 
-        Duration (minutes): 
+        Duration (minutes):
         <select id="infected_coffee_duration" name="infected_coffee_duration">
           <option value="5">5</option>
           <option value="10">10</option>
@@ -307,7 +307,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
       </div>
       <br>
     </div>
-    
+
     <br style="clear:both;">
     <i>Coffee breaks are spread evenly throughout the day.</i><br>
     <hr width="80%">
@@ -363,7 +363,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
     <li>If coffee breaks are included, they are spread out evenly throughout the day,
     in addition to any lunch break (if applicable).</li>
   </ul>
-  Refer to <a href="/calculator/user-guide"> COVID Calculator App user guide </a>
+  Refer to <a href="{{ calculator_prefix }}/user-guide"> COVID Calculator App user guide </a>
   for more detailed explanations on how to use this tool. <br>
 </div>
 

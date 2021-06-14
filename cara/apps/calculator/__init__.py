@@ -66,6 +66,7 @@ class BaseRequestHandler(RequestHandler):
             print(traceback.format_exc())
         self.finish(template.render(
             user=self.current_user,
+            calculator_prefix=self.settings["calculator_prefix"],
             active_page='Error',
             contents=contents
         ))
@@ -79,6 +80,7 @@ class Missing404Handler(BaseRequestHandler):
             "page.html.j2")
         self.finish(template.render(
             user=self.current_user,
+            calculator_prefix=self.settings["calculator_prefix"],
             active_page='Error',
             contents='Unfortunately the page you were looking for does not exist.<br><br><br><br>'
         ))
@@ -123,7 +125,10 @@ class LandingPage(BaseRequestHandler):
     def get(self):
         template = self.settings["template_environment"].get_template(
             "index.html.j2")
-        report = template.render(user=self.current_user)
+        report = template.render(
+            user=self.current_user,
+            calculator_prefix=self.settings["calculator_prefix"],
+        )
         self.finish(report)
 
 
@@ -133,6 +138,7 @@ class AboutPage(BaseRequestHandler):
         template = template_environment.get_template("about.html.j2")
         report = template.render(
             user=self.current_user,
+            calculator_prefix=self.settings["calculator_prefix"],
             active_page="about",
             text_blocks=template_environment.globals['common_text']
         )
@@ -146,6 +152,7 @@ class CalculatorForm(BaseRequestHandler):
         report = template.render(
             user=self.current_user,
             xsrf_form_html=self.xsrf_form_html(),
+            calculator_prefix=self.settings["calculator_prefix"],
             calculator_version=__version__,
         )
         self.finish(report)
@@ -160,7 +167,7 @@ class CompressedCalculatorFormInputs(BaseRequestHandler):
         except Exception as err:  # noqa
             self.set_status(400)
             return self.finish("Invalid calculator data: it seems incomplete. Was there an error copying & pasting the URL?")
-        self.redirect(f'/calculator?{args}')
+        self.redirect(f'{self.settings["calculator_prefix"]}?{args}')
 
 
 class ReadmeHandler(BaseRequestHandler):
@@ -168,14 +175,15 @@ class ReadmeHandler(BaseRequestHandler):
         template = self.settings['template_environment'].get_template("userguide.html.j2")
         readme = template.render(
             active_page="calculator/user-guide",
-            user=self.current_user
+            user=self.current_user,
+            calculator_prefix=self.settings["calculator_prefix"],
         )
         self.finish(readme)
 
 
 def make_app(
         debug: bool = False,
-        prefix: str = '/calculator',
+        calculator_prefix: str = '/calculator',
         theme_dir: typing.Optional[Path] = None,
 ) -> Application:
     static_dir = Path(__file__).absolute().parent.parent / 'static'
@@ -185,11 +193,11 @@ def make_app(
         (r'/_c/(.*)', CompressedCalculatorFormInputs),
         (r'/about', AboutPage),
         (r'/static/(.*)', StaticFileHandler, {'path': static_dir}),
-        (prefix + r'/?', CalculatorForm),
-        (prefix + r'/report', ConcentrationModel),
-        (prefix + r'/baseline-model/result', StaticModel),
-        (prefix + r'/user-guide', ReadmeHandler),
-        (prefix + r'/static/(.*)', StaticFileHandler, {'path': calculator_static_dir}),
+        (calculator_prefix + r'/?', CalculatorForm),
+        (calculator_prefix + r'/report', ConcentrationModel),
+        (calculator_prefix + r'/baseline-model/result', StaticModel),
+        (calculator_prefix + r'/user-guide', ReadmeHandler),
+        (calculator_prefix + r'/static/(.*)', StaticFileHandler, {'path': calculator_static_dir}),
     ]
 
     cara_templates = Path(__file__).parent.parent / "templates"
@@ -210,9 +218,10 @@ def make_app(
     return Application(
         urls,
         debug=debug,
+        calculator_prefix=calculator_prefix,
         template_environment=template_environment,
         default_handler_class=Missing404Handler,
-        report_generator=ReportGenerator(loader),
+        report_generator=ReportGenerator(loader, calculator_prefix),
         xsrf_cookies=True,
         # COOKIE_SECRET being undefined will result in no login information being
         # presented to the user.

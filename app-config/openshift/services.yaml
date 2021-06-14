@@ -15,6 +15,21 @@
       kind: Service
       metadata:
         labels:
+          app: auth-service
+        name: auth-service
+      spec:
+        ports:
+          - name: 8080-tcp
+            port: 8080
+            protocol: TCP
+            targetPort: 8080
+        selector:
+          deploymentconfig: auth-service
+    -
+      apiVersion: v1
+      kind: Service
+      metadata:
+        labels:
           app: cara-app
         name: cara-app
       spec:
@@ -24,7 +39,7 @@
             protocol: TCP
             targetPort: 8080
         selector:
-          app: cara-app
+          deploymentconfig: cara-app
     -
       apiVersion: v1
       kind: Service
@@ -43,7 +58,7 @@
             protocol: TCP
             targetPort: 8443
         selector:
-          app: cara-router
+          deploymentconfig: cara-router
     -
       apiVersion: v1
       kind: Service
@@ -58,4 +73,19 @@
             protocol: TCP
             targetPort: 8080
         selector:
-          app: cara-webservice
+          deploymentconfig: cara-webservice
+    -
+      apiVersion: v1
+      kind: Service
+      metadata:
+        labels:
+          app: cara-calculator-open
+        name: cara-calculator-open
+      spec:
+        ports:
+          - name: 8080-tcp
+            port: 8080
+            protocol: TCP
+            targetPort: 8080
+        selector:
+          deploymentconfig: cara-calculator-open

@@ -10,6 +10,10 @@ if [[ "$APP_NAME" == "cara-webservice" ]]; then
         args+=("--theme=${CARA_THEME}")
     fi
 
+    if [ ! -z "$CARA_CALCULATOR_PREFIX" ]; then
+        args+=("--prefix=${CARA_CALCULATOR_PREFIX}")
+    fi
+
     echo "Starting the cara webservice with: python -m cara.apps.calculator ${args[@]}"
     python -m cara.apps.calculator "${args[@]}"
 elif [[ "$APP_NAME" == "cara-voila" ]]; then

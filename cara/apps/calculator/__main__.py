@@ -16,6 +16,11 @@ def configure_parser(parser) -> argparse.ArgumentParser:
         help="A directory containing extensions for templates and static data",
         default=None,
     )
+    parser.add_argument(
+        "--prefix",
+        help="Change the URL path prefix to the calculator app",
+        default="/calculator"
+    )
     return parser
 
 
@@ -27,7 +32,7 @@ def main():
         theme_dir = Path(theme_dir).absolute()
         assert theme_dir.exists()
         assert (theme_dir / 'templates').exists()
-    app = make_app(debug=args.no_debug, theme_dir=theme_dir)
+    app = make_app(debug=args.no_debug, calculator_prefix=args.prefix, theme_dir=theme_dir)
     app.listen(8080)
     IOLoop.instance().start()
 
