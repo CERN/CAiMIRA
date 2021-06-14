@@ -276,6 +276,25 @@ def comparison_report(scenarios: typing.Dict[str, models.ExposureModel]):
         'plot': img2base64(_figure2bytes(comparison_plot(scenarios))),
         'stats': statistics,
     }
+    
+def frequency(rate: int) -> str:
+    #The frequency at which one person can get infected which is based on the incidence rate.
+    #Incidence rate is number of positive cases per 100 000 population
+    inc_rate = rate/100000
+    freq = exposed_occupants * inc_rate
+    
+    if freq >= 1
+        return 1
+    else
+        return "frequency": freq
+
+def transmission_probabiltiy(self) -> str:
+    #The probability that transmission takes place which includes the prob of occurance that someone gets 
+    #infected out of the total amount of occupants.
+    
+    #Probability of transmission (in %)
+    Prob_transmission = (self.frequency * (prob_inf/100)) * 100
+    return "prob_trans": Prob_transmission
 
 
 @dataclasses.dataclass
