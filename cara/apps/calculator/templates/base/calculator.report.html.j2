@@ -209,7 +209,8 @@
 	<p class="result_title">Results:</p>
 		<p class="data_text">
 		{% block report_summary %}
-        Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b><a href="#section1">[*]</a> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>.
+        Taking into account the uncertainties tied to the model variables, in this scenario with {{ form.infected_people }} infected, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b><a href="#section1">[*]</a>. Assuming every occupant is exposed to the same risk, the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>. 
+		By including the current epidemological situation in the region, the chances of on-site transmission reduces to <b>{{ prob_trans | float_format }} % </b>.
 		<p id="section1">[*] The results are based on the parameters and assumptions published in the CERN Open Report <a href="https://cds.cern.ch/record/2756083"> CERN-OPEN-2021-004</a></p>
         {% endblock report_summary %}
         </p>
