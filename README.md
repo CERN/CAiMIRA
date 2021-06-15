@@ -1,6 +1,6 @@
 # CARA - COVID Airborne Risk Assessment
 
-CARA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions. 
+CARA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.
 
 CARA models the concentration profile of potential infectious viruses in enclosed spaces with clear and intuitive graphs.
 The user can set a number of parameters, including room volume, exposure time, activity type, mask-wearing and ventilation.
@@ -23,7 +23,7 @@ The objective is to facilitate targeted decision-making and investment through c
 While the SARS-CoV-2 virus is in circulation among the population, the notion of 'zero risk' or 'completely safe scenario' does not exist.
 Each event modelled is unique, and the results generated therein are only as accurate as the inputs and assumptions.
 
-## Authors 
+## Authors
 CARA was developed by following members of CERN - European Council for Nuclear Research (visit https://home.cern/):
 
 Andre Henriques<sup>1</sup>, Marco Andreini<sup>1</sup>, Gabriella Azzopardi<sup>2</sup>, James Devine<sup>3</sup>, Philip Elson<sup>4</sup>, Nicolas Mounet<sup>2</sup>, Markus Kongstein Rognlien<sup>2,6</sup>, Nicola Tarocco<sup>5</sup>
@@ -70,7 +70,7 @@ Once you have used the scripts, the hourly temperature data for your location sh
     'Feb': [0.9, 0.3, 0.0, -0.5, -0.7, -1.1, -1.2, -1.1, -0.7, 0.8, 2.5,
     4.2, 5.4, 6.2, 6.3, 6.2, 6.1, 5.5, 4.5, 4.1, 3.5, 2.8, 2.5, 2.0],...`
 
-CARA currently supports **only one geographic location for weather data per instance**. 
+CARA currently supports **only one geographic location for weather data per instance**.
 
 ## Running CARA locally
 
@@ -80,7 +80,7 @@ In order to run cara locally with docker, run the following:
 
     $ docker run -it -p 8080:8080 gitlab-registry.cern.ch/cara/cara/calculator
 
-This will start a local version of CARA, which can be visited at http://localhost:8080/. 
+This will start a local version of CARA, which can be visited at http://localhost:8080/.
 
 
 ## Development guide
@@ -96,6 +96,12 @@ To run with the CERN theme:
 
 ```
 python -m cara.apps.calculator --theme=cara/apps/calculator/themes/cern
+```
+
+To run the calculator on a different URL path:
+
+```
+python -m cara.apps.calculator --prefix=/mycalc
 ```
 
 ### Running the CARA Expert-App app in development mode

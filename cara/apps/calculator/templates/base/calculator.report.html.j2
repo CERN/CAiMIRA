@@ -6,7 +6,7 @@
 
   	<title>Report | CARA (COVID Airborne Risk Assessment)</title>
 
-	<link rel="stylesheet" type="text/css" href="/calculator/static/css/report.css">
+	<link rel="stylesheet" type="text/css" href="{{ calculator_prefix }}/static/css/report.css">
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
 
@@ -270,7 +270,7 @@
 	<br><br><br>
 	<div style="border: 2px solid black; padding: 15px;">
 	    {% block disclaimer %}
-		<p class="image"> <img align="middle" src="/calculator/static/images/disclaimer.jpg" width="40" height="40"><b>Disclaimer:</b><br><br></p>
+		<p class="image"> <img align="middle" src="{{ calculator_prefix }}/static/images/disclaimer.jpg" width="40" height="40"><b>Disclaimer:</b><br><br></p>
 
         <p>
             CARA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.

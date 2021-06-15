@@ -128,18 +128,18 @@
                       </li>
 
                       <li class="dropdown">
-                        <a href="/calculator" class="dropdown-toggle {{ "is-active" if "calculator/" in active_page else "" }}">
+                        <a href="{{ calculator_prefix }}" class="dropdown-toggle {{ "is-active" if "calculator" in active_page else "" }}">
                             COVID Calculator
                             <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu">
                           <li>
-                            <a href="/calculator" class="{{ "is-active" if "calculator/" == active_page else "" }}">
+                            <a href="{{ calculator_prefix }}" class="{{ "is-active" if "calculator" == active_page else "" }}">
                                 Calculator
                             </a>
                           </li>
                           <li>
-                            <a href="/calculator/user-guide" class="{{ "is-active" if "calculator/user-guide" == active_page else "" }}">
+                            <a href="{{ calculator_prefix }}/user-guide" class="{{ "is-active" if "user-guide" in active_page else "" }}">
                                 User guide
                             </a>
                           </li>

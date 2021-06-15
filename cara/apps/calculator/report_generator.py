@@ -71,7 +71,7 @@ def calculate_report_data(model: models.ExposureModel):
     }
 
 
-def generate_qr_code(prefix, form: FormData):
+def generate_qr_code(base_url, calculator_prefix, form: FormData):
     form_dict = FormData.to_dict(form, strip_defaults=True)
 
     # Generate the calculator URL arguments that would be needed to re-create this
@@ -80,10 +80,9 @@ def generate_qr_code(prefix, form: FormData):
 
     # Then zlib compress + base64 encode the string. To be inverted by the
     # /_c/ endpoint.
-    qr_url = prefix + "/_c/" + base64.b64encode(
-        zlib.compress(args.encode())
-    ).decode()
-    url = prefix + "/calculator?" + args
+    compressed_args = base64.b64encode(zlib.compress(args.encode())).decode()
+    qr_url = f"{base_url}/_c/{compressed_args}"
+    url = f"{base_url}{calculator_prefix}?{args}"
 
     qr = qrcode.QRCode(
         version=1,
@@ -281,6 +280,7 @@ def comparison_report(scenarios: typing.Dict[str, models.ExposureModel]):
 @dataclasses.dataclass
 class ReportGenerator:
     jinja_loader: jinja2.BaseLoader
+    calculator_prefix: str
 
     def build_report(self, base_url: str, form: FormData) -> str:
         model = form.build_model()
@@ -300,7 +300,8 @@ class ReportGenerator:
         context.update(calculate_report_data(model))
         alternative_scenarios = manufacture_alternative_scenarios(form)
         context['alternative_scenarios'] = comparison_report(alternative_scenarios)
-        context['qr_code'] = generate_qr_code(base_url, form)
+        context['qr_code'] = generate_qr_code(base_url, self.calculator_prefix, form)
+        context['calculator_prefix'] = self.calculator_prefix
         return context
 
     def _template_environment(self) -> jinja2.Environment:
