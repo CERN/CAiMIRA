@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import html
 import logging
 import typing
+import datetime
 
 import numpy as np
 
@@ -257,7 +258,9 @@ class FormData:
             else:
                 window_interval = always_on
 
-            month = self.event_month[:3]
+            #month = self.event_month[:3]
+            datetime_object = datetime.datetime.strptime(self.event_month[:3], "%b")
+            month = datetime_object.month
 
             inside_temp = models.PiecewiseConstant((0, 24), (293,))
             outside_temp = data.GenevaTemperatures[month]
