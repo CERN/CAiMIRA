@@ -1,6 +1,10 @@
 import numpy as np
 from cara import models
 
+def location_celcius_per_hour (lat, long):
+    pass
+
+
 # average temperature of each month, hour per hour (from midnight to 11 pm)
 Geneva_hourly_temperatures_celsius_per_hour = {
     'Jan': [0.2, -0.3, -0.5, -0.9, -1.1, -1.4, -1.5, -1.5, -1.1, 0.1, 1.5,
@@ -28,6 +32,8 @@ Geneva_hourly_temperatures_celsius_per_hour = {
     'Dec': [1.4, 1.0, 0.8, 0.4, 0.2, -0.0, -0.1, -0.1, 0.3, 1.3, 2.6, 3.8,
     4.7, 5.2, 5.3, 5.2, 5.2, 4.7, 4.0, 3.7, 3.2, 2.8, 2.6, 2.2]
     }
+    
+    
 
 
 # Geneva hourly temperatures as piecewise constant function (in Kelvin).
