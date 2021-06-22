@@ -281,7 +281,7 @@ def frequency(rate: int) -> str:
     #The frequency at which one person can get infected which is based on the incidence rate.
     #Incidence rate is number of positive cases per 100 000 population
     inc_rate = rate/100000
-    freq = exposed_occupants * inc_rate
+    freq = (exposed_occupants + infected_people) * inc_rate
     
     if freq >= 1
         return 1
