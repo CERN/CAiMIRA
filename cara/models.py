@@ -469,6 +469,10 @@ Virus.types = {
         viral_load_in_sputum=1e9,
         quantum_infectious_dose=1/0.045,
     ),
+    'SARS_CoV_2_B16172': SARSCoV2(
+        viral_load_in_sputum=1e9,
+        quantum_infectious_dose=30/1.6,
+    ),
 }
 
 

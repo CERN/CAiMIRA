@@ -61,8 +61,9 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
         <label class="col-xl-3 col-lg-4 col-sm-3 col-form-label">Variant:</label>
         <select id="Variant" name="virus_type" class="col-xl-5 col-lg-7 col-sm-7 col-7">
           <option value="SARS_CoV_2">SARS-CoV-2 (nominal strain)</option>
-          <option value="SARS_CoV_2_B117">SARS-CoV-2 (B.1.1.7)</option>
-          <option value="SARS_CoV_2_P1">SARS-CoV-2 (P.1)</option>
+          <option value="SARS_CoV_2_B117">SARS-CoV-2 (Alpha VOC)</option>
+          <option value="SARS_CoV_2_P1">SARS-CoV-2 (Gamma VOC)</option>
+          <option value="SARS_CoV_2_B16172">SARS-CoV-2 (Delta VOC)</option>
         </select>
     </div>
 
@@ -324,10 +325,11 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
   <b>Quick Guide:</b><br>
   This tool simulates the long range airborne spread SARS-CoV-2 virus in a finite volume and estimates the risk of COVID-19 infection. It is based on current scientific data and can be used to compare the effectiveness of different mitigation measures.<br>
   <b>Virus data:</b> <br>
-  SARS-CoV-2 covers typical strains of the virus and two variants of concern (VOC):<br>
+  SARS-CoV-2 covers typical strains of the virus and three variants of concern (VOC):<br>
   <ul>
-    <li>B.1.1.7 (first identified in UK, Dec 2020),</li>
-    <li>P.1 (first identified in Brazil/Japan, Jan 2021).</li>
+    <li>Alpha (also known as B.1.1.7, first identified in UK, Dec 2020),</li>
+    <li>Gamma (also known as P.1, first identified in Brazil/Japan, Jan 2021).</li>
+    <li>Delta (also known as B.1.617.2, first identified in India, Oct 2020).</li>
   </ul>
   Choose variant according to local area prevalence, e.g. for <a href="https://www.covid19.admin.ch/fr/epidemiologic/virus-variants?detGeo=GE">Geneva</a>
   or <a href="https://www.santepubliquefrance.fr/dossiers/coronavirus-covid-19/covid-19-cartographie-des-variants-en-france-donnees-par-region-et-par-departement">Ain (France)</a>.<br>
