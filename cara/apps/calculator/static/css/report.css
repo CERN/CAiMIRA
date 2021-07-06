@@ -68,3 +68,9 @@ p.notes {
   background-color: #90EE90;
   text-decoration: none;
 }
+
+/* Flexbox layouts */
+.flex_space_between {
+	display: flex;
+	justify-content: space-between;
+}
