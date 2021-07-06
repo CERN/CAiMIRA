@@ -276,6 +276,29 @@ def comparison_report(scenarios: typing.Dict[str, models.ExposureModel]):
         'stats': statistics,
     }
 
+def get_level_warning(scale_warning, incidence_rate, onsite_access, threshold) -> dict:
+    if scale_warning == 'Green - 1':
+        scale_level = {
+            'level': 1,
+            'display_text': f'Note: the current CERN COVID Scale is <b>Green - 1</b>, which means the incidence rate in the local community is <b>{incidence_rate}</b>. Align your risk assessment with the guidance and instructions provided by the HSE Unit.'
+        } 
+    elif scale_warning == 'Yellow - 2':
+        scale_level = {
+            'level': 2,
+            'display_text': f'Note: the current CERN COVID Scale is <b>Yellow - 2</b>, which means the incidence rate in the local community is <b>{incidence_rate}</b>. There is a reduced chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access <b>{onsite_access}</b>. See with your supervisor if this scenario is acceptable.'
+        } 
+    elif scale_warning == 'Orange - 3':
+        scale_level = {
+            'level': 3,
+            'display_text': f'Warning: the current CERN COVID Scale is <b>Orange - 3</b>, which means the incidence rate in the local community is <b>{incidence_rate}</b>. There is a slight chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access <b>{onsite_access}</b>. See with your supervisor if any additional measures can be applied (ALARA).' 
+        }
+    elif scale_warning == 'Red - 4':
+        scale_level = {
+            'level': 4,
+            'display_text': f'Warning: the current CERN COVID Scale is <b>Red - 4</b>, which means the incidence rate in the local community is <b>{incidence_rate}</b>. There is a strong chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access <b>{onsite_access}</b>. Please reduce the value below the threshold of <b>{threshold}</b>.'
+        }
+    return scale_level
+
 
 @dataclasses.dataclass
 class ReportGenerator:
@@ -291,10 +314,35 @@ class ReportGenerator:
         now = datetime.utcnow().astimezone()
         time = now.strftime("%Y-%m-%d %H:%M:%S UTC")
 
+        #Specify here the CERN COVID Scale, as well as its incidence_rate, on-site access and threshold
+        '''
+            Green - 1: 
+                covid_scale = 'Green - 1'
+                incidence_rate = 'considered negligible'
+                onsite_access = ''
+                threshold = ''
+            Yellow - 2: 
+                covid_scale = 'Yellow - 2'
+                incidence_rate = 'lower than 25 new cases per 100 000 inhabitants'
+                onsite_access = 'of about 8000'
+                threshold = NA
+            Orange - 3: 
+                covid_scale = 'Orange - 3'
+                incidence_rate = 'somewhere in between 25 and 100 new cases per 100 000 inhabitants'
+                onsite_access = 'of about 5000'
+                threshold = ''
+            Red - 4: 
+                covid_scale = 'Red - 4'
+                incidence_rate = 'higher or equal to 100 new cases per 100 000 inhabitants'
+                onsite_access = 'lower than 4000'
+                threshold = '5%'
+        '''
+        scale_warning = get_level_warning(scale_warning = 'Green - 1', incidence_rate = 'higher or equal to 100 new cases per 100 000 inhabitants', onsite_access = 'lower than 4000', threshold = '')
+
         context = {
             'model': model,
             'form': form,
-            'creation_date': time,
+            'creation_date': time
         }
 
         context.update(calculate_report_data(model))
@@ -302,6 +350,7 @@ class ReportGenerator:
         context['alternative_scenarios'] = comparison_report(alternative_scenarios)
         context['qr_code'] = generate_qr_code(base_url, self.calculator_prefix, form)
         context['calculator_prefix'] = self.calculator_prefix
+        context['scale_warning'] = scale_warning
         return context
 
     def _template_environment(self) -> jinja2.Environment:
