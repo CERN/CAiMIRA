@@ -20,6 +20,8 @@ LOG = logging.getLogger(__name__)
 minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
 
 
+
+
 # Used to declare when an attribute of a class must have a value provided, and
 # there should be no default value used.
 _NO_DEFAULT = object()
@@ -263,7 +265,7 @@ class FormData:
             month = datetime_object.month
 
             inside_temp = models.PiecewiseConstant((0, 24), (293,))
-            outside_temp = data.GenevaTemperatures[month]
+            outside_temp = data.Temperatures[str(month)]
 
             ventilation: models.Ventilation
             if self.window_type == 'window_sliding':

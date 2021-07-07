@@ -1,8 +1,15 @@
 import numpy as np
 from cara import models
+import json
 
-def location_celcius_per_hour (lat, long):
-    pass
+weather_station = "067000-99999" #this is the Cointrin station for Geneva
+
+def location_celcius_per_hour(w_station):
+    with open("/Users/jdevine/cara_rep/cara/cara/global_weather_set.json", "r") as json_file:
+        weather_dict = json.load(json_file)
+    Location_hourly_temperatures_celsius_per_hour = weather_dict[w_station]
+    print(Location_hourly_temperatures_celsius_per_hour)
+    return Location_hourly_temperatures_celsius_per_hour
 
 
 # average temperature of each month, hour per hour (from midnight to 11 pm)
@@ -36,20 +43,15 @@ Geneva_hourly_temperatures_celsius_per_hour = {
     
 
 
-# Geneva hourly temperatures as piecewise constant function (in Kelvin).
-GenevaTemperatures_hourly = {
-    month: models.PiecewiseConstant(
-        # NOTE:  It is important that the time type is float, not np.float, in
-        # order to allow hashability (for caching).
-        tuple(float(time) for time in range(25)),
-        tuple(273.15 + np.array(temperatures)),
-    )
-    for month, temperatures in Geneva_hourly_temperatures_celsius_per_hour.items()
+# Geneva hourly temperatures as piecewise constant function (in Kelvin)
+Temperatures_hourly = {
+    month: models.PiecewiseConstant(tuple(np.arange(25.)),
+                             tuple(273.15+np.array(temperatures)))
+    for month,temperatures in location_celcius_per_hour(weather_station).items()
+}
+# same temperatures on a finer temperature mesh
+Temperatures = {
+    month: Temperatures_hourly[month].refine(refine_factor=4)
+    for month,temperatures in location_celcius_per_hour(weather_station).items()
 }
 
-
-# Same temperatures on a finer temperature mesh (every 6 minutes).
-GenevaTemperatures = {
-    month: GenevaTemperatures_hourly[month].refine(refine_factor=10)
-    for month, temperatures in Geneva_hourly_temperatures_celsius_per_hour.items()
-}
