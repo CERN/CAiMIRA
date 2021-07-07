@@ -96,7 +96,7 @@ def _build_mc_model(model: _ModelType) -> typing.Type[MCModelBase[_ModelType]]:
     cls = dataclasses.make_dataclass(
         model.__name__,  # type: ignore
         fields,  # type: ignore
-        bases=bases,  # type: ignore
+        bases=tuple(bases),  # type: ignore
         namespace={'_base_cls': model},
         # This thing can be mutable - the calculations live on
         # the wrapped class, not on the MCModelBase.

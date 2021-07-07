@@ -98,7 +98,7 @@ class Controller:
 
 def ipympl_canvas(figure):
     matplotlib.interactive(False)
-    ipympl.backend_nbagg.new_figure_manager_given_figure(uuid.uuid1(), figure)
+    ipympl.backend_nbagg.new_figure_manager_given_figure(hash(uuid.uuid1()), figure)
     figure.canvas.toolbar_visible = True
     figure.canvas.toolbar.collapsed = True
     figure.canvas.footer_visible = False
