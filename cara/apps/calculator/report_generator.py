@@ -18,13 +18,6 @@ from .model_generator import FormData
 from ... import dataclass_utils
 
 
-@dataclasses.dataclass(frozen=True)
-class RepeatEvents:
-    repeats: int
-    probability_of_infection: float
-    expected_new_cases: float
-
-
 def model_start_end(model: models.ExposureModel):
     t_start = min(model.exposed.presence.boundaries()[0][0],
                   model.concentration_model.infected.presence.boundaries()[0][0])
@@ -46,18 +39,6 @@ def calculate_report_data(model: models.ExposureModel):
     exposed_occupants = model.exposed.number
     expected_new_cases = np.mean(model.expected_new_cases())
 
-    repeated_events = []
-    for n in [1, 2, 3, 4, 5]:
-
-        repeat_model = dataclass_utils.replace(model, repeats=n)
-        repeated_events.append(
-            RepeatEvents(
-                repeats=n,
-                probability_of_infection=np.mean(repeat_model.infection_probability()),
-                expected_new_cases=np.mean(repeat_model.expected_new_cases()),
-            )
-        )
-
     return {
         "times": times,
         "concentrations": concentrations,
@@ -67,7 +48,6 @@ def calculate_report_data(model: models.ExposureModel):
         "exposed_occupants": exposed_occupants,
         "expected_new_cases": expected_new_cases,
         "scenario_plot_src": img2base64(_figure2bytes(plot(times, concentrations, model))),
-        "repeated_events": repeated_events,
     }
 
 
