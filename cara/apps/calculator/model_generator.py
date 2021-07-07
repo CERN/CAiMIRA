@@ -97,7 +97,7 @@ class FormData:
         'infected_lunch_finish': '13:30',
         'infected_lunch_option': True,
         'infected_lunch_start': '12:30',
-        'infected_people': 1,
+        'infected_people': _NO_DEFAULT,
         'infected_start': '08:30',
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
