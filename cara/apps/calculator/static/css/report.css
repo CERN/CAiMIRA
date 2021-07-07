@@ -70,7 +70,26 @@ p.notes {
 }
 
 /* Flexbox layouts */
+.flex {
+	display: flex;
+}
+
 .flex_space_between {
 	display: flex;
 	justify-content: space-between;
+}
+
+.flex_flex_start {
+	display: flex;
+	justify-content: flex-start;
+}
+
+.flex_direction_column {
+	display: flex;
+	flex-direction: column;
+}
+
+.flex_direction_row {
+	display: flex;
+	flex-direction: row;
 }

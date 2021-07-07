@@ -279,22 +279,22 @@ def comparison_report(scenarios: typing.Dict[str, models.ExposureModel]):
 def get_level_warning(scale_warning, incidence_rate, onsite_access, threshold) -> dict:
     if scale_warning == 'Green - 1':
         scale_level = {
-            'display_png': 'cara/apps/calculator/static/images/warning_level3.jpeg',
+            'display_png': '/static/images/warning_scale/level1.png',
             'display_text': f'Note: the current CERN COVID Scale is <b>Green - 1</b>, which means the incidence rate in the local community is <b>{incidence_rate}</b>. Align your risk assessment with the guidance and instructions provided by the HSE Unit.'
         } 
     elif scale_warning == 'Yellow - 2':
         scale_level = {
-            'display_png': 'cara/apps/calculator/static/images/warning_level3.jpeg',
+            'display_png': '/static/images/warning_scale/level2.png',
             'display_text': f'Note: the current CERN COVID Scale is <b>Yellow - 2</b>, which means the incidence rate in the local community is <b>{incidence_rate}</b>. There is a reduced chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access <b>{onsite_access}</b>. See with your supervisor if this scenario is acceptable.'
         } 
     elif scale_warning == 'Orange - 3':
         scale_level = {
-            'display_png': 'cara/apps/calculator/static/images/warning_level3.jpeg',
+            'display_png': '/static/images/warning_scale/level3.png',
             'display_text': f'Warning: the current CERN COVID Scale is <b>Orange - 3</b>, which means the incidence rate in the local community is <b>{incidence_rate}</b>. There is a slight chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access <b>{onsite_access}</b>. See with your supervisor if any additional measures can be applied (ALARA).' 
         }
     elif scale_warning == 'Red - 4':
         scale_level = {
-            'display_png': '/static/images/warning_level3.jpeg',
+            'display_png': '/static/images/warning_scale/level4.png',
             'display_text': f'Warning: the current CERN COVID Scale is <b>Red - 4</b>, which means the incidence rate in the local community is <b>{incidence_rate}</b>. There is a strong chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access <b>{onsite_access}</b>. Please reduce the value below the threshold of <b>{threshold}</b>.'
         }
     return scale_level
