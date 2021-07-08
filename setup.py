@@ -36,11 +36,10 @@ REQUIREMENTS: dict = {
     'app': [],
     'test': [
         'pytest',
-        'pytest-mypy==0.8.0',
+        'pytest-mypy',
         'pytest-tornasync',
         'numpy-stubs @ git+https://github.com/numpy/numpy-stubs.git',
-        # 'types-dataclasses',
-        # 'types-Jinja2',
+        'types-dataclasses',
     ],
     'dev': [
         'jupyterlab',
