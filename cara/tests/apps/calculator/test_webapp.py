@@ -48,7 +48,23 @@ class TestBasicApp(tornado.testing.AsyncHTTPTestCase):
 
     @tornado.testing.gen_test(timeout=_TIMEOUT)
     def test_report(self):
-        response = yield self.http_client.fetch(self.get_url('/calculator/baseline-model/result'))
+        requests = [
+            self.http_client.fetch(self.get_url('/calculator/baseline-model/result')),
+            # At the same time, request a non-report page (to check whether the report is blocking).
+            self.http_client.fetch(self.get_url('/calculator/')),
+        ]
+        response = yield requests[0]
+        other_response = yield requests[1]
+
+        def end_time(resp):
+            return resp.start_time + resp.request_time
+
+        # The start time is before the other request,
+        # but the end time is after the other request (because it takes longer
+        # to process a report than a simple page).
+        assert response.start_time < other_response.start_time
+        assert end_time(response) > end_time(other_response)
+
         self.assertEqual(response.code, 200)
         assert 'CERN HSE' not in response.body.decode()
         assert 'expected number of new cases is' in response.body.decode()
@@ -65,6 +81,7 @@ class TestCernApp(tornado.testing.AsyncHTTPTestCase):
         self.assertEqual(response.code, 200)
         assert 'CERN HSE' in response.body.decode()
         assert 'expected number of new cases is' in response.body.decode()
+
 
 class TestOpenApp(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
