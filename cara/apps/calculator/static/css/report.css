@@ -69,27 +69,19 @@ p.notes {
   text-decoration: none;
 }
 
+.warning_image_png {
+	margin-bottom: 1rem; 
+	padding-left: 30px; 
+	border-radius: .25rem
+}
+
+.warning_text {
+	height:fit-content; 
+	align-self: flex-end; 
+	margin-left: 5%
+}
+
 /* Flexbox layouts */
 .flex {
 	display: flex;
-}
-
-.flex_space_between {
-	display: flex;
-	justify-content: space-between;
-}
-
-.flex_flex_start {
-	display: flex;
-	justify-content: flex-start;
-}
-
-.flex_direction_column {
-	display: flex;
-	flex-direction: column;
-}
-
-.flex_direction_row {
-	display: flex;
-	flex-direction: row;
 }

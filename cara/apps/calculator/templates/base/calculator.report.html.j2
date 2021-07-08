@@ -215,9 +215,9 @@
 		
 		{% if (prob_inf > 5) %}
 		
-		<div class="flex">
-			<img class="alert" src="{{ calculator_prefix }}{{ scale_warning.display_png}}" style="padding-top: 0; padding-bottom: 0; padding-left: 2%">
-			<div class="alert alert-dark" role="alert" style="width: 50%; margin-left: 10%">
+		<div class="flex" style="width:60%">
+			<img class="warning_image_png" src="{{ calculator_prefix }}{{ scale_warning.display_png}}">
+			<div class="alert alert-dark warning_text" role="alert">
 				{{scale_warning.display_text}}
 			</div>
 		</div>
