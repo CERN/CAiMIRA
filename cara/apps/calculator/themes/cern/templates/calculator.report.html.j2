@@ -26,6 +26,16 @@
 
 {{ super() }}
 
+{% if (prob_inf > 5) %}
+		
+  <div class="flex" style="width:60%">
+    <img class="warning_image_png" src="{{ calculator_prefix }}{{ scale_warning.display_png}}">
+    <div class="alert alert-dark warning_text" role="alert">
+      {{scale_warning.display_text}}
+    </div>
+  </div>
+{% endif %}
+
 {% if ((prob_inf > 15) or (expected_new_cases >= 1)) %}
   This exceeds the authorised risk threshold or number of expected new cases.
   The risk level must be reduced before this activity can be undertaken.

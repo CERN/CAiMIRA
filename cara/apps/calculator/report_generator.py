@@ -342,7 +342,7 @@ class ReportGenerator:
         context = {
             'model': model,
             'form': form,
-            'creation_date': time
+            'creation_date': time,
         }
 
         context.update(calculate_report_data(model))
