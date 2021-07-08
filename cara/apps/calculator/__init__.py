@@ -1,6 +1,8 @@
 # This module is part of CARA. Please see the repository at
 # https://gitlab.cern.ch/cara/cara for details of the license and terms of use.
 
+import asyncio
+import concurrent.futures
 import datetime
 import base64
 import html
@@ -87,7 +89,7 @@ class Missing404Handler(BaseRequestHandler):
 
 
 class ConcentrationModel(BaseRequestHandler):
-    def post(self):
+    async def post(self):
         requested_model_config = {
             name: self.get_argument(name) for name in self.request.arguments
         }
@@ -107,18 +109,25 @@ class ConcentrationModel(BaseRequestHandler):
             return
 
         base_url = self.request.protocol + "://" + self.request.host
-        report_generator = self.settings['report_generator']
-        report = report_generator.build_report(base_url, form)
+        report_generator: ReportGenerator = self.settings['report_generator']
+        report_task = self.settings["worker_pool"].submit(
+            report_generator.build_report, base_url, form,
+        )
+        report: str = await asyncio.wrap_future(report_task)
         self.finish(report)
 
 
 class StaticModel(BaseRequestHandler):
-    def get(self):
+    async def get(self):
         form = model_generator.FormData.from_dict(model_generator.baseline_raw_form_data())
         base_url = self.request.protocol + "://" + self.request.host
-        report_generator = self.settings['report_generator']
-        report = report_generator.build_report(base_url, form)
+        report_generator: ReportGenerator = self.settings['report_generator']
+        report_task = self.settings["worker_pool"].submit(
+            report_generator.build_report, base_url, form,
+        )
+        report: str = await asyncio.wrap_future(report_task)
         self.finish(report)
+
 
 
 class LandingPage(BaseRequestHandler):
@@ -226,4 +235,5 @@ def make_app(
         # COOKIE_SECRET being undefined will result in no login information being
         # presented to the user.
         cookie_secret=os.environ.get('COOKIE_SECRET', '<undefined>'),
+        worker_pool=concurrent.futures.ProcessPoolExecutor(),
     )
