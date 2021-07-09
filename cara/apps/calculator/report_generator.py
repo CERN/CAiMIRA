@@ -303,7 +303,7 @@ class ReportGenerator:
         context['qr_code'] = generate_qr_code(base_url, self.calculator_prefix, form)
         context['calculator_prefix'] = self.calculator_prefix
         context['scale_warning'] = {
-            'level': '', 
+            'level': 'Orange - 3', 
             'incidence_rate': 'somewhere in between 25 and 100 new cases per 100 000 inhabitants',
             'onsite_access': 'of about 5000', 
             'threshold' : ''
