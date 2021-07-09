@@ -68,15 +68,12 @@
       <li class="signin">
         <span>
             Signed in as:
-            <a href="" class="account cern-multiple-mobile-signin">
+            <a href="https://cern.ch/users-portal" class="account cern-multiple-mobile-signin ext">
             {{ user.username }}
             </a>
         </span>
       </li>
-      <!--
-        // Disabled until we tidy up the CSS... ;)
-        <li><a href="/auth/logout">Sign out</a></li>
-      -->
+      <li><a href="/user/logout" class="cern-signout cern-multiple-mobile-signin">Sign out</a></li>
       <script>
         var AuthUserDomain = "{{ user.domain() }}";
       </script>
