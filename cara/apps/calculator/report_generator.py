@@ -254,7 +254,12 @@ def scenario_statistics(mc_model: mc.ExposureModel, sample_times: np.ndarray):
 def comparison_report(scenarios: typing.Dict[str, mc.ExposureModel], sample_times: np.ndarray):
     statistics = {}
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        results = executor.map(scenario_statistics, scenarios.values(), [sample_times] * len(scenarios))
+        results = executor.map(
+            scenario_statistics,
+            scenarios.values(),
+            [sample_times] * len(scenarios),
+            timeout=60,
+        )
     for (name, model), model_stats in zip(scenarios.items(), results):
         statistics[name] = model_stats
     return {
@@ -284,7 +289,7 @@ class ReportGenerator:
         }
 
         t_start, t_end = model_start_end(model)
-        scenario_sample_times = list(np.linspace(t_start, t_end, 350))
+        scenario_sample_times = np.linspace(t_start, t_end, 350)
 
         context.update(calculate_report_data(model))
         alternative_scenarios = manufacture_alternative_scenarios(form)
