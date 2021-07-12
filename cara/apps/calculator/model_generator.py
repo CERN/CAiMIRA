@@ -22,7 +22,8 @@ minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
 # Used to declare when an attribute of a class must have a value provided, and
 # there should be no default value used.
 _NO_DEFAULT = object()
-_SAMPLE_SIZE = 50000
+_DEFAULT_MC_SAMPLE_SIZE = 50000
+
 
 @dataclass
 class FormData:
@@ -218,8 +219,30 @@ class FormData:
             raise ValueError("mechanical_ventilation_type cannot be 'not-applicable' if "
                              "ventilation_type is 'mechanical_ventilation'")
 
-    def build_model(self) -> models.ExposureModel:
-        return model_from_form(self)
+    def build_mc_model(self) -> mc.ExposureModel:
+        # Initializes room with volume either given directly or as product of area and height
+        if self.volume_type == 'room_volume_explicit':
+            volume = self.room_volume
+        else:
+            volume = self.floor_area * self.ceiling_height
+        if self.room_heating_option:
+            humidity = 0.3
+        else:
+            humidity = 0.5
+        room = models.Room(volume=volume, humidity=humidity)
+
+        # Initializes and returns a model with the attributes defined above
+        return mc.ExposureModel(
+            concentration_model=mc.ConcentrationModel(
+                room=room,
+                ventilation=self.ventilation(),
+                infected=self.infected_population(),
+            ),
+            exposed=self.exposed_population()
+        )
+
+    def build_model(self, sample_size=_DEFAULT_MC_SAMPLE_SIZE) -> models.ExposureModel:
+        return self.build_mc_model().build_model(size=sample_size)
 
     def ventilation(self) -> models._VentilationBase:
         always_on = models.PeriodicInterval(period=120, duration=120)
@@ -551,29 +574,6 @@ def build_expiration(expiration_definition) -> models._ExpirationBase:
             tuple([build_expiration(exp) for exp in expiration_definition.keys()]),
             tuple(expiration_definition.values())
         )
-
-
-def model_from_form(form: FormData) -> models.ExposureModel:
-    # Initializes room with volume either given directly or as product of area and height
-    if form.volume_type == 'room_volume_explicit':
-        volume = form.room_volume
-    else:
-        volume = form.floor_area * form.ceiling_height
-    if form.room_heating_option:
-        humidity = 0.3
-    else:
-        humidity = 0.5
-    room = models.Room(volume=volume, humidity=humidity)
-
-    # Initializes and returns a model with the attributes defined above
-    return mc.ExposureModel(
-        concentration_model=mc.ConcentrationModel(
-            room=room,
-            ventilation=form.ventilation(),
-            infected=form.infected_population(),
-        ),
-        exposed=form.exposed_population()
-    ).build_model(size=_SAMPLE_SIZE)
 
 
 def baseline_raw_form_data():

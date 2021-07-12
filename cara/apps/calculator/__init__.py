@@ -96,6 +96,7 @@ class ConcentrationModel(BaseRequestHandler):
         if self.settings.get("debug", False):
             from pprint import pprint
             pprint(requested_model_config)
+            start = datetime.datetime.now()
 
         try:
             form = model_generator.FormData.from_dict(requested_model_config)
@@ -114,6 +115,9 @@ class ConcentrationModel(BaseRequestHandler):
             report_generator.build_report, base_url, form,
         )
         report: str = await asyncio.wrap_future(report_task)
+        if self.settings.get("debug", False):
+            dt = (datetime.datetime.now() - start)
+            print(f'Report response time {dt.seconds}.{dt.microseconds}s')
         self.finish(report)
 
 
