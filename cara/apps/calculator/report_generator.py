@@ -304,7 +304,7 @@ class ReportGenerator:
         context['calculator_prefix'] = self.calculator_prefix
         context['scale_warning'] = {
             'level': 'Orange - 3', 
-            'incidence_rate': 'somewhere in between 25 and 100 new cases per 100 000 inhabitants',
+            'incidence_rate': 'in between 25 and 100 new cases per 100 000 inhabitants',
             'onsite_access': 'of about 5000', 
             'threshold' : ''
         } 
