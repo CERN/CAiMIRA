@@ -111,10 +111,7 @@ class ConcentrationModel(BaseRequestHandler):
 
         base_url = self.request.protocol + "://" + self.request.host
         report_generator: ReportGenerator = self.settings['report_generator']
-        report_task = self.settings["worker_pool"].submit(
-            report_generator.build_report, base_url, form,
-        )
-        report: str = await asyncio.wrap_future(report_task)
+        report = report_generator.build_report(base_url, form)
         if self.settings.get("debug", False):
             dt = (datetime.datetime.now() - start)
             print(f'Report response time {dt.seconds}.{dt.microseconds}s')
@@ -126,10 +123,7 @@ class StaticModel(BaseRequestHandler):
         form = model_generator.FormData.from_dict(model_generator.baseline_raw_form_data())
         base_url = self.request.protocol + "://" + self.request.host
         report_generator: ReportGenerator = self.settings['report_generator']
-        report_task = self.settings["worker_pool"].submit(
-            report_generator.build_report, base_url, form,
-        )
-        report: str = await asyncio.wrap_future(report_task)
+        report = report_generator.build_report(base_url, form)
         self.finish(report)
 
 
@@ -239,5 +233,4 @@ def make_app(
         # COOKIE_SECRET being undefined will result in no login information being
         # presented to the user.
         cookie_secret=os.environ.get('COOKIE_SECRET', '<undefined>'),
-        worker_pool=concurrent.futures.ProcessPoolExecutor(),
     )
