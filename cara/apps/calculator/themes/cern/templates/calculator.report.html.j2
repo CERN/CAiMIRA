@@ -27,7 +27,7 @@
 {{ super() }}
 
 {% if (prob_inf > 5) %}
-	<div class="flex" style="width:60%">
+	<div class="flex" style="width:60%; align-self:center">
   {% if scale_warning.level == "Green - 1" %}  
     <img class="warning_image_png" src="{{ calculator_prefix }}/static/images/warning_scale/Level1.png">
     <div class="alert alert-dark warning_text" role="alert">
@@ -36,17 +36,17 @@
   {% elif scale_warning.level == "Yellow - 2" %}
     <img class="warning_image_png" src="{{ calculator_prefix }}/static/images/warning_scale/Level2.png">
     <div class="alert alert-dark warning_text" role="alert">
-      Note: the current CERN COVID Scale is <b>Yellow - 2</b>, which means the incidence rate in the local community is <b>{{scale_warning.incidence_rate}}</b>. There is a reduced chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access <b>{{scale_warning.onsite_access}}</b>. See with your supervisor if this scenario is acceptable.
+      Note: the current CERN COVID Scale is <b>Yellow - 2</b>, which means the incidence rate in the local community is <b>{{scale_warning.incidence_rate}}</b>. There is a reduced chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access {{scale_warning.onsite_access}}. See with your supervisor if this scenario is acceptable.
     </div>
   {% elif scale_warning.level == "Orange - 3" %}
     <img class="warning_image_png" src="{{ calculator_prefix }}/static/images/warning_scale/Level3.png">
     <div class="alert alert-dark warning_text" role="alert">
-      Warning: the current CERN COVID Scale is <b>Orange - 3</b>, which means the incidence rate in the local community is <b>{{scale_warning.incidence_rate}}</b>. There is a slight chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access <b>{{scale_warning.onsite_access}}</b>. See with your supervisor if any additional measures can be applied (ALARA).
+      Warning: the current CERN COVID Scale is <b>Orange - 3</b>, which means the incidence rate in the local community is <b>{{scale_warning.incidence_rate}}</b>. There is a slight chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access {{scale_warning.onsite_access}}. See with your supervisor if any additional measures can be applied (ALARA).
     </div>
   {% elif scale_warning.level == "Red - 4" %}
     <img class="warning_image_png" src="{{ calculator_prefix }}/static/images/warning_scale/Level4.png">
     <div class="alert alert-dark warning_text" role="alert">
-      Warning: the current CERN COVID Scale is <b>Red - 4</b>, which means the incidence rate in the local community is <b>{{scale_warning.incidence_rate}}</b>. There is a strong chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access <b>{{scale_warning.onsite_access}}</b>. Please reduce the value below the threshold of <b>{{scale_warning.threshold}}</b>.
+      Warning: the current CERN COVID Scale is <b>Red - 4</b>, which means the incidence rate in the local community is <b>{{scale_warning.incidence_rate}}</b>. There is a strong chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access {{scale_warning.onsite_access}}. Please reduce the value below the threshold of <b>{{scale_warning.threshold}}</b>.
     </div>
   {% else %}
     <p><b>Note:</b> The CERN COVID Level is not specified.</p>

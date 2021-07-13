@@ -77,7 +77,7 @@ p.notes {
 
 .warning_text {
 	height:fit-content; 
-	align-self: flex-end; 
+	align-self: center; 
 	margin-left: 5%
 }
 
