@@ -6,11 +6,13 @@
 {% block extra_headers %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" integrity="sha512-aOG0c6nPNzGk+5zjwyJaoRUgCdOrfSDhmMID2u4+OIslr0GjpLKo7Xm0Ao3xmpM4T8AmIouRkqwj1nrdVsLKEQ==" crossorigin="anonymous">
     <link rel="stylesheet" href="{{ calculator_prefix }}/static/css/form.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"/>
 {% endblock extra_headers %}
 
 {% block body_scripts %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" integrity="sha512-uto9mlQzrs59VwILcLiRYeLKPPbS/bT71da/OEBYEwcdNUk8jYIy+D176RYoop1Da+f9mvkYrmj5MCLZWEtQuA==" crossorigin="anonymous"></script>
     <script src="{{ calculator_prefix }}/static/js/form.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 {% endblock body_scripts %}
 
 
@@ -102,6 +104,13 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
       <label for="heating_no">No</label>&nbsp;&nbsp;
     <input type="radio" id="heating_yes" name="room_heating_option" value=1>
       <label for="heating_yes">Yes</label>&nbsp;&nbsp;
+    
+    <div class="row">
+      <label class="col-xl-3 col-lg-4 col-sm-3 col-form-label">Location:</label>
+        <select id="location_select" class="col-xl-5 col-lg-7 col-sm-7 col-7" name="location" required>
+          <!-- <option value="Geneva" selected="selected">Geneva</option>   -->
+        </select>
+    </div>
 
     <hr width="80%">
 

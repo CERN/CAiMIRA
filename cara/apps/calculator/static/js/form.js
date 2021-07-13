@@ -531,7 +531,121 @@ $(document).ready(function () {
   $(".start_time[data-lunch-for]").each(function() {validateLunchBreak($(this).data('time-group'))});
   $("[data-lunch-for]").change(function() {validateLunchBreak($(this).data('time-group'))});
   $("[data-lunch-break]").change(function() {validateLunchBreak($(this).data('lunch-break'))});
+
+  $("#location_select").select2({
+    ajax: {
+      url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates",
+      dataType: 'json',
+      delay: 250,
+      data: function (params) {
+        return {
+          SingleLine: params.term, // search term
+          f: 'json',
+          page: params.page,
+        };
+      },
+      processResults: function (data, params) {
+        // parse the results into the format expected by Select2
+        // since we are using custom formatting functions we do not need to
+        // alter the remote JSON data, except to indicate that infinite
+        // scrolling can be used
+        params.page = params.page || 1;
+
+        return {
+          results: data.candidates,
+          pagination: {
+            more: (params.page * 30) < data.total_count
+          }
+        };
+      },
+      cache: true
+    },
+    placeholder: 'Search for a location',
+    minimumInputLength: 1,
+    templateResult: formatlocation,
+    templateSelection: formatLocationSelection
+  });
+
+  //TODO: remove
+  // $("#location_select").select2({
+  //   ajax: {
+  //     url: "https://api.github.com/search/repositories",
+  //     dataType: 'json',
+  //     delay: 250,
+  //     data: function (params) {
+  //       return {
+  //         q: params.term, // search term
+  //         page: params.page
+  //       };
+  //     },
+  //     processResults: function (data, params) {
+  //       // parse the results into the format expected by Select2
+  //       // since we are using custom formatting functions we do not need to
+  //       // alter the remote JSON data, except to indicate that infinite
+  //       // scrolling can be used
+  //       params.page = params.page || 1;
+
+  //       return {
+  //         results: data.items,
+  //         pagination: {
+  //           more: (params.page * 30) < data.total_count
+  //         }
+  //       };
+  //     },
+  //     cache: true
+  //   },
+  //   placeholder: 'Search for a repository',
+  //   minimumInputLength: 1,
+  //   templateResult: formatRepo,
+  //   templateSelection: formatRepoSelection
+  // });
 });
+
+function formatlocation (location) {
+  if (location.loading) {
+    return location.text;
+  }
+
+  var $container = $(
+    "<div class='select2-result-location clearfix'>" +
+      "<div class='select2-result-location__meta'>" +
+        "<div class='select2-result-location__title'></div>" +
+      "</div>" +
+    "</div>"
+  );
+
+  $container.find(".select2-result-location__title").text(location.address);
+
+  return $container;
+}
+
+function formatLocationSelection (location) {
+  return location.address || location.text;
+}
+
+//TODO: remove
+function formatRepo (repo) {
+  if (repo.loading) {
+    return repo.text;
+  }
+
+  var $container = $(
+    "<div class='select2-result-location clearfix'>" +
+      "<div class='select2-result-location__meta'>" +
+        "<div class='select2-result-location__title'></div>" +
+      "</div>" +
+    "</div>"
+  );
+
+  $container.find(".select2-result-location__title").text(repo.full_name);
+
+  return $container;
+}
+
+//TODO: remove
+function formatRepoSelection (repo) {
+  return repo.full_name || repo.text;
+}
 
 /* -------Debugging------- */
 function debug_submit(form) {
