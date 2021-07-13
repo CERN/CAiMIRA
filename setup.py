@@ -49,7 +49,7 @@ REQUIREMENTS: dict = {
 
 setup(
     name='CARA',
-    version="0.0.1.dev0",
+    version="1.0.0",
 
     maintainer='Andre Henriques',
     maintainer_email='andre.henriques@cern.ch',
