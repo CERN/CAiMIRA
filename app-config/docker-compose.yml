@@ -10,6 +10,15 @@ services:
     environment:
       - COOKIE_SECRET
       - APP_NAME=cara-webservice
+      - CARA_CALCULATOR_PREFIX=/calculator-cern
+      - CARA_THEME=cara/apps/calculator/themes/cern
+
+  cara-calculator-open:
+    image: cara-webservice
+    environment:
+      - COOKIE_SECRET
+      - APP_NAME=cara-webservice
+      - CARA_CALCULATOR_PREFIX=/calculator-open
 
   auth-service:
     image: auth-service
@@ -27,6 +36,8 @@ services:
     depends_on:
       cara-webservice:
           condition: service_started
+      cara-calculator-open:
+            condition: service_started
       cara-app:
           condition: service_started
       auth-service:

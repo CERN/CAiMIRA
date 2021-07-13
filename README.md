@@ -130,6 +130,24 @@ pytest ./cara
 s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./app-config/nginx/ centos/nginx-112-centos7 cara-nginx-app
 s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./ centos/python-36-centos7 cara-webservice
 s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./app-config/auth-service centos/python-36-centos7 auth-service
+```
+
+Get the client secret from the CERN Application portal for the `cara-test` app. See [CERN-SSO-integration](#CERN-SSO-integration) for more info.
+```
+read CLIENT_SECRET
+```
+
+Define some env vars (copy/paste):
+```
+export COOKIE_SECRET=$(openssl rand -hex 50)
+export OIDC_SERVER=https://auth.cern.ch/auth
+export OIDC_REALM=CERN
+export CLIENT_ID=cara-test
+export CLIENT_SECRET
+```
+
+Run docker-compose:
+```
 cd app-config
 docker-compose up
 ```
