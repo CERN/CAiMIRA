@@ -68,3 +68,20 @@ p.notes {
   background-color: #90EE90;
   text-decoration: none;
 }
+
+.warning_image_png {
+	margin-bottom: 1rem; 
+	padding-left: 30px; 
+	border-radius: .25rem
+}
+
+.warning_text {
+	height:fit-content; 
+	align-self: center; 
+	margin-left: 5%
+}
+
+/* Flexbox layouts */
+.flex {
+	display: flex;
+}
