@@ -1,0 +1,128 @@
+---
+  kind: "Template"
+  apiVersion: "v1"
+  metadata:
+    name: "cara-application"
+    creationTimestamp: null
+    annotations:
+      description: "CARA build config OpenShift template."
+      tags: "cara-application"
+  labels:
+    template: "cara-application"
+  objects:
+    -
+      kind: BuildConfig
+      apiVersion: v1
+      metadata:
+        name: auth-service
+        labels:
+          template: "cara-application"
+      spec:
+        source:
+          type: Git
+          git:
+            ref: ${GIT_BRANCH}
+            uri: ${GIT_REPO}
+          contextDir: app-config/auth-service
+          sourceSecret:
+            name: sshdeploykey
+        postCommit: {}
+        resources: {}
+        runPolicy: Serial
+        output:
+          to:
+            kind: ImageStreamTag
+            name: 'auth-service:latest'
+        strategy:
+          sourceStrategy:
+            from:
+              kind: ImageStreamTag
+              name: 'python:3.6'
+              namespace: openshift
+          type: Source
+        triggers:
+          - imageChange: {}
+            type: ImageChange
+          - generic:
+              secretReference:
+                name: gitlab-cara-webhook-secret
+            type: Generic
+        nodeSelector: null
+    -
+      kind: BuildConfig
+      apiVersion: v1
+      metadata:
+        name: cara-router
+        labels:
+          template: "cara-application"
+      spec:
+        source:
+          type: Git
+          git:
+            ref: ${GIT_BRANCH}
+            uri: ${GIT_REPO}
+          contextDir: app-config/nginx
+          sourceSecret:
+            name: sshdeploykey
+        postCommit: {}
+        resources: {}
+        runPolicy: Serial
+        output:
+          to:
+            kind: ImageStreamTag
+            name: 'cara-router:latest'
+        strategy:
+          sourceStrategy:
+            from:
+              kind: ImageStreamTag
+              name: 'nginx:1.12'
+              namespace: openshift
+          type: Source
+        triggers:
+          - generic:
+              secretReference:
+                name: gitlab-cara-webhook-secret
+            type: Generic
+        nodeSelector: null
+    -
+      kind: BuildConfig
+      apiVersion: v1
+      metadata:
+        name: cara-webservice
+        labels:
+          template: "cara-application"
+      spec:
+        source:
+          type: Git
+          git:
+            ref: ${GIT_BRANCH}
+            uri: ${GIT_REPO}
+          sourceSecret:
+            name: sshdeploykey
+        postCommit: {}
+        resources: {}
+        runPolicy: Serial
+        output:
+          to:
+            kind: ImageStreamTag
+            name: 'cara-webservice:latest'
+        strategy:
+          sourceStrategy:
+            from:
+              kind: ImageStreamTag
+              name: 'python:3.6'
+              namespace: openshift
+          type: Source
+        triggers:
+          - generic:
+              secretReference:
+                name: gitlab-cara-webhook-secret
+            type: Generic
+        nodeSelector: null
+  parameters:
+    - name: GIT_REPO
+      description: The GIT repo URL
+      value: 'ssh://git@gitlab.cern.ch:7999/cara/cara.git'
+    - name: GIT_BRANCH
+      description: The name of the GIT branch to use when building the app, e.g. `live/test-cara` in TEST, `master` in prod
+      required: true
