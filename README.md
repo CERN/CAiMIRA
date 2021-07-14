@@ -211,6 +211,17 @@ $ oc create secret generic \
   gitlab-cara-webhook-secret
 ```
 
+For CI usage, we also suggest creating a service account:
+
+```console
+oc create sa gitlab-config-checker
+```
+
+Under ``Resources`` -> ``Membership`` enable the ``View`` role for this new service account.
+
+To get this new user's authentication token go to ``Resources`` -> ``Secrets`` and locate the token in the newly
+created secret associated with the user (in this case ``gitlab-config-checker-token-XXXX``).
+
 ### CERN SSO integration
 
 The SSO integration uses OpenID credentials configured in [CERN Applications portal](https://application-portal.web.cern.ch/).
