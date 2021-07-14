@@ -484,6 +484,15 @@ $(document).ready(function () {
       else if (elemObj.type === 'checkbox') {
         elemObj.checked = (value==1);
       }
+
+      //Pre-select location
+      else if (elemObj.id === 'location_select') {
+        var location_option = document.createElement('option');
+        location_option.value = value;
+        location_option.innerHTML = value;
+        elemObj.append(location_option);
+      }
+
       //Ignore 0 (default) values from server side
       else if (!(elemObj.classList.contains("non_zero") || elemObj.classList.contains("remove_zero")) || (value != "0.0" && value != "0")) {
         elemObj.value = value;

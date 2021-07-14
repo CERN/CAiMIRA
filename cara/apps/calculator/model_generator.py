@@ -50,6 +50,7 @@ class FormData:
     infected_lunch_start: minutes_since_midnight    #Used if infected_dont_have_breaks_with_exposed
     infected_people: int
     infected_start: minutes_since_midnight
+    location: str
     mask_type: str
     mask_wearing_option: str
     mechanical_ventilation_type: str
@@ -100,6 +101,7 @@ class FormData:
         'infected_lunch_start': '12:30',
         'infected_people': _NO_DEFAULT,
         'infected_start': '08:30',
+        'location': _NO_DEFAULT,
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': 'not-applicable',
@@ -602,6 +604,7 @@ def baseline_raw_form_data():
         'infected_lunch_start': '12:30',
         'infected_people': '1',
         'infected_start': '09:00',
+        'location': 'Geneva',
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': '',
