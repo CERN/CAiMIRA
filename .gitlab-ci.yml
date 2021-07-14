@@ -36,13 +36,13 @@ test_openshift_config:
     - cd ./app-config/openshift
     - oc login openshift-dev.cern.ch --token="${OPENSHIFT_CONFIG_CHECKER_TOKEN_TEST_CARA}"
     - python ./fetch-config.py test-cara --output-directory ./test-cara/actual
-#    - python ./build_config.py test-cara
+    - python ./generate-config.py test-cara --output-directory ./test-cara/expected
 
 #    - pytest ./test_config.py --arg test-cara
   artifacts:
     paths:
       - ./app-config/openshift/test-cara/actual
-#      - ./app-config/openshift/test-cara/expected
+      - ./app-config/openshift/test-cara/expected
 
 
 # A development installation of CARA tested with pytest.

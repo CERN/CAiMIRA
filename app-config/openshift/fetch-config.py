@@ -10,7 +10,7 @@ def configure_parser(parser: argparse.ArgumentParser) -> None:
     parser.set_defaults(handler=handler)
     parser.add_argument(
         "instance", choices=['cara', 'test-cara'],
-        help="Pick the instance for which you want to generated the config",
+        help="Pick the instance for which you want to fetch the config",
     )
     parser.add_argument(
         "--output-directory", default='config',
@@ -39,7 +39,7 @@ def fetch_config(output_directory: pathlib.Path):
         with (output_directory / f'{component}.json').open('wt') as fh:
             cmd = ['oc', 'get', '--export', '-o', 'json', component]
             print(f'Running: {" ".join(cmd)}')
-            subprocess.run(['oc', 'get', '--export', '-o', 'json', component], stdout=fh, check=True)
+            subprocess.run(cmd, stdout=fh, check=True)
     print(f'Config in: {output_directory.absolute()}')
 
 
