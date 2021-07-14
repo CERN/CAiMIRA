@@ -542,6 +542,7 @@ $(document).ready(function () {
           SingleLine: params.term, // search term
           f: 'json',
           page: params.page,
+          outFields: 'country',
         };
       },
       processResults: function (data, params) {
@@ -552,9 +553,15 @@ $(document).ready(function () {
         params.page = params.page || 1;
 
         return {
-          results: data.candidates,
+          results: data.candidates.map(function(candidate){
+            return {
+              id: candidate.address,
+              text: candidate.address,
+              country: candidate.attributes.country,
+            }
+          }),
           pagination: {
-            more: (params.page * 30) < data.total_count
+            more: (params.page * 30) < data.candidates.length
           }
         };
       },
@@ -565,43 +572,9 @@ $(document).ready(function () {
     templateResult: formatlocation,
     templateSelection: formatLocationSelection
   });
-
-  //TODO: remove
-  // $("#location_select").select2({
-  //   ajax: {
-  //     url: "https://api.github.com/search/repositories",
-  //     dataType: 'json',
-  //     delay: 250,
-  //     data: function (params) {
-  //       return {
-  //         q: params.term, // search term
-  //         page: params.page
-  //       };
-  //     },
-  //     processResults: function (data, params) {
-  //       // parse the results into the format expected by Select2
-  //       // since we are using custom formatting functions we do not need to
-  //       // alter the remote JSON data, except to indicate that infinite
-  //       // scrolling can be used
-  //       params.page = params.page || 1;
-
-  //       return {
-  //         results: data.items,
-  //         pagination: {
-  //           more: (params.page * 30) < data.total_count
-  //         }
-  //       };
-  //     },
-  //     cache: true
-  //   },
-  //   placeholder: 'Search for a repository',
-  //   minimumInputLength: 1,
-  //   templateResult: formatRepo,
-  //   templateSelection: formatRepoSelection
-  // });
 });
 
-function formatlocation (location) {
+function formatlocation(location) {
   if (location.loading) {
     return location.text;
   }
@@ -614,37 +587,13 @@ function formatlocation (location) {
     "</div>"
   );
 
-  $container.find(".select2-result-location__title").text(location.address);
+  $container.find(".select2-result-location__title").text(location.text + " (" + location.country + ")");
 
   return $container;
 }
 
-function formatLocationSelection (location) {
-  return location.address || location.text;
-}
-
-//TODO: remove
-function formatRepo (repo) {
-  if (repo.loading) {
-    return repo.text;
-  }
-
-  var $container = $(
-    "<div class='select2-result-location clearfix'>" +
-      "<div class='select2-result-location__meta'>" +
-        "<div class='select2-result-location__title'></div>" +
-      "</div>" +
-    "</div>"
-  );
-
-  $container.find(".select2-result-location__title").text(repo.full_name);
-
-  return $container;
-}
-
-//TODO: remove
-function formatRepoSelection (repo) {
-  return repo.full_name || repo.text;
+function formatLocationSelection(location) {
+  return location.text;
 }
 
 /* -------Debugging------- */
