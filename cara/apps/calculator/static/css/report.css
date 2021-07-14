@@ -85,3 +85,8 @@ p.notes {
 .flex {
 	display: flex;
 }
+
+
+.nav-tabs .nav-item .nav-link.active {
+	background-color: #F5F5F6;
+}

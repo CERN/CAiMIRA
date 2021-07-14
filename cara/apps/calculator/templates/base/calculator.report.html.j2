@@ -24,310 +24,312 @@
 
 {% endblock report_header %}
 
-<ul class="nav nav-tabs" id="myTab" role="tablist">
-	<li class="nav-item">
-		<a class="nav-link active" id="results-tab" data-toggle="tab" href="#results" role="tab" aria-controls="results" aria-selected="true">Results</a>
-	</li>
-	<li class="nav-item">
-		<a class="nav-link" id="data-tab" data-toggle="tab" href="#data" role="tab" aria-controls="data" aria-selected="false">Input Data</a>
-	</li>
-</ul>
 
-<div class="tab-content" id="myTabContent">
-  
-	<div class="tab-pane fade show active" id="results" role="tabpanel" aria-labelledby="results-tab">
-		{% block report_preamble %}
-		{% endblock report_preamble %}
+<div style="margin: 1%; border: #DFDFDF 1px solid; border-radius: 5px">
+	<ul class="nav nav-tabs" id="myTab" role="tablist" style="margin: 0.5% 0% 0% 1%">
+		<li class="nav-item">
+			<a class="nav-link active" id="results-tab" data-toggle="tab" href="#results" role="tab" aria-controls="results" aria-selected="true">Results</a>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link" id="data-tab" data-toggle="tab" href="#data" role="tab" aria-controls="data" aria-selected="false">Input Data</a>
+		</li>
+	</ul>
 
-		{% block report_results %}
-			<p class="result_title">Results:</p>
-				<p class="data_text">
-				{% block report_summary %}
-				Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b><a href="#section1">[*]</a> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>.
-				{% endblock report_summary %}
-				<p id="section1">[*] The results are based on the parameters and assumptions published in the CERN Open Report <a href="https://cds.cern.ch/record/2756083"> CERN-OPEN-2021-004</a></p>
-				</p>
-
-				<img id="scenario_concentration_plot" src="{{ scenario_plot_src }}">
-
-			<p class="data_title">Alternative scenarios:</p>
-
-			<img id="scenario_concentration_plot" src="{{ alternative_scenarios.plot }}" align="left" />
-
-			{% block report_scenarios_summary_table %}
-				<table class="table w-auto">
-					<thead class="thead-light">
-						<tr>
-							<th>Scenario</th>
-							<th>P(I)</th>
-							<th>Expected new cases</th>
-						</tr>
-					</thead>
-					<tbody>
-					{% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
-						<tr>
-							<td> {{ scenario_name }}</td>
-							<td> {{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
-							<td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>
-						</tr>
-					{% endfor %}
-					</tbody>
-				</table>
-			{% endblock report_scenarios_summary_table %}
+	<div class="tab-content" id="myTabContent" style="background-color: #F5F5F6; border-top: #dee2e6 1px solid; margin-top: -1px" >
+	
+		<div class="tab-pane fade show active" id="results" role="tabpanel" aria-labelledby="results-tab" style="padding: 1%">
 			
-			<p class="data_text"> <strong> Notes for alternative scenarios: </strong><br>
-				<ol>
-					<li>This graph shows the concentration of infectious quanta in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation).
-				For this reason, scenarios with different types of mask will show the same concentration on the graph but have different absorbed doses and infection probabilities.</li>
-					<li>If you have selected more sophisticated options, such as HEPA filtration or FFP2 masks, this will be indicated in the plot as the "base scenario", representing the inputs inserted in the form.<br>
-					The other alternative scenarios shown for comparison will not include either HEPA filtration or FFP2 masks.</li>
-				</ol>
-				<br>
-			</p>
+			{% block report_preamble %}
+			{% endblock report_preamble %}
 
-		{% endblock report_results %}
+			{% block report_results %}
+				<p class="result_title">Results:</p>
+					<p class="data_text">
+					{% block report_summary %}
+					Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b><a href="#section1">[*]</a> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>.
+					{% endblock report_summary %}
+					<p id="section1">[*] The results are based on the parameters and assumptions published in the CERN Open Report <a href="https://cds.cern.ch/record/2756083"> CERN-OPEN-2021-004</a></p>
+					</p>
 
-		{% block report_footer %}
-			<div>
-				<a href="{{ qr_code.link }}" style="float: left;"><img style="width:250pt;" id="qr_code" src="{{ qr_code.image }}"/></a>
-				<span style="float: left; min-height: 250pt; line-height: 250pt; vertical-align: middle; display: inline-block;">
-				<p style="display: inline-block; vertical-align: middle; line-height: normal;">
-				Click the QR code to regenerate the report and get a shareable link.<br>Alternatively, scan to regenerate the report.<br> Mobile-friendly app coming soon!
+					<img id="scenario_concentration_plot" src="{{ scenario_plot_src }}">
+
+				<p class="data_title">Alternative scenarios:</p>
+
+				<img id="scenario_concentration_plot" src="{{ alternative_scenarios.plot }}" align="left" />
+
+				{% block report_scenarios_summary_table %}
+					<table class="table w-auto">
+						<thead class="thead-light">
+							<tr>
+								<th>Scenario</th>
+								<th>P(I)</th>
+								<th>Expected new cases</th>
+							</tr>
+						</thead>
+						<tbody>
+						{% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
+							<tr>
+								<td> {{ scenario_name }}</td>
+								<td> {{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
+								<td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>
+							</tr>
+						{% endfor %}
+						</tbody>
+					</table>
+				{% endblock report_scenarios_summary_table %}
+				
+				<p class="data_text"> <strong> Notes for alternative scenarios: </strong><br>
+					<ol>
+						<li>This graph shows the concentration of infectious quanta in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation).
+					For this reason, scenarios with different types of mask will show the same concentration on the graph but have different absorbed doses and infection probabilities.</li>
+						<li>If you have selected more sophisticated options, such as HEPA filtration or FFP2 masks, this will be indicated in the plot as the "base scenario", representing the inputs inserted in the form.<br>
+						The other alternative scenarios shown for comparison will not include either HEPA filtration or FFP2 masks.</li>
+					</ol>
+					<br>
 				</p>
-				</span>
-			</div>
-			<div style="clear: both;"></div>
 
-			{% block disclaimer_container %}
-				<br><br><br>
-				<div style="border: 2px solid black; padding: 15px;">
-					{% block disclaimer %}
-					<p class="image"> <img align="middle" src="{{ calculator_prefix }}/static/images/disclaimer.jpg" width="40" height="40"><b>Disclaimer:</b><br><br></p>
+			{% endblock report_results %}
 
-					<p>
-						CARA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.
+			{% block report_footer %}
+				<div>
+					<a href="{{ qr_code.link }}" style="float: left;"><img style="width:250pt;" id="qr_code" src="{{ qr_code.image }}"/></a>
+					<span style="float: left; min-height: 250pt; line-height: 250pt; vertical-align: middle; display: inline-block;">
+					<p style="display: inline-block; vertical-align: middle; line-height: normal;">
+					Click the QR code to regenerate the report and get a shareable link.<br>Alternatively, scan to regenerate the report.<br> Mobile-friendly app coming soon!
 					</p>
-					<p>
-						CARA models the concentration profile of potential infectious viruses in enclosed spaces with clear and intuitive graphs.
-						The user can set a number of parameters, including room volume, exposure time, activity type, mask-wearing and ventilation.
-						The report generated indicates how to avoid exceeding critical concentrations and chains of airborne transmission in spaces such as individual offices, meeting rooms and labs.
-					</p>
-					<p>
-						The risk assessment tool simulates the long-range airborne spread SARS-CoV-2 virus in a finite volume, assuming a homogenous mixture, and estimates the risk of COVID-19 infection therein.
-						The results DO NOT include short-range airborne exposure (where the physical distance is a significant factor) nor the other known modes of SARS-CoV-2 transmission.
-						Hence, the output from this model is only valid when the other recommended public health & safety instructions are observed, such as adequate physical distancing, good hand hygiene and other barrier measures.
-					</p>
-					<p>
-						The model used is based on scientific publications relating to airborne transmission of infectious diseases, dose-response exposures and aerosol science, as of February 2021.
-						It can be used to compare the effectiveness of different airborne-related risk mitigation measures.
-					</p>
-					<p>
-						Note that this model applies a deterministic approach, i.e., it is assumed at least one person is infected and shedding viruses into the simulated volume.
-						Nonetheless, it is also important to understand that the absolute risk of infection is uncertain, as it will depend on the probability that someone infected attends the event.
-						The model is most useful for comparing the impact and effectiveness of different mitigation measures such as ventilation, filtration, exposure time, physical activity and
-						the size of the room, only considering long-range airborne transmission of COVID-19 in indoor settings.
-					</p>
-					<p>
-						This tool is designed to be informative, allowing the user to adapt different settings and model the relative impact on the estimated infection probabilities.
-						The objective is to facilitate targeted decision-making and investment through comparisons, rather than a singular determination of absolute risk.
-						While the SARS-CoV-2 virus is in circulation among the population, the notion of 'zero risk' or 'completely safe scenario' does not exist.
-						Each event modelled is unique, and the results generated therein are only as accurate as the inputs and assumptions.
-					</p>
-					<p>
-						CARA has not undergone review, approval or certification by competent authorities, and as a result, it cannot be considered
-						as a fully endorsed and reliable tool, namely in the assessment of potential viral emissions from infected hosts to be modelled.
-					</p>
-
-					{% endblock disclaimer %}
+					</span>
 				</div>
-			{% endblock disclaimer_container %}
-		{% endblock report_footer %}
-		
-	</div>
-  
-  	<div class="tab-pane fade" id="data" role="tabpanel" aria-labelledby="data-tab">
-		{% block simulation_overview %}
-			<p><strong>Simulation:</strong></p>
+				<div style="clear: both;"></div>
 
-			<p>Simulation Name: {{ form.simulation_name }}</p>
-			<p>Room Number: {{ form.room_number }}</p>
+				{% block disclaimer_container %}
+					<br><br><br>
+					<div style="border: 2px solid black; padding: 15px;">
+						{% block disclaimer %}
+						<p class="image"> <img align="middle" src="{{ calculator_prefix }}/static/images/disclaimer.jpg" width="40" height="40"><b>Disclaimer:</b><br><br></p>
 
-			<p class="data_title">Input data:</p>
-			<ul>
-				<li><p class="data_text">Virus variant:
-				{% if form.virus_type == "SARS_CoV_2" %}
-				SARS-CoV-2 (nominal strain)
-				{% elif form.virus_type == "SARS_CoV_2_B117" %}
-				<a href="https://www.ecdc.europa.eu/en/publications-data/covid-19-risk-assessment-spread-new-sars-cov-2-variants-eueea">SARS-CoV-2 (Alpha VOC) </a>
-				{% elif form.virus_type == "SARS_CoV_2_P1" %}
-				<a href="https://github.com/CADDE-CENTRE/Novel-SARS-CoV-2-P1-Lineage-in-Brazil/blob/main/manuscript/FINAL_P1_MANUSCRIPT_25-02-2021_combined.pdf">SARS-CoV-2 (Gamma VOC)</a>
-				{% elif form.virus_type == "SARS_CoV_2_B16172" %}
-				<a href="https://www.bmj.com/content/373/bmj.n1513">SARS-CoV-2 (Delta VOC)</a>
-				{% endif %}
-				</p></li>
-				<li><p class="data_text">Room Volume: {{ model.concentration_model.room.volume }} m³</p></li>
-				<li><p class="data_text">Room Central Heating: {{ "On" if form.room_heating_option else "Off" }}</p></li>
-			</ul>
+						<p>
+							CARA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.
+						</p>
+						<p>
+							CARA models the concentration profile of potential infectious viruses in enclosed spaces with clear and intuitive graphs.
+							The user can set a number of parameters, including room volume, exposure time, activity type, mask-wearing and ventilation.
+							The report generated indicates how to avoid exceeding critical concentrations and chains of airborne transmission in spaces such as individual offices, meeting rooms and labs.
+						</p>
+						<p>
+							The risk assessment tool simulates the long-range airborne spread SARS-CoV-2 virus in a finite volume, assuming a homogenous mixture, and estimates the risk of COVID-19 infection therein.
+							The results DO NOT include short-range airborne exposure (where the physical distance is a significant factor) nor the other known modes of SARS-CoV-2 transmission.
+							Hence, the output from this model is only valid when the other recommended public health & safety instructions are observed, such as adequate physical distancing, good hand hygiene and other barrier measures.
+						</p>
+						<p>
+							The model used is based on scientific publications relating to airborne transmission of infectious diseases, dose-response exposures and aerosol science, as of February 2021.
+							It can be used to compare the effectiveness of different airborne-related risk mitigation measures.
+						</p>
+						<p>
+							Note that this model applies a deterministic approach, i.e., it is assumed at least one person is infected and shedding viruses into the simulated volume.
+							Nonetheless, it is also important to understand that the absolute risk of infection is uncertain, as it will depend on the probability that someone infected attends the event.
+							The model is most useful for comparing the impact and effectiveness of different mitigation measures such as ventilation, filtration, exposure time, physical activity and
+							the size of the room, only considering long-range airborne transmission of COVID-19 in indoor settings.
+						</p>
+						<p>
+							This tool is designed to be informative, allowing the user to adapt different settings and model the relative impact on the estimated infection probabilities.
+							The objective is to facilitate targeted decision-making and investment through comparisons, rather than a singular determination of absolute risk.
+							While the SARS-CoV-2 virus is in circulation among the population, the notion of 'zero risk' or 'completely safe scenario' does not exist.
+							Each event modelled is unique, and the results generated therein are only as accurate as the inputs and assumptions.
+						</p>
+						<p>
+							CARA has not undergone review, approval or certification by competent authorities, and as a result, it cannot be considered
+							as a fully endorsed and reliable tool, namely in the assessment of potential viral emissions from infected hosts to be modelled.
+						</p>
 
-			<p class="data_title">Ventilation data:</p>
-			<ul>
-				<li><p class="data_text">Mechanical ventilation:
-				{% if form.ventilation_type == "mechanical_ventilation" %}
-				Yes </p></li>
+						{% endblock disclaimer %}
+					</div>
+				{% endblock disclaimer_container %}
+			{% endblock report_footer %}
+
+		</div>
+
+		<div class="tab-pane fade" id="data" role="tabpanel" aria-labelledby="data-tab" style="padding: 1%">
+			{% block simulation_overview %}
+				<p><strong>Simulation:</strong></p>
+
+				<p>Simulation Name: {{ form.simulation_name }}</p>
+				<p>Room Number: {{ form.room_number }}</p>
+
+				<p class="data_title">Input data:</p>
 				<ul>
-					<li><p class="data_subtext">
-					{% if form.mechanical_ventilation_type == "mech_type_air_supply"%}
-					Air supply flow rate: {{ form.air_supply }} m³ / hour
-					{% elif form.mechanical_ventilation_type == "mech_type_air_changes"%}
-					Air changes per hour: {{ form.air_changes }} h⁻¹
+					<li><p class="data_text">Virus variant:
+					{% if form.virus_type == "SARS_CoV_2" %}
+					SARS-CoV-2 (nominal strain)
+					{% elif form.virus_type == "SARS_CoV_2_B117" %}
+					<a href="https://www.ecdc.europa.eu/en/publications-data/covid-19-risk-assessment-spread-new-sars-cov-2-variants-eueea">SARS-CoV-2 (Alpha VOC) </a>
+					{% elif form.virus_type == "SARS_CoV_2_P1" %}
+					<a href="https://github.com/CADDE-CENTRE/Novel-SARS-CoV-2-P1-Lineage-in-Brazil/blob/main/manuscript/FINAL_P1_MANUSCRIPT_25-02-2021_combined.pdf">SARS-CoV-2 (Gamma VOC)</a>
+					{% elif form.virus_type == "SARS_CoV_2_B16172" %}
+					<a href="https://www.bmj.com/content/373/bmj.n1513">SARS-CoV-2 (Delta VOC)</a>
 					{% endif %}
 					</p></li>
+					<li><p class="data_text">Room Volume: {{ model.concentration_model.room.volume }} m³</p></li>
+					<li><p class="data_text">Room Central Heating: {{ "On" if form.room_heating_option else "Off" }}</p></li>
 				</ul>
-				{% else %}
-				No </li>
-				{% endif %}
-				<li><p class="data_text">Natural ventilation:
-				{% if form.ventilation_type == "natural_ventilation"%}
-				Yes </p></li>
-				<ul>
-					<li><p class="data_subtext">Number of windows: {{ form.windows_number }}</p></li>
-					<li><p class="data_subtext">Height of window: {{ form.window_height }} m</p></li>
-					<li><p class="data_subtext">Window type:
-					{% if form.window_type == "window_hinged" %}
-					Top- or Bottom-Hung</p></li>
-					<li><p class="data_subtext">Width of window: {{ form.window_width }} m</p></li>
-					{% elif form.window_type == "window_sliding" %}
-					Sliding / Side-Hung</p></li>
-					{% endif %}
-					<li><p class="data_subtext">Opening distance: {{ form.opening_distance }} m</p></li>
-					<li><p class="data_subtext">Windows open:
-					{% if form.window_opening_regime == "windows_open_periodically" %}
-					Periodically for {{ form.windows_duration | readable_minutes}}
-						every {{ form.windows_frequency | readable_minutes}}
-					{% elif form.window_opening_regime == "windows_open_permanently" %}
-					Permanently
-					{% endif %}
-					</p></li>
-				</ul>
-					<p class="data_subtext data_italic">When using the natural ventilation option, air flows are calculated using averaged hourly temperatures for the Geneva region, based on historical data for the month selected.</p>
-				{% else %}
-				No </p></li>
-				{% endif %}
-				<li><p class="data_text">HEPA Filtration: {{ 'Yes' if form.hepa_option else 'No' }}</li>
-				{% if form.hepa_option %}
-				<ul>
-					<li><p class="data_text">HEPA amount: {{ form.hepa_amount }} m³ / hour</p></li>
-				</ul>
-				{% endif %}
-			</ul>
 
-			<p class="data_title">Event data:</p>
-			<ul>
-				<li><p class="data_text">Number of attendees and infected people: {{ form.total_people }} in attendance, of whom {{ form.infected_people }}
-				{{ "is" if form.infected_people == 1 else "are" }}
-				infected.</p></li>
-				<li><p class="data_text">
-				Activity type:
-				{% if form.activity_type == "office" %}
-				Office – typical scenario with all persons seated, talking occasionally (talking assumed for 1/3rd of the time).
-				{% elif form.activity_type == "meeting" %}
-				Meeting – typical scenario with all persons seated, one person talking at a time.
-				{% elif form.activity_type == "callcentre" %}
-				Call Centre = typical office-like scenario with all persons seated, all talking continuously.
-				{% elif form.activity_type == "controlroom-day" %}
-				Control Room (Day Shift) = specific control room scenario, all persons seated, all talking 50% of the time.
-				{% elif form.activity_type == "controlroom-night" %}
-				Control Room (Night Shift) = specific control room scenario with all persons seated, all talking for 10% of the time.
-				{% elif form.activity_type == "library" %}
-				Library = Library scenario with all persons seated, breathing and not talking.
-				{% elif form.activity_type == "workshop" %}
-				Workshop = assembly workshop environment, all persons doing moderate physical activity, talking 50% of the time.
-				{% elif form.activity_type == "training" %}
-				Training – one person (the trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the trainer is the infected person, for the worst case scenario.
-				{% elif form.activity_type == "lab" %}
-				Laboratory = Lab or technical environment, all persons doing light physical activity, talking 50% of the time.
-				{% elif form.activity_type == "gym" %}
-				Gym = For comparison only, all persons doing heavy physical exercise, breathing and not talking.
-				{% endif %}
-				</p></li>
-				<li><p class="data_text">Exposed occupant(s) activity time:</p></li>
+				<p class="data_title">Ventilation data:</p>
+				<ul>
+					<li><p class="data_text">Mechanical ventilation:
+					{% if form.ventilation_type == "mechanical_ventilation" %}
+					Yes </p></li>
 					<ul>
-						<li><p class="data_subtext">Start time: {{ form.exposed_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.exposed_finish | minutes_to_time }}</p></li>
+						<li><p class="data_subtext">
+						{% if form.mechanical_ventilation_type == "mech_type_air_supply"%}
+						Air supply flow rate: {{ form.air_supply }} m³ / hour
+						{% elif form.mechanical_ventilation_type == "mech_type_air_changes"%}
+						Air changes per hour: {{ form.air_changes }} h⁻¹
+						{% endif %}
+						</p></li>
 					</ul>
-				<li><p class="data_text">Infected occupant(s) activity time:</p></li>
-				<ul>
-					<li><p class="data_subtext">Start time: {{ form.infected_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.infected_finish | minutes_to_time }}</p></li>
+					{% else %}
+					No </li>
+					{% endif %}
+					<li><p class="data_text">Natural ventilation:
+					{% if form.ventilation_type == "natural_ventilation"%}
+					Yes </p></li>
+					<ul>
+						<li><p class="data_subtext">Number of windows: {{ form.windows_number }}</p></li>
+						<li><p class="data_subtext">Height of window: {{ form.window_height }} m</p></li>
+						<li><p class="data_subtext">Window type:
+						{% if form.window_type == "window_hinged" %}
+						Top- or Bottom-Hung</p></li>
+						<li><p class="data_subtext">Width of window: {{ form.window_width }} m</p></li>
+						{% elif form.window_type == "window_sliding" %}
+						Sliding / Side-Hung</p></li>
+						{% endif %}
+						<li><p class="data_subtext">Opening distance: {{ form.opening_distance }} m</p></li>
+						<li><p class="data_subtext">Windows open:
+						{% if form.window_opening_regime == "windows_open_periodically" %}
+						Periodically for {{ form.windows_duration | readable_minutes}}
+							every {{ form.windows_frequency | readable_minutes}}
+						{% elif form.window_opening_regime == "windows_open_permanently" %}
+						Permanently
+						{% endif %}
+						</p></li>
+					</ul>
+						<p class="data_subtext data_italic">When using the natural ventilation option, air flows are calculated using averaged hourly temperatures for the Geneva region, based on historical data for the month selected.</p>
+					{% else %}
+					No </p></li>
+					{% endif %}
+					<li><p class="data_text">HEPA Filtration: {{ 'Yes' if form.hepa_option else 'No' }}</li>
+					{% if form.hepa_option %}
+					<ul>
+						<li><p class="data_text">HEPA amount: {{ form.hepa_amount }} m³ / hour</p></li>
+					</ul>
+					{% endif %}
 				</ul>
-				<li><p class="data_text">Event for the month of {{ form.event_month }}</p></li>
-			</ul>
 
-			<p class="data_title">Break data:</p>
-			{% if form.infected_dont_have_breaks_with_exposed %}
-			<p style="padding-left:15px;"> Exposed occupant(s):</p>
-			{% endif %}
-			<ul>
-				<li><p class="data_text">Lunch break:
-				{% if form.exposed_lunch_option%}
-				Yes</li>
+				<p class="data_title">Event data:</p>
 				<ul>
-					<li><p class="data_subtext">Start time: {{ form.exposed_lunch_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.exposed_lunch_finish | minutes_to_time }}</p></li>
+					<li><p class="data_text">Number of attendees and infected people: {{ form.total_people }} in attendance, of whom {{ form.infected_people }}
+					{{ "is" if form.infected_people == 1 else "are" }}
+					infected.</p></li>
+					<li><p class="data_text">
+					Activity type:
+					{% if form.activity_type == "office" %}
+					Office – typical scenario with all persons seated, talking occasionally (talking assumed for 1/3rd of the time).
+					{% elif form.activity_type == "meeting" %}
+					Meeting – typical scenario with all persons seated, one person talking at a time.
+					{% elif form.activity_type == "callcentre" %}
+					Call Centre = typical office-like scenario with all persons seated, all talking continuously.
+					{% elif form.activity_type == "controlroom-day" %}
+					Control Room (Day Shift) = specific control room scenario, all persons seated, all talking 50% of the time.
+					{% elif form.activity_type == "controlroom-night" %}
+					Control Room (Night Shift) = specific control room scenario with all persons seated, all talking for 10% of the time.
+					{% elif form.activity_type == "library" %}
+					Library = Library scenario with all persons seated, breathing and not talking.
+					{% elif form.activity_type == "workshop" %}
+					Workshop = assembly workshop environment, all persons doing moderate physical activity, talking 50% of the time.
+					{% elif form.activity_type == "training" %}
+					Training – one person (the trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the trainer is the infected person, for the worst case scenario.
+					{% elif form.activity_type == "lab" %}
+					Laboratory = Lab or technical environment, all persons doing light physical activity, talking 50% of the time.
+					{% elif form.activity_type == "gym" %}
+					Gym = For comparison only, all persons doing heavy physical exercise, breathing and not talking.
+					{% endif %}
+					</p></li>
+					<li><p class="data_text">Exposed occupant(s) activity time:</p></li>
+						<ul>
+							<li><p class="data_subtext">Start time: {{ form.exposed_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.exposed_finish | minutes_to_time }}</p></li>
+						</ul>
+					<li><p class="data_text">Infected occupant(s) activity time:</p></li>
+					<ul>
+						<li><p class="data_subtext">Start time: {{ form.infected_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.infected_finish | minutes_to_time }}</p></li>
+					</ul>
+					<li><p class="data_text">Event for the month of {{ form.event_month }}</p></li>
 				</ul>
-				{% else%}
-				No
+
+				<p class="data_title">Break data:</p>
+				{% if form.infected_dont_have_breaks_with_exposed %}
+				<p style="padding-left:15px;"> Exposed occupant(s):</p>
 				{% endif %}
-				</p></li>
-				<li><p class="data_text">Coffee breaks: {{ form.exposed_number_of_coffee_breaks() }}
-				{% if form.exposed_number_of_coffee_breaks() > 0 %}
-				each of {{ form.exposed_coffee_duration }} minutes duration
-				</p></li>
 				<ul>
-				{%- for start_time, end_time in form.exposed_coffee_break_times() %}
-				<li><p class="data_subtext">Coffee break {{ loop.index }}: Start: {{ start_time | minutes_to_time }} &nbsp&nbsp End: {{ end_time | minutes_to_time }}</p></li>
-				{%- endfor %}
+					<li><p class="data_text">Lunch break:
+					{% if form.exposed_lunch_option%}
+					Yes</li>
+					<ul>
+						<li><p class="data_subtext">Start time: {{ form.exposed_lunch_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.exposed_lunch_finish | minutes_to_time }}</p></li>
+					</ul>
+					{% else%}
+					No
+					{% endif %}
+					</p></li>
+					<li><p class="data_text">Coffee breaks: {{ form.exposed_number_of_coffee_breaks() }}
+					{% if form.exposed_number_of_coffee_breaks() > 0 %}
+					each of {{ form.exposed_coffee_duration }} minutes duration
+					</p></li>
+					<ul>
+					{%- for start_time, end_time in form.exposed_coffee_break_times() %}
+					<li><p class="data_subtext">Coffee break {{ loop.index }}: Start: {{ start_time | minutes_to_time }} &nbsp&nbsp End: {{ end_time | minutes_to_time }}</p></li>
+					{%- endfor %}
+					</ul>
+					{% endif %}
 				</ul>
-				{% endif %}
-			</ul>
 
-			{% if form.infected_dont_have_breaks_with_exposed %}
-			<p style="padding-left:15px;"> Infected occupant(s):</p>
-			<ul>
-				<li><p class="data_text">Lunch break:
-				{% if form.infected_lunch_option%}
-				Yes</li>
+				{% if form.infected_dont_have_breaks_with_exposed %}
+				<p style="padding-left:15px;"> Infected occupant(s):</p>
 				<ul>
-					<li><p class="data_subtext">Start time: {{ form.infected_lunch_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.infected_lunch_finish | minutes_to_time }}</p></li>
+					<li><p class="data_text">Lunch break:
+					{% if form.infected_lunch_option%}
+					Yes</li>
+					<ul>
+						<li><p class="data_subtext">Start time: {{ form.infected_lunch_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.infected_lunch_finish | minutes_to_time }}</p></li>
+					</ul>
+					{% else%}
+					No
+					{% endif %}
+					</p></li>
+					<li><p class="data_text">Coffee breaks: {{ form.infected_number_of_coffee_breaks() }}
+					{% if form.infected_number_of_coffee_breaks() > 0 %}
+					each of {{ form.infected_coffee_duration }} minutes duration
+					</p></li>
+					<ul>
+					{%- for start_time, end_time in form.infected_coffee_break_times() %}
+					<li><p class="data_subtext">Coffee break {{ loop.index }}: Start: {{ start_time | minutes_to_time }} &nbsp&nbsp End: {{ end_time | minutes_to_time }}</p></li>
+					{%- endfor %}
+					</ul>
+					{% endif %}
 				</ul>
-				{% else%}
-				No
 				{% endif %}
-				</p></li>
-				<li><p class="data_text">Coffee breaks: {{ form.infected_number_of_coffee_breaks() }}
-				{% if form.infected_number_of_coffee_breaks() > 0 %}
-				each of {{ form.infected_coffee_duration }} minutes duration
-				</p></li>
+
+				<p class="data_title">Mask wearing:</p>
 				<ul>
-				{%- for start_time, end_time in form.infected_coffee_break_times() %}
-				<li><p class="data_subtext">Coffee break {{ loop.index }}: Start: {{ start_time | minutes_to_time }} &nbsp&nbsp End: {{ end_time | minutes_to_time }}</p></li>
-				{%- endfor %}
+					<li><p class="data_text">Masks worn at workstations? {{ 'Yes' if form.mask_wearing_option == "mask_on" else 'No' }} </p></li>
+					{% if form.mask_wearing_option == "mask_on" %}
+					<li><p class="data_text">Mask type: {{ form.mask_type }}</p></li>
+					{% endif %}
+
 				</ul>
-				{% endif %}
-			</ul>
-			{% endif %}
 
-			<p class="data_title">Mask wearing:</p>
-			<ul>
-				<li><p class="data_text">Masks worn at workstations? {{ 'Yes' if form.mask_wearing_option == "mask_on" else 'No' }} </p></li>
-				{% if form.mask_wearing_option == "mask_on" %}
-				<li><p class="data_text">Mask type: {{ form.mask_type }}</p></li>
-				{% endif %}
-
-			</ul>
-
-		{% endblock simulation_overview %}	
-
-  	</div>
+			{% endblock simulation_overview %}	
+		</div>
+	</div>
 </div>
-
 
 	
 
