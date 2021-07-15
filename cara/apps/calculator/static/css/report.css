@@ -81,6 +81,18 @@ p.notes {
 	margin-left: 5%
 }
 
+.icon_button {
+	padding: 0;
+	border: none;
+	background: none;
+}
+
+.icon_button:focus { outline:0 !important; }
+
 .nav-tabs .nav-item .nav-link.active {
-	background-color: #F5F5F6;
+	font-weight: bold;
+}
+
+.nav-tabs .nav-item .nav-link{
+	color: black;
 }

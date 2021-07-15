@@ -2,29 +2,54 @@
 
 
 {% block report_preamble %}
-  <p><strong>Applicable rules: <br>
-  Please ensure that this scenario conforms to current COVID-related <a href="https://hse.cern/covid-19-information"> Health & Safety requirements</a>, under the applicable COVID Scale and measures in force at the time of the CARA assessment.</strong> <br>
-  The results of this simulation are colour coded according to the risk values authorized at CERN (approved in December 2020):
-  <ul><li>Events with a <span class="green_bkg">P(i) less than 5%</span> may go ahead without further mitigation measures.</li>
-    <li>Events with a <span class="yellow_bkg">P(i) between 5% and 15%</span> shall be subject to ALARA principles (see footnote) to minimise the risk before proceeding.</li>
-    <li>Events with a <span class="red_bkg">P(i) exceeding 15% or a number of expected new cases that exceeds 1</span> may not take place until additional measures are in place and a risk reduction has been performed.</li>
-  </ul>
-  </p>
+
+<div class="card bg-light mb-3">
+  <div class="card-header"><strong>Applicable rules </strong> 
+    <button class="icon_button" data-toggle="collapse" href="#collapseRules" role="button" aria-expanded="true" aria-controls="collapseRules" style="float:right">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
+      </svg>
+    </button>
+  </div>
+  <div class="collapse show" id="collapseRules">
+    <div class="card-body">
+      <p class="card-text">
+        Please ensure that this scenario conforms to current COVID-related <a href="https://hse.cern/covid-19-information"> Health & Safety requirements</a>, under the applicable COVID Scale and measures in force at the time of the CARA assessment.</strong> <br>
+        The results of this simulation are colour coded according to the risk values authorized at CERN (approved in December 2020):
+        
+          <div class="alert alert-success ml-4" role="alert">Events with a <strong>P(i) less than 5%</strong> may go ahead without further mitigation measures.</div>
+          <div class="alert alert-warning ml-4" role="alert">Events with a <strong>P(i) between 5% and 15%</strong> shall be subject to ALARA principles (see footnote) to minimise the risk before proceeding.</div>
+          <div class="alert alert-danger ml-4" role="alert">Events with a <strong>P(i) exceeding 15% or a number of expected new cases that exceeds 1</strong> may not take place until additional measures are in place and a risk reduction has been performed.</div>
+        
+      </p>
+    </div>
+  </div>
+</div>
 {% endblock report_preamble %}
 
 
 {% block report_summary %}
- <span
-{% if ((prob_inf > 15) or (expected_new_cases >= 1)) %}
-    class="red_bkg"><strong>Not Acceptable:</strong>
-{% elif 5 <= prob_inf <= 15 %}
-    class="yellow_bkg"><strong> Attention:</strong>
-{% elif prob_inf < 5 %}
-    class="green_bkg">Acceptable:
-{% endif %}
- </span>
 
-{{ super() }}
+<span
+  {% if ((prob_inf > 15) or (expected_new_cases >= 1)) %}
+    ><div class="alert alert-danger" role="alert">
+      <strong>Not Acceptable:</strong>
+      {{ super() }}
+    </div>
+  {% elif 5 <= prob_inf <= 15 %}
+    ><div class="alert alert-warning" role="alert">
+      <strong>Attention:</strong>
+      {{ super() }}
+    <div>
+  {% elif prob_inf < 5 %}
+    ><div class="alert alert-success" role="alert">
+      ><strong>Acceptable:</strong>
+      {{ super() }}
+    </div>
+  {% endif %}
+</span>
+
+
 
 {% if (prob_inf > 5) %}
 	<div class="d-flex" style="align-self:center">

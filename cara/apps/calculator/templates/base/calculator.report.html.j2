@@ -35,7 +35,7 @@
 		</li>
 	</ul>
 
-	<div class="tab-content" id="myTabContent" style="background-color: #F5F5F6; border-top: #dee2e6 1px solid; margin-top: -1px" >
+	<div class="tab-content" id="myTabContent" style="border-top: #dee2e6 1px solid; margin-top: -1px" >
 	
 		<div class="tab-pane fade show active" id="results" role="tabpanel" aria-labelledby="results-tab" style="padding: 1%">
 			
@@ -43,51 +43,73 @@
 			{% endblock report_preamble %}
 
 			{% block report_results %}
-				<p class="result_title">Results:</p>
-					<p class="data_text">
-					{% block report_summary %}
-					Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b><a href="#section1">[*]</a> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>.
-					{% endblock report_summary %}
-					<p id="section1">[*] The results are based on the parameters and assumptions published in the CERN Open Report <a href="https://cds.cern.ch/record/2756083"> CERN-OPEN-2021-004</a></p>
-					</p>
+				<div class="card bg-light mb-3">
+  					<div class="card-header"><strong>Results </strong>
+					  	<button class="icon_button" data-toggle="collapse" href="#collapseResults" role="button" aria-expanded="true" aria-controls="collapseResults" style="float:right">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
+								<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
+							</svg>
+						</button>
+					</div>
+					<div class="collapse show" id="collapseResults">
+					<div class="card-body">
+						<p class="card-text">
+							{% block report_summary %}
+							Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b><a href="#section1">[*]</a> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>.
+							{% endblock report_summary %}
+							<p id="section1">[*] The results are based on the parameters and assumptions published in the CERN Open Report <a href="https://cds.cern.ch/record/2756083"> CERN-OPEN-2021-004</a></p>
+							<img id="scenario_concentration_plot" src="{{ scenario_plot_src }}" />
+						</p>
+					</div>
+					</div>
+				</div>	
+				<div class="card bg-light mb-3">
+  					<div class="card-header"><strong>Alternative scenarios</strong>
+						<button class="icon_button" data-toggle="collapse" href="#collapseAlternativeScenarios" role="button" aria-expanded="true" aria-controls="collapseAlternativeScenarios" style="float:right">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
+								<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
+							</svg>
+						</button>
+					</div>	
+					<div class="collapse show" id="collapseAlternativeScenarios">
+						<div class="card-body">
+							<p class="card-text">
+								<img id="scenario_concentration_plot" src="{{ alternative_scenarios.plot }}" align="left" />
 
-					<img id="scenario_concentration_plot" src="{{ scenario_plot_src }}">
-
-				<p class="data_title">Alternative scenarios:</p>
-
-				<img id="scenario_concentration_plot" src="{{ alternative_scenarios.plot }}" align="left" />
-
-				{% block report_scenarios_summary_table %}
-					<table class="table w-auto">
-						<thead class="thead-light">
-							<tr>
-								<th>Scenario</th>
-								<th>P(I)</th>
-								<th>Expected new cases</th>
-							</tr>
-						</thead>
-						<tbody>
-						{% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
-							<tr>
-								<td> {{ scenario_name }}</td>
-								<td> {{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
-								<td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>
-							</tr>
-						{% endfor %}
-						</tbody>
-					</table>
-				{% endblock report_scenarios_summary_table %}
-				
-				<p class="data_text"> <strong> Notes for alternative scenarios: </strong><br>
-					<ol>
-						<li>This graph shows the concentration of infectious quanta in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation).
-					For this reason, scenarios with different types of mask will show the same concentration on the graph but have different absorbed doses and infection probabilities.</li>
-						<li>If you have selected more sophisticated options, such as HEPA filtration or FFP2 masks, this will be indicated in the plot as the "base scenario", representing the inputs inserted in the form.<br>
-						The other alternative scenarios shown for comparison will not include either HEPA filtration or FFP2 masks.</li>
-					</ol>
-					<br>
-				</p>
-
+								{% block report_scenarios_summary_table %}
+									<table class="table w-auto">
+										<thead class="thead-light">
+											<tr>
+												<th>Scenario</th>
+												<th>P(I)</th>
+												<th>Expected new cases</th>
+											</tr>
+										</thead>
+										<tbody>
+										{% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
+											<tr>
+												<td> {{ scenario_name }}</td>
+												<td> {{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
+												<td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>
+											</tr>
+										{% endfor %}
+										</tbody>
+									</table>
+								{% endblock report_scenarios_summary_table %}
+								
+								<p class="data_text"> <strong> Notes for alternative scenarios: </strong><br>
+									<ol>
+										<li>This graph shows the concentration of infectious quanta in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation).
+									For this reason, scenarios with different types of mask will show the same concentration on the graph but have different absorbed doses and infection probabilities.</li>
+										<li>If you have selected more sophisticated options, such as HEPA filtration or FFP2 masks, this will be indicated in the plot as the "base scenario", representing the inputs inserted in the form.<br>
+										The other alternative scenarios shown for comparison will not include either HEPA filtration or FFP2 masks.</li>
+									</ol>
+									<br>
+								</p>
+							</p>
+						</div>
+					</div>
+				</div>
 			{% endblock report_results %}
 
 			{% block report_footer %}
