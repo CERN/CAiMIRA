@@ -4,15 +4,16 @@ import dataclasses
 from datetime import datetime, timedelta
 import io
 import typing
+import urllib
 import zlib
 
-import qrcode
-import urllib
+import loky
 import jinja2
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import numpy as np
+import qrcode
 
 from cara import models
 from ... import monte_carlo as mc
@@ -251,15 +252,20 @@ def scenario_statistics(mc_model: mc.ExposureModel, sample_times: np.ndarray):
     }
 
 
-def comparison_report(scenarios: typing.Dict[str, mc.ExposureModel], sample_times: np.ndarray):
+def comparison_report(
+        scenarios: typing.Dict[str, mc.ExposureModel],
+        sample_times: np.ndarray,
+        executor_factory: typing.Callable[[], concurrent.futures.Executor],
+):
     statistics = {}
-    with concurrent.futures.ProcessPoolExecutor() as executor:
+    with executor_factory() as executor:
         results = executor.map(
             scenario_statistics,
             scenarios.values(),
             [sample_times] * len(scenarios),
             timeout=60,
         )
+
     for (name, model), model_stats in zip(scenarios.items(), results):
         statistics[name] = model_stats
     return {
@@ -273,12 +279,23 @@ class ReportGenerator:
     jinja_loader: jinja2.BaseLoader
     calculator_prefix: str
 
-    def build_report(self, base_url: str, form: FormData) -> str:
+    def build_report(
+            self,
+            base_url: str,
+            form: FormData,
+            executor_factory: typing.Callable[[], concurrent.futures.Executor],
+    ) -> str:
         model = form.build_model()
-        context = self.prepare_context(base_url, model, form)
+        context = self.prepare_context(base_url, model, form, executor_factory=executor_factory)
         return self.render(context)
 
-    def prepare_context(self, base_url: str, model: models.ExposureModel, form: FormData) -> dict:
+    def prepare_context(
+            self,
+            base_url: str,
+            model: models.ExposureModel,
+            form: FormData,
+            executor_factory: typing.Callable[[], concurrent.futures.Executor],
+    ) -> dict:
         now = datetime.utcnow().astimezone()
         time = now.strftime("%Y-%m-%d %H:%M:%S UTC")
 
@@ -293,7 +310,9 @@ class ReportGenerator:
 
         context.update(calculate_report_data(model))
         alternative_scenarios = manufacture_alternative_scenarios(form)
-        context['alternative_scenarios'] = comparison_report(alternative_scenarios, scenario_sample_times)
+        context['alternative_scenarios'] = comparison_report(
+            alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
+        )
         context['qr_code'] = generate_qr_code(base_url, self.calculator_prefix, form)
         context['calculator_prefix'] = self.calculator_prefix
         context['scale_warning'] = {
