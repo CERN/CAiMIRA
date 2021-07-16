@@ -13,7 +13,7 @@ def configure_parser(parser: argparse.ArgumentParser) -> None:
         help="Pick the instance for which you want to fetch the config",
     )
     parser.add_argument(
-        "--output-directory", default='config',
+        "-o", "--output-directory", default='config',
         help="Location to put the config files",
     )
 
@@ -36,8 +36,8 @@ def fetch_config(output_directory: pathlib.Path):
     output_directory.mkdir(exist_ok=True, parents=True)
 
     for component in ['routes', 'configmap', 'services', 'imagestreams', 'buildconfig', 'deploymentconfig']:
-        with (output_directory / f'{component}.json').open('wt') as fh:
-            cmd = ['oc', 'get', '--export', '-o', 'json', component]
+        with (output_directory / f'{component}.yaml').open('wt') as fh:
+            cmd = ['oc', 'get', '--export', '-o', 'yaml', component]
             print(f'Running: {" ".join(cmd)}')
             subprocess.run(cmd, stdout=fh, check=True)
     print(f'Config in: {output_directory.absolute()}')
@@ -53,7 +53,6 @@ def handler(args: argparse.ArgumentParser) -> None:
 
     actual_login_server = get_oc_server()
     if actual_login_server != login_server:
-        print(actual_login_server)
         print(f'\nPlease login to the correct openshift server with: \n\n oc login {login_server}\n', file=sys.stderr)
         sys.exit(1)
 

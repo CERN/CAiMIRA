@@ -1,7 +1,6 @@
 import argparse
 import pathlib
 import subprocess
-import sys
 import typing
 
 
@@ -13,7 +12,7 @@ def configure_parser(parser: argparse.ArgumentParser) -> None:
         help="Pick the instance for which you want to generate the config",
     )
     parser.add_argument(
-        "--output-directory", default='config',
+        "-o", "--output-directory", default='config',
         help="Location to put the config files",
     )
 
@@ -22,14 +21,13 @@ def generate_config(output_directory: pathlib.Path, project_name: str, hostname:
     output_directory.mkdir(exist_ok=True, parents=True)
 
     def oc_process(component_name: str, context: typing.Optional[dict] = None):
-        cmd = ['oc', 'process', '--local', '-f', f'{component_name}.yaml']
+        cmd = ['oc', 'process', '--local', '-f', f'{component_name}.yaml', '-o', 'yaml']
         for ctx_name, ctx_value in (context or {}).items():
             cmd.extend(['--param', f'{ctx_name}={ctx_value}'])
-        with (output_directory / f'{component_name}.json').open('wt') as fh:
+        with (output_directory / f'{component_name}.yaml').open('wt') as fh:
             print(f'Running: {" ".join(cmd)}')
             subprocess.run(cmd, stdout=fh, check=True)
 
-    # oc_process('route', oc_process + ['route.yaml', '--param', f'HOST={hostname}'])
     oc_process('routes', context={'HOST': hostname})
     oc_process('configmap')
     oc_process('services')
