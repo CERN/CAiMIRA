@@ -1,0 +1,36 @@
+---
+  kind: "Template"
+  apiVersion: "v1"
+  metadata:
+    name: "cara-imagestreams"
+    creationTimestamp: null
+    annotations:
+      description: "CARA imagestreams OpenShift template."
+      tags: "cara-imagestreams"
+  labels:
+    template: "cara-application"
+  objects:
+    -
+      kind: ImageStream
+      apiVersion: v1
+      metadata:
+        name: auth-service
+      spec:
+        lookupPolicy:
+          local: False
+    -
+      kind: ImageStream
+      apiVersion: v1
+      metadata:
+        name: cara-router
+      spec:
+        lookupPolicy:
+          local: False
+    -
+      kind: ImageStream
+      apiVersion: v1
+      metadata:
+        name: cara-webservice
+      spec:
+        lookupPolicy:
+          local: False

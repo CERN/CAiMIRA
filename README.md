@@ -258,11 +258,15 @@ If you need to **update** existing configuration, then modify this repository an
 ```console
 $ cd app-config/openshift
 
-$ oc process -f application.yaml --param PROJECT_NAME='test-cara' --param GIT_BRANCH='live/test-cara' | oc replace -f -
+
 $ oc process -f configmap.yaml | oc replace -f -
 $ oc process -f services.yaml | oc replace -f -
 $ oc process -f route.yaml --param HOST='test-cara.web.cern.ch' | oc replace -f -
+$ oc process -f imagestreams.yaml | oc replace -f -
+$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/test-cara' | oc replace -f -
+$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='test-cara' | oc replace -f -
 ```
 
-Be aware that if you change/replace the **route** of the PROD instance, it will loose the annotation to be exposed outside CERN (not committed in this repo).
+Be aware that if you change/replace the **route** of the PROD instance,
+it will lose the annotation to be exposed outside CERN (not committed in this repo).
 
