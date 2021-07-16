@@ -63,9 +63,7 @@ class TestBasicApp(tornado.testing.AsyncHTTPTestCase):
         # but the end time is after the other request (because it takes longer
         # to process a report than a simple page).
         assert response.start_time < other_response.start_time
-        # Known fail after reverting in https://gitlab.cern.ch/cara/cara/-/merge_requests/219.
-        with pytest.raises(AssertionError):
-            assert end_time(response) > end_time(other_response)
+        assert end_time(response) > end_time(other_response)
 
         self.assertEqual(response.code, 200)
         assert 'CERN HSE' not in response.body.decode()

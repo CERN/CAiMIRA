@@ -1,8 +1,10 @@
+import concurrent.futures
+from functools import partial
 import time
 
 import pytest
 
-from cara.apps.calculator import report_generator
+from cara.apps.calculator.report_generator import ReportGenerator, readable_minutes
 from cara.apps.calculator import make_app
 
 
@@ -15,8 +17,10 @@ def test_generate_report(baseline_form):
 
     start = time.perf_counter()
 
-    generator: report_generator.ReportGenerator = make_app().settings['report_generator']
-    report = generator.build_report("", baseline_form)
+    generator: ReportGenerator = make_app().settings['report_generator']
+    report = generator.build_report("", baseline_form, partial(
+        concurrent.futures.ThreadPoolExecutor, 1,
+    ))
     end = time.perf_counter()
     assert report != ""
     assert end - start < time_limit
@@ -33,4 +37,4 @@ def test_generate_report(baseline_form):
     ],
 )
 def test_readable_minutes(test_input, expected):
-    assert report_generator.readable_minutes(test_input) == expected
+    assert readable_minutes(test_input) == expected
