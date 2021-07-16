@@ -20,6 +20,35 @@ test_dev:
   extends: .acc_py_dev_test
 
 
+.image_builder:
+    # Build and push images to the openshift instance, which automatically triggers an application re-deployment.
+    stage: deploy
+    image:
+        # Based on guidance at https://gitlab.cern.ch/gitlabci-examples/build_docker_image.
+        name: gitlab-registry.cern.ch/ci-tools/docker-image-builder
+        entrypoint: [""]
+    rules:
+        - if: '$OPENSHIFT_DOCKER_TOKEN_TEST != "" && $CI_COMMIT_BRANCH == "live/test-cara"'
+          variables:
+            DOCKER_REGISTRY: "${OPENSHIFT_DOCKER_REGISTRY_TEST}"
+            DOCKER_TOKEN: "${OPENSHIFT_DOCKER_TOKEN_TEST}"
+        - if: '$OPENSHIFT_DOCKER_TOKEN_PROD != "" && $CI_COMMIT_BRANCH == "master"'
+          variables:
+            DOCKER_REGISTRY: "${OPENSHIFT_DOCKER_REGISTRY_PROD}"
+            DOCKER_TOKEN: "${OPENSHIFT_DOCKER_TOKEN_PROD}"
+    script:
+        - echo "{\"auths\":{\"$DOCKER_REGISTRY\":{\"auth\":\"$DOCKER_TOKEN\"}}}" > /kaniko/.docker/config.json
+        - /kaniko/executor --context $CI_PROJECT_DIR/$DOCKERFILE_DIRECTORY --dockerfile $CI_PROJECT_DIR/$DOCKERFILE_DIRECTORY/Dockerfile --destination $DOCKER_REGISTRY/$IMAGE_NAME:latest
+
+
+auth-service-image_builder:
+  extends:
+    - .image_builder
+  variables:
+    IMAGE_NAME: auth-service
+    DOCKERFILE_DIRECTORY: app-config/auth-service
+
+
 trigger_build_on_openshift:
     stage: deploy
     rules:
@@ -27,7 +56,6 @@ trigger_build_on_openshift:
     script:
         - curl -X POST -k https://openshift.cern.ch:443/apis/build.openshift.io/v1/namespaces/cara/buildconfigs/cara-router/webhooks/${OPENSHIFT_BUILD_WEBHOOK_SECRET}/generic
         - curl -X POST -k https://openshift.cern.ch:443/apis/build.openshift.io/v1/namespaces/cara/buildconfigs/cara-webservice/webhooks/${OPENSHIFT_BUILD_WEBHOOK_SECRET}/generic
-        - curl -X POST -k https://openshift.cern.ch:443/apis/build.openshift.io/v1/namespaces/cara/buildconfigs/auth-service/webhooks/${OPENSHIFT_BUILD_WEBHOOK_SECRET}/generic
 
 
 deploy_to_test:
@@ -37,7 +65,6 @@ deploy_to_test:
     script:
         - curl -X POST -k https://openshift-dev.cern.ch:443/apis/build.openshift.io/v1/namespaces/test-cara/buildconfigs/cara-router/webhooks/${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}/generic
         - curl -X POST -k https://openshift-dev.cern.ch:443/apis/build.openshift.io/v1/namespaces/test-cara/buildconfigs/cara-webservice/webhooks/${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}/generic
-        - curl -X POST -k https://openshift-dev.cern.ch:443/apis/build.openshift.io/v1/namespaces/test-cara/buildconfigs/auth-service/webhooks/${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}/generic
 
 
 oci_calculator:
@@ -45,7 +72,7 @@ oci_calculator:
   stage: deploy
   rules:
     # Only run if branch is master (the default branch).
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH   
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
   image:
         name: gitlab-registry.cern.ch/ci-tools/docker-image-builder
         entrypoint: [""]
