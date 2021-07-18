@@ -167,7 +167,7 @@ def non_zero_percentage(percentage: int) -> str:
     elif percentage < 1:
         return "{:0.2f}%".format(percentage)
     else:
-        return "{:0.0f}%".format(percentage)
+        return "{:0.1f}%".format(percentage)
 
 
 def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.ExposureModel]:
@@ -176,11 +176,13 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
     # Two special option cases - HEPA and/or FFP2 masks.
     FFP2_being_worn = bool(form.mask_wearing_option == 'mask_on' and form.mask_type == 'FFP2')
     if FFP2_being_worn and form.hepa_option:
-        scenarios['Base scenario with HEPA and FFP2 masks'] = form.build_mc_model()
-    elif FFP2_being_worn:
-        scenarios['Base scenario with FFP2 masks'] = form.build_mc_model()
-    elif form.hepa_option:
-        scenarios['Base scenario with HEPA filter'] = form.build_mc_model()
+        FFP2andHEPAalternative = dataclass_utils.replace(form, mask_type='Type I')
+        scenarios['Base scenario with HEPA filter and Type I masks'] = FFP2andHEPAalternative.build_mc_model()
+    if not FFP2_being_worn and form.hepa_option:
+        noHEPAalternative = dataclass_utils.replace(form, mask_type = 'FFP2')
+        noHEPAalternative = dataclass_utils.replace(noHEPAalternative, mask_wearing_option = 'mask_on')
+        noHEPAalternative = dataclass_utils.replace(noHEPAalternative, hepa_option=False)
+        scenarios['Base scenario without HEPA filter, with FFP2 masks'] = noHEPAalternative.build_mc_model()
 
     # The remaining scenarios are based on Type I masks (possibly not worn)
     # and no HEPA filtration.
@@ -192,11 +194,11 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
     without_mask = dataclass_utils.replace(form, mask_wearing_option='mask_off')
 
     if form.ventilation_type == 'mechanical_ventilation':
-        scenarios['Mechanical ventilation with Type I masks'] = with_mask.build_mc_model()
+        #scenarios['Mechanical ventilation with Type I masks'] = with_mask.build_mc_model()
         scenarios['Mechanical ventilation without masks'] = without_mask.build_mc_model()
 
     elif form.ventilation_type == 'natural_ventilation':
-        scenarios['Windows open with Type I masks'] = with_mask.build_mc_model()
+        #scenarios['Windows open with Type I masks'] = with_mask.build_mc_model()
         scenarios['Windows open without masks'] = without_mask.build_mc_model()
 
     # No matter the ventilation scheme, we include scenarios which don't have any ventilation.
