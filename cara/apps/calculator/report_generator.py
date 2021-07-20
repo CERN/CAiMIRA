@@ -123,7 +123,7 @@ def plot(times, concentrations, model: models.ExposureModel):
 
     # Plot presence of exposed person
     for i, (presence_start, presence_finish) in enumerate(model.exposed.presence.boundaries()):
-        plt.fill_between(
+        ax.fill_between(
             datetimes, concentrations, 0,
             where=(np.array(times) > presence_start) & (np.array(times) < presence_finish),
             color="#1f77b4", alpha=0.1,
@@ -139,7 +139,7 @@ def plot(times, concentrations, model: models.ExposureModel):
     qds = [np.trapz(modified_concentrations[:i + 1], times[:i + 1]) * factor for i in range(len(times))]
     
     ax1 = ax.twinx()
-    ax1.plot(datetimes, qds, label='qD - Mean viral concentration', color='#1f77b4', linestyle='dotted')
+    ax1.plot(datetimes, qds, label='Mean cumulative dose', color='#1f77b4', linestyle='dotted')
     ax1.spines["right"].set_linestyle("--")
     ax1.spines["right"].set_linestyle((0,(1,5)))
     ax1.set_ylabel('Mean cumulative dose\n(virion)', fontsize=14)
@@ -147,7 +147,12 @@ def plot(times, concentrations, model: models.ExposureModel):
     ax1.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
 
     # Place a legend outside of the axes itself.
-    fig.legend(bbox_to_anchor=(1.05, 0.9), loc='upper left')
+    ax_handles, ax_labels = ax.get_legend_handles_labels()
+    ax1_handles, ax1_labels = ax1.get_legend_handles_labels()
+    handles = ax_handles + ax1_handles
+    labels = ax_labels + ax1_labels
+    order = [0, 2, 1] # 0 - Mean viral concentration   1 - Presence of exposed person(s)    2 - Mean cumulative dose 
+    fig.legend(handles = [handles[idx] for idx in order], labels = [labels[idx] for idx in order], bbox_to_anchor=(1.05, 0.9), loc='upper left')
     ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1])
     # Remove top spines
     ax.spines['top'].set_visible(False)
