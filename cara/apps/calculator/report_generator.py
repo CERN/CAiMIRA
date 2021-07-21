@@ -238,6 +238,7 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
 def comparison_plot(scenarios: typing.Dict[str, dict], sample_times: np.ndarray):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
+    ax1 = ax.twinx()
 
     dash_styled_scenarios = [
         'Base scenario with FFP2 masks',
@@ -245,15 +246,31 @@ def comparison_plot(scenarios: typing.Dict[str, dict], sample_times: np.ndarray)
         'Base scenario with HEPA and FFP2 masks',
     ]
 
-    sample_dts = [datetime(1970, 1, 1) + timedelta(hours=time) for time in sample_times]
+    datetimes = [datetime(1970, 1, 1) + timedelta(hours=time) for time in sample_times]
+
     for name, statistics in scenarios.items():
         concentrations = statistics['concentrations']
-
+        factor = statistics['factor']
+        present_indexes = statistics['present_indexes']
+        
+        modified_concentrations = np.array(concentrations)
+        modified_concentrations[~present_indexes] = 0
+        qds = [np.trapz(modified_concentrations[:i + 1], sample_times[:i + 1]) * factor for i in range(len(sample_times))]  
+        
         if name in dash_styled_scenarios:
-            ax.plot(sample_dts, concentrations, label=name, linestyle='--')
+            ax.plot(datetimes, concentrations, label=name, linestyle='--')
+            ax1.plot(datetimes, qds, label='Mean cumulative dose', linestyle='dotted')
         else:
-            ax.plot(sample_dts, concentrations, label=name, linestyle='-', alpha=0.5)
+            ax.plot(datetimes, concentrations, label=name, linestyle='-', alpha=0.5)
+            ax1.plot(datetimes, qds, label='Mean cumulative dose', linestyle='dotted', alpha=0.5)
 
+        
+
+    ax1.spines["right"].set_linestyle("--")
+    ax1.spines["right"].set_linestyle((0,(1,5)))
+    ax1.set_ylabel('Mean cumulative dose\n(virion)', fontsize=14)
+    ax1.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
+ 
     # Place a legend outside of the axes itself.
     ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     ax.spines['right'].set_visible(False)
@@ -276,6 +293,8 @@ def scenario_statistics(mc_model: mc.ExposureModel, sample_times: np.ndarray):
             np.mean(model.concentration_model.concentration(time))
             for time in sample_times
         ],
+        'factor': 0.6 * np.mean(model.exposed.activity.inhalation_rate) * (1 - model.exposed.mask.η_inhale),
+        'present_indexes': np.array([model.exposed.person_present(t) for t in sample_times]),
     }
 
 
