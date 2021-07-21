@@ -69,20 +69,7 @@ p.notes {
   text-decoration: none;
 }
 
-.warning_image_png {
-	margin-bottom: 1rem; 
-	padding-left: 30px; 
-	border-radius: .25rem
-}
-
-.warning_text {
-	height:fit-content; 
-	align-self: center; 
-	margin-left: 5%
-}
-
 .icon_button {
-	padding: 0;
 	border: none;
 	background: none;
 }
