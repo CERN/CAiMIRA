@@ -248,12 +248,7 @@ def comparison_plot(scenarios: typing.Dict[str, dict], sample_times: np.ndarray)
         concentrations = statistics['concentrations']
 
         #See CERN-OPEN-2021-004, p. 15, eq. 16. - Cumulative Dose
-        factor = 0.6 * np.mean(model.exposed.activity.inhalation_rate) * (1 - model.exposed.mask.η_inhale)
-        present_indexes = np.array([model.exposed.person_present(t) for t in sample_times])
-
-        modified_concentrations = np.array(concentrations)
-        modified_concentrations[~present_indexes] = 0
-        qds = [np.trapz(modified_concentrations[:i + 1], sample_times[:i + 1]) * factor for i in range(len(sample_times))]  
+        qds = [np.mean(dataclass_utils.nested_replace(model, {'exposed.presence': model.exposed.presence.generate_truncated_interval(t)}).cumulated_exposure()) for t in sample_times]
         
         # Plot concentrations and cumulative dose
         if name in dash_styled_scenarios:
