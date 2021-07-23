@@ -100,7 +100,7 @@ class Interval:
                 return True
         return False
 
-    def generate_truncated_interval(self, time_stop: float) -> tuple:
+    def generate_truncated_interval(self, time_stop: float) -> "Interval":
         truncated_boundaries = []
         for start, end in self.boundaries():
             if start < time_stop <= end:
@@ -112,7 +112,7 @@ class Interval:
             else:
                 truncated_boundaries.append((start, end))
 
-        return SpecificInterval(tuple(truncated_boundaries))
+        return SpecificInterval(present_times = tuple(truncated_boundaries))
 
 @dataclass(frozen=True)
 class SpecificInterval(Interval):
