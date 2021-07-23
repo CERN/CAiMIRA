@@ -876,14 +876,17 @@ class ExposureModel:
 
         return exposure * self.repeats
 
-    def infection_probability(self) -> _VectorisedFloat:
+    def cumulated_exposure(self) -> _VectorisedFloat:
         exposure = self.quanta_exposure()
-
-        inf_aero = (
+        
+        return (
             self.exposed.activity.inhalation_rate *
             (1 - self.exposed.mask.inhale_efficiency()) *
             exposure * self.fraction_deposited
         )
+
+    def infection_probability(self) -> _VectorisedFloat:
+        inf_aero = self.cumulated_exposure()
 
         # Probability of infection.
         return (1 - np.exp(-inf_aero)) * 100
