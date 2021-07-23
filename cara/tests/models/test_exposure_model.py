@@ -1,3 +1,4 @@
+import decimal
 import typing
 
 import numpy as np
@@ -55,24 +56,24 @@ populations = [
 
 
 @pytest.mark.parametrize(
-    "population, cm, f_dep, expected_exposure, expected_probability",[
+    "population, cm, f_dep, expected_exposure, expected_cumulated_exposure, expected_probability",[
     [populations[1], KnownConcentrations(lambda t: 1.2), 1.,
-     np.array([14.4, 14.4]), np.array([99.6803184113, 99.5181053773])],
+     np.array([14.4, 14.4]), np.array([3.44736/0.6, 3.20112/0.6]), np.array([99.6803184113, 99.5181053773])],
 
     [populations[2], KnownConcentrations(lambda t: 1.2), 1.,
-     np.array([14.4, 14.4]), np.array([97.4574432074, 98.3493482895])],
+     np.array([14.4, 14.4]), np.array([2.2032/0.6, 2.4624/0.6]), np.array([97.4574432074, 98.3493482895])],
 
     [populations[0], KnownConcentrations(lambda t: np.array([1.2, 2.4])), 1.,
-     np.array([14.4, 28.8]), np.array([98.3493482895, 99.9727534893])],
+     np.array([14.4, 28.8]), np.array([2.4624/0.6, 4.9248/0.6]), np.array([98.3493482895, 99.9727534893])],
 
     [populations[1], KnownConcentrations(lambda t: np.array([1.2, 2.4])), 1.,
-     np.array([14.4, 28.8]), np.array([99.6803184113, 99.9976777757])],
+     np.array([14.4, 28.8]), np.array([3.44736/0.6, 6.40224/0.6]), np.array([99.6803184113, 99.9976777757])],
 
     [populations[0], KnownConcentrations(lambda t: 2.4), np.array([0.5, 1.]),
-     28.8, np.array([98.3493482895, 99.9727534893])],
+     28.8, np.array([4.104, 8.208]), np.array([98.3493482895, 99.9727534893])],
     ])
-def test_exposure_model_ndarray(population, cm, f_dep,
-                                expected_exposure, expected_probability):
+def test_exposure_model_ndarray(population, cm, f_dep, 
+                                expected_exposure, expected_cumulated_exposure, expected_probability):
     model = ExposureModel(cm, population, fraction_deposited = f_dep)
     np.testing.assert_almost_equal(
         model.quanta_exposure(), expected_exposure
@@ -80,11 +81,16 @@ def test_exposure_model_ndarray(population, cm, f_dep,
     np.testing.assert_almost_equal(
         model.infection_probability(), expected_probability, decimal=10
     )
+    np.testing.assert_almost_equal(
+        model.cumulated_exposure(), expected_cumulated_exposure, decimal=10
+    )
 
     assert isinstance(model.infection_probability(), np.ndarray)
     assert isinstance(model.expected_new_cases(), np.ndarray)
+    assert isinstance(model.cumulated_exposure(), np.ndarray)
     assert model.infection_probability().shape == (2,)
     assert model.expected_new_cases().shape == (2,)
+    assert model.cumulated_exposure().shape == (2,)
 
 
 @pytest.mark.parametrize("population", populations)

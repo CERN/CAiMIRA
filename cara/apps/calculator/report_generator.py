@@ -131,15 +131,10 @@ def plot(times, concentrations, model: models.ExposureModel):
         )
 
     #See CERN-OPEN-2021-004, p. 15, eq. 16. - Cumulative Dose
-    cumulated_exposure = model.cumulated_exposure()
-    present_indexes = np.array([model.exposed.person_present(t) for t in times])
-    modified_concentrations = np.array(concentrations)
-    modified_concentrations[~present_indexes] = 0
-    
-    qds = [np.trapz(modified_concentrations[:i + 1], times[:i + 1]) * factor for i in range(len(times))]
+    qds = [np.mean(dataclass_utils.nested_replace(model, {'exposed.presence': model.exposed.presence.generate_truncated_interval(t)}).cumulated_exposure()) for t in times]
     
     ax1 = ax.twinx()
-    ax1.plot(datetimes, cumulated_exposure, label='Mean cumulative dose', color='#1f77b4', linestyle='dotted')
+    ax1.plot(datetimes, qds, label='Mean cumulative dose', color='#1f77b4', linestyle='dotted')
     ax1.spines["right"].set_linestyle("--")
     ax1.spines["right"].set_linestyle((0,(1,5)))
     ax1.set_ylabel('Mean cumulative dose\n(virion)', fontsize=14)
