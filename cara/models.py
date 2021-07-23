@@ -839,6 +839,7 @@ class ConcentrationModel:
         fac = np.exp(-IVRR * delta_time)
         return concentration_limit * (1 - fac) + concentration_at_last_state_change * fac
 
+    @cached()
     def integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
         """
         Get the integrated concentration dose between the times start and stop.
