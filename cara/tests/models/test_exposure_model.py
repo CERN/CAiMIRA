@@ -4,26 +4,31 @@ import typing
 import numpy as np
 import numpy.testing
 import pytest
+from dataclasses import dataclass
 
 from cara import models
 from cara.models import ExposureModel
 
 
+@dataclass(frozen=True)
 class KnownConcentrations(models.ConcentrationModel):
     """
     A ConcentrationModel which is based on pre-known quanta concentrations and
     which therefore doesn't need other components. Useful for testing.
 
     """
-    def __init__(self, concentration_function: typing.Callable) -> None:
-        self._func = concentration_function
+    #def __init__(self, concentration_function: typing.Callable) -> None:
+    #    self._func = concentration_function
+
+    
+    concentration_function: typing.Callable
 
     def infectious_virus_removal_rate(self, time: float) -> models._VectorisedFloat:
         # very large decay constant -> same as constant concentration
         return 1.e50
 
     def _concentration_limit(self, time: float) -> models._VectorisedFloat:
-        return self._func(time)
+        return self.concentration_function(time)
 
     def state_change_times(self):
         return [0, 24]
@@ -32,7 +37,7 @@ class KnownConcentrations(models.ConcentrationModel):
         return 24
 
     def concentration(self, time: float) -> models._VectorisedFloat:  # noqa
-        return self._func(time)
+        return self.concentration_function(time)
 
 
 halftime = models.PeriodicInterval(120, 60)
@@ -57,19 +62,19 @@ populations = [
 
 @pytest.mark.parametrize(
     "population, cm, f_dep, expected_exposure, expected_cumulated_exposure, expected_probability",[
-    [populations[1], KnownConcentrations(lambda t: 1.2), 1.,
+    [populations[1], KnownConcentrations(None, None, None, lambda t: 1.2), 1.,
      np.array([14.4, 14.4]), np.array([3.44736/0.6, 3.20112/0.6]), np.array([99.6803184113, 99.5181053773])],
 
-    [populations[2], KnownConcentrations(lambda t: 1.2), 1.,
+    [populations[2], KnownConcentrations(None, None, None, lambda t: 1.2), 1.,
      np.array([14.4, 14.4]), np.array([2.2032/0.6, 2.4624/0.6]), np.array([97.4574432074, 98.3493482895])],
 
-    [populations[0], KnownConcentrations(lambda t: np.array([1.2, 2.4])), 1.,
+    [populations[0], KnownConcentrations(None, None, None,lambda t: np.array([1.2, 2.4])), 1.,
      np.array([14.4, 28.8]), np.array([2.4624/0.6, 4.9248/0.6]), np.array([98.3493482895, 99.9727534893])],
 
-    [populations[1], KnownConcentrations(lambda t: np.array([1.2, 2.4])), 1.,
+    [populations[1], KnownConcentrations(None, None, None,lambda t: np.array([1.2, 2.4])), 1.,
      np.array([14.4, 28.8]), np.array([3.44736/0.6, 6.40224/0.6]), np.array([99.6803184113, 99.9976777757])],
 
-    [populations[0], KnownConcentrations(lambda t: 2.4), np.array([0.5, 1.]),
+    [populations[0], KnownConcentrations(None, None, None,lambda t: 2.4), np.array([0.5, 1.]),
      28.8, np.array([4.104, 8.208]), np.array([98.3493482895, 99.9727534893])],
     ])
 def test_exposure_model_ndarray(population, cm, f_dep, 
@@ -95,7 +100,7 @@ def test_exposure_model_ndarray(population, cm, f_dep,
 
 @pytest.mark.parametrize("population", populations)
 def test_exposure_model_ndarray_and_float_mix(population):
-    cm = KnownConcentrations(lambda t: 0 if np.floor(t) % 2 else np.array([1.2, 1.2]))
+    cm = KnownConcentrations(None, None, None, lambda t: 0 if np.floor(t) % 2 else np.array([1.2, 1.2]))
     model = ExposureModel(cm, population)
 
     expected_exposure = np.array([14.4, 14.4])
@@ -109,8 +114,8 @@ def test_exposure_model_ndarray_and_float_mix(population):
 
 @pytest.mark.parametrize("population", populations)
 def test_exposure_model_compare_scalar_vector(population):
-    cm_scalar = KnownConcentrations(lambda t: 1.2)
-    cm_array = KnownConcentrations(lambda t: np.array([1.2, 1.2]))
+    cm_scalar = KnownConcentrations(None, None, None,lambda t: 1.2)
+    cm_array = KnownConcentrations(None, None, None, lambda t: np.array([1.2, 1.2]))
     model_scalar = ExposureModel(cm_scalar, population)
     model_array = ExposureModel(cm_array, population)
     expected_exposure = 14.4

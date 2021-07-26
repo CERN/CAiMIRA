@@ -10,6 +10,7 @@ import zlib
 import loky
 import jinja2
 import matplotlib
+from numpy.lib.function_base import quantile
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import numpy as np
@@ -131,8 +132,8 @@ def plot(times, concentrations, model: models.ExposureModel):
         )
 
     #See CERN-OPEN-2021-004, p. 15, eq. 16. - Cumulative Dose
-    qds = [np.mean(dataclass_utils.nested_replace(model, {'exposed.presence': model.exposed.presence.generate_truncated_interval(t)}).cumulated_exposure()) for t in times]
-    
+    qds = [np.mean(model.cumulated_exposure_vs_time(t)) for t in times]
+
     ax1 = ax.twinx()
     ax1.plot(datetimes, qds, label='Mean cumulative dose', color='#1f77b4', linestyle='dotted')
     ax1.spines["right"].set_linestyle("--")
@@ -248,7 +249,7 @@ def comparison_plot(scenarios: typing.Dict[str, dict], sample_times: np.ndarray)
         concentrations = statistics['concentrations']
 
         #See CERN-OPEN-2021-004, p. 15, eq. 16. - Cumulative Dose
-        qds = [np.mean(dataclass_utils.nested_replace(model, {'exposed.presence': model.exposed.presence.generate_truncated_interval(t)}).cumulated_exposure()) for t in sample_times]
+        qds = [np.mean(model.cumulated_exposure_vs_time(t)) for t in sample_times]
         
         # Plot concentrations and cumulative dose
         if name in dash_styled_scenarios:

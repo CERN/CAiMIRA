@@ -100,20 +100,6 @@ class Interval:
                 return True
         return False
 
-    def generate_truncated_interval(self, time_stop: float) -> "Interval":
-        truncated_boundaries = []
-        for start, end in self.boundaries():
-            if start < time_stop <= end:
-                end = time_stop
-                truncated_boundaries.append((start, end))
-                break
-            elif time_stop <= start:
-                break
-            else:
-                truncated_boundaries.append((start, end))
-
-        return SpecificInterval(present_times = tuple(truncated_boundaries))
-
 @dataclass(frozen=True)
 class SpecificInterval(Interval):
     #: A sequence of times (start, stop), in hours, that the infected person
@@ -881,23 +867,44 @@ class ExposureModel:
     #: The fraction of viruses actually deposited in the respiratory tract
     fraction_deposited: _VectorisedFloat = 0.6
 
-    def quanta_exposure(self) -> _VectorisedFloat:
-        """The number of virus quanta per meter^3."""
+    def quanta_exposure_vs_time(self, time: float) -> _VectorisedFloat:
+        """The number of virus quanta per meter^3 integrated until time."""
         exposure = 0.0
 
         for start, stop in self.exposed.presence.boundaries():
-            exposure += self.concentration_model.integrated_concentration(start, stop)
-
+            if start > time:
+                break
+            elif time <= stop:
+                stop = time
+                exposure += self.concentration_model.integrated_concentration(start, stop)
+                break
+            else:
+                exposure += self.concentration_model.integrated_concentration(start, stop)
+        
         return exposure * self.repeats
 
-    def cumulated_exposure(self) -> _VectorisedFloat:
-        exposure = self.quanta_exposure()
+    def quanta_exposure(self) -> _VectorisedFloat:
+        """The number of virus quanta per meter^3 for the full simulation time."""
+        if self.exposed.presence.transition_times():
+            return self.quanta_exposure_vs_time(max(self.exposed.presence.transition_times()))
+        else:
+            return 0
+
+    def cumulated_exposure_vs_time(self, time: float) -> _VectorisedFloat:
+        
+        exposure = self.quanta_exposure_vs_time(time)
         
         return (
             self.exposed.activity.inhalation_rate *
             (1 - self.exposed.mask.inhale_efficiency()) *
             exposure * self.fraction_deposited
         )
+
+    def cumulated_exposure(self) -> _VectorisedFloat:
+        if self.exposed.presence.transition_times():
+            return self.cumulated_exposure_vs_time(max(self.exposed.presence.transition_times()))
+        else:
+            return 0
 
     def infection_probability(self) -> _VectorisedFloat:
         inf_aero = self.cumulated_exposure()
