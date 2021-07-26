@@ -71,16 +71,16 @@ def known_concentrations(func):
 @pytest.mark.parametrize(
     "population, cm, f_dep, expected_exposure, expected_cumulated_exposure, expected_probability",[
     [populations[1], known_concentrations(lambda t: 1.2), 1.,
-     np.array([14.4, 14.4]), np.array([3.44736/0.6, 3.20112/0.6]), np.array([99.6803184113, 99.5181053773])],
+     np.array([14.4, 14.4]), np.array([5.7456, 5.3352]), np.array([99.6803184113, 99.5181053773])],
 
     [populations[2], known_concentrations(lambda t: 1.2), 1.,
-     np.array([14.4, 14.4]), np.array([2.2032/0.6, 2.4624/0.6]), np.array([97.4574432074, 98.3493482895])],
+     np.array([14.4, 14.4]), np.array([3.672, 4.104]), np.array([97.4574432074, 98.3493482895])],
 
     [populations[0], known_concentrations(lambda t: np.array([1.2, 2.4])), 1.,
-     np.array([14.4, 28.8]), np.array([2.4624/0.6, 4.9248/0.6]), np.array([98.3493482895, 99.9727534893])],
+     np.array([14.4, 28.8]), np.array([4.104, 8.208]), np.array([98.3493482895, 99.9727534893])],
 
     [populations[1], known_concentrations(lambda t: np.array([1.2, 2.4])), 1.,
-     np.array([14.4, 28.8]), np.array([3.44736/0.6, 6.40224/0.6]), np.array([99.6803184113, 99.9976777757])],
+     np.array([14.4, 28.8]), np.array([5.7456, 10.6704]), np.array([99.6803184113, 99.9976777757])],
 
     [populations[0], known_concentrations(lambda t: 2.4), np.array([0.5, 1.]),
      28.8, np.array([4.104, 8.208]), np.array([98.3493482895, 99.9727534893])],
