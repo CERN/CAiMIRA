@@ -54,9 +54,17 @@
 					<div class="collapse show" id="collapseResults">
 					<div class="card-body">
 						<p class="card-text">
-							{% block report_summary %}
-							Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b><a href="#section1">[*]</a> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>.
-							{% endblock report_summary %}
+							<div class="d-flex flex-row">
+								<div class="d-flex flex-column align-self-center w-75">
+									{% block report_summary %}
+									Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b><a href="#section1">[*]</a> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>.
+									{% endblock report_summary %}
+								</div>
+								<div class="d-flex flex-column w-25 align-items-center align-middle">
+									<img id="scale_level_png" src="{{ calculator_prefix }}/static/images/level_scaling.png" style="max-height: 140px"/>
+									<img id="scale_level_arrow" src="{{ calculator_prefix }}/static/images/arrow.png" style="max-height: 20px; margin-top: -3%; margin-right: 80px; transform: rotate({{prob_inf*180/100}}deg); transform-origin: right bottom;"/>
+								</div>
+							</div>
 							<p id="section1">[*] The results are based on the parameters and assumptions published in the CERN Open Report <a href="https://cds.cern.ch/record/2756083"> CERN-OPEN-2021-004</a></p>
 							<img id="scenario_concentration_plot" src="{{ scenario_plot_src }}" />
 						</p>
