@@ -33,17 +33,17 @@ def calculate_report_data(model: models.ExposureModel):
     resolution = 600
 
     t_start, t_end = model_start_end(model)
-    times = list(np.linspace(t_start, t_end, resolution))
-    concentrations = [np.mean(model.concentration_model.concentration(time))
+    times = np.linspace(t_start, t_end, resolution)
+    concentrations = [np.array(model.concentration_model.concentration(time)).mean()
                       for time in times]
     highest_const = max(concentrations)
-    prob = np.mean(model.infection_probability())
-    er = np.mean(model.concentration_model.infected.emission_rate_when_present())
+    prob = np.array(model.infection_probability()).mean()
+    er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
     exposed_occupants = model.exposed.number
-    expected_new_cases = np.mean(model.expected_new_cases())
+    expected_new_cases = np.array(model.expected_new_cases()).mean()
 
     return {
-        "times": times,
+        "times": list(times),
         "concentrations": concentrations,
         "highest_const": highest_const,
         "prob_inf": prob,
