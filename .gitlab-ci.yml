@@ -20,6 +20,13 @@ test_dev:
   extends: .acc_py_dev_test
 
 
+# A development installation of CARA tested with pytest.
+test_dev-39:
+  variables:
+    PY_VERSION: "3.9"
+  extends: .acc_py_dev_test
+
+
 .image_builder:
     # Build and push images to the openshift instance, which automatically triggers an application re-deployment.
     stage: deploy
