@@ -207,7 +207,23 @@
                   - containerPort: 8080
                     protocol: TCP
                 imagePullPolicy: Always
-                resources: {}
+                readinessProbe:
+                  failureThreshold: 3
+                  httpGet:
+                    path: /calculator-cern
+                    port: 8080
+                    scheme: HTTP
+                  initialDelaySeconds: 3
+                  periodSeconds: 10
+                  successThreshold: 1
+                  timeoutSeconds: 1
+                resources:
+                  limits:
+                    cpu: '3'
+                    memory: 3Gi
+                  requests:
+                    cpu: '1'
+                    memory: 1Gi
                 terminationMessagePath: /dev/termination-log
                 terminationMessagePolicy: File
             dnsPolicy: ClusterFirst
@@ -229,7 +245,6 @@
         selector:
           app: cara-webservice
         triggers:
-          - type: ConfigChange
           - type: ImageChange
             imageChangeParams:
               automatic: true
