@@ -7,7 +7,7 @@ include:
 
 variables:
   project_name: cara
-  PY_VERSION: "3.6"  # This is what we have running in OpenShift currently.
+  PY_VERSION: "3.9"  # This is what we have running in OpenShift currently.
 
 
 # A full installation of CARA, tested with pytest.
@@ -84,7 +84,7 @@ test_dev-39:
             DOCKER_TOKEN: "${OPENSHIFT_DOCKER_TOKEN_PROD}"
     script:
         - echo "{\"auths\":{\"$DOCKER_REGISTRY\":{\"auth\":\"$DOCKER_TOKEN\"}}}" > /kaniko/.docker/config.json
-        - /kaniko/executor --context $CI_PROJECT_DIR/$DOCKERFILE_DIRECTORY --dockerfile $CI_PROJECT_DIR/$DOCKERFILE_DIRECTORY/Dockerfile --destination $DOCKER_REGISTRY/$IMAGE_NAME:latest
+        - /kaniko/executor --context $CI_PROJECT_DIR/$DOCKER_CONTEXT_DIRECTORY --dockerfile $CI_PROJECT_DIR/$DOCKERFILE_DIRECTORY/Dockerfile --destination $DOCKER_REGISTRY/$IMAGE_NAME:latest
 
 
 auth-service-image_builder:
@@ -93,6 +93,16 @@ auth-service-image_builder:
   variables:
     IMAGE_NAME: auth-service
     DOCKERFILE_DIRECTORY: app-config/auth-service
+    DOCKER_CONTEXT_DIRECTORY: app-config/auth-service
+
+
+cara-webservice-image_builder:
+  extends:
+    - .image_builder
+  variables:
+    IMAGE_NAME: cara-webservice
+    DOCKERFILE_DIRECTORY: app-config/cara-webservice
+    DOCKER_CONTEXT_DIRECTORY: ""
 
 
 trigger_build_on_openshift:
@@ -101,7 +111,6 @@ trigger_build_on_openshift:
         - if: '$OPENSHIFT_BUILD_WEBHOOK_SECRET'
     script:
         - curl -X POST -k https://openshift.cern.ch:443/apis/build.openshift.io/v1/namespaces/cara/buildconfigs/cara-router/webhooks/${OPENSHIFT_BUILD_WEBHOOK_SECRET}/generic
-        - curl -X POST -k https://openshift.cern.ch:443/apis/build.openshift.io/v1/namespaces/cara/buildconfigs/cara-webservice/webhooks/${OPENSHIFT_BUILD_WEBHOOK_SECRET}/generic
 
 
 deploy_to_test:
@@ -110,7 +119,6 @@ deploy_to_test:
         - if: '$CI_COMMIT_BRANCH == "live/test-cara" && $OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET'
     script:
         - curl -X POST -k https://openshift-dev.cern.ch:443/apis/build.openshift.io/v1/namespaces/test-cara/buildconfigs/cara-router/webhooks/${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}/generic
-        - curl -X POST -k https://openshift-dev.cern.ch:443/apis/build.openshift.io/v1/namespaces/test-cara/buildconfigs/cara-webservice/webhooks/${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}/generic
 
 
 oci_calculator:

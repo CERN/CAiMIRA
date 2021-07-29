@@ -201,7 +201,7 @@
                 - name: CARA_CALCULATOR_PREFIX
                   value: /calculator-cern
                 - name: CARA_THEME
-                  value: cara/apps/calculator/themes/cern
+                  value: /opt/app/lib/python3.9/site-packages/cara/apps/calculator/themes/cern
                 image: '${PROJECT_NAME}/cara-webservice'
                 ports:
                   - containerPort: 8080
