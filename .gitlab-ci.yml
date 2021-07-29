@@ -7,7 +7,7 @@ include:
 
 variables:
   project_name: cara
-  PY_VERSION: "3.9"  # This is what we have running in OpenShift currently.
+  PY_VERSION: "3.9"
 
 
 # A full installation of CARA, tested with pytest.

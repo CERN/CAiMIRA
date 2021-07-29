@@ -22,6 +22,10 @@ FROM debian
 
 COPY --from=conda /opt/app /opt/app
 ENV PATH=/opt/app/bin/:$PATH
+# Make a convenient location to the installed CARA package (i.e. a directory called cara in the CWD).
+RUN CARA_INIT_FILE=$(/opt/app/bin/python -c "import cara; print(cara.__file__)") \
+ && ln -s $(dirname $(dirname ${CARA_INIT_FILE})) /opt/site-packages \
+ && ln -s /opt/site-packages/cara ./cara
 CMD [ \
   "cara-app.sh" \
 ]
