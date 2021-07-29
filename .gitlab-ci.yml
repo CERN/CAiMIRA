@@ -22,14 +22,11 @@ test_dev:
 
 # A development installation of CARA tested with pytest.
 .test_openshift_config:
-  variables:
-    CARA_INSTANCE: 'test-cara'
-    BRANCH: 'live/test-cara'
   rules:
-    - if: '$OPENSHIFT_CONFIG_CHECKER_TOKEN_TEST_CARA && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == ${BRANCH}'
-      allow_failure: false  # The live/test-cara must represent what is deployed.
-    - if: '$OPENSHIFT_CONFIG_CHECKER_TOKEN_TEST_CARA'
-      allow_failure: true   # Anything other than live/test-cara can fail.
+    - if: '$OC_TOKEN && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == $BRANCH'
+      allow_failure: false  # The branch must represent what is deployed.
+    - if: '$OC_TOKEN && $CI_MERGE_REQUEST_EVENT_TYPE != "detached"'
+      allow_failure: true   # Anything other than the branch may fail without blocking the pipeline.
   image: registry.cern.ch/docker.io/mambaorg/micromamba
   before_script:
     - micromamba create --yes -p $HOME/env python=3.9 ruamel.yaml wget -c conda-forge
@@ -40,17 +37,26 @@ test_dev:
 
   script:
     - cd ./app-config/openshift
-    - oc login openshift-dev.cern.ch --token="${OPENSHIFT_CONFIG_CHECKER_TOKEN_TEST_CARA}"
-    - python ./config-fetch.py test-cara --output-directory ./test-cara/actual
-    - python ./config-generate.py test-cara --output-directory ./test-cara/expected
-    - python ./config-normalise.py ./test-cara/actual ./test-cara/actual-normed
-    - python ./config-normalise.py ./test-cara/expected ./test-cara/expected-normed
-    - diff -u ./test-cara/actual-normed/ ./test-cara/expected-normed/
+    - oc login ${OC_SERVER} --token="${OC_TOKEN}"
+    - python ./config-fetch.py ${CARA_INSTANCE} --output-directory ./${CARA_INSTANCE}/actual
+    - python ./config-generate.py ${CARA_INSTANCE} --output-directory ./${CARA_INSTANCE}/expected
+    - python ./config-normalise.py ./${CARA_INSTANCE}/actual ./${CARA_INSTANCE}/actual-normed
+    - python ./config-normalise.py ./${CARA_INSTANCE}/expected ./${CARA_INSTANCE}/expected-normed
+    - diff -u ./test-cara/actual-normed/ ./${CARA_INSTANCE}/expected-normed/
 
   artifacts:
     paths:
-      - ./app-config/openshift/test-cara/actual
-      - ./app-config/openshift/test-cara/expected
+      - ./app-config/openshift/${CARA_INSTANCE}/actual
+      - ./app-config/openshift/${CARA_INSTANCE}/expected
+
+
+check_openshift_config_test-cara:
+  extends: .test_openshift_config
+  variables:
+    CARA_INSTANCE: 'test-cara'
+    BRANCH: 'live/test-cara'
+    OC_SERVER: openshift-dev.cern.ch
+    OC_TOKEN: "${OPENSHIFT_CONFIG_CHECKER_TOKEN_TEST_CARA}"
 
 
 # A development installation of CARA tested with pytest.
