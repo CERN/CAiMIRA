@@ -25,6 +25,18 @@
         </div>
         <img class="rounded ml-4" src="{{ calculator_prefix }}/static/images/warning_scale/{{scale_warning.level}}.png">
       </div>
+      <br>
+      <p class="data_text">
+          <strong> Footnotes for ALARA: </strong><br>
+          ALARA stands for As Low As Reasonably Achievable. It can be summarised based on 3 main points:
+          <ol>
+            <li>Justification - any exposure of persons has to be justified </li>
+            <li>Limitation - the personal doses have to be kept below the legal limits (in this case the CERN exposure limits)</li>
+            <li>Optimisation - the personal doses and collective doses have to be kept as low as reasonably achievable (ALARA).</li>
+          </ol>
+          For more information, please refer to <a href="https://cds.cern.ch/record/1533023/files/CERN-2013-001-p415.pdf"> this document from CERN HSE </a> and <a href="https://www.cdc.gov/nceh/radiation/safety.html#:~:text=ALARA%20stands%20for%20%E2%80%9Cas%20low,time%2C%20distance%2C%20and%20shielding."> this publication from the CDC.</a> 
+          <br>
+      </p>
     </div>
   </div>
 </div>
@@ -120,19 +132,7 @@
 
 
 {% block report_footer %}
-	<p class="data_text">
-	    <strong> Footnotes for ALARA: </strong><br>
-	    ALARA stands for As Low As Reasonably Achievable. It can be summarised based on 3 main points:
-	    <ol>
-	    	<li>Justification - any exposure of persons has to be justified </li>
-	    	<li>Limitation - the personal doses have to be kept below the legal limits (in this case the CERN exposure limits)</li>
-	    	<li>Optimisation - the personal doses and collective doses have to be kept as low as reasonably achievable (ALARA).</li>
-	    </ol>
-	    For more information, please refer to <a href="https://cds.cern.ch/record/1533023/files/CERN-2013-001-p415.pdf"> this document from CERN HSE </a> and <a href="https://www.cdc.gov/nceh/radiation/safety.html#:~:text=ALARA%20stands%20for%20%E2%80%9Cas%20low,time%2C%20distance%2C%20and%20shielding."> this publication from the CDC.</a> 
-	    <br><br>
-	</p>
     {{ super() }}
-
 {% endblock report_footer %}
 
 {% block disclaimer %}
