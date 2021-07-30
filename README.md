@@ -194,10 +194,12 @@ If you need to create the application in a new project, run:
 ```console
 $ cd app-config/openshift
 
-$ oc process -f application.yaml --param PROJECT_NAME='test-cara' --param GIT_BRANCH='live/test-cara' | oc create -f -
+$ oc process -f routes.yaml --param HOST='test-cara.web.cern.ch' | oc create -f -
 $ oc process -f configmap.yaml | oc create -f -
 $ oc process -f services.yaml | oc create -f -
-$ oc process -f route.yaml --param HOST='test-cara.web.cern.ch' | oc create -f -
+$ oc process -f imagestreams.yaml | oc create -f -
+$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/test-cara' | oc create -f -
+$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='test-cara'  | oc create -f -
 ```
 
 Then, create the webhook secret to be able to trigger automatic builds from GitLab.
@@ -210,6 +212,17 @@ $ oc create secret generic \
   --from-literal="WebHookSecretKey=$WEBHOOKSECRET" \
   gitlab-cara-webhook-secret
 ```
+
+For CI usage, we also suggest creating a service account:
+
+```console
+oc create sa gitlab-config-checker
+```
+
+Under ``Resources`` -> ``Membership`` enable the ``View`` role for this new service account.
+
+To get this new user's authentication token go to ``Resources`` -> ``Secrets`` and locate the token in the newly
+created secret associated with the user (in this case ``gitlab-config-checker-token-XXXX``).
 
 ### CERN SSO integration
 
@@ -261,7 +274,7 @@ $ cd app-config/openshift
 
 $ oc process -f configmap.yaml | oc replace -f -
 $ oc process -f services.yaml | oc replace -f -
-$ oc process -f route.yaml --param HOST='test-cara.web.cern.ch' | oc replace -f -
+$ oc process -f routes.yaml --param HOST='test-cara.web.cern.ch' | oc replace -f -
 $ oc process -f imagestreams.yaml | oc replace -f -
 $ oc process -f buildconfig.yaml --param GIT_BRANCH='live/test-cara' | oc replace -f -
 $ oc process -f deploymentconfig.yaml --param PROJECT_NAME='test-cara' | oc replace -f -
@@ -269,4 +282,3 @@ $ oc process -f deploymentconfig.yaml --param PROJECT_NAME='test-cara' | oc repl
 
 Be aware that if you change/replace the **route** of the PROD instance,
 it will lose the annotation to be exposed outside CERN (not committed in this repo).
-
