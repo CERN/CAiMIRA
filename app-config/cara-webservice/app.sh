@@ -18,7 +18,7 @@ if [[ "$APP_NAME" == "cara-webservice" ]]; then
     python -m cara.apps.calculator "${args[@]}"
 elif [[ "$APP_NAME" == "cara-voila" ]]; then
     echo "Starting the voila service"
-    voila app/ --port=8080 --no-browser --base_url=/voila-server/ --Voila.tornado_settings="{'allow_origin': '*'}"
+    voila cara/apps/expert/ --port=8080 --no-browser --base_url=/voila-server/ --tornado_settings 'allow_origin=*'
 else
     echo "No APP_NAME specified"
     exit 1

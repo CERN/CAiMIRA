@@ -108,11 +108,10 @@ python -m cara.apps.calculator --prefix=/mycalc
 
 ```
 pip install -e .   # At the root of the repository
-voila ./app/cara.ipynb
+voila cara/apps/expert/cara.ipynb --port=8080
 ```
 
-
-Then visit http://localhost:8080/calculator.
+Then visit http://localhost:8080.
 
 
 ### Running the tests
@@ -128,8 +127,8 @@ pytest ./cara
 
 ```
 s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./app-config/nginx/ centos/nginx-112-centos7 cara-nginx-app
-s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./ centos/python-36-centos7 cara-webservice
-s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./app-config/auth-service centos/python-36-centos7 auth-service
+docker build . -f ./app-config/cara-webservice/Dockerfile -t cara-webservice
+docker build ./app-config/auth-service -t auth-service
 ```
 
 Get the client secret from the CERN Application portal for the `cara-test` app. See [CERN-SSO-integration](#CERN-SSO-integration) for more info.
