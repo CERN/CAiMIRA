@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:3.9
 
 COPY ./ /opt/cara/src
 RUN python -m venv /opt/cara/app
