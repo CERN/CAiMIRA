@@ -26,7 +26,7 @@
 
 
 <div style="margin: 1%; border: #DFDFDF 1px solid; border-radius: 5px">
-	<ul class="nav nav-tabs" id="myTab" role="tablist" style="margin: 0.5% 0% 0% 1%">
+	<ul class="nav nav-tabs"role="tablist" style="margin: 0.5% 0% 0% 1%">
 		<li class="nav-item">
 			<a class="nav-link active" id="results-tab" data-toggle="tab" href="#results" role="tab" aria-controls="results" aria-selected="true">Results</a>
 		</li>
@@ -39,9 +39,6 @@
 	
 		<div class="tab-pane fade show active" id="results" role="tabpanel" aria-labelledby="results-tab" style="padding: 1%">
 			
-			{% block report_preamble %}
-			{% endblock report_preamble %}
-
 			{% block report_results %}
 				<div class="card bg-light mb-3">
   					<div class="card-header"><strong>Results </strong>
@@ -116,6 +113,9 @@
 				</div>
 			{% endblock report_results %}
 
+			{% block report_preamble %}
+			{% endblock report_preamble %}
+
 			{% block report_footer %}
 				<div>
 					<a href="{{ qr_code.link }}" style="float: left;"><img style="width:250pt;" id="qr_code" src="{{ qr_code.image }}"/></a>
@@ -171,7 +171,6 @@
 					</div>
 				{% endblock disclaimer_container %}
 			{% endblock report_footer %}
-
 		</div>
 
 		<div class="tab-pane fade" id="data" role="tabpanel" aria-labelledby="data-tab" style="padding: 1%">

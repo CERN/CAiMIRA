@@ -1,107 +1,60 @@
 {% extends "base/calculator.report.html.j2" %}
 
-
-{% block report_preamble %}
-
-<div class="card bg-light mb-3">
-  <div class="card-header"><strong>Applicable rules </strong> 
-    <button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseRules" role="button" aria-expanded="true" aria-controls="collapseRules">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
-        <path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
-      </svg>
-    </button>
-  </div>
-  <div class="collapse show" id="collapseRules">
-    <div class="card-body">
-      <p class="card-text"> 
-        Please ensure that this scenario conforms to current COVID-related <a href="https://hse.cern/covid-19-information"> Health & Safety requirements</a>, under the applicable COVID Scale and measures in force at the time of the CARA assessment.</strong> <br>
-        The results of this simulation are colour coded according to the risk values authorized at CERN (approved in December 2020):
-      </p>
-      <div class="d-flex">
-        <div class="d-flex flex-column justify-content-between">
-          <div class="alert alert-success ml-3" role="alert">Events with a <strong>P(i) less than 5%</strong> may go ahead without further mitigation measures.</div>
-          <div class="alert alert-warning ml-3" role="alert">Events with a <strong>P(i) between 5% and 15%</strong> shall be subject to ALARA principles (see footnote) to minimise the risk before proceeding.</div>
-          <div class="alert alert-danger ml-3 mb-0" role="alert">Events with a <strong>P(i) exceeding 15% or a number of expected new cases that exceeds 1</strong> may not take place until additional measures are in place and a risk reduction has been performed.</div>
-        </div>
-        <img class="rounded ml-4" src="{{ calculator_prefix }}/static/images/warning_scale/{{scale_warning.level}}.png">
-      </div>
-      <br>
-      <p class="data_text">
-          <strong> Footnotes for ALARA: </strong><br>
-          ALARA stands for As Low As Reasonably Achievable. It can be summarised based on 3 main points:
-          <ol>
-            <li>Justification - any exposure of persons has to be justified </li>
-            <li>Limitation - the personal doses have to be kept below the legal limits (in this case the CERN exposure limits)</li>
-            <li>Optimisation - the personal doses and collective doses have to be kept as low as reasonably achievable (ALARA).</li>
-          </ol>
-          For more information, please refer to <a href="https://cds.cern.ch/record/1533023/files/CERN-2013-001-p415.pdf"> this document from CERN HSE </a> and <a href="https://www.cdc.gov/nceh/radiation/safety.html#:~:text=ALARA%20stands%20for%20%E2%80%9Cas%20low,time%2C%20distance%2C%20and%20shielding."> this publication from the CDC.</a> 
-          <br>
-      </p>
-    </div>
-  </div>
-</div>
-{% endblock report_preamble %}
-
-
 {% block report_summary %}
+  <span
+    {% if ((prob_inf > 15) or (expected_new_cases >= 1)) %}
+      ><div class="alert alert-danger" role="alert">
+        <strong>Not Acceptable:</strong>
+        {{ super() }}
+      </div>
+    {% elif 5 <= prob_inf <= 15 %}
+      ><div class="alert alert-warning" role="alert">
+        <strong>Attention:</strong>
+        {{ super() }}
+      <div>
+    {% elif prob_inf < 5 %}
+      ><div class="alert alert-success" role="alert">
+        ><strong>Acceptable:</strong>
+        {{ super() }}
+      </div>
+    {% endif %}
+  </span>
 
-<span
+  {% if (prob_inf > 5) %}
+    <div class="d-flex align-self-center">
+    {% if scale_warning.level == "green-1" %}  
+      <div class="alert alert-dark" role="alert" style="height:fit-content">
+        Note: the current CERN COVID Scale is <b>Green - 1</b>, which means the incidence rate in the local community is <b>{{scale_warning.incidence_rate}}</b>. Align your risk assessment with the guidance and instructions provided by the HSE Unit.  
+      </div>
+    {% elif scale_warning.level == "yellow-2" %}
+      <div class="alert alert-dark" role="alert" style="height:fit-content">
+        Note: the current CERN COVID Scale is <b>Yellow - 2</b>, which means the incidence rate in the local community is <b>{{scale_warning.incidence_rate}}</b>. There is a reduced chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access {{scale_warning.onsite_access}}. See with your supervisor if this scenario is acceptable.
+      </div>
+    {% elif scale_warning.level == "orange-3" %}
+      <div class="alert alert-dark" role="alert" style="height:fit-content">
+        Warning: the current CERN COVID Scale is <b>Orange - 3</b>, which means the incidence rate in the local community is <b>{{scale_warning.incidence_rate}}</b>. There is a slight chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access {{scale_warning.onsite_access}}. See with your supervisor if any additional measures can be applied (ALARA).
+      </div>
+    {% elif scale_warning.level == "red-4" %}
+      <div class="alert alert-dark" role="alert" style="height:fit-content">
+        Warning: the current CERN COVID Scale is <b>Red - 4</b>, which means the incidence rate in the local community is <b>{{scale_warning.incidence_rate}}</b>. There is a strong chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access {{scale_warning.onsite_access}}. Please reduce the value below the threshold of <b>{{scale_warning.threshold}}</b>.
+      </div>
+    {% else %}
+      <p><b>Note:</b> The CERN COVID Level is not specified.</p>
+    {% endif %}
+    </div>
+      
+  {% endif %}
+
   {% if ((prob_inf > 15) or (expected_new_cases >= 1)) %}
-    ><div class="alert alert-danger" role="alert">
-      <strong>Not Acceptable:</strong>
-      {{ super() }}
-    </div>
-  {% elif 5 <= prob_inf <= 15 %}
-    ><div class="alert alert-warning" role="alert">
-      <strong>Attention:</strong>
-      {{ super() }}
-    <div>
-  {% elif prob_inf < 5 %}
-    ><div class="alert alert-success" role="alert">
-      ><strong>Acceptable:</strong>
-      {{ super() }}
-    </div>
+    This exceeds the authorised risk threshold or number of expected new cases.
+    The risk level must be reduced before this activity can be undertaken.
+  {% elif (5 <= prob_inf <= 15) %}
+    This activity has an elevated level of risk, ALARA principles must be applied to minimise the level of risk before undertaking the activity.
+    See the footnotes for more details on the ALARA principles.
+  {% elif (prob_inf < 5) %}
+    This level of risk is within acceptable parameters, no further actions are required.
   {% endif %}
-</span>
-
-
-
-{% if (prob_inf > 5) %}
-	<div class="d-flex align-self-center">
-  {% if scale_warning.level == "green-1" %}  
-    <div class="alert alert-dark" role="alert" style="height:fit-content">
-      Note: the current CERN COVID Scale is <b>Green - 1</b>, which means the incidence rate in the local community is <b>{{scale_warning.incidence_rate}}</b>. Align your risk assessment with the guidance and instructions provided by the HSE Unit.  
-    </div>
-  {% elif scale_warning.level == "yellow-2" %}
-    <div class="alert alert-dark" role="alert" style="height:fit-content">
-      Note: the current CERN COVID Scale is <b>Yellow - 2</b>, which means the incidence rate in the local community is <b>{{scale_warning.incidence_rate}}</b>. There is a reduced chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access {{scale_warning.onsite_access}}. See with your supervisor if this scenario is acceptable.
-    </div>
-  {% elif scale_warning.level == "orange-3" %}
-    <div class="alert alert-dark" role="alert" style="height:fit-content">
-      Warning: the current CERN COVID Scale is <b>Orange - 3</b>, which means the incidence rate in the local community is <b>{{scale_warning.incidence_rate}}</b>. There is a slight chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access {{scale_warning.onsite_access}}. See with your supervisor if any additional measures can be applied (ALARA).
-    </div>
-  {% elif scale_warning.level == "red-4" %}
-    <div class="alert alert-dark" role="alert" style="height:fit-content">
-      Warning: the current CERN COVID Scale is <b>Red - 4</b>, which means the incidence rate in the local community is <b>{{scale_warning.incidence_rate}}</b>. There is a strong chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access {{scale_warning.onsite_access}}. Please reduce the value below the threshold of <b>{{scale_warning.threshold}}</b>.
-    </div>
-  {% else %}
-    <p><b>Note:</b> The CERN COVID Level is not specified.</p>
-  {% endif %}
-  </div>
-    
-{% endif %}
-
-{% if ((prob_inf > 15) or (expected_new_cases >= 1)) %}
-  This exceeds the authorised risk threshold or number of expected new cases.
-  The risk level must be reduced before this activity can be undertaken.
-{% elif (5 <= prob_inf <= 15) %}
-  This activity has an elevated level of risk, ALARA principles must be applied to minimise the level of risk before undertaking the activity.
-  See the footnotes for more details on the ALARA principles.
-{% elif (prob_inf < 5) %}
-  This level of risk is within acceptable parameters, no further actions are required.
-{% endif %}
 {% endblock report_summary %}
-
 
 {% block report_scenarios_summary_table %}
         <table class="table w-auto" style="height: fit-content;">
@@ -130,6 +83,45 @@
         </table>
 {% endblock report_scenarios_summary_table %}
 
+{% block report_preamble %}
+  <div class="card bg-light mb-3">
+    <div class="card-header"><strong>Applicable rules </strong> 
+      <button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseRules" role="button" aria-expanded="true" aria-controls="collapseRules">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="collapse show" id="collapseRules">
+      <div class="card-body">
+        <p class="card-text"> 
+          Please ensure that this scenario conforms to current COVID-related <a href="https://hse.cern/covid-19-information"> Health & Safety requirements</a>, under the applicable COVID Scale and measures in force at the time of the CARA assessment.</strong> <br>
+          The results of this simulation are colour coded according to the risk values authorized at CERN (approved in December 2020):
+        </p>
+        <div class="d-flex">
+          <div class="d-flex flex-column justify-content-between">
+            <div class="alert alert-success ml-3" role="alert">Events with a <strong>P(i) less than 5%</strong> may go ahead without further mitigation measures.</div>
+            <div class="alert alert-warning ml-3" role="alert">Events with a <strong>P(i) between 5% and 15%</strong> shall be subject to ALARA principles (see footnote) to minimise the risk before proceeding.</div>
+            <div class="alert alert-danger ml-3 mb-0" role="alert">Events with a <strong>P(i) exceeding 15% or a number of expected new cases that exceeds 1</strong> may not take place until additional measures are in place and a risk reduction has been performed.</div>
+          </div>
+          <img class="rounded ml-4" src="{{ calculator_prefix }}/static/images/warning_scale/{{scale_warning.level}}.png">
+        </div>
+        <br>
+        <p class="data_text">
+            <strong> Footnotes for ALARA: </strong><br>
+            ALARA stands for As Low As Reasonably Achievable. It can be summarised based on 3 main points:
+            <ol>
+              <li>Justification - any exposure of persons has to be justified </li>
+              <li>Limitation - the personal doses have to be kept below the legal limits (in this case the CERN exposure limits)</li>
+              <li>Optimisation - the personal doses and collective doses have to be kept as low as reasonably achievable (ALARA).</li>
+            </ol>
+            For more information, please refer to <a href="https://cds.cern.ch/record/1533023/files/CERN-2013-001-p415.pdf"> this document from CERN HSE </a> and <a href="https://www.cdc.gov/nceh/radiation/safety.html#:~:text=ALARA%20stands%20for%20%E2%80%9Cas%20low,time%2C%20distance%2C%20and%20shielding."> this publication from the CDC.</a> 
+            <br>
+        </p>
+      </div>
+    </div>
+  </div>
+{% endblock report_preamble %}
 
 {% block report_footer %}
     {{ super() }}
