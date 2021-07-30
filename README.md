@@ -148,7 +148,7 @@ export CLIENT_SECRET
 Run docker-compose:
 ```
 cd app-config
-docker-compose up
+CURRENT_UID=$(id -u):$(id -g) docker-compose up
 ```
 
 Then visit http://localhost:8080/.
