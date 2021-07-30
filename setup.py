@@ -23,10 +23,12 @@ REQUIREMENTS: dict = {
         'ipympl',
         'ipywidgets',
         'Jinja2',
+        'loky',
         'matplotlib',
         'memoization',
         'mistune',
         'numpy',
+        'psutil',
         'qrcode[pil]',
         'scipy',
         'sklearn',
@@ -59,7 +61,7 @@ setup(
     url='cern.ch/cara',
 
     packages=find_packages(),
-    python_requires='~=3.6',
+    python_requires='~=3.9',
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",

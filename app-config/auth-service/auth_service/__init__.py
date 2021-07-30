@@ -11,6 +11,7 @@ import typing
 import aiohttp
 from keycloak.aio.realm import KeycloakRealm
 import tornado.ioloop
+import tornado.log
 import tornado.web
 
 
@@ -161,6 +162,7 @@ class MainHandler(BaseHandler):
 
 
 def make_app():
+    tornado.log.enable_pretty_logging()
     return tornado.web.Application(
         [
             (r"/", MainHandler),

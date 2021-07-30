@@ -25,6 +25,8 @@
             targetPort: 8080
         selector:
           deploymentconfig: auth-service
+        sessionAffinity: 'None'
+        type: 'ClusterIP'
     -
       apiVersion: v1
       kind: Service
@@ -40,6 +42,8 @@
             targetPort: 8080
         selector:
           deploymentconfig: cara-app
+        sessionAffinity: 'None'
+        type: 'ClusterIP'
     -
       apiVersion: v1
       kind: Service
@@ -53,12 +57,10 @@
             port: 8080
             protocol: TCP
             targetPort: 8080
-          - name: 8443-tcp
-            port: 8443
-            protocol: TCP
-            targetPort: 8443
         selector:
           deploymentconfig: cara-router
+        sessionAffinity: 'None'
+        type: 'ClusterIP'
     -
       apiVersion: v1
       kind: Service
@@ -74,6 +76,8 @@
             targetPort: 8080
         selector:
           deploymentconfig: cara-webservice
+        sessionAffinity: 'None'
+        type: 'ClusterIP'
     -
       apiVersion: v1
       kind: Service
@@ -89,3 +93,5 @@
             targetPort: 8080
         selector:
           deploymentconfig: cara-calculator-open
+        sessionAffinity: 'None'
+        type: 'ClusterIP'

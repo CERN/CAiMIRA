@@ -7,7 +7,7 @@ include:
 
 variables:
   project_name: cara
-  PY_VERSION: "3.6"  # This is what we have running in OpenShift currently.
+  PY_VERSION: "3.9"
 
 
 # A full installation of CARA, tested with pytest.
@@ -20,14 +20,97 @@ test_dev:
   extends: .acc_py_dev_test
 
 
+# A development installation of CARA tested with pytest.
+.test_openshift_config:
+  rules:
+    - if: '$OC_TOKEN && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == $BRANCH'
+      allow_failure: false  # The branch must represent what is deployed.
+    - if: '$OC_TOKEN && $CI_MERGE_REQUEST_EVENT_TYPE != "detached"'
+      allow_failure: true   # Anything other than the branch may fail without blocking the pipeline.
+  image: registry.cern.ch/docker.io/mambaorg/micromamba
+  before_script:
+    - micromamba create --yes -p $HOME/env python=3.9 ruamel.yaml wget -c conda-forge
+    - export PATH=$HOME/env/bin/:$PATH
+    - wget https://github.com/openshift/origin/releases/download/v3.11.0/openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit.tar.gz
+    - tar xzf ./openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit.tar.gz
+    - mv openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit/oc $HOME/env/bin/
+
+  script:
+    - cd ./app-config/openshift
+    - oc login ${OC_SERVER} --token="${OC_TOKEN}"
+    - python ./config-fetch.py ${CARA_INSTANCE} --output-directory ./${CARA_INSTANCE}/actual
+    - python ./config-generate.py ${CARA_INSTANCE} --output-directory ./${CARA_INSTANCE}/expected
+    - python ./config-normalise.py ./${CARA_INSTANCE}/actual ./${CARA_INSTANCE}/actual-normed
+    - python ./config-normalise.py ./${CARA_INSTANCE}/expected ./${CARA_INSTANCE}/expected-normed
+    - diff -u ./test-cara/actual-normed/ ./${CARA_INSTANCE}/expected-normed/
+
+  artifacts:
+    paths:
+      - ./app-config/openshift/${CARA_INSTANCE}/actual
+      - ./app-config/openshift/${CARA_INSTANCE}/expected
+
+
+check_openshift_config_test-cara:
+  extends: .test_openshift_config
+  variables:
+    CARA_INSTANCE: 'test-cara'
+    BRANCH: 'live/test-cara'
+    OC_SERVER: openshift-dev.cern.ch
+    OC_TOKEN: "${OPENSHIFT_CONFIG_CHECKER_TOKEN_TEST_CARA}"
+
+
+# A development installation of CARA tested with pytest.
+test_dev-39:
+  variables:
+    PY_VERSION: "3.9"
+  extends: .acc_py_dev_test
+
+
+.image_builder:
+    # Build and push images to the openshift instance, which automatically triggers an application re-deployment.
+    stage: deploy
+    image:
+        # Based on guidance at https://gitlab.cern.ch/gitlabci-examples/build_docker_image.
+        name: gitlab-registry.cern.ch/ci-tools/docker-image-builder
+        entrypoint: [""]
+    rules:
+        - if: '$OPENSHIFT_DOCKER_TOKEN_TEST != "" && $CI_COMMIT_BRANCH == "live/test-cara"'
+          variables:
+            DOCKER_REGISTRY: "${OPENSHIFT_DOCKER_REGISTRY_TEST}"
+            DOCKER_TOKEN: "${OPENSHIFT_DOCKER_TOKEN_TEST}"
+        - if: '$OPENSHIFT_DOCKER_TOKEN_PROD != "" && $CI_COMMIT_BRANCH == "master"'
+          variables:
+            DOCKER_REGISTRY: "${OPENSHIFT_DOCKER_REGISTRY_PROD}"
+            DOCKER_TOKEN: "${OPENSHIFT_DOCKER_TOKEN_PROD}"
+    script:
+        - echo "{\"auths\":{\"$DOCKER_REGISTRY\":{\"auth\":\"$DOCKER_TOKEN\"}}}" > /kaniko/.docker/config.json
+        - /kaniko/executor --context $CI_PROJECT_DIR/$DOCKER_CONTEXT_DIRECTORY --dockerfile $CI_PROJECT_DIR/$DOCKERFILE_DIRECTORY/Dockerfile --destination $DOCKER_REGISTRY/$IMAGE_NAME:latest
+
+
+auth-service-image_builder:
+  extends:
+    - .image_builder
+  variables:
+    IMAGE_NAME: auth-service
+    DOCKERFILE_DIRECTORY: app-config/auth-service
+    DOCKER_CONTEXT_DIRECTORY: app-config/auth-service
+
+
+cara-webservice-image_builder:
+  extends:
+    - .image_builder
+  variables:
+    IMAGE_NAME: cara-webservice
+    DOCKERFILE_DIRECTORY: app-config/cara-webservice
+    DOCKER_CONTEXT_DIRECTORY: ""
+
+
 trigger_build_on_openshift:
     stage: deploy
     rules:
         - if: '$OPENSHIFT_BUILD_WEBHOOK_SECRET'
     script:
         - curl -X POST -k https://openshift.cern.ch:443/apis/build.openshift.io/v1/namespaces/cara/buildconfigs/cara-router/webhooks/${OPENSHIFT_BUILD_WEBHOOK_SECRET}/generic
-        - curl -X POST -k https://openshift.cern.ch:443/apis/build.openshift.io/v1/namespaces/cara/buildconfigs/cara-webservice/webhooks/${OPENSHIFT_BUILD_WEBHOOK_SECRET}/generic
-        - curl -X POST -k https://openshift.cern.ch:443/apis/build.openshift.io/v1/namespaces/cara/buildconfigs/auth-service/webhooks/${OPENSHIFT_BUILD_WEBHOOK_SECRET}/generic
 
 
 deploy_to_test:
@@ -36,8 +119,6 @@ deploy_to_test:
         - if: '$CI_COMMIT_BRANCH == "live/test-cara" && $OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET'
     script:
         - curl -X POST -k https://openshift-dev.cern.ch:443/apis/build.openshift.io/v1/namespaces/test-cara/buildconfigs/cara-router/webhooks/${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}/generic
-        - curl -X POST -k https://openshift-dev.cern.ch:443/apis/build.openshift.io/v1/namespaces/test-cara/buildconfigs/cara-webservice/webhooks/${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}/generic
-        - curl -X POST -k https://openshift-dev.cern.ch:443/apis/build.openshift.io/v1/namespaces/test-cara/buildconfigs/auth-service/webhooks/${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}/generic
 
 
 oci_calculator:
@@ -45,10 +126,11 @@ oci_calculator:
   stage: deploy
   rules:
     # Only run if branch is master (the default branch).
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH   
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
   image:
         name: gitlab-registry.cern.ch/ci-tools/docker-image-builder
         entrypoint: [""]
   script:
         - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
         - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_REGISTRY_IMAGE/calculator:latest
+

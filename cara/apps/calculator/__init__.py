@@ -5,6 +5,7 @@ import asyncio
 import concurrent.futures
 import datetime
 import base64
+import functools
 import html
 import json
 import os
@@ -15,7 +16,9 @@ import uuid
 import zlib
 
 import jinja2
+import loky
 from tornado.web import Application, RequestHandler, StaticFileHandler
+import tornado.log
 
 from . import markdown_tools
 from . import model_generator
@@ -111,10 +114,18 @@ class ConcentrationModel(BaseRequestHandler):
 
         base_url = self.request.protocol + "://" + self.request.host
         report_generator: ReportGenerator = self.settings['report_generator']
-        report = report_generator.build_report(base_url, form)
-        if self.settings.get("debug", False):
-            dt = (datetime.datetime.now() - start)
-            print(f'Report response time {dt.seconds}.{dt.microseconds}s')
+        executor = loky.get_reusable_executor(
+            max_workers=self.settings['handler_worker_pool_size'],
+            timeout=300,
+        )
+        report_task = executor.submit(
+            report_generator.build_report, base_url, form,
+            executor_factory=functools.partial(
+                concurrent.futures.ThreadPoolExecutor,
+                self.settings['report_generation_parallelism'],
+            ),
+        )
+        report: str = await asyncio.wrap_future(report_task)
         self.finish(report)
 
 
@@ -123,9 +134,16 @@ class StaticModel(BaseRequestHandler):
         form = model_generator.FormData.from_dict(model_generator.baseline_raw_form_data())
         base_url = self.request.protocol + "://" + self.request.host
         report_generator: ReportGenerator = self.settings['report_generator']
-        report = report_generator.build_report(base_url, form)
+        executor = loky.get_reusable_executor(max_workers=self.settings['handler_worker_pool_size'])
+        report_task = executor.submit(
+            report_generator.build_report, base_url, form,
+            executor_factory=functools.partial(
+                concurrent.futures.ThreadPoolExecutor,
+                self.settings['report_generation_parallelism'],
+            ),
+        )
+        report: str = await asyncio.wrap_future(report_task)
         self.finish(report)
-
 
 
 class LandingPage(BaseRequestHandler):
@@ -222,6 +240,9 @@ def make_app(
         template_environment.get_template('common_text.md.j2')
     )
 
+    if debug:
+        tornado.log.enable_pretty_logging()
+
     return Application(
         urls,
         debug=debug,
@@ -233,4 +254,19 @@ def make_app(
         # COOKIE_SECRET being undefined will result in no login information being
         # presented to the user.
         cookie_secret=os.environ.get('COOKIE_SECRET', '<undefined>'),
+
+        # Process parallelism controls. There is a balance between serving a single report
+        # requests quickly or serving multiple requests concurrently.
+        # The defaults are: handle one report at a time, and allow parallelism
+        # of that report generation. A value of ``None`` will result in the number of
+        # processes being determined based on the number of CPUs. For some deployments,
+        # such as on OpenShift this number does *not* reflect the real number of CPUs that
+        # can be used, and it is recommended to specify these values explicitly (through
+        # the environment variables).
+        handler_worker_pool_size=(
+            int(os.environ.get("HANDLER_WORKER_POOL_SIZE", 1)) or None
+        ),
+        report_generation_parallelism=(
+            int(os.environ.get('REPORT_PARALLELISM', 0)) or None
+        ),
     )

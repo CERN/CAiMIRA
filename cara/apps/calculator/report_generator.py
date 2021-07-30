@@ -4,15 +4,16 @@ import dataclasses
 from datetime import datetime, timedelta
 import io
 import typing
+import urllib
 import zlib
 
-import qrcode
-import urllib
+import loky
 import jinja2
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import numpy as np
+import qrcode
 
 from cara import models
 from ... import monte_carlo as mc
@@ -32,17 +33,17 @@ def calculate_report_data(model: models.ExposureModel):
     resolution = 600
 
     t_start, t_end = model_start_end(model)
-    times = list(np.linspace(t_start, t_end, resolution))
-    concentrations = [np.mean(model.concentration_model.concentration(time))
+    times = np.linspace(t_start, t_end, resolution)
+    concentrations = [np.array(model.concentration_model.concentration(time)).mean()
                       for time in times]
     highest_const = max(concentrations)
-    prob = np.mean(model.infection_probability())
-    er = np.mean(model.concentration_model.infected.emission_rate_when_present())
+    prob = np.array(model.infection_probability()).mean()
+    er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
     exposed_occupants = model.exposed.number
-    expected_new_cases = np.mean(model.expected_new_cases())
+    expected_new_cases = np.array(model.expected_new_cases()).mean()
 
     return {
-        "times": times,
+        "times": list(times),
         "concentrations": concentrations,
         "highest_const": highest_const,
         "prob_inf": prob,
@@ -166,7 +167,7 @@ def non_zero_percentage(percentage: int) -> str:
     elif percentage < 1:
         return "{:0.2f}%".format(percentage)
     else:
-        return "{:0.0f}%".format(percentage)
+        return "{:0.1f}%".format(percentage)
 
 
 def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.ExposureModel]:
@@ -175,11 +176,13 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
     # Two special option cases - HEPA and/or FFP2 masks.
     FFP2_being_worn = bool(form.mask_wearing_option == 'mask_on' and form.mask_type == 'FFP2')
     if FFP2_being_worn and form.hepa_option:
-        scenarios['Base scenario with HEPA and FFP2 masks'] = form.build_mc_model()
-    elif FFP2_being_worn:
-        scenarios['Base scenario with FFP2 masks'] = form.build_mc_model()
-    elif form.hepa_option:
-        scenarios['Base scenario with HEPA filter'] = form.build_mc_model()
+        FFP2andHEPAalternative = dataclass_utils.replace(form, mask_type='Type I')
+        scenarios['Base scenario with HEPA filter and Type I masks'] = FFP2andHEPAalternative.build_mc_model()
+    if not FFP2_being_worn and form.hepa_option:
+        noHEPAalternative = dataclass_utils.replace(form, mask_type = 'FFP2')
+        noHEPAalternative = dataclass_utils.replace(noHEPAalternative, mask_wearing_option = 'mask_on')
+        noHEPAalternative = dataclass_utils.replace(noHEPAalternative, hepa_option=False)
+        scenarios['Base scenario without HEPA filter, with FFP2 masks'] = noHEPAalternative.build_mc_model()
 
     # The remaining scenarios are based on Type I masks (possibly not worn)
     # and no HEPA filtration.
@@ -191,11 +194,11 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
     without_mask = dataclass_utils.replace(form, mask_wearing_option='mask_off')
 
     if form.ventilation_type == 'mechanical_ventilation':
-        scenarios['Mechanical ventilation with Type I masks'] = with_mask.build_mc_model()
+        #scenarios['Mechanical ventilation with Type I masks'] = with_mask.build_mc_model()
         scenarios['Mechanical ventilation without masks'] = without_mask.build_mc_model()
 
     elif form.ventilation_type == 'natural_ventilation':
-        scenarios['Windows open with Type I masks'] = with_mask.build_mc_model()
+        #scenarios['Windows open with Type I masks'] = with_mask.build_mc_model()
         scenarios['Windows open without masks'] = without_mask.build_mc_model()
 
     # No matter the ventilation scheme, we include scenarios which don't have any ventilation.
@@ -251,15 +254,20 @@ def scenario_statistics(mc_model: mc.ExposureModel, sample_times: np.ndarray):
     }
 
 
-def comparison_report(scenarios: typing.Dict[str, mc.ExposureModel], sample_times: np.ndarray):
+def comparison_report(
+        scenarios: typing.Dict[str, mc.ExposureModel],
+        sample_times: np.ndarray,
+        executor_factory: typing.Callable[[], concurrent.futures.Executor],
+):
     statistics = {}
-    with concurrent.futures.ProcessPoolExecutor() as executor:
+    with executor_factory() as executor:
         results = executor.map(
             scenario_statistics,
             scenarios.values(),
             [sample_times] * len(scenarios),
             timeout=60,
         )
+
     for (name, model), model_stats in zip(scenarios.items(), results):
         statistics[name] = model_stats
     return {
@@ -273,12 +281,23 @@ class ReportGenerator:
     jinja_loader: jinja2.BaseLoader
     calculator_prefix: str
 
-    def build_report(self, base_url: str, form: FormData) -> str:
+    def build_report(
+            self,
+            base_url: str,
+            form: FormData,
+            executor_factory: typing.Callable[[], concurrent.futures.Executor],
+    ) -> str:
         model = form.build_model()
-        context = self.prepare_context(base_url, model, form)
+        context = self.prepare_context(base_url, model, form, executor_factory=executor_factory)
         return self.render(context)
 
-    def prepare_context(self, base_url: str, model: models.ExposureModel, form: FormData) -> dict:
+    def prepare_context(
+            self,
+            base_url: str,
+            model: models.ExposureModel,
+            form: FormData,
+            executor_factory: typing.Callable[[], concurrent.futures.Executor],
+    ) -> dict:
         now = datetime.utcnow().astimezone()
         time = now.strftime("%Y-%m-%d %H:%M:%S UTC")
 
@@ -293,7 +312,9 @@ class ReportGenerator:
 
         context.update(calculate_report_data(model))
         alternative_scenarios = manufacture_alternative_scenarios(form)
-        context['alternative_scenarios'] = comparison_report(alternative_scenarios, scenario_sample_times)
+        context['alternative_scenarios'] = comparison_report(
+            alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
+        )
         context['qr_code'] = generate_qr_code(base_url, self.calculator_prefix, form)
         context['calculator_prefix'] = self.calculator_prefix
         context['scale_warning'] = {

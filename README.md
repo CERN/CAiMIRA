@@ -108,11 +108,10 @@ python -m cara.apps.calculator --prefix=/mycalc
 
 ```
 pip install -e .   # At the root of the repository
-voila ./app/cara.ipynb
+voila cara/apps/expert/cara.ipynb --port=8080
 ```
 
-
-Then visit http://localhost:8080/calculator.
+Then visit http://localhost:8080.
 
 
 ### Running the tests
@@ -128,8 +127,8 @@ pytest ./cara
 
 ```
 s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./app-config/nginx/ centos/nginx-112-centos7 cara-nginx-app
-s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./ centos/python-36-centos7 cara-webservice
-s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./app-config/auth-service centos/python-36-centos7 auth-service
+docker build . -f ./app-config/cara-webservice/Dockerfile -t cara-webservice
+docker build ./app-config/auth-service -t auth-service
 ```
 
 Get the client secret from the CERN Application portal for the `cara-test` app. See [CERN-SSO-integration](#CERN-SSO-integration) for more info.
@@ -194,10 +193,12 @@ If you need to create the application in a new project, run:
 ```console
 $ cd app-config/openshift
 
-$ oc process -f application.yaml --param PROJECT_NAME='test-cara' --param GIT_BRANCH='live/test-cara' | oc create -f -
+$ oc process -f routes.yaml --param HOST='test-cara.web.cern.ch' | oc create -f -
 $ oc process -f configmap.yaml | oc create -f -
 $ oc process -f services.yaml | oc create -f -
-$ oc process -f route.yaml --param HOST='test-cara.web.cern.ch' | oc create -f -
+$ oc process -f imagestreams.yaml | oc create -f -
+$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/test-cara' | oc create -f -
+$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='test-cara'  | oc create -f -
 ```
 
 Then, create the webhook secret to be able to trigger automatic builds from GitLab.
@@ -210,6 +211,17 @@ $ oc create secret generic \
   --from-literal="WebHookSecretKey=$WEBHOOKSECRET" \
   gitlab-cara-webhook-secret
 ```
+
+For CI usage, we also suggest creating a service account:
+
+```console
+oc create sa gitlab-config-checker
+```
+
+Under ``Resources`` -> ``Membership`` enable the ``View`` role for this new service account.
+
+To get this new user's authentication token go to ``Resources`` -> ``Secrets`` and locate the token in the newly
+created secret associated with the user (in this case ``gitlab-config-checker-token-XXXX``).
 
 ### CERN SSO integration
 
@@ -258,11 +270,14 @@ If you need to **update** existing configuration, then modify this repository an
 ```console
 $ cd app-config/openshift
 
-$ oc process -f application.yaml --param PROJECT_NAME='test-cara' --param GIT_BRANCH='live/test-cara' | oc replace -f -
+
 $ oc process -f configmap.yaml | oc replace -f -
 $ oc process -f services.yaml | oc replace -f -
-$ oc process -f route.yaml --param HOST='test-cara.web.cern.ch' | oc replace -f -
+$ oc process -f routes.yaml --param HOST='test-cara.web.cern.ch' | oc replace -f -
+$ oc process -f imagestreams.yaml | oc replace -f -
+$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/test-cara' | oc replace -f -
+$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='test-cara' | oc replace -f -
 ```
 
-Be aware that if you change/replace the **route** of the PROD instance, it will loose the annotation to be exposed outside CERN (not committed in this repo).
-
+Be aware that if you change/replace the **route** of the PROD instance,
+it will lose the annotation to be exposed outside CERN (not committed in this repo).
