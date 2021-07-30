@@ -19,5 +19,8 @@ if [[ "$APP_NAME" == "cara-webservice" ]]; then
 elif [[ "$APP_NAME" == "cara-voila" ]]; then
     echo "Starting the voila service"
     voila app/ --port=8080 --no-browser --base_url=/voila-server/ --Voila.tornado_settings="{'allow_origin': '*'}"
+else
+    echo "No APP_NAME specified"
+    exit 1
 fi
 

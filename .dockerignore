@@ -2,4 +2,6 @@ venv
 env*
 prototypes
 support
-Dockerfile
+**/Dockerfile
+_*
+
