@@ -33,6 +33,8 @@
 		<li class="nav-item">
 			<a class="nav-link" id="data-tab" data-toggle="tab" href="#data" role="tab" aria-controls="data" aria-selected="false">Input Data</a>
 		</li>
+		{% block report_preamble_navtab %}
+		{% endblock report_preamble_navtab %}
 	</ul>
 
 	<div class="tab-content" style="border-top: #dee2e6 1px solid; margin-top: -1px" >
@@ -112,9 +114,6 @@
 					</div>
 				</div>
 			{% endblock report_results %}
-
-			{% block report_preamble %}
-			{% endblock report_preamble %}
 
 			{% block report_footer %}
 				<div>
@@ -352,6 +351,8 @@
 
 			{% endblock simulation_overview %}	
 		</div>
+		{% block report_preamble %}
+		{% endblock report_preamble %}
 	</div>
 </div>
 

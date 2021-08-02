@@ -1,5 +1,11 @@
 {% extends "base/calculator.report.html.j2" %}
 
+{% block report_preamble_navtab %}  
+  <li class="nav-item">
+    <a class="nav-link" id="rules-tab" data-toggle="tab" href="#rules" role="tab" aria-controls="rules" aria-selected="false">Applicable Rules</a>
+  </li>
+{% endblock report_preamble_navtab %}
+
 {% block report_summary %}
 
   <span
@@ -98,6 +104,7 @@
 {% endblock report_scenarios_summary_table %}
 
 {% block report_preamble %}
+<div class="tab-pane fade show active" id="rules" role="tabpanel" aria-labelledby="rules-tab" style="padding: 1%">
   <div class="card bg-light mb-3">
     <div class="card-header"><strong>Applicable rules </strong> 
       <button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseRules" role="button" aria-expanded="true" aria-controls="collapseRules">
@@ -135,6 +142,7 @@
       </div>
     </div>
   </div>
+</div>
 {% endblock report_preamble %}
 
 {% block report_footer %}
