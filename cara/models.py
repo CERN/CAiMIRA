@@ -420,8 +420,8 @@ class Virus:
     #: RNA copies  / mL
     viral_load_in_sputum: _VectorisedFloat
 
-    #: RNA-copies per quantum
-    quantum_infectious_dose: _VectorisedFloat
+    #: RNA-copies
+    infectious_dose: _VectorisedFloat
 
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
@@ -458,20 +458,20 @@ Virus.types = {
         # It is somewhere between 1000 or 10 SARS-CoV viruses, 
         # as per https://www.dhs.gov/publication/st-master-question-list-covid-19
         # 50 comes from Buonanno et al.
-        quantum_infectious_dose=50.,
+        infectious_dose=50.,
     ),
     'SARS_CoV_2_B117': SARSCoV2(
         # also called VOC-202012/01
         viral_load_in_sputum=1e9,
-        quantum_infectious_dose=30.,
+        infectious_dose=30.,
     ),
     'SARS_CoV_2_P1': SARSCoV2(
         viral_load_in_sputum=1e9,
-        quantum_infectious_dose=1/0.045,
+        infectious_dose=1/0.045,
     ),
     'SARS_CoV_2_B16172': SARSCoV2(
         viral_load_in_sputum=1e9,
-        quantum_infectious_dose=30/1.6,
+        infectious_dose=30/1.6,
     ),
 }
 
@@ -677,7 +677,7 @@ class InfectedPopulation(Population):
         Note that the rate is not currently time-dependent.
 
         """
-        # Emission Rate (infectious quantum / h)
+        # Emission Rate (infectious virus / h)
         # Note on units: exhalation rate is in m^3/h, aerosols in mL/cm^3
         # and viral load in virus/mL -> 1e6 conversion factor
         aerosols = self.expiration.aerosols(self.mask)
@@ -686,7 +686,7 @@ class InfectedPopulation(Population):
               self.activity.exhalation_rate *
               10 ** 6 *
               aerosols /
-              self.virus.quantum_infectious_dose)
+              self.virus.infectious_dose)
 
         # For superspreading event, where ejection_factor is infinite we fix the ER
         # based on Miller et al. (2020).
