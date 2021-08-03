@@ -13,7 +13,6 @@ from cara import models
         {'humidity': np.array([0.5, 0.4])},
         {'air_change': np.array([100, 120])},
         {'viral_load_in_sputum': np.array([5e8, 1e9])},
-        {'infectious_dose': np.array([50, 20])},
     ]
 )
 def test_concentration_model_vectorisation(override_params):
@@ -21,8 +20,7 @@ def test_concentration_model_vectorisation(override_params):
         'volume': 75,
         'humidity': 0.5,
         'air_change': 100,
-        'viral_load_in_sputum': 1e9,
-        'infectious_dose': 50,
+        'viral_load_in_sputum': 1e9
     }
     defaults.update(override_params)
 
@@ -43,7 +41,7 @@ def test_concentration_model_vectorisation(override_params):
             ),
             virus=models.SARSCoV2(
                 viral_load_in_sputum=defaults['viral_load_in_sputum'],
-                infectious_dose=defaults['infectious_dose'],
+                infectious_dose=50.,
             ),
             expiration=models.Expiration((1., 0., 0.)),
         )
