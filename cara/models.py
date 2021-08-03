@@ -803,7 +803,7 @@ class ConcentrationModel:
 
     def concentration(self, time: float) -> _VectorisedFloat:
         """
-        Virus quanta concentration, as a function of time.
+        Virus exposure concentration, as a function of time.
         The formulas used here assume that all parameters (ventilation,
         emission rate) are constant between two state changes - only
         the value of these parameters at the next state change, are used.
@@ -867,7 +867,7 @@ class ExposureModel:
     fraction_deposited: _VectorisedFloat = 0.6
 
     def exposure(self) -> _VectorisedFloat:
-        """The number of virus quanta per meter^3."""
+        """The number of virus per meter^3."""
         exposure = 0.0
 
         for start, stop in self.exposed.presence.boundaries():
