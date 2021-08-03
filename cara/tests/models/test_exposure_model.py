@@ -3,26 +3,27 @@ import typing
 import numpy as np
 import numpy.testing
 import pytest
+from dataclasses import dataclass
 
 from cara import models
 from cara.models import ExposureModel
 
 
+@dataclass(frozen=True)
 class KnownConcentrations(models.ConcentrationModel):
     """
-    A ConcentrationModel which is based on pre-known quanta concentrations and
+    A ConcentrationModel which is based on pre-known exposure concentrations and
     which therefore doesn't need other components. Useful for testing.
 
     """
-    def __init__(self, concentration_function: typing.Callable) -> None:
-        self._func = concentration_function
+    concentration_function: typing.Callable
 
     def infectious_virus_removal_rate(self, time: float) -> models._VectorisedFloat:
         # very large decay constant -> same as constant concentration
         return 1.e50
 
     def _concentration_limit(self, time: float) -> models._VectorisedFloat:
-        return self._func(time)
+        return self.concentration_function(time)
 
     def state_change_times(self):
         return [0, 24]
@@ -31,7 +32,7 @@ class KnownConcentrations(models.ConcentrationModel):
         return 24
 
     def concentration(self, time: float) -> models._VectorisedFloat:  # noqa
-        return self._func(time)
+        return self.concentration_function(time)
 
 
 halftime = models.PeriodicInterval(120, 60)
@@ -52,24 +53,37 @@ populations = [
         models.Activity(np.array([0.51,0.57]), 0.57),
     ),
 ]
+dummyRoom = models.Room(50, 0.5)
+dummyVentilation = models._VentilationBase()
+dummyInfPopulation = models.InfectedPopulation(
+    number=1,
+    presence=halftime,
+    mask=models.Mask.types['Type I'],
+    activity=models.Activity.types['Standing'],
+    virus=models.Virus.types['SARS_CoV_2_B117'],
+    expiration=models.Expiration.types['Talking']
+)
+
+def known_concentrations(func):
+    return KnownConcentrations(dummyRoom, dummyVentilation, dummyInfPopulation, func)
 
 
 @pytest.mark.parametrize(
     "population, cm, f_dep, expected_exposure, expected_probability",[
-    [populations[1], KnownConcentrations(lambda t: 1.2), 1.,
-     np.array([14.4, 14.4]), np.array([99.6803184113, 99.5181053773])],
+    [populations[1], known_concentrations(lambda t: 1.2), 1.,
+     np.array([14.4, 14.4]), np.array([17.4296889121, 16.292365501])], #(1 - e**(-(0.57*(1-0.35)*14.4)/30))*100
 
-    [populations[2], KnownConcentrations(lambda t: 1.2), 1.,
-     np.array([14.4, 14.4]), np.array([97.4574432074, 98.3493482895])],
+    [populations[2], known_concentrations(lambda t: 1.2), 1.,
+     np.array([14.4, 14.4]), np.array([11.5205620042, 12.7855362382])],
 
-    [populations[0], KnownConcentrations(lambda t: np.array([1.2, 2.4])), 1.,
-     np.array([14.4, 28.8]), np.array([98.3493482895, 99.9727534893])],
+    [populations[0], known_concentrations(lambda t: np.array([1.2, 2.4])), 1.,
+     np.array([14.4, 28.8]), np.array([12.7855362382, 23.9363731074])],
 
-    [populations[1], KnownConcentrations(lambda t: np.array([1.2, 2.4])), 1.,
-     np.array([14.4, 28.8]), np.array([99.6803184113, 99.9976777757])],
+    [populations[1], known_concentrations(lambda t: np.array([1.2, 2.4])), 1.,
+     np.array([14.4, 28.8]), np.array([17.4296889121, 29.9303192658])],
 
-    [populations[0], KnownConcentrations(lambda t: 2.4), np.array([0.5, 1.]),
-     28.8, np.array([98.3493482895, 99.9727534893])],
+    [populations[0], known_concentrations(lambda t: 2.4), np.array([0.5, 1.]),
+     28.8, np.array([12.7855362382, 23.9363731074])],
     ])
 def test_exposure_model_ndarray(population, cm, f_dep,
                                 expected_exposure, expected_probability):
@@ -89,7 +103,7 @@ def test_exposure_model_ndarray(population, cm, f_dep,
 
 @pytest.mark.parametrize("population", populations)
 def test_exposure_model_ndarray_and_float_mix(population):
-    cm = KnownConcentrations(lambda t: 0 if np.floor(t) % 2 else np.array([1.2, 1.2]))
+    cm = known_concentrations(lambda t: 0 if np.floor(t) % 2 else np.array([1.2, 1.2]))
     model = ExposureModel(cm, population)
 
     expected_exposure = np.array([14.4, 14.4])
@@ -103,8 +117,8 @@ def test_exposure_model_ndarray_and_float_mix(population):
 
 @pytest.mark.parametrize("population", populations)
 def test_exposure_model_compare_scalar_vector(population):
-    cm_scalar = KnownConcentrations(lambda t: 1.2)
-    cm_array = KnownConcentrations(lambda t: np.array([1.2, 1.2]))
+    cm_scalar = known_concentrations(lambda t: 1.2)
+    cm_array = known_concentrations(lambda t: np.array([1.2, 1.2]))
     model_scalar = ExposureModel(cm_scalar, population)
     model_array = ExposureModel(cm_array, population)
     expected_exposure = 14.4
@@ -133,23 +147,23 @@ def conc_model():
         )
     )
 
-# expected quanta were computed with a trapezoidal integration, using
+# expected exposure were computed with a trapezoidal integration, using
 # a mesh of 10'000 pts per exposed presence interval.
-@pytest.mark.parametrize("exposed_time_interval, expected_quanta", [
-        [(0, 1), 5.3334352],
-        [(1, 1.01), 0.061759078],
-        [(1.01, 1.02), 0.060016487],
-        [(12, 12.01), 0.0019012647],
-        [(12, 24), 75.513005],
-        [(0, 24), 81.956988],
+@pytest.mark.parametrize("exposed_time_interval, expected_exposure", [
+        [(0, 1), 266.67176],
+        [(1, 1.01), 3.0879539],
+        [(1.01, 1.02), 3.00082435],
+        [(12, 12.01), 0.095063235],
+        [(12, 24), 3775.65025],
+        [(0, 24), 4097.8494],
     ]
 )
 def test_exposure_model_integral_accuracy(exposed_time_interval,
-                                          expected_quanta, conc_model):
+                                          expected_exposure, conc_model):
     presence_interval = models.SpecificInterval((exposed_time_interval,))
     population = models.Population(
         10, presence_interval, models.Mask.types['Type I'],
         models.Activity.types['Standing'],
     )
     model = ExposureModel(conc_model, population, fraction_deposited=1.)
-    np.testing.assert_allclose(model.exposure(), expected_quanta)
+    np.testing.assert_allclose(model.exposure(), expected_exposure)
