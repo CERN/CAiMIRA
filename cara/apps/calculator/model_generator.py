@@ -51,6 +51,7 @@ class FormData:
     infected_people: int
     infected_start: minutes_since_midnight
     location: str
+    location_coordinates: str
     mask_type: str
     mask_wearing_option: str
     mechanical_ventilation_type: str
@@ -102,6 +103,7 @@ class FormData:
         'infected_people': _NO_DEFAULT,
         'infected_start': '08:30',
         'location': _NO_DEFAULT,
+        'location_coordinates': '(46.2044, 6.1432)',
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': 'not-applicable',
@@ -605,6 +607,7 @@ def baseline_raw_form_data():
         'infected_people': '1',
         'infected_start': '09:00',
         'location': 'Geneva',
+        'location_coordinates': '(46.2044, 6.1432)',
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': '',
@@ -696,4 +699,5 @@ for _field in dataclasses.fields(FormData):
     elif _field.type is bool:
         _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = lambda v: v == '1'
         _CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = int
+
 
