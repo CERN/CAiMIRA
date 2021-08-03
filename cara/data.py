@@ -5,6 +5,7 @@ import urllib.request
 import numpy as np
 from pathlib import Path
 from scipy.spatial import cKDTree
+import os
 
 
 #items to pass into this module
@@ -30,7 +31,8 @@ def location_to_weather_stn(location_loc):
     station_file = Path('hadisd_station_fullinfo_v311_202001p.txt')
 
     if not station_file.exists():
-        print("Local file not found, downloading database of weather stations")
+        if weather_debug:
+            print("Local file not found, downloading database of weather stations")
         URL = 'https://www.metoffice.gov.uk/hadobs/hadisd/v311_2020f/files/hadisd_station_fullinfo_v311_202001p.txt'
         req = urllib.request.Request(URL)
         req.add_header('User-Agent', 'urllib/0.1')
@@ -56,7 +58,8 @@ def location_celcius_per_hour(location):
     #expects a tuple (lat, long)
     #returns a json format set of weather data
     w_station = location_to_weather_stn(location)
-    with open("/Users/jdevine/cara_rep/cara/cara/global_weather_set.json", "r") as json_file:
+    print(os.getcwd())
+    with open(Path(os.getcwd()+"/cara/global_weather_set.json"), "r") as json_file:
         weather_dict = json.load(json_file)
     Location_hourly_temperatures_celsius_per_hour = weather_dict[w_station[0]]
     if weather_debug:
