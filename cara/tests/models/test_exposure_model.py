@@ -75,7 +75,7 @@ def test_exposure_model_ndarray(population, cm, f_dep,
                                 expected_exposure, expected_probability):
     model = ExposureModel(cm, population, fraction_deposited = f_dep)
     np.testing.assert_almost_equal(
-        model.quanta_exposure(), expected_exposure
+        model.exposure(), expected_exposure
     )
     np.testing.assert_almost_equal(
         model.infection_probability(), expected_probability, decimal=10
@@ -94,7 +94,7 @@ def test_exposure_model_ndarray_and_float_mix(population):
 
     expected_exposure = np.array([14.4, 14.4])
     np.testing.assert_almost_equal(
-        model.quanta_exposure(), expected_exposure
+        model.exposure(), expected_exposure
     )
 
     assert isinstance(model.infection_probability(), np.ndarray)
@@ -109,10 +109,10 @@ def test_exposure_model_compare_scalar_vector(population):
     model_array = ExposureModel(cm_array, population)
     expected_exposure = 14.4
     np.testing.assert_almost_equal(
-        model_scalar.quanta_exposure(), expected_exposure
+        model_scalar.exposure(), expected_exposure
     )
     np.testing.assert_almost_equal(
-        model_array.quanta_exposure(), np.array([expected_exposure]*2)
+        model_array.exposure(), np.array([expected_exposure]*2)
     )
 
 
@@ -152,4 +152,4 @@ def test_exposure_model_integral_accuracy(exposed_time_interval,
         models.Activity.types['Standing'],
     )
     model = ExposureModel(conc_model, population, fraction_deposited=1.)
-    np.testing.assert_allclose(model.quanta_exposure(), expected_quanta)
+    np.testing.assert_allclose(model.exposure(), expected_quanta)

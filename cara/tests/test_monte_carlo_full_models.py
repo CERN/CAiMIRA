@@ -233,7 +233,7 @@ def skagit_chorale_mc():
 
 
 @pytest.mark.parametrize(
-    "mc_model, expected_pi, expected_new_cases, expected_dose, expected_qR",
+    "mc_model, expected_pi, expected_new_cases, expected_dose, expected_ER",
     [
         ["shared_office_mc", 10.7, 0.32, 0.954,   10.9],
         ["classroom_mc",     36.1, 6.85, 13.0,    474.4],
@@ -244,22 +244,22 @@ def skagit_chorale_mc():
     ]
 )
 def test_report_models(mc_model, expected_pi, expected_new_cases,
-                       expected_dose, expected_qR, request):
+                       expected_dose, expected_ER, request):
     mc_model = request.getfixturevalue(mc_model)
     exposure_model = mc_model.build_model(size=SAMPLE_SIZE)
     npt.assert_allclose(exposure_model.infection_probability().mean(),
                         expected_pi, rtol=TOLERANCE)
     npt.assert_allclose(exposure_model.expected_new_cases().mean(),
                         expected_new_cases, rtol=TOLERANCE)
-    npt.assert_allclose(exposure_model.quanta_exposure().mean(),
+    npt.assert_allclose(exposure_model.exposure().mean(),
                         expected_dose, rtol=TOLERANCE)
     npt.assert_allclose(
         exposure_model.concentration_model.infected.emission_rate_when_present().mean(),
-        expected_qR, rtol=TOLERANCE)
+        expected_ER, rtol=TOLERANCE)
 
 
 @pytest.mark.parametrize(
-    "mask_type, month, expected_pi, expected_dose, expected_qR",
+    "mask_type, month, expected_pi, expected_dose, expected_ER",
     [
         ["No mask", "Jul", 30.0, 6.764, 64.9],
         ["Type I",  "Jul", 10.2, 1.223, 11.7],
@@ -268,7 +268,7 @@ def test_report_models(mc_model, expected_pi, expected_new_cases,
     ],
 )
 def test_small_shared_office_Geneva(mask_type, month, expected_pi,
-                                    expected_dose, expected_qR):
+                                    expected_dose, expected_ER):
     concentration_mc = mc.ConcentrationModel(
         room=models.Room(volume=33, humidity=0.5),
         ventilation=models.MultipleVentilation(
@@ -309,8 +309,8 @@ def test_small_shared_office_Geneva(mask_type, month, expected_pi,
     exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
     npt.assert_allclose(exposure_model.infection_probability().mean(),
                         expected_pi, rtol=TOLERANCE)
-    npt.assert_allclose(exposure_model.quanta_exposure().mean(),
+    npt.assert_allclose(exposure_model.exposure().mean(),
                         expected_dose, rtol=TOLERANCE)
     npt.assert_allclose(
         exposure_model.concentration_model.infected.emission_rate_when_present().mean(),
-        expected_qR, rtol=TOLERANCE)
+        expected_ER, rtol=TOLERANCE)

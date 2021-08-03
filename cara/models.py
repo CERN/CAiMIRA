@@ -685,15 +685,14 @@ class InfectedPopulation(Population):
         ER = (self.virus.viral_load_in_sputum *
               self.activity.exhalation_rate *
               10 ** 6 *
-              aerosols /
-              self.virus.infectious_dose)
+              aerosols)
 
         # For superspreading event, where ejection_factor is infinite we fix the ER
         # based on Miller et al. (2020).
         if isinstance(aerosols, np.ndarray):
-            ER[np.isinf(aerosols)] = 970
+            ER[np.isinf(aerosols)] = 970 * self.virus.infectious_dose
         elif np.isinf(aerosols):
-            ER = 970
+            ER = 970 * self.virus.infectious_dose
 
         return ER
 
@@ -867,7 +866,7 @@ class ExposureModel:
     #: The fraction of viruses actually deposited in the respiratory tract
     fraction_deposited: _VectorisedFloat = 0.6
 
-    def quanta_exposure(self) -> _VectorisedFloat:
+    def exposure(self) -> _VectorisedFloat:
         """The number of virus quanta per meter^3."""
         exposure = 0.0
 
@@ -877,7 +876,7 @@ class ExposureModel:
         return exposure * self.repeats
 
     def infection_probability(self) -> _VectorisedFloat:
-        exposure = self.quanta_exposure()
+        exposure = self.exposure()
 
         inf_aero = (
             self.exposed.activity.inhalation_rate *
@@ -886,7 +885,7 @@ class ExposureModel:
         )
 
         # Probability of infection.
-        return (1 - np.exp(-inf_aero)) * 100
+        return (1 - np.exp(-(inf_aero/self.concentration_model.virus.infectious_dose))) * 100
 
     def expected_new_cases(self) -> _VectorisedFloat:
         prob = self.infection_probability()

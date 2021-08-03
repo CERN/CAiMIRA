@@ -14,7 +14,7 @@ import cara.models
 def test_infected_population_vectorisation(override_params):
     defaults = {
         'viral_load_in_sputum': 1e9,
-        'infectious_dose': 50,
+        'quantum_infectious_dose': 50,
         'exhalation_rate': 0.75,
     }
     defaults.update(override_params)
@@ -33,7 +33,7 @@ def test_infected_population_vectorisation(override_params):
             ),
             virus=cara.models.Virus(
                 viral_load_in_sputum=defaults['viral_load_in_sputum'],
-                infectious_dose=defaults['infectious_dose'],
+                infectious_dose=defaults['quantum_infectious_dose'],
             ),
             expiration=cara.models.Expiration((1., 0., 0.)),
     )

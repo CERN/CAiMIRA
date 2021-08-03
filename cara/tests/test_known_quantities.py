@@ -7,7 +7,7 @@ import cara.data as data
 
 
 def test_no_mask_superspeading_emission_rate(baseline_model):
-    expected_rate = 970.
+    expected_rate = 48500.
     npt.assert_allclose(
         [baseline_model.infected.emission_rate(t) for t in [0, 1, 4, 4.5, 5, 8, 9]],
         [0, expected_rate, expected_rate, 0, 0, expected_rate, 0],
@@ -44,7 +44,7 @@ def test_concentrations(baseline_model):
     concentrations = [baseline_model.concentration(t) for t in ts]
     npt.assert_allclose(
         concentrations,
-        [0.000000e+00, 0.41611256, 1.3205628e-14, 0.41611256, 4.1909001e-28],
+        [0.000000e+00, 20.805628, 6.602814e-13, 20.805628, 2.09545e-26],
         rtol=1e-6
     )
 
@@ -354,16 +354,16 @@ def build_exposure_model(concentration_model):
     )
 
 
-# expected quanta were computed with a trapezoidal integration, using
+# expected exposure were computed with a trapezoidal integration, using
 # a mesh of 100'000 pts per exposed presence interval.
 @pytest.mark.parametrize(
-    "month, expected_quanta",
+    "month, expected_exposure",
     [
-        ['Jan', 9.930854],
-        ['Jun', 37.962708],
+        ['Jan', 496.5427],
+        ['Jun', 1898.1354],
     ],
 )
-def test_quanta_hourly_dep(month,expected_quanta):
+def test_exposure_hourly_dep(month,expected_exposure):
     m = build_exposure_model(
         build_hourly_dependent_model(
             month,
@@ -371,20 +371,20 @@ def test_quanta_hourly_dep(month,expected_quanta):
             intervals_presence_infected=((8, 12), (13, 17))
         )
     )
-    quanta = m.quanta_exposure()
-    npt.assert_allclose(quanta, expected_quanta)
+    exposure = m.exposure()
+    npt.assert_allclose(exposure, expected_exposure)
 
-# expected quanta were computed with a trapezoidal integration, using
+# expected exposure were computed with a trapezoidal integration, using
 # a mesh of 100'000 pts per exposed presence interval and 25 pts per hour
 # for the temperature discretization.
 @pytest.mark.parametrize(
-    "month, expected_quanta",
+    "month, expected_exposure",
     [
-        ['Jan', 9.993842],
-        ['Jun', 40.151985],
+        ['Jan', 499.6921],
+        ['Jun', 2007.59925],
     ],
 )
-def test_quanta_hourly_dep_refined(month,expected_quanta):
+def test_exposure_hourly_dep_refined(month,expected_exposure):
     m = build_exposure_model(
         build_hourly_dependent_model(
             month,
@@ -393,5 +393,5 @@ def test_quanta_hourly_dep_refined(month,expected_quanta):
             temperatures=data.GenevaTemperatures,
         )
     )
-    quanta = m.quanta_exposure()
-    npt.assert_allclose(quanta, expected_quanta, rtol=0.02)
+    exposure = m.exposure()
+    npt.assert_allclose(exposure, expected_exposure, rtol=0.02)
