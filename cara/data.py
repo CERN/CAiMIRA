@@ -28,7 +28,7 @@ def location_to_weather_stn(location_loc):
     long=[]
     station_array=[]
     fixed_delimits = [0,12,13, 44,51,60,69,90,91]
-    station_file = Path('hadisd_station_fullinfo_v311_202001p.txt')
+    station_file = Path(os.getcwd()+'/cara/hadisd_station_fullinfo_v311_202001p.txt')
 
     if not station_file.exists():
         if weather_debug:
