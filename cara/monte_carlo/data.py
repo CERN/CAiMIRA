@@ -43,18 +43,18 @@ symptomatic_vl_frequencies = LogCustomKernel(
 virus_distributions = {
     'SARS_CoV_2': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
-                quantum_infectious_dose=100,
+                infectious_dose=100,
                 ),
     'SARS_CoV_2_B117': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
-                quantum_infectious_dose=60,
+                infectious_dose=60,
                 ),
     'SARS_CoV_2_P1': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
-                quantum_infectious_dose=100/2.25,
+                infectious_dose=100/2.25,
                 ),
     'SARS_CoV_2_B16172': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
-                quantum_infectious_dose=60/1.6,
+                infectious_dose=60/1.6,
                 ),
 }
