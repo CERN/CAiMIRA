@@ -175,7 +175,7 @@ def test_infectious_dose_vectorisation():
         mask=models.Mask.types['Type I'],
         activity=models.Activity.types['Standing'],
         virus = models.SARSCoV2(
-        viral_load_in_sputum=1e9,
+            viral_load_in_sputum=1e9,
             infectious_dose=np.array([50, 20, 30]),
         ),
         expiration=models.Expiration.types['Talking']
