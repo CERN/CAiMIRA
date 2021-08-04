@@ -167,3 +167,37 @@ def test_exposure_model_integral_accuracy(exposed_time_interval,
     )
     model = ExposureModel(conc_model, population, fraction_deposited=1.)
     np.testing.assert_allclose(model.exposure(), expected_exposure)
+
+@pytest.mark.parametrize(
+    "override_params", [
+        {'infectious_dose': np.array([50, 20, 30])},
+    ]
+)
+def test_infectious_dose_vectorisation(override_params):
+    defaults = {
+        'infectious_dose': 50
+    }
+    defaults.update(override_params)
+
+    infPopulation = models.InfectedPopulation(
+        number=1,
+        presence=halftime,
+        mask=models.Mask.types['Type I'],
+        activity=models.Activity.types['Standing'],
+        virus = models.SARSCoV2(
+        viral_load_in_sputum=1e9,
+            infectious_dose=defaults['infectious_dose'],
+        ),
+        expiration=models.Expiration.types['Talking']
+    )
+    cm = KnownConcentrations(dummyRoom, dummyVentilation, infPopulation, lambda t: 1.2)
+
+    presence_interval = models.SpecificInterval(((0, 1),))
+    population = models.Population(
+        10, presence_interval, models.Mask.types['Type I'],
+        models.Activity.types['Standing'],
+    )
+    model = ExposureModel(cm, population, fraction_deposited=1.0)
+    inf_probability = model.infection_probability()
+    assert isinstance(inf_probability, np.ndarray)
+    assert inf_probability.shape == (3, )
