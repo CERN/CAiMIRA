@@ -677,7 +677,7 @@ class InfectedPopulation(Population):
         Note that the rate is not currently time-dependent.
 
         """
-        # Emission Rate (infectious virus / h)
+        # Emission Rate (virions / h)
         # Note on units: exhalation rate is in m^3/h, aerosols in mL/cm^3
         # and viral load in virus/mL -> 1e6 conversion factor
         aerosols = self.expiration.aerosols(self.mask)

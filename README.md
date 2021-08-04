@@ -2,7 +2,7 @@
 
 CARA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.
 
-CARA models the concentration profile of potential infectious viruses in enclosed spaces with clear and intuitive graphs.
+CARA models the concentration profile of potential virions in enclosed spaces with clear and intuitive graphs.
 The user can set a number of parameters, including room volume, exposure time, activity type, mask-wearing and ventilation.
 The report generated indicates how to avoid exceeding critical concentrations and chains of airborne transmission in spaces such as individual offices, meeting rooms and labs.
 
