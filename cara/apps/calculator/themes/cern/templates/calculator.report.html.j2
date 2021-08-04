@@ -7,9 +7,9 @@
 {% endblock report_preamble_navtab %}
 
 {% block warning_animation %}
-  {% if (prob_inf < 5)%} {% set warning_color = 'bg-success' %} 
+  {% if ((prob_inf > 15) or (expected_new_cases >= 1)) %} {% set warning_color= 'bg-danger' %}
   {% elif (5 <= prob_inf <= 15) %} {% set warning_color = 'bg-warning' %} 
-  {% else %} {% set warning_color= 'bg-danger' %}
+  {% elif (prob_inf < 5) %} {% set warning_color = 'bg-success' %} 
   {% endif %}
   
   <div class="intro-banner-vdo-play-btn {{warning_color}} m-auto d-flex align-items-center justify-content-center">
@@ -22,7 +22,7 @@
 {% endblock warning_animation %}
 
 {% block report_summary %}
-  <div class="flex-row w-75">
+  <div class="flex-row w-75 align-self-center">
       {% if ((prob_inf > 15) or (expected_new_cases >= 1)) %}
         <div class="alert alert-danger" role="alert">
           <strong>Not Acceptable:</strong>
