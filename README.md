@@ -26,7 +26,7 @@ Each event modelled is unique, and the results generated therein are only as acc
 ## Authors
 CARA was developed by following members of CERN - European Council for Nuclear Research (visit https://home.cern/):
 
-Andre Henriques<sup>1</sup>, Marco Andreini<sup>1</sup>, Gabriella Azzopardi<sup>2</sup>, James Devine<sup>3</sup>, Philip Elson<sup>4</sup>, Nicolas Mounet<sup>2</sup>, Markus Kongstein Rognlien<sup>2,6</sup>, Nicola Tarocco<sup>5</sup>
+Andre Henriques<sup>1</sup>, Marco Andreini<sup>1</sup>, Luis Aleixo<sup>1</sup>, Gabriella Azzopardi<sup>2</sup>, James Devine<sup>3</sup>, Philip Elson<sup>4</sup>, Nicolas Mounet<sup>2</sup>, Markus Kongstein Rognlien<sup>2,6</sup>, Nicola Tarocco<sup>5</sup>
 
 <sup>1</sup>HSE Unit, Occupational Health & Safety Group, CERN<br>
 <sup>2</sup>Beams Department, Accelerators and Beam Physics Group, CERN<br>
