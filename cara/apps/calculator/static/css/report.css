@@ -89,26 +89,6 @@ p.notes {
 
 /* CSS for the animation */
 
-.green-1 {
-    background-color: green!important;
-    background-image: linear-gradient(90deg, #0f9403, #85fd55);
-}
-
-.yellow-2 {
-    background-color: yellow!important;
-    background-image: linear-gradient(90deg, #fdf255, #fffb00);
-}
-
-.orange-3 {
-    background-color: orange!important;
-    background-image: linear-gradient(90deg, #fd5581, #fd8b55);
-}
-
-.red-4 {
-    background-color: #ed184f!important;
-    background-image: linear-gradient(90deg, #fd5581, #fd8b55);
-}
-
 .intro-banner-vdo-play-btn {
     height: 60px;
     width: 60px;
