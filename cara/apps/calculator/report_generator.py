@@ -1,3 +1,10 @@
+from ... import dataclass_utils
+from .model_generator import FormData, _DEFAULT_MC_SAMPLE_SIZE
+from ... import monte_carlo as mc
+from cara import models
+import qrcode
+import numpy as np
+import matplotlib.pyplot as plt
 import concurrent.futures
 import base64
 import dataclasses
@@ -11,14 +18,6 @@ import loky
 import jinja2
 import matplotlib
 matplotlib.use('agg')
-import matplotlib.pyplot as plt
-import numpy as np
-import qrcode
-
-from cara import models
-from ... import monte_carlo as mc
-from .model_generator import FormData, _DEFAULT_MC_SAMPLE_SIZE
-from ... import dataclass_utils
 
 
 def model_start_end(model: models.ExposureModel):
@@ -38,7 +37,8 @@ def calculate_report_data(model: models.ExposureModel):
                       for time in times]
     highest_const = max(concentrations)
     prob = np.array(model.infection_probability()).mean()
-    er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
+    er = np.array(
+        model.concentration_model.infected.emission_rate_when_present()).mean()
     exposed_occupants = model.exposed.number
     expected_new_cases = np.array(model.expected_new_cases()).mean()
 
@@ -107,30 +107,52 @@ def img2base64(img_data) -> str:
 
 
 def plot(times, concentrations, model: models.ExposureModel):
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
-    datetimes = [datetime(1970, 1, 1) + timedelta(hours=time) for time in times]
-    ax.plot(datetimes, concentrations, lw=2, color='#1f77b4', label='Mean concentration')
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
 
-    ax.set_xlabel('Time of day')
-    ax.set_ylabel('Mean concentration ($q/m^3$)')
-    ax.set_title('Mean concentration of virions')
-    ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
+    points = 600
+    viral_loads = np.linspace(3, 12, points)
 
-    # Plot presence of exposed person
-    for i, (presence_start, presence_finish) in enumerate(model.exposed.presence.boundaries()):
-        plt.fill_between(
-            datetimes, concentrations, 0,
-            where=(np.array(times) > presence_start) & (np.array(times) < presence_finish),
-            color="#1f77b4", alpha=0.1,
-            label="Presence of exposed person(s)" if i == 0 else ""
+    vl_means = []
+    vl_medians = []
+    lower_percentiles = []
+    upper_percentiles = []
+
+    for vl in viral_loads:
+        exposure_model = models.ExposureModel(
+            concentration_model=models.ConcentrationModel(
+                room=models.Room(volume=45, humidity=0.5),
+                ventilation=models.SlidingWindow(
+                    active=models.PeriodicInterval(period=120, duration=120),
+                    inside_temp=models.PiecewiseConstant((0, 24), (293, )),
+                    outside_temp=models.PiecewiseConstant((0, 24), (283,)),
+                    window_height=1.6, opening_length=0.2,
+                ),
+                infected=models.InfectedPopulation(
+                    number=1,
+                    presence=models.SpecificInterval(((0, 4), (5, 9))),
+                    mask=False,
+                    mask=models.Mask.types['Type I'],
+                    activity=models.Activity.types['Seated'],
+                    virus=models.Virus(
+                        viral_load_in_sputum=vl,
+                        infectious_dose=50.,
+                    ),
+                    expiration=models.Expiration.types['Breathing']
+                )
+            ),
+            exposed=models.Population(
+                number=2,
+                presence=models.SpecificInterval(((0, 4), (5, 9))),
+                activity=models.Activity.types['Seated'],
+                mask=models.Mask.types['Type I']
+            ),
         )
 
-    # Place a legend outside of the axes itself.
-    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-    ax.set_ylim(0)
+        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present()
+        vl_means.append(np.mean(emission_rate))
+        vl_medians.append(np.median(emission_rate))
+        lower_percentiles.append(np.quantile(emission_rate, 0.01))
+        upper_percentiles.append(np.quantile(emission_rate, 0.99))
+
 
     return fig
 
@@ -174,14 +196,18 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
     scenarios = {}
 
     # Two special option cases - HEPA and/or FFP2 masks.
-    FFP2_being_worn = bool(form.mask_wearing_option == 'mask_on' and form.mask_type == 'FFP2')
+    FFP2_being_worn = bool(form.mask_wearing_option ==
+                           'mask_on' and form.mask_type == 'FFP2')
     if FFP2_being_worn and form.hepa_option:
-        FFP2andHEPAalternative = dataclass_utils.replace(form, mask_type='Type I')
+        FFP2andHEPAalternative = dataclass_utils.replace(
+            form, mask_type='Type I')
         scenarios['Base scenario with HEPA filter and Type I masks'] = FFP2andHEPAalternative.build_mc_model()
     if not FFP2_being_worn and form.hepa_option:
-        noHEPAalternative = dataclass_utils.replace(form, mask_type = 'FFP2')
-        noHEPAalternative = dataclass_utils.replace(noHEPAalternative, mask_wearing_option = 'mask_on')
-        noHEPAalternative = dataclass_utils.replace(noHEPAalternative, hepa_option=False)
+        noHEPAalternative = dataclass_utils.replace(form, mask_type='FFP2')
+        noHEPAalternative = dataclass_utils.replace(
+            noHEPAalternative, mask_wearing_option='mask_on')
+        noHEPAalternative = dataclass_utils.replace(
+            noHEPAalternative, hepa_option=False)
         scenarios['Base scenario without HEPA filter, with FFP2 masks'] = noHEPAalternative.build_mc_model()
 
     # The remaining scenarios are based on Type I masks (possibly not worn)
@@ -191,7 +217,8 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
         form = dataclass_utils.replace(form, hepa_option=False)
 
     with_mask = dataclass_utils.replace(form, mask_wearing_option='mask_on')
-    without_mask = dataclass_utils.replace(form, mask_wearing_option='mask_off')
+    without_mask = dataclass_utils.replace(
+        form, mask_wearing_option='mask_off')
 
     if form.ventilation_type == 'mechanical_ventilation':
         #scenarios['Mechanical ventilation with Type I masks'] = with_mask.build_mc_model()
@@ -202,8 +229,10 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
         scenarios['Windows open without masks'] = without_mask.build_mc_model()
 
     # No matter the ventilation scheme, we include scenarios which don't have any ventilation.
-    with_mask_no_vent = dataclass_utils.replace(with_mask, ventilation_type='no_ventilation')
-    without_mask_or_vent = dataclass_utils.replace(without_mask, ventilation_type='no_ventilation')
+    with_mask_no_vent = dataclass_utils.replace(
+        with_mask, ventilation_type='no_ventilation')
+    without_mask_or_vent = dataclass_utils.replace(
+        without_mask, ventilation_type='no_ventilation')
     scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_mc_model()
     scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_mc_model()
 
@@ -220,14 +249,16 @@ def comparison_plot(scenarios: typing.Dict[str, dict], sample_times: np.ndarray)
         'Base scenario with HEPA and FFP2 masks',
     ]
 
-    sample_dts = [datetime(1970, 1, 1) + timedelta(hours=time) for time in sample_times]
+    sample_dts = [datetime(1970, 1, 1) + timedelta(hours=time)
+                  for time in sample_times]
     for name, statistics in scenarios.items():
         concentrations = statistics['concentrations']
 
         if name in dash_styled_scenarios:
             ax.plot(sample_dts, concentrations, label=name, linestyle='--')
         else:
-            ax.plot(sample_dts, concentrations, label=name, linestyle='-', alpha=0.5)
+            ax.plot(sample_dts, concentrations,
+                    label=name, linestyle='-', alpha=0.5)
 
     # Place a legend outside of the axes itself.
     ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
@@ -288,7 +319,8 @@ class ReportGenerator:
             executor_factory: typing.Callable[[], concurrent.futures.Executor],
     ) -> str:
         model = form.build_model()
-        context = self.prepare_context(base_url, model, form, executor_factory=executor_factory)
+        context = self.prepare_context(
+            base_url, model, form, executor_factory=executor_factory)
         return self.render(context)
 
     def prepare_context(
@@ -315,14 +347,15 @@ class ReportGenerator:
         context['alternative_scenarios'] = comparison_report(
             alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
         )
-        context['qr_code'] = generate_qr_code(base_url, self.calculator_prefix, form)
+        context['qr_code'] = generate_qr_code(
+            base_url, self.calculator_prefix, form)
         context['calculator_prefix'] = self.calculator_prefix
         context['scale_warning'] = {
-            'level': 'Yellow - 2', 
+            'level': 'Yellow - 2',
             'incidence_rate': 'lower than 25 new cases per 100 000 inhabitants',
-            'onsite_access': 'of about 8000', 
-            'threshold' : ''
-        } 
+            'onsite_access': 'of about 8000',
+            'threshold': ''
+        }
         return context
 
     def _template_environment(self) -> jinja2.Environment:
