@@ -19,6 +19,8 @@ import jinja2
 import matplotlib
 matplotlib.use('agg')
 
+from cara.monte_carlo.data import activity_distributions, virus_distributions
+
 
 def model_start_end(model: models.ExposureModel):
     t_start = min(model.exposed.presence.boundaries()[0][0],
@@ -119,49 +121,53 @@ def plot(times, concentrations, model: models.ExposureModel):
     upper_percentiles = []
 
     for vl in viral_loads:
-        exposure_model = models.ExposureModel(
-            concentration_model=models.ConcentrationModel(
-                room=models.Room(volume=45, humidity=0.5),
-                ventilation=models.SlidingWindow(
-                    active=models.PeriodicInterval(period=120, duration=120),
-                    inside_temp=models.PiecewiseConstant((0, 24), (293, )),
-                    outside_temp=models.PiecewiseConstant((0, 24), (283,)),
-                    window_height=1.6, opening_length=0.2,
+        exposure_mc = mc.ExposureModel(
+            concentration_model=mc.ConcentrationModel(
+                room=models.Room(volume=100, humidity=0.5),
+                ventilation=models.AirChange(
+                    active=models.SpecificInterval(((0, 24),)),
+                    air_exch=0.25,
                 ),
-                infected=models.InfectedPopulation(
+                infected=mc.InfectedPopulation(
                     number=1,
-                    presence=models.SpecificInterval(((0, 4), (5, 9))),
-                    mask=models.Mask.types['No mask'],
-                    activity=models.Activity.types['Seated'],
-                    virus=models.Virus(
-                        viral_load_in_sputum=10**vl,
-                        infectious_dose=50.,
+                    virus=mc.Virus(
+                        viral_load_in_sputum = 10**vl,
+                        infectious_dose = 50.,
                     ),
-                    expiration=models.Expiration.types['Breathing']
-                )
+                    presence=mc.SpecificInterval(((0, 2),)),
+                    mask=models.Mask.types["No mask"],
+                    activity=activity_distributions['Seated'],
+                    expiration=models.MultipleExpiration(
+                        expirations=(models.Expiration.types['Talking'],
+                                     models.Expiration.types['Breathing']),
+                        weights=(0.3, 0.7)),
+                ),
             ),
-            exposed=models.Population(
-                number=2,
-                presence=models.SpecificInterval(((0, 4), (5, 9))),
+            exposed=mc.Population(
+                number=14,
+                presence=mc.SpecificInterval(((0, 2),)),
                 activity=models.Activity.types['Seated'],
-                mask=models.Mask.types['No mask']
+                mask=models.Mask.types["No mask"],
             ),
-        ) 
+        )
+        exposure_model = exposure_mc.build_model(size=_DEFAULT_MC_SAMPLE_SIZE)
+        
         emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present()
         er_means.append(np.mean(emission_rate))
         er_medians.append(np.median(emission_rate))
-        lower_percentiles.append(np.quantile(emission_rate, 0.25))
-        upper_percentiles.append(np.quantile(emission_rate, 0.75))
+        lower_percentiles.append(np.quantile(emission_rate, 0.01))
+        upper_percentiles.append(np.quantile(emission_rate, 0.99))
 
+    
     ax.plot(viral_loads, er_means)
-    ax.fill_between(viral_loads, lower_percentiles, upper_percentiles, alpha=0.2)
+    ax.fill_between(viral_loads, lower_percentiles,
+                    upper_percentiles, alpha=0.2)
     ax.set_yscale('log')
     plt.title('Emission rate vs Viral Load')
     plt.ylabel('ER (Virions/h)', fontsize=14)
-    plt.xticks(ticks=[i for i in range(2, 13)], labels=['$10^{' + str(i) + '}$' for i in range(2, 13)])
+    plt.xticks(ticks=[i for i in range(2, 13)], labels=[
+               '$10^{' + str(i) + '}$' for i in range(2, 13)])
     plt.xlabel('Viral load (RNA copies mL$^{-1}$)', fontsize=14)
-
-
 
     return fig
 
