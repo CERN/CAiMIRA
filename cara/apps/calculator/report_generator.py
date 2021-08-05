@@ -130,7 +130,7 @@ def plot(times, concentrations, model: models.ExposureModel):
                 ),
                 infected=mc.InfectedPopulation(
                     number=1,
-                    virus=mc.Virus(
+                    virus=models.Virus(
                         viral_load_in_sputum = 10**vl,
                         infectious_dose = 50.,
                     ),
@@ -151,6 +151,7 @@ def plot(times, concentrations, model: models.ExposureModel):
             ),
         )
         exposure_model = exposure_mc.build_model(size=_DEFAULT_MC_SAMPLE_SIZE)
+        print(exposure_model)
         
         emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present()
         er_means.append(np.mean(emission_rate))
