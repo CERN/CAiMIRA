@@ -1,7 +1,7 @@
 from ... import dataclass_utils
 from .model_generator import FormData, _DEFAULT_MC_SAMPLE_SIZE
 from ... import monte_carlo as mc
-from cara import models
+from cara import models, monte_carlo
 import qrcode
 import numpy as np
 import matplotlib.pyplot as plt
@@ -107,12 +107,14 @@ def img2base64(img_data) -> str:
 
 
 def plot(times, concentrations, model: models.ExposureModel):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
 
     points = 600
-    viral_loads = np.linspace(3, 12, points)
+    viral_loads = np.linspace(2, 12, points)
 
-    vl_means = []
-    vl_medians = []
+    er_means = []
+    er_medians = []
     lower_percentiles = []
     upper_percentiles = []
 
@@ -129,11 +131,10 @@ def plot(times, concentrations, model: models.ExposureModel):
                 infected=models.InfectedPopulation(
                     number=1,
                     presence=models.SpecificInterval(((0, 4), (5, 9))),
-                    mask=False,
-                    mask=models.Mask.types['Type I'],
+                    mask=models.Mask.types['No mask'],
                     activity=models.Activity.types['Seated'],
                     virus=models.Virus(
-                        viral_load_in_sputum=vl,
+                        viral_load_in_sputum=10**vl,
                         infectious_dose=50.,
                     ),
                     expiration=models.Expiration.types['Breathing']
@@ -143,15 +144,23 @@ def plot(times, concentrations, model: models.ExposureModel):
                 number=2,
                 presence=models.SpecificInterval(((0, 4), (5, 9))),
                 activity=models.Activity.types['Seated'],
-                mask=models.Mask.types['Type I']
+                mask=models.Mask.types['No mask']
             ),
-        )
-
+        ) 
         emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present()
-        vl_means.append(np.mean(emission_rate))
-        vl_medians.append(np.median(emission_rate))
-        lower_percentiles.append(np.quantile(emission_rate, 0.01))
-        upper_percentiles.append(np.quantile(emission_rate, 0.99))
+        er_means.append(np.mean(emission_rate))
+        er_medians.append(np.median(emission_rate))
+        lower_percentiles.append(np.quantile(emission_rate, 0.25))
+        upper_percentiles.append(np.quantile(emission_rate, 0.75))
+
+    ax.plot(viral_loads, er_means)
+    ax.fill_between(viral_loads, lower_percentiles, upper_percentiles, alpha=0.2)
+    ax.set_yscale('log')
+    plt.title('Emission rate vs Viral Load')
+    plt.ylabel('ER (Virions/h)', fontsize=14)
+    plt.xticks(ticks=[i for i in range(2, 13)], labels=['$10^{' + str(i) + '}$' for i in range(2, 13)])
+    plt.xlabel('Viral load (RNA copies mL$^{-1}$)', fontsize=14)
+
 
 
     return fig
