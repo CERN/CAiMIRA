@@ -65,11 +65,23 @@ with open('data.csv', 'w', newline='') as csvfile:
     for i, vl in enumerate(viral_loads):
         thewriter.writerow({'viral load' : 10**vl, 'emission rate' : er_means[i]})
 
-
 ax.plot(viral_loads, er_means)
 ax.fill_between(viral_loads, lower_percentiles,
                 upper_percentiles, alpha=0.2)
 ax.set_yscale('log')
+
+coleman_etal_vl = [8.914378029, 9.140549273, 7.91276252, 8.688206785, 9.366720517,9.172859451, 8.946688207]
+coleman_etal_er = [127, 455.2, 281.8, 884.2, 448.4, 1100.6, 621]
+plt.scatter(coleman_etal_vl, coleman_etal_er)
+
+milton_vl = [5.62324929]
+milton_er = [220]
+plt.scatter(milton_vl, milton_er)
+
+yan_vl = [9.347856705]
+yan_er = [45324.55964]
+plt.scatter(yan_vl, yan_er)
+
 plt.title('Emission rate vs Viral Load')
 plt.ylabel('ER (Virions/h)', fontsize=14)
 plt.xticks(ticks=[i for i in range(2, 13)], labels=[
