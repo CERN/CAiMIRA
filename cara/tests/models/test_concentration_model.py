@@ -70,6 +70,7 @@ def simple_conc_model():
 
 @pytest.mark.parametrize(
     "time, expected_last_state_change", [
+        [-15., 0.],  # Out of range goes to the last state.
         [0., 0],
         [1., 0],
         [1.05, 1.],
@@ -80,6 +81,7 @@ def simple_conc_model():
         [2., 1.999],
         [2.1, 2],
         [3., 2],
+        [15., 3.],  # Out of range goes to the last state.
     ]
 )
 def test_last_state_change_time(
@@ -88,10 +90,6 @@ def test_last_state_change_time(
         expected_last_state_change,
 ):
     assert simple_conc_model.last_state_change(float(time)) == expected_last_state_change
-
-
-def test_last_state_change_time_out_of_range(simple_conc_model: models.ConcentrationModel):
-    assert simple_conc_model.last_state_change(3.1) == 3.0
 
 
 @pytest.mark.parametrize(

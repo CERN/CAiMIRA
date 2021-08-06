@@ -762,6 +762,7 @@ class ConcentrationModel:
 
         return (self.infected.emission_rate(time)) / (IVRR * V)
 
+    @method_cache
     def state_change_times(self) -> typing.List[float]:
         """
         All time dependent entities on this model must provide information about
@@ -777,11 +778,18 @@ class ConcentrationModel:
         """
         Find the most recent/previous state change.
 
+        Find the nearest time less than the given one. If there is a state
+        change exactly at ``time`` the previous state change is returned
+        (except at ``time == 0``).
+
         """
-        for change_time in self.state_change_times()[::-1]:
-            if change_time < time:
-                return change_time
-        return 0.
+        times = self.state_change_times()
+        t_index = np.searchsorted(times, time)
+        # Search sorted gives us the index to insert the given time. Instead we
+        # want to get the index of the most recent time, so reduce the index by
+        # one unless we are already at 0.
+        t_index = max([t_index - 1, 0])
+        return times[t_index]
 
     def _next_state_change(self, time: float) -> float:
         """
