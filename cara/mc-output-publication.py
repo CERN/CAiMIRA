@@ -8,7 +8,8 @@ from cara.montecarlo import *
 from cara.model_scenarios_publication import *
 
 # qR table:
-#TODO table with qR values
+generate_qr_csv('qR_unmasked')
+generate_qr_csv('qr_masked', masked=True)
 
 # qR values for Breathing, light activity:
 print('\n<<<<<<<<<<< qR for Breathing, light activity >>>>>>>>>>>')
@@ -39,3 +40,5 @@ present_qR_quantiles(qR_models_shout_light[0].concentration_model, quantile=0.8)
 generate_cdf_curves_vs_qr(masked=False,qid=100)
 generate_cdf_curves_vs_qr(masked=False,qid=500)
 generate_cdf_curves_vs_qr(masked=False,qid=1000)
+
+
