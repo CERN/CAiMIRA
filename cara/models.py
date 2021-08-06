@@ -775,7 +775,7 @@ class ConcentrationModel:
 
     def last_state_change(self, time: float) -> float:
         """
-        Find the most recent state change.
+        Find the most recent/previous state change.
 
         """
         for change_time in self.state_change_times()[::-1]:
