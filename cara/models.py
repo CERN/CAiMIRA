@@ -676,6 +676,7 @@ class InfectedPopulation(Population):
     #: The type of expiration that is being emitted whilst doing the activity.
     expiration: _ExpirationBase
 
+    @method_cache
     def emission_rate_when_present(self) -> _VectorisedFloat:
         """
         The emission rate if the infected population is present.
@@ -751,6 +752,7 @@ class ConcentrationModel:
             + self.ventilation.air_exchange(self.room, time)
         )
 
+    @method_cache
     def _concentration_limit(self, time: float) -> _VectorisedFloat:
         """
         Provides a constant that represents the theoretical asymptotic 
