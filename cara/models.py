@@ -805,7 +805,10 @@ class ConcentrationModel:
         return (self.last_state_change(stop) <= start)
 
     @method_cache
-    def _concentration_at_state_change(self, time: float) -> _VectorisedFloat:
+    def _concentration_cached(self, time: float) -> _VectorisedFloat:
+        # A cached version of the concentration method. Use this method if you
+        # expect that there may be multiple concentration calculations for the
+        # same time (e.g. at state change times).
         return self.concentration(time)
 
     def concentration(self, time: float) -> _VectorisedFloat:
@@ -825,12 +828,13 @@ class ConcentrationModel:
         concentration_limit = self._concentration_limit(next_state_change_time)
 
         t_last_state_change = self.last_state_change(time)
-        concentration_at_last_state_change = self._concentration_at_state_change(t_last_state_change)
+        concentration_at_last_state_change = self._concentration_cached(t_last_state_change)
 
         delta_time = time - t_last_state_change
         fac = np.exp(-IVRR * delta_time)
         return concentration_limit * (1 - fac) + concentration_at_last_state_change * fac
 
+    @method_cache
     def integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
         """
         Get the integrated concentration dose between the times start and stop.
@@ -845,7 +849,7 @@ class ConcentrationModel:
             start = max([interval_start, req_start])
             stop = min([interval_stop, req_stop])
 
-            conc_start = self._concentration_at_state_change(start)
+            conc_start = self._concentration_cached(start)
 
             next_conc_state = self._next_state_change(stop)
             conc_limit = self._concentration_limit(next_conc_state)
