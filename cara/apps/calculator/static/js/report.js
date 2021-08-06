@@ -16,10 +16,10 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
 
         // H:M time format for x axis.
         xRange = d3.scaleTime().range([margins.left, width - margins.right]).domain([data[0].hour, data[data.length - 1].hour]),
+        xTimeRange = d3.scaleLinear().range([margins.left, width - margins.right]).domain([data[0].time, data[data.length - 1].time]),
         bisecHour = d3.bisector((d) => { return d.hour; }).left,
 
-        yRange = d3.scaleLinear().range([height - margins.bottom, margins.top]).domain([data[0].concentration, data[data.length - 1].concentration]),
-        xTimeRange = d3.scaleLinear().range([margins.left, width - margins.right]).domain([data[0].time, data[data.length - 1].time]),
+        yRange = d3.scaleLinear().range([height - margins.bottom, margins.top]).domain([0., Math.max(...concentrations)]),
 
         xAxis = d3.axisBottom(xRange).tickFormat(d => time_format(d)),
         yAxis = d3.axisLeft(yRange);
@@ -78,12 +78,6 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
 
     // Area representing the presence of exposed person(s).
     exposed_presence_intervals.forEach(b => {
-        vis.append('svg:path')
-            .attr('d', lineFunc(data.filter(d => {
-                return d.time >= b[0] && d.time <= b[1]
-            })))
-            .attr('fill', 'none');
-
         var curveFunc = d3.area()
             .x(d => xTimeRange(d.time))
             .y0(height - margins.bottom)
