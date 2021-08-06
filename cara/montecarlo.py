@@ -39,6 +39,17 @@ symptomatic_vl_frequencies = ((2.46032, 2.67431, 2.85434, 3.06155, 3.25856, 3.47
                                0.043944602, 0.048142864, 0.041588741, 0.048762031, 0.027921732, 0.033871788,
                                0.022122693, 0.016927718, 0.008833228, 0.00478598, 0.002807662))
 
+deterministic_vl_frequencies = ((6.6, 6.6, 6.6, 6.6, 6.6, 6.6, 6.6, 6.6, 6.6, 6.6,
+                               6.6, 6.6, 6.6, 6.6, 6.6, 6.6, 6.6, 6.6, 6.6, 6.6,
+                               6.6, 6.6, 6.6, 6.6, 6.6, 6.6, 6.6, 6.6, 6.6, 6.6,
+                               6.6, 6.6, 6.6, 6.6, 6.6, 6.6, 6.6, 6.6),
+                              (0.001206885, 0.007851618, 0.008078144, 0.01502491, 0.013258014, 0.018528495, 0.020053765,
+                               0.021896167, 0.022047184, 0.018604005, 0.01547796, 0.018075445, 0.021503523, 0.022349217,
+                               0.025097721, 0.032875078, 0.030594727, 0.032573045, 0.034717482, 0.034792991,
+                               0.033267721, 0.042887485, 0.036846816, 0.03876473, 0.045016819, 0.040063473, 0.04883754,
+                               0.043944602, 0.048142864, 0.041588741, 0.048762031, 0.027921732, 0.033871788,
+                               0.022122693, 0.016927718, 0.008833228, 0.00478598, 0.002807662))
+
 # NOT USED
 # The (k, lambda) parameters for the weibull-distributions corresponding to each quantity
 weibull_parameters = [((0.5951563631241763, 0.027071715346754264),  # emission_concentration
@@ -91,6 +102,7 @@ def mask_leak_out(d: float) -> float:
 
 
 log_viral_load_frequencies = scoeh_vl_frequencies if USE_SCOEH else symptomatic_vl_frequencies
+#log_viral_load_frequencies = deterministic_vl_frequencies
 
 
 def lognormal(csi: float, lamb: float, samples: int) -> np.ndarray:
@@ -463,14 +475,14 @@ def logscale_hist(x: typing.Iterable, bins: int) -> None:
     plt.hist(x, bins=logscale_bins)
     plt.xscale('log')
 
-
+#### ATTENTION - MODIFICATION (multiplied by 100 to have result in virions)##
 def print_qr_info(log_qr: np.ndarray) -> None:
     """
     Prints statistical parameters of a given (logarithmic) distribution of qR-values
     :param log_qr: A numpy-array of the logarithms of qR-values
     :return: Nothing, parameters are printed
     """
-    qr_values = 10 ** log_qr
+    qr_values = 10 ** log_qr * 100
     print(f"MEAN of log_10(qR) = {np.mean(log_qr)}\n"
           f"SD of log_10(qR) = {np.std(log_qr)}\n"
           f"MEAN of qR = {np.mean(qr_values)}\n"
@@ -505,6 +517,7 @@ def present_qR_quantiles(model: MCConcentrationModel, quantile: float = 0.5) -> 
     qr_values = 10 ** log_qr
     print(f"qR_{quantile} = {np.quantile(qr_values, quantile)}")
 
+#### ATTENTION - MODIFICATION (multiplied by 100 to have result in virions)##
 def present_model(model: MCConcentrationModel, bins: int = 200,
                   title: str = 'Summary of $qR$ model parameters') -> None:
     """
@@ -531,7 +544,7 @@ def present_model(model: MCConcentrationModel, bins: int = 200,
 
     viral_loads, breathing_rates, qRs = (model.infected._generate_viral_loads(),
                                          model.infected._generate_breathing_rates(),
-                                         np.log10(model.infected.emission_rate_when_present()))
+                                         np.log10(model.infected.emission_rate_when_present()*100))
 
     for data, (x, y) in zip((viral_loads, breathing_rates, qRs), ((0, 0), (1, 0), (1, 1))):
         axs[x, y].hist(data, bins=bins)
@@ -569,8 +582,8 @@ def present_model(model: MCConcentrationModel, bins: int = 200,
     axs[1, 0].set_xlabel('BR (m$^3$ h$^{-1}$)', fontsize=12)
 
     top = axs[1, 1].get_ylim()[1]
-    axs[1, 1].set_title('Quantum generation rate', fontsize=14)
-    axs[1, 1].set_xlabel('qR (log$_{10}$(q h$^{-1}$))', fontsize=12)
+    axs[1, 1].set_title('Generation rate', fontsize=14)
+    axs[1, 1].set_xlabel('qR (log$_{10}$(virion h$^{-1}$))', fontsize=12)
     mean, std = np.mean(qRs), np.std(qRs)
     axs[1, 1].annotate('', xy=(mean + std, top * 0.88), xytext=(np.max(qRs), top * 0.88),
                        arrowprops={'arrowstyle': '<|-|>', 'ls': 'dashed'})
@@ -650,14 +663,14 @@ def plot_pi_vs_viral_load(baselines: typing.Union[MCExposureModel, typing.List[M
 
         left, right = viral_loads[left_index], viral_loads[right_index]
 
-        plt.vlines(x=(left, right), ymin=0, ymax=1,
-                   colors=('grey', 'grey'), linestyles='dotted')
-        plt.text(left - 1.1, 0.80, '$vl_{0.05}$', fontsize=14,color='black')
-        plt.text(right + 0.1, 0.80, '$vl_{0.95}$', fontsize=14,color='black')
-        # add 3 shaded areas
-        plt.axvspan(3, left, alpha=0.1, color='limegreen')
-        plt.axvspan(left, right, alpha=0.1, color='orange')
-        plt.axvspan(right, 12, alpha=0.1, color='tomato')
+        #plt.vlines(x=(left, right), ymin=0, ymax=1,
+        #           colors=('grey', 'grey'), linestyles='dotted')
+        #plt.text(left - 1.1, 0.80, '$vl_{0.05}$', fontsize=14,color='black')
+        #plt.text(right + 0.1, 0.80, '$vl_{0.95}$', fontsize=14,color='black')
+        ## add 3 shaded areas
+        #plt.axvspan(3, left, alpha=0.1, color='limegreen')
+        #plt.axvspan(left, right, alpha=0.1, color='orange')
+        #plt.axvspan(right, 12, alpha=0.1, color='tomato')
 
     if labels is not None:
         plt.legend(labels)
@@ -772,17 +785,17 @@ def composite_plot_pi_vs_viral_load(baselines: typing.List[MCExposureModel], lab
     crits = []
     for line in lines:
         for i, point in enumerate(line):
-            if point >= 0.95:
+            if point >= 0.05:
                 crits.append(viral_loads[i])
                 break
 
     for i, (crit, color) in enumerate(zip(crits, colors)):
-        axs[0, 0].text(2.5, 0.45 - i * 0.1, f'x $vl_{"{0.95}"}=' + '10^{' + str(np.round(crits[i], 1)) + '}$', fontsize=10, color=color)
-        axs[0, 0].plot(crits[i], 0.95, 'x', color=color)
+        axs[0, 0].text(2.5, 0.40 - i * 0.1, f'x $vl_{"{0.05}"}=' + '10^{' + str(np.round(crits[i], 1)) + '}$', fontsize=10, color=color)
+        axs[0, 0].plot(crits[i], 0.05, 'x', color=color)
 
     if show_lines:
         axs[0, 0].hlines([0.5], colors=['lightgrey'], linestyles=['dashed'], xmin=2, xmax=12)
-        axs[0, 0].text(9.7, 0.52, "$P(I) = 0.5$", color='grey')
+        axs[0, 0].text(9.7, 0.52, "$P(I|vl) = 0.5$", color='grey')
         middle_positions = []
         for line in lines:
             for i, point in enumerate(line):
@@ -1040,7 +1053,7 @@ def compare_infection_probabilities_vs_viral_loads(baseline1: MCExposureModel, b
 
     plt.show()
 
-
+#### ATTENTION - MODIFICATION (multiplied by 100 to have result in virions)##
 def plot_concentration_curve(model: MCExposureModel):
     color = "#1f77b4"
 
@@ -1048,7 +1061,7 @@ def plot_concentration_curve(model: MCExposureModel):
     start, stop = min(transitions), max(transitions)
     times = np.arange(start, stop, TIME_STEP)
 
-    concentrations = [model.concentration_model.concentration(t) for t in tqdm(times)]
+    concentrations = [model.concentration_model.concentration(t)*100 for t in tqdm(times)]
 
     means = [np.mean(c) for c in concentrations]
     upper = [np.quantile(c, 0.95) for c in concentrations]
@@ -1095,7 +1108,7 @@ def plot_concentration_curve(model: MCExposureModel):
         return y
 
     plt.xlabel('Time (h)', fontsize=14)
-    plt.ylabel('Concentration (q m$^{-3}$)', fontsize=14)
+    plt.ylabel('Concentration (virion m$^{-3}$)', fontsize=14)
     #plt.title('Concentration of infectious quantum', fontsize=14)
     plt.plot([start, stop], [upper_threshold, upper_threshold], linestyle='dotted', color='grey')
     plt.plot([start, stop], [lower_threshold, lower_threshold], linestyle='dotted', color='grey')
@@ -1168,13 +1181,72 @@ def compare_concentration_curves(exp_models: typing.List[MCExposureModel], label
         #ax1.legend(loc='upper right')
 
     plt.tight_layout()
-    plt.hlines([60], colors=['lightgrey'], linestyles=['dashed'], xmin=start, xmax=stop)
-    plt.text(7, 65, "$qID = 60$", color='grey')
+    plt.hlines([exp_models[0].concentration_model.virus.qID], colors=['lightgrey'], linestyles=['dashed'], xmin=start, xmax=stop)
+    plt.text(7.5, exp_models[0].concentration_model.virus.qID*1.01, "Infection Dose", color='grey', fontstyle='italic')
     plt.show()
 
+# same graph but with C(t) in virus particles(RNA copies)/m3 and Dose in virus particles
+def compare_concentration_curves_virus_IGH_paper(exp_models: typing.List[MCExposureModel], labels: typing.List[str],
+                                 title: str = 'Concentration profile',
+                                 colors: typing.Optional[typing.List[str]] = None, show_qd: bool = True) -> None:
+    assert len(exp_models) == len(labels), "Different numbers of exposure models and labels"
+    assert all(model.concentration_model.virus.qID == exp_models[0].concentration_model.virus.qID
+               for model in exp_models[1:]), \
+        "Comparisons between viruses with different qID is not possible with this function"
+    if colors is None:
+        colors = ['blue', 'orange', 'green', 'red']
 
+    start = min(min(model.concentration_model.infected.presence.transition_times()) for model in exp_models)
+    stop = max(max(model.concentration_model.infected.presence.transition_times()) for model in exp_models)
+
+    times = np.arange(start, stop, TIME_STEP)
+
+    concentrations = [[np.mean(model.concentration_model.concentration(t))*exp_models[0].concentration_model.virus.qID for t in times] for model in exp_models]
+    fig, ax = plt.subplots()
+    for c, label, color in zip(concentrations, labels, colors):
+        ax.plot(times, c, label=label, color=color)
+
+    ax.legend(loc='upper left')
+    ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.2)
+    ax.spines["right"].set_visible(False)
+
+    factors = [0.6 * model.exposed.activity.inhalation_rate * (1 - model.exposed.mask.η_inhale) for model in exp_models]
+    present_indexes = np.array([exp_models[0].exposed.person_present(t) for t in times])
+    modified_concentrations = [np.array(c) for c in concentrations]
+    for mc in modified_concentrations:
+        mc[~present_indexes] = 0
+
+    qds = [[np.trapz(c[:i + 1], times[:i + 1]) * factor for i in range(len(times))]
+           for c, factor in zip(modified_concentrations, factors)]
+
+    plt.suptitle(title, size=16, y=0.95)
+    plt.xlabel("Exposure time ($h$)", fontsize=14)
+    plt.ylabel("Mean viral concentration\n(virion m$^{-3}$)", fontsize=14)
+    if show_qd:
+
+        ax1 = ax.twinx()
+        for qd, label, color in zip(qds, labels, colors):
+            ax1.plot(times, qd, label='qD - ' + label, color=color, linestyle='dotted')
+        ax1.spines["right"].set_linestyle("--")
+        ax1.spines["right"].set_linestyle((0,(1,5)))
+        ax1.set_ylabel('Mean cumulative dose\n(virion)', fontsize=14)
+        ax1.set_ylim(ax1.get_ylim()[0], ax1.get_ylim()[1] * 1.2)
+
+        #ax2 = ax.twinx()
+        #ax2.spines["right"].set_position(("axes", 1.15))
+        #ax2.spines["right"].set_linestyle((0,(1,5)))
+        #ax2.set_ylabel('Dose (virus particles)', fontsize=14)
+        #ax2.set_ylim(tuple(y * exp_models[0].concentration_model.virus.qID for y in ax1.get_ylim()))
+        ##ax1.legend(loc='upper right')
+
+    #plt.tight_layout()
+    #plt.hlines([exp_models[0].concentration_model.virus.qID], colors=['lightgrey'], linestyles=['dashed'], xmin=start, xmax=stop)
+    #plt.text(7.5, exp_models[0].concentration_model.virus.qID*1.1, "$qID = 60$", color='grey', fontstyle='italic')
+    plt.show()
+
+#### ATTENTION - MODIFICATION (multiplied by 100 to have result in virions)##
 def print_qd_info(model: MCExposureModel) -> None:
-    qds = model.exposed.activity.inhalation_rate * (1 - model.exposed.mask.η_inhale) * model.quanta_exposure() * 0.6
+    qds = model.exposed.activity.inhalation_rate * (1 - model.exposed.mask.η_inhale) * model.quanta_exposure() * 0.6 * 100
     print(f"----- qD distribution -----\n"
           f"Mean:\t{np.mean(qds)}\n"
           f"Median:\t{np.median(qds)}\n\n"
@@ -1182,6 +1254,15 @@ def print_qd_info(model: MCExposureModel) -> None:
           f"1st:\t{np.percentile(qds, 1)}\n"
           f"5th:\t{np.percentile(qds, 5)}\n"
           f"10th:\t{np.percentile(qds, 10)}\n"
+          f"15th:\t{np.percentile(qds, 15)}\n"
+          f"20th:\t{np.percentile(qds, 20)}\n"
+          f"25th:\t{np.percentile(qds, 25)}\n"
+          f"30th:\t{np.percentile(qds, 30)}\n"
+          f"40th:\t{np.percentile(qds, 40)}\n"
+          f"50th:\t{np.percentile(qds, 50)}\n"
+          f"60th:\t{np.percentile(qds, 60)}\n"
+          f"70th:\t{np.percentile(qds, 70)}\n"
+          f"80th:\t{np.percentile(qds, 80)}\n"
           f"90th:\t{np.percentile(qds, 90)}\n"
           f"95th:\t{np.percentile(qds, 95)}\n"
           f"99th:\t{np.percentile(qds, 99)}\n")

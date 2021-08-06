@@ -1,6 +1,8 @@
 from cara.montecarlo import *
 from cara.model_scenarios import *
 
+#compare_concentration_curves([classroom_model_with_hepa[0],classroom_model_full_open_multi[0]],['xxx', 'yyy'])
+
 #plot_concentration_curve(classroom_model[1])
 #compare_concentration_curves([classroom_model, classroom_model_with_hepa], ['Just window', 'Window and HEPA'])
 
@@ -21,7 +23,7 @@ from cara.model_scenarios import *
 #                         normalize_y_axis=True)
 
 #compare_viruses_qr(violins=True)
-
+present_qR_values(classroom_model[1].concentration_model)
 #print_qd_info(waiting_room_model_full_winter[1])
 
 #print(np.mean(shared_office_model[1].infection_probability()))
@@ -29,7 +31,7 @@ from cara.model_scenarios import *
 #                                 labels=['No mask &\nwindows closed', 'Baseline:Windows\nopen (10min/2h)', 'Windows open\n(10min/2h) +\nHEPA filter'],
 #                                 colors=['tomato', '#1f77b4', 'limegreen'],
 #                                 title='',
-#                                 vl_points=200)
+#  plot_pi_vs_viral_load                               vl_points=200)
 #composite_plot_pi_vs_viral_load([classroom_model_no_vent[1], classroom_model[1], classroom_model_with_hepa[1], classroom_model_full_open_multi[1], classroom_model_full_open_multi_masks[1]],
 #                                 labels=['Windows closed', 'Baseline:Windows\nopen (10min/2h)', 'Windows open\n(10min/2h) + HEPA', 'Multiple windows open', 'Multiple windows open\n+masks'],
 #                                 colors=['tomato','#1f77b4', 'dodgerblue', 'seagreen', 'limegreen'],
@@ -53,6 +55,12 @@ from cara.model_scenarios import *
 #                             colors=['tomato','#1f77b4', 'seagreen', 'limegreen'],
 #                             title=''
 #                             )
+
+#compare_concentration_curves_virus_IGH_paper([classroom_model_no_vent[1], classroom_model[1], classroom_model_with_hepa[1], classroom_model_full_open_multi[1]],
+#                             labels=['Windows closed', 'Baseline: Windows open (10min/2h)', 'Windows open (10min/2h) + HEPA', 'Multiple windows open'],
+#                             colors=['tomato','#1f77b4', 'seagreen', 'limegreen'],
+#                             title=''
+#                             )
 #
 #compare_concentration_curves([waiting_room_model[1], waiting_room_model_full_summer[1],
 #                              waiting_room_model_full_winter[1], waiting_room_model_periodic_winter[1]],
@@ -61,8 +69,15 @@ from cara.model_scenarios import *
 #                             title=''
 #                             )
 
-#plot_pi_vs_viral_load([shared_office_model[1]], labels=['Baseline'],title='')
+#compare_concentration_curves_virus_IGH_paper([waiting_room_model[1], waiting_room_model_full_summer[1],
+#                              waiting_room_model_full_winter[1], waiting_room_model_periodic_winter[1]],
+#                             labels=['Baseline: Windows closed', 'Windows open (summer)', 'Windows open (winter)', 'Windows open 5min/20min (winter)'],
+#                             colors=['#1f77b4', 'darkorange', 'deepskyblue', 'lightskyblue'],
+#                             title=''
+#                             )
 
+#plot_pi_vs_viral_load([classroom_model_no_vent[1]], labels=['Windows closed'],title='')
+#plot_pi_vs_viral_load([classroom_model_no_vent[1],classroom_model_full_open_multi_masks[1]], labels=['Windows closed','Multiple windows open + Masks'],title='')
 
 #generate_cdf_curves_vs_qr(masked=False,qid=1000)
 
@@ -92,16 +107,17 @@ from cara.model_scenarios import *
 #     plt.yticks([], [])
 #     plt.show()
 
-#composite_plot_pi_vs_viral_load([shared_office_worst_model[1], shared_office_worst_model_infiltration[1]],
-#                                 labels=['No mask &\nwindows closed', 'Baseline:Windows\nopen (10min/2h)', 'Windows open\n(10min/2h) +\nHEPA filter'],
-#                                 colors=['tomato', '#1f77b4', 'limegreen'],
-#                                 title='Shared office scenario',
-#                                 vl_points=200)
-
-#compare_concentration_curves([classroom_model_no_vent[1], classroom_model[1], classroom_model_with_hepa[1], classroom_model_full_open_multi[1]],
+#composite_plot_pi_vs_viral_load([classroom_model_no_vent[1],classroom_model_full_open_multi_masks[1]],
+#                                 labels=['Windows closed','Multiple windows open + Masks'],
+#                                 colors=['#1f77b4','#ff7f0e'],
+#                                 title='',
+#                                 vl_points=500)
+#
+#compare_concentration_curves_virus_IGH_paper([classroom_model_no_vent[1], classroom_model[1], classroom_model_with_hepa[1], classroom_model_full_open_multi[1]],
 #                             labels=['Windows closed', 'Windows open (for 10min every 2h)', 'Windows open (for 10min every 2h) + HEPA', 'Multiple windows open (at all times)'],
 #                             colors=['tomato','#1f77b4', 'seagreen', 'limegreen'],
-#                             title='Median concentration of infectious quantum and\ncumulative dose ($\mathrm{qD}$) over exposure time'
+#                             title='Mean concentration of infectious quantum and\ncumulative dose over exposure time'
 #                             )
-generate_qr_csv('qR_unmasked')
-generate_qr_csv('qr_masked', masked=True)
+
+#generate_qr_csv('qR_unmasked')
+#generate_qr_csv('qr_masked', masked=True)
