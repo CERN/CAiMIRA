@@ -420,7 +420,7 @@ class Virus:
     #: RNA copies  / mL
     viral_load_in_sputum: _VectorisedFloat
 
-    #: RNA-copies
+    #: Dose to initiate infection, in RNA copies
     infectious_dose: _VectorisedFloat
 
     #: Pre-populated examples of Viruses.

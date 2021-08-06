@@ -50,12 +50,12 @@ populations = [
     # A population with some array component for inhalation_rate.
     models.Population(
         10, halftime, models.Mask.types['Type I'],
-        models.Activity(np.array([0.51,0.57]), 0.57),
+        models.Activity(np.array([0.51, 0.57]), 0.57),
     ),
 ]
-dummyRoom = models.Room(50, 0.5)
-dummyVentilation = models._VentilationBase()
-dummyInfPopulation = models.InfectedPopulation(
+dummy_room = models.Room(50, 0.5)
+dummy_ventilation = models._VentilationBase()
+dummy_infected_population = models.InfectedPopulation(
     number=1,
     presence=halftime,
     mask=models.Mask.types['Type I'],
@@ -64,30 +64,31 @@ dummyInfPopulation = models.InfectedPopulation(
     expiration=models.Expiration.types['Talking']
 )
 
+
 def known_concentrations(func):
-    return KnownConcentrations(dummyRoom, dummyVentilation, dummyInfPopulation, func)
+    return KnownConcentrations(dummy_room, dummy_ventilation, dummy_infected_population, func)
 
 
 @pytest.mark.parametrize(
-    "population, cm, f_dep, expected_exposure, expected_probability",[
-    [populations[1], known_concentrations(lambda t: 36), 1.,
-     np.array([432, 432]), np.array([99.6803184113, 99.5181053773])], 
+    "population, cm, f_dep, expected_exposure, expected_probability", [
+        [populations[1], known_concentrations(lambda t: 36), 1.,
+         np.array([432, 432]), np.array([99.6803184113, 99.5181053773])],
 
-    [populations[2], known_concentrations(lambda t: 36), 1.,
-     np.array([432, 432]), np.array([97.4574432074, 98.3493482895])],
+        [populations[2], known_concentrations(lambda t: 36), 1.,
+         np.array([432, 432]), np.array([97.4574432074, 98.3493482895])],
 
-    [populations[0], known_concentrations(lambda t: np.array([36, 72])), 1.,
-     np.array([432, 864]), np.array([98.3493482895, 99.9727534893])],
+        [populations[0], known_concentrations(lambda t: np.array([36, 72])), 1.,
+         np.array([432, 864]), np.array([98.3493482895, 99.9727534893])],
 
-    [populations[1], known_concentrations(lambda t: np.array([36, 72])), 1.,
-     np.array([432, 864]), np.array([99.6803184113, 99.9976777757])],
+        [populations[1], known_concentrations(lambda t: np.array([36, 72])), 1.,
+         np.array([432, 864]), np.array([99.6803184113, 99.9976777757])],
 
-    [populations[0], known_concentrations(lambda t: 72), np.array([0.5, 1.]),
-     864, np.array([98.3493482895, 99.9727534893])],
+        [populations[0], known_concentrations(lambda t: 72), np.array([0.5, 1.]),
+         864, np.array([98.3493482895, 99.9727534893])],
     ])
 def test_exposure_model_ndarray(population, cm, f_dep,
                                 expected_exposure, expected_probability):
-    model = ExposureModel(cm, population, fraction_deposited = f_dep)
+    model = ExposureModel(cm, population, fraction_deposited=f_dep)
     np.testing.assert_almost_equal(
         model.exposure(), expected_exposure
     )
@@ -103,7 +104,8 @@ def test_exposure_model_ndarray(population, cm, f_dep,
 
 @pytest.mark.parametrize("population", populations)
 def test_exposure_model_ndarray_and_float_mix(population):
-    cm = known_concentrations(lambda t: 0 if np.floor(t) % 2 else np.array([1.2, 1.2]))
+    cm = known_concentrations(lambda t: 0 if np.floor(t) %
+                              2 else np.array([1.2, 1.2]))
     model = ExposureModel(cm, population)
 
     expected_exposure = np.array([14.4, 14.4])
@@ -132,7 +134,8 @@ def test_exposure_model_compare_scalar_vector(population):
 
 @pytest.fixture
 def conc_model():
-    interesting_times = models.SpecificInterval(([0, 1], [1.01, 1.02], [12, 24]))
+    interesting_times = models.SpecificInterval(
+        ([0, 1], [1.01, 1.02], [12, 24]))
     always = models.SpecificInterval(((0, 24),))
     return models.ConcentrationModel(
         models.Room(25),
@@ -149,14 +152,16 @@ def conc_model():
 
 # expected exposure were computed with a trapezoidal integration, using
 # a mesh of 10'000 pts per exposed presence interval.
+
+
 @pytest.mark.parametrize("exposed_time_interval, expected_exposure", [
-        [(0, 1), 266.67176],
-        [(1, 1.01), 3.0879539],
-        [(1.01, 1.02), 3.00082435],
-        [(12, 12.01), 0.095063235],
-        [(12, 24), 3775.65025],
-        [(0, 24), 4097.8494],
-    ]
+    [(0, 1), 266.67176],
+    [(1, 1.01), 3.0879539],
+    [(1.01, 1.02), 3.00082435],
+    [(12, 12.01), 0.095063235],
+    [(12, 24), 3775.65025],
+    [(0, 24), 4097.8494],
+]
 )
 def test_exposure_model_integral_accuracy(exposed_time_interval,
                                           expected_exposure, conc_model):
@@ -168,19 +173,21 @@ def test_exposure_model_integral_accuracy(exposed_time_interval,
     model = ExposureModel(conc_model, population, fraction_deposited=1.)
     np.testing.assert_allclose(model.exposure(), expected_exposure)
 
+
 def test_infectious_dose_vectorisation():
-    infPopulation = models.InfectedPopulation(
+    infected_population = models.InfectedPopulation(
         number=1,
         presence=halftime,
         mask=models.Mask.types['Type I'],
         activity=models.Activity.types['Standing'],
-        virus = models.SARSCoV2(
+        virus=models.SARSCoV2(
             viral_load_in_sputum=1e9,
             infectious_dose=np.array([50, 20, 30]),
         ),
         expiration=models.Expiration.types['Talking']
     )
-    cm = KnownConcentrations(dummyRoom, dummyVentilation, infPopulation, lambda t: 1.2)
+    cm = KnownConcentrations(
+        dummy_room, dummy_ventilation, infected_population, lambda t: 1.2)
 
     presence_interval = models.SpecificInterval(((0, 1),))
     population = models.Population(
