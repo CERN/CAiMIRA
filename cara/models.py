@@ -769,7 +769,7 @@ class ConcentrationModel:
         the times at which their state changes.
 
         """
-        state_change_times = set()
+        state_change_times = {0.}
         state_change_times.update(self.infected.presence.transition_times())
         state_change_times.update(self.ventilation.transition_times())
         return sorted(state_change_times)
