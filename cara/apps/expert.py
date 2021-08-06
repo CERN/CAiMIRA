@@ -141,7 +141,7 @@ class ExposureModelResult(View):
 
             ax.set_xlabel('Time (hours)')
             ax.set_ylabel('Concentration ($q/m^3$)')
-            ax.set_title('Concentration of infectious quanta')
+            ax.set_title('Concentration of virions')
         else:
             self.ax.ignore_existing_data_limits = True
             self.line.set_data(ts, concentration)
@@ -154,7 +154,7 @@ class ExposureModelResult(View):
     def update_textual_result(self, model: models.ExposureModel):
         lines = []
         P = model.infection_probability()
-        lines.append(f'Emission rate (quanta/hr): {np.round(model.concentration_model.infected.emission_rate_when_present(),0)}')
+        lines.append(f'Emission rate (virus/hr): {np.round(model.concentration_model.infected.emission_rate_when_present(),0)}')
         lines.append(f'Probability of infection: {np.round(P, 0)}%')
 
         lines.append(f'Number of exposed: {model.exposed.number}')
@@ -186,7 +186,7 @@ class ExposureComparissonResult(View):
         ax.spines['top'].set_visible(False)
         ax.set_xlabel('Time (hours)')
         ax.set_ylabel('Concentration ($q/m^3$)')
-        ax.set_title('Concentration of infectious quanta')
+        ax.set_title('Concentration of virions')
         return ax
 
     def scenarios_updated(self, scenarios: typing.Sequence[ScenarioType], _):

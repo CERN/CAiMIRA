@@ -116,7 +116,7 @@ def plot(times, concentrations, model: models.ExposureModel):
 
     ax.set_xlabel('Time of day')
     ax.set_ylabel('Mean concentration ($q/m^3$)')
-    ax.set_title('Mean concentration of infectious quanta')
+    ax.set_title('Mean concentration of virions')
     ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
 
     # Plot presence of exposed person
@@ -237,7 +237,7 @@ def comparison_plot(scenarios: typing.Dict[str, dict], sample_times: np.ndarray)
 
     ax.set_xlabel('Time of day')
     ax.set_ylabel('Mean concentration ($q/m^3$)')
-    ax.set_title('Mean concentration of infectious quanta')
+    ax.set_title('Mean concentration of virions')
 
     return fig
 
