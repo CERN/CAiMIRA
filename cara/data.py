@@ -40,9 +40,10 @@ GenevaTemperatures_hourly = {
     )
     for month, temperatures in Geneva_hourly_temperatures_celsius_per_hour.items()
 }
-# Same temperatures on a finer temperature mesh.
+
+
+# Same temperatures on a finer temperature mesh (every 6 minutes).
 GenevaTemperatures = {
-    month: GenevaTemperatures_hourly[month].refine(refine_factor=4)
+    month: GenevaTemperatures_hourly[month].refine(refine_factor=10)
     for month, temperatures in Geneva_hourly_temperatures_celsius_per_hour.items()
 }
-
