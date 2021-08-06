@@ -44,13 +44,13 @@ def calculate_report_data(model: models.ExposureModel):
 
     return {
         "times": list(times),
+        "exposed_presence_intervals": [list(interval) for interval in model.exposed.presence.boundaries()],
         "concentrations": concentrations,
         "highest_const": highest_const,
         "prob_inf": prob,
         "emission_rate": er,
         "exposed_occupants": exposed_occupants,
         "expected_new_cases": expected_new_cases,
-        "scenario_plot_src": img2base64(_figure2bytes(plot(times, concentrations, model))),
     }
 
 
@@ -133,7 +133,7 @@ def plot(times, concentrations, model: models.ExposureModel):
     ax.set_ylim(0)
 
     return fig
-
+    
 
 def minutes_to_time(minutes: int) -> str:
     minute_string = str(minutes % 60)
