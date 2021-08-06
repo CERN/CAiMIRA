@@ -82,9 +82,9 @@ yan_vl = [9.347856705]
 yan_er = [45324.55964]
 plt.scatter(yan_vl, yan_er)
 
-plt.title('Emission rate vs Viral Load')
-plt.ylabel('ER (Virions/h)', fontsize=14)
+plt.title('Exhaled virions while breathing for 1h', fontsize=14)
+plt.ylabel('RNA copies', fontsize=12)
 plt.xticks(ticks=[i for i in range(2, 13)], labels=[
             '$10^{' + str(i) + '}$' for i in range(2, 13)])
-plt.xlabel('Viral load (RNA copies mL$^{-1}$)', fontsize=14)
+plt.xlabel('NP viral load (RNA copies mL$^{-1}$)', fontsize=12)
 plt.show()
