@@ -550,7 +550,6 @@ class FormData:
         if current_time < finish:
             LOG.debug("trailing interval")
             present_intervals.append((current_time / 60, finish / 60))
-
         return models.SpecificInterval(tuple(present_intervals))
 
     def infected_present_interval(self) -> models.Interval:

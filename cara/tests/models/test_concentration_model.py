@@ -53,7 +53,7 @@ def test_concentration_model_vectorisation(override_params):
 
 @pytest.fixture
 def simple_conc_model():
-    interesting_times = models.SpecificInterval(([0, 1], [1.1, 1.999], [2, 3]), )
+    interesting_times = models.SpecificInterval(([0., 1.], [1.1, 1.999], [2., 3.]), )
     return models.ConcentrationModel(
         models.Room(75),
         models.AirChange(interesting_times, 100),
@@ -86,13 +86,13 @@ def test_next_state_change_time(
         time,
         expected_next_state_change,
 ):
-    assert simple_conc_model._next_state_change(time) == expected_next_state_change
+    assert simple_conc_model._next_state_change(float(time)) == expected_next_state_change
 
 
 def test_next_state_change_time_out_of_range(simple_conc_model: models.ConcentrationModel):
     with pytest.raises(
             ValueError,
-            match=re.escape("The requested time (3.1) is greater than last available state change time (3)")
+            match=re.escape("The requested time (3.1) is greater than last available state change time (3.0)")
     ):
         simple_conc_model._next_state_change(3.1)
 
