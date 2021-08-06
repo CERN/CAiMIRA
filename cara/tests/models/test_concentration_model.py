@@ -53,7 +53,7 @@ def test_concentration_model_vectorisation(override_params):
 
 @pytest.fixture
 def simple_conc_model():
-    interesting_times = models.SpecificInterval(([0., 1.], [1.1, 1.999], [2., 3.]), )
+    interesting_times = models.SpecificInterval(([0.5, 1.], [1.1, 2], [2., 3.]), )
     return models.ConcentrationModel(
         models.Room(75),
         models.AirChange(interesting_times, 100),
@@ -69,13 +69,37 @@ def simple_conc_model():
 
 
 @pytest.mark.parametrize(
+    "time, expected_last_state_change", [
+        [-15., 0.],  # Out of range goes to the first state.
+        [0., 0.],
+        [0.5, 0.0],
+        [0.51, 0.5],
+        [1., 0.5],
+        [1.05, 1.],
+        [1.1, 1.],
+        [1.11, 1.1],
+        [2., 1.1],
+        [2.1, 2],
+        [3., 2],
+        [15., 3.],  # Out of range goes to the last state.
+    ]
+)
+def test_last_state_change_time(
+        simple_conc_model: models.ConcentrationModel,
+        time,
+        expected_last_state_change,
+):
+    assert simple_conc_model.last_state_change(float(time)) == expected_last_state_change
+
+
+@pytest.mark.parametrize(
     "time, expected_next_state_change", [
-        [0, 0],
+        [0.0, 0.0],
+        [0.5, 0.5],
         [1, 1],
         [1.05, 1.1],
         [1.1, 1.1],
-        [1.11, 1.999],
-        [1.9991, 2],
+        [1.11, 2],
         [2, 2],
         [2.1, 3],
         [3, 3],
@@ -95,24 +119,6 @@ def test_next_state_change_time_out_of_range(simple_conc_model: models.Concentra
             match=re.escape("The requested time (3.1) is greater than last available state change time (3.0)")
     ):
         simple_conc_model._next_state_change(3.1)
-
-
-@pytest.mark.parametrize(
-    "start, stop, is_valid", [
-        [0, 1.05, False],
-        [0.99, 1.1, False],
-        [0.5, 1.01, False],
-        [0, 1, True],
-        [1.01, 1.1, True],
-        [0.01, 1, True],
-        [1.11, 1.99, True],
-    ]
-)
-def test_valid_interval(
-        start, stop, is_valid,
-        simple_conc_model: models.ConcentrationModel
-):
-    assert simple_conc_model._is_interval_between_state_changes(start, stop) == is_valid
 
 
 def test_integrated_concentration(simple_conc_model):

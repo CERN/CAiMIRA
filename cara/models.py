@@ -762,26 +762,34 @@ class ConcentrationModel:
 
         return (self.infected.emission_rate(time)) / (IVRR * V)
 
+    @method_cache
     def state_change_times(self) -> typing.List[float]:
         """
         All time dependent entities on this model must provide information about
         the times at which their state changes.
 
         """
-        state_change_times = set()
+        state_change_times = {0.}
         state_change_times.update(self.infected.presence.transition_times())
         state_change_times.update(self.ventilation.transition_times())
         return sorted(state_change_times)
 
     def last_state_change(self, time: float) -> float:
         """
-        Find the most recent state change.
+        Find the most recent/previous state change.
+
+        Find the nearest time less than the given one. If there is a state
+        change exactly at ``time`` the previous state change is returned
+        (except at ``time == 0``).
 
         """
-        for change_time in self.state_change_times()[::-1]:
-            if change_time < time:
-                return change_time
-        return 0.
+        times = self.state_change_times()
+        t_index: int = np.searchsorted(times, time)  # type: ignore
+        # Search sorted gives us the index to insert the given time. Instead we
+        # want to get the index of the most recent time, so reduce the index by
+        # one unless we are already at 0.
+        t_index = max([t_index - 1, 0])
+        return times[t_index]
 
     def _next_state_change(self, time: float) -> float:
         """
@@ -795,14 +803,6 @@ class ConcentrationModel:
             f"The requested time ({time}) is greater than last available "
             f"state change time ({change_time})"
         )
-
-    def _is_interval_between_state_changes(self, start: float, stop: float) -> bool:
-        """
-        Check that the times start and stop are in-between two state
-        changes of the concentration model (to ensure sure that all
-        model parameters stay constant between start and stop).
-        """
-        return (self.last_state_change(stop) <= start)
 
     @method_cache
     def _concentration_cached(self, time: float) -> _VectorisedFloat:
