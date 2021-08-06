@@ -784,7 +784,7 @@ class ConcentrationModel:
 
         """
         times = self.state_change_times()
-        t_index = np.searchsorted(times, time)
+        t_index: int = np.searchsorted(times, time)  # type: ignore
         # Search sorted gives us the index to insert the given time. Instead we
         # want to get the index of the most recent time, so reduce the index by
         # one unless we are already at 0.
@@ -803,14 +803,6 @@ class ConcentrationModel:
             f"The requested time ({time}) is greater than last available "
             f"state change time ({change_time})"
         )
-
-    def _is_interval_between_state_changes(self, start: float, stop: float) -> bool:
-        """
-        Check that the times start and stop are in-between two state
-        changes of the concentration model (to ensure sure that all
-        model parameters stay constant between start and stop).
-        """
-        return (self.last_state_change(stop) <= start)
 
     @method_cache
     def _concentration_cached(self, time: float) -> _VectorisedFloat:
