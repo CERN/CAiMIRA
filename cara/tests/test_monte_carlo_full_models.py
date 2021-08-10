@@ -26,12 +26,12 @@ def shared_office_mc():
             (
                 models.SlidingWindow(
                     active=models.PeriodicInterval(period=120, duration=10),
-                    inside_temp=models.PiecewiseConstant((0., 24.), (293,)),
-                    outside_temp=models.PiecewiseConstant((0., 24.), (283,)),
+                    inside_temp=models.PiecewiseConstant((0, 24), (293,)),
+                    outside_temp=models.PiecewiseConstant((0, 24), (283,)),
                     window_height=1.6, opening_length=0.6,
                 ),
                 models.AirChange(
-                    active=models.SpecificInterval(((0., 24.), )),
+                    active=models.SpecificInterval(((0,24),)),
                     air_exch=0.25,
                 ),
             ),
@@ -39,7 +39,7 @@ def shared_office_mc():
         infected=mc.InfectedPopulation(
             number=1,
             virus=virus_distributions['SARS_CoV_2_B117'],
-            presence=mc.SpecificInterval(((0., 2.), (2.1, 4.), (5., 7.), (7.1, 9.))),
+            presence=mc.SpecificInterval(((0, 2), (2.1, 4), (5, 7), (7.1, 9))),
             mask=models.Mask(η_inhale=0.3),
             activity=activity_distributions['Seated'],
             expiration=models.MultipleExpiration(
@@ -70,12 +70,12 @@ def classroom_mc():
             (
                 models.SlidingWindow(
                     active=models.PeriodicInterval(period=120, duration=10),
-                    inside_temp=models.PiecewiseConstant((0., 24.), (293,)),
-                    outside_temp=models.PiecewiseConstant((0., 24.), (283,)),
+                    inside_temp=models.PiecewiseConstant((0, 24), (293,)),
+                    outside_temp=models.PiecewiseConstant((0, 24), (283,)),
                     window_height=1.6, opening_length=0.6,
                 ),
                 models.AirChange(
-                    active=models.SpecificInterval(((0., 24.),)),
+                    active=models.SpecificInterval(((0,24),)),
                     air_exch=0.25,
                 ),
             ),
@@ -83,7 +83,7 @@ def classroom_mc():
         infected=mc.InfectedPopulation(
             number=1,
             virus=virus_distributions['SARS_CoV_2_B117'],
-            presence=mc.SpecificInterval(((0., 2.), (2.5, 4.), (5., 7.), (7.5, 9.))),
+            presence=mc.SpecificInterval(((0, 2), (2.5, 4), (5, 7), (7.5, 9))),
             mask=models.Mask.types['No mask'],
             activity=activity_distributions['Light activity'],
             expiration=models.Expiration.types['Talking'],
@@ -108,13 +108,13 @@ def ski_cabin_mc():
     concentration_mc = mc.ConcentrationModel(
         room=models.Room(volume=10, humidity=0.5),
         ventilation=models.AirChange(
-            active=models.SpecificInterval(((0., 24.),)),
+            active=models.SpecificInterval(((0,24),)),
             air_exch=0,
         ),
         infected=mc.InfectedPopulation(
             number=1,
             virus=virus_distributions['SARS_CoV_2_B117'],
-            presence=mc.SpecificInterval(((0., 1/3),)),
+            presence=mc.SpecificInterval(((0, 1/3),)),
             mask=models.Mask(η_inhale=0.3),
             activity=activity_distributions['Moderate activity'],
             expiration=models.Expiration.types['Talking'],
@@ -141,13 +141,13 @@ def gym_mc():
     concentration_mc = mc.ConcentrationModel(
         room=models.Room(volume=300, humidity=0.5),
         ventilation=models.AirChange(
-            active=models.SpecificInterval(((0., 24.),)),
+            active=models.SpecificInterval(((0,24),)),
             air_exch=6,
         ),
         infected=mc.InfectedPopulation(
             number=2,
             virus=virus_distributions['SARS_CoV_2_B117'],
-            presence=mc.SpecificInterval(((0., 1.),)),
+            presence=mc.SpecificInterval(((0, 1),)),
             mask=models.Mask.types["No mask"],
             activity=activity_distributions['Heavy exercise'],
             expiration=models.Expiration.types['Breathing'],
@@ -173,13 +173,13 @@ def waiting_room_mc():
     concentration_mc = mc.ConcentrationModel(
         room=models.Room(volume=100, humidity=0.5),
         ventilation=models.AirChange(
-            active=models.SpecificInterval(((0., 24.),)),
+            active=models.SpecificInterval(((0,24),)),
             air_exch=0.25,
         ),
         infected=mc.InfectedPopulation(
             number=1,
             virus=virus_distributions['SARS_CoV_2_B117'],
-            presence=mc.SpecificInterval(((0., 2.),)),
+            presence=mc.SpecificInterval(((0, 2),)),
             mask=models.Mask.types["No mask"],
             activity=activity_distributions['Seated'],
             expiration=models.MultipleExpiration(
@@ -215,7 +215,7 @@ def skagit_chorale_mc():
         infected=mc.InfectedPopulation(
             number=1,
             virus=virus_distributions['SARS_CoV_2'],
-            presence=mc.SpecificInterval(((0., 2.5),)),
+            presence=mc.SpecificInterval(((0, 2.5),)),
             mask=models.Mask.types["No mask"],
             activity=activity_distributions['Light activity'],
             expiration=models.Expiration((5., 5., 5.)),
@@ -233,54 +233,54 @@ def skagit_chorale_mc():
 
 
 @pytest.mark.parametrize(
-    "mc_model, expected_pi, expected_new_cases, expected_dose, expected_ER",
+    "mc_model, expected_pi, expected_new_cases, expected_dose, expected_qR",
     [
-        ["shared_office_mc", 10.7, 0.32, 57.24, 654],
-        ["classroom_mc",     36.1, 6.85, 780.0, 28464],
-        ["ski_cabin_mc",     16.3, 0.49, 35.94, 7404],
-        ["gym_mc",           2.25, 0.63, 0.7842, 984],
-        ["waiting_room_mc",  9.72, 1.36, 34.26, 3534],
-        ["skagit_chorale_mc",29.9, 17.9, 190.0, 141400],
+        ["shared_office_mc", 10.7, 0.32, 0.954,   10.9],
+        ["classroom_mc",     36.1, 6.85, 13.0,    474.4],
+        ["ski_cabin_mc",     16.3, 0.49, 0.599,   123.4],
+        ["gym_mc",           2.25, 0.63, 0.01307, 16.4],
+        ["waiting_room_mc",  9.72, 1.36, 0.571,   58.9],
+        ["skagit_chorale_mc",29.9, 17.9, 1.90,    1414],
     ]
 )
 def test_report_models(mc_model, expected_pi, expected_new_cases,
-                       expected_dose, expected_ER, request):
+                       expected_dose, expected_qR, request):
     mc_model = request.getfixturevalue(mc_model)
     exposure_model = mc_model.build_model(size=SAMPLE_SIZE)
     npt.assert_allclose(exposure_model.infection_probability().mean(),
                         expected_pi, rtol=TOLERANCE)
     npt.assert_allclose(exposure_model.expected_new_cases().mean(),
                         expected_new_cases, rtol=TOLERANCE)
-    npt.assert_allclose(exposure_model.exposure().mean(),
+    npt.assert_allclose(exposure_model.quanta_exposure().mean(),
                         expected_dose, rtol=TOLERANCE)
     npt.assert_allclose(
         exposure_model.concentration_model.infected.emission_rate_when_present().mean(),
-        expected_ER, rtol=TOLERANCE)
+        expected_qR, rtol=TOLERANCE)
 
 
 @pytest.mark.parametrize(
-    "mask_type, month, expected_pi, expected_dose, expected_ER",
+    "mask_type, month, expected_pi, expected_dose, expected_qR",
     [
-        ["No mask", "Jul", 30.0, 405.84, 3894],
-        ["Type I",  "Jul", 10.2, 73.38, 702],
-        ["FFP2",    "Jul", 4.0, 73.38, 702],
-        ["Type I",  "Feb", 4.25, 21.42, 702],
+        ["No mask", "7", 30.0, 6.764, 64.9],
+        ["Type I",  "7", 10.2, 1.223, 11.7],
+        ["FFP2",    "7", 4.0, 1.223, 11.7],
+        ["Type I",  "2", 4.25, 0.357, 11.7],
     ],
 )
 def test_small_shared_office_Geneva(mask_type, month, expected_pi,
-                                    expected_dose, expected_ER):
+                                    expected_dose, expected_qR):
     concentration_mc = mc.ConcentrationModel(
         room=models.Room(volume=33, humidity=0.5),
         ventilation=models.MultipleVentilation(
             (
                 models.SlidingWindow(
-                    active=models.SpecificInterval(((0., 24.),)),
-                    inside_temp=models.PiecewiseConstant((0., 24.), (293,)),
-                    outside_temp=data.GenevaTemperatures[month],
+                    active=models.SpecificInterval(((0,24),)),
+                    inside_temp=models.PiecewiseConstant((0, 24), (293,)),
+                    outside_temp=data.Temperatures[month],
                     window_height=1.5, opening_length=0.2,
                 ),
                 models.AirChange(
-                    active=models.SpecificInterval(((0., 24.),)),
+                    active=models.SpecificInterval(((0,24),)),
                     air_exch=0.25,
                 ),
             ),
@@ -288,7 +288,7 @@ def test_small_shared_office_Geneva(mask_type, month, expected_pi,
         infected=mc.InfectedPopulation(
             number=1,
             virus=virus_distributions['SARS_CoV_2_B117'],
-            presence=mc.SpecificInterval(((9., 10+2/3), (10+5/6, 12.5), (13.5, 15+2/3), (15+5/6, 18.))),
+            presence=mc.SpecificInterval(((9, 10+2/3), (10+5/6, 12.5), (13.5, 15+2/3), (15+5/6, 18))),
             mask=models.Mask.types[mask_type],
             activity=activity_distributions['Seated'],
             expiration=models.MultipleExpiration(
@@ -309,8 +309,8 @@ def test_small_shared_office_Geneva(mask_type, month, expected_pi,
     exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
     npt.assert_allclose(exposure_model.infection_probability().mean(),
                         expected_pi, rtol=TOLERANCE)
-    npt.assert_allclose(exposure_model.exposure().mean(),
+    npt.assert_allclose(exposure_model.quanta_exposure().mean(),
                         expected_dose, rtol=TOLERANCE)
     npt.assert_allclose(
         exposure_model.concentration_model.infected.emission_rate_when_present().mean(),
-        expected_ER, rtol=TOLERANCE)
+        expected_qR, rtol=TOLERANCE)

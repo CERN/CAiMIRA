@@ -7,9 +7,9 @@ import cara.data as data
 
 
 def test_no_mask_superspeading_emission_rate(baseline_model):
-    expected_rate = 48500.
+    expected_rate = 970.
     npt.assert_allclose(
-        [baseline_model.infected.emission_rate(float(t)) for t in [0, 1, 4, 4.5, 5, 8, 9]],
+        [baseline_model.infected.emission_rate(t) for t in [0, 1, 4, 4.5, 5, 8, 9]],
         [0, expected_rate, expected_rate, 0, 0, expected_rate, 0],
         rtol=1e-12
     )
@@ -19,8 +19,8 @@ def test_no_mask_superspeading_emission_rate(baseline_model):
 def baseline_periodic_window():
     return models.SlidingWindow(
         active=models.PeriodicInterval(period=120, duration=15),
-        inside_temp=models.PiecewiseConstant((0., 24.), (293,)),
-        outside_temp=models.PiecewiseConstant((0., 24.), (283,)),
+        inside_temp=models.PiecewiseConstant((0,24),(293,)),
+        outside_temp=models.PiecewiseConstant((0,24),(283,)),
         window_height=1.6, opening_length=0.6,
     )
 
@@ -41,10 +41,10 @@ def baseline_periodic_hepa():
 def test_concentrations(baseline_model):
     # expected concentrations were computed analytically
     ts = [0, 4, 5, 7, 10]
-    concentrations = [baseline_model.concentration(float(t)) for t in ts]
+    concentrations = [baseline_model.concentration(t) for t in ts]
     npt.assert_allclose(
         concentrations,
-        [0.000000e+00, 20.805628, 6.602814e-13, 20.805628, 2.09545e-26],
+        [0.000000e+00, 0.41611256, 1.3205628e-14, 0.41611256, 4.1909001e-28],
         rtol=1e-6
     )
 
@@ -55,7 +55,7 @@ def test_smooth_concentrations(baseline_model):
     dx = 0.002
     dy_limit = 0.2  # Anything more than this (in relative) is a bit steep.
     ts = np.arange(0, 10, dx)
-    concentrations = [baseline_model.concentration(float(t)) for t in ts]
+    concentrations = [baseline_model.concentration(t) for t in ts]
     assert np.abs(np.diff(concentrations)).max()/np.mean(concentrations) < dy_limit
 
 
@@ -69,7 +69,7 @@ def build_model(interval_duration):
         infected=models.InfectedPopulation(
             number=1,
             virus=models.Virus.types['SARS_CoV_2'],
-            presence=models.SpecificInterval(((0., 4.), (5., 8.))),
+            presence=models.SpecificInterval(((0, 4), (5, 8))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
             expiration=models.Expiration.types['Superspreading event'],
@@ -78,7 +78,7 @@ def build_model(interval_duration):
     return model
 
 
-def test_concentrations_startup():
+def test_concentrations_startup(baseline_model):
     # The concentrations should be the same until the beginning of the
     # first time that the ventilation is disabled.
     m1 = build_model(interval_duration=120)
@@ -183,38 +183,28 @@ def test_multiple_ventilation_HEPA_HVAC_AirChange(volume, expected_value):
     ],
 )
 def test_windowopening(time, expected_value):
-    tempOutside = models.PiecewiseConstant((0., 10., 24.),(273.15, 283.15))
-    tempInside = models.PiecewiseConstant((0., 24.), (293.15,))
-    w = models.SlidingWindow(
-        active=models.SpecificInterval([(0., 24.)]),
-        inside_temp=tempInside,outside_temp=tempOutside,
-        window_height=1., opening_length=0.6,
-    )
-    npt.assert_allclose(
-        w.air_exchange(models.Room(volume=68), time), expected_value, rtol=1e-5
-    )
+    tempOutside = models.PiecewiseConstant((0,10,24),(273.15,283.15))
+    tempInside = models.PiecewiseConstant((0,24),(293.15,))
+    w = models.SlidingWindow(active=models.SpecificInterval([(0,24)]),
+                inside_temp=tempInside,outside_temp=tempOutside,
+                window_height=1.,opening_length=0.6)
+    npt.assert_allclose(w.air_exchange(models.Room(volume=68),time),
+                        expected_value,rtol=1e-5)
 
 
-def build_hourly_dependent_model(
-        month,
-        intervals_open=((7.5, 8.5),),
-        intervals_presence_infected=((0., 4.), (5., 7.5)),
-        artificial_refinement=False,
-        temperatures=data.GenevaTemperatures_hourly
-):
+def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),),
+                    intervals_presence_infected=((0, 4), (5, 7.5)),
+                    artificial_refinement=False,
+                    temperatures=data.Temperatures_hourly):
     if artificial_refinement:
         # 5-fold increase of number of times, WITHOUT interpolation
         # (hence transparent for the results)
         refine_factor = 2
-        times_refined = tuple(
-            float(t) for t in np.linspace(
-                0., 24, refine_factor * len(temperatures[month].values) + 1
-            )
-        )
-        temperatures_refined = tuple(np.hstack(
-            [[v] * refine_factor for v in temperatures[month].values]
-        ))
-        outside_temp = models.PiecewiseConstant(times_refined, temperatures_refined)
+        times_refined = tuple(np.linspace(0.,24,
+                refine_factor*len(temperatures[month].values)+1))
+        temperatures_refined = tuple(np.hstack([[v]*refine_factor
+                                     for v in temperatures[month].values]))
+        outside_temp = models.PiecewiseConstant(times_refined,temperatures_refined)
     else:
         outside_temp = temperatures[month]
 
@@ -222,7 +212,7 @@ def build_hourly_dependent_model(
         room=models.Room(volume=75),
         ventilation=models.SlidingWindow(
             active=models.SpecificInterval(intervals_open),
-            inside_temp=models.PiecewiseConstant((0., 24.), (293, )),
+            inside_temp=models.PiecewiseConstant((0,24),(293,)),
             outside_temp=outside_temp,
             window_height=1.6, opening_length=0.6,
         ),
@@ -243,14 +233,14 @@ def build_constant_temp_model(outside_temp, intervals_open=((7.5, 8.5),)):
         room=models.Room(volume=75),
         ventilation=models.SlidingWindow(
             active=models.SpecificInterval(intervals_open),
-            inside_temp=models.PiecewiseConstant((0., 24.), (293,)),
-            outside_temp=models.PiecewiseConstant((0., 24.), (outside_temp,)),
+            inside_temp=models.PiecewiseConstant((0,24),(293,)),
+            outside_temp=models.PiecewiseConstant((0,24),(outside_temp,)),
             window_height=1.6, opening_length=0.6,
         ),
         infected=models.InfectedPopulation(
             number=1,
             virus=models.Virus.types['SARS_CoV_2'],
-            presence=models.SpecificInterval(((0., 4.), (5., 7.5))),
+            presence=models.SpecificInterval(((0, 4), (5, 7.5))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
             expiration=models.Expiration.types['Superspreading event'],
@@ -263,22 +253,21 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
     vent = models.MultipleVentilation((
         models.SlidingWindow(
             active=models.SpecificInterval(intervals_open),
-            inside_temp=models.PiecewiseConstant((0., 24.), (293,)),
-            outside_temp=data.GenevaTemperatures[month],
+            inside_temp=models.PiecewiseConstant((0,24),(293,)),
+            outside_temp=data.Temperatures[month],
             window_height=1.6, opening_length=0.6,
         ),
         models.HEPAFilter(
-            active=models.SpecificInterval(((0., 24.),)),
-            q_air_mech=500.,
-        ),
-    ))
+        active=models.SpecificInterval(((0,24),)),
+        q_air_mech=500.,
+        )))
     model = models.ConcentrationModel(
         room=models.Room(volume=75),
         ventilation=vent,
         infected=models.InfectedPopulation(
             number=1,
             virus=models.Virus.types['SARS_CoV_2'],
-            presence=models.SpecificInterval(((0., 4.), (5., 7.5))),
+            presence=models.SpecificInterval(((0, 4), (5, 7.5))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
             expiration=models.Expiration.types['Superspreading event'],
@@ -299,7 +288,7 @@ def test_concentrations_hourly_dep_temp_vs_constant(month, temperatures, time):
     # The concentrations should be the same up to 8 AM (time when the
     # temperature changes DURING the window opening).
     m1 = build_hourly_dependent_model(month)
-    m2 = build_constant_temp_model(temperatures[7] + 273.15)
+    m2 = build_constant_temp_model(temperatures[7]+273.15)
     npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-5)
 
 @pytest.mark.parametrize(
@@ -313,16 +302,13 @@ def test_concentrations_hourly_dep_temp_vs_constant(month, temperatures, time):
 def test_concentrations_hourly_dep_temp_startup(month, temperatures, time):
     # The concentrations should be the zero up to the first presence time
     # of an infecter person.
-    m = build_hourly_dependent_model(
-        month,
-        ((0., 0.5), (1., 1.5), (4., 4.5), (7.5, 8), ),
-        ((8., 12.), ),
-    )
+    m = build_hourly_dependent_model(month,((0.,0.5),(1,1.5),(4,4.5),(7.5,8)),
+                        ((8,12.),))
     assert m.concentration(time) == 0.
 
 
 def test_concentrations_hourly_dep_multipleventilation():
-    m = build_hourly_dependent_model_multipleventilation('Jan')
+    m = build_hourly_dependent_model_multipleventilation('1')
     m.concentration(12.)
 
 
@@ -337,22 +323,19 @@ def test_concentrations_hourly_dep_multipleventilation():
 def test_concentrations_hourly_dep_adding_artificial_transitions(month_temp_item, time):
     month, temperatures = month_temp_item
     # Adding a second opening inside the first one should not change anything
-    m1 = build_hourly_dependent_model(month, intervals_open=((7.5, 8.5), ))
-    m2 = build_hourly_dependent_model(month, intervals_open=((7.5, 8.5), (8., 8.1), ))
+    m1 = build_hourly_dependent_model(month,intervals_open=((7.5, 8.5),))
+    m2 = build_hourly_dependent_model(month,intervals_open=((7.5, 8.5),(8.,8.1)))
     npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-5)
 
 
 @pytest.mark.parametrize(
     "time",
-    (
-        [float(t) for t in np.random.random_sample(10) * 24.]  # type: ignore
-        + [float(t) for t in np.arange(0, 24.5, 0.5)]
-    ),
+    list(np.random.random_sample(10)*24.)+list(np.arange(0,24.5,0.5)),
 )
 def test_concentrations_refine_times(time):
-    month = 'Jan'
-    m1 = build_hourly_dependent_model(month, intervals_open=((0., 24.),))
-    m2 = build_hourly_dependent_model(month, intervals_open=((0., 24.),),
+    month = '1'
+    m1 = build_hourly_dependent_model(month,intervals_open=((0, 24),))
+    m2 = build_hourly_dependent_model(month,intervals_open=((0, 24),),
                                       artificial_refinement=True)
     npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-8)
 
@@ -367,48 +350,48 @@ def build_exposure_model(concentration_model):
             activity=infected.activity,
             mask=infected.mask,
         ),
-        fraction_deposited=1.,
+        fraction_deposited = 1.,
     )
 
 
-# expected exposure were computed with a trapezoidal integration, using
+# expected quanta were computed with a trapezoidal integration, using
 # a mesh of 100'000 pts per exposed presence interval.
 @pytest.mark.parametrize(
-    "month, expected_exposure",
+    "month, expected_quanta",
     [
-        ['Jan', 496.5427],
-        ['Jun', 1898.1354],
+        ['1', 9.930854],
+        ['6', 37.962708],
     ],
 )
-def test_exposure_hourly_dep(month,expected_exposure):
+def test_quanta_hourly_dep(month,expected_quanta):
     m = build_exposure_model(
         build_hourly_dependent_model(
             month,
-            intervals_open=((0., 24.), ),
-            intervals_presence_infected=((8., 12.), (13., 17.))
+            intervals_open=((0,24),),
+            intervals_presence_infected=((8, 12), (13, 17))
         )
     )
-    exposure = m.exposure()
-    npt.assert_allclose(exposure, expected_exposure)
+    quanta = m.quanta_exposure()
+    npt.assert_allclose(quanta, expected_quanta)
 
-# expected exposure were computed with a trapezoidal integration, using
+# expected quanta were computed with a trapezoidal integration, using
 # a mesh of 100'000 pts per exposed presence interval and 25 pts per hour
 # for the temperature discretization.
 @pytest.mark.parametrize(
-    "month, expected_exposure",
+    "month, expected_quanta",
     [
-        ['Jan', 499.6921],
-        ['Jun', 2007.59925],
+        ['1', 9.993842],
+        ['6', 40.151985],
     ],
 )
-def test_exposure_hourly_dep_refined(month,expected_exposure):
+def test_quanta_hourly_dep_refined(month,expected_quanta):
     m = build_exposure_model(
         build_hourly_dependent_model(
             month,
-            intervals_open=((0., 24.),),
-            intervals_presence_infected=((8., 12.), (13., 17.)),
-            temperatures=data.GenevaTemperatures,
+            intervals_open=((0, 24),),
+            intervals_presence_infected=((8, 12), (13, 17)),
+            temperatures=data.Temperatures,
         )
     )
-    exposure = m.exposure()
-    npt.assert_allclose(exposure, expected_exposure, rtol=0.02)
+    quanta = m.quanta_exposure()
+    npt.assert_allclose(quanta, expected_quanta, rtol=0.02)
