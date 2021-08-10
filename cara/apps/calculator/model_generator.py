@@ -55,6 +55,8 @@ class FormData:
     infected_start: minutes_since_midnight
     location: str
     location_coordinates: str
+    weather_station_location: str
+    weather_station_ref: str
     mask_type: str
     mask_wearing_option: str
     mechanical_ventilation_type: str
@@ -105,8 +107,10 @@ class FormData:
         'infected_lunch_start': '12:30',
         'infected_people': _NO_DEFAULT,
         'infected_start': '08:30',
-        'location': _NO_DEFAULT,
+        'location': 'Geneva',
         'location_coordinates': '(46.2044, 6.1432)',
+        'weather_station_location':'GENEVA COINTRIN',
+        'weather_station_ref': '067000-99999',
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': 'not-applicable',
@@ -264,8 +268,15 @@ class FormData:
             datetime_object = datetime.datetime.strptime(self.event_month[:3], "%b")
             month = datetime_object.month
 
+            #set location
+            self.weather_station_location = data.location_to_weather_stn(self.location_coordinates)[1]
+            print('wstn resolve location_', data.location_to_weather_stn(self.location_coordinates)[1])
+            data.local_temperatures = data.location_celcius_per_hour(self.location_coordinates)
+            print('inputcoords_', self.location_coordinates)
             inside_temp = models.PiecewiseConstant((0, 24), (293,))
             outside_temp = data.Temperatures[str(month)]
+
+
 
             ventilation: models.Ventilation
             if self.window_type == 'window_sliding':

@@ -566,8 +566,8 @@ $(document).ready(function() {
                             id: candidate.address,
                             text: candidate.address,
                             country: candidate.attributes.country,
-                            latitude: String(candidate.location.x),
-                            longitude: String(candidate.location.y),
+                            latitude: String(candidate.location.y),
+                            longitude: String(candidate.location.x),
                         }
                     }),
                     pagination: {
