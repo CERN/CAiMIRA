@@ -261,10 +261,10 @@ def test_report_models(mc_model, expected_pi, expected_new_cases,
 @pytest.mark.parametrize(
     "mask_type, month, expected_pi, expected_dose, expected_qR",
     [
-        ["No mask", "Jul", 30.0, 6.764, 64.9],
-        ["Type I",  "Jul", 10.2, 1.223, 11.7],
-        ["FFP2",    "Jul", 4.0, 1.223, 11.7],
-        ["Type I",  "Feb", 4.25, 0.357, 11.7],
+        ["No mask", "7", 30.0, 6.764, 64.9],
+        ["Type I",  "7", 10.2, 1.223, 11.7],
+        ["FFP2",    "7", 4.0, 1.223, 11.7],
+        ["Type I",  "2", 4.25, 0.357, 11.7],
     ],
 )
 def test_small_shared_office_Geneva(mask_type, month, expected_pi,
@@ -276,7 +276,7 @@ def test_small_shared_office_Geneva(mask_type, month, expected_pi,
                 models.SlidingWindow(
                     active=models.SpecificInterval(((0,24),)),
                     inside_temp=models.PiecewiseConstant((0, 24), (293,)),
-                    outside_temp=data.GenevaTemperatures[month],
+                    outside_temp=data.Temperatures[month],
                     window_height=1.5, opening_length=0.2,
                 ),
                 models.AirChange(
