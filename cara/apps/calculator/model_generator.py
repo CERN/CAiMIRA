@@ -107,8 +107,8 @@ class FormData:
         'infected_lunch_start': '12:30',
         'infected_people': _NO_DEFAULT,
         'infected_start': '08:30',
-        'location': 'Geneva',
-        'location_coordinates': '(46.2044, 6.1432)',
+        'location': _NO_DEFAULT,
+        'location_coordinates': _NO_DEFAULT,
         'weather_station_location':'GENEVA COINTRIN',
         'weather_station_ref': '067000-99999',
         'mask_type': 'Type I',
@@ -268,11 +268,10 @@ class FormData:
             datetime_object = datetime.datetime.strptime(self.event_month[:3], "%b")
             month = datetime_object.month
 
-            #set location
+            # set location
             self.weather_station_location = data.location_to_weather_stn(self.location_coordinates)[1]
-            print('wstn resolve location_', data.location_to_weather_stn(self.location_coordinates)[1])
             data.local_temperatures = data.location_celcius_per_hour(self.location_coordinates)
-            print('inputcoords_', self.location_coordinates)
+
             inside_temp = models.PiecewiseConstant((0, 24), (293,))
             outside_temp = data.Temperatures[str(month)]
 
