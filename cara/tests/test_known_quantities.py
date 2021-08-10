@@ -308,7 +308,7 @@ def test_concentrations_hourly_dep_temp_startup(month, temperatures, time):
 
 
 def test_concentrations_hourly_dep_multipleventilation():
-    m = build_hourly_dependent_model_multipleventilation('Jan')
+    m = build_hourly_dependent_model_multipleventilation('1')
     m.concentration(12.)
 
 
@@ -333,7 +333,7 @@ def test_concentrations_hourly_dep_adding_artificial_transitions(month_temp_item
     list(np.random.random_sample(10)*24.)+list(np.arange(0,24.5,0.5)),
 )
 def test_concentrations_refine_times(time):
-    month = 'Jan'
+    month = '1'
     m1 = build_hourly_dependent_model(month,intervals_open=((0, 24),))
     m2 = build_hourly_dependent_model(month,intervals_open=((0, 24),),
                                       artificial_refinement=True)
@@ -359,8 +359,8 @@ def build_exposure_model(concentration_model):
 @pytest.mark.parametrize(
     "month, expected_quanta",
     [
-        ['Jan', 9.930854],
-        ['Jun', 37.962708],
+        ['1', 9.930854],
+        ['6', 37.962708],
     ],
 )
 def test_quanta_hourly_dep(month,expected_quanta):
@@ -380,8 +380,8 @@ def test_quanta_hourly_dep(month,expected_quanta):
 @pytest.mark.parametrize(
     "month, expected_quanta",
     [
-        ['Jan', 9.993842],
-        ['Jun', 40.151985],
+        ['1', 9.993842],
+        ['6', 40.151985],
     ],
 )
 def test_quanta_hourly_dep_refined(month,expected_quanta):
