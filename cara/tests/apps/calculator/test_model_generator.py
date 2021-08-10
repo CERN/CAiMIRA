@@ -37,7 +37,7 @@ def test_ventilation_slidingwindow(baseline_form: model_generator.FormData):
     window = models.SlidingWindow(
         active=models.PeriodicInterval(period=120, duration=10),
         inside_temp=models.PiecewiseConstant((0, 24), (293,)),
-        outside_temp=data.GenevaTemperatures['Dec'],
+        outside_temp=data.Temperatures['12'],
         window_height=1.6, opening_length=0.6,
     )
     baseline_form.ventilation_type = 'natural_ventilation'
@@ -45,7 +45,7 @@ def test_ventilation_slidingwindow(baseline_form: model_generator.FormData):
     baseline_form.windows_frequency = 120
     baseline_form.window_opening_regime = 'windows_open_periodically'
     baseline_form.window_type = 'window_sliding'
-    baseline_form.event_month = 'December'
+    baseline_form.event_month = '12'
     baseline_form.window_height = 1.6
     baseline_form.opening_distance = 0.6
 
@@ -59,7 +59,7 @@ def test_ventilation_hingedwindow(baseline_form: model_generator.FormData):
     window = models.HingedWindow(
         active=models.PeriodicInterval(period=120, duration=10),
         inside_temp=models.PiecewiseConstant((0, 24), (293,)),
-        outside_temp=data.GenevaTemperatures['Dec'],
+        outside_temp=data.Temperatures['12'],
         window_height=1.6, window_width=1., opening_length=0.6,
     )
     baseline_form.ventilation_type = 'natural_ventilation'
@@ -112,7 +112,7 @@ def test_ventilation_window_hepa(baseline_form: model_generator.FormData):
     window = models.SlidingWindow(
         active=models.PeriodicInterval(period=120, duration=10),
         inside_temp=models.PiecewiseConstant((0, 24), (293,)),
-        outside_temp=data.GenevaTemperatures['Dec'],
+        outside_temp=data.Temperatures['12'],
         window_height=1.6, opening_length=0.6,
     )
     hepa = models.HEPAFilter(
