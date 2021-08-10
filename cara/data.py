@@ -10,15 +10,14 @@ import os
 weather_debug = False
 
 
-
 def location_to_weather_stn(location_loc):
-    #expects a tuple (lat, long)
-    #returns: weather station ID, weather station name, weather station lat, long
+    # expects a tuple (lat, long)
+    # returns: weather station ID, weather station name, weather station lat, long
     search_coords = location_loc.split(',')
-    lat=[]
-    long=[]
-    station_array=[]
-    fixed_delimits = [0,12,13, 44,51,60,69,90,91]
+    lat = []
+    long = []
+    station_array = []
+    fixed_delimits = [0, 12, 13, 44, 51, 60, 69, 90, 91]
     station_file = Path(os.getcwd()+'/cara/hadisd_station_fullinfo_v311_202001p.txt')
 
     if not station_file.exists():
@@ -33,8 +32,8 @@ def location_to_weather_stn(location_loc):
             fh.write(content.decode())
 
     for line in station_file.open('rt'):
-        start_end_positions=zip(fixed_delimits[:-1], fixed_delimits[1:])
-        split_vals=[line[start:end] for start, end in start_end_positions]
+        start_end_positions = zip(fixed_delimits[:-1], fixed_delimits[1:])
+        split_vals = [line[start:end] for start, end in start_end_positions]
         station_location = [split_vals[0], split_vals[2], split_vals[3], split_vals[4]]
         station_array.append(station_location)
         lat.append(split_vals[3])
@@ -45,25 +44,25 @@ def location_to_weather_stn(location_loc):
 
     return (station_array[ii[0]][0], station_array[ii[0]][1], station_array[ii[0]][2], station_array[ii[0]][3])
 
+
 def location_celcius_per_hour(location: object) -> object:
-    #expects a tuple (lat, long)
-    #returns a json format set of weather data
+    # expects a tuple (lat, long)
+    # returns a json format set of weather data
     w_station = location_to_weather_stn(location)
     with open(Path(os.getcwd()+"/cara/global_weather_set.json"), "r") as json_file:
         weather_dict = json.load(json_file)
     Location_hourly_temperatures_celsius_per_hour = weather_dict[w_station[0]]
     if weather_debug:
-            print(location)
-            print("weather station name: ", w_station[1])
-            weather_station_location = w_station[1]
-            print("weather station ref: ", w_station[0])
-            weather_station_ref = w_station[0]
-            print("weather station location: ", w_station[2], " ", w_station[3])
-            print(Location_hourly_temperatures_celsius_per_hour)
+        print(location)
+        print("weather station name: ", w_station[1])
+        print("weather station ref: ", w_station[0])
+        print("weather station location: ", w_station[2], " ", w_station[3])
+        print(Location_hourly_temperatures_celsius_per_hour)
     return Location_hourly_temperatures_celsius_per_hour
 
-#initialise with Geneva, change if location /=default.
-local_tempatures =  {
+
+# initialise with Geneva, change if location is different.
+local_tempatures = {
     '1': [0.2, -0.3, -0.5, -0.9, -1.1, -1.4, -1.5, -1.5, -1.1, 0.1, 1.5,
     2.8, 3.8, 4.4, 4.5, 4.4, 4.4, 3.9, 3.1, 2.7, 2.2, 1.7, 1.5, 1.1],
     '2': [0.9, 0.3, 0.0, -0.5, -0.7, -1.1, -1.2, -1.1, -0.7, 0.8, 2.5,
@@ -95,14 +94,10 @@ local_tempatures =  {
 Temperatures_hourly = {
     month: models.PiecewiseConstant(tuple(np.arange(25.)),
                              tuple(273.15+np.array(temperatures)))
-    for month,temperatures in local_tempatures.items()
+    for month, temperatures in local_tempatures.items()
 }
 # same temperatures on a finer temperature mesh
 Temperatures = {
     month: Temperatures_hourly[month].refine(refine_factor=10)
     for month, temperatures in local_tempatures.items()
 }
-
-
-
-
