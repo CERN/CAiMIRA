@@ -31,8 +31,6 @@ REQUIREMENTS: dict = {
         'psutil',
         'qrcode[pil]',
         'scipy',
-        'pathlib',
-        'urllib',
         'sklearn',
         'tornado',
         'voila >=0.2.4',
