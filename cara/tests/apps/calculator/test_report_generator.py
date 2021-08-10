@@ -2,10 +2,13 @@ import concurrent.futures
 from functools import partial
 import time
 
+import numpy.testing
+import numpy as np
 import pytest
 
-from cara.apps.calculator.report_generator import ReportGenerator, readable_minutes
 from cara.apps.calculator import make_app
+from cara.apps.calculator.report_generator import ReportGenerator, readable_minutes
+import cara.apps.calculator.report_generator as rep_gen
 
 
 def test_generate_report(baseline_form):
@@ -38,3 +41,28 @@ def test_generate_report(baseline_form):
 )
 def test_readable_minutes(test_input, expected):
     assert readable_minutes(test_input) == expected
+
+
+def test_fill_big_gaps():
+    expected = [1, 1.75, 2, 2.75, 3.5, 4]
+    assert rep_gen.fill_big_gaps([1, 2, 4], gap_size=0.75) == expected
+
+
+def test_non_temp_transition_times(baseline_exposure_model):
+    expected = [0.0, 4.0, 5.0, 8.0]
+    result = rep_gen.non_temp_transition_times(baseline_exposure_model)
+    assert result == expected
+
+
+def test_interesting_times_many(baseline_exposure_model):
+    result = rep_gen.interesting_times(baseline_exposure_model, approx_n_pts=100)
+    assert 100 <= len(result) <= 120
+    assert np.abs(np.diff(result)).max() < 8.1/100.
+
+
+def test_interesting_times_small(baseline_exposure_model):
+    expected = [0.0, 0.8, 1.6, 2.4, 3.2, 4.0, 4.8, 5.0, 5.8, 6.6, 7.4, 8.0]
+    # Ask for more data than there is in the transition times.
+    result = rep_gen.interesting_times(baseline_exposure_model, approx_n_pts=10)
+
+    np.testing.assert_allclose(result, expected, atol=1e-04)
