@@ -195,7 +195,7 @@ def test_windowopening(time, expected_value):
 def build_hourly_dependent_model(month, intervals_open=((7.5, 8.5),),
                     intervals_presence_infected=((0, 4), (5, 7.5)),
                     artificial_refinement=False,
-                    temperatures=data.GenevaTemperatures_hourly):
+                    temperatures=data.Temperatures_hourly):
     if artificial_refinement:
         # 5-fold increase of number of times, WITHOUT interpolation
         # (hence transparent for the results)
@@ -254,7 +254,7 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
         models.SlidingWindow(
             active=models.SpecificInterval(intervals_open),
             inside_temp=models.PiecewiseConstant((0,24),(293,)),
-            outside_temp=data.GenevaTemperatures[month],
+            outside_temp=data.Temperatures[month],
             window_height=1.6, opening_length=0.6,
         ),
         models.HEPAFilter(
@@ -390,7 +390,7 @@ def test_quanta_hourly_dep_refined(month,expected_quanta):
             month,
             intervals_open=((0, 24),),
             intervals_presence_infected=((8, 12), (13, 17)),
-            temperatures=data.GenevaTemperatures,
+            temperatures=data.Temperatures,
         )
     )
     quanta = m.quanta_exposure()
