@@ -278,7 +278,7 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
 
 @pytest.mark.parametrize(
     "month, temperatures",
-    data.Geneva_hourly_temperatures_celsius_per_hour.items(),
+    data.local_tempatures.items(),
 )
 @pytest.mark.parametrize(
     "time",
@@ -293,7 +293,7 @@ def test_concentrations_hourly_dep_temp_vs_constant(month, temperatures, time):
 
 @pytest.mark.parametrize(
     "month, temperatures",
-    data.Geneva_hourly_temperatures_celsius_per_hour.items(),
+    data.local_tempatures.items(),
 )
 @pytest.mark.parametrize(
     "time",
@@ -314,7 +314,7 @@ def test_concentrations_hourly_dep_multipleventilation():
 
 @pytest.mark.parametrize(
     "month_temp_item",
-    data.Geneva_hourly_temperatures_celsius_per_hour.items(),
+    data.local_tempatures.items(),
 )
 @pytest.mark.parametrize(
     "time",
