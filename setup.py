@@ -30,7 +30,6 @@ REQUIREMENTS: dict = {
         'numpy',
         'psutil',
         'python-dateutil',
-        'qrcode[pil]',
         'scipy',
         'sklearn',
         'timezonefinder',
