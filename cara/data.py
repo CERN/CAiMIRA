@@ -2,32 +2,19 @@ import numpy as np
 from cara import models
 import json
 import urllib.request
-import numpy as np
 from pathlib import Path
 from scipy.spatial import cKDTree
 import os
 
 
-#items to pass into this module
-calc_location = (46.2044, 6.1432)
-
-#items to return to model 
-#w_station
-
-weather_station = ""  #"067000-99999" this is the Cointrin station for Geneva
-weather_station_name = ""
-weather_debug = True
+weather_debug = False
 
 
 
 def location_to_weather_stn(location_loc):
     #expects a tuple (lat, long)
     #returns: weather station ID, weather station name, weather station lat, long
-    print('location_loc,', location_loc)
-
-    search_coords = location_loc.split(',') #[location_loc[0], location_loc[1]]
-    print('location_searchcoords,', search_coords)
-
+    search_coords = location_loc.split(',')
     lat=[]
     long=[]
     station_array=[]
@@ -62,7 +49,6 @@ def location_celcius_per_hour(location):
     #expects a tuple (lat, long)
     #returns a json format set of weather data
     w_station = location_to_weather_stn(location)
-    print(os.getcwd())
     with open(Path(os.getcwd()+"/cara/global_weather_set.json"), "r") as json_file:
         weather_dict = json.load(json_file)
     Location_hourly_temperatures_celsius_per_hour = weather_dict[w_station[0]]
