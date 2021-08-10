@@ -81,5 +81,5 @@ def test_piecewiseconstant_vs_interval(time):
 
 
 def test_piecewiseconstant_transition_times():
-    outside_temp = data.GenevaTemperatures['Jan']
+    outside_temp = data.GenevaTemperatures['1']
     assert set(outside_temp.transition_times) == outside_temp.interval().transition_times()
