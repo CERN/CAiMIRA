@@ -117,7 +117,7 @@ def plot(times, concentrations, model: models.ExposureModel):
     ax.spines['top'].set_visible(False)
 
     ax.set_xlabel('Time of day')
-    ax.set_ylabel('Mean concentration ($q/m^3$)')
+    ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
     ax.set_title('Mean concentration of virions')
     ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
 
@@ -238,7 +238,7 @@ def comparison_plot(scenarios: typing.Dict[str, dict], sample_times: np.ndarray)
     ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
 
     ax.set_xlabel('Time of day')
-    ax.set_ylabel('Mean concentration ($q/m^3$)')
+    ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
     ax.set_title('Mean concentration of virions')
 
     return fig
