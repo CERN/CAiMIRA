@@ -30,7 +30,7 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
         .attr('height', margins.top)
         .append('xhtml:body')
         .style('text-align', 'center')
-        .html('Mean concentration of infectious quanta');
+        .html('Mean concentration of virions');
 
     // Line representing the mean concentration.
     var lineFunc = d3.line()
@@ -74,7 +74,7 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
         .attr('text-anchor', 'middle')
         .attr('x', (height + margins.bottom) / 2)
         .attr('y', (height + margins.left) * 0.92)
-        .text('Mean concentration (q/m^3)');
+        .text('Mean concentration (virions/m³)');
 
     // Area representing the presence of exposed person(s).
     exposed_presence_intervals.forEach(b => {
