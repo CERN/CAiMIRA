@@ -91,7 +91,7 @@ ax.set_yscale('log')
 ############# Coleman #############
 coleman_etal_vl = [np.log10(821065925.4), np.log10(1382131207), np.log10(81801735.96), np.log10(487760677.4), np.log10(2326593535), np.log10(1488879159), np.log10(884480386.5)]
 coleman_etal_er = [127, 455.2, 281.8, 884.2, 448.4, 1100.6, 621]
-plt.scatter(coleman_etal_vl, coleman_etal_er)
+plt.scatter(coleman_etal_vl, coleman_etal_er, label='Coleman et al')
 x_hull, y_hull = get_enclosure_points(coleman_etal_vl, coleman_etal_er)
 # plot shape
 plt.fill(x_hull, y_hull, '--', c='orange', alpha=0.2)
@@ -102,8 +102,9 @@ markers = ['*', 'v', 's']
 ############# Milton et al #############
 milton_vl = [np.log10(8.30E+04), np.log10(4.20E+05), np.log10(1.80E+06)]
 milton_er = [22, 220, 1120] # removed first and last due to its dimensions
-for i, point in enumerate(milton_vl):
-    plt.scatter(point, milton_er[i], marker=markers[i], color='red')
+plt.scatter(milton_vl[0], milton_er[0], marker=markers[0], color='red', label = '   Milton et al 25th')
+plt.scatter(milton_vl[1], milton_er[1], marker=markers[1], color='red', label = '   Milton et al Mean')
+plt.scatter(milton_vl[2], milton_er[2], marker=markers[2], color='red', label = '   Milton et al 75th')
 x_hull, y_hull = get_enclosure_points(milton_vl, milton_er)
 # plot shape
 plt.fill(x_hull, y_hull, '--', c='red', alpha=0.2)
@@ -111,50 +112,52 @@ plt.fill(x_hull, y_hull, '--', c='red', alpha=0.2)
 ############# Yan et al #############
 yan_vl = [np.log10(7.86E+07), np.log10(2.23E+09), np.log10(1.51E+10)] # removed first and last due to its dimensions
 yan_er = [8396.78166, 45324.55964, 400054.0827]
-for i, point in enumerate(yan_vl):
-    plt.scatter(point, yan_er[i], marker=markers[i], color='green')
+plt.scatter(yan_vl[0], yan_er[0], marker=markers[0], color='green', label = '   Yan et al 25th')
+plt.scatter(yan_vl[1], yan_er[1], marker=markers[1], color='green', label = '   Yan et al Mean')
+plt.scatter(yan_vl[2], yan_er[2], marker=markers[2], color='green', label = '   Yan et al 75th')
+
 x_hull, y_hull = get_enclosure_points(yan_vl, yan_er)
 # plot shape
 plt.fill(x_hull, y_hull, '--', c='green', alpha=0.2)
 
-# Milton
-boxes = [
-    {
-        'label': "Milton data",
-        'whislo': 0,    # Bottom whisker position
-        'q1': 22,    # First quartile (25th percentile)
-        'med': 220,    # Median         (50th percentile)
-        'q3': 1120,    # Third quartile (75th percentile)
-        'whishi': 260000,    # Top whisker position
-        'fliers': []        # Outliers
-    }
-]
-# `box plot aligned with the viral load value of 5.62325
-ax.bxp(boxes, showfliers=False, positions=[5.62324929])
+# # Milton
+# boxes = [
+#     {
+#         'label': "Milton data",
+#         'whislo': 0,    # Bottom whisker position
+#         'q1': 22,    # First quartile (25th percentile)
+#         'med': 220,    # Median         (50th percentile)
+#         'q3': 1120,    # Third quartile (75th percentile)
+#         'whishi': 260000,    # Top whisker position
+#         'fliers': []        # Outliers
+#     }
+# ]
+# # `box plot aligned with the viral load value of 5.62325
+# ax.bxp(boxes, showfliers=False, positions=[5.62324929])
 
-# Yan
+# # Yan
 
-boxes = [
-    {
-        'whislo': 1424.81,    # Bottom whisker position
-        'q1': 8396.78,    # First quartile (25th percentile)
-        'med': 45324.6,    # Median         (50th percentile)
-        'q3': 400054,    # Third quartile (75th percentile)
-        'whishi': 88616200,    # Top whisker position
-        'fliers': []        # Outliers
-    }
-]
-ax.bxp(boxes, showfliers=False, positions=[9.34786])
-
+# boxes = [
+#     {
+#         'whislo': 1424.81,    # Bottom whisker position
+#         'q1': 8396.78,    # First quartile (25th percentile)
+#         'med': 45324.6,    # Median         (50th percentile)
+#         'q3': 400054,    # Third quartile (75th percentile)
+#         'whishi': 88616200,    # Top whisker position
+#         'fliers': []        # Outliers
+#     }
+# ]
+# ax.bxp(boxes, showfliers=False, positions=[9.34786])
 # box plot aligned with the viral load value of 9.34786
 
 ############ Legend ############
-min = mlines.Line2D([], [], color='gray', marker='_', linestyle='None', label = 'Min')
-first_quantile = mlines.Line2D([], [], color='gray', marker='*', linestyle='None', label = '25th quantile')
-second_quantile = mlines.Line2D([], [], color='gray', marker='v', linestyle='None', label = 'Mean')
-third_quantile = mlines.Line2D([], [], color='gray', marker='s', linestyle='None', label = '75th quantile')
-max = mlines.Line2D([], [], color='gray', marker='+', linestyle='None', label = 'Max')
-plt.legend(handles=[min, first_quantile, second_quantile, third_quantile, max])
+# min = mlines.Line2D([], [], color='gray', marker='_', linestyle='None', label = 'Min')
+# first_quantile = mlines.Line2D([], [], color='gray', marker='*', linestyle='None', label = '25th quantile')
+# second_quantile = mlines.Line2D([], [], color='gray', marker='v', linestyle='None', label = 'Mean')
+# third_quantile = mlines.Line2D([], [], color='gray', marker='s', linestyle='None', label = '75th quantile')
+# max = mlines.Line2D([], [], color='gray', marker='+', linestyle='None', label = 'Max')
+# plt.legend(handles=[min, first_quantile, second_quantile, third_quantile, max])
+ax.legend()
 
 ############ Plot ############
 plt.title('Exhaled virions while breathing for 1h', fontsize=14)
