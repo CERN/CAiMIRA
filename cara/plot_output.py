@@ -1,12 +1,29 @@
 from dataclasses import field
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.lines as mlines
+import pandas as pd
 import csv
 
 import cara.monte_carlo as mc
-from cara import models, data
+from cara import models
 from cara.monte_carlo.data import activity_distributions
 from tqdm import tqdm
+from scipy.spatial import ConvexHull
+
+def get_enclosure_points(x_coordinates, y_coordinates):
+    df = pd.DataFrame({'x': x_coordinates, 'y': y_coordinates})
+
+    points = df[['x', 'y']].values
+    # get convex hull
+    hull = ConvexHull(points)
+    # get x and y coordinates
+    # repeat last point to close the polygon
+    x_hull = np.append(points[hull.vertices,0],
+                        points[hull.vertices,0][0])
+    y_hull = np.append(points[hull.vertices,1],
+                        points[hull.vertices,1][0])
+    return x_hull, y_hull
 
 SAMPLE_SIZE = 50000
 
@@ -71,18 +88,34 @@ ax.fill_between(viral_loads, lower_percentiles,
                 upper_percentiles, alpha=0.2)
 ax.set_yscale('log')
 
-coleman_etal_vl = [8.914378029, 9.140549273, 7.91276252,
-                   8.688206785, 9.366720517, 9.172859451, 8.946688207]
+############# Coleman #############
+coleman_etal_vl = [np.log10(821065925.4), np.log10(1382131207), np.log10(81801735.96), np.log10(487760677.4), np.log10(2326593535), np.log10(1488879159), np.log10(884480386.5)]
 coleman_etal_er = [127, 455.2, 281.8, 884.2, 448.4, 1100.6, 621]
 plt.scatter(coleman_etal_vl, coleman_etal_er)
+x_hull, y_hull = get_enclosure_points(coleman_etal_vl, coleman_etal_er)
+# plot shape
+plt.fill(x_hull, y_hull, '--', c='orange', alpha=0.2)
 
-milton_vl = [5.62324929]
-milton_er = [220]
-plt.scatter(milton_vl, milton_er)
+############# Markers #############
+markers = ['*', 'v', 's']
 
-yan_vl = [9.347856705]
-yan_er = [45324.55964]
-plt.scatter(yan_vl, yan_er)
+############# Milton et al #############
+milton_vl = [np.log10(8.30E+04), np.log10(4.20E+05), np.log10(1.80E+06)]
+milton_er = [22, 220, 1120] # removed first and last due to its dimensions
+for i, point in enumerate(milton_vl):
+    plt.scatter(point, milton_er[i], marker=markers[i], color='red')
+x_hull, y_hull = get_enclosure_points(milton_vl, milton_er)
+# plot shape
+plt.fill(x_hull, y_hull, '--', c='red', alpha=0.2)
+
+############# Yan et al #############
+yan_vl = [np.log10(7.86E+07), np.log10(2.23E+09), np.log10(1.51E+10)] # removed first and last due to its dimensions
+yan_er = [8396.78166, 45324.55964, 400054.0827]
+for i, point in enumerate(yan_vl):
+    plt.scatter(point, yan_er[i], marker=markers[i], color='green')
+x_hull, y_hull = get_enclosure_points(yan_vl, yan_er)
+# plot shape
+plt.fill(x_hull, y_hull, '--', c='green', alpha=0.2)
 
 # Milton
 boxes = [
@@ -115,6 +148,15 @@ ax.bxp(boxes, showfliers=False, positions=[9.34786])
 
 # box plot aligned with the viral load value of 9.34786
 
+############ Legend ############
+min = mlines.Line2D([], [], color='gray', marker='_', linestyle='None', label = 'Min')
+first_quantile = mlines.Line2D([], [], color='gray', marker='*', linestyle='None', label = '25th quantile')
+second_quantile = mlines.Line2D([], [], color='gray', marker='v', linestyle='None', label = 'Mean')
+third_quantile = mlines.Line2D([], [], color='gray', marker='s', linestyle='None', label = '75th quantile')
+max = mlines.Line2D([], [], color='gray', marker='+', linestyle='None', label = 'Max')
+plt.legend(handles=[min, first_quantile, second_quantile, third_quantile, max])
+
+############ Plot ############
 plt.title('Exhaled virions while breathing for 1h', fontsize=14)
 plt.ylabel('RNA copies', fontsize=12)
 plt.xticks(ticks=[i for i in range(2, 13)], labels=[
