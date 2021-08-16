@@ -140,7 +140,7 @@ class ExposureModelResult(View):
             ax.spines['top'].set_visible(False)
 
             ax.set_xlabel('Time (hours)')
-            ax.set_ylabel('Concentration ($q/m^3$)')
+            ax.set_ylabel('Concentration ($virions/m^{3}$)')
             ax.set_title('Concentration of virions')
         else:
             self.ax.ignore_existing_data_limits = True
@@ -185,7 +185,7 @@ class ExposureComparissonResult(View):
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
         ax.set_xlabel('Time (hours)')
-        ax.set_ylabel('Concentration ($q/m^3$)')
+        ax.set_ylabel('Concentration ($virions/m^{3}$)')
         ax.set_title('Concentration of virions')
         return ax
 
