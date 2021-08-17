@@ -1,5 +1,5 @@
 /* Generate the concentration plot using d3 library. */
-function draw_concentration_plot(svg_id, times, concentrations, cumulative_dose, exposed_presence_intervals) {
+function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses, exposed_presence_intervals) {
     var visBoundingBox = d3.select(svg_id)
         .node()
         .getBoundingClientRect();
@@ -7,7 +7,7 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_dose,
     var time_format = d3.timeFormat('%H:%M');
 
     var data = []
-    times.map((time, index) => data.push({ 'time': time, 'hour': new Date().setHours(Math.trunc(time), (time - Math.trunc(time)) * 60), 'concentration': concentrations[index], 'cumulative_dose': cumulative_dose[index] }))
+    times.map((time, index) => data.push({ 'time': time, 'hour': new Date().setHours(Math.trunc(time), (time - Math.trunc(time)) * 60), 'concentration': concentrations[index], 'cumulative_doses': cumulative_doses[index] }))
 
     var vis = d3.select(svg_id),
         width = visBoundingBox.width - 400,
@@ -20,7 +20,7 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_dose,
         bisecHour = d3.bisector((d) => { return d.hour; }).left,
 
         yRange = d3.scaleLinear().range([height - margins.bottom, margins.top]).domain([0., Math.max(...concentrations)]),
-        yCumulatedRange = d3.scaleLinear().range([height - margins.bottom, margins.top]).domain([0., Math.max(...cumulative_dose)]),
+        yCumulatedRange = d3.scaleLinear().range([height - margins.bottom, margins.top]).domain([0., Math.max(...cumulative_doses)]),
 
         xAxis = d3.axisBottom(xRange).tickFormat(d => time_format(d)),
         yAxis = d3.axisLeft(yRange),
@@ -49,9 +49,9 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_dose,
 
     // Line representing the cumulative concentration.
     var lineCumulativeFunc = d3.line()
-        .defined(d => !isNaN(d.cumulative_dose))
+        .defined(d => !isNaN(d.cumulative_doses))
         .x(d => xTimeRange(d.time))
-        .y(d => yCumulatedRange(d.cumulative_dose))
+        .y(d => yCumulatedRange(d.cumulative_doses))
         .curve(d3.curveBasis);
 
     vis.append('svg:path')

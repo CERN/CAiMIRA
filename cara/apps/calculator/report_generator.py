@@ -44,12 +44,15 @@ def calculate_report_data(model: models.ExposureModel):
     er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
     exposed_occupants = model.exposed.number
     expected_new_cases = np.array(model.expected_new_cases()).mean()
-    cumulative_dose = np.array([model.cumulated_exposure_vs_time(t) for t in times]).mean()
+    cumulative_doses = [
+        np.array(model.cumulated_exposure_vs_time(float(time))).mean()
+        for time in times
+    ]
 
     return {
         "times": list(times),
         "exposed_presence_intervals": [list(interval) for interval in model.exposed.presence.boundaries()],
-        "cumulative_dose": cumulative_dose,
+        "cumulative_doses": cumulative_doses,
         "concentrations": concentrations,
         "highest_const": highest_const,
         "prob_inf": prob,
