@@ -1000,7 +1000,7 @@ classroom_model_IGH_with_mask_windows_closed_1HEPA = [MCExposureModel(
             ventilations=(
                 models.AirChange(
                         active=models.PeriodicInterval(period=120, duration=120),
-                        air_exch=0.25,
+                        air_exch=0.,
                          ),
                 models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120),
                                  q_air_mech=430)
@@ -1031,7 +1031,7 @@ classroom_model_IGH_with_mask_windows_closed_2HEPA = [MCExposureModel(
             ventilations=(
                 models.AirChange(
                         active=models.PeriodicInterval(period=120, duration=120),
-                        air_exch=0.25,
+                        air_exch=0.,
                          ),
                 models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120),
                                  q_air_mech=860)
