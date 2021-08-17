@@ -158,13 +158,21 @@ from cara.model_scenarios_IGH_paper import *
 #print_qd_info(classroom_model_IGH_no_mask_windows_open_breaks_endOfClass_winter[0])
 #print_qd_info(classroom_model_IGH_no_mask_windows_closed[0])
 
-print_qd_info(classroom_model_IGH_no_mask_windows_closed[0])
+#print_qd_info(classroom_model_IGH_no_mask_windows_closed[0])
 #print_qd_info(classroom_model_IGH_no_mask_6windows_open_breaks_endOfClass[0])
-print_qd_info(classroom_model_IGH_no_mask_2windows_open_breaks_endOfClass_winter[0])
+#print_qd_info(classroom_model_IGH_no_mask_2windows_open_breaks_endOfClass_winter[0])
 #print_qd_info(classroom_model_IGH_no_mask_windows_open_breaks_endOfClass_winter[0])
 
+compare_concentration_curves_virus_IGH_paper([classroom_model_IGH_no_mask_windows_closed[0],classroom_model_IGH_with_mask_windows_closed_1HEPA[0],
+                              classroom_model_IGH_with_mask_windows_closed_2HEPA[0]],
+                             labels=['No masks', '1 HEPA filter (2.5 ACH) + surgical masks', '2 HEPA filter (5 ACH) + surgical masks'],
+                             colors=['tomato', 'lightskyblue', 'limegreen', '#1f77b4', 'seagreen', 'lightskyblue', 'deepskyblue'],
+                             title='Combination of measures (windows closed) '
+                             )
 
-
+print_qd_info(classroom_model_IGH_no_mask_windows_closed[0])
+print_qd_info(classroom_model_IGH_with_mask_windows_closed_1HEPA[0])
+print_qd_info(classroom_model_IGH_with_mask_windows_closed_2HEPA[0])
 
 
 #compare_concentration_curves([classroom_model_IGH_no_mask_windows_closed[1],classroom_model_IGH_no_mask_2windows_open_breaks[1],classroom_model_IGH_no_mask_2windows_open_breaks_endOfClass[1],
@@ -177,3 +185,4 @@ print_qd_info(classroom_model_IGH_no_mask_2windows_open_breaks_endOfClass_winter
 #                             )
 
 #present_model(classroom_model_IGH_no_mask_windows_closed[0].concentration_model, title='')
+
