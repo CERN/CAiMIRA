@@ -2,6 +2,7 @@ from dataclasses import field
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
+from matplotlib.patches import Rectangle
 import pandas as pd
 import csv
 
@@ -11,6 +12,7 @@ from cara.monte_carlo.data import activity_distributions
 from tqdm import tqdm
 from scipy.spatial import ConvexHull
 
+
 def get_enclosure_points(x_coordinates, y_coordinates):
     df = pd.DataFrame({'x': x_coordinates, 'y': y_coordinates})
 
@@ -19,11 +21,12 @@ def get_enclosure_points(x_coordinates, y_coordinates):
     hull = ConvexHull(points)
     # get x and y coordinates
     # repeat last point to close the polygon
-    x_hull = np.append(points[hull.vertices,0],
-                        points[hull.vertices,0][0])
-    y_hull = np.append(points[hull.vertices,1],
-                        points[hull.vertices,1][0])
+    x_hull = np.append(points[hull.vertices, 0],
+                       points[hull.vertices, 0][0])
+    y_hull = np.append(points[hull.vertices, 1],
+                       points[hull.vertices, 1][0])
     return x_hull, y_hull
+
 
 SAMPLE_SIZE = 50000
 
@@ -89,9 +92,10 @@ ax.fill_between(viral_loads, lower_percentiles,
 ax.set_yscale('log')
 
 ############# Coleman #############
-coleman_etal_vl = [np.log10(821065925.4), np.log10(1382131207), np.log10(81801735.96), np.log10(487760677.4), np.log10(2326593535), np.log10(1488879159), np.log10(884480386.5)]
+coleman_etal_vl = [np.log10(821065925.4), np.log10(1382131207), np.log10(81801735.96), np.log10(
+    487760677.4), np.log10(2326593535), np.log10(1488879159), np.log10(884480386.5)]
 coleman_etal_er = [127, 455.2, 281.8, 884.2, 448.4, 1100.6, 621]
-plt.scatter(coleman_etal_vl, coleman_etal_er, label='Coleman et al')
+plt.scatter(coleman_etal_vl, coleman_etal_er)
 x_hull, y_hull = get_enclosure_points(coleman_etal_vl, coleman_etal_er)
 # plot shape
 plt.fill(x_hull, y_hull, '--', c='orange', alpha=0.2)
@@ -101,20 +105,21 @@ markers = ['*', 'v', 's']
 
 ############# Milton et al #############
 milton_vl = [np.log10(8.30E+04), np.log10(4.20E+05), np.log10(1.80E+06)]
-milton_er = [22, 220, 1120] # removed first and last due to its dimensions
-plt.scatter(milton_vl[0], milton_er[0], marker=markers[0], color='red', label = '   Milton et al 25th')
-plt.scatter(milton_vl[1], milton_er[1], marker=markers[1], color='red', label = '   Milton et al Mean')
-plt.scatter(milton_vl[2], milton_er[2], marker=markers[2], color='red', label = '   Milton et al 75th')
+milton_er = [22, 220, 1120]  # removed first and last due to its dimensions
+plt.scatter(milton_vl[0], milton_er[0], marker=markers[0], color='red')
+plt.scatter(milton_vl[1], milton_er[1], marker=markers[1], color='red')
+plt.scatter(milton_vl[2], milton_er[2], marker=markers[2], color='red')
 x_hull, y_hull = get_enclosure_points(milton_vl, milton_er)
 # plot shape
 plt.fill(x_hull, y_hull, '--', c='red', alpha=0.2)
 
 ############# Yan et al #############
-yan_vl = [np.log10(7.86E+07), np.log10(2.23E+09), np.log10(1.51E+10)] # removed first and last due to its dimensions
+# removed first and last due to its dimensions
+yan_vl = [np.log10(7.86E+07), np.log10(2.23E+09), np.log10(1.51E+10)]
 yan_er = [8396.78166, 45324.55964, 400054.0827]
-plt.scatter(yan_vl[0], yan_er[0], marker=markers[0], color='green', label = '   Yan et al 25th')
-plt.scatter(yan_vl[1], yan_er[1], marker=markers[1], color='green', label = '   Yan et al Mean')
-plt.scatter(yan_vl[2], yan_er[2], marker=markers[2], color='green', label = '   Yan et al 75th')
+plt.scatter(yan_vl[0], yan_er[0], marker=markers[0], color='green')
+plt.scatter(yan_vl[1], yan_er[1], marker=markers[1], color='green')
+plt.scatter(yan_vl[2], yan_er[2], marker=markers[2], color='green')
 
 x_hull, y_hull = get_enclosure_points(yan_vl, yan_er)
 # plot shape
@@ -151,13 +156,35 @@ plt.fill(x_hull, y_hull, '--', c='green', alpha=0.2)
 # box plot aligned with the viral load value of 9.34786
 
 ############ Legend ############
-# min = mlines.Line2D([], [], color='gray', marker='_', linestyle='None', label = 'Min')
-# first_quantile = mlines.Line2D([], [], color='gray', marker='*', linestyle='None', label = '25th quantile')
-# second_quantile = mlines.Line2D([], [], color='gray', marker='v', linestyle='None', label = 'Mean')
-# third_quantile = mlines.Line2D([], [], color='gray', marker='s', linestyle='None', label = '75th quantile')
-# max = mlines.Line2D([], [], color='gray', marker='+', linestyle='None', label = 'Max')
-# plt.legend(handles=[min, first_quantile, second_quantile, third_quantile, max])
-ax.legend()
+result_from_model = mlines.Line2D(
+    [], [], color='blue', marker='_', linestyle='None')
+coleman = mlines.Line2D([], [], color='orange', marker='o', linestyle='None')
+milton_mean = mlines.Line2D(
+    [], [], color='red', marker='v', linestyle='None')  # mean
+milton_25 = mlines.Line2D(
+    [], [], color='red', marker='*', linestyle='None')  # 25
+milton_75 = mlines.Line2D(
+    [], [], color='red', marker='s', linestyle='None')  # 75
+yann_mean = mlines.Line2D([], [], color='green',
+                          marker='v', linestyle='None')  # mean
+yann_25 = mlines.Line2D([], [], color='green',
+                        marker='*', linestyle='None')  # 25
+yann_75 = mlines.Line2D([], [], color='green',
+                        marker='s', linestyle='None')  # 75
+
+title_proxy = Rectangle((0, 0), 0, 0, color='w')
+titles = ["$\\bf{CARA \, (SARS-CoV-2)}$", "$\\bf{Coleman \, et \, al. \, (SARS-CoV-2)}$",
+          "$\\bf{Milton \, et \, al.  \,(Influenza)}$", "$\\bf{Yann \, et \, al.  \,(Influenza)}$"]
+leg = plt.legend([title_proxy, result_from_model, title_proxy, coleman, title_proxy, milton_mean, milton_25, milton_75, title_proxy, yann_mean, yann_25, yann_75],
+                 [titles[0], "Result from model", titles[1], "Dataset", titles[2], "Mean", "25th per.", "75th per.", titles[3], "Mean", "25th per.", "75th per."])
+
+# Move titles to the left
+for item, label in zip(leg.legendHandles, leg.texts):
+    if label._text in titles:
+        width = item.get_window_extent(fig.canvas.get_renderer()).width
+        label.set_ha('left')
+        label.set_position((-3*width, 0))
+
 
 ############ Plot ############
 plt.title('Exhaled virions while breathing for 1h', fontsize=14)
