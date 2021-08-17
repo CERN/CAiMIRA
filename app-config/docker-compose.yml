@@ -4,6 +4,7 @@ services:
     image: cara-webservice
     environment:
       - APP_NAME=cara-voila
+    user: ${CURRENT_UID:?"Please run as follows 'CURRENT_UID=$(id -u):$(id -g) docker-compose up'"}
 
   cara-webservice:
     image: cara-webservice
@@ -12,6 +13,7 @@ services:
       - APP_NAME=cara-webservice
       - CARA_CALCULATOR_PREFIX=/calculator-cern
       - CARA_THEME=cara/apps/calculator/themes/cern
+    user: ${CURRENT_UID}
 
   cara-calculator-open:
     image: cara-webservice
@@ -19,6 +21,7 @@ services:
       - COOKIE_SECRET
       - APP_NAME=cara-webservice
       - CARA_CALCULATOR_PREFIX=/calculator-open
+    user: ${CURRENT_UID}
 
   auth-service:
     image: auth-service
@@ -28,6 +31,7 @@ services:
       - OIDC_REALM
       - CLIENT_ID
       - CLIENT_SECRET
+    user: ${CURRENT_UID}
 
   cara-router:
     image: cara-nginx-app
@@ -35,10 +39,11 @@ services:
       - "8080:8080"
     depends_on:
       cara-webservice:
-          condition: service_started
+        condition: service_started
       cara-calculator-open:
-            condition: service_started
+        condition: service_started
       cara-app:
-          condition: service_started
+        condition: service_started
       auth-service:
-          condition: service_started
+        condition: service_started
+    user: ${CURRENT_UID}

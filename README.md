@@ -2,7 +2,7 @@
 
 CARA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.
 
-CARA models the concentration profile of potential infectious viruses in enclosed spaces with clear and intuitive graphs.
+CARA models the concentration profile of potential virions in enclosed spaces with clear and intuitive graphs.
 The user can set a number of parameters, including room volume, exposure time, activity type, mask-wearing and ventilation.
 The report generated indicates how to avoid exceeding critical concentrations and chains of airborne transmission in spaces such as individual offices, meeting rooms and labs.
 
@@ -26,7 +26,7 @@ Each event modelled is unique, and the results generated therein are only as acc
 ## Authors
 CARA was developed by following members of CERN - European Council for Nuclear Research (visit https://home.cern/):
 
-Andre Henriques<sup>1</sup>, Marco Andreini<sup>1</sup>, Gabriella Azzopardi<sup>2</sup>, James Devine<sup>3</sup>, Philip Elson<sup>4</sup>, Nicolas Mounet<sup>2</sup>, Markus Kongstein Rognlien<sup>2,6</sup>, Nicola Tarocco<sup>5</sup>
+Andre Henriques<sup>1</sup>, Luis Aleixo<sup>1</sup>, Marco Andreini<sup>1</sup>, Gabriella Azzopardi<sup>2</sup>, James Devine<sup>3</sup>, Philip Elson<sup>4</sup>, Nicolas Mounet<sup>2</sup>, Markus Kongstein Rognlien<sup>2,6</sup>, Nicola Tarocco<sup>5</sup>
 
 <sup>1</sup>HSE Unit, Occupational Health & Safety Group, CERN<br>
 <sup>2</sup>Beams Department, Accelerators and Beam Physics Group, CERN<br>
@@ -108,11 +108,10 @@ python -m cara.apps.calculator --prefix=/mycalc
 
 ```
 pip install -e .   # At the root of the repository
-voila ./app/cara.ipynb
+voila cara/apps/expert/cara.ipynb --port=8080
 ```
 
-
-Then visit http://localhost:8080/calculator.
+Then visit http://localhost:8080.
 
 
 ### Running the tests
@@ -128,8 +127,8 @@ pytest ./cara
 
 ```
 s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./app-config/nginx/ centos/nginx-112-centos7 cara-nginx-app
-s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./ centos/python-36-centos7 cara-webservice
-s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./app-config/auth-service centos/python-36-centos7 auth-service
+docker build . -f ./app-config/cara-webservice/Dockerfile -t cara-webservice
+docker build ./app-config/auth-service -t auth-service
 ```
 
 Get the client secret from the CERN Application portal for the `cara-test` app. See [CERN-SSO-integration](#CERN-SSO-integration) for more info.
@@ -149,7 +148,7 @@ export CLIENT_SECRET
 Run docker-compose:
 ```
 cd app-config
-docker-compose up
+CURRENT_UID=$(id -u):$(id -g) docker-compose up
 ```
 
 Then visit http://localhost:8080/.
@@ -194,10 +193,12 @@ If you need to create the application in a new project, run:
 ```console
 $ cd app-config/openshift
 
-$ oc process -f application.yaml --param PROJECT_NAME='test-cara' --param GIT_BRANCH='live/test-cara' | oc create -f -
+$ oc process -f routes.yaml --param HOST='test-cara.web.cern.ch' | oc create -f -
 $ oc process -f configmap.yaml | oc create -f -
 $ oc process -f services.yaml | oc create -f -
-$ oc process -f route.yaml --param HOST='test-cara.web.cern.ch' | oc create -f -
+$ oc process -f imagestreams.yaml | oc create -f -
+$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/test-cara' | oc create -f -
+$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='test-cara'  | oc create -f -
 ```
 
 Then, create the webhook secret to be able to trigger automatic builds from GitLab.
@@ -210,6 +211,17 @@ $ oc create secret generic \
   --from-literal="WebHookSecretKey=$WEBHOOKSECRET" \
   gitlab-cara-webhook-secret
 ```
+
+For CI usage, we also suggest creating a service account:
+
+```console
+oc create sa gitlab-config-checker
+```
+
+Under ``Resources`` -> ``Membership`` enable the ``View`` role for this new service account.
+
+To get this new user's authentication token go to ``Resources`` -> ``Secrets`` and locate the token in the newly
+created secret associated with the user (in this case ``gitlab-config-checker-token-XXXX``).
 
 ### CERN SSO integration
 
@@ -261,7 +273,7 @@ $ cd app-config/openshift
 
 $ oc process -f configmap.yaml | oc replace -f -
 $ oc process -f services.yaml | oc replace -f -
-$ oc process -f route.yaml --param HOST='test-cara.web.cern.ch' | oc replace -f -
+$ oc process -f routes.yaml --param HOST='test-cara.web.cern.ch' | oc replace -f -
 $ oc process -f imagestreams.yaml | oc replace -f -
 $ oc process -f buildconfig.yaml --param GIT_BRANCH='live/test-cara' | oc replace -f -
 $ oc process -f deploymentconfig.yaml --param PROJECT_NAME='test-cara' | oc replace -f -
@@ -269,4 +281,3 @@ $ oc process -f deploymentconfig.yaml --param PROJECT_NAME='test-cara' | oc repl
 
 Be aware that if you change/replace the **route** of the PROD instance,
 it will lose the annotation to be exposed outside CERN (not committed in this repo).
-

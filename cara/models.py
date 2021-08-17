@@ -46,6 +46,8 @@ else:
     # by providing a no-op cache decorator when type-checking.
     cached = lambda *cached_args, **cached_kwargs: lambda function: function  # noqa
 
+from .utils import method_cache
+
 from .dataclass_utils import nested_replace
 
 
@@ -62,7 +64,7 @@ class Room:
     volume: _VectorisedFloat
 
     #: The humidity in the room (from 0 to 1 - e.g. 0.5 is 50% humidity)
-    humidity: _VectorisedFloat=0.5
+    humidity: _VectorisedFloat = 0.5
 
 
 Time_t = typing.TypeVar('Time_t', float, int)
@@ -126,7 +128,9 @@ class PeriodicInterval(Interval):
             return tuple()
         result = []
         for i in np.arange(0, 24, self.period / 60):
-            result.append((i, i+self.duration/60))
+            # NOTE: It is important that the time type is float, not np.float, in
+            # order to allow hashability (for caching).
+            result.append((float(i), float(i+self.duration/60)))
         return tuple(result)
 
 
@@ -182,7 +186,9 @@ class PiecewiseConstant:
             np.concatenate([self.values, self.values[-1:]], axis=0),
             axis=0)
         return PiecewiseConstant(
-            tuple(refined_times),
+            # NOTE: It is important that the time type is float, not np.float, in
+            # order to allow hashability (for caching).
+            tuple(float(time) for time in refined_times),
             tuple(interpolator(refined_times)[:-1]),
         )
 
@@ -419,8 +425,8 @@ class Virus:
     #: RNA copies  / mL
     viral_load_in_sputum: _VectorisedFloat
 
-    #: RNA-copies per quantum
-    quantum_infectious_dose: _VectorisedFloat
+    #: Dose to initiate infection, in RNA copies
+    infectious_dose: _VectorisedFloat
 
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
@@ -457,20 +463,20 @@ Virus.types = {
         # It is somewhere between 1000 or 10 SARS-CoV viruses, 
         # as per https://www.dhs.gov/publication/st-master-question-list-covid-19
         # 50 comes from Buonanno et al.
-        quantum_infectious_dose=50.,
+        infectious_dose=50.,
     ),
     'SARS_CoV_2_B117': SARSCoV2(
         # also called VOC-202012/01
         viral_load_in_sputum=1e9,
-        quantum_infectious_dose=30.,
+        infectious_dose=30.,
     ),
     'SARS_CoV_2_P1': SARSCoV2(
         viral_load_in_sputum=1e9,
-        quantum_infectious_dose=1/0.045,
+        infectious_dose=1/0.045,
     ),
     'SARS_CoV_2_B16172': SARSCoV2(
         viral_load_in_sputum=1e9,
-        quantum_infectious_dose=30/1.6,
+        infectious_dose=30/1.6,
     ),
 }
 
@@ -669,6 +675,7 @@ class InfectedPopulation(Population):
     #: The type of expiration that is being emitted whilst doing the activity.
     expiration: _ExpirationBase
 
+    @method_cache
     def emission_rate_when_present(self) -> _VectorisedFloat:
         """
         The emission rate if the infected population is present.
@@ -676,7 +683,7 @@ class InfectedPopulation(Population):
         Note that the rate is not currently time-dependent.
 
         """
-        # Emission Rate (infectious quantum / h)
+        # Emission Rate (virions / h)
         # Note on units: exhalation rate is in m^3/h, aerosols in mL/cm^3
         # and viral load in virus/mL -> 1e6 conversion factor
         aerosols = self.expiration.aerosols(self.mask)
@@ -684,15 +691,14 @@ class InfectedPopulation(Population):
         ER = (self.virus.viral_load_in_sputum *
               self.activity.exhalation_rate *
               10 ** 6 *
-              aerosols /
-              self.virus.quantum_infectious_dose)
+              aerosols)
 
         # For superspreading event, where ejection_factor is infinite we fix the ER
         # based on Miller et al. (2020).
         if isinstance(aerosols, np.ndarray):
-            ER[np.isinf(aerosols)] = 970
+            ER[np.isinf(aerosols)] = 970 * self.virus.infectious_dose
         elif np.isinf(aerosols):
-            ER = 970
+            ER = 970 * self.virus.infectious_dose
 
         return ER
 
@@ -740,9 +746,12 @@ class ConcentrationModel:
         # Deposition rate (h^-1)
         k = (vg * 3600) / h
 
-        return k + self.virus.decay_constant(self.room.humidity
-                    ) + self.ventilation.air_exchange(self.room, time)
+        return (
+            k + self.virus.decay_constant(self.room.humidity)
+            + self.ventilation.air_exchange(self.room, time)
+        )
 
+    @method_cache
     def _concentration_limit(self, time: float) -> _VectorisedFloat:
         """
         Provides a constant that represents the theoretical asymptotic 
@@ -754,29 +763,36 @@ class ConcentrationModel:
 
         return (self.infected.emission_rate(time)) / (IVRR * V)
 
-    def state_change_times(self):
+    @method_cache
+    def state_change_times(self) -> typing.List[float]:
         """
         All time dependent entities on this model must provide information about
         the times at which their state changes.
 
         """
-        state_change_times = set()
+        state_change_times = {0.}
         state_change_times.update(self.infected.presence.transition_times())
         state_change_times.update(self.ventilation.transition_times())
-
         return sorted(state_change_times)
 
-    def last_state_change(self, time: float):
+    def last_state_change(self, time: float) -> float:
         """
-        Find the most recent state change.
+        Find the most recent/previous state change.
+
+        Find the nearest time less than the given one. If there is a state
+        change exactly at ``time`` the previous state change is returned
+        (except at ``time == 0``).
 
         """
-        for change_time in self.state_change_times()[::-1]:
-            if change_time < time:
-                return change_time
-        return 0
+        times = self.state_change_times()
+        t_index: int = np.searchsorted(times, time)  # type: ignore
+        # Search sorted gives us the index to insert the given time. Instead we
+        # want to get the index of the most recent time, so reduce the index by
+        # one unless we are already at 0.
+        t_index = max([t_index - 1, 0])
+        return times[t_index]
 
-    def _next_state_change(self, time: float):
+    def _next_state_change(self, time: float) -> float:
         """
         Find the nearest future state change.
 
@@ -789,21 +805,16 @@ class ConcentrationModel:
             f"state change time ({change_time})"
         )
 
-    def _is_interval_between_state_changes(self, start: float, stop: float) -> bool:
-        """
-        Check that the times start and stop are in-between two state
-        changes of the concentration model (to ensure sure that all
-        model parameters stay constant between start and stop).
-        """
-        return (self.last_state_change(stop) <= start)
-
-    @cached()
-    def _concentration_at_state_change(self, time: float) -> _VectorisedFloat:
+    @method_cache
+    def _concentration_cached(self, time: float) -> _VectorisedFloat:
+        # A cached version of the concentration method. Use this method if you
+        # expect that there may be multiple concentration calculations for the
+        # same time (e.g. at state change times).
         return self.concentration(time)
 
     def concentration(self, time: float) -> _VectorisedFloat:
         """
-        Virus quanta concentration, as a function of time.
+        Virus exposure concentration, as a function of time.
         The formulas used here assume that all parameters (ventilation,
         emission rate) are constant between two state changes - only
         the value of these parameters at the next state change, are used.
@@ -811,7 +822,6 @@ class ConcentrationModel:
         Note that time is not vectorised. You can only pass a single float
         to this method.
         """
-
         if time == 0:
             return 0.0
         next_state_change_time = self._next_state_change(time)
@@ -819,13 +829,13 @@ class ConcentrationModel:
         concentration_limit = self._concentration_limit(next_state_change_time)
 
         t_last_state_change = self.last_state_change(time)
-        concentration_at_last_state_change = self._concentration_at_state_change(t_last_state_change)
+        concentration_at_last_state_change = self._concentration_cached(t_last_state_change)
 
         delta_time = time - t_last_state_change
         fac = np.exp(-IVRR * delta_time)
         return concentration_limit * (1 - fac) + concentration_at_last_state_change * fac
 
-    @cached()
+    @method_cache
     def integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
         """
         Get the integrated concentration dose between the times start and stop.
@@ -840,7 +850,7 @@ class ConcentrationModel:
             start = max([interval_start, req_start])
             stop = min([interval_stop, req_stop])
 
-            conc_start = self.concentration(start)
+            conc_start = self._concentration_cached(start)
 
             next_conc_state = self._next_state_change(stop)
             conc_limit = self._concentration_limit(next_conc_state)
@@ -867,8 +877,8 @@ class ExposureModel:
     #: The fraction of viruses actually deposited in the respiratory tract
     fraction_deposited: _VectorisedFloat = 0.6
 
-    def quanta_exposure_vs_time(self, time: float) -> _VectorisedFloat:
-        """The number of virus quanta per meter^3 integrated until time."""
+    def exposure_vs_time(self, time: float) -> _VectorisedFloat:
+        """The number of virus per meter^3 integrated until time."""
         exposure = 0.0
 
         for start, stop in self.exposed.presence.boundaries():
@@ -883,16 +893,16 @@ class ExposureModel:
         
         return exposure * self.repeats
 
-    def quanta_exposure(self) -> _VectorisedFloat:
-        """The number of virus quanta per meter^3 for the full simulation time."""
+    def exposure(self) -> _VectorisedFloat:
+        """The number of virus per meter^3 for the full simulation time."""
         if self.exposed.presence.transition_times():
-            return self.quanta_exposure_vs_time(max(self.exposed.presence.transition_times()))
+            return self.exposure_vs_time(max(self.exposed.presence.transition_times()))
         else:
             return 0
 
     def cumulated_exposure_vs_time(self, time: float) -> _VectorisedFloat:
         
-        exposure = self.quanta_exposure_vs_time(time)
+        exposure = self.exposure_vs_time(time)
         
         return (
             self.exposed.activity.inhalation_rate *
@@ -910,7 +920,7 @@ class ExposureModel:
         inf_aero = self.cumulated_exposure()
 
         # Probability of infection.
-        return (1 - np.exp(-inf_aero)) * 100
+        return (1 - np.exp(-(inf_aero/self.concentration_model.virus.infectious_dose))) * 100
 
     def expected_new_cases(self) -> _VectorisedFloat:
         prob = self.infection_probability()

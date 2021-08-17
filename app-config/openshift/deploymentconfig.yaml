@@ -73,6 +73,7 @@
       kind: DeploymentConfig
       metadata:
         name: cara-app
+        labels: {app: cara-app}
       spec:
         replicas: 1
         template:
@@ -81,16 +82,18 @@
               app: cara-app
           spec:
             containers:
-              - name: cara-app
+              - name: cara-webservice
                 env:
                 - name: APP_NAME
                   value: cara-voila
-                image: '${PROJECT_NAME}/cara-app'
+                image: '${PROJECT_NAME}/cara-webservice'
                 ports:
                   - containerPort: 8080
                     protocol: TCP
                 imagePullPolicy: Always
-                resources: {}
+                resources:
+                  limits: { cpu: '1', memory: 1Gi }
+                  requests: { cpu: 1m, memory: 512Mi }
                 terminationMessagePath: /dev/termination-log
                 terminationMessagePolicy: File
             dnsPolicy: ClusterFirst
@@ -117,10 +120,10 @@
             imageChangeParams:
               automatic: true
               containerNames:
-                - cara-app
+                - cara-webservice
               from:
                 kind: ImageStreamTag
-                name: 'cara-app:latest'
+                name: 'cara-webservice:latest'
                 namespace: ${PROJECT_NAME}
     -
       apiVersion: v1
@@ -165,7 +168,6 @@
         selector:
           app: cara-router
         triggers:
-          - type: ConfigChange
           - type: ImageChange
             imageChangeParams:
               automatic: true
@@ -181,6 +183,9 @@
       kind: DeploymentConfig
       metadata:
         name: cara-webservice
+        labels:
+          image: cara-webservice
+          app: cara-webservice
       spec:
         replicas: 1
         template:
@@ -196,6 +201,8 @@
                     secretKeyRef:
                       key: COOKIE_SECRET
                       name: auth-service-secrets
+                - name: REPORT_PARALLELISM
+                  value: '3'
                 - name: APP_NAME
                   value: cara-webservice
                 - name: CARA_CALCULATOR_PREFIX
@@ -207,7 +214,23 @@
                   - containerPort: 8080
                     protocol: TCP
                 imagePullPolicy: Always
-                resources: {}
+                readinessProbe:
+                  failureThreshold: 3
+                  httpGet:
+                    path: /calculator-cern
+                    port: 8080
+                    scheme: HTTP
+                  initialDelaySeconds: 3
+                  periodSeconds: 10
+                  successThreshold: 1
+                  timeoutSeconds: 1
+                resources:
+                  limits:
+                    cpu: '3'
+                    memory: 3Gi
+                  requests:
+                    cpu: '1'
+                    memory: 1Gi
                 terminationMessagePath: /dev/termination-log
                 terminationMessagePolicy: File
             dnsPolicy: ClusterFirst
@@ -229,7 +252,6 @@
         selector:
           app: cara-webservice
         triggers:
-          - type: ConfigChange
           - type: ImageChange
             imageChangeParams:
               automatic: true
@@ -245,6 +267,9 @@
       kind: DeploymentConfig
       metadata:
         name: cara-calculator-open
+        labels:
+          image: cara-webservice
+          app: cara-calculator-open
       spec:
         replicas: 1
         template:

@@ -8,12 +8,13 @@ from dataclasses import dataclass
 
 from cara import models
 from cara.models import ExposureModel
+from cara.dataclass_utils import replace
 
 
 @dataclass(frozen=True)
 class KnownConcentrations(models.ConcentrationModel):
     """
-    A ConcentrationModel which is based on pre-known quanta concentrations and
+    A ConcentrationModel which is based on pre-known exposure concentrations and
     which therefore doesn't need other components. Useful for testing.
 
     """
@@ -27,10 +28,10 @@ class KnownConcentrations(models.ConcentrationModel):
         return self.concentration_function(time)
 
     def state_change_times(self):
-        return [0, 24]
+        return [0., 24.]
 
     def _next_state_change(self, time: float):
-        return 24
+        return 24.
 
     def concentration(self, time: float) -> models._VectorisedFloat:  # noqa
         return self.concentration_function(time)
@@ -51,45 +52,46 @@ populations = [
     # A population with some array component for inhalation_rate.
     models.Population(
         10, halftime, models.Mask.types['Type I'],
-        models.Activity(np.array([0.51,0.57]), 0.57),
+        models.Activity(np.array([0.51, 0.57]), 0.57),
     ),
 ]
-dummyRoom = models.Room(50, 0.5)
-dummyVentilation = models._VentilationBase()
-dummyInfPopulation = models.InfectedPopulation(
-    number=1,
-    presence=halftime,
-    mask=models.Mask.types['Type I'],
-    activity=models.Activity.types['Standing'],
-    virus=models.Virus.types['SARS_CoV_2_B117'],
-    expiration=models.Expiration.types['Talking']
-)
 
 def known_concentrations(func):
-    return KnownConcentrations(dummyRoom, dummyVentilation, dummyInfPopulation, func)
+    dummy_room = models.Room(50, 0.5)
+    dummy_ventilation = models._VentilationBase()
+    dummy_infected_population = models.InfectedPopulation(
+        number=1,
+        presence=halftime,
+        mask=models.Mask.types['Type I'],
+        activity=models.Activity.types['Standing'],
+        virus=models.Virus.types['SARS_CoV_2_B117'],
+        expiration=models.Expiration.types['Talking']
+    )
+    return KnownConcentrations(dummy_room, dummy_ventilation, dummy_infected_population, func)
+
 
 @pytest.mark.parametrize(
     "population, cm, f_dep, expected_exposure, expected_cumulated_exposure, expected_probability",[
-    [populations[1], known_concentrations(lambda t: 1.2), 1.,
-     np.array([14.4, 14.4]), np.array([5.7456, 5.3352]), np.array([99.6803184113, 99.5181053773])],
+    [populations[1], known_concentrations(lambda t: 36.), 1.,
+     np.array([432, 432]), np.array([172.368, 160.056]), np.array([99.6803184113, 99.5181053773])],
 
-    [populations[2], known_concentrations(lambda t: 1.2), 1.,
-     np.array([14.4, 14.4]), np.array([3.672, 4.104]), np.array([97.4574432074, 98.3493482895])],
+    [populations[2], known_concentrations(lambda t: 36.), 1.,
+     np.array([432, 432]), np.array([110.16, 123.12]), np.array([97.4574432074, 98.3493482895])],
 
-    [populations[0], known_concentrations(lambda t: np.array([1.2, 2.4])), 1.,
-     np.array([14.4, 28.8]), np.array([4.104, 8.208]), np.array([98.3493482895, 99.9727534893])],
+    [populations[0], known_concentrations(lambda t: np.array([36., 72.])), 1.,
+     np.array([432, 864]), np.array([123.12, 246.24]), np.array([98.3493482895, 99.9727534893])],
 
-    [populations[1], known_concentrations(lambda t: np.array([1.2, 2.4])), 1.,
-     np.array([14.4, 28.8]), np.array([5.7456, 10.6704]), np.array([99.6803184113, 99.9976777757])],
+    [populations[1], known_concentrations(lambda t: np.array([36., 72.])), 1.,
+     np.array([432, 864]), np.array([172.368, 320.112]), np.array([99.6803184113, 99.9976777757])],
 
-    [populations[0], known_concentrations(lambda t: 2.4), np.array([0.5, 1.]),
-     28.8, np.array([4.104, 8.208]), np.array([98.3493482895, 99.9727534893])],
+    [populations[0], known_concentrations(lambda t: 72.), np.array([0.5, 1.]),
+     864, np.array([123.12, 246.24]), np.array([98.3493482895, 99.9727534893])],
     ])
-def test_exposure_model_ndarray(population, cm, f_dep, 
+def test_exposure_model_ndarray(population, cm, f_dep,
                                 expected_exposure, expected_cumulated_exposure, expected_probability):
-    model = ExposureModel(cm, population, fraction_deposited = f_dep)
+    model = ExposureModel(cm, population, fraction_deposited=f_dep)
     np.testing.assert_almost_equal(
-        model.quanta_exposure(), expected_exposure
+        model.exposure(), expected_exposure
     )
     np.testing.assert_almost_equal(
         model.infection_probability(), expected_probability, decimal=10
@@ -108,12 +110,13 @@ def test_exposure_model_ndarray(population, cm, f_dep,
 
 @pytest.mark.parametrize("population", populations)
 def test_exposure_model_ndarray_and_float_mix(population):
-    cm = known_concentrations(lambda t: 0 if np.floor(t) % 2 else np.array([1.2, 1.2]))
+    cm = known_concentrations(
+        lambda t: 0. if np.floor(t) % 2 else np.array([1.2, 1.2]))
     model = ExposureModel(cm, population)
 
     expected_exposure = np.array([14.4, 14.4])
     np.testing.assert_almost_equal(
-        model.quanta_exposure(), expected_exposure
+        model.exposure(), expected_exposure
     )
 
     assert isinstance(model.infection_probability(), np.ndarray)
@@ -128,17 +131,19 @@ def test_exposure_model_compare_scalar_vector(population):
     model_array = ExposureModel(cm_array, population)
     expected_exposure = 14.4
     np.testing.assert_almost_equal(
-        model_scalar.quanta_exposure(), expected_exposure
+        model_scalar.exposure(), expected_exposure
     )
     np.testing.assert_almost_equal(
-        model_array.quanta_exposure(), np.array([expected_exposure]*2)
+        model_array.exposure(), np.array([expected_exposure]*2)
     )
 
 
 @pytest.fixture
 def conc_model():
-    interesting_times = models.SpecificInterval(([0, 1], [1.01, 1.02], [12, 24]))
-    always = models.SpecificInterval(((0, 24),))
+    interesting_times = models.SpecificInterval(
+        ([0., 1.], [1.01, 1.02], [12., 24.]),
+    )
+    always = models.SpecificInterval(((0., 24.), ))
     return models.ConcentrationModel(
         models.Room(25),
         models.AirChange(always, 5),
@@ -152,23 +157,52 @@ def conc_model():
         )
     )
 
-# expected quanta were computed with a trapezoidal integration, using
+
+# Expected exposure were computed with a trapezoidal integration, using
 # a mesh of 10'000 pts per exposed presence interval.
-@pytest.mark.parametrize("exposed_time_interval, expected_quanta", [
-        [(0, 1), 5.3334352],
-        [(1, 1.01), 0.061759078],
-        [(1.01, 1.02), 0.060016487],
-        [(12, 12.01), 0.0019012647],
-        [(12, 24), 75.513005],
-        [(0, 24), 81.956988],
+@pytest.mark.parametrize(
+    ["exposed_time_interval", "expected_exposure"],
+    [
+        [(0., 1.), 266.67176],
+        [(1., 1.01), 3.0879539],
+        [(1.01, 1.02), 3.00082435],
+        [(12., 12.01), 0.095063235],
+        [(12., 24.), 3775.65025],
+        [(0., 24.), 4097.8494],
     ]
 )
 def test_exposure_model_integral_accuracy(exposed_time_interval,
-                                          expected_quanta, conc_model):
+                                          expected_exposure, conc_model):
     presence_interval = models.SpecificInterval((exposed_time_interval,))
     population = models.Population(
         10, presence_interval, models.Mask.types['Type I'],
         models.Activity.types['Standing'],
     )
     model = ExposureModel(conc_model, population, fraction_deposited=1.)
-    np.testing.assert_allclose(model.quanta_exposure(), expected_quanta)
+    np.testing.assert_allclose(model.exposure(), expected_exposure)
+
+
+def test_infectious_dose_vectorisation():
+    infected_population = models.InfectedPopulation(
+        number=1,
+        presence=halftime,
+        mask=models.Mask.types['Type I'],
+        activity=models.Activity.types['Standing'],
+        virus=models.SARSCoV2(
+            viral_load_in_sputum=1e9,
+            infectious_dose=np.array([50, 20, 30]),
+        ),
+        expiration=models.Expiration.types['Talking']
+    )
+    cm = known_concentrations(lambda t: 1.2)
+    cm = replace(cm, infected=infected_population)
+
+    presence_interval = models.SpecificInterval(((0., 1.),))
+    population = models.Population(
+        10, presence_interval, models.Mask.types['Type I'],
+        models.Activity.types['Standing'],
+    )
+    model = ExposureModel(cm, population, fraction_deposited=1.0)
+    inf_probability = model.infection_probability()
+    assert isinstance(inf_probability, np.ndarray)
+    assert inf_probability.shape == (3, )

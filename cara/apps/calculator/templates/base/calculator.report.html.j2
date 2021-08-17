@@ -8,6 +8,10 @@
 
 	<link rel="stylesheet" type="text/css" href="{{ calculator_prefix }}/static/css/report.css">
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+	<script src="https://d3js.org/d3.v7.min.js"></script>
+	<script src="{{ calculator_prefix }}/static/js/report.js" type="application/javascript"></script>
+
 </head>
 
 <body id="body">
@@ -216,7 +220,14 @@
 		<p id="section1">[*] The results are based on the parameters and assumptions published in the CERN Open Report <a href="https://cds.cern.ch/record/2756083"> CERN-OPEN-2021-004</a></p>
         </p>
 
-		<img id="scenario_concentration_plot" src="{{ scenario_plot_src }}">
+		<svg id="result_plot" width="1000" height="400"></svg>
+		<script type="application/javascript">
+			var times = {{times}}
+			var concentrations = {{concentrations}}
+			var cumulative_dose = {{cumulative_dose}}
+			var exposed_presence_intervals = {{exposed_presence_intervals}}
+        	draw_concentration_plot("#result_plot", times, concentrations, cumulative_dose, exposed_presence_intervals);
+    	</script>
 
     <p class="data_title">Alternative scenarios:</p>
     
@@ -247,7 +258,7 @@
 
     <p class="data_text"> <strong> Notes for alternative scenarios: </strong><br>
 	    <ol>
-	    	<li>This graph shows the concentration of infectious quanta in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation).
+	    	<li>This graph shows the concentration of virions in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation).
 	    For this reason, scenarios with different types of mask will show the same concentration on the graph but have different absorbed doses and infection probabilities.</li>
 	   		<li>If you have selected more sophisticated options, such as HEPA filtration or FFP2 masks, alternatives will be indicated in the plot as the "base scenario with/without...", representing a variation on the inputs inserted in the form.<br>
 	    	The other alternative scenarios shown for comparison will not include either HEPA filtration or FFP2 masks.</li>
@@ -278,7 +289,7 @@
             CARA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.
         </p>
         <p>
-            CARA models the concentration profile of potential infectious viruses in enclosed spaces with clear and intuitive graphs.
+            CARA models the concentration profile of potential virions in enclosed spaces with clear and intuitive graphs.
             The user can set a number of parameters, including room volume, exposure time, activity type, mask-wearing and ventilation.
             The report generated indicates how to avoid exceeding critical concentrations and chains of airborne transmission in spaces such as individual offices, meeting rooms and labs.
         </p>

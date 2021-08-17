@@ -34,24 +34,28 @@ def calculate_report_data(model: models.ExposureModel):
     resolution = 600
 
     t_start, t_end = model_start_end(model)
-    times = list(np.linspace(t_start, t_end, resolution))
-    concentrations = [np.mean(model.concentration_model.concentration(time))
-                      for time in times]
+    times = np.linspace(t_start, t_end, resolution)
+    concentrations = [
+        np.array(model.concentration_model.concentration(float(time))).mean()
+        for time in times
+    ]
     highest_const = max(concentrations)
-    prob = np.mean(model.infection_probability())
-    er = np.mean(model.concentration_model.infected.emission_rate_when_present())
+    prob = np.array(model.infection_probability()).mean()
+    er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
     exposed_occupants = model.exposed.number
-    expected_new_cases = np.mean(model.expected_new_cases())
+    expected_new_cases = np.array(model.expected_new_cases()).mean()
+    cumulative_dose = np.array([model.cumulated_exposure_vs_time(t) for t in times]).mean()
 
     return {
-        "times": times,
+        "times": list(times),
+        "exposed_presence_intervals": [list(interval) for interval in model.exposed.presence.boundaries()],
+        "cumulative_dose": cumulative_dose,
         "concentrations": concentrations,
         "highest_const": highest_const,
         "prob_inf": prob,
         "emission_rate": er,
         "exposed_occupants": exposed_occupants,
         "expected_new_cases": expected_new_cases,
-        "scenario_plot_src": img2base64(_figure2bytes(plot(times, concentrations, model))),
     }
 
 
@@ -105,56 +109,7 @@ def img2base64(img_data) -> str:
     pic_hash = base64.b64encode(img_data.read()).decode('ascii')
     # A src suitable for a tag such as f'<img id="scenario_concentration_plot" src="{result}">.
     return f'data:image/png;base64,{pic_hash}'
-
-def plot(times, concentrations, model: models.ExposureModel):
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
-    datetimes = [datetime(1970, 1, 1) + timedelta(hours=time) for time in times]
-    
-    #Concentration as mean viral concentration (virion m$^{-3}$)
-    concentrations = [c * model.concentration_model.virus.quantum_infectious_dose for c in concentrations]
-    
-    ax.plot(datetimes, concentrations, lw=2, color='#1f77b4', label='Mean viral concentration')
-    ax.spines['right'].set_visible(False)
-
-    ax.set_xlabel('Time of day', fontsize=14)
-    ax.set_ylabel('Mean viral concentration\n(virion m$^{-3}$)', fontsize=14)
-    ax.set_title('Concentration profile')
-    ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
-
-    # Plot presence of exposed person
-    for i, (presence_start, presence_finish) in enumerate(model.exposed.presence.boundaries()):
-        ax.fill_between(
-            datetimes, concentrations, 0,
-            where=(np.array(times) > presence_start) & (np.array(times) < presence_finish),
-            color="#1f77b4", alpha=0.1,
-            label="Presence of exposed person(s)" if i == 0 else ""
-        )
-
-    #See CERN-OPEN-2021-004, p. 15, eq. 16. - Cumulative Dose
-    qds = [np.mean(model.cumulated_exposure_vs_time(t)) for t in times]
-
-    ax1 = ax.twinx()
-    ax1.plot(datetimes, qds, label='Mean cumulative dose', color='#1f77b4', linestyle='dotted')
-    ax1.spines["right"].set_linestyle("--")
-    ax1.spines["right"].set_linestyle((0,(1,5)))
-    ax1.set_ylabel('Mean cumulative dose\n(virion)', fontsize=14)
-    ax1.set_ylim(ax1.get_ylim()[0], ax1.get_ylim()[1])
-    ax1.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
-
-    # Place a legend outside of the axes itself.
-    ax_handles, ax_labels = ax.get_legend_handles_labels()
-    ax1_handles, ax1_labels = ax1.get_legend_handles_labels()
-    handles = ax_handles + ax1_handles
-    labels = ax_labels + ax1_labels
-    order = [0, 2, 1] # 0 - Mean viral concentration   1 - Presence of exposed person(s)    2 - Mean cumulative dose 
-    fig.legend(handles = [handles[idx] for idx in order], labels = [labels[idx] for idx in order], bbox_to_anchor=(1.05, 0.9), loc='upper left')
-    ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1])
-    # Remove top spines
-    ax.spines['top'].set_visible(False)
-    ax1.spines['top'].set_visible(False)
-
-    return fig
+        
 
 def minutes_to_time(minutes: int) -> str:
     minute_string = str(minutes % 60)
@@ -270,11 +225,9 @@ def comparison_plot(scenarios: typing.Dict[str, dict], sample_times: np.ndarray)
     ax.set_title('Concentration profile')
     ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
 
-    ax1.spines['top'].set_visible(False)
-    ax1.spines["right"].set_linestyle("--")
-    ax1.spines["right"].set_linestyle((0,(1,5)))
-    ax1.set_ylabel('Mean cumulative dose\n(virion)', fontsize=14)
-    ax1.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
+    ax.set_xlabel('Time of day')
+    ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
+    ax.set_title('Mean concentration of virions')
 
     return fig
 
@@ -286,7 +239,7 @@ def scenario_statistics(mc_model: mc.ExposureModel, sample_times: np.ndarray):
         'probability_of_infection': np.mean(model.infection_probability()),
         'expected_new_cases': np.mean(model.expected_new_cases()),
         'concentrations': [
-            np.mean(model.concentration_model.concentration(time)) * model.concentration_model.virus.quantum_infectious_dose
+            np.mean(model.concentration_model.concentration(time))
             for time in sample_times
         ],
     }
