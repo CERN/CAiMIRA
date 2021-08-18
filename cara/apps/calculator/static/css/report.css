@@ -4,7 +4,7 @@
     bottom: 20px;
     right: 20px;
     padding: 20px;
-    min-width: 1300px;
+    min-width: 1200px;
 }
 
 h1 {
@@ -104,12 +104,18 @@ p.notes {
     }
 }
 
-@media screen and (max-width: 1301px) {
+#rules,
+#data {
+    display: none!important;
+}
+
+@media (width: 1200px) {
     .collapse {
         display: block!important;
     }
-    .tab-content>.tab-pane {
-        display: contents!important;
+    #rules,
+    #data {
+        display: inline!important;
     }
     .tab-content {
         border-top: none!important;

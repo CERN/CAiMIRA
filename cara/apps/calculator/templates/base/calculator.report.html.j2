@@ -22,7 +22,7 @@
 			<h2 class="text-component-title" style="margin-bottom: 0">CARA - CALCULATOR REPORT</h1>
 			<p style="margin-bottom: 0"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
 		</div>
-		<button type="button" class="btn btn-outline-dark align-self-center print-button" id="download-pdf">Download PDF</button>
+		<button type="button" class="btn btn-outline-dark align-self-center print-button" id="download-pdf" onclick="execute_me()">Download PDF</button>
 	</div>
 
 {% endblock report_header %}
@@ -163,7 +163,7 @@
 			{% endblock report_footer %}
 		</div>
 
-		<div class="tab-pane fade" id="data" role="tabpanel" aria-labelledby="data-tab" style="padding: 1%">
+		<div class="tab-pane fade show active" id="data" role="tabpanel" aria-labelledby="data-tab" style="padding: 1%">
 			{% block simulation_overview %}
 				<br class="card_break">
 				<div class=card>

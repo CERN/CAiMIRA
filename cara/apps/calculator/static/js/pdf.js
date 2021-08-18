@@ -1,17 +1,17 @@
-window.onload = function() {
-    document.getElementById("download-pdf")
-        .addEventListener("click", () => {
-            const pdf_version = this.document.getElementById("body");
+function execute_me() {
+    const pdf_version = this.document.getElementById("body");
 
-            console.log(pdf_version);
-            console.log(window);
-            var opt = {
-                margin: 0,
-                filename: 'myfile.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, letterRendering: true, width: 1300 },
-                jsPDF: { format: 'a4', orientation: 'portrait' },
-            };
-            html2pdf().from(pdf_version).set(opt).save();
-        })
-}
+    console.log(pdf_version);
+    console.log(window);
+    var opt = {
+        filename: 'myfile.pdf',
+        image: { type: 'jpeg', quality: 0.9 },
+        html2canvas: { scale: 2, width: 1200, windowWidth: 1200 },
+        jsPDF: {
+            format: 'a4',
+            orientation: 'portrait'
+        },
+        pagebreak: { after: '.page-break' }
+    };
+    const pdf = html2pdf().set(opt).from(pdf_version).outputImg().save();
+};
