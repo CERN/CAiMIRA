@@ -58,7 +58,8 @@ for vl in tqdm(viral_loads):
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types["No mask"],
                 activity=activity_distributions['Seated'],
-                expiration=models.Expiration.types['Breathing'],
+                #expiration=models.Expiration.types['Breathing'],
+                expiration=models.Expiration.types['Talking'],
             ),
         ),
         exposed=mc.Population(
@@ -89,9 +90,16 @@ ax.fill_between(viral_loads, lower_percentiles,
 ax.set_yscale('log')
 
 ############# Coleman #############
+#Breathing
 coleman_etal_vl = [np.log10(821065925.4), np.log10(1382131207), np.log10(81801735.96), np.log10(
     487760677.4), np.log10(2326593535), np.log10(1488879159), np.log10(884480386.5)]
 coleman_etal_er = [127, 455.2, 281.8, 884.2, 448.4, 1100.6, 621]
+#Talking
+coleman_etal_vl = [np.log10(70492378.55), np.log10(7565486.029), np.log10(7101877592), np.log10(1382131207), np.log10(821065925.4),
+                   np.log10(1382131207), np.log10(81801735.96), np.log10(487760677.4), np.log10(2326593535), np.log10(1488879159),
+                   np.log10(884480386.5)]
+coleman_etal_er = [417, 234.5, 79.9, 908.2, 310.9, 4336, 733, 1356.5, 1373.3, 477.9, 2428.7]
+
 plt.scatter(coleman_etal_vl, coleman_etal_er, marker='x')
 x_hull, y_hull = get_enclosure_points(coleman_etal_vl, coleman_etal_er)
 # plot shape
