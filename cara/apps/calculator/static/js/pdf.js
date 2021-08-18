@@ -2,8 +2,6 @@ window.onload = function() {
     document.getElementById("download-pdf")
         .addEventListener("click", () => {
             const pdf_version = this.document.getElementById("body");
-            const button = this.document.getElementById("download-pdf");
-            button.style.display = 'block'
 
             console.log(pdf_version);
             console.log(window);
