@@ -173,8 +173,8 @@ yann_75 = mlines.Line2D([], [], color='green',
                         marker='s', linestyle='None')  # 75
 
 title_proxy = Rectangle((0, 0), 0, 0, color='w')
-titles = ["$\\bf{CARA \, (SARS-CoV-2)}$", "$\\bf{Coleman \, et \, al. \, (SARS-CoV-2)}$",
-          "$\\bf{Milton \, et \, al.  \,(Influenza)}$", "$\\bf{Yann \, et \, al.  \,(Influenza)}$"]
+titles = ["$\\bf{CARA \, (SARS-CoV-2):}$", "$\\bf{Coleman \, et \, al. \, (SARS-CoV-2):}$",
+          "$\\bf{Milton \, et \, al.  \,(Influenza):}$", "$\\bf{Yann \, et \, al.  \,(Influenza):}$"]
 leg = plt.legend([title_proxy, result_from_model, title_proxy, coleman, title_proxy, milton_mean, milton_25, milton_75, title_proxy, yann_mean, yann_25, yann_75],
                  [titles[0], "Result from model", titles[1], "Dataset", titles[2], "Mean", "25th per.", "75th per.", titles[3], "Mean", "25th per.", "75th per."])
 
@@ -187,9 +187,9 @@ for item, label in zip(leg.legendHandles, leg.texts):
 
 
 ############ Plot ############
-plt.title('Exhaled virions while breathing for 1h', fontsize=14)
-plt.ylabel('RNA copies', fontsize=12)
+plt.title('Exhaled virions while breathing for 1h', fontsize=16, fontweight="bold")
+plt.ylabel('Aerosol viral load, $\mathrm{vl_{out}}$\n(RNA copies)', fontsize=14)
 plt.xticks(ticks=[i for i in range(2, 13)], labels=[
     '$10^{' + str(i) + '}$' for i in range(2, 13)])
-plt.xlabel('NP viral load (RNA copies mL$^{-1}$)', fontsize=12)
+plt.xlabel('NP viral load, $\mathrm{vl_{in}}$\n(RNA copies)', fontsize=14)
 plt.show()
