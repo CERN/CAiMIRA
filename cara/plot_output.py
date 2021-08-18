@@ -58,10 +58,7 @@ for vl in tqdm(viral_loads):
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types["No mask"],
                 activity=activity_distributions['Seated'],
-                expiration=models.MultipleExpiration(
-                    expirations=(models.Expiration.types['Talking'],
-                                 models.Expiration.types['Breathing']),
-                    weights=(0.3, 0.7)),
+                expiration=models.Expiration.types['Breathing'],
             ),
         ),
         exposed=mc.Population(
