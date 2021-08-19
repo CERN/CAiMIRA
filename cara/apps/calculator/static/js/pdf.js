@@ -6,12 +6,22 @@ function execute_me() {
     var opt = {
         filename: 'myfile.pdf',
         image: { type: 'jpeg', quality: 0.9 },
-        html2canvas: { scale: 2, width: 1200, windowWidth: 1200 },
+        html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true, width: 1200, windowWidth: 1200 },
         jsPDF: {
+            unit: 'mm',
             format: 'a4',
             orientation: 'portrait'
         },
-        pagebreak: { after: '.page-break' }
+        pagebreak: { mode: 'avoid-all', after: ['#rules', '#results'] }
     };
-    const pdf = html2pdf().set(opt).from(pdf_version).outputImg().save();
+    html2pdf().set(opt).from(pdf_version).toPdf().get('pdf').then(function(pdf) {
+            var totalPages = pdf.internal.getNumberOfPages();
+            for (i = 1; i <= totalPages; i++) {
+                pdf.setPage(i);
+                pdf.setFontSize(10);
+                pdf.setTextColor(150);
+                pdf.text('Page ' + i + ' of ' + totalPages, (pdf.internal.pageSize.getWidth() / 2.25, (pdf.internal.pageSize.getHeight() - 8)));
+            }
+        })
+        .save();
 };

@@ -116,6 +116,8 @@ p.notes {
     #rules,
     #data {
         display: inline!important;
+        break-inside: avoid;
+        page-break-inside: avoid;
     }
     .tab-content {
         border-top: none!important;
