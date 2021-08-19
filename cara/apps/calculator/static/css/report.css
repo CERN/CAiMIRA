@@ -98,18 +98,28 @@ p.notes {
     margin-right: 1%;
 }
 
-@media screen {
-    .card_break {
-        display: none!important;
-    }
-}
-
 #rules,
 #data {
     display: none!important;
 }
 
 @media (width: 1200px) {
+    /* CSS styling for break avoid. */
+    .break-avoid {
+        page-break-inside: avoid;
+    }
+    .first_page {
+        height: 370pt;
+    }
+    .second_page {
+        height: 500pt;
+    }
+    .third_page {
+        height: 100pt;
+    }
+    .fourth_page {
+        height: 650pt;
+    }
     .collapse {
         display: block!important;
     }
@@ -132,6 +142,9 @@ p.notes {
         display: none!important;
     }
     .print-button {
+        display: none!important;
+    }
+    #link_reproduce_results {
         display: none!important;
     }
 }

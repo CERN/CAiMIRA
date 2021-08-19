@@ -8,11 +8,11 @@ function execute_me() {
         image: { type: 'jpeg', quality: 0.9 },
         html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true, width: 1200, windowWidth: 1200 },
         jsPDF: {
-            unit: 'mm',
-            format: 'a4',
+            unit: 'pt',
+            format: 'letter',
             orientation: 'portrait'
         },
-        pagebreak: { mode: 'avoid-all', after: ['#rules', '#results'] }
+        pagebreak: { mode: '', avoid: '.break-avoid' },
     };
     html2pdf().set(opt).from(pdf_version).toPdf().get('pdf').then(function(pdf) {
             var totalPages = pdf.internal.getNumberOfPages();
@@ -20,7 +20,7 @@ function execute_me() {
                 pdf.setPage(i);
                 pdf.setFontSize(10);
                 pdf.setTextColor(150);
-                pdf.text('Page ' + i + ' of ' + totalPages, (pdf.internal.pageSize.getWidth() / 2.25, (pdf.internal.pageSize.getHeight() - 8)));
+                pdf.text('Page ' + i + ' of ' + totalPages, (pdf.internal.pageSize.getWidth() / 2.25), (pdf.internal.pageSize.getHeight() - 10));
             }
         })
         .save();

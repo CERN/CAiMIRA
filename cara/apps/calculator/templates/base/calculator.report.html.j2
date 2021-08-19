@@ -24,7 +24,6 @@
 		</div>
 		<button type="button" class="btn btn-outline-dark align-self-center print-button" id="download-pdf" onclick="execute_me()">Download PDF</button>
 	</div>
-	<div class="html2pdf__page-break"></div>
 
 {% endblock report_header %}
 
@@ -87,7 +86,8 @@
 							</p>
 						</div>
 					</div>
-				</div>	
+				</div>
+				<div class="break-avoid first_page"></div>	
 				<div class="card bg-light mb-3">
   					<div class="card-header"><strong>Alternative scenarios</strong>
 						<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseAlternativeScenarios" role="button" aria-expanded="false" aria-controls="collapseAlternativeScenarios">
@@ -135,10 +135,11 @@
 						</div>
 					</div>
 				</div>
+				<div class="break-avoid second_page"></div>	
 			{% endblock report_results %}
 
 			{% block report_footer %}
-				<div class="card bg-light mb-3">
+				<div class="card bg-light mb-3" id="link_reproduce_results">
 					<div class="card-header"><strong>Link to reproduce results </strong> 
 					<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseQRcode" role="button" aria-expanded="true" aria-controls="collapseQRcode">
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
@@ -165,7 +166,6 @@
 
 		<div class="tab-pane fade show active" id="data" role="tabpanel" aria-labelledby="data-tab" style="padding: 1%">
 			{% block simulation_overview %}
-				<br class="card_break">
 				<div class=card>
 					<div class="card-header"><strong>Simulation:</strong></div>
 					<div class="card-body">
@@ -367,10 +367,11 @@
 						</ul>
 					</div>
 				</div>
-			{% endblock simulation_overview %}	
+			{% endblock simulation_overview %}
+			<div class="break-avoid third_page"></div>		
 		</div>
 		{% block report_preamble %}
-		{% endblock report_preamble %}
+		{% endblock report_preamble %}	
 	</div>
 </div>
 
