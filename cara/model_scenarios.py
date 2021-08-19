@@ -74,17 +74,19 @@ def exposure_model_from_vl_talking(viral_loads):
             ),
         )
         exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
-        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present()
+        # divide by 4 to have in 15min (quarter of an hour)
+        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present()/4
         er_means.append(np.mean(emission_rate))
         er_medians.append(np.median(emission_rate))
         lower_percentiles.append(np.quantile(emission_rate, 0.01))
         upper_percentiles.append(np.quantile(emission_rate, 0.99))
 
+    # divide by 4 to have in 15min (quarter of an hour)
     build_plot(viral_loads, er_means,
-               lower_percentiles, upper_percentiles, coleman_etal_vl_talking, coleman_etal_er_talking, milton_vl, milton_er, yann_vl, yann_er)
+               lower_percentiles, upper_percentiles, coleman_etal_vl_talking, [x/4 for x in coleman_etal_er_talking])
 
     ############ Plot ############
-    plt.title('Exhaled virions while talking for 1h',
+    plt.title('Exhaled virions while talking for 15min',
               fontsize=16, fontweight="bold")
     plt.ylabel(
         'Aerosol viral load, $\mathrm{vl_{out}}$\n(RNA copies)', fontsize=14)
@@ -126,17 +128,19 @@ def exposure_model_from_vl_breathing(viral_loads):
             ),
         )
         exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
-        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present()
+        # divide by 2 to have in 30min (half an hour)
+        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present() /2
         er_means.append(np.mean(emission_rate))
         er_medians.append(np.median(emission_rate))
         lower_percentiles.append(np.quantile(emission_rate, 0.01))
         upper_percentiles.append(np.quantile(emission_rate, 0.99))
 
+    # divide by 2 to have in 30min (half an hour)
     build_plot(viral_loads, er_means,
-               lower_percentiles, upper_percentiles, coleman_etal_vl_breathing, coleman_etal_er_breathing, milton_vl, milton_er, yann_vl, yann_er)
+               lower_percentiles, upper_percentiles, coleman_etal_vl_breathing, [x/2 for x in coleman_etal_er_breathing], milton_vl, [x/2 for x in milton_er], yann_vl, [x/2 for x in yann_er])
 
     ############ Plot ############
-    plt.title('Exhaled virions while breathing for 1h',
+    plt.title('Exhaled virions while breathing for 30 min',
               fontsize=16, fontweight="bold")
     plt.ylabel(
         'Aerosol viral load, $\mathrm{vl_{out}}$\n(RNA copies)', fontsize=14)
