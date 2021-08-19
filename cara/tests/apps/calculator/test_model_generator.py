@@ -45,7 +45,7 @@ def test_ventilation_slidingwindow(baseline_form: model_generator.FormData):
     baseline_form.windows_frequency = 120
     baseline_form.window_opening_regime = 'windows_open_periodically'
     baseline_form.window_type = 'window_sliding'
-    baseline_form.event_month = '12'
+    baseline_form.event_month = 'December'
     baseline_form.window_height = 1.6
     baseline_form.opening_distance = 0.6
 

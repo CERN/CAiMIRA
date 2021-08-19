@@ -621,7 +621,7 @@ def baseline_raw_form_data():
         'infected_people': '1',
         'infected_start': '09:00',
         'location': 'Geneva',
-        'location_coordinates': '(46.2044, 6.1432)',
+        'location_coordinates': '46.2044, 6.1432',
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': '',
