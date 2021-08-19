@@ -147,6 +147,9 @@ p.notes {
     #link_reproduce_results {
         display: none!important;
     }
+    #pdf-qr-code {
+        visibility: inherit!important;
+    }
 }
 
 

@@ -18,11 +18,12 @@
 
 	<div class="d-flex flex-row">
 		<img src="/static/images/cara_logo.200x200.png" style="height:150px; display:inline-block; vertical-align:middle; margin: 1%">
-		<div class="d-flex align-self-center flex-column" style="margin-left: 1em">
+		<div class="d-flex align-self-center flex-column" style="margin-left: 1em; margin-right: auto">
 			<h2 class="text-component-title" style="margin-bottom: 0">CARA - CALCULATOR REPORT</h1>
 			<p style="margin-bottom: 0"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
 		</div>
-		<button type="button" class="btn btn-outline-dark align-self-center print-button" id="download-pdf" onclick="execute_me()">Download PDF</button>
+		<button type="button" class="btn btn-outline-dark align-self-center" style="margin-right: -100pt" id="download-pdf" onclick="execute_me()">Download PDF</button>
+		<a href="{{ qr_code.link }}" id="pdf-qr-code" class="align-self-center" style="margin-right: 1%; visibility: hidden"><img style="width:100pt;" id="qr_code" src="{{ qr_code.image }}"/></a>
 	</div>
 
 {% endblock report_header %}

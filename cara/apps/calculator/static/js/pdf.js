@@ -15,13 +15,12 @@ function execute_me() {
         pagebreak: { mode: '', avoid: '.break-avoid' },
     };
     html2pdf().set(opt).from(pdf_version).toPdf().get('pdf').then(function(pdf) {
-            var totalPages = pdf.internal.getNumberOfPages();
-            for (i = 1; i <= totalPages; i++) {
-                pdf.setPage(i);
-                pdf.setFontSize(10);
-                pdf.setTextColor(150);
-                pdf.text('Page ' + i + ' of ' + totalPages, (pdf.internal.pageSize.getWidth() / 2.25), (pdf.internal.pageSize.getHeight() - 10));
-            }
-        })
-        .save();
+        var totalPages = pdf.internal.getNumberOfPages();
+        for (i = 1; i <= totalPages; i++) {
+            pdf.setPage(i);
+            pdf.setFontSize(10);
+            pdf.setTextColor(150);
+            pdf.text('Page ' + i + ' of ' + totalPages, (pdf.internal.pageSize.getWidth() / 2.25), (pdf.internal.pageSize.getHeight() - 10));
+        }
+    }).save();
 };
