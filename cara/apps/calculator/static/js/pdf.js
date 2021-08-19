@@ -5,8 +5,8 @@ function execute_me(qr_link) {
     console.log(window);
     var opt = {
         filename: 'myfile.pdf',
-        image: { type: 'jpeg', quality: 0.9 },
-        html2canvas: { width: 1200, windowWidth: 1200 },
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, width: 1200, windowWidth: 1200 },
         enableLinks: false,
         jsPDF: {
             unit: 'pt',

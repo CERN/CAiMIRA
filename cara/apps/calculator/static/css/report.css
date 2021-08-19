@@ -109,13 +109,13 @@ p.notes {
         page-break-inside: avoid;
     }
     .first_page {
-        height: 370pt;
+        height: 380pt;
     }
     .second_page {
-        height: 500pt;
+        height: 540pt;
     }
     .third_page {
-        height: 100pt;
+        height: 90pt;
     }
     .fourth_page {
         height: 650pt;
