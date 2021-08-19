@@ -22,8 +22,8 @@
 			<h2 class="text-component-title" style="margin-bottom: 0">CARA - CALCULATOR REPORT</h1>
 			<p style="margin-bottom: 0"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
 		</div>
-		<button type="button" class="btn btn-outline-dark align-self-center" style="margin-right: -100pt" id="download-pdf" onclick="execute_me()">Download PDF</button>
-		<a href="{{ qr_code.link }}" id="pdf-qr-code" class="align-self-center" style="margin-right: 1%; visibility: hidden; border: 1px red solid;"><img style="width:100pt;" id="qr_code" src="{{ qr_code.image }}"/></a>
+		<button type="button" class="btn btn-outline-dark align-self-center" style="margin-right: -100pt" id="download-pdf" onclick="execute_me('{{qr_code.link}}')">Download PDF</button>
+		<img id="pdf-qr-code" class="align-self-center" style="margin-right: 1%; visibility: hidden; width:100pt;" src="{{ qr_code.image }}"/>
 	</div>
 
 {% endblock report_header %}

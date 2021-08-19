@@ -1,4 +1,4 @@
-function execute_me() {
+function execute_me(qr_link) {
     const pdf_version = this.document.getElementById("body");
 
     console.log(pdf_version);
@@ -6,16 +6,20 @@ function execute_me() {
     var opt = {
         filename: 'myfile.pdf',
         image: { type: 'jpeg', quality: 0.9 },
-        html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true, width: 1200, windowWidth: 1200 },
+        html2canvas: { width: 1200, windowWidth: 1200 },
+        enableLinks: false,
         jsPDF: {
             unit: 'pt',
             format: 'letter',
-            orientation: 'portrait'
+            orientation: 'portrait',
         },
         pagebreak: { mode: '', avoid: '.break-avoid' },
     };
     html2pdf().set(opt).from(pdf_version).toPdf().get('pdf').then(function(pdf) {
         var totalPages = pdf.internal.getNumberOfPages();
+        pdf.setPage(1);
+        pdf.link(530, 25, 60, 60, { url: qr_link });
+
         for (i = 1; i <= totalPages; i++) {
             pdf.setPage(i);
             pdf.setFontSize(10);
