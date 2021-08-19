@@ -23,13 +23,13 @@
 			<p style="margin-bottom: 0"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
 		</div>
 		<button type="button" class="btn btn-outline-dark align-self-center" style="margin-right: -100pt" id="download-pdf" onclick="execute_me()">Download PDF</button>
-		<a href="{{ qr_code.link }}" id="pdf-qr-code" class="align-self-center" style="margin-right: 1%; visibility: hidden"><img style="width:100pt;" id="qr_code" src="{{ qr_code.image }}"/></a>
+		<a href="{{ qr_code.link }}" id="pdf-qr-code" class="align-self-center" style="margin-right: 1%; visibility: hidden; border: 1px red solid;"><img style="width:100pt;" id="qr_code" src="{{ qr_code.image }}"/></a>
 	</div>
 
 {% endblock report_header %}
 
 <div class="tabs-div">
-	<ul class="nav nav-tabs"role="tablist" style="margin: 0.5% 0% 0% 1%">
+	<ul class="nav nav-tabs" role="tablist" style="margin: 0.5% 0% 0% 1%">
 		<li class="nav-item">
 			<a class="nav-link active" id="results-tab" data-toggle="tab" href="#results" role="tab" aria-controls="results" aria-selected="true">Results</a>
 		</li>
@@ -42,7 +42,7 @@
 
 	<div class="tab-content" style="border-top: #dee2e6 1px solid; margin-top: -1px" >
 	
-		<div class="tab-pane fade show active" id="results" role="tabpanel" aria-labelledby="results-tab" style="padding: 1%">
+		<div class="tab-pane show active" id="results" role="tabpanel" aria-labelledby="results-tab" style="padding: 1%">
 			
 			{% block report_results %}
 				<div class="card bg-light mb-3">
@@ -165,7 +165,7 @@
 			{% endblock report_footer %}
 		</div>
 
-		<div class="tab-pane fade show active" id="data" role="tabpanel" aria-labelledby="data-tab" style="padding: 1%">
+		<div class="tab-pane" id="data" role="tabpanel" aria-labelledby="data-tab" style="padding: 1%">
 			{% block simulation_overview %}
 				<div class=card>
 					<div class="card-header"><strong>Simulation:</strong></div>

@@ -123,9 +123,10 @@ p.notes {
     .collapse {
         display: block!important;
     }
+    #results,
     #rules,
     #data {
-        display: inline!important;
+        display: contents!important;
         break-inside: avoid;
         page-break-inside: avoid;
     }
