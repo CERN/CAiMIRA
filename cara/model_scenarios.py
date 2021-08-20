@@ -20,20 +20,19 @@ er_medians = []
 lower_percentiles = []
 upper_percentiles = []
 
-######### Scatter points #########
-############# Coleman #############
+######### Scatter points (data taken: copies per hour) #########
 
+############# Coleman #############
 ############# Coleman - Breathing #############
 coleman_etal_vl_breathing = [np.log10(821065925.4), np.log10(1382131207), np.log10(81801735.96), np.log10(
     487760677.4), np.log10(2326593535), np.log10(1488879159), np.log10(884480386.5)]
 coleman_etal_er_breathing = [127, 455.2, 281.8, 884.2, 448.4, 1100.6, 621]
 ############# Coleman - Talking #############
-coleman_etal_vl_talking = [np.log10(70492378.55), np.log10(7565486.029), np.log10(7101877592), np.log10(1382131207), np.log10(821065925.4),
-                           np.log10(1382131207), np.log10(81801735.96), np.log10(
-    487760677.4), np.log10(2326593535), np.log10(1488879159),
-    np.log10(884480386.5)]
-coleman_etal_er_talking = [417, 234.5, 79.9, 908.2, 310.9,
-                           4336, 733, 1356.5, 1373.3, 477.9, 2428.7]
+coleman_etal_vl_talking = [np.log10(70492378.55), np.log10(7565486.029), np.log10(7101877592), np.log10(1382131207),
+                           np.log10(821065925.4), np.log10(1382131207), np.log10(81801735.96), np.log10(487760677.4),
+                           np.log10(2326593535), np.log10(1488879159), np.log10(884480386.5)]
+coleman_etal_er_talking = [1668, 938, 319.6, 3632.8, 1243.6,
+                           17344, 2932, 5426, 5493.2, 1911.6, 9714.8]
 ############# Milton et al #############
 milton_vl = [np.log10(8.30E+04), np.log10(4.20E+05), np.log10(1.80E+06)]
 milton_er = [22, 220, 1120]  # removed first and last due to its dimensions
