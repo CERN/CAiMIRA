@@ -82,8 +82,40 @@ def exposure_model_from_vl_talking(viral_loads):
         upper_percentiles.append(np.quantile(emission_rate, 0.99))
 
     # divide by 4 to have in 15min (quarter of an hour)
-    build_plot(viral_loads, er_means,
-               lower_percentiles, upper_percentiles, coleman_etal_vl_talking, [x/4 for x in coleman_etal_er_talking])
+    coleman_etal_er_talking_2 = [x/4 for x in coleman_etal_er_talking]
+
+    ax.plot(viral_loads, er_means)
+    ax.fill_between(viral_loads, lower_percentiles,
+                    upper_percentiles, alpha=0.2)
+    ax.set_yscale('log')
+
+    ############# Coleman #############
+    plt.scatter(coleman_etal_vl_talking, coleman_etal_er_talking_2, marker='x')
+    x_hull, y_hull = get_enclosure_points(
+        coleman_etal_vl_talking, coleman_etal_er_talking_2)
+    # plot shape
+    plt.fill(x_hull, y_hull, '--', c='orange', alpha=0.2)
+
+    ############# Markers #############
+    markers = [5, 'd', 4]
+
+    ############ Legend ############
+    result_from_model = mlines.Line2D(
+        [], [], color='blue', marker='_', linestyle='None')
+    coleman = mlines.Line2D([], [], color='orange',
+                            marker='x', linestyle='None')
+
+    title_proxy = Rectangle((0, 0), 0, 0, color='w')
+    titles = ["$\\bf{CARA \, \\it{(SARS-CoV-2)}:}$", "$\\bf{Coleman \, et \, al. \, \\it{(SARS-CoV-2)}:}$"]
+    leg = plt.legend([title_proxy, result_from_model, title_proxy, coleman],
+                     [titles[0], "Result from model", titles[1], "Dataset"])
+
+    # Move titles to the left
+    for item, label in zip(leg.legendHandles, leg.texts):
+        if label._text in titles:
+            width = item.get_window_extent(fig.canvas.get_renderer()).width
+            label.set_ha('left')
+            label.set_position((-3*width, 0))
 
     ############ Plot ############
     plt.title('Exhaled virions while talking for 15min',
@@ -129,47 +161,58 @@ def exposure_model_from_vl_breathing(viral_loads):
         )
         exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
         # divide by 2 to have in 30min (half an hour)
-        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present() /2
+        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present() / 2
         er_means.append(np.mean(emission_rate))
         er_medians.append(np.median(emission_rate))
         lower_percentiles.append(np.quantile(emission_rate, 0.01))
         upper_percentiles.append(np.quantile(emission_rate, 0.99))
 
     # divide by 2 to have in 30min (half an hour)
-    build_plot(viral_loads, er_means,
-               lower_percentiles, upper_percentiles, coleman_etal_vl_breathing, [x/2 for x in coleman_etal_er_breathing], milton_vl, [x/2 for x in milton_er], yann_vl, [x/2 for x in yann_er])
+    coleman_etal_er_breathing_2 = [x/2 for x in coleman_etal_er_breathing]
+    milton_er_2 = [x/2 for x in milton_er]
+    yann_er_2 = [x/2 for x in yann_er]
 
-    ############ Plot ############
-    plt.title('Exhaled virions while breathing for 30 min',
-              fontsize=16, fontweight="bold")
-    plt.ylabel(
-        'Aerosol viral load, $\mathrm{vl_{out}}$\n(RNA copies)', fontsize=14)
-    plt.xticks(ticks=[i for i in range(2, 13)], labels=[
-        '$10^{' + str(i) + '}$' for i in range(2, 13)])
-    plt.xlabel('NP viral load, $\mathrm{vl_{in}}$\n(RNA copies)', fontsize=14)
-    plt.show()
+    ax.plot(viral_loads, er_means)
+    ax.fill_between(viral_loads, lower_percentiles,
+                    upper_percentiles, alpha=0.2)
+    ax.set_yscale('log')
 
-    return er_means
+    ############# Coleman #############
+    plt.scatter(coleman_etal_vl_breathing,
+                coleman_etal_er_breathing_2, marker='x')
+    x_hull, y_hull = get_enclosure_points(
+        coleman_etal_vl_breathing, coleman_etal_er_breathing_2)
+    # plot shape
+    plt.fill(x_hull, y_hull, '--', c='orange', alpha=0.2)
 
+    ############# Markers #############
+    markers = [5, 'd', 4]
 
-######### Auxiliar functions #########
+    ############# Milton et al #############
+    try:
+        for index, m in enumerate(markers):
+            plt.scatter(milton_vl[index], milton_er_2[index],
+                        marker=m, color='red')
+        x_hull, y_hull = get_enclosure_points(milton_vl, milton_er_2)
+        # plot shape
+        plt.fill(x_hull, y_hull, '--', c='red', alpha=0.2)
+    except:
+        print("No data for Milton et al")
 
-def get_enclosure_points(x_coordinates, y_coordinates):
-    df = pd.DataFrame({'x': x_coordinates, 'y': y_coordinates})
+    ############# Yan et al #############
+    try:
+        plt.scatter(yann_vl[0], yann_er_2[0], marker=markers[0], color='green')
+        plt.scatter(yann_vl[1], yann_er_2[1],
+                    marker=markers[1], color='green', s=50)
+        plt.scatter(yann_vl[2], yann_er_2[2], marker=markers[2], color='green')
 
-    points = df[['x', 'y']].values
-    # get convex hull
-    hull = ConvexHull(points)
-    # get x and y coordinates
-    # repeat last point to close the polygon
-    x_hull = np.append(points[hull.vertices, 0],
-                       points[hull.vertices, 0][0])
-    y_hull = np.append(points[hull.vertices, 1],
-                       points[hull.vertices, 1][0])
-    return x_hull, y_hull
+        x_hull, y_hull = get_enclosure_points(yann_vl, yann_er_2)
+        # plot shape
+        plt.fill(x_hull, y_hull, '--', c='green', alpha=0.2)
+    except:
+        print("No data for Yan et al")
 
-
-def build_legend(fig):
+    ############ Legend ############
     result_from_model = mlines.Line2D(
         [], [], color='blue', marker='_', linestyle='None')
     coleman = mlines.Line2D([], [], color='orange',
@@ -200,44 +243,34 @@ def build_legend(fig):
             label.set_ha('left')
             label.set_position((-3*width, 0))
 
+    ############ Plot ############
+    plt.title('Exhaled virions while breathing for 30 min',
+              fontsize=16, fontweight="bold")
+    plt.ylabel(
+        'Aerosol viral load, $\mathrm{vl_{out}}$\n(RNA copies)', fontsize=14)
+    plt.xticks(ticks=[i for i in range(2, 13)], labels=[
+        '$10^{' + str(i) + '}$' for i in range(2, 13)])
+    plt.xlabel('NP viral load, $\mathrm{vl_{in}}$\n(RNA copies)', fontsize=14)
+    plt.show()
 
-def build_plot(viral_loads, er_means, lower_percentiles, upper_percentiles, coleman_etal_vl, coleman_etal_er, milton_vl, milton_er, yann_vl, yann_er, ):
-    ax.plot(viral_loads, er_means)
-    ax.fill_between(viral_loads, lower_percentiles,
-                    upper_percentiles, alpha=0.2)
-    ax.set_yscale('log')
+    return er_means
 
-    ############# Coleman #############
-    plt.scatter(coleman_etal_vl, coleman_etal_er, marker='x')
-    x_hull, y_hull = get_enclosure_points(
-        coleman_etal_vl, coleman_etal_er)
-    # plot shape
-    plt.fill(x_hull, y_hull, '--', c='orange', alpha=0.2)
 
-    ############# Markers #############
-    markers = [5, 'd', 4]
+######### Auxiliar functions #########
 
-    ############# Milton et al #############
-    for index, m in enumerate(markers):
-        plt.scatter(milton_vl[index], milton_er[index],
-                    marker=m, color='red')
-    x_hull, y_hull = get_enclosure_points(milton_vl, milton_er)
-    # plot shape
-    plt.fill(x_hull, y_hull, '--', c='red', alpha=0.2)
+def get_enclosure_points(x_coordinates, y_coordinates):
+    df = pd.DataFrame({'x': x_coordinates, 'y': y_coordinates})
 
-    ############# Yan et al #############
-    plt.scatter(yann_vl[0], yann_er[0], marker=markers[0], color='green')
-    plt.scatter(yann_vl[1], yann_er[1], marker=markers[1], color='green', s=50)
-    plt.scatter(yann_vl[2], yann_er[2], marker=markers[2], color='green')
-
-    x_hull, y_hull = get_enclosure_points(yann_vl, yann_er)
-    # plot shape
-    plt.fill(x_hull, y_hull, '--', c='green', alpha=0.2)
-
-    ############ Legend ############
-    build_legend(fig)
-
-    return plt
+    points = df[['x', 'y']].values
+    # get convex hull
+    hull = ConvexHull(points)
+    # get x and y coordinates
+    # repeat last point to close the polygon
+    x_hull = np.append(points[hull.vertices, 0],
+                       points[hull.vertices, 0][0])
+    y_hull = np.append(points[hull.vertices, 1],
+                       points[hull.vertices, 1][0])
+    return x_hull, y_hull
 
 
 # # Milton
