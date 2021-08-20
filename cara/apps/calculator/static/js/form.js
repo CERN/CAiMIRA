@@ -602,7 +602,8 @@ function formatlocation(location) {
 }
 
 function formatLocationSelection(location) {
-    $(document.getElementById("coordinates_input").value = (location.latitude + ',' + location.longitude));
+    if (location.latitude != null && location.latitude != null)
+        $(document.getElementById("coordinates_input").value = (location.latitude + ',' + location.longitude));
     return location.text;
 }
 
