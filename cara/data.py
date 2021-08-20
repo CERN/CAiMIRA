@@ -5,7 +5,7 @@ import urllib.request
 from pathlib import Path
 from scipy.spatial import cKDTree
 import os
-
+import typing
 
 weather_debug = False
 
@@ -45,7 +45,7 @@ def location_to_weather_stn(location_loc):
     return (station_array[ii[0]][0], station_array[ii[0]][1], station_array[ii[0]][2], station_array[ii[0]][3])
 
 
-def location_celcius_per_hour(location: object) -> object:
+def location_celcius_per_hour(location: object) -> typing.Dict[str, typing.List[float]]:
     # expects a tuple (lat, long)
     # returns a json format set of weather data
     w_station = location_to_weather_stn(location)

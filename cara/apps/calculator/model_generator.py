@@ -270,7 +270,8 @@ class FormData:
 
             # set location
             self.weather_station_location = data.location_to_weather_stn(self.location_coordinates)[1]
-            data.local_temperatures = data.location_celcius_per_hour(self.location_coordinates)
+            data.local_tempatures = data.location_celcius_per_hour(self.location_coordinates)
+            print(data.local_tempatures)
 
             inside_temp = models.PiecewiseConstant((0, 24), (293,))
             outside_temp = data.Temperatures[str(month)]
