@@ -84,5 +84,7 @@ setup(
         'apps/*/*/*',
         'apps/*/*/*/*',
         'apps/*/*/*/*/*',
+        'data/*.json',
+        'data/*.txt',
     ]},
 )
