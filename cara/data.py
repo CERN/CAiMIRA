@@ -18,7 +18,7 @@ def location_to_weather_stn(location_loc):
     long = []
     station_array = []
     fixed_delimits = [0, 12, 13, 44, 51, 60, 69, 90, 91]
-    station_file = Path('/cara/hadisd_station_fullinfo_v311_202001p.txt')
+    station_file = Path(__file__).parent / 'hadisd_station_fullinfo_v311_202001p.txt'
 
     for line in station_file.open('rt'):
         start_end_positions = zip(fixed_delimits[:-1], fixed_delimits[1:])
@@ -39,7 +39,7 @@ def location_celcius_per_hour(location: object) -> typing.Dict[str, typing.List[
     # expects a tuple (lat, long)
     # returns a json format set of weather data
     w_station = location_to_weather_stn(location)
-    with open(Path(os.getcwd()+"/cara/global_weather_set.json"), "r") as json_file:
+    with open(Path(__file__).parent / 'global_weather_set.json', "r") as json_file:
         weather_dict = json.load(json_file)
     Location_hourly_temperatures_celsius_per_hour = weather_dict[w_station[0]]
     if weather_debug:
