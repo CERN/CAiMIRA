@@ -894,7 +894,7 @@ class ExposureModel:
         return exposure * self.repeats
 
     def exposure(self) -> _VectorisedFloat:
-        """The number of virus per meter^3 for the full simulation time."""
+        """The number of virions per meter^3 for the full simulation time."""
         if self.exposed.presence.transition_times():
             return self.exposure_vs_time(max(self.exposed.presence.transition_times()))
         else:
