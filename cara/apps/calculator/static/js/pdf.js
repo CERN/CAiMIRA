@@ -1,4 +1,4 @@
-function execute_me(qr_link) {
+function generate_pdf_version(qr_link) {
     const pdf_version = this.document.getElementById("body");
 
     // PDF styling

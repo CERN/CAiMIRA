@@ -22,7 +22,7 @@
 			<h2 class="text-component-title" style="margin-bottom: 0">CARA - CALCULATOR REPORT</h1>
 			<p style="margin-bottom: 0"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
 		</div>
-		<button type="button" class="btn btn-outline-dark align-self-center" style="margin-right: -100pt" id="download-pdf" onclick="execute_me('{{qr_code.link}}')">Download PDF</button>
+		<button type="button" class="btn btn-outline-dark align-self-center" style="margin-right: -100pt" id="download-pdf" onclick="generate_pdf_version('{{qr_code.link}}')">Download PDF</button>
 		<img id="pdf-qr-code" class="align-self-center" style="margin-right: 1%; visibility: hidden; width:100pt;" src="{{ qr_code.image }}"/>
 	</div>
 
@@ -101,7 +101,7 @@
 						<div class="card-body">
 							<div>
 								<img id="scenario_concentration_plot" src="{{ alternative_scenarios.plot }}" />
-								
+
 								{% block report_scenarios_summary_table %}
 									<table class="table w-auto">
 										<thead class="thead-light">
