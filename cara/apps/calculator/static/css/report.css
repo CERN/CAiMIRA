@@ -98,11 +98,6 @@ p.notes {
     margin-right: 1%;
 }
 
-#rules,
-#data {
-    display: none!important;
-}
-
 @media (width: 1200px) {
     /* CSS styling for break avoid. */
     .break-avoid {
