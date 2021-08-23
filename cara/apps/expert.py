@@ -140,8 +140,8 @@ class ExposureModelResult(View):
             ax.spines['top'].set_visible(False)
 
             ax.set_xlabel('Time (hours)')
-            ax.set_ylabel('Concentration ($q/m^3$)')
-            ax.set_title('Concentration of infectious quanta')
+            ax.set_ylabel('Concentration ($virions/m^{3}$)')
+            ax.set_title('Concentration of virions')
         else:
             self.ax.ignore_existing_data_limits = True
             self.line.set_data(ts, concentration)
@@ -154,7 +154,7 @@ class ExposureModelResult(View):
     def update_textual_result(self, model: models.ExposureModel):
         lines = []
         P = model.infection_probability()
-        lines.append(f'Emission rate (quanta/hr): {np.round(model.concentration_model.infected.emission_rate_when_present(),0)}')
+        lines.append(f'Emission rate (virus/hr): {np.round(model.concentration_model.infected.emission_rate_when_present(),0)}')
         lines.append(f'Probability of infection: {np.round(P, 0)}%')
 
         lines.append(f'Number of exposed: {model.exposed.number}')
@@ -185,8 +185,8 @@ class ExposureComparissonResult(View):
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
         ax.set_xlabel('Time (hours)')
-        ax.set_ylabel('Concentration ($q/m^3$)')
-        ax.set_title('Concentration of infectious quanta')
+        ax.set_ylabel('Concentration ($virions/m^{3}$)')
+        ax.set_title('Concentration of virions')
         return ax
 
     def scenarios_updated(self, scenarios: typing.Sequence[ScenarioType], _):
@@ -488,14 +488,14 @@ baseline_model = models.ExposureModel(
         room=models.Room(volume=75),
         ventilation=models.SlidingWindow(
             active=models.PeriodicInterval(period=120, duration=15),
-            inside_temp=models.PiecewiseConstant((0,24),(293.15,)),
-            outside_temp=models.PiecewiseConstant((0,24),(283.15,)),
+            inside_temp=models.PiecewiseConstant((0., 24.), (293.15,)),
+            outside_temp=models.PiecewiseConstant((0., 24.), (283.15,)),
             window_height=1.6, opening_length=0.6,
         ),
         infected=models.InfectedPopulation(
             number=1,
             virus=models.Virus.types['SARS_CoV_2'],
-            presence=models.SpecificInterval(((8, 12), (13, 17))),
+            presence=models.SpecificInterval(((8., 12.), (13., 17.))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Seated'],
             expiration=models.Expiration.types['Talking'],
@@ -503,7 +503,7 @@ baseline_model = models.ExposureModel(
     ),
     exposed=models.Population(
         number=10,
-        presence=models.SpecificInterval(((8, 12), (13, 17))),
+        presence=models.SpecificInterval(((8., 12.), (13., 17.))),
         activity=models.Activity.types['Seated'],
         mask=models.Mask.types['No mask'],
     ),

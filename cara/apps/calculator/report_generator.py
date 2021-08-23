@@ -34,8 +34,10 @@ def calculate_report_data(model: models.ExposureModel):
 
     t_start, t_end = model_start_end(model)
     times = np.linspace(t_start, t_end, resolution)
-    concentrations = [np.array(model.concentration_model.concentration(time)).mean()
-                      for time in times]
+    concentrations = [
+        np.array(model.concentration_model.concentration(float(time))).mean()
+        for time in times
+    ]
     highest_const = max(concentrations)
     prob = np.array(model.infection_probability()).mean()
     er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
@@ -44,13 +46,13 @@ def calculate_report_data(model: models.ExposureModel):
 
     return {
         "times": list(times),
+        "exposed_presence_intervals": [list(interval) for interval in model.exposed.presence.boundaries()],
         "concentrations": concentrations,
         "highest_const": highest_const,
         "prob_inf": prob,
         "emission_rate": er,
         "exposed_occupants": exposed_occupants,
         "expected_new_cases": expected_new_cases,
-        "scenario_plot_src": img2base64(_figure2bytes(plot(times, concentrations, model))),
     }
 
 
@@ -115,8 +117,8 @@ def plot(times, concentrations, model: models.ExposureModel):
     ax.spines['top'].set_visible(False)
 
     ax.set_xlabel('Time of day')
-    ax.set_ylabel('Mean concentration ($q/m^3$)')
-    ax.set_title('Mean concentration of infectious quanta')
+    ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
+    ax.set_title('Mean concentration of virions')
     ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
 
     # Plot presence of exposed person
@@ -133,7 +135,7 @@ def plot(times, concentrations, model: models.ExposureModel):
     ax.set_ylim(0)
 
     return fig
-
+    
 
 def minutes_to_time(minutes: int) -> str:
     minute_string = str(minutes % 60)
@@ -236,8 +238,8 @@ def comparison_plot(scenarios: typing.Dict[str, dict], sample_times: np.ndarray)
     ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
 
     ax.set_xlabel('Time of day')
-    ax.set_ylabel('Mean concentration ($q/m^3$)')
-    ax.set_title('Mean concentration of infectious quanta')
+    ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
+    ax.set_title('Mean concentration of virions')
 
     return fig
 

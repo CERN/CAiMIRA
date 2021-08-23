@@ -41,6 +41,9 @@
               namespace: openshift
           type: Source
         triggers:
+          - type: ImageChange
+            imageChange: {}
+          - type: ConfigChange
           - generic:
               secretReference:
                 name: gitlab-cara-webhook-secret

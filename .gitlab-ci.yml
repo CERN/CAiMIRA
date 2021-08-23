@@ -42,7 +42,7 @@ test_dev:
     - python ./config-generate.py ${CARA_INSTANCE} --output-directory ./${CARA_INSTANCE}/expected
     - python ./config-normalise.py ./${CARA_INSTANCE}/actual ./${CARA_INSTANCE}/actual-normed
     - python ./config-normalise.py ./${CARA_INSTANCE}/expected ./${CARA_INSTANCE}/expected-normed
-    - diff -u ./test-cara/actual-normed/ ./${CARA_INSTANCE}/expected-normed/
+    - diff -u ./${CARA_INSTANCE}/actual-normed/ ./${CARA_INSTANCE}/expected-normed/
 
   artifacts:
     paths:
@@ -57,6 +57,15 @@ check_openshift_config_test-cara:
     BRANCH: 'live/test-cara'
     OC_SERVER: openshift-dev.cern.ch
     OC_TOKEN: "${OPENSHIFT_CONFIG_CHECKER_TOKEN_TEST_CARA}"
+
+
+check_openshift_config_prod:
+  extends: .test_openshift_config
+  variables:
+    CARA_INSTANCE: 'cara'
+    BRANCH: 'master'
+    OC_SERVER: openshift.cern.ch
+    OC_TOKEN: "${OPENSHIFT_CONFIG_CHECKER_TOKEN_PROD}"
 
 
 # A development installation of CARA tested with pytest.

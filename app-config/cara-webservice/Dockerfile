@@ -23,9 +23,14 @@ FROM debian
 COPY --from=conda /opt/app /opt/app
 ENV PATH=/opt/app/bin/:$PATH
 # Make a convenient location to the installed CARA package (i.e. a directory called cara in the CWD).
+# It is important that this directory is also writable by a non-root user.
+RUN mkdir -p /scratch \
+ && chmod a+wx /scratch
+# Set the HOME directory to something that anybody can write to (to support non root users, such as on openshift).
+ENV HOME=/scratch
+WORKDIR /scratch
 RUN CARA_INIT_FILE=$(/opt/app/bin/python -c "import cara; print(cara.__file__)") \
- && ln -s $(dirname $(dirname ${CARA_INIT_FILE})) /opt/site-packages \
- && ln -s /opt/site-packages/cara ./cara
+ && ln -s $(dirname ${CARA_INIT_FILE}) /scratch/cara
 CMD [ \
   "cara-app.sh" \
 ]

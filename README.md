@@ -2,7 +2,7 @@
 
 CARA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.
 
-CARA models the concentration profile of potential infectious viruses in enclosed spaces with clear and intuitive graphs.
+CARA models the concentration profile of potential virions in enclosed spaces with clear and intuitive graphs.
 The user can set a number of parameters, including room volume, exposure time, activity type, mask-wearing and ventilation.
 The report generated indicates how to avoid exceeding critical concentrations and chains of airborne transmission in spaces such as individual offices, meeting rooms and labs.
 
@@ -26,7 +26,7 @@ Each event modelled is unique, and the results generated therein are only as acc
 ## Authors
 CARA was developed by following members of CERN - European Council for Nuclear Research (visit https://home.cern/):
 
-Andre Henriques<sup>1</sup>, Marco Andreini<sup>1</sup>, Gabriella Azzopardi<sup>2</sup>, James Devine<sup>3</sup>, Philip Elson<sup>4</sup>, Nicolas Mounet<sup>2</sup>, Markus Kongstein Rognlien<sup>2,6</sup>, Nicola Tarocco<sup>5</sup>
+Andre Henriques<sup>1</sup>, Luis Aleixo<sup>1</sup>, Marco Andreini<sup>1</sup>, Gabriella Azzopardi<sup>2</sup>, James Devine<sup>3</sup>, Philip Elson<sup>4</sup>, Nicolas Mounet<sup>2</sup>, Markus Kongstein Rognlien<sup>2,6</sup>, Nicola Tarocco<sup>5</sup>
 
 <sup>1</sup>HSE Unit, Occupational Health & Safety Group, CERN<br>
 <sup>2</sup>Beams Department, Accelerators and Beam Physics Group, CERN<br>
@@ -148,7 +148,7 @@ export CLIENT_SECRET
 Run docker-compose:
 ```
 cd app-config
-docker-compose up
+CURRENT_UID=$(id -u):$(id -g) docker-compose up
 ```
 
 Then visit http://localhost:8080/.

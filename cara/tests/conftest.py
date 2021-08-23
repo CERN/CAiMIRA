@@ -8,13 +8,13 @@ def baseline_model():
     model = models.ConcentrationModel(
         room=models.Room(volume=75),
         ventilation=models.AirChange(
-            active=models.SpecificInterval(((0,24),)),
+            active=models.SpecificInterval(((0., 24.), )),
             air_exch=30.,
         ),
         infected=models.InfectedPopulation(
             number=1,
             virus=models.Virus.types['SARS_CoV_2'],
-            presence=models.SpecificInterval(((0, 4), (5, 8))),
+            presence=models.SpecificInterval(((0., 4.), (5., 8.))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
             expiration=models.Expiration.types['Superspreading event'],
