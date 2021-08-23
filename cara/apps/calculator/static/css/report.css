@@ -99,15 +99,12 @@ p.notes {
 }
 
 @media (width: 1200px) {
-    /* CSS styling for break avoid. */
+    /* CSS styling to avoid page breaks. */
     .break-avoid {
         page-break-inside: avoid;
     }
-    .first_page {
-        height: 380pt;
-    }
     .second_page {
-        height: 540pt;
+        height: 530pt;
     }
     .third_page {
         height: 90pt;
