@@ -103,8 +103,14 @@ p.notes {
     .break-avoid {
         page-break-inside: avoid;
     }
+    #results-div {
+        min-height: 875px;
+    }
+    .first_page {
+        height: 380pt;
+    }
     .second_page {
-        height: 530pt;
+        height: 420pt;
     }
     .third_page {
         height: 90pt;

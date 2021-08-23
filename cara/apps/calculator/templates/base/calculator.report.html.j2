@@ -88,8 +88,8 @@
 						</div>
 					</div>
 				</div>
-				<div class="break-avoid" id="break-first-page"></div>	
-				<div class="card bg-light mb-3" id="alternative-scenarios-div">
+				<div class="break-avoid first_page"></div>	
+				<div class="card bg-light mb-3">
   					<div class="card-header"><strong>Alternative scenarios</strong>
 						<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseAlternativeScenarios" role="button" aria-expanded="false" aria-controls="collapseAlternativeScenarios">
 							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
@@ -99,9 +99,9 @@
 					</div>	
 					<div class="collapse" id="collapseAlternativeScenarios">
 						<div class="card-body">
-							<div class="d-flex flex-row">
-								<img id="scenario_concentration_plot" src="{{ alternative_scenarios.plot }}" align="left" />
-
+							<div>
+								<img id="scenario_concentration_plot" src="{{ alternative_scenarios.plot }}" />
+								
 								{% block report_scenarios_summary_table %}
 									<table class="table w-auto">
 										<thead class="thead-light">
