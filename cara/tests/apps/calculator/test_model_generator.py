@@ -1,14 +1,16 @@
 import dataclasses
 
 import pytest
+import numpy as np
+import numpy.testing as npt
+from pathlib import Path
+import json
 
 from cara.apps.calculator import model_generator
 from cara.apps.calculator.model_generator import _hours2timestring
 from cara.apps.calculator.model_generator import minutes_since_midnight
 from cara import models
 from cara import data
-import numpy as np
-import numpy.testing as npt
 
 
 def test_model_from_dict(baseline_form_data):
@@ -119,7 +121,7 @@ def test_ventilation_window_hepa(baseline_form: model_generator.FormData):
         active=models.PeriodicInterval(period=120, duration=120),
         q_air_mech=250.,
     )
-    ventilation = models.MultipleVentilation((window,hepa))
+    ventilation = models.MultipleVentilation((window, hepa))
 
     baseline_form.ventilation_type = 'natural_ventilation'
     baseline_form.windows_duration = 10
@@ -161,7 +163,8 @@ def test_exposed_present_intervals(baseline_form: model_generator.FormData):
     baseline_form.exposed_finish = minutes_since_midnight(17 * 60)
     baseline_form.exposed_lunch_start = minutes_since_midnight(12 * 60 + 30)
     baseline_form.exposed_lunch_finish = minutes_since_midnight(13 * 60 + 30)
-    correct = ((9, 10+37/60), (10+52/60, 12.5), (13.5, 15+7/60), (15+22/60, 17.0))
+    correct = ((9, 10+37/60), (10+52/60, 12.5),
+               (13.5, 15+7/60), (15+22/60, 17.0))
     assert present_times(baseline_form.exposed_present_interval()) == correct
 
 
@@ -169,37 +172,50 @@ def test_present_intervals_common_breaks(baseline_form: model_generator.FormData
     baseline_form.infected_dont_have_breaks_with_exposed = False
     baseline_form.infected_coffee_duration = baseline_form.exposed_coffee_duration = 15
     baseline_form.infected_coffee_break_option = baseline_form.exposed_coffee_break_option = 'coffee_break_2'
-    baseline_form.exposed_lunch_start = baseline_form.infected_lunch_start = minutes_since_midnight(12 * 60 + 30)
-    baseline_form.exposed_lunch_finish = baseline_form.infected_lunch_finish = minutes_since_midnight(13 * 60 + 30)
+    baseline_form.exposed_lunch_start = baseline_form.infected_lunch_start = minutes_since_midnight(
+        12 * 60 + 30)
+    baseline_form.exposed_lunch_finish = baseline_form.infected_lunch_finish = minutes_since_midnight(
+        13 * 60 + 30)
     baseline_form.exposed_start = minutes_since_midnight(9 * 60)
     baseline_form.exposed_finish = minutes_since_midnight(17 * 60)
     baseline_form.infected_start = minutes_since_midnight(9 * 60)
     baseline_form.infected_finish = minutes_since_midnight(16 * 60)
-    correct_exposed = ((9, 10+37/60), (10+52/60, 12.5), (13.5, 15+7/60), (15+22/60, 17.0))
-    correct_infected = ((9, 10+37/60), (10+52/60, 12.5), (13.5, 15+7/60), (15+22/60, 16.0))
-    assert present_times(baseline_form.exposed_present_interval()) == correct_exposed
-    assert present_times(baseline_form.infected_present_interval()) == correct_infected
+    correct_exposed = ((9, 10+37/60), (10+52/60, 12.5),
+                       (13.5, 15+7/60), (15+22/60, 17.0))
+    correct_infected = ((9, 10+37/60), (10+52/60, 12.5),
+                        (13.5, 15+7/60), (15+22/60, 16.0))
+    assert present_times(
+        baseline_form.exposed_present_interval()) == correct_exposed
+    assert present_times(
+        baseline_form.infected_present_interval()) == correct_infected
 
 
 def test_present_intervals_split_breaks(baseline_form: model_generator.FormData):
     baseline_form.infected_dont_have_breaks_with_exposed = True
     baseline_form.infected_coffee_duration = baseline_form.exposed_coffee_duration = 15
     baseline_form.infected_coffee_break_option = baseline_form.exposed_coffee_break_option = 'coffee_break_2'
-    baseline_form.infected_lunch_start = baseline_form.exposed_lunch_start = minutes_since_midnight(12 * 60 + 30)
-    baseline_form.infected_lunch_finish = baseline_form.exposed_lunch_finish = minutes_since_midnight(13 * 60 + 30)
+    baseline_form.infected_lunch_start = baseline_form.exposed_lunch_start = minutes_since_midnight(
+        12 * 60 + 30)
+    baseline_form.infected_lunch_finish = baseline_form.exposed_lunch_finish = minutes_since_midnight(
+        13 * 60 + 30)
     baseline_form.exposed_start = minutes_since_midnight(9 * 60)
     baseline_form.exposed_finish = minutes_since_midnight(17 * 60)
     baseline_form.infected_start = minutes_since_midnight(9 * 60)
     baseline_form.infected_finish = minutes_since_midnight(16 * 60)
-    correct_exposed = ((9, 10+37/60), (10+52/60, 12.5), (13.5, 15+7/60), (15+22/60, 17.0))
-    correct_infected = ((9, 10+37/60), (10+52/60, 12.5), (13.5, 14+37/60), (14+52/60, 16.0))
-    assert present_times(baseline_form.exposed_present_interval()) == correct_exposed
-    assert present_times(baseline_form.infected_present_interval()) == correct_infected
+    correct_exposed = ((9, 10+37/60), (10+52/60, 12.5),
+                       (13.5, 15+7/60), (15+22/60, 17.0))
+    correct_infected = ((9, 10+37/60), (10+52/60, 12.5),
+                        (13.5, 14+37/60), (14+52/60, 16.0))
+    assert present_times(
+        baseline_form.exposed_present_interval()) == correct_exposed
+    assert present_times(
+        baseline_form.infected_present_interval()) == correct_infected
 
 
 def test_exposed_present_intervals_starting_with_lunch(baseline_form: model_generator.FormData):
     baseline_form.exposed_coffee_break_option = 'coffee_break_0'
-    baseline_form.exposed_start = baseline_form.exposed_lunch_start = minutes_since_midnight(13 * 60)
+    baseline_form.exposed_start = baseline_form.exposed_lunch_start = minutes_since_midnight(
+        13 * 60)
     baseline_form.exposed_finish = minutes_since_midnight(18 * 60)
     baseline_form.exposed_lunch_finish = minutes_since_midnight(14 * 60)
     correct = ((14.0, 18.0), )
@@ -209,7 +225,8 @@ def test_exposed_present_intervals_starting_with_lunch(baseline_form: model_gene
 def test_exposed_present_intervals_ending_with_lunch(baseline_form: model_generator.FormData):
     baseline_form.exposed_coffee_break_option = 'coffee_break_0'
     baseline_form.exposed_start = minutes_since_midnight(11 * 60)
-    baseline_form.exposed_finish = baseline_form.exposed_lunch_start = minutes_since_midnight(13 * 60)
+    baseline_form.exposed_finish = baseline_form.exposed_lunch_start = minutes_since_midnight(
+        13 * 60)
     baseline_form.exposed_lunch_finish = minutes_since_midnight(14 * 60)
     correct = ((11.0, 13.0),)
     assert present_times(baseline_form.exposed_present_interval()) == correct
@@ -291,7 +308,8 @@ def breaks_every_25_mins_for_20_mins(baseline_form: model_generator.FormData):
     baseline_form.exposed_lunch_finish = time2mins("12:15")
     baseline_form.exposed_lunch_option = True
 
-    breaks = baseline_form.exposed_coffee_break_times() + baseline_form.exposed_lunch_break_times()
+    breaks = baseline_form.exposed_coffee_break_times(
+    ) + baseline_form.exposed_lunch_break_times()
     interval = baseline_form.present_interval(
         baseline_form.exposed_start, baseline_form.exposed_finish, breaks=breaks,
     )
@@ -308,7 +326,8 @@ def breaks_every_25_mins_for_20_mins(baseline_form: model_generator.FormData):
 
 
 def test_present_after_two_breaks_for_small_interval(breaks_every_25_mins_for_20_mins):
-    breaks = breaks_every_25_mins_for_20_mins.exposed_coffee_break_times() + breaks_every_25_mins_for_20_mins.exposed_lunch_break_times()
+    breaks = breaks_every_25_mins_for_20_mins.exposed_coffee_break_times(
+    ) + breaks_every_25_mins_for_20_mins.exposed_lunch_break_times()
     # The first two breaks start at 10:25 and 11:10.
     interval = breaks_every_25_mins_for_20_mins.present_interval(
         time2mins("11:35"), time2mins("11:40"), breaks=breaks,
@@ -318,7 +337,8 @@ def test_present_after_two_breaks_for_small_interval(breaks_every_25_mins_for_20
 
 
 def test_present_only_during_second_break(breaks_every_25_mins_for_20_mins):
-    breaks = breaks_every_25_mins_for_20_mins.exposed_coffee_break_times() + breaks_every_25_mins_for_20_mins.exposed_lunch_break_times()
+    breaks = breaks_every_25_mins_for_20_mins.exposed_coffee_break_times(
+    ) + breaks_every_25_mins_for_20_mins.exposed_lunch_break_times()
     # The first two breaks start at 10:25 and 11:10.
     interval = breaks_every_25_mins_for_20_mins.present_interval(
         time2mins("11:15"), time2mins("11:20"), breaks=breaks
@@ -346,8 +366,10 @@ def test_no_breaks(baseline_form: model_generator.FormData):
     baseline_form.infected_finish = minutes_since_midnight(15 * 60)
     exposed_correct = ((9, 17),)
     infected_correct = ((10, 15),)
-    assert present_times(baseline_form.exposed_present_interval()) == exposed_correct
-    assert present_times(baseline_form.infected_present_interval()) == infected_correct
+    assert present_times(
+        baseline_form.exposed_present_interval()) == exposed_correct
+    assert present_times(
+        baseline_form.infected_present_interval()) == infected_correct
 
 
 def test_coffee_lunch_breaks(baseline_form: model_generator.FormData):
@@ -359,7 +381,8 @@ def test_coffee_lunch_breaks(baseline_form: model_generator.FormData):
     baseline_form.exposed_lunch_finish = minutes_since_midnight(13 * 60 + 30)
     correct = ((9, 9+50/60), (10+20/60, 11+10/60), (11+40/60, 12+30/60),
                (13+30/60, 14+40/60), (15+10/60, 16+20/60), (16+50/60, 18))
-    np.testing.assert_allclose(present_times(baseline_form.exposed_present_interval()), correct, rtol=1e-14)
+    np.testing.assert_allclose(present_times(
+        baseline_form.exposed_present_interval()), correct, rtol=1e-14)
 
 
 def test_coffee_lunch_breaks_unbalance(baseline_form: model_generator.FormData):
@@ -370,7 +393,8 @@ def test_coffee_lunch_breaks_unbalance(baseline_form: model_generator.FormData):
     baseline_form.exposed_lunch_start = minutes_since_midnight(12 * 60 + 30)
     baseline_form.exposed_lunch_finish = minutes_since_midnight(13 * 60 + 30)
     correct = ((9, 9+50/60), (10+20/60, 11+10/60), (11+40/60, 12+30/60))
-    np.testing.assert_allclose(present_times(baseline_form.exposed_present_interval()), correct, rtol=1e-14)
+    np.testing.assert_allclose(present_times(
+        baseline_form.exposed_present_interval()), correct, rtol=1e-14)
 
 
 def test_coffee_breaks(baseline_form: model_generator.FormData):
@@ -379,8 +403,10 @@ def test_coffee_breaks(baseline_form: model_generator.FormData):
     baseline_form.exposed_start = minutes_since_midnight(9 * 60)
     baseline_form.exposed_finish = minutes_since_midnight(10 * 60)
     baseline_form.exposed_lunch_option = False
-    correct = ((9, 9+4/60), (9+14/60, 9+18/60), (9+28/60, 9+32/60), (9+42/60, 9+46/60), (9+56/60, 10))
-    np.testing.assert_allclose(present_times(baseline_form.exposed_present_interval()), correct, rtol=1e-14)
+    correct = ((9, 9+4/60), (9+14/60, 9+18/60), (9+28/60, 9+32/60),
+               (9+42/60, 9+46/60), (9+56/60, 10))
+    np.testing.assert_allclose(present_times(
+        baseline_form.exposed_present_interval()), correct, rtol=1e-14)
 
 
 def test_key_validation(baseline_form_data):
@@ -413,7 +439,8 @@ def test_key_validation_mech_ventilation_type_na(baseline_form_data):
 def test_default_types():
     # Validate that FormData._DEFAULTS are complete and of the correct type.
     # Validate that we have the right types and matching attributes to the DEFAULTS.
-    fields = {field.name: field for field in dataclasses.fields(model_generator.FormData)}
+    fields = {field.name: field for field in dataclasses.fields(
+        model_generator.FormData)}
     for field, value in model_generator.FormData._DEFAULTS.items():
         if field not in fields:
             raise ValueError(f"Unmatched default {field}")
@@ -427,10 +454,12 @@ def test_default_types():
             continue
 
         if field in model_generator._CAST_RULES_FORM_ARG_TO_NATIVE:
-            value = model_generator._CAST_RULES_FORM_ARG_TO_NATIVE[field](value)
+            value = model_generator._CAST_RULES_FORM_ARG_TO_NATIVE[field](
+                value)
 
         if not isinstance(value, field_type):
-            raise TypeError(f'{field} has type {field_type}, got {type(value)}')
+            raise TypeError(
+                f'{field} has type {field_type}, got {type(value)}')
 
     for field in fields.values():
         assert field.name in model_generator.FormData._DEFAULTS, f"No default set for field name {field.name}"
@@ -442,5 +471,28 @@ def test_form_to_dict(baseline_form):
     assert 1 < len(stripped) < len(full)
     assert 'exposed_coffee_break_option' in stripped
     # If we set the value to the default one, it should no longer turn up in the dictionary.
-    baseline_form.exposed_coffee_break_option = model_generator.FormData._DEFAULTS['exposed_coffee_break_option']
-    assert 'exposed_coffee_break_option' not in baseline_form.to_dict(baseline_form, strip_defaults=True)
+    baseline_form.exposed_coffee_break_option = model_generator.FormData._DEFAULTS[
+        'exposed_coffee_break_option']
+    assert 'exposed_coffee_break_option' not in baseline_form.to_dict(
+        baseline_form, strip_defaults=True)
+
+
+def test_weather_stations():
+    fixed_delimits = [0, 12, 13, 44, 51, 60, 69, 90, 91]
+
+    station_file = Path(__file__).parent.parent.parent.parent / 'data' / \
+        'hadisd_station_fullinfo_v311_202001p.txt'
+
+    with open(Path(__file__).parent.parent.parent.parent / 'data' / 'global_weather_set.json', "r") as json_file:
+        weather_dict = json.load(json_file)
+
+    for line in station_file.open('rt'):
+        start_end_positions = zip(fixed_delimits[:-1], fixed_delimits[1:])
+        split_vals = [line[start:end] for start, end in start_end_positions]
+
+        station_id = split_vals[0]
+        # Check if weather station exists
+        temp_dict = weather_dict[station_id]
+
+        for month in range(1, 13):
+            assert not np.any(np.isnan(temp_dict[str(month)]))
