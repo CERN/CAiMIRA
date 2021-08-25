@@ -21,6 +21,11 @@ def configure_parser(parser) -> argparse.ArgumentParser:
         help="Change the URL path prefix to the calculator app",
         default="/calculator"
     )
+    parser.add_argument(
+        "--port",
+        help="The port to listen on",
+        default="8080"
+    )
     return parser
 
 
@@ -33,7 +38,7 @@ def main():
         assert theme_dir.exists()
         assert (theme_dir / 'templates').exists()
     app = make_app(debug=args.no_debug, calculator_prefix=args.prefix, theme_dir=theme_dir)
-    app.listen(8080)
+    app.listen(args.port)
     IOLoop.instance().start()
 
 
