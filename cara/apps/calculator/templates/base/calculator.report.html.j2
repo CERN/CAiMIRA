@@ -60,39 +60,44 @@
 							<p class="card-text">
 								<div class="align-self-center">
 									<div class="d-flex">
-										<div style="min-width: 25%">
-											<div style="text-align:center"><b>Probability of infection (%)</b></div>
-											<div class="d-flex" style="min-height: 160px">
-												{% block warning_animation %}
-													<div class="intro-banner-vdo-play-btn bg-secondary m-auto d-flex align-items-center justify-content-center">
-														<b>{{prob_inf | non_zero_percentage}}</b>
-														<i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
-														<span class="ripple bg-secondary"></span>
-														<span class="ripple bg-secondary"></span>
-														<span class="ripple bg-secondary"></span>
+										<div class="split">
+											<div>
+												<div style="min-width: 25%">
+													<div style="text-align:center"><b>Probability of infection (%)</b></div>
+													<div class="d-flex" style="min-height: 160px">
+														{% block warning_animation %}
+															<div class="intro-banner-vdo-play-btn bg-secondary m-auto d-flex align-items-center justify-content-center">
+																<b>{{prob_inf | non_zero_percentage}}</b>
+																<i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
+																<span class="ripple bg-secondary"></span>
+																<span class="ripple bg-secondary"></span>
+																<span class="ripple bg-secondary"></span>
+															</div>
+														{% endblock warning_animation %}
 													</div>
-												{% endblock warning_animation %}
+												</div>
+											</div>
+											<div class="align-self-center ">
+												{% block report_summary %}
+													<div class="alert alert-dark" role="alert">
+														Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b><a href="#section1">[*]</a> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>.
+													</div>
+												{% endblock report_summary %}
 											</div>
 										</div>
-
-										{% block report_summary %}
-											<div class="flex-row w-75 align-self-center alert alert-dark" role="alert">
-												Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b><a href="#section1">[*]</a> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>.
-											</div>
-										{% endblock report_summary %}
 									</div>
 									{% block report_summary_footnote %}
 									{% endblock report_summary_footnote %}
 								</div>
 								<p id="section1">[*] The results are based on the parameters and assumptions published in the CERN Open Report <a href="https://cds.cern.ch/record/2756083"> CERN-OPEN-2021-004</a></p>
-                <svg id="result_plot" width="900" height="400"></svg>
-                <script type="application/javascript">
-                  var times = {{times}}
-                  var concentrations = {{concentrations}}
-                  var exposed_presence_intervals = {{exposed_presence_intervals}}
-                      draw_concentration_plot("#result_plot", times, concentrations, exposed_presence_intervals);
-                </script>
-              </p>
+								<svg id="result_plot" width="900" height="400"></svg>
+								<script type="application/javascript">
+									var times = {{times}}
+									var concentrations = {{concentrations}}
+									var exposed_presence_intervals = {{exposed_presence_intervals}}
+									draw_concentration_plot("#result_plot", times, concentrations, exposed_presence_intervals);
+									</script>
+              				</p>
 						</div>
 					</div>
 				</div>

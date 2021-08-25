@@ -219,3 +219,32 @@ p.notes {
     animation-delay: .6s;
     -webkit-animation-delay: .6s
 }
+
+.split {
+    /* flex: 1; */
+    clear: both;
+    display: inline-flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+@media screen and (min-width: 40em) {
+    .split {
+        flex-direction: row;
+    }
+    .split>* {
+        flex-basis: 100%;
+    }
+    .header-text {
+        text-align: left;
+    }
+    .split>*+* {
+        margin-left: 2em;
+    }
+    .bigButton {
+        width: 25%;
+    }
+    .logo {
+        float: left;
+    }
+}
