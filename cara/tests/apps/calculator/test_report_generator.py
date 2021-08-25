@@ -66,3 +66,19 @@ def test_interesting_times_small(baseline_exposure_model):
     result = rep_gen.interesting_times(baseline_exposure_model, approx_n_pts=10)
 
     np.testing.assert_allclose(result, expected, atol=1e-04)
+
+
+def test_interesting_times_w_temp(exposure_model_w_outside_temp_changes):
+    # Ensure that the state change times are returned (minus the temperature changes) by
+    # requesting n_points=1.
+    result = rep_gen.interesting_times(exposure_model_w_outside_temp_changes, approx_n_pts=1)
+    expected = [0.0, 1.8, 2.2, 3.6, 4.0, 5.0, 5.4, 5.8, 7.2, 7.6, 8.0]
+    np.testing.assert_allclose(result, expected, atol=1e-04)
+
+    # Now request more than the state-change times.
+    result = rep_gen.interesting_times(exposure_model_w_outside_temp_changes, approx_n_pts=20)
+    expected = [
+        0., 0.4, 0.8, 1.2, 1.6, 1.8, 2.2, 2.2, 2.6, 3., 3.4, 3.6, 4.,
+        4.4, 4.8, 5., 5.4, 5.4, 5.8, 5.8, 6.2, 6.6, 7., 7.2, 7.6, 7.6, 8.,
+    ]
+    np.testing.assert_allclose(result, expected, atol=1e-04)
