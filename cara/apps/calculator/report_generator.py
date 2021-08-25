@@ -44,7 +44,7 @@ def fill_big_gaps(array, gap_size):
 
     last_value = array[0]
     for value in array:
-        while value - last_value > gap_size:
+        while value - last_value > gap_size + 1e-15:
             last_value = last_value + gap_size
             result.append(last_value)
         result.append(value)

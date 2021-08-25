@@ -48,6 +48,12 @@ def test_fill_big_gaps():
     assert rep_gen.fill_big_gaps([1, 2, 4], gap_size=0.75) == expected
 
 
+def test_fill_big_gaps__float_tolerance():
+    # Ensure that there is some float tolerance to the gap size check.
+    assert rep_gen.fill_big_gaps([0, 2 + 1e-15, 4], gap_size=2) == [0, 2 + 1e-15, 4]
+    assert rep_gen.fill_big_gaps([0, 2 + 1e-14, 4], gap_size=2) == [0, 2, 2 + 1e-14, 4]
+
+
 def test_non_temp_transition_times(baseline_exposure_model):
     expected = [0.0, 4.0, 5.0, 8.0]
     result = rep_gen.non_temp_transition_times(baseline_exposure_model)
@@ -72,13 +78,13 @@ def test_interesting_times_w_temp(exposure_model_w_outside_temp_changes):
     # Ensure that the state change times are returned (minus the temperature changes) by
     # requesting n_points=1.
     result = rep_gen.interesting_times(exposure_model_w_outside_temp_changes, approx_n_pts=1)
-    expected = [0.0, 1.8, 2.2, 3.6, 4.0, 5.0, 5.4, 5.8, 7.2, 7.6, 8.0]
-    np.testing.assert_allclose(result, expected, atol=1e-04)
+    expected = [0., 1.8, 2.2, 4., 4.4, 5., 6.2, 6.6, 8.]
+    np.testing.assert_allclose(result, expected)
 
     # Now request more than the state-change times.
     result = rep_gen.interesting_times(exposure_model_w_outside_temp_changes, approx_n_pts=20)
     expected = [
-        0., 0.4, 0.8, 1.2, 1.6, 1.8, 2.2, 2.2, 2.6, 3., 3.4, 3.6, 4.,
-        4.4, 4.8, 5., 5.4, 5.4, 5.8, 5.8, 6.2, 6.6, 7., 7.2, 7.6, 7.6, 8.,
+        0., 0.4, 0.8, 1.2, 1.6, 1.8, 2.2, 2.6, 3., 3.4, 3.8, 4., 4.4, 4.8,
+        5., 5.4, 5.8, 6.2, 6.6, 7., 7.4, 7.8, 8.
     ]
-    np.testing.assert_allclose(result, expected, atol=1e-04)
+    np.testing.assert_allclose(result, expected)

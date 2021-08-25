@@ -44,7 +44,7 @@ def exposure_model_w_outside_temp_changes(baseline_exposure_model: models.Exposu
     exp_model = cara.dataclass_utils.nested_replace(
         baseline_exposure_model, {
             'concentration_model.ventilation': models.SlidingWindow(
-                active=models.PeriodicInterval(1.8 * 60, 2.2 * 60),
+                active=models.PeriodicInterval(2.2 * 60, 1.8 * 60),
                 inside_temp=models.PiecewiseConstant((0., 24.), (293,)),
                 outside_temp=cara.data.GenevaTemperatures['Jan'],
                 window_height=1.6,
