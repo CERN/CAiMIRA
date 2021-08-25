@@ -18,7 +18,7 @@ def location_to_weather_stn(location_loc):
     long = []
     station_array = []
     fixed_delimits = [0, 12, 13, 44, 51, 60, 69, 90, 91]
-    station_file = Path(__file__).parent / 'data' / 'hadisd_station_fullinfo_v311_202001p.txt'
+    station_file = Path(__file__).parent / 'data' / 'cara_weather_stations.txt'
 
     for line in station_file.open('rt'):
         start_end_positions = zip(fixed_delimits[:-1], fixed_delimits[1:])
