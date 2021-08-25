@@ -312,7 +312,7 @@ def test_concentrations_hourly_dep_temp_vs_constant(month, temperatures, time):
 )
 def test_concentrations_hourly_dep_temp_startup(month, temperatures, time):
     # The concentrations should be the zero up to the first presence time
-    # of an infecter person.
+    # of an infected person.
     m = build_hourly_dependent_model(
         month,
         ((0., 0.5), (1., 1.5), (4., 4.5), (7.5, 8), ),
