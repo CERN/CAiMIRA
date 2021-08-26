@@ -1,14 +1,14 @@
 import dataclasses
+import typing
 
+import numpy as np
+import numpy.testing as npt
 import pytest
 
 from cara.apps.calculator import model_generator
 from cara.apps.calculator.model_generator import _hours2timestring
 from cara.apps.calculator.model_generator import minutes_since_midnight
 from cara import models
-from cara import data
-import numpy as np
-import numpy.testing as npt
 
 
 def test_model_from_dict(baseline_form_data):
@@ -33,13 +33,6 @@ def test_blend_expiration():
 
 
 def test_ventilation_slidingwindow(baseline_form: model_generator.FormData):
-    room = models.Room(75)
-    window = models.SlidingWindow(
-        active=models.PeriodicInterval(period=120, duration=10),
-        inside_temp=models.PiecewiseConstant((0, 24), (293,)),
-        outside_temp=data.GenevaTemperatures['Dec'],
-        window_height=1.6, opening_length=0.6,
-    )
     baseline_form.ventilation_type = 'natural_ventilation'
     baseline_form.windows_duration = 10
     baseline_form.windows_frequency = 120
@@ -49,19 +42,28 @@ def test_ventilation_slidingwindow(baseline_form: model_generator.FormData):
     baseline_form.window_height = 1.6
     baseline_form.opening_distance = 0.6
 
-    ts = np.linspace(8, 16, 100)
-    np.testing.assert_allclose([window.air_exchange(room, t)+0.25 for t in ts],
-                               [baseline_form.ventilation().air_exchange(room, t) for t in ts])
+    baseline_vent = baseline_form.ventilation()
+    assert isinstance(baseline_vent, models.MultipleVentilation)
+    baseline_window = baseline_vent.ventilations[0]
+    assert isinstance(baseline_window, models.SlidingWindow)
+
+    window = models.SlidingWindow(
+        active=models.PeriodicInterval(period=120, duration=10),
+        inside_temp=models.PiecewiseConstant((0, 24), (293,)),
+        outside_temp=baseline_window.outside_temp,
+        window_height=1.6, opening_length=0.6,
+    )
+
+    ach = models.AirChange(
+        active=models.PeriodicInterval(period=120, duration=120),
+        air_exch=0.25,
+    )
+    ventilation = models.MultipleVentilation((window, ach))
+
+    assert ventilation == baseline_vent
 
 
 def test_ventilation_hingedwindow(baseline_form: model_generator.FormData):
-    room = models.Room(75)
-    window = models.HingedWindow(
-        active=models.PeriodicInterval(period=120, duration=10),
-        inside_temp=models.PiecewiseConstant((0, 24), (293,)),
-        outside_temp=data.GenevaTemperatures['Dec'],
-        window_height=1.6, window_width=1., opening_length=0.6,
-    )
     baseline_form.ventilation_type = 'natural_ventilation'
     baseline_form.windows_duration = 10
     baseline_form.windows_frequency = 120
@@ -72,9 +74,24 @@ def test_ventilation_hingedwindow(baseline_form: model_generator.FormData):
     baseline_form.window_width = 1.
     baseline_form.opening_distance = 0.6
 
-    ts = np.linspace(8, 16, 100)
-    np.testing.assert_allclose([window.air_exchange(room, t)+0.25 for t in ts],
-                               [baseline_form.ventilation().air_exchange(room, t) for t in ts])
+    baseline_vent = baseline_form.ventilation()
+    assert isinstance(baseline_vent, models.MultipleVentilation)
+    baseline_window = baseline_vent.ventilations[0]
+    assert isinstance(baseline_window, models.HingedWindow)
+
+    window = models.HingedWindow(
+        active=models.PeriodicInterval(period=120, duration=10),
+        inside_temp=models.PiecewiseConstant((0, 24), (293,)),
+        outside_temp=baseline_window.outside_temp,
+        window_height=1.6, window_width=1., opening_length=0.6,
+    )
+    ach = models.AirChange(
+        active=models.PeriodicInterval(period=120, duration=120),
+        air_exch=0.25,
+    )
+    ventilation = models.MultipleVentilation((window, ach))
+
+    assert ventilation == baseline_vent
 
 
 def test_ventilation_mechanical(baseline_form: model_generator.FormData):
@@ -116,21 +133,27 @@ def test_ventilation_window_hepa(baseline_form: model_generator.FormData):
     baseline_form.window_height = 1.6
     baseline_form.opening_distance = 0.6
     baseline_form.hepa_option = True
+
     baseline_vent = baseline_form.ventilation()
+    assert isinstance(baseline_vent, models.MultipleVentilation)
+    baseline_window = baseline_vent.ventilations[0]
+    assert isinstance(baseline_window, models.SlidingWindow)
 
     # Now build the equivalent ventilation instance directly, and compare.
-    room = models.Room(75)
     window = models.SlidingWindow(
         active=models.PeriodicInterval(period=120, duration=10),
         inside_temp=models.PiecewiseConstant((0, 24), (293,)),
-        outside_temp=baseline_vent.ventilations[0].outside_temp,
+        outside_temp=baseline_window.outside_temp,
         window_height=1.6, opening_length=0.6,
     )
     hepa = models.HEPAFilter(
         active=models.PeriodicInterval(period=120, duration=120),
         q_air_mech=250.,
     )
-    ach = models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=0.25)
+    ach = models.AirChange(
+        active=models.PeriodicInterval(period=120, duration=120),
+        air_exch=0.25,
+    )
     ventilation = models.MultipleVentilation((window, hepa, ach))
 
     assert ventilation == baseline_vent

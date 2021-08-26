@@ -313,7 +313,7 @@ class FormData:
         else:
             return models.MultipleVentilation((ventilation, infiltration_ventilation))
 
-    def nearest_weather_station(self) -> cara.data.weather.WxStationType:
+    def nearest_weather_station(self) -> cara.data.weather.WxStationRecordType:
         wx_station = cara.data.weather.nearest_wx_station(
             longitude=self.location_longitude, latitude=self.location_latitude
         )
