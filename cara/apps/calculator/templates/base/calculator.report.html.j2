@@ -60,31 +60,27 @@
 							<p class="card-text">
 								<div class="align-self-center">
 									<div class="d-flex">
-										<div class="split">
-											<div>
-												<div style="min-width: 25%">
-													<div style="text-align:center"><b>Probability of infection (%)</b></div>
-													<div class="d-flex" style="min-height: 160px">
-														{% block warning_animation %}
-															<div class="intro-banner-vdo-play-btn bg-secondary m-auto d-flex align-items-center justify-content-center">
-																<b>{{prob_inf | non_zero_percentage}}</b>
-																<i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
-																<span class="ripple bg-secondary"></span>
-																<span class="ripple bg-secondary"></span>
-																<span class="ripple bg-secondary"></span>
-															</div>
-														{% endblock warning_animation %}
+											
+										<div style="min-width: 25%">
+											<div style="text-align:center"><b>Probability of infection (%)</b></div>
+											<div class="d-flex" style="min-height: 160px">
+												{% block warning_animation %}
+													<div class="intro-banner-vdo-play-btn bg-secondary m-auto d-flex align-items-center justify-content-center">
+														<b>{{prob_inf | non_zero_percentage}}</b>
+														<i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
+														<span class="ripple bg-secondary"></span>
+														<span class="ripple bg-secondary"></span>
+														<span class="ripple bg-secondary"></span>
 													</div>
-												</div>
-											</div>
-											<div class="align-self-center ">
-												{% block report_summary %}
-													<div class="alert alert-dark" role="alert">
-														Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b><a href="#section1">[*]</a> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>.
-													</div>
-												{% endblock report_summary %}
+												{% endblock warning_animation %}
 											</div>
 										</div>
+										
+										{% block report_summary %}
+											<div class="align-self-center alert alert-dark" role="alert">
+												Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b><a href="#section1">[*]</a> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>.
+											</div>
+										{% endblock report_summary %}
 									</div>
 									{% block report_summary_footnote %}
 									{% endblock report_summary_footnote %}
