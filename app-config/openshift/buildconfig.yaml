@@ -37,48 +37,13 @@
           sourceStrategy:
             from:
               kind: ImageStreamTag
-              name: 'nginx:1.12'
+              name: 'nginx:1.18-ubi8'
               namespace: openshift
           type: Source
         triggers:
           - type: ImageChange
             imageChange: {}
           - type: ConfigChange
-          - generic:
-              secretReference:
-                name: gitlab-cara-webhook-secret
-            type: Generic
-        nodeSelector: null
-    -
-      kind: BuildConfig
-      apiVersion: v1
-      metadata:
-        name: cara-webservice
-        labels:
-          template: "cara-application"
-      spec:
-        source:
-          type: Git
-          git:
-            ref: ${GIT_BRANCH}
-            uri: ${GIT_REPO}
-          sourceSecret:
-            name: sshdeploykey
-        postCommit: {}
-        resources: {}
-        runPolicy: Serial
-        output:
-          to:
-            kind: ImageStreamTag
-            name: 'cara-webservice:latest'
-        strategy:
-          sourceStrategy:
-            from:
-              kind: ImageStreamTag
-              name: 'python:3.6'
-              namespace: openshift
-          type: Source
-        triggers:
           - generic:
               secretReference:
                 name: gitlab-cara-webhook-secret
