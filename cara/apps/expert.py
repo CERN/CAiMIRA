@@ -360,10 +360,10 @@ class ModelWidgets(View):
 
     def _build_month(self, node) -> WidgetGroup:
 
-        month_choice = widgets.Select(options=list(data.Temperatures.keys()), value='1')
+        month_choice = widgets.Select(options=list(data.GenevaTemperatures.keys()), value='Jan')
 
         def on_month_change(change):
-            node.outside_temp = data.Temperatures[change['new']]
+            node.outside_temp = data.GenevaTemperatures[change['new']]
         month_choice.observe(on_month_change, names=['value'])
 
         return WidgetGroup(

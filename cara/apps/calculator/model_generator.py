@@ -9,6 +9,7 @@ import numpy as np
 
 from cara import models
 from cara import data
+import cara.data.weather
 import cara.monte_carlo as mc
 from .. import calculator
 from cara.monte_carlo.data import activity_distributions, virus_distributions
@@ -18,8 +19,6 @@ LOG = logging.getLogger(__name__)
 
 
 minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
-
-
 
 
 # Used to declare when an attribute of a class must have a value provided, and
@@ -53,10 +52,9 @@ class FormData:
     infected_lunch_start: minutes_since_midnight    #Used if infected_dont_have_breaks_with_exposed
     infected_people: int
     infected_start: minutes_since_midnight
-    location: str
-    location_coordinates: str
-    weather_station_location: str
-    weather_station_ref: str
+    location_name: str
+    location_latitude: float
+    location_longitude: float
     mask_type: str
     mask_wearing_option: str
     mechanical_ventilation_type: str
@@ -107,10 +105,9 @@ class FormData:
         'infected_lunch_start': '12:30',
         'infected_people': _NO_DEFAULT,
         'infected_start': '08:30',
-        'location': _NO_DEFAULT,
-        'location_coordinates': _NO_DEFAULT,
-        'weather_station_location':'GENEVA COINTRIN',
-        'weather_station_ref': '067000-99999',
+        'location_latitude': 46.20833,
+        'location_longitude': 6.14275,
+        'location_name': 'Geneva',
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': 'not-applicable',
@@ -269,14 +266,12 @@ class FormData:
             month = datetime_object.month
 
             # set location
-            self.weather_station_location = data.location_to_weather_stn(self.location_coordinates)[1]
-            data.local_tempatures = data.location_celcius_per_hour(self.location_coordinates)
-            print(data.local_tempatures)
+            wx_station = self.nearest_weather_station()
+            temp_profile = cara.data.weather.mean_hourly_temperatures(wx_station[0], month)
 
             inside_temp = models.PiecewiseConstant((0, 24), (293,))
-            outside_temp = data.Temperatures[str(month)]
-
-
+            # Interpolate the temperature to every 6 minutes (60/10).
+            outside_temp = cara.data.weather.hourly_to_piecewise(temp_profile).refine(10)
 
             ventilation: models.Ventilation
             if self.window_type == 'window_sliding':
@@ -317,6 +312,12 @@ class FormData:
             return models.MultipleVentilation((ventilation, hepa, infiltration_ventilation))
         else:
             return models.MultipleVentilation((ventilation, infiltration_ventilation))
+
+    def nearest_weather_station(self) -> cara.data.weather.WxStationRecordType:
+        wx_station = cara.data.weather.nearest_wx_station(
+            longitude=self.location_longitude, latitude=self.location_latitude
+        )
+        return wx_station
 
     def mask(self) -> models.Mask:
         # Initializes the mask type if mask wearing is "continuous", otherwise instantiates the mask attribute as
@@ -621,8 +622,6 @@ def baseline_raw_form_data():
         'infected_lunch_start': '12:30',
         'infected_people': '1',
         'infected_start': '09:00',
-        'location': 'Geneva',
-        'location_coordinates': '46.2044, 6.1432',
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': '',

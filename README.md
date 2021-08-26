@@ -85,26 +85,20 @@ This will start a local version of CARA, which can be visited at http://localhos
 
 ## Development guide
 
-### Running the COVID calculator app in development mode
+The CARA repository makes use of Git's Large File Storage (LFS) feature.
+You will need a working installation of git-lfs in order to run CARA in development mode.
+See https://git-lfs.github.com/ for installation instructions.
 
-Download Git Large File Storage (LFS) - **macOS**:
-
-```
-brew install git-LFS
-```
-
-Download Git Large File Storage (LFS) - **Linux**:
+### Installing CARA in editable mode
 
 ```
-apt-get install git-lfs
-```
-
-Install dependencies:
-
-```
-git lfs install 
 git lfs pull   # Fetch the data from LFS
 pip install -e .   # At the root of the repository
+```
+
+### Running the COVID calculator app in development mode
+
+```
 python -m cara.apps.calculator
 ```
 
@@ -123,7 +117,6 @@ python -m cara.apps.calculator --prefix=/mycalc
 ### Running the CARA Expert-App app in development mode
 
 ```
-pip install -e .   # At the root of the repository
 voila cara/apps/expert/cara.ipynb --port=8080
 ```
 
