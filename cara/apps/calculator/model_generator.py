@@ -3,7 +3,6 @@ from dataclasses import dataclass
 import html
 import logging
 import typing
-import datetime
 
 import numpy as np
 
@@ -105,9 +104,9 @@ class FormData:
         'infected_lunch_start': '12:30',
         'infected_people': _NO_DEFAULT,
         'infected_start': '08:30',
-        'location_latitude': 46.20833,
-        'location_longitude': 6.14275,
-        'location_name': 'Geneva',
+        'location_latitude': _NO_DEFAULT,
+        'location_longitude': _NO_DEFAULT,
+        'location_name': _NO_DEFAULT,
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': 'not-applicable',
@@ -205,7 +204,8 @@ class FormData:
                              ('virus_type', VIRUS_TYPES),
                              ('volume_type', VOLUME_TYPES),
                              ('window_opening_regime', WINDOWS_OPENING_REGIMES),
-                             ('window_type', WINDOWS_TYPES)]
+                             ('window_type', WINDOWS_TYPES),
+                             ('event_month', MONTH_NAMES)]
         for attr_name, valid_set in validation_tuples:
             if getattr(self, attr_name) not in valid_set:
                 raise ValueError(f"{getattr(self, attr_name)} is not a valid value for {attr_name}")
@@ -261,11 +261,8 @@ class FormData:
             else:
                 window_interval = always_on
 
-            #month = self.event_month[:3]
-            datetime_object = datetime.datetime.strptime(self.event_month[:3], "%b")
-            month = datetime_object.month
+            month = MONTH_NAMES.index(self.event_month) + 1
 
-            # set location
             wx_station = self.nearest_weather_station()
             temp_profile = cara.data.weather.mean_hourly_temperatures(wx_station[0], month)
 
@@ -314,10 +311,10 @@ class FormData:
             return models.MultipleVentilation((ventilation, infiltration_ventilation))
 
     def nearest_weather_station(self) -> cara.data.weather.WxStationRecordType:
-        wx_station = cara.data.weather.nearest_wx_station(
+        """Return the nearest weather station (which has valid data) for this form"""
+        return cara.data.weather.nearest_wx_station(
             longitude=self.location_longitude, latitude=self.location_latitude
         )
-        return wx_station
 
     def mask(self) -> models.Mask:
         # Initializes the mask type if mask wearing is "continuous", otherwise instantiates the mask attribute as
@@ -622,6 +619,9 @@ def baseline_raw_form_data():
         'infected_lunch_start': '12:30',
         'infected_people': '1',
         'infected_start': '09:00',
+        'location_latitude': 46.20833,
+        'location_longitude': 6.14275,
+        'location_name': 'Geneva',
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': '',
@@ -657,6 +657,11 @@ WINDOWS_OPENING_REGIMES = {'windows_open_permanently', 'windows_open_periodicall
 WINDOWS_TYPES = {'window_sliding', 'window_hinged', 'not-applicable'}
 
 COFFEE_OPTIONS_INT = {'coffee_break_0': 0, 'coffee_break_1': 1, 'coffee_break_2': 2, 'coffee_break_4': 4}
+
+MONTH_NAMES = [
+    'January', 'February', 'March', 'April', 'May', 'June', 'July',
+    'August', 'September', 'October', 'November', 'December',
+]
 
 
 def _hours2timestring(hours: float):
@@ -713,5 +718,3 @@ for _field in dataclasses.fields(FormData):
     elif _field.type is bool:
         _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = lambda v: v == '1'
         _CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = int
-
-

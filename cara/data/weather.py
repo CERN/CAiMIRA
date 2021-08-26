@@ -9,9 +9,7 @@ from scipy.spatial import cKDTree
 from cara import models
 
 
-weather_debug = False
-
-DATA_LOCATION = Path(__file__).absolute().parent
+WX_DATA_LOCATION = Path(__file__).absolute().parent
 
 
 WxStationIdType = str
@@ -28,7 +26,7 @@ def wx_data() -> typing.Dict[WxStationIdType, typing.Dict[MonthType, HourlyTempT
     The data is structured by station location, and for each station location, by month.
 
     """
-    with (DATA_LOCATION / 'global_weather_set.json').open("r") as json_file:
+    with (WX_DATA_LOCATION / 'global_weather_set.json').open("r") as json_file:
         data = json.load(json_file)
 
     for station in list(data.keys()):
@@ -54,7 +52,7 @@ def wx_station_data() -> typing.Dict[WxStationIdType, WxStationRecordType]:
     weather_data = wx_data()
     station_data = {}
     fixed_delimits = [0, 12, 13, 44, 51, 60, 69, 90, 91]
-    station_file = DATA_LOCATION / 'hadisd_station_fullinfo_v311_202001p.txt'
+    station_file = WX_DATA_LOCATION / 'hadisd_station_fullinfo_v311_202001p.txt'
 
     for line in station_file.open('rt'):
         start_end_positions = zip(fixed_delimits[:-1], fixed_delimits[1:])
@@ -89,6 +87,7 @@ def mean_hourly_temperatures(wx_station: str, month: int) -> HourlyTempType:
         Index 0 of the result corresponds to hour 00:00-01:00, and index 23 (the last) to 23:00-00:00.
 
     """
+    # Note that the current dataset encodes month number as a string.
     return wx_data()[wx_station][str(month)]
 
 
