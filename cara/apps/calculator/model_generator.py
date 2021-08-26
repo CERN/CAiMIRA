@@ -3,7 +3,6 @@ from dataclasses import dataclass
 import html
 import logging
 import typing
-import datetime
 
 import numpy as np
 
@@ -312,10 +311,10 @@ class FormData:
             return models.MultipleVentilation((ventilation, infiltration_ventilation))
 
     def nearest_weather_station(self) -> cara.data.weather.WxStationRecordType:
-        wx_station = cara.data.weather.nearest_wx_station(
+        """Return the nearest weather station (which has valid data) for this form"""
+        return cara.data.weather.nearest_wx_station(
             longitude=self.location_longitude, latitude=self.location_latitude
         )
-        return wx_station
 
     def mask(self) -> models.Mask:
         # Initializes the mask type if mask wearing is "continuous", otherwise instantiates the mask attribute as
@@ -719,5 +718,3 @@ for _field in dataclasses.fields(FormData):
     elif _field.type is bool:
         _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = lambda v: v == '1'
         _CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = int
-
-
