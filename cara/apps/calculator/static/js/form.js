@@ -166,7 +166,7 @@ function require_lunch(id, option) {
   if (!option) {
     $(finishID).removeClass("red_border finish_time_error lunch_break_error");
     removeErrorFor(finishObj);
-  } 
+  }
   else {
     if (startObj.value === "" && finishObj.value === "") {
       startObj.value = "12:30";
@@ -315,7 +315,7 @@ function validate_form(form) {
         var coffee_breaks = parseInt(document.querySelector('input[name="'+activity+'_coffee_break_option"]:checked').value);
         var coffee_duration = parseInt(document.getElementById(activity+"_coffee_duration").value);
         var coffee_mins = coffee_breaks * coffee_duration;
-
+        
         var activity_start = document.getElementById(activity+"_start");
         var activity_finish = document.getElementById(activity+"_finish");
         var activity_mins = parseTimeToMins(activity_finish.value) - parseTimeToMins(activity_start.value);
