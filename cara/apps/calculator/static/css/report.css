@@ -12,8 +12,8 @@ h1 {
 
 .subtitle {
     text-align: center;
-    font-size: 13pt;
-    padding-bottom: 15pt;
+    font-size: 17px;
+    padding-bottom: 20px;
 }
 
 p.data_italic {
@@ -35,20 +35,20 @@ p.data_subtext {
 
 p.result_title {
     font-weight: bold;
-    font-size: 15pt;
+    font-size: 20px;
 }
 
 p.image {
     text-align: center;
-    font-size: 13pt;
+    font-size: 17px;
 }
 
 p.disclaimer {
-    font-size: 12pt;
+    font-size: 16px;
 }
 
 p.notes {
-    font-size: 10pt;
+    font-size: 13px;
 }
 
 .red_bkg {
@@ -109,16 +109,16 @@ p.notes {
         min-height: 875px;
     }
     .first_page {
-        height: 380pt;
+        height: 507px;
     }
     .second_page {
-        height: 420pt;
+        height: 560px;
     }
     .third_page {
-        height: 90pt;
+        height: 120px;
     }
     .fourth_page {
-        height: 650pt;
+        height: 867px;
     }
     .collapse {
         display: block!important;
