@@ -434,6 +434,12 @@ def test_key_validation_mech_ventilation_type_na(baseline_form_data):
         model_generator.FormData.from_dict(baseline_form_data)
 
 
+def test_key_validation_event_month(baseline_form_data):
+    baseline_form_data['event_month'] = 'invalid month'
+    with pytest.raises(ValueError, match='invalid month is not a valid value for event_month'):
+        model_generator.FormData.from_dict(baseline_form_data)
+
+
 def test_default_types():
     # Validate that FormData._DEFAULTS are complete and of the correct type.
     # Validate that we have the right types and matching attributes to the DEFAULTS.
