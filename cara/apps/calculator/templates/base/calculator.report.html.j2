@@ -53,9 +53,9 @@
         </p></li>
 		<li><p class="data_text">Room Volume: {{ model.concentration_model.room.volume }} m³</p></li>
 		<li><p class="data_text">Room Central Heating: {{ "On" if form.room_heating_option else "Off" }}</p></li>
-		<li><p class="data_text">Geographic Location: {{ form.location }}</p></li>
-        {% if form.ventilation_type == "natural_ventilation"%}
-		    <li><p class="data_text">Nearest weather station: {{ form.weather_station_location }}</p></li>
+		<li><p class="data_text">Geographic Location: {{ form.location_name }}</p></li>
+        {% if form.ventilation_type == "natural_ventilation" %}
+		    <li><p class="data_text">Nearest weather station: {{ form.nearest_weather_station()[1].strip().title() }}</p></li>
 		{% endif %}
 	</ul>
 

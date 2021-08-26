@@ -566,8 +566,8 @@ $(document).ready(function() {
                             id: candidate.address,
                             text: candidate.address,
                             country: candidate.attributes.country,
-                            latitude: String(candidate.location.y),
-                            longitude: String(candidate.location.x),
+                            latitude: candidate.location.y,
+                            longitude: candidate.location.x,
                         }
                     }),
                     pagination: {
@@ -602,8 +602,13 @@ function formatlocation(location) {
 }
 
 function formatLocationSelection(location) {
-    if (location.latitude != null && location.latitude != null)
-        $(document.getElementById("coordinates_input").value = (location.latitude + ',' + location.longitude));
+    console.log(location);
+    if (location.latitude != null && location.latitude != null) {
+        console.log('setting!');
+        console.log($('input[name="location_latitude"]'));
+        $('input[name="location_latitude"]').val(location.latitude);
+        $('input[name="location_longitude"]').val(location.longitude);
+    }
     return location.text;
 }
 
