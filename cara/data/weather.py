@@ -33,7 +33,9 @@ def wx_data() -> typing.Dict[WxStationIdType, typing.Dict[MonthType, HourlyTempT
 
     for station in list(data.keys()):
         for month in list(data[station].keys()):
-            data[station][month] = tuple(273.15 + np.array(data[station][month]))
+            if not np.any(np.isnan(data[station][month])):
+                data[station][month] = tuple(
+                    273.15 + np.array(data[station][month]))
     return data
 
 
@@ -70,7 +72,8 @@ def wx_station_data() -> typing.Dict[WxStationIdType, WxStationRecordType]:
 def _wx_station_kdtree() -> cKDTree:
     """Build a kd-tree of wx station longitude & latitudes (note the coordinate order)"""
     station_data = wx_station_data().values()
-    coords = np.array([(stn_record[3], stn_record[2]) for stn_record in station_data])
+    coords = np.array([(stn_record[3], stn_record[2])
+                      for stn_record in station_data])
     return cKDTree(coords)
 
 
