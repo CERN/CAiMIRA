@@ -166,7 +166,7 @@ function require_lunch(id, option) {
   if (!option) {
     $(finishID).removeClass("red_border finish_time_error lunch_break_error");
     removeErrorFor(finishObj);
-  }
+  } 
   else {
     if (startObj.value === "" && finishObj.value === "") {
       startObj.value = "12:30";
@@ -311,11 +311,11 @@ function validate_form(form) {
           var lunch_finish = document.getElementById(activity+"_lunch_finish");
           lunch_mins = parseTimeToMins(lunch_finish.value) - parseTimeToMins(lunch_start.value);
         }
-      
+
         var coffee_breaks = parseInt(document.querySelector('input[name="'+activity+'_coffee_break_option"]:checked').value);
         var coffee_duration = parseInt(document.getElementById(activity+"_coffee_duration").value);
         var coffee_mins = coffee_breaks * coffee_duration;
-        
+
         var activity_start = document.getElementById(activity+"_start");
         var activity_finish = document.getElementById(activity+"_finish");
         var activity_mins = parseTimeToMins(activity_finish.value) - parseTimeToMins(activity_start.value);
@@ -484,6 +484,7 @@ $(document).ready(function () {
       else if (elemObj.type === 'checkbox') {
         elemObj.checked = (value==1);
       }
+
       //Pre-select location
       else if (elemObj.id === 'location_select') {
         var location_option = document.createElement('option');
@@ -491,6 +492,14 @@ $(document).ready(function () {
         location_option.innerHTML = value;
         elemObj.append(location_option);
       }
+      //Pre-select location
+      else if (elemObj.id === 'location_select') {
+        var location_option = document.createElement('option');
+        location_option.value = value;
+        location_option.innerHTML = value;
+        elemObj.append(location_option);
+      }
+
       //Ignore 0 (default) values from server side
       else if (!(elemObj.classList.contains("non_zero") || elemObj.classList.contains("remove_zero")) || (value != "0.0" && value != "0")) {
         elemObj.value = value;
@@ -586,17 +595,17 @@ $(document).ready(function () {
 function formatlocation(location) {
   if (location.loading) {
     return location.text;
-  }
+}
 
-  var $container = $(
-    "<div class='select2-result-location clearfix'>" +
-    "<div class='select2-result-location__meta'>" +
-    "<div class='select2-result-location__title'></div>" +
-    "</div>" +
-    "</div>"
-  );
+var $container = $(
+  "<div class='select2-result-location clearfix'>" +
+  "<div class='select2-result-location__meta'>" +
+  "<div class='select2-result-location__title'></div>" +
+  "</div>" +
+  "</div>"
+);
 
-  $container.find(".select2-result-location__title").text(location.text + " (" + location.country + ")");
+$container.find(".select2-result-location__title").text(location.text + " (" + location.country + ")");
   return $container;
 }
 
@@ -607,8 +616,9 @@ function formatLocationSelection(location) {
     $('input[name="location_latitude"]').val(location.latitude);
     $('input[name="location_longitude"]').val(location.longitude);
   }
-  return location.text;
-}
+return location.text;
+}  
+    
 
 /* -------Debugging------- */
 function debug_submit(form) {
