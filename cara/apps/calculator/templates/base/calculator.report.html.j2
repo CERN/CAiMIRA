@@ -18,13 +18,13 @@
 {% block report_header %}
 
 	<div id="report-header-div" class="d-flex flex-row">
-		<img src="/static/images/cara_logo.200x200.png" style="height:150px; display:inline-block; vertical-align:middle; margin: 1%">
-		<div class="d-flex align-self-center flex-column" style="margin-left: 1em; margin-right: auto">
-			<h2 class="text-component-title" style="margin-bottom: 0">CARA - CALCULATOR REPORT</h1>
-			<p style="margin-bottom: 0"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
+		<img src="/static/images/cara_logo.200x200.png" class="d-inline-block align-middle" style="height:150px; margin: 1%">
+		<div class="d-flex align-self-center flex-column mr-auto" style="margin-left: 1em;">
+			<h2 class="text-component-title mb-0">CARA - CALCULATOR REPORT</h1>
+			<p class="mb-0"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
 		</div>
 		<button type="button" class="btn btn-outline-dark align-self-center" style="margin-right: -100pt" id="download-pdf" onclick="generate_pdf_version('{{qr_code.link}}')">Download PDF</button>
-		<img id="pdf-qr-code" class="align-self-center" style="margin-right: 1%; visibility: hidden; width:100pt;" src="{{ qr_code.image }}"/>
+		<img id="pdf-qr-code" class="align-self-center invisible" style="margin-right: 1%; width:100pt;" src="{{ qr_code.image }}"/>
 	</div>
 
 {% endblock report_header %}
