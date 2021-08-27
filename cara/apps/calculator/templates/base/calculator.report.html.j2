@@ -333,7 +333,7 @@
 						</ul>
 						{% if form.infected_dont_have_breaks_with_exposed %}
 						<p style="padding-left:15px;"> Infected occupant(s):</p>
-						{% endif %}
+						
 						<ul>
 							<li><p class="data_text">Lunch break:
 							{% if form.infected_lunch_option%}
@@ -356,6 +356,9 @@
 							</ul>
 							{% endif %}
 						</ul>
+						{% else %}
+						<i>Same breaks taken by the exposed and infected persons.</i>
+						{% endif %}
 					</div>
 				</div>
 				<br>
