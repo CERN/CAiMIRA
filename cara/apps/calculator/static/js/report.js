@@ -1,14 +1,17 @@
 /* Generate the concentration plot using d3 library. */
 function draw_concentration_plot(svg_id, times, concentrations, exposed_presence_intervals) {
-    
+    var visBoundingBox = d3.select(svg_id)
+        .node()
+        .getBoundingClientRect();
+
     var time_format = d3.timeFormat('%H:%M');
 
     var data = []
     times.map((time, index) => data.push({ 'time': time, 'hour': new Date().setHours(Math.trunc(time), (time - Math.trunc(time)) * 60), 'concentration': concentrations[index] }))
 
     var vis = d3.select(svg_id),
-        width = 600,
-        height = 400,
+        width = visBoundingBox.width - 300,
+        height = visBoundingBox.height,
         margins = { top: 30, right: 20, bottom: 50, left: 50 },
 
         // H:M time format for x axis.
