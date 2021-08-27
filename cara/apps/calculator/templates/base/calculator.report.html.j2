@@ -332,13 +332,9 @@
 							</ul>
 							{% endif %}
 						</ul>
-					</div>
-				</div>
-				<br>
-				{% if form.infected_dont_have_breaks_with_exposed %}
-				<div class="card">
-					<div class="card-header"><strong> Infected occupant(s):</strong></div>
-					<div class="card-body">
+						{% if form.infected_dont_have_breaks_with_exposed %}
+						<p style="padding-left:15px;"> Infected occupant(s):</p>
+						{% endif %}
 						<ul>
 							<li><p class="data_text">Lunch break:
 							{% if form.infected_lunch_option%}
@@ -363,7 +359,6 @@
 						</ul>
 					</div>
 				</div>
-				{% endif %}
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Mask wearing:</strong></div>
