@@ -107,38 +107,24 @@ p.notes {
     margin-right: 1%;
 }
 
-@media (width: 1200px) {
-    #body {
+/* @media (width: 1200px) { */
+@media print {
+    /* #body {
         min-width: 1200px;
-    }
-    /* CSS styling to avoid page breaks. */
-    .break-avoid {
-        page-break-inside: avoid;
-    }
-    #results-div {
-        min-height: 875px;
-    }
-    .first_page {
-        height: 507px;
-    }
-    .second_page {
-        height: 560px;
-    }
-    .third_page {
-        height: 120px;
-    }
-    .fourth_page {
-        height: 867px;
-    }
-    .collapse {
-        display: block!important;
-    }
+    } */
     #results,
     #rules,
     #data {
         display: contents!important;
-        break-inside: avoid;
-        page-break-inside: avoid;
+    }
+    #link_reproduce_results {
+        display: none!important;
+    }
+    #pdf-qr-code {
+        visibility: inherit!important;
+    }
+    .collapse {
+        display: block!important;
     }
     .tab-content {
         border-top: none!important;
@@ -155,11 +141,15 @@ p.notes {
     .print-button {
         display: none!important;
     }
-    #link_reproduce_results {
-        display: none!important;
+    .card {
+        page-break-inside: avoid;
     }
-    #pdf-qr-code {
-        visibility: inherit!important;
+    /* CSS styling to avoid page breaks. */
+    .break-after {
+        page-break-after: always;
+    }
+    .break-avoid {
+        page-break-inside: avoid;
     }
 }
 

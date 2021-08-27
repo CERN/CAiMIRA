@@ -23,7 +23,8 @@
 			<h2 class="text-component-title mb-0">CARA - CALCULATOR REPORT</h1>
 			<p class="mb-0"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
 		</div>
-		<button type="button" class="btn btn-outline-dark align-self-center" style="margin-right: -100pt" id="download-pdf" onclick="generate_pdf_version('{{qr_code.link}}')">Download PDF</button>
+		<button type="button" class="btn btn-outline-dark align-self-center" style="margin-right: -100pt" id="download-pdf" onclick="print()">Print Report</button>
+		{# To be replaced by "Generate PDF" #}
 		<img id="pdf-qr-code" class="align-self-center invisible" src="{{ qr_code.image }}"/>
 	</div>
 
@@ -96,7 +97,6 @@
 						</div>
 					</div>
 				</div>
-				<div class="break-avoid first_page"></div>	
 				<div class="card bg-light mb-3">
   					<div class="card-header"><strong>Alternative scenarios</strong>
 						<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseAlternativeScenarios" role="button" aria-expanded="false" aria-controls="collapseAlternativeScenarios">
@@ -144,7 +144,6 @@
 						</div>
 					</div>
 				</div>
-				<div class="break-avoid second_page"></div>	
 			{% endblock report_results %}
 
 			{% block report_footer %}
@@ -175,7 +174,7 @@
 
 		<div class="tab-pane" id="data" role="tabpanel" aria-labelledby="data-tab" style="padding: 1%">
 			{% block simulation_overview %}
-				<div class=card>
+				<div class="card">
 					<div class="card-header"><strong>Simulation:</strong></div>
 					<div class="card-body">
 						<p>Simulation Name: {{ form.simulation_name }}</p>
@@ -371,8 +370,8 @@
 						</ul>
 					</div>
 				</div>
-			{% endblock simulation_overview %}
-			<div class="break-avoid third_page"></div>		
+				<br>
+			{% endblock simulation_overview %}	
 		</div>
 		{% block report_preamble %}
 		{% endblock report_preamble %}	
