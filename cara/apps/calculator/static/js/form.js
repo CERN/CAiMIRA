@@ -485,13 +485,6 @@ $(document).ready(function () {
         elemObj.checked = (value==1);
       }
 
-      //Pre-select location
-      else if (elemObj.id === 'location_select') {
-        var location_option = document.createElement('option');
-        location_option.value = value;
-        location_option.innerHTML = value;
-        elemObj.append(location_option);
-      }
       //Ignore 0 (default) values from server side
       else if (!(elemObj.classList.contains("non_zero") || elemObj.classList.contains("remove_zero")) || (value != "0.0" && value != "0")) {
         elemObj.value = value;
@@ -542,36 +535,32 @@ $(document).ready(function () {
 
   $("#location_select").select2({
     ajax: {
-      url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates",
+      // Docs for the geocoding service at:
+      // https://developers.arcgis.com/rest/geocode/api-reference/geocoding-service-output.htm
+      url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/suggest",
       dataType: 'json',
       delay: 250,
       data: function(params) {
         return {
-          SingleLine: params.term, // search term
+          text: params.term, // search term
           f: 'json',
           page: params.page,
-          outFields: 'country, location',
+          maxSuggestions: 20,
         };
       },
       processResults: function(data, params) {
-        // parse the results into the format expected by Select2
-        // since we are using custom formatting functions we do not need to
-        // alter the remote JSON data, except to indicate that infinite
-        // scrolling can be used
+        // Enable infinite scrolling
         params.page = params.page || 1;
-
         return {
-          results: data.candidates.map(function(candidate) {
+          results: data.suggestions.map(function(suggestion) {
             return {
-              id: candidate.address,
-              text: candidate.address,
-              country: candidate.attributes.country,
-              latitude: candidate.location.y,
-              longitude: candidate.location.x,
+                id: suggestion.magicKey,  // The unique reference to this result.
+                text: suggestion.text,
+                magicKey: suggestion.magicKey
             }
           }),
           pagination: {
-            more: (params.page * 30) < data.candidates.length
+            more: (params.page * 10) < data.suggestions.length
           }
         };
       },
@@ -582,35 +571,62 @@ $(document).ready(function () {
     templateResult: formatlocation,
     templateSelection: formatLocationSelection
   });
+
+  function formatlocation(suggestedLocation) {
+    // Function is called for each location from the geocoding API.
+
+    if (suggestedLocation.loading) {
+      // Update the first message in the search results to show the
+      // "Searching..." message.
+      return suggestedLocation.text;
+    }
+
+    // Create a container for this location (to be added to the DOM by the select2
+    // library when returned).
+    // This will become one of many search results in the dropdown.
+    var $container = $(
+      "<div class='select2-result-location clearfix'>" +
+      "<div class='select2-result-location__meta'>" +
+      "<div class='select2-result-location__title'>" + suggestedLocation.text + "</div>" +
+      "</div>" +
+      "</div>"
+    );
+    return $container;
+  }
+
+  function formatLocationSelection(selectedSuggestion) {
+    // Function is called when a selection is made in the search result dropdown.
+
+    // ID may be empty, for example when the page is refreshed or back button pressed.
+    if (selectedSuggestion.id != "") {
+
+        // Turn the suggestion into a proper location (so that we can get its latitude & longitude).
+        $.ajax({
+          dataType: "json",
+          url: 'https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates',
+          data: {
+            magicKey: selectedSuggestion.magicKey,
+            outFields: 'country, location',
+            f: "json"
+          },
+          success: function (locations) {
+            // If there isn't precisely one result something is very wrong.
+            geocoded_loc = locations.candidates[0];
+            $('input[name="location_name"]').val(selectedSuggestion.text);
+            $('input[name="location_latitude"]').val(geocoded_loc.location.y.toPrecision(7));
+            $('input[name="location_longitude"]').val(geocoded_loc.location.x.toPrecision(7));
+          }
+        });
+
+    } else if ($('input[name="location_name"]').val() != "") {
+        // If we have no selection AND the location_name is available, use that in the search bar.
+        // This means that we preserve the location through refresh/back button.
+        return $('input[name="location_name"]').val();
+    }
+    return selectedSuggestion.text;
+  }
 });
 
-function formatlocation(location) {
-  if (location.loading) {
-    return location.text;
-}
-
-var $container = $(
-  "<div class='select2-result-location clearfix'>" +
-  "<div class='select2-result-location__meta'>" +
-  "<div class='select2-result-location__title'></div>" +
-  "</div>" +
-  "</div>"
-);
-
-$container.find(".select2-result-location__title").text(location.text + " (" + location.country + ")");
-  return $container;
-}
-
-function formatLocationSelection(location) {
-  if (location.latitude != null && location.latitude != null) {
-    console.log('setting!');
-    console.log($('input[name="location_latitude"]'));
-    $('input[name="location_latitude"]').val(location.latitude);
-    $('input[name="location_longitude"]').val(location.longitude);
-  }
-return location.text;
-}  
-    
 
 /* -------Debugging------- */
 function debug_submit(form) {
