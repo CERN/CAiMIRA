@@ -165,7 +165,7 @@ def _img2bytes(figure):
 def _figure2bytes(figure):
     # Draw the image
     img_data = io.BytesIO()
-    figure.savefig(img_data, format='png', bbox_inches="tight")
+    figure.savefig(img_data, format='png', bbox_inches="tight", transparent=True)
     return img_data
 
 
@@ -388,7 +388,7 @@ class ReportGenerator:
         context['qr_code'] = generate_qr_code(base_url, self.calculator_prefix, form)
         context['calculator_prefix'] = self.calculator_prefix
         context['scale_warning'] = {
-            'level': 'Yellow - 2', 
+            'level': 'yellow-2', 
             'incidence_rate': 'lower than 25 new cases per 100 000 inhabitants',
             'onsite_access': 'of about 8000', 
             'threshold': ''
