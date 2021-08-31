@@ -84,24 +84,24 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
         .attr('height', 3)
         .style('fill', '#1f77b4');
 
-    var legendAreaIcon = vis.append('rect')
-        .attr('y', 3 * size)
-        .attr('width', 20)
-        .attr('height', 20)
-        .attr('fill', '#1f77b4')
-        .attr('fill-opacity', '0.1');
+    // var legendAreaIcon = vis.append('rect')
+    //     .attr('y', 3 * size)
+    //     .attr('width', 20)
+    //     .attr('height', 20)
+    //     .attr('fill', '#1f77b4')
+    //     .attr('fill-opacity', '0.1');
 
-    var legendLineText = vis.append('text')
-        .attr('y', margins.top + size)
-        .text('Mean concentration')
-        .style('font-size', '15px')
-        .attr('alignment-baseline', 'central');
+    // var legendLineText = vis.append('text')
+    //     .attr('y', margins.top + size)
+    //     .text('Mean concentration')
+    //     .style('font-size', '15px')
+    //     .attr('alignment-baseline', 'central');
 
-    var legendAreaText = vis.append('text')
-        .attr('y', margins.top + 2 * size)
-        .text('Presence of exposed person(s)')
-        .style('font-size', '15px')
-        .attr('alignment-baseline', 'central');
+    // var legendAreaText = vis.append('text')
+    //     .attr('y', margins.top + 2 * size)
+    //     .text('Presence of exposed person(s)')
+    //     .style('font-size', '15px')
+    //     .attr('alignment-baseline', 'central');
 
     // Tooltip.
     var focus = vis.append('svg:g')
@@ -147,7 +147,7 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
         // Use the extracted size to set the size of the SVG element.
         vis.attr("width", width);
         // Reduce width so that legend elements can be rendered
-        width = width * 0.66;
+        //width = width * 0.66;
 
         // Redefine the variables according to the new clientWidth.
         xRange.range([margins.left, width - margins.right]);
@@ -177,11 +177,11 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
 
         legendLineIcon.attr('x', width + size);
 
-        legendAreaIcon.attr('x', width + size);
+        // legendAreaIcon.attr('x', width + size);
 
-        legendLineText.attr('x', width + 3 * size);
+        // legendLineText.attr('x', width + 3 * size);
 
-        legendAreaText.attr('x', width + 3 * size);
+        // legendAreaText.attr('x', width + 3 * size);
             
         toolBox.attr('width', width - margins.right);
     }
