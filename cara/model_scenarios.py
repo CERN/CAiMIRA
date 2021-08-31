@@ -43,7 +43,86 @@ yann_vl = [np.log10(7.86E+07), np.log10(2.23E+09), np.log10(1.51E+10)]
 yann_er = [8396.78166, 45324.55964, 400054.0827]
 
 ######### Standard exposure models ###########
+def exposure_model_from_vl_talking_new_points(viral_loads):
+    for vl in tqdm(viral_loads):
+        exposure_mc = mc.ExposureModel(
+            concentration_model=mc.ConcentrationModel(
+                room=models.Room(volume=100, humidity=0.5),
+                ventilation=models.AirChange(
+                    active=models.SpecificInterval(((0, 24),)),
+                    air_exch=0.25,
+                ),
+                infected=mc.InfectedPopulation(
+                    number=1,
+                    virus=models.Virus(
+                        viral_load_in_sputum=10**vl,
+                        infectious_dose=50.,
+                    ),
+                    presence=mc.SpecificInterval(((0, 2),)),
+                    mask=models.Mask.types["No mask"],
+                    activity=activity_distributions['Seated'],
+                    expiration=models.Expiration.types['Talking'],
+                ),
+            ),
+            exposed=mc.Population(
+                number=14,
+                presence=mc.SpecificInterval(((0, 2),)),
+                activity=models.Activity.types['Seated'],
+                mask=models.Mask.types["No mask"],
+            ),
+        )
+        exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
+        # divide by 4 to have in 15min (quarter of an hour)
+        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(1.0)/4
+        er_means.append((10**vl) / np.mean(emission_rate))
+        er_medians.append(np.median(emission_rate))
+        lower_percentiles.append(np.quantile(emission_rate, 0.01))
+        upper_percentiles.append(np.quantile(emission_rate, 0.99))
 
+    # divide by 4 to have in 15min (quarter of an hour)
+    coleman_etal_er_talking_2 = [x/4 for x in coleman_etal_er_talking]
+
+    ax.plot(viral_loads, er_means)
+    ax.set_yscale('log')
+
+    new_datapoints = [10**(a) / b for a, b in zip(coleman_etal_vl_talking, coleman_etal_er_talking_2)]
+    print(new_datapoints)
+
+    ############# Coleman #############
+    plt.scatter(coleman_etal_vl_talking, new_datapoints, marker='x')
+
+    ############# Markers #############
+    markers = [5, 'd', 4]
+
+    ############ Legend ############
+    result_from_model = mlines.Line2D(
+        [], [], color='blue', marker='_', linestyle='None')
+    coleman = mlines.Line2D([], [], color='orange',
+                            marker='x', linestyle='None')
+
+    title_proxy = Rectangle((0, 0), 0, 0, color='w')
+    titles = ["$\\bf{CARA \, \\it{(SARS-CoV-2)}:}$", "$\\bf{Coleman \, et \, al. \, \\it{(SARS-CoV-2)}:}$"]
+    leg = plt.legend([title_proxy, result_from_model, title_proxy, coleman],
+                     [titles[0], "Result from model", titles[1], "Dataset"])
+
+    # Move titles to the left
+    for item, label in zip(leg.legendHandles, leg.texts):
+        if label._text in titles:
+            width = item.get_window_extent(fig.canvas.get_renderer()).width
+            label.set_ha('left')
+            label.set_position((-3*width, 0))
+
+    ############ Plot ############
+    plt.title('Exhaled virions while talking for 15min',
+              fontsize=16, fontweight="bold")
+    plt.ylabel(
+        'Aerosol viral load, $\mathrm{vl_{out}}$\n(RNA copies)', fontsize=14)
+    plt.xticks(ticks=[i for i in range(2, 13)], labels=[
+        '$10^{' + str(i) + '}$' for i in range(2, 13)])
+    plt.xlabel('NP viral load, $\mathrm{vl_{in}}$\n(RNA copies)', fontsize=14)
+    plt.show()
+
+    return er_means
 
 def exposure_model_from_vl_talking(viral_loads):
 
