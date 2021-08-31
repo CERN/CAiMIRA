@@ -1,62 +1,52 @@
 /* Generate the concentration plot using d3 library. */
 function draw_concentration_plot(svg_id, times, concentrations, exposed_presence_intervals) {
-    var visBoundingBox = d3.select(svg_id)
-        .node()
-        .getBoundingClientRect();
-
+    
     var time_format = d3.timeFormat('%H:%M');
 
     var data = []
-    times.map((time, index) => data.push({ 'time': time, 'hour': new Date().setHours(Math.trunc(time), (time - Math.trunc(time)) * 60), 'concentration': concentrations[index] }))
+    times.map((time, index) => data.push({'time': time, 'hour': new Date().setHours(Math.trunc(time), (time - Math.trunc(time)) * 60), 'concentration': concentrations[index] }))
 
-    var vis = d3.select(svg_id),
-        width = visBoundingBox.width - 300,
-        height = visBoundingBox.height,
-        margins = { top: 30, right: 20, bottom: 50, left: 50 },
+    var plot_div = document.getElementById(svg_id);
+    
+    var height = plot_div.clientHeight;
+    var width; // To be defined later
 
-        // H:M time format for x axis.
-        xRange = d3.scaleTime().range([margins.left, width - margins.right]).domain([data[0].hour, data[data.length - 1].hour]),
-        xTimeRange = d3.scaleLinear().range([margins.left, width - margins.right]).domain([data[0].time, data[data.length - 1].time]),
-        bisecHour = d3.bisector((d) => { return d.hour; }).left,
+    var vis = d3.select(plot_div).append('svg').attr('height', height);
+    
+    var margins = { top: 30, right: 20, bottom: 50, left: 50 };
 
-        yRange = d3.scaleLinear().range([height - margins.bottom, margins.top]).domain([0., Math.max(...concentrations)]),
+    // H:M time format for x axis.
+    var xRange = d3.scaleTime().domain([data[0].hour, data[data.length - 1].hour]);
+    var xTimeRange = d3.scaleLinear().domain([data[0].time, data[data.length - 1].time]);
+    var bisecHour = d3.bisector((d) => { return d.hour; }).left;
 
-        xAxis = d3.axisBottom(xRange).tickFormat(d => time_format(d)),
-        yAxis = d3.axisLeft(yRange);
-
-    // Plot tittle.
-    vis.append('svg:foreignObject')
-        .attr("background-color", "transparent")
-        .attr('width', width)
-        .attr('height', margins.top)
-        .style('text-align', 'center')
-        .html('<b>Mean concentration of virions</b>');
+    var yRange = d3.scaleLinear().range([height - margins.bottom, margins.top]).domain([0., Math.max(...concentrations)]);
+    var yAxis = d3.axisLeft(yRange);
 
     // Line representing the mean concentration.
-    var lineFunc = d3.line()
-        .defined(d => !isNaN(d.concentration))
-        .x(d => xTimeRange(d.time))
-        .y(d => yRange(d.concentration))
-        .curve(d3.curveBasis);
-
-    vis.append('svg:path')
-        .attr('d', lineFunc(data))
+    var lineFunc = d3.line();
+    var draw_line = vis.append('svg:path')
         .attr('stroke', '#1f77b4')
         .attr('stroke-width', 2)
         .attr('fill', 'none');
 
+    // Plot tittle.
+    var plotTitleEl = vis.append('svg:foreignObject')
+        .attr("background-color", "transparent")
+        .attr('height', margins.top)
+        .style('text-align', 'center')
+        .html('<b>Mean concentration of virions</b>');
+
     // X axis declaration.
-    vis.append('svg:g')
+    var xAxisEl = vis.append('svg:g')
         .attr('class', 'x axis')
-        .attr('transform', 'translate(0,' + (height - margins.bottom) + ')')
-        .call(xAxis);
+        .attr('transform', 'translate(0,' + (height - margins.bottom) + ')');
 
     // X axis label.
-    vis.append('text')
+    var xAxisLabelEl = vis.append('text')
         .attr('class', 'x label')
         .attr('fill', 'black')
         .attr('text-anchor', 'middle')
-        .attr('x', (width + margins.right) / 2)
         .attr('y', height * 0.97)
         .text('Time of day')
 
@@ -77,63 +67,41 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
         .text('Mean concentration (virions/m³)');
 
     // Area representing the presence of exposed person(s).
-    exposed_presence_intervals.forEach(b => {
-        var curveFunc = d3.area()
-            .x(d => xTimeRange(d.time))
-            .y0(height - margins.bottom)
-            .y1(d => yRange(d.concentration));
-
-        vis.append('svg:path')
-            .attr('d', curveFunc(data.filter(d => {
-                return d.time >= b[0] && d.time <= b[1]
-            })))
+    var exposedArea = {};
+    var drawArea = {};
+    exposed_presence_intervals.forEach((b, index) => {
+        exposedArea[index] = d3.area();
+        drawArea[index] = vis.append('svg:path')
             .attr('fill', '#1f77b4')
             .attr('fill-opacity', '0.1');
-    })
+    });
 
     // Legend for the plot elements - line and area.
     var size = 20
-    vis.append('rect')
-        .attr('x', width + size)
+    var legendLineIcon = vis.append('rect')
         .attr('y', margins.top + size)
         .attr('width', 20)
         .attr('height', 3)
         .style('fill', '#1f77b4');
 
-    vis.append('rect')
-        .attr('x', width + size)
+    var legendAreaIcon = vis.append('rect')
         .attr('y', 3 * size)
         .attr('width', 20)
         .attr('height', 20)
         .attr('fill', '#1f77b4')
         .attr('fill-opacity', '0.1');
 
-    vis.append('text')
-        .attr('x', width + 3 * size)
+    var legendLineText = vis.append('text')
         .attr('y', margins.top + size)
         .text('Mean concentration')
         .style('font-size', '15px')
         .attr('alignment-baseline', 'central');
 
-    vis.append('text')
-        .attr('x', width + 3 * size)
+    var legendAreaText = vis.append('text')
         .attr('y', margins.top + 2 * size)
         .text('Presence of exposed person(s)')
         .style('font-size', '15px')
         .attr('alignment-baseline', 'central');
-
-    // Legend bounding box.
-    vis.append('rect')
-        .attr('width', 275)
-        .attr('height', 50)
-        .attr('x', width * 1.005)
-        .attr('y', margins.top + 5)
-        .attr('stroke', 'lightgrey')
-        .attr('stroke-width', '2')
-        .attr('rx', '5px')
-        .attr('ry', '5px')
-        .attr('stroke-linejoin', 'round')
-        .attr('fill', 'none');
 
     // Tooltip.
     var focus = vis.append('svg:g')
@@ -162,14 +130,64 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
         .attr('x', 18)
         .attr('y', 18);
 
-    vis.append('rect')
+    var toolBox = vis.append('rect')
         .attr('fill', 'none')
         .attr('pointer-events', 'all')
-        .attr('width', width - margins.right)
         .attr('height', height)
         .on('mouseover', () => { focus.style('display', null); })
         .on('mouseout', () => { focus.style('display', 'none'); })
         .on('mousemove', mousemove);
+
+    function redraw() {
+
+        // Extract the width and height.
+        var width = plot_div.clientWidth;
+        if (width >= 900) width = 900;
+
+        // Use the extracted size to set the size of the SVG element.
+        vis.attr("width", width);
+        // Reduce width so that legend elements can be rendered
+        width = width * 0.66;
+
+        // Redefine the variables according to the new clientWidth.
+        xRange.range([margins.left, width - margins.right]);
+        xTimeRange.range([margins.left, width - margins.right]);
+
+        lineFunc.defined(d => !isNaN(d.concentration))
+            .x(d => xTimeRange(d.time))
+            .y(d => yRange(d.concentration));
+        draw_line.attr("d", lineFunc(data));
+
+        plotTitleEl.attr('width', width);
+
+        var xAxis = d3.axisBottom(xRange).tickFormat(d => time_format(d));
+
+        xAxisEl.call(xAxis);
+        xAxisLabelEl.attr('x', (width + margins.right) / 2);
+
+        exposed_presence_intervals.forEach((b, index) => {
+            exposedArea[index].x(d => xTimeRange(d.time))
+                .y0(height - margins.bottom)
+                .y1(d => yRange(d.concentration));
+    
+            drawArea[index].attr('d', exposedArea[index](data.filter(d => {
+                    return d.time >= b[0] && d.time <= b[1]
+            })));
+        });
+
+        legendLineIcon.attr('x', width + size);
+
+        legendAreaIcon.attr('x', width + size);
+
+        legendLineText.attr('x', width + 3 * size);
+
+        legendAreaText.attr('x', width + 3 * size);
+            
+        toolBox.attr('width', width - margins.right);
+    }
+
+    // Draw for the first time to initialize.
+    redraw();
 
     function mousemove() {
         var x0 = xRange.invert(d3.pointer(event, this)[0]),
@@ -181,4 +199,9 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
         focus.select('#tooltip-time').text('x = ' + time_format(d.hour));
         focus.select('#tooltip-concentration').text('y = ' + d.concentration.toFixed(2));
     }
+
+    // Redraw based on the new size whenever the browser window is resized.
+    window.addEventListener("resize", redraw);
+
+    
 }
