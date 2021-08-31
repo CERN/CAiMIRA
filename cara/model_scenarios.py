@@ -120,6 +120,7 @@ def exposure_model_from_vl_talking_new_points(viral_loads):
     plt.xticks(ticks=[i for i in range(2, 13)], labels=[
         '$10^{' + str(i) + '}$' for i in range(2, 13)])
     plt.xlabel('NP viral load, $\mathrm{vl_{in}}$\n(RNA copies)', fontsize=14)
+    plt.ylim([10**0, 10**10])
     plt.show()
 
     return er_means
@@ -205,6 +206,7 @@ def exposure_model_from_vl_talking(viral_loads):
     plt.xticks(ticks=[i for i in range(2, 13)], labels=[
         '$10^{' + str(i) + '}$' for i in range(2, 13)])
     plt.xlabel('NP viral load, $\mathrm{vl_{in}}$\n(RNA copies)', fontsize=14)
+
     plt.show()
 
     return er_means
