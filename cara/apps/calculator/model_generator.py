@@ -10,7 +10,7 @@ from cara import models
 from cara import data
 import cara.monte_carlo as mc
 from .. import calculator
-from cara.monte_carlo.data import activity_distributions, virus_distributions
+from cara.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions
 
 
 LOG = logging.getLogger(__name__)
@@ -301,7 +301,10 @@ class FormData:
     def mask(self) -> models.Mask:
         # Initializes the mask type if mask wearing is "continuous", otherwise instantiates the mask attribute as
         # the "No mask"-mask
-        mask = models.Mask.types[self.mask_type if self.mask_wearing_option == "mask_on" else 'No mask']
+        if self.mask_wearing_option == 'mask_on':
+            mask = mask_distributions[self.mask_type]
+        else:
+            mask = models.Mask.types['No mask']
         return mask
 
     def infected_population(self) -> mc.InfectedPopulation:

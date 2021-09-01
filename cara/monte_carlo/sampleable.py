@@ -28,6 +28,18 @@ class Normal(SampleableDistribution):
         return np.random.normal(self.mean, self.standard_deviation, size=size)
 
 
+class Uniform(SampleableDistribution):
+    """
+    Defines a continuous uniform distribution
+    """
+    def __init__(self, low: float, high: float):
+        self.low = low
+        self.high = high
+
+    def generate_samples(self, size: int) -> float_array_size_n:
+        return np.random.uniform(self.low, self.high, size=size)
+
+
 class LogNormal(SampleableDistribution):
     """
     Defines a lognormal distribution (i.e. Gaussian distribution vs. the

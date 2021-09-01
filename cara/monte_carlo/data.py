@@ -1,7 +1,7 @@
 import numpy as np
 
 import cara.monte_carlo as mc
-from cara.monte_carlo.sampleable import Normal,LogNormal,LogCustomKernel
+from cara.monte_carlo.sampleable import Normal,LogNormal,LogCustomKernel, Uniform
 
 
 # From CERN-OPEN-2021-04 and refererences therein
@@ -57,4 +57,11 @@ virus_distributions = {
                 viral_load_in_sputum=symptomatic_vl_frequencies,
                 infectious_dose=60/1.6,
                 ),
+}
+
+
+# From CERN-OPEN-2021-04 and refererences therein
+mask_distributions = {
+    'Type I': mc.Mask(Uniform(0.25, 0.80)),
+    'FFP2': mc.Mask(Uniform(0.83, 0.91)),
 }
