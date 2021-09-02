@@ -43,3 +43,24 @@ def replace(obj, **changes):
     new = dataclasses.replace(obj, **changes)
     object.__setattr__(obj, '__dataclass_fields__', orig)
     return new
+
+
+def walk_dataclass(model, name=""):
+    """
+    Recursively walk a dataclass instance, generating (name, obj) pairs for
+    attributes and decending into nested dataclasses.
+
+    >>> list(walk_dataclass(obj), 'my_obj')
+    [('my_obj.attr_a', <dataclass instance>), ('my_obj.attr_a.sub_attr', <dataclass instance>)]
+
+    """
+    if name:
+        name = name + '.'
+    if not dataclasses.is_dataclass(model):
+        raise TypeError(f'Not a dataclass based model: {type(model)}')
+    for field in dataclasses.fields(model):
+        obj = getattr(model, field.name)
+        fq_name = f'{name}{field.name}'
+        yield fq_name, obj
+        if dataclasses.is_dataclass(obj):
+            yield from walk_dataclass(obj, name=fq_name)

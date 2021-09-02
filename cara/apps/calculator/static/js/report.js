@@ -28,11 +28,11 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
 
     // Plot tittle.
     vis.append('svg:foreignObject')
+        .attr("background-color", "transparent")
         .attr('width', width)
         .attr('height', margins.top)
-        .append('xhtml:body')
         .style('text-align', 'center')
-        .html('Mean concentration of virions');
+        .html('<b>Mean concentration of virions</b>');
 
     // Line representing the mean concentration.
     var lineFunc = d3.line()
