@@ -43,14 +43,14 @@ def baseline_mc_model() -> cara.monte_carlo.ConcentrationModel:
         room=cara.monte_carlo.Room(volume=cara.monte_carlo.sampleable.Normal(75, 20)),
         ventilation=cara.monte_carlo.SlidingWindow(
             active=cara.models.PeriodicInterval(period=120, duration=120),
-            inside_temp=cara.models.PiecewiseConstant((0, 24), (293,)),
-            outside_temp=cara.models.PiecewiseConstant((0, 24), (283,)),
+            inside_temp=cara.models.PiecewiseConstant((0., 24.), (293,)),
+            outside_temp=cara.models.PiecewiseConstant((0., 24.), (283,)),
             window_height=1.6, opening_length=0.6,
         ),
         infected=cara.models.InfectedPopulation(
             number=1,
             virus=cara.models.Virus.types['SARS_CoV_2'],
-            presence=cara.models.SpecificInterval(((0, 4), (5, 8))),
+            presence=cara.models.SpecificInterval(((0., 4.), (5., 8.))),
             mask=cara.models.Mask.types['No mask'],
             activity=cara.models.Activity.types['Light activity'],
             expiration=cara.models.Expiration.types['Breathing'],
@@ -75,8 +75,8 @@ def baseline_mc_exposure_model(baseline_mc_model) -> cara.monte_carlo.ExposureMo
 def test_build_concentration_model(baseline_mc_model: cara.monte_carlo.ConcentrationModel):
     model = baseline_mc_model.build_model(7)
     assert isinstance(model, cara.models.ConcentrationModel)
-    assert isinstance(model.concentration(time=0), float)
-    conc = model.concentration(time=1)
+    assert isinstance(model.concentration(time=0.), float)
+    conc = model.concentration(time=1.)
     assert isinstance(conc, np.ndarray)
     assert conc.shape == (7, )
 

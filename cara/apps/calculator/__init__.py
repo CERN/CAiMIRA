@@ -33,7 +33,7 @@ from .user import AuthenticatedUser, AnonymousUser
 # calculator version. If the calculator needs to make breaking changes (e.g. change
 # form attributes) then it can also increase its MAJOR version without needing to
 # increase the overall CARA version (found at ``cara.__version__``).
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 
 
 class BaseRequestHandler(RequestHandler):

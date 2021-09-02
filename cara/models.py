@@ -46,6 +46,8 @@ else:
     # by providing a no-op cache decorator when type-checking.
     cached = lambda *cached_args, **cached_kwargs: lambda function: function  # noqa
 
+from .utils import method_cache
+
 from .dataclass_utils import nested_replace
 
 
@@ -62,7 +64,7 @@ class Room:
     volume: _VectorisedFloat
 
     #: The humidity in the room (from 0 to 1 - e.g. 0.5 is 50% humidity)
-    humidity: _VectorisedFloat=0.5
+    humidity: _VectorisedFloat = 0.5
 
 
 Time_t = typing.TypeVar('Time_t', float, int)
@@ -127,7 +129,9 @@ class PeriodicInterval(Interval):
             return tuple()
         result = []
         for i in np.arange(0, 24, self.period / 60):
-            result.append((i, i+self.duration/60))
+            # NOTE: It is important that the time type is float, not np.float, in
+            # order to allow hashability (for caching).
+            result.append((float(i), float(i+self.duration/60)))
         return tuple(result)
 
 
@@ -183,7 +187,9 @@ class PiecewiseConstant:
             np.concatenate([self.values, self.values[-1:]], axis=0),
             axis=0)
         return PiecewiseConstant(
-            tuple(refined_times),
+            # NOTE: It is important that the time type is float, not np.float, in
+            # order to allow hashability (for caching).
+            tuple(float(time) for time in refined_times),
             tuple(interpolator(refined_times)[:-1]),
         )
 
@@ -740,9 +746,12 @@ class ConcentrationModel:
         # Deposition rate (h^-1)
         k = (vg * 3600) / h
 
-        return k + self.virus.decay_constant(self.room.humidity
-                    ) + self.ventilation.air_exchange(self.room, time)
+        return (
+            k + self.virus.decay_constant(self.room.humidity)
+            + self.ventilation.air_exchange(self.room, time)
+        )
 
+    @method_cache
     def _concentration_limit(self, time: float) -> _VectorisedFloat:
         """
         Provides a constant that represents the theoretical asymptotic 
@@ -754,29 +763,36 @@ class ConcentrationModel:
 
         return (self.infected.emission_rate(time)) / (IVRR * V)
 
-    def state_change_times(self):
+    @method_cache
+    def state_change_times(self) -> typing.List[float]:
         """
         All time dependent entities on this model must provide information about
         the times at which their state changes.
 
         """
-        state_change_times = set()
+        state_change_times = {0.}
         state_change_times.update(self.infected.presence.transition_times())
         state_change_times.update(self.ventilation.transition_times())
-
         return sorted(state_change_times)
 
-    def last_state_change(self, time: float):
+    def last_state_change(self, time: float) -> float:
         """
-        Find the most recent state change.
+        Find the most recent/previous state change.
+
+        Find the nearest time less than the given one. If there is a state
+        change exactly at ``time`` the previous state change is returned
+        (except at ``time == 0``).
 
         """
-        for change_time in self.state_change_times()[::-1]:
-            if change_time < time:
-                return change_time
-        return 0
+        times = self.state_change_times()
+        t_index: int = np.searchsorted(times, time)  # type: ignore
+        # Search sorted gives us the index to insert the given time. Instead we
+        # want to get the index of the most recent time, so reduce the index by
+        # one unless we are already at 0.
+        t_index = max([t_index - 1, 0])
+        return times[t_index]
 
-    def _next_state_change(self, time: float):
+    def _next_state_change(self, time: float) -> float:
         """
         Find the nearest future state change.
 
@@ -789,16 +805,11 @@ class ConcentrationModel:
             f"state change time ({change_time})"
         )
 
-    def _is_interval_between_state_changes(self, start: float, stop: float) -> bool:
-        """
-        Check that the times start and stop are in-between two state
-        changes of the concentration model (to ensure sure that all
-        model parameters stay constant between start and stop).
-        """
-        return (self.last_state_change(stop) <= start)
-
-    @cached()
-    def _concentration_at_state_change(self, time: float) -> _VectorisedFloat:
+    @method_cache
+    def _concentration_cached(self, time: float) -> _VectorisedFloat:
+        # A cached version of the concentration method. Use this method if you
+        # expect that there may be multiple concentration calculations for the
+        # same time (e.g. at state change times).
         return self.concentration(time)
 
     def concentration(self, time: float) -> _VectorisedFloat:
@@ -811,7 +822,6 @@ class ConcentrationModel:
         Note that time is not vectorised. You can only pass a single float
         to this method.
         """
-
         if time == 0:
             return 0.0
         next_state_change_time = self._next_state_change(time)
@@ -819,12 +829,13 @@ class ConcentrationModel:
         concentration_limit = self._concentration_limit(next_state_change_time)
 
         t_last_state_change = self.last_state_change(time)
-        concentration_at_last_state_change = self._concentration_at_state_change(t_last_state_change)
+        concentration_at_last_state_change = self._concentration_cached(t_last_state_change)
 
         delta_time = time - t_last_state_change
         fac = np.exp(-IVRR * delta_time)
         return concentration_limit * (1 - fac) + concentration_at_last_state_change * fac
 
+    @method_cache
     def integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
         """
         Get the integrated concentration dose between the times start and stop.
@@ -839,7 +850,7 @@ class ConcentrationModel:
             start = max([interval_start, req_start])
             stop = min([interval_stop, req_stop])
 
-            conc_start = self.concentration(start)
+            conc_start = self._concentration_cached(start)
 
             next_conc_state = self._next_state_change(stop)
             conc_limit = self._concentration_limit(next_conc_state)

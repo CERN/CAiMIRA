@@ -1,87 +1,250 @@
 #body {
-	top: 10px;
-	left: 20px;
-	bottom: 20px;
-	right: 20px;
-	padding: 20px;
+    top: 10px;
+    left: 20px;
+    bottom: 20px;
+    right: 20px;
+    padding: 20px;
 }
 
 h1 {
-	text-align: center;
+    text-align: center;
 }
 
 .subtitle {
-	text-align: center;
-	font-size: 13pt;
-	padding-bottom: 15pt;
+    text-align: center;
+    font-size: 17px;
+    padding-bottom: 20px;
 }
 
 p.data_italic {
-	font-style: italic;
+    font-style: italic;
 }
 
 p.data_title {
-	font-weight: bold;
+    font-weight: bold;
 }
 
 p.data_text {
-	padding-left: 30px;
+    padding-left: 30px;
 }
 
 p.data_subtext {
-	padding-left: 60px;
-	margin-left: -3em;
+    padding-left: 60px;
+    margin-left: -3em;
 }
 
 p.result_title {
-	font-weight: bold;
-	font-size: 15pt;
+    font-weight: bold;
+    font-size: 20px;
 }
 
 p.image {
-	text-align: center;
-	font-size: 13pt;
+    text-align: center;
+    font-size: 17px;
 }
 
 p.disclaimer {
-	font-size: 12pt;
+    font-size: 16px;
 }
 
 p.notes {
-	font-size: 10pt;
+    font-size: 13px;
+}
+
+#cara_logo {
+    height: 150px;
+    margin: 1%
+}
+
+#pdf-qr-code {
+    margin-right: 1%;
+    width: 100pt;
 }
 
 .red_bkg {
-  color: #000000;
-  background-color: #CD5C5C;
-  text-decoration: none;
+    color: #000000;
+    background-color: #CD5C5C;
+    text-decoration: none;
 }
 
 .yellow_bkg {
-  color: #000000;
-  background-color: #FFFF00;
-  text-decoration: none;
+    color: #000000;
+    background-color: #FFFF00;
+    text-decoration: none;
 }
 
 .green_bkg {
-  color: #000000;
-  background-color: #90EE90;
-  text-decoration: none;
+    color: #000000;
+    background-color: #90EE90;
+    text-decoration: none;
 }
 
-.warning_image_png {
-	margin-bottom: 1rem; 
-	padding-left: 30px; 
-	border-radius: .25rem
+.icon_button {
+    border: none;
+    background: none;
 }
 
-.warning_text {
-	height:fit-content; 
-	align-self: center; 
-	margin-left: 5%
+.icon_button:focus {
+    outline: 0 !important;
 }
 
-/* Flexbox layouts */
-.flex {
-	display: flex;
+.nav-tabs .nav-item .nav-link.active {
+    font-weight: bold;
+}
+
+.nav-tabs .nav-item .nav-link {
+    color: black;
+}
+
+.tabs-div {
+    margin: 1%;
+    border: #DFDFDF 1px solid;
+    border-radius: 5px;
+}
+
+.print-button {
+    margin-left: auto;
+    margin-right: 1%;
+}
+
+/* @media (width: 1200px) { */
+@media print {
+    /* #body {
+        min-width: 1200px;
+    } */
+    #results,
+    #rules,
+    #data {
+        display: contents!important;
+    }
+    #link_reproduce_results {
+        display: none!important;
+    }
+    #pdf-qr-code {
+        visibility: inherit!important;
+    }
+    .collapse {
+        display: block!important;
+    }
+    .tab-content {
+        border-top: none!important;
+    }
+    .nav-tabs {
+        display: none!important;
+    }
+    .tabs-div {
+        border: none!important;
+    }
+    .icon_button {
+        display: none!important;
+    }
+    .print-button {
+        display: none!important;
+    }
+    .card {
+        page-break-inside: avoid;
+    }
+    /* CSS styling to avoid page breaks. */
+    .break-after {
+        page-break-after: always;
+    }
+    .break-avoid {
+        page-break-inside: avoid;
+    }
+}
+
+
+/* CSS for the animation */
+
+.intro-banner-vdo-play-btn {
+    height: 60px;
+    width: 60px;
+    position: relative;
+    text-align: center;
+    border-radius: 100px;
+    z-index: 1
+}
+
+.intro-banner-vdo-play-btn i {
+    line-height: 56px;
+    font-size: 30px
+}
+
+.intro-banner-vdo-play-btn .ripple {
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    z-index: -1;
+    left: 50%;
+    top: 50%;
+    opacity: 0;
+    margin: -80px 0 0 -80px;
+    border-radius: 100px;
+    -webkit-animation: ripple 1.8s infinite;
+    animation: ripple 1.8s infinite
+}
+
+@-webkit-keyframes ripple {
+    0% {
+        opacity: 1;
+        -webkit-transform: scale(0);
+        transform: scale(0)
+    }
+    100% {
+        opacity: 0;
+        -webkit-transform: scale(1);
+        transform: scale(1)
+    }
+}
+
+@keyframes ripple {
+    0% {
+        opacity: 1;
+        -webkit-transform: scale(0);
+        transform: scale(0)
+    }
+    100% {
+        opacity: 0;
+        -webkit-transform: scale(1);
+        transform: scale(1)
+    }
+}
+
+.intro-banner-vdo-play-btn .ripple:nth-child(2) {
+    animation-delay: .3s;
+    -webkit-animation-delay: .3s
+}
+
+.intro-banner-vdo-play-btn .ripple:nth-child(3) {
+    animation-delay: .6s;
+    -webkit-animation-delay: .6s
+}
+
+.split {
+    /* flex: 1; */
+    clear: both;
+    display: inline-flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+@media screen and (min-width: 40em) {
+    .split {
+        flex-direction: row;
+    }
+    .split>* {
+        flex-basis: 100%;
+    }
+    .header-text {
+        text-align: left;
+    }
+    .split>*+* {
+        margin-left: 2em;
+    }
+    .bigButton {
+        width: 25%;
+    }
+    .logo {
+        float: left;
+    }
 }

@@ -29,13 +29,84 @@ def model_start_end(model: models.ExposureModel):
     return t_start, t_end
 
 
-def calculate_report_data(model: models.ExposureModel):
-    resolution = 600
+def fill_big_gaps(array, gap_size):
+    """
+    Insert values into the given sorted list if there is a gap of more than ``gap_size``.
+    All values in the given array are preserved, even if they are within the ``gap_size`` of one another.
+
+    >>> fill_big_gaps([1, 2, 4], gap_size=0.75)
+    [1, 1.75, 2, 2.75, 3.5, 4]
+
+    """
+    result = []
+    if len(array) == 0:
+        raise ValueError("Input array must be len > 0")
+
+    last_value = array[0]
+    for value in array:
+        while value - last_value > gap_size + 1e-15:
+            last_value = last_value + gap_size
+            result.append(last_value)
+        result.append(value)
+        last_value = value
+    return result
+
+
+def non_temp_transition_times(model: models.ExposureModel):
+    """
+    Return the non-temperature (and PiecewiseConstant) based transition times.
+
+    """
+    def walk_model(model, name=""):
+        # Extend walk_dataclass to handle lists of dataclasses
+        # (e.g. in MultipleVentilation).
+        for name, obj in dataclass_utils.walk_dataclass(model, name=name):
+            if name.endswith('.ventilations') and isinstance(obj, (list, tuple)):
+                for i, item in enumerate(obj):
+                    fq_name_i = f'{name}[{i}]'
+                    yield fq_name_i, item
+                    if dataclasses.is_dataclass(item):
+                        yield from dataclass_utils.walk_dataclass(item, name=fq_name_i)
+            else:
+                yield name, obj
 
     t_start, t_end = model_start_end(model)
-    times = np.linspace(t_start, t_end, resolution)
-    concentrations = [np.array(model.concentration_model.concentration(time)).mean()
-                      for time in times]
+
+    change_times = {t_start, t_end}
+    for name, obj in walk_model(model, name="exposure"):
+        if isinstance(obj, models.Interval):
+            change_times |= obj.transition_times()
+
+    # Only choose times that are in the range of the model (removes things
+    # such as PeriodicIntervals, which extend beyond the model itself).
+    return sorted(time for time in change_times if (t_start <= time <= t_end))
+
+
+def interesting_times(model: models.ExposureModel, approx_n_pts=100) -> typing.List[float]:
+    """
+    Pick approximately ``approx_n_pts`` time points which are interesting for the
+    given model.
+
+    Initially the times are seeded by important state change times (excluding
+    outside temperature), and the times are then subsequently expanded to ensure
+    that the step size is at most ``(t_end - t_start) / approx_n_pts``.
+
+    """
+    times = non_temp_transition_times(model)
+
+    # Expand the times list to ensure that we have a maximum gap size between
+    # the key times.
+    nice_times = fill_big_gaps(times, gap_size=(max(times) - min(times)) / approx_n_pts)
+    return nice_times
+
+
+def calculate_report_data(model: models.ExposureModel):
+    times = interesting_times(model)
+
+    concentrations = [
+        np.array(model.concentration_model.concentration(float(time))).mean()
+        for time in times
+    ]
     highest_const = max(concentrations)
     prob = np.array(model.infection_probability()).mean()
     er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
@@ -94,7 +165,7 @@ def _img2bytes(figure):
 def _figure2bytes(figure):
     # Draw the image
     img_data = io.BytesIO()
-    figure.savefig(img_data, format='png', bbox_inches="tight")
+    figure.savefig(img_data, format='png', bbox_inches="tight", transparent=True)
     return img_data
 
 
@@ -115,7 +186,7 @@ def plot(times, concentrations, model: models.ExposureModel):
     ax.spines['top'].set_visible(False)
 
     ax.set_xlabel('Time of day')
-    ax.set_ylabel('Mean concentration ($q/m^3$)')
+    ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
     ax.set_title('Mean concentration of virions')
     ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
 
@@ -210,7 +281,7 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
     return scenarios
 
 
-def comparison_plot(scenarios: typing.Dict[str, dict], sample_times: np.ndarray):
+def comparison_plot(scenarios: typing.Dict[str, dict], sample_times: typing.List[float]):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
 
@@ -236,13 +307,13 @@ def comparison_plot(scenarios: typing.Dict[str, dict], sample_times: np.ndarray)
     ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
 
     ax.set_xlabel('Time of day')
-    ax.set_ylabel('Mean concentration ($q/m^3$)')
+    ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
     ax.set_title('Mean concentration of virions')
 
     return fig
 
 
-def scenario_statistics(mc_model: mc.ExposureModel, sample_times: np.ndarray):
+def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[float]):
     model = mc_model.build_model(size=_DEFAULT_MC_SAMPLE_SIZE)
     return {
         'probability_of_infection': np.mean(model.infection_probability()),
@@ -256,7 +327,7 @@ def scenario_statistics(mc_model: mc.ExposureModel, sample_times: np.ndarray):
 
 def comparison_report(
         scenarios: typing.Dict[str, mc.ExposureModel],
-        sample_times: np.ndarray,
+        sample_times: typing.List[float],
         executor_factory: typing.Callable[[], concurrent.futures.Executor],
 ):
     statistics = {}
@@ -307,8 +378,7 @@ class ReportGenerator:
             'creation_date': time,
         }
 
-        t_start, t_end = model_start_end(model)
-        scenario_sample_times = np.linspace(t_start, t_end, 350)
+        scenario_sample_times = interesting_times(model)
 
         context.update(calculate_report_data(model))
         alternative_scenarios = manufacture_alternative_scenarios(form)
@@ -318,10 +388,10 @@ class ReportGenerator:
         context['qr_code'] = generate_qr_code(base_url, self.calculator_prefix, form)
         context['calculator_prefix'] = self.calculator_prefix
         context['scale_warning'] = {
-            'level': 'Yellow - 2', 
+            'level': 'yellow-2', 
             'incidence_rate': 'lower than 25 new cases per 100 000 inhabitants',
             'onsite_access': 'of about 8000', 
-            'threshold' : ''
+            'threshold': ''
         } 
         return context
 
