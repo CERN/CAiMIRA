@@ -156,7 +156,7 @@ def exposure_model_from_vl_talking(viral_loads):
         )
         exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
         # divide by 4 to have in 15min (quarter of an hour)
-        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present()/4
+        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(1.0)/4
         er_means.append(np.mean(emission_rate))
         er_medians.append(np.median(emission_rate))
         lower_percentiles.append(np.quantile(emission_rate, 0.01))
@@ -341,7 +341,7 @@ def exposure_model_from_vl_breathing(viral_loads):
         )
         exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
         # divide by 2 to have in 30min (half an hour)
-        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present() / 2
+        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(1.0) / 2
         er_means.append(np.mean(emission_rate))
         er_medians.append(np.median(emission_rate))
         lower_percentiles.append(np.quantile(emission_rate, 0.01))
