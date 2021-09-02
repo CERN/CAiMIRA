@@ -311,7 +311,7 @@ function validate_form(form) {
           var lunch_finish = document.getElementById(activity+"_lunch_finish");
           lunch_mins = parseTimeToMins(lunch_finish.value) - parseTimeToMins(lunch_start.value);
         }
-      
+
         var coffee_breaks = parseInt(document.querySelector('input[name="'+activity+'_coffee_break_option"]:checked').value);
         var coffee_duration = parseInt(document.getElementById(activity+"_coffee_duration").value);
         var coffee_mins = coffee_breaks * coffee_duration;
@@ -328,13 +328,30 @@ function validate_form(form) {
     });
   }
 
+  // Validate location input.
+  if (submit) {
+      // We make the non-visible location inputs mandatory, without marking them as "required" inputs.
+      // See https://stackoverflow.com/q/22148080/741316 for motivation.
+      var locationSelectObj= document.getElementById("location_select");
+      removeErrorFor(locationSelectObj);
+      $("input[name*='location']").each(function() {
+        el = $(this);
+        if ($.trim(el.val()) == ''){
+          submit = false;
+        }
+      });
+
+      if (!submit) {
+        insertErrorFor(locationSelectObj, "Please select a location");
+      }
+  }
+
   //Validate all non zero values
   $("input[required].non_zero").each(function() {
     if (!validateValue(this)) {
       submit = false;
     }
   });
-
 
   //Validate window venting duration < venting frequency
   if (!$("#windows_duration").hasClass("disabled")) {
@@ -464,9 +481,9 @@ function parseTimeToMins(cTime) {
 
 /* -------On Load------- */
 $(document).ready(function () {
-
+  var url = new URL(decodeURIComponent(window.location.href));
   //Pre-fill form with known values
-  (new URL(decodeURIComponent(window.location.href))).searchParams.forEach((value, name) => {
+  url.searchParams.forEach((value, name) => {
 
     //If element exists
     if(document.getElementsByName(name).length > 0) {
@@ -484,6 +501,7 @@ $(document).ready(function () {
       else if (elemObj.type === 'checkbox') {
         elemObj.checked = (value==1);
       }
+
       //Ignore 0 (default) values from server side
       else if (!(elemObj.classList.contains("non_zero") || elemObj.classList.contains("remove_zero")) || (value != "0.0" && value != "0")) {
         elemObj.value = value;
@@ -491,6 +509,21 @@ $(document).ready(function () {
       }
     }
   });
+
+  // Handle default URL values if they are not explicitly defined.
+  if (Array.from(url.searchParams).length > 0) {
+    if (!url.searchParams.has('location_name')) {
+      $('[name="location_name"]').val('Geneva')
+      $('[name="location_select"]').val('Geneva')
+    }
+    if (!url.searchParams.has('location_latitude')) {
+      $('[name="location_latitude"]').val('46.20833')
+    }
+    if (!url.searchParams.has('location_longitude')) {
+      $('[name="location_longitude"]').val('6.14275')
+    }
+  }
+
 
   // When the document is ready, deal with the fact that we may be here
   // as a result of a forward/back browser action. If that is the case, update
@@ -531,7 +564,101 @@ $(document).ready(function () {
   $(".start_time[data-lunch-for]").each(function() {validateLunchBreak($(this).data('time-group'))});
   $("[data-lunch-for]").change(function() {validateLunchBreak($(this).data('time-group'))});
   $("[data-lunch-break]").change(function() {validateLunchBreak($(this).data('lunch-break'))});
+
+  $("#location_select").select2({
+    ajax: {
+      // Docs for the geocoding service at:
+      // https://developers.arcgis.com/rest/geocode/api-reference/geocoding-service-output.htm
+      url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/suggest",
+      dataType: 'json',
+      delay: 250,
+      data: function(params) {
+        return {
+          text: params.term, // search term
+          f: 'json',
+          page: params.page,
+          maxSuggestions: 20,
+        };
+      },
+      processResults: function(data, params) {
+        // Enable infinite scrolling
+        params.page = params.page || 1;
+        return {
+          results: data.suggestions.map(function(suggestion) {
+            return {
+                id: suggestion.magicKey,  // The unique reference to this result.
+                text: suggestion.text,
+                magicKey: suggestion.magicKey
+            }
+          }),
+          pagination: {
+            more: (params.page * 10) < data.suggestions.length
+          }
+        };
+      },
+      cache: true
+    },
+    placeholder: 'Search for a location',
+    minimumInputLength: 1,
+    templateResult: formatlocation,
+    templateSelection: formatLocationSelection
+  });
+
+  function formatlocation(suggestedLocation) {
+    // Function is called for each location from the geocoding API.
+
+    if (suggestedLocation.loading) {
+      // Update the first message in the search results to show the
+      // "Searching..." message.
+      return suggestedLocation.text;
+    }
+
+    // Create a container for this location (to be added to the DOM by the select2
+    // library when returned).
+    // This will become one of many search results in the dropdown.
+    var $container = $(
+      "<div class='select2-result-location clearfix'>" +
+      "<div class='select2-result-location__meta'>" +
+      "<div class='select2-result-location__title'>" + suggestedLocation.text + "</div>" +
+      "</div>" +
+      "</div>"
+    );
+    return $container;
+  }
+
+  function formatLocationSelection(selectedSuggestion) {
+    // Function is called when a selection is made in the search result dropdown.
+
+    // ID may be empty, for example when the page is refreshed or back button pressed.
+    if (selectedSuggestion.id != "") {
+
+        // Turn the suggestion into a proper location (so that we can get its latitude & longitude).
+        $.ajax({
+          dataType: "json",
+          url: 'https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates',
+          data: {
+            magicKey: selectedSuggestion.magicKey,
+            outFields: 'country, location',
+            f: "json"
+          },
+          success: function (locations) {
+            // If there isn't precisely one result something is very wrong.
+            geocoded_loc = locations.candidates[0];
+            $('input[name="location_name"]').val(selectedSuggestion.text);
+            $('input[name="location_latitude"]').val(geocoded_loc.location.y.toPrecision(7));
+            $('input[name="location_longitude"]').val(geocoded_loc.location.x.toPrecision(7));
+          }
+        });
+
+    } else if ($('input[name="location_name"]').val() != "") {
+        // If we have no selection AND the location_name is available, use that in the search bar.
+        // This means that we preserve the location through refresh/back button.
+        return $('input[name="location_name"]').val();
+    }
+    return selectedSuggestion.text;
+  }
 });
+
 
 /* -------Debugging------- */
 function debug_submit(form) {
