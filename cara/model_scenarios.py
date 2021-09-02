@@ -440,7 +440,7 @@ def exposure_model_from_vl_breathing_cn(viral_loads):
     n_lines = 5
     cns = np.linspace(0.01, 0.5, n_lines)
     norm = mpl.colors.Normalize(vmin=cns.min(), vmax=cns.max())
-    cmap = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.cm.gray)
+    cmap = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.cm.Blues)
     cmap.set_array([])
 
     for cn in tqdm(cns):
