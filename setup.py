@@ -29,9 +29,11 @@ REQUIREMENTS: dict = {
         'mistune',
         'numpy',
         'psutil',
+        'python-dateutil',
         'qrcode[pil]',
         'scipy',
         'sklearn',
+        'timezonefinder',
         'tornado',
         'voila >=0.2.4',
     ],
@@ -42,6 +44,7 @@ REQUIREMENTS: dict = {
         'pytest-tornasync',
         'numpy-stubs @ git+https://github.com/numpy/numpy-stubs.git',
         'types-dataclasses',
+        'types-python-dateutil',
     ],
     'dev': [
         'jupyterlab',
@@ -84,5 +87,7 @@ setup(
         'apps/*/*/*',
         'apps/*/*/*/*',
         'apps/*/*/*/*/*',
+        'data/*.json',
+        'data/*.txt',
     ]},
 )

@@ -1,6 +1,8 @@
 import numpy as np
 from cara import models
 
+# TODO: The values in this module to be removed and instead use the cara.data.weather functionality.
+
 # average temperature of each month, hour per hour (from midnight to 11 pm)
 Geneva_hourly_temperatures_celsius_per_hour = {
     'Jan': [0.2, -0.3, -0.5, -0.9, -1.1, -1.4, -1.5, -1.5, -1.1, 0.1, 1.5,
