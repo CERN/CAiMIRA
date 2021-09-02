@@ -70,7 +70,7 @@ def known_concentrations(func):
 
 
 @pytest.mark.parametrize(
-    "population, cm, f_dep, expected_exposure, expected_cumulated_exposure, expected_probability",[
+    "population, cm, f_dep, expected_exposure, expected_inhaled_exposure, expected_probability",[
     [populations[1], known_concentrations(lambda t: 36.), 1.,
      np.array([432, 432]), np.array([172.368, 160.056]), np.array([99.6803184113, 99.5181053773])],
 
@@ -87,7 +87,7 @@ def known_concentrations(func):
      864, np.array([123.12, 246.24]), np.array([98.3493482895, 99.9727534893])],
     ])
 def test_exposure_model_ndarray(population, cm, f_dep,
-                                expected_exposure, expected_cumulated_exposure, expected_probability):
+                                expected_exposure, expected_inhaled_exposure, expected_probability):
     model = ExposureModel(cm, population, fraction_deposited=f_dep)
     np.testing.assert_almost_equal(
         model.exposure(), expected_exposure
@@ -96,15 +96,15 @@ def test_exposure_model_ndarray(population, cm, f_dep,
         model.infection_probability(), expected_probability, decimal=10
     )
     np.testing.assert_almost_equal(
-        model.cumulated_exposure(), expected_cumulated_exposure, decimal=10
+        model.inhaled_exposure(), expected_inhaled_exposure, decimal=10
     )
 
     assert isinstance(model.infection_probability(), np.ndarray)
     assert isinstance(model.expected_new_cases(), np.ndarray)
-    assert isinstance(model.cumulated_exposure(), np.ndarray)
+    assert isinstance(model.inhaled_exposure(), np.ndarray)
     assert model.infection_probability().shape == (2,)
     assert model.expected_new_cases().shape == (2,)
-    assert model.cumulated_exposure().shape == (2,)
+    assert model.inhaled_exposure().shape == (2,)
 
 
 @pytest.mark.parametrize("population", populations)

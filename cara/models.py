@@ -877,8 +877,8 @@ class ExposureModel:
     #: The fraction of viruses actually deposited in the respiratory tract
     fraction_deposited: _VectorisedFloat = 0.6
 
-    def exposure_vs_time(self, time: float) -> _VectorisedFloat:
-        """The number of virus per meter^3 integrated until time."""
+    def exposure_between_bounds(self, time: float) -> _VectorisedFloat:
+        """The cumulative number of virions per meter^3 from model start to the given time."""
         exposure = 0.0
 
         for start, stop in self.exposed.presence.boundaries():
@@ -896,13 +896,13 @@ class ExposureModel:
     def exposure(self) -> _VectorisedFloat:
         """The number of virions per meter^3 for the full simulation time."""
         if self.exposed.presence.transition_times():
-            return self.exposure_vs_time(max(self.exposed.presence.transition_times()))
+            return self.exposure_between_bounds(max(self.exposed.presence.transition_times()))
         else:
             return 0
 
-    def cumulated_exposure_vs_time(self, time: float) -> _VectorisedFloat:
+    def inhaled_exposure_between_bounds(self, time: float) -> _VectorisedFloat:
         
-        exposure = self.exposure_vs_time(time)
+        exposure = self.exposure_between_bounds(time)
         
         return (
             self.exposed.activity.inhalation_rate *
@@ -910,14 +910,14 @@ class ExposureModel:
             exposure * self.fraction_deposited
         )
 
-    def cumulated_exposure(self) -> _VectorisedFloat:
+    def inhaled_exposure(self) -> _VectorisedFloat:
         if self.exposed.presence.transition_times():
-            return self.cumulated_exposure_vs_time(max(self.exposed.presence.transition_times()))
+            return self.inhaled_exposure_between_bounds(max(self.exposed.presence.transition_times()))
         else:
             return 0
 
     def infection_probability(self) -> _VectorisedFloat:
-        inf_aero = self.cumulated_exposure()
+        inf_aero = self.inhaled_exposure()
 
         # Probability of infection.
         return (1 - np.exp(-(inf_aero/self.concentration_model.virus.infectious_dose))) * 100

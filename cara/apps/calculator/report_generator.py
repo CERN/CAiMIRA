@@ -114,7 +114,7 @@ def calculate_report_data(model: models.ExposureModel):
     exposed_occupants = model.exposed.number
     expected_new_cases = np.array(model.expected_new_cases()).mean()
     cumulative_doses = [
-        np.array(model.cumulated_exposure_vs_time(float(time))).mean()
+        np.array(model.inhaled_exposure_between_bounds(float(time))).mean()
         for time in times
     ]
 
@@ -276,7 +276,7 @@ def comparison_plot(scenarios: typing.Dict[str, dict], sample_times: typing.List
         concentrations = statistics['concentrations']
 
         #See CERN-OPEN-2021-004, p. 15, eq. 16. - Cumulative Dose
-        qds = [np.mean(model.cumulated_exposure_vs_time(t)) for t in sample_times]
+        qds = [np.mean(model.inhaled_exposure_between_bounds(t)) for t in sample_times]
         
         # Plot concentrations and cumulative dose
         if name in dash_styled_scenarios:
