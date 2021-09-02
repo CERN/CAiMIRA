@@ -555,19 +555,19 @@ class Expiration(_ExpirationBase):
     BLO_factors: typing.Tuple[float, float, float]
 
     @cached()
-    def aerosols(self, mask: Mask, cn: float):
+    def aerosols(self, mask: Mask, cn_B: float, cn_L: float):
         """ Result is in mL.cm^-3 """
         def volume(d):
             return (np.pi * d**3) / 6.
 
-        def _Bmode(d: float) -> float:
+        def _Bmode(d: float, cn_B: float) -> float:
             # B-mode (see ref. above).
-            return ( (1 / d) * (0.1 / (np.sqrt(2 * np.pi) * 0.262364)) *
+            return ( (1 / d) * (cn_B / (np.sqrt(2 * np.pi) * 0.262364)) *
                     np.exp(-1 * (np.log(d) - 0.989541) ** 2 / (2 * 0.262364 ** 2)))
 
-        def _Lmode(d: float, cn: float) -> float:
+        def _Lmode(d: float, cn_L: float) -> float:
             # L-mode (see ref. above).
-            return ( (1 / d) * (cn / (np.sqrt(2 * np.pi) * 0.506818)) *
+            return ( (1 / d) * (cn_L / (np.sqrt(2 * np.pi) * 0.506818)) *
                     np.exp(-1 * (np.log(d) - 1.38629) ** 2 / (2 * 0.506818 ** 2)))
 
         def _Omode(d: float) -> float:
@@ -576,8 +576,8 @@ class Expiration(_ExpirationBase):
                     np.exp(-1 * (np.log(d) - 4.97673) ** 2 / (2 * 0.585005 ** 2)))
 
         def integrand(d: float) -> float:
-            return (self.BLO_factors[0] * _Bmode(d) +
-                    self.BLO_factors[1] * _Lmode(d, cn) +
+            return (self.BLO_factors[0] * _Bmode(d, cn_B) +
+                    self.BLO_factors[1] * _Lmode(d, cn_L) +
                     self.BLO_factors[2] * _Omode(d)
                     ) * volume(d) * (1 - mask.exhale_efficiency(d))
 
@@ -670,7 +670,7 @@ class InfectedPopulation(Population):
     #: The type of expiration that is being emitted whilst doing the activity.
     expiration: _ExpirationBase
 
-    def emission_rate_when_present(self, cn: float) -> _VectorisedFloat:
+    def emission_rate_when_present(self, cn_B: float, cn_L: float) -> _VectorisedFloat:
         """
         The emission rate if the infected population is present.
 
@@ -680,7 +680,7 @@ class InfectedPopulation(Population):
         # Emission Rate (virions / h)
         # Note on units: exhalation rate is in m^3/h, aerosols in mL/cm^3
         # and viral load in virus/mL -> 1e6 conversion factor
-        aerosols = self.expiration.aerosols(self.mask, cn)
+        aerosols = self.expiration.aerosols(self.mask, cn_B, cn_L)
 
         ER = (self.virus.viral_load_in_sputum *
               self.activity.exhalation_rate *

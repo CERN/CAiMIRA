@@ -214,7 +214,7 @@ def exposure_model_from_vl_talking(viral_loads):
 def exposure_model_from_vl_talking_cn(viral_loads):
     
     n_lines = 5
-    cns = np.linspace(0., .2, n_lines)
+    cns = np.linspace(0.1, 1, n_lines)
     norm = mpl.colors.Normalize(vmin=cns.min(), vmax=cns.max())
     cmap = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.cm.jet)
     cmap.set_array([])
@@ -264,8 +264,8 @@ def exposure_model_from_vl_talking_cn(viral_loads):
 
         
         ax.plot(viral_loads, er_means, color=cmap.to_rgba(cn))
-        ax.fill_between(viral_loads, lower_percentiles,
-                        upper_percentiles, alpha=0.2, color=cmap.to_rgba(cn))
+        #ax.fill_between(viral_loads, lower_percentiles,
+        #                upper_percentiles, alpha=0.2, color=cmap.to_rgba(cn))
     
     fig.colorbar(cmap, ticks=cns)
     ax.set_yscale('log')
@@ -355,6 +355,144 @@ def exposure_model_from_vl_breathing(viral_loads):
     ax.plot(viral_loads, er_means)
     ax.fill_between(viral_loads, lower_percentiles,
                     upper_percentiles, alpha=0.2)
+    ax.set_yscale('log')
+
+    ############# Coleman #############
+    plt.scatter(coleman_etal_vl_breathing,
+                coleman_etal_er_breathing_2, marker='x')
+    x_hull, y_hull = get_enclosure_points(
+        coleman_etal_vl_breathing, coleman_etal_er_breathing_2)
+    # plot shape
+    plt.fill(x_hull, y_hull, '--', c='orange', alpha=0.2)
+
+    ############# Markers #############
+    markers = [5, 'd', 4]
+
+    ############# Milton et al #############
+    try:
+        for index, m in enumerate(markers):
+            plt.scatter(milton_vl[index], milton_er_2[index],
+                        marker=m, color='red')
+        x_hull, y_hull = get_enclosure_points(milton_vl, milton_er_2)
+        # plot shape
+        plt.fill(x_hull, y_hull, '--', c='red', alpha=0.2)
+    except:
+        print("No data for Milton et al")
+
+    ############# Yan et al #############
+    try:
+        plt.scatter(yann_vl[0], yann_er_2[0], marker=markers[0], color='green')
+        plt.scatter(yann_vl[1], yann_er_2[1],
+                    marker=markers[1], color='green', s=50)
+        plt.scatter(yann_vl[2], yann_er_2[2], marker=markers[2], color='green')
+
+        x_hull, y_hull = get_enclosure_points(yann_vl, yann_er_2)
+        # plot shape
+        plt.fill(x_hull, y_hull, '--', c='green', alpha=0.2)
+    except:
+        print("No data for Yan et al")
+
+    ############ Legend ############
+    result_from_model = mlines.Line2D(
+        [], [], color='blue', marker='_', linestyle='None')
+    coleman = mlines.Line2D([], [], color='orange',
+                            marker='x', linestyle='None')
+    milton_mean = mlines.Line2D(
+        [], [], color='red', marker='d', linestyle='None')  # mean
+    milton_25 = mlines.Line2D(
+        [], [], color='red', marker=5, linestyle='None')  # 25
+    milton_75 = mlines.Line2D(
+        [], [], color='red', marker=4, linestyle='None')  # 75
+    yann_mean = mlines.Line2D([], [], color='green',
+                              marker='d', linestyle='None')  # mean
+    yann_25 = mlines.Line2D([], [], color='green',
+                            marker=5, linestyle='None')  # 25
+    yann_75 = mlines.Line2D([], [], color='green',
+                            marker=4, linestyle='None')  # 75
+
+    title_proxy = Rectangle((0, 0), 0, 0, color='w')
+    titles = ["$\\bf{CARA \, \\it{(SARS-CoV-2)}:}$", "$\\bf{Coleman \, et \, al. \, \\it{(SARS-CoV-2)}:}$",
+              "$\\bf{Milton \, et \, al.  \,\\it{(Influenza)}:}$", "$\\bf{Yann \, et \, al.  \,\\it{(Influenza)}:}$"]
+    leg = plt.legend([title_proxy, result_from_model, title_proxy, coleman, title_proxy, milton_mean, milton_25, milton_75, title_proxy, yann_mean, yann_25, yann_75],
+                     [titles[0], "Result from model", titles[1], "Dataset", titles[2], "Mean", "25th per.", "75th per.", titles[3], "Mean", "25th per.", "75th per."])
+
+    # Move titles to the left
+    for item, label in zip(leg.legendHandles, leg.texts):
+        if label._text in titles:
+            width = item.get_window_extent(fig.canvas.get_renderer()).width
+            label.set_ha('left')
+            label.set_position((-3*width, 0))
+
+    ############ Plot ############
+    plt.title('Exhaled virions while breathing for 30 min',
+              fontsize=16, fontweight="bold")
+    plt.ylabel(
+        'Aerosol viral load, $\mathrm{vl_{out}}$\n(RNA copies)', fontsize=14)
+    plt.xticks(ticks=[i for i in range(2, 13)], labels=[
+        '$10^{' + str(i) + '}$' for i in range(2, 13)])
+    plt.xlabel('NP viral load, $\mathrm{vl_{in}}$\n(RNA copies)', fontsize=14)
+    plt.show()
+
+    return er_means
+
+
+def exposure_model_from_vl_breathing_cn(viral_loads):
+    n_lines = 5
+    cns = np.linspace(0.01, 0.5, n_lines)
+    norm = mpl.colors.Normalize(vmin=cns.min(), vmax=cns.max())
+    cmap = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.cm.jet)
+    cmap.set_array([])
+
+    for cn in tqdm(cns):
+        er_means = []
+        er_medians = []
+        lower_percentiles = []
+        upper_percentiles = []
+        for vl in viral_loads:
+            exposure_mc = mc.ExposureModel(
+                concentration_model=mc.ConcentrationModel(
+                    room=models.Room(volume=100, humidity=0.5),
+                    ventilation=models.AirChange(
+                        active=models.SpecificInterval(((0, 24),)),
+                        air_exch=0.25,
+                    ),
+                    infected=mc.InfectedPopulation(
+                        number=1,
+                        virus=models.Virus(
+                            viral_load_in_sputum=10**vl,
+                            infectious_dose=50.,
+                        ),
+                        presence=mc.SpecificInterval(((0, 2),)),
+                        mask=models.Mask.types["No mask"],
+                        activity=activity_distributions['Seated'],
+                        expiration=models.Expiration.types['Breathing'],
+                    ),
+                ),
+                exposed=mc.Population(
+                    number=14,
+                    presence=mc.SpecificInterval(((0, 2),)),
+                    activity=models.Activity.types['Seated'],
+                    mask=models.Mask.types["No mask"],
+                ),
+            )
+            exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
+            # divide by 2 to have in 30min (half an hour)
+            emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B = cn, cn_L = 1.0) / 2
+            er_means.append(np.mean(emission_rate))
+            er_medians.append(np.median(emission_rate))
+            lower_percentiles.append(np.quantile(emission_rate, 0.01))
+            upper_percentiles.append(np.quantile(emission_rate, 0.99))
+
+        # divide by 2 to have in 30min (half an hour)
+        coleman_etal_er_breathing_2 = [x/2 for x in coleman_etal_er_breathing]
+        milton_er_2 = [x/2 for x in milton_er]
+        yann_er_2 = [x/2 for x in yann_er]
+        ax.plot(viral_loads, er_means, color=cmap.to_rgba(cn))
+
+    #ax.fill_between(viral_loads, lower_percentiles,
+    #                upper_percentiles, alpha=0.2)
+
+    fig.colorbar(cmap, ticks=cns)
     ax.set_yscale('log')
 
     ############# Coleman #############
