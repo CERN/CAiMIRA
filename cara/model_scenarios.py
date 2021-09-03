@@ -236,7 +236,7 @@ def exposure_model_from_vl_talking_cn(viral_loads):
         exposure_mc = model_scenario("Talking", vl)
         exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
         # divide by 4 to have in 15min 
-        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B = 0.1, cn_L = 0.2) / 4
+        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B = 0.06, cn_L = 0.2) / 4
         er_means.append(np.mean(emission_rate))
     ax.plot(viral_loads, er_means, color=cmap.to_rgba(cn, alpha=0.75), linewidth=1, ls='--')
     plt.text(viral_loads[int(len(viral_loads)*0.93)], 10**5.5, r"$\mathbf{C_{n,B}=0.2}$", color='black', size='small')
@@ -437,11 +437,11 @@ def exposure_model_from_vl_breathing_cn(viral_loads):
         exposure_mc = model_scenario("Breathing", vl)
         exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
         # divide by 2 to have in 30min (half an hour)
-        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B = 0.1, cn_L = 0.2) / 2
+        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B = 0.06, cn_L = 0.2) / 2
         er_means.append(np.mean(emission_rate))
     
     ax.plot(viral_loads, er_means, color=cmap.to_rgba(cn, alpha=0.75), linewidth=1, ls='--')
-    plt.text(viral_loads[int(len(viral_loads)*0.95)], 10**4.9, r"$\mathbf{C_{n,L}=0.1}$", color='black', size='small')
+    plt.text(viral_loads[int(len(viral_loads)*0.9)], 10**4, r"$\mathbf{C_{n,B}=0.06}$", color='black', size='small')
     
     fig.colorbar(cmap, ticks=[0.01, 0.1, 0.5], label="Particle emission concentration for breathing.")
     ax.set_yscale('log')
