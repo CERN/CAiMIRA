@@ -21,52 +21,6 @@ viral_loads = np.linspace(2, 12, 600)
 markers = [5, 'd', 4]
 
 """ Exhaled virions from exposure models """
-######### Talking #########
-
-
-def exposure_model_from_vl_talking():
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
-
-    er_means = []
-    er_medians = []
-    lower_percentiles = []
-    upper_percentiles = []
-
-    for vl in tqdm(viral_loads):
-        exposure_mc = talking_exposure_vl(vl)
-        exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
-        # divide by 4 to have in 15min (quarter of an hour)
-        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B=0.06, cn_L=0.2)/4
-        er_means.append(np.mean(emission_rate))
-        er_medians.append(np.median(emission_rate))
-        lower_percentiles.append(np.quantile(emission_rate, 0.01))
-        upper_percentiles.append(np.quantile(emission_rate, 0.99))
-
-    # divide by 4 to have in 15min (quarter of an hour)
-    coleman_etal_er_talking_2 = [x/4 for x in coleman_etal_er_talking]
-
-    ax.plot(viral_loads, er_means)
-    ax.fill_between(viral_loads, lower_percentiles,
-                    upper_percentiles, alpha=0.2)
-    ax.set_yscale('log')
-
-    ############# Coleman #############
-    scatter_coleman_data(coleman_etal_vl_talking, coleman_etal_er_talking_2)
-
-    ############ Legend ############
-    build_talking_legend(fig)
-
-    ############ Plot ############
-    plt.title('Exhaled virions while talking for 15min',
-              fontsize=16, fontweight="bold")
-    plt.ylabel(
-        'Aerosol viral load, $\mathrm{vl_{out}}$\n(RNA copies)', fontsize=14)
-    plt.xticks(ticks=[i for i in range(2, 13)], labels=[
-        '$10^{' + str(i) + '}$' for i in range(2, 13)])
-    plt.xlabel('NP viral load, $\mathrm{vl_{in}}$\n(RNA copies)', fontsize=14)
-
-    plt.show()
 
 ######### Breathing #########
 
@@ -198,6 +152,49 @@ def exposure_model_from_vl_breathing_cn():
 
 ############ Talking ############
 
+def exposure_model_from_vl_talking():
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+
+    er_means = []
+    er_medians = []
+    lower_percentiles = []
+    upper_percentiles = []
+
+    for vl in tqdm(viral_loads):
+        exposure_mc = talking_exposure_vl(vl)
+        exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
+        # divide by 4 to have in 15min (quarter of an hour)
+        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B=0.06, cn_L=0.2)/4
+        er_means.append(np.mean(emission_rate))
+        er_medians.append(np.median(emission_rate))
+        lower_percentiles.append(np.quantile(emission_rate, 0.01))
+        upper_percentiles.append(np.quantile(emission_rate, 0.99))
+
+    # divide by 4 to have in 15min (quarter of an hour)
+    coleman_etal_er_talking_2 = [x/4 for x in coleman_etal_er_talking]
+
+    ax.plot(viral_loads, er_means)
+    ax.fill_between(viral_loads, lower_percentiles,
+                    upper_percentiles, alpha=0.2)
+    ax.set_yscale('log')
+
+    ############# Coleman #############
+    scatter_coleman_data(coleman_etal_vl_talking, coleman_etal_er_talking_2)
+
+    ############ Legend ############
+    build_talking_legend(fig)
+
+    ############ Plot ############
+    plt.title('Exhaled virions while talking for 15min',
+              fontsize=16, fontweight="bold")
+    plt.ylabel(
+        'Aerosol viral load, $\mathrm{vl_{out}}$\n(RNA copies)', fontsize=14)
+    plt.xticks(ticks=[i for i in range(2, 13)], labels=[
+        '$10^{' + str(i) + '}$' for i in range(2, 13)])
+    plt.xlabel('NP viral load, $\mathrm{vl_{in}}$\n(RNA copies)', fontsize=14)
+
+    plt.show()
 
 def exposure_model_from_vl_talking_cn():
     fig = plt.figure()
