@@ -9,15 +9,15 @@ from cara.test_plots import *
 
 # Exhaled virions while talking, seated #
 print('\n<<<<<<<<<<< Vlout for Talking, seated >>>>>>>>>>>')
-exposure_model_from_vl_talking()
+#exposure_model_from_vl_talking()
 
 # Exhaled virions while breathing, seated #
 print('\n<<<<<<<<<<< Vlout for Breathing, seated >>>>>>>>>>>')
-exposure_model_from_vl_breathing()
+#exposure_model_from_vl_breathing()
 
 # Exhaled virions while talking according to BLO model, seated #
 print('\n<<<<<<<<<<< Vlout for Talking, seated with chosen Cn,L >>>>>>>>>>>')
-exposure_model_from_vl_talking_cn()
+#exposure_model_from_vl_talking_cn()
 
 # Exhaled virions while breathing according to BLO model, seated #
 print('\n<<<<<<<<<<< Vlout for Breathing, seated with chosen Cn,B >>>>>>>>>>>')
