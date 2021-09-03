@@ -169,7 +169,7 @@ def exposure_model_from_vl_breathing_cn():
     plt.text(viral_loads[int(len(viral_loads)*0.9)], 10**4.2,
              r"$\mathbf{c_{n,B}=0.06}$", color=cmap.to_rgba(cn), size='small')
 
-    fig.colorbar(cmap, ticks=[0.01, 0.1, 0.5],
+    fig.colorbar(cmap, ticks=[0.01, 0.1, 0.25, 0.5],
                  label="Particle emission concentration, ${c_{n,B}}$")
     ax.set_yscale('log')
 
