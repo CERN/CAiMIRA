@@ -1,19 +1,27 @@
-from cara.model_scenarios import *
-import numpy as np
-import csv
+""" Title: COVID Airborne Risk Assessment
+Author: <author(s) names>
+Date: <date>
+Code version: <code version>
+Availability: <where it's located> """
 
-viral_loads = np.linspace(2, 12, 600)
+from cara.montecarlo import *
+from cara.test_plots import *
 
-#er_means = exposure_model_from_vl_talking(viral_loads)
-#er_means = exposure_model_from_vl_breathing(viral_loads)
-#er_means = exposure_model_from_vl_talking_new_points(viral_loads)
-#er_means = exposure_model_from_vl_talking_cn(viral_loads)
-er_means = exposure_model_from_vl_breathing_cn(viral_loads)
+# Exhaled virions while talking, seated #
+print('\n<<<<<<<<<<< Vlout for Talking, seated >>>>>>>>>>>')
+exposure_model_from_vl_talking()
 
-# with open('data.csv', 'w', newline='') as csvfile:
-#     fieldnames = ['viral load', 'emission rate']
-#     thewriter = csv.DictWriter(csvfile, fieldnames=fieldnames)
-#     thewriter.writeheader()
-#     for i, vl in enumerate(viral_loads):
-#         thewriter.writerow(
-#             {'viral load': 10**vl, 'emission rate': er_means[i]})
+# Exhaled virions while breathing, seated #
+print('\n<<<<<<<<<<< Vlout for Breathing, seated >>>>>>>>>>>')
+exposure_model_from_vl_breathing()
+
+# Exhaled virions while talking according to BLO model, seated #
+print('\n<<<<<<<<<<< Vlout for Talking, seated with chosen Cn,L >>>>>>>>>>>')
+exposure_model_from_vl_talking_cn()
+
+# Exhaled virions while breathing according to BLO model, seated #
+print('\n<<<<<<<<<<< Vlout for Breathing, seated with chosen Cn,B >>>>>>>>>>>')
+exposure_model_from_vl_breathing_cn()
+
+############ Used for testing ############
+#exposure_model_from_vl_talking_new_points()
