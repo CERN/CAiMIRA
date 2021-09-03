@@ -239,9 +239,9 @@ def exposure_model_from_vl_talking_cn(viral_loads):
         emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B = 0.06, cn_L = 0.2) / 4
         er_means.append(np.mean(emission_rate))
     ax.plot(viral_loads, er_means, color=cmap.to_rgba(cn, alpha=0.75), linewidth=1, ls='--')
-    plt.text(viral_loads[int(len(viral_loads)*0.93)], 10**5.5, r"$\mathbf{C_{n,B}=0.2}$", color='black', size='small')
+    plt.text(viral_loads[int(len(viral_loads)*0.93)], 10**5.5, r"$\mathbf{c_{n,L}=0.2}$", color=cmap.to_rgba(cn), size='small')
 
-    fig.colorbar(cmap, ticks=[0.01, 0.5, 1.0, 2.0], label="Particle emission concentration for talking.")
+    fig.colorbar(cmap, ticks=[0.01, 0.5, 1.0, 2.0], label="Particle emission concentration, $c_{n,L}$")
     ax.set_yscale('log')
 
     ############# Coleman #############
@@ -441,9 +441,9 @@ def exposure_model_from_vl_breathing_cn(viral_loads):
         er_means.append(np.mean(emission_rate))
     
     ax.plot(viral_loads, er_means, color=cmap.to_rgba(cn, alpha=0.75), linewidth=1, ls='--')
-    plt.text(viral_loads[int(len(viral_loads)*0.9)], 10**4, r"$\mathbf{C_{n,B}=0.06}$", color='black', size='small')
+    plt.text(viral_loads[int(len(viral_loads)*0.9)], 10**4.2, r"$\mathbf{c_{n,B}=0.06}$", color=cmap.to_rgba(cn), size='small')
     
-    fig.colorbar(cmap, ticks=[0.01, 0.1, 0.5], label="Particle emission concentration for breathing.")
+    fig.colorbar(cmap, ticks=[0.01, 0.1, 0.5], label="Particle emission concentration, $c_{n,B}$")
     ax.set_yscale('log')
 
     ############# Coleman #############
