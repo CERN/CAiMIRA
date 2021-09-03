@@ -213,65 +213,39 @@ def exposure_model_from_vl_talking(viral_loads):
 
 def exposure_model_from_vl_talking_cn(viral_loads):
     
-    n_lines = 5
-    cns = np.linspace(0.1, 1, n_lines)
-    norm = mpl.colors.Normalize(vmin=cns.min(), vmax=cns.max())
-    cmap = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.cm.jet)
-    cmap.set_array([])
+    n_lines = 30
+    cns = np.linspace(0.01, 2, n_lines)
+    
+    cmap = define_colormap(cns)
 
     for cn in tqdm(cns):
         er_means = []
-        er_medians = []
-        lower_percentiles = []
-        upper_percentiles = []
         for vl in viral_loads:
-            exposure_mc = mc.ExposureModel(
-                concentration_model=mc.ConcentrationModel(
-                    room=models.Room(volume=100, humidity=0.5),
-                    ventilation=models.AirChange(
-                        active=models.SpecificInterval(((0, 24),)),
-                        air_exch=0.25,
-                    ),
-                    infected=mc.InfectedPopulation(
-                        number=1,
-                        virus=models.Virus(
-                            viral_load_in_sputum=10**vl,
-                            infectious_dose=50.,
-                        ),
-                        presence=mc.SpecificInterval(((0, 2),)),
-                        mask=models.Mask.types["No mask"],
-                        activity=activity_distributions['Seated'],
-                        expiration=models.Expiration.types['Talking'],
-                    ),
-                ),
-                exposed=mc.Population(
-                    number=14,
-                    presence=mc.SpecificInterval(((0, 2),)),
-                    activity=models.Activity.types['Seated'],
-                    mask=models.Mask.types["No mask"],
-                ),
-            )
+            exposure_mc = model_scenario("Talking", vl)
             exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
             # divide by 4 to have in 15min (quarter of an hour)
-            emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn)/4
+            emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B = 0.1, cn_L = cn) /4
             er_means.append(np.mean(emission_rate))
-            er_medians.append(np.median(emission_rate))
-            lower_percentiles.append(np.quantile(emission_rate, 0.01))
-            upper_percentiles.append(np.quantile(emission_rate, 0.99))
 
         # divide by 4 to have in 15min (quarter of an hour)
-        coleman_etal_er_talking_2 = [x/4 for x in coleman_etal_er_talking]
+        coleman_etal_er_talking_2 = [x/4 for x in coleman_etal_er_talking] 
+        ax.plot(viral_loads, er_means, color=cmap.to_rgba(cn, alpha=0.75), linewidth=0.5)
 
-        
-        ax.plot(viral_loads, er_means, color=cmap.to_rgba(cn))
-        #ax.fill_between(viral_loads, lower_percentiles,
-        #                upper_percentiles, alpha=0.2, color=cmap.to_rgba(cn))
-    
-    fig.colorbar(cmap, ticks=cns)
+    er_means = []
+    for vl in viral_loads:
+        exposure_mc = model_scenario("Talking", vl)
+        exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
+        # divide by 4 to have in 15min 
+        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B = 0.1, cn_L = 0.2) / 4
+        er_means.append(np.mean(emission_rate))
+    ax.plot(viral_loads, er_means, color=cmap.to_rgba(cn, alpha=0.75), linewidth=1, ls='--')
+    plt.text(viral_loads[int(len(viral_loads)*0.93)], 10**5.5, r"$\mathbf{C_{n,B}=0.2}$", color='black', size='small')
+
+    fig.colorbar(cmap, ticks=[0.01, 0.5, 1.0, 2.0], label="Particle emission concentration for talking.")
     ax.set_yscale('log')
 
     ############# Coleman #############
-    plt.scatter(coleman_etal_vl_talking, coleman_etal_er_talking_2, marker='x')
+    plt.scatter(coleman_etal_vl_talking, coleman_etal_er_talking_2, marker='x', c = 'orange')
     x_hull, y_hull = get_enclosure_points(
         coleman_etal_vl_talking, coleman_etal_er_talking_2)
     # plot shape
@@ -438,50 +412,18 @@ def exposure_model_from_vl_breathing(viral_loads):
 
 def exposure_model_from_vl_breathing_cn(viral_loads):
 
-    min_val, max_val = 0.25,0.85
-    n = 10
-    orig_cmap = plt.cm.Blues
-    colors = orig_cmap(np.linspace(min_val, max_val, n))
-
     n_lines = 30
     cns = np.linspace(0.01, 0.5, n_lines)
-    norm = mpl.colors.Normalize(vmin=cns.min(), vmax=cns.max())
-    cmap = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.colors.LinearSegmentedColormap.from_list("mycmap", colors))
-    cmap.set_array([])
 
+    cmap = define_colormap(cns) 
     
     for cn in tqdm(cns):
         er_means = []
         for vl in viral_loads:
-            exposure_mc = mc.ExposureModel(
-                concentration_model=mc.ConcentrationModel(
-                    room=models.Room(volume=100, humidity=0.5),
-                    ventilation=models.AirChange(
-                        active=models.SpecificInterval(((0, 24),)),
-                        air_exch=0.25,
-                    ),
-                    infected=mc.InfectedPopulation(
-                        number=1,
-                        virus=models.Virus(
-                            viral_load_in_sputum=10**vl,
-                            infectious_dose=50.,
-                        ),
-                        presence=mc.SpecificInterval(((0, 2),)),
-                        mask=models.Mask.types["No mask"],
-                        activity=activity_distributions['Seated'],
-                        expiration=models.Expiration.types['Breathing'],
-                    ),
-                ),
-                exposed=mc.Population(
-                    number=14,
-                    presence=mc.SpecificInterval(((0, 2),)),
-                    activity=models.Activity.types['Seated'],
-                    mask=models.Mask.types["No mask"],
-                ),
-            )
+            exposure_mc = model_scenario("Breathing", vl)
             exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
             # divide by 2 to have in 30min (half an hour)
-            emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B = cn, cn_L = 1.0) / 2
+            emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B = cn, cn_L = 0.2) / 2
             er_means.append(np.mean(emission_rate))
 
         # divide by 2 to have in 30min (half an hour)
@@ -492,40 +434,16 @@ def exposure_model_from_vl_breathing_cn(viral_loads):
 
     er_means = []
     for vl in viral_loads:
-        exposure_mc = mc.ExposureModel(
-            concentration_model=mc.ConcentrationModel(
-                room=models.Room(volume=100, humidity=0.5),
-                ventilation=models.AirChange(
-                    active=models.SpecificInterval(((0, 24),)),
-                    air_exch=0.25,
-                ),
-                infected=mc.InfectedPopulation(
-                    number=1,
-                    virus=models.Virus(
-                        viral_load_in_sputum=10**vl,
-                        infectious_dose=50.,
-                    ),
-                    presence=mc.SpecificInterval(((0, 2),)),
-                    mask=models.Mask.types["No mask"],
-                    activity=activity_distributions['Seated'],
-                    expiration=models.Expiration.types['Breathing'],
-                ),
-            ),
-            exposed=mc.Population(
-                number=14,
-                presence=mc.SpecificInterval(((0, 2),)),
-                activity=models.Activity.types['Seated'],
-                mask=models.Mask.types["No mask"],
-            ),
-        )
+        exposure_mc = model_scenario("Breathing", vl)
         exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
         # divide by 2 to have in 30min (half an hour)
-        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B = 0.1, cn_L = 1.0) / 2
+        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B = 0.1, cn_L = 0.2) / 2
         er_means.append(np.mean(emission_rate))
-    ax.plot(viral_loads, er_means, color=cmap.to_rgba(cn, alpha=0.75), linewidth=1, ls='--')
-    plt.text(viral_loads[int(len(viral_loads)*0.95)], er_means[-1], "cn_B=0.1", color='black', size='small')
     
-    fig.colorbar(cmap, ticks=[0.01, 0.25, 0.5], label="Particle emission concentration for breathing.")
+    ax.plot(viral_loads, er_means, color=cmap.to_rgba(cn, alpha=0.75), linewidth=1, ls='--')
+    plt.text(viral_loads[int(len(viral_loads)*0.95)], 10**4.9, r"$\mathbf{C_{n,L}=0.1}$", color='black', size='small')
+    
+    fig.colorbar(cmap, ticks=[0.01, 0.1, 0.5], label="Particle emission concentration for breathing.")
     ax.set_yscale('log')
 
     ############# Coleman #############
@@ -622,6 +540,47 @@ def get_enclosure_points(x_coordinates, y_coordinates):
     y_hull = np.append(points[hull.vertices, 1],
                        points[hull.vertices, 1][0])
     return x_hull, y_hull
+
+def define_colormap(cns):
+    min_val, max_val = 0.25, 0.85
+    n = 10
+    orig_cmap = plt.cm.Blues
+    colors = orig_cmap(np.linspace(min_val, max_val, n))
+
+    norm = mpl.colors.Normalize(vmin=cns.min(), vmax=cns.max())
+    cmap = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.colors.LinearSegmentedColormap.from_list("mycmap", colors))
+    cmap.set_array([])
+
+    return cmap
+
+def model_scenario(activity, vl):
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
+            ventilation=models.AirChange(
+                active=models.SpecificInterval(((0, 24),)),
+                air_exch=0.25,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=models.Virus(
+                    viral_load_in_sputum=10**vl,
+                    infectious_dose=50.,
+                ),
+                presence=mc.SpecificInterval(((0, 2),)),
+                mask=models.Mask.types["No mask"],
+                activity=activity_distributions['Seated'],
+                expiration=models.Expiration.types[activity],
+            ),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=mc.SpecificInterval(((0, 2),)),
+            activity=models.Activity.types['Seated'],
+            mask=models.Mask.types["No mask"],
+        ),
+    )
+    return exposure_mc
 
 
 # # Milton
