@@ -437,17 +437,21 @@ def exposure_model_from_vl_breathing(viral_loads):
 
 
 def exposure_model_from_vl_breathing_cn(viral_loads):
-    n_lines = 5
+
+    min_val, max_val = 0.25,0.85
+    n = 10
+    orig_cmap = plt.cm.Blues
+    colors = orig_cmap(np.linspace(min_val, max_val, n))
+
+    n_lines = 30
     cns = np.linspace(0.01, 0.5, n_lines)
     norm = mpl.colors.Normalize(vmin=cns.min(), vmax=cns.max())
-    cmap = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.cm.Blues)
+    cmap = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.colors.LinearSegmentedColormap.from_list("mycmap", colors))
     cmap.set_array([])
 
+    
     for cn in tqdm(cns):
         er_means = []
-        er_medians = []
-        lower_percentiles = []
-        upper_percentiles = []
         for vl in viral_loads:
             exposure_mc = mc.ExposureModel(
                 concentration_model=mc.ConcentrationModel(
@@ -479,25 +483,54 @@ def exposure_model_from_vl_breathing_cn(viral_loads):
             # divide by 2 to have in 30min (half an hour)
             emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B = cn, cn_L = 1.0) / 2
             er_means.append(np.mean(emission_rate))
-            er_medians.append(np.median(emission_rate))
-            lower_percentiles.append(np.quantile(emission_rate, 0.01))
-            upper_percentiles.append(np.quantile(emission_rate, 0.99))
 
         # divide by 2 to have in 30min (half an hour)
         coleman_etal_er_breathing_2 = [x/2 for x in coleman_etal_er_breathing]
         milton_er_2 = [x/2 for x in milton_er]
         yann_er_2 = [x/2 for x in yann_er]
-        ax.plot(viral_loads, er_means, color=cmap.to_rgba(cn), linewidth=1)
+        ax.plot(viral_loads, er_means, color=cmap.to_rgba(cn, alpha=0.75), linewidth=0.5)
 
-    #ax.fill_between(viral_loads, lower_percentiles,
-    #                upper_percentiles, alpha=0.2)
-
-    fig.colorbar(cmap, ticks=cns)
+    er_means = []
+    for vl in viral_loads:
+        exposure_mc = mc.ExposureModel(
+            concentration_model=mc.ConcentrationModel(
+                room=models.Room(volume=100, humidity=0.5),
+                ventilation=models.AirChange(
+                    active=models.SpecificInterval(((0, 24),)),
+                    air_exch=0.25,
+                ),
+                infected=mc.InfectedPopulation(
+                    number=1,
+                    virus=models.Virus(
+                        viral_load_in_sputum=10**vl,
+                        infectious_dose=50.,
+                    ),
+                    presence=mc.SpecificInterval(((0, 2),)),
+                    mask=models.Mask.types["No mask"],
+                    activity=activity_distributions['Seated'],
+                    expiration=models.Expiration.types['Breathing'],
+                ),
+            ),
+            exposed=mc.Population(
+                number=14,
+                presence=mc.SpecificInterval(((0, 2),)),
+                activity=models.Activity.types['Seated'],
+                mask=models.Mask.types["No mask"],
+            ),
+        )
+        exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
+        # divide by 2 to have in 30min (half an hour)
+        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B = 0.1, cn_L = 1.0) / 2
+        er_means.append(np.mean(emission_rate))
+    ax.plot(viral_loads, er_means, color=cmap.to_rgba(cn, alpha=0.75), linewidth=1, ls='--')
+    plt.text(viral_loads[int(len(viral_loads)*0.95)], er_means[-1], "cn_B=0.1", color='black', size='small')
+    
+    fig.colorbar(cmap, ticks=[0.01, 0.25, 0.5], label="Particle emission concentration for breathing.")
     ax.set_yscale('log')
 
     ############# Coleman #############
     plt.scatter(coleman_etal_vl_breathing,
-                coleman_etal_er_breathing_2, marker='x')
+                coleman_etal_er_breathing_2, marker='x', c='orange')
     x_hull, y_hull = get_enclosure_points(
         coleman_etal_vl_breathing, coleman_etal_er_breathing_2)
     # plot shape
@@ -552,7 +585,7 @@ def exposure_model_from_vl_breathing_cn(viral_loads):
     titles = ["$\\bf{CARA \, \\it{(SARS-CoV-2)}:}$", "$\\bf{Coleman \, et \, al. \, \\it{(SARS-CoV-2)}:}$",
               "$\\bf{Milton \, et \, al.  \,\\it{(Influenza)}:}$", "$\\bf{Yann \, et \, al.  \,\\it{(Influenza)}:}$"]
     leg = plt.legend([title_proxy, result_from_model, title_proxy, coleman, title_proxy, milton_mean, milton_25, milton_75, title_proxy, yann_mean, yann_25, yann_75],
-                     [titles[0], "Result from model", titles[1], "Dataset", titles[2], "Mean", "25th per.", "75th per.", titles[3], "Mean", "25th per.", "75th per."])
+                     [titles[0], "Results from model", titles[1], "Dataset", titles[2], "Mean", "25th per.", "75th per.", titles[3], "Mean", "25th per.", "75th per."])
 
     # Move titles to the left
     for item, label in zip(leg.legendHandles, leg.texts):
