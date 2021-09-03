@@ -10,7 +10,7 @@ import zlib
 import loky
 import jinja2
 import matplotlib
-from numpy.lib.function_base import quantile
+from numpy.lib.function_base import append, quantile
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import numpy as np
@@ -113,6 +113,24 @@ def calculate_report_data(model: models.ExposureModel):
     er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
     exposed_occupants = model.exposed.number
     expected_new_cases = np.array(model.expected_new_cases()).mean()
+    print(len(times))
+    times2 = np.array([])
+    for start, stop in model.exposed.presence.boundaries():
+        times2 = np.concatenate((times2, np.linspace(start, stop, int(len(times)/len(model.exposed.presence.boundaries())))))
+
+
+        # for start, stop in model.exposed.presence.boundaries():
+        #         if start > time:
+        #             break
+        #         elif time <= stop:
+        #             stop = time
+        #             times2.append(time)
+        #             break
+        #         else:
+        #             times2.append(time)
+            
+
+    print(len(times2))
     cumulative_doses = [
         np.array(model.inhaled_exposure_between_bounds(float(time))).mean()
         for time in times
