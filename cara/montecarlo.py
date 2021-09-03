@@ -330,7 +330,7 @@ def build_talking_legend(fig):
     titles = ["$\\bf{CARA \, \\it{(SARS-CoV-2)}:}$",
               "$\\bf{Coleman \, et \, al. \, \\it{(SARS-CoV-2)}:}$"]
     leg = plt.legend([title_proxy, result_from_model, title_proxy, coleman],
-                     [titles[0], "Result from model", titles[1], "Dataset"])
+                     [titles[0], "Results from model", titles[1], "Dataset"])
 
     # Move titles to the left
     for item, label in zip(leg.legendHandles, leg.texts):
