@@ -449,7 +449,7 @@ def exposure_model_from_vl_breathing_cn(viral_loads):
     cmap = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.colors.LinearSegmentedColormap.from_list("mycmap", colors))
     cmap.set_array([])
 
-    
+
     for cn in tqdm(cns):
         er_means = []
         for vl in viral_loads:
@@ -520,12 +520,12 @@ def exposure_model_from_vl_breathing_cn(viral_loads):
         )
         exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
         # divide by 2 to have in 30min (half an hour)
-        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B = 0.1, cn_L = 1.0) / 2
+        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B = 0.06, cn_L = 1.0) / 2
         er_means.append(np.mean(emission_rate))
     ax.plot(viral_loads, er_means, color=cmap.to_rgba(cn, alpha=0.75), linewidth=1, ls='--')
-    plt.text(viral_loads[int(len(viral_loads)*0.95)], er_means[-1], "cn_B=0.1", color='black', size='small')
-    
-    fig.colorbar(cmap, ticks=[0.01, 0.25, 0.5], label="Particle emission concentration for breathing.")
+    plt.text(viral_loads[int(len(viral_loads)*0.94)], 10**4.5, r'$c_{n,B}=0.06$', color=cmap.to_rgba(cn), fontsize=10)
+
+    fig.colorbar(cmap, ticks=[0.01, 0.25, 0.5], label="Particle emission concentration, $c_{n,B}$")
     ax.set_yscale('log')
 
     ############# Coleman #############
