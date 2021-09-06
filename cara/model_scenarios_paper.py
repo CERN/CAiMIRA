@@ -1,5 +1,5 @@
 from cara import models
-from cara.monte_carlo.data import activity_distributions
+from cara.monte_carlo.data import activity_distributions, virus_distributions
 import cara.monte_carlo as mc
 import numpy as np
 
@@ -27,6 +27,60 @@ yann_vl = [np.log10(7.86E+07), np.log10(2.23E+09), np.log10(1.51E+10)]
 yann_er = [8396.78166, 45324.55964, 400054.0827]
 
 ######### Standard exposure models ###########
+
+######### Breathing model ###########
+def breathing_exposure():
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
+            ventilation=models.AirChange(
+                active=models.SpecificInterval(((0, 24),)),
+                air_exch=0.25,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=virus_distributions['SARS_CoV_2'],
+                presence=mc.SpecificInterval(((0, 2),)),
+                mask=models.Mask.types["No mask"],
+                activity=activity_distributions['Seated'],
+                expiration=models.Expiration.types['Breathing'],
+            ),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=mc.SpecificInterval(((0, 2),)),
+            activity=models.Activity.types['Seated'],
+            mask=models.Mask.types["No mask"],
+        ),
+    )
+    return exposure_mc
+
+######### Talking model ###########
+def talking_exposure():
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
+            ventilation=models.AirChange(
+                active=models.SpecificInterval(((0, 24),)),
+                air_exch=0.25,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=virus_distributions['SARS_CoV_2'],
+                presence=mc.SpecificInterval(((0, 2),)),
+                mask=models.Mask.types["No mask"],
+                activity=activity_distributions['Seated'],
+                expiration=models.Expiration.types['Talking'],
+            ),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=mc.SpecificInterval(((0, 2),)),
+            activity=models.Activity.types['Seated'],
+            mask=models.Mask.types["No mask"],
+        ),
+    )
+    return exposure_mc
 
 ######### Breathing model for specific viral load ###########
 def breathing_exposure_vl(vl):
