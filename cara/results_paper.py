@@ -14,7 +14,7 @@ import matplotlib as mpl
 
 
 ######### Plot material #########
-SAMPLE_SIZE = 50000
+SAMPLE_SIZE = 500000
 viral_loads = np.linspace(2, 12, 600)
 
 ############# Markers (for legend) #############
@@ -394,14 +394,16 @@ def build_breathing_legend(fig):
             label.set_position((-3*width, 0))
 
 
-def print_er_info(er: np.array):
+def print_er_info(er: np.array, log_er: np.array):
     """
     Prints statistical parameters of a given distribution of ER-values
     :param er: A numpy-array of the ER-values
     :return: Nothing, parameters are printed
     """
     print(f"MEAN of ER = {np.mean(er)}\n"
+          f"MEAN of log ER = {np.mean(log_er)}\n"
           f"SD of ER = {np.std(er)}\n"
+          f"SD of log ER = {np.std(log_er)}\n"
           f"Median of ER = {np.quantile(er, 0.5)}\n")
  
     print(f"Percentiles of ER:")
