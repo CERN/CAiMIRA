@@ -252,6 +252,29 @@ def exposure_model_from_vl_talking_cn():
     plt.xlabel('NP viral load, $\mathrm{vl_{in}}$\n(RNA copies)', fontsize=14)
     plt.show()
 
+def present_vl_er_histograms(viral_load_in_sputum, breathing_er, speaking_er, shouting_er):
+    fig, axs = plt.subplots(1, 2, sharex=False, sharey=False)
+    plt.tight_layout()
+
+    viral_loads = [np.log10(vl) for vl in viral_load_in_sputum]
+
+    axs[0].hist(viral_loads, bins = 200)
+    axs[0].title.set_text('Viral load')
+    axs[0].set_xlabel('vl (log$_{10}$(RNA copies mL$^{-1}$))')
+
+    axs[1].title.set_text('Viral emission rate')
+    axs[1].hist(breathing_er, bins = 200, label='Breathing vR', alpha=0.5)
+    axs[1].hist(speaking_er, bins = 200, label='Speaking vR', alpha=0.5)
+    axs[1].hist(shouting_er, bins = 200, label='Shouting vR', alpha=0.5)
+    axs[1].set_xlabel('vR (log$_{10}$)')
+
+    for x in (0, 1):
+        axs[x].set_yticklabels([])
+        axs[x].set_yticks([])
+
+    plt.legend(loc='upper right')
+    plt.show()
+    
 
 ######### Auxiliar functions #########
 
