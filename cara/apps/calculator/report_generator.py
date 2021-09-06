@@ -101,6 +101,20 @@ def interesting_times(model: models.ExposureModel, approx_n_pts=100) -> typing.L
     return nice_times
 
 
+def get_boundaries_from_time(model: models.ExposureModel, time: float):
+    x = []
+    for start, stop in model.exposed.presence.boundaries():
+        if start > time:
+            break
+        elif time <= stop:
+            stop = time
+            x.append([start, stop])
+            break
+        else:
+            x.append([start, stop])
+    return x
+
+
 def calculate_report_data(model: models.ExposureModel):
     times = interesting_times(model)
 
@@ -113,24 +127,20 @@ def calculate_report_data(model: models.ExposureModel):
     er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
     exposed_occupants = model.exposed.number
     expected_new_cases = np.array(model.expected_new_cases()).mean()
-    print(len(times))
-    times2 = np.array([])
-    for start, stop in model.exposed.presence.boundaries():
-        times2 = np.concatenate((times2, np.linspace(start, stop, int(len(times)/len(model.exposed.presence.boundaries())))))
 
+    # present_indexes = [model.exposed.person_present(t) for t in times]
+    # filtered_times = np.array(times)[present_indexes]
 
-        # for start, stop in model.exposed.presence.boundaries():
-        #         if start > time:
-        #             break
-        #         elif time <= stop:
-        #             stop = time
-        #             times2.append(time)
-        #             break
-        #         else:
-        #             times2.append(time)
-            
-
-    print(len(times2))
+    b = [
+        np.array(model.cenas(list(get_boundaries_from_time(model, time)))).mean()
+        for time in times
+    ]
+    print(b)
+    
+    # cumulative_doses = [
+    #     np.array(model.inhaled_exposure_between_bounds(list(get_boundaries_from_time(model, time)))).mean()
+    #     for time in times
+    # ]
     cumulative_doses = [
         np.array(model.inhaled_exposure_between_bounds(float(time))).mean()
         for time in times
