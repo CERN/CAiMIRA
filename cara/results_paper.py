@@ -86,20 +86,20 @@ def exposure_model_from_vl_breathing_cn():
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
 
-    n_lines = 30
+    n_lines = 1
     cns = np.linspace(0.01, 0.5, n_lines)
 
     cmap = define_colormap(cns)
 
     for cn in tqdm(cns):
-        er_means = []
+        er_means = np.array([])
         for vl in viral_loads:
             exposure_mc = breathing_exposure_vl(vl)
             exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
             # divide by 2 to have in 30min (half an hour)
             emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(
                 cn_B=cn, cn_L=0.2) / 2
-            er_means.append(np.mean(emission_rate))
+            er_means = np.append(er_means, np.mean(emission_rate))
 
         # divide by 2 to have in 30min (half an hour)
         coleman_etal_er_breathing_2 = [x/2 for x in coleman_etal_er_breathing]
@@ -109,15 +109,14 @@ def exposure_model_from_vl_breathing_cn():
             cn, alpha=0.75), linewidth=0.5)
 
     # The dashed line for the chosen Cn,B
-    er_means = []
+    er_means = np.array([])
     for vl in viral_loads:
         exposure_mc = breathing_exposure_vl(vl)
         exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
         # divide by 2 to have in 30min (half an hour)
         emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(
             cn_B=0.06, cn_L=0.2) / 2
-        er_means.append(np.mean(emission_rate))
-
+        er_means = np.append(er_means, np.mean(emission_rate))
     ax.plot(viral_loads, er_means, color=cmap.to_rgba(
         cn, alpha=0.75), linewidth=1, ls='--')
     plt.text(viral_loads[int(len(viral_loads)*0.9)], 10**4.2,
@@ -200,19 +199,19 @@ def exposure_model_from_vl_talking_cn():
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
 
-    n_lines = 30
+    n_lines = 1
     cns = np.linspace(0.01, 2, n_lines)
     cmap = define_colormap(cns)
 
     for cn in tqdm(cns):
-        er_means = []
+        er_means = np.array([])
         for vl in viral_loads:
             exposure_mc = talking_exposure_vl(vl)
             exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
             # divide by 4 to have in 15min (quarter of an hour)
             emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(
                 cn_B=0.1, cn_L=cn) / 4
-            er_means.append(np.mean(emission_rate))
+            er_means = np.append(er_means, np.mean(emission_rate))
 
         # divide by 4 to have in 15min (quarter of an hour)
         coleman_etal_er_talking_2 = [x/4 for x in coleman_etal_er_talking]
@@ -220,14 +219,14 @@ def exposure_model_from_vl_talking_cn():
             cn, alpha=0.75), linewidth=0.5)
 
     # The dashed line for the chosen Cn,L
-    er_means = []
+    er_means = np.array([])
     for vl in viral_loads:
         exposure_mc = talking_exposure_vl(vl)
         exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
         # divide by 4 to have in 15min
         emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(
             cn_B=0.06, cn_L=0.2) / 4
-        er_means.append(np.mean(emission_rate))
+        er_means = np.append(er_means, np.mean(emission_rate))
     ax.plot(viral_loads, er_means, color=cmap.to_rgba(
         cn, alpha=0.75), linewidth=1, ls='--')
     plt.text(viral_loads[int(len(viral_loads)*0.93)], 10**5.5,
@@ -253,6 +252,29 @@ def exposure_model_from_vl_talking_cn():
     plt.xlabel('NP viral load, $\mathrm{vl_{in}}$\n(RNA copies)', fontsize=14)
     plt.show()
 
+def present_vl_er_histograms(viral_load_in_sputum, breathing_er, speaking_er, shouting_er):
+    fig, axs = plt.subplots(1, 2, sharex=False, sharey=False)
+    plt.tight_layout()
+
+    viral_loads = [np.log10(vl) for vl in viral_load_in_sputum]
+
+    axs[0].hist(viral_loads, bins = 200)
+    axs[0].title.set_text('Viral load')
+    axs[0].set_xlabel('vl (log$_{10}$(RNA copies mL$^{-1}$))')
+
+    axs[1].title.set_text('Viral emission rate')
+    axs[1].hist(breathing_er, bins = 200, label='Breathing vR', alpha=0.5)
+    axs[1].hist(speaking_er, bins = 200, label='Speaking vR', alpha=0.5)
+    axs[1].hist(shouting_er, bins = 200, label='Shouting vR', alpha=0.5)
+    axs[1].set_xlabel('vR (log$_{10}$)')
+
+    for x in (0, 1):
+        axs[x].set_yticklabels([])
+        axs[x].set_yticks([])
+
+    plt.legend(loc='upper right')
+    plt.show()
+    
 
 ######### Auxiliar functions #########
 
@@ -370,3 +392,20 @@ def build_breathing_legend(fig):
             width = item.get_window_extent(fig.canvas.get_renderer()).width
             label.set_ha('left')
             label.set_position((-3*width, 0))
+
+
+def print_er_info(er: np.array):
+    """
+    Prints statistical parameters of a given distribution of ER-values
+    :param er: A numpy-array of the ER-values
+    :return: Nothing, parameters are printed
+    """
+    print(f"MEAN of ER = {np.mean(er)}\n"
+          f"SD of ER = {np.std(er)}\n"
+          f"Median of ER = {np.quantile(er, 0.5)}\n")
+ 
+    print(f"Percentiles of ER:")
+    for quantile in (0.01, 0.05, 0.25, 0.50, 0.55, 0.65, 0.75, 0.95, 0.99):
+        print(f"ER_{quantile} = {np.quantile(er, quantile)}")
+
+    return
