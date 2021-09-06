@@ -14,7 +14,7 @@ import matplotlib as mpl
 
 
 ######### Plot material #########
-SAMPLE_SIZE = 500000
+SAMPLE_SIZE = 50000
 viral_loads = np.linspace(2, 12, 600)
 
 ############# Markers (for legend) #############
@@ -120,10 +120,10 @@ def exposure_model_from_vl_breathing_cn():
     ax.plot(viral_loads, er_means, color=cmap.to_rgba(
         cn, alpha=0.75), linewidth=1, ls='--')
     plt.text(viral_loads[int(len(viral_loads)*0.9)], 10**4.2,
-             r"$\mathbf{c_{n,B}=0.06}$", color=cmap.to_rgba(cn), fontesize=12)
+             r"$\mathbf{c_{n,B}=0.06}$", color=cmap.to_rgba(cn), fontsize=12)
 
-    fig.colorbar(cmap, ticks=[0.01, 0.1, 0.25, 0.5],
-                 label="Particle emission concentration, ${c_{n,B}}$", fontesize=14)
+    cmap = fig.colorbar(cmap, ticks=[0.01, 0.1, 0.25, 0.5])
+    cmap.set_label(label='Particle emission concentration, ${c_{n,B}}$', fontsize=12)
     ax.set_yscale('log')
 
     ############# Coleman #############
@@ -230,10 +230,10 @@ def exposure_model_from_vl_talking_cn():
     ax.plot(viral_loads, er_means, color=cmap.to_rgba(
         cn, alpha=0.75), linewidth=1, ls='--')
     plt.text(viral_loads[int(len(viral_loads)*0.93)], 10**5.5,
-             r"$\mathbf{c_{n,L}=0.2}$", color=cmap.to_rgba(cn), fontesize=12)
+             r"$\mathbf{c_{n,L}=0.2}$", color=cmap.to_rgba(cn), fontsize=12)
 
     fig.colorbar(cmap, ticks=[0.01, 0.5, 1.0, 2.0],
-                 label="Particle emission concentration, ${c_{n,L}}$", fontesize=14)
+                 label="Particle emission concentration, ${c_{n,L}}$", fontsize=14)
     ax.set_yscale('log')
 
     ############# Coleman #############

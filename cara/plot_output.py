@@ -23,7 +23,7 @@ print('\n<<<<<<<<<<< Vlout for Talking, seated with chosen Cn,L >>>>>>>>>>>')
 
 # Exhaled virions while breathing according to BLO model, seated #
 print('\n<<<<<<<<<<< Vlout for Breathing, seated with chosen Cn,B >>>>>>>>>>>')
-#exposure_model_from_vl_breathing_cn()
+exposure_model_from_vl_breathing_cn()
 print('\n')
 
 ############ Statistical Data ############
