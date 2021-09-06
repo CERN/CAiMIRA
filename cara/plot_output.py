@@ -34,7 +34,7 @@ exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
 emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B=0.06, cn_L=0.2)
 breathing_er = [np.log10(er) for er in emission_rate]
 print('\n<<<<<<<<<<< Breathing model statistics >>>>>>>>>>>')
-print_er_info(emission_rate)
+print_er_info(breathing_er)
 
 ############ Speaking model ############
 exposure_mc = model_scenarios_paper.speaking_exposure()
@@ -42,7 +42,7 @@ exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
 emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B=0.06, cn_L=0.2)
 speaking_er = [np.log10(er) for er in emission_rate]
 print('\n<<<<<<<<<<< Speaking model statistics >>>>>>>>>>>')
-print_er_info(emission_rate)
+print_er_info(speaking_er)
 
 ############ Shouting model ############
 exposure_mc = model_scenarios_paper.shouting_exposure()
@@ -50,10 +50,10 @@ exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
 emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B=0.06, cn_L=0.2)
 shouting_er = [np.log10(er) for er in emission_rate]
 print('\n<<<<<<<<<<< Shouting model statistics >>>>>>>>>>>')
-print_er_info(emission_rate)
+print_er_info(shouting_er)
 
 
-############ Plots with Viral loads and emission rates
+############ Plots with viral loads and emission rates
 viral_load_in_sputum = exposure_model.concentration_model.infected.virus.viral_load_in_sputum
 present_vl_er_histograms(viral_load_in_sputum, breathing_er, speaking_er, shouting_er)
 

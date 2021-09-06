@@ -2,7 +2,7 @@ from numpy.core.function_base import linspace
 from cara import models
 from cara.monte_carlo.data import activity_distributions
 from tqdm import tqdm
-from matplotlib.patches import Rectangle
+from matplotlib.patches import Rectangle, Patch
 from scipy.spatial import ConvexHull
 from model_scenarios_paper import *
 import cara.monte_carlo as mc
@@ -14,7 +14,7 @@ import matplotlib as mpl
 
 
 ######### Plot material #########
-SAMPLE_SIZE = 50000
+SAMPLE_SIZE = 500000
 viral_loads = np.linspace(2, 12, 600)
 
 ############# Markers (for legend) #############
@@ -254,25 +254,45 @@ def exposure_model_from_vl_talking_cn():
 
 def present_vl_er_histograms(viral_load_in_sputum, breathing_er, speaking_er, shouting_er):
     fig, axs = plt.subplots(1, 2, sharex=False, sharey=False)
+    fig.set_figheight(5)
+    fig.set_figwidth(10)
     plt.tight_layout()
+    plt.subplots_adjust(wspace=0.2)
+    plt.subplots_adjust(top=0.9)
+    plt.subplots_adjust(bottom=0.15)
 
     viral_loads = [np.log10(vl) for vl in viral_load_in_sputum]
 
-    axs[0].hist(viral_loads, bins = 200)
-    axs[0].title.set_text('Viral load')
+    axs[0].hist(viral_loads, bins = 300, color='lightgrey')
     axs[0].set_xlabel('vl (log$_{10}$(RNA copies mL$^{-1}$))')
 
-    axs[1].title.set_text('Viral emission rate')
-    axs[1].hist(breathing_er, bins = 200, label='Breathing vR', alpha=0.5)
-    axs[1].hist(speaking_er, bins = 200, label='Speaking vR', alpha=0.5)
-    axs[1].hist(shouting_er, bins = 200, label='Shouting vR', alpha=0.5)
+    mean = np.mean(viral_loads)
+    axs[0].vlines(x=(mean), ymin=0, ymax=axs[0].get_ylim()[1], colors=('black'), linestyles=('dashed'))
+
+    breathing_mean_er = np.mean(breathing_er)
+    speaking_mean_er = np.mean(speaking_er)
+    shouting_mean_er = np.mean(shouting_er)
+
+    axs[1].hist(breathing_er, bins = 300, color='lightsteelblue')
+    axs[1].hist(speaking_er, bins = 300, color='wheat')
+    axs[1].hist(shouting_er, bins = 300, color='darkseagreen')
     axs[1].set_xlabel('vR (log$_{10}$)')
+
+    axs[1].vlines(x=(breathing_mean_er, speaking_mean_er, shouting_mean_er), ymin=0, ymax=axs[1].get_ylim()[1], colors=('cornflowerblue', 'goldenrod', 'olivedrab'), alpha=(0.75, 0.75, 0.75), linestyles=('dashed', 'dashed', 'dashed'))
+
+    labels = [Patch([], [], color=color, label=label)
+             for color, label in zip(['lightsteelblue', 'wheat', 'darkseagreen', 'lightgrey'],
+                                            ['Breathing vR', 'Speaking vR', 'Shouting vR', 'Viral Load'])]
+    labels.append(mlines.Line2D([], [], color='grey',
+                            marker='', linestyle='dashed', label='Mean'))
+
 
     for x in (0, 1):
         axs[x].set_yticklabels([])
         axs[x].set_yticks([])
 
-    plt.legend(loc='upper right')
+    plt.legend(handles=labels, loc='upper left', bbox_to_anchor=(1, 1))
+    plt.tight_layout()
     plt.show()
     
 
