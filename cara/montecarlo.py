@@ -121,10 +121,10 @@ def exposure_model_from_vl_breathing_cn():
     ax.plot(viral_loads, er_means, color=cmap.to_rgba(
         cn, alpha=0.75), linewidth=1, ls='--')
     plt.text(viral_loads[int(len(viral_loads)*0.9)], 10**4.2,
-             r"$\mathbf{c_{n,B}=0.06}$", color=cmap.to_rgba(cn), size='small')
+             r"$\mathbf{c_{n,B}=0.06}$", color=cmap.to_rgba(cn), fontesize=12)
 
     fig.colorbar(cmap, ticks=[0.01, 0.1, 0.25, 0.5],
-                 label="Particle emission concentration, ${c_{n,B}}$")
+                 label="Particle emission concentration, ${c_{n,B}}$", fontesize=14)
     ax.set_yscale('log')
 
     ############# Coleman #############
@@ -186,7 +186,7 @@ def exposure_model_from_vl_talking():
     build_talking_legend(fig)
 
     ############ Plot ############
-    plt.title('Exhaled virions while talking for 15min',
+    plt.title('Exhaled virions while speaking (vocalization) for 15min',
               fontsize=16, fontweight="bold")
     plt.ylabel(
         'Aerosol viral load, $\mathrm{vl_{out}}$\n(RNA copies)', fontsize=14)
@@ -231,10 +231,10 @@ def exposure_model_from_vl_talking_cn():
     ax.plot(viral_loads, er_means, color=cmap.to_rgba(
         cn, alpha=0.75), linewidth=1, ls='--')
     plt.text(viral_loads[int(len(viral_loads)*0.93)], 10**5.5,
-             r"$\mathbf{c_{n,L}=0.2}$", color=cmap.to_rgba(cn), size='small')
+             r"$\mathbf{c_{n,L}=0.2}$", color=cmap.to_rgba(cn), fontesize=12)
 
     fig.colorbar(cmap, ticks=[0.01, 0.5, 1.0, 2.0],
-                 label="Particle emission concentration, ${c_{n,L}}$")
+                 label="Particle emission concentration, ${c_{n,L}}$", fontesize=14)
     ax.set_yscale('log')
 
     ############# Coleman #############
@@ -244,7 +244,7 @@ def exposure_model_from_vl_talking_cn():
     build_talking_legend(fig)
 
     ############ Plot ############
-    plt.title('Exhaled virions while talking for 15min',
+    plt.title('Exhaled virions while speaking (vocalization)\nfor 15min',
               fontsize=16, fontweight="bold")
     plt.ylabel(
         'Aerosol viral load, $\mathrm{vl_{out}}$\n(RNA copies)', fontsize=14)
