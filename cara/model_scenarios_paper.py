@@ -39,7 +39,7 @@ def breathing_exposure():
             ),
             infected=mc.InfectedPopulation(
                 number=1,
-                virus=models.Virus(
+                virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
                     infectious_dose=50.,
                 ),
@@ -69,7 +69,7 @@ def speaking_exposure():
             ),
             infected=mc.InfectedPopulation(
                 number=1,
-                virus=models.Virus(
+                virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
                     infectious_dose=50.,
                 ),
@@ -99,7 +99,7 @@ def shouting_exposure():
             ),
             infected=mc.InfectedPopulation(
                 number=1,
-                virus=models.Virus(
+                virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
                     infectious_dose=50.,
                 ),
