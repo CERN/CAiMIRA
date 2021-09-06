@@ -117,7 +117,6 @@ def exposure_model_from_vl_breathing_cn():
         emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(
             cn_B=0.06, cn_L=0.2) / 2
         er_means = np.append(er_means, np.mean(emission_rate))
-    print_er_info(er_means)
     ax.plot(viral_loads, er_means, color=cmap.to_rgba(
         cn, alpha=0.75), linewidth=1, ls='--')
     plt.text(viral_loads[int(len(viral_loads)*0.9)], 10**4.2,
@@ -230,8 +229,6 @@ def exposure_model_from_vl_talking_cn():
         er_means = np.append(er_means, np.mean(emission_rate))
     ax.plot(viral_loads, er_means, color=cmap.to_rgba(
         cn, alpha=0.75), linewidth=1, ls='--')
-    '''Statistical Data'''
-    print_er_info(er_means)
     plt.text(viral_loads[int(len(viral_loads)*0.93)], 10**5.5,
              r"$\mathbf{c_{n,L}=0.2}$", color=cmap.to_rgba(cn), size='small')
 
@@ -382,7 +379,7 @@ def print_er_info(er: np.array):
     """
     print(f"MEAN of ER = {np.mean(er)}\n"
           f"SD of ER = {np.std(er)}\n"
-          f"Median of qR = {np.quantile(er, 0.5)}\n")
+          f"Median of ER = {np.quantile(er, 0.5)}\n")
  
     print(f"Percentiles of ER:")
     for quantile in (0.01, 0.05, 0.25, 0.50, 0.55, 0.65, 0.75, 0.95, 0.99):

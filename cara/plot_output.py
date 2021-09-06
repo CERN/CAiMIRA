@@ -33,11 +33,18 @@ emission_rate = exposure_model.concentration_model.infected.emission_rate_when_p
 print('\n<<<<<<<<<<< Breathing model statistics >>>>>>>>>>>')
 print_er_info(emission_rate)
 
-############ Talking model ############
-exposure_mc = model_scenarios_paper.talking_exposure()
+############ Speaking model ############
+exposure_mc = model_scenarios_paper.speaking_exposure()
 exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
 emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B=0.06, cn_L=0.2)
-print('\n<<<<<<<<<<< Talking model statistics >>>>>>>>>>>')
+print('\n<<<<<<<<<<< Speaking model statistics >>>>>>>>>>>')
+print_er_info(emission_rate)
+
+############ Shouting model ############
+exposure_mc = model_scenarios_paper.shouting_exposure()
+exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
+emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B=0.06, cn_L=0.2)
+print('\n<<<<<<<<<<< Shouting model statistics >>>>>>>>>>>')
 print_er_info(emission_rate)
 
 ############ Used for testing ############

@@ -1,5 +1,5 @@
 from cara import models
-from cara.monte_carlo.data import activity_distributions, virus_distributions
+from cara.monte_carlo.data import activity_distributions, symptomatic_vl_frequencies
 import cara.monte_carlo as mc
 import numpy as np
 
@@ -39,7 +39,10 @@ def breathing_exposure():
             ),
             infected=mc.InfectedPopulation(
                 number=1,
-                virus=virus_distributions['SARS_CoV_2'],
+                virus=models.Virus(
+                    viral_load_in_sputum=symptomatic_vl_frequencies,
+                    infectious_dose=50.,
+                ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types["No mask"],
                 activity=activity_distributions['Seated'],
@@ -55,8 +58,8 @@ def breathing_exposure():
     )
     return exposure_mc
 
-######### Talking model ###########
-def talking_exposure():
+######### Speaking model ###########
+def speaking_exposure():
     exposure_mc = mc.ExposureModel(
         concentration_model=mc.ConcentrationModel(
             room=models.Room(volume=100, humidity=0.5),
@@ -66,11 +69,44 @@ def talking_exposure():
             ),
             infected=mc.InfectedPopulation(
                 number=1,
-                virus=virus_distributions['SARS_CoV_2'],
+                virus=models.Virus(
+                    viral_load_in_sputum=symptomatic_vl_frequencies,
+                    infectious_dose=50.,
+                ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types["No mask"],
                 activity=activity_distributions['Seated'],
                 expiration=models.Expiration.types['Talking'],
+            ),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=mc.SpecificInterval(((0, 2),)),
+            activity=models.Activity.types['Seated'],
+            mask=models.Mask.types["No mask"],
+        ),
+    )
+    return exposure_mc
+
+######### Shouting model ###########
+def shouting_exposure():
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
+            ventilation=models.AirChange(
+                active=models.SpecificInterval(((0, 24),)),
+                air_exch=0.25,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=models.Virus(
+                    viral_load_in_sputum=symptomatic_vl_frequencies,
+                    infectious_dose=50.,
+                ),
+                presence=mc.SpecificInterval(((0, 2),)),
+                mask=models.Mask.types["No mask"],
+                activity=activity_distributions['Seated'],
+                expiration=models.Expiration.types['Shouting'],
             ),
         ),
         exposed=mc.Population(
