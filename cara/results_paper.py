@@ -38,7 +38,8 @@ def exposure_model_from_vl_breathing():
         exposure_mc = breathing_exposure_vl(vl)
         exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
         # divide by 2 to have in 30min (half an hour)
-        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B=0.06, cn_L=0.2) / 2
+        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(
+            cn_B=0.06, cn_L=0.2) / 2
         er_means.append(np.mean(emission_rate))
         er_medians.append(np.median(emission_rate))
         lower_percentiles.append(np.quantile(emission_rate, 0.01))
@@ -123,7 +124,8 @@ def exposure_model_from_vl_breathing_cn():
              r"$\mathbf{c_{n,B}=0.06}$", color=cmap.to_rgba(cn), fontsize=12)
 
     cmap = fig.colorbar(cmap, ticks=[0.01, 0.1, 0.25, 0.5])
-    cmap.set_label(label='Particle emission concentration, ${c_{n,B}}$', fontsize=12)
+    cmap.set_label(
+        label='Particle emission concentration, ${c_{n,B}}$', fontsize=12)
     ax.set_yscale('log')
 
     ############# Coleman #############
@@ -151,6 +153,7 @@ def exposure_model_from_vl_breathing_cn():
 
 ############ Talking ############
 
+
 def exposure_model_from_vl_talking():
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
@@ -164,7 +167,8 @@ def exposure_model_from_vl_talking():
         exposure_mc = talking_exposure_vl(vl)
         exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
         # divide by 4 to have in 15min (quarter of an hour)
-        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B=0.06, cn_L=0.2)/4
+        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(
+            cn_B=0.06, cn_L=0.2)/4
         er_means.append(np.mean(emission_rate))
         er_medians.append(np.median(emission_rate))
         lower_percentiles.append(np.quantile(emission_rate, 0.01))
@@ -194,6 +198,7 @@ def exposure_model_from_vl_talking():
     plt.xlabel('NP viral load, $\mathrm{vl_{in}}$\n(RNA copies)', fontsize=14)
 
     plt.show()
+
 
 def exposure_model_from_vl_talking_cn():
     fig = plt.figure()
@@ -252,7 +257,46 @@ def exposure_model_from_vl_talking_cn():
     plt.xlabel('NP viral load, $\mathrm{vl_{in}}$\n(RNA copies)', fontsize=14)
     plt.show()
 
-def present_vl_er_histograms(viral_load_in_sputum, breathing_er, speaking_er, shouting_er):
+############ Plots with viral loads and emission rates ############
+############ Statistical Data ############
+
+
+def get_statistical_data():
+    ############ Breathing model ############
+    exposure_mc = breathing_exposure()
+    exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
+    emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(
+        cn_B=0.06, cn_L=0.2)
+    breathing_er = [np.log10(er) for er in emission_rate]
+    print('\n<<<<<<<<<<< Breathing model statistics >>>>>>>>>>>')
+    print_er_info(emission_rate, breathing_er)
+
+    ############ Speaking model ############
+    exposure_mc = speaking_exposure()
+    exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
+    emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(
+        cn_B=0.06, cn_L=0.2)
+    speaking_er = [np.log10(er) for er in emission_rate]
+    print('\n<<<<<<<<<<< Speaking model statistics >>>>>>>>>>>')
+    print_er_info(emission_rate, speaking_er)
+
+    ############ Shouting model ############
+    exposure_mc = shouting_exposure()
+    exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
+    emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(
+        cn_B=0.06, cn_L=0.2)
+    shouting_er = [np.log10(er) for er in emission_rate]
+    print('\n<<<<<<<<<<< Shouting model statistics >>>>>>>>>>>')
+    print_er_info(emission_rate, shouting_er)
+
+    viral_load_in_sputum = exposure_model.concentration_model.infected.virus.viral_load_in_sputum
+
+    return viral_load_in_sputum, breathing_er, speaking_er, shouting_er
+
+
+def present_vl_er_histograms():
+    viral_load_in_sputum, breathing_er, speaking_er, shouting_er = get_statistical_data()
+
     fig, axs = plt.subplots(1, 2, sharex=False, sharey=False)
     fig.set_figheight(5)
     fig.set_figwidth(10)
@@ -263,29 +307,30 @@ def present_vl_er_histograms(viral_load_in_sputum, breathing_er, speaking_er, sh
 
     viral_loads = [np.log10(vl) for vl in viral_load_in_sputum]
 
-    axs[0].hist(viral_loads, bins = 300, color='lightgrey')
+    axs[0].hist(viral_loads, bins=300, color='lightgrey')
     axs[0].set_xlabel('vl (log$_{10}$(RNA copies mL$^{-1}$))')
 
     mean = np.mean(viral_loads)
-    axs[0].vlines(x=(mean), ymin=0, ymax=axs[0].get_ylim()[1], colors=('black'), linestyles=('dashed'))
+    axs[0].vlines(x=(mean), ymin=0, ymax=axs[0].get_ylim()[
+                  1], colors=('black'), linestyles=('dashed'))
 
     breathing_mean_er = np.mean(breathing_er)
     speaking_mean_er = np.mean(speaking_er)
     shouting_mean_er = np.mean(shouting_er)
 
-    axs[1].hist(breathing_er, bins = 300, color='lightsteelblue')
-    axs[1].hist(speaking_er, bins = 300, color='wheat')
-    axs[1].hist(shouting_er, bins = 300, color='darkseagreen')
+    axs[1].hist(breathing_er, bins=300, color='lightsteelblue')
+    axs[1].hist(speaking_er, bins=300, color='wheat')
+    axs[1].hist(shouting_er, bins=300, color='darkseagreen')
     axs[1].set_xlabel('vR (log$_{10}$)')
 
-    axs[1].vlines(x=(breathing_mean_er, speaking_mean_er, shouting_mean_er), ymin=0, ymax=axs[1].get_ylim()[1], colors=('cornflowerblue', 'goldenrod', 'olivedrab'), alpha=(0.75, 0.75, 0.75), linestyles=('dashed', 'dashed', 'dashed'))
+    axs[1].vlines(x=(breathing_mean_er, speaking_mean_er, shouting_mean_er), ymin=0, ymax=axs[1].get_ylim()[1], colors=(
+        'cornflowerblue', 'goldenrod', 'olivedrab'), alpha=(0.75, 0.75, 0.75), linestyles=('dashed', 'dashed', 'dashed'))
 
     labels = [Patch([], [], color=color, label=label)
-             for color, label in zip(['lightsteelblue', 'wheat', 'darkseagreen', 'lightgrey'],
-                                            ['Breathing vR', 'Speaking vR', 'Shouting vR', 'Viral Load'])]
+              for color, label in zip(['lightsteelblue', 'wheat', 'darkseagreen', 'lightgrey'],
+                                      ['Breathing vR', 'Speaking vR', 'Shouting vR', 'Viral Load'])]
     labels.append(mlines.Line2D([], [], color='grey',
-                            marker='', linestyle='dashed', label='Mean'))
-
+                                marker='', linestyle='dashed', label='Mean'))
 
     for x in (0, 1):
         axs[x].set_yticklabels([])
@@ -294,7 +339,87 @@ def present_vl_er_histograms(viral_load_in_sputum, breathing_er, speaking_er, sh
     plt.legend(handles=labels, loc='upper left', bbox_to_anchor=(1, 1))
     plt.tight_layout()
     plt.show()
-    
+
+############ CDFs for comparing the QR-Values in different scenarios ############
+
+
+def generate_cdf_curves():
+    fig, axs = plt.subplots(3, 1, sharex='all')
+
+    ############ Breathing models ############
+    br_seated = breathing_seated_exposure()
+    br_seated_model = br_seated.build_model(size=SAMPLE_SIZE)
+
+    br_light_activity = breathing_light_activity_exposure()
+    br_light_activity_model = br_light_activity.build_model(size=SAMPLE_SIZE)
+
+    br_heavy_exercise = breathing_heavy_exercise_exposure()
+    br_heavy_exercise_model = br_heavy_exercise.build_model(size=SAMPLE_SIZE)
+
+    ############ Speaking models ############
+    sp_seated = speaking_seated_exposure()
+    sp_seated_model = sp_seated.build_model(size=SAMPLE_SIZE)
+
+    sp_light_activity = speaking_light_activity_exposure()
+    sp_light_activity_model = sp_light_activity.build_model(size=SAMPLE_SIZE)
+
+    sp_heavy_exercise = speaking_heavy_exercise_exposure()
+    sp_heavy_exercise_model = sp_heavy_exercise.build_model(size=SAMPLE_SIZE)
+
+    ############ Shouting models ############
+    sh_seated = shouting_seated_exposure()
+    sh_seated_model = sh_seated.build_model(size=SAMPLE_SIZE)
+
+    sh_light_activity = shouting_light_activity_exposure()
+    sh_light_activity_model = sh_light_activity.build_model(size=SAMPLE_SIZE)
+
+    sh_heavy_exercise = shouting_heavy_exercise_exposure()
+    sh_heavy_exercise_model = sh_heavy_exercise.build_model(size=SAMPLE_SIZE)
+
+    er_values = [np.log10(scenario.concentration_model.infected.emission_rate_when_present(cn_B=0.06, cn_L=0.2)) for scenario in (br_seated_model, br_light_activity_model,
+                                                                                                                                  br_heavy_exercise_model, sp_seated_model, sp_light_activity_model, sp_heavy_exercise_model, sh_seated_model, sh_light_activity_model, sh_heavy_exercise_model)]
+    left = min(np.min(ers) for ers in er_values)
+    right = max(np.max(ers) for ers in er_values)
+
+    # Colors can be changed here
+    colors_breathing = ['lightsteelblue', 'cornflowerblue', 'royalblue']
+    colors_speaking = ['wheat', 'tan', 'orange']
+    colors_shouting = ['palegreen', 'darkseagreen', 'forestgreen']
+    colors = [colors_breathing, colors_speaking, colors_shouting]
+
+    breathing_rates = ['Seated', 'Light activity', 'Heavy activity']
+    activities = ['Breathing', 'Speaking', 'Shouting']
+    lines_breathing = [mlines.Line2D([], [], color=color, markersize=15, label=label)
+                       for color, label in zip(colors_breathing, breathing_rates)]
+    lines_speaking = [mlines.Line2D([], [], color=color, markersize=15, label=label)
+                      for color, label in zip(colors_speaking, breathing_rates)]
+    lines_shouting = [mlines.Line2D([], [], color=color, markersize=15, label=label)
+                      for color, label in zip(colors_shouting, breathing_rates)]
+    lines = [lines_breathing, lines_speaking, lines_shouting]
+
+    samples: int = 50000
+    for i in range(3):
+        axs[i].hist(er_values[3 * i:3 * (i + 1)], bins=2000,
+                    histtype='step', cumulative=True, range=(-7, 6), color=colors[i])
+        axs[i].set_xlim(-6, 6)
+        axs[i].set_yticks([0, samples / 2, samples])
+        axs[i].set_yticklabels(['0.0', '0.5', '1.0'])
+        axs[i].yaxis.set_label_position("right")
+        axs[i].set_ylabel(activities[i], fontsize=14)
+        axs[i].grid(linestyle='--')
+        axs[i].legend(handles=lines[i], loc='upper left')
+
+    plt.xlabel('$\mathrm{vR}$', fontsize=16)
+    tick_positions = np.arange(-6, 6, 2)
+    plt.xticks(ticks=tick_positions, labels=[
+               '$\;10^{' + str(i) + '}$' for i in tick_positions])
+
+    fig.text(0.02, 0.5, 'Cumulative Distribution Function',
+             va='center', rotation='vertical', fontsize=14)
+    fig.set_figheight(8)
+    fig.set_figwidth(5)
+    plt.show()
+
 
 ######### Auxiliar functions #########
 
@@ -425,7 +550,7 @@ def print_er_info(er: np.array, log_er: np.array):
           f"SD of ER = {np.std(er)}\n"
           f"SD of log ER = {np.std(log_er)}\n"
           f"Median of ER = {np.quantile(er, 0.5)}\n")
- 
+
     print(f"Percentiles of ER:")
     for quantile in (0.01, 0.05, 0.25, 0.50, 0.55, 0.65, 0.75, 0.95, 0.99):
         print(f"ER_{quantile} = {np.quantile(er, quantile)}")

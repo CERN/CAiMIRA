@@ -177,3 +177,268 @@ def talking_exposure_vl(vl):
         ),
     )
     return exposure_mc
+
+######### Used for CDF Models ###########
+######### Breathing Models #########
+def breathing_seated_exposure():
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
+            ventilation=models.AirChange(
+                active=models.SpecificInterval(((0, 24),)),
+                air_exch=0.25,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=mc.Virus(
+                    viral_load_in_sputum=symptomatic_vl_frequencies,
+                    infectious_dose=50.,
+                ),
+                presence=mc.SpecificInterval(((0, 2),)),
+                mask=models.Mask.types["No mask"],
+                activity=activity_distributions['Seated'],
+                expiration=models.Expiration.types['Breathing'],
+            ),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=mc.SpecificInterval(((0, 2),)),
+            activity=models.Activity.types['Seated'],
+            mask=models.Mask.types["No mask"],
+        ),
+    )
+    return exposure_mc
+
+def breathing_light_activity_exposure():
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
+            ventilation=models.AirChange(
+                active=models.SpecificInterval(((0, 24),)),
+                air_exch=0.25,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=mc.Virus(
+                    viral_load_in_sputum=symptomatic_vl_frequencies,
+                    infectious_dose=50.,
+                ),
+                presence=mc.SpecificInterval(((0, 2),)),
+                mask=models.Mask.types["No mask"],
+                activity=activity_distributions['Light activity'],
+                expiration=models.Expiration.types['Breathing'],
+            ),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=mc.SpecificInterval(((0, 2),)),
+            activity=models.Activity.types['Light activity'],
+            mask=models.Mask.types["No mask"],
+        ),
+    )
+    return exposure_mc
+
+def breathing_heavy_exercise_exposure():
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
+            ventilation=models.AirChange(
+                active=models.SpecificInterval(((0, 24),)),
+                air_exch=0.25,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=mc.Virus(
+                    viral_load_in_sputum=symptomatic_vl_frequencies,
+                    infectious_dose=50.,
+                ),
+                presence=mc.SpecificInterval(((0, 2),)),
+                mask=models.Mask.types["No mask"],
+                activity=activity_distributions['Heavy exercise'],
+                expiration=models.Expiration.types['Breathing'],
+            ),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=mc.SpecificInterval(((0, 2),)),
+            activity=models.Activity.types['Heavy exercise'],
+            mask=models.Mask.types["No mask"],
+        ),
+    )
+    return exposure_mc
+
+######### Speaking Models #########
+def speaking_seated_exposure():
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
+            ventilation=models.AirChange(
+                active=models.SpecificInterval(((0, 24),)),
+                air_exch=0.25,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=mc.Virus(
+                    viral_load_in_sputum=symptomatic_vl_frequencies,
+                    infectious_dose=50.,
+                ),
+                presence=mc.SpecificInterval(((0, 2),)),
+                mask=models.Mask.types["No mask"],
+                activity=activity_distributions['Seated'],
+                expiration=models.Expiration.types['Talking'],
+            ),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=mc.SpecificInterval(((0, 2),)),
+            activity=models.Activity.types['Seated'],
+            mask=models.Mask.types["No mask"],
+        ),
+    )
+    return exposure_mc
+
+def speaking_light_activity_exposure():
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
+            ventilation=models.AirChange(
+                active=models.SpecificInterval(((0, 24),)),
+                air_exch=0.25,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=mc.Virus(
+                    viral_load_in_sputum=symptomatic_vl_frequencies,
+                    infectious_dose=50.,
+                ),
+                presence=mc.SpecificInterval(((0, 2),)),
+                mask=models.Mask.types["No mask"],
+                activity=activity_distributions['Light activity'],
+                expiration=models.Expiration.types['Talking'],
+            ),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=mc.SpecificInterval(((0, 2),)),
+            activity=models.Activity.types['Light activity'],
+            mask=models.Mask.types["No mask"],
+        ),
+    )
+    return exposure_mc
+
+def speaking_heavy_exercise_exposure():
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
+            ventilation=models.AirChange(
+                active=models.SpecificInterval(((0, 24),)),
+                air_exch=0.25,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=mc.Virus(
+                    viral_load_in_sputum=symptomatic_vl_frequencies,
+                    infectious_dose=50.,
+                ),
+                presence=mc.SpecificInterval(((0, 2),)),
+                mask=models.Mask.types["No mask"],
+                activity=activity_distributions['Heavy exercise'],
+                expiration=models.Expiration.types['Talking'],
+            ),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=mc.SpecificInterval(((0, 2),)),
+            activity=models.Activity.types['Heavy exercise'],
+            mask=models.Mask.types["No mask"],
+        ),
+    )
+    return exposure_mc
+
+######### Shouting Models #########
+def shouting_seated_exposure():
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
+            ventilation=models.AirChange(
+                active=models.SpecificInterval(((0, 24),)),
+                air_exch=0.25,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=mc.Virus(
+                    viral_load_in_sputum=symptomatic_vl_frequencies,
+                    infectious_dose=50.,
+                ),
+                presence=mc.SpecificInterval(((0, 2),)),
+                mask=models.Mask.types["No mask"],
+                activity=activity_distributions['Seated'],
+                expiration=models.Expiration.types['Shouting'],
+            ),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=mc.SpecificInterval(((0, 2),)),
+            activity=models.Activity.types['Seated'],
+            mask=models.Mask.types["No mask"],
+        ),
+    )
+    return exposure_mc
+
+def shouting_light_activity_exposure():
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
+            ventilation=models.AirChange(
+                active=models.SpecificInterval(((0, 24),)),
+                air_exch=0.25,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=mc.Virus(
+                    viral_load_in_sputum=symptomatic_vl_frequencies,
+                    infectious_dose=50.,
+                ),
+                presence=mc.SpecificInterval(((0, 2),)),
+                mask=models.Mask.types["No mask"],
+                activity=activity_distributions['Light activity'],
+                expiration=models.Expiration.types['Shouting'],
+            ),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=mc.SpecificInterval(((0, 2),)),
+            activity=models.Activity.types['Light activity'],
+            mask=models.Mask.types["No mask"],
+        ),
+    )
+    return exposure_mc
+
+def shouting_heavy_exercise_exposure():
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
+            ventilation=models.AirChange(
+                active=models.SpecificInterval(((0, 24),)),
+                air_exch=0.25,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=mc.Virus(
+                    viral_load_in_sputum=symptomatic_vl_frequencies,
+                    infectious_dose=50.,
+                ),
+                presence=mc.SpecificInterval(((0, 2),)),
+                mask=models.Mask.types["No mask"],
+                activity=activity_distributions['Heavy exercise'],
+                expiration=models.Expiration.types['Shouting'],
+            ),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=mc.SpecificInterval(((0, 2),)),
+            activity=models.Activity.types['Heavy exercise'],
+            mask=models.Mask.types["No mask"],
+        ),
+    )
+    return exposure_mc
