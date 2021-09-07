@@ -1,5 +1,5 @@
 import dataclasses
-from dataclasses import dataclass
+import datetime
 import html
 import logging
 import typing
@@ -8,9 +8,10 @@ import numpy as np
 
 from cara import models
 from cara import data
+import cara.data.weather
 import cara.monte_carlo as mc
 from .. import calculator
-from cara.monte_carlo.data import activity_distributions, virus_distributions
+from cara.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions
 
 
 LOG = logging.getLogger(__name__)
@@ -25,7 +26,7 @@ _NO_DEFAULT = object()
 _DEFAULT_MC_SAMPLE_SIZE = 50000
 
 
-@dataclass
+@dataclasses.dataclass
 class FormData:
     activity_type: str
     air_changes: float
@@ -50,6 +51,9 @@ class FormData:
     infected_lunch_start: minutes_since_midnight    #Used if infected_dont_have_breaks_with_exposed
     infected_people: int
     infected_start: minutes_since_midnight
+    location_name: str
+    location_latitude: float
+    location_longitude: float
     mask_type: str
     mask_wearing_option: str
     mechanical_ventilation_type: str
@@ -100,6 +104,9 @@ class FormData:
         'infected_lunch_start': '12:30',
         'infected_people': _NO_DEFAULT,
         'infected_start': '08:30',
+        'location_latitude': _NO_DEFAULT,
+        'location_longitude': _NO_DEFAULT,
+        'location_name': _NO_DEFAULT,
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': 'not-applicable',
@@ -197,7 +204,8 @@ class FormData:
                              ('virus_type', VIRUS_TYPES),
                              ('volume_type', VOLUME_TYPES),
                              ('window_opening_regime', WINDOWS_OPENING_REGIMES),
-                             ('window_type', WINDOWS_TYPES)]
+                             ('window_type', WINDOWS_TYPES),
+                             ('event_month', MONTH_NAMES)]
         for attr_name, valid_set in validation_tuples:
             if getattr(self, attr_name) not in valid_set:
                 raise ValueError(f"{getattr(self, attr_name)} is not a valid value for {attr_name}")
@@ -244,6 +252,52 @@ class FormData:
     def build_model(self, sample_size=_DEFAULT_MC_SAMPLE_SIZE) -> models.ExposureModel:
         return self.build_mc_model().build_model(size=sample_size)
 
+    def tz_name_and_utc_offset(self) -> typing.Tuple[str, float]:
+        """
+        Return the timezone name (e.g. CET), and offset, in hours, that need to
+        be *added* to UTC to convert to the form location's timezone.
+
+        """
+        month = MONTH_NAMES.index(self.event_month) + 1
+        timezone = cara.data.weather.timezone_at(
+            latitude=self.location_latitude, longitude=self.location_longitude,
+        )
+        # We choose the first of the month for the current year.
+        date = datetime.datetime(datetime.datetime.now().year, month, 1)
+        name = timezone.tzname(date)
+        assert isinstance(name, str)
+        utc_offset_td = timezone.utcoffset(date)
+        assert isinstance(utc_offset_td, datetime.timedelta)
+        utc_offset_hours = utc_offset_td.total_seconds() / 60 / 60
+        return name, utc_offset_hours
+
+    def outside_temp(self) -> models.PiecewiseConstant:
+        """
+        Return the outside temperature as a PiecewiseConstant in the destination
+        timezone.
+
+        """
+        month = MONTH_NAMES.index(self.event_month) + 1
+
+        wx_station = self.nearest_weather_station()
+        temp_profile = cara.data.weather.mean_hourly_temperatures(wx_station[0], month)
+
+        _, utc_offset = self.tz_name_and_utc_offset()
+
+        # Offset the source times according to the difference from UTC (as a
+        # result the first data value may no longer be a midnight, and the hours
+        # no longer ordered modulo 24).
+        source_times = np.arange(24) + utc_offset
+        times, temp_profile = cara.data.weather.refine_hourly_data(
+            source_times,
+            temp_profile,
+            npts=24*10,  # 10 steps per hour => 6 min steps
+        )
+        outside_temp = models.PiecewiseConstant(
+            tuple(float(t) for t in times), tuple(float(t) for t in temp_profile),
+        )
+        return outside_temp
+
     def ventilation(self) -> models._VentilationBase:
         always_on = models.PeriodicInterval(period=120, duration=120)
         # Initializes a ventilation instance as a window if 'natural_ventilation' is selected, or as a HEPA-filter otherwise
@@ -253,10 +307,8 @@ class FormData:
             else:
                 window_interval = always_on
 
-            month = self.event_month[:3]
-
+            outside_temp = self.outside_temp()
             inside_temp = models.PiecewiseConstant((0, 24), (293,))
-            outside_temp = data.GenevaTemperatures[month]
 
             ventilation: models.Ventilation
             if self.window_type == 'window_sliding':
@@ -298,10 +350,19 @@ class FormData:
         else:
             return models.MultipleVentilation((ventilation, infiltration_ventilation))
 
+    def nearest_weather_station(self) -> cara.data.weather.WxStationRecordType:
+        """Return the nearest weather station (which has valid data) for this form"""
+        return cara.data.weather.nearest_wx_station(
+            longitude=self.location_longitude, latitude=self.location_latitude
+        )
+
     def mask(self) -> models.Mask:
         # Initializes the mask type if mask wearing is "continuous", otherwise instantiates the mask attribute as
         # the "No mask"-mask
-        mask = models.Mask.types[self.mask_type if self.mask_wearing_option == "mask_on" else 'No mask']
+        if self.mask_wearing_option == 'mask_on':
+            mask = mask_distributions[self.mask_type]
+        else:
+            mask = models.Mask.types['No mask']
         return mask
 
     def infected_population(self) -> mc.InfectedPopulation:
@@ -601,6 +662,9 @@ def baseline_raw_form_data():
         'infected_lunch_start': '12:30',
         'infected_people': '1',
         'infected_start': '09:00',
+        'location_latitude': 46.20833,
+        'location_longitude': 6.14275,
+        'location_name': 'Geneva',
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': '',
@@ -636,6 +700,11 @@ WINDOWS_OPENING_REGIMES = {'windows_open_permanently', 'windows_open_periodicall
 WINDOWS_TYPES = {'window_sliding', 'window_hinged', 'not-applicable'}
 
 COFFEE_OPTIONS_INT = {'coffee_break_0': 0, 'coffee_break_1': 1, 'coffee_break_2': 2, 'coffee_break_4': 4}
+
+MONTH_NAMES = [
+    'January', 'February', 'March', 'April', 'May', 'June', 'July',
+    'August', 'September', 'October', 'November', 'December',
+]
 
 
 def _hours2timestring(hours: float):
@@ -692,4 +761,3 @@ for _field in dataclasses.fields(FormData):
     elif _field.type is bool:
         _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = lambda v: v == '1'
         _CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = int
-

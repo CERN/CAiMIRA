@@ -88,9 +88,9 @@
 								<p id="section1">* The results are based on the parameters and assumptions published in the CERN Open Report <a href="https://cds.cern.ch/record/2756083"> CERN-OPEN-2021-004</a>.</p>
 								<svg id="result_plot" width="900" height="400"></svg>
 								<script type="application/javascript">
-									var times = {{times}}
-									var concentrations = {{concentrations}}
-									var exposed_presence_intervals = {{exposed_presence_intervals}}
+									var times = {{ times | JSONify }}
+									var concentrations = {{ concentrations | JSONify }}
+									var exposed_presence_intervals = {{ exposed_presence_intervals | JSONify }}
 									draw_concentration_plot("#result_plot", times, concentrations, exposed_presence_intervals);
 								</script>
               				</p>
@@ -108,8 +108,12 @@
 					<div class="collapse" id="collapseAlternativeScenarios">
 						<div class="card-body">
 							<div>
-								<img id="scenario_concentration_plot" src="{{ alternative_scenarios.plot }}" />
-
+								<svg id="alternative_scenario_plot" width="900" height="400"></svg>
+								<script type="application/javascript">
+									var alternative_scenarios = {{ alternative_scenarios.stats | JSONify }}
+									var times = {{ times | JSONify }}
+									draw_alternative_scenarios_plot("#alternative_scenario_plot", width=600, height=400, alternative_scenarios, times);
+								</script>
 								{% block report_scenarios_summary_table %}
 									<table class="table w-auto">
 										<thead class="thead-light">
@@ -199,6 +203,10 @@
 							</p></li>
 							<li><p class="data_text">Room Volume: {{ model.concentration_model.room.volume }} m³</p></li>
 							<li><p class="data_text">Room Central Heating: {{ "On" if form.room_heating_option else "Off" }}</p></li>
+							<li><p class="data_text">Geographic Location: {{ form.location_name }}</p></li>
+							{% if form.ventilation_type == "natural_ventilation" %}
+							<li><p class="data_text">Nearest weather station: {{ form.nearest_weather_station()[1].strip().title() }}</p></li>
+							{% endif %}
 						</ul>
 					</div>
 				</div>
@@ -245,7 +253,7 @@
 								{% endif %}
 								</p></li>
 							</ul>
-								<p class="data_subtext data_italic">When using the natural ventilation option, air flows are calculated using averaged hourly temperatures for the Geneva region, based on historical data for the month selected.</p>
+								<p class="data_subtext data_italic">When using the natural ventilation option, air flows are calculated using averaged hourly temperatures for the region {{ form.location_name }}, based on historical data for the month selected.</p>
 							{% else %}
 							No </p></li>
 							{% endif %}
