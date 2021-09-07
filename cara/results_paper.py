@@ -38,8 +38,7 @@ def exposure_model_from_vl_breathing():
         exposure_mc = breathing_exposure_vl(vl)
         exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
         # divide by 2 to have in 30min (half an hour)
-        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(
-            cn_B=0.06, cn_L=0.2) / 2
+        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B=0.06, cn_L=0.2) / 2
         er_means.append(np.mean(emission_rate))
         er_medians.append(np.median(emission_rate))
         lower_percentiles.append(np.quantile(emission_rate, 0.01))
@@ -69,7 +68,7 @@ def exposure_model_from_vl_breathing():
     build_breathing_legend(fig)
 
     ############ Plot ############
-    plt.title('Exhaled virions while breathing for 30 min',
+    plt.title('',
               fontsize=16, fontweight="bold")
     plt.ylabel(
         'Aerosol viral load, $\mathrm{vl_{out}}$\n(RNA copies)', fontsize=14)
@@ -87,7 +86,7 @@ def exposure_model_from_vl_breathing_cn():
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
 
-    n_lines = 1
+    n_lines = 30
     cns = np.linspace(0.01, 0.5, n_lines)
 
     cmap = define_colormap(cns)
@@ -124,8 +123,7 @@ def exposure_model_from_vl_breathing_cn():
              r"$\mathbf{c_{n,B}=0.06}$", color=cmap.to_rgba(cn), fontsize=12)
 
     cmap = fig.colorbar(cmap, ticks=[0.01, 0.1, 0.25, 0.5])
-    cmap.set_label(
-        label='Particle emission concentration, ${c_{n,B}}$', fontsize=12)
+    cmap.set_label(label='Particle emission concentration, ${c_{n,B}}$', fontsize=12)
     ax.set_yscale('log')
 
     ############# Coleman #############
@@ -142,7 +140,7 @@ def exposure_model_from_vl_breathing_cn():
     build_breathing_legend(fig)
 
     ############ Plot ############
-    plt.title('Exhaled virions while breathing for 30 min',
+    plt.title('',
               fontsize=16, fontweight="bold")
     plt.ylabel(
         'Aerosol viral load, $\mathrm{vl_{out}}$\n(RNA copies)', fontsize=14)
@@ -167,8 +165,7 @@ def exposure_model_from_vl_talking():
         exposure_mc = talking_exposure_vl(vl)
         exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
         # divide by 4 to have in 15min (quarter of an hour)
-        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(
-            cn_B=0.06, cn_L=0.2)/4
+        emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B=0.06, cn_L=0.2)/4
         er_means.append(np.mean(emission_rate))
         er_medians.append(np.median(emission_rate))
         lower_percentiles.append(np.quantile(emission_rate, 0.01))
@@ -189,7 +186,7 @@ def exposure_model_from_vl_talking():
     build_talking_legend(fig)
 
     ############ Plot ############
-    plt.title('Exhaled virions while speaking (vocalization) for 15min',
+    plt.title('',
               fontsize=16, fontweight="bold")
     plt.ylabel(
         'Aerosol viral load, $\mathrm{vl_{out}}$\n(RNA copies)', fontsize=14)
@@ -199,12 +196,11 @@ def exposure_model_from_vl_talking():
 
     plt.show()
 
-
 def exposure_model_from_vl_talking_cn():
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
 
-    n_lines = 1
+    n_lines = 30
     cns = np.linspace(0.01, 2, n_lines)
     cmap = define_colormap(cns)
 
@@ -237,8 +233,8 @@ def exposure_model_from_vl_talking_cn():
     plt.text(viral_loads[int(len(viral_loads)*0.93)], 10**5.5,
              r"$\mathbf{c_{n,L}=0.2}$", color=cmap.to_rgba(cn), fontsize=12)
 
-    fig.colorbar(cmap, ticks=[0.01, 0.5, 1.0, 2.0],
-                 label="Particle emission concentration, ${c_{n,L}}$", fontsize=14)
+    cmap = fig.colorbar(cmap, ticks=[0.01, 0.5, 1.0, 2.0])
+    cmap.set_label(label='Particle emission concentration, ${c_{n,L}}$', fontsize=12)
     ax.set_yscale('log')
 
     ############# Coleman #############
@@ -248,7 +244,7 @@ def exposure_model_from_vl_talking_cn():
     build_talking_legend(fig)
 
     ############ Plot ############
-    plt.title('Exhaled virions while speaking (vocalization)\nfor 15min',
+    plt.title('',
               fontsize=16, fontweight="bold")
     plt.ylabel(
         'Aerosol viral load, $\mathrm{vl_{out}}$\n(RNA copies)', fontsize=14)
@@ -307,30 +303,29 @@ def present_vl_er_histograms():
 
     viral_loads = [np.log10(vl) for vl in viral_load_in_sputum]
 
-    axs[0].hist(viral_loads, bins=300, color='lightgrey')
-    axs[0].set_xlabel('vl (log$_{10}$(RNA copies mL$^{-1}$))')
+    axs[0].hist(viral_loads, bins = 300, color='lightgrey')
+    axs[0].set_xlabel('vl$_{\mathrm{in}}$ (log$_{10}$ RNA copies mL$^{-1}$)')
 
     mean = np.mean(viral_loads)
-    axs[0].vlines(x=(mean), ymin=0, ymax=axs[0].get_ylim()[
-                  1], colors=('black'), linestyles=('dashed'))
+    axs[0].vlines(x=(mean), ymin=0, ymax=axs[0].get_ylim()[1], colors=('grey'), linestyles=('dashed'))
 
     breathing_mean_er = np.mean(breathing_er)
     speaking_mean_er = np.mean(speaking_er)
     shouting_mean_er = np.mean(shouting_er)
 
-    axs[1].hist(breathing_er, bins=300, color='lightsteelblue')
-    axs[1].hist(speaking_er, bins=300, color='wheat')
-    axs[1].hist(shouting_er, bins=300, color='darkseagreen')
-    axs[1].set_xlabel('vR (log$_{10}$)')
+    axs[1].hist(breathing_er, bins = 300, color='lightsteelblue')
+    axs[1].hist(speaking_er, bins = 300, color='wheat')
+    axs[1].hist(shouting_er, bins = 300, color='darkseagreen')
+    axs[1].set_xlabel('vR (log$_{10}$ virions h$^{-1}$)')
 
-    axs[1].vlines(x=(breathing_mean_er, speaking_mean_er, shouting_mean_er), ymin=0, ymax=axs[1].get_ylim()[1], colors=(
-        'cornflowerblue', 'goldenrod', 'olivedrab'), alpha=(0.75, 0.75, 0.75), linestyles=('dashed', 'dashed', 'dashed'))
+    axs[1].vlines(x=(breathing_mean_er, speaking_mean_er, shouting_mean_er), ymin=0, ymax=axs[1].get_ylim()[1], colors=('cornflowerblue', 'goldenrod', 'olivedrab'), alpha=(0.75, 0.75, 0.75), linestyles=('dashed', 'dashed', 'dashed'))
 
     labels = [Patch([], [], color=color, label=label)
-              for color, label in zip(['lightsteelblue', 'wheat', 'darkseagreen', 'lightgrey'],
-                                      ['Breathing vR', 'Speaking vR', 'Shouting vR', 'Viral Load'])]
-    labels.append(mlines.Line2D([], [], color='grey',
-                                marker='', linestyle='dashed', label='Mean'))
+             for color, label in zip(['lightgrey', 'lightsteelblue', 'wheat', 'darkseagreen'],
+                                            ['Viral Load', 'Breathing', 'Speaking', 'Shouting'])]
+    labels.append(mlines.Line2D([], [], color='black',
+                            marker='', linestyle='dashed', label='Mean'))
+
 
     for x in (0, 1):
         axs[x].set_yticklabels([])
