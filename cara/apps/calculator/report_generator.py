@@ -1,10 +1,3 @@
-from ... import dataclass_utils
-from .model_generator import FormData, _DEFAULT_MC_SAMPLE_SIZE
-from ... import monte_carlo as mc
-from cara import models
-import qrcode
-import numpy as np
-import matplotlib.pyplot as plt
 import concurrent.futures
 import base64
 import dataclasses
@@ -16,9 +9,14 @@ import zlib
 
 import loky
 import jinja2
-import matplotlib
-from numpy.lib.function_base import append, quantile
-matplotlib.use('agg')
+import numpy as np
+import qrcode
+import json
+
+from cara import models
+from ... import monte_carlo as mc
+from .model_generator import FormData, _DEFAULT_MC_SAMPLE_SIZE
+from ... import dataclass_utils
 
 
 def model_start_end(model: models.ExposureModel):
@@ -96,8 +94,7 @@ def interesting_times(model: models.ExposureModel, approx_n_pts=100) -> typing.L
 
     # Expand the times list to ensure that we have a maximum gap size between
     # the key times.
-    nice_times = fill_big_gaps(times, gap_size=(
-        max(times) - min(times)) / approx_n_pts)
+    nice_times = fill_big_gaps(times, gap_size=(max(times) - min(times)) / approx_n_pts)
     return nice_times
 
 
@@ -110,8 +107,7 @@ def calculate_report_data(model: models.ExposureModel):
     ]
     highest_const = max(concentrations)
     prob = np.array(model.infection_probability()).mean()
-    er = np.array(
-        model.concentration_model.infected.emission_rate_when_present()).mean()
+    er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
     exposed_occupants = model.exposed.number
     expected_new_cases = np.array(model.expected_new_cases()).mean()
     cumulative_doses = [
@@ -169,21 +165,12 @@ def _img2bytes(figure):
     return img_data
 
 
-def _figure2bytes(figure):
-    # Draw the image
-    img_data = io.BytesIO()
-    figure.savefig(img_data, format='png',
-                   bbox_inches="tight", transparent=True)
-    return img_data
-
-
 def img2base64(img_data) -> str:
-    plt.close()
     img_data.seek(0)
     pic_hash = base64.b64encode(img_data.read()).decode('ascii')
     # A src suitable for a tag such as f'<img id="scenario_concentration_plot" src="{result}">.
     return f'data:image/png;base64,{pic_hash}'
-        
+
 
 def minutes_to_time(minutes: int) -> str:
     minute_string = str(minutes % 60)
@@ -224,18 +211,14 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
     scenarios = {}
 
     # Two special option cases - HEPA and/or FFP2 masks.
-    FFP2_being_worn = bool(form.mask_wearing_option ==
-                           'mask_on' and form.mask_type == 'FFP2')
+    FFP2_being_worn = bool(form.mask_wearing_option == 'mask_on' and form.mask_type == 'FFP2')
     if FFP2_being_worn and form.hepa_option:
-        FFP2andHEPAalternative = dataclass_utils.replace(
-            form, mask_type='Type I')
+        FFP2andHEPAalternative = dataclass_utils.replace(form, mask_type='Type I')
         scenarios['Base scenario with HEPA filter and Type I masks'] = FFP2andHEPAalternative.build_mc_model()
     if not FFP2_being_worn and form.hepa_option:
-        noHEPAalternative = dataclass_utils.replace(form, mask_type='FFP2')
-        noHEPAalternative = dataclass_utils.replace(
-            noHEPAalternative, mask_wearing_option='mask_on')
-        noHEPAalternative = dataclass_utils.replace(
-            noHEPAalternative, hepa_option=False)
+        noHEPAalternative = dataclass_utils.replace(form, mask_type = 'FFP2')
+        noHEPAalternative = dataclass_utils.replace(noHEPAalternative, mask_wearing_option = 'mask_on')
+        noHEPAalternative = dataclass_utils.replace(noHEPAalternative, hepa_option=False)
         scenarios['Base scenario without HEPA filter, with FFP2 masks'] = noHEPAalternative.build_mc_model()
 
     # The remaining scenarios are based on Type I masks (possibly not worn)
@@ -245,8 +228,7 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
         form = dataclass_utils.replace(form, hepa_option=False)
 
     with_mask = dataclass_utils.replace(form, mask_wearing_option='mask_on')
-    without_mask = dataclass_utils.replace(
-        form, mask_wearing_option='mask_off')
+    without_mask = dataclass_utils.replace(form, mask_wearing_option='mask_off')
 
     if form.ventilation_type == 'mechanical_ventilation':
         #scenarios['Mechanical ventilation with Type I masks'] = with_mask.build_mc_model()
@@ -257,62 +239,17 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
         scenarios['Windows open without masks'] = without_mask.build_mc_model()
 
     # No matter the ventilation scheme, we include scenarios which don't have any ventilation.
-    with_mask_no_vent = dataclass_utils.replace(
-        with_mask, ventilation_type='no_ventilation')
-    without_mask_or_vent = dataclass_utils.replace(
-        without_mask, ventilation_type='no_ventilation')
+    with_mask_no_vent = dataclass_utils.replace(with_mask, ventilation_type='no_ventilation')
+    without_mask_or_vent = dataclass_utils.replace(without_mask, ventilation_type='no_ventilation')
     scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_mc_model()
     scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_mc_model()
 
     return scenarios
 
 
-def comparison_plot(scenarios: typing.Dict[str, dict], sample_times: typing.List[float]):
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
-    ax1 = ax.twinx()
-
-    dash_styled_scenarios = [
-        'Base scenario with FFP2 masks',
-        'Base scenario with HEPA filter',
-        'Base scenario with HEPA and FFP2 masks',
-    ]
-
-    datetimes = [datetime(1970, 1, 1) + timedelta(hours=time)
-                 for time in sample_times]
-
-    for name, statistics in scenarios.items():
-        model = statistics['model']
-        concentrations = statistics['concentrations']
-
-        # Plot concentrations
-        if name in dash_styled_scenarios:
-            ax.plot(datetimes, concentrations, label=name, linestyle='--')
-        else:
-            ax.plot(datetimes, concentrations,
-                    label=name, linestyle='-', alpha=0.5)
-
-    # Place a legend outside of the axes itself.
-    fig.legend(bbox_to_anchor=(1.05, 0.95), loc='upper left')
-
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    ax.set_xlabel('Time of day', fontsize=14)
-    ax.set_ylabel('Mean viral concentration\n(virion m$^{-3}$)', fontsize=14)
-    ax.set_title('Concentration profile')
-    ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
-
-    ax.set_xlabel('Time of day')
-    ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
-    ax.set_title('Mean concentration of virions')
-
-    return fig
-
-
-def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[float]):
+def scenario_statistics(mc_model: mc.ExposureModel, sample_times: np.ndarray):
     model = mc_model.build_model(size=_DEFAULT_MC_SAMPLE_SIZE)
     return {
-        'model': model,
         'probability_of_infection': np.mean(model.infection_probability()),
         'expected_new_cases': np.mean(model.expected_new_cases()),
         'concentrations': [
@@ -339,7 +276,6 @@ def comparison_report(
     for (name, model), model_stats in zip(scenarios.items(), results):
         statistics[name] = model_stats
     return {
-        'plot': img2base64(_figure2bytes(comparison_plot(statistics, sample_times))),
         'stats': statistics,
     }
 
@@ -356,8 +292,7 @@ class ReportGenerator:
             executor_factory: typing.Callable[[], concurrent.futures.Executor],
     ) -> str:
         model = form.build_model()
-        context = self.prepare_context(
-            base_url, model, form, executor_factory=executor_factory)
+        context = self.prepare_context(base_url, model, form, executor_factory=executor_factory)
         return self.render(context)
 
     def prepare_context(
@@ -383,8 +318,7 @@ class ReportGenerator:
         context['alternative_scenarios'] = comparison_report(
             alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
         )
-        context['qr_code'] = generate_qr_code(
-            base_url, self.calculator_prefix, form)
+        context['qr_code'] = generate_qr_code(base_url, self.calculator_prefix, form)
         context['calculator_prefix'] = self.calculator_prefix
         context['scale_warning'] = {
             'level': 'yellow-2',
@@ -404,6 +338,7 @@ class ReportGenerator:
         env.filters['minutes_to_time'] = minutes_to_time
         env.filters['float_format'] = "{0:.2f}".format
         env.filters['int_format'] = "{:0.0f}".format
+        env.filters['JSONify'] = json.dumps
         return env
 
     def render(self, context: dict) -> str:

@@ -904,7 +904,6 @@ class ExposureModel:
             return 0
 
     def inhaled_exposure_between_bounds(self, time: float) -> _VectorisedFloat:
-        
         exposure = self.exposure_between_bounds(time)
         
         return (

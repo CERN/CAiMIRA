@@ -27,70 +27,18 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
         yCumulatedAxis = d3.axisRight(yCumulatedRange);
 
     // Plot tittle.
-    vis.append('svg:foreignObject')
-        .attr("background-color", "transparent")
-        .attr('width', width)
-        .attr('height', margins.top)
-        .style('text-align', 'center')
-        .html('<b>Mean concentration of virions</b>');
+    plot_title(vis, width, margins.top, 'Mean concentration of virions');
 
     // Line representing the mean concentration.
-    var lineFunc = d3.line()
-        .defined(d => !isNaN(d.concentration))
-        .x(d => xTimeRange(d.time))
-        .y(d => yRange(d.concentration))
-        .curve(d3.curveBasis);
-
-    vis.append('svg:path')
-        .attr('d', lineFunc(data))
-        .attr('stroke', '#1f77b4')
-        .attr('stroke-width', 2)
-        .attr('fill', 'none');
-
+    plot_scenario_data(vis, data, xTimeRange, yRange, '#1f77b4');
     // Line representing the cumulative concentration.
-    var lineCumulativeFunc = d3.line()
-        .defined(d => !isNaN(d.cumulative_doses))
-        .x(d => xTimeRange(d.time))
-        .y(d => yCumulatedRange(d.cumulative_doses))
-        .curve(d3.curveBasis);
+    plot_cumulative_data(vis, data, xTimeRange, yCumulatedRange, '#1f77b4');
 
-    vis.append('svg:path')
-        .attr('d', lineCumulativeFunc(data))
-        .attr('stroke', '#1f77b4')
-        .attr('stroke-width', 2)
-        .style("stroke-dasharray", "5 5")
-        .attr('fill', 'none');
+    // X axis.
+    plot_x_axis(vis, height, width, margins, xAxis, 'Time of day');
 
-    // X axis declaration.
-    vis.append('svg:g')
-        .attr('class', 'x axis')
-        .attr('transform', 'translate(0,' + (height - margins.bottom) + ')')
-        .call(xAxis);
-
-    // X axis label.
-    vis.append('text')
-        .attr('class', 'x label')
-        .attr('fill', 'black')
-        .attr('text-anchor', 'middle')
-        .attr('x', (width + margins.right) / 2)
-        .attr('y', height * 0.97)
-        .text('Time of day')
-
-    // Y concentration axis declaration.
-    vis.append('svg:g')
-        .attr('class', 'y axis')
-        .attr('transform', 'translate(' + margins.left + ',0)')
-        .call(yAxis);
-
-    // Y concentration axis label.
-    vis.append('svg:text')
-        .attr('class', 'y label')
-        .attr('fill', 'black')
-        .attr('transform', 'rotate(-90, 0,' + height + ')')
-        .attr('text-anchor', 'middle')
-        .attr('x', (height + margins.bottom) / 2)
-        .attr('y', (height + margins.left) * 0.92)
-        .text('Mean concentration (virions/m³)');
+    // Y axis
+    plot_y_axis(vis, height, width, margins, yAxis, 'Mean concentration (virions/m³)')
 
     // Y cumulative concentration axis declaration.
     vis.append('svg:g')
@@ -230,4 +178,195 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
         focus.select('#tooltip-time').text('x = ' + time_format(d.hour));
         focus.select('#tooltip-concentration').text('y = ' + d.concentration.toFixed(2));
     }
+}
+
+// Generate the alternative scenarios plot using d3 library.
+// 'alternative_scenarios' is a dictionary with all the alternative scenarios 
+// 'times' is a list of times for all the scenarios
+function draw_alternative_scenarios_plot(svg_id, width, height, alternative_scenarios, times) {
+     // H:M format
+    var time_format = d3.timeFormat('%H:%M');
+    // D3 array of ten categorical colors represented as RGB hexadecimal strings.
+    var colors = d3.schemeAccent;
+
+    // Variable for the highest concentration for all the scenarios
+    var highest_concentration = 0.
+
+    var data_for_scenarios = {}
+    for (scenario in alternative_scenarios) {
+        scenario_concentrations = alternative_scenarios[scenario].concentrations
+
+        highest_concentration = Math.max(highest_concentration, Math.max(...scenario_concentrations))
+
+        var data = []
+        times.map((time, index) => data.push({ 'time': time, 'hour': new Date().setHours(Math.trunc(time), (time - Math.trunc(time)) * 60), 'concentration': scenario_concentrations[index] }))
+
+        // Add data into lines dictionary
+        data_for_scenarios[scenario] = data
+    }
+
+    // We need one scenario to get the time range
+    var first_scenario = Object.values(data_for_scenarios)[0]
+
+    var vis = d3.select(svg_id),
+        width = width,
+        height = height,
+        margins = { top: 30, right: 20, bottom: 50, left: 50 },
+
+        // H:M time format for x axis.
+        xRange = d3.scaleTime().range([margins.left, width - margins.right]).domain([first_scenario[0].hour, first_scenario[first_scenario.length - 1].hour]),
+        xTimeRange = d3.scaleLinear().range([margins.left, width - margins.right]).domain([times[0], times[times.length - 1]]),
+
+        yRange = d3.scaleLinear().range([height - margins.bottom, margins.top]).domain([0., highest_concentration]),
+
+        xAxis = d3.axisBottom(xRange).tickFormat(d => time_format(d)),
+        yAxis = d3.axisLeft(yRange);
+
+    // Plot title.
+    plot_title(vis, width, margins.top, 'Mean concentration of virions');
+
+    // Line representing the mean concentration for each scenario.
+    for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
+        var scenario_index = Object.keys(data_for_scenarios).indexOf(scenario_name)
+
+        // Line representing the mean concentration.
+        plot_scenario_data(vis, data, xTimeRange, yRange, colors[scenario_index])
+
+        // Legend for the plot elements - lines.
+        var size = 20 * (scenario_index + 1)
+        vis.append('rect')
+            .attr('x', width + 20)
+            .attr('y', margins.top + size)
+            .attr('width', 20)
+            .attr('height', 3)
+            .style('fill', colors[scenario_index]);
+
+        vis.append('text')
+            .attr('x', width + 3 * 20)
+            .attr('y', margins.top + size)
+            .text(scenario_name)
+            .style('font-size', '15px')
+            .attr('alignment-baseline', 'central');
+
+    }
+
+    // X axis.
+    plot_x_axis(vis, height, width, margins, xAxis, "Time of day");
+
+    // Y axis declaration.
+    vis.append('svg:g')
+        .attr('class', 'y axis')
+        .attr('transform', 'translate(' + margins.left + ',0)')
+        .call(yAxis);
+
+    // Y axis label.
+    vis.append('svg:text')
+        .attr('class', 'y label')
+        .attr('fill', 'black')
+        .attr('transform', 'rotate(-90, 0,' + height + ')')
+        .attr('text-anchor', 'middle')
+        .attr('x', (height + margins.bottom) / 2)
+        .attr('y', (height + margins.left) * 0.92)
+        .text('Mean concentration (virions/m³)');
+
+    // Legend bounding box.
+    vis.append('rect')
+        .attr('width', 275)
+        .attr('height', 25 * (Object.keys(data_for_scenarios).length))
+        .attr('x', width * 1.005)
+        .attr('y', margins.top + 5)
+        .attr('stroke', 'lightgrey')
+        .attr('stroke-width', '2')
+        .attr('rx', '5px')
+        .attr('ry', '5px')
+        .attr('stroke-linejoin', 'round')
+        .attr('fill', 'none');
+}
+
+
+// Functions used to build the plots' components
+
+function plot_title(vis, width, margin_top, title) {
+    vis.append('svg:foreignObject')
+        .attr('width', width)
+        .attr('height', margin_top)
+        .attr('fill', 'none')
+        .append('xhtml:div')
+        .style('text-align', 'center')
+        .html(title);
+
+    return vis;
+}
+
+function plot_x_axis(vis, height, width, margins, xAxis, label) {
+    // X axis declaration
+    vis.append('svg:g')
+        .attr('class', 'x axis')
+        .attr('transform', 'translate(0,' + (height - margins.bottom) + ')')
+        .call(xAxis);
+
+    // X axis label.
+    vis.append('text')
+        .attr('class', 'x label')
+        .attr('fill', 'black')
+        .attr('text-anchor', 'middle')
+        .attr('x', (width + margins.right) / 2)
+        .attr('y', height * 0.97)
+        .text(label);
+
+    return vis;
+}
+
+function plot_y_axis(vis, height, width, margins, yAxis, label) {
+    // Y axis declaration.
+    vis.append('svg:g')
+        .attr('class', 'y axis')
+        .attr('transform', 'translate(' + margins.left + ',0)')
+        .call(yAxis);
+
+    // Y axis label.
+    vis.append('svg:text')
+        .attr('class', 'y label')
+        .attr('fill', 'black')
+        .attr('transform', 'rotate(-90, 0,' + height + ')')
+        .attr('text-anchor', 'middle')
+        .attr('x', (height + margins.bottom) / 2)
+        .attr('y', (height + margins.left) * 0.92)
+        .text(label);
+
+    return vis;
+
+}
+
+function plot_scenario_data(vis, data, xTimeRange, yRange, line_color) {
+    var lineFunc = d3.line()
+        .defined(d => !isNaN(d.concentration))
+        .x(d => xTimeRange(d.time))
+        .y(d => yRange(d.concentration))
+        .curve(d3.curveBasis);
+
+    vis.append('svg:path')
+        .attr('d', lineFunc(data))
+        .attr("stroke", line_color)
+        .attr('stroke-width', 2)
+        .attr('fill', 'none');
+
+    return vis;
+}
+
+function plot_cumulative_data(vis, data, xTimeRange, yCumulativeRange, line_color) {
+    var lineCumulativeFunc = d3.line()
+        .defined(d => !isNaN(d.cumulative_doses))
+        .x(d => xTimeRange(d.time))
+        .y(d => yCumulativeRange(d.cumulative_doses))
+        .curve(d3.curveBasis);
+
+    vis.append('svg:path')
+        .attr('d', lineCumulativeFunc(data))
+        .attr('stroke', line_color)
+        .attr('stroke-width', 2)
+        .style("stroke-dasharray", "5 5")
+        .attr('fill', 'none');
+
+    return vis;
 }
