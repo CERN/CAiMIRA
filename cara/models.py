@@ -878,20 +878,23 @@ class ExposureModel:
     fraction_deposited: _VectorisedFloat = 0.6
 
     def exposure_between_bounds(self, time: float) -> _VectorisedFloat:
-        """The cumulative number of virions per meter^3 from model start to the given time."""
-        exposure = 0.0
-
+        """The number of virions per meter^3 from model start to the given time."""
+        boundaries = []
         for start, stop in self.exposed.presence.boundaries():
             if start > time:
                 break
             elif time <= stop:
                 stop = time
-                exposure += self.concentration_model.integrated_concentration(start, stop)
+                boundaries.append([start, stop])
                 break
             else:
-                exposure += self.concentration_model.integrated_concentration(start, stop)
+                boundaries.append([start, stop])
+            
+        exposure = 0.0
+        for start, stop in boundaries:
+            exposure += self.concentration_model.integrated_concentration(start, stop)
         
-        return exposure * self.repeats
+        return exposure
 
     def exposure(self) -> _VectorisedFloat:
         """The number of virions per meter^3 for the full simulation time."""
