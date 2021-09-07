@@ -19,7 +19,6 @@
 {% block main %}
 
 v{{ calculator_version }} <span style="float:right; font-weight:bold">Please send feedback to <a href="mailto:CARA-dev@cern.ch">CARA-dev@cern.ch</a></span>
-{# This should probably be the same as the index logo and title  #}
 <header class= "bg-light">
   <div class="container container--narrow container--padding">
     <img src="/static/images/cara_logo.200x200.png"  class="logo">
@@ -36,8 +35,6 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
 
 <input type="hidden" name="calculator_version" value="{{ calculator_version }}">
 
-{# <div class="container-fluid"> #}
-{# <div class="row"> #}
 <section>
   <div class="container container--padding">
   <div class = "split">
@@ -49,7 +46,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
       <input type="text" class="col-sm-10 form-control" name="simulation_name" placeholder="E.g. Workshop without masks" required>
     </div>
 
-    <div class="for-group">
+    <div class="form-group">
       <b><label class="col-form-label">Room number:</label></b>
       <input type="text" class="col-sm-10 form-control" name="room_number" placeholder="E.g. 17/R-033" required>
     </div>
@@ -131,9 +128,9 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
           This block allows us to have hidden input values which are retained during forward/back navigation, as per
           https://stackoverflow.com/a/6384276/741316
           -->
-          <input type="text" name="location_name" required>
-          <input type="text" name="location_latitude" required>
-          <input type="text" name="location_longitude" required>
+          <input type="text" name="location_name">
+          <input type="text" name="location_latitude">
+          <input type="text" name="location_longitude">
       </div>
     </div>
 
@@ -254,9 +251,6 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
 
     <span id="training_limit_error" class="red_text" hidden>Training activities limited to 1 infected<br></span>
     <hr width="80%">
-
-    {# </div>
-    <div> #}
 
     <div class="form-group row">
     <label class="col-form-label col-sm-4">Activity type:</label>
@@ -406,7 +400,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
         <!-- Coffee Options -->
         <div class="split">
         <div class="col-sm-5">
-        Coffee Breaks:
+        Coffee Breaks:&nbsp;&nbsp;
         </div>
         <div class="col-sm-7">
         <input type="radio" id="infected_coffee_break_0" name="infected_coffee_break_option" value="coffee_break_0" checked="checked">
@@ -416,7 +410,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
         <input type="radio" id="infected_coffee_break_4" name="infected_coffee_break_option" value="coffee_break_4">
           <label for="infected_coffee_break_4">4</label><br>
         </div>
-        <div>
+        </div>
 
         <br>
 
@@ -435,7 +429,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
 
     <br style="clear:both;">
     <i>Coffee breaks are spread evenly throughout the day.</i><br>
-    {# <hr width="80%"> #}
+
     
     <br><br>
   </div> 
@@ -511,7 +505,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
         CARA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.
     </p>
     <p>
-        CARA models the concentration profile of potential infectious viruses in enclosed spaces with clear and intuitive graphs.
+        CARA models the concentration profile of virions in enclosed spaces with clear and intuitive graphs.
         The user can set a number of parameters, including room volume, exposure time, activity type, mask-wearing and ventilation.
         The report generated indicates how to avoid exceeding critical concentrations and chains of airborne transmission in spaces such as individual offices, meeting rooms and labs.
     </p>
