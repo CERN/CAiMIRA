@@ -9,11 +9,9 @@ import zlib
 
 import loky
 import jinja2
-import matplotlib
-matplotlib.use('agg')
-import matplotlib.pyplot as plt
 import numpy as np
 import qrcode
+import json
 
 from cara import models
 from ... import monte_carlo as mc
@@ -162,49 +160,12 @@ def _img2bytes(figure):
     return img_data
 
 
-def _figure2bytes(figure):
-    # Draw the image
-    img_data = io.BytesIO()
-    figure.savefig(img_data, format='png', bbox_inches="tight", transparent=True)
-    return img_data
-
-
 def img2base64(img_data) -> str:
-    plt.close()
     img_data.seek(0)
     pic_hash = base64.b64encode(img_data.read()).decode('ascii')
     # A src suitable for a tag such as f'<img id="scenario_concentration_plot" src="{result}">.
     return f'data:image/png;base64,{pic_hash}'
 
-
-def plot(times, concentrations, model: models.ExposureModel):
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
-    datetimes = [datetime(1970, 1, 1) + timedelta(hours=time) for time in times]
-    ax.plot(datetimes, concentrations, lw=2, color='#1f77b4', label='Mean concentration')
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-
-    ax.set_xlabel('Time of day')
-    ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
-    ax.set_title('Mean concentration of virions')
-    ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
-
-    # Plot presence of exposed person
-    for i, (presence_start, presence_finish) in enumerate(model.exposed.presence.boundaries()):
-        plt.fill_between(
-            datetimes, concentrations, 0,
-            where=(np.array(times) > presence_start) & (np.array(times) < presence_finish),
-            color="#1f77b4", alpha=0.1,
-            label="Presence of exposed person(s)" if i == 0 else ""
-        )
-
-    # Place a legend outside of the axes itself.
-    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-    ax.set_ylim(0)
-
-    return fig
-    
 
 def minutes_to_time(minutes: int) -> str:
     minute_string = str(minutes % 60)
@@ -281,39 +242,7 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
     return scenarios
 
 
-def comparison_plot(scenarios: typing.Dict[str, dict], sample_times: typing.List[float]):
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
-
-    dash_styled_scenarios = [
-        'Base scenario with FFP2 masks',
-        'Base scenario with HEPA filter',
-        'Base scenario with HEPA and FFP2 masks',
-    ]
-
-    sample_dts = [datetime(1970, 1, 1) + timedelta(hours=time) for time in sample_times]
-    for name, statistics in scenarios.items():
-        concentrations = statistics['concentrations']
-
-        if name in dash_styled_scenarios:
-            ax.plot(sample_dts, concentrations, label=name, linestyle='--')
-        else:
-            ax.plot(sample_dts, concentrations, label=name, linestyle='-', alpha=0.5)
-
-    # Place a legend outside of the axes itself.
-    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
-
-    ax.set_xlabel('Time of day')
-    ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
-    ax.set_title('Mean concentration of virions')
-
-    return fig
-
-
-def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[float]):
+def scenario_statistics(mc_model: mc.ExposureModel, sample_times: np.ndarray):
     model = mc_model.build_model(size=_DEFAULT_MC_SAMPLE_SIZE)
     return {
         'probability_of_infection': np.mean(model.infection_probability()),
@@ -342,7 +271,6 @@ def comparison_report(
     for (name, model), model_stats in zip(scenarios.items(), results):
         statistics[name] = model_stats
     return {
-        'plot': img2base64(_figure2bytes(comparison_plot(statistics, sample_times))),
         'stats': statistics,
     }
 
@@ -405,6 +333,7 @@ class ReportGenerator:
         env.filters['minutes_to_time'] = minutes_to_time
         env.filters['float_format'] = "{0:.2f}".format
         env.filters['int_format'] = "{:0.0f}".format
+        env.filters['JSONify'] = json.dumps
         return env
 
     def render(self, context: dict) -> str:
