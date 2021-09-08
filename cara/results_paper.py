@@ -257,9 +257,9 @@ def exposure_model_from_vl_talking_cn():
 ############ Statistical Data ############
 
 
-def get_statistical_data(activity: str):
+def get_statistical_data(activity: str, mask: str):
     ############ Breathing model ############
-    exposure_mc = breathing_exposure(activity)
+    exposure_mc = breathing_exposure(activity, mask)
     exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
     emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(
         cn_B=0.06, cn_L=0.2)
@@ -268,7 +268,7 @@ def get_statistical_data(activity: str):
     print_er_info(emission_rate, breathing_er)
 
     ############ Speaking model ############
-    exposure_mc = speaking_exposure(activity)
+    exposure_mc = speaking_exposure(activity, mask)
     exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
     emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(
         cn_B=0.06, cn_L=0.2)
@@ -277,7 +277,7 @@ def get_statistical_data(activity: str):
     print_er_info(emission_rate, speaking_er)
 
     ############ Shouting model ############
-    exposure_mc = shouting_exposure(activity)
+    exposure_mc = shouting_exposure(activity, mask)
     exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
     emission_rate = exposure_model.concentration_model.infected.emission_rate_when_present(
         cn_B=0.06, cn_L=0.2)
@@ -290,8 +290,8 @@ def get_statistical_data(activity: str):
     return viral_load_in_sputum, breathing_er, speaking_er, shouting_er
 
 
-def present_vl_er_histograms(activity: str):
-    viral_load_in_sputum, breathing_er, speaking_er, shouting_er = get_statistical_data(activity)
+def present_vl_er_histograms(activity: str, mask: str):
+    viral_load_in_sputum, breathing_er, speaking_er, shouting_er = get_statistical_data(activity, mask)
 
     fig, axs = plt.subplots(1, 2, sharex=False, sharey=False)
     fig.set_figheight(5)

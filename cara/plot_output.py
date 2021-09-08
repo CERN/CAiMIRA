@@ -30,8 +30,9 @@ print('\n<<<<<<<<<<< Vlout for Breathing, seated with chosen Cn,B >>>>>>>>>>>')
 print('\n')
 
 ############ Plots with viral loads and emission rates + statistical data ############
-present_vl_er_histograms(activity='Seated')
-present_vl_er_histograms(activity='Light activity')
+present_vl_er_histograms(activity='Seated', mask='No mask')
+present_vl_er_histograms(activity='Light activity', mask='No mask')
+present_vl_er_histograms(activity='Heavy exercise', mask='No mask')
 
 ############ CDFs for comparing the QR-Values in different scenarios ############
 #generate_cdf_curves()
