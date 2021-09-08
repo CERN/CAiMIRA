@@ -50,7 +50,6 @@ from .utils import method_cache
 
 from .dataclass_utils import nested_replace
 
-
 # Define types for items supporting vectorisation. In the future this may be replaced
 # by ``np.ndarray[<type>]`` once/if that syntax is supported. Note that vectorization
 # implies 1d arrays: multi-dimensional arrays are not supported.
@@ -429,6 +428,9 @@ class Virus:
     #: Dose to initiate infection, in RNA copies
     infectious_dose: _VectorisedFloat
 
+    #: viable-to-RNA virus ratio as a function of the viral load
+    viable_to_RNA: _VectorisedFloat
+
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
 
@@ -465,19 +467,23 @@ Virus.types = {
         # as per https://www.dhs.gov/publication/st-master-question-list-covid-19
         # 50 comes from Buonanno et al.
         infectious_dose=50.,
+        viable_to_RNA = 0.5,
     ),
     'SARS_CoV_2_B117': SARSCoV2(
         # also called VOC-202012/01
         viral_load_in_sputum=1e9,
         infectious_dose=30.,
+        viable_to_RNA = 0.5,
     ),
     'SARS_CoV_2_P1': SARSCoV2(
         viral_load_in_sputum=1e9,
         infectious_dose=1/0.045,
+        viable_to_RNA = 0.5,
     ),
     'SARS_CoV_2_B16172': SARSCoV2(
         viral_load_in_sputum=1e9,
         infectious_dose=30/1.6,
+        viable_to_RNA = 0.5,
     ),
 }
 
@@ -677,8 +683,9 @@ class InfectedPopulation(Population):
     expiration: _ExpirationBase
 
     #: The percentage of host immunity
-    host_immunity: float = 0.0
+    host_immunity: float = 0.
 
+   
     def emission_rate_when_present(self, cn_B: float = 0.06, cn_L: float = 0.2) -> _VectorisedFloat:
         """
         The emission rate if the infected population is present.
@@ -891,11 +898,13 @@ class ExposureModel:
 
     def infection_probability(self) -> _VectorisedFloat:
         exposure = self.exposure()
+        print('oi', self.concentration_model.infected.virus.viable_to_RNA)
 
+        # Dose
         inf_aero = (
             self.exposed.activity.inhalation_rate *
             (1 - self.exposed.mask.inhale_efficiency()) *
-            exposure * self.fraction_deposited
+            exposure * self.fraction_deposited * (self.concentration_model.infected.virus.viable_to_RNA * (1 - self.concentration_model.infected.host_immunity))
         )
 
         # Probability of infection.
