@@ -29,11 +29,12 @@ print('\n<<<<<<<<<<< Vlout for Breathing, seated with chosen Cn,B >>>>>>>>>>>')
 #exposure_model_from_vl_breathing_cn()
 print('\n')
 
-############ Plots with viral loads and emission rates ############
-#present_vl_er_histograms()
+############ Plots with viral loads and emission rates + statistical data ############
+present_vl_er_histograms(activity='Seated')
+present_vl_er_histograms(activity='Light activity')
 
 ############ CDFs for comparing the QR-Values in different scenarios ############
-generate_cdf_curves()
+#generate_cdf_curves()
 
 ############ Used for testing ############
 #exposure_model_from_vl_talking_new_points()

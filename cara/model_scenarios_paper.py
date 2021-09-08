@@ -29,7 +29,7 @@ yann_er = [8396.78166, 45324.55964, 400054.0827]
 ######### Standard exposure models ###########
 
 ######### Breathing model ###########
-def breathing_exposure():
+def breathing_exposure(activity: str):
     exposure_mc = mc.ExposureModel(
         concentration_model=mc.ConcentrationModel(
             room=models.Room(volume=100, humidity=0.5),
@@ -45,21 +45,21 @@ def breathing_exposure():
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types["No mask"],
-                activity=activity_distributions['Seated'],
+                activity=activity_distributions[activity],
                 expiration=models.Expiration.types['Breathing'],
             ),
         ),
         exposed=mc.Population(
             number=14,
             presence=mc.SpecificInterval(((0, 2),)),
-            activity=models.Activity.types['Seated'],
+            activity=models.Activity.types[activity],
             mask=models.Mask.types["No mask"],
         ),
     )
     return exposure_mc
 
 ######### Speaking model ###########
-def speaking_exposure():
+def speaking_exposure(activity: str):
     exposure_mc = mc.ExposureModel(
         concentration_model=mc.ConcentrationModel(
             room=models.Room(volume=100, humidity=0.5),
@@ -75,21 +75,21 @@ def speaking_exposure():
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types["No mask"],
-                activity=activity_distributions['Seated'],
+                activity=activity_distributions[activity],
                 expiration=models.Expiration.types['Talking'],
             ),
         ),
         exposed=mc.Population(
             number=14,
             presence=mc.SpecificInterval(((0, 2),)),
-            activity=models.Activity.types['Seated'],
+            activity=models.Activity.types[activity],
             mask=models.Mask.types["No mask"],
         ),
     )
     return exposure_mc
 
 ######### Shouting model ###########
-def shouting_exposure():
+def shouting_exposure(activity: str):
     exposure_mc = mc.ExposureModel(
         concentration_model=mc.ConcentrationModel(
             room=models.Room(volume=100, humidity=0.5),
@@ -105,14 +105,14 @@ def shouting_exposure():
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types["No mask"],
-                activity=activity_distributions['Seated'],
+                activity=activity_distributions[activity],
                 expiration=models.Expiration.types['Shouting'],
             ),
         ),
         exposed=mc.Population(
             number=14,
             presence=mc.SpecificInterval(((0, 2),)),
-            activity=models.Activity.types['Seated'],
+            activity=models.Activity.types[activity],
             mask=models.Mask.types["No mask"],
         ),
     )
