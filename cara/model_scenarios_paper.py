@@ -1,5 +1,5 @@
 from cara import models
-from cara.monte_carlo.data import activity_distributions, symptomatic_vl_frequencies
+from cara.monte_carlo.data import activity_distributions, symptomatic_vl_frequencies, infectious_virus_distribution
 import cara.monte_carlo as mc
 import numpy as np
 
@@ -42,6 +42,7 @@ def breathing_exposure(activity: str, mask: str):
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
                     infectious_dose=50.,
+                    viable_to_RNA=infectious_virus_distribution
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types[mask],
@@ -72,6 +73,7 @@ def speaking_exposure(activity: str, mask: str):
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
                     infectious_dose=50.,
+                    viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types[mask],
@@ -102,6 +104,7 @@ def shouting_exposure(activity: str, mask: str):
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
                     infectious_dose=50.,
+                    viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types[mask],
@@ -132,6 +135,7 @@ def breathing_exposure_vl(vl):
                 virus=models.Virus(
                     viral_load_in_sputum=10**vl,
                     infectious_dose=50.,
+                    viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types["No mask"],
@@ -162,6 +166,7 @@ def talking_exposure_vl(vl):
                 virus=models.Virus(
                     viral_load_in_sputum=10**vl,
                     infectious_dose=50.,
+                    viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types["No mask"],
@@ -193,6 +198,7 @@ def breathing_seated_exposure():
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
                     infectious_dose=50.,
+                    viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types["No mask"],
@@ -222,6 +228,7 @@ def breathing_light_activity_exposure():
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
                     infectious_dose=50.,
+                    viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types["No mask"],
@@ -251,6 +258,7 @@ def breathing_heavy_exercise_exposure():
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
                     infectious_dose=50.,
+                    viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types["No mask"],
@@ -281,6 +289,7 @@ def speaking_seated_exposure():
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
                     infectious_dose=50.,
+                    viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types["No mask"],
@@ -310,6 +319,7 @@ def speaking_light_activity_exposure():
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
                     infectious_dose=50.,
+                    viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types["No mask"],
@@ -339,6 +349,7 @@ def speaking_heavy_exercise_exposure():
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
                     infectious_dose=50.,
+                    viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types["No mask"],
@@ -369,6 +380,7 @@ def shouting_seated_exposure():
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
                     infectious_dose=50.,
+                    viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types["No mask"],
@@ -398,6 +410,7 @@ def shouting_light_activity_exposure():
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
                     infectious_dose=50.,
+                    viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types["No mask"],
@@ -427,6 +440,7 @@ def shouting_heavy_exercise_exposure():
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
                     infectious_dose=50.,
+                    viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types["No mask"],

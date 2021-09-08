@@ -72,3 +72,5 @@ mask_distributions = {
     'Type I': mc.Mask(Uniform(0.25, 0.80)),
     'FFP2': mc.Mask(Uniform(0.83, 0.91)),
 }
+
+infectious_virus_distribution = Uniform(0.15, 0.45)
