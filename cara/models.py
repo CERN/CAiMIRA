@@ -539,7 +539,7 @@ class _ExpirationBase:
     #: Pre-populated examples of Expirations.
     types: typing.ClassVar[typing.Dict[str, "_ExpirationBase"]]
 
-    def aerosols(self, mask: Mask):
+    def aerosols(self, mask: Mask, cn_B: float, cn_L: float):
         """
         total volume of aerosols expired per volume of air (mL/cm^3).
         """
@@ -608,9 +608,9 @@ class MultipleExpiration(_ExpirationBase):
             raise ValueError("expirations and weigths should contain the"
                              "same number of elements")
 
-    def aerosols(self, mask: Mask):
+    def aerosols(self, mask: Mask, cn_B: float, cn_L: float):
         return np.array([
-            weight * expiration.aerosols(mask) / sum(self.weights)
+            weight * expiration.aerosols(mask, cn_B, cn_L) / sum(self.weights)
             for weight,expiration in zip(self.weights,self.expirations)
         ]).sum(axis=0)
 
@@ -676,7 +676,10 @@ class InfectedPopulation(Population):
     #: The type of expiration that is being emitted whilst doing the activity.
     expiration: _ExpirationBase
 
-    def emission_rate_when_present(self, cn_B: float, cn_L: float) -> _VectorisedFloat:
+    #: The percentage of host immunity
+    host_immunity: float = 0.0
+
+    def emission_rate_when_present(self, cn_B: float = 0.06, cn_L: float = 0.2) -> _VectorisedFloat:
         """
         The emission rate if the infected population is present.
 
@@ -718,7 +721,7 @@ class InfectedPopulation(Population):
         # with a declaration of state change time, as is the case for things
         # like Ventilation.
 
-        return self.emission_rate_when_present()
+        return self.emission_rate_when_present(cn_B=0.06, cn_L=0.2)
 
     def emission_rate(self, time) -> _VectorisedFloat:
         """
