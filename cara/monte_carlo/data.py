@@ -44,18 +44,22 @@ virus_distributions = {
     'SARS_CoV_2': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
                 infectious_dose=100,
+                viable_to_RNA=Uniform(0.15, 0.45),
                 ),
     'SARS_CoV_2_B117': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
                 infectious_dose=60,
+                viable_to_RNA=Uniform(0.15, 0.45),
                 ),
     'SARS_CoV_2_P1': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
                 infectious_dose=100/2.25,
+                viable_to_RNA=Uniform(0.15, 0.45),
                 ),
     'SARS_CoV_2_B16172': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
                 infectious_dose=60/1.6,
+                viable_to_RNA=Uniform(0.15, 0.45),
                 ),
 }
 
