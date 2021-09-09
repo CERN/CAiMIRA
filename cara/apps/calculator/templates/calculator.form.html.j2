@@ -271,7 +271,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
 
 
     <div style=" margin-right:2rem;">
-      <div style="padding:10px; border: 2px solid rgb(47, 52, 66);">
+      <div class="boxMargin">
         Exposed person(s) presence:<br>
         <div class="split">
         <div>
@@ -284,7 +284,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
       </div>
       <br>
 
-      <div style="padding:10px; border: 2px solid rgb(47, 52, 66);">
+      <div class="boxMargin">
         Infected person(s) presence:<br>
         <div class="split">
         <div>
@@ -332,9 +332,9 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
       <label for="infected_dont_have_breaks_with_exposed" class="form-check-label col-sm-12">Input separate breaks for infected and exposed person(s)</label>
 
     </div><br>
-    <div id="DIVexposed_breaks" style="float:left; margin-left:1rem; margin-right:2rem;">
+    <div class="breakBoxExposed" id="DIVexposed_breaks">
       <span id="exposed_break_title" style="display:none;"><b>Exposed person(s) breaks:</b></span>
-      <div style="padding:10px; border: 2px solid rgb(47, 52, 66);">
+      <div class="boxMargin">
         Lunch break:&nbsp;&nbsp;
         <input type="radio" id="exposed_lunch_option_no" data-lunch-select="exposed" name="exposed_lunch_option" value=0 onclick="require_fields(this)">
           <label for="exposed_lunch_option_no">No</label>&nbsp;&nbsp;
@@ -379,9 +379,9 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
       <br>
     </div>
 
-    <div id="DIVinfected_breaks" style="display:none; float:left; margin-left:1rem; margin-right:2rem;">
+    <div class="breakBoxInfected" id="DIVinfected_breaks">
       <b>Infected person(s) breaks:</b>
-      <div style="padding:10px; border: 2px solid rgb(47, 52, 66);">
+      <div class="boxMargin">
         Lunch break:&nbsp;&nbsp;
         <input type="radio" id="infected_lunch_option_no" data-lunch-select="infected" name="infected_lunch_option" value=0 onclick="require_fields(this)">
           <label for="infected_lunch_option_no">No</label>&nbsp;&nbsp;
