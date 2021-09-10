@@ -23,7 +23,8 @@
 			<h2 class="text-component-title mb-0">CARA - CALCULATOR REPORT</h1>
 			<p class="mb-0"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
 		</div>
-		<button type="button" class="btn btn-outline-dark align-self-center" style="margin-right: -100pt" id="download-pdf" onclick="print()">Print Report</button>
+		<button type="button" class="btn btn-outline-dark align-self-center" id="print-button" style="margin-right: -100pt" onclick="print()">Print Report</button>
+		<a href="{{ permalink.link }}" style="float: left;" id="pdf_qrcode_aref" class="align-self-center invisible"><div id="pdf_qrcode"></div></a>
 	</div>
 
 {% endblock report_header %}
@@ -442,6 +443,11 @@
         text: "{{ permalink.shortened }}",
         width: 330,
         height: 330}
+    );
+	new QRCode(document.getElementById("pdf_qrcode"), {
+        text: "{{ permalink.shortened }}",
+        width: 133,
+		height: 133}
     );
 </script>
 
