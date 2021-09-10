@@ -441,17 +441,17 @@ def calculate_cunningham_slip_factor(d:int):
 # Deposition factor for a breathing model
 def calculate_deposition_factor():
 
-    exposure_mc = breathing_exposure(activity='Seated', mask='No mask')
+    exposure_mc = breathing_exposure(activity='Heavy exercise', mask='No mask')
     exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
 
-    Pp = 1000
-    Uair = 1.8*10**-5
+    rho_p = 1000
+    mu_air = 1.8*10**-5
     FRC = 0.003
     Vt = 0.0004
     g = 9.8
     BRk = exposure_model.exposed.activity.inhalation_rate
 
-    diameters = np.linspace(0.3, 30, 200) #particle diameter (multiply later by 10**(-6))
+    diameters = np.linspace(0.3, 100, 200) #particle diameter (multiply later by 10**(-6))
     
     fractions = []
     for d in diameters:
@@ -459,9 +459,9 @@ def calculate_deposition_factor():
         cunningham_slip_factor = calculate_cunningham_slip_factor(d)
         f_dep = 0.08 + 0.92 / (
             1 + (4.09*10**-6 * (
-                (((cunningham_slip_factor*Pp*d**2*(BRk/3600))/Uair*FRC)**0.8) + (
+                (((cunningham_slip_factor*rho_p*d**2*(BRk/3600))/mu_air*FRC)**0.8) + (
                     0.01*(
-                        ((cunningham_slip_factor*g*Pp*d**2*FRC**(2/3))/(Uair*(BRk/3600))**0.4) * (
+                        ((cunningham_slip_factor*g*rho_p*d**2*FRC**(2/3))/(mu_air*(BRk/3600))**0.4) * (
                             (Vt/FRC)**0.8
                         ) 
                     )
@@ -474,7 +474,6 @@ def calculate_deposition_factor():
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
     ax.plot(diameters, fractions)
-    print(diameters)
 
     plt.ylabel(
         'Deposition fraction (f$_{dep}$)', fontsize=14)
