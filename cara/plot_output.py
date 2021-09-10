@@ -4,7 +4,7 @@ Date: <date>
 Code version: <code version>
 Availability: <where it's located> """
 
-from cara.models import InfectedPopulation
+from cara.models import ExposureModel, InfectedPopulation
 from cara import model_scenarios_paper
 from cara.results_paper import *
 from cara.test_plots import *
@@ -30,12 +30,16 @@ print('\n<<<<<<<<<<< Vlout for Breathing, seated with chosen Cn,B >>>>>>>>>>>')
 print('\n')
 
 ############ Plots with viral loads and emission rates + statistical data ############
-present_vl_er_histograms(activity='Seated', mask='No mask')
-present_vl_er_histograms(activity='Light activity', mask='No mask')
-present_vl_er_histograms(activity='Heavy exercise', mask='No mask')
+#present_vl_er_histograms(activity='Seated', mask='No mask')
+#present_vl_er_histograms(activity='Light activity', mask='No mask')
+#present_vl_er_histograms(activity='Heavy exercise', mask='No mask')
 
 ############ CDFs for comparing the QR-Values in different scenarios ############
 #generate_cdf_curves()
+
+############ Deposition Fraction Graph ############
+print('\n<<<<<<<<<<< Deposition Fraction for Breathing, seated >>>>>>>>>>>') 
+calculate_deposition_factor()
 
 ############ Used for testing ############
 #exposure_model_from_vl_talking_new_points()

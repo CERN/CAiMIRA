@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import matplotlib.lines as mlines
 import matplotlib as mpl
+import math
 
 
 ######### Plot material #########
@@ -415,6 +416,71 @@ def generate_cdf_curves():
     fig.set_figwidth(5)
     plt.show()
 
+############ Deposition Fraction Graph ############ 
+# :D particle diameter - varies between 0.3*10**(-6) and 30*10**(-6)
+# :Pp mass density - 1000 kg/m-3
+# :Uair dynamic viscosity of air - 1.8*10**(-5)
+# :FRC functional residual capacity of lungs - 0.003m3
+# :Vt tidal volume - 0.0004m3
+# :g gravity of earth - 9.8m/s**(-2)
+# :BRk mask - inhalation rate
+# Cs(D) Cunningham slip factor
+#   lambda = 0.065
+#   A1 = 1.246
+#   A2 = 0.42
+#   A3 = 0.87
+
+def calculate_cunningham_slip_factor(d:int):
+    _lambda=0.065
+    A1 = 1.246
+    A2 = 0.42
+    A3 = 0.87
+
+    return 1 + (((2*_lambda)/d) * (A1+(A2*(math.e**((-A3*d)/_lambda)))))
+
+# Deposition factor for a breathing model
+def calculate_deposition_factor():
+
+    exposure_mc = breathing_exposure(activity='Seated', mask='No mask')
+    exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
+
+    Pp = 1000
+    Uair = 1.8*10**-5
+    FRC = 0.003
+    Vt = 0.0004
+    g = 9.8
+    BRk = exposure_model.exposed.activity.inhalation_rate
+
+    diameters = np.linspace(0.3, 30, 200) #particle diameter (multiply later by 10**(-6))
+    
+    fractions = []
+    for d in diameters:
+        d = d*10**(-6)
+        cunningham_slip_factor = calculate_cunningham_slip_factor(d)
+        f_dep = 0.08 + 0.92 / (
+            1 + (4.09*10**-6 * (
+                (((cunningham_slip_factor*Pp*d**2*(BRk/3600))/Uair*FRC)**0.8) + (
+                    0.01*(
+                        ((cunningham_slip_factor*g*Pp*d**2*FRC**(2/3))/(Uair*(BRk/3600))**0.4) * (
+                            (Vt/FRC)**0.8
+                        ) 
+                    )
+                )
+            )**(-2.06)
+        ))
+
+        fractions.append(f_dep)
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    ax.plot(diameters, fractions)
+    print(diameters)
+
+    plt.ylabel(
+        'Deposition fraction (f$_{dep}$)', fontsize=14)
+    plt.xlabel('Particle diameter (μm)', fontsize=14)
+
+    plt.show()
 
 ######### Auxiliar functions #########
 
