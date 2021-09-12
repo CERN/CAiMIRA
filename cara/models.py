@@ -560,8 +560,11 @@ class Expiration(_ExpirationBase):
     # speaking, singing, or shouting).
     BLO_factors: typing.Tuple[float, float, float]
 
+    #: diameter of the aerosol in microns
+    diameter: _VectorisedFloat
+
     @cached()
-    def aerosols(self, mask: Mask):
+    def aerosols_(self, mask: Mask):
         """ Result is in mL.cm^-3 """
         def volume(d):
             return (np.pi * d**3) / 6.
@@ -590,6 +593,15 @@ class Expiration(_ExpirationBase):
         # final result converted from microns^3/cm3 to mL/cm^3
         return scipy.integrate.quad(integrand, 0.1, 30.)[0]*1e-12
 
+    @cached()
+    def aerosols(self, mask: Mask):
+        """ Result is in mL.cm^-3 """
+        def volume(d):
+            return (np.pi * d**3) / 6.
+
+        return (volume(self.diameter) * 
+                (1 - mask.exhale_efficiency(self.diameter))) * 1e-12
+
 
 @dataclass(frozen=True)
 class MultipleExpiration(_ExpirationBase):
@@ -616,10 +628,11 @@ class MultipleExpiration(_ExpirationBase):
 
 
 _ExpirationBase.types = {
-    'Breathing': Expiration((1., 0., 0.)),
-    'Talking': Expiration((1., 1., 1.)),
-    'Shouting': Expiration((1., 5., 5.)),
-    'Singing': Expiration((1., 5., 5.)),
+    'Breathing': Expiration((1., 0., 0.), 1.3844),
+    'Talking': Expiration((1., 1., 1.), 5.8925),
+    'Shouting': Expiration((1., 5., 5.), 10.0411),
+    'Singing': Expiration((1., 5., 5.), 10.0411),
+    'Superspreading event': Expiration((np.inf, 0., 0.), 10.0411),
 }
 
 
@@ -748,7 +761,7 @@ class ConcentrationModel:
 
     def infectious_virus_removal_rate(self, time: float) -> _VectorisedFloat:
         # Particle deposition on the floor (value from CERN-OPEN-2021-04)
-        vg = 1.88e-4
+        vg = 1.88e-4 # value corresponding to a diameter of 2.5 microns
         # Height of the emission source to the floor - i.e. mouth/nose (m)
         h = 1.5
         # Deposition rate (h^-1)
