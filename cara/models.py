@@ -693,9 +693,8 @@ class _PopulationWithVirus(Population):
     #: The type of expiration that is being emitted whilst doing the activity.
     expiration: _ExpirationBase
 
-    #: Optionally, this provides directly the emission rate of a single individual,
-    # in units of virions * virus.infectious_dose / h (i.e. it is
-    # multiplied by the virus infectious dose, to get virions / h))
+    #: Optionally, this provides directly the emission rate of a single
+    # individual, in virions / h.
     # This effectively overrides the "expiration" parameter.
     known_individual_emission_rate: float = np.nan
 

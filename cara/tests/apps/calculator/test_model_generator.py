@@ -22,14 +22,20 @@ def test_model_from_dict_invalid(baseline_form_data):
         model_generator.FormData.from_dict(baseline_form_data)
 
 
-def test_blend_expiration():
+@pytest.mark.parametrize(
+    ["mask_type"],
+    [
+        ["No mask"],
+        ["Type I"],
+    ]
+)
+def test_blend_expiration(mask_type):
     blend = {'Breathing': 2, 'Talking': 1}
     r = model_generator.build_expiration(blend)
-    mask = models.Mask.types['Type I']
-    expected = models.Expiration(
-        (0.13466666666666668, 0.02866666666666667, 0.004333333333333334),
-        2.5)
-    npt.assert_almost_equal(r.aerosols(mask), expected.aerosols(mask))
+    mask = models.Mask.types[mask_type]
+    expected = (models.Expiration.types['Breathing'].aerosols(mask)*2/3. +
+                models.Expiration.types['Talking'].aerosols(mask)/3.)
+    npt.assert_allclose(r.aerosols(mask), expected)
 
 
 def test_ventilation_slidingwindow(baseline_form: model_generator.FormData):
