@@ -183,6 +183,37 @@ def talking_exposure_vl(vl):
     )
     return exposure_mc
 
+######### Shouting model for specific viral load ###########
+def shouting_exposure_vl(vl):
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
+            ventilation=models.AirChange(
+                active=models.SpecificInterval(((0, 24),)),
+                air_exch=0.25,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=mc.Virus(
+                    viral_load_in_sputum=10**vl,
+                    infectious_dose=50.,
+                    viable_to_RNA=infectious_virus_distribution,
+                ),
+                presence=mc.SpecificInterval(((0, 2),)),
+                mask=models.Mask.types['No mask'],
+                activity=activity_distributions['Light activity'],
+                expiration=models.Expiration.types['Shouting'],
+            ),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=mc.SpecificInterval(((0, 2),)),
+            activity=models.Activity.types['Light activity'],
+            mask=models.Mask.types["No mask"],
+        ),
+    )
+    return exposure_mc
+
 ######### Used for CDF Models ###########
 ######### Breathing Models #########
 def breathing_seated_exposure():

@@ -274,6 +274,39 @@ def exposure_model_from_vl_talking_cn():
     plt.xlabel('NP viral load, $\mathrm{vl_{in}}$\n(RNA copies)', fontsize=14)
     plt.show()
 
+####### Shouting ########
+
+
+def exposure_model_from_vl_shouting():
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+
+    er_means_1h = []
+
+    for vl in tqdm(viral_loads):
+        exposure_mc = shouting_exposure_vl(vl)
+        exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
+        emission_rate_1h = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B=0.06, cn_L=0.2)
+        er_means_1h.append(np.mean(emission_rate_1h))
+
+    ax.plot(viral_loads, er_means_1h)
+    ax.set_yscale('log')
+
+    ratio_1h = np.mean(10**viral_loads / er_means_1h)
+    print('Mean swab-to-aersol vl ratio emission rate per hour:')
+    print(format(ratio_1h, "5.1e"))
+
+    ############ Plot ############
+    plt.title('',
+              fontsize=16, fontweight="bold")
+    plt.ylabel(
+        'Aerosol viral load, $\mathrm{vl_{out}}$\n(RNA copies)', fontsize=14)
+    plt.xticks(ticks=[i for i in range(2, 13)], labels=[
+        '$10^{' + str(i) + '}$' for i in range(2, 13)])
+    plt.xlabel('NP viral load, $\mathrm{vl_{in}}$\n(RNA copies)', fontsize=14)
+    plt.show()
+
+
 ############ Plots with viral loads and emission rates ############
 ############ Statistical Data ############
 

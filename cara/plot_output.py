@@ -18,7 +18,11 @@ print('\n<<<<<<<<<<< Vlout for Talking, seated >>>>>>>>>>>')
 
 # Exhaled virions while breathing, seated #
 print('\n<<<<<<<<<<< Vlout for Breathing, seated >>>>>>>>>>>')
-#exposure_model_from_vl_breathing()
+exposure_model_from_vl_breathing()
+
+# Exhaled virions while breathing, light activity #
+print('\n<<<<<<<<<<< Vlout for Shouting, light activity >>>>>>>>>>>')
+exposure_model_from_vl_shouting()
 
 # Exhaled virions while talking according to BLO model, seated #
 print('\n<<<<<<<<<<< Vlout for Talking, seated with chosen Cn,L >>>>>>>>>>>')
