@@ -27,8 +27,8 @@ def test_blend_expiration():
     r = model_generator.build_expiration(blend)
     mask = models.Mask.types['Type I']
     expected = models.Expiration(
-        (0.13466666666666668, 0.02866666666666667, 0.004333333333333334, 0.005)
-    )
+        (0.13466666666666668, 0.02866666666666667, 0.004333333333333334),
+        2.5)
     npt.assert_almost_equal(r.aerosols(mask), expected.aerosols(mask))
 
 

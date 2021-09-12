@@ -218,7 +218,10 @@ def skagit_chorale_mc():
             presence=mc.SpecificInterval(((0., 2.5),)),
             mask=models.Mask.types["No mask"],
             activity=activity_distributions['Light activity'],
-            expiration=models.Expiration((5., 5., 5.)),
+            expiration=models.Expiration((5., 5., 5.), 10.0761),
+            # The aerosol diameter given (10.0761 microns) is an equivalent
+            # diameter, chosen in such a way that the aerosol volume is
+            # the same as the total aerosol volume given by the full BLO model.
         ),
     )
     return mc.ExposureModel(

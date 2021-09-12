@@ -630,12 +630,14 @@ class MultipleExpiration(_ExpirationBase):
         ]).sum(axis=0)
 
 
+# Typical expirations. The aerosol diameter given is an equivalent
+# diameter, chosen in such a way that the aerosol volume is
+# the same as the total aerosol volume given by the full BLO model.
 _ExpirationBase.types = {
-    'Breathing': Expiration((1., 0., 0.), 1.3844),
-    'Talking': Expiration((1., 1., 1.), 5.8925),
-    'Shouting': Expiration((1., 5., 5.), 10.0411),
-    'Singing': Expiration((1., 5., 5.), 10.0411),
-    'Superspreading event': Expiration((np.inf, 0., 0.), 10.0411),
+    'Breathing': Expiration((1., 0., 0.)),
+    'Talking': Expiration((1., 1., 1.)),
+    'Shouting': Expiration((1., 5., 5.)),
+    'Singing': Expiration((1., 5., 5.)),
 }
 
 
@@ -687,6 +689,15 @@ class Population:
 class _PopulationWithVirus(Population):
     #: The virus with which the population is infected.
     virus: Virus
+
+    #: The type of expiration that is being emitted whilst doing the activity.
+    expiration: _ExpirationBase
+
+    #: Optionally, this provides directly the emission rate of a single individual,
+    # in units of virions * virus.infectious_dose / h (i.e. it is
+    # multiplied by the virus infectious dose, to get virions / h))
+    # This effectively overrides the "expiration" parameter.
+    known_individual_emission_rate: float = np.nan
 
     @method_cache
     def emission_rate_when_present(self) -> _VectorisedFloat:
