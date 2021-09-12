@@ -33,7 +33,7 @@ def test_infected_population_vectorisation(override_params):
                 viral_load_in_sputum=defaults['viral_load_in_sputum'],
                 infectious_dose=50.,
             ),
-            expiration=cara.models.Expiration((1., 0., 0.)),
+            expiration=cara.models._ExpirationBase.types['Breathing'],
     )
     emission_rate = infected.emission_rate(10)
     assert isinstance(emission_rate, np.ndarray)

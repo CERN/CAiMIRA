@@ -43,7 +43,7 @@ def test_concentration_model_vectorisation(override_params):
                 viral_load_in_sputum=defaults['viral_load_in_sputum'],
                 infectious_dose=50.,
             ),
-            expiration=models.Expiration((1., 0., 0.)),
+            expiration=models._ExpirationBase.types['Breathing'],
         )
     )
     concentrations = c_model.concentration(10)

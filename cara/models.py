@@ -493,7 +493,7 @@ class Mask:
     #: Pre-populated examples of Masks.
     types: typing.ClassVar[typing.Dict[str, "Mask"]]
 
-    def exhale_efficiency(self, diameter: float) -> _VectorisedFloat:
+    def exhale_efficiency(self, diameter: _VectorisedFloat) -> _VectorisedFloat:
         """
         Overall exhale efficiency, including the effect of the leaks.
         See CERN-OPEN-2021-004 (doi: 10.17181/CERN.1GDQ.5Y75), and Ref.
@@ -502,14 +502,17 @@ class Mask:
         the leakage through the sides.
         Diameter is in microns.
         """
-        if diameter < 0.5:
-            eta_out = 0.
-        elif diameter < 0.94614:
-            eta_out = 0.5893 * diameter + 0.1546
-        elif diameter < 3.:
-            eta_out = 0.0509 * diameter + 0.664
-        else:
-            eta_out = 0.8167
+        d = np.array(diameter)
+        intermediate_range1 = np.bitwise_and(0.5 <= d, d < 0.94614)
+        intermediate_range2 = np.bitwise_and(0.94614 <= d, d < 3.)
+
+        eta_out = np.empty(d.shape, dtype=np.float64)
+
+        eta_out[d < 0.5] = 0.
+        eta_out[intermediate_range1] = 0.5893 * d[intermediate_range1] + 0.1546
+        eta_out[intermediate_range2] = 0.0509 * d[intermediate_range2] + 0.664
+        eta_out[d >= 3.] = 0.8167
+
         return eta_out*self.factor_exhale
 
     def inhale_efficiency(self) -> _VectorisedFloat:
