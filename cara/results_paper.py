@@ -31,6 +31,7 @@ def exposure_model_from_vl_breathing():
     ax = fig.add_subplot(1, 1, 1)
 
     er_means = []
+    er_means_1h = []
     er_medians = []
     lower_percentiles = []
     upper_percentiles = []
@@ -44,6 +45,8 @@ def exposure_model_from_vl_breathing():
         er_medians.append(np.median(emission_rate))
         lower_percentiles.append(np.quantile(emission_rate, 0.01))
         upper_percentiles.append(np.quantile(emission_rate, 0.99))
+        emission_rate_1h = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B=0.06, cn_L=0.2)
+        er_means_1h.append(np.mean(emission_rate_1h))
 
     # divide by 2 to have in 30min (half an hour)
     coleman_etal_er_breathing_2 = [x/2 for x in coleman_etal_er_breathing]
@@ -54,6 +57,13 @@ def exposure_model_from_vl_breathing():
     ax.fill_between(viral_loads, lower_percentiles,
                     upper_percentiles, alpha=0.2)
     ax.set_yscale('log')
+
+    ratio = np.mean(10**viral_loads / er_means)
+    ratio_1h = np.mean(10**viral_loads / er_means_1h)
+    print('Mean swab-to-aersol vl ratio in 30min:')
+    print(format(ratio, "5.1e"))
+    print('Mean swab-to-aersol vl ratio emission rate per hour:')
+    print(format(ratio_1h, "5.1e"))
 
     ############# Coleman #############
     scatter_coleman_data(coleman_etal_vl_breathing,
@@ -158,6 +168,7 @@ def exposure_model_from_vl_talking():
     ax = fig.add_subplot(1, 1, 1)
 
     er_means = []
+    er_means_1h = []
     er_medians = []
     lower_percentiles = []
     upper_percentiles = []
@@ -171,6 +182,8 @@ def exposure_model_from_vl_talking():
         er_medians.append(np.median(emission_rate))
         lower_percentiles.append(np.quantile(emission_rate, 0.01))
         upper_percentiles.append(np.quantile(emission_rate, 0.99))
+        emission_rate_1h = exposure_model.concentration_model.infected.emission_rate_when_present(cn_B=0.06, cn_L=0.2)
+        er_means_1h.append(np.mean(emission_rate_1h))
 
     # divide by 4 to have in 15min (quarter of an hour)
     coleman_etal_er_talking_2 = [x/4 for x in coleman_etal_er_talking]
@@ -179,6 +192,13 @@ def exposure_model_from_vl_talking():
     ax.fill_between(viral_loads, lower_percentiles,
                     upper_percentiles, alpha=0.2)
     ax.set_yscale('log')
+
+    ratio = np.mean(10**viral_loads / er_means)
+    ratio_1h = np.mean(10**viral_loads / er_means_1h)
+    print('Mean swab-to-aersol vl ratio in 30min:')
+    print(format(ratio, "5.1e"))
+    print('Mean swab-to-aersol vl ratio emission rate per hour:')
+    print(format(ratio_1h, "5.1e"))
 
     ############# Coleman #############
     scatter_coleman_data(coleman_etal_vl_talking, coleman_etal_er_talking_2)
@@ -450,25 +470,33 @@ def calculate_deposition_factor():
     Vt = 0.0004
     g = 9.8
     BRk = exposure_model.exposed.activity.inhalation_rate
+    k = 1.38*10**-23
+    T = 300
 
     diameters = np.linspace(0.3, 100, 200) #particle diameter (multiply later by 10**(-6))
     
     fractions = []
     for d in diameters:
-        d = d*10**(-6)
-        cunningham_slip_factor = calculate_cunningham_slip_factor(d)
+        d1 = d*10**(-6)
+        cunningham_slip_factor = calculate_cunningham_slip_factor(d1)
+        #if d > 1:
         f_dep = 0.08 + 0.92 / (
             1 + (4.09*10**-6 * (
-                (((cunningham_slip_factor*rho_p*d**2*(BRk/3600))/mu_air*FRC)**0.8) + (
+                (((cunningham_slip_factor*rho_p*d1**2*(BRk/3600))/mu_air*FRC)**0.8) + (
                     0.01*(
-                        ((cunningham_slip_factor*g*rho_p*d**2*FRC**(2/3))/(mu_air*(BRk/3600))**0.4) * (
+                        ((cunningham_slip_factor*g*rho_p*d1**2*FRC**(2/3))/(mu_air*(BRk/3600))**0.4) * (
                             (Vt/FRC)**0.8
-                        ) 
+                        )
                     )
                 )
             )**(-2.06)
         ))
-
+        #elif d < 0.9:
+        #    f_dep = 1 - 1 / (
+        #            7380*(((k * T * cunningham_slip_factor)\(3 * np.pi * mu_air * d1)*(Vt**(1/3))/(BRk/3600))**0.539 * (Vt/FRC)**0.884) + 1)
+        #else:
+        #    f_dep = 0.5
+        #
         fractions.append(f_dep)
     
     fig = plt.figure()
