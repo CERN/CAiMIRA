@@ -776,6 +776,14 @@ class ConcentrationModel:
         state_change_times.update(self.ventilation.transition_times())
         return sorted(state_change_times)
 
+    @method_cache
+    def _first_presence_time(self) -> float:
+        """
+        First presence time. Before that, the concentration is zero.
+
+        """
+        return self.infected.presence.boundaries()[0][0]
+
     def last_state_change(self, time: float) -> float:
         """
         Find the most recent/previous state change.
@@ -823,7 +831,9 @@ class ConcentrationModel:
         Note that time is not vectorised. You can only pass a single float
         to this method.
         """
-        if time == 0:
+        # The model always starts at t=0, but we avoid running concentration calculations
+        # before the first presence as an optimisation.
+        if time <= self._first_presence_time():
             return 0.0
         next_state_change_time = self._next_state_change(time)
         IVRR = self.infectious_virus_removal_rate(next_state_change_time)
@@ -841,6 +851,8 @@ class ConcentrationModel:
         """
         Get the integrated concentration dose between the times start and stop.
         """
+        if stop <= self._first_presence_time():
+            return 0.0
         state_change_times = self.state_change_times()
         req_start, req_stop = start, stop
         total_concentration = 0.
