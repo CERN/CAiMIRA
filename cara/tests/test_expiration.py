@@ -9,7 +9,7 @@ from cara import models
 
 def test_multiple_wrong_weight_size():
     weights = (1., 2., 3.)
-    e_base = models.Expiration((1., 0., 0.), 2.5)
+    e_base = models.Expiration(2.5)
     with pytest.raises(
             ValueError,
             match=re.escape("expirations and weigths should contain the"
@@ -20,12 +20,12 @@ def test_multiple_wrong_weight_size():
 
 def test_multiple():
     weights = (1., 1.)
-    e1 = models.Expiration((1., 0., 0.), 2.5)
-    e2 = models.Expiration((4., 5., 5.), 2.5)
-    e_expected = models.Expiration((2.5, 2.5, 2.5), 2.5)
-    e = models.MultipleExpiration([e1, e2], weights)
     mask = models.Mask.types['Type I']
-    npt.assert_almost_equal(e_expected.aerosols(mask), e.aerosols(mask))
+    e1 = models.Expiration.types['Breathing']
+    e2 = models.Expiration.types['Singing']
+    aerosol_expected = (e1.aerosols(mask) + e2.aerosols(mask))/2.
+    e = models.MultipleExpiration([e1, e2], weights)
+    npt.assert_almost_equal(aerosol_expected, e.aerosols(mask))
 
 
 # expected values obtained from another code

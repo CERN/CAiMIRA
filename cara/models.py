@@ -552,49 +552,12 @@ class _ExpirationBase:
 @dataclass(frozen=True)
 class Expiration(_ExpirationBase):
     """
-    BLO model for the expiration (G. Johnson et al., Modality of human
-    expired aerosol size distributions, Journal of Aerosol Science,
-    vol. 42, no. 12, pp. 839 – 851, 2011,
-    https://doi.org/10.1016/j.jaerosci.2011.07.009).
-    Here all diameters (d) are in microns.
+    Model for the expiration. For a given diameter of aerosol, provides
+    the aerosol volume, weighted by the mask outward efficiency when
+    applicable.
     """
-    #: factors assigned to resp. the B, L and O modes. They are
-    # charateristics of the kind of expiratory activity (e.g. breathing,
-    # speaking, singing, or shouting).
-    BLO_factors: typing.Tuple[float, float, float]
-
     #: diameter of the aerosol in microns
     diameter: _VectorisedFloat
-
-    @cached()
-    def aerosols_(self, mask: Mask):
-        """ Result is in mL.cm^-3 """
-        def volume(d):
-            return (np.pi * d**3) / 6.
-
-        def _Bmode(d: float) -> float:
-            # B-mode (see ref. above).
-            return ( (1 / d) * (0.1 / (np.sqrt(2 * np.pi) * 0.262364)) *
-                    np.exp(-1 * (np.log(d) - 0.989541) ** 2 / (2 * 0.262364 ** 2)))
-
-        def _Lmode(d: float) -> float:
-            # L-mode (see ref. above).
-            return ( (1 / d) * (1.0 / (np.sqrt(2 * np.pi) * 0.506818)) *
-                    np.exp(-1 * (np.log(d) - 1.38629) ** 2 / (2 * 0.506818 ** 2)))
-
-        def _Omode(d: float) -> float:
-            # O-mode (see ref. above).
-            return ( (1 / d) * (0.0010008 / (np.sqrt(2 * np.pi) * 0.585005)) *
-                    np.exp(-1 * (np.log(d) - 4.97673) ** 2 / (2 * 0.585005 ** 2)))
-
-        def integrand(d: float) -> float:
-            return (self.BLO_factors[0] * _Bmode(d) +
-                    self.BLO_factors[1] * _Lmode(d) +
-                    self.BLO_factors[2] * _Omode(d)
-                    ) * volume(d) * (1 - mask.exhale_efficiency(d))
-
-        # final result converted from microns^3/cm3 to mL/cm^3
-        return scipy.integrate.quad(integrand, 0.1, 30.)[0]*1e-12
 
     @cached()
     def aerosols(self, mask: Mask):
@@ -602,6 +565,7 @@ class Expiration(_ExpirationBase):
         def volume(d):
             return (np.pi * d**3) / 6.
 
+        # final result converted from microns^3/cm3 to mL/cm^3
         return (volume(self.diameter) * 
                 (1 - mask.exhale_efficiency(self.diameter))) * 1e-12
 
@@ -632,12 +596,14 @@ class MultipleExpiration(_ExpirationBase):
 
 # Typical expirations. The aerosol diameter given is an equivalent
 # diameter, chosen in such a way that the aerosol volume is
-# the same as the total aerosol volume given by the full BLO model.
+# the same as the total aerosol volume given by the full BLO model
+# (integrated between 0.1 and 30 microns)
+# The correspondence with the BlO coefficients is given.
 _ExpirationBase.types = {
-    'Breathing': Expiration((1., 0., 0.)),
-    'Talking': Expiration((1., 1., 1.)),
-    'Shouting': Expiration((1., 5., 5.)),
-    'Singing': Expiration((1., 5., 5.)),
+    'Breathing': Expiration(1.3844), # corresponds to B/L/O coefficients of (1, 0, 0)
+    'Talking': Expiration(5.8925),   # corresponds to B/L/O coefficients of (1, 1, 1)
+    'Shouting': Expiration(10.0411), # corresponds to B/L/O coefficients of (1, 5, 5)
+    'Singing': Expiration(10.0411),  # corresponds to B/L/O coefficients of (1, 5, 5)
 }
 
 
