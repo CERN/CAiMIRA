@@ -562,26 +562,14 @@ class Expiration(_ExpirationBase):
     #: total concentration of aerosols (cm^-3)
     cn: float = 1.
 
-    #: diameter of the aerosol in microns
-    diameter: _VectorisedFloat
-
-    @cached()
-    def aerosols_(self, mask: Mask):
-        """ Result is in mL.cm^-3 """
-        def volume(d):
-            return (np.pi * d**3) / 6.
-
-        # final result converted from microns^3/cm3 to mL/cm^3
-        return self.cn * (volume(self.diameter) *
-                (1 - mask.exhale_efficiency(self.diameter))) * 1e-12
-
     @cached()
     def aerosols(self, mask: Mask):
         """ Result is in mL.cm^-3 """
         def volume(d):
             return (np.pi * d**3) / 6.
 
-        return (volume(self.diameter) * 
+        # final result converted from microns^3/cm3 to mL/cm^3
+        return self.cn * (volume(self.diameter) *
                 (1 - mask.exhale_efficiency(self.diameter))) * 1e-12
 
 
