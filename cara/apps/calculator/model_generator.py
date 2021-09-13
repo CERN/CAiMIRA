@@ -117,7 +117,7 @@ class FormData:
         'simulation_name': _NO_DEFAULT,
         'total_people': _NO_DEFAULT,
         'ventilation_type': 'no_ventilation',
-        'virus_type': 'SARS_CoV_2',
+        'virus_type': 'SARS_CoV_2_B16172',
         'volume_type': _NO_DEFAULT,
         'window_type': 'window_sliding',
         'window_height': 0.,
