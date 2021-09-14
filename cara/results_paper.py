@@ -507,7 +507,7 @@ def calculate_deposition_factor():
     br_heavy_exercise = breathing_heavy_exercise_exposure()
     br_heavy_exercise_model = br_heavy_exercise.build_model(size=SAMPLE_SIZE)
 
-    rho_p = 1.2
+    rho_p = 1000
     mu_air = 1.8*10**-5
     FRC = 0.003
     Vt = 0.0004
@@ -515,7 +515,8 @@ def calculate_deposition_factor():
     k = 1.38*10**-23
     T = 300
     
-    diameters = np.linspace(0.001, 100, 400) #particle diameter (multiply later by 10**(-6))
+    diameters = np.linspace(0.001, 0.01, 1000) #particle diameter (multiply later by 10**(-6))
+    diameters = np.append(diameters, np.linspace(0.01, 100, 400))
     activity_fractions = []
     for scenario in (br_seated_model, br_light_activity_model, br_heavy_exercise_model):
         BRk = scenario.exposed.activity.inhalation_rate
