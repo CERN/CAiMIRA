@@ -922,9 +922,18 @@ class ExposureModel:
         return normed_exposure * self.repeats
 
     def exposure(self) -> _VectorisedFloat:
-        """The number of virus per meter^3."""
-        return (np.array(self._normed_exposure()).mean() *
-                self.concentration_model.infected.emission_rate_when_present())
+        """
+        The number of virus per meter^3. With sampled diameters, the
+        aerosol volume has to be put back in the exposure before taking
+        the mean, to obtain the proper result for the exposure (which
+        corresponds to an integration on diameters).
+        """
+        mask = self.concentration_model.infected.mask
+        aerosols = self.concentration_model.infected.expiration.aerosols(mask)
+        emission_rate = self.concentration_model.infected.emission_rate_when_present()
+
+        return (np.array(self._normed_exposure()*aerosols).mean() *
+                emission_rate/aerosols)
 
     def infection_probability(self) -> _VectorisedFloat:
         exposure = self.exposure()

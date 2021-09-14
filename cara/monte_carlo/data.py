@@ -52,14 +52,6 @@ class BLOmodel:
                     for A,cn,mu,sigma in zip(self.BLO_factors, self.cn,
                                              self.mu, self.sigma) )
 
-    def normalized_distribution(self, d, dmin, dmax):
-        """
-        Return the probability distribution, normalized by its integral
-        between dmin and dmax (microns).
-        """
-        norm = self.integrate(dmin, dmax)
-        return self.distribution(d) / norm
-
     def integrate(self, dmin, dmax):
         """ 
         Returns the integral between dmin and dmax (in microns) of the 
@@ -143,17 +135,17 @@ def expiration_distribution(BLO_factors: typing.Tuple[float, float, float]):
     """
     Returns an Expiration with an aerosol diameter distribution, defined
     by the BLO factors.
-    Note: integration boundaries for normalization are chosen as 0.1 and
-    30 microns respectively - this is an historical choice based on
-    previous implementations of the model (it limits the influence of
-    the O-mode).
+    The total concentration of aerosols is computed by integrating
+    the distribution between 0.1 and 30 microns - these boundaries are
+    an historical choice based on previous implementations of the model
+    (it limits the influence of the O-mode).
     """
+    dscan = np.linspace(0.1, 30. ,3000)
     return mc.Expiration(CustomKernel(dscan,
-                BLOmodel(BLO_factors).normalized_distribution(dscan, 0.1, 30.),
-                kernel_bandwidth=0.1))
+                BLOmodel(BLO_factors).distribution(dscan),kernel_bandwidth=0.1),
+                BLOmodel(BLO_factors).integrate(0.1, 30.))
 
 
-dscan = np.linspace(0.1, 30. ,3000)
 expiration_distributions = {
     'Breathing': expiration_distribution((1., 0., 0.)),
     'Talking':   expiration_distribution((1., 1., 1.)),
