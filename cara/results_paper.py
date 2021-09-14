@@ -484,7 +484,7 @@ def generate_cdf_curves():
 #   A3 = 0.87
 
 def calculate_cunningham_slip_factor(d:int):
-    _lambda=0.065
+    _lambda=0.065*10**-6
     A1 = 1.246
     A2 = 0.42
     A3 = 0.87
@@ -507,15 +507,15 @@ def calculate_deposition_factor():
     br_heavy_exercise = breathing_heavy_exercise_exposure()
     br_heavy_exercise_model = br_heavy_exercise.build_model(size=SAMPLE_SIZE)
 
-    rho_p = 1000
+    rho_p = 1.2
     mu_air = 1.8*10**-5
     FRC = 0.003
     Vt = 0.0004
-    g = 9.8
+    g = 9.81
     k = 1.38*10**-23
     T = 300
     
-    diameters = np.linspace(0.001, 100, 200) #particle diameter (multiply later by 10**(-6))
+    diameters = np.linspace(0.001, 100, 400) #particle diameter (multiply later by 10**(-6))
     activity_fractions = []
     for scenario in (br_seated_model, br_light_activity_model, br_heavy_exercise_model):
         BRk = scenario.exposed.activity.inhalation_rate
@@ -524,29 +524,30 @@ def calculate_deposition_factor():
             d = d_μm*10**(-6)
             cunningham_slip_factor = calculate_cunningham_slip_factor(d)
 
-            f_dep_ine = 0.08 + 0.92 / (
-                    1 + (4.09*10**-6 * (
-                        (((cunningham_slip_factor*rho_p*d**2*(BRk/3600))/mu_air*FRC)**0.8) + (
-                            0.01*(
-                                ((cunningham_slip_factor*g*rho_p*d**2*FRC**(2/3))/(mu_air*(BRk/3600))**0.4) * (
-                                    (Vt/FRC)**0.8
-                                )
-                        )
-                    )
-                )**(-2.06)
-            ))
-            f_dep_diff = 1 - 1 / (
-                7380*(((k * T * cunningham_slip_factor)/(3 * math.pi * mu_air * d)*(Vt**(1/3))/(BRk/3600))**0.539 * ((Vt/FRC)**0.884)) + 1)
+            stk_ = (cunningham_slip_factor*rho_p*(d**2)*(BRk/3600)) / (mu_air * FRC)
+            t_ = (cunningham_slip_factor*g*rho_p*(d**2)*(FRC**(2/3))) / (mu_air * (BRk / 3600))
 
-            f_dep_sed = (0.431 * f_dep_ine) + (0.541 * f_dep_diff) + (1.060 * f_dep_ine**2) + (0.685 * f_dep_diff**2) - (1.521 * f_dep_ine * f_dep_diff)
+            f_dep_ine = 0.08 + (0.92 / (
+                1 + ((4.09*10**(-6) * (
+                    (stk_**0.8) + 0.01 * (t_**0.4) * ((Vt/FRC)**0.8)
+                ) ** -2.06))
+            ))
+
+            X_ = ((k * T * cunningham_slip_factor) / ((3 * math.pi * mu_air * d)) * (((Vt**(1/3)) / (BRk / 3600))))
+            y_ = Vt / FRC
             
+            f_dep_diff = 1 - (
+                1 / ((7380 * (X_ **0.539) * y_**0.884) + 1) 
+            )
+            f_dep_sed = (0.431 * f_dep_ine) + (0.541 * f_dep_diff) + (1.060 * (f_dep_ine**2)) + (0.685 * (f_dep_diff**2)) - (1.521 * f_dep_ine * f_dep_diff)
+                
             # Eq. S.1
             if d_μm < 0.1:
                 f_dep = f_dep_diff
+            elif d_μm >= 0.1 and d_μm < 1.:
+                f_dep = f_dep_sed
             elif d_μm > 1:
                 f_dep = f_dep_ine
-            else:
-                f_dep = f_dep_sed
 
             fractions.append(f_dep)
         activity_fractions.append(fractions)
