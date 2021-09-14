@@ -18,11 +18,11 @@ print('\n<<<<<<<<<<< Vlout for Talking, seated >>>>>>>>>>>')
 
 # Exhaled virions while breathing, seated #
 print('\n<<<<<<<<<<< Vlout for Breathing, seated >>>>>>>>>>>')
-exposure_model_from_vl_breathing()
+#exposure_model_from_vl_breathing()
 
 # Exhaled virions while breathing, light activity #
 print('\n<<<<<<<<<<< Vlout for Shouting, light activity >>>>>>>>>>>')
-exposure_model_from_vl_shouting()
+#exposure_model_from_vl_shouting()
 
 # Exhaled virions while talking according to BLO model, seated #
 print('\n<<<<<<<<<<< Vlout for Talking, seated with chosen Cn,L >>>>>>>>>>>')
@@ -39,7 +39,7 @@ print('\n')
 #present_vl_er_histograms(activity='Heavy exercise', mask='No mask')
 
 ############ CDFs for comparing the QR-Values in different scenarios ############
-#generate_cdf_curves()
+generate_cdf_curves()
 
 ############ Deposition Fraction Graph ############
 print('\n<<<<<<<<<<< Deposition Fraction for Breathing, seated >>>>>>>>>>>') 

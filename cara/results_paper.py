@@ -506,40 +506,49 @@ def calculate_deposition_factor():
     k = 1.38*10**-23
     T = 300
 
-    diameters = np.linspace(0.3, 100, 200) #particle diameter (multiply later by 10**(-6))
+    diameters = np.linspace(0.01, 100, 200) #particle diameter (multiply later by 10**(-6))
     
     fractions = []
     for d in diameters:
-        d1 = d*10**(-6)
-        cunningham_slip_factor = calculate_cunningham_slip_factor(d1)
-        #if d > 1:
-        f_dep = 0.08 + 0.92 / (
-            1 + (4.09*10**-6 * (
-                (((cunningham_slip_factor*rho_p*d1**2*(BRk/3600))/mu_air*FRC)**0.8) + (
-                    0.01*(
-                        ((cunningham_slip_factor*g*rho_p*d1**2*FRC**(2/3))/(mu_air*(BRk/3600))**0.4) * (
-                            (Vt/FRC)**0.8
+        d_μm = d*10**(-6)
+        cunningham_slip_factor = calculate_cunningham_slip_factor(d_μm)
+
+        f_dep_ine = 0.08 + 0.92 / (
+                1 + (4.09*10**-6 * (
+                    (((cunningham_slip_factor*rho_p*d_μm**2*(BRk/3600))/mu_air*FRC)**0.8) + (
+                        0.01*(
+                            ((cunningham_slip_factor*g*rho_p*d_μm**2*FRC**(2/3))/(mu_air*(BRk/3600))**0.4) * (
+                                (Vt/FRC)**0.8
+                            )
                         )
                     )
-                )
-            )**(-2.06)
-        ))
-        #elif d < 0.9:
-        #    f_dep = 1 - 1 / (
-        #            7380*(((k * T * cunningham_slip_factor)\(3 * np.pi * mu_air * d1)*(Vt**(1/3))/(BRk/3600))**0.539 * (Vt/FRC)**0.884) + 1)
-        #else:
-        #    f_dep = 0.5
-        #
+                )**(-2.06)
+            ))
+        f_dep_diff = 1 - (1/ 
+                ((7380*(
+                    ((k * T * cunningham_slip_factor)/3*math.pi*mu_air*d_μm) * 
+                    ((Vt**(1/3)) / (BRk/3600)))**0.539) * ((Vt/FRC)**0.884) + 1))
+
+        f_dep_sed = (0.431 * f_dep_ine) + (0.541 * f_dep_diff) + (1.060 * f_dep_ine**2) + (0.685 * f_dep_diff**2) - (1.521 * f_dep_ine * f_dep_diff)
+        
+        # Eq. S.1
+        if d < 0.3:
+            f_dep = f_dep_diff
+        elif d >= 0.3 and d <= 1.:
+            f_dep = f_dep_sed
+        elif d > 1:
+            f_dep = f_dep_ine
+        
         fractions.append(f_dep)
     
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
     ax.plot(diameters, fractions)
+    
 
     plt.ylabel(
         'Deposition fraction (f$_{dep}$)', fontsize=14)
     plt.xlabel('Particle diameter (μm)', fontsize=14)
-
     plt.show()
 
 ######### Auxiliar functions #########
