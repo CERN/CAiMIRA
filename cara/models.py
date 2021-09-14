@@ -923,7 +923,7 @@ class ExposureModel:
 
     def exposure(self) -> _VectorisedFloat:
         """The number of virus per meter^3."""
-        return (self._normed_exposure() *
+        return (np.array(self._normed_exposure()).mean() *
                 self.concentration_model.infected.emission_rate_when_present())
 
     def infection_probability(self) -> _VectorisedFloat:

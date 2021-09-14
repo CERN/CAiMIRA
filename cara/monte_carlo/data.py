@@ -1,4 +1,8 @@
+from dataclasses import dataclass
+import typing
+
 import numpy as np
+from scipy import special as sp
 
 import cara.monte_carlo as mc
 from cara.monte_carlo.sampleable import Normal,LogNormal,LogCustomKernel,CustomKernel,Uniform
@@ -138,10 +142,14 @@ mask_distributions = {
 def expiration_distribution(BLO_factors: typing.Tuple[float, float, float]):
     """
     Returns an Expiration with an aerosol diameter distribution, defined
-    by the BLO factors
+    by the BLO factors.
+    Note: integration boundaries for normalization are chosen as 0.1 and
+    30 microns respectively - this is an historical choice based on
+    previous implementations of the model (it limits the influence of
+    the O-mode).
     """
     return mc.Expiration(CustomKernel(dscan,
-                BLOmodel(BLO_factors).normalized_distribution(dscan),
+                BLOmodel(BLO_factors).normalized_distribution(dscan, 0.1, 30.),
                 kernel_bandwidth=0.1))
 
 
