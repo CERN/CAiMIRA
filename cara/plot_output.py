@@ -39,7 +39,7 @@ print('\n')
 #present_vl_er_histograms(activity='Heavy exercise', mask='No mask')
 
 ############ CDFs for comparing the QR-Values in different scenarios ############
-generate_cdf_curves()
+#generate_cdf_curves()
 
 ############ Deposition Fraction Graph ############
 print('\n<<<<<<<<<<< Deposition Fraction for Breathing, seated >>>>>>>>>>>') 
