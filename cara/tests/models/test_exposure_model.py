@@ -11,20 +11,20 @@ from cara.dataclass_utils import replace
 
 
 @dataclass(frozen=True)
-class KnownConcentrations(models.ConcentrationModel):
+class KnownNormedconcentration(models.ConcentrationModel):
     """
     A ConcentrationModel which is based on pre-known exposure concentrations and
     which therefore doesn't need other components. Useful for testing.
 
     """
-    concentration_function: typing.Callable
+    normed_concentration_function: typing.Callable
 
     def infectious_virus_removal_rate(self, time: float) -> models._VectorisedFloat:
         # very large decay constant -> same as constant concentration
         return 1.e50
 
-    def _concentration_limit(self, time: float) -> models._VectorisedFloat:
-        return self.concentration_function(time)
+    def _normed_concentration_limit(self, time: float) -> models._VectorisedFloat:
+        return self.normed_concentration_function(time)
 
     def state_change_times(self):
         return [0., 24.]
@@ -32,8 +32,8 @@ class KnownConcentrations(models.ConcentrationModel):
     def _next_state_change(self, time: float):
         return 24.
 
-    def concentration(self, time: float) -> models._VectorisedFloat:  # noqa
-        return self.concentration_function(time)
+    def _normed_concentration(self, time: float) -> models._VectorisedFloat:  # noqa
+        return self.normed_concentration_function(time)
 
 
 halftime = models.PeriodicInterval(120, 60)
@@ -66,7 +66,9 @@ def known_concentrations(func):
         virus=models.Virus.types['SARS_CoV_2_B117'],
         expiration=models.Expiration.types['Talking']
     )
-    return KnownConcentrations(dummy_room, dummy_ventilation, dummy_infected_population, func)
+    normed_func = lambda x: func(x) / dummy_infected_population.emission_rate_when_present()
+    return KnownNormedconcentration(dummy_room, dummy_ventilation,
+                                dummy_infected_population, normed_func)
 
 
 @pytest.mark.parametrize(

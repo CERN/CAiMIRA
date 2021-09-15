@@ -700,11 +700,11 @@ class InfectedPopulation(Population):
         elif np.isinf(aerosols):
             ER = 970 * self.virus.infectious_dose
 
-        return ER
+        return ER * self.number
 
-    def individual_emission_rate(self, time) -> _VectorisedFloat:
+    def emission_rate(self, time) -> _VectorisedFloat:
         """
-        The emission rate of a single individual in the population.
+        The emission rate of the population.
 
         """
         # Note: The original model avoids time dependence on the emission rate
@@ -719,13 +719,6 @@ class InfectedPopulation(Population):
         # like Ventilation.
 
         return self.emission_rate_when_present()
-
-    def emission_rate(self, time) -> _VectorisedFloat:
-        """
-        The emission rate of the entire population.
-
-        """
-        return self.individual_emission_rate(time) * self.number
 
 
 @dataclass(frozen=True)
@@ -752,16 +745,22 @@ class ConcentrationModel:
         )
 
     @method_cache
-    def _concentration_limit(self, time: float) -> _VectorisedFloat:
+    def _normed_concentration_limit(self, time: float) -> _VectorisedFloat:
         """
         Provides a constant that represents the theoretical asymptotic 
         value reached by the concentration when time goes to infinity,
         if all parameters were to stay time-independent.
+        This is normalized by the emission rate, the latter acting as a
+        multiplicative constant factor for the concentration model that
+        can be put back in front of the concentration after the time
+        dependence has been solved for.
         """
+        if not self.infected.person_present(time):
+            return 0.
         V = self.room.volume
         IVRR = self.infectious_virus_removal_rate(time)
 
-        return (self.infected.emission_rate(time)) / (IVRR * V)
+        return 1. / (IVRR * V)
 
     @method_cache
     def state_change_times(self) -> typing.List[float]:
@@ -774,6 +773,14 @@ class ConcentrationModel:
         state_change_times.update(self.infected.presence.transition_times())
         state_change_times.update(self.ventilation.transition_times())
         return sorted(state_change_times)
+
+    @method_cache
+    def _first_presence_time(self) -> float:
+        """
+        First presence time. Before that, the concentration is zero.
+
+        """
+        return self.infected.presence.boundaries()[0][0]
 
     def last_state_change(self, time: float) -> float:
         """
@@ -806,15 +813,16 @@ class ConcentrationModel:
         )
 
     @method_cache
-    def _concentration_cached(self, time: float) -> _VectorisedFloat:
-        # A cached version of the concentration method. Use this method if you
-        # expect that there may be multiple concentration calculations for the
-        # same time (e.g. at state change times).
-        return self.concentration(time)
+    def _normed_concentration_cached(self, time: float) -> _VectorisedFloat:
+        # A cached version of the _normed_concentration method. Use this
+        # method if you expect that there may be multiple concentration
+        # calculations for the same time (e.g. at state change times).
+        return self._normed_concentration(time)
 
-    def concentration(self, time: float) -> _VectorisedFloat:
+    def _normed_concentration(self, time: float) -> _VectorisedFloat:
         """
-        Virus exposure concentration, as a function of time.
+        Virus exposure concentration, as a function of time, and
+        normalized by the emission rate.
         The formulas used here assume that all parameters (ventilation,
         emission rate) are constant between two state changes - only
         the value of these parameters at the next state change, are used.
@@ -822,27 +830,42 @@ class ConcentrationModel:
         Note that time is not vectorised. You can only pass a single float
         to this method.
         """
-        if time == 0:
+        # The model always starts at t=0, but we avoid running concentration calculations
+        # before the first presence as an optimisation.
+        if time <= self._first_presence_time():
             return 0.0
         next_state_change_time = self._next_state_change(time)
         IVRR = self.infectious_virus_removal_rate(next_state_change_time)
-        concentration_limit = self._concentration_limit(next_state_change_time)
+        conc_limit = self._normed_concentration_limit(next_state_change_time)
 
         t_last_state_change = self.last_state_change(time)
-        concentration_at_last_state_change = self._concentration_cached(t_last_state_change)
+        conc_at_last_state_change = self._normed_concentration_cached(t_last_state_change)
 
         delta_time = time - t_last_state_change
         fac = np.exp(-IVRR * delta_time)
-        return concentration_limit * (1 - fac) + concentration_at_last_state_change * fac
+        return conc_limit * (1 - fac) + conc_at_last_state_change * fac
+
+    def concentration(self, time: float) -> _VectorisedFloat:
+        """
+        Virus exposure concentration, as a function of time.
+
+        Note that time is not vectorised. You can only pass a single float
+        to this method.
+        """
+        return (self._normed_concentration(time) * 
+                self.infected.emission_rate_when_present())
 
     @method_cache
-    def integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
+    def normed_integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
         """
-        Get the integrated concentration dose between the times start and stop.
+        Get the integrated concentration dose between the times start and stop,
+        normalized by the emission rate.
         """
+        if stop <= self._first_presence_time():
+            return 0.0
         state_change_times = self.state_change_times()
         req_start, req_stop = start, stop
-        total_concentration = 0.
+        total_normed_concentration = 0.
         for interval_start, interval_stop in zip(state_change_times[:-1], state_change_times[1:]):
             if req_start > interval_stop or req_stop < interval_start:
                 continue
@@ -850,17 +873,24 @@ class ConcentrationModel:
             start = max([interval_start, req_start])
             stop = min([interval_stop, req_stop])
 
-            conc_start = self._concentration_cached(start)
+            conc_start = self._normed_concentration_cached(start)
 
             next_conc_state = self._next_state_change(stop)
-            conc_limit = self._concentration_limit(next_conc_state)
+            conc_limit = self._normed_concentration_limit(next_conc_state)
             IVRR = self.infectious_virus_removal_rate(next_conc_state)
             delta_time = stop - start
-            total_concentration += (
+            total_normed_concentration += (
                 conc_limit * delta_time +
                 (conc_limit - conc_start) * (np.exp(-IVRR*delta_time)-1) / IVRR
             )
-        return total_concentration
+        return total_normed_concentration
+
+    def integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
+        """
+        Get the integrated concentration dose between the times start and stop.
+        """
+        return (self.normed_integrated_concentration(start, stop) *
+                self.infected.emission_rate_when_present())
 
 
 @dataclass(frozen=True)
@@ -877,27 +907,41 @@ class ExposureModel:
     #: The fraction of viruses actually deposited in the respiratory tract
     fraction_deposited: _VectorisedFloat = 0.6
 
-    def exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
-        """The number of virions per meter^3 between any two times."""
+    def _normed_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
+        """The number of virions per meter^3 between any two times, normalized 
+        by the emission rate of the infected population"""
         for start, stop in self.exposed.presence.boundaries():
             if start > time2:
-                result = 0.
+                normed_exposure = 0.
                 break
             elif time2 <= stop:
-                result = self.concentration_model.integrated_concentration(time1, time2)
+                normed_exposure = self.concentration_model.normed_integrated_concentration(time1, time2)
                 break
             else:
-                result = self.concentration_model.integrated_concentration(time1, time2)
-        return result
+                normed_exposure = self.concentration_model.normed_integrated_concentration(time1, time2)
+        return normed_exposure
+
+    def exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
+        """The number of virions per meter^3 between any two times."""
+        return (self._normed_exposure_between_bounds(time1, time2) * 
+                self.concentration_model.infected.emission_rate_when_present())
             
-    def exposure(self) -> _VectorisedFloat:
-        """The number of virus per meter^3."""
-        exposure = 0.0
+    def _normed_exposure(self) -> _VectorisedFloat:
+        """
+        The number of virions per meter^3, normalized by the emission rate
+        of the infected population.
+        """
+        normed_exposure = 0.0
 
         for start, stop in self.exposed.presence.boundaries():
-            exposure += self.concentration_model.integrated_concentration(start, stop)
+            normed_exposure += self.concentration_model.normed_integrated_concentration(start, stop)
 
-        return exposure * self.repeats
+        return normed_exposure * self.repeats
+
+    def exposure(self) -> _VectorisedFloat:
+        """The number of virions per meter^3."""
+        return (self._normed_exposure() *
+                self.concentration_model.infected.emission_rate_when_present())
 
     def infection_probability(self) -> _VectorisedFloat:
         exposure = self.exposure()
