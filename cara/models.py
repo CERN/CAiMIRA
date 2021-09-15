@@ -915,7 +915,10 @@ class ExposureModel:
     repeats: int = 1
 
     #: The fraction of viruses actually deposited in the respiratory tract
-    fraction_deposited: _VectorisedFloat = 0.6
+    d = 1.37 # To be updated in the future.
+    IF = 1 - 0.5 * (1 - (1 / (1 + (0.00076*(d**2.8)))))
+    DF = IF * (0.0587 + (0.911/(1 + np.exp(4.77 + 1.485 * np.log(d)))) + (0.943/(1 + np.exp(0.508 - 2.58 * np.log(d)))))
+    fraction_deposited: _VectorisedFloat = DF
 
     def _normed_exposure(self) -> _VectorisedFloat:
         """
@@ -936,7 +939,6 @@ class ExposureModel:
 
     def infection_probability(self) -> _VectorisedFloat:
         exposure = self.exposure()
-        print('oi', self.concentration_model.infected.virus.viable_to_RNA)
 
         # Dose
         inf_aero = (
