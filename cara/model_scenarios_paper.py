@@ -1,5 +1,5 @@
 from cara import models
-from cara.monte_carlo.data import activity_distributions, symptomatic_vl_frequencies, infectious_virus_distribution
+from cara.monte_carlo.data import activity_distributions, symptomatic_vl_frequencies, infectious_virus_distribution, infectious_dose_distribution
 import cara.monte_carlo as mc
 import numpy as np
 
@@ -41,7 +41,7 @@ def breathing_exposure(activity: str, mask: str):
                 number=1,
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
-                    infectious_dose=50.,
+                    infectious_dose=infectious_dose_distribution,
                     viable_to_RNA=infectious_virus_distribution
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
@@ -72,7 +72,7 @@ def speaking_exposure(activity: str, mask: str):
                 number=1,
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
-                    infectious_dose=50.,
+                    infectious_dose=infectious_dose_distribution,
                     viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
@@ -103,7 +103,7 @@ def shouting_exposure(activity: str, mask: str):
                 number=1,
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
-                    infectious_dose=50.,
+                    infectious_dose=infectious_dose_distribution,
                     viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
@@ -134,7 +134,7 @@ def breathing_exposure_vl(vl):
                 number=1,
                 virus=models.Virus(
                     viral_load_in_sputum=10**vl,
-                    infectious_dose=50.,
+                    infectious_dose=infectious_dose_distribution,
                     viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
@@ -165,7 +165,7 @@ def talking_exposure_vl(vl):
                 number=1,
                 virus=models.Virus(
                     viral_load_in_sputum=10**vl,
-                    infectious_dose=50.,
+                    infectious_dose=infectious_dose_distribution,
                     viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
@@ -196,7 +196,7 @@ def shouting_exposure_vl(vl):
                 number=1,
                 virus=mc.Virus(
                     viral_load_in_sputum=10**vl,
-                    infectious_dose=50.,
+                    infectious_dose=infectious_dose_distribution,
                     viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
@@ -228,7 +228,7 @@ def breathing_seated_exposure():
                 number=1,
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
-                    infectious_dose=50.,
+                    infectious_dose=infectious_dose_distribution,
                     viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
@@ -258,7 +258,7 @@ def breathing_light_activity_exposure():
                 number=1,
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
-                    infectious_dose=50.,
+                    infectious_dose=infectious_dose_distribution,
                     viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
@@ -288,7 +288,7 @@ def breathing_heavy_exercise_exposure():
                 number=1,
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
-                    infectious_dose=50.,
+                    infectious_dose=infectious_dose_distribution,
                     viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
@@ -319,7 +319,7 @@ def speaking_seated_exposure():
                 number=1,
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
-                    infectious_dose=50.,
+                    infectious_dose=infectious_dose_distribution,
                     viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
@@ -349,7 +349,7 @@ def speaking_light_activity_exposure():
                 number=1,
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
-                    infectious_dose=50.,
+                    infectious_dose=infectious_dose_distribution,
                     viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
@@ -379,7 +379,7 @@ def speaking_heavy_exercise_exposure():
                 number=1,
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
-                    infectious_dose=50.,
+                    infectious_dose=infectious_dose_distribution,
                     viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
@@ -410,7 +410,7 @@ def shouting_seated_exposure():
                 number=1,
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
-                    infectious_dose=50.,
+                    infectious_dose=infectious_dose_distribution,
                     viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
@@ -440,7 +440,7 @@ def shouting_light_activity_exposure():
                 number=1,
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
-                    infectious_dose=50.,
+                    infectious_dose=infectious_dose_distribution,
                     viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
@@ -470,7 +470,7 @@ def shouting_heavy_exercise_exposure():
                 number=1,
                 virus=mc.Virus(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
-                    infectious_dose=50.,
+                    infectious_dose=infectious_dose_distribution,
                     viable_to_RNA=infectious_virus_distribution,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
