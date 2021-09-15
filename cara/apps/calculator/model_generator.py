@@ -24,7 +24,7 @@ minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
 # Used to declare when an attribute of a class must have a value provided, and
 # there should be no default value used.
 _NO_DEFAULT = object()
-_DEFAULT_MC_SAMPLE_SIZE = 50000
+_DEFAULT_MC_SAMPLE_SIZE = 250000
 
 
 @dataclasses.dataclass

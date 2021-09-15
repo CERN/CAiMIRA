@@ -580,7 +580,7 @@ class MultipleExpiration(_ExpirationBase):
     Group together different modes of expiration, that represent
     each the main expiration mode for a certain fraction of time (given by
     the weights).
-    Obsolet class that can only be used with single diameters (it cannot
+    This class can only be used with single diameters (it cannot
     be used with diameter distributions).
     """
     expirations: typing.Tuple[_ExpirationBase, ...]
@@ -900,6 +900,13 @@ class ConcentrationModel:
 
 @dataclass(frozen=True)
 class ExposureModel:
+    """
+    Represents the exposure to a concentration of virions in the air.
+    NOTE: the infection probability formula assumes that if the diameter
+    is an array, then none of the ventilation parameters, room volume or virus
+    decay constant, are arrays as well.
+    TODO: implement a check this is the case, in __post_init__
+    """
     #: The virus concentration model which this exposure model should consider.
     concentration_model: ConcentrationModel
 
@@ -932,7 +939,12 @@ class ExposureModel:
         corresponds to an integration on diameters).
         """
         emission_rate = self.concentration_model.infected.emission_rate_when_present()
-        if np.isscalar(self.concentration_model.infected.expiration.diameter):
+        if (not isinstance(self.concentration_model.infected,InfectedPopulation)
+            or not isinstance(self.concentration_model.infected.expiration,Expiration)
+            or np.isscalar(self.concentration_model.infected.expiration.diameter)
+            ):
+            # in all these cases, there is no distribution of
+            # diameters that need to be integrated over
             return self._normed_exposure() * emission_rate
         else:
             # the mean of the diameter-dependent exposure (including

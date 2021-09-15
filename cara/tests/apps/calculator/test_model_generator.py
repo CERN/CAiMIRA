@@ -12,10 +12,9 @@ from cara import models
 from cara.monte_carlo.data import expiration_distributions
 
 # TODO: seed better the random number generators
-# this is only for test_blend_expiration
 np.random.seed(2000)
-SAMPLE_SIZE = 500000
-TOLERANCE = 0.01
+SAMPLE_SIZE = 250000
+TOLERANCE = 0.02
 
 def test_model_from_dict(baseline_form_data):
     form = model_generator.FormData.from_dict(baseline_form_data)
