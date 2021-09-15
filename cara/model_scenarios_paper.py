@@ -487,3 +487,99 @@ def shouting_heavy_exercise_exposure():
         ),
     )
     return exposure_mc
+
+########## Concentration curves ###########
+def classroom_no_mask_windows_closed_exposure():
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
+            ventilation=models.AirChange(
+                active=models.SpecificInterval(((0, 24),)),
+                air_exch=0.25,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=mc.SARSCoV2(
+                    viral_load_in_sputum=symptomatic_vl_frequencies,
+                    infectious_dose=infectious_dose_distribution,
+                    viable_to_RNA=infectious_virus_distribution,
+                ),
+                presence=models.SpecificInterval(((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
+                mask=models.Mask.types["No mask"],
+                activity=activity_distributions['Light activity'],
+                expiration=models.Expiration.types['Talking'],
+            ),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=models.SpecificInterval(((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
+            activity=models.Activity.types['Seated'],
+            mask=models.Mask.types["No mask"],
+        ),
+    )
+    return exposure_mc
+
+def classrom_no_mask_windows_open_breaks():
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
+            ventilation=models.SlidingWindow(
+                active=models.SpecificInterval(((1.5, 2), (3.5, 4.5), (6, 6.5))),
+                inside_temp=models.PiecewiseConstant((0, 24), (295,)),
+                outside_temp=models.PiecewiseConstant((0, 24), (291,)),
+                window_height=1.6,
+                opening_length=0.6,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=mc.SARSCoV2(
+                    viral_load_in_sputum=symptomatic_vl_frequencies,
+                    infectious_dose=infectious_dose_distribution,
+                    viable_to_RNA=infectious_virus_distribution,
+                ),
+                presence=models.SpecificInterval(((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
+                mask=models.Mask.types["No mask"],
+                activity=activity_distributions['Light activity'],
+                expiration=models.Expiration.types['Talking'],
+            ),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=models.SpecificInterval(((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
+            activity=models.Activity.types['Seated'],
+            mask=models.Mask.types["No mask"],
+        ),
+    )
+    return exposure_mc
+
+def classrom_no_mask_windows_open_alltimes():
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
+            ventilation=models.SlidingWindow(
+                active=models.PeriodicInterval(period=120, duration=120),
+                inside_temp=models.PiecewiseConstant((0, 24), (295,)),
+                outside_temp=models.PiecewiseConstant((0, 24), (291,)),
+                window_height=1.6, opening_length=0.6,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=mc.SARSCoV2(
+                    viral_load_in_sputum=symptomatic_vl_frequencies,
+                    infectious_dose=infectious_dose_distribution,
+                    viable_to_RNA=infectious_virus_distribution,
+                ),
+                presence=models.SpecificInterval(((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
+                mask=models.Mask.types["No mask"],
+                activity=activity_distributions['Light activity'],
+                expiration=models.Expiration.types['Talking'],
+            ),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=models.SpecificInterval(((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
+            activity=models.Activity.types['Seated'],
+            mask=models.Mask.types["No mask"],
+        ),
+    )
+    return exposure_mc

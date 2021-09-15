@@ -469,8 +469,7 @@ def generate_cdf_curves():
     fig.set_figwidth(5)
     plt.show()
 
-############ Deposition Fraction Graph ############ 
-# 
+############ Deposition Fraction Graph ############# 
 def calculate_deposition_factor():
 
     fig = plt.figure()
@@ -524,6 +523,54 @@ def calculate_deposition_factor():
     
     fig.set_figwidth(10)
     plt.tight_layout()
+    plt.show()
+
+############ Compare concentration curves ############
+def compare_concentration_curves():
+
+    exp_models=[classroom_no_mask_windows_closed_exposure().build_model(size=SAMPLE_SIZE), 
+                classrom_no_mask_windows_open_breaks().build_model(size=SAMPLE_SIZE), 
+                classrom_no_mask_windows_open_alltimes().build_model(size=SAMPLE_SIZE)]
+
+    labels=['Windows closed', 'Window open during breaks', 'Window open at all times']
+    colors=['tomato', 'lightskyblue', 'limegreen', '#1f77b4', 'seagreen', 'lightskyblue', 'deepskyblue']
+
+    start=min(min(model.concentration_model.infected.presence.transition_times()) for model in exp_models)
+    stop=max(max(model.concentration_model.infected.presence.transition_times()) for model in exp_models)
+
+    TIMESTEP = 0.01
+    times=np.arange(start, stop, TIMESTEP)
+    
+    concentrations = [[np.mean(model.concentration_model.concentration(t)) for t in times] for model in exp_models]
+    fig, ax = plt.subplots()
+    for c, label, color in zip(concentrations, labels, colors):
+        ax.plot(times, c, label=label, color=color)
+    
+    ax.legend(loc='upper left')
+    ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.2)
+    ax.spines["right"].set_visible(False)
+
+    # When merged, use the integrated_concentration function.
+    factors = [0.6 * model.exposed.activity.inhalation_rate * (1 - model.exposed.mask.η_inhale) for model in exp_models]
+    present_indexes = np.array([exp_models[0].exposed.person_present(t) for t in times])
+    modified_concentrations = [np.array(c) for c in concentrations]
+    for mc in modified_concentrations:
+        mc[~present_indexes] = 0
+
+    cumulative_doses = [[np.trapz(c[:i + 1], times[:i + 1]) * factor for i in range(len(times))]
+           for c, factor in zip(modified_concentrations, factors)]
+
+    plt.xlabel("Exposure time ($h$)", fontsize=14)
+    plt.ylabel("Mean viral concentration\n(virion m$^{-3}$)", fontsize=14)
+
+    ax1 = ax.twinx()
+    for qd, label, color in zip(cumulative_doses, labels, colors):
+        ax1.plot(times, qd, label='qD - ' + label, color=color, linestyle='dotted')
+    ax1.spines["right"].set_linestyle("--")
+    ax1.spines["right"].set_linestyle((0,(1,5)))
+    ax1.set_ylabel('Mean cumulative dose\n(virion)', fontsize=14)
+    ax1.set_ylim(ax1.get_ylim()[0], ax1.get_ylim()[1] * 1.2)
+
     plt.show()
 
 ######### Auxiliar functions #########
@@ -647,8 +694,6 @@ def build_breathing_legend(fig):
 def print_er_info(er: np.array, log_er: np.array):
     """
     Prints statistical parameters of a given distribution of ER-values
-    :param er: A numpy-array of the ER-values
-    :return: Nothing, parameters are printed
     """
     print(f"MEAN of ER = {np.mean(er)}\n"
           f"MEAN of log ER = {np.mean(log_er)}\n"
@@ -661,3 +706,6 @@ def print_er_info(er: np.array, log_er: np.array):
         print(f"ER_{quantile} = {np.quantile(er, quantile)}")
 
     return
+
+
+
