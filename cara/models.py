@@ -559,6 +559,9 @@ class Expiration(_ExpirationBase):
     #: diameter of the aerosol in microns
     diameter: _VectorisedFloat
 
+    #: total concentration of aerosols (cm^-3)
+    cn: float = 1.
+
     @cached()
     def aerosols(self, mask: Mask):
         """ Result is in mL.cm^-3 """
@@ -566,7 +569,7 @@ class Expiration(_ExpirationBase):
             return (np.pi * d**3) / 6.
 
         # final result converted from microns^3/cm3 to mL/cm^3
-        return (volume(self.diameter) * 
+        return self.cn * (volume(self.diameter) *
                 (1 - mask.exhale_efficiency(self.diameter))) * 1e-12
 
 
@@ -598,7 +601,7 @@ class MultipleExpiration(_ExpirationBase):
 # diameter, chosen in such a way that the aerosol volume is
 # the same as the total aerosol volume given by the full BLO model
 # (integrated between 0.1 and 30 microns)
-# The correspondence with the BlO coefficients is given.
+# The correspondence with the BLO coefficients is given.
 _ExpirationBase.types = {
     'Breathing': Expiration(1.3844), # corresponds to B/L/O coefficients of (1, 0, 0)
     'Talking': Expiration(5.8925),   # corresponds to B/L/O coefficients of (1, 1, 1)
@@ -655,14 +658,6 @@ class Population:
 class _PopulationWithVirus(Population):
     #: The virus with which the population is infected.
     virus: Virus
-
-    #: The type of expiration that is being emitted whilst doing the activity.
-    expiration: _ExpirationBase
-
-    #: Optionally, this provides directly the emission rate of a single
-    # individual, in virions / h.
-    # This effectively overrides the "expiration" parameter.
-    known_individual_emission_rate: float = np.nan
 
     @method_cache
     def emission_rate_when_present(self) -> _VectorisedFloat:
