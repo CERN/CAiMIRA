@@ -502,10 +502,10 @@ def calculate_deposition_factor():
         DF = IF * (0.0587 + (0.911/(1 + np.exp(4.77 + 1.485 * np.log(d)))) + (0.943/(1 + np.exp(0.508 - 2.58 * np.log(d)))))
         fractions_df.append(DF)
 
-    ax.plot(diameters, fractions_df, label = 'Total')
-    ax.plot(diameters, fractions_et, label = 'Extrathoracic (ET)', ls='--', lw=0.9)
-    ax.plot(diameters, fractions_tb, label = 'Tracheobronchial (TB)', ls='--', lw=0.9)
-    ax.plot(diameters, fractions_al, label = 'Alveolar-interstitial (AI)', ls='--', lw=0.9)
+    ax.plot(diameters, fractions_df, label = 'Total Deposition', color='k')
+    ax.plot(diameters, fractions_et, label = 'Extrathoracic', ls='-.', lw=0.9, color='grey')
+    ax.plot(diameters, fractions_tb, label = 'Tracheobronchial', ls='--', lw=0.9, color='darkgray')
+    ax.plot(diameters, fractions_al, label = 'Alveolar', ls=(0,(1,1)), lw=0.9, color='darkgray')
     
     ax.grid(linestyle='--')
     ax.set_xscale('log')
@@ -519,7 +519,7 @@ def calculate_deposition_factor():
     plt.xticks(ticks=x_ticks, labels=[
                str(i) for i in x_ticks])
     plt.xlabel('Particle diameter (μm)', fontsize=14)
-    plt.ylabel('Deposition fraction (f$_{dep}$)', fontsize=14)
+    plt.ylabel('Deposition fraction\nf$_{dep}$', fontsize=14)
     
     fig.set_figwidth(10)
     plt.tight_layout()
