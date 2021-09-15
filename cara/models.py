@@ -928,12 +928,18 @@ class ExposureModel:
         the mean, to obtain the proper result for the exposure (which
         corresponds to an integration on diameters).
         """
-        mask = self.concentration_model.infected.mask
-        aerosols = self.concentration_model.infected.expiration.aerosols(mask)
         emission_rate = self.concentration_model.infected.emission_rate_when_present()
-
-        return (np.array(self._normed_exposure()*aerosols).mean() *
-                emission_rate/aerosols)
+        if np.isscalar(self.concentration_model.infected.expiration.diameter):
+            return self._normed_exposure() * emission_rate
+        else:
+            # the mean of the diameter-dependent exposure (including
+            # aerosols volume, but NOT the other factors) has to be
+            # taken first (this is equivalent to integrating over the
+            # diameters)
+            mask = self.concentration_model.infected.mask
+            aerosols = self.concentration_model.infected.expiration.aerosols(mask)
+            return (np.array(self._normed_exposure()*aerosols).mean() *
+                    emission_rate/aerosols)
 
     def infection_probability(self) -> _VectorisedFloat:
         exposure = self.exposure()
