@@ -121,6 +121,10 @@ def test_next_state_change_time_out_of_range(simple_conc_model: models.Concentra
         simple_conc_model._next_state_change(3.1)
 
 
+def test_first_presence_time(simple_conc_model):
+    assert simple_conc_model._first_presence_time() == 0.5
+
+
 def test_integrated_concentration(simple_conc_model):
     c1 = simple_conc_model.integrated_concentration(0, 2)
     c2 = simple_conc_model.integrated_concentration(0, 1)
