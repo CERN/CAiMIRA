@@ -580,7 +580,8 @@ class MultipleExpiration(_ExpirationBase):
     Group together different modes of expiration, that represent
     each the main expiration mode for a certain fraction of time (given by
     the weights).
-
+    Obsolet class that can only be used with single diameters (it cannot
+    be used with diameter distributions).
     """
     expirations: typing.Tuple[_ExpirationBase, ...]
     weights: typing.Tuple[float, ...]
@@ -589,6 +590,8 @@ class MultipleExpiration(_ExpirationBase):
         if len(self.expirations) != len(self.weights):
             raise ValueError("expirations and weigths should contain the"
                              "same number of elements")
+        if not all(np.isscalar(e.diameter) for e in self.expirations):
+            raise ValueError("diameters should all be scalars")
 
     def aerosols(self, mask: Mask):
         return np.array([

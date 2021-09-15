@@ -131,10 +131,10 @@ mask_distributions = {
 }
 
 
-def expiration_distribution(BLO_factors: typing.Tuple[float, float, float]):
+def expiration_distribution(BLO_factors):
     """
     Returns an Expiration with an aerosol diameter distribution, defined
-    by the BLO factors.
+    by the BLO factors (a length-3 tuple).
     The total concentration of aerosols is computed by integrating
     the distribution between 0.1 and 30 microns - these boundaries are
     an historical choice based on previous implementations of the model
@@ -146,9 +146,15 @@ def expiration_distribution(BLO_factors: typing.Tuple[float, float, float]):
                 BLOmodel(BLO_factors).integrate(0.1, 30.))
 
 
+expiration_BLO_factors = {
+    'Breathing': (1., 0., 0.),
+    'Talking':   (1., 1., 1.),
+    'Singing':   (1., 5., 5.),
+    'Shouting':  (1., 5., 5.),
+}
+
+
 expiration_distributions = {
-    'Breathing': expiration_distribution((1., 0., 0.)),
-    'Talking':   expiration_distribution((1., 1., 1.)),
-    'Singing':   expiration_distribution((1., 5., 5.)),
-    'Shouting':  expiration_distribution((1., 5., 5.)),
+    exp_type: expiration_distribution(BLO_factors)
+    for exp_type,BLO_factors in expiration_BLO_factors.items()
 }

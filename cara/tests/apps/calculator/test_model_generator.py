@@ -9,7 +9,13 @@ from cara.apps.calculator import model_generator
 from cara.apps.calculator.model_generator import _hours2timestring
 from cara.apps.calculator.model_generator import minutes_since_midnight
 from cara import models
+from cara.monte_carlo.data import expiration_distributions
 
+# TODO: seed better the random number generators
+# this is only for test_blend_expiration
+np.random.seed(2000)
+SAMPLE_SIZE = 500000
+TOLERANCE = 0.01
 
 def test_model_from_dict(baseline_form_data):
     form = model_generator.FormData.from_dict(baseline_form_data)
@@ -31,11 +37,11 @@ def test_model_from_dict_invalid(baseline_form_data):
 )
 def test_blend_expiration(mask_type):
     blend = {'Breathing': 2, 'Talking': 1}
-    r = model_generator.build_expiration(blend)
+    r = model_generator.build_expiration(blend).build_model(SAMPLE_SIZE)
     mask = models.Mask.types[mask_type]
-    expected = (models.Expiration.types['Breathing'].aerosols(mask)*2/3. +
-                models.Expiration.types['Talking'].aerosols(mask)/3.)
-    npt.assert_allclose(r.aerosols(mask), expected)
+    expected = (expiration_distributions['Breathing'].build_model(SAMPLE_SIZE).aerosols(mask).mean()*2/3. +
+                expiration_distributions['Talking'].build_model(SAMPLE_SIZE).aerosols(mask).mean()/3.)
+    npt.assert_allclose(r.aerosols(mask).mean(), expected, rtol=TOLERANCE)
 
 
 def test_ventilation_slidingwindow(baseline_form: model_generator.FormData):
