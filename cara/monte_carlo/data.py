@@ -40,6 +40,8 @@ symptomatic_vl_frequencies = LogCustomKernel(
 
 # From https://doi.org/10.1093/cid/ciaa1579
 infectious_virus_distribution = Uniform(0.15, 0.45)
+
+# From discussion with virologists
 infectious_dose_distribution = Uniform(10., 100.)
 
 # From CERN-OPEN-2021-04 and refererences therein
