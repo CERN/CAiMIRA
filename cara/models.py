@@ -878,7 +878,7 @@ class ExposureModel:
     fraction_deposited: _VectorisedFloat = 0.6
 
     def exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
-        """The number of virions per meter^3 from model start to the given stop."""
+        """The number of virions per meter^3 between any two times."""
         for start, stop in self.exposed.presence.boundaries():
             if start > time2:
                 result = 0.
