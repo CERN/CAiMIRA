@@ -46,16 +46,10 @@ from dataclasses import dataclass
 #calculate_deposition_factor()
 
 ############ Comparison between concentration curves ############ 
-# compare_concentration_curves_virus([classroom_model_IGH_no_mask_windows_closed[0],classroom_model_IGH_no_mask_windows_open_breaks[0],
-#                              classroom_model_IGH_no_mask_windows_open_alltimes[0]],
-#                             labels=['Windows closed', 'Window open during breaks', 'Window open at all times'],
-#                             colors=['tomato', 'lightskyblue', 'limegreen', '#1f77b4', 'seagreen', 'lightskyblue', 'deepskyblue'],
-#                             title='No mask - Spring/Summer period'
-#                             )
-# print_qd_info(classroom_model_IGH_no_mask_windows_closed[0])
-# print_qd_info(classroom_model_IGH_no_mask_windows_open_breaks[0])
-# print_qd_info(classroom_model_IGH_no_mask_windows_open_alltimes[0])
-compare_concentration_curves()
+#compare_concentration_curves()
+
+############ Emission Rate Violin plot ############ 
+compare_viruses_vr()
 
 ############ Used for testing ############
 #exposure_model_from_vl_talking_new_points()

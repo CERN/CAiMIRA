@@ -604,3 +604,84 @@ def office_model_no_mask_windows_open_alltimes():
         )
     )
     return office_model_no_vent
+
+
+######### Standard exposure models ###########
+
+######### Breathing model ###########
+def breathing_exposure(activity: str, mask: str):
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
+            ventilation=models.AirChange(
+                active=models.SpecificInterval(((0, 24),)),
+                air_exch=0.25,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=mc.Virus(
+                    viral_load_in_sputum=symptomatic_vl_frequencies,
+                    infectious_dose=infectious_dose_distribution,
+                    viable_to_RNA=infectious_virus_distribution
+                ),
+                presence=mc.SpecificInterval(((0, 2),)),
+                mask=models.Mask.types[mask],
+                activity=activity_distributions[activity],
+                expiration=models.Expiration.types['Breathing'],
+            ),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=mc.SpecificInterval(((0, 2),)),
+            activity=models.Activity.types[activity],
+            mask=models.Mask.types[mask],
+        ),
+    )
+    return exposure_mc
+
+######### Speaking model ###########
+def speaking_exposure(activity: str, mask: str):
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
+            ventilation=models.AirChange(
+                active=models.SpecificInterval(((0, 24),)),
+                air_exch=0.25,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=mc.Virus(
+                    viral_load_in_sputum=symptomatic_vl_frequencies,
+                    infectious_dose=infectious_dose_distribution,
+                    viable_to_RNA=infectious_virus_distribution,
+                ),
+                presence=mc.SpecificInterval(((0, 2),)),
+                mask=models.Mask.types[mask],
+                activity=activity_distributions[activity],
+                expiration=models.Expiration.types['Talking'],
+            ),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=mc.SpecificInterval(((0, 2),)),
+            activity=models.Activity.types[activity],
+            mask=models.Mask.types[mask],
+        ),
+    )
+    return exposure_mc
+
+######### Infected Population model ###########
+def infected_model(mask: str, activity: str, expiratory_activity: str):
+    infected=mc.InfectedPopulation(
+        number=1,
+        virus=mc.Virus(
+            viral_load_in_sputum=symptomatic_vl_frequencies,
+            infectious_dose=infectious_dose_distribution,
+            viable_to_RNA=infectious_virus_distribution,
+        ),
+        presence=mc.SpecificInterval(((0, 2),)),
+        mask=models.Mask.types[mask],
+        activity=activity_distributions[activity],
+        expiration=models.Expiration.types[expiratory_activity])
+
+    return infected
