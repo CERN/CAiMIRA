@@ -144,13 +144,15 @@ def conc_model():
     return models.ConcentrationModel(
         models.Room(25),
         models.AirChange(always, 5),
-        models.InfectedPopulation(
+        models.EmittingPopulation(
             number=1,
             presence=interesting_times,
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Seated'],
             virus=models.Virus.types['SARS_CoV_2'],
-            expiration=models.Expiration.types['Superspreading event'],
+            known_individual_emission_rate=970 * 50,
+            # superspreading event, where ejection factor is fixed based
+            # on Miller et al. (2020) - 50 represents the infectious dose.
         )
     )
 

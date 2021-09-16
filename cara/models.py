@@ -620,7 +620,6 @@ _ExpirationBase.types = {
     'Talking': Expiration((1., 1., 1.)),
     'Shouting': Expiration((1., 5., 5.)),
     'Singing': Expiration((1., 5., 5.)),
-    'Superspreading event': Expiration((np.inf, 0., 0.)),
 }
 
 
@@ -669,44 +668,21 @@ class Population:
 
 
 @dataclass(frozen=True)
-class InfectedPopulation(Population):
+class _PopulationWithVirus(Population):
     #: The virus with which the population is infected.
     virus: Virus
-
-    #: The type of expiration that is being emitted whilst doing the activity.
-    expiration: _ExpirationBase
 
     @method_cache
     def emission_rate_when_present(self) -> _VectorisedFloat:
         """
-        The emission rate if the infected population is present.
-
-        Note that the rate is not currently time-dependent.
-
+        The emission rate if the infected population is present
+        (in virions / h). It should not be a function of time.
         """
-        # Emission Rate (virions / h)
-        # Note on units: exhalation rate is in m^3/h, aerosols in mL/cm^3
-        # and viral load in virus/mL -> 1e6 conversion factor
-        aerosols = self.expiration.aerosols(self.mask)
-
-        ER = (self.virus.viral_load_in_sputum *
-              self.activity.exhalation_rate *
-              10 ** 6 *
-              aerosols)
-
-        # For superspreading event, where ejection_factor is infinite we fix the ER
-        # based on Miller et al. (2020).
-        if isinstance(aerosols, np.ndarray):
-            ER[np.isinf(aerosols)] = 970 * self.virus.infectious_dose
-        elif np.isinf(aerosols):
-            ER = 970 * self.virus.infectious_dose
-
-        return ER * self.number
+        raise NotImplementedError("Subclass must implement")
 
     def emission_rate(self, time) -> _VectorisedFloat:
         """
-        The emission rate of the population.
-
+        The emission rate of the population vs time.
         """
         # Note: The original model avoids time dependence on the emission rate
         # at the cost of implementing a piecewise (on time) concentration function.
@@ -723,10 +699,48 @@ class InfectedPopulation(Population):
 
 
 @dataclass(frozen=True)
+class EmittingPopulation(_PopulationWithVirus):
+    #: The emission rate of a single individual, in virions / h.
+    known_individual_emission_rate: float
+
+    @method_cache
+    def emission_rate_when_present(self) -> _VectorisedFloat:
+        """
+        The emission rate if the infected population is present.
+        """
+        return self.known_individual_emission_rate * self.number
+
+
+@dataclass(frozen=True)
+class InfectedPopulation(_PopulationWithVirus):
+    #: The type of expiration that is being emitted whilst doing the activity.
+    expiration: _ExpirationBase
+
+    @method_cache
+    def emission_rate_when_present(self) -> _VectorisedFloat:
+        """
+        The emission rate if the infected population is present.
+        Note that the rate is not currently time-dependent.
+        """
+        # Emission Rate (virions / h)
+        # Note on units: exhalation rate is in m^3/h, aerosols in mL/cm^3
+        # and viral load in virus/mL -> 1e6 conversion factor
+
+        aerosols = self.expiration.aerosols(self.mask)
+
+        ER = (self.virus.viral_load_in_sputum *
+              self.activity.exhalation_rate *
+              10 ** 6 *
+              aerosols)
+
+        return ER * self.number
+
+
+@dataclass(frozen=True)
 class ConcentrationModel:
     room: Room
     ventilation: _VentilationBase
-    infected: InfectedPopulation
+    infected: _PopulationWithVirus
 
     @property
     def virus(self):
