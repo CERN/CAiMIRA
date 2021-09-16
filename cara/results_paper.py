@@ -600,13 +600,15 @@ def compare_viruses_vr():
         pc.set_edgecolor(bc)
     parts['cquantiles'].set_color([c for c in colors[:3] for _ in range(2)])
 
+    positions=np.linspace(5.5, 12.5, 25)
+
     ######### SARS-CoV-2 #########
     lower_bound = [290, 150, 150, 360,450, 610, 620, 1160, 1300, 1330, 1390, 1390, 1520, 2320, 6830, 9700, 42130] 
     higher_bound = [2900, 1500, 1500, 3600, 4500, 6100, 6200, 11600, 13000, 13300, 13900, 13900, 15200, 23200, 68300, 97000, 421300]
     
     for i in range(len(lower_bound)):
         data = np.random.uniform(lower_bound[i], higher_bound[i], size=200000)
-        ax.boxplot(np.log10(data), positions=[np.random.uniform(5.5, 12.5)], medianprops=dict(color=colors[0]+ (0.5,), linewidth=5), whiskerprops=dict(color=colors[0]+ (0.5,)), boxprops=dict(color=colors[0]+ (0.5,)))
+        ax.boxplot(np.log10(data), positions=[positions[i]], medianprops=dict(color=colors[0]+ (0.5,)), whiskerprops=dict(color=colors[0]+ (0.5,)), boxprops=dict(color=colors[0]+ (0.5,)))
 
     ######### Measles #########
     lower_bound = [180, 6000, 27650, 86400] 
@@ -614,7 +616,7 @@ def compare_viruses_vr():
     
     for i in range(len(lower_bound)):
         data = np.random.uniform(lower_bound[i], higher_bound[i], size=200000)
-        ax.boxplot(np.log10(data), positions=[np.random.uniform(5.5, 12.5)], medianprops=dict(color=colors[1]+ (0.5,), linewidth=5), whiskerprops=dict(color=colors[1]+ (0.5,)), boxprops=dict(color=colors[1]+ (0.5,)))
+        ax.boxplot(np.log10(data), positions=[positions[i+17]], medianprops=dict(color=colors[1]+ (0.5,)), whiskerprops=dict(color=colors[1]+ (0.5,)), boxprops=dict(color=colors[1]+ (0.5,)))
 
     ######### Influenza #########
     lower_bound = [1.1, 79.5, 790] 
@@ -622,7 +624,7 @@ def compare_viruses_vr():
     
     for i in range(len(lower_bound)):
         data = np.random.uniform(lower_bound[i], higher_bound[i], size=200000)
-        ax.boxplot(np.log10(data), positions=[np.random.uniform(5.5, 12.5)], medianprops=dict(color=colors[2]+ (0.5,), linewidth=5), whiskerprops=dict(color=colors[2]+ (0.5,)), boxprops=dict(color=colors[2]+ (0.5,)))
+        ax.boxplot(np.log10(data), positions=[positions[i+21]], medianprops=dict(color=colors[2]+ (0.5,)), whiskerprops=dict(color=colors[2]+ (0.5,)), boxprops=dict(color=colors[2]+ (0.5,)))
 
     ######### Rhinovirus #########
     lower_bound = [31] 
@@ -630,7 +632,7 @@ def compare_viruses_vr():
     
     for i in range(len(lower_bound)):
         data = np.random.uniform(lower_bound[i], higher_bound[i], size=200000)
-        ax.boxplot(np.log10(data), positions=[np.random.uniform(5.5, 12.5)], medianprops=dict(color=(0.5, 0.5, 0.5, 0.5, ), linewidth=5), whiskerprops=dict(color=(0.5, 0.5, 0.5, 0.5,)), boxprops=dict(color=(0.5, 0.5, 0.5, 0.5,)))
+        ax.boxplot(np.log10(data), positions=[positions[i+24]], medianprops=dict(color=(0.5, 0.5, 0.5, 0.5, )), whiskerprops=dict(color=(0.5, 0.5, 0.5, 0.5,)), boxprops=dict(color=(0.5, 0.5, 0.5, 0.5,)))
     
     handles = [patches.Patch(color=c, label=l) for c, l in zip([p + (0.5,) for p in [(0, 0.5, 0), (0, 0, 0.5), (0.5, 0, 0), (0.5, 0.5, 0.5)]], ('SARS-CoV-2', 'Measles', 'Influenza', 'Rhinovirus'))]
     boxplot_legend = plt.legend(handles=handles, loc='lower right')
