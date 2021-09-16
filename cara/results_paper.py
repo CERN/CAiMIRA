@@ -15,7 +15,7 @@ import math
 
 
 ######### Plot material #########
-SAMPLE_SIZE = 50000
+SAMPLE_SIZE = 250000
 viral_loads = np.linspace(2, 12, 600)
 
 ############# Markers (for legend) #############
@@ -528,9 +528,9 @@ def calculate_deposition_factor():
 ############ Compare concentration curves ############
 def compare_concentration_curves():
 
-    exp_models=[classroom_no_mask_windows_closed_exposure().build_model(size=SAMPLE_SIZE), 
-                classrom_no_mask_windows_open_breaks().build_model(size=SAMPLE_SIZE), 
-                classrom_no_mask_windows_open_alltimes().build_model(size=SAMPLE_SIZE)]
+    exp_models=[office_model_no_mask_windows_closed().build_model(size=SAMPLE_SIZE),
+                office_model_no_mask_windows_open_breaks().build_model(size=SAMPLE_SIZE),
+                office_model_no_mask_windows_open_alltimes().build_model(size=SAMPLE_SIZE)]
 
     labels=['Windows closed', 'Window open during breaks', 'Window open at all times']
     colors=['tomato', 'lightskyblue', 'limegreen', '#1f77b4', 'seagreen', 'lightskyblue', 'deepskyblue']
@@ -550,25 +550,20 @@ def compare_concentration_curves():
     ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.2)
     ax.spines["right"].set_visible(False)
 
-    # When merged, use the integrated_concentration function.
-    factors = [0.6 * model.exposed.activity.inhalation_rate * (1 - model.exposed.mask.η_inhale) for model in exp_models]
-    present_indexes = np.array([exp_models[0].exposed.person_present(t) for t in times])
-    modified_concentrations = [np.array(c) for c in concentrations]
-    for mc in modified_concentrations:
-        mc[~present_indexes] = 0
-
-    cumulative_doses = [[np.trapz(c[:i + 1], times[:i + 1]) * factor for i in range(len(times))]
-           for c, factor in zip(modified_concentrations, factors)]
+    cumulative_doses = [np.cumsum([
+        np.array(model.exposure_between_bounds(float(time1), float(time2))).mean()
+        for time1, time2 in zip(times[:-1], times[1:])
+    ]) for model in exp_models]
 
     plt.xlabel("Exposure time ($h$)", fontsize=14)
-    plt.ylabel("Mean viral concentration\n(virion m$^{-3}$)", fontsize=14)
+    plt.ylabel("Mean concentration (virions m$^{-3}$)", fontsize=14)
 
     ax1 = ax.twinx()
     for qd, label, color in zip(cumulative_doses, labels, colors):
-        ax1.plot(times, qd, label='qD - ' + label, color=color, linestyle='dotted')
+        ax1.plot(times[:-1], qd, label='qD - ' + label, color=color, linestyle='dotted')
     ax1.spines["right"].set_linestyle("--")
     ax1.spines["right"].set_linestyle((0,(1,5)))
-    ax1.set_ylabel('Mean cumulative dose\n(virion)', fontsize=14)
+    ax1.set_ylabel('Mean cumulative dose (virions)', fontsize=14)
     ax1.set_ylim(ax1.get_ylim()[0], ax1.get_ylim()[1] * 1.2)
 
     plt.show()

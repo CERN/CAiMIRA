@@ -247,7 +247,6 @@ class FormData:
                 infected=self.infected_population(),
             ),
             exposed=self.exposed_population(),
-            fraction_deposited=self.
         )
 
     def build_model(self, sample_size=_DEFAULT_MC_SAMPLE_SIZE) -> models.ExposureModel:

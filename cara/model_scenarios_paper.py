@@ -489,97 +489,118 @@ def shouting_heavy_exercise_exposure():
     return exposure_mc
 
 ########## Concentration curves ###########
-def classroom_no_mask_windows_closed_exposure():
-    exposure_mc = mc.ExposureModel(
+def office_model_no_mask_windows_closed():
+    office_model_no_vent = mc.ExposureModel(
         concentration_model=mc.ConcentrationModel(
-            room=models.Room(volume=100, humidity=0.5),
-            ventilation=models.AirChange(
-                active=models.SpecificInterval(((0, 24),)),
-                air_exch=0.25,
-            ),
+            room=models.Room(volume=160, humidity=0.3),
+            ventilation=models.MultipleVentilation(
+                (models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=0.0), 
+                models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=0.25))),
             infected=mc.InfectedPopulation(
                 number=1,
+                presence=models.SpecificInterval(present_times = ((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
                 virus=mc.SARSCoV2(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
                     infectious_dose=infectious_dose_distribution,
                     viable_to_RNA=infectious_virus_distribution,
                 ),
-                presence=models.SpecificInterval(((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
                 mask=models.Mask.types["No mask"],
-                activity=activity_distributions['Light activity'],
-                expiration=models.Expiration.types['Talking'],
-            ),
+                activity=activity_distributions['Seated'],
+                expiration=models.MultipleExpiration(
+                    expirations = (models.Expiration.types['Talking'],
+                                models.Expiration.types['Breathing']),
+                    weights=(1, 2)
+                )
+            )
         ),
-        exposed=mc.Population(
-            number=14,
-            presence=models.SpecificInterval(((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
+        exposed=models.Population(
+            number=18,
+            presence=models.SpecificInterval(present_times = ((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
             activity=models.Activity.types['Seated'],
-            mask=models.Mask.types["No mask"],
-        ),
+            mask=models.Mask.types['No mask']
+        )
     )
-    return exposure_mc
+    return office_model_no_vent
 
-def classrom_no_mask_windows_open_breaks():
-    exposure_mc = mc.ExposureModel(
+def office_model_no_mask_windows_open_breaks():
+    office_model_no_vent = mc.ExposureModel(
         concentration_model=mc.ConcentrationModel(
-            room=models.Room(volume=100, humidity=0.5),
-            ventilation=models.SlidingWindow(
-                active=models.SpecificInterval(((1.5, 2), (3.5, 4.5), (6, 6.5))),
-                inside_temp=models.PiecewiseConstant((0, 24), (295,)),
-                outside_temp=models.PiecewiseConstant((0, 24), (291,)),
-                window_height=1.6,
-                opening_length=0.6,
+            room=models.Room(volume=160, humidity=0.3),
+            ventilation = models.MultipleVentilation(
+                ventilations=(
+                    models.SlidingWindow(
+                        active=models.SpecificInterval(present_times=((1.5, 2), (3.5, 4.5), (6, 6.5))),
+                        inside_temp=models.PiecewiseConstant((0, 24), (295,)),
+                        outside_temp=models.PiecewiseConstant((0, 24), (291,)),
+                        window_height=1.6, 
+                        opening_length=0.6,
+                    ),
+                    models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=0.25),
+                )  
             ),
             infected=mc.InfectedPopulation(
                 number=1,
+                presence=models.SpecificInterval(present_times=((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
                 virus=mc.SARSCoV2(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
                     infectious_dose=infectious_dose_distribution,
                     viable_to_RNA=infectious_virus_distribution,
                 ),
-                presence=models.SpecificInterval(((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
                 mask=models.Mask.types["No mask"],
-                activity=activity_distributions['Light activity'],
-                expiration=models.Expiration.types['Talking'],
-            ),
+                activity=activity_distributions['Seated'],
+                expiration=models.MultipleExpiration(
+                    expirations = (models.Expiration.types['Talking'],
+                                models.Expiration.types['Breathing']),
+                    weights=(1, 2)
+                )
+            )
         ),
-        exposed=mc.Population(
-            number=14,
-            presence=models.SpecificInterval(((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
+        exposed=models.Population(
+            number=18,
+            presence=models.SpecificInterval(present_times=((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
             activity=models.Activity.types['Seated'],
-            mask=models.Mask.types["No mask"],
-        ),
+            mask=models.Mask.types['No mask']
+        )
     )
-    return exposure_mc
+    return office_model_no_vent
 
-def classrom_no_mask_windows_open_alltimes():
-    exposure_mc = mc.ExposureModel(
+def office_model_no_mask_windows_open_alltimes():
+    office_model_no_vent = mc.ExposureModel(
         concentration_model=mc.ConcentrationModel(
-            room=models.Room(volume=100, humidity=0.5),
-            ventilation=models.SlidingWindow(
-                active=models.PeriodicInterval(period=120, duration=120),
-                inside_temp=models.PiecewiseConstant((0, 24), (295,)),
-                outside_temp=models.PiecewiseConstant((0, 24), (291,)),
-                window_height=1.6, opening_length=0.6,
+            room=models.Room(volume=160, humidity=0.3),
+            ventilation=models.MultipleVentilation(
+                ventilations=(
+                    models.SlidingWindow(
+                        active=models.PeriodicInterval(period=120, duration=120),
+                        inside_temp=models.PiecewiseConstant((0, 24), (295,)),
+                        outside_temp=models.PiecewiseConstant((0, 24), (291,)),
+                        window_height=1.6, opening_length=0.6,
+                    ),
+                    models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=0.25),
+                )
             ),
             infected=mc.InfectedPopulation(
                 number=1,
+                presence=models.SpecificInterval(present_times=((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
                 virus=mc.SARSCoV2(
                     viral_load_in_sputum=symptomatic_vl_frequencies,
                     infectious_dose=infectious_dose_distribution,
                     viable_to_RNA=infectious_virus_distribution,
                 ),
-                presence=models.SpecificInterval(((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
                 mask=models.Mask.types["No mask"],
-                activity=activity_distributions['Light activity'],
-                expiration=models.Expiration.types['Talking'],
-            ),
+                activity=activity_distributions['Seated'],
+                expiration=models.MultipleExpiration(
+                    expirations = (models.Expiration.types['Talking'],
+                                models.Expiration.types['Breathing']),
+                    weights=(1, 2)
+                )
+            )
         ),
-        exposed=mc.Population(
-            number=14,
-            presence=models.SpecificInterval(((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
+        exposed=models.Population(
+            number=18,
+            presence=models.SpecificInterval(present_times=((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
             activity=models.Activity.types['Seated'],
-            mask=models.Mask.types["No mask"],
-        ),
+            mask=models.Mask.types['No mask']
+        )
     )
-    return exposure_mc
+    return office_model_no_vent

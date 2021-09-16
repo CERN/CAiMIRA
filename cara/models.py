@@ -924,6 +924,25 @@ class ExposureModel:
     DF = IF * (0.0587 + (0.911/(1 + np.exp(4.77 + 1.485 * np.log(d)))) + (0.943/(1 + np.exp(0.508 - 2.58 * np.log(d)))))
     fraction_deposited: _VectorisedFloat = DF
 
+    def _normed_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
+        """The number of virions per meter^3 between any two times, normalized 
+        by the emission rate of the infected population"""
+        for start, stop in self.exposed.presence.boundaries():
+            if start > time2:
+                normed_exposure = 0.
+                break
+            elif time2 <= stop:
+                normed_exposure = self.concentration_model.normed_integrated_concentration(time1, time2)
+                break
+            else:
+                normed_exposure = self.concentration_model.normed_integrated_concentration(time1, time2)
+        return normed_exposure
+
+    def exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
+        """The number of virions per meter^3 between any two times."""
+        return (self._normed_exposure_between_bounds(time1, time2) * 
+                self.concentration_model.infected.emission_rate_when_present())
+
     def _normed_exposure(self) -> _VectorisedFloat:
         """
         The number of virus per meter^3, normalized by the emission rate
