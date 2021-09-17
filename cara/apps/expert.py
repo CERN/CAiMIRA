@@ -499,6 +499,7 @@ baseline_model = models.ExposureModel(
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Seated'],
             expiration=models.Expiration.types['Talking'],
+            host_immunity=0.,
         ),
     ),
     exposed=models.Population(
