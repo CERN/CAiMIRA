@@ -45,6 +45,7 @@ def shared_office_mc():
             mask=models.Mask(η_inhale=0.3),
             activity=activity_distributions['Seated'],
             expiration=build_expiration({'Talking': 0.3, 'Breathing': 0.7}),
+            host_immunity=0.,
         ),
     )
     return mc.ExposureModel(
@@ -86,6 +87,7 @@ def classroom_mc():
             mask=models.Mask.types['No mask'],
             activity=activity_distributions['Light activity'],
             expiration=expiration_distributions['Talking'],
+            host_immunity=0.,
         ),
     )
     return mc.ExposureModel(
@@ -117,6 +119,7 @@ def ski_cabin_mc():
             mask=models.Mask(η_inhale=0.3),
             activity=activity_distributions['Moderate activity'],
             expiration=expiration_distributions['Talking'],
+            host_immunity=0.,
         ),
     )
     return mc.ExposureModel(
@@ -150,6 +153,7 @@ def gym_mc():
             mask=models.Mask.types["No mask"],
             activity=activity_distributions['Heavy exercise'],
             expiration=expiration_distributions['Breathing'],
+            host_immunity=0.,
         ),
     )
     return mc.ExposureModel(
@@ -181,7 +185,8 @@ def waiting_room_mc():
             presence=mc.SpecificInterval(((0., 2.),)),
             mask=models.Mask.types["No mask"],
             activity=activity_distributions['Seated'],
-            expiration=build_expiration({'Talking': 0.3, 'Breathing': 0.7})
+            expiration=build_expiration({'Talking': 0.3, 'Breathing': 0.7}),
+            host_immunity=0.,
         ),
     )
     return mc.ExposureModel(
@@ -215,6 +220,7 @@ def skagit_chorale_mc():
             mask=models.Mask.types["No mask"],
             activity=activity_distributions['Light activity'],
             expiration=expiration_distribution((5., 5., 5.)),
+            host_immunity=0.,
         ),
     )
     return mc.ExposureModel(
@@ -288,6 +294,7 @@ def test_small_shared_office_Geneva(mask_type, month, expected_pi,
             mask=models.Mask.types[mask_type],
             activity=activity_distributions['Seated'],
             expiration=build_expiration({'Talking': 0.33, 'Breathing': 0.67}),
+            host_immunity=0.,
         ),
     )
     exposure_mc = mc.ExposureModel(

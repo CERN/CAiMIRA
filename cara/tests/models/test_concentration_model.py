@@ -45,6 +45,7 @@ def test_concentration_model_vectorisation(override_params):
                 viable_to_RNA_ratio = 0.5,
             ),
             expiration=models._ExpirationBase.types['Breathing'],
+            host_immunity=0.,
         )
     )
     concentrations = c_model.concentration(10)
@@ -65,6 +66,7 @@ def simple_conc_model():
             activity=models.Activity.types['Seated'],
             virus=models.Virus.types['SARS_CoV_2'],
             expiration=models.Expiration.types['Breathing'],
+            host_immunity=0.,
         )
     )
 

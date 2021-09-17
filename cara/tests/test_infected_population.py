@@ -35,6 +35,7 @@ def test_infected_population_vectorisation(override_params):
                 viable_to_RNA_ratio = 0.5,
             ),
             expiration=cara.models._ExpirationBase.types['Breathing'],
+            host_immunity=0.,
     )
     emission_rate = infected.emission_rate(10)
     assert isinstance(emission_rate, np.ndarray)

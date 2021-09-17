@@ -432,6 +432,9 @@ class Virus:
     #: viable-to-RNA virus ratio as a function of the viral load
     viable_to_RNA_ratio: _VectorisedFloat
 
+    #: Reported increase of transmissibility of a VOC
+    transmissibility_VOC: float
+
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
 
@@ -469,22 +472,26 @@ Virus.types = {
         # 50 comes from Buonanno et al.
         infectious_dose=50.,
         viable_to_RNA_ratio = 0.5,
+        transmissibility_VOC=1.0,
     ),
     'SARS_CoV_2_B117': SARSCoV2(
         # also called VOC-202012/01
         viral_load_in_sputum=1e9,
         infectious_dose=30.,
         viable_to_RNA_ratio = 0.5,
+        transmissibility_VOC=0.6,
     ),
     'SARS_CoV_2_P1': SARSCoV2(
         viral_load_in_sputum=1e9,
         infectious_dose=1/0.045,
         viable_to_RNA_ratio = 0.5,
+        transmissibility_VOC=0.45,
     ),
     'SARS_CoV_2_B16172': SARSCoV2(
         viral_load_in_sputum=1e9,
         infectious_dose=30/1.6,
         viable_to_RNA_ratio = 0.5,
+        transmissibility_VOC=0.38,
     ),
 }
 
@@ -995,8 +1002,10 @@ class ExposureModel:
             exposure * self.fraction_deposited * f_inf
         )
         
-        # Probability of infection.
-        return (1 - np.exp(-(inf_aero/self.concentration_model.virus.infectious_dose))) * 100
+        infectious_dose = 1.44 * self.concentration_model.virus.infectious_dose * self.concentration_model.virus.transmissibility_VOC * (1 / (1 - self.concentration_model.infected.host_immunity))
+
+        # Probability of infection.        
+        return (1 - np.exp(-(inf_aero/infectious_dose))) * 100
 
     def expected_new_cases(self) -> _VectorisedFloat:
         prob = self.infection_probability()
