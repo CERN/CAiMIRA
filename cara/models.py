@@ -682,9 +682,6 @@ class _PopulationWithVirus(Population):
     #: The virus with which the population is infected.
     virus: Virus
 
-    #: The percentage of host immunity
-    host_immunity: float
-
     @method_cache
     def fraction_of_infectious_virus(self) -> _VectorisedFloat:
         """
