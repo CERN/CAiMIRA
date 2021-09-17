@@ -18,6 +18,18 @@ def test_multiple_wrong_weight_size():
         e = models.MultipleExpiration([e_base, e_base], weights)
 
 
+def test_multiple_wrong_diameters():
+    weights = (1., 2., 3.)
+    e1 = models.Expiration(np.array([1., 1.]))
+    e2 = models.Expiration(1.)
+    e3 = models.Expiration(2.)
+    with pytest.raises(
+            ValueError,
+            match=re.escape("diameters should all be scalars")
+    ):
+        e = models.MultipleExpiration([e1, e2, e3], weights)
+
+
 def test_multiple():
     weights = (1., 1.)
     mask = models.Mask.types['Type I']

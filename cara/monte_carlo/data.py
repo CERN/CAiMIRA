@@ -1,7 +1,68 @@
+from dataclasses import dataclass
+import typing
+
 import numpy as np
+from scipy import special as sp
 
 import cara.monte_carlo as mc
-from cara.monte_carlo.sampleable import Normal,LogNormal,LogCustomKernel, Uniform
+from cara.monte_carlo.sampleable import Normal,LogNormal,LogCustomKernel,CustomKernel,Uniform
+
+sqrt2pi = np.sqrt(2.*np.pi)
+sqrt2 = np.sqrt(2.)
+
+@dataclass(frozen=True)
+class BLOmodel:
+    """
+    Represents the probability distribution from the BLO model.
+    It is a sum of three lognormal distributions, each of the form
+    A * cn * (1 / d) * (1 / (np.sqrt(2 * np.pi) * sigma)) *
+            np.exp(-(np.log(d)-mu) ** 2 / (2 * sigma ** 2))
+    with A the factor in front of the B, L or O mode.
+    From G. Johnson et al., Modality of human
+    expired aerosol size distributions, Journal of Aerosol Science,
+    vol. 42, no. 12, pp. 839 – 851, 2011,
+    https://doi.org/10.1016/j.jaerosci.2011.07.009).
+    """
+    #: factors assigned to resp. the B, L and O modes. They are
+    # charateristics of the kind of expiratory activity (e.g. breathing,
+    # speaking, singing, or shouting). These are applied on top of the
+    # cn concentrations (see below), and depend on the kind of activity
+    # (breathing, talking, singing/shouting)
+    BLO_factors: typing.Tuple[float, float, float]
+
+    #: cn (cm^-3) for resp. the B, L and O modes. Corresponds to the
+    # total concentration of aerosols for each mode.
+    cn: typing.Tuple[float, float, float] = (0.1, 1., 0.0010008)
+
+    # mean of the underlying normal distributions (represents the log of a
+    # diameter in microns), for resp. the B, L and O modes.
+    mu: typing.Tuple[float, float, float] = (0.989541, 1.38629, 4.97673)
+
+    # std deviation of the underlying normal distribution, for resp.
+    # the B, L and O modes.
+    sigma: typing.Tuple[float, float, float] = (0.262364, 0.506818, 0.585005)
+
+    def distribution(self, d):
+        """
+        Returns the raw value of the probability distribution for a
+        given diameter d (microns).
+        """
+        return sum( (1 / d) * (A * cn / (sqrt2pi * sigma)) *
+                    np.exp(-(np.log(d) - mu) ** 2 / (2 * sigma ** 2))
+                    for A,cn,mu,sigma in zip(self.BLO_factors, self.cn,
+                                             self.mu, self.sigma) )
+
+    def integrate(self, dmin, dmax):
+        """ 
+        Returns the integral between dmin and dmax (in microns) of the 
+        probability distribution.
+        """
+        result = 0.
+        for A,cn,mu,sigma in zip(self.BLO_factors, self.cn, self.mu, self.sigma):
+            ymin = (np.log(dmin)-mu)/(sqrt2*sigma)
+            ymax = (np.log(dmax)-mu)/(sqrt2*sigma)
+            result += A * cn * (sp.erf(ymax)-sp.erf(ymin)) / 2.
+        return result
 
 
 # From CERN-OPEN-2021-04 and refererences therein
@@ -67,4 +128,33 @@ virus_distributions = {
 mask_distributions = {
     'Type I': mc.Mask(Uniform(0.25, 0.80)),
     'FFP2': mc.Mask(Uniform(0.83, 0.91)),
+}
+
+
+def expiration_distribution(BLO_factors):
+    """
+    Returns an Expiration with an aerosol diameter distribution, defined
+    by the BLO factors (a length-3 tuple).
+    The total concentration of aerosols is computed by integrating
+    the distribution between 0.1 and 30 microns - these boundaries are
+    an historical choice based on previous implementations of the model
+    (it limits the influence of the O-mode).
+    """
+    dscan = np.linspace(0.1, 30. ,3000)
+    return mc.Expiration(CustomKernel(dscan,
+                BLOmodel(BLO_factors).distribution(dscan),kernel_bandwidth=0.1),
+                BLOmodel(BLO_factors).integrate(0.1, 30.))
+
+
+expiration_BLO_factors = {
+    'Breathing': (1., 0., 0.),
+    'Talking':   (1., 1., 1.),
+    'Singing':   (1., 5., 5.),
+    'Shouting':  (1., 5., 5.),
+}
+
+
+expiration_distributions = {
+    exp_type: expiration_distribution(BLO_factors)
+    for exp_type,BLO_factors in expiration_BLO_factors.items()
 }

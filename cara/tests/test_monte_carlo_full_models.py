@@ -5,10 +5,12 @@ import pytest
 import cara.monte_carlo as mc
 from cara import models,data
 from cara.monte_carlo.data import activity_distributions, virus_distributions
+from cara.monte_carlo.data import expiration_distribution, expiration_distributions
+from cara.apps.calculator.model_generator import build_expiration
 
 # TODO: seed better the random number generators
 np.random.seed(2000)
-SAMPLE_SIZE = 50000
+SAMPLE_SIZE = 250000
 TOLERANCE = 0.05
 
 # references values for infection_probability and expected new cases
@@ -42,10 +44,7 @@ def shared_office_mc():
             presence=mc.SpecificInterval(((0., 2.), (2.1, 4.), (5., 7.), (7.1, 9.))),
             mask=models.Mask(η_inhale=0.3),
             activity=activity_distributions['Seated'],
-            expiration=models.MultipleExpiration(
-                    expirations=(models.Expiration.types['Talking'],
-                                 models.Expiration.types['Breathing']),
-                    weights=(0.3, 0.7)),
+            expiration=build_expiration({'Talking': 0.3, 'Breathing': 0.7}),
         ),
     )
     return mc.ExposureModel(
@@ -86,7 +85,7 @@ def classroom_mc():
             presence=mc.SpecificInterval(((0., 2.), (2.5, 4.), (5., 7.), (7.5, 9.))),
             mask=models.Mask.types['No mask'],
             activity=activity_distributions['Light activity'],
-            expiration=models.Expiration.types['Talking'],
+            expiration=expiration_distributions['Talking'],
         ),
     )
     return mc.ExposureModel(
@@ -117,7 +116,7 @@ def ski_cabin_mc():
             presence=mc.SpecificInterval(((0., 1/3),)),
             mask=models.Mask(η_inhale=0.3),
             activity=activity_distributions['Moderate activity'],
-            expiration=models.Expiration.types['Talking'],
+            expiration=expiration_distributions['Talking'],
         ),
     )
     return mc.ExposureModel(
@@ -150,7 +149,7 @@ def gym_mc():
             presence=mc.SpecificInterval(((0., 1.),)),
             mask=models.Mask.types["No mask"],
             activity=activity_distributions['Heavy exercise'],
-            expiration=models.Expiration.types['Breathing'],
+            expiration=expiration_distributions['Breathing'],
         ),
     )
     return mc.ExposureModel(
@@ -182,10 +181,7 @@ def waiting_room_mc():
             presence=mc.SpecificInterval(((0., 2.),)),
             mask=models.Mask.types["No mask"],
             activity=activity_distributions['Seated'],
-            expiration=models.MultipleExpiration(
-                    expirations=(models.Expiration.types['Talking'],
-                                 models.Expiration.types['Breathing']),
-                    weights=(0.3, 0.7)),
+            expiration=build_expiration({'Talking': 0.3, 'Breathing': 0.7})
         ),
     )
     return mc.ExposureModel(
@@ -218,11 +214,7 @@ def skagit_chorale_mc():
             presence=mc.SpecificInterval(((0., 2.5),)),
             mask=models.Mask.types["No mask"],
             activity=activity_distributions['Light activity'],
-            expiration=models.Expiration(10.0761),
-            # The aerosol diameter given (10.0761 microns) is an equivalent
-            # diameter, chosen in such a way that the aerosol volume is
-            # the same as the total aerosol volume given by the full BLO model
-            # with (5, 5, 5) for the B/L/O weights.
+            expiration=expiration_distribution((5., 5., 5.)),
         ),
     )
     return mc.ExposureModel(
@@ -295,10 +287,7 @@ def test_small_shared_office_Geneva(mask_type, month, expected_pi,
             presence=mc.SpecificInterval(((9., 10+2/3), (10+5/6, 12.5), (13.5, 15+2/3), (15+5/6, 18.))),
             mask=models.Mask.types[mask_type],
             activity=activity_distributions['Seated'],
-            expiration=models.MultipleExpiration(
-                    expirations=(models.Expiration.types['Talking'],
-                                 models.Expiration.types['Breathing']),
-                    weights=(0.33, 0.67)),
+            expiration=build_expiration({'Talking': 0.33, 'Breathing': 0.67}),
         ),
     )
     exposure_mc = mc.ExposureModel(

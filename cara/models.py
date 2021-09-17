@@ -580,7 +580,8 @@ class MultipleExpiration(_ExpirationBase):
     Group together different modes of expiration, that represent
     each the main expiration mode for a certain fraction of time (given by
     the weights).
-
+    This class can only be used with single diameters (it cannot
+    be used with diameter distributions).
     """
     expirations: typing.Tuple[_ExpirationBase, ...]
     weights: typing.Tuple[float, ...]
@@ -589,6 +590,8 @@ class MultipleExpiration(_ExpirationBase):
         if len(self.expirations) != len(self.weights):
             raise ValueError("expirations and weigths should contain the"
                              "same number of elements")
+        if not all(np.isscalar(e.diameter) for e in self.expirations):
+            raise ValueError("diameters should all be scalars")
 
     def aerosols(self, mask: Mask):
         return np.array([
@@ -897,6 +900,13 @@ class ConcentrationModel:
 
 @dataclass(frozen=True)
 class ExposureModel:
+    """
+    Represents the exposure to a concentration of virions in the air.
+    NOTE: the infection probability formula assumes that if the diameter
+    is an array, then none of the ventilation parameters, room volume or virus
+    decay constant, are arrays as well.
+    TODO: implement a check this is the case, in __post_init__
+    """
     #: The virus concentration model which this exposure model should consider.
     concentration_model: ConcentrationModel
 
@@ -922,9 +932,29 @@ class ExposureModel:
         return normed_exposure * self.repeats
 
     def exposure(self) -> _VectorisedFloat:
-        """The number of virus per meter^3."""
-        return (self._normed_exposure() *
-                self.concentration_model.infected.emission_rate_when_present())
+        """
+        The number of virus per meter^3. With sampled diameters, the
+        aerosol volume has to be put back in the exposure before taking
+        the mean, to obtain the proper result for the exposure (which
+        corresponds to an integration on diameters).
+        """
+        emission_rate = self.concentration_model.infected.emission_rate_when_present()
+        if (not isinstance(self.concentration_model.infected,InfectedPopulation)
+            or not isinstance(self.concentration_model.infected.expiration,Expiration)
+            or np.isscalar(self.concentration_model.infected.expiration.diameter)
+            ):
+            # in all these cases, there is no distribution of
+            # diameters that need to be integrated over
+            return self._normed_exposure() * emission_rate
+        else:
+            # the mean of the diameter-dependent exposure (including
+            # aerosols volume, but NOT the other factors) has to be
+            # taken first (this is equivalent to integrating over the
+            # diameters)
+            mask = self.concentration_model.infected.mask
+            aerosols = self.concentration_model.infected.expiration.aerosols(mask)
+            return (np.array(self._normed_exposure()*aerosols).mean() *
+                    emission_rate/aerosols)
 
     def infection_probability(self) -> _VectorisedFloat:
         exposure = self.exposure()

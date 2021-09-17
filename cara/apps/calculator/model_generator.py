@@ -12,6 +12,7 @@ import cara.data.weather
 import cara.monte_carlo as mc
 from .. import calculator
 from cara.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions
+from cara.monte_carlo.data import expiration_distribution, expiration_BLO_factors, expiration_distributions
 
 
 LOG = logging.getLogger(__name__)
@@ -23,7 +24,7 @@ minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
 # Used to declare when an attribute of a class must have a value provided, and
 # there should be no default value used.
 _NO_DEFAULT = object()
-_DEFAULT_MC_SAMPLE_SIZE = 50000
+_DEFAULT_MC_SAMPLE_SIZE = 250000
 
 
 @dataclasses.dataclass
@@ -628,12 +629,14 @@ class FormData:
 
 def build_expiration(expiration_definition) -> models._ExpirationBase:
     if isinstance(expiration_definition, str):
-        return models._ExpirationBase.types[expiration_definition]
+        return expiration_distributions[expiration_definition]
     elif isinstance(expiration_definition, dict):
-        return models.MultipleExpiration(
-            tuple([build_expiration(exp) for exp in expiration_definition.keys()]),
-            tuple(expiration_definition.values())
-        )
+        total_weight = sum(expiration_definition.values())
+        BLO_factors = np.sum([
+            np.array(expiration_BLO_factors[exp_type]) * weight/total_weight
+            for exp_type, weight in expiration_definition.items()
+            ], axis=0)
+        return expiration_distribution(tuple(BLO_factors))
 
 
 def baseline_raw_form_data():
