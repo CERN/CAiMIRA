@@ -190,6 +190,7 @@ def test_infectious_dose_vectorisation():
         virus=models.SARSCoV2(
             viral_load_in_sputum=1e9,
             infectious_dose=np.array([50, 20, 30]),
+            viable_to_RNA = 0.5,
         ),
         expiration=models.Expiration.types['Talking']
     )
