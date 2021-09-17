@@ -608,7 +608,7 @@ def compare_viruses_vr():
     positions=np.linspace(4.5, 11.5, 20)
 
     ######### SARS-CoV-2 #########
-    lower_bound = [290, 150, 150, 360,450, 610, 620, 1160, 1300, 1330, 1390, 1390, 1520, 2320, 6830, 9700, 42130] 
+    lower_bound = [290, 150, 150, 360, 450, 610, 620, 1160, 1300, 1330, 1390, 1390, 1520, 2320, 6830, 9700, 42130]
     higher_bound = [2900, 1500, 1500, 3600, 4500, 6100, 6200, 11600, 13000, 13300, 13900, 13900, 15200, 23200, 68300, 97000, 421300]
     
     for i in range(len(lower_bound)):
@@ -641,6 +641,18 @@ def compare_viruses_vr():
     
     handles = [patches.Patch(edgecolor=c, facecolor='none', label=l) for c, l in zip([p + (0.5,) for p in [(0., 0.5, 0.5), (0, 0, 0.5), (0.5, 0, 0), (0.5, 0.5, 0.5)]], ('SARS-CoV-2', 'Measles', 'Influenza', 'Rhinovirus'))]
     boxplot_legend = plt.legend(handles=handles, loc='lower right')
+
+    ax.annotate("Bus ride", xy=(6, np.log10(4000)), color='k', fontsize=8,
+                xycoords='data',
+                xytext=(-50, 50), textcoords='offset points',
+                arrowprops=dict(arrowstyle="->",
+                                connectionstyle="arc3,rad=-0.2", color='lightgrey'))
+
+    ax.annotate("S V Chorale", xy=(10, np.log10(100000)), color='k', fontsize=8,
+                xycoords='data',
+                xytext=(-50, 40), textcoords='offset points',
+                arrowprops=dict(arrowstyle="->",
+                                connectionstyle="arc3,rad=-0.2", color='lightgrey'))
     
     handles = [patches.Patch(color=c, label=l) for c, l in zip([p  for p in colors_violin], ('Breathing', 'Speaking', 'Shouting'))]
     plt.legend(handles=handles, loc='lower left', bbox_to_anchor=(0.12, 0.))
