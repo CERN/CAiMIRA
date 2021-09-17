@@ -102,26 +102,29 @@ symptomatic_vl_frequencies = LogCustomKernel(
 # From https://doi.org/10.1093/cid/ciaa1579
 viable_to_RNA_ratio_distribution = Uniform(0.15, 0.45)
 
+# From discussion with virologists
+infectious_dose_distribution = Uniform(10., 100.)
+
 # From CERN-OPEN-2021-04 and refererences therein
 virus_distributions = {
     'SARS_CoV_2': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
-                infectious_dose=100,
+                infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
                 ),
     'SARS_CoV_2_B117': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
-                infectious_dose=60,
+                infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
                 ),
     'SARS_CoV_2_P1': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
-                infectious_dose=100/2.25,
+                infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
                 ),
     'SARS_CoV_2_B16172': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
-                infectious_dose=60/1.6,
+                infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
                 ),
 }
