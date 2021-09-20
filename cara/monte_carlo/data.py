@@ -111,25 +111,25 @@ virus_distributions = {
                 viral_load_in_sputum=symptomatic_vl_frequencies,
                 infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                transmissibility_VOC=1.,
+                transmissibility_factor=1.,
                 ),
     'SARS_CoV_2_B117': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
                 infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                transmissibility_VOC=0.6,
+                transmissibility_factor=0.6,
                 ),
     'SARS_CoV_2_P1': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
                 infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                transmissibility_VOC=0.45,
+                transmissibility_factor=0.45,
                 ),
     'SARS_CoV_2_B16172': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
                 infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                transmissibility_VOC=0.38,
+                transmissibility_factor=0.38,
                 ),
 }
 

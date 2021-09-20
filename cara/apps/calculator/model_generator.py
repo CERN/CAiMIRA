@@ -449,6 +449,7 @@ class FormData:
             presence=self.exposed_present_interval(),
             activity=activity,
             mask=self.mask(),
+            host_immunity=0.,
         )
         return exposed
 

@@ -507,6 +507,7 @@ baseline_model = models.ExposureModel(
         presence=models.SpecificInterval(((8., 12.), (13., 17.))),
         activity=models.Activity.types['Seated'],
         mask=models.Mask.types['No mask'],
+        host_immunity=0.,
     ),
 )
 
