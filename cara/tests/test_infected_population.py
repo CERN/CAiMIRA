@@ -32,6 +32,7 @@ def test_infected_population_vectorisation(override_params):
             virus=cara.models.Virus(
                 viral_load_in_sputum=defaults['viral_load_in_sputum'],
                 infectious_dose=50.,
+                viable_to_RNA_ratio = 0.5,
             ),
             expiration=cara.models._ExpirationBase.types['Breathing'],
     )

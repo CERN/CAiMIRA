@@ -417,7 +417,8 @@ class FormData:
             presence=self.infected_present_interval(),
             mask=self.mask(),
             activity=activity,
-            expiration=expiration
+            expiration=expiration,
+            host_immunity=0.,
         )
         return infected
 

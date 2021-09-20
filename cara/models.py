@@ -429,6 +429,9 @@ class Virus:
     #: Dose to initiate infection, in RNA copies
     infectious_dose: _VectorisedFloat
 
+    #: viable-to-RNA virus ratio as a function of the viral load
+    viable_to_RNA_ratio: _VectorisedFloat
+
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
 
@@ -465,19 +468,23 @@ Virus.types = {
         # as per https://www.dhs.gov/publication/st-master-question-list-covid-19
         # 50 comes from Buonanno et al.
         infectious_dose=50.,
+        viable_to_RNA_ratio = 0.5,
     ),
     'SARS_CoV_2_B117': SARSCoV2(
         # also called VOC-202012/01
         viral_load_in_sputum=1e9,
         infectious_dose=30.,
+        viable_to_RNA_ratio = 0.5,
     ),
     'SARS_CoV_2_P1': SARSCoV2(
         viral_load_in_sputum=1e9,
         infectious_dose=1/0.045,
+        viable_to_RNA_ratio = 0.5,
     ),
     'SARS_CoV_2_B16172': SARSCoV2(
         viral_load_in_sputum=1e9,
         infectious_dose=30/1.6,
+        viable_to_RNA_ratio = 0.5,
     ),
 }
 
@@ -663,6 +670,14 @@ class _PopulationWithVirus(Population):
     virus: Virus
 
     @method_cache
+    def fraction_of_infectious_virus(self) -> _VectorisedFloat:
+        """
+        The fraction of infectious virus.
+
+        """
+        return 1.
+
+    @method_cache
     def emission_rate_when_present(self) -> _VectorisedFloat:
         """
         The emission rate if the infected population is present
@@ -705,6 +720,19 @@ class EmittingPopulation(_PopulationWithVirus):
 class InfectedPopulation(_PopulationWithVirus):
     #: The type of expiration that is being emitted whilst doing the activity.
     expiration: _ExpirationBase
+
+    #: The ratio of virions that are inactivated by the infected person's immunity.
+    # This parameter considers the potential antibodies in the infected person, 
+    # which might render inactive some RNA copies (virions). 
+    host_immunity: _VectorisedFloat
+
+    @method_cache
+    def fraction_of_infectious_virus(self) -> _VectorisedFloat:
+        """
+        The fraction of infectious virus.
+
+        """
+        return self.virus.viable_to_RNA_ratio * (1 - self.host_immunity)
 
     @method_cache
     def emission_rate_when_present(self) -> _VectorisedFloat:
@@ -959,12 +987,14 @@ class ExposureModel:
     def infection_probability(self) -> _VectorisedFloat:
         exposure = self.exposure()
 
+        f_inf = self.concentration_model.infected.fraction_of_infectious_virus()
+
         inf_aero = (
             self.exposed.activity.inhalation_rate *
             (1 - self.exposed.mask.inhale_efficiency()) *
-            exposure * self.fraction_deposited
+            exposure * self.fraction_deposited * f_inf
         )
-
+        
         # Probability of infection.
         return (1 - np.exp(-(inf_aero/self.concentration_model.virus.infectious_dose))) * 100
 

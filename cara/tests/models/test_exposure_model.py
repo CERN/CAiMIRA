@@ -65,7 +65,8 @@ def known_concentrations(func):
         mask=models.Mask.types['Type I'],
         activity=models.Activity.types['Standing'],
         virus=models.Virus.types['SARS_CoV_2_B117'],
-        expiration=models.Expiration.types['Talking']
+        expiration=models.Expiration.types['Talking'],
+        host_immunity=0.,
     )
     normed_func = lambda x: func(x) / dummy_infected_population.emission_rate_when_present()
     return KnownNormedconcentration(dummy_room, dummy_ventilation,
@@ -190,6 +191,7 @@ def test_infectious_dose_vectorisation():
         virus=models.SARSCoV2(
             viral_load_in_sputum=1e9,
             infectious_dose=np.array([50, 20, 30]),
+            viable_to_RNA_ratio = 0.5,
         ),
         expiration=models.Expiration.types['Talking']
     )

@@ -42,6 +42,7 @@ def test_concentration_model_vectorisation(override_params):
             virus=models.SARSCoV2(
                 viral_load_in_sputum=defaults['viral_load_in_sputum'],
                 infectious_dose=50.,
+                viable_to_RNA_ratio = 0.5,
             ),
             expiration=models._ExpirationBase.types['Breathing'],
         )
