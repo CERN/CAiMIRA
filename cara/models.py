@@ -50,6 +50,7 @@ from .utils import method_cache
 
 from .dataclass_utils import nested_replace
 
+oneoverln2 = 1 / np.log(2)
 
 # Define types for items supporting vectorisation. In the future this may be replaced
 # by ``np.ndarray[<type>]`` once/if that syntax is supported. Note that vectorization
@@ -432,6 +433,9 @@ class Virus:
     #: viable-to-RNA virus ratio as a function of the viral load
     viable_to_RNA_ratio: _VectorisedFloat
 
+    #: Reported increase of transmissibility of a VOC
+    transmissibility_factor: float
+
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
 
@@ -469,22 +473,26 @@ Virus.types = {
         # 50 comes from Buonanno et al.
         infectious_dose=50.,
         viable_to_RNA_ratio = 0.5,
+        transmissibility_factor=1.0,
     ),
     'SARS_CoV_2_B117': SARSCoV2(
         # also called VOC-202012/01
         viral_load_in_sputum=1e9,
-        infectious_dose=30.,
+        infectious_dose=50.,
         viable_to_RNA_ratio = 0.5,
+        transmissibility_factor=0.6,
     ),
     'SARS_CoV_2_P1': SARSCoV2(
         viral_load_in_sputum=1e9,
-        infectious_dose=1/0.045,
+        infectious_dose=50.,
         viable_to_RNA_ratio = 0.5,
+        transmissibility_factor=0.45,
     ),
     'SARS_CoV_2_B16172': SARSCoV2(
         viral_load_in_sputum=1e9,
-        infectious_dose=30/1.6,
+        infectious_dose=50.,
         viable_to_RNA_ratio = 0.5,
+        transmissibility_factor=0.38,
     ),
 }
 
@@ -660,6 +668,11 @@ class Population:
     #: The physical activity being carried out by the people.
     activity: Activity
 
+    #: The ratio of virions that are inactivated by the person's immunity.
+    # This parameter considers the potential antibodies in the person, 
+    # which might render inactive some RNA copies (virions).
+    host_immunity: float
+
     def person_present(self, time):
         return self.presence.triggered(time)
 
@@ -719,12 +732,7 @@ class EmittingPopulation(_PopulationWithVirus):
 @dataclass(frozen=True)
 class InfectedPopulation(_PopulationWithVirus):
     #: The type of expiration that is being emitted whilst doing the activity.
-    expiration: _ExpirationBase
-
-    #: The ratio of virions that are inactivated by the infected person's immunity.
-    # This parameter considers the potential antibodies in the infected person, 
-    # which might render inactive some RNA copies (virions). 
-    host_immunity: _VectorisedFloat
+    expiration: _ExpirationBase 
 
     @method_cache
     def fraction_of_infectious_virus(self) -> _VectorisedFloat:
@@ -995,8 +1003,13 @@ class ExposureModel:
             exposure * self.fraction_deposited * f_inf
         )
         
-        # Probability of infection.
-        return (1 - np.exp(-(inf_aero/self.concentration_model.virus.infectious_dose))) * 100
+        # oneoverln2 multiplied by ID_50 corresponds to ID_63.
+        infectious_dose = oneoverln2 * self.concentration_model.virus.infectious_dose
+
+        # Probability of infection.        
+        return (1 - np.exp(-((inf_aero * (1 - self.exposed.host_immunity))/(infectious_dose * 
+                self.concentration_model.virus.transmissibility_factor)))) * 100
+
 
     def expected_new_cases(self) -> _VectorisedFloat:
         prob = self.infection_probability()

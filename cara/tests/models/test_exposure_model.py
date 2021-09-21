@@ -193,7 +193,8 @@ def test_infectious_dose_vectorisation():
             infectious_dose=np.array([50, 20, 30]),
             viable_to_RNA_ratio = 0.5,
         ),
-        expiration=models.Expiration.types['Talking']
+        expiration=models.Expiration.types['Talking'],
+        host_immunity=0.,
     )
     cm = known_concentrations(lambda t: 1.2)
     cm = replace(cm, infected=infected_population)
