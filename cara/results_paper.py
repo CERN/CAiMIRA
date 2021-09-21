@@ -488,84 +488,89 @@ def compare_concentration_curves():
 def compare_viruses_vr():
 
     # Represented as tuples of three numbers on the interval [0, 1] (e.g. (1, 0, 0)) (R, G, B)
-    colors = [(0., 0.5, 0.5), (0, 0, 0.5), (0.5, 0, 0)]
-    colors_violin = ['lightsteelblue', 'wheat', 'darkseagreen']
+    colors = [(0., 0.5, 0.5), (0, 0, 0.5), (0.5, 0, 0), (0., 0.78, 0.)]
+    colors_violin=['lightsteelblue', 'wheat', 'darkseagreen']
     colors_violin_lines = ['royalblue', 'orange', 'forestgreen']
 
     # The colors of the borders surrounding the violin plots
     border_colors = [(0, 0, 0), (0, 0, 0), (0, 0, 0)]
-
+    
     whisker_width = 0.8
     positions = [1, 2, 3, 12]
-    
-    exposure_models = [exposure_module('Light activity', expiration, 'No mask').build_model(
-        size=SAMPLE_SIZE) for expiration in ('Breathing', 'Talking', 'Shouting')]
 
-    vrs = [np.log10(emission_rate_when_present(pop))
-           for pop in exposure_models]
+    exposure_modules = [exposure_module('Light activity', expiration, 'No mask').build_model(size=SAMPLE_SIZE) for expiration in ('Breathing', 'Talking', 'Shouting')]
+    
+    vrs = [np.log10(emission_rate_when_present(module)) for module in exposure_modules]
 
     fig, ax = plt.subplots()
     ax.set_xlim((0, 11))
 
-    parts = ax.violinplot(
-        vrs, quantiles=[(0.05, 0.95) for _ in vrs], showextrema=False)
+    parts = ax.violinplot(vrs, quantiles=[(0.05, 0.95) for _ in vrs], showextrema=False)
     means = [np.log10(np.mean(10 ** vr)) for vr in vrs]
     ax.hlines(y=means,
-              xmin=[pos - whisker_width / 2 for pos in positions[:3]],
-              xmax=[pos + whisker_width / 2 for pos in positions[:3]],
-              colors=colors_violin_lines,
-              alpha=0.8)
+                xmin=[pos - whisker_width / 2 for pos in positions[:3]],
+                xmax=[pos + whisker_width / 2 for pos in positions[:3]],
+                colors=colors_violin_lines,
+                alpha=0.8)
+
 
     for pc, color, bc in zip(parts['bodies'], colors_violin, border_colors):
         pc.set_facecolor(color)
         pc.set_edgecolor(bc)
         pc.set_alpha(0.5)
-    parts['cquantiles'].set_color(
-        [c for c in colors_violin_lines[:3] for _ in range(2)])
+    parts['cquantiles'].set_color([c for c in colors_violin_lines[:3] for _ in range(2)])
     parts['cquantiles'].set_alpha(1)
 
-    positions = np.linspace(4.5, 11.5, 20)
+    positions=np.linspace(4.5, 11.5, 20)
 
-    ######### SARS-CoV-2 #########
-    lower_bound = [418, 216, 216, 518, 648, 878, 893, 1670,
-                   1872, 1915, 2002, 2002, 2189, 3341, 9835, 13968, 60667]
-    higher_bound = [4176, 2160, 2160, 5184, 6480, 8784, 8928, 16704,
-                    18720, 19152, 20016, 20016, 21888, 33408, 98352, 139680, 606672]
+    ######### SARS-CoV #########
+    lower_bound = [418]
+    higher_bound = [4176]
 
     for i in range(len(lower_bound)):
         data = np.random.uniform(lower_bound[i], higher_bound[i], size=200000)
-        ax.boxplot(np.log10(data), positions=[positions[i]], medianprops=dict(
-            color=colors[0] + (0.5,)), whiskerprops=dict(color=colors[0] + (0.5,)), boxprops=dict(color=colors[0] + (0.5,)))
+        ax.boxplot(np.log10(data), positions=[positions[i]], medianprops=dict(color=colors[3] + (0.5,)),
+                   whiskerprops=dict(color=colors[3] + (0.5,)), boxprops=dict(color=colors[3] + (0.5,)))
+
+    ######### SARS-CoV-2 #########
+    lower_bound = [216, 216, 518, 648, 878, 893, 1670, 1872, 1915, 2002, 2002, 2189, 3341, 9835, 13968, 60667]
+    higher_bound = [2160, 2160, 5184, 6480, 8784, 8928, 16704, 18720, 19152, 20016, 20016, 21888, 33408, 98352, 139680, 606672]
+    
+    for i in range(len(lower_bound)):
+        data = np.random.uniform(lower_bound[i], higher_bound[i], size=200000)
+        ax.boxplot(np.log10(data), positions=[positions[i+1]], medianprops=dict(color=colors[0]+ (0.5,)),
+                   whiskerprops=dict(color=colors[0]+ (0.5,)), boxprops=dict(color=colors[0]+ (0.5,)))
 
     ######### Measles #########
     lower_bound = [259, 8640, 39816, 124416]
     higher_bound = [2592, 86400, 398160, 1244160]
-
+    
     for i in range(len(lower_bound)):
         data = np.random.uniform(lower_bound[i], higher_bound[i], size=200000)
-        ax.boxplot(np.log10(data), positions=[positions[i+5]], medianprops=dict(color=colors[1] + (
-            0.5,)), whiskerprops=dict(color=colors[1] + (0.5,)), boxprops=dict(color=colors[1] + (0.5,)))
+        ax.boxplot(np.log10(data), positions=[positions[i+5]], medianprops=dict(color=colors[1]+ (0.5,)),
+                   whiskerprops=dict(color=colors[1]+ (0.5,)), boxprops=dict(color=colors[1]+ (0.5,)))
 
     ######### Influenza #########
     lower_bound = [2, 114, 1138]
     higher_bound = [16, 1145, 11376]
-
+    
     for i in range(len(lower_bound)):
         data = np.random.uniform(lower_bound[i], higher_bound[i], size=200000)
-        ax.boxplot(np.log10(data), positions=[positions[i+12]], medianprops=dict(color=colors[2] + (
-            0.5,)), whiskerprops=dict(color=colors[2] + (0.5,)), boxprops=dict(color=colors[2] + (0.5,)))
+        ax.boxplot(np.log10(data), positions=[positions[i+12]], medianprops=dict(color=colors[2]+ (0.5,)),
+                   whiskerprops=dict(color=colors[2]+ (0.5,)), boxprops=dict(color=colors[2]+ (0.5,)))
 
     ######### Rhinovirus #########
     lower_bound = [45]
     higher_bound = [446]
-
+    
     for i in range(len(lower_bound)):
         data = np.random.uniform(lower_bound[i], higher_bound[i], size=200000)
         ax.boxplot(np.log10(data), positions=[positions[i+8]], medianprops=dict(color=(0.5, 0.5, 0.5, 0.5, )),
                    whiskerprops=dict(color=(0.5, 0.5, 0.5, 0.5,)), boxprops=dict(color=(0.5, 0.5, 0.5, 0.5,)))
-
-    handles = [patches.Patch(edgecolor=c, facecolor='none', label=l) for c, l in zip(
-        [p + (0.5,) for p in [(0., 0.5, 0.5), (0, 0, 0.5), (0.5, 0, 0), (0.5, 0.5, 0.5)]], ('SARS-CoV-2', 'Measles', 'Influenza', 'Rhinovirus'))]
+    
+    handles = [patches.Patch(edgecolor=c, facecolor='none', label=l)
+               for c, l in zip([p + (0.5,) for p in [(0., 0.78, 0.), (0., 0.5, 0.5), (0, 0, 0.5), (0.5, 0, 0), (0.5, 0.5, 0.5)]],
+                               ('SARS-CoV', 'SARS-CoV-2', 'Measles', 'Influenza', 'Rhinovirus'))]
     boxplot_legend = plt.legend(handles=handles, loc='lower right')
 
     ax.annotate("Bus ride", xy=(6, np.log10(5500)), color='k', fontsize=8,
@@ -579,21 +584,17 @@ def compare_viruses_vr():
                 xytext=(-50, 40), textcoords='offset points',
                 arrowprops=dict(arrowstyle="->",
                                 connectionstyle="arc3,rad=-0.2", color='lightgrey'))
-
-    handles = [patches.Patch(color=c, label=l) for c, l in zip(
-        [p for p in colors_violin], ('Breathing', 'Speaking', 'Shouting'))]
+    
+    handles = [patches.Patch(color=c, label=l) for c, l in zip([p  for p in colors_violin], ('Breathing', 'Speaking', 'Shouting'))]
     plt.legend(handles=handles, loc='lower left', bbox_to_anchor=(0.12, 0.))
     plt.gca().add_artist(boxplot_legend)
 
-    ax.hlines(y=[-2, 0, 2, 4, 6], xmin=ax.get_xlim()[0], xmax=ax.get_xlim()
-              [1], colors=(0.8, 0.8, 0.8), linestyles='--', alpha=0.3)
-    ax.vlines(x=4, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[
-              1], colors=(0.8, 0.8, 0.8))
+    ax.hlines(y=[-2, 0, 2, 4, 6], xmin=ax.get_xlim()[0], xmax=ax.get_xlim()[1], colors=(0.8, 0.8, 0.8), linestyles='--', alpha=0.3)
+    ax.vlines(x=4, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1], colors=(0.8, 0.8, 0.8))
     ax.set_yticks([i for i in range(-4, 7, 2)])
     ax.set_yticklabels(['$10^{' + str(i) + '}$' for i in range(-4, 7, 2)])
     ax.set_xticks([2, 7])
-    ax.set_xticklabels(
-        ['SARS-CoV-2\n(model)', 'Literature Data\n(recorded outbreaks) '])
+    ax.set_xticklabels(['SARS-CoV-2\n(model)', 'Literature Data\n(recorded outbreaks) '])
     ax.set_ylabel('Emission rate (virions h$^{-1}$)', fontsize=12)
 
     plt.tight_layout()
