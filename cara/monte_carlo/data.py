@@ -32,7 +32,7 @@ class BLOmodel:
 
     #: cn (cm^-3) for resp. the B, L and O modes. Corresponds to the
     # total concentration of aerosols for each mode.
-    cn: typing.Tuple[float, float, float] = (0.1, 1., 0.0010008)
+    cn: typing.Tuple[float, float, float] = (0.06, 0.2, 0.0010008)
 
     # mean of the underlying normal distributions (represents the log of a
     # diameter in microns), for resp. the B, L and O modes.
