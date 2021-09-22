@@ -5,6 +5,7 @@ import numpy.testing as npt
 import pytest
 
 from cara import models
+from cara.monte_carlo.data import expiration_distribution
 
 
 def test_multiple_wrong_weight_size():
@@ -40,16 +41,17 @@ def test_multiple():
     npt.assert_almost_equal(aerosol_expected, e.aerosols(mask))
 
 
-# expected values obtained from another code
+# expected values obtained from analytical formulas
 @pytest.mark.parametrize(
-    "expiration_type, expected_aerosols",
+    "BLO_weights, expected_aerosols",
     [
-        ['Breathing', 1.38924e-12],
-        ['Talking', 1.07129e-10],
-        ['Shouting', 5.30088e-10],
+        [(1.,0.,0.), 8.33551e-13],
+        [(1.,1.,1.), 2.20071e-11],
+        [(1.,5.,5.), 1.06701e-10],
     ],
 )
-def test_expiration_aerosols(expiration_type, expected_aerosols):
+def test_expiration_aerosols(BLO_weights, expected_aerosols):
     mask = models.Mask.types['No mask']
-    e = models._ExpirationBase.types[expiration_type]
-    npt.assert_allclose(e.aerosols(mask), expected_aerosols, rtol=1e-4)
+    e = expiration_distribution(BLO_weights)
+    npt.assert_allclose(e.build_model(100000).aerosols(mask).mean(),
+                        expected_aerosols, rtol=1e-2)
