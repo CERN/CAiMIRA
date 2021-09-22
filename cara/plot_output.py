@@ -46,13 +46,19 @@ from dataclasses import dataclass
 #calculate_deposition_factor()
 
 ############ Comparison between concentration curves ############ 
-#compare_concentration_curves()
+# compare_concentration_curves(models = [office_model_no_mask_windows_closed(), office_model_no_mask_windows_open_breaks(), office_model_no_mask_windows_open_alltimes()],
+#                              labels = ['Windows closed', 'Window open during breaks', 'Window open at all times'])
 
 ############ Emission Rate Violin plot ############ 
 #compare_viruses_vr()
 
 ############ Probability of infection vs Viral load ############ 
-plot_pi_vs_viral_load(activity='Seated', expiration='Talking', mask='No mask')
+#plot_pi_vs_viral_load(activity='Seated', expiration='Talking', mask='No mask')
+
+############ Composite plots vs Viral load ############
+# composite_plot_pi_vs_viral_load(models = [office_model_no_mask_windows_closed(), office_model_no_mask_windows_open_breaks(), office_model_no_mask_windows_open_alltimes()],
+#                                 labels = ['Windows closed', 'Window open during breaks', 'Window open at all times'],
+#                                 show_lines = True)
 
 ############ Used for testing ############
-#exposure_model_from_vl_talking_new_points()
+plot_hourly_temperatures()

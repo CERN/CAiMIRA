@@ -2,6 +2,7 @@ from tqdm import tqdm
 from matplotlib.patches import Rectangle, Patch
 from scipy.spatial import ConvexHull
 from model_scenarios_paper import *
+from cara.monte_carlo.data import symptomatic_vl_frequencies
 import cara.monte_carlo as mc
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,6 +10,7 @@ import pandas as pd
 import matplotlib.lines as mlines
 import matplotlib.patches as patches
 import matplotlib as mpl
+from scipy.interpolate import make_interp_spline, BSpline
 
 ######### Plot material #########
 np.random.seed(2000)
@@ -433,14 +435,10 @@ def calculate_deposition_factor():
 ############ Compare concentration curves ############
 
 
-def compare_concentration_curves():
+def compare_concentration_curves(models, labels):
 
-    exp_models = [office_model_no_mask_windows_closed().build_model(size=SAMPLE_SIZE),
-                  office_model_no_mask_windows_open_breaks().build_model(size=SAMPLE_SIZE),
-                  office_model_no_mask_windows_open_alltimes().build_model(size=SAMPLE_SIZE)]
+    exp_models = [model.build_model(size=SAMPLE_SIZE) for model in models]
 
-    labels = ['Windows closed', 'Window open during breaks',
-              'Window open at all times']
     colors = ['tomato', 'lightskyblue', 'limegreen',
               '#1f77b4', 'seagreen', 'lightskyblue', 'deepskyblue']
 
@@ -605,7 +603,6 @@ def plot_pi_vs_viral_load(activity, expiration, mask):
     ax = fig.add_subplot(1, 1, 1)
 
     pi_means = []
-    pi_medians = []
     lower_percentiles = []
     upper_percentiles = []
 
@@ -616,7 +613,6 @@ def plot_pi_vs_viral_load(activity, expiration, mask):
         pi = exposure_model.infection_probability()/100
         
         pi_means.append(np.mean(pi))
-        pi_medians.append(np.median(pi))
         lower_percentiles.append(np.quantile(pi, 0.01))
         upper_percentiles.append(np.quantile(pi, 0.99))
 
@@ -656,6 +652,131 @@ def plot_pi_vs_viral_load(activity, expiration, mask):
 
     plt.legend()
     plt.show()
+
+######### Composite plot P(I) vs Vl #########
+def composite_plot_pi_vs_viral_load(models, labels, show_lines):
+    
+    colors = ['tomato', 'lightskyblue', 'limegreen']
+
+    lines, lowers, uppers = [], [], []
+    for exposure_mc in models:
+        infected = exposure_mc.concentration_model.infected
+        pi_means = []
+        lower_percentiles = []
+        upper_percentiles = []
+
+        for vl in tqdm(viral_loads):
+            model = mc.ExposureModel(
+                concentration_model=mc.ConcentrationModel(
+                    room=exposure_mc.concentration_model.room,
+                    ventilation=exposure_mc.concentration_model.ventilation,
+                    infected=mc.InfectedPopulation(
+                        number=infected.number,
+                        virus=mc.SARSCoV2(
+                            viral_load_in_sputum=10**vl,
+                            infectious_dose=infectious_dose_distribution,
+                            viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
+                            transmissibility_factor=1.,
+                        ),
+                        presence=infected.presence,
+                        mask=infected.mask,
+                        activity=infected.activity,
+                        expiration=infected.expiration,
+                        host_immunity=0.,
+                    ),
+                ), 
+            exposed=exposure_mc.exposed)
+            
+            pi = model.build_model(size=SAMPLE_SIZE).infection_probability()/100
+            pi_means.append(np.mean(pi))
+            lower_percentiles.append(np.quantile(pi, 0.01))
+            upper_percentiles.append(np.quantile(pi, 0.99))
+
+        lines.append(pi_means)
+        uppers.append(upper_percentiles)
+        lowers.append(lower_percentiles)
+
+    histogram_data = [model.build_model(size=SAMPLE_SIZE).infection_probability() / 100 for model in models]
+
+    fig, axs = plt.subplots(2, 2 + len(models), gridspec_kw={'width_ratios': [5, 0.5] + [1] * len(models),
+                                                                'height_ratios': [3, 1], 'wspace': 0},
+                            sharey='row', sharex='col')
+
+    for y, x in [(0, 1)] + [(1, i + 1) for i in range(len(models) + 1)]:
+        axs[y, x].axis('off')
+
+    for x in range(len(models) - 1):
+        axs[0, x + 3].tick_params(axis='y', which='both', left='off')
+
+    axs[0, 1].set_visible(False)
+    
+    for line, upper, lower, label, color in zip(lines, uppers, lowers, labels, colors):
+        axs[0, 0].plot(viral_loads, line, label=label, color=color)
+        axs[0, 0].fill_between(viral_loads, lower, upper, alpha=0.2, color=color)
+
+    for i, (data, color) in enumerate(zip(histogram_data, colors)):
+        axs[0, i + 2].hist(data, bins=30, orientation='horizontal', color=color)
+        axs[0, i + 2].set_xticks([])
+        axs[0, i + 2].set_xticklabels([])
+        # axs[0, i + 2].set_xlabel(f"{np.round(np.mean(data) * 100, 1)}%")
+        axs[0, i + 2].set_facecolor("lightgrey")
+
+    highest_bar = max(axs[0, i + 2].get_xlim()[1] for i in range(len(histogram_data)))
+    for i in range(len(histogram_data)):
+        axs[0, i + 2].set_xlim(0, highest_bar)
+
+        axs[0, i + 2].text(highest_bar * 0.5, 0.5,
+                           "$P(I)=$\n" + rf"$\bf{np.round(np.mean(histogram_data[i]) * 100, 1)}$%",
+                           color=colors[i], ha='center', va='center')
+
+    axs[1, 0].hist([np.log10(vl) for vl in models[0].build_model(size=SAMPLE_SIZE).concentration_model.infected.virus.viral_load_in_sputum],
+                    bins=150, range=(2, 12), color='grey')
+    axs[1, 0].set_facecolor("lightgrey")
+    axs[1, 0].set_yticks([])
+    axs[1, 0].set_yticklabels([])
+    axs[1, 0].set_xticks([i for i in range(2, 13, 2)])
+    axs[1, 0].set_xticklabels(['$10^{' + str(i) + '}$' for i in range(2, 13, 2)])
+    axs[1, 0].set_xlim(2, 12)
+    axs[1, 0].set_xlabel('NP viral load, $\mathrm{vl_{in}}$\n(RNA copies)', fontsize=12)
+    axs[0, 0].set_ylabel('Probability of infection\n$P(\,\mathtt{I}\,|\,\mathrm{vl}\,)$', fontsize=12)
+ 
+    axs[0, 0].text(11, -0.01, '$(i)$')
+    axs[1, 0].text(11, axs[1, 0].get_ylim()[1] * 0.8, '$(ii)$')
+    #axs[0, 2].text(axs[0, 2].get_xlim()[1] * 0.1, -0.05, '$(iii)$')
+    axs[0, 2].set_title('$(iii)$', fontsize=10)
+
+    crits = []
+    for line in lines:
+        for i, point in enumerate(line):
+            if point >= 0.05:
+                crits.append(viral_loads[i])
+                break
+
+    for i, (crit, color) in enumerate(zip(crits, colors)):
+        axs[0, 0].text(2.5, 0.40 - i * 0.1, f'x $vl_{"{0.05}"}=' + '10^{' + str(np.round(crits[i], 1)) + '}$', fontsize=10, color=color)
+        axs[0, 0].plot(crits[i], 0.05, 'x', color=color)
+
+    if show_lines:
+        axs[0, 0].hlines([0.5], colors=['lightgrey'], linestyles=['dashed'], xmin=2, xmax=12)
+        axs[0, 0].text(9.7, 0.52, "$P(I|vl) = 0.5$", color='grey')
+        middle_positions = []
+        for line in lines:
+            for i, point in enumerate(line):
+                if point >= 0.5:
+                    middle_positions.append(viral_loads[i])
+                    break
+
+        for mpos, color in zip(middle_positions, colors):
+            axs[0, 0].plot(mpos, 0.5, '.', color=color)
+
+        axs[0, 0].vlines(middle_positions, colors=colors, linestyles=['dotted']*2, ymin=axs[0, 0].get_ylim()[0],
+                         ymax=0.5*1.3)
+        axs[1, 0].vlines(middle_positions, colors=colors, linestyles=['dotted']*2, ymin=0, ymax=axs[1, 0].get_ylim()[1])
+
+    axs[0, 0].legend()
+    plt.show()
+
+
 
 ######### Auxiliar functions #########
 def get_enclosure_points(x_coordinates, y_coordinates):
@@ -789,3 +910,31 @@ def print_er_info(er: np.array, log_er: np.array):
         print(f"ER_{quantile} = {np.quantile(er, quantile)}")
 
     return
+
+def plot_hourly_temperatures():
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+
+    hours = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23])
+    march = data.Geneva_hourly_temperatures_celsius_per_hour['Mar']
+    june = data.Geneva_hourly_temperatures_celsius_per_hour['Jun']
+    september = data.Geneva_hourly_temperatures_celsius_per_hour['Sep']
+    december = data.Geneva_hourly_temperatures_celsius_per_hour['Dec']
+
+    labels = ['March', 'June', 'September', 'December']
+
+    xnew = np.linspace(hours.min(), hours.max(),300) #300 represents number of points to make between hours.min and hours.max
+
+    for i, month in enumerate([march, june, september, december]):
+        spl = make_interp_spline(hours, month, k=3) #BSpline object
+        power_smooth = spl(xnew)
+        ax.plot(xnew, power_smooth, label=labels[i])
+        ax.scatter(hours, month)
+        
+    ax.set_xticks([0, 6, 12, 18, 23])
+    ax.set_xlabel('Hour of the day', fontsize=12)
+    ax.set_ylabel('Temperature (°C)', fontsize=12)
+
+    plt.legend()
+    plt.show()
