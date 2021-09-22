@@ -55,6 +55,7 @@ def shared_office_mc():
             presence=concentration_mc.infected.presence,
             activity=models.Activity.types['Seated'],
             mask=concentration_mc.infected.mask,
+            host_immunity=0.,
         ),
     )
 
@@ -97,6 +98,7 @@ def classroom_mc():
             presence=concentration_mc.infected.presence,
             activity=models.Activity.types['Seated'],
             mask=concentration_mc.infected.mask,
+            host_immunity=0.,
         ),
     )
 
@@ -129,6 +131,7 @@ def ski_cabin_mc():
             presence=concentration_mc.infected.presence,
             activity=models.Activity.types['Moderate activity'],
             mask=concentration_mc.infected.mask,
+            host_immunity=0.,
         ),
     )
 
@@ -163,6 +166,7 @@ def gym_mc():
             presence=concentration_mc.infected.presence,
             activity=models.Activity.types['Heavy exercise'],
             mask=concentration_mc.infected.mask,
+            host_immunity=0.,
         ),
     )
 
@@ -196,6 +200,7 @@ def waiting_room_mc():
             presence=concentration_mc.infected.presence,
             activity=models.Activity.types['Seated'],
             mask=concentration_mc.infected.mask,
+            host_immunity=0.,
         ),
     )
 
@@ -230,7 +235,8 @@ def skagit_chorale_mc():
             presence=concentration_mc.infected.presence,
             activity=models.Activity.types['Moderate activity'],
             mask=concentration_mc.infected.mask,
-        ),
+            host_immunity=0.,
+       ),
     )
 
 
@@ -304,6 +310,7 @@ def test_small_shared_office_Geneva(mask_type, month, expected_pi,
             presence=concentration_mc.infected.presence,
             activity=activity_distributions['Seated'],
             mask=concentration_mc.infected.mask,
+            host_immunity=0.,
         ),
     )
     exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
