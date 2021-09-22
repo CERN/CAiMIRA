@@ -97,11 +97,11 @@ def exposure_vl(activity: str, expiration: str, mask: str, vl: float):
             ),
             infected=mc.InfectedPopulation(
                 number=1,
-                virus=models.Virus(
+                virus=mc.SARSCoV2(
                     viral_load_in_sputum=10**vl,
                     infectious_dose=infectious_dose_distribution,
                     viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                    transmissibility_factor=1.,
+                    transmissibility_factor=1.0,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
                 mask=models.Mask.types[mask],

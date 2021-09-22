@@ -58,7 +58,6 @@ def exposure_model_from_vl(activity, expiration, mask):
 
     er_means = []
     er_means_1h = []
-    er_medians = []
     lower_percentiles = []
     upper_percentiles = []
 
@@ -76,7 +75,6 @@ def exposure_model_from_vl(activity, expiration, mask):
             emission_rate = emission_rate_when_present(exposure_model)
 
         er_means.append(np.mean(emission_rate))
-        er_medians.append(np.median(emission_rate))
         lower_percentiles.append(np.quantile(emission_rate, 0.01))
         upper_percentiles.append(np.quantile(emission_rate, 0.99))
         emission_rate_1h = emission_rate_when_present(exposure_model)
@@ -600,9 +598,66 @@ def compare_viruses_vr():
     plt.tight_layout()
     plt.show()
 
+
+######### Probability of infection vs Viral load #########
+def plot_pi_vs_viral_load(activity, expiration, mask):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+
+    pi_means = []
+    pi_medians = []
+    lower_percentiles = []
+    upper_percentiles = []
+
+    for vl in tqdm(viral_loads):
+        exposure_mc = exposure_vl(activity, expiration, mask, vl)
+        exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
+
+        pi = exposure_model.infection_probability()/100
+        
+        pi_means.append(np.mean(pi))
+        pi_medians.append(np.median(pi))
+        lower_percentiles.append(np.quantile(pi, 0.01))
+        upper_percentiles.append(np.quantile(pi, 0.99))
+
+    ax.plot(viral_loads, pi_means, label='Baseline')
+    ax.fill_between(viral_loads, lower_percentiles,
+                    upper_percentiles, alpha=0.2)
+
+    ############ Plot ############
+    plt.ylabel('Probability of infection', fontsize=14)
+    plt.xticks(ticks=[i for i in range(2, 13)], labels=['$10^{' + str(i) + '}$' for i in range(2, 13)])
+    plt.xlabel('NP viral load, $\mathrm{vl_{in}}$\n(RNA copies)', fontsize=14)
+
+    # add vertical lines for the critical viral loads for which pi= 5 or 95
+    left_index, right_index = 0, 0
+    for i, pi in enumerate(pi_means):
+        if pi > 0.05:
+            left_index = i
+            break
+
+    for i, pi in enumerate(pi_means[::-1]):
+        if pi < 0.95:
+            right_index = len(viral_loads) - i
+            break
+
+    left, right = viral_loads[left_index], viral_loads[right_index]
+    print('Vl_0.05 = 10^', np.round(left, 1), '\n')
+    print('Vl_0.95 = 10^', np.round(right, 1), '\n')
+
+    plt.vlines(x=(left, right), ymin=0, ymax=1,
+              colors=('grey', 'grey'), linestyles='dotted')
+    plt.text(left - 1.1, 0.80, '$vl_{0.05}$', fontsize=14,color='black')
+    plt.text(right + 0.1, 0.80, '$vl_{0.95}$', fontsize=14,color='black')
+    # add 3 shaded areas
+    plt.axvspan(2, left, alpha=0.1, color='limegreen')
+    plt.axvspan(left, right, alpha=0.1, color='orange')
+    plt.axvspan(right, 12, alpha=0.1, color='tomato')
+
+    plt.legend()
+    plt.show()
+
 ######### Auxiliar functions #########
-
-
 def get_enclosure_points(x_coordinates, y_coordinates):
     df = pd.DataFrame({'x': x_coordinates, 'y': y_coordinates})
 

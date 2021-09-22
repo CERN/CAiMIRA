@@ -49,7 +49,10 @@ from dataclasses import dataclass
 #compare_concentration_curves()
 
 ############ Emission Rate Violin plot ############ 
-compare_viruses_vr()
+#compare_viruses_vr()
+
+############ Probability of infection vs Viral load ############ 
+plot_pi_vs_viral_load(activity='Seated', expiration='Talking', mask='No mask')
 
 ############ Used for testing ############
 #exposure_model_from_vl_talking_new_points()
