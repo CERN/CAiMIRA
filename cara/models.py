@@ -768,13 +768,27 @@ class ConcentrationModel:
     ventilation: _VentilationBase
     infected: _PopulationWithVirus
 
+    #: evaporation factor: the particles' diameter is multiplied by this
+    # factor as soon as they are in the air (but AFTER going out of the,
+    # mask, if any).
+    evaporation_factor: float = 0.3
+
     @property
     def virus(self):
         return self.infected.virus
 
     def infectious_virus_removal_rate(self, time: float) -> _VectorisedFloat:
-        # Particle deposition on the floor (value from CERN-OPEN-2021-04)
-        vg = 1.88e-4 # value corresponding to a diameter of 2.5 microns
+        # Equilibrium velocity of particle motion toward the floor
+        if (isinstance(self.infected, InfectedPopulation)
+            and isinstance(self.infected.expiration, Expiration)):
+            d = self.infected.expiration.diameter
+            vg = 1.88e-4 * (d*self.evaporation_factor / 2.5)**2
+        else:
+            # no diameter is defined - we choose a velocity value
+            # corresponding to that obtained with a diameter of 2.5 microns
+            # (geometric average of the breathing expiration distribution,
+            # taking evaporation into account, see CERN-OPEN-2021-04)
+            vg = 1.88e-4
         # Height of the emission source to the floor - i.e. mouth/nose (m)
         h = 1.5
         # Deposition rate (h^-1)
