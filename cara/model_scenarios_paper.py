@@ -1,5 +1,5 @@
 from cara import models, data
-from cara.monte_carlo.data import activity_distributions, symptomatic_vl_frequencies, viable_to_RNA_ratio_distribution, infectious_dose_distribution, expiration_distributions
+from cara.monte_carlo.data import activity_distributions, symptomatic_vl_frequencies, viable_to_RNA_ratio_distribution, infectious_dose_distribution, expiration_distributions, mask_distributions, virus_distributions
 import cara.monte_carlo as mc
 import numpy as np
 from cara.monte_carlo.sampleable import Normal,LogNormal,LogCustomKernel,CustomKernel,Uniform
@@ -54,6 +54,11 @@ expiration_BLO_factors = {
 ######### Standard exposure models ###########
 
 def exposure_module(activity: str, expiration: str, mask: str):
+    if mask == 'No mask':
+        exposure_mask = models.Mask.types['No mask']
+    else:
+        exposure_mask = mask_distributions[mask]
+
     exposure_mc = mc.ExposureModel(
         concentration_model=mc.ConcentrationModel(
             room=models.Room(volume=100, humidity=0.5),
@@ -63,14 +68,9 @@ def exposure_module(activity: str, expiration: str, mask: str):
             ),
             infected=mc.InfectedPopulation(
                 number=1,
-                virus=mc.SARSCoV2(
-                    viral_load_in_sputum=symptomatic_vl_frequencies,
-                    infectious_dose=infectious_dose_distribution,
-                    viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                    transmissibility_factor=1.,
-                ),
+                virus=virus_distributions['SARS_CoV_2'],
                 presence=mc.SpecificInterval(((0, 2),)),
-                mask=models.Mask.types[mask],
+                mask=exposure_mask,
                 activity=activity_distributions[activity],
                 expiration=expiration_distributions[expiration],
                 host_immunity=0.,
@@ -80,7 +80,7 @@ def exposure_module(activity: str, expiration: str, mask: str):
             number=14,
             presence=mc.SpecificInterval(((0, 2),)),
             activity=activity_distributions[activity],
-            mask=models.Mask.types[mask],
+            mask=exposure_mask,
             host_immunity=0.,
         ),
     )
@@ -88,6 +88,11 @@ def exposure_module(activity: str, expiration: str, mask: str):
 
 ######### Exposure model for specific viral load ###########
 def exposure_vl(activity: str, expiration: str, mask: str, vl: float):
+    if mask == 'No mask':
+        exposure_mask = models.Mask.types['No mask']
+    else:
+        exposure_mask = mask_distributions[mask]
+
     exposure_mc = mc.ExposureModel(
         concentration_model=mc.ConcentrationModel(
             room=models.Room(volume=100, humidity=0.5),
@@ -104,7 +109,7 @@ def exposure_vl(activity: str, expiration: str, mask: str, vl: float):
                     transmissibility_factor=1.,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
-                mask=models.Mask.types[mask],
+                mask=exposure_mask,
                 activity=activity_distributions[activity],
                 expiration=expiration_distributions[expiration],
                 host_immunity=0.,
@@ -114,7 +119,7 @@ def exposure_vl(activity: str, expiration: str, mask: str, vl: float):
             number=14,
             presence=mc.SpecificInterval(((0, 2),)),
             activity=activity_distributions[activity],
-            mask=models.Mask.types[mask],
+            mask=exposure_mask,
             host_immunity=0.,
         ),
     )
@@ -122,6 +127,11 @@ def exposure_vl(activity: str, expiration: str, mask: str, vl: float):
 
 ######### Exposure model for specific viral load ###########
 def exposure_vl_cn(activity: str, expiration: str, mask: str, vl: float, cn: typing.Tuple[float, float, float]):
+    if mask == 'No mask':
+        exposure_mask = models.Mask.types['No mask']
+    else:
+        exposure_mask = mask_distributions[mask]
+
     exposure_mc = mc.ExposureModel(
         concentration_model=mc.ConcentrationModel(
             room=models.Room(volume=100, humidity=0.5),
@@ -138,7 +148,7 @@ def exposure_vl_cn(activity: str, expiration: str, mask: str, vl: float, cn: typ
                     transmissibility_factor=1.,
                 ),
                 presence=mc.SpecificInterval(((0, 2),)),
-                mask=models.Mask.types[mask],
+                mask=exposure_mask,
                 activity=activity_distributions[activity],
                 expiration=cn_expiration_distribution(expiration_BLO_factors[expiration], cn),
                 host_immunity=0.,
@@ -148,7 +158,7 @@ def exposure_vl_cn(activity: str, expiration: str, mask: str, vl: float, cn: typ
             number=14,
             presence=mc.SpecificInterval(((0, 2),)),
             activity=activity_distributions[activity],
-            mask=models.Mask.types[mask],
+            mask=exposure_mask,
             host_immunity=0.,
         ),
     )
@@ -165,12 +175,7 @@ def office_model_no_mask_windows_closed():
             infected=mc.InfectedPopulation(
                 number=1,
                 presence=mc.SpecificInterval(present_times = ((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
-                virus=mc.SARSCoV2(
-                    viral_load_in_sputum=symptomatic_vl_frequencies,
-                    infectious_dose=infectious_dose_distribution,
-                    viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                    transmissibility_factor=1.,
-                ),
+                virus=virus_distributions['SARS_CoV_2'],
                 mask=models.Mask.types["No mask"],
                 activity=activity_distributions['Light activity'],
                 expiration=build_expiration({'Talking': 0.33, 'Breathing': 0.67}),
@@ -206,12 +211,7 @@ def office_model_no_mask_windows_open_breaks():
             infected=mc.InfectedPopulation(
                 number=1,
                 presence=mc.SpecificInterval(present_times=((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
-                virus=mc.SARSCoV2(
-                    viral_load_in_sputum=symptomatic_vl_frequencies,
-                    infectious_dose=infectious_dose_distribution,
-                    viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                    transmissibility_factor=1.,
-                ),
+                virus=virus_distributions['SARS_CoV_2'],
                 mask=models.Mask.types["No mask"],
                 activity=activity_distributions['Light activity'],
                 expiration=build_expiration({'Talking': 0.33, 'Breathing': 0.67}),
@@ -246,12 +246,7 @@ def office_model_no_mask_windows_open_alltimes():
             infected=mc.InfectedPopulation(
                 number=1,
                 presence=mc.SpecificInterval(present_times=((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
-                virus=mc.SARSCoV2(
-                    viral_load_in_sputum=symptomatic_vl_frequencies,
-                    infectious_dose=infectious_dose_distribution,
-                    viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                    transmissibility_factor=1.,
-                ),
+                virus=virus_distributions['SARS_CoV_2'],
                 mask=models.Mask.types["No mask"],
                 activity=activity_distributions['Light activity'],
                 expiration=build_expiration({'Talking': 0.33, 'Breathing': 0.67}),
