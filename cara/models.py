@@ -781,10 +781,12 @@ class ConcentrationModel:
         # Equilibrium velocity of particle motion toward the floor
         if (isinstance(self.infected, InfectedPopulation)
             and isinstance(self.infected.expiration, Expiration)):
-            d = self.infected.expiration.diameter
-            vg = 1.88e-4 * (d*self.evaporation_factor / 2.5)**2
+            d = self.infected.expiration.diameter * self.evaporation_factor
+            vg = 1.88e-4 * (d / 2.5)**2 # see CERN-OPEN-2021-04
+            # (velocity of 1.88e-4 corresponds to diameter of 2.5 microns)
         else:
-            # no diameter is defined - we choose a velocity value
+            # model is not evaluated for specific values of aerosol
+            # diameters - we choose a single velocity value
             # corresponding to that obtained with a diameter of 2.5 microns
             # (geometric average of the breathing expiration distribution,
             # taking evaporation into account, see CERN-OPEN-2021-04)
@@ -966,8 +968,26 @@ class ExposureModel:
     #: The number of times the exposure event is repeated (default 1).
     repeats: int = 1
 
-    #: The fraction of viruses actually deposited in the respiratory tract
-    fraction_deposited: _VectorisedFloat = 0.6
+    def fraction_deposited(self):
+        """
+        The fraction of viruses actually deposited in the respiratory tract.
+        From W. C. Hinds, New York, Wiley, 1999 (pp. 233 – 259).
+        """
+        if not (isinstance(self.concentration_model.infected,InfectedPopulation)
+                and isinstance(self.concentration_model.infected.expiration,Expiration)):
+            # model is not evaluated for specific values of aerosol
+            # diameters - we choose a single "average" deposition factor,
+            # as in CERN-OPEN-2021-04.
+            fdep = 0.6
+        else:
+            # deposition factor depends on aerosol particle diameter.
+            d = (self.concentration_model.infected.expiration.diameter
+                 * self.concentration_model.evaporation_factor)
+            IFrac = 1 - 0.5 * (1 - (1 / (1 + (0.00076*(d**2.8)))))
+            fdep = IFrac * (0.0587
+                    + (0.911/(1 + np.exp(4.77 + 1.485 * np.log(d))))
+                    + (0.943/(1 + np.exp(0.508 - 2.58 * np.log(d)))))
+        return fdep
 
     def _normed_exposure(self) -> _VectorisedFloat:
         """
@@ -1006,15 +1026,44 @@ class ExposureModel:
             return (np.array(self._normed_exposure()*aerosols).mean() *
                     emission_rate/aerosols)
 
+    def _deposited_exposure(self) -> _VectorisedFloat:
+        """
+        The number of virus per meter^3 deposited on the respiratory
+        tract. As in the exposure method, with sampled diameters the
+        aerosol volume and the deposited fraction, have to be put
+        in the deposited exposure before taking the mean, to obtain the
+        proper result (which corresponds to an integration on diameters).
+        """
+        emission_rate = self.concentration_model.infected.emission_rate_when_present()
+        if (not isinstance(self.concentration_model.infected,InfectedPopulation)
+            or not isinstance(self.concentration_model.infected.expiration,Expiration)
+            or np.isscalar(self.concentration_model.infected.expiration.diameter)
+            ):
+            # in all these cases, there is no distribution of
+            # diameters that need to be integrated over
+            return (self._normed_exposure() *
+                    self.fraction_deposited() *
+                    emission_rate)
+        else:
+            # the mean of the diameter-dependent exposure (including
+            # aerosols volume, but NOT the other factors) has to be
+            # taken first (this is equivalent to integrating over the
+            # diameters)
+            mask = self.concentration_model.infected.mask
+            aerosols = self.concentration_model.infected.expiration.aerosols(mask)
+            return (np.array(self._normed_exposure() * aerosols *
+                    self.fraction_deposited()).mean() *
+                    emission_rate/aerosols)
+
     def infection_probability(self) -> _VectorisedFloat:
-        exposure = self.exposure()
+        deposited_exposure = self._deposited_exposure()
 
         f_inf = self.concentration_model.infected.fraction_of_infectious_virus()
 
         inf_aero = (
             self.exposed.activity.inhalation_rate *
             (1 - self.exposed.mask.inhale_efficiency()) *
-            exposure * self.fraction_deposited * f_inf
+            deposited_exposure * f_inf
         )
         
         # oneoverln2 multiplied by ID_50 corresponds to ID_63.
