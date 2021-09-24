@@ -119,6 +119,12 @@ virus_distributions = {
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
                 transmissibility_factor=0.78,
                 ),
+    'SARS_CoV_2_B1351': mc.SARSCoV2(
+                viral_load_in_sputum=symptomatic_vl_frequencies,
+                infectious_dose=infectious_dose_distribution,
+                viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
+                transmissibility_factor=0.8,
+                ),
     'SARS_CoV_2_P1': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
                 infectious_dose=infectious_dose_distribution,

@@ -480,19 +480,25 @@ Virus.types = {
         viral_load_in_sputum=1e9,
         infectious_dose=50.,
         viable_to_RNA_ratio = 0.5,
-        transmissibility_factor=0.6,
+        transmissibility_factor=0.78,
     ),
+    'SARS_CoV_2_B1351': SARSCoV2(
+        viral_load_in_sputum=1e9,
+        infectious_dose=50.,
+        viable_to_RNA_ratio=0.5,
+        transmissibility_factor=0.8,
+        ),
     'SARS_CoV_2_P1': SARSCoV2(
         viral_load_in_sputum=1e9,
         infectious_dose=50.,
         viable_to_RNA_ratio = 0.5,
-        transmissibility_factor=0.45,
+        transmissibility_factor=0.72,
     ),
     'SARS_CoV_2_B16172': SARSCoV2(
         viral_load_in_sputum=1e9,
         infectious_dose=50.,
         viable_to_RNA_ratio = 0.5,
-        transmissibility_factor=0.38,
+        transmissibility_factor=0.51,
     ),
 }
 
