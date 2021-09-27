@@ -924,16 +924,21 @@ class ExposureModel:
     def _normed_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         """The number of virions per meter^3 between any two times, normalized 
         by the emission rate of the infected population"""
+        exposure = 0.
         for start, stop in self.exposed.presence.boundaries():
-            if start > time2:
-                normed_exposure = 0.
+            if stop < time1:
+                continue
+            elif start > time2:
                 break
-            elif time2 <= stop:
-                normed_exposure = self.concentration_model.normed_integrated_concentration(time1, time2)
-                break
-            else:
-                normed_exposure = self.concentration_model.normed_integrated_concentration(time1, time2)
-        return normed_exposure
+            elif start <= time1 and time2<= stop:
+                exposure += self.concentration_model.normed_integrated_concentration(time1, time2)
+            elif start <= time1 and stop < time2:
+                exposure += self.concentration_model.normed_integrated_concentration(time1, stop)
+            elif time1 < start and time2 <= stop:
+                exposure += self.concentration_model.normed_integrated_concentration(start, time2)
+            elif time1 <= start and stop < time2:
+                exposure += self.concentration_model.normed_integrated_concentration(start, stop)
+        return exposure
 
     def exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         """The number of virions per meter^3 between any two times."""
