@@ -66,13 +66,15 @@ def build_model(interval_duration):
             active=models.PeriodicInterval(period=120, duration=interval_duration),
             q_air_mech=500.,
         ),
-        infected=models.InfectedPopulation(
+        infected=models.EmittingPopulation(
             number=1,
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(((0., 4.), (5., 8.))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
-            expiration=models.Expiration.types['Superspreading event'],
+            known_individual_emission_rate=970 * 50,
+            # superspreading event, where ejection factor is fixed based
+            # on Miller et al. (2020) - 50 represents the infectious dose.
         ),
     )
     return model
@@ -226,13 +228,13 @@ def build_hourly_dependent_model(
             outside_temp=outside_temp,
             window_height=1.6, opening_length=0.6,
         ),
-        infected=models.InfectedPopulation(
+        infected=models.EmittingPopulation(
             number=1,
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(intervals_presence_infected),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
-            expiration=models.Expiration.types['Superspreading event'],
+            known_individual_emission_rate=970 * 50,
         ),
     )
     return model
@@ -247,13 +249,13 @@ def build_constant_temp_model(outside_temp, intervals_open=((7.5, 8.5),)):
             outside_temp=models.PiecewiseConstant((0., 24.), (outside_temp,)),
             window_height=1.6, opening_length=0.6,
         ),
-        infected=models.InfectedPopulation(
+        infected=models.EmittingPopulation(
             number=1,
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(((0., 4.), (5., 7.5))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
-            expiration=models.Expiration.types['Superspreading event'],
+            known_individual_emission_rate=970 * 50,
         ),
     )
     return model
@@ -275,13 +277,13 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
     model = models.ConcentrationModel(
         room=models.Room(volume=75),
         ventilation=vent,
-        infected=models.InfectedPopulation(
+        infected=models.EmittingPopulation(
             number=1,
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(((0., 4.), (5., 7.5))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
-            expiration=models.Expiration.types['Superspreading event'],
+            known_individual_emission_rate=970 * 50,
         ),
     )
     return model
