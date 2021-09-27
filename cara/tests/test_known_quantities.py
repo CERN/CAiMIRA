@@ -378,8 +378,8 @@ def build_exposure_model(concentration_model):
 @pytest.mark.parametrize(
     "month, expected_exposure",
     [
-        ['Jan', 496.5427],
-        ['Jun', 1898.1354],
+        ['Jan', 503.254087759],
+        ['Jun', 2294.71115639],
     ],
 )
 def test_exposure_hourly_dep(month,expected_exposure):
@@ -399,8 +399,8 @@ def test_exposure_hourly_dep(month,expected_exposure):
 @pytest.mark.parametrize(
     "month, expected_exposure",
     [
-        ['Jan', 499.6921],
-        ['Jun', 2007.59925],
+        ['Jan', 511.118941481],
+        ['Jun', 2398.90129579],
     ],
 )
 def test_exposure_hourly_dep_refined(month,expected_exposure):
