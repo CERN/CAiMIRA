@@ -777,7 +777,7 @@ class ConcentrationModel:
     #: evaporation factor: the particles' diameter is multiplied by this
     # factor as soon as they are in the air (but AFTER going out of the,
     # mask, if any).
-    evaporation_factor: float = 0.3
+    evaporation_factor: float #= 0.3
 
     @property
     def virus(self):

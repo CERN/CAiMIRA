@@ -246,8 +246,9 @@ class FormData:
                 room=room,
                 ventilation=self.ventilation(),
                 infected=self.infected_population(),
+                evaporation_factor=0.3,
             ),
-            exposed=self.exposed_population()
+            exposed=self.exposed_population(),
         )
 
     def build_model(self, sample_size=_DEFAULT_MC_SAMPLE_SIZE) -> models.ExposureModel:

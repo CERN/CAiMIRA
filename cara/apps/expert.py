@@ -501,6 +501,7 @@ baseline_model = models.ExposureModel(
             expiration=models.Expiration.types['Talking'],
             host_immunity=0.,
         ),
+        evaporation_factor=0.3,
     ),
     exposed=models.Population(
         number=10,

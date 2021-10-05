@@ -47,6 +47,7 @@ def shared_office_mc():
             expiration=build_expiration({'Speaking': 0.3, 'Breathing': 0.7}),
             host_immunity=0.,
         ),
+        evaporation_factor=0.3,
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
@@ -90,6 +91,7 @@ def classroom_mc():
             expiration=expiration_distributions['Speaking'],
             host_immunity=0.,
         ),
+        evaporation_factor=0.3,
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
@@ -123,6 +125,7 @@ def ski_cabin_mc():
             expiration=expiration_distributions['Speaking'],
             host_immunity=0.,
         ),
+        evaporation_factor=0.3,
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
@@ -158,6 +161,7 @@ def gym_mc():
             expiration=expiration_distributions['Breathing'],
             host_immunity=0.,
         ),
+        evaporation_factor=0.3,
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
@@ -192,6 +196,7 @@ def waiting_room_mc():
             expiration=build_expiration({'Speaking': 0.3, 'Breathing': 0.7}),
             host_immunity=0.,
         ),
+        evaporation_factor=0.3,
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
@@ -227,6 +232,7 @@ def skagit_chorale_mc():
             expiration=expiration_distribution((5., 5., 5.)),
             host_immunity=0.,
         ),
+        evaporation_factor=0.3,
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
@@ -302,6 +308,7 @@ def test_small_shared_office_Geneva(mask_type, month, expected_pi,
             expiration=build_expiration({'Speaking': 0.33, 'Breathing': 0.67}),
             host_immunity=0.,
         ),
+        evaporation_factor=0.3,
     )
     exposure_mc = mc.ExposureModel(
         concentration_model=concentration_mc,

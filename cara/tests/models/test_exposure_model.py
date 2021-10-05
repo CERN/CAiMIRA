@@ -41,17 +41,17 @@ populations = [
     # A simple scalar population.
     models.Population(
         10, halftime, models.Mask.types['Type I'],
-        models.Activity.types['Standing'],
+        models.Activity.types['Standing'], host_immunity=0.,
     ),
     # A population with some array component for η_inhale.
     models.Population(
         10, halftime, models.Mask(np.array([0.3, 0.35])),
-        models.Activity.types['Standing'],
+        models.Activity.types['Standing'], host_immunity=0.
     ),
     # A population with some array component for inhalation_rate.
     models.Population(
         10, halftime, models.Mask.types['Type I'],
-        models.Activity(np.array([0.51, 0.57]), 0.57),
+        models.Activity(np.array([0.51, 0.57]), 0.57), host_immunity=0.
     ),
 ]
 
@@ -70,7 +70,7 @@ def known_concentrations(func):
     )
     normed_func = lambda x: func(x) / dummy_infected_population.emission_rate_when_present()
     return KnownNormedconcentration(dummy_room, dummy_ventilation,
-                                dummy_infected_population, normed_func)
+                                dummy_infected_population, 0.3, normed_func)
 
 
 @pytest.mark.parametrize(
@@ -92,7 +92,7 @@ def known_concentrations(func):
     ])
 def test_exposure_model_ndarray(population, cm, f_dep,
                                 expected_exposure, expected_probability):
-    model = ExposureModel(cm, population, fraction_deposited=f_dep)
+    model = ExposureModel(cm, population)
     np.testing.assert_almost_equal(
         model.exposure(), expected_exposure
     )
@@ -154,7 +154,9 @@ def conc_model():
             known_individual_emission_rate=970 * 50,
             # superspreading event, where ejection factor is fixed based
             # on Miller et al. (2020) - 50 represents the infectious dose.
-        )
+            host_immunity=0.,
+        ),
+        evaporation_factor=0.3,
     )
 
 
@@ -176,9 +178,9 @@ def test_exposure_model_integral_accuracy(exposed_time_interval,
     presence_interval = models.SpecificInterval((exposed_time_interval,))
     population = models.Population(
         10, presence_interval, models.Mask.types['Type I'],
-        models.Activity.types['Standing'],
+        models.Activity.types['Standing'], 0.,
     )
-    model = ExposureModel(conc_model, population, fraction_deposited=1.)
+    model = ExposureModel(conc_model, population)
     np.testing.assert_allclose(model.exposure(), expected_exposure)
 
 
@@ -192,6 +194,7 @@ def test_infectious_dose_vectorisation():
             viral_load_in_sputum=1e9,
             infectious_dose=np.array([50, 20, 30]),
             viable_to_RNA_ratio = 0.5,
+            transmissibility_factor=1.0,
         ),
         expiration=models.Expiration.types['Speaking'],
         host_immunity=0.,
@@ -202,9 +205,9 @@ def test_infectious_dose_vectorisation():
     presence_interval = models.SpecificInterval(((0., 1.),))
     population = models.Population(
         10, presence_interval, models.Mask.types['Type I'],
-        models.Activity.types['Standing'],
+        models.Activity.types['Standing'], 0.,
     )
-    model = ExposureModel(cm, population, fraction_deposited=1.0)
+    model = ExposureModel(cm, population) #, fraction_deposited=1.0
     inf_probability = model.infection_probability()
     assert isinstance(inf_probability, np.ndarray)
     assert inf_probability.shape == (3, )

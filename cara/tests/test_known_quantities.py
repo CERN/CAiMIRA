@@ -73,9 +73,11 @@ def build_model(interval_duration):
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
             known_individual_emission_rate=970 * 50,
+            host_immunity=0.,
             # superspreading event, where ejection factor is fixed based
             # on Miller et al. (2020) - 50 represents the infectious dose.
         ),
+        evaporation_factor=0.3,
     )
     return model
 
@@ -235,7 +237,9 @@ def build_hourly_dependent_model(
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
             known_individual_emission_rate=970 * 50,
+            host_immunity=0,
         ),
+        evaporation_factor=0.3,
     )
     return model
 
@@ -256,7 +260,9 @@ def build_constant_temp_model(outside_temp, intervals_open=((7.5, 8.5),)):
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
             known_individual_emission_rate=970 * 50,
+            host_immunity=0.,
         ),
+        evaporation_factor=0.3,
     )
     return model
 
@@ -284,7 +290,9 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
             known_individual_emission_rate=970 * 50,
+            host_immunity=0.,
         ),
+        evaporation_factor=0.3,
     )
     return model
 
@@ -368,8 +376,8 @@ def build_exposure_model(concentration_model):
             presence=infected.presence,
             activity=infected.activity,
             mask=infected.mask,
+            host_immunity=0.,
         ),
-        fraction_deposited=1.,
     )
 
 
