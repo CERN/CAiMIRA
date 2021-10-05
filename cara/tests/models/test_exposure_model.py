@@ -74,23 +74,23 @@ def known_concentrations(func):
 
 
 @pytest.mark.parametrize(
-    "population, cm, f_dep, expected_exposure, expected_probability", [
-        [populations[1], known_concentrations(lambda t: 36.), 1.,
-         np.array([432, 432]), np.array([99.6803184113, 99.5181053773])],
+    "population, cm, expected_exposure, expected_probability", [
+        [populations[1], known_concentrations(lambda t: 36.),
+         np.array([432, 432]), np.array([77.2191556943, 74.6803506895])],
 
-        [populations[2], known_concentrations(lambda t: 36.), 1.,
-         np.array([432, 432]), np.array([97.4574432074, 98.3493482895])],
+        [populations[2], known_concentrations(lambda t: 36.),
+         np.array([432, 432]), np.array([61.1470214407, 65.2366759251])],
 
-        [populations[0], known_concentrations(lambda t: np.array([36., 72.])), 1.,
-         np.array([432, 864]), np.array([98.3493482895, 99.9727534893])],
+        [populations[0], known_concentrations(lambda t: np.array([36., 72.])),
+         np.array([432, 864]), np.array([65.2366759251, 87.9151129926])],
 
-        [populations[1], known_concentrations(lambda t: np.array([36., 72.])), 1.,
-         np.array([432, 864]), np.array([99.6803184113, 99.9976777757])],
+        [populations[1], known_concentrations(lambda t: np.array([36., 72.])),
+         np.array([432, 864]), np.array([77.2191556943, 93.589153588])],
 
-        [populations[0], known_concentrations(lambda t: 72.), np.array([0.5, 1.]),
-         864, np.array([98.3493482895, 99.9727534893])],
+        [populations[2], known_concentrations(lambda t: np.array([36., 72.])),
+         np.array([432, 864]), np.array([61.1470214407, 87.9151129926])],
     ])
-def test_exposure_model_ndarray(population, cm, f_dep,
+def test_exposure_model_ndarray(population, cm,
                                 expected_exposure, expected_probability):
     model = ExposureModel(cm, population)
     np.testing.assert_almost_equal(
