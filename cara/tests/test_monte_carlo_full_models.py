@@ -249,12 +249,12 @@ def skagit_chorale_mc():
 @pytest.mark.parametrize(
     "mc_model, expected_pi, expected_new_cases, expected_dose, expected_ER",
     [
-        ["shared_office_mc", 2.3, 0.32, 57.24, 654],
-        ["classroom_mc",     16.1, 6.85, 780.0, 28464],
-        ["ski_cabin_mc",     4.4, 0.49, 35.94, 7404],
-        ["gym_mc",           0.57, 0.63, 0.7842, 1968],
-        ["waiting_room_mc",  2.02, 1.36, 34.26, 3534],
-        ["skagit_chorale_mc",11.42, 17.9, 190.0, 141400],
+        ["shared_office_mc", 2.3, 0.069, 57.24, 654],
+        ["classroom_mc",     16.1, 3.06, 780.0, 28464],
+        ["ski_cabin_mc",     4.4, 0.13, 35.94, 7404],
+        ["gym_mc",           0.57, 0.16, 0.7842, 1968],
+        ["waiting_room_mc",  2.02, 0.28, 34.26, 3534],
+        ["skagit_chorale_mc",11.42, 6.85, 190.0, 141400],
     ]
 )
 def test_report_models(mc_model, expected_pi, expected_new_cases,
@@ -275,10 +275,10 @@ def test_report_models(mc_model, expected_pi, expected_new_cases,
 @pytest.mark.parametrize(
     "mask_type, month, expected_pi, expected_dose, expected_ER",
     [
-        ["No mask", "Jul", 11.68, 405.84, 3894],
-        ["Type I",  "Jul", 2.12, 73.38, 702],
-        ["FFP2",    "Jul", 0.66, 73.38, 702],
-        ["Type I",  "Feb", 0.73, 21.42, 702],
+        ["No mask", "Jul", 11.68, 4.93, 3894],
+        ["Type I",  "Jul", 2.12, 15.41, 702],
+        ["FFP2",    "Jul", 0.66, 15.62, 702],
+        ["Type I",  "Feb", 0.73, 4.58, 702],
     ],
 )
 def test_small_shared_office_Geneva(mask_type, month, expected_pi,
