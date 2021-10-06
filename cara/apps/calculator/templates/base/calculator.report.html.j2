@@ -442,13 +442,15 @@
     new QRCode(document.getElementById("qrcode"), {
         text: "{{ permalink.shortened }}",
         width: 330,
-        height: 330}
-    );
-	new QRCode(document.getElementById("pdf_qrcode"), {
+        height: 330,
+        correctLevel : QRCode.CorrectLevel.L
+    });
+    new QRCode(document.getElementById("pdf_qrcode"), {
         text: "{{ permalink.shortened }}",
         width: 133,
-		height: 133}
-    );
+        height: 133,
+        correctLevel : QRCode.CorrectLevel.L
+    });
 </script>
 
 </body>
