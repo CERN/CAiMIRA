@@ -118,18 +118,18 @@ Within the number of people occupying the space, you should specify how many are
 <p>As an example, for a shared office with 4 people, where one person is infected, we enter 4 occupants and 1 infected person.</p>
 <h4>Activity type</h4>
 <p>There are a few predefined activities in the tool at present.</p>
-<p><strong>Office </strong> = All persons seated, talking occasionally (1/3rd of the time, with normal breathing the other 2/3rds of the time). Everyone (exposed and infected occupants) is treated the same in this model.
-<strong>Meeting</strong> = All persons seated, having a conversation (approximately each occupant is 1/N % of the time talking, where N is the number of occupants). Everyone (exposed and infected occupants) is treated the same in this model.</p>
-<p><strong>Library</strong> = All persons seated, breathing only (not talking), all the time.</p>
-<p><strong>Call Centre</strong> = All persons seated, all talking simultaneously, all the time. This is a conservative profile, i.e. will show an increased <code>P(i)</code> compared to office/meeting activity. Everyone (exposed and infected occupants) is treated the same in this model.</p>
-<p><strong>Control Room (day shift)</strong> = All persons seated, all talking 50% of the time. This is a conservative profile, i.e. will show an increased <code>P(i)</code> compared to office/meeting activity. Everyone (exposed and infected occupants) is treated the same in this model.</p>
-<p><strong>Control Room (night shift)</strong> = All persons seated, all talking 10% of the time. Everyone (exposed and infected occupants) is treated the same in this model.</p>
-<p><strong>Lab</strong> = Based on a typical lab or technical working area, all persons are doing light activity and talking 50% of the time. Everyone (exposed and infected occupants) is treated the same in this model.</p>
-<p><strong>Workshop</strong> = Based on a mechanical assembly workshop or equipment installation scenario, all persons are doing moderate activity and talking 50% of the time. This activity is equally applicable to bicycling, or walking on a gradient, in the LHC tunnels. Everyone (exposed and infected occupants) is treated the same in this model.</p>
+<p><strong>Office </strong> = All persons seated, speaking occasionally (1/3rd of the time, with normal breathing the other 2/3rds of the time). Everyone (exposed and infected occupants) is treated the same in this model.
+<strong>Meeting</strong> = All persons seated, having a conversation (approximately each occupant is 1/N % of the time speaking, where N is the number of occupants). Everyone (exposed and infected occupants) is treated the same in this model.</p>
+<p><strong>Library</strong> = All persons seated, breathing only (not speaking), all the time.</p>
+<p><strong>Call Centre</strong> = All persons seated, all speaking simultaneously, all the time. This is a conservative profile, i.e. will show an increased <code>P(i)</code> compared to office/meeting activity. Everyone (exposed and infected occupants) is treated the same in this model.</p>
+<p><strong>Control Room (day shift)</strong> = All persons seated, all speaking 50% of the time. This is a conservative profile, i.e. will show an increased <code>P(i)</code> compared to office/meeting activity. Everyone (exposed and infected occupants) is treated the same in this model.</p>
+<p><strong>Control Room (night shift)</strong> = All persons seated, all speaking 10% of the time. Everyone (exposed and infected occupants) is treated the same in this model.</p>
+<p><strong>Lab</strong> = Based on a typical lab or technical working area, all persons are doing light activity and speaking 50% of the time. Everyone (exposed and infected occupants) is treated the same in this model.</p>
+<p><strong>Workshop</strong> = Based on a mechanical assembly workshop or equipment installation scenario, all persons are doing moderate activity and speaking 50% of the time. This activity is equally applicable to bicycling, or walking on a gradient, in the LHC tunnels. Everyone (exposed and infected occupants) is treated the same in this model.</p>
 <p><strong>Training</strong> = Based on a typical training course scenario.
-One individual (the trainer) is standing and talking, with all other individuals seated and talking quietly (whispering).
+One individual (the trainer) is standing and speaking, with all other individuals seated and speaking quietly (whispering).
 In this case it is assumed that the infected person is the trainer, because this is the worst case in terms of viral shedding.</p>
-<p><strong>Gym</strong> = All persons are doing heavy exercise and breathing (not talking). Everyone (exposed and infected occupants) is treated the same in this model.</p>
+<p><strong>Gym</strong> = All persons are doing heavy exercise and breathing (not speaking). Everyone (exposed and infected occupants) is treated the same in this model.</p>
 <h3>Timings</h3>
 <p>You should enter the time (hours:minutes) for the start and end of the simulation period (i.e. 8:30 to 17:30 for a typical office day).
 It is important to enter the correct times for the simulation, in particular when using natural ventilation.
@@ -187,7 +187,7 @@ The <code>expected number of new cases</code> for the simulation is calculated b
 It is determined by:</p>
 <ul>
 <li>The presence of the infected person, who emits airborne viruses in the volume.</li>
-<li>The emission rate is related to the type of activity of the infected person (sitting, light exercise), their level of vocalisation (breathing, talking or shouting).</li>
+<li>The emission rate is related to the type of activity of the infected person (sitting, light exercise), their level of vocalisation (breathing, speaking or shouting).</li>
 <li>The accumulation of virions in the volume, which is driven, among other factors, by ventilation (if applicable).<ul>
 <li>In a mechanical ventilation scenario, the removal rate is constant, based on fresh airflow supply in and out of the simulated space.</li>
 <li>Under natural ventilation conditions, the effectiveness of ventilation relies upon the hourly temperature difference between the inside and outside air temperature.</li>

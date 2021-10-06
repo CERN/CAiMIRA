@@ -27,7 +27,7 @@ class BLOmodel:
     # charateristics of the kind of expiratory activity (e.g. breathing,
     # speaking, singing, or shouting). These are applied on top of the
     # cn concentrations (see below), and depend on the kind of activity
-    # (breathing, talking, singing/shouting)
+    # (breathing, speaking, singing/shouting)
     BLO_factors: typing.Tuple[float, float, float]
 
     #: cn (cm^-3) for resp. the B, L and O modes. Corresponds to the
@@ -167,7 +167,7 @@ def expiration_distribution(BLO_factors):
 
 expiration_BLO_factors = {
     'Breathing': (1., 0., 0.),
-    'Talking':   (1., 1., 1.),
+    'Speaking':   (1., 1., 1.),
     'Singing':   (1., 5., 5.),
     'Shouting':  (1., 5., 5.),
 }

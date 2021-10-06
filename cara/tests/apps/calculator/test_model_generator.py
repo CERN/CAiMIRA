@@ -35,11 +35,11 @@ def test_model_from_dict_invalid(baseline_form_data):
     ]
 )
 def test_blend_expiration(mask_type):
-    blend = {'Breathing': 2, 'Talking': 1}
+    blend = {'Breathing': 2, 'Speaking': 1}
     r = model_generator.build_expiration(blend).build_model(SAMPLE_SIZE)
     mask = models.Mask.types[mask_type]
     expected = (expiration_distributions['Breathing'].build_model(SAMPLE_SIZE).aerosols(mask).mean()*2/3. +
-                expiration_distributions['Talking'].build_model(SAMPLE_SIZE).aerosols(mask).mean()/3.)
+                expiration_distributions['Speaking'].build_model(SAMPLE_SIZE).aerosols(mask).mean()/3.)
     npt.assert_allclose(r.aerosols(mask).mean(), expected, rtol=TOLERANCE)
 
 

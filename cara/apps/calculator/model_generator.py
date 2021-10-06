@@ -373,35 +373,35 @@ class FormData:
         scenario_activity_and_expiration = {
             'office': (
                 'Seated',
-                # Mostly silent in the office, but 1/3rd of time talking.
-                {'Talking': 1, 'Breathing': 2}
+                # Mostly silent in the office, but 1/3rd of time speaking.
+                {'Speaking': 1, 'Breathing': 2}
             ),
             'controlroom-day': (
                 'Seated',
-                # Daytime control room shift, 50% talking.
-                {'Talking': 1, 'Breathing': 1}
+                # Daytime control room shift, 50% speaking.
+                {'Speaking': 1, 'Breathing': 1}
             ),
             'controlroom-night': (
                 'Seated',
-                # Nightshift control room, 10% talking.
-                {'Talking': 1, 'Breathing': 9}
+                # Nightshift control room, 10% speaking.
+                {'Speaking': 1, 'Breathing': 9}
             ),
             'meeting': (
                 'Seated',
-                # Conversation of N people is approximately 1/N% of the time talking.
-                {'Talking': 1, 'Breathing': self.total_people - 1}
+                # Conversation of N people is approximately 1/N% of the time speaking.
+                {'Speaking': 1, 'Breathing': self.total_people - 1}
             ),
-            'callcentre': ('Seated', 'Talking'),
+            'callcentre': ('Seated', 'Speaking'),
             'library': ('Seated', 'Breathing'),
-            'training': ('Standing', 'Talking'),
+            'training': ('Standing', 'Speaking'),
             'lab': (
                 'Light activity',
-                #Model 1/2 of time spent talking in a lab.
-                {'Talking': 1, 'Breathing': 1}),
+                #Model 1/2 of time spent speaking in a lab.
+                {'Speaking': 1, 'Breathing': 1}),
             'workshop': (
                 'Moderate activity',
-                #Model 1/2 of time spent talking in a workshop.
-                {'Talking': 1, 'Breathing': 1}),
+                #Model 1/2 of time spent speaking in a workshop.
+                {'Speaking': 1, 'Breathing': 1}),
             'gym':('Heavy exercise', 'Breathing'),
         }
 

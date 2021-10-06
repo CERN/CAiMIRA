@@ -44,7 +44,7 @@ def shared_office_mc():
             presence=mc.SpecificInterval(((0., 2.), (2.1, 4.), (5., 7.), (7.1, 9.))),
             mask=models.Mask(η_inhale=0.3),
             activity=activity_distributions['Seated'],
-            expiration=build_expiration({'Talking': 0.3, 'Breathing': 0.7}),
+            expiration=build_expiration({'Speaking': 0.3, 'Breathing': 0.7}),
             host_immunity=0.,
         ),
     )
@@ -87,7 +87,7 @@ def classroom_mc():
             presence=mc.SpecificInterval(((0., 2.), (2.5, 4.), (5., 7.), (7.5, 9.))),
             mask=models.Mask.types['No mask'],
             activity=activity_distributions['Light activity'],
-            expiration=expiration_distributions['Talking'],
+            expiration=expiration_distributions['Speaking'],
             host_immunity=0.,
         ),
     )
@@ -120,7 +120,7 @@ def ski_cabin_mc():
             presence=mc.SpecificInterval(((0., 1/3),)),
             mask=models.Mask(η_inhale=0.3),
             activity=activity_distributions['Moderate activity'],
-            expiration=expiration_distributions['Talking'],
+            expiration=expiration_distributions['Speaking'],
             host_immunity=0.,
         ),
     )
@@ -189,7 +189,7 @@ def waiting_room_mc():
             presence=mc.SpecificInterval(((0., 2.),)),
             mask=models.Mask.types["No mask"],
             activity=activity_distributions['Seated'],
-            expiration=build_expiration({'Talking': 0.3, 'Breathing': 0.7}),
+            expiration=build_expiration({'Speaking': 0.3, 'Breathing': 0.7}),
             host_immunity=0.,
         ),
     )
@@ -299,7 +299,7 @@ def test_small_shared_office_Geneva(mask_type, month, expected_pi,
             presence=mc.SpecificInterval(((9., 10+2/3), (10+5/6, 12.5), (13.5, 15+2/3), (15+5/6, 18.))),
             mask=models.Mask.types[mask_type],
             activity=activity_distributions['Seated'],
-            expiration=build_expiration({'Talking': 0.33, 'Breathing': 0.67}),
+            expiration=build_expiration({'Speaking': 0.33, 'Breathing': 0.67}),
             host_immunity=0.,
         ),
     )

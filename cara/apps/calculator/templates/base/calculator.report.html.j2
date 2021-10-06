@@ -279,25 +279,25 @@
 							<li><p class="data_text">
 							Activity type:
 							{% if form.activity_type == "office" %}
-							Office – typical scenario with all persons seated, talking occasionally (talking assumed for 1/3rd of the time).
+							Office – typical scenario with all persons seated, speaking occasionally (speaking assumed for 1/3rd of the time).
 							{% elif form.activity_type == "meeting" %}
-							Meeting – typical scenario with all persons seated, one person talking at a time.
+							Meeting – typical scenario with all persons seated, one person speaking at a time.
 							{% elif form.activity_type == "callcentre" %}
-							Call Centre = typical office-like scenario with all persons seated, all talking continuously.
+							Call Centre = typical office-like scenario with all persons seated, all speaking continuously.
 							{% elif form.activity_type == "controlroom-day" %}
-							Control Room (Day Shift) = specific control room scenario, all persons seated, all talking 50% of the time.
+							Control Room (Day Shift) = specific control room scenario, all persons seated, all speaking 50% of the time.
 							{% elif form.activity_type == "controlroom-night" %}
-							Control Room (Night Shift) = specific control room scenario with all persons seated, all talking for 10% of the time.
+							Control Room (Night Shift) = specific control room scenario with all persons seated, all speaking for 10% of the time.
 							{% elif form.activity_type == "library" %}
-							Library = Library scenario with all persons seated, breathing and not talking.
+							Library = Library scenario with all persons seated, breathing and not speaking.
 							{% elif form.activity_type == "workshop" %}
-							Workshop = assembly workshop environment, all persons doing moderate physical activity, talking 50% of the time.
+							Workshop = assembly workshop environment, all persons doing moderate physical activity, speaking 50% of the time.
 							{% elif form.activity_type == "training" %}
-							Training – one person (the trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the trainer is the infected person, for the worst case scenario.
+							Training – one person (the trainer) standing, speaking, all others seated, speaking quietly (whispering). It is assumed the trainer is the infected person, for the worst case scenario.
 							{% elif form.activity_type == "lab" %}
-							Laboratory = Lab or technical environment, all persons doing light physical activity, talking 50% of the time.
+							Laboratory = Lab or technical environment, all persons doing light physical activity, speaking 50% of the time.
 							{% elif form.activity_type == "gym" %}
-							Gym = For comparison only, all persons doing heavy physical exercise, breathing and not talking.
+							Gym = For comparison only, all persons doing heavy physical exercise, breathing and not speaking.
 							{% endif %}
 							</p></li>
 							<li><p class="data_text">Exposed occupant(s) activity time:</p></li>

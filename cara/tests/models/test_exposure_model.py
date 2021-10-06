@@ -64,8 +64,8 @@ def known_concentrations(func):
         presence=halftime,
         mask=models.Mask.types['Type I'],
         activity=models.Activity.types['Standing'],
-        virus=models.Virus.types['SARS_CoV_2_ALPHA'],
-        expiration=models.Expiration.types['Talking'],
+        virus=models.Virus.types['SARS_CoV_2_B117'],
+        expiration=models.Expiration.types['Speaking'],
         host_immunity=0.,
     )
     normed_func = lambda x: func(x) / dummy_infected_population.emission_rate_when_present()
@@ -193,7 +193,7 @@ def test_infectious_dose_vectorisation():
             infectious_dose=np.array([50, 20, 30]),
             viable_to_RNA_ratio = 0.5,
         ),
-        expiration=models.Expiration.types['Talking'],
+        expiration=models.Expiration.types['Speaking'],
         host_immunity=0.,
     )
     cm = known_concentrations(lambda t: 1.2)
