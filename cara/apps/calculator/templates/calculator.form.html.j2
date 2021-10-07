@@ -156,12 +156,12 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
 
     <div id="DIVmechanical_ventilation" class="tabbed" style="display:none">
         <div class="form-group row">
-          <input type="radio" id="mech_type_air_supply" name="mechanical_ventilation_type" value="mech_type_air_supply" onclick="require_fields(this)" tabindex="-1">
+          <input type="radio" id="mech_type_air_supply" name="mechanical_ventilation_type" value="mech_type_air_supply" class="center_radio" onclick="require_fields(this)" tabindex="-1">
           <label for="mech_type_air_supply" class="col-form-label col-sm-5">Air supply flow rate</label> &nbsp;&nbsp;
           <input type="number" step="any" id="air_supply" class="non_zero form-control col-sm-5" name="air_supply" min="0" placeholder="(m³ / hour)" data-has-radio="#mech_type_air_supply"><br>
         </div>
         <div class="form-group row">
-          <input type="radio" id="mech_type_air_changes" name="mechanical_ventilation_type" value="mech_type_air_changes" onclick="require_fields(this)" tabindex="-1">
+          <input type="radio" id="mech_type_air_changes" name="mechanical_ventilation_type" value="mech_type_air_changes" class="center_radio" onclick="require_fields(this)" tabindex="-1">
           <label for="mech_type_air_changes" class="col-form-label col-sm-5">Air changes per hour</label> &nbsp;&nbsp;
           <input type="number" step="any" id="air_changes" class="non_zero form-control col-sm-5" name="air_changes" min="0" placeholder="(h⁻¹) only fresh air" data-has-radio="#mech_type_air_changes"><br>
         </div>
@@ -191,11 +191,11 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
         </div>
         Windows open:</span><br><br>
         <div class="form-group row">
-          <span class="tabbed"><input type="radio" id="windows_open_permanently" name="window_opening_regime" value="windows_open_permanently" onclick="require_fields(this)" checked="checked"></span>
+          <span class="tabbed center_radio"><input type="radio" id="windows_open_permanently" name="window_opening_regime" value="windows_open_permanently" onclick="require_fields(this)" checked="checked"></span>
           <label for="windows_open_permanently" class="col-form-label col-sm-3">Permanently</label><br>
         </div>
         <div class="form-group row">
-          <span class="tabbed"><input type="radio" id="windows_open_periodically" name="window_opening_regime" value="windows_open_periodically" onclick="require_fields(this)"></span>
+          <span class="tabbed center_radio"><input type="radio" id="windows_open_periodically" name="window_opening_regime" value="windows_open_periodically" onclick="require_fields(this)"></span>
           <label for="windows_open_periodically" class="col-form-label col-sm-3">Periodically:</label>&nbsp;&nbsp; <br>
           <input type="number" step="any" id="windows_duration" class="non_zero disabled form-control col-sm-4" name="windows_duration" placeholder="Duration (min)" min="1" data-has-radio="#windows_open_periodically"> 
           <input type="number" step="any" id="windows_frequency" class="non_zero disabled form-control col-sm-4" name="windows_frequency" placeholder="Frequency (min)" min="1" data-has-radio="#windows_open_periodically">
