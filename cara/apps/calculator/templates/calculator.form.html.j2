@@ -144,8 +144,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
     
     <br>
 
-    Ventilation type:
-    <br>
+    <div class='sub_title'>Ventilation type:</div>
     
     <input type="radio" id="no_ventilation" name="ventilation_type" value="no_ventilation" checked>
       <label for="no_ventilation">No ventilation</label>&nbsp;&nbsp;
@@ -176,7 +175,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
         <label class="col-form-label col-sm-5">Height of window: </label>
         <input type="number" step="any" id="window_height" class="non_zero form-control col-sm-5" name="window_height" placeholder="meters" min="0"><br>
       </div>
-        Window type:<br>
+        <div class='sub_title'>Window type:</div>
         <input type="radio" id="window_sliding" name="window_type" value="window_sliding" onclick="require_fields(this)" checked="checked">
           <label for="window_sliding">Sliding / Side-Hung</label>&nbsp;&nbsp;
         <input type="radio" id="window_hinged" name="window_type" value="window_hinged" onclick="require_fields(this)">
@@ -189,7 +188,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
           <label class="col-form-label col-sm-5">Opening distance: </label>
           <input type="number" step="any" id="opening_distance" class="non_zero form-control col-sm-5" name="opening_distance" placeholder="meters" min="0"><br>
         </div>
-        Windows open:</span><br><br>
+        <div class='sub_title'>Window open:</div>
         <div class="form-group row">
           <span class="tabbed center_radio"><input type="radio" id="windows_open_permanently" name="window_opening_regime" value="windows_open_permanently" onclick="require_fields(this)" checked="checked"></span>
           <label for="windows_open_permanently" class="col-form-label col-sm-3">Permanently</label><br>
@@ -203,7 +202,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
         <br>
     </div>
 
-    HEPA filtration: <br>
+    <div class='sub_title'>HEPA filtration:</div>
     <input type="radio" id="hepa_no" name="hepa_option" value=0 onclick="require_fields(this)" checked="checked">
       <label for="hepa_no" class="col-form-label">No</label>&nbsp;&nbsp;
     <input type="radio" id="hepa_yes" name="hepa_option" value=1 onclick="require_fields(this)">
@@ -218,7 +217,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
     
     <br>
     
-    Are masks worn when occupants are at workstations?<br>
+    <div class='sub_title'>Are masks worn when occupants are at workstations?</div>
     <input type="radio" id="mask_on" name="mask_wearing_option" value="mask_on" required>
       <label for="mask_on">Yes</label>&nbsp;&nbsp;
     <input type="radio" id="mask_off"  name="mask_wearing_option" value="mask_off" required checked="checked">
@@ -272,7 +271,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
 
     <div style=" margin-right:2rem;">
       <div class="boxMargin pb-0">
-        Exposed person(s) presence:<br>
+        <div class='sub_title'>Exposed person(s) presence:</div>
         <div class="split">
         <div>
           <label class="tabbed mb-0">Start: </label>
@@ -280,14 +279,14 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
         </div>
         <div>
           <label class="tabbed mb-0">Finish: </label>
-          <input type="time" id="exposed_finish" class="finish_time" data-time-group="exposed" data-lunch-break="exposed_lunch" name="exposed_finish" value="17:30" required><br>
+          <input type="time" id="exposed_finish" class="finish_time" data-time-group="exposed" data-lunch-break="exposed_lunch" name="exposed_finish" value="17:30" required>
         </div>
         </div>
       </div>
       <br>
 
       <div class="boxMargin pb-0">
-        Infected person(s) presence:<br>
+        <div class='sub_title'>Infected person(s) presence:</div>
         <div class="split">
         <div>
           <label class="tabbed mb-0">Start: </label> 
@@ -295,7 +294,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
         </div>
         <div>
           <label class="tabbed mb-0">Finish: </label>
-          <input type="time" id="infected_finish" class="finish_time" data-time-group="infected" data-lunch-break="infected_lunch" name="infected_finish" value="17:30" required><br>
+          <input type="time" id="infected_finish" class="finish_time" data-time-group="infected" data-lunch-break="infected_lunch" name="infected_finish" value="17:30" required>
         </div>
         </div>
       </div>
