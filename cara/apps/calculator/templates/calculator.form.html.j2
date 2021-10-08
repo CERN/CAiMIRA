@@ -441,6 +441,10 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
 </section>
 
 <div class="center">
+  <button class="btn btn-primary bigButton">
+    <a href="{{ calculator_prefix }}/user-guide" class="{{ "nav-link active" if "user-guide" in active_page else "nav-link" }}">User guide</a>
+  </button>
+  &nbsp;&nbsp;
   <button type='submit' class="btn btn-primary bigButton" id="generate_report">
       Generate report
   </button>
