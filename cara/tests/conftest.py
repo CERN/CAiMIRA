@@ -13,13 +13,15 @@ def baseline_model():
             active=models.SpecificInterval(((0., 24.), )),
             air_exch=30.,
         ),
-        infected=models.InfectedPopulation(
+        infected=models.EmittingPopulation(
             number=1,
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(((0., 4.), (5., 8.))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
-            expiration=models.Expiration.types['Superspreading event'],
+            known_individual_emission_rate=970 * 50,
+            # superspreading event, where ejection factor is fixed based
+            # on Miller et al. (2020) - 50 represents the infectious dose.
         ),
     )
     return model

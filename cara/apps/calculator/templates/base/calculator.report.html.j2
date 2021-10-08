@@ -23,9 +23,8 @@
 			<h2 class="text-component-title mb-0">CARA - CALCULATOR REPORT</h1>
 			<p class="mb-0"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
 		</div>
-		<button type="button" class="btn btn-outline-dark align-self-center" style="margin-right: -100pt" id="download-pdf" onclick="print()">Print Report</button>
-		{# To be replaced by "Generate PDF" #}
-		<img id="pdf-qr-code" class="align-self-center invisible" src="{{ qr_code.image }}"/>
+		<button type="button" class="btn btn-outline-dark align-self-center" id="print-button" style="margin-right: -100pt" onclick="print()">Print Report</button>
+		<a href="{{ permalink.link }}" style="float: left;" id="pdf_qrcode_aref" class="align-self-center invisible"><div id="pdf_qrcode"></div></a>
 	</div>
 
 {% endblock report_header %}
@@ -88,9 +87,9 @@
 								<p id="section1">* The results are based on the parameters and assumptions published in the CERN Open Report <a href="https://cds.cern.ch/record/2756083"> CERN-OPEN-2021-004</a>.</p>
 								<svg id="result_plot" width="900" height="400"></svg>
 								<script type="application/javascript">
-									var times = {{times}}
-									var concentrations = {{concentrations}}
-									var exposed_presence_intervals = {{exposed_presence_intervals}}
+									var times = {{ times | JSONify }}
+									var concentrations = {{ concentrations | JSONify }}
+									var exposed_presence_intervals = {{ exposed_presence_intervals | JSONify }}
 									draw_concentration_plot("#result_plot", times, concentrations, exposed_presence_intervals);
 								</script>
               				</p>
@@ -108,8 +107,12 @@
 					<div class="collapse" id="collapseAlternativeScenarios">
 						<div class="card-body">
 							<div>
-								<img id="scenario_concentration_plot" src="{{ alternative_scenarios.plot }}" />
-
+								<svg id="alternative_scenario_plot" width="900" height="400"></svg>
+								<script type="application/javascript">
+									var alternative_scenarios = {{ alternative_scenarios.stats | JSONify }}
+									var times = {{ times | JSONify }}
+									draw_alternative_scenarios_plot("#alternative_scenario_plot", width=600, height=400, alternative_scenarios, times);
+								</script>
 								{% block report_scenarios_summary_table %}
 									<table class="table w-auto">
 										<thead class="thead-light">
@@ -158,10 +161,10 @@
 					<div class="collapse show" id="collapseQRcode">
 						<div class="card-body">
 							<div>
-								<a href="{{ qr_code.link }}" style="float: left;"><img style="width:250pt;" id="qr_code" src="{{ qr_code.image }}"/></a>
+								<a href="{{ permalink.link }}" style="float: left;"><div id="qrcode"></div></a>
 								<span style="float: left; min-height: 250pt; line-height: 250pt; vertical-align: middle; display: inline-block;">
 								<p style="display: inline-block; vertical-align: middle; line-height: normal;">
-								Click the QR code to regenerate the report and get a shareable link.<br>Alternatively, scan to regenerate the report.<br> Mobile-friendly app coming soon!
+								Click the QR code to regenerate the report and get a shareable link.<br>Alternatively, scan to regenerate the report.<br>
 								</p>
 								</span>
 							</div>	
@@ -429,11 +432,26 @@
 	</div>
 {% endblock disclaimer_container %}
 
-<script src="{{ calculator_prefix }}/static/js/pdf.js"></script>
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script type="text/javascript">
+    new QRCode(document.getElementById("qrcode"), {
+        text: "{{ permalink.shortened }}",
+        width: 330,
+        height: 330,
+        correctLevel : QRCode.CorrectLevel.L
+    });
+    new QRCode(document.getElementById("pdf_qrcode"), {
+        text: "{{ permalink.shortened }}",
+        width: 133,
+        height: 133,
+        correctLevel : QRCode.CorrectLevel.L
+    });
+</script>
 
 </body>
 </html>
