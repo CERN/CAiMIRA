@@ -75,7 +75,7 @@ body {
   clear: both;
   display: inline-flex;
   flex-direction: column;
-  /* width: 100%; */
+  width: 100%;
 }
 
 
