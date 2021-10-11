@@ -18,7 +18,7 @@
 
 {% block main %}
 
-v{{ calculator_version }} <span style="float:right; font-weight:bold">Please send feedback to <a href="mailto:CARA-dev@cern.ch">CARA-dev@cern.ch</a></span>
+v{{ calculator_version }} <span style="float:right; font-size:2.5vh; font-weight:bold">Please send feedback to <a href="mailto:CARA-dev@cern.ch">CARA-dev@cern.ch</a></span>
 <header class= "bg-light">
   <div class="container container--narrow container--padding">
     <img src="/static/images/cara_logo.200x200.png"  class="logo">
@@ -108,15 +108,16 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
         <input type="number" step="any" id="ceiling_height" class="non_zero form-control" name="ceiling_height" placeholder="Room ceiling height (m)" min="0" data-has-radio="#room_data_dimensions">
       </div>
     </div>
-    
-    <br>
 
-    Central heating system in use:
+    <div class="split">
+    <div>Central heating system in use:</div>
+    <div>
     <input class="ml-2" type="radio" id="heating_no" name="room_heating_option" value=0 checked="checked">
       <label for="heating_no">No</label>
     <input class="ml-2" type="radio" id="heating_yes" name="room_heating_option" value=1>
       <label for="heating_yes">Yes</label>
-
+    </div>
+    </div>
     <div class="form-group row">
       <div class="col-sm-4"><label class="col-form-label">Location:</label></div>
       <div class="col-sm-6 align-self-center"><select id="location_select" form="not-submitted" class="form-control" name="location_select" required></select></div>
@@ -143,12 +144,18 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
 
     <div class='sub_title'>Ventilation type:</div>
     
+    <div class="split">
+    <div>
     <input type="radio" id="no_ventilation" name="ventilation_type" value="no_ventilation" checked>
       <label for="no_ventilation">No ventilation</label>
     <input class="ml-2" type="radio" id="mechanical_ventilation" name="ventilation_type" value="mechanical_ventilation" data-enables="#DIVmechanical_ventilation">
       <label for="mechanical_ventilation">Mechanical</label>
-    <input class="ml-2" type="radio" id="natural_ventilation" name="ventilation_type" value="natural_ventilation" data-enables="#DIVnatural_ventilation">
+    </div>
+    <div>
+    <input type="radio" id="natural_ventilation" name="ventilation_type" value="natural_ventilation" data-enables="#DIVnatural_ventilation">
       <label for="natural_ventilation">Natural</label><br>
+    </div>
+    </div>
 
     <div id="DIVmechanical_ventilation" class="tabbed" style="display:none">
         <div class="split">
