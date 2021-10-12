@@ -475,26 +475,26 @@ Virus.types = {
         viable_to_RNA_ratio = 0.5,
         transmissibility_factor=1.0,
     ),
-    'SARS_CoV_2_B117': SARSCoV2(
+    'SARS_CoV_2_ALPHA': SARSCoV2(
         # also called VOC-202012/01
         viral_load_in_sputum=1e9,
         infectious_dose=50.,
         viable_to_RNA_ratio = 0.5,
         transmissibility_factor=0.78,
     ),
-    'SARS_CoV_2_B1351': SARSCoV2(
+    'SARS_CoV_2_BETA': SARSCoV2(
         viral_load_in_sputum=1e9,
         infectious_dose=50.,
         viable_to_RNA_ratio=0.5,
         transmissibility_factor=0.8,
         ),
-    'SARS_CoV_2_P1': SARSCoV2(
+    'SARS_CoV_2_GAMMA': SARSCoV2(
         viral_load_in_sputum=1e9,
         infectious_dose=50.,
         viable_to_RNA_ratio = 0.5,
         transmissibility_factor=0.72,
     ),
-    'SARS_CoV_2_B16172': SARSCoV2(
+    'SARS_CoV_2_DELTA': SARSCoV2(
         viral_load_in_sputum=1e9,
         infectious_dose=50.,
         viable_to_RNA_ratio = 0.5,

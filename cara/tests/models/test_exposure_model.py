@@ -64,7 +64,7 @@ def known_concentrations(func):
         presence=halftime,
         mask=models.Mask.types['Type I'],
         activity=models.Activity.types['Standing'],
-        virus=models.Virus.types['SARS_CoV_2_B117'],
+        virus=models.Virus.types['SARS_CoV_2_ALPHA'],
         expiration=models.Expiration.types['Talking'],
         host_immunity=0.,
     )
