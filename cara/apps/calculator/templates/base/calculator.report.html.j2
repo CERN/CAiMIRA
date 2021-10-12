@@ -193,12 +193,14 @@
 							<li><p class="data_text">Virus variant:
 							{% if form.virus_type == "SARS_CoV_2" %}
 							SARS-CoV-2 (nominal strain)
-							{% elif form.virus_type == "SARS_CoV_2_B117" %}
-							<a href="https://www.ecdc.europa.eu/en/publications-data/covid-19-risk-assessment-spread-new-sars-cov-2-variants-eueea">SARS-CoV-2 (Alpha VOC) </a>
-							{% elif form.virus_type == "SARS_CoV_2_P1" %}
-							<a href="https://doi.org/10.1126/science.abh2644">SARS-CoV-2 (Gamma VOC)</a>
-							{% elif form.virus_type == "SARS_CoV_2_B16172" %}
-							<a href="https://www.bmj.com/content/373/bmj.n1513">SARS-CoV-2 (Delta VOC)</a>
+							{% elif form.virus_type == "SARS_CoV_2_ALPHA" %}
+							<a href="https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2021.26.24.2100509">SARS-CoV-2 (Alpha VOC) </a>
+							{% elif form.virus_type == "SARS_CoV_2_BETA" %}
+							<a href="https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2021.26.24.2100509">SARS-CoV-2 (Beta VOC)</a>
+							{% elif form.virus_type == "SARS_CoV_2_GAMMA" %}
+							<a href="https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2021.26.24.2100509">SARS-CoV-2 (Gamma VOC)</a>
+							{% elif form.virus_type == "SARS_CoV_2_DELTA" %}
+							<a href="https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2021.26.24.2100509">SARS-CoV-2 (Delta VOC)</a>
 							{% endif %}
 							</p></li>
 							<li><p class="data_text">Room Volume: {{ model.concentration_model.room.volume }} m³</p></li>

@@ -36,9 +36,9 @@ def test_activity_distributions(distribution, mean, std):
     "distribution, mean, std",[
         ['SARS_CoV_2', 6.59, 1.74],
 
-        ['SARS_CoV_2_B117', 6.59, 1.74],
+        ['SARS_CoV_2_ALPHA', 6.59, 1.74],
 
-        ['SARS_CoV_2_P1', 6.59, 1.74],
+        ['SARS_CoV_2_GAMMA', 6.59, 1.74],
     ]
 )
 def test_viral_load_logdistribution(distribution, mean, std):

@@ -40,7 +40,7 @@ def shared_office_mc():
         ),
         infected=mc.InfectedPopulation(
             number=1,
-            virus=virus_distributions['SARS_CoV_2_B117'],
+            virus=virus_distributions['SARS_CoV_2_ALPHA'],
             presence=mc.SpecificInterval(((0., 2.), (2.1, 4.), (5., 7.), (7.1, 9.))),
             mask=models.Mask(η_inhale=0.3),
             activity=activity_distributions['Seated'],
@@ -83,7 +83,7 @@ def classroom_mc():
         ),
         infected=mc.InfectedPopulation(
             number=1,
-            virus=virus_distributions['SARS_CoV_2_B117'],
+            virus=virus_distributions['SARS_CoV_2_ALPHA'],
             presence=mc.SpecificInterval(((0., 2.), (2.5, 4.), (5., 7.), (7.5, 9.))),
             mask=models.Mask.types['No mask'],
             activity=activity_distributions['Light activity'],
@@ -116,7 +116,7 @@ def ski_cabin_mc():
         ),
         infected=mc.InfectedPopulation(
             number=1,
-            virus=virus_distributions['SARS_CoV_2_B117'],
+            virus=virus_distributions['SARS_CoV_2_ALPHA'],
             presence=mc.SpecificInterval(((0., 1/3),)),
             mask=models.Mask(η_inhale=0.3),
             activity=activity_distributions['Moderate activity'],
@@ -151,7 +151,7 @@ def gym_mc():
         ),
         infected=mc.InfectedPopulation(
             number=2,
-            virus=virus_distributions['SARS_CoV_2_B117'],
+            virus=virus_distributions['SARS_CoV_2_ALPHA'],
             presence=mc.SpecificInterval(((0., 1.),)),
             mask=models.Mask.types["No mask"],
             activity=activity_distributions['Heavy exercise'],
@@ -185,7 +185,7 @@ def waiting_room_mc():
         ),
         infected=mc.InfectedPopulation(
             number=1,
-            virus=virus_distributions['SARS_CoV_2_B117'],
+            virus=virus_distributions['SARS_CoV_2_ALPHA'],
             presence=mc.SpecificInterval(((0., 2.),)),
             mask=models.Mask.types["No mask"],
             activity=activity_distributions['Seated'],
@@ -295,7 +295,7 @@ def test_small_shared_office_Geneva(mask_type, month, expected_pi,
         ),
         infected=mc.InfectedPopulation(
             number=1,
-            virus=virus_distributions['SARS_CoV_2_B117'],
+            virus=virus_distributions['SARS_CoV_2_ALPHA'],
             presence=mc.SpecificInterval(((9., 10+2/3), (10+5/6, 12.5), (13.5, 15+2/3), (15+5/6, 18.))),
             mask=models.Mask.types[mask_type],
             activity=activity_distributions['Seated'],
