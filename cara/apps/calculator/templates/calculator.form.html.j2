@@ -463,10 +463,7 @@ v{{ calculator_version }}
 </section>
 
 <div class="center">
-  <button class="btn btn-primary bigButton">
-    <a href="{{ calculator_prefix }}/user-guide" class="{{ "nav-link active" if "user-guide" in active_page else "nav-link" }}">User guide</a>
-  </button>
-  <button type='submit' class="btn btn-primary bigButton ml-2" id="generate_report">
+  <button type='submit' class="btn btn-primary bigButton" id="generate_report">
       Generate report
   </button>
 </div>
@@ -522,7 +519,10 @@ v{{ calculator_version }}
 </div>
 
 <div class="center container--padding">
-<button class="btn btn-primary bigButton" type="button" data-toggle="collapse" data-target="#collapseDisclaimer" aria-expanded="false" aria-controls="collapseDisclaimer">
+<button class="btn btn-primary bigButton">
+  <a href="{{ calculator_prefix }}/user-guide" class="{{ "nav-link active" if "user-guide" in active_page else "nav-link" }}">User guide</a>
+</button>
+<button class="btn btn-primary bigButton  ml-2" type="button" data-toggle="collapse" data-target="#collapseDisclaimer" aria-expanded="false" aria-controls="collapseDisclaimer">
     Disclaimer 
 </button>
 </div>
