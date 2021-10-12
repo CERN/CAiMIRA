@@ -104,6 +104,7 @@ body {
 
 .header-text {
   text-align: center;
+  font-size: 2.75vh;
 }
 
 .head-center {
@@ -146,6 +147,12 @@ body {
   background: rgb(45, 138, 241);
   padding: 1.5rem 0;
   color: black;
+}
+
+.feedback {
+  float:right; 
+  font-size:1.7vh; 
+  font-weight:bold;
 }
 
 /*===== FIXED BACKGROUND IMG =====*/
@@ -200,6 +207,10 @@ footer img {
 
   .head-center {
     font-size: 2.5rem;
+  }
+
+  .header-text {
+    font-size: 2rem;
   }
 }
 /* Devices under 768px (md) */
