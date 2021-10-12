@@ -8,6 +8,7 @@
 
 	<link rel="stylesheet" type="text/css" href="{{ calculator_prefix }}/static/css/report.css">
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<link rel="stylesheet" href="/static/css/style.css">
 	<script src="https://d3js.org/d3.v7.min.js"></script>
 	<script src="{{ calculator_prefix }}/static/js/report.js" type="application/javascript"></script>
 
@@ -17,14 +18,14 @@
 
 {% block report_header %}
 
-	<div id="report-header-div" class="d-flex flex-row">
-		<img id="cara_logo" src="/static/images/cara_logo.200x200.png" class="d-inline-block align-middle">
-		<div class="d-flex align-self-center flex-column mr-auto" style="margin-left: 1em;">
-			<h2 class="text-component-title mb-0">CARA - CALCULATOR REPORT</h1>
-			<p class="mb-0"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
+	<div id="report-header-div" class="d-flex flex-row" style="margin: 1%">
+		<img id="report_logo" src="/static/images/cara_logo.200x200.png" class="d-inline-block align-middle mr-3">
+		<div style="margin-right: -105px" class='align-self-center mr-auto'>
+			<h2 class="header_text mb-0">CARA - CALCULATOR REPORT</h1>
+			<p class="mb-0" id="report_version"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
 		</div>
-		<button type="button" class="btn btn-outline-dark align-self-center" id="print-button" style="margin-right: -100pt" onclick="print()">Print Report</button>
-		<a href="{{ permalink.link }}" style="float: left;" id="pdf_qrcode_aref" class="align-self-center invisible"><div id="pdf_qrcode"></div></a>
+		<button type="button" class="btn btn-outline-dark align-self-center" id="download-pdf" style="margin-right: -100pt" onclick="print()">Print Report</button>
+		<a href="{{ permalink.link }}" style="float: left;" id="pdf_qrcode_aref" class="align-self-center invisible mr-0"><div id="pdf_qrcode"></div></a>
 	</div>
 
 {% endblock report_header %}
@@ -59,8 +60,8 @@
 							<p class="card-text">
 								<div class="align-self-center">
 									<div class="d-flex">
-											
-										<div style="min-width: 25%">
+									<div class="split">
+										<div class="col-md-3">
 											<div style="text-align:center"><b>Probability of infection (%)</b></div>
 											<div class="d-flex" style="min-height: 160px">
 												{% block warning_animation %}
@@ -74,23 +75,26 @@
 												{% endblock warning_animation %}
 											</div>
 										</div>
-										
-										{% block report_summary %}
-											<div class="align-self-center alert alert-dark" role="alert">
-												Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>*.
-											</div>
-										{% endblock report_summary %}
+										<div class="col-md-8 pr-0 pl-0">
+											{% block report_summary %}
+												<div class="align-self-center alert alert-dark" role="alert">
+													Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>*.
+												</div>
+											{% endblock report_summary %}
+										</div>
+									</div>
 									</div>
 									{% block report_summary_footnote %}
 									{% endblock report_summary_footnote %}
 								</div>
 								<p id="section1">* The results are based on the parameters and assumptions published in the CERN Open Report <a href="https://cds.cern.ch/record/2756083"> CERN-OPEN-2021-004</a>.</p>
-								<svg id="result_plot" width="900" height="400"></svg>
+
+								<div id="concentration_plot" style="height: 400px"></div>
 								<script type="application/javascript">
 									var times = {{ times | JSONify }}
 									var concentrations = {{ concentrations | JSONify }}
 									var exposed_presence_intervals = {{ exposed_presence_intervals | JSONify }}
-									draw_concentration_plot("#result_plot", times, concentrations, exposed_presence_intervals);
+									draw_concentration_plot("concentration_plot", times, concentrations, exposed_presence_intervals);
 								</script>
               				</p>
 						</div>
@@ -107,12 +111,13 @@
 					<div class="collapse" id="collapseAlternativeScenarios">
 						<div class="card-body">
 							<div>
-								<svg id="alternative_scenario_plot" width="900" height="400"></svg>
+								<div id="alternative_scenario_plot" style="height: 400px"></div>
 								<script type="application/javascript">
 									var alternative_scenarios = {{ alternative_scenarios.stats | JSONify }}
 									var times = {{ times | JSONify }}
-									draw_alternative_scenarios_plot("#alternative_scenario_plot", width=600, height=400, alternative_scenarios, times);
+									draw_alternative_scenarios_plot("concentration_plot", "alternative_scenario_plot", times, alternative_scenarios);
 								</script>
+								<br>
 								{% block report_scenarios_summary_table %}
 									<table class="table w-auto">
 										<thead class="thead-light">
@@ -160,13 +165,13 @@
 					</div>
 					<div class="collapse show" id="collapseQRcode">
 						<div class="card-body">
-							<div>
-								<a href="{{ permalink.link }}" style="float: left;"><div id="qrcode"></div></a>
-								<span style="float: left; min-height: 250pt; line-height: 250pt; vertical-align: middle; display: inline-block;">
+							<div class="split">
+								<div><a href="{{ permalink.link }}" style="float: left;"><div id="qrcode"></div></a></div>
+								<div class="align-self-center"><span style="float: left; vertical-align: middle; display: inline-block;">
 								<p style="display: inline-block; vertical-align: middle; line-height: normal;">
 								Click the QR code to regenerate the report and get a shareable link.<br>Alternatively, scan to regenerate the report.<br>
 								</p>
-								</span>
+								</span></div>
 							</div>	
 						</div>
 					</div>
@@ -390,7 +395,7 @@
 
 {% block disclaimer_container %}
 	<br><br><br>
-	<div style="border: 2px solid black; padding: 15px;">
+	<div style="border: #dee2e6 1px solid; margin: 1%; padding: 20px" class="rounded">
 		{% block disclaimer %}
 		<p class="image"> <img align="middle" src="{{ calculator_prefix }}/static/images/disclaimer.jpg" width="40" height="40"><b>Disclaimer:</b><br><br></p>
 
