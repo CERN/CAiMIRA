@@ -136,11 +136,9 @@ p.notes {
     .card {
         page-break-inside: avoid;
     }
-    /* CSS styling to avoid page breaks. */
-    .break-after {
-        page-break-after: always;
-    }
-    .break-avoid {
+    #disclaimer {
+        border: 2px solid black;
+        padding: 15px; 
         page-break-inside: avoid;
     }
 }
