@@ -35,7 +35,7 @@ Andre Henriques<sup>1</sup>, Luis Aleixo<sup>1</sup>, Marco Andreini<sup>1</sup>
 <sup>5</sup>Information Technology Department, Collaboration, Devices & Applications Group, CERN<br>
 <sup>6</sup>Norwegian University of Science and Technology (NTNU)<br>
 
-### citation
+### Citation
 A. Henriques, M. Andreini, G. Azzopardi, J. Devine, P. Elson, N. Mounet, M. Kongstein, N. Tarocco. CARA - COVID Airborne Risk Assessment tools. CERN (2021).
 
 
