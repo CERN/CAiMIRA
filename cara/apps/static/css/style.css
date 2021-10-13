@@ -231,7 +231,8 @@ footer img {
     padding: 10px;
   }
   .header_text {
-    font-size: 2vh;
+    font-size: 2.25vh;
+    font-weight: bold;
   }
   .nav-link {
     padding: .5rem .5rem!important;

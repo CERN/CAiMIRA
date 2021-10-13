@@ -146,7 +146,7 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
             Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
         }
         else {
-            var margins = { top: 30, right: 20, bottom: 50, left: 35 };
+            var margins = { top: 30, right: 20, bottom: 50, left: 40 };
             div_width = div_width * 1.1
             graph_width = div_width;
             graph_height = div_height * 0.65; // On mobile screen sizes we want the legend to be on the bottom of the graph.
@@ -196,7 +196,7 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
 
         yAxisEl.attr('transform', 'translate(' + margins.left + ',0)').call(yAxis);
         yAxisLabelEl.attr('x', (graph_height * 0.9 + margins.bottom) / 2)
-            .attr('y', (graph_height + margins.left) * 0.92)
+            .attr('y', (graph_height + margins.left) * 0.90)
             .attr('transform', 'rotate(-90, 0,' + graph_height + ')');
 
         // Legend on right side.
@@ -296,6 +296,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
 
     var xRange = d3.scaleTime().domain([first_scenario[0].hour, first_scenario[first_scenario.length - 1].hour]);
     var xTimeRange = d3.scaleLinear().domain([times[0], times[times.length - 1]]);
+    var bisecHour = d3.bisector((d) => { return d.hour; }).left;
 
     var yRange = d3.scaleLinear().domain([0., highest_concentration]);
 
@@ -366,20 +367,64 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
         .attr('stroke-linejoin', 'round')
         .attr('fill', 'none');
 
+    // Tooltip.
+    var focus = {}, tooltip_rect = {}, tooltip_time = {}, tooltip_concentration = {}, toolBox = {};
+    for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
+
+        focus[scenario_name] = vis.append('svg:g')
+            .style('display', 'none');
+
+        focus[scenario_name].append('circle')
+            .attr('r', 3);
+
+        tooltip_rect[scenario_name] = focus[scenario_name].append('rect')
+            .attr('fill', 'white')
+            .attr('stroke', '#000')
+            .attr('width', 80)
+            .attr('height', 50)
+            .attr('y', -22)
+            .attr('rx', 4)
+            .attr('ry', 4);
+
+        tooltip_time[scenario_name] = focus[scenario_name].append('text')
+            .attr('id', 'tooltip-time')
+            .attr('y', -2);
+
+        tooltip_concentration[scenario_name] = focus[scenario_name].append('text')
+            .attr('id', 'tooltip-concentration')
+            .attr('y', 18);
+
+        toolBox[scenario_name] = vis.append('rect')
+            .attr('fill', 'none')
+            .attr('pointer-events', 'all')
+            .on('mouseover', () => { for (const [scenario_name, data] of Object.entries(focus)) focus[scenario_name].style('display', null); })
+            .on('mouseout', () => { for (const [scenario_name, data] of Object.entries(focus)) focus[scenario_name].style('display', 'none'); })
+            .on('mousemove', mousemove);
+    }
+
+    var graph_width;
+    var graph_height;
+
     function redraw() {
         // Define width and height according to the screen size.
         var div_width = document.getElementById(concentration_plot_svg_id).clientWidth;
         var div_height = document.getElementById(concentration_plot_svg_id).clientHeight;
-        var graph_width = div_width;
-        var graph_height = div_height
+        graph_width = div_width;
+        graph_height = div_height
         if (div_width >= 900) { // For screens with width > 900px legend can be on the graph's right side.
             var margins = { top: 30, right: 20, bottom: 50, left: 50 };
             div_width = 900;
             graph_width = div_width * (2/3);
+            const svg_margins = {'margin-left': '0rem'};
+            Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
         }
         else {
-            var margins = { top: 30, right: 5, bottom: 50, left: 20 };
-            graph_height = div_height * 0.8; // On mobile screen sizes we want the legend to be on the bottom of the graph.
+            var margins = { top: 30, right: 20, bottom: 50, left: 40 };
+            div_width = div_width * 1.1
+            graph_width = div_width;
+            graph_height = div_height * 0.65; // On mobile screen sizes we want the legend to be on the bottom of the graph.
+            const svg_margins = {'margin-left': '-1rem'};
+            Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
         };
 
         // Use the extracted size to set the size of the SVG element.
@@ -411,9 +456,9 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
             }
             // Legend on the bottom.
             else {
-                label_icons[scenario_name].attr('x', margins.left * 0.5)
+                label_icons[scenario_name].attr('x', margins.left * 0.3)
                     .attr('y', graph_height + size);
-                label_text[scenario_name].attr('x', margins.left * 1.75)
+                label_text[scenario_name].attr('x', margins.left * 1.3)
                     .attr('y', graph_height + size);
             }
 
@@ -434,8 +479,8 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
         yAxisEl.attr('transform', 'translate(' + margins.left + ',0)')
             .call(yAxis);
         yAxisLabelEl.attr('transform', 'rotate(-90, 0,' + graph_height + ')')
-            .attr('x', (graph_height + margins.bottom) / 2)
-            .attr('y', (graph_height + margins.left) * 0.92);
+            .attr('x', (graph_height * 0.9 + margins.bottom) / 2)
+            .attr('y', (graph_height + margins.left) * 0.90);
 
         // Legend on right side.
         if (document.getElementById(concentration_plot_svg_id).clientWidth >= 900) {
@@ -448,10 +493,39 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
             legendBBox.attr('x', 1)
                 .attr('y', graph_height * 1.01)
         }
+
+        // ToolBox.
+        for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
+            toolBox[scenario_name].attr('width', graph_width - margins.right)
+                .attr('height', graph_height);
+        }
     }
 
     // Draw for the first time to initialize.
     redraw();
+
+    function mousemove() {
+        for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
+            if (d3.pointer(event)[0] < graph_width / 2) {
+                tooltip_rect[scenario_name].attr('x', 10)
+                tooltip_time[scenario_name].attr('x', 18)
+                tooltip_concentration[scenario_name].attr('x', 18);
+            }
+            else {
+                tooltip_rect[scenario_name].attr('x', -90)
+                tooltip_time[scenario_name].attr('x', -82)
+                tooltip_concentration[scenario_name].attr('x', -82)
+            }
+            var x0 = xRange.invert(d3.pointer(event, this)[0]),
+                i = bisecHour(data, x0, 1),
+                d0 = data[i - 1],
+                d1 = data[i],
+                d = x0 - d0.hour > d1.hour - x0 ? d1 : d0;
+            focus[scenario_name].attr('transform', 'translate(' + xRange(d.hour) + ',' + yRange(d.concentration) + ')');
+            focus[scenario_name].select('#tooltip-time').text('x = ' + time_format(d.hour));
+            focus[scenario_name].select('#tooltip-concentration').text('y = ' + d.concentration.toFixed(2));
+        }
+    }
 
     // Redraw based on the new size whenever the browser window is resized.
     window.addEventListener("resize", redraw);
