@@ -139,7 +139,7 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
         graph_width = div_width;
         graph_height = div_height
         if (div_width >= 900) { // For screens with width > 900px legend can be on the graph's right side.
-            var margins = { top: 30, right: 20, bottom: 50, left: 50 };
+            var margins = { top: 30, right: 20, bottom: 50, left: 60 };
             div_width = 900;
             graph_width = div_width * (2/3);
             const svg_margins = {'margin-left': '0rem', 'margin-top': '0rem'};
@@ -196,7 +196,7 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
 
         yAxisEl.attr('transform', 'translate(' + margins.left + ',0)').call(yAxis);
         yAxisLabelEl.attr('x', (graph_height * 0.9 + margins.bottom) / 2)
-            .attr('y', (graph_height + margins.left) * 0.90)
+            .attr('y', (graph_height + margins.left) * 0.9)
             .attr('transform', 'rotate(-90, 0,' + graph_height + ')');
 
         // Legend on right side.
@@ -224,7 +224,7 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
             legendAreaText.attr('x', 2 * size)
                 .attr('y', graph_height + 1.7 * size);
             legendBBox.attr('x', 1)
-                .attr('y', graph_height * 1.01);
+                .attr('y', graph_height);
         }
         
         // ToolBox.
@@ -412,7 +412,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
         graph_width = div_width;
         graph_height = div_height
         if (div_width >= 900) { // For screens with width > 900px legend can be on the graph's right side.
-            var margins = { top: 30, right: 20, bottom: 50, left: 50 };
+            var margins = { top: 30, right: 20, bottom: 50, left: 60 };
             div_width = 900;
             graph_width = div_width * (2/3);
             const svg_margins = {'margin-left': '0rem'};
@@ -458,7 +458,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
             else {
                 label_icons[scenario_name].attr('x', margins.left * 0.3)
                     .attr('y', graph_height + size);
-                label_text[scenario_name].attr('x', margins.left * 1.3)
+                label_text[scenario_name].attr('x', margins.left * 1.4)
                     .attr('y', graph_height + size);
             }
 
@@ -491,7 +491,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
         // Legend on the bottom.
         else {
             legendBBox.attr('x', 1)
-                .attr('y', graph_height * 1.01)
+                .attr('y', graph_height * 1.02)
         }
 
         // ToolBox.

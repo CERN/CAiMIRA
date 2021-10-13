@@ -304,11 +304,13 @@
 							</p></li>
 							<li><p class="data_text">Exposed occupant(s) activity time:</p></li>
 								<ul>
-									<li><p class="data_subtext">Start time: {{ form.exposed_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.exposed_finish | minutes_to_time }}</p></li>
+									<li><p class="data_subtext">Start time: {{ form.exposed_start | minutes_to_time }}</p></li>
+									<li><p class="data_subtext">End time: {{ form.exposed_finish | minutes_to_time }}</p></li>
 								</ul>
 							<li><p class="data_text">Infected occupant(s) activity time:</p></li>
 							<ul>
-								<li><p class="data_subtext">Start time: {{ form.infected_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.infected_finish | minutes_to_time }}</p></li>
+								<li><p class="data_subtext">Start time: {{ form.infected_start | minutes_to_time }}</p></li>
+								<li><p class="data_subtext">End time: {{ form.infected_finish | minutes_to_time }}</p></li>
 							</ul>
 							<li><p class="data_text">Event for the month of {{ form.event_month }}</p></li>
 						</ul>
@@ -326,7 +328,8 @@
 							{% if form.exposed_lunch_option%}
 							Yes</li>
 							<ul>
-								<li><p class="data_subtext">Start time: {{ form.exposed_lunch_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.exposed_lunch_finish | minutes_to_time }}</p></li>
+								<li><p class="data_subtext">Start time: {{ form.exposed_lunch_start | minutes_to_time }}</p></li>
+								<li><p class="data_subtext">End time: {{ form.exposed_lunch_finish | minutes_to_time }}</p></li>
 							</ul>
 							{% else%}
 							No
@@ -351,7 +354,8 @@
 							{% if form.infected_lunch_option%}
 							Yes</li>
 							<ul>
-								<li><p class="data_subtext">Start time: {{ form.infected_lunch_start | minutes_to_time }} &nbsp&nbsp End time: {{ form.infected_lunch_finish | minutes_to_time }}</p></li>
+								<li><p class="data_subtext">Start time: {{ form.infected_lunch_start | minutes_to_time }}</p></li>
+								<li><p class="data_subtext">End time: {{ form.infected_lunch_finish | minutes_to_time }}</p></li>
 							</ul>
 							{% else%}
 							No
