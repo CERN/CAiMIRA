@@ -104,24 +104,21 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
     focus.append('circle')
         .attr('r', 3);
 
-    focus.append('rect')
+    var tooltip_rect = focus.append('rect')
         .attr('fill', 'white')
         .attr('stroke', '#000')
         .attr('width', 80)
         .attr('height', 50)
-        .attr('x', 10)
         .attr('y', -22)
         .attr('rx', 4)
         .attr('ry', 4);
 
-    focus.append('text')
+    var tooltip_time = focus.append('text')
         .attr('id', 'tooltip-time')
-        .attr('x', 18)
         .attr('y', -2);
 
-    focus.append('text')
+    var tooltip_concentration = focus.append('text')
         .attr('id', 'tooltip-concentration')
-        .attr('x', 18)
         .attr('y', 18);
 
     var toolBox = vis.append('rect')
@@ -131,13 +128,16 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
         .on('mouseout', () => { focus.style('display', 'none'); })
         .on('mousemove', mousemove);
 
+    var graph_width;
+    var graph_height;
+
     function redraw() {
 
         // Define width and height according to the screen size.
         var div_width = plot_div.clientWidth;
         var div_height = plot_div.clientHeight;
-        var graph_width = div_width;
-        var graph_height = div_height
+        graph_width = div_width;
+        graph_height = div_height
         if (div_width >= 900) { // For screens with width > 900px legend can be on the graph's right side.
             var margins = { top: 30, right: 20, bottom: 50, left: 50 };
             div_width = 900;
@@ -230,6 +230,16 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
     redraw();
 
     function mousemove() {
+        if (d3.pointer(event)[0] < graph_width / 2) {
+            tooltip_rect.attr('x', 10)
+            tooltip_time.attr('x', 18)
+            tooltip_concentration.attr('x', 18);
+        }
+        else {
+            tooltip_rect.attr('x', -90)
+            tooltip_time.attr('x', -82)
+            tooltip_concentration.attr('x', -82)
+        }
         var x0 = xRange.invert(d3.pointer(event, this)[0]),
             i = bisecHour(data, x0, 1),
             d0 = data[i - 1],
