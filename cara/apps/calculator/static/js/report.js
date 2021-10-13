@@ -142,10 +142,16 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
             var margins = { top: 30, right: 20, bottom: 50, left: 50 };
             div_width = 900;
             graph_width = div_width * (2/3);
+            const svg_margins = {'margin-left': '0rem', 'margin-top': '0rem'};
+            Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
         }
         else {
-            var margins = { top: 30, right: 5, bottom: 50, left: 20 };
-            graph_height = div_height * 0.85; // On mobile screen sizes we want the legend to be on the bottom of the graph.
+            var margins = { top: 30, right: 20, bottom: 50, left: 35 };
+            div_width = div_width * 1.1
+            graph_width = div_width;
+            graph_height = div_height * 0.65; // On mobile screen sizes we want the legend to be on the bottom of the graph.
+            const svg_margins = {'margin-left': '-1rem', 'margin-top': '3rem'};
+            Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
         };
 
         // Use the extracted size to set the size of the SVG element.
@@ -189,7 +195,7 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
             .attr('y', graph_height * 0.97);
 
         yAxisEl.attr('transform', 'translate(' + margins.left + ',0)').call(yAxis);
-        yAxisLabelEl.attr('x', (graph_height + margins.bottom) / 2)
+        yAxisLabelEl.attr('x', (graph_height * 0.9 + margins.bottom) / 2)
             .attr('y', (graph_height + margins.left) * 0.92)
             .attr('transform', 'rotate(-90, 0,' + graph_height + ')');
 
