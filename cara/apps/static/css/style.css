@@ -278,6 +278,9 @@ footer img {
   #download-pdf {
     display: none;
   }
+  #link_reproduce_results {
+    display: none;
+  }
 }
 
 /*============ BOOTSTRAP BREAK POINTS:
