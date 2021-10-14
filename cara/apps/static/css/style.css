@@ -213,6 +213,10 @@ footer img {
     font-size: 2rem;
   }
 
+  .header_text {
+    font-weight: bold;
+  }
+
   #report_logo {
     height: 6em;
     margin: 1%;
