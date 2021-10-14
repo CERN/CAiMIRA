@@ -148,7 +148,7 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
         else {
             var margins = { top: 30, right: 20, bottom: 50, left: 40 };
             div_width = div_width * 1.1
-            graph_width = div_width;
+            graph_width = div_width * .95;
             graph_height = div_height * 0.65; // On mobile screen sizes we want the legend to be on the bottom of the graph.
             const svg_margins = {'margin-left': '-1rem', 'margin-top': '3rem'};
             Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
@@ -421,7 +421,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
         else {
             var margins = { top: 30, right: 20, bottom: 50, left: 40 };
             div_width = div_width * 1.1
-            graph_width = div_width;
+            graph_width = div_width * .95;
             graph_height = div_height * 0.65; // On mobile screen sizes we want the legend to be on the bottom of the graph.
             const svg_margins = {'margin-left': '-1rem'};
             Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
