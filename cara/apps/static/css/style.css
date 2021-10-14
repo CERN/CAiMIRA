@@ -45,7 +45,7 @@ body {
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: .1rem;
-  box-shadow: 0 .5rem .5rem rgba(0,0,0,.5);
+  /* box-shadow: 0 .5rem .5rem rgba(0,0,0,.5); */
   z-index: 1;
   background: rgb(42, 52, 66);
 }
@@ -149,12 +149,6 @@ body {
   color: black;
 }
 
-.feedback {
-  float:right; 
-  font-size:1.7vh; 
-  font-weight:bold;
-}
-
 /*===== FIXED BACKGROUND IMG =====*/
 
 .fixed-background {
@@ -223,6 +217,15 @@ footer img {
     height: 6em;
     margin: 1%;
   }
+  .feedback {
+    float:right; 
+    font-size:1rem; 
+    font-weight:bold;
+  }
+  .cara_version {
+    float:left; 
+    font-size:1rem; 
+  }
 }
 
 @media (max-width: 40em) {
@@ -249,6 +252,15 @@ footer img {
   }
   #link_reproduce_results {
     display: none;
+  }
+  .feedback {
+    float:right; 
+    font-size:.75rem; 
+    font-weight:bold;
+  }
+  .cara_version {
+    float:left; 
+    font-size:.75rem; 
   }
 }
 /* Devices under 768px (md) */
