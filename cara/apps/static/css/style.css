@@ -234,7 +234,7 @@ footer img {
     padding: 10px;
   }
   .header_text {
-    font-size: 2.25vh;
+    font-size: 1rem;
     font-weight: bold;
   }
   .nav-link {
@@ -263,11 +263,18 @@ footer img {
     font-size:.75rem; 
   }
 }
+
 /* Devices under 768px (md) */
 /* @media (max-width: 767.98px) {
 
 } */
 
+/* Large (lg) devices (desktops, 992px and up) */
+@media (max-width: 992px) { 
+  #download-pdf {
+    display: none;
+  }
+}
 
 /*============ BOOTSTRAP BREAK POINTS:
 
