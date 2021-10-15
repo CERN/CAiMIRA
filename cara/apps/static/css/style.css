@@ -235,7 +235,7 @@ footer img {
 @media (max-width: 40em) {
   #body {
     font-size: .75rem;
-    padding: 10px;
+    padding: 20px 10px;
   }
   .header_text {
     font-size: 1rem;
@@ -256,6 +256,9 @@ footer img {
   }
   #link_reproduce_results {
     display: none;
+  }
+  #mobile_link {
+    display: inline!important;
   }
   .feedback {
     float:right; 
@@ -280,6 +283,9 @@ footer img {
   }
   #link_reproduce_results {
     display: none;
+  }
+  #mobile_link {
+    display: inline!important;
   }
 }
 

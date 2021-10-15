@@ -155,7 +155,7 @@
 			{% endblock report_results %}
 
 			{% block report_footer %}
-				<div class="card bg-light mb-3" id="link_reproduce_results">
+				<div class="card bg-light mb-3">
 					<div class="card-header"><strong>Link to reproduce results </strong> 
 					<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseQRcode" role="button" aria-expanded="true" aria-controls="collapseQRcode">
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
@@ -165,7 +165,8 @@
 					</div>
 					<div class="collapse show" id="collapseQRcode">
 						<div class="card-body">
-							<div class="split">
+							<div class="text-center"><button id="mobile_link" class="btn btn-primary btn-sm d-none" onclick="copy_clipboard('{{ permalink.link }}');">Click to copy a shareable link</button></div>					
+							<div id="link_reproduce_results" class="split">
 								<div><a href="{{ permalink.link }}" style="float: left;"><div id="qrcode"></div></a></div>
 								<div class="align-self-center"><span style="float: left; vertical-align: middle; display: inline-block;">
 								<p style="display: inline-block; vertical-align: middle; line-height: normal;">

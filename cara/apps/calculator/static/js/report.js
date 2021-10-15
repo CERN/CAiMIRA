@@ -530,3 +530,14 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
     // Redraw based on the new size whenever the browser window is resized.
     window.addEventListener("resize", redraw);
 }
+
+function copy_clipboard(shareable_link) {
+    const el = document.createElement('textarea');
+    el.value = shareable_link;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+
+    alert("Shareable link copied to clipboard.")
+}
