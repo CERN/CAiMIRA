@@ -35,6 +35,11 @@ body {
   font-size: 1.1rem;
 }
 
+.dropwown-navbar-colors {
+  background: rgb(42, 52, 66); 
+  border-color: rgb(42, 52, 66);
+}
+
 /*============= NAVIGATION =============*/
 
 .navbar-brand img {
@@ -195,6 +200,13 @@ footer img {
   .logo {
     float: left;
   }
+
+  .navbar .nav-item .dropdown-menu{ display: none; }
+  
+  .navbar .nav-item:hover .dropdown-menu{ display: block; }
+  
+  .navbar .nav-item .dropdown-menu{ margin-top:0; }
+
 }
 /* Devices under 768px (md) */
 /* @media (max-width: 767.98px) {
