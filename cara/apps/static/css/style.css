@@ -89,6 +89,12 @@ body {
   height: 6em;
 }
 
+.cara_home_image {
+  height: 18rem;
+  padding: 1rem;
+  border-radius: 1.25rem!important;
+}
+
 .container {
   margin-inline: auto;
   width: min(90%, 70.5rem);
@@ -194,6 +200,9 @@ footer img {
 
   .logo {
     float: left;
+  }
+  .cara_home_image {
+    float: right;
   }
 }
 /* Devices under 768px (md) */
