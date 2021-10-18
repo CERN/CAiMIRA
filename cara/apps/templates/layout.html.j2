@@ -38,16 +38,17 @@
         <ul class="navbar-nav ml-auto">
           <li class="nav-link"><a href="/" class="{{ "nav-link active" if "home/" == active_page else "nav-link" }}">HOME</a></li>
           <li class="nav-item dropdown pt-2 pl-0">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              COVID CALCULATOR
+            <a class="nav-link dropdown-toggle " href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              APPS
             </a>
-            <div class="dropdown-menu dropwown-navbar-colors" aria-labelledby="navbarDropdown">
-              <a href="{{ calculator_prefix }}" class="{{ "nav-link active" if "calculator/" == active_page else "nav-link" }}">COVID CALCULATOR</a>
+            <div class="dropdown-menu dropwown-navbar-colors" style="min-width: 15rem;" aria-labelledby="navbarDropdown">
+              <a href="{{ calculator_prefix }}" class="{{ "nav-link active" if "calculator/" == active_page else "nav-link" }}">CARA CALCULATOR</a>
               <a href="{{ calculator_prefix }}/user-guide" class="{{ "nav-link active" if "user-guide" in active_page else "nav-link" }}">USER GUIDE</a>
+              <a href="/expert-app" class="{{ "nav-link active" if "/expert-app" == active_page else "nav-link" }}">EXPERT APP (BETA)</a>
             </div>
           </li>
           <li class="nav-link"><a href="https://hse.cern/covid-19-information" class="nav-link">COVID INFORMATION</a></li>
-          <li class="nav-link"><a href="/expert-app" class="{{ "nav-link active" if "/expert-app" == active_page else "nav-link" }}">EXPERT APP (BETA)</a></li>
+          {# <li class="nav-link"><a href="/expert-app" class="{{ "nav-link active" if "/expert-app" == active_page else "nav-link" }}">EXPERT APP (BETA)</a></li> #}
           <li class="nav-link"><a href="/about" class="{{ "nav-link active" if "about" == active_page else "nav-link" }}">ABOUT</a></li>
         </ul>
       </div>
