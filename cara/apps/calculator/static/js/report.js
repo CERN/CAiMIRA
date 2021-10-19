@@ -20,7 +20,7 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
         bisecHour = d3.bisector((d) => { return d.hour; }).left,
 
         yRange = d3.scaleLinear().range([height - margins.bottom, margins.top]).domain([0., Math.max(...concentrations)]),
-        yCumulatedRange = d3.scaleLinear().range([height - margins.bottom, margins.top]).domain([0., Math.max(...cumulative_doses)]),
+        yCumulatedRange = d3.scaleLinear().range([height - margins.bottom, margins.top]).domain([0., Math.max(...cumulative_doses)*1.1]),
 
         xAxis = d3.axisBottom(xRange).tickFormat(d => time_format(d)),
         yAxis = d3.axisLeft(yRange),
@@ -81,22 +81,22 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
         .attr('height', 3)
         .style('fill', '#1f77b4');
 
+    vis.append('line')
+        .attr("x1", width + size + 50)
+        .attr("x2", width + 2 * size + 52)
+        .attr("y1", 3.5 * size)
+        .attr("y2", 3.5 * size)
+        .style("stroke-dasharray", "5 5") //dashed array for line
+        .attr('stroke-width', '2')
+        .style("stroke", '#1f77b4');
+
     vis.append('rect')
         .attr('x', width + size + 50)
-        .attr('y', 3 * size)
+        .attr('y', 4 * size)
         .attr('width', 20)
         .attr('height', 20)
         .attr('fill', '#1f77b4')
         .attr('fill-opacity', '0.1');
-
-    vis.append('line')
-        .attr("x1", width + size + 50)
-        .attr("x2", width + 2 * size + 52)
-        .attr("y1", margins.top + 3.1 * size)
-        .attr("y2", margins.top + 3.1 * size)
-        .style("stroke-dasharray", "5 5") //dashed array for line
-        .attr('stroke-width', '2')
-        .style("stroke", '#1f77b4');
 
     vis.append('text')
         .attr('x', width + 3 * size + 50)
@@ -108,16 +108,17 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
     vis.append('text')
         .attr('x', width + 3 * size + 50)
         .attr('y', margins.top + 2 * size)
-        .text('Presence of exposed person(s)')
+        .text('Mean cumulative dose')
         .style('font-size', '15px')
         .attr('alignment-baseline', 'central');
 
     vis.append('text')
         .attr('x', width + 3 * size + 50)
         .attr('y', margins.top + 3 * size)
-        .text('Mean viral concentration')
+        .text('Presence of exposed person(s)')
         .style('font-size', '15px')
         .attr('alignment-baseline', 'central');
+
 
     // Legend bounding box.
     vis.append('rect')
