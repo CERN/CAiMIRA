@@ -26,9 +26,6 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
         yAxis = d3.axisLeft(yRange),
         yCumulatedAxis = d3.axisRight(yCumulatedRange);
 
-    // Plot tittle.
-    plot_title(vis, width, margins.top, 'Mean concentration of virions');
-
     // Line representing the mean concentration.
     plot_scenario_data(vis, data, xTimeRange, yRange, '#1f77b4');
     // Line representing the cumulative concentration.
@@ -223,9 +220,6 @@ function draw_alternative_scenarios_plot(svg_id, width, height, alternative_scen
         xAxis = d3.axisBottom(xRange).tickFormat(d => time_format(d)),
         yAxis = d3.axisLeft(yRange);
 
-    // Plot title.
-    plot_title(vis, width, margins.top, 'Mean concentration of virions');
-
     // Line representing the mean concentration for each scenario.
     for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
         var scenario_index = Object.keys(data_for_scenarios).indexOf(scenario_name)
@@ -286,18 +280,6 @@ function draw_alternative_scenarios_plot(svg_id, width, height, alternative_scen
 
 
 // Functions used to build the plots' components
-
-function plot_title(vis, width, margin_top, title) {
-    vis.append('svg:foreignObject')
-        .attr('width', width)
-        .attr('height', margin_top)
-        .attr('fill', 'none')
-        .append('xhtml:div')
-        .style('text-align', 'center')
-        .html(title);
-
-    return vis;
-}
 
 function plot_x_axis(vis, height, width, margins, xAxis, label) {
     // X axis declaration
