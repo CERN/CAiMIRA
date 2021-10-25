@@ -45,7 +45,7 @@ body {
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: .1rem;
-  box-shadow: 0 .5rem .5rem rgba(0,0,0,.5);
+  /* box-shadow: 0 .5rem .5rem rgba(0,0,0,.5); */
   z-index: 1;
   background: rgb(42, 52, 66);
 }
@@ -59,14 +59,14 @@ body {
   padding: .2rem;
 }
 
-.nav-link {
+/* .nav-link {
   color: rgb(255, 255, 255)!important;
 }
 
 .nav-link.active,
 .nav-link:hover {
   color: rgb(45, 138, 241)!important;
-}
+} */
 
 /*============= SPLIT =============*/
 
@@ -75,7 +75,7 @@ body {
   clear: both;
   display: inline-flex;
   flex-direction: column;
-  /* width: 100%; */
+  width: 100%;
 }
 
 
@@ -86,7 +86,7 @@ body {
   display: block;
   margin-left: auto;
   margin-right: auto;
-  height: 6em;
+  height: 4em;
 }
 
 .container {
@@ -104,10 +104,12 @@ body {
 
 .header-text {
   text-align: center;
+  font-size: 2.75vh;
 }
 
 .head-center {
   text-align: center;
+  font-size: 3vh;
 }
 
 .center {
@@ -168,10 +170,16 @@ footer img {
   margin: 1.5rem auto;
 }
 
+/*============= REPORT =============*/
+#report_logo {
+  height: 4em;
+  margin: 1%;
+}
+
 /*============= MEDIA QUERIES =============*/
 
 /* Devices over 640px (xl) */
-@media screen and (min-width: 40em) {
+@media (min-width: 40em) {
   .split {
     flex-direction: row;
   }
@@ -194,13 +202,92 @@ footer img {
 
   .logo {
     float: left;
+    height: 6em;
+  }
+
+  .head-center {
+    font-size: 2.5rem;
+  }
+
+  .header-text {
+    font-size: 2rem;
+  }
+
+  .header_text {
+    font-weight: bold;
+  }
+
+  #report_logo {
+    height: 6em;
+    margin: 1%;
+  }
+  .feedback {
+    float:right; 
+    font-size:1rem; 
+    font-weight:bold;
+  }
+  .cara_version {
+    float:left; 
+    font-size:1rem; 
   }
 }
+
+@media (max-width: 40em) {
+  #body {
+    font-size: .75rem;
+    padding: 20px 10px;
+  }
+  .header_text {
+    font-size: 1rem;
+    font-weight: bold;
+  }
+  .nav-link {
+    padding: .5rem .5rem!important;
+  }
+  #report_version {
+    font-size: .5rem;
+  }
+  #download-pdf, #pdf_qrcode_aref {
+    display: none;
+  }
+  #cern_level{
+    height: 15em;
+    margin-top: 1em;
+  }
+  #link_reproduce_results {
+    display: none;
+  }
+  #mobile_link {
+    display: inline!important;
+  }
+  .feedback {
+    float:right; 
+    font-size:.75rem; 
+    font-weight:bold;
+  }
+  .cara_version {
+    float:left; 
+    font-size:.75rem; 
+  }
+}
+
 /* Devices under 768px (md) */
 /* @media (max-width: 767.98px) {
 
 } */
 
+/* Large (lg) devices (desktops, 992px and up) */
+@media (max-width: 992px) { 
+  #download-pdf {
+    display: none;
+  }
+  #link_reproduce_results {
+    display: none;
+  }
+  #mobile_link {
+    display: inline!important;
+  }
+}
 
 /*============ BOOTSTRAP BREAK POINTS:
 
