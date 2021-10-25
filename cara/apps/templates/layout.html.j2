@@ -37,8 +37,8 @@
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
           <li class="nav-link"><a href="/" class="{{ "nav-link active" if "home/" == active_page else "nav-link" }}">HOME</a></li>
-          <li class="nav-item dropdown pt-2 pl-0">
-            <a class="nav-link dropdown-toggle " href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <li class="nav-item dropdown p-2">
+            <a class="nav-link dropdown-toggle {{ "nav-link active" if "calculator/" in active_page else "nav-link" }}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               APPS
             </a>
             <div class="dropdown-menu dropwown-navbar-colors" style="min-width: 15rem;" aria-labelledby="navbarDropdown">
