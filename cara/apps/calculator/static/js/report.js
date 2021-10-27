@@ -536,11 +536,6 @@ function copy_clipboard(shareable_link) {
     $("#mobile_link").attr('title', 'Copied!')
           .tooltip('_fixTitle')
           .tooltip('show');
-
-    const el = document.createElement('textarea');
-    el.value = shareable_link;
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand('copy');
-    document.body.removeChild(el);
+          
+    navigator.clipboard.writeText(shareable_link);
 }
