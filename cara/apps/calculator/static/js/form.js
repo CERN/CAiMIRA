@@ -365,6 +365,14 @@ function validate_form(form) {
     }
   }
 
+  if (submit) {
+    $("#generate_report").prop("disabled", true);
+    //Add spinner to button
+    $("#generate_report").html(
+      `<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Loading...`
+    );
+  }
+
   return submit;
 }
 
