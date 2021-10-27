@@ -89,6 +89,12 @@ body {
   height: 4em;
 }
 
+.cara_home_image {
+  height: 18rem;
+  padding: 1rem;
+  border-radius: 1.25rem!important;
+}
+
 .container {
   margin-inline: auto;
   width: min(90%, 70.5rem);
@@ -229,6 +235,9 @@ footer img {
   .cara_version {
     float:left; 
     font-size:1rem; 
+  }
+  .cara_home_image {
+    float: right;
   }
 }
 
