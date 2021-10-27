@@ -872,7 +872,7 @@ class ConcentrationModel:
     @method_cache
     def normed_integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
         """
-        Get the integrated concentration dose between the times start and stop,
+        Get the integrated concentration of viruses in the air  between the times start and stop,
         normalized by the emission rate.
         """
         if stop <= self._first_presence_time():
@@ -901,7 +901,7 @@ class ConcentrationModel:
 
     def integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
         """
-        Get the integrated concentration dose between the times start and stop.
+        Get the integrated concentration of viruses in the air between the times start and stop.
         """
         return (self.normed_integrated_concentration(start, stop) *
                 self.infected.emission_rate_when_present())

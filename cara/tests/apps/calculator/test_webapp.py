@@ -4,7 +4,7 @@ import pytest
 import tornado.testing
 
 import cara.apps.calculator
-from cara.apps.calculator.report_generator import generate_qr_code
+from cara.apps.calculator.report_generator import generate_permalink
 
 _TIMEOUT = 20.
 
@@ -97,26 +97,26 @@ class TestOpenApp(tornado.testing.AsyncHTTPTestCase):
         assert response.code == 404
 
 
-async def test_qrcode_urls(http_server_client, baseline_form):
+async def test_permalink_urls(http_server_client, baseline_form):
     base_url = 'proto://hostname/prefix'
-    qr_data = generate_qr_code(base_url, "/calculator", baseline_form)
+    permalink_data = generate_permalink(base_url, "/calculator", baseline_form)
     expected = f'{base_url}/calculator?exposed_coffee_break_option={baseline_form.exposed_coffee_break_option}&'
-    assert qr_data['link'].startswith(expected)
+    assert permalink_data['link'].startswith(expected)
 
     # We should get a 200 for the link.
-    response = await http_server_client.fetch(qr_data['link'].replace(base_url, ''))
+    response = await http_server_client.fetch(permalink_data['link'].replace(base_url, ''))
     assert response.code == 200
 
     # And a 302 for the QR url itself. The redirected URL should be the same as
     # in the link.
-    assert qr_data['qr_url'].startswith(base_url)
+    assert permalink_data['shortened'].startswith(base_url)
     response = await http_server_client.fetch(
-        qr_data['qr_url'].replace(base_url, ''),
+        permalink_data['shortened'].replace(base_url, ''),
         max_redirects=0,
         raise_error=False,
     )
     assert response.code == 302
-    assert response.headers['Location'] == qr_data['link'].replace(base_url, '')
+    assert response.headers['Location'] == permalink_data['link'].replace(base_url, '')
 
 
 async def test_invalid_compressed_url(http_server_client, baseline_form):

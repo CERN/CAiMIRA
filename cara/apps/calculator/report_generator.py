@@ -1,17 +1,15 @@
 import concurrent.futures
 import base64
 import dataclasses
-from datetime import datetime, timedelta
+from datetime import datetime
 import io
+import json
 import typing
 import urllib
 import zlib
 
-import loky
 import jinja2
 import numpy as np
-import qrcode
-import json
 
 from cara import models
 from ... import monte_carlo as mc
@@ -128,7 +126,7 @@ def calculate_report_data(model: models.ExposureModel):
     }
 
 
-def generate_qr_code(base_url, calculator_prefix, form: FormData):
+def generate_permalink(base_url, calculator_prefix, form: FormData):
     form_dict = FormData.to_dict(form, strip_defaults=True)
 
     # Generate the calculator URL arguments that would be needed to re-create this
@@ -141,20 +139,9 @@ def generate_qr_code(base_url, calculator_prefix, form: FormData):
     qr_url = f"{base_url}/_c/{compressed_args}"
     url = f"{base_url}{calculator_prefix}?{args}"
 
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=10,
-        border=4,
-    )
-    qr.add_data(qr_url)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
-
     return {
-        'image': img2base64(_img2bytes(img)),
         'link': url,
-        'qr_url': qr_url,
+        'shortened': qr_url,
     }
 
 
@@ -318,7 +305,7 @@ class ReportGenerator:
         context['alternative_scenarios'] = comparison_report(
             alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
         )
-        context['qr_code'] = generate_qr_code(base_url, self.calculator_prefix, form)
+        context['permalink'] = generate_permalink(base_url, self.calculator_prefix, form)
         context['calculator_prefix'] = self.calculator_prefix
         context['scale_warning'] = {
             'level': 'yellow-2',
