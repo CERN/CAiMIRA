@@ -153,9 +153,30 @@
       <label for="mechanical_ventilation">Mechanical</label>
     </div>
     <div>
-    <input type="radio" id="natural_ventilation" name="ventilation_type" value="natural_ventilation" data-enables="#DIVnatural_ventilation">
+    <input type="radio" id="natural_ventilation" name="ventilation_type" value="natural_ventilation" data-enables="#DIVnatural_ventilation" data-toggle="modal" data-target="#warning_modal">
       <label for="natural_ventilation">Natural</label><br>
     </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="warning_modal" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title">Natural Ventilation</h4>
+            <button type="button" class="close align-self-center" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            Single-sided ventilation is assumed in the model and is typically effective for room depths up to 5.5 m from the opening, or up to a depth 2.5 x the ceiling height. 
+            If these conditions are not met, the air exchange might not be homogenous producing an artificially lower risk further away from the window.
+            <br>
+            <br>
+            <img src="/static/images/nat_vent_dimensions.png" id="nat_vent_image">
+          </div>
+        </div>
+      </div>
     </div>
 
     <div id="DIVmechanical_ventilation" class="tabbed" style="display:none">
