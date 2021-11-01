@@ -113,11 +113,6 @@ body {
   font-size: 2.75vh;
 }
 
-.head-center {
-  text-align: center;
-  font-size: 3vh;
-}
-
 .center {
   position: relative;
   display: flex;
@@ -211,10 +206,6 @@ footer img {
     height: 6em;
   }
 
-  .head-center {
-    font-size: 2.5rem;
-  }
-
   .header-text {
     font-size: 2rem;
   }
@@ -277,6 +268,9 @@ footer img {
   .cara_version {
     float:left; 
     font-size:.75rem; 
+  }
+  .h1-text {
+    font-size: 1.5rem;
   }
 }
 
