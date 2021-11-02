@@ -89,6 +89,10 @@ body {
   height: 4em;
 }
 
+#nat_vent_image {
+  height: 10em;
+}
+
 .cara_home_image {
   height: 18rem;
   padding: 1rem;
@@ -208,6 +212,10 @@ footer img {
 
   .paragraph-title {
     font-size: 2rem;
+  }
+
+  #nat_vent_image {
+    height: 15em;
   }
 
   .header_text {
