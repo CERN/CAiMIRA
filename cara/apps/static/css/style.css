@@ -108,7 +108,7 @@ body {
   padding: 2rem 0;
 }
 
-.header-text {
+.paragraph-title {
   text-align: center;
   font-size: 2.75vh;
 }
@@ -189,7 +189,7 @@ footer img {
     flex-basis: 100%;
   }
 
-  .header-text {
+  .paragraph-title {
     text-align: left;
   }
 
@@ -206,7 +206,7 @@ footer img {
     height: 6em;
   }
 
-  .header-text {
+  .paragraph-title {
     font-size: 2rem;
   }
 
