@@ -112,14 +112,9 @@ body {
   padding: 2rem 0;
 }
 
-.header-text {
+.paragraph-title {
   text-align: center;
   font-size: 2.75vh;
-}
-
-.head-center {
-  text-align: center;
-  font-size: 3vh;
 }
 
 .center {
@@ -198,7 +193,7 @@ footer img {
     flex-basis: 100%;
   }
 
-  .header-text {
+  .paragraph-title {
     text-align: left;
   }
 
@@ -215,16 +210,12 @@ footer img {
     height: 6em;
   }
 
+  .paragraph-title {
+    font-size: 2rem;
+  }
+
   #nat_vent_image {
     height: 15em;
-  }
-
-  .head-center {
-    font-size: 2.5rem;
-  }
-
-  .header-text {
-    font-size: 2rem;
   }
 
   .header_text {
@@ -285,6 +276,9 @@ footer img {
   .cara_version {
     float:left; 
     font-size:.75rem; 
+  }
+  .h1-text {
+    font-size: 1.5rem;
   }
 }
 
