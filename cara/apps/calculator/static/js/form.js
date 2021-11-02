@@ -488,7 +488,7 @@ function parseTimeToMins(cTime) {
 }
 
 // Prevent spinner when clicking on back button
-window.onbeforeunload = function(){
+window.onpagehide = function(){
   $('loading_spinner').remove();
   $("#generate_report").prop("disabled", false).html(`Generate report`);
 };
