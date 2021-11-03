@@ -365,6 +365,14 @@ function validate_form(form) {
     }
   }
 
+  if (submit) {
+    $("#generate_report").prop("disabled", true);
+    //Add spinner to button
+    $("#generate_report").html(
+      `<span id="loading_spinner" class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Loading...`
+    );
+  }
+
   return submit;
 }
 
@@ -479,12 +487,17 @@ function parseTimeToMins(cTime) {
   return parseInt(time[1]*60) + parseInt(time[2]);
 }
 
+// Prevent spinner when clicking on back button
+window.onpagehide = function(){
+  $('loading_spinner').remove();
+  $("#generate_report").prop("disabled", false).html(`Generate report`);
+};
+
 /* -------On Load------- */
 $(document).ready(function () {
   var url = new URL(decodeURIComponent(window.location.href));
   //Pre-fill form with known values
   url.searchParams.forEach((value, name) => {
-
     //If element exists
     if(document.getElementsByName(name).length > 0) {
       var elemObj = document.getElementsByName(name)[0];

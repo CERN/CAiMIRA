@@ -18,11 +18,12 @@
 
 {% block main %}
 
-v{{ calculator_version }} <span style="float:right; font-weight:bold">Please send feedback to <a href="mailto:CARA-dev@cern.ch">CARA-dev@cern.ch</a></span>
+<span class="cara_version">v{{ calculator_version }}</span>
+<span class="feedback">Please send feedback to <a href="mailto:CARA-dev@cern.ch">CARA-dev@cern.ch</a></span>
 <header class= "bg-light">
   <div class="container container--narrow container--padding">
     <img src="/static/images/cara_logo.200x200.png"  class="logo">
-    <h1 class="head-center"><b>CARA - </b> COVID Airborne Risk Assessment Calculator</h1>
+    <h1 class="text-center h1-text"><b>CARA - </b> COVID Airborne Risk Assessment Calculator</h1>
   </div>
 </header>
 
@@ -59,14 +60,16 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
         <span class="tooltip_text">?</span>
     </div><br>
 
-    <div class="row">
-        <label class="col-xl-3 col-lg-4 col-sm-3 col-form-label">Variant:</label>
-        <select id="Variant" name="virus_type" class="col-xl-5 col-lg-7 col-sm-7 col-7">
-          <option value="SARS_CoV_2">SARS-CoV-2 (nominal strain)</option>
-          <option value="SARS_CoV_2_B117">SARS-CoV-2 (Alpha VOC)</option>
-          <option value="SARS_CoV_2_P1">SARS-CoV-2 (Gamma VOC)</option>
-          <option selected value="SARS_CoV_2_B16172">SARS-CoV-2 (Delta VOC)</option>
-        </select>
+    <div class="form-group row">
+    <div class="col-sm-4"><label class="col-form-label">Variant:</label></div>
+    <div class="col-sm-6">
+    <select id="Variant" name="virus_type" class="form-control">
+      <option value="SARS_CoV_2">SARS-CoV-2 (nominal strain)</option>
+      <option value="SARS_CoV_2_B117">SARS-CoV-2 (Alpha VOC)</option>
+      <option value="SARS_CoV_2_P1">SARS-CoV-2 (Gamma VOC)</option>
+      <option selected value="SARS_CoV_2_B16172">SARS-CoV-2 (Delta VOC)</option>
+    </select>
+    </div>
     </div>
 
     <hr width="80%">
@@ -92,7 +95,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
     <div class="form-group row">
       <div class="col-sm-4">
         <input type="radio" id="room_data_dimensions" name="volume_type" value="room_volume_from_dimensions" onclick="require_fields(this)" tabindex="-1" required>
-        <label for="room_data_dimensions">Floor area:</label> &nbsp;&nbsp;
+        <label for="room_data_dimensions">Floor area:</label>
       </div>
       <div class="col-sm-6">
         <input type="number" step="any" id="floor_area" class="non_zero form-control" name="floor_area" placeholder="Room floor area (m²)" min="0" data-has-radio="#room_data_dimensions">
@@ -100,33 +103,34 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
     </div>
     <div class="form-group row">
       <div class="col-sm-4">
-        <label for="room_data_dimensions">Ceiling height:</label> &nbsp;&nbsp;
+        <label for="room_data_dimensions">Ceiling height:</label>
       </div>
       <div class="col-sm-6">
         <input type="number" step="any" id="ceiling_height" class="non_zero form-control" name="ceiling_height" placeholder="Room ceiling height (m)" min="0" data-has-radio="#room_data_dimensions">
       </div>
     </div>
-    
-    <br>
 
-    Central heating system in use:
-    <input type="radio" id="heating_no" name="room_heating_option" value=0 checked="checked">
-      <label for="heating_no">No</label>&nbsp;&nbsp;
-    <input type="radio" id="heating_yes" name="room_heating_option" value=1>
-      <label for="heating_yes">Yes</label>&nbsp;&nbsp;
-
+    <div class="split">
+    <div>Central heating system in use:</div>
+    <div>
+    <input class="ml-2" type="radio" id="heating_no" name="room_heating_option" value=0 checked="checked">
+      <label for="heating_no">No</label>
+    <input class="ml-2" type="radio" id="heating_yes" name="room_heating_option" value=1>
+      <label for="heating_yes">Yes</label>
+    </div>
+    </div>
     <div class="form-group row">
-      <label class="col-sm-3">Location:</label>
-      <select id="location_select" form="not-submitted" class="col-sm-7 form-control" name="location_select" required></select>
-      <div style="display: none">
-          <!--
-          This block allows us to have hidden input values which are retained during forward/back navigation, as per
-          https://stackoverflow.com/a/6384276/741316
-          -->
-          <input type="text" name="location_name">
-          <input type="text" name="location_latitude">
-          <input type="text" name="location_longitude">
-      </div>
+      <div class="col-sm-4"><label class="col-form-label">Location:</label></div>
+      <div class="col-sm-6 align-self-center"><select id="location_select" form="not-submitted" class="form-control" name="location_select" required></select></div>
+    </div>
+    <div style="display: none">
+        <!--
+        This block allows us to have hidden input values which are retained during forward/back navigation, as per
+        https://stackoverflow.com/a/6384276/741316
+        -->
+        <input type="text" name="location_name">
+        <input type="text" name="location_latitude">
+        <input type="text" name="location_longitude">
     </div>
 
     <hr width="80%">
@@ -141,56 +145,91 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
 
     <div class='sub_title'>Ventilation type:</div>
     
+    <div class="split">
+    <div>
     <input type="radio" id="no_ventilation" name="ventilation_type" value="no_ventilation" checked>
-      <label for="no_ventilation">No ventilation</label>&nbsp;&nbsp;
-    <input type="radio" id="mechanical_ventilation" name="ventilation_type" value="mechanical_ventilation" data-enables="#DIVmechanical_ventilation">
-      <label for="mechanical_ventilation">Mechanical</label>&nbsp;&nbsp;
-    <input type="radio" id="natural_ventilation" name="ventilation_type" value="natural_ventilation" data-enables="#DIVnatural_ventilation">
+      <label for="no_ventilation">No ventilation</label>
+    <input class="ml-2" type="radio" id="mechanical_ventilation" name="ventilation_type" value="mechanical_ventilation" data-enables="#DIVmechanical_ventilation">
+      <label for="mechanical_ventilation">Mechanical</label>
+    </div>
+    <div>
+    <input type="radio" id="natural_ventilation" name="ventilation_type" value="natural_ventilation" data-enables="#DIVnatural_ventilation" data-toggle="modal" data-target="#warning_modal">
       <label for="natural_ventilation">Natural</label><br>
+    </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="warning_modal" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title">Natural Ventilation</h4>
+            <button type="button" class="close align-self-center" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            Single-sided ventilation is assumed in the model and is typically effective for room depths up to 5.5 m from the opening, or up to a depth 2.5 x the ceiling height. 
+            If these conditions are not met, the air exchange might not be homogenous producing an artificially lower risk further away from the window.
+            <br>
+            <br>
+            <img src="/static/images/nat_vent_dimensions.png" id="nat_vent_image">
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div id="DIVmechanical_ventilation" class="tabbed" style="display:none">
-        <div class="form-group row">
+        <div class="split">
+          <div>
           <input type="radio" id="mech_type_air_supply" name="mechanical_ventilation_type" value="mech_type_air_supply" class="center_radio" onclick="require_fields(this)" tabindex="-1">
-          <label for="mech_type_air_supply" class="col-form-label col-sm-5">Air supply flow rate</label> &nbsp;&nbsp;
-          <input type="number" step="any" id="air_supply" class="non_zero form-control col-sm-5" name="air_supply" min="0" placeholder="(m³ / hour)" data-has-radio="#mech_type_air_supply"><br>
+          <label for="mech_type_air_supply" class="col-form-label ml-2">Air supply flow rate</label>
+          </div>
+          <div>
+          <input type="number" step="any" id="air_supply" class="non_zero form-control" name="air_supply" min="0" placeholder="(m³ / hour)" data-has-radio="#mech_type_air_supply"><br>
+          </div>
         </div>
-        <div class="form-group row">
+        <div class="split">
+          <div>
           <input type="radio" id="mech_type_air_changes" name="mechanical_ventilation_type" value="mech_type_air_changes" class="center_radio" onclick="require_fields(this)" tabindex="-1">
-          <label for="mech_type_air_changes" class="col-form-label col-sm-5">Air changes per hour</label> &nbsp;&nbsp;
-          <input type="number" step="any" id="air_changes" class="non_zero form-control col-sm-5" name="air_changes" min="0" placeholder="(h⁻¹) only fresh air" data-has-radio="#mech_type_air_changes"><br>
+          <label for="mech_type_air_changes" class="col-form-label ml-2">Air changes per hour</label>
+          </div>
+          <div>
+          <input type="number" step="any" id="air_changes" class="non_zero form-control" name="air_changes" min="0" placeholder="(h⁻¹) only fresh air" data-has-radio="#mech_type_air_changes"><br>
+          </div>
         </div>
     </div>
 
     <div id="DIVnatural_ventilation" class="tabbed" style="display:none">
-      <div class="form-group row">
-        <label class="col-form-label col-sm-5">Number of windows:</label>
-        <input type="number" id="windows_number" class="non_zero form-control col-sm-5" name="windows_number" min="1"><br>
+      <div class="split">
+        <div><label class="col-form-label">Number of windows:</label></div>
+        <div><input type="number" id="windows_number" class="non_zero form-control" name="windows_number" min="1"><br></div>
       </div>
-      <div class="form-group row">
-        <label class="col-form-label col-sm-5">Height of window: </label>
-        <input type="number" step="any" id="window_height" class="non_zero form-control col-sm-5" name="window_height" placeholder="meters" min="0"><br>
+      <div class="split">
+        <div><label class="col-form-label">Height of window: </label></div>
+        <div><input type="number" step="any" id="window_height" class="non_zero form-control" name="window_height" placeholder="meters" min="0"><br></div>
       </div>
         <div class='sub_title'>Window type:</div>
-        <input type="radio" id="window_sliding" name="window_type" value="window_sliding" onclick="require_fields(this)" checked="checked">
-          <label for="window_sliding">Sliding / Side-Hung</label>&nbsp;&nbsp;
-        <input type="radio" id="window_hinged" name="window_type" value="window_hinged" onclick="require_fields(this)">
-          <label for="window_hinged">Top- or Bottom-Hung</label>&nbsp;&nbsp;<br>
-        <div class="form-group row">
-          <label class="col-form-label col-sm-5">Width of window: </label>
-          <input type="number" step="any" id="window_width" class="non_zero disabled form-control col-sm-5" name="window_width" placeholder="meters" min="0" data-has-radio="#window_hinged"><br>
+        <input class="ml-2" type="radio" id="window_sliding" name="window_type" value="window_sliding" onclick="require_fields(this)" checked="checked">
+          <label for="window_sliding">Sliding / Side-Hung</label>
+        <input class="ml-2" type="radio" id="window_hinged" name="window_type" value="window_hinged" onclick="require_fields(this)">
+          <label for="window_hinged">Top- or Bottom-Hung</label><br>
+        <div class="split">
+          <div><label class="col-form-label">Width of window: </label></div>
+          <div><input type="number" step="any" id="window_width" class="non_zero disabled form-control" name="window_width" placeholder="meters" min="0" data-has-radio="#window_hinged"><br></div>
         </div>
-        <div class="form-group row">
-          <label class="col-form-label col-sm-5">Opening distance: </label>
-          <input type="number" step="any" id="opening_distance" class="non_zero form-control col-sm-5" name="opening_distance" placeholder="meters" min="0"><br>
+        <div class="split">
+          <div><label class="col-form-label">Opening distance: </label></div>
+          <div><input type="number" step="any" id="opening_distance" class="non_zero form-control" name="opening_distance" placeholder="meters" min="0"><br></div>
         </div>
         <div class='sub_title'>Window open:</div>
         <div class="form-group row">
           <span class="tabbed center_radio"><input type="radio" id="windows_open_permanently" name="window_opening_regime" value="windows_open_permanently" onclick="require_fields(this)" checked="checked"></span>
-          <label for="windows_open_permanently" class="col-form-label col-sm-3">Permanently</label><br>
+          <label for="windows_open_permanently" class="col-form-label ml-2">Permanently</label><br>
         </div>
         <div class="form-group row">
           <span class="tabbed center_radio"><input type="radio" id="windows_open_periodically" name="window_opening_regime" value="windows_open_periodically" onclick="require_fields(this)"></span>
-          <label for="windows_open_periodically" class="col-form-label col-sm-3">Periodically:</label>&nbsp;&nbsp; <br>
+          <label for="windows_open_periodically" class="col-form-label ml-2 mr-2">Periodically:</label><br>
           <input type="number" step="any" id="windows_duration" class="non_zero disabled form-control col-sm-4" name="windows_duration" placeholder="Duration (min)" min="1" data-has-radio="#windows_open_periodically"> 
           <input type="number" step="any" id="windows_frequency" class="non_zero disabled form-control col-sm-4" name="windows_frequency" placeholder="Frequency (min)" min="1" data-has-radio="#windows_open_periodically">
         </div>
@@ -198,11 +237,17 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
     </div>
 
     <div class='sub_title'>HEPA filtration:</div>
+    <div class="split">
+    <div>
     <input type="radio" id="hepa_no" name="hepa_option" value=0 onclick="require_fields(this)" checked="checked">
-      <label for="hepa_no" class="col-form-label">No</label>&nbsp;&nbsp;
-    <input type="radio" id="hepa_yes" name="hepa_option" value=1 onclick="require_fields(this)">
-      <label for="hepa_yes" class="col-form-label">Yes</label>&nbsp;&nbsp;
-    <input type="number" step="any" id="hepa_amount" class="non_zero disabled form-control col-sm-4" name="hepa_amount" placeholder="(m³ / hour)" min="0" data-has-radio="#hepa_yes">
+      <label for="hepa_no" class="col-form-label ml-2">No</label>
+    <input class="ml-2" type="radio" id="hepa_yes" name="hepa_option" value=1 onclick="require_fields(this)">
+      <label for="hepa_yes" class="col-form-label ml-2">Yes</label>
+    </div>
+    <div>
+    <input type="number" step="any" id="hepa_amount" class="non_zero disabled form-control" name="hepa_amount" placeholder="(m³ / hour)" min="0" data-has-radio="#hepa_yes">
+    </div>
+    </div>
     <hr width="80%">
 
     <b>Face masks:</b>
@@ -214,13 +259,13 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
     
     <div class='sub_title'>Are masks worn when occupants are at workstations?</div>
     <input type="radio" id="mask_on" name="mask_wearing_option" value="mask_on" required>
-      <label for="mask_on">Yes</label>&nbsp;&nbsp;
-    <input type="radio" id="mask_off"  name="mask_wearing_option" value="mask_off" required checked="checked">
+      <label for="mask_on">Yes</label>
+    <input class="ml-2" type="radio" id="mask_off"  name="mask_wearing_option" value="mask_off" required checked="checked">
       <label for="mask_off">No</label><br>
     Type of masks used:
     <input type="radio" id="mask_type_1" name="mask_type" value="Type I" checked="checked" onclick="require_fields(this)">
-      <label for="mask_type_1">Type 1</label>&nbsp;&nbsp;
-    <input type="radio" id="mask_type_ffp2"  name="mask_type" value="FFP2" onclick="require_fields(this)">
+      <label for="mask_type_1">Type 1</label>
+    <input class="ml-2" type="radio" id="mask_type_ffp2"  name="mask_type" value="FFP2" onclick="require_fields(this)">
       <label for="mask_type_ffp2">FFP2</label><br>
     <hr width="80%">
 
@@ -234,33 +279,34 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
     </div><br>
 
     <div class="form-group row">
-      <label class="col-sm-5 col-form-label">Total number of occupants:</label>
-      <input type="number" id="total_people" class="form-control col-sm-3" name="total_people" min=1 required>
+      <div class="col-sm-4"><label class="col-form-label">Total number of occupants:</label></div>
+      <div class="col-sm-6 align-self-center"><input type="number" id="total_people" class="form-control" name="total_people" min=1 required></div>
     </div>
 
     <div class="form-group row">
-      <label class="col-sm-5 col-form-label">Number of infected people: </label>
-      <input type="number" id="infected_people" class="form-control col-sm-3" name="infected_people" min=1 value=1 required><br>
+      <div class="col-sm-4"><label class="col-form-label">Number of infected people: </label></div>
+      <div class="col-sm-6 align-self-center"><input type="number" id="infected_people" class="form-control" name="infected_people" min=1 value=1 required></div>
     </div>
 
     <span id="training_limit_error" class="red_text" hidden>Training activities limited to 1 infected<br></span>
     <hr width="80%">
 
     <div class="form-group row">
-    <label class="col-form-label col-sm-4">Activity type:</label>
-    
-    <select id="activity_type" name="activity_type" class="form-control col-sm-5">
-      <option value="office">Office</option>
-      <option value="meeting">Meeting</option>
-      <option value="callcentre">Call Centre</option>
-      <option value="controlroom-day">Control Room - Day shift</option>
-      <option value="controlroom-night">Control Room - Night shift</option>
-      <option value="library">Library</option>
-      <option value="lab">Laboratory</option>
-      <option value="workshop">Workshop</option>
-      <option value="training">Training</option>
-      <option value="gym">Gym</option>
-    </select><br>
+    <div class="col-sm-4"><label class="col-form-label">Activity type:</label></div>
+    <div class="col-sm-6">
+      <select id="activity_type" name="activity_type" class="form-control">
+        <option value="office">Office</option>
+        <option value="meeting">Meeting</option>
+        <option value="callcentre">Call Centre</option>
+        <option value="controlroom-day">Control Room - Day shift</option>
+        <option value="controlroom-night">Control Room - Night shift</option>
+        <option value="library">Library</option>
+        <option value="lab">Laboratory</option>
+        <option value="workshop">Workshop</option>
+        <option value="training">Training</option>
+        <option value="gym">Gym</option>
+      </select>
+    </div>
     </div>
 
 
@@ -269,11 +315,11 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
         <div class='sub_title'>Exposed person(s) presence:</div>
         <div class="split">
         <div>
-          <label class="tabbed mb-0">Start: </label>
-          <input type="time" id="exposed_start" class="start_time" data-time-group="exposed" data-lunch-break="exposed_lunch" name="exposed_start" value="08:30" required> &nbsp;&nbsp;
+          <label class="tabbed mb-0">Start:</label>
+          <input type="time" id="exposed_start" class="start_time" data-time-group="exposed" data-lunch-break="exposed_lunch" name="exposed_start" value="08:30" required>
         </div>
         <div>
-          <label class="tabbed mb-0">Finish: </label>
+          <label class="tabbed mb-0">Finish:</label>
           <input type="time" id="exposed_finish" class="finish_time" data-time-group="exposed" data-lunch-break="exposed_lunch" name="exposed_finish" value="17:30" required>
         </div>
         </div>
@@ -285,7 +331,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
         <div class="split">
         <div>
           <label class="tabbed mb-0">Start: </label> 
-          <input type="time" id="infected_start" class="start_time" data-time-group="infected" data-lunch-break="infected_lunch" name="infected_start" value="08:30" required> &nbsp;&nbsp;
+          <input type="time" id="infected_start" class="start_time" data-time-group="infected" data-lunch-break="infected_lunch" name="infected_start" value="08:30" required>
         </div>
         <div>
           <label class="tabbed mb-0">Finish: </label>
@@ -299,8 +345,9 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
     <hr width="80%">
 
     <div class="form-group row">
-    <label class="tabbed col-form-label col-sm-7">Which month is the event?</label>
-    <select id="event_month" name="event_month" class="form-control col-sm-4" value="January" required>
+    <div class="col-sm-4"><label class="col-form-label">Which month is the event?</label></div>
+    <div class="col-sm-6 align-self-center">
+    <select id="event_month" name="event_month" class="form-control" value="January" required>
       <option value="January">January</option>
       <option value="February">February</option>
       <option value="March">March</option>
@@ -313,7 +360,8 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
       <option value="October">October</option>
       <option value="November">November</option>
       <option value="December">December</option>
-    </select><br>
+    </select>
+    </div>
     </div>
     <hr width="80%">
 
@@ -333,14 +381,14 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
     <div class="breakBoxExposed" id="DIVexposed_breaks">
       <span id="exposed_break_title" style="display:none;"><b>Exposed person(s) breaks:</b></span>
       <div class="boxMargin">
-        Lunch break:&nbsp;&nbsp;
-        <input type="radio" id="exposed_lunch_option_no" data-lunch-select="exposed" name="exposed_lunch_option" value=0 onclick="require_fields(this)">
-          <label for="exposed_lunch_option_no">No</label>&nbsp;&nbsp;
-        <input type="radio" id="exposed_lunch_option_yes" data-lunch-select="exposed" name="exposed_lunch_option" value=1 checked="checked" onclick="require_fields(this)">
+        Lunch break:
+        <input class="ml-2" type="radio" id="exposed_lunch_option_no" data-lunch-select="exposed" name="exposed_lunch_option" value=0 onclick="require_fields(this)">
+          <label for="exposed_lunch_option_no">No</label>
+        <input class="ml-2" type="radio" id="exposed_lunch_option_yes" data-lunch-select="exposed" name="exposed_lunch_option" value=1 checked="checked" onclick="require_fields(this)">
           <label for="exposed_lunch_option_yes">Yes</label><br>
         <div class="split">
         <div>
-        Start: <input type="time" id="exposed_lunch_start" class="start_time" data-time-group="exposed_lunch" data-lunch-for="exposed" data-has-radio="#exposed_lunch_option_yes" name="exposed_lunch_start" value="12:30" required> &nbsp;&nbsp;
+        Start: <input type="time" id="exposed_lunch_start" class="start_time" data-time-group="exposed_lunch" data-lunch-for="exposed" data-has-radio="#exposed_lunch_option_yes" name="exposed_lunch_start" value="12:30" required>
         </div>
         <div>
         Finish: <input type="time" id="exposed_lunch_finish" class="finish_time" data-time-group="exposed_lunch" data-lunch-for="exposed" data-has-radio="#exposed_lunch_option_yes" name="exposed_lunch_finish" value="13:30" required><br>
@@ -349,15 +397,15 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
 
         <!-- Coffee Options -->
         <div class="split">
-        <div class="col-sm-5">
-        Coffee Breaks:&nbsp;&nbsp;
+        <div>
+        Coffee Breaks:
         </div>
-        <div class="col-sm-7">
+        <div>
         <input type="radio" id="exposed_coffee_break_0" name="exposed_coffee_break_option" value="coffee_break_0" checked="checked">
-          <label for="exposed_coffee_break_0" >No breaks</label>&nbsp;&nbsp;
-        <input type="radio" id="exposed_coffee_break_2" name="exposed_coffee_break_option" value="coffee_break_2">
-          <label for="exposed_coffee_break_2">2</label>&nbsp;&nbsp;
-        <input type="radio" id="exposed_coffee_break_4" name="exposed_coffee_break_option" value="coffee_break_4">
+          <label for="exposed_coffee_break_0" >No breaks</label>
+        <input class="ml-2" type="radio" id="exposed_coffee_break_2" name="exposed_coffee_break_option" value="coffee_break_2">
+          <label for="exposed_coffee_break_2">2</label>
+        <input class="ml-2" type="radio" id="exposed_coffee_break_4" name="exposed_coffee_break_option" value="coffee_break_4">
           <label for="exposed_coffee_break_4">4</label><br>
         </div>
         </div>
@@ -380,15 +428,15 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
     <div class="breakBoxInfected" id="DIVinfected_breaks">
       <b>Infected person(s) breaks:</b>
       <div class="boxMargin">
-        Lunch break:&nbsp;&nbsp;
-        <input type="radio" id="infected_lunch_option_no" data-lunch-select="infected" name="infected_lunch_option" value=0 onclick="require_fields(this)">
-          <label for="infected_lunch_option_no">No</label>&nbsp;&nbsp;
-        <input type="radio" id="infected_lunch_option_yes" data-lunch-select="infected" name="infected_lunch_option" value=1 checked="checked" onclick="require_fields(this)">
+        Lunch break:
+        <input class="ml-2" type="radio" id="infected_lunch_option_no" data-lunch-select="infected" name="infected_lunch_option" value=0 onclick="require_fields(this)">
+          <label for="infected_lunch_option_no">No</label>
+        <input class="ml-2" type="radio" id="infected_lunch_option_yes" data-lunch-select="infected" name="infected_lunch_option" value=1 checked="checked" onclick="require_fields(this)">
           <label for="infected_lunch_option_yes">Yes</label><br>
 
         <div class="split">
         <div>
-        Start: <input type="time" id="infected_lunch_start" class="start_time" data-time-group="infected_lunch" data-lunch-for="infected" data-has-radio="#infected_lunch_option_yes" name="infected_lunch_start" value="12:30"> &nbsp;&nbsp;
+        Start: <input type="time" id="infected_lunch_start" class="start_time" data-time-group="infected_lunch" data-lunch-for="infected" data-has-radio="#infected_lunch_option_yes" name="infected_lunch_start" value="12:30">
         </div>
         <div>
         Finish: <input type="time" id="infected_lunch_finish" class="finish_time" data-time-group="infected_lunch" data-lunch-for="infected" data-has-radio="#infected_lunch_option_yes" name="infected_lunch_finish" value="13:30"><br>
@@ -397,15 +445,15 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
 
         <!-- Coffee Options -->
         <div class="split">
-        <div class="col-sm-5">
-        Coffee Breaks:&nbsp;&nbsp;
+        <div>
+        Coffee Breaks:
         </div>
-        <div class="col-sm-7">
+        <div>
         <input type="radio" id="infected_coffee_break_0" name="infected_coffee_break_option" value="coffee_break_0" checked="checked">
-          <label for="infected_coffee_break_0" >No breaks</label>&nbsp;&nbsp;
-        <input type="radio" id="infected_coffee_break_2" name="infected_coffee_break_option" value="coffee_break_2">
-          <label for="infected_coffee_break_2">2</label>&nbsp;&nbsp;
-        <input type="radio" id="infected_coffee_break_4" name="infected_coffee_break_option" value="coffee_break_4">
+          <label for="infected_coffee_break_0" >No breaks</label>
+        <input style="ml-2" type="radio" id="infected_coffee_break_2" name="infected_coffee_break_option" value="coffee_break_2">
+          <label for="infected_coffee_break_2">2</label>
+        <input style="ml-2" type="radio" id="infected_coffee_break_4" name="infected_coffee_break_option" value="coffee_break_4">
           <label for="infected_coffee_break_4">4</label><br>
         </div>
         </div>
@@ -491,8 +539,11 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
   for more detailed explanations on how to use this tool. <br>
 </div>
 
-<div class="center container--padding">
-<button class="btn btn-primary bigButton" type="button" data-toggle="collapse" data-target="#collapseDisclaimer" aria-expanded="false" aria-controls="collapseDisclaimer">
+<div class="center container--padding pr-3 pl-3">
+<button class="btn btn-primary bigButton">
+  <a href="{{ calculator_prefix }}/user-guide" class="{{ "nav-link active" if "user-guide" in active_page else "nav-link" }}" style="color:white">User guide</a>
+</button>
+<button class="btn btn-primary bigButton  ml-2" type="button" data-toggle="collapse" data-target="#collapseDisclaimer" aria-expanded="false" aria-controls="collapseDisclaimer">
     Disclaimer 
 </button>
 </div>
@@ -508,7 +559,7 @@ v{{ calculator_version }} <span style="float:right; font-weight:bold">Please sen
         The report generated indicates how to avoid exceeding critical concentrations and chains of airborne transmission in spaces such as individual offices, meeting rooms and labs.
     </p>
     <p>
-        The risk assessment tool simulates the long-range airborne spread SARS-CoV-2 virus in a finite volume, assuming a homogenous mixture, and estimates the risk of COVID-19 infection therein.
+        The risk assessment tool simulates the long-range airborne spread SARS-CoV-2 virus in a finite volume, assuming a homogenous mixture, and estimates the risk of COVID-19 airborne transmission therein.
         The results DO NOT include short-range airborne exposure (where the physical distance is a significant factor) nor the other known modes of SARS-CoV-2 transmission.
         Hence, the output from this model is only valid when the other recommended public health & safety instructions are observed, such as adequate physical distancing, good hand hygiene and other barrier measures.
     </p>

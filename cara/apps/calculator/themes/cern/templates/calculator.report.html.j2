@@ -22,7 +22,7 @@
 {% endblock warning_animation %}
 
 {% block report_summary %}
-  <div class="flex-row w-75 align-self-center">
+  <div class="flex-row align-self-center">
       {% if ((prob_inf > 15) or (expected_new_cases >= 1)) %}
         <div class="alert alert-danger" role="alert">
           <strong>Not Acceptable:</strong>
@@ -120,14 +120,16 @@
         <p class="card-text"> 
           Please ensure that this scenario conforms to current COVID-related <a href="https://hse.cern/covid-19-information"> Health & Safety requirements</a>, under the applicable COVID Scale and measures in force at the time of the CARA assessment.</strong> <br>
           The results of this simulation are colour coded according to the risk values authorized at CERN (approved in December 2020):
-        </p>
+        </p><br>
         <div class="d-flex">
-          <div class="d-flex flex-column justify-content-between">
-            <div class="alert alert-success ml-3" role="alert">Events with a <strong>P(i) less than 5%</strong> may go ahead without further mitigation measures.</div>
-            <div class="alert alert-warning ml-3" role="alert">Events with a <strong>P(i) between 5% and 15%</strong> shall be subject to ALARA principles (see footnote) to minimise the risk before proceeding.</div>
-            <div class="alert alert-danger ml-3 mb-0" role="alert">Events with a <strong>P(i) exceeding 15% or a number of expected new cases that exceeds 1</strong> may not take place until additional measures are in place and a risk reduction has been performed.</div>
+          <div class="split">
+            <div class="d-flex flex-column col-xl-8 p-0">
+              <div class="alert alert-success" role="alert">Events with a <strong>P(i) less than 5%</strong> may go ahead without further mitigation measures.</div>
+              <div class="alert alert-warning" role="alert">Events with a <strong>P(i) between 5% and 15%</strong> shall be subject to ALARA principles (see footnote) to minimise the risk before proceeding.</div>
+              <div class="alert alert-danger mb-0" role="alert">Events with a <strong>P(i) exceeding 15% or a number of expected new cases that exceeds 1</strong> may not take place until additional measures are in place and a risk reduction has been performed.</div>
+            </div>
+            <div class="col-xl-3 align-self-center text-center"><img id="cern_level" class="rounded" src="{{ calculator_prefix }}/static/images/warning_scale/{{scale_warning.level}}.png"></div>
           </div>
-          <img class="rounded ml-4 align-self-center" src="{{ calculator_prefix }}/static/images/warning_scale/{{scale_warning.level}}.png">
         </div>
         <br>
         <p class="data_text">
@@ -145,7 +147,6 @@
     </div>
   </div>
 </div>
-<div class="break-avoid fourth_page"></div>	
 {% endblock report_preamble %}
 
 {% block report_footer %}
