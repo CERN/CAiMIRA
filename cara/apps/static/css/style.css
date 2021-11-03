@@ -152,6 +152,18 @@ body {
   color: black;
 }
 
+.icon-calculator {
+  background: url(../icons/calculator.svg);
+  width: 30px;
+  display: block;
+}
+
+.icon-expert {
+  background: url(../icons/expert.svg);
+  width: 30px;
+  display: block;
+}
+
 /*===== FIXED BACKGROUND IMG =====*/
 
 .fixed-background {
@@ -206,6 +218,10 @@ footer img {
   .navbar .nav-item:hover .dropdown-menu{ display: block; }
   
   .navbar .nav-item .dropdown-menu{ margin-top:0; }
+
+  #apps_section {
+    display: inline!important;
+  }
 
 }
 /* Devices under 768px (md) */
