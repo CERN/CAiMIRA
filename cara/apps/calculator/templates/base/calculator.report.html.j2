@@ -93,8 +93,9 @@
 								<script type="application/javascript">
 									var times = {{ times | JSONify }}
 									var concentrations = {{ concentrations | JSONify }}
+									var cumulative_doses = {{ cumulative_doses | JSONify }}
 									var exposed_presence_intervals = {{ exposed_presence_intervals | JSONify }}
-									draw_concentration_plot("concentration_plot", times, concentrations, exposed_presence_intervals);
+									draw_concentration_plot("concentration_plot", times, concentrations, cumulative_doses, exposed_presence_intervals);
 								</script>
               				</p>
 						</div>

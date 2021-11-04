@@ -108,10 +108,15 @@ def calculate_report_data(model: models.ExposureModel):
     er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
     exposed_occupants = model.exposed.number
     expected_new_cases = np.array(model.expected_new_cases()).mean()
+    cumulative_doses = np.cumsum([
+        np.array(model.exposure_between_bounds(float(time1), float(time2))).mean()
+        for time1, time2 in zip(times[:-1], times[1:])
+    ])
 
     return {
         "times": list(times),
         "exposed_presence_intervals": [list(interval) for interval in model.exposed.presence.boundaries()],
+        "cumulative_doses": list(cumulative_doses),
         "concentrations": concentrations,
         "highest_const": highest_const,
         "prob_inf": prob,
@@ -303,11 +308,11 @@ class ReportGenerator:
         context['permalink'] = generate_permalink(base_url, self.calculator_prefix, form)
         context['calculator_prefix'] = self.calculator_prefix
         context['scale_warning'] = {
-            'level': 'yellow-2', 
+            'level': 'yellow-2',
             'incidence_rate': 'lower than 25 new cases per 100 000 inhabitants',
-            'onsite_access': 'of about 8000', 
+            'onsite_access': 'of about 8000',
             'threshold': ''
-        } 
+        }
         return context
 
     def _template_environment(self) -> jinja2.Environment:

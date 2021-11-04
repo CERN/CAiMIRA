@@ -291,7 +291,7 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
 
 @pytest.mark.parametrize(
     "month, temperatures",
-    data.Geneva_hourly_temperatures_celsius_per_hour.items(),
+    data.local_hourly_temperatures_celsius_per_hour.items(),
 )
 @pytest.mark.parametrize(
     "time",
@@ -306,7 +306,7 @@ def test_concentrations_hourly_dep_temp_vs_constant(month, temperatures, time):
 
 @pytest.mark.parametrize(
     "month, temperatures",
-    data.Geneva_hourly_temperatures_celsius_per_hour.items(),
+    data.local_hourly_temperatures_celsius_per_hour.items(),
 )
 @pytest.mark.parametrize(
     "time",
@@ -330,7 +330,7 @@ def test_concentrations_hourly_dep_multipleventilation():
 
 @pytest.mark.parametrize(
     "month_temp_item",
-    data.Geneva_hourly_temperatures_celsius_per_hour.items(),
+    data.local_hourly_temperatures_celsius_per_hour.items(),
 )
 @pytest.mark.parametrize(
     "time",
@@ -378,8 +378,8 @@ def build_exposure_model(concentration_model):
 @pytest.mark.parametrize(
     "month, expected_exposure",
     [
-        ['Jan', 496.5427],
-        ['Jun', 1898.1354],
+        ['Jan', 503.254087759],
+        ['Jun', 2294.71115639],
     ],
 )
 def test_exposure_hourly_dep(month,expected_exposure):
@@ -399,8 +399,8 @@ def test_exposure_hourly_dep(month,expected_exposure):
 @pytest.mark.parametrize(
     "month, expected_exposure",
     [
-        ['Jan', 499.6921],
-        ['Jun', 2007.59925],
+        ['Jan', 511.118941481],
+        ['Jun', 2398.90129579],
     ],
 )
 def test_exposure_hourly_dep_refined(month,expected_exposure):

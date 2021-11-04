@@ -1,28 +1,45 @@
 /* Generate the concentration plot using d3 library. */
-function draw_concentration_plot(svg_id, times, concentrations, exposed_presence_intervals) {
-    
+function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses, exposed_presence_intervals) {
+
+    console.log(cumulative_doses)
+
     var time_format = d3.timeFormat('%H:%M');
 
-    // H:M time format for x axis.
-    var data = []
-    // Prepare data
-    times.map((time, index) => data.push({'time': time, 'hour': new Date().setHours(Math.trunc(time), (time - Math.trunc(time)) * 60), 'concentration': concentrations[index] }))
+    var data_for_graphs = {
+        'concentrations': [],
+        'cumulative_doses': [],
+    }
+    times.map((time, index) => data_for_graphs.concentrations.push({ 'time': time, 'hour': new Date().setHours(Math.trunc(time), (time - Math.trunc(time)) * 60), 'concentration': concentrations[index]}));
+    times.map((time, index) => data_for_graphs.cumulative_doses.push({ 'time': time, 'hour': new Date().setHours(Math.trunc(time), (time - Math.trunc(time)) * 60), 'concentration': cumulative_doses[index]}));
 
     // Add main SVG element
     var plot_div = document.getElementById(svg_id);
     var vis = d3.select(plot_div).append('svg');
-    
-    var xRange = d3.scaleTime().domain([data[0].hour, data[data.length - 1].hour]);
-    var xTimeRange = d3.scaleLinear().domain([data[0].time, data[data.length - 1].time]);
-    var bisecHour = d3.bisector((d) => { return d.hour; }).left;
 
-    var yRange = d3.scaleLinear().domain([0., Math.max(...concentrations)]);
+    // H:M time format for x axis.
+    xRange = d3.scaleTime().domain([data_for_graphs.concentrations[0].hour, data_for_graphs.concentrations[data_for_graphs.concentrations.length - 1].hour]),
+    xTimeRange = d3.scaleLinear().domain([data_for_graphs.concentrations[0].time, data_for_graphs.concentrations[data_for_graphs.concentrations.length - 1].time]),
+    bisecHour = d3.bisector((d) => { return d.hour; }).left,
+
+    yRange = d3.scaleLinear().domain([0., Math.max(...concentrations)]),
+    yCumulativeRange = d3.scaleLinear().domain([0., Math.max(...cumulative_doses)*1.1]),
+
+    xAxis = d3.axisBottom(xRange).tickFormat(d => time_format(d)),
+    yAxis = d3.axisLeft(yRange).ticks(4),
+    yCumulativeAxis = d3.axisRight(yCumulativeRange).ticks(4);
 
     // Line representing the mean concentration.
     var lineFunc = d3.line();
     var draw_line = vis.append('svg:path')
         .attr('stroke', '#1f77b4')
         .attr('stroke-width', 2)
+        .attr('fill', 'none');
+
+    var lineCumulative = d3.line();
+    var draw_cumulative_line = vis.append('svg:path')
+        .attr('stroke', '#1f77b4')
+        .attr('stroke-width', 2)
+        .style("stroke-dasharray", "5 5")
         .attr('fill', 'none');
 
     // Area representing the presence of exposed person(s).
@@ -64,6 +81,19 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
         .attr('text-anchor', 'middle')
         .text('Mean concentration (virions/m³)');
 
+    // Y cumulative concentration axis declaration.
+    var yAxisCumEl = vis.append('svg:g')
+        .attr('class', 'y axis')
+        .style('font-size', 14)
+        .style("stroke-dasharray", "5 5");
+
+    // Y cumulated concentration axis label.
+    var yAxisCumLabelEl = vis.append('svg:text')
+        .attr('class', 'y label')
+        .attr('fill', 'black')
+        .attr('text-anchor', 'middle')
+        .text('Mean cumulative dose (virions)');
+
     // Legend for the plot elements - line and area.
     var legendLineIcon = vis.append('rect')
         .attr('width', 20)
@@ -88,7 +118,7 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
 
     // Legend bounding
     var legendBBox = vis.append('rect')
-        .attr('width', 275)
+        .attr('width', 255)
         .attr('height', 50)
         .attr('stroke', 'lightgrey')
         .attr('stroke-width', '2')
@@ -98,35 +128,42 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
         .attr('fill', 'none');
 
     // Tooltip.
-    var focus = vis.append('svg:g')
-        .style('display', 'none');
+    var focus = {}, tooltip_rect = {}, tooltip_time = {}, tooltip_concentration = {}, toolBox = {};
+    for (const [concentration, data] of Object.entries(data_for_graphs)) {
 
-    focus.append('circle')
-        .attr('r', 3);
+        focus[concentration] = vis.append('svg:g')
+            .style('display', 'none');
 
-    var tooltip_rect = focus.append('rect')
-        .attr('fill', 'white')
-        .attr('stroke', '#000')
-        .attr('width', 80)
-        .attr('height', 50)
-        .attr('y', -22)
-        .attr('rx', 4)
-        .attr('ry', 4);
+        focus[concentration].append('circle')
+            .attr('r', 3);
 
-    var tooltip_time = focus.append('text')
-        .attr('id', 'tooltip-time')
-        .attr('y', -2);
+        tooltip_rect[concentration] = focus[concentration].append('rect')
+            .attr('fill', 'white')
+            .attr('stroke', '#000')
+            .attr('width', 85)
+            .attr('height', 50)
+            .attr('x', 10)
+            .attr('y', -22)
+            .attr('rx', 4)
+            .attr('ry', 4);
 
-    var tooltip_concentration = focus.append('text')
-        .attr('id', 'tooltip-concentration')
-        .attr('y', 18);
+        tooltip_time[concentration] = focus[concentration].append('text')
+            .attr('id', 'tooltip-time')
+            .attr('x', 18)
+            .attr('y', -2);
 
-    var toolBox = vis.append('rect')
-        .attr('fill', 'none')
-        .attr('pointer-events', 'all')
-        .on('mouseover', () => { focus.style('display', null); })
-        .on('mouseout', () => { focus.style('display', 'none'); })
-        .on('mousemove', mousemove);
+        tooltip_concentration[concentration] = focus[concentration].append('text')
+            .attr('id', 'tooltip-concentration')
+            .attr('x', 18)
+            .attr('y', 18);
+
+        toolBox[concentration] = vis.append('rect')
+            .attr('fill', 'none')
+            .attr('pointer-events', 'all')
+            .on('mouseover', () => { for (const [concentration, data] of Object.entries(focus)) focus[concentration].style('display', null); })
+            .on('mouseout', () => { for (const [concentration, data] of Object.entries(focus)) focus[concentration].style('display', 'none'); })
+            .on('mousemove', mousemove);
+    }
 
     var graph_width;
     var graph_height;
@@ -148,7 +185,7 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
         else {
             var margins = { top: 30, right: 20, bottom: 50, left: 40 };
             div_width = div_width * 1.1
-            graph_width = div_width * .95;
+            graph_width = div_width * .9;
             graph_height = div_height * 0.65; // On mobile screen sizes we want the legend to be on the bottom of the graph.
             const svg_margins = {'margin-left': '-1rem', 'margin-top': '3rem'};
             Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
@@ -163,13 +200,20 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
         // Axis ranges.
         xRange.range([margins.left, graph_width - margins.right]);
         xTimeRange.range([margins.left, graph_width - margins.right]);
-        yRange.range([graph_height - margins.bottom, margins.top])
+        yRange.range([graph_height - margins.bottom, margins.top]);
+        yCumulativeRange.range([graph_height - margins.bottom, margins.top]);
 
         // Line.
         lineFunc.defined(d => !isNaN(d.concentration))
             .x(d => xTimeRange(d.time))
             .y(d => yRange(d.concentration));
-        draw_line.attr("d", lineFunc(data));
+        draw_line.attr("d", lineFunc(data_for_graphs.concentrations));
+
+        // Cumulative line
+        lineCumulative.defined(d => !isNaN(d.concentration))
+            .x(d => xTimeRange(d.time))
+            .y(d => yCumulativeRange(d.concentration));
+        draw_cumulative_line.attr("d", lineCumulative(data_for_graphs.cumulative_doses));
 
         // Area.
         exposed_presence_intervals.forEach((b, index) => {
@@ -177,7 +221,7 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
                 .y0(graph_height - margins.bottom)
                 .y1(d => yRange(d.concentration));
     
-            drawArea[index].attr('d', exposedArea[index](data.filter(d => {
+            drawArea[index].attr('d', exposedArea[index](data_for_graphs.concentrations.filter(d => {
                     return d.time >= b[0] && d.time <= b[1]
             })));
         });
@@ -199,18 +243,33 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
             .attr('y', (graph_height + margins.left) * 0.9)
             .attr('transform', 'rotate(-90, 0,' + graph_height + ')');
 
+        yAxisCumEl.attr('transform', 'translate(' + (graph_width - margins.right) + ',0)').call(yCumulativeAxis);
+        yAxisCumLabelEl.attr('transform', 'rotate(-90, 0,' + graph_height + ')')
+            .attr('x', (graph_height + margins.bottom) / 2);
+
+        if (plot_div.clientWidth >= 900) {
+            yAxisCumLabelEl.attr('transform', 'rotate(-90, 0,' + graph_height + ')')
+                .attr('x', (graph_height + margins.bottom) / 2)
+                .attr('y', 1.71 * graph_width);
+        }
+        else {
+            yAxisCumLabelEl.attr('transform', 'rotate(-90, 0,' + graph_height + ')')
+                .attr('x', (graph_height + margins.bottom * 0.55) / 2)
+                .attr('y', graph_width + 290);
+        }
+
         // Legend on right side.
         const size = 20;
         if (plot_div.clientWidth >= 900) {
-            legendLineIcon.attr('x', graph_width + size)
+            legendLineIcon.attr('x', graph_width + size * 2.5)
                 .attr('y', margins.top + size);
-            legendLineText.attr('x', graph_width + 3 * size)
+            legendLineText.attr('x', graph_width + 4 * size)
                 .attr('y', margins.top + size);
-            legendAreaIcon.attr('x', graph_width + size)
+            legendAreaIcon.attr('x', graph_width + size * 2.5)
                 .attr('y', margins.top + 1.5 * size);
-            legendAreaText.attr('x', graph_width + 3 * size)
+            legendAreaText.attr('x', graph_width + 4 * size)
                 .attr('y', margins.top + 2 * size);
-            legendBBox.attr('x', graph_width * 1.005)
+            legendBBox.attr('x', graph_width * 1.07)
                 .attr('y', margins.top * 1.2);
         }
         // Legend on the bottom.
@@ -228,32 +287,50 @@ function draw_concentration_plot(svg_id, times, concentrations, exposed_presence
         }
         
         // ToolBox.
-        toolBox.attr('width', graph_width - margins.right)
-            .attr('height', graph_height);
+        for (const [concentration, data] of Object.entries(data_for_graphs)) {
+            toolBox[concentration].attr('width', graph_width - margins.right)
+                .attr('height', graph_height);
+        }
     }
 
     // Draw for the first time to initialize.
     redraw();
 
     function mousemove() {
-        if (d3.pointer(event)[0] < graph_width / 2) {
-            tooltip_rect.attr('x', 10)
-            tooltip_time.attr('x', 18)
-            tooltip_concentration.attr('x', 18);
+        for (const [scenario, data] of Object.entries(data_for_graphs)) {
+            if (d3.pointer(event)[0] < graph_width / 2) {
+                tooltip_rect[scenario].attr('x', 10)
+                tooltip_time[scenario].attr('x', 18)
+                tooltip_concentration[scenario].attr('x', 18);
+            }
+            else {
+                tooltip_rect[scenario].attr('x', -90)
+                tooltip_time[scenario].attr('x', -82)
+                tooltip_concentration[scenario].attr('x', -82)
+            }
         }
-        else {
-            tooltip_rect.attr('x', -90)
-            tooltip_time.attr('x', -82)
-            tooltip_concentration.attr('x', -82)
-        }
+        // Concentration line
         var x0 = xRange.invert(d3.pointer(event, this)[0]),
-            i = bisecHour(data, x0, 1),
-            d0 = data[i - 1],
-            d1 = data[i],
-            d = x0 - d0.hour > d1.hour - x0 ? d1 : d0;
-        focus.attr('transform', 'translate(' + xRange(d.hour) + ',' + yRange(d.concentration) + ')');
-        focus.select('#tooltip-time').text('x = ' + time_format(d.hour));
-        focus.select('#tooltip-concentration').text('y = ' + d.concentration.toFixed(2));
+            i = bisecHour(data_for_graphs.concentrations, x0, 1),
+            d0 = data_for_graphs.concentrations[i - 1],
+            d1 = data_for_graphs.concentrations[i];
+        if (d1) {
+            var d = x0 - d0.hour > d1.hour - x0 ? d1 : d0;
+            focus.concentrations.attr('transform', 'translate(' + xRange(d.hour) + ',' + yRange(d.concentration) + ')');
+            focus.concentrations.select('#tooltip-time').text('x = ' + time_format(d.hour));
+            focus.concentrations.select('#tooltip-concentration').text('y = ' + d.concentration.toFixed(2));
+        }
+        // Cumulative line
+        var x0 = xRange.invert(d3.pointer(event, this)[0]),
+            i = bisecHour(data_for_graphs.cumulative_doses, x0, 1),
+            d0 = data_for_graphs.cumulative_doses[i - 1],
+            d1 = data_for_graphs.cumulative_doses[i];
+        if (d1 && d1.concentration) {
+            var d = x0 - d0.hour > d1.hour - x0 ? d1 : d0;
+            focus.cumulative_doses.attr('transform', 'translate(' + xRange(d.hour) + ',' + yCumulativeRange(d.concentration) + ')');
+            focus.cumulative_doses.select('#tooltip-time').text('x = ' + time_format(d.hour));
+            focus.cumulative_doses.select('#tooltip-concentration').text('y = ' + d.concentration.toFixed(2));
+        }
     }
 
     // Redraw based on the new size whenever the browser window is resized.
