@@ -17,7 +17,7 @@ class KnownNormedconcentration(models.ConcentrationModel):
     which therefore doesn't need other components. Useful for testing.
 
     """
-    normed_concentration_function: typing.Callable
+    normed_concentration_function: typing.Callable = lambda x: 0
 
     def infectious_virus_removal_rate(self, time: float) -> models._VectorisedFloat:
         # very large decay constant -> same as constant concentration
