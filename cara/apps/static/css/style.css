@@ -101,7 +101,6 @@ body {
 .cara_home_image {
   height: 18rem;
   padding: 1rem;
-  margin-bottom: 1rem;
   border-radius: 1.25rem!important;
 }
 
@@ -120,7 +119,12 @@ body {
 
 .paragraph-title {
   text-align: center;
-  font-size: 2.75vh;
+  font-size: 2rem;
+}
+
+.contributors {
+  text-align: left;
+  font-size: 1.25rem;
 }
 
 .center {
@@ -213,6 +217,12 @@ footer img {
 
   .paragraph-title {
     text-align: left;
+    font-size: 2rem;
+  }
+  
+  .developers {
+    text-align: left;
+    font-size: 1.5rem;
   }
 
   .split > * + * {
@@ -226,10 +236,6 @@ footer img {
   .logo {
     float: left;
     height: 6em;
-  }
-
-  .paragraph-title {
-    font-size: 2rem;
   }
 
   #nat_vent_image {
