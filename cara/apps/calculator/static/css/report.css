@@ -226,7 +226,7 @@ p.notes {
     .split>* {
         flex-basis: 100%;
     }
-    .header-text {
+    .paragraph-title {
         text-align: left;
     }
     .split>*+* {

@@ -1,0 +1,14 @@
+<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+<line x1="2.75" y1="22.5" x2="2.75" y2="6" stroke="black" stroke-width="0.5"/>
+<path d="M2.5 22.5L27.505 22.5007" stroke="black" stroke-width="0.5"/>
+<path d="M3.5234 21.4543C16.625 21.4543 -0.900434 6.85712 26.4628 7.01826" stroke="#BE202E" stroke-width="0.5"/>
+<path d="M3.2959 21.4177C16.3975 21.4177 14.6631 9.55249 26.4697 9.55249" stroke="#3B9EFF" stroke-width="0.5"/>
+<path d="M3.41309 21.2957C17.2564 22.1692 19.9072 11.9792 26.5723 12.7556" stroke="#69121A" stroke-width="0.5"/>
+<rect x="3.7793" y="7.08667" width="6.94336" height="0.292969" stroke="black" stroke-width="0.292969"/>
+<circle cx="7.79297" cy="7.23315" r="0.380859" fill="#1D79D3"/>
+<rect x="3.7793" y="9.37183" width="6.94336" height="0.292969" stroke="black" stroke-width="0.292969"/>
+<circle cx="6.32812" cy="9.51831" r="0.380859" fill="#1D79D3"/>
+<rect x="3.7793" y="8.22925" width="6.94336" height="0.292969" stroke="black" stroke-width="0.292969"/>
+<circle cx="9.55078" cy="8.37573" r="0.380859" fill="#1D79D3"/>
+<path d="M3.39844 15H26.5723" stroke="black" stroke-width="0.5" stroke-dasharray="1 1"/>
+</svg>
