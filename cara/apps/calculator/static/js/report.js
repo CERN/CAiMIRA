@@ -100,6 +100,11 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
         .attr('height', 3)
         .style('fill', '#1f77b4');
 
+    var legendCumulativeIcon = vis.append('line')
+        .style("stroke-dasharray", "5 5") //dashed array for line
+        .attr('stroke-width', '2')
+        .style("stroke", '#1f77b4');
+
     var legendAreaIcon = vis.append('rect')
         .attr('width', 20)
         .attr('height', 20)
@@ -111,6 +116,11 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
         .style('font-size', '15px')
         .attr('alignment-baseline', 'central');
 
+    var legendCumutiveText = vis.append('text')
+        .text('Cumulative dose')
+        .style('font-size', '15px')
+        .attr('alignment-baseline', 'central');
+
     var legendAreaText = vis.append('text')
         .text('Presence of exposed person(s)')
         .style('font-size', '15px')
@@ -119,7 +129,7 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
     // Legend bounding
     var legendBBox = vis.append('rect')
         .attr('width', 255)
-        .attr('height', 50)
+        .attr('height', 70)
         .attr('stroke', 'lightgrey')
         .attr('stroke-width', '2')
         .attr('rx', '5px')
@@ -265,10 +275,19 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
                 .attr('y', margins.top + size);
             legendLineText.attr('x', graph_width + 4 * size)
                 .attr('y', margins.top + size);
-            legendAreaIcon.attr('x', graph_width + size * 2.5)
-                .attr('y', margins.top + 1.5 * size);
-            legendAreaText.attr('x', graph_width + 4 * size)
+            
+            legendCumulativeIcon.attr("x1", graph_width + size + 30)
+                .attr("x2", graph_width + 2 * size + 32)
+                .attr("y1", 3.5 * size)
+                .attr("y2", 3.5 * size);
+            legendCumutiveText.attr('x', graph_width + 2.5 * size + 30)
                 .attr('y', margins.top + 2 * size);
+            
+            legendAreaIcon.attr('x', graph_width + size * 2.5)
+                .attr('y', margins.top + 2.5 * size);
+            legendAreaText.attr('x', graph_width + 4 * size)
+                .attr('y', margins.top + 3 * size);
+            
             legendBBox.attr('x', graph_width * 1.07)
                 .attr('y', margins.top * 1.2);
         }
@@ -278,10 +297,19 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
                 .attr('y', graph_height * 1.05);
             legendLineText.attr('x', 2 * size)
                 .attr('y', graph_height * 1.05);
+
+            legendCumulativeIcon.attr("x1", size * 0.5)
+                .attr("x2", size * 1.55)
+                .attr("y1", graph_height * 1.05 + size)
+                .attr("y2", graph_height * 1.05 + size);
+            legendCumutiveText.attr('x', 2 * size)
+                .attr('y', graph_height + 1.65 * size);
+
             legendAreaIcon.attr('x', size * 0.50)
-                .attr('y', graph_height * 1.01 + size);
+                .attr('y', graph_height * 1.09 + size);
             legendAreaText.attr('x', 2 * size)
-                .attr('y', graph_height + 1.7 * size);
+                .attr('y', graph_height + 2.7 * size);
+
             legendBBox.attr('x', 1)
                 .attr('y', graph_height);
         }
