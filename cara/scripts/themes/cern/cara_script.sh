@@ -3,5 +3,7 @@ cd cara
 git lfs install
 git lfs pull
 pip install -e .
-python -m cara.apps.calculator --theme=cara/apps/calculator/themes/cern
+echo "############################################"
 echo "CARA is now running at http://localhost:8080"
+echo "############################################"
+python -m cara.apps.calculator --theme=cara/apps/calculator/themes/cern
