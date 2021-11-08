@@ -10,3 +10,4 @@ if [[ `uname -m` == 'arm64' ]]; then
 fi
 pip3 install -e .
 python3 -m cara.apps.calculator --theme=cara/apps/calculator/themes/cern
+echo "CARA is now running at http://localhost:8080"
