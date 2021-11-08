@@ -628,7 +628,7 @@ class MultipleExpiration(_ExpirationBase):
 # The correspondence with the BLO coefficients is given.
 _ExpirationBase.types = {
     'Breathing': Expiration(1.3844), # corresponds to B/L/O coefficients of (1, 0, 0)
-    'Talking': Expiration(5.8925),   # corresponds to B/L/O coefficients of (1, 1, 1)
+    'Speaking': Expiration(5.8925),   # corresponds to B/L/O coefficients of (1, 1, 1)
     'Shouting': Expiration(10.0411), # corresponds to B/L/O coefficients of (1, 5, 5)
     'Singing': Expiration(10.0411),  # corresponds to B/L/O coefficients of (1, 5, 5)
 }

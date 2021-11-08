@@ -64,7 +64,7 @@ def known_concentrations(func):
         presence=halftime,
         mask=models.Mask.types['Type I'],
         activity=models.Activity.types['Standing'],
-        virus=models.Virus.types['SARS_CoV_2_B117'],
+        virus=models.Virus.types['SARS_CoV_2_ALPHA'],
         expiration=models.Expiration.types['Speaking'],
         host_immunity=0.,
     )
@@ -76,19 +76,19 @@ def known_concentrations(func):
 @pytest.mark.parametrize(
     "population, cm, expected_exposure, expected_probability", [
         [populations[1], known_concentrations(lambda t: 36.),
-         np.array([432, 432]), np.array([77.2191556943, 74.6803506895])],
+         np.array([432, 432]), np.array([67.9503762594, 65.2366759251])],
 
         [populations[2], known_concentrations(lambda t: 36.),
-         np.array([432, 432]), np.array([61.1470214407, 65.2366759251])],
+         np.array([432, 432]), np.array([51.6749232285, 55.6374622042])],
 
         [populations[0], known_concentrations(lambda t: np.array([36., 72.])),
-         np.array([432, 864]), np.array([65.2366759251, 87.9151129926])],
+         np.array([432, 864]), np.array([55.6374622042, 80.3196524031])],
 
         [populations[1], known_concentrations(lambda t: np.array([36., 72.])),
-         np.array([432, 864]), np.array([77.2191556943, 93.589153588])],
+         np.array([432, 864]), np.array([67.9503762594, 87.9151129926])],
 
         [populations[2], known_concentrations(lambda t: np.array([36., 72.])),
-         np.array([432, 864]), np.array([61.1470214407, 87.9151129926])],
+         np.array([432, 864]), np.array([51.6749232285, 80.3196524031])],
     ])
 def test_exposure_model_ndarray(population, cm,
                                 expected_exposure, expected_probability):

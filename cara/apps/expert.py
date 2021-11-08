@@ -498,7 +498,7 @@ baseline_model = models.ExposureModel(
             presence=models.SpecificInterval(((8., 12.), (13., 17.))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Seated'],
-            expiration=models.Expiration.types['Talking'],
+            expiration=models.Expiration.types['Speaking'],
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
