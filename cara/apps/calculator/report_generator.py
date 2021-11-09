@@ -104,7 +104,7 @@ def calculate_report_data(model: models.ExposureModel):
         for time in times
     ]
     highest_const = max(concentrations)
-    prob = np.array(model.infection_probability()).mean()
+    prob = np.array(model.total_probability_rule()).mean()
     er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
     exposed_occupants = model.exposed.number
     expected_new_cases = np.array(model.expected_new_cases()).mean()
