@@ -136,6 +136,9 @@ p.notes {
     .card {
         page-break-inside: avoid;
     }
+    #link-results {
+        display: none;
+    }
     #disclaimer {
         border: 2px solid black;
         padding: 15px; 

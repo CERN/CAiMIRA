@@ -156,7 +156,7 @@
 			{% endblock report_results %}
 
 			{% block report_footer %}
-				<div class="card bg-light mb-3">
+				<div class="card bg-light mb-3" id="link-results">
 					<div class="card-header"><strong>Link to reproduce results </strong> 
 					<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseQRcode" role="button" aria-expanded="true" aria-controls="collapseQRcode">
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
@@ -401,7 +401,7 @@
 
 {% block disclaimer_container %}
 	<br><br><br>
-	<div style="border: #dee2e6 1px solid; margin: 1%; padding: 20px" class="rounded">
+	<div id="disclaimer" style="border: #dee2e6 1px solid; margin: 1%; padding: 20px" class="rounded">
 		{% block disclaimer %}
 		<p class="image"> <img align="middle" src="{{ calculator_prefix }}/static/images/disclaimer.jpg" width="40" height="40"><b>Disclaimer:</b><br><br></p>
 
