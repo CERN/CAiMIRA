@@ -628,7 +628,7 @@ class MultipleExpiration(_ExpirationBase):
 # The correspondence with the BLO coefficients is given.
 _ExpirationBase.types = {
     'Breathing': Expiration(1.3844), # corresponds to B/L/O coefficients of (1, 0, 0)
-    'Talking': Expiration(5.8925),   # corresponds to B/L/O coefficients of (1, 1, 1)
+    'Speaking': Expiration(5.8925),   # corresponds to B/L/O coefficients of (1, 1, 1)
     'Shouting': Expiration(10.0411), # corresponds to B/L/O coefficients of (1, 5, 5)
     'Singing': Expiration(10.0411),  # corresponds to B/L/O coefficients of (1, 5, 5)
 }
@@ -788,14 +788,16 @@ class ConcentrationModel:
         if (isinstance(self.infected, InfectedPopulation)
             and isinstance(self.infected.expiration, Expiration)):
             d = self.infected.expiration.diameter * self.evaporation_factor
-            vg = 1.88e-4 * (d / 2.5)**2 # see CERN-OPEN-2021-04
+            vg = 1.88e-4 * (d / 2.5)**2 
+            # see https://doi.org/10.1101/2021.10.14.21264988
             # (velocity of 1.88e-4 corresponds to diameter of 2.5 microns)
         else:
             # model is not evaluated for specific values of aerosol
             # diameters - we choose a single velocity value
             # corresponding to that obtained with a diameter of 2.5 microns
             # (geometric average of the breathing expiration distribution,
-            # taking evaporation into account, see CERN-OPEN-2021-04)
+            # taking evaporation into account, see 
+            # https://doi.org/10.1101/2021.10.14.21264988)
             vg = 1.88e-4
         # Height of the emission source to the floor - i.e. mouth/nose (m)
         h = 1.5
@@ -983,7 +985,7 @@ class ExposureModel:
                 and isinstance(self.concentration_model.infected.expiration,Expiration)):
             # model is not evaluated for specific values of aerosol
             # diameters - we choose a single "average" deposition factor,
-            # as in CERN-OPEN-2021-04.
+            # as in https://doi.org/10.1101/2021.10.14.21264988.
             fdep = 0.6
         else:
             # deposition factor depends on aerosol particle diameter.

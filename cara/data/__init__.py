@@ -3,7 +3,7 @@ from cara import models
 
 # TODO: The values in this module to be removed and instead use the cara.data.weather functionality.
 
-# average temperature of each month, hour per hour (from midnight to 11 pm)
+# Geneva average temperature of each month, hour per hour (from midnight to 11 pm)
 Geneva_hourly_temperatures_celsius_per_hour = {
     'Jan': [0.2, -0.3, -0.5, -0.9, -1.1, -1.4, -1.5, -1.5, -1.1, 0.1, 1.5,
     2.8, 3.8, 4.4, 4.5, 4.4, 4.4, 3.9, 3.1, 2.7, 2.2, 1.7, 1.5, 1.1],
@@ -31,6 +31,22 @@ Geneva_hourly_temperatures_celsius_per_hour = {
     4.7, 5.2, 5.3, 5.2, 5.2, 4.7, 4.0, 3.7, 3.2, 2.8, 2.6, 2.2]
     }
 
+# Toronto average temperature of each month, hour per hour (from midnight to 11 pm)
+Toronto_hourly_temperatures_celsius_per_hour = {
+        "Jan": [ -2.9, -3.0, -3.2, -3.3, -3.3, -3.5, -3.7, -3.8, -3.9, -4.0, -4.1, -4.3, -4.3, -4.3, -4.1, -3.7, -3.2, -2.8, -2.6, -2.3, -2.2, -2.3, -2.6, -2.8],
+        "Feb": [ -2.4, -2.6, -2.8, -2.9, -2.9, -3.1, -3.3, -3.4, -3.6, -3.8, -3.9, -4.0, -4.3, -4.2, -3.7, -3.2, -2.6, -2.1, -1.7, -1.5, -1.3, -1.4, -1.6, -2.1],
+        "Mar": [ 1.3, 1.0, 0.7, 0.5, 0.4, 0.1, -0.0, -0.2, -0.4, -0.5, -0.7, -0.8, -0.9, -0.3, 0.4, 1.0, 1.6, 2.0, 2.3, 2.7, 2.7, 2.7, 2.4, 1.9],
+        "Apr": [ 6.8, 6.5, 6.3, 5.9, 5.7, 5.4, 5.1, 4.9, 4.6, 4.4, 4.2, 4.3, 4.8, 5.5, 6.1, 6.7, 7.1, 7.6, 7.8, 8.1, 8.2, 8.2, 8.0, 7.6 ],
+        "May": [ 13.0, 12.6, 12.2, 11.8, 11.5, 11.2, 10.8, 10.5, 10.2, 9.9, 9.8, 10.0, 10.9, 11.6, 12.2, 12.7, 13.2, 13.6, 13.9, 14.3, 14.4, 14.3, 14.2, 13.8],
+        "Jun": [ 18.9, 18.2, 17.8, 17.4, 17.0, 16.6, 16.2, 15.9, 15.6, 15.4, 15.3, 15.8, 16.5, 17.3, 17.9, 18.4, 18.9, 19.4, 19.7, 20.1, 20.3, 20.3, 20.1, 19.7],
+        "Jul": [ 22.1, 21.4, 20.9, 20.5, 20.0, 19.6, 19.1, 18.9, 18.6, 18.3, 18.1, 18.5, 19.4, 20.3, 21.0, 21.6, 22.2, 22.7, 23.1, 23.4, 23.6, 23.5, 23.3, 22.9],
+        "Aug": [ 22.0, 21.4, 21.0, 20.7, 20.3, 20.0, 19.6, 19.3, 19.1, 18.8, 18.5, 18.4, 19.4, 20.3, 21.1, 21.7, 22.2, 22.8, 23.1, 23.4, 23.5, 23.3, 23.1, 22.6],
+        "Sep": [ 18.2, 17.8, 17.4, 17.3, 17.0, 16.6, 16.3, 16.0, 15.8, 15.5, 15.4, 15.0, 15.6, 16.6, 17.5, 18.2, 18.7, 19.2, 19.6, 19.8, 19.7, 19.6, 19.2, 18.6],
+        "Oct": [ 11.1, 10.9, 10.6, 10.5, 10.2, 10.1, 9.8, 9.7, 9.5, 9.3, 9.2, 9.0, 9.0, 9.7, 10.5, 11.2, 11.7, 12.2, 12.4, 12.6, 12.6, 12.3, 11.8, 11.3],
+        "Nov": [ 5.3, 5.1, 5.0, 4.7, 4.6, 4.4, 4.3, 4.2, 4.1, 4.0, 3.9, 3.8, 3.7, 4.0, 4.6, 5.2, 5.7, 6.1, 6.2, 6.4, 6.3, 6.0, 5.5, 5.3],
+        "Dec": [ 0.4, 0.3, 0.2, 0.0, -0.1, -0.2, -0.4, -0.5, -0.6, -0.7, -0.8, -0.8, -0.9, -0.9, -0.6, -0.2, 0.3, 0.7, 0.9, 1.1, 1.1, 0.9, 0.6, 0.5]
+ }
+
 
 # Geneva hourly temperatures as piecewise constant function (in Kelvin).
 GenevaTemperatures_hourly = {
@@ -44,8 +60,27 @@ GenevaTemperatures_hourly = {
 }
 
 
-# Same temperatures on a finer temperature mesh (every 6 minutes).
+# Toronto hourly temperatures as piecewise constant function (in Kelvin).
+TorontoTemperatures_hourly = {
+    month: models.PiecewiseConstant(
+        # NOTE:  It is important that the time type is float, not np.float, in
+        # order to allow hashability (for caching).
+        tuple(float(time) for time in range(25)),
+        tuple(273.15 + np.array(temperatures)),
+    )
+    for month, temperatures in Toronto_hourly_temperatures_celsius_per_hour.items()
+}
+
+
+# Same Geneva temperatures on a finer temperature mesh (every 6 minutes).
 GenevaTemperatures = {
     month: GenevaTemperatures_hourly[month].refine(refine_factor=10)
     for month, temperatures in Geneva_hourly_temperatures_celsius_per_hour.items()
+}
+
+
+# Same Toronto temperatures on a finer temperature mesh (every 6 minutes).
+TorontoTemperatures = {
+    month: TorontoTemperatures_hourly[month].refine(refine_factor=10)
+    for month, temperatures in Toronto_hourly_temperatures_celsius_per_hour.items()
 }

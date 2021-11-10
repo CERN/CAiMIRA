@@ -56,6 +56,7 @@ def baseline_mc_model() -> cara.monte_carlo.ConcentrationModel:
             expiration=cara.models.Expiration.types['Breathing'],
             host_immunity=0.,
         ),
+        evaporation_factor=0.3,
     )
     return mc_model
 
@@ -69,6 +70,7 @@ def baseline_mc_exposure_model(baseline_mc_model) -> cara.monte_carlo.ExposureMo
             presence=baseline_mc_model.infected.presence,
             activity=baseline_mc_model.infected.activity,
             mask=baseline_mc_model.infected.mask,
+            host_immunity=0.,
         )
     )
 
