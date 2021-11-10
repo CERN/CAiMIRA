@@ -23,18 +23,6 @@ body {
 
 /*============= TOP BAR HEADER =============*/
 
-.top-bar{
-  background: rgb(34, 34, 34);
-  height: 2.8rem;
-  padding: 0.5rem 0;
-}
-
-.top-bar a {
-  color: rgb(153, 153, 153);
-  text-decoration: none;
-  font-size: 1.1rem;
-}
-
 .dropwown-navbar-colors {
   background: rgb(42, 52, 66); 
   border-color: rgb(42, 52, 66);
@@ -87,11 +75,16 @@ body {
 
 /*============= TEXT AND CONTENT =============*/
 
+.header-height {
+  height: 96px;
+}
+
 .logo {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  height: 4em;
+  height: 6em;
+}
+
+.logo_form {
+  height: 3em;
 }
 
 #nat_vent_image {
@@ -231,11 +224,6 @@ footer img {
 
   .bigButton {
     width: 25%;
-  }
-
-  .logo {
-    float: left;
-    height: 6em;
   }
 
   #nat_vent_image {
