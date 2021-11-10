@@ -35,11 +35,11 @@
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
           <li class="nav-link"><a href="/" class="{{ "nav-link active" if "home/" == active_page else "nav-link" }}">HOME</a></li>
-          <li class="nav-item dropdown p-2">
-            <a class="nav-link dropdown-toggle {{ "nav-link active" if "calculator/" in active_page else "nav-link" }}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <li class="p-2 nav-item dropdown">
+            <a class="dropdown-toggle {{ "nav-link active" if "calculator/" in active_page else "nav-link" }}" href="{{ calculator_prefix }}" id="navbarDropdown">
               APPS
             </a>
-            <ul class="dropdown-menu dropwown-navbar-colors" style="min-width: 14rem;" aria-labelledby="navbarDropdown">
+            <ul class="dropdown-menu dropwown-navbar-colors nav" style="min-width: 14rem;" aria-labelledby="navbarDropdown">
               <li><a href="{{ calculator_prefix }}" class="{{ "nav-link active" if "calculator/" == active_page else "nav-link" }}">CARA CALCULATOR</a></li>
               <li><a href="{{ calculator_prefix }}/user-guide" style="margin-left: 4rem" class="{{ "nav-link active" if "user-guide" in active_page else "nav-link" }}">USER GUIDE</a></li>
               <li><a href="/expert-app" class="{{ "nav-link active" if "/expert-app" == active_page else "nav-link" }}">EXPERT APP (BETA)</a></li>
