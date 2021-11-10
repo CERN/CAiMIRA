@@ -18,7 +18,7 @@ TOLERANCE = 0.05
 @pytest.fixture
 def shared_office_mc():
     """
-    Corresponds to the 1st line of Table 4 in CERN-OPEN-2021-04
+    Corresponds to the 1st line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988
     """
     concentration_mc = mc.ConcentrationModel(
         room=models.Room(volume=50, humidity=0.5),
@@ -60,7 +60,7 @@ def shared_office_mc():
 @pytest.fixture
 def classroom_mc():
     """
-    Corresponds to the 2nd line of Table 4 in CERN-OPEN-2021-04
+    Corresponds to the 2nd line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988
     """
     concentration_mc = mc.ConcentrationModel(
         room=models.Room(volume=160, humidity=0.3),
@@ -102,7 +102,7 @@ def classroom_mc():
 @pytest.fixture
 def ski_cabin_mc():
     """
-    Corresponds to the 3rd line of Table 4 in CERN-OPEN-2021-04
+    Corresponds to the 3rd line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988
     """
     concentration_mc = mc.ConcentrationModel(
         room=models.Room(volume=10, humidity=0.3),
@@ -135,7 +135,7 @@ def ski_cabin_mc():
 @pytest.fixture
 def skagit_chorale_mc():
     """
-    Corresponds to the 4th line of Table 4 in CERN-OPEN-2021-04, 
+    Corresponds to the 4th line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988, 
     assuming viral is 10**9 instead of a LogCustomKernel distribution. 
     """
     concentration_mc = mc.ConcentrationModel(
@@ -174,7 +174,7 @@ def skagit_chorale_mc():
 @pytest.fixture
 def bus_ride_mc():
     """
-    Corresponds to the 5th line of Table 4 in CERN-OPEN-2021-04, 
+    Corresponds to the 5th line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988, 
     assuming viral is 5*10**8 instead of a LogCustomKernel distribution. 
     """
     concentration_mc = mc.ConcentrationModel(
