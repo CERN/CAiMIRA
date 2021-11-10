@@ -61,6 +61,7 @@ body {
   color: rgb(45, 138, 241)!important;
 } */
 
+
 /*============= SPLIT =============*/
 
 .split {
@@ -237,6 +238,9 @@ footer img {
   #report_logo {
     height: 6em;
     margin: 1%;
+  }
+  #mobile-app-buttons {
+    display: none!important;
   }
   .feedback {
     float:right; 
