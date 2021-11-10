@@ -65,7 +65,7 @@ class BLOmodel:
         return result
 
 
-# From CERN-OPEN-2021-04 and refererences therein
+# From https://doi.org/10.1101/2021.10.14.21264988 and refererences therein
 activity_distributions = {
     'Seated': mc.Activity(LogNormal(-0.6872121723362303, 0.10498338229297108),
                           LogNormal(-0.6872121723362303, 0.10498338229297108)),
@@ -84,7 +84,7 @@ activity_distributions = {
 }
 
 
-# From CERN-OPEN-2021-04 and refererences therein
+# From https://doi.org/10.1101/2021.10.14.21264988 and refererences therein
 symptomatic_vl_frequencies = LogCustomKernel(
     np.array((2.46032, 2.67431, 2.85434, 3.06155, 3.25856, 3.47256, 3.66957, 3.85979, 4.09927, 4.27081,
      4.47631, 4.66653, 4.87204, 5.10302, 5.27456, 5.46478, 5.6533, 5.88428, 6.07281, 6.30549,
@@ -105,7 +105,7 @@ viable_to_RNA_ratio_distribution = Uniform(0.15, 0.45)
 # From discussion with virologists
 infectious_dose_distribution = Uniform(10., 100.)
 
-# From CERN-OPEN-2021-04 and refererences therein
+# From https://doi.org/10.1101/2021.10.14.21264988 and refererences therein
 virus_distributions = {
     'SARS_CoV_2': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
