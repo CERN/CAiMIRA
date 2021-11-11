@@ -52,12 +52,12 @@ body {
   padding: .2rem;
 }
 
-.nav-link {
+.header-navbar.nav-link {
   color: rgb(255, 255, 255)!important;
 }
 
-.nav-link.active,
-.nav-link:hover {
+.header-navbar.nav-link.active,
+.header-navbar.nav-link:hover {
   color: rgb(45, 138, 241)!important;
 }
 

@@ -34,19 +34,19 @@
 
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
-          <li class="nav-link"><a href="/" class="{{ "nav-link active" if "home/" == active_page else "nav-link" }}">HOME</a></li>
-          <li class="p-2 nav-item dropdown">
-            <a class="dropdown-toggle {{ "nav-link active" if "calculator/" in active_page else "nav-link" }}" href="{{ calculator_prefix }}" id="navbarDropdown">
+          <li class="nav-link"><a href="/" class="{{ "header-navbar nav-link active" if "home/" == active_page else "header-navbar nav-link" }}">HOME</a></li>
+          <li class="nav-item dropdown p-2">
+            <a class="nav-link dropdown-toggle {{ "header-navbar nav-link active" if "calculator/" in active_page else "header-navbar nav-link" }}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               APPS
             </a>
-            <ul class="dropdown-menu dropwown-navbar-colors nav" style="min-width: 14rem;" aria-labelledby="navbarDropdown">
-              <li><a href="{{ calculator_prefix }}" class="{{ "nav-link active" if "calculator/" == active_page else "nav-link" }}">CARA CALCULATOR</a></li>
-              <li><a href="{{ calculator_prefix }}/user-guide" style="margin-left: 4rem" class="{{ "nav-link active" if "user-guide" in active_page else "nav-link" }}">USER GUIDE</a></li>
-              <li><a href="/expert-app" class="{{ "nav-link active" if "/expert-app" == active_page else "nav-link" }}">EXPERT APP (BETA)</a></li>
+            <ul class="dropdown-menu dropwown-navbar-colors" style="min-width: 14rem;" aria-labelledby="navbarDropdown">
+              <li><a href="{{ calculator_prefix }}" class="{{ "header-navbar nav-link active" if "calculator/" == active_page else "header-navbar nav-link" }}">CARA CALCULATOR</a></li>
+              <li><a href="{{ calculator_prefix }}/user-guide" style="margin-left: 4rem" class="{{ "header-navbar nav-link active" if "user-guide" in active_page else "header-navbar nav-link" }}">USER GUIDE</a></li>
+              <li><a href="/expert-app" class="{{ "header-navbar nav-link active" if "/expert-app" == active_page else "header-navbar nav-link" }}">EXPERT APP (BETA)</a></li>
             </ul>
           </li>
-          <li class="nav-link"><a href="https://hse.cern/covid-19-information" class="nav-link">COVID INFORMATION</a></li>
-          <li class="nav-link"><a href="/about" class="{{ "nav-link active" if "about" == active_page else "nav-link" }}">ABOUT</a></li>
+          <li class="nav-link"><a href="https://hse.cern/covid-19-information" class="header-navbar nav-link">COVID INFORMATION</a></li>
+          <li class="nav-link"><a href="/about" class="{{ "header-navbar nav-link active" if "about" == active_page else "header-navbar nav-link" }}">ABOUT</a></li>
         </ul>
       </div>
     </div>
