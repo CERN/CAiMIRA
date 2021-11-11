@@ -295,6 +295,13 @@ footer img {
   #mobile_link {
     display: inline!important;
   }
+  #desktop_logo {
+    display: none!important;
+  }
+  
+  #mobile_logo {
+    display: block!important;
+  }
   .feedback {
     float:right; 
     font-size:.75rem; 
