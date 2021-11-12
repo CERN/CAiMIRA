@@ -24,44 +24,44 @@
 {% block report_summary %}
   <div class="flex-row align-self-center">
       {% if ((prob_inf > 15) or (expected_new_cases >= 1)) %}
-        <div class="alert alert-danger" role="alert">
+        <div class="alert alert-danger mb-0" role="alert">
           <strong>Not Acceptable:</strong>
               Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>*.
 
         </div>
       {% elif 5 <= prob_inf <= 15 %}
-        <div class="alert alert-warning" role="alert">
+        <div class="alert alert-warning mb-0" role="alert">
           <strong>Attention:</strong>
               Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>*.
         </div>
       {% elif prob_inf < 5 %}
-        <div class="alert alert-success" role="alert">
+        <div class="alert alert-success mb-0" role="alert">
           <strong>Acceptable:</strong>
               Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>*.
         </div>
       {% endif %}
 
     {% if (prob_inf > 5) %}
+      <br>
       {% if scale_warning.level == "green-1" %}  
-        <div class="alert alert-dark" role="alert" style="height:fit-content">
+        <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
           Note: the current CERN COVID Scale is <b>Green - 1</b>, which means the incidence rate in the local community is <b>{{scale_warning.incidence_rate}}</b>. Align your risk assessment with the guidance and instructions provided by the HSE Unit.  
         </div>
       {% elif scale_warning.level == "yellow-2" %}
-        <div class="alert alert-dark" role="alert" style="height:fit-content">
+        <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
           Note: the current CERN COVID Scale is <b>Yellow - 2</b>, which means the incidence rate in the local community is <b>{{scale_warning.incidence_rate}}</b>. There is a reduced chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access {{scale_warning.onsite_access}}. See with your supervisor if this scenario is acceptable.
         </div>
       {% elif scale_warning.level == "orange-3" %}
-        <div class="alert alert-dark" role="alert" style="height:fit-content">
+        <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
           Warning: the current CERN COVID Scale is <b>Orange - 3</b>, which means the incidence rate in the local community is <b>{{scale_warning.incidence_rate}}</b>. There is a slight chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access {{scale_warning.onsite_access}}. See with your supervisor if any additional measures can be applied (ALARA).
         </div>
       {% elif scale_warning.level == "red-4" %}
-        <div class="alert alert-dark" role="alert" style="height:fit-content">
+        <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
           Warning: the current CERN COVID Scale is <b>Red - 4</b>, which means the incidence rate in the local community is <b>{{scale_warning.incidence_rate}}</b>. There is a strong chance that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site which, during this stage, corresponds to an average daily on-site access {{scale_warning.onsite_access}}. Please reduce the value below the threshold of <b>{{scale_warning.threshold}}</b>.
         </div>
       {% else %}
         <p><b>Note:</b> The CERN COVID Level is not specified.</p>
       {% endif %}
-        
     {% endif %}
   </div>
 {% endblock report_summary %}

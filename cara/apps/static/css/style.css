@@ -196,6 +196,9 @@ footer img {
   height: 4em;
   margin: 1%;
 }
+.animation-color {
+  background-color: #d5d8d9!important;
+}
 
 /*============= MEDIA QUERIES =============*/
 
