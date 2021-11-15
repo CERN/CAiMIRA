@@ -79,7 +79,6 @@ class TestCernApp(tornado.testing.AsyncHTTPTestCase):
     def test_report(self):
         response = yield self.http_client.fetch(self.get_url('/calculator/baseline-model/result'))
         self.assertEqual(response.code, 200)
-        assert 'CERN HSE' in response.body.decode()
         assert 'expected number of new cases is' in response.body.decode()
 
 
