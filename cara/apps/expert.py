@@ -434,7 +434,7 @@ class ModelWidgets(View):
             widget.layout.visible = False
 
         ventilation_w = widgets.ToggleButtons(
-            options=ventilation_widgets.keys(),
+            options=['Natural', 'Mechanical', 'No ventilation']
         )
 
         def toggle_ventilation(value):
@@ -532,12 +532,17 @@ class CARAStateBuilder(state.StateBuilder):
             states={
                 'Natural': self.build_generic(models.WindowOpening),
                 'Mechanical': self.build_generic(models.HVACMechanical),
+                'No ventilation': self.build_generic(models.AirChange),
             },
             state_builder=self,
         )
         # Initialise the HVAC state
         s._states['Mechanical'].dcs_update_from(
             models.HVACMechanical(models.PeriodicInterval(period=24*60, duration=24*60), 500.)
+        )
+        # Initialise the No ventilation state
+        s._states['No ventilation'].dcs_update_from(
+            models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=0.)
         )
         return s
 
