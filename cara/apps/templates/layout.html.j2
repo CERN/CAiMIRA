@@ -47,6 +47,20 @@
           </li>
           <li class="nav-link"><a href="https://hse.cern/covid-19-information" class="header-navbar nav-link">COVID INFORMATION</a></li>
           <li class="nav-link"><a href="/about" class="{{ "header-navbar nav-link active" if "about" == active_page else "header-navbar nav-link" }}">ABOUT</a></li>
+            {% if user.is_authenticated() %}
+            <li class="nav-item dropdown p-2">
+              <a class="nav-link active dropdown-toggle d-inline-block" href="https://cern.ch/users-portal" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Signed in as: {{ user.username }}
+              </a>
+            <ul class="dropdown-menu dropwown-navbar-colors" style="min-width: 14rem;" aria-labelledby="navbarDropdown">
+                <li><a href="/auth/logout" class="nav-link ml-2">Sign out</a></li>
+            </ul>
+            {# Sent to Piwik for statistics #}
+            <script>
+              var AuthUserDomain = "{{ user.domain() }}";
+            </script>
+            {% endif %}
+            </li>
         </ul>
       </div>
     </div>
