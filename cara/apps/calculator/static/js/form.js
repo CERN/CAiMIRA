@@ -611,7 +611,7 @@ $(document).ready(function () {
       },
       cache: true
     },
-    placeholder: 'Search for a location',
+    placeholder: 'Geneva, CHE',
     minimumInputLength: 1,
     templateResult: formatlocation,
     templateSelection: formatLocationSelection

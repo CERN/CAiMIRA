@@ -122,17 +122,17 @@
     </div>
     </div>
     <div class="form-group row">
-      <div class="col-sm-4"><label class="col-form-label">Location:</label></div>
-      <div class="col-sm-6 align-self-center"><select id="location_select" form="not-submitted" class="form-control" name="location_select" required></select></div>
+      <div class="col-sm-5"><label class="col-form-label">Geographic location:</label></div>
+      <div class="col-sm-5 align-self-center"><select id="location_select" form="not-submitted" class="form-control" name="location_select" required></select></div>
     </div>
     <div style="display: none">
         <!--
         This block allows us to have hidden input values which are retained during forward/back navigation, as per
         https://stackoverflow.com/a/6384276/741316
         -->
-        <input type="text" name="location_name">
-        <input type="text" name="location_latitude">
-        <input type="text" name="location_longitude">
+        <input type="text" name="location_name" value="Geneva, CHE">
+        <input type="text" name="location_latitude" value="46.20833">
+        <input type="text" name="location_longitude" value="6.14275">
     </div>
 
     <hr width="80%">
