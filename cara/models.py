@@ -341,7 +341,7 @@ class HingedWindow(WindowOpening):
     window_width: _VectorisedFloat = 0.0
 
     def __post_init__(self):
-        if self.window_width is 0.0:
+        if self.window_width is float(0.0):
             raise ValueError('window_width must be set')
 
     @property
