@@ -4,6 +4,7 @@ import uuid
 
 import ipympl.backend_nbagg
 import ipywidgets as widgets
+from ipywidgets.widgets import widget_templates
 import numpy as np
 import matplotlib
 import matplotlib.figure
@@ -12,6 +13,7 @@ from cara import models
 from cara import state
 from cara import data
 
+from IPython.display import display, Markdown
 
 def collapsible(widgets_to_collapse: typing.List, title: str, start_collapsed=False):
     collapsed = widgets.Accordion([widgets.VBox(widgets_to_collapse)])
@@ -108,7 +110,7 @@ def ipympl_canvas(figure):
 
 class ExposureModelResult(View):
     def __init__(self):
-        self.figure = matplotlib.figure.Figure(figsize=(9, 6))
+        self.figure = matplotlib.figure.Figure(figsize=(6, 5))
         ipympl_canvas(self.figure)
         self.html_output = widgets.HTML()
         self.ax = self.figure.add_subplot(1, 1, 1)
@@ -157,7 +159,7 @@ class ExposureModelResult(View):
         lines.append(f'Emission rate (virus/hr): {np.round(model.concentration_model.infected.emission_rate_when_present(),0)}')
         lines.append(f'Probability of infection: {np.round(P, 0)}%')
 
-        lines.append(f'Number of exposed: {model.exposed.number}')
+        lines.append(f'<b>Number of exposed: </b>{model.exposed.number}')
 
         new_cases = np.round(np.array(model.expected_new_cases()).mean(), 1)
         lines.append(f'Number of expected new cases: {new_cases}')
@@ -170,7 +172,7 @@ class ExposureModelResult(View):
 
 class ExposureComparissonResult(View):
     def __init__(self):
-        self.figure = matplotlib.figure.Figure(figsize=(9, 6))
+        self.figure = matplotlib.figure.Figure(figsize=(6, 5))
         ipympl_canvas(self.figure)
         self.ax = self.initialize_axes()
 
@@ -215,6 +217,7 @@ class ModelWidgets(View):
     def __init__(self, model_state: state.DataclassState):
         #: The widgets that this view produces (inputs and outputs together)
         self.widget = widgets.VBox([])
+        self.min_layout = widgets.Layout(min_width='228px')
         self.construct_widgets(model_state)
 
     def construct_widgets(self, model_state: state.DataclassState):
@@ -229,13 +232,13 @@ class ModelWidgets(View):
         self.widget.children += (self._build_infectivity(node.concentration_model.infected),)
 
     def _build_exposed(self, node):
-        return collapsible([widgets.HBox([
+        return collapsible([widgets.VBox([
             self._build_mask(node.exposed.mask),
             self._build_activity(node.exposed.activity),
         ])], title="Exposed")
 
     def _build_infected(self, node):
-        return collapsible([widgets.HBox([
+        return collapsible([widgets.VBox([
             self._build_mask(node.mask),
             self._build_activity(node.activity),
             self._build_expiration(node.expiration),
@@ -254,9 +257,7 @@ class ModelWidgets(View):
         node.dcs_observe(on_state_change)
 
         widget = collapsible(
-            [widget_group(
-                [[widgets.Label('Room volume (m³)'), room_volume]]
-            )],
+            [widget_group([[widgets.Label('Room volume (m³):', layout=self.min_layout), room_volume]])],
             title='Specification of workplace',
         )
         return widget
@@ -304,6 +305,9 @@ class ModelWidgets(View):
 
         outsidetemp_w = widgets.ToggleButtons(
             options=outsidetemp_widgets.keys(),
+            button_style='info',
+            style={'button_width':'100px'}
+            # tooltips=[],
         )
 
         def toggle_outsidetemp(value):
@@ -320,19 +324,19 @@ class ModelWidgets(View):
         result = WidgetGroup(
             (
                 (
-                    widgets.Label('Interval between openings (minutes)', layout=auto_width),
+                    widgets.Label('Interval between openings (minutes):'),
                     period,
                 ),
                 (
-                    widgets.Label('Duration of opening (minutes)', layout=auto_width),
+                    widgets.Label('Duration of opening (minutes):', layout=auto_width),
                     interval,
                 ),
                 (
-                    widgets.Label('Inside temperature (℃)', layout=auto_width),
+                    widgets.Label('Inside temperature (℃):', layout=auto_width),
                     inside_temp,
                 ),
                 (
-                    widgets.Label('Outside temperature scheme', layout=auto_width),
+                    widgets.Label('Outside temperature scheme:', layout=auto_width),
                     outsidetemp_w,
                 ),
             ),
@@ -341,7 +345,7 @@ class ModelWidgets(View):
             result.add_pairs(sub_group.pairs())
         return result
 
-    def _build_mechanical(self, node):
+    def _build_q_air_mech(self, node):
         q_air_mech = widgets.IntSlider(value=node.q_air_mech, min=0, max=1000, step=5)
 
         def q_air_mech_change(change):
@@ -350,17 +354,52 @@ class ModelWidgets(View):
         # TODO: Link the state back to the widget, not just the other way around.
         q_air_mech.observe(q_air_mech_change, names=['value'])
 
-        auto_width = widgets.Layout(width='auto')
-        return widgets.VBox([widget_group([
-            [
-                widgets.Label('Flow rate (m³/h)', layout=auto_width),
-                q_air_mech,
-            ],
-         ])])
+        return q_air_mech
+
+    def _build_ach(self, node):
+        air_exch = widgets.IntSlider(value=node.air_exch, min=0, max=50, step=5)
+
+        def air_exch_change(change):
+            node.air_exch = change['new']
+
+        # TODO: Link the state back to the widget, not just the other way around.
+        air_exch.observe(air_exch_change, names=['value'])
+
+        return air_exch
+
+    def _build_mechanical(self, node):
+        mechanical_widgets = {
+            'Mechanical': self._build_q_air_mech(node._states['Mechanical']),
+            'Air changes per hour': self._build_ach(node._states['Air changes per hour']),
+        }
+
+        for name, widget in mechanical_widgets.items():
+            widget.layout.visible = False
+
+        mechanival_w = widgets.ToggleButtons(
+            options=mechanical_widgets.keys(),
+            button_style='info',
+        )
+
+        def toggle_mechanical(value):
+            for name, widget in mechanical_widgets.items():
+                widget.layout.visible = False
+                widget.layout.display = 'none'
+
+            node.dcs_select(value)
+
+            widget = mechanical_widgets[value]
+            widget.layout.visible = True
+            widget.layout.display = 'flex'
+
+        mechanival_w.observe(lambda event: toggle_mechanical(event['new']), 'value')
+        toggle_mechanical(mechanival_w.value)
+
+        return widgets.VBox([mechanival_w, widgets.HBox(list(mechanical_widgets.values()))])
 
     def _build_month(self, node) -> WidgetGroup:
 
-        month_choice = widgets.Select(options=list(data.GenevaTemperatures.keys()), value='Jan')
+        month_choice = widgets.Dropdown(options=list(data.GenevaTemperatures.keys()), value='Jan')
 
         def on_month_change(change):
             node.outside_temp = data.GenevaTemperatures[change['new']]
@@ -368,7 +407,7 @@ class ModelWidgets(View):
 
         return WidgetGroup(
             (
-                (widgets.Label("Month"), month_choice),
+                (widgets.Label("Month:"), month_choice),
             ),
         )
 
@@ -377,7 +416,7 @@ class ModelWidgets(View):
         for name, activity_ in models.Activity.types.items():
             if activity == activity_:
                 break
-        activity = widgets.Select(options=list(models.Activity.types.keys()), value=name)
+        activity = widgets.Dropdown(options=list(models.Activity.types.keys()), value=name)
 
         def on_activity_change(change):
             act = models.Activity.types[change['new']]
@@ -385,7 +424,7 @@ class ModelWidgets(View):
         activity.observe(on_activity_change, names=['value'])
 
         return widget_group(
-            [[widgets.Label("Activity"), activity]]
+            [[widgets.Label("Activity:", layout=self.min_layout), activity]]
         )
 
     def _build_mask(self, node):
@@ -393,14 +432,14 @@ class ModelWidgets(View):
         for name, mask_ in models.Mask.types.items():
             if mask == mask_:
                 break
-        mask_choice = widgets.Select(options=list(models.Mask.types.keys()), value=name)
+        mask_choice = widgets.Dropdown(options=list(models.Mask.types.keys()), value=name)
 
         def on_mask_change(change):
             node.dcs_select(change['new'])
         mask_choice.observe(on_mask_change, names=['value'])
 
         return widget_group(
-            [[widgets.Label("Mask"), mask_choice]]
+            [[widgets.Label("Mask:", layout=self.min_layout), mask_choice]]
         )
 
     def _build_expiration(self, node):
@@ -408,7 +447,7 @@ class ModelWidgets(View):
         for name, expiration_ in models.Expiration.types.items():
             if expiration == expiration_:
                 break
-        expiration_choice = widgets.Select(options=list(models.Expiration.types.keys()), value=name)
+        expiration_choice = widgets.Dropdown(options=list(models.Expiration.types.keys()), value=name)
 
         def on_expiration_change(change):
             expiration = models.Expiration.types[change['new']]
@@ -416,7 +455,7 @@ class ModelWidgets(View):
         expiration_choice.observe(on_expiration_change, names=['value'])
 
         return widget_group(
-            [[widgets.Label("Expiration"), expiration_choice]]
+            [[widgets.Label("Expiration:", layout=self.min_layout), expiration_choice]]
         )
 
     def _build_ventilation(
@@ -428,13 +467,16 @@ class ModelWidgets(View):
     ) -> widgets.Widget:
         ventilation_widgets = {
             'Natural': self._build_window(node._states['Natural']).build(),
-            'Mechanical': self._build_mechanical(node._states['Mechanical']),
+            'Mechanical': self._build_mechanical(node),
         }
         for name, widget in ventilation_widgets.items():
             widget.layout.visible = False
 
-        ventilation_w = widgets.ToggleButtons(
-            options=ventilation_widgets.keys(),
+        ventilation_w = widgets.Dropdown(
+            options=['Natural', 'Mechanical', 'No ventilation'],
+            button_style='info',
+            style={'button_width':'100px'}
+            # tooltips=[],
         )
 
         def toggle_ventilation(value):
@@ -452,30 +494,28 @@ class ModelWidgets(View):
         toggle_ventilation(ventilation_w.value)
 
         w = collapsible(
-            [widget_group([[widgets.Label('Ventilation type'), ventilation_w]])]
+            [widget_group([[widgets.Label('Ventilation type: ', layout=widgets.Layout(min_width='228px')), ventilation_w]])]
             + list(ventilation_widgets.values()),
             title='Ventilation scheme',
         )
         return w
 
     def _build_infectivity(self,node):
-        return collapsible([widgets.HBox([
-            self._build_virus(node.virus),
-        ])], title="Virus variant")
+        return collapsible([self._build_virus(node.virus)], title="Virus variant")
 
     def _build_virus(self, node):
         virus = node.dcs_instance()
         for name, virus_ in models.Virus.types.items():
             if virus == virus_:
                 break
-        virus_choice = widgets.Select(options=list(models.Virus.types.keys()), value=name)
+        virus_choice = widgets.Dropdown(options=list(models.Virus.types.keys()), value=name)
 
         def on_virus_change(change):
             node.dcs_select(change['new'])
         virus_choice.observe(on_virus_change, names=['value'])
 
         return widget_group(
-            [[widgets.Label("Virus"), virus_choice]]
+            [[widgets.Label("Virus:", layout=self.min_layout), virus_choice]]
         )
 
 
@@ -532,12 +572,22 @@ class CARAStateBuilder(state.StateBuilder):
             states={
                 'Natural': self.build_generic(models.WindowOpening),
                 'Mechanical': self.build_generic(models.HVACMechanical),
+                'Air changes per hour': self.build_generic(models.AirChange),
+                'No ventilation': self.build_generic(models.AirChange),
             },
             state_builder=self,
         )
         # Initialise the HVAC state
         s._states['Mechanical'].dcs_update_from(
             models.HVACMechanical(models.PeriodicInterval(period=24*60, duration=24*60), 500.)
+        )
+        # Initialise the HVAC state
+        s._states['Air changes per hour'].dcs_update_from(
+            models.AirChange(models.PeriodicInterval(period=24*60, duration=24*60), 10.)
+        )
+        # Initialise the No ventilation state
+        s._states['No ventilation'].dcs_update_from(
+            models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=0.)
         )
         return s
 
@@ -560,13 +610,13 @@ class ExpertApplication(Controller):
         ))
         for i, title in enumerate(['Current scenario', 'Scenario comparison', "Debug"]):
             self._results_tab.set_title(i, title)
-        self.widget = widgets.HBox(
-            children=(
-                self.multi_model_view.widget,
-                self._results_tab,
-            ),
-        )
         self.add_scenario('Scenario 1')
+        self.widget = widgets.AppLayout(header=None,
+            left_sidebar=self.multi_model_view.widget,
+            center=None,
+            right_sidebar=self._results_tab,
+            footer=None,
+            pane_widths=["610px", 0, 1])
 
     def build_new_model(self) -> state.DataclassInstanceState[models.ExposureModel]:
         default_model = state.DataclassInstanceState(
@@ -604,7 +654,7 @@ class ExpertApplication(Controller):
         index, _, model = self._find_model_id(model_id)
         self._model_scenarios.pop(index)
         if self._active_scenario >= index:
-            self._active_scenario = max(self._active_scenario - 1, 0)
+            self._active_scenario = 0
         self.notify_scenarios_changed()
 
     def set_active_scenario(self, model_id):
@@ -686,8 +736,8 @@ class MultiModelView(View):
         self._tab_model_ids.pop(tab_index)
         self._tab_widgets.pop(tab_index)
         self._tab_model_views.pop(tab_index)
-        if self._active_tab_index >= tab_index:
-            self._active_tab_index = max(0, self._active_tab_index - 1)
+        # if self._active_tab_index >= tab_index:
+        #     self._active_tab_index = max(0, self._active_tab_index - 1)
         self.update_tab_widget()
 
     def update_tab_widget(self):
@@ -702,7 +752,7 @@ class MultiModelView(View):
         delete_button = widgets.Button(description='Delete Scenario', button_style='danger')
         rename_text_field = widgets.Text(description='Rename Scenario:', value=name,
                                          style={'description_width': 'auto'})
-        duplicate_button = widgets.Button(description='Duplicate Scenario', button_style='success')
+        duplicate_button = widgets.Button(description='Duplicate Scenario', button_style='info')
         model_id = id(model)
 
         def on_delete_click(b):
@@ -723,8 +773,7 @@ class MultiModelView(View):
         # last scenario, so this should be controlled in the remove_tab method.
         buttons_w_delete = widgets.HBox(children=(duplicate_button, delete_button))
         buttons = duplicate_button if len(self._tab_model_ids) < 2 else buttons_w_delete
-        return widgets.VBox(children=(buttons, rename_text_field))
-
+        return widgets.VBox(children=(rename_text_field, buttons))
 
 def models_start_end(models: typing.Sequence[models.ConcentrationModel]) -> typing.Tuple[float, float]:
     """
