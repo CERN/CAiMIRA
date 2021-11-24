@@ -13,7 +13,6 @@ from cara import models
 from cara import state
 from cara import data
 
-from IPython.display import display, Markdown
 
 def collapsible(widgets_to_collapse: typing.List, title: str, start_collapsed=False):
     collapsed = widgets.Accordion([widgets.VBox(widgets_to_collapse)])
@@ -354,7 +353,7 @@ class ModelWidgets(View):
         # TODO: Link the state back to the widget, not just the other way around.
         q_air_mech.observe(q_air_mech_change, names=['value'])
 
-        return q_air_mech
+        return widgets.HBox([q_air_mech, widgets.Label('m³/h')])
 
     def _build_ach(self, node):
         air_exch = widgets.IntSlider(value=node.air_exch, min=0, max=50, step=5)
@@ -365,20 +364,20 @@ class ModelWidgets(View):
         # TODO: Link the state back to the widget, not just the other way around.
         air_exch.observe(air_exch_change, names=['value'])
 
-        return air_exch
+        return widgets.HBox([air_exch, widgets.Label('h⁻¹')])
 
     def _build_mechanical(self, node):
         mechanical_widgets = {
-            'Mechanical': self._build_q_air_mech(node._states['Mechanical']),
-            'Air changes per hour': self._build_ach(node._states['Air changes per hour']),
+            'HVACMechanical': self._build_q_air_mech(node._states['HVACMechanical']),
+            'AirChange': self._build_ach(node._states['AirChange']),
         }
 
         for name, widget in mechanical_widgets.items():
             widget.layout.visible = False
 
-        mechanival_w = widgets.ToggleButtons(
-            options=mechanical_widgets.keys(),
-            button_style='info',
+        mechanival_w = widgets.RadioButtons(
+            options=list(zip(['Air supply flow rate (m³/h)', 'Air changes per hour (h⁻¹)'], mechanical_widgets.keys())),
+            # button_style='info',
         )
 
         def toggle_mechanical(value):
@@ -467,13 +466,13 @@ class ModelWidgets(View):
     ) -> widgets.Widget:
         ventilation_widgets = {
             'Natural': self._build_window(node._states['Natural']).build(),
-            'Mechanical': self._build_mechanical(node),
+            'HVACMechanical': self._build_mechanical(node),
         }
         for name, widget in ventilation_widgets.items():
             widget.layout.visible = False
 
         ventilation_w = widgets.Dropdown(
-            options=['Natural', 'Mechanical', 'No ventilation'],
+            options=[('Natural', 'Natural'), ('Mechanical', 'HVACMechanical'), ('No ventilation', 'No ventilation')],
             button_style='info',
             style={'button_width':'100px'}
             # tooltips=[],
@@ -571,18 +570,18 @@ class CARAStateBuilder(state.StateBuilder):
         s: state.DataclassStateNamed = state.DataclassStateNamed(
             states={
                 'Natural': self.build_generic(models.WindowOpening),
-                'Mechanical': self.build_generic(models.HVACMechanical),
-                'Air changes per hour': self.build_generic(models.AirChange),
+                'HVACMechanical': self.build_generic(models.HVACMechanical),
+                'AirChange': self.build_generic(models.AirChange),
                 'No ventilation': self.build_generic(models.AirChange),
             },
             state_builder=self,
         )
         # Initialise the HVAC state
-        s._states['Mechanical'].dcs_update_from(
+        s._states['HVACMechanical'].dcs_update_from(
             models.HVACMechanical(models.PeriodicInterval(period=24*60, duration=24*60), 500.)
         )
-        # Initialise the HVAC state
-        s._states['Air changes per hour'].dcs_update_from(
+        # Initialise the AirChange state
+        s._states['AirChange'].dcs_update_from(
             models.AirChange(models.PeriodicInterval(period=24*60, duration=24*60), 10.)
         )
         # Initialise the No ventilation state
