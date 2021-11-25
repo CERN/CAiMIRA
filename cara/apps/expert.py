@@ -317,9 +317,17 @@ class ModelWidgets(View):
         window_type_w.observe(lambda event: toggle_window_type(event['new']), 'value')
         toggle_window_type(window_type_w.value)
 
+        window_height = widgets.FloatSlider(value=node.window_height, min=0, max=2)
+        opening_distance = widgets.FloatSlider(value=node.opening_length, min=0, max=2)
         period = widgets.IntSlider(value=node.active.period, min=0, max=240)
         interval = widgets.IntSlider(value=node.active.duration, min=0, max=240)
         inside_temp = widgets.IntSlider(value=node.inside_temp.values[0]-273.15, min=15., max=25.)
+
+        def on_window_height_change(change):
+            node.window_height = change['new']
+        
+        def on_opening_distance_change(change):
+            node.opening_length = change['new']
 
         def on_period_change(change):
             node.active.period = change['new']
@@ -331,6 +339,8 @@ class ModelWidgets(View):
             node.inside_temp.values = (change['new']+273.15,)
 
         # TODO: Link the state back to the widget, not just the other way around.
+        window_height.observe(on_window_height_change, names=['value'])
+        opening_distance.observe(on_opening_distance_change, names=['value'])
         period.observe(on_period_change, names=['value'])
         interval.observe(on_interval_change, names=['value'])
         inside_temp.observe(insidetemp_change, names=['value'])
@@ -360,6 +370,14 @@ class ModelWidgets(View):
         auto_width = widgets.Layout(width='auto')
         result = WidgetGroup(
             (
+                (
+                    widgets.Label('Height of window (m):'),
+                    window_height,
+                ),
+                (
+                    widgets.Label('Opening distance (m):'),
+                    opening_distance,
+                ),
                 (
                     widgets.Label('Interval between openings (minutes):'),
                     period,
