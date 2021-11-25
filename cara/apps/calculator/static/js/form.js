@@ -236,6 +236,14 @@ function on_ventilation_type_change() {
   });
 }
 
+function on_wearing_mask_change() {
+  wearing_mask = $('input[type=radio][name=mask_wearing_option]')
+  wearing_mask.each(function (index) {
+    if (this.checked) getChildElement($(this)).show();
+    else getChildElement($(this)).hide();    
+  })
+}
+
 /* -------UI------- */
 
 function show_disclaimer() {
@@ -557,6 +565,12 @@ $(document).ready(function () {
   $("input[type=radio][name=ventilation_type]").change(on_ventilation_type_change);
   // Call the function now to handle forward/back button presses in the browser.
   on_ventilation_type_change();
+
+  // When the mask_wearing_option changes we want to make its respective
+  // children show/hide.
+  $("input[type=radio][name=mask_wearing_option]").change(on_wearing_mask_change);
+  // Call the function now to handle forward/back button presses in the browser.
+  on_wearing_mask_change();
 
   // Setup the maximum number of people at page load (to handle back/forward),
   // and update it when total people is changed.

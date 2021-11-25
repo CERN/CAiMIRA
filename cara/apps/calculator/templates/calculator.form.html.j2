@@ -260,15 +260,18 @@
     <br>
     
     <div class='sub_title'>Are masks worn when occupants are at workstations?</div>
-    <input type="radio" id="mask_on" name="mask_wearing_option" value="mask_on" required>
+    <input type="radio" id="mask_on" name="mask_wearing_option" value="mask_on" data-enables="#DIVmasks_used" required>
       <label for="mask_on">Yes</label>
     <input class="ml-2" type="radio" id="mask_off"  name="mask_wearing_option" value="mask_off" required checked="checked">
       <label for="mask_off">No</label><br>
-    Type of masks used:
-    <input type="radio" id="mask_type_1" name="mask_type" value="Type I" checked="checked" onclick="require_fields(this)">
-      <label for="mask_type_1">Type 1</label>
-    <input class="ml-2" type="radio" id="mask_type_ffp2"  name="mask_type" value="FFP2" onclick="require_fields(this)">
-      <label for="mask_type_ffp2">FFP2</label><br>
+      
+    <div id="DIVmasks_used" style="display:none">
+      Type of masks used:
+      <input type="radio" id="mask_type_1" name="mask_type" value="Type I" checked="checked" onclick="require_fields(this)">
+        <label for="mask_type_1">Type 1</label>
+      <input class="ml-2" type="radio" id="mask_type_ffp2"  name="mask_type" value="FFP2" onclick="require_fields(this)">
+        <label for="mask_type_ffp2">FFP2</label><br>
+    </div>
     <hr width="80%">
 
   </div>
