@@ -278,7 +278,45 @@ class ModelWidgets(View):
             ),
         )
 
+    def _build_window_width(self, node):
+        window_width = widgets.FloatSlider(value=node.window_width, min=0, max=2, step=0.1)
+
+        def window_width_change(change):
+            node.window_width = change['new']
+        
+        window_width.observe(window_width_change, names=['value'])
+
+        return widgets.HBox([widgets.Label('Width of window (m)', layout=widgets.Layout(min_width='228px')), window_width])
+
     def _build_window(self, node) -> WidgetGroup:
+        window_type_widgets = {
+            'SlidingWindow': widgets.Box([]), # No widgets for SlidingWindow default value
+            'HingedWindow': self._build_window_width(node._states['HingedWindow'])
+        }
+
+        for name, widget in window_type_widgets.items():
+            widget.layout.visible = False
+        
+        window_type_w = widgets.ToggleButtons(
+            options=[('Sliding/Side-Hung', 'SlidingWindow'), ('Top-or Bottom-Hung', 'HingedWindow')],
+            button_style='info',
+            style={'button_width':'120px'},
+        )
+
+        def toggle_window_type(value):
+            for name, widget in window_type_widgets.items():
+                widget.layout.visible = False
+                widget.layout.display = 'none'
+
+            node.dcs_select(value)
+
+            widget = window_type_widgets[value]
+            widget.layout.visible = True
+            widget.layout.display = 'flex'
+
+        window_type_w.observe(lambda event: toggle_window_type(event['new']), 'value')
+        toggle_window_type(window_type_w.value)
+
         period = widgets.IntSlider(value=node.active.period, min=0, max=240)
         interval = widgets.IntSlider(value=node.active.duration, min=0, max=240)
         inside_temp = widgets.IntSlider(value=node.inside_temp.values[0]-273.15, min=15., max=25.)
@@ -305,7 +343,7 @@ class ModelWidgets(View):
         outsidetemp_w = widgets.ToggleButtons(
             options=outsidetemp_widgets.keys(),
             button_style='info',
-            style={'button_width':'100px'}
+            style={'button_width':'120px'}
             # tooltips=[],
         )
 
@@ -327,7 +365,7 @@ class ModelWidgets(View):
                     period,
                 ),
                 (
-                    widgets.Label('Duration of opening (minutes):', layout=auto_width),
+                   widgets.Label('Duration of opening (minutes):', layout=auto_width),
                     interval,
                 ),
                 (
@@ -342,7 +380,7 @@ class ModelWidgets(View):
         )
         for sub_group in outsidetemp_widgets.values():
             result.add_pairs(sub_group.pairs())
-        return result
+        return widgets.VBox([widgets.VBox([widgets.HBox([widgets.Label('Window type:', layout=widgets.Layout(min_width='228px')), window_type_w]), widgets.HBox(list(window_type_widgets.values()))]), result.build()])
 
     def _build_q_air_mech(self, node):
         q_air_mech = widgets.IntSlider(value=node.q_air_mech, min=0, max=1000, step=5)
@@ -465,14 +503,14 @@ class ModelWidgets(View):
             ],
     ) -> widgets.Widget:
         ventilation_widgets = {
-            'Natural': self._build_window(node._states['Natural']).build(),
+            'SlidingWindow': self._build_window(node),
             'HVACMechanical': self._build_mechanical(node),
         }
         for name, widget in ventilation_widgets.items():
             widget.layout.visible = False
 
         ventilation_w = widgets.Dropdown(
-            options=[('Natural', 'Natural'), ('Mechanical', 'HVACMechanical'), ('No ventilation', 'No ventilation')],
+            options=[('Natural', 'SlidingWindow'), ('Mechanical', 'HVACMechanical'), ('No ventilation', 'No ventilation')],
             button_style='info',
             style={'button_width':'100px'}
             # tooltips=[],
@@ -569,12 +607,20 @@ class CARAStateBuilder(state.StateBuilder):
     def build_type__VentilationBase(self, _: dataclasses.Field):
         s: state.DataclassStateNamed = state.DataclassStateNamed(
             states={
-                'Natural': self.build_generic(models.WindowOpening),
+                'SlidingWindow': self.build_generic(models.SlidingWindow),
+                'HingedWindow': self.build_generic(models.HingedWindow),
                 'HVACMechanical': self.build_generic(models.HVACMechanical),
                 'AirChange': self.build_generic(models.AirChange),
                 'No ventilation': self.build_generic(models.AirChange),
             },
             state_builder=self,
+        )
+        # Initialise the HingedWindow state
+        s._states['HingedWindow'].dcs_update_from(
+            models.HingedWindow(active=models.PeriodicInterval(period=120, duration=15),
+                inside_temp=models.PiecewiseConstant((0., 24.), (293.15,)),
+                outside_temp=models.PiecewiseConstant((0., 24.), (283.15,)),
+                window_height=1.6, opening_length=0.6, window_width=.5)
         )
         # Initialise the HVAC state
         s._states['HVACMechanical'].dcs_update_from(
