@@ -239,8 +239,14 @@ function on_ventilation_type_change() {
 function on_wearing_mask_change() {
   wearing_mask = $('input[type=radio][name=mask_wearing_option]')
   wearing_mask.each(function (index) {
-    if (this.checked) getChildElement($(this)).show();
-    else getChildElement($(this)).hide();    
+    if (this.checked) {
+      getChildElement($(this)).show();
+      require_fields(this);
+    }
+    else {
+      getChildElement($(this)).hide();
+      require_fields(this);
+    }
   })
 }
 
