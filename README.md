@@ -92,7 +92,7 @@ python -m cara.apps.calculator
 To run with the CERN theme:
 
 ```
-python -m cara.apps.calculator --theme=cara/apps/calculator/themes/cern
+python -m cara.apps.calculator --theme=cara/apps/templates/cern
 ```
 
 To run the calculator on a different URL path:
