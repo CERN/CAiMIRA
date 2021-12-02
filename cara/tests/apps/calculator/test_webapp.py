@@ -72,7 +72,7 @@ class TestBasicApp(tornado.testing.AsyncHTTPTestCase):
 
 class TestCernApp(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
-        cern_theme = Path(cara.apps.calculator.__file__).parent / 'themes' / 'cern'
+        cern_theme = Path(cara.apps.calculator.__file__).parent.parent / 'themes' / 'cern'
         return cara.apps.calculator.make_app(theme_dir=cern_theme)
 
     @tornado.testing.gen_test(timeout=_TIMEOUT)
