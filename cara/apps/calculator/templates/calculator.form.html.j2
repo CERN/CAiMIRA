@@ -266,11 +266,13 @@
       <label for="mask_off">No</label><br>
       
     <div id="DIVmasks_used" style="display:none">
-      Type of masks used:
+      <div class='sub_title'>Type of masks used:</div>
       <input type="radio" id="mask_type_1" name="mask_type" value="Type I" checked="checked" onclick="require_fields(this)">
         <label for="mask_type_1">Type 1</label>
+        <img class="mask_icons" src="/static/images/masks/t1.png">
       <input class="ml-2" type="radio" id="mask_type_ffp2"  name="mask_type" value="FFP2" onclick="require_fields(this)">
-        <label for="mask_type_ffp2">FFP2</label><br>
+        <label for="mask_type_ffp2">FFP2</label>
+        <img class="mask_icons" src="/static/images/masks/ffp2.png">
     </div>
     <hr width="80%">
 

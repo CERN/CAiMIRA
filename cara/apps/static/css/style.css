@@ -170,6 +170,10 @@ body {
   display: block;
 }
 
+.mask_icons {
+  height: 4em;
+}
+
 /*===== FIXED BACKGROUND IMG =====*/
 
 .fixed-background {
