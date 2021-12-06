@@ -459,7 +459,9 @@ class SARSCoV2(Virus):
         CERN-OPEN-2021-004, DOI: 10.17181/CERN.1GDQ.5Y75)
         """
         halflife = np.empty_like(humidity)
-        halflife[humidity <= 0.4] = 3.8
+        # Taken from Morris et al (https://doi.org/10.7554/eLife.65902) data at T = 22°C and RH = 40 %.
+        halflife[humidity <= 0.4] = 6.43
+        # Taken from Doremalen et al (https://www.nejm.org/doi/10.1056/NEJMc2004973).
         halflife[humidity > 0.4] = 1.1
         return halflife
 

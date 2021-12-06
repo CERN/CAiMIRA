@@ -99,8 +99,9 @@ symptomatic_vl_frequencies = LogCustomKernel(
     kernel_bandwidth=0.1
 )
 
-# From https://doi.org/10.1093/cid/ciaa1579
-viable_to_RNA_ratio_distribution = Uniform(0.15, 0.45)
+# Derived from data in doi.org/10.1016/j.ijid.2020.09.025 and
+# https://iosh.com/media/8432/aerosol-infection-risk-hospital-patient-care-full-report.pdf (page 60)
+viable_to_RNA_ratio_distribution = Uniform(0.01, 0.6)
 
 # From discussion with virologists
 infectious_dose_distribution = Uniform(10., 100.)
