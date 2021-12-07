@@ -266,11 +266,23 @@
       <label for="mask_off">No</label><br>
       
     <div id="DIVmasks_used" style="display:none">
-      Type of masks used:
-      <input type="radio" id="mask_type_1" name="mask_type" value="Type I" checked="checked" onclick="require_fields(this)">
-        <label for="mask_type_1">Type 1</label>
-      <input class="ml-2" type="radio" id="mask_type_ffp2"  name="mask_type" value="FFP2" onclick="require_fields(this)">
-        <label for="mask_type_ffp2">FFP2</label><br>
+      <div class='sub_title'>Type of masks used:</div>
+      <div class='split'>
+        <div>
+          <input type="radio" id="mask_type_1" name="mask_type" value="Type I" checked="checked" onclick="require_fields(this)">
+            <label for="mask_type_1">
+              Surgical/Type I
+              <img class="mask_icons" src="/static/images/masks/t1.png">
+            </label>
+        </div>
+        <div>
+          <input type="radio" id="mask_type_ffp2"  name="mask_type" value="FFP2" onclick="require_fields(this)">
+            <label for="mask_type_ffp2">
+              Respirator/FFP2
+              <img class="mask_icons" src="/static/images/masks/ffp2.png">
+            </label>
+        </div>
+      </div>
     </div>
     <hr width="80%">
 
