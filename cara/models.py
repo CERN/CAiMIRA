@@ -123,11 +123,14 @@ class PeriodicInterval(Interval):
     #: occurring, a value of 0 signifies that the event never happens.
     duration: float
 
+    #: Time at which the first person (infected or exposed) arrives at the enclosed space.
+    start: float = 0.0
+
     def boundaries(self) -> BoundarySequence_t:
         if self.period == 0 or self.duration == 0:
             return tuple()
         result = []
-        for i in np.arange(0, 24, self.period / 60):
+        for i in np.arange(self.start, 24, self.period / 60):
             # NOTE: It is important that the time type is float, not np.float, in
             # order to allow hashability (for caching).
             result.append((float(i), float(i+self.duration/60)))
