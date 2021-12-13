@@ -9,7 +9,7 @@ In order to set it up for the first time, we followed the documentation at https
 * Decorated our method with ``@Task`` that creates a micro-thread that calls this method.
 * Defined the ``self.client`` attribute that makes it possible to make HTTP calls that will be logged by Locust.
 
-To use, open the terminal on this folder and run the following command:
+To use, uncomment the desired method on ``lucust.py``` file, open the terminal on this folder and run the following command:
 
 ``locust -f locust.py --host https://cara.web.cern.ch``
 
