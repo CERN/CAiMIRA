@@ -55,7 +55,6 @@ populations = [
     ),
 ]
 
-
 def known_concentrations(func):
     dummy_room = models.Room(50, 0.5)
     dummy_ventilation = models._VentilationBase()

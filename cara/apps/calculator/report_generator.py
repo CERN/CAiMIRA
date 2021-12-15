@@ -1,17 +1,15 @@
 import concurrent.futures
 import base64
 import dataclasses
-from datetime import datetime, timedelta
+from datetime import datetime
 import io
+import json
 import typing
 import urllib
 import zlib
 
-import loky
 import jinja2
 import numpy as np
-import qrcode
-import json
 
 from cara import models
 from ... import monte_carlo as mc
@@ -110,10 +108,15 @@ def calculate_report_data(model: models.ExposureModel):
     er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
     exposed_occupants = model.exposed.number
     expected_new_cases = np.array(model.expected_new_cases()).mean()
+    cumulative_doses = np.cumsum([
+        np.array(model.exposure_between_bounds(float(time1), float(time2))).mean()
+        for time1, time2 in zip(times[:-1], times[1:])
+    ])
 
     return {
         "times": list(times),
         "exposed_presence_intervals": [list(interval) for interval in model.exposed.presence.boundaries()],
+        "cumulative_doses": list(cumulative_doses),
         "concentrations": concentrations,
         "highest_const": highest_const,
         "prob_inf": prob,
@@ -123,7 +126,7 @@ def calculate_report_data(model: models.ExposureModel):
     }
 
 
-def generate_qr_code(base_url, calculator_prefix, form: FormData):
+def generate_permalink(base_url, calculator_prefix, form: FormData):
     form_dict = FormData.to_dict(form, strip_defaults=True)
 
     # Generate the calculator URL arguments that would be needed to re-create this
@@ -136,20 +139,9 @@ def generate_qr_code(base_url, calculator_prefix, form: FormData):
     qr_url = f"{base_url}/_c/{compressed_args}"
     url = f"{base_url}{calculator_prefix}?{args}"
 
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=10,
-        border=4,
-    )
-    qr.add_data(qr_url)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
-
     return {
-        'image': img2base64(_img2bytes(img)),
         'link': url,
-        'qr_url': qr_url,
+        'shortened': qr_url,
     }
 
 
@@ -313,14 +305,14 @@ class ReportGenerator:
         context['alternative_scenarios'] = comparison_report(
             alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
         )
-        context['qr_code'] = generate_qr_code(base_url, self.calculator_prefix, form)
+        context['permalink'] = generate_permalink(base_url, self.calculator_prefix, form)
         context['calculator_prefix'] = self.calculator_prefix
         context['scale_warning'] = {
-            'level': 'yellow-2', 
-            'incidence_rate': 'lower than 25 new cases per 100 000 inhabitants',
-            'onsite_access': 'of about 8000', 
+            'level': 'orange-3',
+            'incidence_rate': 'somewhere in between 25 and 100 new cases per 100 000 inhabitants',
+            'onsite_access': 'of about 5000',
             'threshold': ''
-        } 
+        }
         return context
 
     def _template_environment(self) -> jinja2.Environment:

@@ -281,8 +281,8 @@ def waiting_room_mc():
 @pytest.mark.parametrize(
     "mc_model, expected_pi, expected_new_cases, expected_dose, expected_ER",
     [
-        ["shared_office_mc", 6.03, 0.18, 24.55, 809],
-        ["classroom_mc",     10.0, 1.85, 79.98, 5624],
+        ["shared_office_mc", 6.03, 0.18, 27.22, 809],
+        ["classroom_mc",     9.5, 1.85, 79.98, 5624],
         ["ski_cabin_mc",     16.0, 0.5, 40.25, 7966],
         ["skagit_chorale_mc",65.7, 40.0, 241.28, 190422],
         ["bus_ride_mc",      12.0, 8.0, 63.79, 5419],

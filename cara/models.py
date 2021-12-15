@@ -103,7 +103,6 @@ class Interval:
                 return True
         return False
 
-
 @dataclass(frozen=True)
 class SpecificInterval(Interval):
     #: A sequence of times (start, stop), in hours, that the infected person
@@ -125,11 +124,14 @@ class PeriodicInterval(Interval):
     #: occurring, a value of 0 signifies that the event never happens.
     duration: float
 
+    #: Time at which the first person (infected or exposed) arrives at the enclosed space.
+    start: float = 0.0
+
     def boundaries(self) -> BoundarySequence_t:
         if self.period == 0 or self.duration == 0:
             return tuple()
         result = []
-        for i in np.arange(0, 24, self.period / 60):
+        for i in np.arange(self.start, 24, self.period / 60):
             # NOTE: It is important that the time type is float, not np.float, in
             # order to allow hashability (for caching).
             result.append((float(i), float(i+self.duration/60)))
@@ -343,7 +345,7 @@ class HingedWindow(WindowOpening):
     window_width: _VectorisedFloat = 0.0
 
     def __post_init__(self):
-        if self.window_width is 0.0:
+        if self.window_width is float(0.0):
             raise ValueError('window_width must be set')
 
     @property
@@ -925,7 +927,7 @@ class ConcentrationModel:
     @method_cache
     def normed_integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
         """
-        Get the integrated concentration dose between the times start and stop,
+        Get the integrated concentration of viruses in the air  between the times start and stop,
         normalized by the emission rate.
         """
         if stop <= self._first_presence_time():
@@ -954,7 +956,7 @@ class ConcentrationModel:
 
     def integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
         """
-        Get the integrated concentration dose between the times start and stop.
+        Get the integrated concentration of viruses in the air between the times start and stop.
         """
         return (self.normed_integrated_concentration(start, stop) *
                 self.infected.emission_rate_when_present())
@@ -999,9 +1001,33 @@ class ExposureModel:
                     + (0.943/(1 + np.exp(0.508 - 2.58 * np.log(d)))))
         return fdep
 
+    def _normed_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
+        """The number of virions per meter^3 between any two times, normalized 
+        by the emission rate of the infected population"""
+        exposure = 0.
+        for start, stop in self.exposed.presence.boundaries():
+            if stop < time1:
+                continue
+            elif start > time2:
+                break
+            elif start <= time1 and time2<= stop:
+                exposure += self.concentration_model.normed_integrated_concentration(time1, time2)
+            elif start <= time1 and stop < time2:
+                exposure += self.concentration_model.normed_integrated_concentration(time1, stop)
+            elif time1 < start and time2 <= stop:
+                exposure += self.concentration_model.normed_integrated_concentration(start, time2)
+            elif time1 <= start and stop < time2:
+                exposure += self.concentration_model.normed_integrated_concentration(start, stop)
+        return exposure
+
+    def exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
+        """The number of virions per meter^3 between any two times."""
+        return (self._normed_exposure_between_bounds(time1, time2) * 
+                self.concentration_model.infected.emission_rate_when_present())
+            
     def _normed_exposure(self) -> _VectorisedFloat:
         """
-        The number of virus per meter^3, normalized by the emission rate
+        The number of virions per meter^3, normalized by the emission rate
         of the infected population.
         """
         normed_exposure = 0.0
@@ -1082,7 +1108,6 @@ class ExposureModel:
         # Probability of infection.        
         return (1 - np.exp(-((inf_aero * (1 - self.exposed.host_immunity))/(infectious_dose * 
                 self.concentration_model.virus.transmissibility_factor)))) * 100
-
 
     def expected_new_cases(self) -> _VectorisedFloat:
         prob = self.infection_probability()

@@ -1,81 +1,69 @@
 {% extends "layout.html.j2" %}
 {% set active_page="home/" %}
 
-    {% block main %}
-    <div style="height: 8em; display: block;"></div>
-
-    <div class="field--item">
-      <div class="component-row component-row__display__fluidcenter section-navigation effect_none">
-        <div class="component-row__row">
-          <div class="component-row__column component-row__center section-has-no-column col-md-12 col-sm-12 col-xs-12">
-            <div class="box-effects-wrapper ">
-
-              <div class="text-component text-component-page clearfix" style="position:relative; " >
-
-                <img src="/static/images/cara_logo.200x200.png" style="height:10em; display:inline-block; vertical-align:middle; padding: 1em;">
-                <h2 class="text-component-title" style="display:inline-block; vertical-align:middle; align:center;">
-                  CARA: COVID Airborne Risk Assessment Tools
-                </h2>
-
-                <h2>Introduction</h2><br>
-                <div class="text-component-text cern_full_html" >
-                    <p>
-                    CARA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.
-                    It does this by simulating the long-range airborne spread SARS-CoV-2 virus in a finite volume, assuming homogenous mixing, and it estimates the risk of COVID-19 infection therein.
-                    Please see the <a href="/about">About</a> page for more details on the methodology, assumptions and limitations of CARA.
-                    </p>
-                    <p>
-                    The full CARA source code can be accessed freely under an Apache 2.0 open source license from our <a href="https://gitlab.cern.ch/cara/cara">code repository</a>.
-                    It includes detailed instructions on how to run your own version of this tool.
-                    </p>
-                </div>
-
-                <br>
-                <h2>CARA@CERN</h2><br>
-                <div class="text-component-text cern_full_html" >
-                  <p>
-                  CARA has been developed by CERN with the intention of allowing members of personnel with roles related to supervision, health & safety or space management to simulate the concerned workplaces on CERN sites.
-                  A hosted <a href="{{ calculator_prefix }}">CERN version of the CARA Covid Calculator</a> is available on this site to members of the CERN personnel.
-                  </p>
-                </div>
-
-                <br>
-                <h2>Authors</h2>
-                <div class="text-component-text cern_full_html" >
-                  <p>
-                    <h4>Andre Henriques<sup>1</sup>, Luis Aleixo<sup>1</sup>, Marco Andreini<sup>1</sup>, Gabriella Azzopardi<sup>2</sup>, James Devine<sup>3</sup>, Philip Elson<sup>4</sup>, Nicolas Mounet<sup>2</sup>, Markus Kongstein Rognlien<sup>2,6</sup>, Nicola Tarocco<sup>5</sup></h4><br>
-
-                    <sup>1</sup>HSE Unit, Occupational Health & Safety Group, CERN<br>
-                    <sup>2</sup>Beams Department, Accelerators and Beam Physics Group, CERN<br>
-                    <sup>3</sup>Experimental Physics Department, Safety Office, CERN<br>
-                    <sup>4</sup>Beams Department, Controls Group, CERN<br>
-                    <sup>5</sup>Information Technology Department, Collaboration, Devices & Applications Group, CERN<br>
-                    <sup>6</sup>Norwegian University of Science and Technology (NTNU)<br>
-                  </p>
-
-                  <br>
-                  <h3>Acknowledgements:</h3>
-                  <p>
-                    We wish to thank CERN’s HSE Unit, Beams Department, Experimental Physics Department, Information Technology Department, Industry, Procurement and Knowledge Transfer Department and International Relations Sector for their support to the study.
-                    Thanks to Doris Forkel-Wirth, Benoit Delille, Walid Fadel, Olga Beltramello, Letizia Di Giulio, Evelyne Dho, Wayne Salter, Benoit Salvant and colleagues from the COVID working group for providing expert advice and extensively testing the model.
-                    Finally, we wish to thank Fabienne Landua and the design service for preparing the illustrations and Alessandro Raimondo, Ana Padua and Manuela Cirilli from the Knowledge Transfer Group for their continuous support.
-                    Our compliments towards the work and research performed by world leading scientists in this domain: Prof. Manuel Gameiro, Prof. Shelly Miller, Prof. Linsey Marr, Prof. Jose Jimenez, Dr. Lidia Morawska, Prof Yuguo Li et al. – their scientific contribution was indispensable for this project.
-                    <span style="height: 3vh; display: block;"></span>
-                  </p>
-                </div>
-
-              </div>
-
-            </div>
-          </div>
-
-        </div>
-
+{% block main %}
+    {# <div style="height: 5em; display: block;"></div> #}
+<header class= "bg-light">
+  <div class="container container--padding">
+    <img src="/static/images/cara_full_text.png" class="logo d-block m-auto" id="desktop_logo">
+    <img src="/static/images/cara_full_logo.png" class="logo d-none m-auto" id="mobile_logo">
+  </div>
+</header>
+   
+<div class="container container--padding">
+  <div class="d-flex flex-row mb-3 justify-content-around" id="mobile-app-buttons">
+    <div><a href="{{ calculator_prefix }}" role="button" class="btn btn-outline-primary"><div class="d-flex d-row"><i class="icon-calculator"></i><span class="pl-1">Calculator</div></a></div>
+    <div><a href="https://cara.web.cern.ch/expert-app" role="button" class="btn btn-outline-secondary"><div class="d-flex d-row"><i class="icon-expert"></i><span class="pl-1">Expert (beta)</div></a></div>
+  </div>
+  <div class="split">
+    <div class="col-sm-8 pl-0">
+      <h2 class="paragraph-title">Introduction</h2><br>
+      <div>
+          <p>
+          CARA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.
+          It does this by simulating the long-range airborne spread SARS-CoV-2 virus in a finite volume, assuming homogenous mixing, and it estimates the risk of COVID-19 airborne transmission therein.
+          Please see the <a href="/about">About</a> page for more details on the methodology, assumptions and limitations of CARA.
+          </p>
+          <p>
+          The full CARA source code can be accessed freely under an Apache 2.0 open source license from our <a href="https://gitlab.cern.ch/cara/cara">code repository</a>.
+          It includes detailed instructions on how to run your own version of this tool.
+          </p>
+          <br>
       </div>
-
     </div>
-
-    <a class="endof-cern-header-blocks"></a>
-
+    <div class="align-self-center">
+      <img src="static/images/CARA_1_Vs3_Colour.jpg" class="cara_home_image">
     </div>
-    {% endblock main %}
+  </div>
+  <br>
+  
+  <div id="apps_section" class="d-none">
+    <div class="d-flex flex-row" >
+      <h2 class="paragraph-title pr-4 align-self-center">Apps:</h2>
+      <br>
+      <div class="pr-3"><a href="{{ calculator_prefix }}" role="button" class="btn btn-lg btn-outline-primary"><div class="d-flex d-row"><i class="icon-calculator"></i><span class="pl-2">Calculator</div></a></div>
+      <br>
+      <div><a href="https://cara.web.cern.ch/expert-app" role="button" class="btn btn-lg btn-outline-secondary"><div class="d-flex d-row"><i class="icon-expert"></i><span class="pl-2">Expert (beta)</div></a></div>
+    </div>
+    <hr width="95%">
+  </div>
+
+  <h2 class="paragraph-title">CARA @ CERN</h2><br>
+  <div>
+    <p>
+    CARA has been developed by CERN with the intention of allowing members of personnel with roles related to supervision, health & safety or space management to simulate the concerned workplaces on CERN sites.
+    A hosted <a href="{{ calculator_prefix }}">CERN version of the CARA Covid Calculator</a> is available on this site to members of the CERN personnel.
+    </p>
+  </div>
+  <br>
+  <h3 class="paragraph-title">Acknowledgements</h3><br>
+  <p>
+    We wish to thank CERN’s HSE Unit, Beams Department, Experimental Physics Department, Information Technology Department, Industry, Procurement and Knowledge Transfer Department and International Relations Sector for their support to the study.
+    Thanks to Doris Forkel-Wirth, Benoit Delille, Walid Fadel, Olga Beltramello, Letizia Di Giulio, Evelyne Dho, Wayne Salter, Benoit Salvant and colleagues from the COVID working group for providing expert advice and extensively testing the model.
+    Finally, we wish to thank Fabienne Landua and the design service for preparing the illustrations and Alessandro Raimondo, Ana Padua and Manuela Cirilli from the Knowledge Transfer Group for their continuous support.
+    Our compliments towards the work and research performed by world leading scientists in this domain: Dr. Julian Tang, Prof. Manuel Gameiro, Dr. Linsey Marr, Prof. Jose Jimenez, Prof. Lidia Morawska, Prof. Yuguo Li et al. - their scientific contribution was indispensable for this project.
+    <span style="height: 3vh; display: block;"></span>
+  </p>
+  </div>
+</div>
+{% endblock main %}

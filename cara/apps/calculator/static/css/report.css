@@ -56,7 +56,7 @@ p.notes {
     margin: 1%
 }
 
-#pdf-qr-code {
+#pdf_qrcode_aref {
     margin-right: 1%;
     width: 100pt;
 }
@@ -102,11 +102,6 @@ p.notes {
     border-radius: 5px;
 }
 
-.print-button {
-    margin-left: auto;
-    margin-right: 1%;
-}
-
 /* @media (width: 1200px) { */
 @media print {
     /* #body {
@@ -120,7 +115,7 @@ p.notes {
     #link_reproduce_results {
         display: none!important;
     }
-    #pdf-qr-code {
+    #pdf_qrcode_aref {
         visibility: inherit!important;
     }
     .collapse {
@@ -138,17 +133,15 @@ p.notes {
     .icon_button {
         display: none!important;
     }
-    .print-button {
-        display: none!important;
-    }
     .card {
         page-break-inside: avoid;
     }
-    /* CSS styling to avoid page breaks. */
-    .break-after {
-        page-break-after: always;
+    #link-results {
+        display: none;
     }
-    .break-avoid {
+    #disclaimer {
+        border: 2px solid black;
+        padding: 15px; 
         page-break-inside: avoid;
     }
 }
@@ -162,7 +155,8 @@ p.notes {
     position: relative;
     text-align: center;
     border-radius: 100px;
-    z-index: 1
+    z-index: 1;
+    -webkit-print-color-adjust: exact!important;
 }
 
 .intro-banner-vdo-play-btn i {
@@ -235,7 +229,7 @@ p.notes {
     .split>* {
         flex-basis: 100%;
     }
-    .header-text {
+    .paragraph-title {
         text-align: left;
     }
     .split>*+* {

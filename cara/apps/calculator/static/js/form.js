@@ -236,6 +236,20 @@ function on_ventilation_type_change() {
   });
 }
 
+function on_wearing_mask_change() {
+  wearing_mask = $('input[type=radio][name=mask_wearing_option]')
+  wearing_mask.each(function (index) {
+    if (this.checked) {
+      getChildElement($(this)).show();
+      require_fields(this);
+    }
+    else {
+      getChildElement($(this)).hide();
+      require_fields(this);
+    }
+  })
+}
+
 /* -------UI------- */
 
 function show_disclaimer() {
@@ -365,6 +379,14 @@ function validate_form(form) {
     }
   }
 
+  if (submit) {
+    $("#generate_report").prop("disabled", true);
+    //Add spinner to button
+    $("#generate_report").html(
+      `<span id="loading_spinner" class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Loading...`
+    );
+  }
+
   return submit;
 }
 
@@ -479,12 +501,17 @@ function parseTimeToMins(cTime) {
   return parseInt(time[1]*60) + parseInt(time[2]);
 }
 
+// Prevent spinner when clicking on back button
+window.onpagehide = function(){
+  $('loading_spinner').remove();
+  $("#generate_report").prop("disabled", false).html(`Generate report`);
+};
+
 /* -------On Load------- */
 $(document).ready(function () {
   var url = new URL(decodeURIComponent(window.location.href));
   //Pre-fill form with known values
   url.searchParams.forEach((value, name) => {
-
     //If element exists
     if(document.getElementsByName(name).length > 0) {
       var elemObj = document.getElementsByName(name)[0];
@@ -545,6 +572,12 @@ $(document).ready(function () {
   // Call the function now to handle forward/back button presses in the browser.
   on_ventilation_type_change();
 
+  // When the mask_wearing_option changes we want to make its respective
+  // children show/hide.
+  $("input[type=radio][name=mask_wearing_option]").change(on_wearing_mask_change);
+  // Call the function now to handle forward/back button presses in the browser.
+  on_wearing_mask_change();
+
   // Setup the maximum number of people at page load (to handle back/forward),
   // and update it when total people is changed.
   setMaxInfectedPeople();
@@ -598,7 +631,7 @@ $(document).ready(function () {
       },
       cache: true
     },
-    placeholder: 'Search for a location',
+    placeholder: 'Geneva, CHE',
     minimumInputLength: 1,
     templateResult: formatlocation,
     templateSelection: formatLocationSelection

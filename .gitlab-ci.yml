@@ -127,7 +127,7 @@ deploy_to_test:
     rules:
         - if: '$CI_COMMIT_BRANCH == "live/test-cara" && $OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET'
     script:
-        - curl -X POST -k https://openshift-dev.cern.ch:443/apis/build.openshift.io/v1/namespaces/test-cara/buildconfigs/cara-router/webhooks/${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}/generic
+        - curl -X POST -k https://api.paas.okd.cern.ch/apis/build.openshift.io/v1/namespaces/test-cara/buildconfigs/cara-router/webhooks/${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}/generic
 
 
 oci_calculator:
