@@ -234,6 +234,10 @@ footer img {
     width: 25%;
   }
 
+  #mobile_calculator_option {
+    display: none;
+  }
+
   #nat_vent_image {
     height: 15em;
   }
@@ -246,7 +250,7 @@ footer img {
     height: 6em;
     margin: 1%;
   }
-  #mobile-app-buttons {
+  #calculator_app_button {
     display: none!important;
   }
   .feedback {
@@ -286,6 +290,9 @@ footer img {
   .nav-link {
     padding: .5rem .5rem!important;
   }
+  #apps_dropdown {
+    display: none;
+  }
   #report_version {
     font-size: .5rem;
   }
@@ -301,13 +308,6 @@ footer img {
   }
   #mobile_link {
     display: inline!important;
-  }
-  #desktop_logo {
-    display: none!important;
-  }
-  
-  #mobile_logo {
-    display: block!important;
   }
   .feedback {
     float:right; 
@@ -328,16 +328,16 @@ footer img {
 
 } */
 
-/* Large (lg) devices (desktops, 992px and up) */
-@media (max-width: 992px) { 
-  #download-pdf {
+/* Large (lg) devices (tablets) */
+@media (max-width: 64em) { 
+  .expert_app_button {
     display: none;
   }
-  #link_reproduce_results {
-    display: none;
+  #desktop_logo {
+    display: none!important;
   }
-  #mobile_link {
-    display: inline!important;
+  #mobile_logo {
+    display: block!important;
   }
 }
 
