@@ -303,7 +303,7 @@ class FormData:
         # Initializes a ventilation instance as a window if 'natural_ventilation' is selected, or as a HEPA-filter otherwise
         if self.ventilation_type == 'natural_ventilation':
             if self.window_opening_regime == 'windows_open_periodically':
-                window_interval = models.PeriodicInterval(self.windows_frequency, self.windows_duration)
+                window_interval = models.PeriodicInterval(self.windows_frequency, self.windows_duration, min(self.infected_start, self.exposed_start))
             else:
                 window_interval = always_on
 
