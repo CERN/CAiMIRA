@@ -57,6 +57,10 @@ virus_distributions = {
                 viral_load_in_sputum=symptomatic_vl_frequencies,
                 infectious_dose=60/1.6,
                 ),
+    'SARS_CoV_2_Omicron': mc.SARSCoV2(
+                viral_load_in_sputum=symptomatic_vl_frequencies,
+                infectious_dose=50/4.334,
+                ),            
 }
 
 
