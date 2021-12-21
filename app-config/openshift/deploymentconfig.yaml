@@ -1,6 +1,6 @@
 ---
   kind: "Template"
-  apiVersion: "v1"
+  apiVersion: template.openshift.io/v1
   metadata:
     name: "cara-application"
     annotations:
@@ -10,7 +10,7 @@
     template: "cara-application"
   objects:
     -
-      apiVersion: v1
+      apiVersion: apps.openshift.io/v1
       kind: DeploymentConfig
       metadata:
         name: auth-service
@@ -66,10 +66,10 @@
                 - auth-service
               from:
                 kind: ImageStreamTag
-                name: 'auth-service:latest'
+                name: 'auth-service:${IMAGE_TAG_NAME}'
                 namespace: ${PROJECT_NAME}
     -
-      apiVersion: v1
+      apiVersion: apps.openshift.io/v1
       kind: DeploymentConfig
       metadata:
         name: cara-app
@@ -123,10 +123,10 @@
                 - cara-webservice
               from:
                 kind: ImageStreamTag
-                name: 'cara-webservice:latest'
+                name: 'cara-webservice:${IMAGE_TAG_NAME}'
                 namespace: ${PROJECT_NAME}
     -
-      apiVersion: v1
+      apiVersion: apps.openshift.io/v1
       kind: DeploymentConfig
       metadata:
         name: cara-router
@@ -179,7 +179,7 @@
                 namespace: ${PROJECT_NAME}
           - type: ConfigChange
     -
-      apiVersion: v1
+      apiVersion: apps.openshift.io/v1
       kind: DeploymentConfig
       metadata:
         name: cara-webservice
@@ -259,11 +259,11 @@
                 - cara-webservice
               from:
                 kind: ImageStreamTag
-                name: 'cara-webservice:latest'
+                name: 'cara-webservice:${IMAGE_TAG_NAME}'
                 namespace: ${PROJECT_NAME}
           - type: ConfigChange
     -
-      apiVersion: v1
+      apiVersion: apps.openshift.io/v1
       kind: DeploymentConfig
       metadata:
         name: cara-calculator-open
@@ -319,11 +319,14 @@
                 - cara-calculator-open
               from:
                 kind: ImageStreamTag
-                name: 'cara-webservice:latest'
+                name: 'cara-webservice:${IMAGE_TAG_NAME}'
                 namespace: ${PROJECT_NAME}
           - type: ConfigChange
 
   parameters:
     - name: PROJECT_NAME
       description: The name of this project, e.g. test-cara
+      required: true
+    - name: IMAGE_TAG_NAME
+      description: The image tag name, e.g. cara-latest or cara-test-latest
       required: true

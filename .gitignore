@@ -9,8 +9,9 @@ __pycache__
 .idea
 .vscode
 
-
 env*
 venv
 support
 
+# openshift config check folder
+app-config/openshift/test-cara
