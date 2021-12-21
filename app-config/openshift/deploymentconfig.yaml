@@ -66,7 +66,7 @@
                 - auth-service
               from:
                 kind: ImageStreamTag
-                name: 'auth-service:${IMAGE_TAG_NAME}'
+                name: 'auth-service:latest'
                 namespace: ${PROJECT_NAME}
     -
       apiVersion: apps.openshift.io/v1
@@ -123,7 +123,7 @@
                 - cara-webservice
               from:
                 kind: ImageStreamTag
-                name: 'cara-webservice:${IMAGE_TAG_NAME}'
+                name: 'cara-webservice:latest'
                 namespace: ${PROJECT_NAME}
     -
       apiVersion: apps.openshift.io/v1
@@ -259,7 +259,7 @@
                 - cara-webservice
               from:
                 kind: ImageStreamTag
-                name: 'cara-webservice:${IMAGE_TAG_NAME}'
+                name: 'cara-webservice:latest'
                 namespace: ${PROJECT_NAME}
           - type: ConfigChange
     -
@@ -319,14 +319,11 @@
                 - cara-calculator-open
               from:
                 kind: ImageStreamTag
-                name: 'cara-webservice:${IMAGE_TAG_NAME}'
+                name: 'cara-webservice:latest'
                 namespace: ${PROJECT_NAME}
           - type: ConfigChange
 
   parameters:
     - name: PROJECT_NAME
       description: The name of this project, e.g. test-cara
-      required: true
-    - name: IMAGE_TAG_NAME
-      description: The image tag name, e.g. cara-latest or cara-test-latest
       required: true

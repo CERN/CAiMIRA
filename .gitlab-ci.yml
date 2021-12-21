@@ -95,17 +95,19 @@ check_openshift_config_prod:
       variables:
         DOCKER_REGISTRY: $CI_REGISTRY_IMAGE
         IMAGE_TAG: test-cara-latest
+        KANIKO_AUTH: "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}"
     - if: '$CI_COMMIT_BRANCH == "master"'
       variables:
-        DOCKER_REGISTRY: $DOCKER_REGISTRY
+        DOCKER_REGISTRY: "${OPENSHIFT_DOCKER_REGISTRY_PROD}"
         # change to `cara-latest` after moving prod to OKD4
         IMAGE_TAG: latest
+        KANIKO_AUTH: "{\"auths\":{\"$OPENSHIFT_DOCKER_REGISTRY_PROD\":{\"auth\":\"$OPENSHIFT_DOCKER_TOKEN_PROD\"}}}"
   image:
     # Based on guidance at https://gitlab.cern.ch/gitlabci-examples/build_docker_image.
     name: gitlab-registry.cern.ch/ci-tools/docker-image-builder
     entrypoint: [""]
   script:
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - echo ${KANIKO_AUTH} > /kaniko/.docker/config.json
     - echo "Building ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:latest Docker image..."
     - /kaniko/executor --context ${CI_PROJECT_DIR}/${DOCKER_CONTEXT_DIRECTORY} --dockerfile ${CI_PROJECT_DIR}/${DOCKERFILE_DIRECTORY}/Dockerfile --destination ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
 

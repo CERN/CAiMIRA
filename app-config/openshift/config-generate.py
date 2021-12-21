@@ -17,7 +17,7 @@ def configure_parser(parser: argparse.ArgumentParser) -> None:
     )
 
 
-def generate_config(output_directory: pathlib.Path, project_name: str, image_tag_name: str, hostname: str, branch: str):
+def generate_config(output_directory: pathlib.Path, project_name: str, hostname: str, branch: str):
     output_directory.mkdir(exist_ok=True, parents=True)
 
     def oc_process(component_name: str, context: typing.Optional[dict] = None):
@@ -33,7 +33,7 @@ def generate_config(output_directory: pathlib.Path, project_name: str, image_tag
     oc_process('services')
     oc_process('imagestreams')
     oc_process('buildconfig', context={'GIT_BRANCH': branch})
-    oc_process('deploymentconfig', context={'PROJECT_NAME': project_name, 'IMAGE_TAG_NAME': image_tag_name})
+    oc_process('deploymentconfig', context={'PROJECT_NAME': project_name})
 
     print(f'Config in: {output_directory.absolute()}')
 
@@ -41,16 +41,14 @@ def generate_config(output_directory: pathlib.Path, project_name: str, image_tag
 def handler(args: argparse.ArgumentParser) -> None:
     if args.instance == 'cara':
         project_name = 'cara'
-        image_tag_name = 'cara-latest'
         branch = 'master'
         hostname = 'cara.web.cern.ch'
     elif args.instance == 'test-cara':
         project_name = 'test-cara'
-        image_tag_name = 'test-cara-latest'
         branch = 'live/test-cara'
         hostname = 'test-cara.web.cern.ch'
 
-    generate_config(pathlib.Path(args.output_directory), project_name, image_tag_name, hostname, branch)
+    generate_config(pathlib.Path(args.output_directory), project_name, hostname, branch)
 
 
 def main():
