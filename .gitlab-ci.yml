@@ -149,14 +149,16 @@ oci_calculator:
         OC_SERVER: "https://api.paas.okd.cern.ch"
         OC_PROJECT: "test-cara"
         OC_TOKEN: ${OPENSHIFT_CARA_TEST_DEPLOY_TOKEN}
+        IMAGE_TAG: test-cara-latest
     # UNCOMMENT when prod migrated to OKD4
     # - if: '$CI_COMMIT_BRANCH == "master"'
     #   variables:
     #     OC_SERVER: "https://openshift.cern.ch"
     #     OC_PROJECT: "cara"
     #     OC_TOKEN: ${OPENSHIFT_CARA_DEPLOY_TOKEN}
+    #     IMAGE_TAG: cara-latest
   script:
-     - oc tag --source=docker ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:latest ${IMAGE_NAME}:latest --token ${OC_TOKEN} --server=${OC_SERVER} -n ${OC_PROJECT}
+     - oc tag --source=docker ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest --token ${OC_TOKEN} --server=${OC_SERVER} -n ${OC_PROJECT}
 
 link_auth-service_with_gitlab_registry:
   extends:
