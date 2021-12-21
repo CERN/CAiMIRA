@@ -1,3 +1,9 @@
+stages:
+  - test
+  - docker-build
+  - oc-tag
+  - deploy
+
 # Use the acc-py-devtools templates found at
 # https://gitlab.cern.ch/-/ide/project/acc-co/devops/python/acc-py-devtools/blob/master/-/acc_py_devtools/templates/gitlab-ci/python.yml.
 include:
@@ -83,14 +89,17 @@ check_openshift_config_prod:
 
 .image_builder:
   # Build and push images to the openshift instance, which automatically triggers an application re-deployment.
-  stage: deploy
+  stage: docker-build
   rules:
     - if: '$CI_COMMIT_BRANCH == "live/test-cara"'
       variables:
+        DOCKER_REGISTRY: $CI_REGISTRY_IMAGE
         IMAGE_TAG: test-cara-latest
     - if: '$CI_COMMIT_BRANCH == "master"'
       variables:
-        IMAGE_TAG: cara-latest
+        DOCKER_REGISTRY: $DOCKER_REGISTRY
+        # change to `cara-latest` after moving prod to OKD4
+        IMAGE_TAG: latest
   image:
     # Based on guidance at https://gitlab.cern.ch/gitlabci-examples/build_docker_image.
     name: gitlab-registry.cern.ch/ci-tools/docker-image-builder
@@ -98,7 +107,7 @@ check_openshift_config_prod:
   script:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - echo "Building ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:latest Docker image..."
-    - /kaniko/executor --context ${CI_PROJECT_DIR}/${DOCKER_CONTEXT_DIRECTORY} --dockerfile ${CI_PROJECT_DIR}/${DOCKERFILE_DIRECTORY}/Dockerfile --destination ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG}
+    - /kaniko/executor --context ${CI_PROJECT_DIR}/${DOCKER_CONTEXT_DIRECTORY} --dockerfile ${CI_PROJECT_DIR}/${DOCKERFILE_DIRECTORY}/Dockerfile --destination ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
 
 
 auth-service-image_builder:
@@ -132,7 +141,7 @@ oci_calculator:
 # Link build Docker images OpenShift <-> GitLab registry
 
 .link_docker_images_with_gitlab_registry:
-  stage: deploy
+  stage: oc-tag
   image: gitlab-registry.cern.ch/paas-tools/openshift-client:latest
   rules:
     - if: '$CI_COMMIT_BRANCH == "live/test-cara"'
@@ -140,11 +149,12 @@ oci_calculator:
         OC_SERVER: "https://api.paas.okd.cern.ch"
         OC_PROJECT: "test-cara"
         OC_TOKEN: ${OPENSHIFT_CARA_TEST_DEPLOY_TOKEN}
-    - if: '$CI_COMMIT_BRANCH == "master"'
-      variables:
-        OC_SERVER: "https://openshift.cern.ch"
-        OC_PROJECT: "cara"
-        OC_TOKEN: ${OPENSHIFT_CARA_DEPLOY_TOKEN}
+    # UNCOMMENT when prod migrated to OKD4
+    # - if: '$CI_COMMIT_BRANCH == "master"'
+    #   variables:
+    #     OC_SERVER: "https://openshift.cern.ch"
+    #     OC_PROJECT: "cara"
+    #     OC_TOKEN: ${OPENSHIFT_CARA_DEPLOY_TOKEN}
   script:
      - oc tag --source=docker ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:latest ${IMAGE_NAME}:latest --token ${OC_TOKEN} --server=${OC_SERVER} -n ${OC_PROJECT}
 
