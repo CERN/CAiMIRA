@@ -175,7 +175,7 @@ but it may be origin if you haven't configured it differently):
 First, get the [oc](https://docs.okd.io/3.11/cli_reference/get_started_cli.html) client and then login:
 
 ```console
-$ oc login https://openshift-dev.cern.ch
+$ oc login https://api.paas.okd.cern.ch
 ```
 
 Then, switch to the project that you want to update:
@@ -196,6 +196,23 @@ $ oc process -f imagestreams.yaml | oc create -f -
 $ oc process -f buildconfig.yaml --param GIT_BRANCH='live/test-cara' | oc create -f -
 $ oc process -f deploymentconfig.yaml --param PROJECT_NAME='test-cara'  | oc create -f -
 ```
+
+Create a new service account in OpenShift to use GitLab container registry:
+
+```console
+$ oc project test-cara
+
+$ oc create serviceaccount gitlabci-deployer
+serviceaccount "gitlabci-deployer" created
+
+$ oc policy add-role-to-user registry-editor -z gitlabci-deployer
+
+# We will refer to the output of this command as `test-token`
+$ oc serviceaccounts get-token gitlabci-deployer
+<...test-token...>
+```
+
+Add the token to GitLab to allow GitLab to access OpenShift and define/change image stream tags. Go to `Settings` -> `CI / CD` -> `Variables` -> click on `Expand` button and create the variable `OPENSHIFT_CARA_TEST_DEPLOY_TOKEN`: insert the token `<...test-token...>`.
 
 Then, create the webhook secret to be able to trigger automatic builds from GitLab.
 

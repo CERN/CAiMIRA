@@ -1,6 +1,6 @@
 ---
   kind: "Template"
-  apiVersion: "v1"
+  apiVersion: template.openshift.io/v1
   metadata:
     name: "cara-imagestreams"
     creationTimestamp: null
@@ -12,7 +12,7 @@
   objects:
     -
       kind: ImageStream
-      apiVersion: v1
+      apiVersion: image.openshift.io/v1
       metadata:
         name: auth-service
       spec:
@@ -20,7 +20,7 @@
           local: False
     -
       kind: ImageStream
-      apiVersion: v1
+      apiVersion: image.openshift.io/v1
       metadata:
         name: cara-router
       spec:
@@ -28,7 +28,7 @@
           local: False
     -
       kind: ImageStream
-      apiVersion: v1
+      apiVersion: image.openshift.io/v1
       metadata:
         name: cara-webservice
       spec:
