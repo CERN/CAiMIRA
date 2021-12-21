@@ -229,7 +229,7 @@ def make_app(
     calculator_templates = Path(__file__).parent / "templates"
     templates_directories = [cara_templates, calculator_templates]
     if theme_dir:
-        templates_directories.insert(0, theme_dir / 'templates')
+        templates_directories.insert(0, theme_dir)
     loader = jinja2.FileSystemLoader([str(path) for path in templates_directories])
     template_environment = jinja2.Environment(
         loader=loader,
