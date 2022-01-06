@@ -483,7 +483,7 @@ Virus.types = {
     ),
     'SARS_CoV_2_Omicron': SARSCoV2(
         viral_load_in_sputum=1e9,
-        infectious_dose=50/4.334,
+        infectious_dose=50/4.9841,
     ),
 }
 
