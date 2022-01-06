@@ -27,7 +27,7 @@ REQUIREMENTS: dict = {
         'matplotlib',
         'memoization',
         'mistune',
-        'numpy',
+        'numpy != 1.22.0',
         'psutil',
         'python-dateutil',
         'scipy',
