@@ -40,6 +40,8 @@ symptomatic_vl_frequencies = LogCustomKernel(
 
 
 # From CERN-OPEN-2021-04 and refererences therein
+# NB the infectious dose is inversely proportional to infectiousness of the strain
+# i.e. an infectious dose of 80 is 25% more infectious than a dose of 100, (1/(80/100)) 
 virus_distributions = {
     'SARS_CoV_2': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
@@ -49,6 +51,10 @@ virus_distributions = {
                 viral_load_in_sputum=symptomatic_vl_frequencies,
                 infectious_dose=60,
                 ),
+    'SARS_CoV_2_B1351': mc.SARSCoV2(
+                viral_load_in_sputum=symptomatic_vl_frequencies,
+                infectious_dose=80,
+                ),    
     'SARS_CoV_2_P1': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
                 infectious_dose=100/2.25,
@@ -56,7 +62,11 @@ virus_distributions = {
     'SARS_CoV_2_B16172': mc.SARSCoV2(
                 viral_load_in_sputum=symptomatic_vl_frequencies,
                 infectious_dose=60/1.6,
-                ),
+                ),       
+    'SARS_CoV_2_B11529': mc.SARSCoV2(
+                viral_load_in_sputum=symptomatic_vl_frequencies,
+                infectious_dose=(1/4.9841)*100,
+                ),            
 }
 
 
