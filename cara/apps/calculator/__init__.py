@@ -148,11 +148,13 @@ class StaticModel(BaseRequestHandler):
 
 class LandingPage(BaseRequestHandler):
     def get(self):
+        template_environment = self.settings["template_environment"]
         template = self.settings["template_environment"].get_template(
             "index.html.j2")
         report = template.render(
             user=self.current_user,
             calculator_prefix=self.settings["calculator_prefix"],
+            text_blocks=template_environment.globals['common_text']
         )
         self.finish(report)
 
