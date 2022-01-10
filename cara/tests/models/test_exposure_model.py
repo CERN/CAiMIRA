@@ -220,3 +220,20 @@ def test_infectious_dose_vectorisation():
     inf_probability = model.infection_probability()
     assert isinstance(inf_probability, np.ndarray)
     assert inf_probability.shape == (3, )
+
+
+@pytest.mark.parametrize(
+    "population, cm, pop, cases, specific_event_probability",[
+    [populations[1], known_concentrations(lambda t: 36.),
+     100000, 68, 3.24287],
+    [populations[0], known_concentrations(lambda t: 36.),
+     100000, 68, 3.067046],
+
+    ])
+def test_specific_event_probability(population, cm,
+        pop, cases, specific_event_probability):
+    model = ExposureModel(cm, population, geographic_population=pop,
+    geographic_cases=cases)
+    np.testing.assert_allclose(
+        model.total_probability_rule(), specific_event_probability, rtol=0.05
+    )

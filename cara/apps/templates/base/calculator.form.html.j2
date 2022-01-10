@@ -309,6 +309,25 @@
       <div class="col-sm-6 align-self-center"><input type="number" id="infected_people" class="form-control" name="infected_people" min=1 value=1 required></div>
     </div>
 
+    <input type="radio" id="p_recurrent_event" name="p_recurrent_option" value="p_recurrent_event" checked="checked">
+      <label for="p_recurrent_event">Recurrent exposure</label>
+    <input class="ml-2" type="radio" id="p_not_recurrent_event"  name="p_recurrent_option" value="p_not_recurrent_event" data-enables="#DIVp_not_recurrent_event">
+      <label for="p_not_recurrent_event">Specific event</label>
+    <div data-tooltip="Specific event occurring at a given time (e.g. meeting or conference). Indicate the 7-day average of new reported cases and the population of a given location.">
+        <span class="tooltip_text">?</span>
+    </div>
+    
+    <div id="DIVp_not_recurrent_event" style="display: none">
+      <div class="form-group row">
+        <div class="col-sm-4"><label class="col-form-label">Population:</label></div>
+        <div class="col-sm-6 align-self-center"><input type="number" step="any" id="geographic_population" class="non_zero form-control" name="geographic_population" placeholder="Inhabitants (#)" min="0"></div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-4"><label class="col-form-label">New confirmed cases:</label></div>
+        <div class="col-sm-6 align-self-center"><input type="number" step="any" id="geographic_cases" class="non_zero form-control" name="geographic_cases" placeholder="Cases (# 7-day average)" min="0"></div>
+      </div>
+    </div>
+
     <span id="training_limit_error" class="red_text" hidden>Conference/Training activities limited to 1 infected<br></span>
     <hr width="80%">
 

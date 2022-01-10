@@ -1075,6 +1075,12 @@ class ExposureModel:
     #: The population of non-infected people to be used in the model.
     exposed: Population
 
+    #: Geographic location population
+    geographic_population: int = 0
+
+    #: Geographic location cases
+    geographic_cases: int = 0
+
     #: The number of times the exposure event is repeated (default 1).
     repeats: int = 1
 
@@ -1154,10 +1160,9 @@ class ExposureModel:
         return cases*AB/population
 
     def probability_meet_infected_person(self, population, cases, event, i) -> _VectorisedFloat:
-        """Probability to meet x infected person in an event with 100 people."""
-
-        AB = 2
-        return sct.binom.pmf(i, event, self.probability_random_individual(cases, population, AB), loc=0)
+        """Probability to meet x infected person in an event."""
+        AB = 5
+        return sct.binom.pmf(i, event, self.probability_random_individual(cases, population, AB))
 
     def infection_probability(self) -> _VectorisedFloat:
         exposure = self.exposure()
@@ -1185,20 +1190,21 @@ class ExposureModel:
                 self.concentration_model.virus.transmissibility_factor)))) * 100
 
     def total_probability_rule(self) -> _VectorisedFloat:
-        population = 267197 
-        cases = 68
-
-        sum_probability = 0.0
-        # Create an equivalent exposure model but with two infected cases
-        for i in range(1, 10):
-            single_exposure_model = nested_replace(
-                self, {'concentration_model.infected.number': i}
-            )
-            prob_exposed_occupant = single_exposure_model.infection_probability()
-            # By means of a Binomial Distribution
-            sum_probability += ((1 - (1 - prob_exposed_occupant)**(self.exposed.number-1))*self.probability_meet_infected_person(population, cases, self.exposed.number, i))
-
-        return sum_probability * 100
+        if (self.geographic_population != 0 and self.geographic_cases != 0): 
+            sum_probability = 0.0
+            # Create an equivalent exposure model but with i infected cases
+            total_people = self.concentration_model.infected.number + self.exposed.number
+            I = (total_people if total_people < 10 else 10)
+            for i in range(1, I):
+                exposure_model = nested_replace(
+                    self, {'concentration_model.infected.number': i}
+                )
+                prob_exposed_occupant = exposure_model.infection_probability().mean() / 100
+                # By means of a Binomial Distribution
+                sum_probability += (prob_exposed_occupant)*self.probability_meet_infected_person(self.geographic_population, self.geographic_cases, self.exposed.number, i)
+            return sum_probability * 100
+        else:
+            return 0
 
     def expected_new_cases(self) -> _VectorisedFloat:
         prob = self.infection_probability()

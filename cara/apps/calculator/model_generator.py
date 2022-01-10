@@ -55,6 +55,9 @@ class FormData:
     location_name: str
     location_latitude: float
     location_longitude: float
+    geographic_population: int
+    geographic_cases: int
+    p_recurrent_option: str
     mask_type: str
     mask_wearing_option: str
     mechanical_ventilation_type: str
@@ -107,6 +110,9 @@ class FormData:
         'infected_start': '08:30',
         'location_latitude': _NO_DEFAULT,
         'location_longitude': _NO_DEFAULT,
+        'geographic_population': 0,
+        'geographic_cases': 0,
+        'p_recurrent_option': 'p_recurrent_event',
         'location_name': _NO_DEFAULT,
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
@@ -249,6 +255,8 @@ class FormData:
                 evaporation_factor=0.3,
             ),
             exposed=self.exposed_population(),
+            geographic_population=self.geographic_population,
+            geographic_cases=self.geographic_cases
         )
 
     def build_model(self, sample_size=_DEFAULT_MC_SAMPLE_SIZE) -> models.ExposureModel:

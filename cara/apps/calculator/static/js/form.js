@@ -61,6 +61,12 @@ function require_fields(obj) {
     case "hepa_no":
       require_hepa(false);
       break;
+    case "p_not_recurrent_event":
+      require_population(true);
+      break;
+    case "p_recurrent_event":
+      require_population(false);
+      break;
     case "mask_on":
       require_mask(true);
       break;
@@ -176,6 +182,11 @@ function require_lunch(id, option) {
   }
 }
 
+function require_population(option) {
+  require_input_field("#geographic_population", option);
+  require_input_field("#geographic_cases", option);
+}
+
 function require_mask(option) {
   $("#mask_type_1").prop('required', option);
   $("#mask_type_ffp2").prop('required', option);
@@ -234,6 +245,23 @@ function on_ventilation_type_change() {
       removeInvalid("#"+getChildElement($(this)).find('input').not('input[type=radio]').attr('id'));
     }
   });
+}
+
+function on_p_recurrent_change() {
+  p_recurrent = $('input[type=radio][name=p_recurrent_option]')
+  p_recurrent.each(function (index) {
+    if (this.checked) {
+      getChildElement($(this)).show();
+      require_fields(this);
+    }
+    else {
+      getChildElement($(this)).hide();
+      unrequire_fields(this);
+
+      //Clear invalid inputs for this newly hidden child element
+      removeInvalid("#"+getChildElement($(this)).find('input').not('input[type=radio]').attr('id'));
+    }
+  })
 }
 
 function on_wearing_mask_change() {
@@ -571,6 +599,12 @@ $(document).ready(function () {
   $("input[type=radio][name=ventilation_type]").change(on_ventilation_type_change);
   // Call the function now to handle forward/back button presses in the browser.
   on_ventilation_type_change();
+
+  // When the p_recurrent_option changes we want to make its respective
+  // children show/hide.
+  $("input[type=radio][name=p_recurrent_option]").change(on_p_recurrent_change);
+  // Call the function now to handle forward/back button presses in the browser.
+  on_p_recurrent_change();
 
   // When the mask_wearing_option changes we want to make its respective
   // children show/hide.
