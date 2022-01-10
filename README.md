@@ -181,27 +181,12 @@ $ oc login https://api.paas.okd.cern.ch
 Then, switch to the project that you want to update:
 
 ```console
-$ oc project test-cara
-```
-
-If you need to create the application in a new project, run:
-
-```console
-$ cd app-config/openshift
-
-$ oc process -f routes.yaml --param HOST='test-cara.web.cern.ch' | oc create -f -
-$ oc process -f configmap.yaml | oc create -f -
-$ oc process -f services.yaml | oc create -f -
-$ oc process -f imagestreams.yaml | oc create -f -
-$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/test-cara' | oc create -f -
-$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='test-cara'  | oc create -f -
+$ oc project cara-test
 ```
 
 Create a new service account in OpenShift to use GitLab container registry:
 
 ```console
-$ oc project test-cara
-
 $ oc create serviceaccount gitlabci-deployer
 serviceaccount "gitlabci-deployer" created
 
@@ -212,11 +197,11 @@ $ oc serviceaccounts get-token gitlabci-deployer
 <...test-token...>
 ```
 
-Add the token to GitLab to allow GitLab to access OpenShift and define/change image stream tags. Go to `Settings` -> `CI / CD` -> `Variables` -> click on `Expand` button and create the variable `OPENSHIFT_CARA_TEST_DEPLOY_TOKEN`: insert the token `<...test-token...>`.
+Add the token to GitLab to allow GitLab to access OpenShift and define/change image stream tags. Go to `Settings` -> `CI / CD` -> `Variables` -> click on `Expand` button and create the variable `OPENSHIFT_TEST_DEPLOY_TOKEN`: insert the token `<...test-token...>`.
 
 Then, create the webhook secret to be able to trigger automatic builds from GitLab.
 
-Create and store the secret. Copy the secret above and add it to the GitLab project under `CI /CD` -> `Variables` with the name `OPENSHIFT_CARA_TEST_WEBHOOK_SECRET`.
+Create and store the secret. Copy the secret above and add it to the GitLab project under `CI /CD` -> `Variables` with the name `OPENSHIFT_TEST_WEBHOOK_SECRET`.
 
 ```console
 $ WEBHOOKSECRET=$(openssl rand -hex 50)
@@ -231,10 +216,26 @@ For CI usage, we also suggest creating a service account:
 oc create sa gitlab-config-checker
 ```
 
-Under ``Resources`` -> ``Membership`` enable the ``View`` role for this new service account.
+Under ``User Management`` -> ``RoleBindings`` create a new `RoleBinding` to grant `View` access to the `gitlab-config-checker` service account:
 
-To get this new user's authentication token go to ``Resources`` -> ``Secrets`` and locate the token in the newly
-created secret associated with the user (in this case ``gitlab-config-checker-token-XXXX``).
+* name: `gitlab-config-checker-view-role`
+* role name: `view`
+* service account: `gitlab-config-checker`
+
+To get this new user's authentication token go to ``User Management`` -> ``Service Accounts`` -> `gitlab-config-checker` and locate the token in the newly created secret associated with the user (in this case ``gitlab-config-checker-token-XXXX``). Copy the `token` value from `Data`.
+
+Create the various configurations:
+
+```console
+$ cd app-config/openshift
+
+$ oc process -f routes.yaml --param HOST='test-cara.web.cern.ch' | oc create -f -
+$ oc process -f configmap.yaml | oc create -f -
+$ oc process -f services.yaml | oc create -f -
+$ oc process -f imagestreams.yaml | oc create -f -
+$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/test-cara' | oc create -f -
+$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='cara-test'  | oc create -f -
+```
 
 ### CERN SSO integration
 
@@ -289,7 +290,7 @@ $ oc process -f services.yaml | oc replace -f -
 $ oc process -f routes.yaml --param HOST='test-cara.web.cern.ch' | oc replace -f -
 $ oc process -f imagestreams.yaml | oc replace -f -
 $ oc process -f buildconfig.yaml --param GIT_BRANCH='live/test-cara' | oc replace -f -
-$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='test-cara' | oc replace -f -
+$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='cara-test' | oc replace -f -
 ```
 
 Be aware that if you change/replace the **route** of the PROD instance,
