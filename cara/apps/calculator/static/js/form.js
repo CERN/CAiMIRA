@@ -61,7 +61,7 @@ function require_fields(obj) {
     case "hepa_no":
       require_hepa(false);
       break;
-    case "p_not_recurrent_event":
+    case "p_specific_event":
       require_population(true);
       break;
     case "p_recurrent_event":
