@@ -1159,10 +1159,10 @@ class ExposureModel:
         """Probability that a randomly selected individual in a focal population is infected."""
         return cases*AB/population
 
-    def probability_meet_infected_person(self, population, cases, event, i) -> _VectorisedFloat:
-        """Probability to meet x infected person in an event."""
+    def probability_meet_infected_person(self, population, cases, event, x) -> _VectorisedFloat:
+        """Probability to meet x infected persons in an event."""
         AB = 5
-        return sct.binom.pmf(i, event, self.probability_random_individual(cases, population, AB))
+        return sct.binom.pmf(x, event, self.probability_random_individual(cases, population, AB))
 
     def infection_probability(self) -> _VectorisedFloat:
         exposure = self.exposure()
@@ -1194,14 +1194,14 @@ class ExposureModel:
             sum_probability = 0.0
             # Create an equivalent exposure model but with i infected cases
             total_people = self.concentration_model.infected.number + self.exposed.number
-            I = (total_people if total_people < 10 else 10)
-            for i in range(1, I):
+            X = (total_people if total_people < 10 else 10)
+            for x in range(1, X):
                 exposure_model = nested_replace(
-                    self, {'concentration_model.infected.number': i}
+                    self, {'concentration_model.infected.number': x}
                 )
                 prob_exposed_occupant = exposure_model.infection_probability().mean() / 100
                 # By means of a Binomial Distribution
-                sum_probability += (prob_exposed_occupant)*self.probability_meet_infected_person(self.geographic_population, self.geographic_cases, self.exposed.number, i)
+                sum_probability += (prob_exposed_occupant)*self.probability_meet_infected_person(self.geographic_population, self.geographic_cases, self.exposed.number, x)
             return sum_probability * 100
         else:
             return 0
