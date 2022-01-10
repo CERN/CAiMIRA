@@ -72,16 +72,16 @@ check_openshift_config_test:
     CARA_INSTANCE: 'test-cara'
     BRANCH: 'live/test-cara'
     OC_SERVER: https://api.paas.okd.cern.ch
-    OC_TOKEN: "${OPENSHIFT_CONFIG_CHECKER_TOKEN_TEST_CARA}"
+    OC_TOKEN: "${OPENSHIFT_TEST_CONFIG_CHECKER_TOKEN}"
 
 
 check_openshift_config_prod:
   extends: .test_openshift_config
   variables:
-    CARA_INSTANCE: 'cara'
+    CARA_INSTANCE: 'cara-prod'
     BRANCH: 'master'
-    OC_SERVER: https://openshift.cern.ch
-    OC_TOKEN: "${OPENSHIFT_CONFIG_CHECKER_TOKEN_PROD}"
+    OC_SERVER: https://api.paas.okd.cern.ch
+    OC_TOKEN: "${OPENSHIFT_PROD_CONFIG_CHECKER_TOKEN}"
 
 
 # ###################################################################################################
@@ -93,23 +93,18 @@ check_openshift_config_prod:
   rules:
     - if: '$CI_COMMIT_BRANCH == "live/test-cara"'
       variables:
-        DOCKER_REGISTRY: $CI_REGISTRY_IMAGE
         IMAGE_TAG: test-cara-latest
-        KANIKO_AUTH: "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}"
     - if: '$CI_COMMIT_BRANCH == "master"'
       variables:
-        DOCKER_REGISTRY: "${OPENSHIFT_DOCKER_REGISTRY_PROD}"
-        # change to `cara-latest` after moving prod to OKD4
-        IMAGE_TAG: latest
-        KANIKO_AUTH: "{\"auths\":{\"$OPENSHIFT_DOCKER_REGISTRY_PROD\":{\"auth\":\"$OPENSHIFT_DOCKER_TOKEN_PROD\"}}}"
+        IMAGE_TAG: cara-prod-latest
   image:
     # Based on guidance at https://gitlab.cern.ch/gitlabci-examples/build_docker_image.
     name: gitlab-registry.cern.ch/ci-tools/docker-image-builder
     entrypoint: [""]
   script:
-    - echo ${KANIKO_AUTH} > /kaniko/.docker/config.json
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - echo "Building ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:latest Docker image..."
-    - /kaniko/executor --context ${CI_PROJECT_DIR}/${DOCKER_CONTEXT_DIRECTORY} --dockerfile ${CI_PROJECT_DIR}/${DOCKERFILE_DIRECTORY}/Dockerfile --destination ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+    - /kaniko/executor --context ${CI_PROJECT_DIR}/${DOCKER_CONTEXT_DIRECTORY} --dockerfile ${CI_PROJECT_DIR}/${DOCKERFILE_DIRECTORY}/Dockerfile --destination ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG}
 
 
 auth-service-image_builder:
@@ -148,19 +143,16 @@ oci_calculator:
   rules:
     - if: '$CI_COMMIT_BRANCH == "live/test-cara"'
       variables:
-        OC_SERVER: "https://api.paas.okd.cern.ch"
         OC_PROJECT: "test-cara"
-        OC_TOKEN: ${OPENSHIFT_CARA_TEST_DEPLOY_TOKEN}
+        OC_TOKEN: ${OPENSHIFT_TEST_DEPLOY_TOKEN}
         IMAGE_TAG: test-cara-latest
-    # UNCOMMENT when prod migrated to OKD4
-    # - if: '$CI_COMMIT_BRANCH == "master"'
-    #   variables:
-    #     OC_SERVER: "https://openshift.cern.ch"
-    #     OC_PROJECT: "cara"
-    #     OC_TOKEN: ${OPENSHIFT_CARA_DEPLOY_TOKEN}
-    #     IMAGE_TAG: cara-latest
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      variables:
+        OC_PROJECT: "cara-prod"
+        OC_TOKEN: ${OPENSHIFT_PROD_DEPLOY_TOKEN}
+        IMAGE_TAG: cara-prod-latest
   script:
-     - oc tag --source=docker ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest --token ${OC_TOKEN} --server=${OC_SERVER} -n ${OC_PROJECT}
+     - oc tag --source=docker ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest --token ${OC_TOKEN} --server=https://api.paas.okd.cern.ch -n ${OC_PROJECT}
 
 link_auth-service_with_gitlab_registry:
   extends:
@@ -189,13 +181,11 @@ trigger_cara-router_build_on_openshift:
   rules:
     - if: '$CI_COMMIT_BRANCH == "live/test-cara"'
       variables:
-        OC_SERVER: "https://api.paas.okd.cern.ch"
         OC_PROJECT: "test-cara"
         BUILD_WEBHOOK_SECRET: ${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}
     - if: '$CI_COMMIT_BRANCH == "master"'
       variables:
-        OC_SERVER: "https://openshift.cern.ch"
-        OC_PROJECT: "cara"
-        BUILD_WEBHOOK_SECRET: ${OPENSHIFT_BUILD_WEBHOOK_SECRET}
+        OC_PROJECT: "cara-prod"
+        BUILD_WEBHOOK_SECRET: ${OPENSHIFT_PROD_BUILD_WEBHOOK_SECRET}
   script:
-     - curl -X POST -k ${OC_SERVER}/apis/build.openshift.io/v1/namespaces/${OC_PROJECT}/buildconfigs/cara-router/webhooks/${BUILD_WEBHOOK_SECRET}/generic
+     - curl -X POST -k https://api.paas.okd.cern.ch/apis/build.openshift.io/v1/namespaces/${OC_PROJECT}/buildconfigs/cara-router/webhooks/${BUILD_WEBHOOK_SECRET}/generic

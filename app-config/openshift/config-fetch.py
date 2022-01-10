@@ -9,7 +9,7 @@ def configure_parser(parser: argparse.ArgumentParser) -> None:
     parser.description = "Fetch the openshift config for CARA"
     parser.set_defaults(handler=handler)
     parser.add_argument(
-        "instance", choices=['cara', 'test-cara'],
+        "instance", choices=['cara-prod', 'test-cara'],
         help="Pick the instance for which you want to fetch the config",
     )
     parser.add_argument(
@@ -32,7 +32,7 @@ def get_oc_server() -> typing.Optional[str]:
     ], check=True, stdout=subprocess.PIPE).stdout.decode().strip()
 
 
-def fetch_config(output_directory: pathlib.Path, okd_version: int):
+def fetch_config(output_directory: pathlib.Path):
     output_directory.mkdir(exist_ok=True, parents=True)
 
     for component, name in [
@@ -44,9 +44,7 @@ def fetch_config(output_directory: pathlib.Path, okd_version: int):
             ('deploymentconfig', None)]:
 
         with (output_directory / f'{component}.yaml').open('wt') as fh:
-            cmdOKD4 = ['oc', 'get', '-o', 'yaml', component]
-            cmdOKD3 = ['oc', 'get', '--export', '-o', 'yaml', component]
-            cmd = cmdOKD4 if okd_version == 4 else cmdOKD3
+            cmd = ['oc', 'get', '-o', 'yaml', component]
             if name:
                 cmd += [name]
             print(f'Running: {" ".join(cmd)}')
@@ -55,14 +53,11 @@ def fetch_config(output_directory: pathlib.Path, okd_version: int):
 
 
 def handler(args: argparse.ArgumentParser) -> None:
-    if args.instance == 'cara':
-        login_server = 'https://openshift.cern.ch:443'
-        project_name = 'cara'
-        okd_version = 3
+    login_server = 'https://api.paas.okd.cern.ch:443'
+    if args.instance == 'cara-prod':
+        project_name = 'cara-prod'
     elif args.instance == 'test-cara':
-        login_server = 'https://api.paas.okd.cern.ch:443'
         project_name = 'test-cara'
-        okd_version = 4
 
     actual_login_server = get_oc_server()
     if actual_login_server != login_server:
@@ -71,7 +66,7 @@ def handler(args: argparse.ArgumentParser) -> None:
 
     subprocess.run(['oc', 'project', project_name], stdout=subprocess.DEVNULL, check=True)
 
-    fetch_config(pathlib.Path(args.output_directory), okd_version)
+    fetch_config(pathlib.Path(args.output_directory))
 
 
 def main():
