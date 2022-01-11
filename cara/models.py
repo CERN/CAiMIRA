@@ -1166,9 +1166,6 @@ class ExposureModel:
         AB = 5
         return sct.binom.pmf(x, event, self.probability_random_individual(cases, population, AB))
 
-    def infection_probability(self) -> _VectorisedFloat:
-        exposure = self.exposure()
-
     def deposited_exposure(self) -> _VectorisedFloat:
         """
         The number of virus per m^3 deposited on the respiratory tract.

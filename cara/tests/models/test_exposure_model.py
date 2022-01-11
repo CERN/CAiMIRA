@@ -225,9 +225,9 @@ def test_infectious_dose_vectorisation():
 @pytest.mark.parametrize(
     "population, cm, pop, cases, specific_event_probability",[
     [populations[1], known_concentrations(lambda t: 36.),
-     100000, 68, 3.24287],
+     100000, 68, 2.24124],
     [populations[0], known_concentrations(lambda t: 36.),
-     100000, 68, 3.067046],
+     100000, 68, 1.875652],
 
     ])
 def test_specific_event_probability(population, cm,
