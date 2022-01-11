@@ -12,4 +12,4 @@ pip3 install -e .
 echo "############################################"
 echo "CARA is now running at http://localhost:8080"
 echo "############################################"
-python3 -m cara.apps.calculator --theme=cara/apps/calculator/themes/cern
+python3 -m cara.apps.calculator --theme=cara/apps/templates/cern

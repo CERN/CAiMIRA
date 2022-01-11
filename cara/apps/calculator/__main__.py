@@ -36,7 +36,6 @@ def main():
     if theme_dir is not None:
         theme_dir = Path(theme_dir).absolute()
         assert theme_dir.exists()
-        assert (theme_dir / 'templates').exists()
     app = make_app(debug=args.no_debug, calculator_prefix=args.prefix, theme_dir=theme_dir)
     app.listen(args.port)
     IOLoop.instance().start()

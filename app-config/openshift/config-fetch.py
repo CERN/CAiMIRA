@@ -9,7 +9,7 @@ def configure_parser(parser: argparse.ArgumentParser) -> None:
     parser.description = "Fetch the openshift config for CARA"
     parser.set_defaults(handler=handler)
     parser.add_argument(
-        "instance", choices=['cara', 'test-cara'],
+        "instance", choices=['cara-prod', 'test-cara'],
         help="Pick the instance for which you want to fetch the config",
     )
     parser.add_argument(
@@ -35,25 +35,33 @@ def get_oc_server() -> typing.Optional[str]:
 def fetch_config(output_directory: pathlib.Path):
     output_directory.mkdir(exist_ok=True, parents=True)
 
-    for component in ['routes', 'configmap', 'services', 'imagestreams', 'buildconfig', 'deploymentconfig']:
+    for component, name in [
+            ('routes', None),
+            ('configmap', 'auth-service'),
+            ('services', None),
+            ('imagestreams', None),
+            ('buildconfig', None),
+            ('deploymentconfig', None)]:
+
         with (output_directory / f'{component}.yaml').open('wt') as fh:
-            cmd = ['oc', 'get', '--export', '-o', 'yaml', component]
+            cmd = ['oc', 'get', '-o', 'yaml', component]
+            if name:
+                cmd += [name]
             print(f'Running: {" ".join(cmd)}')
             subprocess.run(cmd, stdout=fh, check=True)
     print(f'Config in: {output_directory.absolute()}')
 
 
 def handler(args: argparse.ArgumentParser) -> None:
-    if args.instance == 'cara':
-        login_server = 'https://openshift.cern.ch:443'
-        project_name = 'cara'
+    login_server = 'https://api.paas.okd.cern.ch:443'
+    if args.instance == 'cara-prod':
+        project_name = 'cara-prod'
     elif args.instance == 'test-cara':
-        login_server = 'https://openshift-dev.cern.ch:443'
         project_name = 'test-cara'
 
     actual_login_server = get_oc_server()
     if actual_login_server != login_server:
-        print(f'\nPlease login to the correct openshift server with: \n\n oc login {login_server}\n', file=sys.stderr)
+        print(f'\nPlease login to the correct OpenShift server with: \n\n oc login {login_server}\n', file=sys.stderr)
         sys.exit(1)
 
     subprocess.run(['oc', 'project', project_name], stdout=subprocess.DEVNULL, check=True)

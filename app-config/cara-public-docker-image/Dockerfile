@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM registry.cern.ch/docker.io/library/python:3.9
 
 # Copy just the requirements.txt initially, allowing Docker effectively to cache the build (good for dev).
 COPY ./requirements.txt  /tmp/requirements.txt

@@ -22,8 +22,9 @@ def clean_ephemeral_config(config: dict):
     config.get('metadata', []).clear()
 
     METADATA_TO_PRESERVE = ['labels', 'name']
+    CERN_OKD4_METADATA_LABELS = ['migration.openshift.io', 'velero.io']
 
-    for item in config['items']:
+    for item in config.get('items', {}):
         item.pop('status', None)
 
         for key in list(item['metadata'].keys()):
@@ -31,10 +32,14 @@ def clean_ephemeral_config(config: dict):
                 del item['metadata'][key]
 
         item.get('spec', {}).pop('clusterIP', None)
+        item.get('spec', {}).pop('clusterIPs', None)
+        item.get('spec', {}).pop('revisionHistoryLimit', None)
 
         if item['kind'] == 'BuildConfig':
             for trigger in item.get('spec', {}).get('triggers', []):
                 trigger.get('imageChange', {}).pop('lastTriggeredImageID', None)
+            item.get('spec', {}).pop('failedBuildsHistoryLimit', None)
+            item.get('spec', {}).pop('successfulBuildsHistoryLimit', None)
 
         if item['kind'] == 'DeploymentConfig':
             item['spec'].get('template', {}).get('metadata', {}).pop('creationTimestamp', None)
@@ -45,6 +50,11 @@ def clean_ephemeral_config(config: dict):
             item['spec'].get('template', {}).get('metadata', {}).pop('creationTimestamp', None)
             for trigger in item['spec'].get('triggers', []):
                 trigger.get('imageChangeParams', {}).pop('lastTriggeredImage', None)
+
+        for label in list(item['metadata'].get('labels', {}).keys()):
+            for prefix in CERN_OKD4_METADATA_LABELS:
+                if label.startswith(prefix):
+                    item['metadata']['labels'].pop(label)
 
         # Drop the template part of the config for now.
         # TODO: Remove this constraint to ensure our deployments reflect the fact that they are templated.

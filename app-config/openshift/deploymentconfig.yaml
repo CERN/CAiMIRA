@@ -1,6 +1,6 @@
 ---
   kind: "Template"
-  apiVersion: "v1"
+  apiVersion: template.openshift.io/v1
   metadata:
     name: "cara-application"
     annotations:
@@ -10,7 +10,7 @@
     template: "cara-application"
   objects:
     -
-      apiVersion: v1
+      apiVersion: apps.openshift.io/v1
       kind: DeploymentConfig
       metadata:
         name: auth-service
@@ -69,7 +69,7 @@
                 name: 'auth-service:latest'
                 namespace: ${PROJECT_NAME}
     -
-      apiVersion: v1
+      apiVersion: apps.openshift.io/v1
       kind: DeploymentConfig
       metadata:
         name: cara-app
@@ -126,7 +126,7 @@
                 name: 'cara-webservice:latest'
                 namespace: ${PROJECT_NAME}
     -
-      apiVersion: v1
+      apiVersion: apps.openshift.io/v1
       kind: DeploymentConfig
       metadata:
         name: cara-router
@@ -179,7 +179,7 @@
                 namespace: ${PROJECT_NAME}
           - type: ConfigChange
     -
-      apiVersion: v1
+      apiVersion: apps.openshift.io/v1
       kind: DeploymentConfig
       metadata:
         name: cara-webservice
@@ -208,7 +208,7 @@
                 - name: CARA_CALCULATOR_PREFIX
                   value: /calculator-cern
                 - name: CARA_THEME
-                  value: cara/apps/calculator/themes/cern
+                  value: cara/apps/templates/cern
                 image: '${PROJECT_NAME}/cara-webservice'
                 ports:
                   - containerPort: 8080
@@ -263,7 +263,7 @@
                 namespace: ${PROJECT_NAME}
           - type: ConfigChange
     -
-      apiVersion: v1
+      apiVersion: apps.openshift.io/v1
       kind: DeploymentConfig
       metadata:
         name: cara-calculator-open

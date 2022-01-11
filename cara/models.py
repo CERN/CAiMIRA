@@ -504,6 +504,12 @@ Virus.types = {
         viable_to_RNA_ratio = 0.5,
         transmissibility_factor=0.51,
     ),
+    'SARS_CoV_2_OMICRON': SARSCoV2(
+        viral_load_in_sputum=1e9,
+        infectious_dose=20.,
+        viable_to_RNA_ratio=0.5,
+        transmissibility_factor=0.2
+    ),
 }
 
 

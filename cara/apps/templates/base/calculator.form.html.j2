@@ -62,23 +62,28 @@
         <span class="tooltip_text">?</span>
     </div><br>
 
-    <div class="row">
-        <label class="col-xl-3 col-lg-4 col-sm-3 col-form-label">Variant:</label>
-        <select id="Variant" name="virus_type" class="col-xl-5 col-lg-7 col-sm-7 col-7">
-          <option value="SARS_CoV_2">SARS-CoV-2 (nominal strain)</option>
-          <option value="SARS_CoV_2_ALPHA">SARS-CoV-2 (Alpha VOC)</option>
-          <option value="SARS_CoV_2_BETA">SARS-CoV-2 (Beta VOC)</option>
-          <option value="SARS_CoV_2_GAMMA">SARS-CoV-2 (Gamma VOC)</option>
-          <option selected value="SARS_CoV_2_DELTA">SARS-CoV-2 (Delta VOC)</option>
-        </select>
+    <div class="form-group row">
+    <div class="col-sm-3"><label class="col-form-label">Variant:</label></div>
+    <div class="col-sm-7">
+    <select id="Variant" name="virus_type" class="form-control">
+      <option value="SARS_CoV_2">SARS-CoV-2 (nominal strain)</option>
+      <option value="SARS_CoV_2_ALPHA">SARS-CoV-2 (Alpha VOC)</option>
+      <option value="SARS_CoV_2_BETA">SARS-CoV-2 (Beta VOC)</option>
+      <option value="SARS_CoV_2_GAMMA">SARS-CoV-2 (Gamma VOC)</option>
+      <option value="SARS_CoV_2_DELTA">SARS-CoV-2 (Delta VOC)</option>
+      <option selected value="SARS_CoV_2_OMICRON">SARS-CoV-2 (Omicron VOC)</option>
+    </select>
+    </div>
     </div>
 
     <hr width="80%">
 
     <b>Room data:</b>
-    <div data-tooltip="The area you wish to study (choose one of the 2 options). Use GIS Portal or measure. Also indicate if a central (radiator-type) heating system is in use.">
+    {% block room_data %}
+    <div data-tooltip="The area you wish to study (choose one of the 2 options). Indicate if a central (radiator-type) heating system is in use.">
         <span class="tooltip_text">?</span>
     </div>
+    {% endblock room_data %}
     
     <br>
 
@@ -513,10 +518,11 @@
   <b>Virus data:</b> <br>
   SARS-CoV-2 covers the original "wild type" strain of the virus and three variants of concern (VOC):<br>
   <ul>
-    <li>Alpha (also known as B.1.1.7, first identified in UK, Dec 2020),</li>
-    <li>Beta (also known as B.1.351, first identified in South Africa, Oct 2020).</li>
+    <li>Alpha (also known as B.1.1.7, first identified in UK, Sept 2020),</li>
+    <li>Beta (also known as B.1.351, first identified in South Africa, May 2020).</li>
     <li>Gamma (also known as P.1, first identified in Brazil/Japan, Jan 2021).</li>
     <li>Delta (also known as B.1.617.2, first identified in India, Oct 2020).</li>
+    <li>Omicron (also known as B.1.1.529, first identified in South Africa, November 2021).</li>
   </ul>
   Modify the default as necessary, according to local area prevalence e.g. for <a href="https://www.covid19.admin.ch/fr/epidemiologic/virus-variants?detGeo=GE">Geneva</a>
   or <a href="https://www.santepubliquefrance.fr/dossiers/coronavirus-covid-19/covid-19-cartographie-des-variants-en-france-donnees-par-region-et-par-departement">Ain (France)</a>.<br>
