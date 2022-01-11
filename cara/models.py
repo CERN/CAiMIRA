@@ -1161,6 +1161,8 @@ class ExposureModel:
 
     def probability_meet_infected_person(self, population, cases, event, x) -> _VectorisedFloat:
         """Probability to meet x infected persons in an event."""
+        
+        # Ascertainment bias
         AB = 5
         return sct.binom.pmf(x, event, self.probability_random_individual(cases, population, AB))
 

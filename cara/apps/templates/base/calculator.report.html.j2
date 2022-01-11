@@ -86,11 +86,8 @@
 														<br>
 														<div class="align-self-center alert alert-dark mb-0" role="alert">
 														The above result assumes that <b>{{ form.infected_people }} 
-														{% if form.infected_people == 1 %}
-														occupant is infected
-														{% else %} 
-														occupants are infected
-														{% endif %}</b> in the room. 
+														{{ "occupant is infected" if form.infected_people == 1 else "occupants are infected" }}
+														</b> in the room. 
 														By taking into account the estimate of cases currently circulating in <b>{{ form.location_name }}</b>, 
 														the probability of on-site transmission, having at least 1 new infection in an <b>event 
 														with {{ form.total_people }} occupants, is {{ prob_specific_event | non_zero_percentage }}</b>. 
@@ -304,8 +301,8 @@
 							{{ "is" if form.infected_people == 1 else "are" }}
 							infected.</p></li>
 							{% if form.p_recurrent_option == "p_specific_event" %}
-							<li><p class="data_text">Geographic population: {{ form.geographic_population }}</p></li>
-							<li><p class="data_text">Geographic cumulative reported cases: {{ form.geographic_cases }}</p></li>
+							<li><p class="data_text">Population in {{ form.location_name }}: {{ form.geographic_population }}</p></li>
+							<li><p class="data_text">New reported cases in {{ form.location_name }} (7-day average): {{ form.geographic_cases }}</p></li>
 							{% endif %}
 							<li><p class="data_text">
 							Activity type:
