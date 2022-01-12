@@ -22,7 +22,7 @@ def shared_office_mc():
     """
     concentration_mc = mc.ConcentrationModel(
         room=models.Room(volume=50, humidity=0.5),
-        ventilation = models.MultipleVentilation(
+        ventilation=models.MultipleVentilation(
             ventilations=(
                 models.SlidingWindow(
                     active=models.PeriodicInterval(period=120, duration=120),
@@ -36,7 +36,7 @@ def shared_office_mc():
         ),
         infected=mc.InfectedPopulation(
             number=1,
-            presence=mc.SpecificInterval(present_times = ((0, 3.5), (4.5, 9))),
+            presence=mc.SpecificInterval(present_times=((0, 3.5), (4.5, 9))),
             virus=virus_distributions['SARS_CoV_2_DELTA'],
             mask=models.Mask.types['No mask'],
             activity=activity_distributions['Seated'],
@@ -49,7 +49,7 @@ def shared_office_mc():
         concentration_model=concentration_mc,
         exposed=mc.Population(
             number=3,
-            presence=mc.SpecificInterval(present_times = ((0, 3.5), (4.5, 9))),
+            presence=mc.SpecificInterval(present_times=((0, 3.5), (4.5, 9))),
             activity=activity_distributions['Seated'],
             mask=models.Mask.types['No mask'],
             host_immunity=0.,
@@ -64,7 +64,7 @@ def classroom_mc():
     """
     concentration_mc = mc.ConcentrationModel(
         room=models.Room(volume=160, humidity=0.3),
-        ventilation = models.MultipleVentilation(
+        ventilation=models.MultipleVentilation(
             ventilations=(
                 models.SlidingWindow(
                     active=models.PeriodicInterval(period=120, duration=120),
