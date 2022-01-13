@@ -51,6 +51,9 @@ def clean_ephemeral_config(config: dict):
             for trigger in item['spec'].get('triggers', []):
                 trigger.get('imageChangeParams', {}).pop('lastTriggeredImage', None)
 
+        if item['kind'] == 'Service':
+            item['spec'].pop('ipFamilies', None)
+
         for label in list(item['metadata'].get('labels', {}).keys()):
             for prefix in CERN_OKD4_METADATA_LABELS:
                 if label.startswith(prefix):
