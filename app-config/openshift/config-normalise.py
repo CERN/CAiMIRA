@@ -51,6 +51,9 @@ def clean_ephemeral_config(config: dict):
             for trigger in item['spec'].get('triggers', []):
                 trigger.get('imageChangeParams', {}).pop('lastTriggeredImage', None)
 
+        if item['kind'] == 'ImageStream':
+            item['spec'].pop('tags', None)
+
         if item['kind'] == 'Service':
             item['spec'].pop('ipFamilies', None)
             item['spec'].pop('ipFamilyPolicy', None)
