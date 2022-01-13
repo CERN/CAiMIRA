@@ -53,6 +53,8 @@ def clean_ephemeral_config(config: dict):
 
         if item['kind'] == 'Service':
             item['spec'].pop('ipFamilies', None)
+            item['spec'].pop('ipFamilyPolicy', None)
+            
 
         for label in list(item['metadata'].get('labels', {}).keys()):
             for prefix in CERN_OKD4_METADATA_LABELS:
