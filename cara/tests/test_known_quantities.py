@@ -95,7 +95,7 @@ def test_r0(baseline_exposure_model):
     # expected r0 was computed with a trapezoidal integration, using
     # a mesh of 100'000 pts per exposed presence interval.
     r0 = baseline_exposure_model.reproduction_number()
-    npt.assert_allclose(r0, 776.9419902161412)
+    npt.assert_allclose(r0, 776.941990)
 
 
 def test_periodic_window(baseline_periodic_window, baseline_room):
