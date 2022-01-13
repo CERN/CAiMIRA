@@ -229,7 +229,6 @@ Create the various configurations:
 ```console
 $ cd app-config/openshift
 
-$ oc process -f routes.yaml --param HOST='test-cara.web.cern.ch' | oc create -f -
 $ oc process -f configmap.yaml | oc create -f -
 $ oc process -f services.yaml | oc create -f -
 $ oc process -f imagestreams.yaml | oc create -f -
