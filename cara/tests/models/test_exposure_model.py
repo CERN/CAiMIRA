@@ -206,7 +206,7 @@ def test_infectious_dose_vectorisation():
         10, presence_interval, models.Mask.types['Type I'],
         models.Activity.types['Standing'], 0.,
     )
-    model = ExposureModel(cm, population) #, fraction_deposited=1.0
+    model = ExposureModel(cm, population)
     inf_probability = model.infection_probability()
     assert isinstance(inf_probability, np.ndarray)
     assert inf_probability.shape == (3, )
