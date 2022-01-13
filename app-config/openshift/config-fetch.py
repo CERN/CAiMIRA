@@ -36,7 +36,7 @@ def fetch_config(output_directory: pathlib.Path):
     output_directory.mkdir(exist_ok=True, parents=True)
 
     for component, name in [
-            ('configmap', 'auth-service'),
+            ('configmap', None),
             ('services', None),
             ('imagestreams', None),
             ('buildconfig', None),
