@@ -25,7 +25,7 @@
 			<p class="mb-0" id="report_version"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
 		</div>
 		<button type="button" class="btn btn-outline-dark align-self-center" id="download-pdf" style="margin-right: -100pt" onclick="print()">Print Report</button>
-		<a href="{{ permalink.link }}" style="float: left;" id="pdf_qrcode_aref" class="align-self-center invisible mr-0"><div id="pdf_qrcode"></div></a>
+		<a href="{{ permalink.link }}" style="float: left;" id="pdf_qrcode_aref" class="align-self-center invisible mr-0"><canvas id="pdf_qrcode"></canvas></a>
 	</div>
 
 {% endblock report_header %}
@@ -169,7 +169,7 @@
 						<div class="card-body">
 							<div class="text-center"><button id="mobile_link" class="btn btn-primary btn-sm d-none" data-toggle="tooltip" data-placement="top" title="Copy to clipboard" onclick="copy_clipboard('{{ permalink.link }}');">Click to copy a shareable link</button></div>					
 							<div id="link_reproduce_results" class="split">
-								<div><a href="{{ permalink.link }}" style="float: left;"><div id="qrcode"></div></a></div>
+								<div><a href="{{ permalink.link }}" style="float: left;"><canvas id="qrcode"></canvas></a></div>
 								<div class="align-self-center"><span style="float: left; vertical-align: middle; display: inline-block;">
 								<p style="display: inline-block; vertical-align: middle; line-height: normal;">
 								Click the QR code to regenerate the report and get a shareable link.<br>Alternatively, scan to regenerate the report.<br>
@@ -454,24 +454,24 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-<script type="text/javascript">
-	//Enable tooltip
-	$('[data-toggle="tooltip"]').tooltip();
-
-    new QRCode(document.getElementById("qrcode"), {
-        text: "{{ permalink.shortened }}",
-        width: 330,
-        height: 330,
-        correctLevel : QRCode.CorrectLevel.L
-    });
-    new QRCode(document.getElementById("pdf_qrcode"), {
-        text: "{{ permalink.shortened }}",
-        width: 133,
-        height: 133,
-        correctLevel : QRCode.CorrectLevel.L
-    });
+<script src="/static/js/qrious.min.js"></script>
+<script>
+	(function() {
+	var qr = new QRious({
+		element: document.getElementById('qrcode'),
+        value: '{{ permalink.shortened }}',
+		size: 330,
+		backgroundAlpha: 0,
+	});
+	})();
+	(function() {
+	var qr = new QRious({
+		element: document.getElementById('pdf_qrcode'),
+        value: '{{ permalink.shortened }}',
+		size: 133,
+		backgroundAlpha: 0,
+	});
+	})();
 </script>
 
 </body>

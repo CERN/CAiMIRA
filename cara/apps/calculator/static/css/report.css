@@ -118,6 +118,9 @@ p.notes {
     #pdf_qrcode_aref {
         visibility: inherit!important;
     }
+    #download-pdf {
+        display: none!important;
+    }
     .collapse {
         display: block!important;
     }
