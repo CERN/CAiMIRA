@@ -50,6 +50,7 @@ from .utils import method_cache
 
 from .dataclass_utils import nested_replace
 
+oneoverln2 = 1 / np.log(2)
 # Define types for items supporting vectorisation. In the future this may be replaced
 # by ``np.ndarray[<type>]`` once/if that syntax is supported. Note that vectorization
 # implies 1d arrays: multi-dimensional arrays are not supported.
@@ -1107,7 +1108,6 @@ class ExposureModel:
         )
         
         # oneoverln2 multiplied by ID_50 corresponds to ID_63.
-        oneoverln2 = 1 / np.log(2)
         infectious_dose = oneoverln2 * self.concentration_model.virus.infectious_dose
 
         # Probability of infection.        
