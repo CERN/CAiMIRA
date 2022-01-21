@@ -250,6 +250,20 @@ function on_wearing_mask_change() {
   })
 }
 
+function on_short_range_option_change() {
+  short_range = $('input[type=radio][name=short_range_option]')
+  short_range.each(function (index){
+    if (this.checked) {
+      getChildElement($(this)).show();
+      require_fields(this);
+    } 
+    else {
+      getChildElement($(this)).hide();
+      require_fields(this);
+    }
+  })
+}
+
 /* -------UI------- */
 
 function show_disclaimer() {
@@ -379,6 +393,19 @@ function validate_form(form) {
     }
   }
 
+  // Generate the short range interactions list
+  let short_range_interactions = [];
+  $(".form_field_outer_row").each(function (index){
+      index = index + 1;
+
+      let obj = {};
+      obj.activity = $("#sr_activity_no_" + String(index)).val();
+      obj.start_time = $("#sr_start_no_" + String(index)).val();
+      obj.duration = $("#sr_duration_no_" + String(index)).val();
+      short_range_interactions.push(JSON.stringify(obj));
+  });
+  $("input[type=text][name=short_range_interactions]").val('[' + short_range_interactions + ']');
+
   if (submit) {
     $("#generate_report").prop("disabled", true);
     //Add spinner to button
@@ -492,6 +519,51 @@ function validateLunchTime(obj) {
   return true;
 }
 
+function overlapped_times(obj, start_time, finish_time) {
+    let current_interaction = $(obj).closest(".form_field_outer_row");
+    $(".form_field_outer_row").not(current_interaction).each(function(index) {
+        start_time_2 = parseTimeToMins($('#sr_start_no_' + String(index + 1)).val());
+        finish_time_2 = start_time_2 + parseInt($('#sr_duration_no_' + String(index + 1)).val());
+        if ((start_time >= start_time_2 && start_time <= finish_time_2) || (finish_time >= start_time_2 && finish_time <= finish_time_2) || start_time == start_time_2 ||
+            (start_time <= start_time_2 && finish_time >= finish_time_2)) {
+            if (!$(obj).hasClass("red_border")) { //Adds the red border and error message.
+                var parameter = document.getElementById($(obj).attr('id'));
+                insertErrorFor(parameter, "Short range interactions must not overlap.")
+                $(parameter).addClass("red_border");
+            }
+            return false;
+        } else {
+            removeErrorFor($(obj));
+            $(obj).removeClass("red_border");
+        }
+    });
+}
+
+function validate_sr_time(obj) {
+    if ($(obj).val() != "") {
+        let obj_id = $(obj).attr('id').split('_').slice(-1)[0];
+        let start_time = parseTimeToMins($('#sr_start_no_' + String(obj_id)).val());
+        let finish_time = start_time + parseInt($('#sr_duration_no_' + String(obj_id)).val());
+        overlapped_times(obj, start_time, finish_time);
+    }
+};
+
+// Check if short range durations are filled, and if there is no repetitions
+function validate_sr_parameter(obj, error_message) {
+    if ($(obj).val() == "") {
+        if (!$(obj).hasClass("red_border")) {
+            var parameter = document.getElementById($(obj).attr('id'));
+            insertErrorFor(parameter, error_message)
+            $(parameter).addClass("red_border");
+        }
+        return false;
+    } else {
+        removeErrorFor($(obj));
+        $(obj).removeClass("red_border");
+        return true;
+    }
+}
+
 function parseValToNumber(val) {
   return parseInt(val.replace(':',''), 10);
 }
@@ -527,6 +599,20 @@ $(document).ready(function () {
       //Pre-select checkboxes
       else if (elemObj.type === 'checkbox') {
         elemObj.checked = (value==1);
+      }
+
+      // Read short range from URL
+      else if (name == 'short_range_interactions') {
+        let index = 1;
+        for (const interaction of JSON.parse(value)) {
+          $("#dialog_sr").append(inject_sr_interaction(index, value = interaction))
+          $('#sr_activity_no_' + String(index)).val(interaction.activity).change();
+          document.getElementById('sr_activity_no_' + String(index)).disabled = true;
+          document.getElementById('sr_start_no_' + String(index)).disabled = true;
+          document.getElementById('sr_duration_no_' + String(index)).disabled = true;
+          index++;
+        }
+        $("#sr_interactions").text(index - 1);
       }
 
       //Ignore 0 (default) values from server side
@@ -577,6 +663,12 @@ $(document).ready(function () {
   $("input[type=radio][name=mask_wearing_option]").change(on_wearing_mask_change);
   // Call the function now to handle forward/back button presses in the browser.
   on_wearing_mask_change();
+
+  // When the short_range_option changes we want to make its respective
+  // children show/hide.
+  $("input[type=radio][name=short_range_option]").change(on_short_range_option_change);
+  // Call the function now to handle forward/back button presses in the browser.
+  on_short_range_option_change();
 
   // Setup the maximum number of people at page load (to handle back/forward),
   // and update it when total people is changed.
@@ -690,6 +782,97 @@ $(document).ready(function () {
     }
     return selectedSuggestion.text;
   }
+
+  function inject_sr_interaction(index, value) {
+    return `<div class="col-md-12 form_field_outer p-0">
+      <div class="form_field_outer_row split">
+        <div class="split" style="flex: 3">
+          <div class='form-group row align-content-center'>
+            <div class="col-sm-4"><label class="col-form-label"> Expiratory activity: </label></div>
+            <div class="col-sm-6 align-self-center"><select id="sr_activity_no_${index}" name="short_range_activity" class="form-control" form="not-submitted">
+              <option value="" selected disabled>Select type</option>
+              <option value="Breathing">Breathing</option>
+              <option value="Speaking">Speaking</option>
+              <option value="Shouting">Shouting</option>
+            </select></div>
+          </div>
+            <div class='form-group row align-content-center'>
+              <div class="col-sm-4"><label class="col-form-label"> Start: </label></div>
+              <div class="col-sm-6"><input type="time" class="form-control" name="short_range_start_time" id="sr_start_no_${index}" value="${value.start_time}" onchange="validate_sr_time(this)" form="not-submitted"></div>
+            </div>
+        </div>
+        <div class="split" style="flex: 2">
+          <div class='form-group row align-content-center' style="flex: 2">
+            <div class="col-sm-4"><label class="col-form-label"> Duration: </label></div>
+            <div class="col-sm-6"><input type="number" id="sr_duration_no_${index}" value="${value.duration}" class="form-control" name="short_range_duration" min=1 placeholder="Minutes" onchange="validate_sr_time(this)" form="not-submitted"></div>
+          </div>
+          <div class="form-group align-self-center" style="flex: 0">
+            <button type="button" class="remove_node_btn_frm_field btn btn-danger">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>`
+  }
+
+  // When short_range_yes option is selected, we want to inject rows for each expiractory activity, start_time and duration.
+  $("body").on("click", ".add_node_btn_frm_field", function(e) {
+    var index;
+    if ($(".form_field_outer").find(".form_field_outer_row").length != 0) {
+      index = parseInt($(".form_field_outer").find(".form_field_outer_row").last().find("input[type='number']").attr('id').split('_').slice(-1)[0]);
+    } else {
+      index = 0;
+    }
+    var activity, start, duration;
+    if (index != 0) {
+      activity = validate_sr_parameter('#sr_activity_no_' + String(index)[0], "You must specify the activity type.");
+      start = validate_sr_parameter('#sr_start_no_' + String(index)[0], "You must specify the start time.");
+      duration = validate_sr_parameter('#sr_duration_no_' + String(index)[0], "You must specify the duration.");
+    }
+    if ((activity && start && duration) || index == 0) {
+      if (index != 0) {
+        document.getElementById('sr_activity_no_' + String(index)).disabled = true;
+        document.getElementById('sr_start_no_' + String(index)).disabled = true;
+        document.getElementById('sr_duration_no_' + String(index)).disabled = true;
+      }
+      index = index + 1;
+      $("#dialog_sr").append(inject_sr_interaction(index, value = { activity: "", start_time: "", duration: "" }));
+    };
+  });
+
+  //Remove short range interaction (modal field row).
+  $("body").on("click", ".remove_node_btn_frm_field", function() {
+    $(this).closest(".form_field_outer_row").remove();
+  });
+
+  //Short range modal - save button
+  $("body").on("click", ".save_btn_frm_field", function() {
+    let has_interactions = false;
+    var activity, start, duration;
+    $(".form_field_outer_row").each(function(index) {
+      activity = validate_sr_parameter('#sr_activity_no_' + String(index)[0], "You must specify the activity type.");
+      start = validate_sr_parameter('#sr_start_no_' + String(index)[0], "You must specify the start time.");
+      duration = validate_sr_parameter('#sr_duration_no_' + String(index)[0], "You must specify the duration.");
+      has_interactions = true;
+    });
+    if (activity, start, duration || !has_interactions) {
+      $("#sr_interactions").text($(".form_field_outer").find(".form_field_outer_row").length);
+      if (has_interactions) {
+        index = parseInt($(".form_field_outer").find(".form_field_outer_row").last().find("input[type='number']").attr('id').split('_').slice(-1)[0]);
+        document.getElementById('sr_activity_no_' + String(index)).disabled = true;
+        document.getElementById('sr_start_no_' + String(index)).disabled = true;
+        document.getElementById('sr_duration_no_' + String(index)).disabled = true;
+      }
+      $('#short_range_dialog').modal('hide');
+    }
+  });
+
+  //Short range modal - close button
+  $("body").on("click", ".dismiss_btn_frm_field", function() {
+    $(".form_field_outer_row").remove();
+    $("#sr_interactions").text(0);
+  });
+
+
 });
 
 
