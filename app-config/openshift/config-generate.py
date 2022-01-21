@@ -28,7 +28,6 @@ def generate_config(output_directory: pathlib.Path, project_name: str, hostname:
             print(f'Running: {" ".join(cmd)}')
             subprocess.run(cmd, stdout=fh, check=True)
 
-    oc_process('routes', context={'HOST': hostname})
     oc_process('configmap')
     oc_process('services')
     oc_process('imagestreams')
