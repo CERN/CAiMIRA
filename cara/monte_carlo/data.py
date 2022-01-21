@@ -3,6 +3,7 @@ import typing
 
 import numpy as np
 from scipy import special as sp
+import scipy.integrate
 
 import cara.monte_carlo as mc
 from cara.monte_carlo.sampleable import Normal,LogNormal,LogCustomKernel,CustomKernel,Uniform
@@ -51,6 +52,9 @@ class BLOmodel:
                     np.exp(-(np.log(d) - mu) ** 2 / (2 * sigma ** 2))
                     for A,cn,mu,sigma in zip(self.BLO_factors, self.cn,
                                              self.mu, self.sigma) )
+    
+    def volume(self, d):
+        return(np.pi * d**3) / 6
 
     def integrate(self, dmin, dmax):
         """ 
@@ -162,7 +166,7 @@ def expiration_distribution(BLO_factors):
     Returns an Expiration with an aerosol diameter distribution, defined
     by the BLO factors (a length-3 tuple).
     The total concentration of aerosols is computed by integrating
-    the distribution between 0.1 and 30 microns - these boundaries are
+    the distribution between 0.1 and D microns - these boundaries are
     an historical choice based on previous implementations of the model
     (it limits the influence of the O-mode).
     """
@@ -170,6 +174,31 @@ def expiration_distribution(BLO_factors):
     return mc.Expiration(CustomKernel(dscan,
                 BLOmodel(BLO_factors).distribution(dscan),kernel_bandwidth=0.1),
                 BLOmodel(BLO_factors).integrate(0.1, 30.))
+
+
+def dilution_factor(distance, D=0.02):
+        u0 = 0.6
+        tstar = 2.0
+        Cr1 = 0.18
+        Cr2 = 0.2
+        Cx1 = 2.4
+        # The expired flow rate during the expiration period, m^3/s
+        Q0 = u0 * np.pi/4*D**2 
+        # Parameters in the jet-like stage
+        x01 = D/2/Cr1
+        # Time of virtual origin
+        t01 = (x01/Cx1)**2 * (Q0*u0)**(-0.5)
+        # The transition point, m
+        xstar = Cx1*(Q0*u0)**0.25*(tstar + t01)**0.5 - x01
+        # Dilution factor at the transition point xstar
+        Sxstar = 2*Cr1*(xstar+x01)/D
+        return np.mean(np.piecewise(distance, [distance < xstar, distance >= xstar], 
+            [lambda distance : 2*Cr1*(distance + x01)/D, lambda distance : Sxstar*(1 + Cr2*(distance - xstar)/Cr1/(xstar + x01))**3]))
+
+
+def initial_concentration_mouth(BLO_factors):
+    value, error = scipy.integrate.quad(lambda d: BLOmodel(BLO_factors).distribution(d) * BLOmodel(BLO_factors).volume(d), 0.1, 1000)
+    return value * 1e-6 #result in mL/m^3
 
 
 expiration_BLO_factors = {
@@ -182,5 +211,11 @@ expiration_BLO_factors = {
 
 expiration_distributions = {
     exp_type: expiration_distribution(BLO_factors)
+    for exp_type,BLO_factors in expiration_BLO_factors.items()
+}
+
+
+initial_concentrations_mouth = {
+    exp_type: initial_concentration_mouth(BLO_factors)
     for exp_type,BLO_factors in expiration_BLO_factors.items()
 }

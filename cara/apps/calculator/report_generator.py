@@ -12,8 +12,9 @@ import jinja2
 import numpy as np
 
 from cara import models
+from cara.monte_carlo.data import initial_concentrations_mouth, dilution_factor
 from ... import monte_carlo as mc
-from .model_generator import FormData, _DEFAULT_MC_SAMPLE_SIZE
+from .model_generator import FormData, _DEFAULT_MC_SAMPLE_SIZE, build_expiration
 from ... import dataclass_utils
 
 
@@ -96,12 +97,44 @@ def interesting_times(model: models.ExposureModel, approx_n_pts=100) -> typing.L
     return nice_times
 
 
+def short_range_interesting_times(model: models.ExposureModel, times: typing.List[float]) -> typing.List[float]:
+    short_range_times = []
+    for period in model.concentration_model.infected.short_range_presence:
+        start, finish = period.boundaries()
+        short_range_times = short_range_times + [time for time in times if time > start and time < finish]
+    return short_range_times
+
+
+def jet_origin_concentrations(model: models.ExposureModel) -> models._ExpirationBase:
+    return [initial_concentrations_mouth[activity] for activity in model.concentration_model.infected.short_range_activities]
+
+
+def short_range_initial_concentrations(model: models.ExposureModel, time: float):
+    dilution = dilution_factor(np.linspace(0.1, 2., 1000))
+    jet_origin_initial_concentrations = jet_origin_concentrations(model)
+    for index, interaction in enumerate(model.concentration_model.infected.short_range_presence):
+        start, finish = interaction.boundaries()
+        if start <= time <= finish:
+            expiration = build_expiration(model.concentration_model.infected.short_range_activities[index])
+            single_exposure_model = dataclass_utils.nested_replace(
+                model, {'concentration_model.infected.expiration': expiration}
+            )
+            concentration = single_exposure_model.concentration_model._normed_concentration(float(time))
+            jet_origin_concentration = jet_origin_initial_concentrations[index] * model.concentration_model.infected.virus.viral_load_in_sputum
+            return concentration + ((1/dilution)*(jet_origin_concentration - concentration))
+
+
 def calculate_report_data(model: models.ExposureModel):
     times = interesting_times(model)
+    times_short_range = short_range_interesting_times(model, times)
 
     concentrations = [
         np.array(model.concentration_model.concentration(float(time))).mean()
         for time in times
+    ]
+    short_range_concentrations = [
+        np.array(short_range_initial_concentrations(model, float(time))).mean()
+        for time in times_short_range
     ]
     highest_const = max(concentrations)
     prob = np.array(model.infection_probability()).mean()
@@ -118,6 +151,7 @@ def calculate_report_data(model: models.ExposureModel):
         "exposed_presence_intervals": [list(interval) for interval in model.exposed.presence.boundaries()],
         "cumulative_doses": list(cumulative_doses),
         "concentrations": concentrations,
+        "short_range_concentrations": short_range_concentrations,
         "highest_const": highest_const,
         "prob_inf": prob,
         "emission_rate": er,

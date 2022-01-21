@@ -3,6 +3,8 @@ import datetime
 import html
 import logging
 import typing
+import ast
+import json 
 
 import numpy as np
 
@@ -11,7 +13,7 @@ from cara import data
 import cara.data.weather
 import cara.monte_carlo as mc
 from .. import calculator
-from cara.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions
+from cara.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions, initial_concentrations_mouth
 from cara.monte_carlo.data import expiration_distribution, expiration_BLO_factors, expiration_distributions
 
 
@@ -76,6 +78,8 @@ class FormData:
     window_width: float
     windows_number: int
     window_opening_regime: str
+    short_range_option: str
+    short_range_interactions: list
 
     #: The default values for undefined fields. Note that the defaults here
     #: and the defaults in the html form must not be contradictory.
@@ -127,6 +131,8 @@ class FormData:
         'windows_frequency': 0.,
         'windows_number': 0,
         'window_opening_regime': 'windows_open_permanently',
+        'short_range_option': False,
+        'short_range_interactions': [],
     }
 
     @classmethod
@@ -416,6 +422,8 @@ class FormData:
             number=infected_occupants,
             virus=virus,
             presence=self.infected_present_interval(),
+            short_range_presence=self.short_range_intervals(),
+            short_range_activities=self.short_range_activities(),
             mask=self.mask(),
             activity=activity,
             expiration=expiration,
@@ -448,6 +456,7 @@ class FormData:
         exposed = mc.Population(
             number=exposed_occupants,
             presence=self.exposed_present_interval(),
+            short_range_presence=self.short_range_interactions,
             activity=activity,
             mask=self.mask(),
             host_immunity=0.,
@@ -623,11 +632,29 @@ class FormData:
             breaks=self.infected_lunch_break_times() + self.infected_coffee_break_times(),
         )
 
+    def short_range_intervals(self) -> models.Interval:
+        if (self.short_range_interactions):
+            short_range_intervals = []
+            for interaction in self.short_range_interactions:
+                start_time = time_string_to_minutes(interaction['start_time'])
+                duration = float(interaction['duration'])
+                short_range_intervals.append(models.SpecificInterval((start_time/60, (start_time + duration)/60)))
+
+            return short_range_intervals
+        else:
+            return []
+
     def exposed_present_interval(self) -> models.Interval:
         return self.present_interval(
             self.exposed_start, self.exposed_finish,
             breaks=self.exposed_lunch_break_times() + self.exposed_coffee_break_times(),
         )
+
+    def short_range_activities(self):
+        if (self.short_range_interactions):
+            return [interaction['activity'] for interaction in self.short_range_interactions]
+        else:
+            return []
 
 
 def build_expiration(expiration_definition) -> models._ExpirationBase:
@@ -641,6 +668,12 @@ def build_expiration(expiration_definition) -> models._ExpirationBase:
             ], axis=0)
         return expiration_distribution(tuple(BLO_factors))
 
+
+def build_concentration_mouth(short_range_def) -> models._ExpirationBase:
+    expiration_definition = short_range_def[1]['activity']
+    if isinstance(expiration_definition, str):
+        return initial_concentrations_mouth[expiration_definition]
+    
 
 def baseline_raw_form_data():
     # Note: This isn't a special "baseline". It can be updated as required.
@@ -691,7 +724,8 @@ def baseline_raw_form_data():
         'window_type': 'window_sliding',
         'window_width': '2',
         'windows_number': '1',
-        'window_opening_regime': 'windows_open_permanently'
+        'window_opening_regime': 'windows_open_permanently',
+        'short_range_option': 'short_range_no',
     }
 
 
@@ -736,6 +770,15 @@ def time_minutes_to_string(time: int) -> str:
     return "{0:0=2d}".format(int(time/60)) + ":" + "{0:0=2d}".format(time%60)
 
 
+def string_to_list(l: str) -> list:
+    if (l != []):
+        return list(ast.literal_eval(l.replace("&quot;", "\"")))
+
+
+def list_to_string(s: list) -> str:
+    return json.dumps(s)
+
+
 def _safe_int_cast(value) -> int:
     if isinstance(value, int):
         return value
@@ -767,3 +810,6 @@ for _field in dataclasses.fields(FormData):
     elif _field.type is bool:
         _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = lambda v: v == '1'
         _CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = int
+    elif _field.type is list:
+        _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = string_to_list
+        _CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = list_to_string
