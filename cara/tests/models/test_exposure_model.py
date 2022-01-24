@@ -66,6 +66,8 @@ def known_concentrations(func):
         virus=models.Virus.types['SARS_CoV_2_ALPHA'],
         expiration=models.Expiration.types['Speaking'],
         host_immunity=0.,
+        short_range_presence=[],
+        short_range_activities=[],
     )
     normed_func = lambda x: func(x) / dummy_infected_population.emission_rate_when_present()
     return KnownNormedconcentration(dummy_room, dummy_ventilation,
@@ -154,6 +156,8 @@ def conc_model():
             # superspreading event, where ejection factor is fixed based
             # on Miller et al. (2020) - 50 represents the infectious dose.
             host_immunity=0.,
+            short_range_presence=[],
+            short_range_activities=[],
         ),
         evaporation_factor=0.3,
     )
@@ -197,6 +201,8 @@ def test_infectious_dose_vectorisation():
         ),
         expiration=models.Expiration.types['Speaking'],
         host_immunity=0.,
+        short_range_presence=[],
+        short_range_activities=[],
     )
     cm = known_concentrations(lambda t: 1.2)
     cm = replace(cm, infected=infected_population)

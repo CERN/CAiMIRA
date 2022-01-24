@@ -55,6 +55,8 @@ def baseline_mc_model() -> cara.monte_carlo.ConcentrationModel:
             activity=cara.models.Activity.types['Light activity'],
             expiration=cara.models.Expiration.types['Breathing'],
             host_immunity=0.,
+            short_range_presence=[],
+            short_range_activities=[],
         ),
         evaporation_factor=0.3,
     )

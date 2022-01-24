@@ -47,6 +47,8 @@ def test_concentration_model_vectorisation(override_params):
             ),
             expiration=models._ExpirationBase.types['Breathing'],
             host_immunity=0.,
+            short_range_presence=[],
+            short_range_activities=[],
         ),
         evaporation_factor=0.3,
     )
@@ -69,6 +71,8 @@ def simple_conc_model():
             virus=models.Virus.types['SARS_CoV_2'],
             expiration=models.Expiration.types['Breathing'],
             host_immunity=0.,
+            short_range_presence=[],
+            short_range_activities=[],
         ),
         evaporation_factor=0.3,
     )

@@ -98,14 +98,14 @@ def interesting_times(model: models.ExposureModel, approx_n_pts=100) -> typing.L
 
 
 def short_range_interesting_times(model: models.ExposureModel, times: typing.List[float]) -> typing.List[float]:
-    short_range_times = []
+    short_range_times : typing.List[float] = []
     for period in model.concentration_model.infected.short_range_presence:
-        start, finish = period.boundaries()
+        start, finish = tuple(period.boundaries())
         short_range_times = short_range_times + [time for time in times if time > start and time < finish]
     return short_range_times
 
 
-def jet_origin_concentrations(model: models.ExposureModel) -> models._ExpirationBase:
+def jet_origin_concentrations(model: models.ExposureModel) -> typing.List[float]:
     return [initial_concentrations_mouth[activity] for activity in model.concentration_model.infected.short_range_activities]
 
 
@@ -113,7 +113,7 @@ def short_range_initial_concentrations(model: models.ExposureModel, time: float)
     dilution = dilution_factor(np.linspace(0.1, 2., 1000))
     jet_origin_initial_concentrations = jet_origin_concentrations(model)
     for index, interaction in enumerate(model.concentration_model.infected.short_range_presence):
-        start, finish = interaction.boundaries()
+        start, finish = tuple(interaction.boundaries())
         if start <= time <= finish:
             expiration = build_expiration(model.concentration_model.infected.short_range_activities[index])
             single_exposure_model = dataclass_utils.nested_replace(

@@ -78,7 +78,7 @@ class FormData:
     window_width: float
     windows_number: int
     window_opening_regime: str
-    short_range_option: str
+    short_range_option: bool
     short_range_interactions: list
 
     #: The default values for undefined fields. Note that the defaults here
@@ -132,7 +132,7 @@ class FormData:
         'windows_number': 0,
         'window_opening_regime': 'windows_open_permanently',
         'short_range_option': False,
-        'short_range_interactions': [],
+        'short_range_interactions': '[]',
     }
 
     @classmethod
@@ -422,12 +422,12 @@ class FormData:
             number=infected_occupants,
             virus=virus,
             presence=self.infected_present_interval(),
-            short_range_presence=self.short_range_intervals(),
-            short_range_activities=self.short_range_activities(),
             mask=self.mask(),
             activity=activity,
             expiration=expiration,
             host_immunity=0.,
+            short_range_presence=self.short_range_intervals(),
+            short_range_activities=self.short_range_activities(),
         )
         return infected
 
@@ -456,7 +456,6 @@ class FormData:
         exposed = mc.Population(
             number=exposed_occupants,
             presence=self.exposed_present_interval(),
-            short_range_presence=self.short_range_interactions,
             activity=activity,
             mask=self.mask(),
             host_immunity=0.,
@@ -632,14 +631,13 @@ class FormData:
             breaks=self.infected_lunch_break_times() + self.infected_coffee_break_times(),
         )
 
-    def short_range_intervals(self) -> models.Interval:
+    def short_range_intervals(self) -> typing.List[models.SpecificInterval]:
         if (self.short_range_interactions):
             short_range_intervals = []
             for interaction in self.short_range_interactions:
                 start_time = time_string_to_minutes(interaction['start_time'])
                 duration = float(interaction['duration'])
                 short_range_intervals.append(models.SpecificInterval((start_time/60, (start_time + duration)/60)))
-
             return short_range_intervals
         else:
             return []
@@ -650,7 +648,7 @@ class FormData:
             breaks=self.exposed_lunch_break_times() + self.exposed_coffee_break_times(),
         )
 
-    def short_range_activities(self):
+    def short_range_activities(self) -> typing.List[str]:
         if (self.short_range_interactions):
             return [interaction['activity'] for interaction in self.short_range_interactions]
         else:

@@ -32,7 +32,7 @@ or length N arrays, where N is the number of parameterisations to run; N must be
 the same for all parameters of a single model.
 
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import typing
 
 import numpy as np
@@ -678,9 +678,6 @@ class Population:
     #: The times in which the people are in the room.
     presence: Interval
 
-    #: Short range interactions
-    short_range_presence: list
-
     #: The kind of mask being worn by the people.
     mask: Mask
 
@@ -700,6 +697,12 @@ class Population:
 class _PopulationWithVirus(Population):
     #: The virus with which the population is infected.
     virus: Virus
+
+    #: Short range interactions
+    short_range_presence: typing.List[SpecificInterval]
+
+    #: The type of expiractory activities in the short range interactions
+    short_range_activities: typing.List[str]
 
     @method_cache
     def fraction_of_infectious_virus(self) -> _VectorisedFloat:
@@ -751,10 +754,7 @@ class EmittingPopulation(_PopulationWithVirus):
 @dataclass(frozen=True)
 class InfectedPopulation(_PopulationWithVirus):
     #: The type of expiration that is being emitted whilst doing the activity.
-    expiration: _ExpirationBase 
-    
-    #: The type of expiractory activities in the short range interactions
-    short_range_activities: list
+    expiration: _ExpirationBase
 
     @method_cache
     def fraction_of_infectious_virus(self) -> _VectorisedFloat:
