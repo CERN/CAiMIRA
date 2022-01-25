@@ -78,7 +78,7 @@ class FormData:
     window_width: float
     windows_number: int
     window_opening_regime: str
-    short_range_option: bool
+    short_range_option: str
     short_range_interactions: list
 
     #: The default values for undefined fields. Note that the defaults here
@@ -131,7 +131,7 @@ class FormData:
         'windows_frequency': 0.,
         'windows_number': 0,
         'window_opening_regime': 'windows_open_permanently',
-        'short_range_option': False,
+        'short_range_option': 'short_range_no',
         'short_range_interactions': '[]',
     }
 
@@ -724,6 +724,7 @@ def baseline_raw_form_data():
         'windows_number': '1',
         'window_opening_regime': 'windows_open_permanently',
         'short_range_option': 'short_range_no',
+        'short_range_interactions': '[]',
     }
 
 
