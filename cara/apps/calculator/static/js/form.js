@@ -520,69 +520,69 @@ function validateLunchTime(obj) {
 }
 
 function overlapped_times(obj, start_time, finish_time) {
-    let simulation_start = parseTimeToMins($("#exposed_start").val())
-    let simulation_finish = parseTimeToMins($("#exposed_finish").val())
-    let simulation_lunch_start = parseTimeToMins($("#exposed_lunch_start").val())
-    let simulation_lunch_finish = parseTimeToMins($("#exposed_lunch_finish").val())
-    if (start_time < simulation_start || start_time > simulation_finish  ||
-        finish_time < simulation_start || finish_time > simulation_finish ||
-        start_time >= simulation_lunch_start && start_time <= simulation_lunch_finish ||
-        finish_time >= simulation_lunch_start && finish_time <= simulation_lunch_finish ) {//If start and finish inputs are out of the simulation period
-            let parameter = document.getElementById($(obj).attr('id'));
-            if (!$(obj).hasClass("red_border")) { //Adds the red border and error message.
-                $(parameter).addClass("red_border");
-            }
-            removeErrorFor($(obj));
-            insertErrorFor(parameter, "Short range interactions must be within the simulation time.")
-            return;
-    } else {
+  let simulation_start = parseTimeToMins($("#exposed_start").val())
+  let simulation_finish = parseTimeToMins($("#exposed_finish").val())
+  let simulation_lunch_start = parseTimeToMins($("#exposed_lunch_start").val())
+  let simulation_lunch_finish = parseTimeToMins($("#exposed_lunch_finish").val())
+  if (start_time < simulation_start || start_time > simulation_finish  ||
+    finish_time < simulation_start || finish_time > simulation_finish ||
+    start_time >= simulation_lunch_start && start_time <= simulation_lunch_finish ||
+    finish_time >= simulation_lunch_start && finish_time <= simulation_lunch_finish ) {//If start and finish inputs are out of the simulation period
+      let parameter = document.getElementById($(obj).attr('id'));
+      if (!$(obj).hasClass("red_border")) { //Adds the red border and error message.
+        $(parameter).addClass("red_border");
+      }
+      removeErrorFor($(obj));
+      insertErrorFor(parameter, "Short range interactions must be within the simulation time.")
+      return;
+  } else {
+    removeErrorFor($(obj));
+    $(obj).removeClass("red_border");
+  } 
+  let current_interaction = $(obj).closest(".form_field_outer_row");
+  $(".form_field_outer_row").not(current_interaction).each(function(index) {
+    start_time_2 = parseTimeToMins($('#sr_start_no_' + String(index + 1)).val());
+    finish_time_2 = start_time_2 + parseInt($('#sr_duration_no_' + String(index + 1)).val());
+    if ((start_time >= start_time_2 && start_time <= finish_time_2) || ( //If hour input is within other time range
+      finish_time >= start_time_2 && finish_time <= finish_time_2) || //If finish time input is within other time range
+        (start_time <= start_time_2 && finish_time >= finish_time_2) || //If start and finish inputs encompass other time range 
+        start_time == start_time_2) {
+        let parameter = document.getElementById($(obj).attr('id'));
+        if (!$(obj).hasClass("red_border")) $(parameter).addClass("red_border"); //Adds the red border and error message.
         removeErrorFor($(obj));
-        $(obj).removeClass("red_border");
-    } 
-    let current_interaction = $(obj).closest(".form_field_outer_row");
-    $(".form_field_outer_row").not(current_interaction).each(function(index) {
-        start_time_2 = parseTimeToMins($('#sr_start_no_' + String(index + 1)).val());
-        finish_time_2 = start_time_2 + parseInt($('#sr_duration_no_' + String(index + 1)).val());
-        if ((start_time >= start_time_2 && start_time <= finish_time_2) || ( //If hour input is within other time range
-          finish_time >= start_time_2 && finish_time <= finish_time_2) || //If finish time input is within other time range
-            (start_time <= start_time_2 && finish_time >= finish_time_2) || //If start and finish inputs encompass other time range 
-            start_time == start_time_2) {
-            let parameter = document.getElementById($(obj).attr('id'));
-            if (!$(obj).hasClass("red_border")) $(parameter).addClass("red_border"); //Adds the red border and error message.
-            removeErrorFor($(obj));
-            insertErrorFor(parameter, "Short range interactions must not overlap.")
-            return false;
-        } else {
-            removeErrorFor($(obj));
-            $(obj).removeClass("red_border");
-        }
-    });
-}
-
-function validate_sr_time(obj) {
-    if ($(obj).val() != "") {
-        let obj_id = $(obj).attr('id').split('_').slice(-1)[0];
-        if ($(obj).attr('id').startsWith("sr_start_no_")) $("#sr_duration_no_" + obj_id).prop("disabled", false);
-        let start_time = parseTimeToMins($('#sr_start_no_' + String(obj_id)).val());
-        let finish_time = start_time + parseInt($('#sr_duration_no_' + String(obj_id)).val());
-        overlapped_times(obj, start_time, finish_time);
-    }
-};
-
-// Check if short range durations are filled, and if there is no repetitions
-function validate_sr_parameter(obj, error_message) {
-    if ($(obj).val() == "") {
-        if (!$(obj).hasClass("red_border")) {
-            var parameter = document.getElementById($(obj).attr('id'));
-            insertErrorFor(parameter, error_message)
-            $(parameter).addClass("red_border");
-        }
+        insertErrorFor(parameter, "Short range interactions must not overlap.")
         return false;
     } else {
         removeErrorFor($(obj));
         $(obj).removeClass("red_border");
-        return true;
     }
+  });
+}
+
+function validate_sr_time(obj) {
+  if ($(obj).val() != "") {
+    let obj_id = $(obj).attr('id').split('_').slice(-1)[0];
+    if ($(obj).attr('id').startsWith("sr_start_no_")) $("#sr_duration_no_" + obj_id).prop("disabled", false);
+    let start_time = parseTimeToMins($('#sr_start_no_' + String(obj_id)).val());
+    let finish_time = start_time + parseInt($('#sr_duration_no_' + String(obj_id)).val());
+    overlapped_times(obj, start_time, finish_time);
+  }
+};
+
+// Check if short range durations are filled, and if there is no repetitions
+function validate_sr_parameter(obj, error_message) {
+  if ($(obj).val() == "" || $(obj).val() == null) {
+    if (!$(obj).hasClass("red_border")) {
+      var parameter = document.getElementById($(obj).attr('id'));
+      insertErrorFor(parameter, error_message)
+      $(parameter).addClass("red_border");
+    }
+    return false;
+  } else {
+    removeErrorFor($(obj));
+    $(obj).removeClass("red_border");
+    return true;
+  }
 }
 
 function parseValToNumber(val) {
@@ -810,7 +810,7 @@ $(document).ready(function () {
         <div class="split" style="flex: 3">
           <div class='form-group row align-content-center'>
             <div class="col-sm-4"><label class="col-form-label"> Expiratory activity: </label></div>
-            <div class="col-sm-6 align-self-center"><select id="sr_activity_no_${index}" name="short_range_activity" class="form-control" form="not-submitted">
+            <div class="col-sm-6 align-self-center"><select id="sr_activity_no_${index}" name="short_range_activity" class="form-control" onchange="validate_sr_parameter(this)" form="not-submitted">
               <option value="" selected disabled>Select type</option>
               <option value="Breathing">Breathing</option>
               <option value="Speaking">Speaking</option>
@@ -837,27 +837,20 @@ $(document).ready(function () {
 
   // When short_range_yes option is selected, we want to inject rows for each expiractory activity, start_time and duration.
   $("body").on("click", ".add_node_btn_frm_field", function(e) {
-    var index;
-    if ($(".form_field_outer").find(".form_field_outer_row").length != 0) {
-      index = parseInt($(".form_field_outer").find(".form_field_outer_row").last().find("input[type='number']").attr('id').split('_').slice(-1)[0]);
-    } else {
-      index = 0;
-    }
-    var activity, start, duration;
-    if (index != 0) {
-      activity = validate_sr_parameter('#sr_activity_no_' + String(index)[0], "You must specify the activity type.");
-      start = validate_sr_parameter('#sr_start_no_' + String(index)[0], "You must specify the start time.");
-      duration = validate_sr_parameter('#sr_duration_no_' + String(index)[0], "You must specify the duration.");
-    }
-    if ((activity && start && duration) || index == 0) {
-      if (index != 0) {
+    let index = $(".form_field_outer").find(".form_field_outer_row").length;
+    if (index == 0) $("#dialog_sr").append(inject_sr_interaction(1, value = { activity: "", start_time: "", duration: "" }));
+    else {
+      let activity = validate_sr_parameter('#sr_activity_no_' + String(index)[0], "You must specify the activity type.");
+      let start = validate_sr_parameter('#sr_start_no_' + String(index)[0], "You must specify the start time.");
+      let duration = validate_sr_parameter('#sr_duration_no_' + String(index)[0], "You must specify the duration.");
+      if (activity && start && duration) {
         document.getElementById('sr_activity_no_' + String(index)).disabled = true;
         document.getElementById('sr_start_no_' + String(index)).disabled = true;
         document.getElementById('sr_duration_no_' + String(index)).disabled = true;
+        index = index + 1;
+        $("#dialog_sr").append(inject_sr_interaction(index, value = { activity: "", start_time: "", duration: "" }));
       }
-      index = index + 1;
-      $("#dialog_sr").append(inject_sr_interaction(index, value = { activity: "", start_time: "", duration: "" }));
-    };
+    }
   });
 
   //Remove short range interaction (modal field row).
@@ -867,23 +860,19 @@ $(document).ready(function () {
 
   //Short range modal - save button
   $("body").on("click", ".save_btn_frm_field", function() {
-    let has_interactions = false;
-    var activity, start, duration;
-    $(".form_field_outer_row").each(function(index) {
-      activity = validate_sr_parameter('#sr_activity_no_' + String(index)[0], "You must specify the activity type.");
-      start = validate_sr_parameter('#sr_start_no_' + String(index)[0], "You must specify the start time.");
-      duration = validate_sr_parameter('#sr_duration_no_' + String(index)[0], "You must specify the duration.");
-      has_interactions = true;
-    });
-    if (activity, start, duration || !has_interactions) {
-      $("#sr_interactions").text($(".form_field_outer").find(".form_field_outer_row").length);
-      if (has_interactions) {
-        index = parseInt($(".form_field_outer").find(".form_field_outer_row").last().find("input[type='number']").attr('id').split('_').slice(-1)[0]);
+    let index = $(".form_field_outer").find(".form_field_outer_row").length;
+    if (index == 0) $('#short_range_dialog').modal('hide');
+    else {
+      let activity = validate_sr_parameter('#sr_activity_no_' + String(index)[0], "You must specify the activity type.");
+      let start = validate_sr_parameter('#sr_start_no_' + String(index)[0], "You must specify the start time.");
+      let duration = validate_sr_parameter('#sr_duration_no_' + String(index)[0], "You must specify the duration.");
+      if (activity && start && duration) {
         document.getElementById('sr_activity_no_' + String(index)).disabled = true;
         document.getElementById('sr_start_no_' + String(index)).disabled = true;
         document.getElementById('sr_duration_no_' + String(index)).disabled = true;
+        $("#sr_interactions").text($(".form_field_outer").find(".form_field_outer_row").length);
+        $('#short_range_dialog').modal('hide');
       }
-      $('#short_range_dialog').modal('hide');
     }
   });
 
