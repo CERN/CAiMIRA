@@ -589,7 +589,9 @@ class Expiration(_ExpirationBase):
     #: diameter of the aerosol in microns
     diameter: _VectorisedFloat
 
-    #: total concentration of aerosols (cm^-3)
+    #: total concentration of aerosols per unit volume of expired air
+    # (in cm^-3), integrated over all aerosol diameters (corresponding
+    # to c_n,i in Eq. (4) of https://doi.org/10.1101/2021.10.14.21264988)
     cn: float = 1.
 
     @cached()
