@@ -110,16 +110,12 @@ def jet_origin_concentrations(model: models.ExposureModel) -> typing.List[float]
 
 
 def short_range_initial_concentrations(model: models.ExposureModel, time: float):
-    dilution = dilution_factor(np.linspace(0.1, 2., 1000))
+    dilution = dilution_factor(distance=np.linspace(0.1, 2., 1000))
     jet_origin_initial_concentrations = jet_origin_concentrations(model)
     for index, interaction in enumerate(model.concentration_model.infected.short_range_presence):
         start, finish = tuple(interaction.boundaries())
         if start <= time <= finish:
-            expiration = build_expiration(model.concentration_model.infected.short_range_activities[index])
-            single_exposure_model = dataclass_utils.nested_replace(
-                model, {'concentration_model.infected.expiration': expiration}
-            )
-            concentration = single_exposure_model.concentration_model._normed_concentration(float(time))
+            concentration = model.concentration_model.concentration(float(time))
             jet_origin_concentration = jet_origin_initial_concentrations[index] * model.concentration_model.infected.virus.viral_load_in_sputum
             return concentration + ((1/dilution)*(jet_origin_concentration - concentration))
 

@@ -520,17 +520,39 @@ function validateLunchTime(obj) {
 }
 
 function overlapped_times(obj, start_time, finish_time) {
+    let simulation_start = parseTimeToMins($("#exposed_start").val())
+    let simulation_finish = parseTimeToMins($("#exposed_finish").val())
+    let simulation_lunch_start = parseTimeToMins($("#exposed_lunch_start").val())
+    let simulation_lunch_finish = parseTimeToMins($("#exposed_lunch_finish").val())
+    if (start_time < simulation_start || start_time > simulation_finish  ||
+        finish_time < simulation_start || finish_time > simulation_finish ||
+        start_time >= simulation_lunch_start && start_time <= simulation_lunch_finish ||
+        finish_time >= simulation_lunch_start && finish_time <= simulation_lunch_finish ) {//If start and finish inputs are out of the simulation period
+            let parameter = document.getElementById($(obj).attr('id'));
+            if (!$(obj).hasClass("red_border")) { //Adds the red border and error message.
+                $(parameter).addClass("red_border");
+            }
+            removeErrorFor($(obj));
+            insertErrorFor(parameter, "Short range interactions must be within the simulation time.")
+            return;
+    } else {
+        removeErrorFor($(obj));
+        $(obj).removeClass("red_border");
+    } 
     let current_interaction = $(obj).closest(".form_field_outer_row");
     $(".form_field_outer_row").not(current_interaction).each(function(index) {
         start_time_2 = parseTimeToMins($('#sr_start_no_' + String(index + 1)).val());
         finish_time_2 = start_time_2 + parseInt($('#sr_duration_no_' + String(index + 1)).val());
-        if ((start_time >= start_time_2 && start_time <= finish_time_2) || (finish_time >= start_time_2 && finish_time <= finish_time_2) || start_time == start_time_2 ||
-            (start_time <= start_time_2 && finish_time >= finish_time_2)) {
+        if ((start_time >= start_time_2 && start_time <= finish_time_2) || ( //If hour input is within other time range
+          finish_time >= start_time_2 && finish_time <= finish_time_2) || //If finish time input is within other time range
+            (start_time <= start_time_2 && finish_time >= finish_time_2) || //If start and finish inputs encompass other time range 
+            start_time == start_time_2) {
+            let parameter = document.getElementById($(obj).attr('id'));
             if (!$(obj).hasClass("red_border")) { //Adds the red border and error message.
-                var parameter = document.getElementById($(obj).attr('id'));
-                insertErrorFor(parameter, "Short range interactions must not overlap.")
                 $(parameter).addClass("red_border");
             }
+            removeErrorFor($(obj));
+            insertErrorFor(parameter, "Short range interactions must not overlap.")
             return false;
         } else {
             removeErrorFor($(obj));
