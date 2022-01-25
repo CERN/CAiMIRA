@@ -548,9 +548,7 @@ function overlapped_times(obj, start_time, finish_time) {
             (start_time <= start_time_2 && finish_time >= finish_time_2) || //If start and finish inputs encompass other time range 
             start_time == start_time_2) {
             let parameter = document.getElementById($(obj).attr('id'));
-            if (!$(obj).hasClass("red_border")) { //Adds the red border and error message.
-                $(parameter).addClass("red_border");
-            }
+            if (!$(obj).hasClass("red_border")) $(parameter).addClass("red_border"); //Adds the red border and error message.
             removeErrorFor($(obj));
             insertErrorFor(parameter, "Short range interactions must not overlap.")
             return false;
@@ -564,6 +562,7 @@ function overlapped_times(obj, start_time, finish_time) {
 function validate_sr_time(obj) {
     if ($(obj).val() != "") {
         let obj_id = $(obj).attr('id').split('_').slice(-1)[0];
+        if ($(obj).attr('id').startsWith("sr_start_no_")) $("#sr_duration_no_" + obj_id).prop("disabled", false);
         let start_time = parseTimeToMins($('#sr_start_no_' + String(obj_id)).val());
         let finish_time = start_time + parseInt($('#sr_duration_no_' + String(obj_id)).val());
         overlapped_times(obj, start_time, finish_time);
@@ -826,7 +825,7 @@ $(document).ready(function () {
         <div class="split" style="flex: 2">
           <div class='form-group row align-content-center' style="flex: 2">
             <div class="col-sm-4"><label class="col-form-label"> Duration: </label></div>
-            <div class="col-sm-6"><input type="number" id="sr_duration_no_${index}" value="${value.duration}" class="form-control" name="short_range_duration" min=1 placeholder="Minutes" onchange="validate_sr_time(this)" form="not-submitted"></div>
+            <div class="col-sm-6"><input type="number" id="sr_duration_no_${index}" value="${value.duration}" class="form-control" name="short_range_duration" min=1 placeholder="Minutes" onchange="validate_sr_time(this)" form="not-submitted" disabled="true"></div>
           </div>
           <div class="form-group align-self-center" style="flex: 0">
             <button type="button" class="remove_node_btn_frm_field btn btn-danger">Delete</button>
