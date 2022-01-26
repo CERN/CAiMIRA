@@ -520,6 +520,9 @@ function validateLunchTime(obj) {
 }
 
 function overlapped_times(obj, start_time, finish_time) {
+  removeErrorFor($(".short_range_option"));
+  $(".short_range_option").removeClass("red_border");
+  
   let simulation_start = parseTimeToMins($("#exposed_start").val())
   let simulation_finish = parseTimeToMins($("#exposed_finish").val())
   let simulation_lunch_start = parseTimeToMins($("#exposed_lunch_start").val())
@@ -529,15 +532,10 @@ function overlapped_times(obj, start_time, finish_time) {
     start_time >= simulation_lunch_start && start_time <= simulation_lunch_finish ||
     finish_time >= simulation_lunch_start && finish_time <= simulation_lunch_finish ) {//If start and finish inputs are out of the simulation period
       let parameter = document.getElementById($(obj).attr('id'));
-      if (!$(obj).hasClass("red_border")) { //Adds the red border and error message.
-        $(parameter).addClass("red_border");
-      }
-      removeErrorFor($(obj));
+      //Adds the red border and error message.
+      if (!$(obj).hasClass("red_border")) $(parameter).addClass("red_border");
       insertErrorFor(parameter, "Short range interactions must be within the simulation time.")
       return;
-  } else {
-    removeErrorFor($(obj));
-    $(obj).removeClass("red_border");
   } 
   let current_interaction = $(obj).closest(".form_field_outer_row");
   $(".form_field_outer_row").not(current_interaction).each(function(index) {
@@ -549,30 +547,31 @@ function overlapped_times(obj, start_time, finish_time) {
         start_time == start_time_2) {
         let parameter = document.getElementById($(obj).attr('id'));
         if (!$(obj).hasClass("red_border")) $(parameter).addClass("red_border"); //Adds the red border and error message.
-        removeErrorFor($(obj));
         insertErrorFor(parameter, "Short range interactions must not overlap.")
         return false;
-    } else {
-        removeErrorFor($(obj));
-        $(obj).removeClass("red_border");
     }
   });
 }
 
 function validate_sr_time(obj) {
-  if ($(obj).val() != "") {
     let obj_id = $(obj).attr('id').split('_').slice(-1)[0];
-    if ($(obj).attr('id').startsWith("sr_start_no_")) $("#sr_duration_no_" + obj_id).prop("disabled", false);
-    let start_time = parseTimeToMins($('#sr_start_no_' + String(obj_id)).val());
-    let finish_time = start_time + parseInt($('#sr_duration_no_' + String(obj_id)).val());
+    var start_time, finish_time;
+    if ($(obj).val() != "") {
+      $("#sr_duration_no_" + obj_id).prop("disabled", false);
+      start_time = parseTimeToMins($('#sr_start_no_' + String(obj_id)).val());
+      finish_time = start_time + parseInt($('#sr_duration_no_' + String(obj_id)).val());
+    }
+    else {
+      $("#sr_duration_no_" + obj_id).val("");
+      $("#sr_duration_no_" + obj_id).prop("disabled", true);
+    }
     overlapped_times(obj, start_time, finish_time);
-  }
 };
 
 // Check if short range durations are filled, and if there is no repetitions
 function validate_sr_parameter(obj, error_message) {
   if ($(obj).val() == "" || $(obj).val() == null) {
-    if (!$(obj).hasClass("red_border")) {
+    if (!$(obj).hasClass("red_border") && !$(obj).prop("disabled")) {
       var parameter = document.getElementById($(obj).attr('id'));
       insertErrorFor(parameter, error_message)
       $(parameter).addClass("red_border");
@@ -819,13 +818,13 @@ $(document).ready(function () {
           </div>
             <div class='form-group row align-content-center'>
               <div class="col-sm-4"><label class="col-form-label"> Start: </label></div>
-              <div class="col-sm-6"><input type="time" class="form-control" name="short_range_start_time" id="sr_start_no_${index}" value="${value.start_time}" onchange="validate_sr_time(this)" form="not-submitted"></div>
+              <div class="col-sm-6"><input type="time" class="form-control short_range_option" name="short_range_start_time" id="sr_start_no_${index}" value="${value.start_time}" onchange="validate_sr_time(this)" form="not-submitted"></div>
             </div>
         </div>
         <div class="split" style="flex: 2">
           <div class='form-group row align-content-center' style="flex: 2">
             <div class="col-sm-4"><label class="col-form-label"> Duration: </label></div>
-            <div class="col-sm-6"><input type="number" id="sr_duration_no_${index}" value="${value.duration}" class="form-control" name="short_range_duration" min=1 placeholder="Minutes" onchange="validate_sr_time(this)" form="not-submitted" disabled="true"></div>
+            <div class="col-sm-6"><input type="number" id="sr_duration_no_${index}" value="${value.duration}" class="form-control short_range_option" name="short_range_duration" min=1 placeholder="Minutes" onchange="validate_sr_time(this)" form="not-submitted" disabled="true"></div>
           </div>
           <div class="form-group align-self-center" style="flex: 0">
             <button type="button" class="remove_node_btn_frm_field btn btn-danger">Delete</button>
@@ -860,9 +859,10 @@ $(document).ready(function () {
 
   //Short range modal - save button
   $("body").on("click", ".save_btn_frm_field", function() {
-    let index = $(".form_field_outer").find(".form_field_outer_row").length;
-    if (index == 0) $('#short_range_dialog').modal('hide');
+    var last_element = $(".form_field_outer").find(".form_field_outer_row").last().find(".short_range_option").prop("id");
+    if (!last_element) $('#short_range_dialog').modal('hide');
     else {
+      let index = last_element.split("_").slice(-1)[0];
       let activity = validate_sr_parameter('#sr_activity_no_' + String(index)[0], "You must specify the activity type.");
       let start = validate_sr_parameter('#sr_start_no_' + String(index)[0], "You must specify the start time.");
       let duration = validate_sr_parameter('#sr_duration_no_' + String(index)[0], "You must specify the duration.");
