@@ -160,10 +160,10 @@ class ExposureModelResult(View):
 
         lines.append(f'<b>Number of exposed: </b>{model.exposed.number}')
 
-        new_cases = np.round(np.array(model.expected_new_cases(), 1).mean())
+        new_cases = np.round(np.array(model.expected_new_cases()).mean(), 1)
         lines.append(f'<b>Number of expected new cases: </b>{new_cases}')
 
-        R0 = np.round(np.array(model.reproduction_number(), 1).mean())
+        R0 = np.round(np.array(model.reproduction_number()).mean(), 1)
         lines.append(f'<b>Reproduction number (R0): </b>{R0}')
 
         self.html_output.value = '<br>\n'.join(lines)
