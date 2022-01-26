@@ -307,11 +307,13 @@ class ReportGenerator:
         )
         context['permalink'] = generate_permalink(base_url, self.calculator_prefix, form)
         context['calculator_prefix'] = self.calculator_prefix
+
+        # For further information about these values visit https://gitlab.cern.ch/cara/cara/-/merge_requests/321.
         context['scale_warning'] = {
-            'level': 'red-4',
-            'risk': 'strong',
-            'onsite_access': '4’000',
-            'threshold': '5%'
+            'level': 'red-4', # 'red-4' - 'orange-3' - 'yellow-2' - 'green-1'
+            'risk': 'strong', # 'strong' - 'medium' - 'reduced' - ''
+            'onsite_access': '4’000', # '4’000' - '5’000' - '6’500' - '8’000'
+            'threshold': '5%' # '5%' - '' - '' - ''
         }
         return context
 
