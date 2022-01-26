@@ -622,6 +622,7 @@ class _ExpirationBase:
     #: Pre-populated examples of Expirations.
     types: typing.ClassVar[typing.Dict[str, "_ExpirationBase"]]
 
+    @property
     def particle(self) -> Particle:
         """
         the Particle object representing the aerosol - here the default one
@@ -650,6 +651,7 @@ class Expiration(_ExpirationBase):
     # to c_n,i in Eq. (4) of https://doi.org/10.1101/2021.10.14.21264988)
     cn: float = 1.
 
+    @property
     def particle(self) -> Particle:
         """
         the Particle object representing the aerosol
@@ -794,6 +796,7 @@ class _PopulationWithVirus(Population):
 
         return self.emission_rate_when_present()
 
+    @property
     def particle(self) -> Particle:
         """
         the Particle object representing the aerosol expired by the
@@ -847,11 +850,12 @@ class InfectedPopulation(_PopulationWithVirus):
 
         return ER * self.number
 
+    @property
     def particle(self) -> Particle:
         """
         the Particle object representing the aerosol - here the default one
         """
-        return self.expiration.particle()
+        return self.expiration.particle
 
 
 @dataclass(frozen=True)
@@ -871,7 +875,7 @@ class ConcentrationModel:
 
     def infectious_virus_removal_rate(self, time: float) -> _VectorisedFloat:
         # Equilibrium velocity of particle motion toward the floor
-        vg = self.infected.particle().settling_velocity(self.evaporation_factor)
+        vg = self.infected.particle.settling_velocity(self.evaporation_factor)
         # Height of the emission source to the floor - i.e. mouth/nose (m)
         h = 1.5
         # Deposition rate (h^-1)
@@ -1053,7 +1057,7 @@ class ExposureModel:
         """
         The fraction of viruses actually deposited in the respiratory tract.
         """
-        return self.concentration_model.infected.particle().fraction_deposited(
+        return self.concentration_model.infected.particle.fraction_deposited(
                     self.concentration_model.evaporation_factor)
 
     def _normed_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
