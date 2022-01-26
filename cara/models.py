@@ -459,13 +459,10 @@ class SARSCoV2(Virus):
         piecewise constant model (for more details see A. Henriques et al,
         CERN-OPEN-2021-004, DOI: 10.17181/CERN.1GDQ.5Y75)
         """
-        halflife = np.empty_like(humidity)
-        # Taken from Morris et al (https://doi.org/10.7554/eLife.65902) data at T = 22°C and RH = 40 %.
-        halflife[humidity <= 0.4] = 6.43
-        # Taken from Doremalen et al (https://www.nejm.org/doi/10.1056/NEJMc2004973).
-        halflife[humidity > 0.4] = 1.1
-        return halflife
-
+        # Taken from Morris et al (https://doi.org/10.7554/eLife.65902) data at T = 22°C and RH = 40 %,
+        # and from Doremalen et al (https://www.nejm.org/doi/10.1056/NEJMc2004973).
+        return np.piecewise(humidity, [humidity <= 0.4, humidity > 0.4], [6.43, 1.1])
+        
 
 Virus.types = {
     'SARS_CoV_2': SARSCoV2(
