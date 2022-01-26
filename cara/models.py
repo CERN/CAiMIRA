@@ -673,8 +673,8 @@ class MultipleExpiration(_ExpirationBase):
     Group together different modes of expiration, that represent
     each the main expiration mode for a certain fraction of time (given by
     the weights).
-    This class can only be used with single diameters (it cannot
-    be used with diameter distributions).
+    This class can only be used with single diameters defined in each
+    expiration (it cannot be used with diameter distributions).
     """
     expirations: typing.Tuple[_ExpirationBase, ...]
     weights: typing.Tuple[float, ...]
@@ -768,13 +768,28 @@ class _PopulationWithVirus(Population):
         """
         return 1.
 
+    def aerosols(self):
+        """
+        total volume of aerosols expired per volume of air (mL/cm^3).
+        """
+        raise NotImplementedError("Subclass must implement")
+
+    def emission_rate_per_aerosol_when_present(self) -> _VectorisedFloat:
+        """
+        The emission rate of virions per fraction of aerosol volume in
+        the expired air, if the infected population is present, in cm^3/(mL.h).
+        It should not be a function of time.
+        """
+        raise NotImplementedError("Subclass must implement")
+
     @method_cache
     def emission_rate_when_present(self) -> _VectorisedFloat:
         """
         The emission rate if the infected population is present
-        (in virions / h). It should not be a function of time.
+        (in virions / h).
         """
-        raise NotImplementedError("Subclass must implement")
+        return (self.emission_rate_per_aerosol_when_present() *
+                self.aerosols())
 
     def emission_rate(self, time) -> _VectorisedFloat:
         """
@@ -807,10 +822,19 @@ class EmittingPopulation(_PopulationWithVirus):
     #: The emission rate of a single individual, in virions / h.
     known_individual_emission_rate: float
 
-    @method_cache
-    def emission_rate_when_present(self) -> _VectorisedFloat:
+    def aerosols(self):
         """
-        The emission rate if the infected population is present.
+        total volume of aerosols expired per volume of air (mL/cm^3).
+        Here arbitrarily set to 1 as the full emission rate is known.
+        """
+        return 1.
+
+    @method_cache
+    def emission_rate_per_aerosol_when_present(self) -> _VectorisedFloat:
+        """
+        The emission rate of virions per fraction of aerosol volume in
+        the expired air, if the infected population is present, in cm^3/(mL.h).
+        It should not be a function of time.
         """
         return self.known_individual_emission_rate * self.number
 
@@ -824,26 +848,27 @@ class InfectedPopulation(_PopulationWithVirus):
     def fraction_of_infectious_virus(self) -> _VectorisedFloat:
         """
         The fraction of infectious virus.
-
         """
         return self.virus.viable_to_RNA_ratio * (1 - self.host_immunity)
 
-    @method_cache
-    def emission_rate_when_present(self) -> _VectorisedFloat:
+    def aerosols(self):
         """
-        The emission rate if the infected population is present.
-        Note that the rate is not currently time-dependent.
+        total volume of aerosols expired per volume of air (mL/cm^3).
         """
-        # Emission Rate (virions / h)
-        # Note on units: exhalation rate is in m^3/h, aerosols in mL/cm^3
-        # and viral load in virus/mL -> 1e6 conversion factor
+        return self.expiration.aerosols(self.mask)
 
-        aerosols = self.expiration.aerosols(self.mask)
+    @method_cache
+    def emission_rate_per_aerosol_when_present(self) -> _VectorisedFloat:
+        """
+        The emission rate of virions per fraction of aerosol volume in
+        the expired air, if the infected population is present, in cm^3/(mL.h).
+        It should not be a function of time.
+        """
+        # Note on units: exhalation rate is in m^3/h -> 1e6 conversion factor
 
         ER = (self.virus.viral_load_in_sputum *
               self.activity.exhalation_rate *
-              10 ** 6 *
-              aerosols)
+              10 ** 6)
 
         return ER * self.number
 
@@ -1095,57 +1120,54 @@ class ExposureModel:
 
     def exposure(self) -> _VectorisedFloat:
         """
-        The number of virus per meter^3. With sampled diameters, the
-        aerosol volume has to be put back in the exposure before taking
-        the mean, to obtain the proper result for the exposure (which
-        corresponds to an integration on diameters).
+        The number of virus per meter^3.
         """
-        emission_rate = self.concentration_model.infected.emission_rate_when_present()
-        if (not isinstance(self.concentration_model.infected,InfectedPopulation)
-            or not isinstance(self.concentration_model.infected.expiration,Expiration)
-            or np.isscalar(self.concentration_model.infected.expiration.diameter)
-            ):
-            # in all these cases, there is no distribution of
-            # diameters that need to be integrated over
-            return self._normed_exposure() * emission_rate
+        emission_rate_per_aerosol = self.concentration_model.infected.emission_rate_per_aerosol_when_present()
+        aerosols = self.concentration_model.infected.aerosols()
+
+        diameter = self.concentration_model.infected.particle.diameter
+
+        if not np.isscalar(diameter) and not diameter is None:
+            # we compute first the mean of all diameter-dependent quantities
+            # to perform properly the Monte-Carlo integration over
+            # particle diameters (doing things in another order would
+            # lead to wrong results).
+            exposure_integrated = np.array(self._normed_exposure()*aerosols).mean()
         else:
-            # the mean of the diameter-dependent exposure (including
-            # aerosols volume, but NOT the other factors) has to be
-            # taken first (this is equivalent to integrating over the
-            # diameters)
-            mask = self.concentration_model.infected.mask
-            aerosols = self.concentration_model.infected.expiration.aerosols(mask)
-            return (np.array(self._normed_exposure()*aerosols).mean() *
-                    emission_rate/aerosols)
+            # in the case of a single diameter or no diameter defined,
+            # one should not take any mean at this stage.
+            exposure_integrated = self._normed_exposure()*aerosols
+
+        # then we multiply by the diameter-independent quantity
+        # emission_rate_per_aerosol
+        return exposure_integrated * emission_rate_per_aerosol
 
     def _deposited_exposure(self) -> _VectorisedFloat:
         """
-        The number of virus per meter^3 deposited on the respiratory
-        tract. As in the exposure method, with sampled diameters the
-        aerosol volume and the deposited fraction, have to be put
-        in the deposited exposure before taking the mean, to obtain the
-        proper result (which corresponds to an integration on diameters).
+        The number of virus per m^3 deposited on the respiratory tract.
         """
-        emission_rate = self.concentration_model.infected.emission_rate_when_present()
-        if (not isinstance(self.concentration_model.infected,InfectedPopulation)
-            or not isinstance(self.concentration_model.infected.expiration,Expiration)
-            or np.isscalar(self.concentration_model.infected.expiration.diameter)
-            ):
-            # in all these cases, there is no distribution of
-            # diameters that need to be integrated over
-            return (self._normed_exposure() *
-                    self.fraction_deposited() *
-                    emission_rate)
+        emission_rate_per_aerosol = self.concentration_model.infected.emission_rate_per_aerosol_when_present()
+        aerosols = self.concentration_model.infected.aerosols()
+        fdep = self.concentration_model.infected.particle.fraction_deposited()
+
+        diameter = self.concentration_model.infected.particle.diameter
+
+        if not np.isscalar(diameter) and not diameter is None:
+            # we compute first the mean of all diameter-dependent quantities
+            # to perform properly the Monte-Carlo integration over
+            # particle diameters (doing things in another order would
+            # lead to wrong results).
+            dep_exposure_integrated = np.array(self._normed_exposure() *
+                                               aerosols *
+                                               fdep).mean()
         else:
-            # the mean of the diameter-dependent exposure (including
-            # aerosols volume, but NOT the other factors) has to be
-            # taken first (this is equivalent to integrating over the
-            # diameters)
-            mask = self.concentration_model.infected.mask
-            aerosols = self.concentration_model.infected.expiration.aerosols(mask)
-            return (np.array(self._normed_exposure() * aerosols *
-                    self.fraction_deposited()).mean() *
-                    emission_rate/aerosols)
+            # in the case of a single diameter or no diameter defined,
+            # one should not take any mean at this stage.
+            dep_exposure_integrated = self._normed_exposure()*aerosols*fdep
+
+        # then we multiply by the diameter-independent quantity
+        # emission_rate_per_aerosol
+        return dep_exposure_integrated * emission_rate_per_aerosol
 
     def infection_probability(self) -> _VectorisedFloat:
         deposited_exposure = self._deposited_exposure()
