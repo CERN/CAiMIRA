@@ -12,7 +12,7 @@ services:
       - COOKIE_SECRET
       - APP_NAME=cara-webservice
       - CARA_CALCULATOR_PREFIX=/calculator-cern
-      - CARA_THEME=cara/apps/calculator/themes/cern
+      - CARA_THEME=cara/apps/templates/cern
     user: ${CURRENT_UID}
 
   cara-calculator-open:

@@ -308,10 +308,10 @@ class ReportGenerator:
         context['permalink'] = generate_permalink(base_url, self.calculator_prefix, form)
         context['calculator_prefix'] = self.calculator_prefix
         context['scale_warning'] = {
-            'level': 'yellow-2',
-            'incidence_rate': 'lower than 25 new cases per 100 000 inhabitants',
-            'onsite_access': 'of about 8000',
-            'threshold': ''
+            'level': 'red-4',
+            'incidence_rate': 'higher or equal to 100 new cases per 100 000 inhabitants',
+            'onsite_access': 'lower than 4000',
+            'threshold': '5%'
         }
         return context
 

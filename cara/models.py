@@ -123,11 +123,14 @@ class PeriodicInterval(Interval):
     #: occurring, a value of 0 signifies that the event never happens.
     duration: float
 
+    #: Time at which the first person (infected or exposed) arrives at the enclosed space.
+    start: float = 0.0
+
     def boundaries(self) -> BoundarySequence_t:
         if self.period == 0 or self.duration == 0:
             return tuple()
         result = []
-        for i in np.arange(0, 24, self.period / 60):
+        for i in np.arange(self.start, 24, self.period / 60):
             # NOTE: It is important that the time type is float, not np.float, in
             # order to allow hashability (for caching).
             result.append((float(i), float(i+self.duration/60)))
@@ -450,11 +453,8 @@ class SARSCoV2(Virus):
         piecewise constant model (for more details see A. Henriques et al,
         CERN-OPEN-2021-004, DOI: 10.17181/CERN.1GDQ.5Y75)
         """
-        halflife = np.empty_like(humidity)
-        halflife[humidity <= 0.4] = 3.8
-        halflife[humidity > 0.4] = 1.1
-        return halflife
-
+        return np.piecewise(humidity, [humidity <= 0.4, humidity > 0.4], [3.8, 1.1])
+        
 
 Virus.types = {
     'SARS_CoV_2': SARSCoV2(
@@ -477,6 +477,10 @@ Virus.types = {
     'SARS_CoV_2_B16172': SARSCoV2(
         viral_load_in_sputum=1e9,
         infectious_dose=30/1.6,
+    ),
+    'SARS_CoV_2_B11529': SARSCoV2(
+        viral_load_in_sputum=1e9,
+        infectious_dose=50/4.9841,
     ),
 }
 

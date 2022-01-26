@@ -21,7 +21,7 @@
 	<div id="report-header-div" class="d-flex flex-row" style="margin: 1%">
 		<img id="report_logo" src="/static/images/cara_logo.200x200.png" class="d-inline-block align-middle mr-3">
 		<div style="margin-right: -105px" class='align-self-center mr-auto'>
-			<h2 class="header_text mb-0">CARA - CALCULATOR REPORT</h1>
+			<h2 class="header_text mb-0">REPORT</h1>
 			<p class="mb-0" id="report_version"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
 		</div>
 		<button type="button" class="btn btn-outline-dark align-self-center" id="download-pdf" style="margin-right: -100pt" onclick="print()">Print Report</button>
@@ -202,10 +202,14 @@
 							SARS-CoV-2 (nominal strain)
 							{% elif form.virus_type == "SARS_CoV_2_B117" %}
 							<a href="https://www.ecdc.europa.eu/en/publications-data/covid-19-risk-assessment-spread-new-sars-cov-2-variants-eueea">SARS-CoV-2 (Alpha VOC) </a>
+							{% elif form.virus_type == "SARS_CoV_2_B1351" %}
+							<a href="https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2021.26.24.2100509">SARS-CoV-2 (Beta VOC) </a>
 							{% elif form.virus_type == "SARS_CoV_2_P1" %}
 							<a href="https://doi.org/10.1126/science.abh2644">SARS-CoV-2 (Gamma VOC)</a>
 							{% elif form.virus_type == "SARS_CoV_2_B16172" %}
 							<a href="https://www.bmj.com/content/373/bmj.n1513">SARS-CoV-2 (Delta VOC)</a>
+							{% elif form.virus_type == "SARS_CoV_2_B11529" %}
+							<a href="https://gitlab.cern.ch/cara/cara/-/issues/226">SARS-CoV-2 (Omicron VOC)</a>
 							{% endif %}
 							</p></li>
 							<li><p class="data_text">Room Volume: {{ model.concentration_model.room.volume }} m³</p></li>
@@ -298,7 +302,7 @@
 							{% elif form.activity_type == "workshop" %}
 							Workshop = assembly workshop environment, all persons doing moderate physical activity, talking 50% of the time.
 							{% elif form.activity_type == "training" %}
-							Training – one person (the trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the trainer is the infected person, for the worst case scenario.
+							Conference/Training – one person (the speaker/trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the speaker/trainer is the infected person, for the worst case scenario.
 							{% elif form.activity_type == "lab" %}
 							Laboratory = Lab or technical environment, all persons doing light physical activity, talking 50% of the time.
 							{% elif form.activity_type == "gym" %}

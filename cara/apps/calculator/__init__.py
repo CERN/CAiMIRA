@@ -33,7 +33,7 @@ from .user import AuthenticatedUser, AnonymousUser
 # calculator version. If the calculator needs to make breaking changes (e.g. change
 # form attributes) then it can also increase its MAJOR version without needing to
 # increase the overall CARA version (found at ``cara.__version__``).
-__version__ = "3.2.0"
+__version__ = "3.3.0"
 
 
 class BaseRequestHandler(RequestHandler):
@@ -148,11 +148,13 @@ class StaticModel(BaseRequestHandler):
 
 class LandingPage(BaseRequestHandler):
     def get(self):
+        template_environment = self.settings["template_environment"]
         template = self.settings["template_environment"].get_template(
             "index.html.j2")
         report = template.render(
             user=self.current_user,
             calculator_prefix=self.settings["calculator_prefix"],
+            text_blocks=template_environment.globals['common_text']
         )
         self.finish(report)
 
@@ -229,7 +231,7 @@ def make_app(
     calculator_templates = Path(__file__).parent / "templates"
     templates_directories = [cara_templates, calculator_templates]
     if theme_dir:
-        templates_directories.insert(0, theme_dir / 'templates')
+        templates_directories.insert(0, theme_dir)
     loader = jinja2.FileSystemLoader([str(path) for path in templates_directories])
     template_environment = jinja2.Environment(
         loader=loader,

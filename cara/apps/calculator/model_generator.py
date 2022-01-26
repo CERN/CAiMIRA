@@ -303,7 +303,7 @@ class FormData:
         # Initializes a ventilation instance as a window if 'natural_ventilation' is selected, or as a HEPA-filter otherwise
         if self.ventilation_type == 'natural_ventilation':
             if self.window_opening_regime == 'windows_open_periodically':
-                window_interval = models.PeriodicInterval(self.windows_frequency, self.windows_duration)
+                window_interval = models.PeriodicInterval(self.windows_frequency, self.windows_duration, min(self.infected_start, self.exposed_start))
             else:
                 window_interval = always_on
 
@@ -694,7 +694,7 @@ MECHANICAL_VENTILATION_TYPES = {'mech_type_air_changes', 'mech_type_air_supply',
 MASK_TYPES = {'Type I', 'FFP2'}
 MASK_WEARING_OPTIONS = {'mask_on', 'mask_off'}
 VENTILATION_TYPES = {'natural_ventilation', 'mechanical_ventilation', 'no_ventilation'}
-VIRUS_TYPES = {'SARS_CoV_2', 'SARS_CoV_2_B117', 'SARS_CoV_2_P1', 'SARS_CoV_2_B16172'}
+VIRUS_TYPES = {'SARS_CoV_2', 'SARS_CoV_2_B117', 'SARS_CoV_2_B1351','SARS_CoV_2_P1', 'SARS_CoV_2_B16172', 'SARS_CoV_2_B11529'}
 VOLUME_TYPES = {'room_volume_explicit', 'room_volume_from_dimensions'}
 WINDOWS_OPENING_REGIMES = {'windows_open_permanently', 'windows_open_periodically', 'not-applicable'}
 WINDOWS_TYPES = {'window_sliding', 'window_hinged', 'not-applicable'}

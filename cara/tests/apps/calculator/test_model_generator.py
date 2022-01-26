@@ -48,7 +48,7 @@ def test_ventilation_slidingwindow(baseline_form: model_generator.FormData):
     assert isinstance(baseline_window, models.SlidingWindow)
 
     window = models.SlidingWindow(
-        active=models.PeriodicInterval(period=120, duration=10),
+        active=models.PeriodicInterval(period=120, duration=10, start=minutes_since_midnight(9 * 60)),
         inside_temp=models.PiecewiseConstant((0, 24), (293,)),
         outside_temp=baseline_window.outside_temp,
         window_height=1.6, opening_length=0.6,
@@ -80,7 +80,7 @@ def test_ventilation_hingedwindow(baseline_form: model_generator.FormData):
     assert isinstance(baseline_window, models.HingedWindow)
 
     window = models.HingedWindow(
-        active=models.PeriodicInterval(period=120, duration=10),
+        active=models.PeriodicInterval(period=120, duration=10, start=minutes_since_midnight(9 * 60)),
         inside_temp=models.PiecewiseConstant((0, 24), (293,)),
         outside_temp=baseline_window.outside_temp,
         window_height=1.6, window_width=1., opening_length=0.6,
@@ -141,7 +141,7 @@ def test_ventilation_window_hepa(baseline_form: model_generator.FormData):
 
     # Now build the equivalent ventilation instance directly, and compare.
     window = models.SlidingWindow(
-        active=models.PeriodicInterval(period=120, duration=10),
+        active=models.PeriodicInterval(period=120, duration=10, start=minutes_since_midnight(9 * 60)),
         inside_temp=models.PiecewiseConstant((0, 24), (293,)),
         outside_temp=baseline_window.outside_temp,
         window_height=1.6, opening_length=0.6,

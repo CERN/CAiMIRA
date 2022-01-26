@@ -63,13 +63,15 @@
     </div><br>
 
     <div class="form-group row">
-    <div class="col-sm-4"><label class="col-form-label">Variant:</label></div>
-    <div class="col-sm-6">
+    <div class="col-sm-3"><label class="col-form-label">Variant:</label></div>
+    <div class="col-sm-7">
     <select id="Variant" name="virus_type" class="form-control">
       <option value="SARS_CoV_2">SARS-CoV-2 (nominal strain)</option>
       <option value="SARS_CoV_2_B117">SARS-CoV-2 (Alpha VOC)</option>
+      <option value="SARS_CoV_2_B1351">SARS-CoV-2 (Beta VOC)</option>
       <option value="SARS_CoV_2_P1">SARS-CoV-2 (Gamma VOC)</option>
-      <option selected value="SARS_CoV_2_B16172">SARS-CoV-2 (Delta VOC)</option>
+      <option value="SARS_CoV_2_B16172">SARS-CoV-2 (Delta VOC)</option>
+      <option selected value="SARS_CoV_2_B11529">SARS-CoV-2 (Omicron VOC)</option>
     </select>
     </div>
     </div>
@@ -77,9 +79,11 @@
     <hr width="80%">
 
     <b>Room data:</b>
-    <div data-tooltip="The area you wish to study (choose one of the 2 options). Use GIS Portal or measure. Also indicate if a central (radiator-type) heating system is in use.">
+    {% block room_data %}
+    <div data-tooltip="The area you wish to study (choose one of the 2 options). Indicate if a central (radiator-type) heating system is in use.">
         <span class="tooltip_text">?</span>
     </div>
+    {% endblock room_data %}
     
     <br>
 
@@ -188,7 +192,7 @@
           <label for="mech_type_air_supply" class="col-form-label ml-2">Air supply flow rate</label>
           </div>
           <div>
-          <input type="number" step="any" id="air_supply" class="non_zero form-control" name="air_supply" min="0" placeholder="(m³ / hour)" data-has-radio="#mech_type_air_supply"><br>
+          <input type="number" step="any" id="air_supply" class="non_zero form-control" name="air_supply" min="0" placeholder="Flow rate (m³ / hour)" data-has-radio="#mech_type_air_supply"><br>
           </div>
         </div>
         <div class="split">
@@ -197,7 +201,7 @@
           <label for="mech_type_air_changes" class="col-form-label ml-2">Air changes per hour</label>
           </div>
           <div>
-          <input type="number" step="any" id="air_changes" class="non_zero form-control" name="air_changes" min="0" placeholder="(h⁻¹) only fresh air" data-has-radio="#mech_type_air_changes"><br>
+          <input type="number" step="any" id="air_changes" class="non_zero form-control" name="air_changes" min="0" placeholder="Air exchange (h⁻¹)" data-has-radio="#mech_type_air_changes"><br>
           </div>
         </div>
     </div>
@@ -205,11 +209,11 @@
     <div id="DIVnatural_ventilation" class="tabbed" style="display:none">
       <div class="split">
         <div><label class="col-form-label">Number of windows:</label></div>
-        <div><input type="number" id="windows_number" class="non_zero form-control" name="windows_number" min="1"><br></div>
+        <div><input type="number" id="windows_number" class="non_zero form-control" name="windows_number" placeholder="Number (#)" min="1"><br></div>
       </div>
       <div class="split">
         <div><label class="col-form-label">Height of window: </label></div>
-        <div><input type="number" step="any" id="window_height" class="non_zero form-control" name="window_height" placeholder="meters" min="0"><br></div>
+        <div><input type="number" step="any" id="window_height" class="non_zero form-control" name="window_height" placeholder="Height (m)" min="0"><br></div>
       </div>
         <div class='sub_title'>Window type:</div>
         <input class="ml-2" type="radio" id="window_sliding" name="window_type" value="window_sliding" onclick="require_fields(this)" checked="checked">
@@ -218,11 +222,11 @@
           <label for="window_hinged">Top- or Bottom-Hung</label><br>
         <div class="split">
           <div><label class="col-form-label">Width of window: </label></div>
-          <div><input type="number" step="any" id="window_width" class="non_zero disabled form-control" name="window_width" placeholder="meters" min="0" data-has-radio="#window_hinged"><br></div>
+          <div><input type="number" step="any" id="window_width" class="non_zero disabled form-control" name="window_width" placeholder="Width (m)" min="0" data-has-radio="#window_hinged"><br></div>
         </div>
         <div class="split">
           <div><label class="col-form-label">Opening distance: </label></div>
-          <div><input type="number" step="any" id="opening_distance" class="non_zero form-control" name="opening_distance" placeholder="meters" min="0"><br></div>
+          <div><input type="number" step="any" id="opening_distance" class="non_zero form-control" name="opening_distance" placeholder="Opening distance (m)" min="0"><br></div>
         </div>
         <div class='sub_title'>Window open:</div>
         <div class="form-group row">
@@ -247,7 +251,7 @@
       <label for="hepa_yes" class="col-form-label ml-2">Yes</label>
     </div>
     <div>
-    <input type="number" step="any" id="hepa_amount" class="non_zero disabled form-control" name="hepa_amount" placeholder="(m³ / hour)" min="0" data-has-radio="#hepa_yes">
+    <input type="number" step="any" id="hepa_amount" class="non_zero disabled form-control" name="hepa_amount" placeholder="Flow rate (m³ / hour)" min="0" data-has-radio="#hepa_yes">
     </div>
     </div>
     <hr width="80%">
@@ -260,15 +264,30 @@
     <br>
     
     <div class='sub_title'>Are masks worn when occupants are at workstations?</div>
-    <input type="radio" id="mask_on" name="mask_wearing_option" value="mask_on" required>
+    <input type="radio" id="mask_on" name="mask_wearing_option" value="mask_on" data-enables="#DIVmasks_used">
       <label for="mask_on">Yes</label>
-    <input class="ml-2" type="radio" id="mask_off"  name="mask_wearing_option" value="mask_off" required checked="checked">
+    <input class="ml-2" type="radio" id="mask_off"  name="mask_wearing_option" value="mask_off" checked="checked">
       <label for="mask_off">No</label><br>
-    Type of masks used:
-    <input type="radio" id="mask_type_1" name="mask_type" value="Type I" checked="checked" onclick="require_fields(this)">
-      <label for="mask_type_1">Type 1</label>
-    <input class="ml-2" type="radio" id="mask_type_ffp2"  name="mask_type" value="FFP2" onclick="require_fields(this)">
-      <label for="mask_type_ffp2">FFP2</label><br>
+      
+    <div id="DIVmasks_used" style="display:none">
+      <div class='sub_title'>Type of masks used:</div>
+      <div class='split'>
+        <div>
+          <input type="radio" id="mask_type_1" name="mask_type" value="Type I" checked="checked" onclick="require_fields(this)">
+            <label for="mask_type_1">
+              Surgical/Type I
+              <img class="mask_icons" src="/static/images/masks/t1.png">
+            </label>
+        </div>
+        <div>
+          <input type="radio" id="mask_type_ffp2"  name="mask_type" value="FFP2" onclick="require_fields(this)">
+            <label for="mask_type_ffp2">
+              Respirator/FFP2
+              <img class="mask_icons" src="/static/images/masks/ffp2.png">
+            </label>
+        </div>
+      </div>
+    </div>
     <hr width="80%">
 
   </div>
@@ -282,7 +301,7 @@
 
     <div class="form-group row">
       <div class="col-sm-4"><label class="col-form-label">Total number of occupants:</label></div>
-      <div class="col-sm-6 align-self-center"><input type="number" id="total_people" class="form-control" name="total_people" min=1 required></div>
+      <div class="col-sm-6 align-self-center"><input type="number" id="total_people" class="form-control" name="total_people" placeholder="Number (#)" min=1 required></div>
     </div>
 
     <div class="form-group row">
@@ -290,7 +309,7 @@
       <div class="col-sm-6 align-self-center"><input type="number" id="infected_people" class="form-control" name="infected_people" min=1 value=1 required></div>
     </div>
 
-    <span id="training_limit_error" class="red_text" hidden>Training activities limited to 1 infected<br></span>
+    <span id="training_limit_error" class="red_text" hidden>Conference/Training activities limited to 1 infected<br></span>
     <hr width="80%">
 
     <div class="form-group row">
@@ -305,7 +324,7 @@
         <option value="library">Library</option>
         <option value="lab">Laboratory</option>
         <option value="workshop">Workshop</option>
-        <option value="training">Training</option>
+        <option value="training">Conference/Training</option>
         <option value="gym">Gym</option>
       </select>
     </div>
@@ -499,9 +518,11 @@
   <b>Virus data:</b> <br>
   SARS-CoV-2 covers the original "wild type" strain of the virus and three variants of concern (VOC):<br>
   <ul>
-    <li>Alpha (also known as B.1.1.7, first identified in UK, Dec 2020),</li>
+    <li>Alpha (also known as B.1.1.7, first identified in UK, Sept 2020),</li>
+    <li>Beta (also known as B.1.351, first identified in South Africa, May 2020).</li>
     <li>Gamma (also known as P.1, first identified in Brazil/Japan, Jan 2021).</li>
     <li>Delta (also known as B.1.617.2, first identified in India, Oct 2020).</li>
+    <li>Omicron (also known as B.1.1.529, first identified in South Africa, November 2021).</li>
   </ul>
   Modify the default as necessary, according to local area prevalence e.g. for <a href="https://www.covid19.admin.ch/fr/epidemiologic/virus-variants?detGeo=GE">Geneva</a>
   or <a href="https://www.santepubliquefrance.fr/dossiers/coronavirus-covid-19/covid-19-cartographie-des-variants-en-france-donnees-par-region-et-par-departement">Ain (France)</a>.<br>
@@ -528,8 +549,8 @@
     <li>Library = all seated, no talking, just breathing,</li>
     <li>Laboratory = light physical activity, talking 50% of the time,</li>
     <li>Workshop = moderate physical activity, talking 50% of the time,</li>
-    <li>Training = trainer standing and talking, rest seated and talking quietly.
-    Trainer assumed infected (worst case scenario),</li>
+    <li>Conference/Training = speaker/trainer standing and talking, rest seated and talking quietly.
+    Speaker/Trainer assumed infected (worst case scenario),</li>
     <li>Gym = heavy exercise, no talking, just breathing.</li>
   </ul>
   <b>Activity breaks:</b><br>

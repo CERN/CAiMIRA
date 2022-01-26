@@ -70,8 +70,10 @@ The choices are:</p>
 <ul>
 <li><code>SARS-CoV-2 (nominal strain)</code>, covering typical strains and variants which are not of concern from an epidemiologic point of view of the virus;</li>
 <li><code>SARS-CoV-2 (Alpha VOC)</code>, first identified in the UK at the end of 2020 which is found to be approximately 1.5x more transmissible compared to the non-VOCs; </li>
+<li><code>SARS-CoV-2 (Beta VOC)</code>, first identified in South Africa in May 2020 which is found to be approximately 1.25x more transmissible compared to the non-VOCs; </li>
 <li><code>SARS-CoV-2 (Gamma VOC)</code>, first identified in Brazil in January 2021 which is found to be approximately 2.2x more transmissible compared to the non-VOCs.</li>
 <li><code>SARS-CoV-2 (Delta VOC)</code>, first identified in India towards the end of 2020 which is found to be approximately 60% more transmissible compared to the ALPHA VOC.</li>
+<li><code>SARS-CoV-2 (Omicron VOC)</code>, first identified in South Africa in November 2021 which is found to be at least 2.53x more transmissible compared to the DELTA VOC.</li>
 </ul>
 <p>The user can modify the selected variant from the default, according to the prevalence of the different variants in the local area. Access to this information can be found here:</p>
 <ul>
@@ -86,7 +88,9 @@ However, this value may be revised in the future as more studies of the Gamma VO
 <h3>Room Data</h3>
 <br>
 <p>Please enter either the room volume (in m³) or both the floor area (m²) and the room height (m).
-This information is available via GIS Portal (<a href="https://gis.cern.ch/gisportal/">https://gis.cern.ch/gisportal/</a>).</p>
+{% block room_volume_guide %}
+</p>
+{% endblock room_volume_guide %}
 <br>
 <h4>Room heating system</h4>
 <br>
@@ -157,9 +161,9 @@ Within the number of people occupying the space, you should specify how many are
 <li><strong>Control Room (night shift)</strong> = All persons seated, all talking 10% of the time. Everyone (exposed and infected occupants) is treated the same in this model.</li>
 <li><strong>Lab</strong> = Based on a typical lab or technical working area, all persons are doing light activity and talking 50% of the time. Everyone (exposed and infected occupants) is treated the same in this model.</li>
 <li><strong>Workshop</strong> = Based on a mechanical assembly workshop or equipment installation scenario, all persons are doing moderate activity and talking 50% of the time. This activity is equally applicable to bicycling, or walking on a gradient, in the LHC tunnels. Everyone (exposed and infected occupants) is treated the same in this model.</li>
-<li><strong>Training</strong> = Based on a typical training course scenario.
-One individual (the trainer) is standing and talking, with all other individuals seated and talking quietly (whispering).
-In this case it is assumed that the infected person is the trainer, because this is the worst case in terms of viral shedding.</li>
+<li><strong>Conference/Training</strong> = Based on a typical conference/training course scenario.
+One individual (the speaker/trainer) is standing and talking, with all other individuals seated and talking quietly (whispering).
+In this case it is assumed that the infected person is the speaker/trainer, because this is the worst case in terms of viral shedding.</li>
 <li><strong>Gym</strong> = All persons are doing heavy exercise and breathing (not talking). Everyone (exposed and infected occupants) is treated the same in this model.</li>
 </ul>
 <br><h3>Timings</h3>
@@ -210,7 +214,7 @@ If not, then you can input separate breaks. This is particularly different when 
 <p>The model allows for a simulation with either a continuous wearing of face masks throughout the duration of the event, or have the removed at all times - i.e. all occupants (infected and exposed alike) wear or not masks for the duration of the simulation. 
 Please bear in mind the user inputs shall be aligned with the current applicable public health &amp; safety instructions. 
 Please check what are the applicable rules, before deciding which assumptions are used for the simulation.</p>
-<p>If you have selected the Training activity type, this equates to the trainer and all participants either wearing masks throughout the training (Yes), or removing them when seated/standing at their socially distanced positions within the training room (No). 
+<p>If you have selected the Conference/Training activity type, this equates to the speakr/trainer and all participants either wearing masks throughout the conference/training (Yes), or removing them when seated/standing at their socially distanced positions within the conference/training room (No). 
 Please confirm what are the applicable rules, before deciding which assumptions are used for the simulation</p>
 <p>For the time being only the Type 1 surgical and FFP2 masks can be selected.</p>
 <br>

@@ -154,16 +154,16 @@ class ExposureModelResult(View):
 
     def update_textual_result(self, model: models.ExposureModel):
         lines = []
-        P = model.infection_probability()
+        P = np.array(model.infection_probability()).mean()
         # lines.append(f'Emission rate (virus/hr): {np.round(model.concentration_model.infected.emission_rate_when_present(),0)}')
         lines.append(f'<b>Probability of infection: </b>{np.round(P, 0)}%')
 
         lines.append(f'<b>Number of exposed: </b>{model.exposed.number}')
 
-        new_cases = np.round(model.expected_new_cases(), 1)
+        new_cases = np.round(np.array(model.expected_new_cases(), 1).mean())
         lines.append(f'<b>Number of expected new cases: </b>{new_cases}')
 
-        R0 = np.round(model.reproduction_number(), 1)
+        R0 = np.round(np.array(model.reproduction_number(), 1).mean())
         lines.append(f'<b>Reproduction number (R0): </b>{R0}')
 
         self.html_output.value = '<br>\n'.join(lines)

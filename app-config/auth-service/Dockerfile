@@ -1,4 +1,4 @@
-FROM condaforge/mambaforge as conda
+FROM registry.cern.ch/docker.io/condaforge/mambaforge as conda
 
 RUN mamba create --yes -p /opt/app python=3.9
 COPY . /opt/app-source
@@ -17,7 +17,7 @@ RUN cd /opt/app \
 && find /opt/app/lib -name '*.pyx' -delete \
 ;
 
-FROM debian
+FROM registry.cern.ch/docker.io/library/debian
 
 COPY --from=conda /opt/app /opt/app
 CMD [ \
