@@ -564,6 +564,56 @@ Mask.types = {
 
 
 @dataclass(frozen=True)
+class Particle:
+    """
+    Represents an aerosol particle.
+    """
+
+    #: diameter of the aerosol in microns
+    diameter: typing.Union[None,_VectorisedFloat] = None
+
+    def settling_velocity(self, evaporation_factor: float=0.3) -> _VectorisedFloat:
+        """
+        Settling velocity (i.e. speed of deposition on the floor due
+        to gravity), for aerosols, in m/s. Diameter-dependent expression
+        from https://doi.org/10.1101/2021.10.14.21264988
+        When an aerosol-diameter is not given, returns
+        the default value of 1.88e-4 m/s (corresponds to diameter of
+        2.5 microns, i.e. geometric average of the breathing
+        expiration distribution, taking evaporation into account, see
+        https://doi.org/10.1101/2021.10.14.21264988)
+        evaporation_factor represents the factor applied to the diameter,
+        due to instantaneous evaporation of the particle in the air.
+        """
+        if self.diameter is None:
+            vg = 1.88e-4
+        else:
+            vg = 1.88e-4 * (self.diameter*evaporation_factor / 2.5)**2
+        return vg
+
+    def fraction_deposited(self, evaporation_factor: float=0.3):
+        """
+        The fraction of particles actually deposited in the respiratory tract.
+        From W. C. Hinds, New York, Wiley, 1999 (pp. 233 – 259).
+        evaporation_factor represents the factor applied to the diameter,
+        due to instantaneous evaporation of the particle in the air.
+        """
+        if self.diameter is None:
+            # model is not evaluated for specific values of aerosol
+            # diameters - we choose a single "average" deposition factor,
+            # as in https://doi.org/10.1101/2021.10.14.21264988.
+            fdep = 0.6
+        else:
+            # deposition fraction depends on aerosol particle diameter.
+            d = (self.diameter * evaporation_factor)
+            IFrac = 1 - 0.5 * (1 - (1 / (1 + (0.00076*(d**2.8)))))
+            fdep = IFrac * (0.0587
+                    + (0.911/(1 + np.exp(4.77 + 1.485 * np.log(d))))
+                    + (0.943/(1 + np.exp(0.508 - 2.58 * np.log(d)))))
+        return fdep
+
+
+@dataclass(frozen=True)
 class _ExpirationBase:
     """
     Represents the expiration of aerosols by a person.
@@ -571,6 +621,12 @@ class _ExpirationBase:
     """
     #: Pre-populated examples of Expirations.
     types: typing.ClassVar[typing.Dict[str, "_ExpirationBase"]]
+
+    def particle(self) -> Particle:
+        """
+        the Particle object representing the aerosol - here the default one
+        """
+        return Particle()
 
     def aerosols(self, mask: Mask):
         """
@@ -593,6 +649,12 @@ class Expiration(_ExpirationBase):
     # (in cm^-3), integrated over all aerosol diameters (corresponding
     # to c_n,i in Eq. (4) of https://doi.org/10.1101/2021.10.14.21264988)
     cn: float = 1.
+
+    def particle(self) -> Particle:
+        """
+        the Particle object representing the aerosol
+        """
+        return Particle(diameter=self.diameter)
 
     @cached()
     def aerosols(self, mask: Mask):
@@ -732,6 +794,13 @@ class _PopulationWithVirus(Population):
 
         return self.emission_rate_when_present()
 
+    def particle(self) -> Particle:
+        """
+        the Particle object representing the aerosol expired by the
+        population - here we take the default Particle object
+        """
+        return Particle()
+
 
 @dataclass(frozen=True)
 class EmittingPopulation(_PopulationWithVirus):
@@ -778,6 +847,12 @@ class InfectedPopulation(_PopulationWithVirus):
 
         return ER * self.number
 
+    def particle(self) -> Particle:
+        """
+        the Particle object representing the aerosol - here the default one
+        """
+        return self.expiration.particle()
+
 
 @dataclass(frozen=True)
 class ConcentrationModel:
@@ -796,20 +871,7 @@ class ConcentrationModel:
 
     def infectious_virus_removal_rate(self, time: float) -> _VectorisedFloat:
         # Equilibrium velocity of particle motion toward the floor
-        if (isinstance(self.infected, InfectedPopulation)
-            and isinstance(self.infected.expiration, Expiration)):
-            d = self.infected.expiration.diameter * self.evaporation_factor
-            vg = 1.88e-4 * (d / 2.5)**2 
-            # see https://doi.org/10.1101/2021.10.14.21264988
-            # (velocity of 1.88e-4 corresponds to diameter of 2.5 microns)
-        else:
-            # model is not evaluated for specific values of aerosol
-            # diameters - we choose a single velocity value
-            # corresponding to that obtained with a diameter of 2.5 microns
-            # (geometric average of the breathing expiration distribution,
-            # taking evaporation into account, see 
-            # https://doi.org/10.1101/2021.10.14.21264988)
-            vg = 1.88e-4
+        vg = self.infected.particle().settling_velocity(self.evaporation_factor)
         # Height of the emission source to the floor - i.e. mouth/nose (m)
         h = 1.5
         # Deposition rate (h^-1)
@@ -990,23 +1052,9 @@ class ExposureModel:
     def fraction_deposited(self):
         """
         The fraction of viruses actually deposited in the respiratory tract.
-        From W. C. Hinds, New York, Wiley, 1999 (pp. 233 – 259).
         """
-        if not (isinstance(self.concentration_model.infected,InfectedPopulation)
-                and isinstance(self.concentration_model.infected.expiration,Expiration)):
-            # model is not evaluated for specific values of aerosol
-            # diameters - we choose a single "average" deposition factor,
-            # as in https://doi.org/10.1101/2021.10.14.21264988.
-            fdep = 0.6
-        else:
-            # deposition factor depends on aerosol particle diameter.
-            d = (self.concentration_model.infected.expiration.diameter
-                 * self.concentration_model.evaporation_factor)
-            IFrac = 1 - 0.5 * (1 - (1 / (1 + (0.00076*(d**2.8)))))
-            fdep = IFrac * (0.0587
-                    + (0.911/(1 + np.exp(4.77 + 1.485 * np.log(d))))
-                    + (0.943/(1 + np.exp(0.508 - 2.58 * np.log(d)))))
-        return fdep
+        return self.concentration_model.infected.particle().fraction_deposited(
+                    self.concentration_model.evaporation_factor)
 
     def _normed_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         """The number of virions per meter^3 between any two times, normalized 
