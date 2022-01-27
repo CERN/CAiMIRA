@@ -151,9 +151,9 @@ class PiecewiseConstant:
 
     def __post_init__(self):
         if len(self.transition_times) != len(self.values)+1:
-            raise ValueError("transition_times should contain one more element than values")
+            raise ValueError("transition_times must contain one more element than values")
         if tuple(sorted(set(self.transition_times))) != self.transition_times:
-            raise ValueError("transition_times should not contain duplicated elements and should be sorted")
+            raise ValueError("transition_times must not contain duplicated elements and must be sorted")
         shapes = [np.array(v).shape for v in self.values]
         if not all(shapes[0] == shape for shape in shapes):
             raise ValueError("All values must have the same shape")
@@ -588,7 +588,7 @@ class Particle:
             vg = 1.88e-4 * (self.diameter*evaporation_factor / 2.5)**2
         return vg
 
-    def fraction_deposited(self, evaporation_factor: float=0.3):
+    def fraction_deposited(self, evaporation_factor: float=0.3) -> _VectorisedFloat:
         """
         The fraction of particles actually deposited in the respiratory
         tract (over the total number of particles). It depends on the
@@ -683,10 +683,10 @@ class MultipleExpiration(_ExpirationBase):
 
     def __post_init__(self):
         if len(self.expirations) != len(self.weights):
-            raise ValueError("expirations and weigths should contain the"
+            raise ValueError("expirations and weigths must contain the"
                              "same number of elements")
         if not all(np.isscalar(e.diameter) for e in self.expirations):
-            raise ValueError("diameters should all be scalars")
+            raise ValueError("diameters must all be scalars")
 
     def aerosols(self, mask: Mask):
         return np.array([
@@ -844,7 +844,7 @@ class EmittingPopulation(_PopulationWithVirus):
 @dataclass(frozen=True)
 class InfectedPopulation(_PopulationWithVirus):
     #: The type of expiration that is being emitted whilst doing the activity.
-    expiration: _ExpirationBase 
+    expiration: _ExpirationBase
 
     @method_cache
     def fraction_of_infectious_virus(self) -> _VectorisedFloat:
@@ -1077,7 +1077,7 @@ class ExposureModel:
     #: The number of times the exposure event is repeated (default 1).
     repeats: int = 1
 
-    def fraction_deposited(self):
+    def fraction_deposited(self) -> _VectorisedFloat:
         """
         The fraction of particles actually deposited in the respiratory
         tract (over the total number of particles). It depends on the
@@ -1131,7 +1131,7 @@ class ExposureModel:
 
         diameter = self.concentration_model.infected.particle.diameter
 
-        if not np.isscalar(diameter) and not diameter is None:
+        if not np.isscalar(diameter) and diameter is not None:
             # we compute first the mean of all diameter-dependent quantities
             # to perform properly the Monte-Carlo integration over
             # particle diameters (doing things in another order would
@@ -1156,7 +1156,7 @@ class ExposureModel:
 
         diameter = self.concentration_model.infected.particle.diameter
 
-        if not np.isscalar(diameter) and not diameter is None:
+        if not np.isscalar(diameter) and diameter is not None:
             # we compute first the mean of all diameter-dependent quantities
             # to perform properly the Monte-Carlo integration over
             # particle diameters (doing things in another order would
