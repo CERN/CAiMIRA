@@ -590,7 +590,9 @@ class Particle:
 
     def fraction_deposited(self, evaporation_factor: float=0.3):
         """
-        The fraction of particles actually deposited in the respiratory tract.
+        The fraction of particles actually deposited in the respiratory
+        tract (over the total number of particles). It depends on the
+        particle diameter.
         From W. C. Hinds, New York, Wiley, 1999 (pp. 233 – 259).
         evaporation_factor represents the factor applied to the diameter,
         due to instantaneous evaporation of the particle in the air.
@@ -1077,7 +1079,9 @@ class ExposureModel:
 
     def fraction_deposited(self):
         """
-        The fraction of viruses actually deposited in the respiratory tract.
+        The fraction of particles actually deposited in the respiratory
+        tract (over the total number of particles). It depends on the
+        particle diameter.
         """
         return self.concentration_model.infected.particle.fraction_deposited(
                     self.concentration_model.evaporation_factor)
