@@ -418,6 +418,13 @@ class FormData:
 
         infected_occupants = self.infected_people
 
+        if self.short_range_option == "short_range_no":
+            sr_presence=[]
+            sr_activities=[]
+        else:
+            sr_presence=self.short_range_intervals()
+            sr_activities=self.short_range_activities()
+
         infected = mc.InfectedPopulation(
             number=infected_occupants,
             virus=virus,
@@ -426,8 +433,8 @@ class FormData:
             activity=activity,
             expiration=expiration,
             host_immunity=0.,
-            short_range_presence=self.short_range_intervals(),
-            short_range_activities=self.short_range_activities(),
+            short_range_presence=sr_presence,
+            short_range_activities=sr_activities,
         )
         return infected
 
