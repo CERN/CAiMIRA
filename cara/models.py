@@ -1152,7 +1152,7 @@ class ExposureModel:
         """
         emission_rate_per_aerosol = self.concentration_model.infected.emission_rate_per_aerosol_when_present()
         aerosols = self.concentration_model.infected.aerosols()
-        fdep = self.concentration_model.infected.particle.fraction_deposited()
+        fdep = self.fraction_deposited()
 
         diameter = self.concentration_model.infected.particle.diameter
 
