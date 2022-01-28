@@ -395,13 +395,12 @@ function validate_form(form) {
 
   // Generate the short range interactions list
   let short_range_interactions = [];
-  $(".form_field_outer_row").each(function (index){
-      index = index + 1;
-
+  $(".form_field_outer_row").each(function (index, element){
       let obj = {};
-      obj.activity = $("#sr_activity_no_" + String(index)).val();
-      obj.start_time = $("#sr_start_no_" + String(index)).val();
-      obj.duration = $("#sr_duration_no_" + String(index)).val();
+      obj.activity = $(element).find("[name='short_range_activity']").val();
+      obj.start_time = $(element).find("[name='short_range_start_time']").val();
+      obj.duration = $(element).find("[name='short_range_duration']").val();
+      console.log(JSON.stringify(obj))
       short_range_interactions.push(JSON.stringify(obj));
   });
   $("input[type=text][name=short_range_interactions]").val('[' + short_range_interactions + ']');

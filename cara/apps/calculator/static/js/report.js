@@ -1,8 +1,6 @@
 /* Generate the concentration plot using d3 library. */
 function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses, exposed_presence_intervals) {
 
-    console.log(cumulative_doses)
-
     var time_format = d3.timeFormat('%H:%M');
 
     var data_for_graphs = {
