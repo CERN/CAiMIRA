@@ -12,6 +12,31 @@ np.random.seed(2000)
 SAMPLE_SIZE = 250000
 TOLERANCE = 0.05
 
+# Load the weather data (temperature in kelvin) for Toronto.
+toronto_coordinates = (43.667, 79.400)
+toronto_hourly_temperatures_celsius_per_hour = data.get_hourly_temperatures_celsius_per_hour(
+    toronto_coordinates)
+
+
+# Toronto hourly temperatures as piecewise constant function (in Kelvin).
+TorontoTemperatures_hourly = {
+    month: models.PiecewiseConstant(
+        # NOTE:  It is important that the time type is float, not np.float, in
+        # order to allow hashability (for caching).
+        tuple(float(time) for time in range(25)),
+        tuple(273.15 + np.array(temperatures)),
+    )
+    for month, temperatures in toronto_hourly_temperatures_celsius_per_hour.items()
+}
+
+
+# Same Toronto temperatures on a finer temperature mesh (every 6 minutes).
+TorontoTemperatures = {
+    month: TorontoTemperatures_hourly[month].refine(refine_factor=10)
+    for month, temperatures in toronto_hourly_temperatures_celsius_per_hour.items()
+}
+
+
 # references values for infection_probability and expected new cases
 # in the following tests, were obtained from the feature/mc branch
 
@@ -69,7 +94,7 @@ def classroom_mc():
                 models.SlidingWindow(
                     active=models.PeriodicInterval(period=120, duration=120),
                     inside_temp=models.PiecewiseConstant((0., 24.), (293,)),
-                    outside_temp=data.TorontoTemperatures['Dec'],
+                    outside_temp=TorontoTemperatures['Dec'],
                     window_height=1.6,
                     opening_length=0.2,
                 ),
