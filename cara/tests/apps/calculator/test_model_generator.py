@@ -13,8 +13,6 @@ from cara.monte_carlo.data import expiration_distributions
 
 # TODO: seed better the random number generators
 np.random.seed(2000)
-SAMPLE_SIZE = 250000
-TOLERANCE = 0.02
 
 def test_model_from_dict(baseline_form_data):
     form = model_generator.FormData.from_dict(baseline_form_data)
@@ -35,6 +33,8 @@ def test_model_from_dict_invalid(baseline_form_data):
     ]
 )
 def test_blend_expiration(mask_type):
+    SAMPLE_SIZE = 250000
+    TOLERANCE = 0.02
     blend = {'Breathing': 2, 'Speaking': 1}
     r = model_generator.build_expiration(blend).build_model(SAMPLE_SIZE)
     mask = models.Mask.types[mask_type]
