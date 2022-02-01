@@ -313,7 +313,7 @@ class ReportGenerator:
             'level': 'red-4', # 'red-4' - 'orange-3' - 'yellow-2' - 'green-1'
             'risk': 'strong', # 'strong' - 'medium' - 'reduced' - ''
             'onsite_access': '4’000', # '4’000' - '5’000' - '6’500' - '8’000'
-            'threshold': '5%' # '5%' - '' - '' - ''
+            'threshold': '2%' # '2%' - '' - '' - ''
         }
         return context
 
