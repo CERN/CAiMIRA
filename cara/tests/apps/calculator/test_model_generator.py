@@ -9,7 +9,10 @@ from cara.apps.calculator import model_generator
 from cara.apps.calculator.model_generator import _hours2timestring
 from cara.apps.calculator.model_generator import minutes_since_midnight
 from cara import models
+from cara.monte_carlo.data import expiration_distributions
 
+# TODO: seed better the random number generators
+np.random.seed(2000)
 
 def test_model_from_dict(baseline_form_data):
     form = model_generator.FormData.from_dict(baseline_form_data)
@@ -22,14 +25,22 @@ def test_model_from_dict_invalid(baseline_form_data):
         model_generator.FormData.from_dict(baseline_form_data)
 
 
-def test_blend_expiration():
-    blend = {'Breathing': 2, 'Talking': 1}
-    r = model_generator.build_expiration(blend)
-    mask = models.Mask.types['Type I']
-    expected = models.Expiration(
-        (0.13466666666666668, 0.02866666666666667, 0.004333333333333334, 0.005)
-    )
-    npt.assert_almost_equal(r.aerosols(mask), expected.aerosols(mask))
+@pytest.mark.parametrize(
+    ["mask_type"],
+    [
+        ["No mask"],
+        ["Type I"],
+    ]
+)
+def test_blend_expiration(mask_type):
+    SAMPLE_SIZE = 250000
+    TOLERANCE = 0.02
+    blend = {'Breathing': 2, 'Speaking': 1}
+    r = model_generator.build_expiration(blend).build_model(SAMPLE_SIZE)
+    mask = models.Mask.types[mask_type]
+    expected = (expiration_distributions['Breathing'].build_model(SAMPLE_SIZE).aerosols(mask).mean()*2/3. +
+                expiration_distributions['Speaking'].build_model(SAMPLE_SIZE).aerosols(mask).mean()/3.)
+    npt.assert_allclose(r.aerosols(mask).mean(), expected, rtol=TOLERANCE)
 
 
 def test_ventilation_slidingwindow(baseline_form: model_generator.FormData):

@@ -50,7 +50,7 @@ from .utils import method_cache
 
 from .dataclass_utils import nested_replace
 
-
+oneoverln2 = 1 / np.log(2)
 # Define types for items supporting vectorisation. In the future this may be replaced
 # by ``np.ndarray[<type>]`` once/if that syntax is supported. Note that vectorization
 # implies 1d arrays: multi-dimensional arrays are not supported.
@@ -151,9 +151,9 @@ class PiecewiseConstant:
 
     def __post_init__(self):
         if len(self.transition_times) != len(self.values)+1:
-            raise ValueError("transition_times should contain one more element than values")
+            raise ValueError("transition_times must contain one more element than values")
         if tuple(sorted(set(self.transition_times))) != self.transition_times:
-            raise ValueError("transition_times should not contain duplicated elements and should be sorted")
+            raise ValueError("transition_times must not contain duplicated elements and must be sorted")
         shapes = [np.array(v).shape for v in self.values]
         if not all(shapes[0] == shape for shape in shapes):
             raise ValueError("All values must have the same shape")
@@ -431,6 +431,12 @@ class Virus:
     #: Dose to initiate infection, in RNA copies
     infectious_dose: _VectorisedFloat
 
+    #: viable-to-RNA virus ratio as a function of the viral load
+    viable_to_RNA_ratio: _VectorisedFloat
+
+    #: Reported increase of transmissibility of a VOC
+    transmissibility_factor: float
+
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
 
@@ -453,7 +459,9 @@ class SARSCoV2(Virus):
         piecewise constant model (for more details see A. Henriques et al,
         CERN-OPEN-2021-004, DOI: 10.17181/CERN.1GDQ.5Y75)
         """
-        return np.piecewise(humidity, [humidity <= 0.4, humidity > 0.4], [3.8, 1.1])
+        # Taken from Morris et al (https://doi.org/10.7554/eLife.65902) data at T = 22°C and RH = 40 %,
+        # and from Doremalen et al (https://www.nejm.org/doi/10.1056/NEJMc2004973).
+        return np.piecewise(humidity, [humidity <= 0.4, humidity > 0.4], [6.43, 1.1])
         
 
 Virus.types = {
@@ -464,23 +472,39 @@ Virus.types = {
         # as per https://www.dhs.gov/publication/st-master-question-list-covid-19
         # 50 comes from Buonanno et al.
         infectious_dose=50.,
+        viable_to_RNA_ratio = 0.5,
+        transmissibility_factor=1.0,
     ),
-    'SARS_CoV_2_B117': SARSCoV2(
+    'SARS_CoV_2_ALPHA': SARSCoV2(
         # also called VOC-202012/01
         viral_load_in_sputum=1e9,
-        infectious_dose=30.,
+        infectious_dose=50.,
+        viable_to_RNA_ratio = 0.5,
+        transmissibility_factor=0.78,
     ),
-    'SARS_CoV_2_P1': SARSCoV2(
+    'SARS_CoV_2_BETA': SARSCoV2(
         viral_load_in_sputum=1e9,
-        infectious_dose=1/0.045,
+        infectious_dose=50.,
+        viable_to_RNA_ratio=0.5,
+        transmissibility_factor=0.8,
+        ),
+    'SARS_CoV_2_GAMMA': SARSCoV2(
+        viral_load_in_sputum=1e9,
+        infectious_dose=50.,
+        viable_to_RNA_ratio = 0.5,
+        transmissibility_factor=0.72,
     ),
-    'SARS_CoV_2_B16172': SARSCoV2(
+    'SARS_CoV_2_DELTA': SARSCoV2(
         viral_load_in_sputum=1e9,
-        infectious_dose=30/1.6,
+        infectious_dose=50.,
+        viable_to_RNA_ratio = 0.5,
+        transmissibility_factor=0.51,
     ),
-    'SARS_CoV_2_B11529': SARSCoV2(
+    'SARS_CoV_2_OMICRON': SARSCoV2(
         viral_load_in_sputum=1e9,
-        infectious_dose=50/4.9841,
+        infectious_dose=20.,
+        viable_to_RNA_ratio=0.5,
+        transmissibility_factor=0.2
     ),
 }
 
@@ -496,7 +520,7 @@ class Mask:
     #: Pre-populated examples of Masks.
     types: typing.ClassVar[typing.Dict[str, "Mask"]]
 
-    def exhale_efficiency(self, diameter: float) -> _VectorisedFloat:
+    def exhale_efficiency(self, diameter: _VectorisedFloat) -> _VectorisedFloat:
         """
         Overall exhale efficiency, including the effect of the leaks.
         See CERN-OPEN-2021-004 (doi: 10.17181/CERN.1GDQ.5Y75), and Ref.
@@ -505,14 +529,17 @@ class Mask:
         the leakage through the sides.
         Diameter is in microns.
         """
-        if diameter < 0.5:
-            eta_out = 0.
-        elif diameter < 0.94614:
-            eta_out = 0.5893 * diameter + 0.1546
-        elif diameter < 3.:
-            eta_out = 0.0509 * diameter + 0.664
-        else:
-            eta_out = 0.8167
+        d = np.array(diameter)
+        intermediate_range1 = np.bitwise_and(0.5 <= d, d < 0.94614)
+        intermediate_range2 = np.bitwise_and(0.94614 <= d, d < 3.)
+
+        eta_out = np.empty(d.shape, dtype=np.float64)
+
+        eta_out[d < 0.5] = 0.
+        eta_out[intermediate_range1] = 0.5893 * d[intermediate_range1] + 0.1546
+        eta_out[intermediate_range2] = 0.0509 * d[intermediate_range2] + 0.664
+        eta_out[d >= 3.] = 0.8167
+
         return eta_out*self.factor_exhale
 
     def inhale_efficiency(self) -> _VectorisedFloat:
@@ -534,6 +561,58 @@ Mask.types = {
 
 
 @dataclass(frozen=True)
+class Particle:
+    """
+    Represents an aerosol particle.
+    """
+
+    #: diameter of the aerosol in microns
+    diameter: typing.Union[None,_VectorisedFloat] = None
+
+    def settling_velocity(self, evaporation_factor: float=0.3) -> _VectorisedFloat:
+        """
+        Settling velocity (i.e. speed of deposition on the floor due
+        to gravity), for aerosols, in m/s. Diameter-dependent expression
+        from https://doi.org/10.1101/2021.10.14.21264988
+        When an aerosol-diameter is not given, returns
+        the default value of 1.88e-4 m/s (corresponds to diameter of
+        2.5 microns, i.e. geometric average of the breathing
+        expiration distribution, taking evaporation into account, see
+        https://doi.org/10.1101/2021.10.14.21264988)
+        evaporation_factor represents the factor applied to the diameter,
+        due to instantaneous evaporation of the particle in the air.
+        """
+        if self.diameter is None:
+            vg = 1.88e-4
+        else:
+            vg = 1.88e-4 * (self.diameter*evaporation_factor / 2.5)**2
+        return vg
+
+    def fraction_deposited(self, evaporation_factor: float=0.3) -> _VectorisedFloat:
+        """
+        The fraction of particles actually deposited in the respiratory
+        tract (over the total number of particles). It depends on the
+        particle diameter.
+        From W. C. Hinds, New York, Wiley, 1999 (pp. 233 – 259).
+        evaporation_factor represents the factor applied to the diameter,
+        due to instantaneous evaporation of the particle in the air.
+        """
+        if self.diameter is None:
+            # model is not evaluated for specific values of aerosol
+            # diameters - we choose a single "average" deposition factor,
+            # as in https://doi.org/10.1101/2021.10.14.21264988.
+            fdep = 0.6
+        else:
+            # deposition fraction depends on aerosol particle diameter.
+            d = (self.diameter * evaporation_factor)
+            IFrac = 1 - 0.5 * (1 - (1 / (1 + (0.00076*(d**2.8)))))
+            fdep = IFrac * (0.0587
+                    + (0.911/(1 + np.exp(4.77 + 1.485 * np.log(d))))
+                    + (0.943/(1 + np.exp(0.508 - 2.58 * np.log(d)))))
+        return fdep
+
+
+@dataclass(frozen=True)
 class _ExpirationBase:
     """
     Represents the expiration of aerosols by a person.
@@ -541,6 +620,13 @@ class _ExpirationBase:
     """
     #: Pre-populated examples of Expirations.
     types: typing.ClassVar[typing.Dict[str, "_ExpirationBase"]]
+
+    @property
+    def particle(self) -> Particle:
+        """
+        the Particle object representing the aerosol - here the default one
+        """
+        return Particle()
 
     def aerosols(self, mask: Mask):
         """
@@ -552,16 +638,24 @@ class _ExpirationBase:
 @dataclass(frozen=True)
 class Expiration(_ExpirationBase):
     """
-    BLO model for the expiration (G. Johnson et al., Modality of human
-    expired aerosol size distributions, Journal of Aerosol Science,
-    vol. 42, no. 12, pp. 839 – 851, 2011,
-    https://doi.org/10.1016/j.jaerosci.2011.07.009).
-    Here all diameters (d) are in microns.
+    Model for the expiration. For a given diameter of aerosol, provides
+    the aerosol volume, weighted by the mask outward efficiency when
+    applicable.
     """
-    #: factors assigned to resp. the B, L and O modes. They are
-    # charateristics of the kind of expiratory activity (e.g. breathing,
-    # speaking, singing, or shouting).
-    BLO_factors: typing.Tuple[float, float, float]
+    #: diameter of the aerosol in microns
+    diameter: _VectorisedFloat
+
+    #: total concentration of aerosols per unit volume of expired air
+    # (in cm^-3), integrated over all aerosol diameters (corresponding
+    # to c_n,i in Eq. (4) of https://doi.org/10.1101/2021.10.14.21264988)
+    cn: float = 1.
+
+    @property
+    def particle(self) -> Particle:
+        """
+        the Particle object representing the aerosol
+        """
+        return Particle(diameter=self.diameter)
 
     @cached()
     def aerosols(self, mask: Mask):
@@ -569,29 +663,9 @@ class Expiration(_ExpirationBase):
         def volume(d):
             return (np.pi * d**3) / 6.
 
-        def _Bmode(d: float) -> float:
-            # B-mode (see ref. above).
-            return ( (1 / d) * (0.1 / (np.sqrt(2 * np.pi) * 0.262364)) *
-                    np.exp(-1 * (np.log(d) - 0.989541) ** 2 / (2 * 0.262364 ** 2)))
-
-        def _Lmode(d: float) -> float:
-            # L-mode (see ref. above).
-            return ( (1 / d) * (1.0 / (np.sqrt(2 * np.pi) * 0.506818)) *
-                    np.exp(-1 * (np.log(d) - 1.38629) ** 2 / (2 * 0.506818 ** 2)))
-
-        def _Omode(d: float) -> float:
-            # O-mode (see ref. above).
-            return ( (1 / d) * (0.0010008 / (np.sqrt(2 * np.pi) * 0.585005)) *
-                    np.exp(-1 * (np.log(d) - 4.97673) ** 2 / (2 * 0.585005 ** 2)))
-
-        def integrand(d: float) -> float:
-            return (self.BLO_factors[0] * _Bmode(d) +
-                    self.BLO_factors[1] * _Lmode(d) +
-                    self.BLO_factors[2] * _Omode(d)
-                    ) * volume(d) * (1 - mask.exhale_efficiency(d))
-
         # final result converted from microns^3/cm3 to mL/cm^3
-        return scipy.integrate.quad(integrand, 0.1, 30.)[0]*1e-12
+        return self.cn * (volume(self.diameter) *
+                (1 - mask.exhale_efficiency(self.diameter))) * 1e-12
 
 
 @dataclass(frozen=True)
@@ -601,15 +675,18 @@ class MultipleExpiration(_ExpirationBase):
     Group together different modes of expiration, that represent
     each the main expiration mode for a certain fraction of time (given by
     the weights).
-
+    This class can only be used with single diameters defined in each
+    expiration (it cannot be used with diameter distributions).
     """
     expirations: typing.Tuple[_ExpirationBase, ...]
     weights: typing.Tuple[float, ...]
 
     def __post_init__(self):
         if len(self.expirations) != len(self.weights):
-            raise ValueError("expirations and weigths should contain the"
+            raise ValueError("expirations and weigths must contain the"
                              "same number of elements")
+        if not all(np.isscalar(e.diameter) for e in self.expirations):
+            raise ValueError("diameters must all be scalars")
 
     def aerosols(self, mask: Mask):
         return np.array([
@@ -618,11 +695,16 @@ class MultipleExpiration(_ExpirationBase):
         ]).sum(axis=0)
 
 
+# Typical expirations. The aerosol diameter given is an equivalent
+# diameter, chosen in such a way that the aerosol volume is
+# the same as the total aerosol volume given by the full BLO model
+# (integrated between 0.1 and 30 microns)
+# The correspondence with the BLO coefficients is given.
 _ExpirationBase.types = {
-    'Breathing': Expiration((1., 0., 0.)),
-    'Talking': Expiration((1., 1., 1.)),
-    'Shouting': Expiration((1., 5., 5.)),
-    'Singing': Expiration((1., 5., 5.)),
+    'Breathing': Expiration(1.3844), # corresponds to B/L/O coefficients of (1, 0, 0)
+    'Speaking': Expiration(5.8925),   # corresponds to B/L/O coefficients of (1, 1, 1)
+    'Shouting': Expiration(10.0411), # corresponds to B/L/O coefficients of (1, 5, 5)
+    'Singing': Expiration(10.0411),  # corresponds to B/L/O coefficients of (1, 5, 5)
 }
 
 
@@ -666,6 +748,11 @@ class Population:
     #: The physical activity being carried out by the people.
     activity: Activity
 
+    #: The ratio of virions that are inactivated by the person's immunity.
+    # This parameter considers the potential antibodies in the person, 
+    # which might render inactive some RNA copies (virions).
+    host_immunity: float
+
     def person_present(self, time):
         return self.presence.triggered(time)
 
@@ -676,12 +763,35 @@ class _PopulationWithVirus(Population):
     virus: Virus
 
     @method_cache
+    def fraction_of_infectious_virus(self) -> _VectorisedFloat:
+        """
+        The fraction of infectious virus.
+
+        """
+        return 1.
+
+    def aerosols(self):
+        """
+        total volume of aerosols expired per volume of air (mL/cm^3).
+        """
+        raise NotImplementedError("Subclass must implement")
+
+    def emission_rate_per_aerosol_when_present(self) -> _VectorisedFloat:
+        """
+        The emission rate of virions per fraction of aerosol volume in
+        the expired air, if the infected population is present, in cm^3/(mL.h).
+        It should not be a function of time.
+        """
+        raise NotImplementedError("Subclass must implement")
+
+    @method_cache
     def emission_rate_when_present(self) -> _VectorisedFloat:
         """
         The emission rate if the infected population is present
-        (in virions / h). It should not be a function of time.
+        (in virions / h).
         """
-        raise NotImplementedError("Subclass must implement")
+        return (self.emission_rate_per_aerosol_when_present() *
+                self.aerosols())
 
     def emission_rate(self, time) -> _VectorisedFloat:
         """
@@ -700,16 +810,33 @@ class _PopulationWithVirus(Population):
 
         return self.emission_rate_when_present()
 
+    @property
+    def particle(self) -> Particle:
+        """
+        the Particle object representing the aerosol expired by the
+        population - here we take the default Particle object
+        """
+        return Particle()
+
 
 @dataclass(frozen=True)
 class EmittingPopulation(_PopulationWithVirus):
     #: The emission rate of a single individual, in virions / h.
     known_individual_emission_rate: float
 
-    @method_cache
-    def emission_rate_when_present(self) -> _VectorisedFloat:
+    def aerosols(self):
         """
-        The emission rate if the infected population is present.
+        total volume of aerosols expired per volume of air (mL/cm^3).
+        Here arbitrarily set to 1 as the full emission rate is known.
+        """
+        return 1.
+
+    @method_cache
+    def emission_rate_per_aerosol_when_present(self) -> _VectorisedFloat:
+        """
+        The emission rate of virions per fraction of aerosol volume in
+        the expired air, if the infected population is present, in cm^3/(mL.h).
+        It should not be a function of time.
         """
         return self.known_individual_emission_rate * self.number
 
@@ -720,23 +847,39 @@ class InfectedPopulation(_PopulationWithVirus):
     expiration: _ExpirationBase
 
     @method_cache
-    def emission_rate_when_present(self) -> _VectorisedFloat:
+    def fraction_of_infectious_virus(self) -> _VectorisedFloat:
         """
-        The emission rate if the infected population is present.
-        Note that the rate is not currently time-dependent.
+        The fraction of infectious virus.
         """
-        # Emission Rate (virions / h)
-        # Note on units: exhalation rate is in m^3/h, aerosols in mL/cm^3
-        # and viral load in virus/mL -> 1e6 conversion factor
+        return self.virus.viable_to_RNA_ratio * (1 - self.host_immunity)
 
-        aerosols = self.expiration.aerosols(self.mask)
+    def aerosols(self):
+        """
+        total volume of aerosols expired per volume of air (mL/cm^3).
+        """
+        return self.expiration.aerosols(self.mask)
+
+    @method_cache
+    def emission_rate_per_aerosol_when_present(self) -> _VectorisedFloat:
+        """
+        The emission rate of virions per fraction of aerosol volume in
+        the expired air, if the infected population is present, in cm^3/(mL.h).
+        It should not be a function of time.
+        """
+        # Note on units: exhalation rate is in m^3/h -> 1e6 conversion factor
 
         ER = (self.virus.viral_load_in_sputum *
               self.activity.exhalation_rate *
-              10 ** 6 *
-              aerosols)
+              10 ** 6)
 
         return ER * self.number
+
+    @property
+    def particle(self) -> Particle:
+        """
+        the Particle object representing the aerosol - here the default one
+        """
+        return self.expiration.particle
 
 
 @dataclass(frozen=True)
@@ -745,13 +888,18 @@ class ConcentrationModel:
     ventilation: _VentilationBase
     infected: _PopulationWithVirus
 
+    #: evaporation factor: the particles' diameter is multiplied by this
+    # factor as soon as they are in the air (but AFTER going out of the,
+    # mask, if any).
+    evaporation_factor: float = 0.3
+
     @property
     def virus(self):
         return self.infected.virus
 
     def infectious_virus_removal_rate(self, time: float) -> _VectorisedFloat:
-        # Particle deposition on the floor (value from CERN-OPEN-2021-04)
-        vg = 1.88e-4
+        # Equilibrium velocity of particle motion toward the floor
+        vg = self.infected.particle.settling_velocity(self.evaporation_factor)
         # Height of the emission source to the floor - i.e. mouth/nose (m)
         h = 1.5
         # Deposition rate (h^-1)
@@ -913,6 +1061,13 @@ class ConcentrationModel:
 
 @dataclass(frozen=True)
 class ExposureModel:
+    """
+    Represents the exposure to a concentration of virions in the air.
+    NOTE: the infection probability formula assumes that if the diameter
+    is an array, then none of the ventilation parameters, room volume or virus
+    decay constant, are arrays as well.
+    TODO: implement a check this is the case, in __post_init__
+    """
     #: The virus concentration model which this exposure model should consider.
     concentration_model: ConcentrationModel
 
@@ -922,8 +1077,14 @@ class ExposureModel:
     #: The number of times the exposure event is repeated (default 1).
     repeats: int = 1
 
-    #: The fraction of viruses actually deposited in the respiratory tract
-    fraction_deposited: _VectorisedFloat = 0.6
+    def fraction_deposited(self) -> _VectorisedFloat:
+        """
+        The fraction of particles actually deposited in the respiratory
+        tract (over the total number of particles). It depends on the
+        particle diameter.
+        """
+        return self.concentration_model.infected.particle.fraction_deposited(
+                    self.concentration_model.evaporation_factor)
 
     def _normed_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         """The number of virions per meter^3 between any two times, normalized 
@@ -962,21 +1123,73 @@ class ExposureModel:
         return normed_exposure * self.repeats
 
     def exposure(self) -> _VectorisedFloat:
-        """The number of virions per meter^3."""
-        return (self._normed_exposure() *
-                self.concentration_model.infected.emission_rate_when_present())
+        """
+        The number of virus per meter^3.
+        """
+        emission_rate_per_aerosol = self.concentration_model.infected.emission_rate_per_aerosol_when_present()
+        aerosols = self.concentration_model.infected.aerosols()
+
+        diameter = self.concentration_model.infected.particle.diameter
+
+        if not np.isscalar(diameter) and diameter is not None:
+            # we compute first the mean of all diameter-dependent quantities
+            # to perform properly the Monte-Carlo integration over
+            # particle diameters (doing things in another order would
+            # lead to wrong results).
+            exposure_integrated = np.array(self._normed_exposure()*aerosols).mean()
+        else:
+            # in the case of a single diameter or no diameter defined,
+            # one should not take any mean at this stage.
+            exposure_integrated = self._normed_exposure()*aerosols
+
+        # then we multiply by the diameter-independent quantity
+        # emission_rate_per_aerosol
+        return exposure_integrated * emission_rate_per_aerosol
+
+    def _deposited_exposure(self) -> _VectorisedFloat:
+        """
+        The number of virus per m^3 deposited on the respiratory tract.
+        """
+        emission_rate_per_aerosol = self.concentration_model.infected.emission_rate_per_aerosol_when_present()
+        aerosols = self.concentration_model.infected.aerosols()
+        fdep = self.fraction_deposited()
+
+        diameter = self.concentration_model.infected.particle.diameter
+
+        if not np.isscalar(diameter) and diameter is not None:
+            # we compute first the mean of all diameter-dependent quantities
+            # to perform properly the Monte-Carlo integration over
+            # particle diameters (doing things in another order would
+            # lead to wrong results).
+            dep_exposure_integrated = np.array(self._normed_exposure() *
+                                               aerosols *
+                                               fdep).mean()
+        else:
+            # in the case of a single diameter or no diameter defined,
+            # one should not take any mean at this stage.
+            dep_exposure_integrated = self._normed_exposure()*aerosols*fdep
+
+        # then we multiply by the diameter-independent quantity
+        # emission_rate_per_aerosol
+        return dep_exposure_integrated * emission_rate_per_aerosol
 
     def infection_probability(self) -> _VectorisedFloat:
-        exposure = self.exposure()
+        deposited_exposure = self._deposited_exposure()
+
+        f_inf = self.concentration_model.infected.fraction_of_infectious_virus()
 
         inf_aero = (
             self.exposed.activity.inhalation_rate *
             (1 - self.exposed.mask.inhale_efficiency()) *
-            exposure * self.fraction_deposited
+            deposited_exposure * f_inf
         )
+        
+        # oneoverln2 multiplied by ID_50 corresponds to ID_63.
+        infectious_dose = oneoverln2 * self.concentration_model.virus.infectious_dose
 
-        # Probability of infection.
-        return (1 - np.exp(-(inf_aero/self.concentration_model.virus.infectious_dose))) * 100
+        # Probability of infection.        
+        return (1 - np.exp(-((inf_aero * (1 - self.exposed.host_immunity))/(infectious_dose * 
+                self.concentration_model.virus.transmissibility_factor)))) * 100
 
     def expected_new_cases(self) -> _VectorisedFloat:
         prob = self.infection_probability()

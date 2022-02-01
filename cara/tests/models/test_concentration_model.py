@@ -42,9 +42,13 @@ def test_concentration_model_vectorisation(override_params):
             virus=models.SARSCoV2(
                 viral_load_in_sputum=defaults['viral_load_in_sputum'],
                 infectious_dose=50.,
+                viable_to_RNA_ratio = 0.5,
+                transmissibility_factor=1.0,
             ),
-            expiration=models.Expiration((1., 0., 0.)),
-        )
+            expiration=models._ExpirationBase.types['Breathing'],
+            host_immunity=0.,
+        ),
+        evaporation_factor=0.3,
     )
     concentrations = c_model.concentration(10)
     assert isinstance(concentrations, np.ndarray)
@@ -64,7 +68,9 @@ def simple_conc_model():
             activity=models.Activity.types['Seated'],
             virus=models.Virus.types['SARS_CoV_2'],
             expiration=models.Expiration.types['Breathing'],
-        )
+            host_immunity=0.,
+        ),
+        evaporation_factor=0.3,
     )
 
 

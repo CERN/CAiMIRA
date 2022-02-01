@@ -200,15 +200,15 @@
 							<li><p class="data_text">Virus variant:
 							{% if form.virus_type == "SARS_CoV_2" %}
 							SARS-CoV-2 (nominal strain)
-							{% elif form.virus_type == "SARS_CoV_2_B117" %}
+							{% elif form.virus_type == "SARS_CoV_2_ALPHA" %}
 							<a href="https://www.ecdc.europa.eu/en/publications-data/covid-19-risk-assessment-spread-new-sars-cov-2-variants-eueea">SARS-CoV-2 (Alpha VOC) </a>
-							{% elif form.virus_type == "SARS_CoV_2_B1351" %}
+							{% elif form.virus_type == "SARS_CoV_2_BETA" %}
 							<a href="https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2021.26.24.2100509">SARS-CoV-2 (Beta VOC) </a>
-							{% elif form.virus_type == "SARS_CoV_2_P1" %}
+							{% elif form.virus_type == "SARS_CoV_2_GAMMA" %}
 							<a href="https://doi.org/10.1126/science.abh2644">SARS-CoV-2 (Gamma VOC)</a>
-							{% elif form.virus_type == "SARS_CoV_2_B16172" %}
+							{% elif form.virus_type == "SARS_CoV_2_DELTA" %}
 							<a href="https://www.bmj.com/content/373/bmj.n1513">SARS-CoV-2 (Delta VOC)</a>
-							{% elif form.virus_type == "SARS_CoV_2_B11529" %}
+							{% elif form.virus_type == "SARS_CoV_2_OMICRON" %}
 							<a href="https://gitlab.cern.ch/cara/cara/-/issues/226">SARS-CoV-2 (Omicron VOC)</a>
 							{% endif %}
 							</p></li>
@@ -288,25 +288,25 @@
 							<li><p class="data_text">
 							Activity type:
 							{% if form.activity_type == "office" %}
-							Office – typical scenario with all persons seated, talking occasionally (talking assumed for 1/3rd of the time).
+							Office – typical scenario with all persons seated, speaking occasionally (speaking assumed for 1/3rd of the time).
 							{% elif form.activity_type == "meeting" %}
-							Meeting – typical scenario with all persons seated, one person talking at a time.
+							Meeting – typical scenario with all persons seated, one person speaking at a time.
 							{% elif form.activity_type == "callcentre" %}
-							Call Centre = typical office-like scenario with all persons seated, all talking continuously.
+							Call Centre = typical office-like scenario with all persons seated, all speaking continuously.
 							{% elif form.activity_type == "controlroom-day" %}
-							Control Room (Day Shift) = specific control room scenario, all persons seated, all talking 50% of the time.
+							Control Room (Day Shift) = specific control room scenario, all persons seated, all speaking 50% of the time.
 							{% elif form.activity_type == "controlroom-night" %}
-							Control Room (Night Shift) = specific control room scenario with all persons seated, all talking for 10% of the time.
+							Control Room (Night Shift) = specific control room scenario with all persons seated, all speaking for 10% of the time.
 							{% elif form.activity_type == "library" %}
-							Library = Library scenario with all persons seated, breathing and not talking.
+							Library = Library scenario with all persons seated, breathing and not speaking.
 							{% elif form.activity_type == "workshop" %}
-							Workshop = assembly workshop environment, all persons doing moderate physical activity, talking 50% of the time.
+							Workshop = assembly workshop environment, all persons doing moderate physical activity, speaking 50% of the time.
 							{% elif form.activity_type == "training" %}
 							Conference/Training – one person (the speaker/trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the speaker/trainer is the infected person, for the worst case scenario.
 							{% elif form.activity_type == "lab" %}
-							Laboratory = Lab or technical environment, all persons doing light physical activity, talking 50% of the time.
+							Laboratory = Lab or technical environment, all persons doing light physical activity, speaking 50% of the time.
 							{% elif form.activity_type == "gym" %}
-							Gym = For comparison only, all persons doing heavy physical exercise, breathing and not talking.
+							Gym = For comparison only, all persons doing heavy physical exercise, breathing and not speaking.
 							{% endif %}
 							</p></li>
 							<li><p class="data_text">Exposed occupant(s) activity time:</p></li>

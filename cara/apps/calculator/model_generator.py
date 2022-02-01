@@ -12,6 +12,7 @@ import cara.data.weather
 import cara.monte_carlo as mc
 from .. import calculator
 from cara.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions
+from cara.monte_carlo.data import expiration_distribution, expiration_BLO_factors, expiration_distributions
 
 
 LOG = logging.getLogger(__name__)
@@ -23,7 +24,7 @@ minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
 # Used to declare when an attribute of a class must have a value provided, and
 # there should be no default value used.
 _NO_DEFAULT = object()
-_DEFAULT_MC_SAMPLE_SIZE = 50000
+_DEFAULT_MC_SAMPLE_SIZE = 250000
 
 
 @dataclasses.dataclass
@@ -245,8 +246,9 @@ class FormData:
                 room=room,
                 ventilation=self.ventilation(),
                 infected=self.infected_population(),
+                evaporation_factor=0.3,
             ),
-            exposed=self.exposed_population()
+            exposed=self.exposed_population(),
         )
 
     def build_model(self, sample_size=_DEFAULT_MC_SAMPLE_SIZE) -> models.ExposureModel:
@@ -372,35 +374,35 @@ class FormData:
         scenario_activity_and_expiration = {
             'office': (
                 'Seated',
-                # Mostly silent in the office, but 1/3rd of time talking.
-                {'Talking': 1, 'Breathing': 2}
+                # Mostly silent in the office, but 1/3rd of time speaking.
+                {'Speaking': 1, 'Breathing': 2}
             ),
             'controlroom-day': (
                 'Seated',
-                # Daytime control room shift, 50% talking.
-                {'Talking': 1, 'Breathing': 1}
+                # Daytime control room shift, 50% speaking.
+                {'Speaking': 1, 'Breathing': 1}
             ),
             'controlroom-night': (
                 'Seated',
-                # Nightshift control room, 10% talking.
-                {'Talking': 1, 'Breathing': 9}
+                # Nightshift control room, 10% speaking.
+                {'Speaking': 1, 'Breathing': 9}
             ),
             'meeting': (
                 'Seated',
-                # Conversation of N people is approximately 1/N% of the time talking.
-                {'Talking': 1, 'Breathing': self.total_people - 1}
+                # Conversation of N people is approximately 1/N% of the time speaking.
+                {'Speaking': 1, 'Breathing': self.total_people - 1}
             ),
-            'callcentre': ('Seated', 'Talking'),
+            'callcentre': ('Seated', 'Speaking'),
             'library': ('Seated', 'Breathing'),
-            'training': ('Standing', 'Talking'),
+            'training': ('Standing', 'Speaking'),
             'lab': (
                 'Light activity',
-                #Model 1/2 of time spent talking in a lab.
-                {'Talking': 1, 'Breathing': 1}),
+                #Model 1/2 of time spent speaking in a lab.
+                {'Speaking': 1, 'Breathing': 1}),
             'workshop': (
                 'Moderate activity',
-                #Model 1/2 of time spent talking in a workshop.
-                {'Talking': 1, 'Breathing': 1}),
+                #Model 1/2 of time spent speaking in a workshop.
+                {'Speaking': 1, 'Breathing': 1}),
             'gym':('Heavy exercise', 'Breathing'),
         }
 
@@ -416,7 +418,8 @@ class FormData:
             presence=self.infected_present_interval(),
             mask=self.mask(),
             activity=activity,
-            expiration=expiration
+            expiration=expiration,
+            host_immunity=0.,
         )
         return infected
 
@@ -447,6 +450,7 @@ class FormData:
             presence=self.exposed_present_interval(),
             activity=activity,
             mask=self.mask(),
+            host_immunity=0.,
         )
         return exposed
 
@@ -628,12 +632,14 @@ class FormData:
 
 def build_expiration(expiration_definition) -> models._ExpirationBase:
     if isinstance(expiration_definition, str):
-        return models._ExpirationBase.types[expiration_definition]
+        return expiration_distributions[expiration_definition]
     elif isinstance(expiration_definition, dict):
-        return models.MultipleExpiration(
-            tuple([build_expiration(exp) for exp in expiration_definition.keys()]),
-            tuple(expiration_definition.values())
-        )
+        total_weight = sum(expiration_definition.values())
+        BLO_factors = np.sum([
+            np.array(expiration_BLO_factors[exp_type]) * weight/total_weight
+            for exp_type, weight in expiration_definition.items()
+            ], axis=0)
+        return expiration_distribution(tuple(BLO_factors))
 
 
 def baseline_raw_form_data():
@@ -694,7 +700,7 @@ MECHANICAL_VENTILATION_TYPES = {'mech_type_air_changes', 'mech_type_air_supply',
 MASK_TYPES = {'Type I', 'FFP2'}
 MASK_WEARING_OPTIONS = {'mask_on', 'mask_off'}
 VENTILATION_TYPES = {'natural_ventilation', 'mechanical_ventilation', 'no_ventilation'}
-VIRUS_TYPES = {'SARS_CoV_2', 'SARS_CoV_2_B117', 'SARS_CoV_2_B1351','SARS_CoV_2_P1', 'SARS_CoV_2_B16172', 'SARS_CoV_2_B11529'}
+VIRUS_TYPES = {'SARS_CoV_2', 'SARS_CoV_2_ALPHA', 'SARS_CoV_2_BETA','SARS_CoV_2_GAMMA', 'SARS_CoV_2_DELTA', 'SARS_CoV_2_OMICRON'}
 VOLUME_TYPES = {'room_volume_explicit', 'room_volume_from_dimensions'}
 WINDOWS_OPENING_REGIMES = {'windows_open_permanently', 'windows_open_periodically', 'not-applicable'}
 WINDOWS_TYPES = {'window_sliding', 'window_hinged', 'not-applicable'}

@@ -8,7 +8,7 @@ from cara.monte_carlo.data import activity_distributions, virus_distributions
 np.random.seed(2000)
 
 
-# mean & std deviations from CERN-OPEN-2021-04 (Table 4)
+# mean & std deviations from https://doi.org/10.1101/2021.10.14.21264988 (Table 3)
 # NOTE: a mistake was corrected for the std deviation of the
 # "Moderate exercise" case (0.37 in the report, but should be 0.34)
 @pytest.mark.parametrize(
@@ -30,15 +30,15 @@ def test_activity_distributions(distribution, mean, std):
     npt.assert_allclose(activity.inhalation_rate.std(), std, atol=0.01)
 
 
-# mean & std deviations from CERN-OPEN-2021-04 (Table 4) - with a refined
-# precision on the values
+# mean & std deviations from https://doi.org/10.1101/2021.10.14.21264988 (Table 3) 
+# - with a refined precision on the values
 @pytest.mark.parametrize(
     "distribution, mean, std",[
         ['SARS_CoV_2', 6.59, 1.74],
 
-        ['SARS_CoV_2_B117', 6.59, 1.74],
+        ['SARS_CoV_2_ALPHA', 6.59, 1.74],
 
-        ['SARS_CoV_2_P1', 6.59, 1.74],
+        ['SARS_CoV_2_GAMMA', 6.59, 1.74],
     ]
 )
 def test_viral_load_logdistribution(distribution, mean, std):

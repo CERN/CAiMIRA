@@ -20,9 +20,11 @@ def baseline_model():
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Light activity'],
             known_individual_emission_rate=970 * 50,
+            host_immunity=0.,
             # superspreading event, where ejection factor is fixed based
             # on Miller et al. (2020) - 50 represents the infectious dose.
         ),
+        evaporation_factor=0.3,
     )
     return model
 
@@ -36,8 +38,8 @@ def baseline_exposure_model(baseline_model):
             presence=baseline_model.infected.presence,
             activity=baseline_model.infected.activity,
             mask=baseline_model.infected.mask,
+            host_immunity=0.,
         ),
-        fraction_deposited=1.,
     )
 
 

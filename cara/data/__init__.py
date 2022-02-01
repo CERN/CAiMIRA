@@ -7,14 +7,22 @@ MONTH_NAMES = [
     'August', 'September', 'October', 'November', 'December',
 ]
 
-# Load the weather data (temperature in kelvin) for Geneva. 
-coordinates = (46.204391, 6.143158)
-wx_station_id = nearest_wx_station(longitude=coordinates[1], latitude=coordinates[0])[0]
-# average temperature of each month, hour per hour (from midnight to 11 pm)
-local_hourly_temperatures_celsius_per_hour = {month.replace(month, MONTH_NAMES[i][:3]): 
-											[t - 273.15 for t in temp] for i, (month, temp) 
-											in enumerate(wx_data()[wx_station_id].items())}
-							
+
+def get_hourly_temperatures_celsius_per_hour(coordinates):
+    wx_station_id = nearest_wx_station(
+        longitude=coordinates[1], latitude=coordinates[0])[0]
+    # average temperature of each month, hour per hour (from midnight to 11 pm)
+    return {month.replace(month, MONTH_NAMES[i][:3]):
+            [t - 273.15 for t in temp] for i, (month, temp)
+            in enumerate(wx_data()[wx_station_id].items())}
+
+
+# Load the weather data (temperature in kelvin) for Geneva.
+geneva_coordinates = (46.204391, 6.143158)
+local_hourly_temperatures_celsius_per_hour = get_hourly_temperatures_celsius_per_hour(
+    geneva_coordinates)
+
+
 # Geneva hourly temperatures as piecewise constant function (in Kelvin).
 GenevaTemperatures_hourly = {
     month: models.PiecewiseConstant(
@@ -27,7 +35,7 @@ GenevaTemperatures_hourly = {
 }
 
 
-# Same temperatures on a finer temperature mesh (every 6 minutes).
+# Same Geneva temperatures on a finer temperature mesh (every 6 minutes).
 GenevaTemperatures = {
     month: GenevaTemperatures_hourly[month].refine(refine_factor=10)
     for month, temperatures in local_hourly_temperatures_celsius_per_hour.items()
