@@ -1148,7 +1148,7 @@ class ExposureModel:
                 self.exposed.activity.inhalation_rate * 
                 (1 - self.exposed.mask.inhale_efficiency()) * f_inf)
 
-    def _deposited_exposure(self) -> _VectorisedFloat:
+    def deposited_exposure(self) -> _VectorisedFloat:
         """
         The number of virus per m^3 deposited on the respiratory tract.
         """
@@ -1160,7 +1160,7 @@ class ExposureModel:
         return deposited_exposure
 
     def infection_probability(self) -> _VectorisedFloat:
-        inf_aero = self._deposited_exposure()
+        inf_aero = self.deposited_exposure()
         
         # oneoverln2 multiplied by ID_50 corresponds to ID_63.
         infectious_dose = oneoverln2 * self.concentration_model.virus.infectious_dose
