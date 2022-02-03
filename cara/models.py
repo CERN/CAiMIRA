@@ -1142,11 +1142,11 @@ class ExposureModel:
             # one should not take any mean at this stage.
             dep_exposure_integrated = self._normed_exposure_between_bounds(time1, time2)*aerosols*fdep
 
-        # then we multiply by the diameter-independent quantity
-        # emission_rate_per_aerosol
+        # then we multiply by the diameter-independent quantity emission_rate_per_aerosol,
+        # and parameters of the vD equation (i.e. f_inf, BR_k and n_in).
         return (dep_exposure_integrated * emission_rate_per_aerosol * 
-                self.exposed.activity.inhalation_rate * 
-                (1 - self.exposed.mask.inhale_efficiency()) * f_inf)
+                f_inf * self.exposed.activity.inhalation_rate * 
+                (1 - self.exposed.mask.inhale_efficiency()))
 
     def deposited_exposure(self) -> _VectorisedFloat:
         """
