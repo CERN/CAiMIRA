@@ -1160,13 +1160,14 @@ class ExposureModel:
         return deposited_exposure * self.repeats
 
     def infection_probability(self) -> _VectorisedFloat:
-        inf_aero = self.deposited_exposure()
+        # viral dose (vD)
+        vD = self.deposited_exposure()
         
         # oneoverln2 multiplied by ID_50 corresponds to ID_63.
         infectious_dose = oneoverln2 * self.concentration_model.virus.infectious_dose
 
         # Probability of infection.        
-        return (1 - np.exp(-((inf_aero * (1 - self.exposed.host_immunity))/(infectious_dose * 
+        return (1 - np.exp(-((vD * (1 - self.exposed.host_immunity))/(infectious_dose * 
                 self.concentration_model.virus.transmissibility_factor)))) * 100
 
     def expected_new_cases(self) -> _VectorisedFloat:
