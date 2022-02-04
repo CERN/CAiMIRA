@@ -97,7 +97,7 @@ def test_r0(baseline_exposure_model):
     # expected r0 was computed with a trapezoidal integration, using
     # a mesh of 100'000 pts per exposed presence interval.
     r0 = baseline_exposure_model.reproduction_number()
-    npt.assert_allclose(r0, 776.9419902161412)
+    npt.assert_allclose(r0, 776.941990)
 
 
 def test_periodic_window(baseline_periodic_window, baseline_room):
@@ -389,16 +389,16 @@ def build_exposure_model(concentration_model):
     )
 
 
-# expected exposure were computed with a trapezoidal integration, using
+# expected deposited exposure were computed with a trapezoidal integration, using
 # a mesh of 100'000 pts per exposed presence interval.
 @pytest.mark.parametrize(
-    "month, expected_exposure",
+    "month, expected_deposited_exposure",
     [
-        ['Jan', 503.254087759],
-        ['Jun', 2294.71115639],
+        ['Jan', 377.440565819],
+        ['Jun', 1721.03336729],
     ],
 )
-def test_exposure_hourly_dep(month,expected_exposure):
+def test_exposure_hourly_dep(month,expected_deposited_exposure):
     m = build_exposure_model(
         build_hourly_dependent_model(
             month,
@@ -406,20 +406,20 @@ def test_exposure_hourly_dep(month,expected_exposure):
             intervals_presence_infected=((8., 12.), (13., 17.))
         )
     )
-    exposure = m.exposure()
-    npt.assert_allclose(exposure, expected_exposure)
+    deposited_exposure = m.deposited_exposure()
+    npt.assert_allclose(deposited_exposure, expected_deposited_exposure)
 
-# expected exposure were computed with a trapezoidal integration, using
+# expected deposited exposure were computed with a trapezoidal integration, using
 # a mesh of 100'000 pts per exposed presence interval and 25 pts per hour
 # for the temperature discretization.
 @pytest.mark.parametrize(
-    "month, expected_exposure",
+    "month, expected_deposited_exposure",
     [
-        ['Jan', 511.118941481],
-        ['Jun', 2398.90129579],
+        ['Jan', 383.339206111],
+        ['Jun', 1799.17597184],
     ],
 )
-def test_exposure_hourly_dep_refined(month,expected_exposure):
+def test_exposure_hourly_dep_refined(month,expected_deposited_exposure):
     m = build_exposure_model(
         build_hourly_dependent_model(
             month,
@@ -428,5 +428,5 @@ def test_exposure_hourly_dep_refined(month,expected_exposure):
             temperatures=data.GenevaTemperatures,
         )
     )
-    exposure = m.exposure()
-    npt.assert_allclose(exposure, expected_exposure, rtol=0.02)
+    deposited_exposure = m.deposited_exposure()
+    npt.assert_allclose(deposited_exposure, expected_deposited_exposure, rtol=0.02)

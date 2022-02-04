@@ -138,7 +138,7 @@ def calculate_report_data(model: models.ExposureModel):
     exposed_occupants = model.exposed.number
     expected_new_cases = np.array(model.expected_new_cases()).mean()
     cumulative_doses = np.cumsum([
-        np.array(model.exposure_between_bounds(float(time1), float(time2))).mean()
+        np.array(model.deposited_exposure_between_bounds(float(time1), float(time2))).mean()
         for time1, time2 in zip(times[:-1], times[1:])
     ])
 
@@ -337,11 +337,13 @@ class ReportGenerator:
         )
         context['permalink'] = generate_permalink(base_url, self.calculator_prefix, form)
         context['calculator_prefix'] = self.calculator_prefix
+
+        # For further information about these values visit https://gitlab.cern.ch/cara/cara/-/merge_requests/321.
         context['scale_warning'] = {
-            'level': 'red-4',
-            'incidence_rate': 'higher or equal to 100 new cases per 100 000 inhabitants',
-            'onsite_access': 'lower than 4000',
-            'threshold': '5%'
+            'level': 'red-4', # 'red-4' - 'orange-3' - 'yellow-2' - 'green-1'
+            'risk': 'strong', # 'strong' - 'medium' - 'reduced' - ''
+            'onsite_access': '4’000', # '4’000' - '5’000' - '6’500' - '8’000'
+            'threshold': '2%' # '2%' - '' - '' - ''
         }
         return context
 

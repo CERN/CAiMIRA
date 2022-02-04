@@ -165,15 +165,15 @@ def expiration_distribution(BLO_factors):
     """
     Returns an Expiration with an aerosol diameter distribution, defined
     by the BLO factors (a length-3 tuple).
-    The total concentration of aerosols is computed by integrating
-    the distribution between 0.1 and D microns - these boundaries are
+    The total concentration of aerosols, cn, is computed by integrating
+    the distribution between 0.1 and 30 microns - these boundaries are
     an historical choice based on previous implementations of the model
     (it limits the influence of the O-mode).
     """
     dscan = np.linspace(0.1, 30. ,3000)
     return mc.Expiration(CustomKernel(dscan,
                 BLOmodel(BLO_factors).distribution(dscan),kernel_bandwidth=0.1),
-                BLOmodel(BLO_factors).integrate(0.1, 30.))
+                cn=BLOmodel(BLO_factors).integrate(0.1, 30.))
 
 
 def dilution_factor(distance, D=0.02):
