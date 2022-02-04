@@ -109,7 +109,7 @@ def calculate_report_data(model: models.ExposureModel):
     exposed_occupants = model.exposed.number
     expected_new_cases = np.array(model.expected_new_cases()).mean()
     cumulative_doses = np.cumsum([
-        np.array(model.exposure_between_bounds(float(time1), float(time2))).mean()
+        np.array(model.deposited_exposure_between_bounds(float(time1), float(time2))).mean()
         for time1, time2 in zip(times[:-1], times[1:])
     ])
 

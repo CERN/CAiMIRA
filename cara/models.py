@@ -1104,11 +1104,6 @@ class ExposureModel:
             elif time1 <= start and stop < time2:
                 exposure += self.concentration_model.normed_integrated_concentration(start, stop)
         return exposure
-
-    def exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
-        """The number of virions per meter^3 between any two times."""
-        return (self._normed_exposure_between_bounds(time1, time2) * 
-                self.concentration_model.infected.emission_rate_when_present())
             
     def _normed_exposure(self) -> _VectorisedFloat:
         """
@@ -1122,37 +1117,15 @@ class ExposureModel:
 
         return normed_exposure * self.repeats
 
-    def exposure(self) -> _VectorisedFloat:
+    def deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         """
-        The number of virus per meter^3.
-        """
-        emission_rate_per_aerosol = self.concentration_model.infected.emission_rate_per_aerosol_when_present()
-        aerosols = self.concentration_model.infected.aerosols()
-
-        diameter = self.concentration_model.infected.particle.diameter
-
-        if not np.isscalar(diameter) and diameter is not None:
-            # we compute first the mean of all diameter-dependent quantities
-            # to perform properly the Monte-Carlo integration over
-            # particle diameters (doing things in another order would
-            # lead to wrong results).
-            exposure_integrated = np.array(self._normed_exposure()*aerosols).mean()
-        else:
-            # in the case of a single diameter or no diameter defined,
-            # one should not take any mean at this stage.
-            exposure_integrated = self._normed_exposure()*aerosols
-
-        # then we multiply by the diameter-independent quantity
-        # emission_rate_per_aerosol
-        return exposure_integrated * emission_rate_per_aerosol
-
-    def _deposited_exposure(self) -> _VectorisedFloat:
-        """
-        The number of virus per m^3 deposited on the respiratory tract.
+        The number of virus per m^3 deposited on the respiratory tract
+        between any two times.
         """
         emission_rate_per_aerosol = self.concentration_model.infected.emission_rate_per_aerosol_when_present()
         aerosols = self.concentration_model.infected.aerosols()
         fdep = self.fraction_deposited()
+        f_inf = self.concentration_model.infected.fraction_of_infectious_virus()
 
         diameter = self.concentration_model.infected.particle.diameter
 
@@ -1161,34 +1134,40 @@ class ExposureModel:
             # to perform properly the Monte-Carlo integration over
             # particle diameters (doing things in another order would
             # lead to wrong results).
-            dep_exposure_integrated = np.array(self._normed_exposure() *
+            dep_exposure_integrated = np.array(self._normed_exposure_between_bounds(time1, time2) *
                                                aerosols *
                                                fdep).mean()
         else:
             # in the case of a single diameter or no diameter defined,
             # one should not take any mean at this stage.
-            dep_exposure_integrated = self._normed_exposure()*aerosols*fdep
+            dep_exposure_integrated = self._normed_exposure_between_bounds(time1, time2)*aerosols*fdep
 
-        # then we multiply by the diameter-independent quantity
-        # emission_rate_per_aerosol
-        return dep_exposure_integrated * emission_rate_per_aerosol
+        # then we multiply by the diameter-independent quantity emission_rate_per_aerosol,
+        # and parameters of the vD equation (i.e. f_inf, BR_k and n_in).
+        return (dep_exposure_integrated * emission_rate_per_aerosol * 
+                f_inf * self.exposed.activity.inhalation_rate * 
+                (1 - self.exposed.mask.inhale_efficiency()))
+
+    def deposited_exposure(self) -> _VectorisedFloat:
+        """
+        The number of virus per m^3 deposited on the respiratory tract.
+        """
+        deposited_exposure = 0.0
+
+        for start, stop in self.exposed.presence.boundaries():
+            deposited_exposure += self.deposited_exposure_between_bounds(start, stop)
+
+        return deposited_exposure * self.repeats
 
     def infection_probability(self) -> _VectorisedFloat:
-        deposited_exposure = self._deposited_exposure()
-
-        f_inf = self.concentration_model.infected.fraction_of_infectious_virus()
-
-        inf_aero = (
-            self.exposed.activity.inhalation_rate *
-            (1 - self.exposed.mask.inhale_efficiency()) *
-            deposited_exposure * f_inf
-        )
+        # viral dose (vD)
+        vD = self.deposited_exposure()
         
         # oneoverln2 multiplied by ID_50 corresponds to ID_63.
         infectious_dose = oneoverln2 * self.concentration_model.virus.infectious_dose
 
         # Probability of infection.        
-        return (1 - np.exp(-((inf_aero * (1 - self.exposed.host_immunity))/(infectious_dose * 
+        return (1 - np.exp(-((vD * (1 - self.exposed.host_immunity))/(infectious_dose * 
                 self.concentration_model.virus.transmissibility_factor)))) * 100
 
     def expected_new_cases(self) -> _VectorisedFloat:
