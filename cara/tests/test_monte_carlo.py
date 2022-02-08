@@ -6,6 +6,7 @@ import pytest
 import cara.models
 import cara.monte_carlo.models as mc_models
 import cara.monte_carlo.sampleable
+from cara.tests.conftest import expiration_types
 
 
 MODEL_CLASSES = [
@@ -53,7 +54,7 @@ def baseline_mc_model() -> cara.monte_carlo.ConcentrationModel:
             presence=cara.models.SpecificInterval(((0., 4.), (5., 8.))),
             mask=cara.models.Mask.types['No mask'],
             activity=cara.models.Activity.types['Light activity'],
-            expiration=cara.models.Expiration.types['Breathing'],
+            expiration=expiration_types['Breathing'],
             host_immunity=0.,
         ),
         evaporation_factor=0.3,

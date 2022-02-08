@@ -6,6 +6,7 @@ import pytest
 
 from cara import models
 from cara.monte_carlo.data import expiration_distribution
+from cara.tests.conftest import expiration_types
 
 
 def test_multiple_wrong_weight_size():
@@ -34,8 +35,8 @@ def test_multiple_wrong_diameters():
 def test_multiple():
     weights = (1., 1.)
     mask = models.Mask.types['Type I']
-    e1 = models.Expiration.types['Breathing']
-    e2 = models.Expiration.types['Singing']
+    e1 = expiration_types['Breathing']
+    e2 = expiration_types['Singing']
     aerosol_expected = (e1.aerosols(mask) + e2.aerosols(mask))/2.
     e = models.MultipleExpiration([e1, e2], weights)
     npt.assert_almost_equal(aerosol_expected, e.aerosols(mask))

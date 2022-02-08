@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from cara import models
 from cara.models import ExposureModel
 from cara.dataclass_utils import replace
+from cara.tests.conftest import expiration_types
 
 
 @dataclass(frozen=True)
@@ -64,7 +65,7 @@ def known_concentrations(func):
         mask=models.Mask.types['Type I'],
         activity=models.Activity.types['Standing'],
         virus=models.Virus.types['SARS_CoV_2_ALPHA'],
-        expiration=models.Expiration.types['Speaking'],
+        expiration=expiration_types['Speaking'],
         host_immunity=0.,
     )
     normed_func = lambda x: func(x) / dummy_infected_population.emission_rate_when_present()
@@ -205,7 +206,7 @@ def test_infectious_dose_vectorisation():
             viable_to_RNA_ratio = 0.5,
             transmissibility_factor=1.0,
         ),
-        expiration=models.Expiration.types['Speaking'],
+        expiration=expiration_types['Speaking'],
         host_immunity=0.,
     )
     cm = known_concentrations(lambda t: 1.2)

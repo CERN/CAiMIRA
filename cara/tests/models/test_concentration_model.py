@@ -5,6 +5,7 @@ import numpy.testing as npt
 import pytest
 
 from cara import models
+from cara.tests.conftest import expiration_types
 
 
 @pytest.mark.parametrize(
@@ -45,7 +46,7 @@ def test_concentration_model_vectorisation(override_params):
                 viable_to_RNA_ratio = 0.5,
                 transmissibility_factor=1.0,
             ),
-            expiration=models._ExpirationBase.types['Breathing'],
+            expiration=expiration_types['Breathing'],
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
@@ -67,7 +68,7 @@ def simple_conc_model():
             mask=models.Mask.types['Type I'],
             activity=models.Activity.types['Seated'],
             virus=models.Virus.types['SARS_CoV_2'],
-            expiration=models.Expiration.types['Breathing'],
+            expiration=expiration_types['Breathing'],
             host_immunity=0.,
         ),
         evaporation_factor=0.3,

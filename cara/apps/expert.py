@@ -11,6 +11,7 @@ import matplotlib.figure
 from cara import models
 from cara import state
 from cara import data
+from cara.tests.conftest import expiration_types
 
 
 def collapsible(widgets_to_collapse: typing.List, title: str, start_collapsed=False):
@@ -405,13 +406,13 @@ class ModelWidgets(View):
 
     def _build_expiration(self, node):
         expiration = node.dcs_instance()
-        for name, expiration_ in models.Expiration.types.items():
+        for name, expiration_ in expiration_types.items():
             if expiration == expiration_:
                 break
-        expiration_choice = widgets.Select(options=list(models.Expiration.types.keys()), value=name)
+        expiration_choice = widgets.Select(options=list(expiration_types.keys()), value=name)
 
         def on_expiration_change(change):
-            expiration = models.Expiration.types[change['new']]
+            expiration = expiration_types[change['new']]
             node.dcs_update_from(expiration)
         expiration_choice.observe(on_expiration_change, names=['value'])
 
@@ -498,7 +499,7 @@ baseline_model = models.ExposureModel(
             presence=models.SpecificInterval(((8., 12.), (13., 17.))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Seated'],
-            expiration=models.Expiration.types['Speaking'],
+            expiration=expiration_types['Speaking'],
             host_immunity=0.,
         ),
         evaporation_factor=0.3,

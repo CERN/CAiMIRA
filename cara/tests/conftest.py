@@ -5,6 +5,19 @@ import cara.dataclass_utils
 import pytest
 
 
+# Typical expirations. The aerosol diameter given is an equivalent
+# diameter, chosen in such a way that the aerosol volume is
+# the same as the total aerosol volume given by the full BLO model
+# (integrated between 0.1 and 30 microns)
+# The correspondence with the BLO coefficients is given.
+expiration_types = {
+    'Breathing': models.Expiration(1.3844), # corresponds to B/L/O coefficients of (1, 0, 0)
+    'Speaking': models.Expiration(5.8925),   # corresponds to B/L/O coefficients of (1, 1, 1)
+    'Shouting': models.Expiration(10.0411), # corresponds to B/L/O coefficients of (1, 5, 5)
+    'Singing': models.Expiration(10.0411),  # corresponds to B/L/O coefficients of (1, 5, 5)
+}
+
+
 @pytest.fixture
 def baseline_model():
     model = models.ConcentrationModel(
