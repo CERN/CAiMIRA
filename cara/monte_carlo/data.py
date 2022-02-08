@@ -161,7 +161,7 @@ mask_distributions = {
 }
 
 
-def expiration_distribution(BLO_factors):
+def expiration_distribution(BLO_factors, d_max=30.):
     """
     Returns an Expiration with an aerosol diameter distribution, defined
     by the BLO factors (a length-3 tuple).
@@ -170,10 +170,10 @@ def expiration_distribution(BLO_factors):
     an historical choice based on previous implementations of the model
     (it limits the influence of the O-mode).
     """
-    dscan = np.linspace(0.1, 30. ,3000)
+    dscan = np.linspace(0.1, d_max ,3000)
     return mc.Expiration(CustomKernel(dscan,
                 BLOmodel(BLO_factors).distribution(dscan),kernel_bandwidth=0.1),
-                cn=BLOmodel(BLO_factors).integrate(0.1, 30.))
+                cn=BLOmodel(BLO_factors).integrate(0.1, d_max))
 
 
 def dilution_factor(activities, distance, D=0.02):
@@ -199,11 +199,6 @@ def dilution_factor(activities, distance, D=0.02):
     return factors
 
 
-def initial_concentration_mouth(BLO_factors):
-    value, error = scipy.integrate.quad(lambda d: BLOmodel(BLO_factors).distribution(d) * BLOmodel(BLO_factors).volume(d), 0.1, 1000)
-    return value
-
-
 expiration_BLO_factors = {
     'Breathing': (1., 0., 0.),
     'Speaking':   (1., 1., 1.),
@@ -218,7 +213,7 @@ expiration_distributions = {
 }
 
 
-initial_concentrations_mouth = {
-    exp_type: initial_concentration_mouth(BLO_factors)
+short_range_expiration_distributions = {
+    exp_type: expiration_distribution(BLO_factors, d_max=1000).build_model(250000)
     for exp_type,BLO_factors in expiration_BLO_factors.items()
 }

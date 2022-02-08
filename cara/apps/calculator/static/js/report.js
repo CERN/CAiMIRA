@@ -1,5 +1,5 @@
 /* Generate the concentration plot using d3 library. */
-function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses, exposed_presence_intervals) {
+function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses, exposed_presence_intervals, short_range_intervals) {
 
     var time_format = d3.timeFormat('%H:%M');
 
@@ -47,6 +47,16 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
         exposedArea[index] = d3.area();
         drawArea[index] = vis.append('svg:path')
             .attr('fill', '#1f77b4')
+            .attr('fill-opacity', '0.1');
+    });
+
+    // Area representing the short range interaction(s).
+    var shortRangeArea = {};
+    var drawShortRangeArea = {};
+    short_range_intervals.forEach((b, index) => {
+        shortRangeArea[index] = d3.area();
+        drawShortRangeArea[index] = vis.append('svg:path')
+            .attr('fill', '#1f00b4')
             .attr('fill-opacity', '0.1');
     });
 
@@ -105,8 +115,14 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
 
     var legendAreaIcon = vis.append('rect')
         .attr('width', 20)
-        .attr('height', 20)
+        .attr('height', 15)
         .attr('fill', '#1f77b4')
+        .attr('fill-opacity', '0.1');
+
+    var legendShortRangeAreaIcon = vis.append('rect')
+        .attr('width', 20)
+        .attr('height', 15)
+        .attr('fill', '#1f00b4')
         .attr('fill-opacity', '0.1');
 
     var legendLineText = vis.append('text')
@@ -124,10 +140,15 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
         .style('font-size', '15px')
         .attr('alignment-baseline', 'central');
 
+    var legendShortRangeText = vis.append('text')
+        .text('Short range interaction(s)')
+        .style('font-size', '15px')
+        .attr('alignment-baseline', 'central');
+
     // Legend bounding
     var legendBBox = vis.append('rect')
         .attr('width', 255)
-        .attr('height', 70)
+        .attr('height', 90)
         .attr('stroke', 'lightgrey')
         .attr('stroke-width', '2')
         .attr('rx', '5px')
@@ -217,7 +238,7 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
             .y(d => yRange(d.concentration));
         draw_line.attr("d", lineFunc(data_for_graphs.concentrations));
 
-        // Cumulative line
+        // Cumulative line.
         lineCumulative.defined(d => !isNaN(d.concentration))
             .x(d => xTimeRange(d.time))
             .y(d => yCumulativeRange(d.concentration));
@@ -233,6 +254,18 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
                     return d.time >= b[0] && d.time <= b[1]
             })));
         });
+
+        // Short Range Area.
+        short_range_intervals.forEach((b, index) => {
+            shortRangeArea[index].x(d => xTimeRange(d.time))
+                .y0(graph_height - margins.bottom)
+                .y1(d => yRange(d.concentration));
+
+            drawShortRangeArea[index].attr('d', shortRangeArea[index](data_for_graphs.concentrations.filter(d => {
+                return d.time >= b[0] && d.time <= b[1]
+            })))
+        })
+
 
         // Title.
         plotTitleEl.attr('width', graph_width);
@@ -282,9 +315,14 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
                 .attr('y', margins.top + 2 * size);
             
             legendAreaIcon.attr('x', graph_width + size * 2.5)
-                .attr('y', margins.top + 2.5 * size);
+                .attr('y', margins.top + 2.6 * size);
             legendAreaText.attr('x', graph_width + 4 * size)
                 .attr('y', margins.top + 3 * size);
+            
+            legendShortRangeAreaIcon.attr('x', graph_width + size * 2.5)
+                .attr('y', margins.top + 3.6 * size);
+            legendShortRangeText.attr('x', graph_width + 4 * size)
+                .attr('y', margins.top + 4 * size);
             
             legendBBox.attr('x', graph_width * 1.07)
                 .attr('y', margins.top * 1.2);
@@ -306,7 +344,12 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
             legendAreaIcon.attr('x', size * 0.50)
                 .attr('y', graph_height * 1.09 + size);
             legendAreaText.attr('x', 2 * size)
-                .attr('y', graph_height + 2.7 * size);
+                .attr('y', graph_height + 2.6 * size);
+
+            legendShortRangeAreaIcon.attr('x', size * 0.50)
+                .attr('y', graph_height * 1.175 + size);
+            legendShortRangeText.attr('x', 2 * size)
+                .attr('y', graph_height + 3.65 * size);
 
             legendBBox.attr('x', 1)
                 .attr('y', graph_height);

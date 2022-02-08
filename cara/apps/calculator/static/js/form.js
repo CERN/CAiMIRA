@@ -404,6 +404,10 @@ function validate_form(form) {
       short_range_interactions.push(JSON.stringify(obj));
   });
   $("input[type=text][name=short_range_interactions]").val('[' + short_range_interactions + ']');
+  if (short_range_interactions.length == 0) {
+    $("input[type=radio][id=short_range_no]").prop("checked", true);
+    on_short_range_option_change();
+  }
 
   if (submit) {
     $("#generate_report").prop("disabled", true);
@@ -859,7 +863,11 @@ $(document).ready(function () {
   //Short range modal - save button
   $("body").on("click", ".save_btn_frm_field", function() {
     var last_element = $(".form_field_outer").find(".form_field_outer_row").last().find(".short_range_option").prop("id");
-    if (!last_element) $('#short_range_dialog').modal('hide');
+    if (!last_element) {
+      $('#short_range_dialog').modal('hide');
+      $("input[type=radio][id=short_range_no]").prop("checked", true);
+      on_short_range_option_change();
+    } 
     else {
       let index = last_element.split("_").slice(-1)[0];
       let activity = validate_sr_parameter('#sr_activity_no_' + String(index)[0], "You must specify the activity type.");
@@ -875,12 +883,13 @@ $(document).ready(function () {
     }
   });
 
-  //Short range modal - close button
+  //Short range modal - reset button
   $("body").on("click", ".dismiss_btn_frm_field", function() {
     $(".form_field_outer_row").remove();
     $("#sr_interactions").text(0);
+    $('input[type=radio][id=short_range_no]').prop("checked", true);
+    on_short_range_option_change();
   });
-
 
 });
 

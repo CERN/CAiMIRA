@@ -667,6 +667,11 @@ class Expiration(_ExpirationBase):
         return self.cn * (volume(self.diameter) *
                 (1 - mask.exhale_efficiency(self.diameter))) * 1e-12
 
+    def jet_origin_concentration(self):
+        def volume(d):
+            return (np.pi * d**3) / 6.
+        return self.cn * volume(self.diameter)
+
 
 @dataclass(frozen=True)
 class MultipleExpiration(_ExpirationBase):
@@ -885,24 +890,22 @@ class InfectedPopulation(_PopulationWithVirus):
 @dataclass(frozen=True)
 class ShortRangeModel:
     #: Short range interactions
-    presence: typing.List[SpecificInterval]
+    presence: typing.List[Interval]
+
+    #: Long range presence intervals
+    long_range_presence: Interval
 
     #: The type of expiractory activities in the short range interactions
     activities: typing.List[str]
 
+    #: Expiration type
+    expirations: typing.List[Expiration]
+
     #: The dilution factors for each of the expiratory activity in the short range interactions
     dilutions: _VectorisedFloat
-    
-    #: The concentration on the jet origin for each of the expiratory activity in the short range interactions
-    jet_origin_concentrations: _VectorisedFloat
 
-    def short_range_concentration(self, time: float, background_concentration: _VectorisedFloat, viral_load: _VectorisedFloat) -> _VectorisedFloat:
-        for index, period in enumerate(self.presence):
-            start, finish = tuple(period.boundaries())
-            if time >= start and time <= finish:
-                dilution = self.dilutions[index]
-                jet_origin_concentration = self.jet_origin_concentrations[index] * 1e-6 * viral_load
-                return background_concentration + ((1/dilution)*(jet_origin_concentration - background_concentration))
+    def short_range_concentration(self, long_range_concentration: _VectorisedFloat, dilution: _VectorisedFloat, jet_origin_concentration: _VectorisedFloat) -> _VectorisedFloat: 
+        return long_range_concentration + ((1/dilution)*(jet_origin_concentration - long_range_concentration))
 
 
 @dataclass(frozen=True)
@@ -910,7 +913,6 @@ class ConcentrationModel:
     room: Room
     ventilation: _VentilationBase
     infected: _PopulationWithVirus
-    short_range: ShortRangeModel
 
     #: evaporation factor: the particles' diameter is multiplied by this
     # factor as soon as they are in the air (but AFTER going out of the,
@@ -1042,13 +1044,8 @@ class ConcentrationModel:
         Note that time is not vectorised. You can only pass a single float
         to this method.
         """
-        background_concentration = self._normed_concentration(time) * self.infected.emission_rate_when_present()
-        for period in self.short_range.presence:
-            start, finish = tuple(period.boundaries())
-            if time >= start and time <= finish:
-                return self.short_range.short_range_concentration(time, background_concentration, self.virus.viral_load_in_sputum)
-
-        return background_concentration
+        return (self._normed_concentration(time) * 
+            self.infected.emission_rate_when_present())
 
     @method_cache
     def normed_integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
@@ -1056,11 +1053,6 @@ class ConcentrationModel:
         Get the integrated concentration of viruses in the air  between the times start and stop,
         normalized by the emission rate.
         """
-        for period in self.short_range.presence:
-            time1, time2 = tuple(period.boundaries())
-            if (time1 <= start <= time2 and time1 <= stop <= time2): 
-                # Check if the given times are within the short range interactions
-                return scipy.integrate.quad_vec(lambda t: self.concentration(t), start, stop)[0]
 
         if stop <= self._first_presence_time():
             return 0.0
@@ -1226,3 +1218,111 @@ class ExposureModel:
         )
 
         return single_exposure_model.expected_new_cases()
+
+
+@dataclass(frozen=True)
+class SimulationModel:
+    exposure_model: ExposureModel
+    short_range: ShortRangeModel
+
+    def normed_integrated_concentration(self, time1, time2):
+        return scipy.integrate.quad_vec(lambda t: self._normed_concentration(t), time1, time2)[0]
+
+    def _normed_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
+        """The number of virions per meter^3 between any two times, normalized 
+        by the emission rate of the infected population"""
+        exposure = 0.
+        for start, stop in self.exposure_model.exposed.presence.boundaries():
+            if stop < time1:
+                continue
+            elif start > time2:
+                break
+            elif start <= time1 and time2<= stop:
+                exposure += self.normed_integrated_concentration(time1, time2)
+            elif start <= time1 and stop < time2:
+                exposure += self.normed_integrated_concentration(time1, stop)
+            elif time1 < start and time2 <= stop:
+                exposure += self.normed_integrated_concentration(start, time2)
+            elif time1 <= start and stop < time2:
+                exposure += self.normed_integrated_concentration(start, stop)
+        return exposure
+
+    def _normed_concentration(self, time: float) -> _VectorisedFloat:
+        for index, period in enumerate(self.short_range.presence):
+            start, finish = tuple(period.boundaries())
+            if start <= time <= finish:
+                model = nested_replace(
+                    self, {'exposure_model.concentration_model.infected.expiration': self.short_range.expirations[index]}
+                )
+                dilution = self.short_range.dilutions[index]
+                jet_origin_concentration = (model.exposure_model.concentration_model.infected.expiration.jet_origin_concentration()
+                                            * 1e-6 * model.exposure_model.concentration_model.virus.viral_load_in_sputum)
+                long_range_normed_concentration=np.interp(model.short_range.expirations[index].particle.diameter, self.exposure_model.concentration_model.infected.particle.diameter, self.exposure_model.concentration_model._normed_concentration(time))
+                return self.short_range.short_range_concentration(long_range_normed_concentration, dilution, jet_origin_concentration) 
+        
+        return self.exposure_model.concentration_model._normed_concentration(time)
+
+    def concentration(self, time: float) -> _VectorisedFloat:
+        for index, period in enumerate(self.short_range.presence):
+            start, finish = tuple(period.boundaries())
+            if start <= time <= finish:
+                model = nested_replace(
+                    self, {'exposure_model.concentration_model.infected.expiration': self.short_range.expirations[index]}
+                )
+                return model._normed_concentration(time) * model.exposure_model.concentration_model.infected.emission_rate_when_present()
+        return self._normed_concentration(time) * self.exposure_model.concentration_model.infected.emission_rate_when_present()
+
+    def deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
+        for index, period in enumerate(self.short_range.presence):
+            start, finish = tuple(period.boundaries())
+            if (start <= time1 <= finish and start <= time2 <= finish): # What if one is SR and another LR?
+                # Check if the given times are within the short range interactions
+                model = nested_replace(
+                    self, {'exposure_model.concentration_model.infected.expiration': self.short_range.expirations[index]}
+                )
+                emission_rate_per_aerosol = model.exposure_model.concentration_model.infected.emission_rate_per_aerosol_when_present()
+                aerosols = model.exposure_model.concentration_model.infected.aerosols()
+                fdep = model.exposure_model.fraction_deposited()
+                f_inf = model.exposure_model.concentration_model.infected.fraction_of_infectious_virus()
+
+                diameter = self.exposure_model.concentration_model.infected.particle.diameter
+
+                if not np.isscalar(diameter) and diameter is not None:
+                    # we compute first the mean of all diameter-dependent quantities
+                    # to perform properly the Monte-Carlo integration over
+                    # particle diameters (doing things in another order would
+                    # lead to wrong results).
+                    dep_exposure_integrated = np.array(self._normed_exposure_between_bounds(time1, time2) *
+                                                    aerosols *
+                                                    fdep).mean()
+                else:
+                    # in the case of a single diameter or no diameter defined,
+                    # one should not take any mean at this stage.
+                    dep_exposure_integrated = self._normed_exposure_between_bounds(time1, time2)*aerosols*fdep
+
+                # then we multiply by the diameter-independent quantity emission_rate_per_aerosol,
+                # and parameters of the vD equation (i.e. f_inf, BR_k and n_in).
+                return (dep_exposure_integrated * emission_rate_per_aerosol * 
+                        f_inf * model.exposure_model.exposed.activity.inhalation_rate * 
+                        (1 - self.exposure_model.exposed.mask.inhale_efficiency()))
+
+        return self.exposure_model.deposited_exposure_between_bounds(time1, time2)
+
+    def infection_probability(self):
+        dose = 0.0
+        for start, stop in self.short_range.long_range_presence.boundaries():
+            dose += self.exposure_model.deposited_exposure_between_bounds(start, stop)
+
+        for presence in self.short_range.presence:
+            start, stop = presence.boundaries()
+            dose += self.deposited_exposure_between_bounds(start, stop)
+
+        vD = dose * self.exposure_model.repeats
+
+        # oneoverln2 multiplied by ID_50 corresponds to ID_63.
+        infectious_dose = oneoverln2 * self.exposure_model.concentration_model.virus.infectious_dose
+
+        # Probability of infection.        
+        return (1 - np.exp(-((vD * (1 - self.exposure_model.exposed.host_immunity))/(infectious_dose * 
+                self.exposure_model.concentration_model.virus.transmissibility_factor)))) * 100
+        

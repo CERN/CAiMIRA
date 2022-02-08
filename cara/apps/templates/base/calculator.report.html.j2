@@ -96,7 +96,8 @@
 									var concentrations = {{ concentrations | JSONify }}
 									var cumulative_doses = {{ cumulative_doses | JSONify }}
 									var exposed_presence_intervals = {{ exposed_presence_intervals | JSONify }}
-									draw_concentration_plot("concentration_plot", times, concentrations, cumulative_doses, exposed_presence_intervals);
+									var short_range_intervals = {{ short_range_intervals | JSONify }}
+									draw_concentration_plot("concentration_plot", times, concentrations, cumulative_doses, exposed_presence_intervals, short_range_intervals);
 								</script>
               				</p>
 						</div>
@@ -309,6 +310,18 @@
 							Gym = For comparison only, all persons doing heavy physical exercise, breathing and not speaking.
 							{% endif %}
 							</p></li>
+							{% if form.short_range_option == "short_range_yes" %}
+							<li><p class="data_text">
+							Short range interactions: {{ form.short_range_interactions|length }}
+							</p></li>
+							<ul>
+							{% for interaction in form.short_range_interactions %}
+								<li>Expiratory activity {{ loop.index if form.short_range_interactions|length > 1 }}: {{ interaction.activity }} </li>
+								<li>Start time {{ loop.index if form.short_range_interactions|length > 1 }}: {{ interaction.start_time }} </li>
+								<li>Duration {{ loop.index if form.short_range_interactions|length > 1 }}: {{ interaction.duration }} {{ "minutes" if interaction.duration|int > 1 else "minute" }}</li>
+							{% endfor %}
+							</ul>
+							{% endif %}
 							<li><p class="data_text">Exposed occupant(s) activity time:</p></li>
 								<ul>
 									<li><p class="data_subtext">Start time: {{ form.exposed_start | minutes_to_time }}</p></li>
