@@ -1,5 +1,7 @@
 # CARA - COVID Airborne Risk Assessment
 
+**This has been mirrored from the master repository at https://gitlab.cern.ch/cara/cara. This mirror will be updated periodically, but for the absolute latest version of the code you should consult the CERN gitlab instance**
+
 CARA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.
 
 CARA models the concentration profile of potential virions in enclosed spaces with clear and intuitive graphs.
