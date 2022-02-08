@@ -21,5 +21,5 @@ FROM registry.cern.ch/docker.io/library/debian
 
 COPY --from=conda /opt/app /opt/app
 CMD [ \
-  "/opt/app/bin/python", "-m", "auth_service" \
+  "/opt/app/bin/python", "-m", "auth_service", "--no-debug" \
 ]
