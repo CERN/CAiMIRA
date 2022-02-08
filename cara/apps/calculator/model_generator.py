@@ -13,7 +13,7 @@ from cara import data
 import cara.data.weather
 import cara.monte_carlo as mc
 from .. import calculator
-from cara.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions, initial_concentrations_mouth
+from cara.monte_carlo.data import activity_distributions, dilution_factor, virus_distributions, mask_distributions, initial_concentrations_mouth
 from cara.monte_carlo.data import expiration_distribution, expiration_BLO_factors, expiration_distributions
 
 
@@ -246,12 +246,29 @@ class FormData:
             humidity = 0.5
         room = models.Room(volume=volume, humidity=humidity)
 
+        if self.short_range_option == "short_range_no":
+            sr_presence=[]
+            sr_activities=[]
+        else:
+            sr_presence=self.short_range_intervals()
+            sr_activities=self.short_range_activities()
+
+        jet_origin_concentration = [initial_concentrations_mouth[activity] for activity in sr_activities]
+        
+        short_range = models.ShortRangeModel(
+            presence=sr_presence,
+            activities=sr_activities,
+            dilutions=dilution_factor(activities=sr_activities, distance=np.random.uniform(0.5, 1.5, 250000)),
+            jet_origin_concentrations=jet_origin_concentration,
+        )
+
         # Initializes and returns a model with the attributes defined above
         return mc.ExposureModel(
             concentration_model=mc.ConcentrationModel(
                 room=room,
                 ventilation=self.ventilation(),
                 infected=self.infected_population(),
+                short_range=short_range,
                 evaporation_factor=0.3,
             ),
             exposed=self.exposed_population(),
@@ -647,10 +664,8 @@ class FormData:
         )
 
     def short_range_activities(self) -> typing.List[str]:
-        if (self.short_range_interactions):
-            return [interaction['activity'] for interaction in self.short_range_interactions]
-        else:
-            return []
+        return ([interaction['activity'] for interaction in self.short_range_interactions] 
+            if self.short_range_interactions else [])
 
 
 def build_expiration(expiration_definition) -> models._ExpirationBase:

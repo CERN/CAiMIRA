@@ -883,10 +883,34 @@ class InfectedPopulation(_PopulationWithVirus):
 
 
 @dataclass(frozen=True)
+class ShortRangeModel:
+    #: Short range interactions
+    presence: typing.List[SpecificInterval]
+
+    #: The type of expiractory activities in the short range interactions
+    activities: typing.List[str]
+
+    #: The dilution factors for each of the expiratory activity in the short range interactions
+    dilutions: _VectorisedFloat
+    
+    #: The concentration on the jet origin for each of the expiratory activity in the short range interactions
+    jet_origin_concentrations: _VectorisedFloat
+
+    def short_range_concentration(self, time: float, background_concentration: _VectorisedFloat, viral_load: _VectorisedFloat) -> _VectorisedFloat:
+        for index, period in enumerate(self.presence):
+            start, finish = tuple(period.boundaries())
+            if time >= start and time <= finish:
+                dilution = self.dilutions[index]
+                jet_origin_concentration = self.jet_origin_concentrations[index] * 1e-6 * viral_load
+                return background_concentration + ((1/dilution)*(jet_origin_concentration - background_concentration))
+
+
+@dataclass(frozen=True)
 class ConcentrationModel:
     room: Room
     ventilation: _VentilationBase
     infected: _PopulationWithVirus
+    short_range: ShortRangeModel
 
     #: evaporation factor: the particles' diameter is multiplied by this
     # factor as soon as they are in the air (but AFTER going out of the,
@@ -1018,8 +1042,13 @@ class ConcentrationModel:
         Note that time is not vectorised. You can only pass a single float
         to this method.
         """
-        return (self._normed_concentration(time) * 
-                self.infected.emission_rate_when_present())
+        background_concentration = self._normed_concentration(time) * self.infected.emission_rate_when_present()
+        for period in self.short_range.presence:
+            start, finish = tuple(period.boundaries())
+            if time >= start and time <= finish:
+                return self.short_range.short_range_concentration(time, background_concentration, self.virus.viral_load_in_sputum)
+
+        return background_concentration
 
     @method_cache
     def normed_integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
@@ -1027,6 +1056,12 @@ class ConcentrationModel:
         Get the integrated concentration of viruses in the air  between the times start and stop,
         normalized by the emission rate.
         """
+        for period in self.short_range.presence:
+            time1, time2 = tuple(period.boundaries())
+            if (time1 <= start <= time2 and time1 <= stop <= time2): 
+                # Check if the given times are within the short range interactions
+                return scipy.integrate.quad_vec(lambda t: self.concentration(t), start, stop)[0]
+
         if stop <= self._first_presence_time():
             return 0.0
         state_change_times = self.state_change_times()

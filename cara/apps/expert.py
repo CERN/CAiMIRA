@@ -500,9 +500,8 @@ baseline_model = models.ExposureModel(
             activity=models.Activity.types['Seated'],
             expiration=models.Expiration.types['Speaking'],
             host_immunity=0.,
-            short_range_presence=[],
-            short_range_activities=[],
         ),
+        short_range=[],
         evaporation_factor=0.3,
     ),
     exposed=models.Population(

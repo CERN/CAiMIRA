@@ -176,8 +176,10 @@ def expiration_distribution(BLO_factors):
                 cn=BLOmodel(BLO_factors).integrate(0.1, 30.))
 
 
-def dilution_factor(distance, D=0.02):
-        u0 = 0.6
+def dilution_factor(activities, distance, D=0.02):
+    factors = []
+    for activity in activities:
+        u0 = 0.98 if activity == "Breathing" else 3.9
         tstar = 2.0
         Cr1 = 0.18
         Cr2 = 0.2
@@ -192,13 +194,14 @@ def dilution_factor(distance, D=0.02):
         xstar = Cx1*(Q0*u0)**0.25*(tstar + t01)**0.5 - x01
         # Dilution factor at the transition point xstar
         Sxstar = 2*Cr1*(xstar+x01)/D
-        return np.mean(np.piecewise(distance, [distance < xstar, distance >= xstar], 
+        factors.append(np.piecewise(distance, [distance < xstar, distance >= xstar], 
             [lambda distance : 2*Cr1*(distance + x01)/D, lambda distance : Sxstar*(1 + Cr2*(distance - xstar)/Cr1/(xstar + x01))**3]))
+    return factors
 
 
 def initial_concentration_mouth(BLO_factors):
     value, error = scipy.integrate.quad(lambda d: BLOmodel(BLO_factors).distribution(d) * BLOmodel(BLO_factors).volume(d), 0.1, 1000)
-    return value * 1e-6 #result in mL/m^3
+    return value
 
 
 expiration_BLO_factors = {
