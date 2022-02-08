@@ -67,8 +67,6 @@ def shared_office_mc():
             activity=activity_distributions['Seated'],
             expiration=build_expiration({'Speaking': 0.33, 'Breathing': 0.67}),
             host_immunity=0.,
-            short_range_presence=[],
-            short_range_activities=[],
         ),
         evaporation_factor=0.3,
     )
@@ -111,8 +109,6 @@ def classroom_mc():
             activity=activity_distributions['Light activity'],
             expiration=build_expiration('Speaking'),
             host_immunity=0.,
-            short_range_presence=[],
-            short_range_activities=[],
         ),
         evaporation_factor=0.3,
     )
@@ -146,8 +142,6 @@ def ski_cabin_mc():
             activity=activity_distributions['Moderate activity'],
             expiration=build_expiration('Speaking'),
             host_immunity=0.,
-            short_range_presence=[],
-            short_range_activities=[],
         ),
         evaporation_factor=0.3,
     )
@@ -187,8 +181,6 @@ def skagit_chorale_mc():
                 activity=activity_distributions['Moderate activity'],
                 expiration=build_expiration('Shouting'),
                 host_immunity=0.,
-                short_range_presence=[],
-            short_range_activities=[],
             ),
         evaporation_factor=0.3,
     )
@@ -228,8 +220,6 @@ def bus_ride_mc():
                 activity=activity_distributions['Seated'],
                 expiration=build_expiration('Speaking'),
                 host_immunity=0.,
-                short_range_presence=[],
-                short_range_activities=[],
             ),
         evaporation_factor=0.3,
     )
@@ -264,8 +254,6 @@ def gym_mc():
             activity=activity_distributions['Heavy exercise'],
             expiration=expiration_distributions['Breathing'],
             host_immunity=0.,
-            short_range_presence=[],
-            short_range_activities=[],
         ),
         evaporation_factor=0.3,
     )
@@ -300,8 +288,6 @@ def waiting_room_mc():
             activity=activity_distributions['Seated'],
             expiration=build_expiration({'Speaking': 0.3, 'Breathing': 0.7}),
             host_immunity=0.,
-            short_range_presence=[],
-            short_range_activities=[],
         ),
         evaporation_factor=0.3,
     )
@@ -379,8 +365,6 @@ def test_small_shared_office_Geneva(mask_type, month, expected_pi,
             activity=activity_distributions['Seated'],
             expiration=build_expiration({'Speaking': 0.33, 'Breathing': 0.67}),
             host_immunity=0.,
-            short_range_presence=[],
-            short_range_activities=[],
         ),
         evaporation_factor=0.3,
     )

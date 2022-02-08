@@ -23,8 +23,6 @@ def baseline_model():
             host_immunity=0.,
             # superspreading event, where ejection factor is fixed based
             # on Miller et al. (2020) - 50 represents the infectious dose.
-            short_range_presence=[],
-            short_range_activities=[],
         ),
         evaporation_factor=0.3,
     )
