@@ -35,9 +35,14 @@ Andre Henriques<sup>1</sup>, Luis Aleixo<sup>1</sup>, Marco Andreini<sup>1</sup>
 <sup>5</sup>Information Technology Department, Collaboration, Devices & Applications Group, CERN<br>
 <sup>6</sup>Norwegian University of Science and Technology (NTNU)<br>
 
-### Citation
-A. Henriques, M. Andreini, G. Azzopardi, J. Devine, P. Elson, N. Mounet, M. Kongstein, N. Tarocco. CARA - COVID Airborne Risk Assessment tools. CERN (2021).
+### Reference and Citation
+test
+**For the use of the CARA web app**
+CARA – COVID Airborne Risk Assessment tool
+© Copyright 2020-2021 CERN. All rights not expressly granted are reserved.
 
+**For use of the model**
+Henriques A, Mounet N, Aleixo L, Elson P, Devine J, Azzopardi G, Andreini M, Rognlien M, Tarocco N, Tang J. (2021). Modelling airborne transmission of SARS-CoV-2 using CARA: risk assessment for enclosed spaces. _Interface Focus 20210076_. https://doi.org/10.1098/rsfs.2021.0076
 
 ## Applications
 
