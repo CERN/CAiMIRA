@@ -121,6 +121,11 @@ body {
   font-size: 1.25rem;
 }
 
+.acknowledgements {
+  text-align: left;
+  font-size: 1.5rem;
+}
+
 .center {
   position: relative;
   display: flex;
@@ -219,11 +224,6 @@ footer img {
   .paragraph-title {
     text-align: left;
     font-size: 2rem;
-  }
-  
-  .developers {
-    text-align: left;
-    font-size: 1.5rem;
   }
 
   .split > * + * {
