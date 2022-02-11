@@ -36,7 +36,7 @@ Andre Henriques<sup>1</sup>, Luis Aleixo<sup>1</sup>, Marco Andreini<sup>1</sup>
 <sup>6</sup>Norwegian University of Science and Technology (NTNU)<br>
 
 ### Reference and Citation
-test
+
 **For the use of the CARA web app**
 CARA – COVID Airborne Risk Assessment tool
 © Copyright 2020-2021 CERN. All rights not expressly granted are reserved.
