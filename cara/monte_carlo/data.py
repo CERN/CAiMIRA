@@ -214,6 +214,6 @@ expiration_distributions = {
 
 
 short_range_expiration_distributions = {
-    exp_type: expiration_distribution(BLO_factors, d_max=1000).build_model(250000)
+    exp_type: expiration_distribution(BLO_factors, d_max=100).build_model(250000)
     for exp_type,BLO_factors in expiration_BLO_factors.items()
 }
