@@ -104,8 +104,8 @@ def short_range_interesting_times(model: models.ExposureModel, times: typing.Lis
     return short_range_times
 
 
-def calculate_report_data(model: models.SimulationModel):
-    times = interesting_times(model.exposure_model)
+def calculate_report_data(model: models.ExposureModel):
+    times = interesting_times(model)
     short_range_intervals = []
     for interval in model.short_range.presence:
         short_range_intervals.append(list(interval.boundaries()))
@@ -116,9 +116,9 @@ def calculate_report_data(model: models.SimulationModel):
     ]
     highest_const = max(concentrations)
     prob = np.array(model.infection_probability()).mean()
-    er = np.array(model.exposure_model.concentration_model.infected.emission_rate_when_present()).mean()
-    exposed_occupants = model.exposure_model.exposed.number
-    expected_new_cases = np.array(model.exposure_model.expected_new_cases()).mean()
+    er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
+    exposed_occupants = model.exposed.number
+    expected_new_cases = np.array(model.expected_new_cases()).mean()
     cumulative_doses = np.cumsum([
         np.array(model.deposited_exposure_between_bounds(float(time1), float(time2))).mean()
         for time1, time2 in zip(times[:-1], times[1:])
@@ -127,7 +127,7 @@ def calculate_report_data(model: models.SimulationModel):
     return {
         "times": list(times),
         "short_range_intervals": short_range_intervals,
-        "exposed_presence_intervals": [list(interval) for interval in model.exposure_model.exposed.presence.boundaries()],
+        "exposed_presence_intervals": [list(interval) for interval in model.exposed.presence.boundaries()],
         "cumulative_doses": list(cumulative_doses),
         "concentrations": concentrations,
         "highest_const": highest_const,
@@ -246,20 +246,20 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
     return scenarios
 
 
-def scenario_statistics(mc_model: mc.SimulationModel, sample_times: np.ndarray):
+def scenario_statistics(mc_model: mc.ExposureModel, sample_times: np.ndarray):
     model = mc_model.build_model(size=_DEFAULT_MC_SAMPLE_SIZE)
     return {
-        'probability_of_infection': np.mean(model.exposure_model.infection_probability()),
-        'expected_new_cases': np.mean(model.exposure_model.expected_new_cases()),
+        'probability_of_infection': np.mean(model.infection_probability()),
+        'expected_new_cases': np.mean(model.expected_new_cases()),
         'concentrations': [
-            np.mean(model.exposure_model.concentration_model.concentration(time))
+            np.mean(model.concentration(time))
             for time in sample_times
         ],
     }
 
 
 def comparison_report(
-        scenarios: typing.Dict[str, mc.SimulationModel],
+        scenarios: typing.Dict[str, mc.ExposureModel],
         sample_times: typing.List[float],
         executor_factory: typing.Callable[[], concurrent.futures.Executor],
 ):
@@ -297,7 +297,7 @@ class ReportGenerator:
     def prepare_context(
             self,
             base_url: str,
-            model: models.SimulationModel,
+            model: models.ExposureModel,
             form: FormData,
             executor_factory: typing.Callable[[], concurrent.futures.Executor],
     ) -> dict:
@@ -305,12 +305,12 @@ class ReportGenerator:
         time = now.strftime("%Y-%m-%d %H:%M:%S UTC")
 
         context = {
-            'model': model.exposure_model,
+            'model': model,
             'form': form,
             'creation_date': time,
         }
 
-        scenario_sample_times = interesting_times(model.exposure_model)
+        scenario_sample_times = interesting_times(model)
 
         context.update(calculate_report_data(model))
         alternative_scenarios = manufacture_alternative_scenarios(form)

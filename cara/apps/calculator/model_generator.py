@@ -234,7 +234,7 @@ class FormData:
             raise ValueError("mechanical_ventilation_type cannot be 'not-applicable' if "
                              "ventilation_type is 'mechanical_ventilation'")
 
-    def build_mc_model(self) -> mc.SimulationModel:
+    def build_mc_model(self) -> mc.ExposureModel:
         # Initializes room with volume either given directly or as product of area and height
         if self.volume_type == 'room_volume_explicit':
             volume = self.room_volume
@@ -256,26 +256,22 @@ class FormData:
         short_range_expirations = [short_range_expiration_distributions[activity] for activity in sr_activities]
 
         # Initializes and returns a model with the attributes defined above
-        return mc.SimulationModel( 
-            mc.ExposureModel(
-                concentration_model=mc.ConcentrationModel(
-                    room=room,
-                    ventilation=self.ventilation(),
-                    infected=self.infected_population(),
-                    evaporation_factor=0.3,
-                ),
-                exposed=self.exposed_population(),
+        return mc.ExposureModel(
+            concentration_model=mc.ConcentrationModel(
+                room=room,
+                ventilation=self.ventilation(),
+                infected=self.infected_population(),
+                evaporation_factor=0.3,
             ),
-            mc.ShortRangeModel(
+            short_range = mc.ShortRangeModel(
                 presence=sr_presence,
-                long_range_presence=self.long_range_intervals(),
-                activities=sr_activities,
                 expirations=short_range_expirations,
                 dilutions=dilution_factor(activities=sr_activities, distance=np.random.uniform(0.5, 1.5, 250000)),
             ),
+            exposed=self.exposed_population(),
         )
 
-    def build_model(self, sample_size=_DEFAULT_MC_SAMPLE_SIZE) -> models.SimulationModel:
+    def build_model(self, sample_size=_DEFAULT_MC_SAMPLE_SIZE) -> models.ExposureModel:
         return self.build_mc_model().build_model(size=sample_size)
 
     def tz_name_and_utc_offset(self) -> typing.Tuple[str, float]:
@@ -644,7 +640,7 @@ class FormData:
     def infected_present_interval(self) -> models.Interval:
         return self.present_interval(
             self.infected_start, self.infected_finish,
-            breaks=self.infected_lunch_break_times() + self.infected_coffee_break_times()
+            breaks=self.infected_lunch_break_times() + self.infected_coffee_break_times(),
         )
 
     def short_range_intervals(self) -> typing.List[models.SpecificInterval]:
@@ -658,22 +654,10 @@ class FormData:
         else:
             return []
 
-    def long_range_intervals(self) -> models.Interval:
-        short_range_intervals = []
-        for interval in self.short_range_interactions:
-            short_range_intervals.append(
-                (time_string_to_minutes(interval['start_time']), 
-                time_string_to_minutes(interval['start_time']) + float(interval['duration'])),
-            )
-        return self.present_interval(
-            self.exposed_start, self.exposed_finish,
-            breaks=self.infected_lunch_break_times() + self.infected_coffee_break_times() + tuple(short_range_intervals),
-        )
-
     def exposed_present_interval(self) -> models.Interval:
         return self.present_interval(
             self.exposed_start, self.exposed_finish,
-            breaks=self.exposed_lunch_break_times() + self.exposed_coffee_break_times()
+            breaks=self.exposed_lunch_break_times() + self.exposed_coffee_break_times(),
         )
 
     def short_range_activities(self) -> typing.List[str]:

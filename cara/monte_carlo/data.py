@@ -3,7 +3,6 @@ import typing
 
 import numpy as np
 from scipy import special as sp
-import scipy.integrate
 
 import cara.monte_carlo as mc
 from cara.monte_carlo.sampleable import Normal,LogNormal,LogCustomKernel,CustomKernel,Uniform
@@ -52,9 +51,6 @@ class BLOmodel:
                     np.exp(-(np.log(d) - mu) ** 2 / (2 * sigma ** 2))
                     for A,cn,mu,sigma in zip(self.BLO_factors, self.cn,
                                              self.mu, self.sigma) )
-    
-    def volume(self, d):
-        return(np.pi * d**3) / 6
 
     def integrate(self, dmin, dmax):
         """ 
