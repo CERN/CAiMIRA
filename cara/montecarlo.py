@@ -1202,7 +1202,7 @@ def compare_concentration_curves_virus_IGH_paper(exp_models: typing.List[MCExpos
     times = np.arange(start, stop, TIME_STEP)
 
     concentrations = [[np.mean(model.concentration_model.concentration(t))*exp_models[0].concentration_model.virus.qID for t in times] for model in exp_models]
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8.5,6))
     for c, label, color in zip(concentrations, labels, colors):
         ax.plot(times, c, label=label, color=color)
 
