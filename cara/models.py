@@ -1001,7 +1001,7 @@ class ConcentrationModel:
 
     def _normed_concentration(self, time: float) -> _VectorisedFloat:
         """
-        Virus exposure concentration, as a function of time, and
+        Virus long range exposure concentration, as a function of time, and
         normalized by the emission rate.
         The formulas used here assume that all parameters (ventilation,
         emission rate) are constant between two state changes - only
@@ -1027,18 +1027,18 @@ class ConcentrationModel:
 
     def concentration(self, time: float) -> _VectorisedFloat:
         """
-        Virus exposure concentration, as a function of time.
+        Virus long range exposure concentration, as a function of time.
 
         Note that time is not vectorised. You can only pass a single float
         to this method.
         """
         return (self._normed_concentration(time) * 
-            self.infected.emission_rate_when_present())
+                self.infected.emission_rate_when_present())
 
     @method_cache
     def normed_integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
         """
-        Get the integrated concentration of viruses in the air  between the times start and stop,
+        Get the integrated long range concentration of viruses in the air  between the times start and stop,
         normalized by the emission rate.
         """
         if stop <= self._first_presence_time():
@@ -1078,32 +1078,53 @@ class ShortRangeModel:
     #: Short range interactions
     presence: typing.List[SpecificInterval]
 
-    #: Expiration type
+    #: Expiration types
     expirations: typing.List[Expiration]
 
-    #: The dilution factors for each of the expiratory activity in the short range interactions
+    #: The dilution factors for each of the expiratory activity
     dilutions: typing.List[_VectorisedFloat]
 
-    def _normed_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat: 
-        # normalized only by the viral load
+    def _normed_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
+        """
+        Virus short range exposure concentration, as a function of time.
+
+        If the given time falls within a short range interval it returns the 
+        short range concentration normalized by the virus viral load. Otherwise
+        it returns 0.
+        """ 
         for index, period in enumerate(self.presence):
             start, finish = tuple(period.boundaries())
+            # Verifies if the given time falls within a short range interaction
             if start < time <= finish:
                 dilution = self.dilutions[index]
                 jet_origin_concentration = concentration_model.infected.expiration.jet_origin_concentration()
+                # Long range concentration normalized by the virus viral load
+                long_range_normed_concentration = concentration_model.concentration(time) / concentration_model.virus.viral_load_in_sputum
                 
-                background_concentration = concentration_model.concentration(time) / concentration_model.virus.viral_load_in_sputum
-                long_range_normed_concentration=np.interp(self.expirations[index].particle.diameter, concentration_model.infected.particle.diameter, background_concentration)
+                # The long range concentration values are then approximated using interpolation:
+                # The set of points where we want the interpolated values are the short range particle diameters (given the current expiration); 
+                # The set of points with a known value are the long range particle diameters (given the initial expiration);
+                # The set of known values are the long range concentration values normalized by the viral load.
+                long_range_normed_concentration=np.interp(self.expirations[index].particle.diameter, concentration_model.infected.particle.diameter, long_range_normed_concentration)
                 
+                # Short range concentration formula. The long range concentration is added in the concentration method (ExposureModel).
                 return ((1/dilution)*(jet_origin_concentration - long_range_normed_concentration))
         
         return 0.
 
     def short_range_concentration(self, concentration_model: ConcentrationModel, time: float):
+        """
+        Virus short range exposure concentration, as a function of time.
+        """
         return (self._normed_concentration(concentration_model, time) * 
             concentration_model.virus.viral_load_in_sputum)
 
     def normed_exposure_between_bounds(self, concentration_model, time1, time2):
+        """
+        Get the integrated short range concentration of viruses in the air between the times start and stop,
+        normalized by the virus viral load.
+        """
+        # TODO Implement the integration without using scipy.
         return scipy.integrate.quad_vec(lambda t: self._normed_concentration(concentration_model, t), time1, time2)[0]
 
     
@@ -1119,7 +1140,7 @@ class ExposureModel:
     #: The virus concentration model which this exposure model should consider.
     concentration_model: ConcentrationModel
 
-    #: The short range model which this simulation model should consider.
+    #: The short range model which this exposure model should consider.
     short_range: ShortRangeModel
 
     #: The population of non-infected people to be used in the model.
@@ -1156,11 +1177,26 @@ class ExposureModel:
                 exposure += self.concentration_model.normed_integrated_concentration(start, stop)
         return exposure
 
-    def concentration(self, time: float) -> _VectorisedFloat:        
+    def concentration(self, time: float) -> _VectorisedFloat:
+        """
+        Virus exposure concentration, as a function of time.
+
+        It considers the long range concentration with the
+        contribution of the short range concentration.
+        """        
         return (self.concentration_model.concentration(time) + 
             self.short_range.short_range_concentration(self.concentration_model, time))
 
     def deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
+        """
+        The number of virus per m^3 deposited on the respiratory tract
+        between any two times.
+
+        Considers a contribution between the short range and long range exposures:
+        It calculates the deposited exposure given a short range interaction (if any).
+        Then, the deposited exposure given the long range interactions is added to the
+        initial deposited exposure. 
+        """
         deposited_exposure = 0.
         for index, period in enumerate(self.short_range.presence):
             start, stop = tuple(period.boundaries())
@@ -1180,48 +1216,50 @@ class ExposureModel:
             fdep = self.short_range.expirations[index].particle.fraction_deposited(evaporation_factor=1.0) #ASK for evaporation factor
             diameter = self.short_range.expirations[index].particle.diameter
             
+            # Aerosols not considered given the formula for the initial concentration at mouth/nose.
             if not np.isscalar(diameter) and diameter is not None:
                 # we compute first the mean of all diameter-dependent quantities
                 # to perform properly the Monte-Carlo integration over
                 # particle diameters (doing things in another order would
                 # lead to wrong results).
                 deposited_exposure += np.array(short_range_exposure *
-                                                #aerosols *
                                                 fdep).mean()
             else:
                 # in the case of a single diameter or no diameter defined,
                 # one should not take any mean at this stage.
-                deposited_exposure += short_range_exposure*fdep#*aerosols  
+                deposited_exposure += short_range_exposure*fdep  
         
+        # then we multiply by the diameter-independent quantity virus viral load
         deposited_exposure *= self.concentration_model.virus.viral_load_in_sputum
 
-        # Background concentration
+        # Long range concentration
         emission_rate_per_aerosol = self.concentration_model.infected.emission_rate_per_aerosol_when_present()
         f_inf = self.concentration_model.infected.fraction_of_infectious_virus()
         aerosols = self.concentration_model.infected.aerosols()
         fdep = self.long_range_fraction_deposited()
 
         diameter = self.concentration_model.infected.particle.diameter
-        
+
         if not np.isscalar(diameter) and diameter is not None:
             # we compute first the mean of all diameter-dependent quantities
             # to perform properly the Monte-Carlo integration over
             # particle diameters (doing things in another order would
             # lead to wrong results).
             dep_exposure_integrated = np.array(self._long_range_normed_exposure_between_bounds(time1, time2) *
-                                            aerosols *
-                                            fdep).mean()
+                                                aerosols *
+                                                fdep).mean()
         else:
             # in the case of a single diameter or no diameter defined,
             # one should not take any mean at this stage.
             dep_exposure_integrated = self._long_range_normed_exposure_between_bounds(time1, time2)*aerosols*fdep
 
         # then we multiply by the diameter-independent quantity emission_rate_per_aerosol,
-        # and parameters of the vD equation (i.e. f_inf, BR_k and n_in).
+        # and parameters of the vD equation (i.e. BR_k and n_in).
         deposited_exposure += (dep_exposure_integrated * emission_rate_per_aerosol * 
                 self.exposed.activity.inhalation_rate * 
                 (1 - self.exposed.mask.inhale_efficiency()))
 
+        # In the end we multiply the final results by the fraction of infectious virus of the vD equation.
         return f_inf * deposited_exposure
 
     def deposited_exposure(self) -> _VectorisedFloat:
@@ -1267,4 +1305,3 @@ class ExposureModel:
         )
 
         return single_exposure_model.expected_new_cases()
-        
