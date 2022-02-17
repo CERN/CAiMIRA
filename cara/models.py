@@ -673,6 +673,7 @@ class Expiration(_ExpirationBase):
         return self.cn * (volume(self.diameter) *
                 (1 - mask.exhale_efficiency(self.diameter))) * 1e-12
 
+    @cached()
     def jet_origin_concentration(self):
         def volume(d):
             return (np.pi * d**3) / 6.
@@ -1075,7 +1076,7 @@ class ConcentrationModel:
 @dataclass(frozen=True)
 class ShortRangeModel:
     #: Short range interactions
-    presence: typing.List[Interval]
+    presence: typing.List[SpecificInterval]
 
     #: Expiration type
     expirations: typing.List[Expiration]
