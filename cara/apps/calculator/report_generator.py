@@ -96,14 +96,6 @@ def interesting_times(model: models.ExposureModel, approx_n_pts=100) -> typing.L
     return nice_times
 
 
-def short_range_interesting_times(model: models.ExposureModel, times: typing.List[float]) -> typing.List[float]:
-    short_range_times : typing.List[float] = []
-    for period in model.concentration_model.infected.short_range_presence:
-        start, finish = tuple(period.boundaries())
-        short_range_times = short_range_times + [time for time in times if time >= start and time <= finish]
-    return short_range_times
-
-
 def calculate_report_data(model: models.ExposureModel):
     times = interesting_times(model)
     short_range_intervals = []

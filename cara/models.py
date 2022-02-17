@@ -635,6 +635,9 @@ class _ExpirationBase:
         raise NotImplementedError("Subclass must implement")
 
     def jet_origin_concentration(self):
+        """
+        concentration of viruses at the jet origin (mL/m3).
+        """
         raise NotImplementedError("Subclass must implement")
 
 
@@ -896,7 +899,7 @@ class InfectedPopulation(_PopulationWithVirus):
 class ConcentrationModel:
     room: Room
     ventilation: _VentilationBase
-    infected: _PopulationWithVirus
+    infected: InfectedPopulation
 
     #: evaporation factor: the particles' diameter is multiplied by this
     # factor as soon as they are in the air (but AFTER going out of the,
@@ -1078,7 +1081,7 @@ class ShortRangeModel:
     expirations: typing.List[Expiration]
 
     #: The dilution factors for each of the expiratory activity in the short range interactions
-    dilutions: _VectorisedFloat
+    dilutions: typing.List[_VectorisedFloat]
 
     def _normed_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat: 
         # normalized only by the viral load

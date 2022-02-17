@@ -38,7 +38,7 @@ def test_type_annotations():
 
 
 @pytest.fixture
-def baseline_mc_model() -> cara.monte_carlo.ConcentrationModel:
+def baseline_mc_concentration_model() -> cara.monte_carlo.ConcentrationModel:
     mc_model = cara.monte_carlo.ConcentrationModel(
         room=cara.monte_carlo.Room(volume=cara.monte_carlo.sampleable.Normal(75, 20)),
         ventilation=cara.monte_carlo.SlidingWindow(
@@ -62,21 +62,31 @@ def baseline_mc_model() -> cara.monte_carlo.ConcentrationModel:
 
 
 @pytest.fixture
-def baseline_mc_exposure_model(baseline_mc_model) -> cara.monte_carlo.ExposureModel:
+def baseline_mc_sr_model() -> cara.monte_carlo.ShortRangeModel:
+    return cara.monte_carlo.ShortRangeModel(
+        presence=[],
+        expirations=[],
+        dilutions=[],
+    )
+
+
+@pytest.fixture
+def baseline_mc_exposure_model(baseline_mc_concentration_model, baseline_mc_sr_model) -> cara.monte_carlo.ExposureModel:
     return cara.monte_carlo.ExposureModel(
-        baseline_mc_model,
+        baseline_mc_concentration_model,
+        baseline_mc_sr_model,
         exposed=cara.models.Population(
             number=10,
-            presence=baseline_mc_model.infected.presence,
-            activity=baseline_mc_model.infected.activity,
-            mask=baseline_mc_model.infected.mask,
+            presence=baseline_mc_concentration_model.infected.presence,
+            activity=baseline_mc_concentration_model.infected.activity,
+            mask=baseline_mc_concentration_model.infected.mask,
             host_immunity=0.,
         )
     )
 
 
-def test_build_concentration_model(baseline_mc_model: cara.monte_carlo.ConcentrationModel):
-    model = baseline_mc_model.build_model(7)
+def test_build_concentration_model(baseline_mc_concentration_model: cara.monte_carlo.ConcentrationModel):
+    model = baseline_mc_concentration_model.build_model(7)
     assert isinstance(model, cara.models.ConcentrationModel)
     assert isinstance(model.concentration(time=0.), float)
     conc = model.concentration(time=1.)

@@ -503,7 +503,11 @@ baseline_model = models.ExposureModel(
         ),
         evaporation_factor=0.3,
     ),
-    short_range=[],
+    short_range=models.ShortRangeModel(
+        presence=[],
+        expirations=[],
+        dilutions=[],
+    ),
     exposed=models.Population(
         number=10,
         presence=models.SpecificInterval(((8., 12.), (13., 17.))),

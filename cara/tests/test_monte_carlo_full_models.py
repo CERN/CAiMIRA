@@ -41,7 +41,15 @@ TorontoTemperatures = {
 # in the following tests, were obtained from the feature/mc branch
 
 @pytest.fixture
-def shared_office_mc():
+def sr_model_mc() -> mc.ShortRangeModel:
+    return mc.ShortRangeModel(
+        presence=[],
+        expirations=[],
+        dilutions=[],
+    )
+
+@pytest.fixture
+def shared_office_mc(sr_model_mc):
     """
     Corresponds to the 1st line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988
     """
@@ -72,6 +80,7 @@ def shared_office_mc():
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
+        short_range=sr_model_mc,
         exposed=mc.Population(
             number=3,
             presence=mc.SpecificInterval(present_times=((0, 3.5), (4.5, 9))),
@@ -83,7 +92,7 @@ def shared_office_mc():
 
 
 @pytest.fixture
-def classroom_mc():
+def classroom_mc(sr_model_mc):
     """
     Corresponds to the 2nd line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988
     """
@@ -114,6 +123,7 @@ def classroom_mc():
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
+        short_range=sr_model_mc,
         exposed=mc.Population(
             number=19,
             presence=models.SpecificInterval(((0, 2), (2.5, 4), (5, 7), (7.5, 9))),
@@ -125,7 +135,7 @@ def classroom_mc():
 
 
 @pytest.fixture
-def ski_cabin_mc():
+def ski_cabin_mc(sr_model_mc):
     """
     Corresponds to the 3rd line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988
     """
@@ -147,6 +157,7 @@ def ski_cabin_mc():
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
+        short_range=sr_model_mc,
         exposed=mc.Population(
             number=3,
             presence=models.SpecificInterval(((0, 20/60),)),
@@ -158,7 +169,7 @@ def ski_cabin_mc():
 
 
 @pytest.fixture
-def skagit_chorale_mc():
+def skagit_chorale_mc(sr_model_mc):
     """
     Corresponds to the 4th line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988, 
     assuming viral is 10**9 instead of a LogCustomKernel distribution. 
@@ -186,6 +197,7 @@ def skagit_chorale_mc():
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
+        short_range=sr_model_mc,
         exposed=mc.Population(
             number=60,
             presence=models.SpecificInterval(((0, 2.5), )),
@@ -197,7 +209,7 @@ def skagit_chorale_mc():
 
 
 @pytest.fixture
-def bus_ride_mc():
+def bus_ride_mc(sr_model_mc):
     """
     Corresponds to the 5th line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988, 
     assuming viral is 5*10**8 instead of a LogCustomKernel distribution. 
@@ -225,6 +237,7 @@ def bus_ride_mc():
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
+        short_range=sr_model_mc,
         exposed=mc.Population(
             number=67,
             presence=models.SpecificInterval(((0, 1.67), )),
@@ -236,7 +249,7 @@ def bus_ride_mc():
 
 
 @pytest.fixture
-def gym_mc():
+def gym_mc(sr_model_mc):
     """
     Gym model for testing
     """
@@ -259,6 +272,7 @@ def gym_mc():
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
+        short_range=sr_model_mc,
         exposed=mc.Population(
             number=28,
             presence=concentration_mc.infected.presence,
@@ -270,7 +284,7 @@ def gym_mc():
 
 
 @pytest.fixture
-def waiting_room_mc():
+def waiting_room_mc(sr_model_mc):
     """
     Waiting room model for testing
     """
@@ -293,6 +307,7 @@ def waiting_room_mc():
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
+        short_range=sr_model_mc,
         exposed=mc.Population(
             number=14,
             presence=concentration_mc.infected.presence,
@@ -340,7 +355,7 @@ def test_report_models(mc_model, expected_pi, expected_new_cases,
     ],
 )
 def test_small_shared_office_Geneva(mask_type, month, expected_pi,
-                                    expected_dose, expected_ER):
+                                    expected_dose, expected_ER, sr_model_mc):
     concentration_mc = mc.ConcentrationModel(
         room=models.Room(volume=33, humidity=0.5),
         ventilation=models.MultipleVentilation(
@@ -370,6 +385,7 @@ def test_small_shared_office_Geneva(mask_type, month, expected_pi,
     )
     exposure_mc = mc.ExposureModel(
         concentration_model=concentration_mc,
+        short_range=sr_model_mc,
         exposed=mc.Population(
             number=1,
             presence=concentration_mc.infected.presence,

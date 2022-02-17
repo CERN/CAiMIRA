@@ -6,7 +6,7 @@ import pytest
 
 
 @pytest.fixture
-def baseline_model():
+def baseline_concentration_model():
     model = models.ConcentrationModel(
         room=models.Room(volume=75),
         ventilation=models.AirChange(
@@ -30,14 +30,24 @@ def baseline_model():
 
 
 @pytest.fixture
-def baseline_exposure_model(baseline_model):
+def baseline_sr_model():
+    return models.ShortRangeModel(
+        presence=[],
+        expirations=[],
+        dilutions=[],
+    )
+
+
+@pytest.fixture
+def baseline_exposure_model(baseline_concentration_model, baseline_sr_model):
     return models.ExposureModel(
-        baseline_model,
+        baseline_concentration_model,
+        baseline_sr_model,
         exposed=models.Population(
             number=1000,
-            presence=baseline_model.infected.presence,
-            activity=baseline_model.infected.activity,
-            mask=baseline_model.infected.mask,
+            presence=baseline_concentration_model.infected.presence,
+            activity=baseline_concentration_model.infected.activity,
+            mask=baseline_concentration_model.infected.mask,
             host_immunity=0.,
         ),
     )
