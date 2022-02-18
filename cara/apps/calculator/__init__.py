@@ -22,7 +22,7 @@ import tornado.log
 
 from . import markdown_tools
 from . import model_generator
-from .report_generator import ReportGenerator
+from .report_generator import ReportGenerator, calculate_report_data
 from .user import AuthenticatedUser, AnonymousUser
 
 
@@ -129,6 +129,37 @@ class ConcentrationModel(BaseRequestHandler):
         self.finish(report)
 
 
+class ConcentrationModelJsonResponse(BaseRequestHandler):
+    async def post(self):
+        """
+        Expects algorithm input in HTTP POST request body in JSON format.
+        Returns report data (algorithm output) in HTTP POST response body in JSON format.
+        """
+        requested_model_config = json.loads(self.request.body)
+        if self.settings.get("debug", False):
+            from pprint import pprint
+            pprint(requested_model_config)
+
+        try:
+            form = model_generator.FormData.from_dict(requested_model_config)
+        except Exception as err:
+            if self.settings.get("debug", False):
+                import traceback
+                print(traceback.format_exc())
+            response_json = {'code': 400, 'error': f'Your request was invalid {html.escape(str(err))}'}
+            self.set_status(400)
+            await self.finish(json.dumps(response_json))
+            return
+
+        executor = loky.get_reusable_executor(
+            max_workers=self.settings['handler_worker_pool_size'],
+            timeout=300,
+        )
+        report_data_task = executor.submit(calculate_report_data, form.build_model())
+        report_data: dict = await asyncio.wrap_future(report_data_task)
+        await self.finish(report_data)
+
+
 class StaticModel(BaseRequestHandler):
     async def get(self):
         form = model_generator.FormData.from_dict(model_generator.baseline_raw_form_data())
@@ -222,6 +253,7 @@ def make_app(
         (r'/static/(.*)', StaticFileHandler, {'path': static_dir}),
         (calculator_prefix + r'/?', CalculatorForm),
         (calculator_prefix + r'/report', ConcentrationModel),
+        (calculator_prefix + r'/report-json', ConcentrationModelJsonResponse),
         (calculator_prefix + r'/baseline-model/result', StaticModel),
         (calculator_prefix + r'/user-guide', ReadmeHandler),
         (calculator_prefix + r'/static/(.*)', StaticFileHandler, {'path': calculator_static_dir}),
