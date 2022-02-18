@@ -1207,7 +1207,8 @@ def compare_concentration_curves_virus_IGH_paper(exp_models: typing.List[MCExpos
         ax.plot(times, c, label=label, color=color)
 
     ax.legend(loc='upper left')
-    ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.2)
+    #ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.2)
+    ax.set_ylim(ax.get_ylim()[0], 230)
     ax.spines["right"].set_visible(False)
 
     factors = [0.6 * model.exposed.activity.inhalation_rate * (1 - model.exposed.mask.η_inhale) for model in exp_models]
@@ -1230,7 +1231,8 @@ def compare_concentration_curves_virus_IGH_paper(exp_models: typing.List[MCExpos
         ax1.spines["right"].set_linestyle("--")
         ax1.spines["right"].set_linestyle((0,(1,5)))
         ax1.set_ylabel('Mean cumulative dose\n(virion)', fontsize=14)
-        ax1.set_ylim(ax1.get_ylim()[0], ax1.get_ylim()[1] * 1.2)
+        #ax1.set_ylim(ax1.get_ylim()[0], ax1.get_ylim()[1] * 1.2)
+        ax1.set_ylim(ax.get_ylim()[0], 300)
 
         #ax2 = ax.twinx()
         #ax2.spines["right"].set_position(("axes", 1.15))
