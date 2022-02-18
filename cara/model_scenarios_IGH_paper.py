@@ -756,7 +756,7 @@ classroom_model_IGH_with_mask_2windows_open_alltimes_winter = [MCExposureModel(
 )for qid in (100, 60)]
 
 #Fig 3c
-classroom_model_IGH_with_mask_windows_closed_1HEPA = [MCExposureModel(
+classroom_model_IGH_with_mask_windows_closed_1HEPA_winter = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=160),
         ventilation=models.MultipleVentilation(
@@ -773,7 +773,7 @@ classroom_model_IGH_with_mask_windows_closed_1HEPA = [MCExposureModel(
             number=1,
             presence=models.SpecificInterval(((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
             masked=True,
-            virus=MCVirus(halflife=1.1, qID=qid),
+            virus=MCVirus(halflife=6.43, qID=qid),
             expiratory_activity=2,
             samples=200000,
             breathing_category=3,
@@ -787,7 +787,7 @@ classroom_model_IGH_with_mask_windows_closed_1HEPA = [MCExposureModel(
     )
 )for qid in (100, 60)]
 
-classroom_model_IGH_with_mask_windows_closed_2HEPA = [MCExposureModel(
+classroom_model_IGH_with_mask_windows_closed_2HEPA_winter = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=160),
         ventilation=models.MultipleVentilation(
@@ -804,7 +804,7 @@ classroom_model_IGH_with_mask_windows_closed_2HEPA = [MCExposureModel(
             number=1,
             presence=models.SpecificInterval(((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
             masked=True,
-            virus=MCVirus(halflife=1.1, qID=qid),
+            virus=MCVirus(halflife=6.43, qID=qid),
             expiratory_activity=2,
             samples=200000,
             breathing_category=3,
