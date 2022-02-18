@@ -3,6 +3,7 @@ from cara.montecarlo import *
 
 #IGH paper
 
+# Baseline
 classroom_model_IGH_no_mask_windows_closed = [MCExposureModel(
     concentration_model=MCConcentrationModel(
         room=models.Room(volume=160),
@@ -15,6 +16,31 @@ classroom_model_IGH_no_mask_windows_closed = [MCExposureModel(
             presence=models.SpecificInterval(((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
             masked=False,
             virus=MCVirus(halflife=1.1, qID=qid),
+            expiratory_activity=2,
+            samples=200000,
+            breathing_category=3,
+        )
+    ),
+    exposed=models.Population(
+        number=19,
+        presence=models.SpecificInterval(((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
+        activity=models.Activity.types['Seated'],
+        mask=models.Mask.types['No mask']
+    )
+)for qid in (100, 60)]
+
+classroom_model_IGH_no_mask_windows_closed_winter = [MCExposureModel(
+    concentration_model=MCConcentrationModel(
+        room=models.Room(volume=160),
+        ventilation=models.AirChange(
+            active=models.PeriodicInterval(period=120, duration=120),
+            air_exch=0.25,
+        ),
+        infected=MCInfectedPopulation(
+            number=1,
+            presence=models.SpecificInterval(((0, 1.5), (2, 3.5), (4.5, 6), (6.5, 8))),
+            masked=False,
+            virus=MCVirus(halflife=6.43, qID=qid),
             expiratory_activity=2,
             samples=200000,
             breathing_category=3,
