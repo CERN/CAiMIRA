@@ -21,7 +21,7 @@ from cara.model_scenarios_IGH_paper import *
 #                             title=''
 #                             )
 # print("\n############ Fig 1d ###########\n")
-# print_qd_info(classroom_model_IGH_no_mask_windows_closed[0])
+# print_qd_info(classroom_model_IGH_no_mask_windows_closed_winter[0])
 # print_qd_info(classroom_model_IGH_no_mask_windows_open_breaks_winter[0])
 # print_qd_info(classroom_model_IGH_no_mask_windows_open_alltimes_winter[0])
 # print_qd_info(classroom_model_IGH_no_mask_windows_fully_open_alltimes_winter[0])
@@ -46,7 +46,7 @@ from cara.model_scenarios_IGH_paper import *
 #                             title=''
 #                             )
 # print("\n############ Fig 1f ###########\n")
-# print_qd_info(classroom_model_IGH_no_mask_windows_closed[0])
+# print_qd_info(classroom_model_IGH_no_mask_windows_closed_winter[0])
 # print_qd_info(classroom_model_IGH_no_mask_2windows_open_breaks_winter[0])
 # print_qd_info(classroom_model_IGH_no_mask_2windows_open_alltimes_winter[0])
 # print_qd_info(classroom_model_IGH_no_mask_2windows_fully_open_alltimes_winter[0])
@@ -71,7 +71,7 @@ from cara.model_scenarios_IGH_paper import *
 #                             title=''
 #                             )
 # print("\n############ Fig 1h ###########\n")
-# print_qd_info(classroom_model_IGH_no_mask_windows_closed[0])
+# print_qd_info(classroom_model_IGH_no_mask_windows_closed_winter[0])
 # print_qd_info(classroom_model_IGH_no_mask_6windows_open_breaks_winter[0])
 # print_qd_info(classroom_model_IGH_no_mask_6windows_open_alltimes_winter[0])
 # print_qd_info(classroom_model_IGH_no_mask_6windows_fully_open_alltimes_winter[0])
@@ -97,8 +97,7 @@ from cara.model_scenarios_IGH_paper import *
 #                             title=''
 #                             )
 # print("\n############ Fig 1j ###########\n")
-# print_qd_info(classroom_model_IGH_no_mask_windows_closed[0])
-# print_qd_info(classroom_model_IGH_no_mask_6windows_open_alltimes_winter[0])
+# print_qd_info(classroom_model_IGH_no_mask_windows_closed_winter[0])
 # print_qd_info(classroom_model_IGH_no_mask_6windows_open_breaks_endOfClass_winter[0])
 #
 #
@@ -116,14 +115,36 @@ from cara.model_scenarios_IGH_paper import *
 # print_qd_info(classroom_model_IGH_no_mask_windows_closed_2HEPA[0])
 #
 # #Fig 2b
+# compare_concentration_curves_virus_IGH_paper([classroom_model_IGH_no_mask_windows_closed_winter[0],classroom_model_IGH_no_mask_windows_closed_1HEPA_winter[0],
+#                              classroom_model_IGH_no_mask_windows_closed_2HEPA_winter[0]],
+#                             labels=['Windows closed', 'Windows closed + 1 HEPA filter (2.5 ACH)', 'Windows closed + 2 HEPA filter (5 ACH)'],
+#                             colors=['tomato', 'lightskyblue', 'limegreen', '#1f77b4', 'seagreen', 'lightskyblue', 'deepskyblue'],
+#                             title=''
+#                             )
+# print("\n############ Fig 2b ###########\n")
+# print_qd_info(classroom_model_IGH_no_mask_windows_closed_winter[0])
+# print_qd_info(classroom_model_IGH_no_mask_windows_closed_1HEPA_winter[0])
+# print_qd_info(classroom_model_IGH_no_mask_windows_closed_2HEPA_winter[0])
+#
+# #Fig 2c
 # compare_concentration_curves_virus_IGH_paper([classroom_model_IGH_no_mask_windows_closed[0],classroom_model_IGH_with_mask_windows_closed[0]],
 #                             labels=['Windows closed', 'Windows closed + surgical type masks'],
 #                             colors=['tomato', 'lightskyblue', 'limegreen', '#1f77b4', 'seagreen', 'lightskyblue', 'deepskyblue'],
 #                             title=''
 #                             )
-# print("\n############ Fig 2b ###########\n")
+# print("\n############ Fig 2c ###########\n")
 # print_qd_info(classroom_model_IGH_no_mask_windows_closed[0])
 # print_qd_info(classroom_model_IGH_with_mask_windows_closed[0])
+#
+# #Fig 2d
+# compare_concentration_curves_virus_IGH_paper([classroom_model_IGH_no_mask_windows_closed_winter[0],classroom_model_IGH_with_mask_windows_closed_winter[0]],
+#                             labels=['Windows closed', 'Windows closed + surgical type masks'],
+#                             colors=['tomato', 'lightskyblue', 'limegreen', '#1f77b4', 'seagreen', 'lightskyblue', 'deepskyblue'],
+#                             title=''
+#                             )
+# print("\n############ Fig 2d ###########\n")
+# print_qd_info(classroom_model_IGH_no_mask_windows_closed_winter[0])
+# print_qd_info(classroom_model_IGH_with_mask_windows_closed_winter[0])
 #
 #
 # #Fig 3b
@@ -134,7 +155,7 @@ from cara.model_scenarios_IGH_paper import *
 #                             title=''
 #                             )
 # print("\n############ Fig 3b ###########\n")
-# print_qd_info(classroom_model_IGH_no_mask_windows_closed[0])
+# print_qd_info(classroom_model_IGH_no_mask_windows_closed_winter[0])
 # print_qd_info(classroom_model_IGH_no_mask_2windows_open_alltimes_winter_bis[0])
 # print_qd_info(classroom_model_IGH_with_mask_2windows_open_alltimes_winter[0])
 #
@@ -158,18 +179,26 @@ from cara.model_scenarios_IGH_paper import *
 #                             title=''
 #                             )
 # print("\n############ Fig 3d ###########\n")
-# print_qd_info(classroom_model_IGH_no_mask_windows_closed[0])
+# print_qd_info(classroom_model_IGH_no_mask_windows_closed_winter[0])
 # print_qd_info(classroom_model_IGH_with_mask_2windows_open_alltimes_winter_1HEPA[0])
 # print_qd_info(classroom_model_IGH_with_mask_2windows_open_alltimes_winter_2HEPA[0])
-
+#
+#
+# #Hourly breaks
+# print("\n############ Hourly breaks - summer ###########\n")
+# print_qd_info(classroom_model_IGH_no_mask_windows_open_breaks_endOfClass[0])
+# print_qd_info(classroom_model_IGH_no_mask_2windows_open_breaks_endOfClass[0])
+# print_qd_info(classroom_model_IGH_no_mask_6windows_open_breaks_endOfClass[0])
+#
+# print("\n############ Hourly breaks - winter ###########\n")
+# print_qd_info(classroom_model_IGH_no_mask_windows_open_breaks_endOfClass_winter[0])
+# print_qd_info(classroom_model_IGH_no_mask_2windows_open_breaks_endOfClass_winter[0])
+# print_qd_info(classroom_model_IGH_no_mask_6windows_open_breaks_endOfClass_winter[0])
 
 
 
 #>>>>>>>>>>> Aux >>>>>>>>
 
-#print_qd_info(classroom_model_IGH_no_mask_2windows_open_breaks_endOfClass_winter[0])
-#print_qd_info(classroom_model_IGH_no_mask_windows_open_breaks_endOfClass_winter[0])
-#print_qd_info(classroom_model_IGH_no_mask_windows_closed[0])
 
 #print_qd_info(classroom_model_IGH_no_mask_windows_closed[0])
 #print_qd_info(classroom_model_IGH_no_mask_6windows_open_breaks_endOfClass[0])
