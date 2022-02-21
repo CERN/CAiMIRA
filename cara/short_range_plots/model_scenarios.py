@@ -62,7 +62,7 @@ def exposure_module_without_short_range(activity: str, expiration: str, mask: st
             room=models.Room(volume=100, humidity=0.5),
             ventilation=models.AirChange(
                 active=models.SpecificInterval(((0, 24),)),
-                air_exch=0.25,
+                air_exch=500/100,
             ),
             infected=mc.InfectedPopulation(
                 number=1,
@@ -100,7 +100,7 @@ def exposure_module_with_short_range(activity: str, expiration: str, mask: str, 
             room=models.Room(volume=100, humidity=0.5),
             ventilation=models.AirChange(
                 active=models.SpecificInterval(((0, 24),)),
-                air_exch=0.25,
+                air_exch=500/100,
             ),
             infected=mc.InfectedPopulation(
                 number=1,
