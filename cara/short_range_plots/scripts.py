@@ -22,8 +22,8 @@ from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 ######### Plot material #########
 np.random.seed(2000)
 SAMPLE_SIZE = 250000
-TIMESTEP = 0.01
-viral_loads = np.linspace(2, 12, 600)
+TIMESTEP = 0.1
+#viral_loads = np.linspace(2, 12, 600)
 _VectorisedFloat = typing.Union[float, np.ndarray]
 
 
@@ -59,7 +59,7 @@ def previous_deposited_exposure_between_bounds(model: ExposureModel, time1: floa
                 (1 - model.exposed.mask.inhale_efficiency()))
 
 
-def concentration_curve(models, labels, colors, linestyles, thickness):
+def concentration_curve(models, labels, labelsDose, colors, linestyles, thickness):
 
     exp_models = [model.build_model(size=SAMPLE_SIZE) for model in models]
 
@@ -129,10 +129,10 @@ def concentration_curve(models, labels, colors, linestyles, thickness):
 
     
     ax1.spines["right"].set_linestyle((0, (1, 5)))
-    ax1.set_ylabel('Mean cumulative dose (virions)', fontsize=14)
+    ax1.set_ylabel('Mean cumulative dose\n(infectious virus)', fontsize=14)
     ax1.set_ylim(ax1.get_ylim()[0], ax1.get_ylim()[1] * 1.3)
     
-    complete_labels = labels + ['vD - ' + label for label in labels]
+    complete_labels = labels + [label for label in labelsDose]
     complete_colors = colors + [color for color in colors]
     complete_linestyles = linestyles + ['dotted' for linestyle in linestyles]
 
@@ -146,7 +146,7 @@ def concentration_curve(models, labels, colors, linestyles, thickness):
             f"5th per = {quantile_05[i][-1]}\n"
             f"95th per = {quantile_95[i][-1]}\n")
     
-    plt.legend(handles=labels_legend, loc='upper right', bbox_to_anchor=(1, 1))
+    plt.legend(handles=labels_legend, loc='upper left')
     plt.show()
 
 def plot_pi_vs_exposure_time(exp_models: typing.List[mc.ExposureModel], 
