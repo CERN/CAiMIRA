@@ -22,7 +22,7 @@ from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 ######### Plot material #########
 np.random.seed(2000)
 SAMPLE_SIZE = 250000
-TIMESTEP = 0.1
+TIMESTEP = 0.01
 #viral_loads = np.linspace(2, 12, 600)
 _VectorisedFloat = typing.Union[float, np.ndarray]
 
@@ -151,7 +151,7 @@ def concentration_curve(models, labels, labelsDose, colors, linestyles, thicknes
 
 def plot_vD_vs_exposure_time(exp_models: typing.List[mc.ExposureModel], labels, colors, linestyles, points: int = 20, time_in_minutes: bool = False, normalize_y_axis: bool = False) -> None:
     
-    TIMESTEP = 0.01
+    TIMESTEP = 0.001
 
     concentration_models = [model.concentration_model for model in exp_models]
     exposed_models = [model.exposed for model in exp_models]
