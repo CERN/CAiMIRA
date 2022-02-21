@@ -176,7 +176,7 @@ def baseline_model(activity: str, expiration: str, mask: str, sr_presence: list,
 
     exposure_mc = mc.ExposureModel(
         concentration_model=mc.ConcentrationModel(
-            room=models.Room(volume=10, humidity=0.5),
+            room=models.Room(volume=100, humidity=0.5),
             ventilation=models.AirChange(
                 active=models.PeriodicInterval(period=120, duration=120),
                 air_exch=0.25,
@@ -184,7 +184,7 @@ def baseline_model(activity: str, expiration: str, mask: str, sr_presence: list,
             infected=mc.InfectedPopulation(
                 number=1,
                 virus=virus_distributions['SARS_CoV_2_OMICRON'],
-                presence=models.SpecificInterval(((8.5, 12.5),)),
+                presence=models.SpecificInterval(((8.5, 9.5),)),
                 mask=exposure_mask,
                 activity=activity_distributions[activity],
                 expiration=build_expiration(expiration),
@@ -199,7 +199,7 @@ def baseline_model(activity: str, expiration: str, mask: str, sr_presence: list,
         ),
         exposed=mc.Population(
             number=3,
-            presence=models.SpecificInterval(((8.5, 12.5),)),
+            presence=models.SpecificInterval(((8.5, 9.5),)),
             activity=activity_distributions[activity],
             mask=exposure_mask,
             host_immunity=0.,
