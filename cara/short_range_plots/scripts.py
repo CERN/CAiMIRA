@@ -73,12 +73,13 @@ def concentration_curve(models, labels, labelsDose, colors, linestyles, thicknes
     concentrations = [[np.mean(model.concentration(
         t)) for t in times] for model in tqdm(exp_models)]
     
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8,6))
     
     for c, color, linestyle, width in zip(concentrations, colors, linestyles, thickness):
         ax.plot(times, c, color=color, ls=linestyle, lw=width)
 
-    ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.2)
+    #ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.2)
+    ax.set_ylim(ax.get_ylim()[0], 90)
     ax.spines["right"].set_visible(False)
 
     cumulative_doses = [np.cumsum([
@@ -130,7 +131,8 @@ def concentration_curve(models, labels, labelsDose, colors, linestyles, thicknes
     
     ax1.spines["right"].set_linestyle((0, (1, 5)))
     ax1.set_ylabel('Mean cumulative dose\n(infectious virus)', fontsize=14)
-    ax1.set_ylim(ax1.get_ylim()[0], ax1.get_ylim()[1] * 1.3)
+    #ax1.set_ylim(ax1.get_ylim()[0], ax1.get_ylim()[1] * 1.3)
+    ax1.set_ylim(ax1.get_ylim()[0], 40)
     
     complete_labels = labels + [label for label in labelsDose]
     complete_colors = colors + [color for color in colors]
@@ -186,7 +188,7 @@ def plot_vD_vs_exposure_time(exp_models: typing.List[mc.ExposureModel], labels, 
     for m in exp_models:
         print(np.mean(m.build_model(SAMPLE_SIZE).deposited_exposure()))
 
-    plt.xlabel(f'Duration of close-proximity encounter\n(min)', fontsize=12)
+    plt.xlabel(f'Duration of close-proximity encounter (min)', fontsize=12)
     plt.ylabel('Mean cumulative dose\n(infectious virus)', fontsize=12)
     plt.legend()
     plt.show()

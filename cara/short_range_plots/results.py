@@ -57,26 +57,26 @@ from cara.monte_carlo.data import symptomatic_vl_frequencies
 #                             thickness = [2, 2])
 
 
-# print('\n<<<<<<<<<<< Dose vs SR exposure time >>>>>>>>>>>')
-# #Always assume 1h for the short range interactions.
-# #Always assume that in each model there is only ONE short range interaction.
-# plot_vD_vs_exposure_time(exp_models = [
-#                             baseline_model(
-#                                 activity='Light activity',
-#                                 expiration={"Speaking": 2, "Breathing": 1},
-#                                 mask='No mask',
-#                                 sr_presence=[(8.5, 9.5)],
-#                                 sr_activities=['Breathing']),
-#                             baseline_model(
-#                                 activity='Light activity',
-#                                 expiration={"Speaking": 2, "Breathing": 1},
-#                                 mask='No mask',
-#                                 sr_presence=[(8.5, 9.5)],
-#                                 sr_activities=['Speaking'])],
-#                          labels = ['Baseline model breathing', 'Baseline model speaking'],
-#                          colors=['royalblue', 'darkviolet'],
-#                          linestyles=['solid', 'solid'],
-#                          points=20,
-#                          time_in_minutes=True,
-#                          normalize_y_axis=True)
+print('\n<<<<<<<<<<< Dose vs SR exposure time >>>>>>>>>>>')
+#Always assume 1h for the short range interactions.
+#Always assume that in each model there is only ONE short range interaction.
+plot_vD_vs_exposure_time(exp_models = [
+                            baseline_model(
+                                activity='Light activity',
+                                expiration={"Speaking": 2, "Breathing": 1},
+                                mask='No mask',
+                                sr_presence=[(8.5, 9.5)],
+                                sr_activities=['Breathing']),
+                            baseline_model(
+                                activity='Light activity',
+                                expiration={"Speaking": 2, "Breathing": 1},
+                                mask='No mask',
+                                sr_presence=[(8.5, 9.5)],
+                                sr_activities=['Speaking'])],
+                         labels = ['Breathing', 'Speaking'],
+                         colors=['royalblue', 'darkviolet'],
+                         linestyles=['solid', 'solid'],
+                         points=20,
+                         time_in_minutes=True,
+                         normalize_y_axis=True)
 
