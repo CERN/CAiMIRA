@@ -23,7 +23,7 @@ from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 np.random.seed(2000)
 SAMPLE_SIZE = 250000
 TIMESTEP = 0.01
-viral_loads = np.linspace(2, 12, 600)
+#viral_loads = np.linspace(2, 12, 600)
 _VectorisedFloat = typing.Union[float, np.ndarray]
 
 
@@ -59,7 +59,7 @@ def previous_deposited_exposure_between_bounds(model: ExposureModel, time1: floa
                 (1 - model.exposed.mask.inhale_efficiency()))
 
 
-def concentration_curve(models, labels, colors, linestyles, thickness):
+def concentration_curve(models, labels, labelsDose, colors, linestyles, thickness):
 
     exp_models = [model.build_model(size=SAMPLE_SIZE) for model in models]
 
@@ -73,12 +73,13 @@ def concentration_curve(models, labels, colors, linestyles, thickness):
     concentrations = [[np.mean(model.concentration(
         t)) for t in times] for model in tqdm(exp_models)]
     
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8,6))
     
     for c, color, linestyle, width in zip(concentrations, colors, linestyles, thickness):
         ax.plot(times, c, color=color, ls=linestyle, lw=width)
 
-    ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.2)
+    #ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.2)
+    ax.set_ylim(ax.get_ylim()[0], 90)
     ax.spines["right"].set_visible(False)
 
     cumulative_doses = [np.cumsum([
@@ -129,10 +130,11 @@ def concentration_curve(models, labels, colors, linestyles, thickness):
 
     
     ax1.spines["right"].set_linestyle((0, (1, 5)))
-    ax1.set_ylabel('Mean cumulative dose (virions)', fontsize=14)
-    ax1.set_ylim(ax1.get_ylim()[0], ax1.get_ylim()[1] * 1.3)
+    ax1.set_ylabel('Mean cumulative dose\n(infectious virus)', fontsize=14)
+    #ax1.set_ylim(ax1.get_ylim()[0], ax1.get_ylim()[1] * 1.3)
+    ax1.set_ylim(ax1.get_ylim()[0], 40)
     
-    complete_labels = labels + ['vD - ' + label for label in labels]
+    complete_labels = labels + [label for label in labelsDose]
     complete_colors = colors + [color for color in colors]
     complete_linestyles = linestyles + ['dotted' for linestyle in linestyles]
 
@@ -146,21 +148,17 @@ def concentration_curve(models, labels, colors, linestyles, thickness):
             f"5th per = {quantile_05[i][-1]}\n"
             f"95th per = {quantile_95[i][-1]}\n")
     
-    plt.legend(handles=labels_legend, loc='upper right', bbox_to_anchor=(1, 1))
+    plt.legend(handles=labels_legend, loc='upper left')
     plt.show()
 
-def plot_pi_vs_exposure_time(exp_models: typing.List[mc.ExposureModel], 
-                            labels,
-                            colors,
-                            linestyles,
-                            points: int = 20, time_in_minutes: bool = False, normalize_y_axis: bool = False) -> None:
+def plot_vD_vs_exposure_time(exp_models: typing.List[mc.ExposureModel], labels, colors, linestyles, points: int = 20, time_in_minutes: bool = False, normalize_y_axis: bool = False) -> None:
     
     TIMESTEP = 0.001
 
     concentration_models = [model.concentration_model for model in exp_models]
     exposed_models = [model.exposed for model in exp_models]
     
-    pis: typing.List[typing.List[float]] = [[] for _ in exp_models]
+    vDs: typing.List[typing.List[float]] = [[] for _ in exp_models]
     
     presence_intervals = [model.short_range.presence[0].boundaries() for model in exp_models]
     start, final = presence_intervals[0]
@@ -177,20 +175,20 @@ def plot_pi_vs_exposure_time(exp_models: typing.List[mc.ExposureModel],
         ) for cm, exposed, em in zip(concentration_models, exposed_models, exp_models)]
 
         for i, m in enumerate(current_models):
-            pis[i].append(np.mean(m.build_model(SAMPLE_SIZE).infection_probability() / 100))
+            vDs[i].append(np.mean(m.build_model(SAMPLE_SIZE).deposited_exposure()))
 
     times = np.linspace(0, 60, points)
-    for i, pi in enumerate(pis):
-        plt.plot(times, pi, color=colors[i], label=labels[i])
+    for i, vD in enumerate(vDs):
+        plt.plot(times, vD, color=colors[i], label=labels[i])
 
     # plt.xlim((0, 60))
-    if normalize_y_axis:
-        plt.ylim((0, 1))
+    #if normalize_y_axis:
+    #    plt.ylim((0, 1))
         
     for m in exp_models:
-        print(np.mean(m.build_model(SAMPLE_SIZE).infection_probability() / 100))
+        print(np.mean(m.build_model(SAMPLE_SIZE).deposited_exposure()))
 
-    plt.xlabel(f'Exposure time (m)', fontsize=12)
-    plt.ylabel('Probability of infection\n$P(\,\mathtt{I}\,)$', fontsize=12)
+    plt.xlabel(f'Duration of close-proximity encounter (min)', fontsize=12)
+    plt.ylabel('Mean cumulative dose\n(infectious virus)', fontsize=12)
     plt.legend()
     plt.show()

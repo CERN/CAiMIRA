@@ -62,11 +62,11 @@ def exposure_module_without_short_range(activity: str, expiration: str, mask: st
             room=models.Room(volume=100, humidity=0.5),
             ventilation=models.AirChange(
                 active=models.SpecificInterval(((0, 24),)),
-                air_exch=0.25,
+                air_exch=500/100,
             ),
             infected=mc.InfectedPopulation(
                 number=1,
-                virus=virus_distributions['SARS_CoV_2'],
+                virus=virus_distributions['SARS_CoV_2_OMICRON'],
                 presence=mc.SpecificInterval(((8.5, 12.5),(13.5, 17.5),)),
                 mask=exposure_mask,
                 activity=activity_distributions[activity],
@@ -89,11 +89,7 @@ def exposure_module_without_short_range(activity: str, expiration: str, mask: st
     )
     return exposure_mc
 
-def exposure_module_with_short_range(activity: str, 
-                                    expiration: str, 
-                                    mask: str, 
-                                    sr_presence: list,
-                                    sr_activities: list):
+def exposure_module_with_short_range(activity: str, expiration: str, mask: str, sr_presence: list, sr_activities: list):
     if mask == 'No mask':
         exposure_mask = models.Mask.types['No mask']
     else:
@@ -104,11 +100,11 @@ def exposure_module_with_short_range(activity: str,
             room=models.Room(volume=100, humidity=0.5),
             ventilation=models.AirChange(
                 active=models.SpecificInterval(((0, 24),)),
-                air_exch=0.25,
+                air_exch=500/100,
             ),
             infected=mc.InfectedPopulation(
                 number=1,
-                virus=virus_distributions['SARS_CoV_2'],
+                virus=virus_distributions['SARS_CoV_2_OMICRON'],
                 presence=mc.SpecificInterval(((8.5, 12.5),(13.5, 17.5),)),
                 mask=exposure_mask,
                 activity=activity_distributions[activity],
@@ -132,12 +128,7 @@ def exposure_module_with_short_range(activity: str,
     )
     return exposure_mc
 
-
-def baseline_model(activity: str, 
-                    expiration: str, 
-                    mask: str, 
-                    sr_presence: list,
-                    sr_activities: list):
+def exposure_module_with_short_range_outdoors(activity: str, expiration: str, mask: str, sr_presence: list, sr_activities: list):
     if mask == 'No mask':
         exposure_mask = models.Mask.types['No mask']
     else:
@@ -145,7 +136,47 @@ def baseline_model(activity: str,
 
     exposure_mc = mc.ExposureModel(
         concentration_model=mc.ConcentrationModel(
-            room=models.Room(volume=10, humidity=0.5),
+            room=models.Room(volume=100000, humidity=0.5),
+            ventilation=models.AirChange(
+                active=models.SpecificInterval(((0, 24),)),
+                air_exch=1000000,
+            ),
+            infected=mc.InfectedPopulation(
+                number=1,
+                virus=virus_distributions['SARS_CoV_2_OMICRON'],
+                presence=mc.SpecificInterval(((8.5, 12.5),)),
+                mask=exposure_mask,
+                activity=activity_distributions[activity],
+                expiration=build_expiration(expiration),
+                host_immunity=0.,
+            ),
+        ),
+        short_range=mc.ShortRangeModel(
+            presence=[models.SpecificInterval(interval) for interval in sr_presence],
+            expirations=[short_range_expiration_distributions[activity] for activity in sr_activities],
+            dilutions=dilution_factor(activities=sr_activities,
+                        distance=np.random.uniform(0.5, 1.5, 250000)),
+        ),
+        exposed=mc.Population(
+            number=14,
+            presence=mc.SpecificInterval(((8.5, 12.5),)),
+            activity=activity_distributions[activity],
+            mask=exposure_mask,
+            host_immunity=0.,
+        ),
+    )
+    return exposure_mc
+
+
+def baseline_model(activity: str, expiration: str, mask: str, sr_presence: list, sr_activities: list):
+    if mask == 'No mask':
+        exposure_mask = models.Mask.types['No mask']
+    else:
+        exposure_mask = mask_distributions[mask]
+
+    exposure_mc = mc.ExposureModel(
+        concentration_model=mc.ConcentrationModel(
+            room=models.Room(volume=100, humidity=0.5),
             ventilation=models.AirChange(
                 active=models.PeriodicInterval(period=120, duration=120),
                 air_exch=0.25,
@@ -153,7 +184,7 @@ def baseline_model(activity: str,
             infected=mc.InfectedPopulation(
                 number=1,
                 virus=virus_distributions['SARS_CoV_2_OMICRON'],
-                presence=models.SpecificInterval(((8.5, 12.5),)),
+                presence=models.SpecificInterval(((8.5, 9.5),)),
                 mask=exposure_mask,
                 activity=activity_distributions[activity],
                 expiration=build_expiration(expiration),
@@ -168,7 +199,7 @@ def baseline_model(activity: str,
         ),
         exposed=mc.Population(
             number=3,
-            presence=models.SpecificInterval(((8.5, 12.5),)),
+            presence=models.SpecificInterval(((8.5, 9.5),)),
             activity=activity_distributions[activity],
             mask=exposure_mask,
             host_immunity=0.,
