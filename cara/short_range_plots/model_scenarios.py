@@ -152,7 +152,7 @@ def baseline_model(activity: str,
             ),
             infected=mc.InfectedPopulation(
                 number=1,
-                virus=virus_distributions['SARS_CoV_2'],
+                virus=virus_distributions['SARS_CoV_2_OMICRON'],
                 presence=models.SpecificInterval(((8.5, 12.5),)),
                 mask=exposure_mask,
                 activity=activity_distributions[activity],
