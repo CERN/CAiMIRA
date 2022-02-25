@@ -1097,7 +1097,7 @@ class ShortRangeModel:
             # Verifies if the given time falls within a short range interaction
             if start < time <= finish:
                 dilution = self.dilutions[index]
-                jet_origin_concentration = concentration_model.infected.expiration.jet_origin_concentration()
+                jet_origin_concentration = self.expirations[index].jet_origin_concentration()
                 # Long range concentration normalized by the virus viral load
                 long_range_normed_concentration = concentration_model.concentration(time) / concentration_model.virus.viral_load_in_sputum
                 

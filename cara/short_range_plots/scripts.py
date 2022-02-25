@@ -4,6 +4,7 @@ Date: 18/02/2021
 Code version: 4.0.0
 """
 
+from cara.monte_carlo.data import short_range_expiration_distributions, expiration_distributions, expiration_BLO_factors
 from tqdm import tqdm
 from matplotlib.patches import Rectangle, Patch
 from scipy.spatial import ConvexHull
@@ -73,13 +74,23 @@ def concentration_curve(models, labels, labelsDose, colors, linestyles, thicknes
     concentrations = [[np.mean(model.concentration(
         t)) for t in times] for model in tqdm(exp_models)]
     
-    fig, ax = plt.subplots(figsize=(8,6))
+    fig, (ax, ax2) = plt.subplots(2, 1, sharex=True, figsize=(8,6))
     
     for c, color, linestyle, width in zip(concentrations, colors, linestyles, thickness):
         ax.plot(times, c, color=color, ls=linestyle, lw=width)
+        ax2.plot(times, c, color=color, ls=linestyle, lw=width)
 
+    # zoom-in / limit the view to different portions of the data
+    ax.set_ylim(ax.get_ylim()[1]*0.8, ax.get_ylim()[1])  # outliers only
+    ax2.set_ylim(0, max(concentrations[1]))  # most of the data
+
+    ax.spines['bottom'].set_visible(False)
+    ax2.spines['top'].set_visible(False)
+    ax.xaxis.tick_top()
+    ax.tick_params(labeltop=False)  # don't put tick labels at the top
+    ax2.xaxis.tick_bottom()
     #ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.2)
-    ax.set_ylim(ax.get_ylim()[0], 90)
+    # ax.set_ylim(ax.get_ylim()[0], 90)
     ax.spines["right"].set_visible(False)
 
     cumulative_doses = [np.cumsum([
@@ -88,26 +99,35 @@ def concentration_curve(models, labels, labelsDose, colors, linestyles, thicknes
         for time1, time2 in tqdm(zip(times[:-1], times[1:]))
     ]) for model in exp_models]
 
-    quantile_05 = [np.cumsum([
-        np.quantile(np.array(model.deposited_exposure_between_bounds(
-            float(time1), float(time2))), 0.05)
-        for time1, time2 in tqdm(zip(times[:-1], times[1:]))
-    ]) for model in exp_models]
+    # quantile_05 = [np.cumsum([
+    #     np.quantile(np.array(model.deposited_exposure_between_bounds(
+    #         float(time1), float(time2))), 0.05)
+    #     for time1, time2 in tqdm(zip(times[:-1], times[1:]))
+    # ]) for model in exp_models]
 
-    quantile_95 = [np.cumsum([
-        np.quantile(np.array(model.deposited_exposure_between_bounds(
-            float(time1), float(time2))), 0.95)
-        for time1, time2 in tqdm(zip(times[:-1], times[1:]))
-    ]) for model in exp_models]
+    # quantile_95 = [np.cumsum([
+    #     np.quantile(np.array(model.deposited_exposure_between_bounds(
+    #         float(time1), float(time2))), 0.95)
+    #     for time1, time2 in tqdm(zip(times[:-1], times[1:]))
+    # ]) for model in exp_models]
 
     plt.xlabel("Time of day", fontsize=14)
     plt.ylabel("Mean concentration\n(virions m$^{-3}$)", fontsize=14)
 
     ax1 = ax.twinx()
+    ax11 = ax2.twinx()
     for vd, color, width in tqdm(zip(cumulative_doses, colors, thickness)):
         ax1.plot(times[:-1], vd,
                  color=color, linestyle='dotted', lw=1)
+        ax11.plot(times[:-1], vd,
+                 color=color, linestyle='dotted', lw=1)
         ax1.scatter([times[-1]], [vd[-1]], marker='.', color=color)
+        ax11.scatter([times[-1]], [vd[-1]], marker='.', color=color)
+
+    # zoom-in / limit the view to different portions of the data
+    ax1.set_ylim(ax1.get_ylim()[1]*0.8, ax1.get_ylim()[1])  # outliers only
+    ax11.set_ylim(0, max(cumulative_doses[1]))  # most of the data
+    ax11.spines["bottom"].set_visible(False)
 
     # # Plot presence of exposed person
     # for i, model in enumerate(models):
@@ -129,10 +149,10 @@ def concentration_curve(models, labels, labelsDose, colors, linestyles, thicknes
     #         )
 
     
-    ax1.spines["right"].set_linestyle((0, (1, 5)))
-    ax1.set_ylabel('Mean cumulative dose\n(infectious virus)', fontsize=14)
+    # ax1.spines["right"].set_linestyle((0, (1, 5)))
+    # ax1.set_ylabel('Mean cumulative dose\n(infectious virus)', fontsize=14)
     #ax1.set_ylim(ax1.get_ylim()[0], ax1.get_ylim()[1] * 1.3)
-    ax1.set_ylim(ax1.get_ylim()[0], 40)
+    # ax1.set_ylim(ax1.get_ylim()[0], 40)
     
     complete_labels = labels + [label for label in labelsDose]
     complete_colors = colors + [color for color in colors]
@@ -141,14 +161,25 @@ def concentration_curve(models, labels, labelsDose, colors, linestyles, thicknes
     labels_legend = [mlines.Line2D([], [], color=color, label=label, linestyle=linestyle)
               for color, label, linestyle in zip(complete_colors, complete_labels, complete_linestyles)]
 
-    for i in range(len(models)):
-        print('Scenario: ', labels[i])
-        print(
-            f"MEAN vD = {cumulative_doses[i][-1]}\n"
-            f"5th per = {quantile_05[i][-1]}\n"
-            f"95th per = {quantile_95[i][-1]}\n")
+    # for i in range(len(models)):
+    #     print('Scenario: ', labels[i])
+    #     print(
+    #         f"MEAN vD = {cumulative_doses[i][-1]}\n"
+    #         f"5th per = {quantile_05[i][-1]}\n"
+    #         f"95th per = {quantile_95[i][-1]}\n")
     
-    plt.legend(handles=labels_legend, loc='upper left')
+    ax.legend(handles=labels_legend, loc='upper right')
+
+    d = .015  # how big to make the diagonal lines in axes coordinates
+    # arguments to pass to plot, just so we don't keep repeating them
+    kwargs = dict(transform=ax.transAxes, color='k', clip_on=False)
+    ax.plot((-d, +d), (-d, +d), **kwargs)        # top-left diagonal
+    ax.plot((1 - d, 1 + d), (-d, +d), **kwargs)  # top-right diagonal
+
+    kwargs.update(transform=ax2.transAxes)  # switch to the bottom axes
+    ax2.plot((-d, +d), (1 - d, 1 + d), **kwargs)  # bottom-left diagonal
+    ax2.plot((1 - d, 1 + d), (1 - d, 1 + d), **kwargs)  # bottom-right diagonal
+
     plt.show()
 
 def plot_vD_vs_exposure_time(exp_models: typing.List[mc.ExposureModel], labels, colors, linestyles, points: int = 20, time_in_minutes: bool = False, normalize_y_axis: bool = False) -> None:
