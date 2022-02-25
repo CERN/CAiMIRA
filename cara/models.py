@@ -1097,7 +1097,7 @@ class ShortRangeModel:
             # Verifies if the given time falls within a short range interaction
             if start < time <= finish:
                 dilution = self.dilutions[index]
-                jet_origin_concentration = concentration_model.infected.expiration.jet_origin_concentration()
+                jet_origin_concentration = self.expirations[index].jet_origin_concentration()
                 # Long range concentration normalized by the virus viral load
                 long_range_normed_concentration = concentration_model.concentration(time) / concentration_model.virus.viral_load_in_sputum
                 
@@ -1105,10 +1105,10 @@ class ShortRangeModel:
                 # The set of points where we want the interpolated values are the short range particle diameters (given the current expiration); 
                 # The set of points with a known value are the long range particle diameters (given the initial expiration);
                 # The set of known values are the long range concentration values normalized by the viral load.
-                long_range_normed_concentration=np.interp(self.expirations[index].particle.diameter, concentration_model.infected.particle.diameter, long_range_normed_concentration)
+                long_range_normed_concentration_interpolated=np.interp(self.expirations[index].particle.diameter, concentration_model.infected.particle.diameter, long_range_normed_concentration)
                 
                 # Short range concentration formula. The long range concentration is added in the concentration method (ExposureModel).
-                return ((1/dilution)*(jet_origin_concentration - long_range_normed_concentration))
+                return ((1/dilution)*(jet_origin_concentration - long_range_normed_concentration_interpolated))
         
         return 0.
 
