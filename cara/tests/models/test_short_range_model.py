@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from cara import models
-import cara.monte_carlo.models as mc_models
+import cara.monte_carlo as mc_models
 from cara.apps.calculator.model_generator import build_expiration
 from cara.monte_carlo.data import dilution_factor, short_range_expiration_distributions
 
