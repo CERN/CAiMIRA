@@ -665,7 +665,7 @@ class FormData:
             if self.short_range_interactions else [])
 
 
-def build_expiration(expiration_definition) -> models._ExpirationBase:
+def build_expiration(expiration_definition) -> mc._ExpirationBase:
     if isinstance(expiration_definition, str):
         return expiration_distributions[expiration_definition]
     elif isinstance(expiration_definition, dict):
@@ -675,7 +675,7 @@ def build_expiration(expiration_definition) -> models._ExpirationBase:
             for exp_type, weight in expiration_definition.items()
             ], axis=0)
         return expiration_distribution(tuple(BLO_factors))
-    
+
 
 def baseline_raw_form_data():
     # Note: This isn't a special "baseline". It can be updated as required.

@@ -10,6 +10,7 @@ from cara.monte_carlo.sampleable import Normal,LogNormal,LogCustomKernel,CustomK
 sqrt2pi = np.sqrt(2.*np.pi)
 sqrt2 = np.sqrt(2.)
 
+
 @dataclass(frozen=True)
 class BLOmodel:
     """
@@ -65,7 +66,7 @@ class BLOmodel:
         return result
 
 
-# From https://doi.org/10.1101/2021.10.14.21264988 and refererences therein
+# From https://doi.org/10.1101/2021.10.14.21264988 and references therein
 activity_distributions = {
     'Seated': mc.Activity(LogNormal(-0.6872121723362303, 0.10498338229297108),
                           LogNormal(-0.6872121723362303, 0.10498338229297108)),
@@ -84,7 +85,7 @@ activity_distributions = {
 }
 
 
-# From https://doi.org/10.1101/2021.10.14.21264988 and refererences therein
+# From https://doi.org/10.1101/2021.10.14.21264988 and references therein
 symptomatic_vl_frequencies = LogCustomKernel(
     np.array((2.46032, 2.67431, 2.85434, 3.06155, 3.25856, 3.47256, 3.66957, 3.85979, 4.09927, 4.27081,
      4.47631, 4.66653, 4.87204, 5.10302, 5.27456, 5.46478, 5.6533, 5.88428, 6.07281, 6.30549,
@@ -157,7 +158,10 @@ mask_distributions = {
 }
 
 
-def expiration_distribution(BLO_factors, d_max=30.):
+def expiration_distribution(
+        BLO_factors: typing.Tuple[float, float, float],
+        d_max=30.,
+) -> mc.Expiration:
     """
     Returns an Expiration with an aerosol diameter distribution, defined
     by the BLO factors (a length-3 tuple).
@@ -166,10 +170,15 @@ def expiration_distribution(BLO_factors, d_max=30.):
     an historical choice based on previous implementations of the model
     (it limits the influence of the O-mode).
     """
-    dscan = np.linspace(0.1, d_max ,3000)
-    return mc.Expiration(CustomKernel(dscan,
-                BLOmodel(BLO_factors).distribution(dscan),kernel_bandwidth=0.1),
-                cn=BLOmodel(BLO_factors).integrate(0.1, d_max))
+    dscan = np.linspace(0.1, d_max, 3000)
+    return mc.Expiration(
+        CustomKernel(
+            dscan,
+            BLOmodel(BLO_factors).distribution(dscan),
+            kernel_bandwidth=0.1,
+        ),
+        cn=BLOmodel(BLO_factors).integrate(0.1, d_max),
+    )
 
 
 def dilution_factor(activities, distance, D=0.02):
@@ -190,8 +199,16 @@ def dilution_factor(activities, distance, D=0.02):
         xstar = Cx1*(Q0*u0)**0.25*(tstar + t01)**0.5 - x01
         # Dilution factor at the transition point xstar
         Sxstar = 2*Cr1*(xstar+x01)/D
-        factors.append(np.piecewise(distance, [distance < xstar, distance >= xstar], 
-            [lambda distance : 2*Cr1*(distance + x01)/D, lambda distance : Sxstar*(1 + Cr2*(distance - xstar)/Cr1/(xstar + x01))**3]))
+        factors.append(
+            np.piecewise(
+                distance,
+                [distance < xstar, distance >= xstar],
+                [
+                    lambda distance: 2*Cr1*(distance + x01)/D,
+                    lambda distance: Sxstar*(1 + Cr2*(distance - xstar)/Cr1/(xstar + x01))**3
+                ]
+            )
+        )
     return factors
 
 
@@ -205,11 +222,11 @@ expiration_BLO_factors = {
 
 expiration_distributions = {
     exp_type: expiration_distribution(BLO_factors)
-    for exp_type,BLO_factors in expiration_BLO_factors.items()
+    for exp_type, BLO_factors in expiration_BLO_factors.items()
 }
 
 
 short_range_expiration_distributions = {
-    exp_type: expiration_distribution(BLO_factors, d_max=100).build_model(250000)
-    for exp_type,BLO_factors in expiration_BLO_factors.items()
+    exp_type: expiration_distribution(BLO_factors, d_max=100)
+    for exp_type, BLO_factors in expiration_BLO_factors.items()
 }

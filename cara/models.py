@@ -1076,13 +1076,13 @@ class ConcentrationModel:
 @dataclass(frozen=True)
 class ShortRangeModel:
     #: Short range interactions
-    presence: typing.List[SpecificInterval]
+    presence: typing.Tuple[SpecificInterval, ...]
 
     #: Expiration types
-    expirations: typing.List[Expiration]
+    expirations: typing.Tuple[_ExpirationBase, ...]
 
     #: The dilution factors for each of the expiratory activity
-    dilutions: typing.List[_VectorisedFloat]
+    dilutions: typing.Tuple[_VectorisedFloat, ...]
 
     def _normed_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
         """
