@@ -223,3 +223,21 @@ def plot_vD_vs_exposure_time(exp_models: typing.List[mc.ExposureModel], labels, 
     plt.ylabel('Mean cumulative dose\n(infectious virus)', fontsize=12)
     plt.legend()
     plt.show()
+
+def generate_BLO_curve(activity):
+    diameters = short_range_expiration_distributions[activity].diameter
+    BLOcurve = BLOmodel(expiration_BLO_factors[activity]).distribution(diameters
+            )/BLOmodel(expiration_BLO_factors[activity]).integrate(0.1,100)
+    # you have to divide by the integral to get the normalized distribution,
+    # so that you can compare with the normalized histogram
+
+    plt.xscale('log')
+    plt.yscale('log')
+
+    plt.plot(diameters,BLOcurve,'.',ms=5)
+    plt.hist(diameters,bins=100,range=(0,100),density=True)
+    plt.title(activity)
+
+    plt.xlabel("diameters (microns)")
+    plt.ylabel("Normalized distribution and histogram")
+    plt.show()
