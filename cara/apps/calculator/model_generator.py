@@ -253,7 +253,7 @@ class FormData:
             sr_presence=self.short_range_intervals()
             sr_activities=self.short_range_activities()
 
-        short_range_expirations = [short_range_expiration_distributions[activity] for activity in sr_activities]
+        short_range_expirations = tuple(short_range_expiration_distributions[activity] for activity in sr_activities)
 
         # Initializes and returns a model with the attributes defined above
         return mc.ExposureModel(
@@ -643,16 +643,16 @@ class FormData:
             breaks=self.infected_lunch_break_times() + self.infected_coffee_break_times(),
         )
 
-    def short_range_intervals(self) -> typing.List[models.SpecificInterval]:
+    def short_range_intervals(self) -> typing.Tuple[models.SpecificInterval]:
         if (self.short_range_interactions):
             short_range_intervals = []
             for interaction in self.short_range_interactions:
                 start_time = time_string_to_minutes(interaction['start_time'])
                 duration = float(interaction['duration'])
                 short_range_intervals.append(models.SpecificInterval((start_time/60, (start_time + duration)/60)))
-            return short_range_intervals
+            return list(short_range_intervals)
         else:
-            return []
+            return ()
 
     def exposed_present_interval(self) -> models.Interval:
         return self.present_interval(
