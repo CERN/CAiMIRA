@@ -159,7 +159,7 @@ mask_distributions = {
 
 
 def expiration_distribution(
-        BLO_factors: typing.Tuple[float, float, float],
+        BLO_factors,
         d_max=30.,
 ) -> mc.Expiration:
     """

@@ -245,14 +245,9 @@ class FormData:
         else:
             humidity = 0.5
         room = models.Room(volume=volume, humidity=humidity)
-
-        if self.short_range_option == "short_range_no":
-            sr_presence=[]
-            sr_activities=[]
-        else:
-            sr_presence=self.short_range_intervals()
-            sr_activities=self.short_range_activities()
-
+            
+        sr_presence=self.short_range_intervals()
+        sr_activities=self.short_range_activities()
         short_range_expirations = tuple(short_range_expiration_distributions[activity] for activity in sr_activities)
 
         # Initializes and returns a model with the attributes defined above
@@ -643,14 +638,14 @@ class FormData:
             breaks=self.infected_lunch_break_times() + self.infected_coffee_break_times(),
         )
 
-    def short_range_intervals(self) -> typing.Tuple[models.SpecificInterval]:
+    def short_range_intervals(self) -> typing.Tuple[models.SpecificInterval, ...]:
         if (self.short_range_interactions):
             short_range_intervals = []
             for interaction in self.short_range_interactions:
                 start_time = time_string_to_minutes(interaction['start_time'])
                 duration = float(interaction['duration'])
                 short_range_intervals.append(models.SpecificInterval((start_time/60, (start_time + duration)/60)))
-            return list(short_range_intervals)
+            return tuple(short_range_intervals)
         else:
             return ()
 
@@ -674,7 +669,7 @@ def build_expiration(expiration_definition) -> mc._ExpirationBase:
             np.array(expiration_BLO_factors[exp_type]) * weight/total_weight
             for exp_type, weight in expiration_definition.items()
             ], axis=0)
-        return expiration_distribution(tuple(BLO_factors))
+        return expiration_distribution(BLO_factors=tuple(BLO_factors))
 
 
 def baseline_raw_form_data():

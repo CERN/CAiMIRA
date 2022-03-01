@@ -504,9 +504,9 @@ baseline_model = models.ExposureModel(
         evaporation_factor=0.3,
     ),
     short_range=models.ShortRangeModel(
-        presence=[],
-        expirations=[],
-        dilutions=[],
+        presence=(),
+        expirations=(),
+        dilutions=(),
     ),
     exposed=models.Population(
         number=10,
