@@ -400,7 +400,6 @@ function validate_form(form) {
       obj.activity = $(element).find("[name='short_range_activity']").val();
       obj.start_time = $(element).find("[name='short_range_start_time']").val();
       obj.duration = $(element).find("[name='short_range_duration']").val();
-      console.log(JSON.stringify(obj))
       short_range_interactions.push(JSON.stringify(obj));
   });
   $("input[type=text][name=short_range_interactions]").val('[' + short_range_interactions + ']');
@@ -633,7 +632,7 @@ $(document).ready(function () {
       else if (name == 'short_range_interactions') {
         let index = 1;
         for (const interaction of JSON.parse(value)) {
-          $("#dialog_sr").append(inject_sr_interaction(index, value = interaction))
+          $("#dialog_sr").append(inject_sr_interaction(index, value = interaction, is_validated="row_validated"))
           $('#sr_activity_no_' + String(index)).val(interaction.activity).change();
           document.getElementById('sr_activity_no_' + String(index)).disabled = true;
           document.getElementById('sr_start_no_' + String(index)).disabled = true;
@@ -813,9 +812,9 @@ $(document).ready(function () {
     return selectedSuggestion.text;
   }
 
-  function inject_sr_interaction(index, value) {
+  function inject_sr_interaction(index, value, is_validated) {
     return `<div class="col-md-12 form_field_outer p-0">
-      <div class="form_field_outer_row split">
+      <div class="form_field_outer_row split ${is_validated}">
         <div class="split" style="flex: 3">
           <div class='form-group row align-content-center'>
             <div class="col-sm-4"><label class="col-form-label"> Expiratory activity: </label></div>
@@ -868,7 +867,7 @@ $(document).ready(function () {
         document.getElementById('sr_start_no_' + String(index)).disabled = true;
         document.getElementById('sr_duration_no_' + String(index)).disabled = true;
         document.getElementById('edit_row_no_' + String(index)).style.cssText = 'display:inline !important';
-        $(this).closest(".form_field_outer_row").addClass("row_validated")
+        $(this).closest(".form_field_outer_row").addClass("row_validated");
         $(this).hide();
         index = index + 1;
       }
