@@ -243,6 +243,7 @@ def make_app(
         debug: bool = False,
         calculator_prefix: str = '/calculator',
         theme_dir: typing.Optional[Path] = None,
+        xsrf_cookies: bool = True
 ) -> Application:
     static_dir = Path(__file__).absolute().parent.parent / 'static'
     calculator_static_dir = Path(__file__).absolute().parent / 'static'
@@ -284,7 +285,7 @@ def make_app(
         template_environment=template_environment,
         default_handler_class=Missing404Handler,
         report_generator=ReportGenerator(loader, calculator_prefix),
-        xsrf_cookies=True,
+        xsrf_cookies=xsrf_cookies,
         # COOKIE_SECRET being undefined will result in no login information being
         # presented to the user.
         cookie_secret=os.environ.get('COOKIE_SECRET', '<undefined>'),
