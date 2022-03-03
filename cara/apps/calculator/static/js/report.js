@@ -60,13 +60,6 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
             .attr('fill-opacity', '0.1');
     });
 
-    // Plot tittle.
-    var plotTitleEl = vis.append('svg:foreignObject')
-        .attr("background-color", "transparent")
-        .attr('height', 30)
-        .style('text-align', 'center')
-        .html('<b>Mean concentration of virions</b>');
-
     // X axis declaration.
     var xAxisEl = vis.append('svg:g')
         .attr('class', 'x axis');
@@ -100,7 +93,7 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
         .attr('class', 'y label')
         .attr('fill', 'black')
         .attr('text-anchor', 'middle')
-        .text('Mean cumulative dose (virions)');
+        .text('Mean cumulative dose (infectious virus)');
 
     // Legend for the plot elements - line and area.
     var legendLineIcon = vis.append('rect')
@@ -265,10 +258,6 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
                 return d.time >= b[0] && d.time <= b[1]
             })))
         })
-
-
-        // Title.
-        plotTitleEl.attr('width', graph_width);
 
         // Axis.
         var xAxis = d3.axisBottom(xRange).tickFormat(d => time_format(d));
@@ -471,15 +460,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
             .attr('alignment-baseline', 'central');
 
     }
-
-    // Plot title.
-    var plotTitleEl = vis.append('svg:foreignObject')
-        .attr("background-color", "transparent")
-        .attr('height', 30)
-        .style('text-align', 'center')
-        .html('<b>Mean concentration of virions</b>');
     
-
     // X axis.
     var xAxisEl = vis.append('svg:g')
         .attr('class', 'x axis');
@@ -609,9 +590,6 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
             }
 
         }
-
-        // Title.
-        plotTitleEl.attr('width', graph_width);
 
         // Axis.
         var xAxis = d3.axisBottom(xRange).tickFormat(d => time_format(d));

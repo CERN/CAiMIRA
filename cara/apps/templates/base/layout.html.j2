@@ -34,26 +34,26 @@
 
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
-          <li class="nav-link"><a href="/" class="{{ "header-navbar nav-link active" if "home/" == active_page else "header-navbar nav-link" }}">HOME</a></li>
+          <li class="nav-link"><a href="/" class="{{ "header-navbar nav-link active" if "home/" == active_page else "header-navbar nav-link" }}">Home</a></li>
           <div id="apps_dropdown">
             <li class="nav-item dropdown p-2">
               <a class="nav-link dropdown-toggle {{ "header-navbar nav-link active" if "calculator/" in active_page else "header-navbar nav-link" }}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                APPS
+                Apps
               </a>
-              <ul class="dropdown-menu dropwown-navbar-colors" style="min-width: 14rem;" aria-labelledby="navbarDropdown">
-                <li><a href="{{ calculator_prefix }}" class="{{ "header-navbar nav-link active" if "calculator/" == active_page else "header-navbar nav-link" }}">CARA CALCULATOR</a></li>
-                <li><a href="{{ calculator_prefix }}/user-guide" style="margin-left: 4rem" class="{{ "header-navbar nav-link active" if "user-guide" in active_page else "header-navbar nav-link" }}">USER GUIDE</a></li>
-                <li><a href="/expert-app" class="{{ "header-navbar nav-link active" if "/expert-app" == active_page else "header-navbar nav-link" }}">EXPERT APP (BETA)</a></li>
+              <ul class="dropdown-menu dropwown-navbar-colors text-right" style="min-width: 12rem;" aria-labelledby="navbarDropdown">
+                <li><a href="{{ calculator_prefix }}" class="{{ "header-navbar nav-link active" if "calculator/" == active_page else "header-navbar nav-link" }}">CARA Calculator</a></li>
+                <li><a href="{{ calculator_prefix }}/user-guide" style="margin-left: 2rem" class="{{ "header-navbar nav-link active" if "user-guide" in active_page else "header-navbar nav-link" }}">User Guide</a></li>
+                <li><a href="/expert-app" class="{{ "header-navbar nav-link active" if "/expert-app" == active_page else "header-navbar nav-link" }}">Expert app (beta)</a></li>
               </ul>
             </li>
           </div>
           <div id="mobile_calculator_option">
-            <li class="nav-link"><a href="{{ calculator_prefix }}" class="{{ "header-navbar nav-link active" if "calculator/" == active_page else "header-navbar nav-link" }}">CARA CALCULATOR</a></li>
-            <li class="nav-link"><a href="{{ calculator_prefix }}/user-guide" class="{{ "header-navbar nav-link active" if "user-guide" in active_page else "header-navbar nav-link" }}">USER GUIDE</a></li>
+            <li class="nav-link"><a href="{{ calculator_prefix }}" class="{{ "header-navbar nav-link active" if "calculator/" == active_page else "header-navbar nav-link" }}">CARA Calculator</a></li>
+            <li class="nav-link"><a href="{{ calculator_prefix }}/user-guide" class="{{ "header-navbar nav-link active" if "user-guide" in active_page else "header-navbar nav-link" }}">User Guide</a></li>
           </div>
           {% block covid_information%}
           {% endblock covid_information%}
-          <li class="nav-link"><a href="/about" class="{{ "header-navbar nav-link active" if "about" == active_page else "header-navbar nav-link" }}">ABOUT</a></li>
+          <li class="nav-link"><a href="/about" class="{{ "header-navbar nav-link active" if "about" == active_page else "header-navbar nav-link" }}">About</a></li>
             {% if user.is_authenticated() %}
             <li class="nav-item dropdown p-2">
               <a class="nav-link active dropdown-toggle d-inline-block" href="https://cern.ch/users-portal" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

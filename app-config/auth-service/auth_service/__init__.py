@@ -10,15 +10,14 @@ import typing
 
 import aiohttp
 from keycloak.aio.realm import KeycloakRealm
-import tornado.ioloop
+from tornado.web import Application, RequestHandler
 import tornado.log
-import tornado.web
 
 
 LOG = logging.getLogger(__name__)
 
 
-class BaseHandler(tornado.web.RequestHandler):
+class BaseHandler(RequestHandler):
     def set_session_cookie(self, session_data: dict, expiry_in_seconds: int) -> None:
         seconds_per_day = 60 * 60 * 24
         self.set_secure_cookie(
@@ -152,18 +151,19 @@ class MainHandler(BaseHandler):
         session = self.get_session_cookie()
         if session is None:
             return self.finish("""
-                You are currently not logged in: <a href="/auth/login">Login</a>        
+                You are currently not logged in: <a href="/auth/login">Login</a>
             """)
         else:
             return self.finish(f"""
                 You are currently logged in as "{session['username']}":
-                <a href="/auth/logout">Logout</a>        
+                <a href="/auth/logout">Logout</a>
             """)
 
 
-def make_app():
-    tornado.log.enable_pretty_logging()
-    return tornado.web.Application(
+def make_app(debug: bool = False) -> Application:
+    if debug:
+        tornado.log.enable_pretty_logging()
+    return Application(
         [
             (r"/", MainHandler),
             (r"/auth/probe", ProbeAuthentication),
@@ -174,7 +174,7 @@ def make_app():
             (r'/auth/logout', Logout),
         ],
         cookie_secret=os.environ['COOKIE_SECRET'],
-        debug=True,
+        debug=debug,
         oicd_server=os.environ['OIDC_SERVER'],
         oicd_realm=os.environ['OIDC_REALM'],
         client_id=os.environ['CLIENT_ID'],
