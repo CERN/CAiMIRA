@@ -1032,7 +1032,7 @@ class ConcentrationModel:
         Note that time is not vectorised. You can only pass a single float
         to this method.
         """
-        return (self._normed_concentration(time) * 
+        return (self._normed_concentration_cached(time) * 
                 self.infected.emission_rate_when_present())
 
     @method_cache
