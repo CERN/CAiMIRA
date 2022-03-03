@@ -522,8 +522,9 @@ function validateLunchTime(obj) {
 }
 
 function overlapped_times(obj, start_time, finish_time) {
-  removeErrorFor($(".short_range_option"));
-  $(".short_range_option").removeClass("red_border");
+  removeErrorFor($(obj));
+  $(obj).removeClass("red_border");
+
   
   let simulation_start = parseTimeToMins($("#exposed_start").val())
   let simulation_finish = parseTimeToMins($("#exposed_finish").val())
@@ -856,7 +857,7 @@ $(document).ready(function () {
   });
 
   // Validate row button (Save button)
-  $("body").on("click", ".validate_node_btn_frm_field", function(e) {
+  $("body").on("click", ".validate_node_btn_frm_field", function() {
     let index = $(this).attr('id').split('_').slice(-1)[0];
     let activity = validate_sr_parameter('#sr_activity_no_' + String(index)[0], "You must specify the activity type.");
     let start = validate_sr_parameter('#sr_start_no_' + String(index)[0], "You must specify the start time.");
@@ -889,33 +890,14 @@ $(document).ready(function () {
     $(this).closest(".form_field_outer_row").remove();
   });
 
-  //Short range modal - close button
+  //Short range modal - close and save button
   $("body").on("click", ".close_btn_frm_field", function() {
-    // var last_element = $(".form_field_outer").find(".form_field_outer_row").last().find(".short_range_option").prop("id");
-    // if (!last_element) {
-    //   $('#short_range_dialog').modal('hide');
-    //   $("input[type=radio][id=short_range_no]").prop("checked", true);
-    //   on_short_range_option_change();
-    // } 
-    // else {
-    //   let index = last_element.split("_").slice(-1)[0];
-    //   let activity = validate_sr_parameter('#sr_activity_no_' + String(index)[0], "You must specify the activity type.");
-    //   let start = validate_sr_parameter('#sr_start_no_' + String(index)[0], "You must specify the start time.");
-    //   let duration = validate_sr_parameter('#sr_duration_no_' + String(index)[0], "You must specify the duration.");
-    //   if (activity && start && duration) {
-    //     document.getElementById('sr_activity_no_' + String(index)).disabled = true;
-    //     document.getElementById('sr_start_no_' + String(index)).disabled = true;
-    //     document.getElementById('sr_duration_no_' + String(index)).disabled = true;
-    //     document.getElementById('edit_row_no_' + String(index)).style.cssText = 'display:inline !important';
-    //     document.getElementById('validate_row_no_' + String(index)).style.cssText = 'display: none !important';
-    //     $("#sr_interactions").text($(".form_field_outer").find(".form_field_outer_row").length);
-    //     $('#short_range_dialog').modal('hide');
-    //   }
-    // }
-    $("#sr_interactions").text($(".form_field_outer").find(".form_field_outer_row.row_validated").length);
-    $(".form_field_outer_row").not(".row_validated").remove();
-    $('#short_range_dialog').modal('hide');
-
+    $(".validate_node_btn_frm_field").click();
+    if ($(".form_field_outer").find(".form_field_outer_row.row_validated").length == $(".form_field_outer").find(".form_field_outer_row").length) {
+      $("#sr_interactions").text($(".form_field_outer").find(".form_field_outer_row.row_validated").length);
+      $(".form_field_outer_row").not(".row_validated").remove();
+      $('#short_range_dialog').modal('hide');
+    }
   });
 
   //Short range modal - reset button

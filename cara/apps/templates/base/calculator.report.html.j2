@@ -89,15 +89,18 @@
 									{% endblock report_summary_footnote %}
 								</div>
 								<p id="section1">* The results are based on the parameters and assumptions published in the CERN Open Report <a href="https://cds.cern.ch/record/2756083"> CERN-OPEN-2021-004</a>.</p>
-
+								<button class="btn btn-sm btn-primary" id="button_full_exposure">Full exposure</button>
+								<button class="btn btn-sm btn-primary" id="button_long_exposure">Background concentration</button>
+									
 								<div id="concentration_plot" style="height: 400px"></div>
 								<script type="application/javascript">
 									var times = {{ times | JSONify }}
+									var short_range_concentrations = {{ short_range_concentrations | JSONify }}
 									var concentrations = {{ concentrations | JSONify }}
 									var cumulative_doses = {{ cumulative_doses | JSONify }}
 									var exposed_presence_intervals = {{ exposed_presence_intervals | JSONify }}
 									var short_range_intervals = {{ short_range_intervals | JSONify }}
-									draw_concentration_plot("concentration_plot", times, concentrations, cumulative_doses, exposed_presence_intervals, short_range_intervals);
+									draw_plot("concentration_plot", times, concentrations, short_range_concentrations, cumulative_doses)
 								</script>
               				</p>
 						</div>

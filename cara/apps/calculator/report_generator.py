@@ -102,11 +102,15 @@ def calculate_report_data(model: models.ExposureModel):
     for interval in model.short_range.presence:
         short_range_intervals.append(list(interval.boundaries()))
 
-    concentrations = [
+    short_range_concentrations = [
         np.array(model.concentration(float(time))).mean()
         for time in times
     ]
-    highest_const = max(concentrations)
+    concentrations = [
+        np.array(model.concentration_model.concentration(float(time))).mean()
+        for time in times
+    ]
+    highest_const = max(short_range_concentrations)
     prob = np.array(model.infection_probability()).mean()
     er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
     exposed_occupants = model.exposed.number
@@ -121,6 +125,7 @@ def calculate_report_data(model: models.ExposureModel):
         "short_range_intervals": short_range_intervals,
         "exposed_presence_intervals": [list(interval) for interval in model.exposed.presence.boundaries()],
         "cumulative_doses": list(cumulative_doses),
+        "short_range_concentrations": short_range_concentrations,
         "concentrations": concentrations,
         "highest_const": highest_const,
         "prob_inf": prob,
