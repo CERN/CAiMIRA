@@ -392,6 +392,11 @@ class FormData:
                 # Conversation of N people is approximately 1/N% of the time speaking.
                 {'Speaking': 1, 'Breathing': self.total_people - 1}
             ),
+            'largegathering': (
+                'Standing',
+                # each infected person spends 1/3 of time speaking.
+                {'Speaking': 1, 'Breathing': 3}
+            ),
             'callcentre': ('Seated', 'Speaking'),
             'library': ('Seated', 'Breathing'),
             'training': ('Standing', 'Speaking'),
@@ -429,6 +434,7 @@ class FormData:
             'controlroom-day': 'Seated',
             'controlroom-night': 'Seated',
             'meeting': 'Seated',
+            'largegathering': 'Seated',
             'callcentre': 'Seated',
             'library': 'Seated',
             'training': 'Seated',
@@ -695,7 +701,7 @@ def baseline_raw_form_data():
     }
 
 
-ACTIVITY_TYPES = {'office', 'meeting', 'training', 'callcentre', 'controlroom-day', 'controlroom-night', 'library', 'workshop', 'lab', 'gym'}
+ACTIVITY_TYPES = {'office', 'meeting', 'largegathering', 'training', 'callcentre', 'controlroom-day', 'controlroom-night', 'library', 'workshop', 'lab', 'gym'}
 MECHANICAL_VENTILATION_TYPES = {'mech_type_air_changes', 'mech_type_air_supply', 'not-applicable'}
 MASK_TYPES = {'Type I', 'FFP2'}
 MASK_WEARING_OPTIONS = {'mask_on', 'mask_off'}

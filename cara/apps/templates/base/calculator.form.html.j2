@@ -317,7 +317,8 @@
     <div class="col-sm-6">
       <select id="activity_type" name="activity_type" class="form-control">
         <option value="office">Office</option>
-        <option value="meeting">Meeting</option>
+        <option value="meeting">Small meeting (<10 occ.)</option>
+        <option value="largegathering">Large meeting (>10 occ.)</option>
         <option value="callcentre">Call Centre</option>
         <option value="controlroom-day">Control Room - Day shift</option>
         <option value="controlroom-night">Control Room - Night shift</option>
@@ -542,7 +543,8 @@
   The type of activity applies to both the infected and exposed persons:
   <ul>
     <li>Office = all seated, talking 33% of the time,</li>
-    <li>Meeting = all seated, talking time shared between all persons,</li>
+    <li>Small meeting (< 10 occ.) = all seated, talking time shared between all persons,</li>
+    <li>Large meeting (> 10 occ.) = speaker is standing and speaking 33% of the time, other occupants are seated,</li>							
     <li>Call Centre = all seated, continuous talking,</li>
     <li>Control Room (day shift) = all seated, talking 50% of the time,</li>
     <li>Control Room (night shift) = all seated, talking 10% of the time,</li>
