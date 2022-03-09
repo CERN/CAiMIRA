@@ -299,7 +299,7 @@ footer img {
   #download-pdf, #pdf_qrcode_aref {
     display: none;
   }
-  #cern_level{
+  #scale_warning{
     height: 15em;
     margin-top: 1em;
   }
