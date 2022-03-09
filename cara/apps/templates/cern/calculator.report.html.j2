@@ -1,5 +1,6 @@
 {% extends "base/calculator.report.html.j2" %}
 
+{% set scale_warning = 'yellow-2' %} <!-- green-1, yellow-2, orange-3, red-4 -->
 {% if ((prob_inf > 10) or (expected_new_cases >= 1)) %} {% set cern_level = 'red' %}
 {% elif (2 <= prob_inf <= 10) %} {% set cern_level = 'orange' %} 
 {% else %} {% set cern_level = 'green' %} 
@@ -48,21 +49,21 @@
 
     {% if (prob_inf > 2) %}
       <br>
-      {% if scale_warning.level == "green-1" %}  
+      {% if scale_warning == "green-1" %}  
         <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
-          Note: the current CERN COVID Scale is <b>Green – 1</b>. The risk of circulation of asymptomatic or pre-symptomatic infected individuals within the CERN site is considered negligible. There may be more than <b>{{scale_warning.onsite_access}} daily on-site accesses</b>. Align your risk assessment with the guidance and instructions provided by the HSE Unit.
+          Note: the current CERN COVID Scale is <b>Green – 1</b>. The risk of circulation of asymptomatic or pre-symptomatic infected individuals within the CERN site is considered negligible. There may be more than <b>8000 daily on-site accesses</b>. Align your risk assessment with the guidance and instructions provided by the HSE Unit.
         </div>
-      {% elif scale_warning.level == "yellow-2" %}
+      {% elif scale_warning == "yellow-2" %}
         <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
-          Note: the current CERN COVID Scale is <b>Yellow - 2</b>. There is a {{scale_warning.risk}} risk that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site. There may be around <b>{{scale_warning.onsite_access}} daily on-site accesses</b> during this stage. See with your supervisor, DSO/LEXGLIMOS and space manager if this scenario is acceptable and if any additional measures can be applied (ALARA).
+          Note: the current CERN COVID Scale is <b>Yellow - 2</b>. There is a reduced risk that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site. There may be around <b>6'500 daily on-site accesses</b> during this stage. See with your supervisor, DSO/LEXGLIMOS and space manager if this scenario is acceptable and if any additional measures can be applied (ALARA).
         </div>
-      {% elif scale_warning.level == "orange-3" %}
+      {% elif scale_warning == "orange-3" %}
         <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
-          Warning: the current CERN COVID Scale is <b>Orange - 3</b>. There is a {{scale_warning.risk}} risk that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site. There may be around <b>{{scale_warning.onsite_access}} daily on-site accesses</b> during this stage. See with your supervisor, DSO/LEXGLIMOS and space manager if this scenario is acceptable and if any additional measures can be applied (ALARA).
+          Warning: the current CERN COVID Scale is <b>Orange - 3</b>. There is a medium risk that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site. There may be around <b>5'000 daily on-site accesses</b> during this stage. See with your supervisor, DSO/LEXGLIMOS and space manager if this scenario is acceptable and if any additional measures can be applied (ALARA).
         </div>
-      {% elif scale_warning.level == "red-4" %}
+      {% elif scale_warning == "red-4" %}
         <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
-          Warning: the current CERN COVID Scale is <b>Red - 4</b>. There is a {{scale_warning.risk}} risk that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site. There may be around <b>{{scale_warning.onsite_access}} daily on-site accesses</b> during this stage. Please reduce the value below the threshold of {{scale_warning.threshold}}. See with your supervisor, DSO/LEXGLIMOS and space manager if this scenario is acceptable and if any additional measures are required.
+          Warning: the current CERN COVID Scale is <b>Red - 4</b>. There is a strong risk that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site. There may be around <b>4'000 daily on-site accesses</b> during this stage. Please reduce the value below the threshold of 2%. See with your supervisor, DSO/LEXGLIMOS and space manager if this scenario is acceptable and if any additional measures are required.
         </div>
       {% else %}
         <p><b>Note:</b> The CERN COVID Level is not specified.</p>
@@ -133,7 +134,7 @@
               <div class="alert alert-warning" role="alert">Events with a <strong>P(i) between 2% and 10%</strong> shall be subject to ALARA principles (see footnote) to minimise the risk before proceeding.</div>
               <div class="alert alert-danger mb-0" role="alert">Events with a <strong>P(i) exceeding 10% or a number of expected new cases that exceeds 1</strong> may not take place until additional measures are in place and a risk reduction has been performed.</div>
             </div>
-            <div class="col-xl-3 align-self-center text-center"><img id="cern_level" class="rounded" src="{{ calculator_prefix }}/static/images/warning_scale/{{scale_warning.level}}.png"></div>
+            <div class="col-xl-3 align-self-center text-center"><img id="cern_level" class="rounded" src="{{ calculator_prefix }}/static/images/warning_scale/{{scale_warning}}.png"></div>
           </div>
         </div>
         <br>
