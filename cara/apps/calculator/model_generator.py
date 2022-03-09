@@ -395,7 +395,7 @@ class FormData:
             'largemeeting': (
                 'Standing',
                 # each infected person spends 1/3 of time speaking.
-                {'Speaking': 1, 'Breathing': 3}
+                {'Speaking': 1, 'Breathing': 2}
             ),
             'callcentre': ('Seated', 'Speaking'),
             'library': ('Seated', 'Breathing'),
