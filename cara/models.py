@@ -1093,9 +1093,9 @@ class ShortRangeModel:
         it returns 0.
         """ 
         for index, period in enumerate(self.presence):
-            start, finish = tuple(period.boundaries())
+            start, stop = tuple(period.boundaries())
             # Verifies if the given time falls within a short range interaction
-            if start < time <= finish:
+            if start < time <= stop:
                 dilution = self.dilutions[index]
                 jet_origin_concentration = self.expirations[index].jet_origin_concentration()
                 # Long range concentration normalized by the virus viral load
