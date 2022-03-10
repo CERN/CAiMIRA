@@ -1305,3 +1305,4 @@ class ExposureModel:
         )
 
         return single_exposure_model.expected_new_cases()
+        
