@@ -769,8 +769,7 @@ def time_minutes_to_string(time: int) -> str:
 
 
 def string_to_list(l: str) -> list:
-    if (l != []):
-        return list(ast.literal_eval(l.replace("&quot;", "\"")))
+    return list(ast.literal_eval(l.replace("&quot;", "\"")))
 
 
 def list_to_string(s: list) -> str:
