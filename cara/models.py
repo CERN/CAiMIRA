@@ -1218,7 +1218,7 @@ class ExposureModel:
             diameter = self.short_range.expirations[index].particle.diameter
             
             # Aerosols not considered given the formula for the initial concentration at mouth/nose.
-            if not np.isscalar(diameter) and diameter is not None:
+            if diameter is not None and not np.isscalar(diameter):
                 # we compute first the mean of all diameter-dependent quantities
                 # to perform properly the Monte-Carlo integration over
                 # particle diameters (doing things in another order would
