@@ -1205,13 +1205,14 @@ class ExposureModel:
             elif start > time2:
                 break
             elif start <= time1 and time2<= stop:
-                short_range_exposure = self.short_range.normed_exposure_between_bounds(self.concentration_model, time1, time2)
+                start_bound, stop_bound = time1, time2
             elif start <= time1 and stop < time2:
-                short_range_exposure = self.short_range.normed_exposure_between_bounds(self.concentration_model, time1, stop)
+                start_bound, stop_bound = time1, stop
             elif time1 < start and time2 <= stop:
-                short_range_exposure = self.short_range.normed_exposure_between_bounds(self.concentration_model, start, time2)
+                start_bound, stop_bound = start, time2
             elif time1 <= start and stop < time2:
-                short_range_exposure = self.short_range.normed_exposure_between_bounds(self.concentration_model, start, stop)
+                start_bound, stop_bound = start, stop
+            short_range_exposure = self.short_range.normed_exposure_between_bounds(self.concentration_model, start_bound, stop_bound)
 
             fdep = self.short_range.expirations[index].particle.fraction_deposited(evaporation_factor=1.0) #ASK for evaporation factor
             diameter = self.short_range.expirations[index].particle.diameter
@@ -1305,4 +1306,3 @@ class ExposureModel:
         )
 
         return single_exposure_model.expected_new_cases()
-        
