@@ -144,6 +144,12 @@ p.notes {
         padding: 15px; 
         page-break-inside: avoid;
     }
+    #button_full_exposure {
+        display: none!important;
+    }
+    #button_long_exposure {
+        display: none!important;
+    }
 }
 
 

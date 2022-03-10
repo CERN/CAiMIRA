@@ -528,8 +528,14 @@ function overlapped_times(obj, start_time, finish_time) {
   
   let simulation_start = parseTimeToMins($("#exposed_start").val())
   let simulation_finish = parseTimeToMins($("#exposed_finish").val())
-  let simulation_lunch_start = parseTimeToMins($("#exposed_lunch_start").val())
-  let simulation_lunch_finish = parseTimeToMins($("#exposed_lunch_finish").val())
+  var simulation_lunch_start, simulation_lunch_finish;
+  if ($('input[name=exposed_lunch_option]:checked').val() == 1) {
+    simulation_lunch_start = parseTimeToMins($("#exposed_lunch_start").val())
+    simulation_lunch_finish = parseTimeToMins($("#exposed_lunch_finish").val())
+  } else {
+    simulation_lunch_start = 0
+    simulation_lunch_finish = 0
+  }
   if (start_time < simulation_start || start_time > simulation_finish  ||
     finish_time < simulation_start || finish_time > simulation_finish ||
     start_time >= simulation_lunch_start && start_time <= simulation_lunch_finish ||
