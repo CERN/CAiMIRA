@@ -399,6 +399,10 @@ function draw_concentration_plot(svg_id, times, concentrations, cumulative_doses
 
 function draw_plot(svg_id, times, concentrations, short_range_concentrations, cumulative_doses) {
 
+    // Used for controlling the short range interactions 
+    let button_full_exposure = document.getElementById("button_full_exposure");
+    let button_long_exposure = document.getElementById("button_long_exposure");
+
     var data_for_graphs = {
         'concentrations': [],
         'short_range_concentrations': [],
@@ -476,11 +480,13 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
         .attr('fill', '#1f77b4')
         .attr('fill-opacity', '0.1');
 
-    var legendShortRangeAreaIcon = vis.append('rect')
-        .attr('width', 20)
-        .attr('height', 15)
-        .attr('fill', '#1f00b4')
-        .attr('fill-opacity', '0.1');
+    if (button_full_exposure || button_long_exposure) {
+        var legendShortRangeAreaIcon = vis.append('rect')
+            .attr('width', 20)
+            .attr('height', 15)
+            .attr('fill', '#1f00b4')
+            .attr('fill-opacity', '0.1');
+    }
 
     var legendLineText = vis.append('text')
         .text('Mean concentration')
@@ -497,15 +503,19 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
         .style('font-size', '15px')
         .attr('alignment-baseline', 'central');
 
-    var legendShortRangeText = vis.append('text')
-        .text('Short range interaction(s)')
-        .style('font-size', '15px')
-        .attr('alignment-baseline', 'central');
+    if (button_full_exposure || button_long_exposure) {
+        var legendShortRangeText = vis.append('text')
+            .text('Short range interaction(s)')
+            .style('font-size', '15px')
+            .attr('alignment-baseline', 'central');
+    }
 
     // Legend bounding
+    if (button_full_exposure || button_long_exposure) legendBBox_height = 90;
+    else legendBBox_height = 68;
     var legendBBox = vis.append('rect')
         .attr('width', 255)
-        .attr('height', 90)
+        .attr('height', legendBBox_height)
         .attr('stroke', 'lightgrey')
         .attr('stroke-width', '2')
         .attr('rx', '5px')
@@ -559,7 +569,7 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
 
     var brush = d3.brushY();
 
-    function update_concentration_plot(data, data_for_graphs) {
+    function update_concentration_plot(data, long_range_data, data_for_graphs) {
         yRange.domain([0., Math.max(...data)]);
         yAxisEl.transition().duration(1000).call(yAxis);
        
@@ -571,7 +581,7 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
             .merge(draw_line.select('.line'))
             .transition()
             .duration(1000)
-            .attr("d", lineFunc(data_for_graphs));
+            .attr("d", lineFunc(long_range_data));
 
         // Area.
         exposed_presence_intervals.forEach((b, index) => {
@@ -579,7 +589,7 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
                 .y0(graph_height - 50)
                 .y1(d => yRange(d.concentration)
             );
-            drawArea[index].transition().duration(1000).attr('d', exposedArea[index](data_for_graphs.filter(d => {
+            drawArea[index].transition().duration(1000).attr('d', exposedArea[index](long_range_data.filter(d => {
                     return d.time >= b[0] && d.time <= b[1]
             })));
         });
@@ -590,7 +600,7 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
                 .y0(graph_height - 50)
                 .y1(d => yRange(d.concentration));
 
-            drawShortRangeArea[index].transition().duration(1000).attr('d', shortRangeArea[index](data_for_graphs.filter(d => {
+            drawShortRangeArea[index].transition().duration(1000).attr('d', shortRangeArea[index](long_range_data.filter(d => {
                 return d.time >= b[0] && d.time <= b[1]
             })));
         });
@@ -745,10 +755,12 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
             legendAreaText.attr('x', graph_width + 4 * size)
                 .attr('y', margins.top + 3 * size);
             
-            legendShortRangeAreaIcon.attr('x', graph_width + size * 2.5)
-                .attr('y', margins.top + 3.6 * size);
-            legendShortRangeText.attr('x', graph_width + 4 * size)
-                .attr('y', margins.top + 4 * size);
+            if (button_full_exposure || button_long_exposure) {
+                legendShortRangeAreaIcon.attr('x', graph_width + size * 2.5)
+                    .attr('y', margins.top + 3.6 * size);
+                legendShortRangeText.attr('x', graph_width + 4 * size)
+                    .attr('y', margins.top + 4 * size);
+            }
             
             legendBBox.attr('x', graph_width * 1.07)
                 .attr('y', margins.top * 1.2);
@@ -772,10 +784,12 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
             legendAreaText.attr('x', 2 * size)
                 .attr('y', graph_height + 2.6 * size);
 
-            legendShortRangeAreaIcon.attr('x', size * 0.50)
-                .attr('y', graph_height * 1.175 + size);
-            legendShortRangeText.attr('x', 2 * size)
-                .attr('y', graph_height + 3.65 * size);
+            if (button_full_exposure || button_long_exposure) {
+                legendShortRangeAreaIcon.attr('x', size * 0.50)
+                    .attr('y', graph_height * 1.175 + size);
+                legendShortRangeText.attr('x', 2 * size)
+                    .attr('y', graph_height + 3.65 * size);
+            }
 
             legendBBox.attr('x', 1)
                 .attr('y', graph_height);
@@ -788,12 +802,16 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
         draw_cumulative_line.attr("d", lineCumulative(data_for_graphs.cumulative_doses));
     }
 
-    document.getElementById("button_full_exposure").addEventListener("click", () => {
-        update_concentration_plot(short_range_concentrations, data_for_graphs.short_range_concentrations);
-    });
-    document.getElementById("button_long_exposure").addEventListener("click", () => {
-        update_concentration_plot(concentrations, data_for_graphs.concentrations);
-    });
+    if (button_full_exposure) {
+        button_full_exposure.addEventListener("click", () => {
+            update_concentration_plot(short_range_concentrations, data_for_graphs.short_range_concentrations, data_for_graphs.short_range_concentrations);
+        });
+    }
+    if (button_long_exposure) {
+        button_long_exposure.addEventListener("click", () => {
+            update_concentration_plot(concentrations, data_for_graphs.short_range_concentrations, data_for_graphs.concentrations);
+        });
+    }
 
     // If user double click, reinitialize the chart
     vis.on("dblclick",function(){
@@ -828,7 +846,7 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
 
     // Draw for the first time to initialize.
     redraw();
-    update_concentration_plot(short_range_concentrations, data_for_graphs.short_range_concentrations);
+    update_concentration_plot(short_range_concentrations, data_for_graphs.short_range_concentrations, data_for_graphs.short_range_concentrations);
 
     // Redraw based on the new size whenever the browser window is resized.
     window.addEventListener("resize", redraw);
