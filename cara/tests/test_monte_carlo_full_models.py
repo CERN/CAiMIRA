@@ -43,9 +43,10 @@ TorontoTemperatures = {
 @pytest.fixture
 def sr_model_mc() -> mc.ShortRangeModel:
     return mc.ShortRangeModel(
-        presence=[],
-        expirations=[],
-        dilutions=[],
+        activities=(),
+        presence=(),
+        expirations=(),
+        dilutions=(),
     )
 
 @pytest.fixture

@@ -106,10 +106,16 @@ def calculate_report_data(model: models.ExposureModel):
         np.array(model.concentration(float(time))).mean()
         for time in times
     ]
-    concentrations = [
-        np.array(model.concentration_model.concentration(float(time))).mean()
-        for time in times
-    ]
+
+    concentrations = []
+    for time in times:
+        for index, (start, stop) in enumerate(short_range_intervals):
+            # For visualization issues, add short range breathing activity to the initial long range concentrations
+            if start <= time <= stop and model.short_range.activities[index] == 'Breathing':
+                concentrations.append(np.array(model.concentration(float(time))).mean())
+                break
+        concentrations.append(np.array(model.concentration_model.concentration(float(time))).mean())
+    
     highest_const = max(short_range_concentrations)
     prob = np.array(model.infection_probability()).mean()
     er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()

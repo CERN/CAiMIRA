@@ -172,9 +172,10 @@ def conc_model():
 @pytest.fixture
 def sr_model():
     return models.ShortRangeModel(
-        presence=[],
-        expirations=[],
-        dilutions=[],
+        activities=(),
+        presence=(),
+        expirations=(),
+        dilutions=(),
     )
 
 # Expected deposited exposure were computed with a trapezoidal integration, using

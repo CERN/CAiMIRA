@@ -639,14 +639,14 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
                 .select('.line')
                 .transition()
                 .duration(1000)
-                .attr("d", lineFunc(data_for_graphs));
+                .attr("d", lineFunc(long_range_data));
 
             // Area.
             exposed_presence_intervals.forEach((b, index) => {
                 exposedArea[index].x(d => xTimeRange(d.time))
                     .y0(graph_height - 50)
                     .y1(d => yRange(d.concentration));
-                drawArea[index].transition().duration(1000).attr('d', exposedArea[index](data_for_graphs.filter(d => {
+                drawArea[index].transition().duration(1000).attr('d', exposedArea[index](long_range_data.filter(d => {
                         return d.time >= b[0] && d.time <= b[1]
                 })));
             });
@@ -657,7 +657,7 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
                     .y0(graph_height - 50)
                     .y1(d => yRange(d.concentration));
 
-                drawShortRangeArea[index].transition().duration(1000).attr('d', shortRangeArea[index](data_for_graphs.filter(d => {
+                drawShortRangeArea[index].transition().duration(1000).attr('d', shortRangeArea[index](long_range_data.filter(d => {
                     return d.time >= b[0] && d.time <= b[1]
                 })));
             });
@@ -805,16 +805,22 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
     if (button_full_exposure) {
         button_full_exposure.addEventListener("click", () => {
             update_concentration_plot(short_range_concentrations, data_for_graphs.short_range_concentrations, data_for_graphs.short_range_concentrations);
+            button_full_exposure.disabled = true;
+            button_long_exposure.disabled = false;
         });
     }
     if (button_long_exposure) {
         button_long_exposure.addEventListener("click", () => {
             update_concentration_plot(concentrations, data_for_graphs.short_range_concentrations, data_for_graphs.concentrations);
+            button_full_exposure.disabled = false;
+            button_long_exposure.disabled = true;
         });
     }
 
     // If user double click, reinitialize the chart
     vis.on("dblclick",function(){
+        button_full_exposure.disabled = true;
+        button_long_exposure.disabled = false;
         yRange.domain([0., Math.max(...short_range_concentrations)])
         yAxisEl.transition().call(d3.axisLeft(yRange))
         lineFunc.defined(d => !isNaN(d.concentration))

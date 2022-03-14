@@ -90,8 +90,7 @@
 								</div>
 								<p id="section1">* The results are based on the parameters and assumptions published in the CERN Open Report <a href="https://cds.cern.ch/record/2756083"> CERN-OPEN-2021-004</a>.</p>
 								{% if form.short_range_option == "short_range_yes" %}
-									<button class="btn btn-sm btn-primary" id="button_full_exposure">Full exposure</button>
-									<button class="btn btn-sm btn-primary" id="button_long_exposure">Background concentration</button>
+									<button class="btn btn-sm btn-primary" id="button_full_exposure" disabled>Show full exposure</button><button class="btn btn-sm btn-primary ml-0" id="button_long_exposure">Hide high concentration</button>
 								{% endif %}	
 								<div id="concentration_plot" style="height: 400px"></div>
 								<script type="application/javascript">

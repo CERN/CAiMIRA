@@ -58,7 +58,7 @@ def dilutions():
 
 def test_short_range_model_ndarray(concentration_model, presences, expirations, dilutions):
     concentration_model = concentration_model.build_model(250_000)
-    model = mc_models.ShortRangeModel(presences, expirations, dilutions)
+    model = mc_models.ShortRangeModel(activities, presences, expirations, dilutions)
     model = model.build_model(250_000)
     assert isinstance(model._normed_concentration(concentration_model, 10.75), np.ndarray)
     assert isinstance(model.short_range_concentration(concentration_model, 14.75), np.ndarray)
@@ -77,7 +77,7 @@ def test_short_range_model(
         concentration_model, presences, expirations, dilutions,
 ):
     concentration_model = concentration_model.build_model(250_000)
-    model = mc_models.ShortRangeModel(presences, expirations, dilutions)
+    model = mc_models.ShortRangeModel(activities, presences, expirations, dilutions)
     model = model.build_model(250_000)
     np.testing.assert_almost_equal(
         model._normed_concentration(concentration_model, time).mean(), expected_sr_normed_concentration, decimal=0

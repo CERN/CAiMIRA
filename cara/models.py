@@ -1075,6 +1075,9 @@ class ConcentrationModel:
 
 @dataclass(frozen=True)
 class ShortRangeModel:
+    #: Short range activities
+    activities: typing.Tuple[str, ...]
+    
     #: Short range interactions
     presence: typing.Tuple[SpecificInterval, ...]
 

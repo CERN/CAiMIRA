@@ -259,6 +259,7 @@ class FormData:
                 evaporation_factor=0.3,
             ),
             short_range = mc.ShortRangeModel(
+                activities=sr_activities,
                 presence=sr_presence,
                 expirations=short_range_expirations,
                 dilutions=dilution_factor(activities=sr_activities, distance=np.random.uniform(0.5, 1.5, 250000)),
