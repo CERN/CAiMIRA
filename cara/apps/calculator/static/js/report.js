@@ -849,7 +849,11 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
     update_concentration_plot(short_range_concentrations, data_for_graphs.short_range_concentrations, data_for_graphs.short_range_concentrations);
 
     // Redraw based on the new size whenever the browser window is resized.
-    window.addEventListener("resize", redraw);
+    window.addEventListener("resize", e => {
+        redraw();
+        update_concentration_plot(short_range_concentrations, data_for_graphs.short_range_concentrations, data_for_graphs.short_range_concentrations);
+    });
+
 
 }
 
