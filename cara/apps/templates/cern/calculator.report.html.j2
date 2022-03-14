@@ -1,6 +1,6 @@
 {% extends "base/calculator.report.html.j2" %}
 
-{% set cern_level = 'yellow-2' %} <!-- green-1, yellow-2, orange-3, red-4 -->
+{% set cern_level = 'green-1' %} <!-- green-1, yellow-2, orange-3, red-4 -->
 {% if ((prob_inf > 10) or (expected_new_cases >= 1)) %} {% set scale_warning = 'red' %}
 {% elif (2 <= prob_inf <= 10) %} {% set scale_warning = 'orange' %} 
 {% else %} {% set scale_warning = 'green' %} 
