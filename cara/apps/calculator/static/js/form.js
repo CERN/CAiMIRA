@@ -559,7 +559,7 @@ function overlapped_times(obj, start_time, finish_time) {
         start_time == start_time_2) {
         let parameter = document.getElementById($(obj).attr('id'));
         if (!$(obj).hasClass("red_border")) $(parameter).addClass("red_border"); //Adds the red border and error message.
-        insertErrorFor(parameter, "Short range interactions must not overlap.")
+        insertErrorFor(parameter, "Time overlap.")
         toReturn = false;
         return false;
     }
@@ -823,26 +823,27 @@ $(document).ready(function () {
     return `<div class="col-md-12 form_field_outer p-0">
       <div class="form_field_outer_row split ${is_validated}">
         <div class="split" style="flex: 3">
-          <div class='form-group row align-content-center'>
-            <div class="col-sm-4"><label class="col-form-label"> Expiratory activity: </label></div>
-            <div class="col-sm-6 align-self-center"><select id="sr_activity_no_${index}" name="short_range_activity" class="form-control" onchange="validate_sr_parameter(this)" form="not-submitted">
+          <div class='form-group row'>
+            <div class="col-sm-4"><label class="col-form-label"> Activity: </label></br></div>
+            <div class="col-sm-7"><select id="sr_activity_no_${index}" name="short_range_activity" class="form-control" onchange="validate_sr_parameter(this)" form="not-submitted">
               <option value="" selected disabled>Select type</option>
               <option value="Breathing">Breathing</option>
               <option value="Speaking">Speaking</option>
               <option value="Shouting">Shouting</option>
-            </select></div>
+            </select></br>
+            </div>
           </div>
-            <div class='form-group row align-content-center'>
+            <div class='form-group row'>
               <div class="col-sm-4"><label class="col-form-label"> Start: </label></div>
-              <div class="col-sm-6"><input type="time" class="form-control short_range_option" name="short_range_start_time" id="sr_start_no_${index}" value="${value.start_time}" onchange="validate_sr_time(this)" form="not-submitted"></div>
+              <div class="col-sm-6"><input type="time" class="form-control short_range_option" name="short_range_start_time" id="sr_start_no_${index}" value="${value.start_time}" onchange="validate_sr_time(this)" form="not-submitted"></br></div>
             </div>
         </div>
         <div class="split" style="flex: 2">
-          <div class='form-group row align-content-center' style="flex: 2">
-            <div class="col-sm-4"><label class="col-form-label"> Duration: </label></div>
-            <div class="col-sm-6"><input type="number" id="sr_duration_no_${index}" value="${value.duration}" class="form-control short_range_option" name="short_range_duration" min=1 placeholder="Minutes" onchange="validate_sr_time(this)" form="not-submitted"></div>
+          <div class='form-group row' style="flex: 2">
+            <div class="col-sm-4"><label class="col-form-label"> Duration:</label></div>
+            <div class="col-sm-7"><input type="number" id="sr_duration_no_${index}" value="${value.duration}" class="form-control short_range_option" name="short_range_duration" min=1 placeholder="Minutes" onchange="validate_sr_time(this)" form="not-submitted"></br></div>
           </div>
-          <div class="form-group align-self-center" style="flex: 1">
+          <div class="form-group mt-1" style="flex: 1">
             <button type="button" id="edit_row_no_${index}" class="edit_node_btn_frm_field btn btn-success btn-sm d-none">Edit</button>
             <button type="button" id="validate_row_no_${index}" class="validate_node_btn_frm_field btn btn-success btn-sm">Save</button>
             <button type="button" class="remove_node_btn_frm_field btn btn-danger btn-sm">Delete</button>
@@ -865,9 +866,9 @@ $(document).ready(function () {
   // Validate row button (Save button)
   $("body").on("click", ".validate_node_btn_frm_field", function() {
     let index = $(this).attr('id').split('_').slice(-1)[0];
-    let activity = validate_sr_parameter('#sr_activity_no_' + String(index)[0], "You must specify the activity type.");
-    let start = validate_sr_parameter('#sr_start_no_' + String(index)[0], "You must specify the start time.");
-    let duration = validate_sr_parameter('#sr_duration_no_' + String(index)[0], "You must specify the duration.");
+    let activity = validate_sr_parameter('#sr_activity_no_' + String(index)[0], "Required input.");
+    let start = validate_sr_parameter('#sr_start_no_' + String(index)[0], "Required input.");
+    let duration = validate_sr_parameter('#sr_duration_no_' + String(index)[0], "Required input.");
     if (activity && start && duration) {
       if (validate_sr_time('#sr_start_no_' + String(index)) && validate_sr_time('#sr_start_no_' + String(index))) {
         document.getElementById('sr_activity_no_' + String(index)).disabled = true;
