@@ -553,8 +553,8 @@ function overlapped_times(obj, start_time, finish_time) {
     let current_duration_el = $(el).find("input[name='short_range_duration']")
     start_time_2 = parseTimeToMins(current_start_el.val())
     finish_time_2 = parseTimeToMins(current_start_el.val()) + parseInt(current_duration_el.val());
-    if ((start_time >= start_time_2 && start_time <= finish_time_2) || ( //If hour input is within other time range
-      finish_time >= start_time_2 && finish_time <= finish_time_2) || //If finish time input is within other time range
+    if ((start_time > start_time_2 && start_time < finish_time_2) || ( //If hour input is within other time range
+      finish_time > start_time_2 && finish_time < finish_time_2) || //If finish time input is within other time range
         (start_time <= start_time_2 && finish_time >= finish_time_2) || //If start and finish inputs encompass other time range 
         start_time == start_time_2) {
         let parameter = document.getElementById($(obj).attr('id'));
@@ -852,6 +852,11 @@ $(document).ready(function () {
       </div>
     </div>`
   }
+
+  // Add one empty row if none.
+  $("#set_interactions_button").on("click", e => {
+    if ($(".form_field_outer").find(".form_field_outer_row").length == 0) $(".add_node_btn_frm_field").click();
+  });
 
   // When short_range_yes option is selected, we want to inject rows for each expiractory activity, start_time and duration.
   $("body").on("click", ".add_node_btn_frm_field", function(e) {
