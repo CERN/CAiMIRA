@@ -89,7 +89,7 @@
 									{% endblock report_summary_footnote %}
 								</div>
 								<p id="section1">* The results are based on the parameters and assumptions published in the CERN Open Report <a href="https://cds.cern.ch/record/2756083"> CERN-OPEN-2021-004</a>.</p>
-								{% if (form.short_range_option == "short_range_yes") and (concentrations|max|int != short_range_concentrations|max|int ) %}
+								{% if (form.short_range_option == "short_range_yes" and concentrations|length > 0 and concentrations|max|int != short_range_concentrations|max|int ) %}
 									<button class="btn btn-sm btn-primary" id="button_full_exposure" disabled>Show full exposure</button>
 									<button class="btn btn-sm btn-primary ml-0" id="button_long_exposure">Hide high concentration</button>
 								{% endif %}	
