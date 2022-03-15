@@ -820,8 +820,10 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
 
     // If user double click, reinitialize the chart
     vis.on("dblclick",function(){
-        button_full_exposure.disabled = true;
-        button_long_exposure.disabled = false;
+        if (button_full_exposure || button_long_exposure) {
+            button_full_exposure.disabled = true;
+            button_long_exposure.disabled = false;
+        }
         yRange.domain([0., Math.max(...short_range_concentrations)])
         yAxisEl.transition().call(d3.axisLeft(yRange))
         lineFunc.defined(d => !isNaN(d.concentration))

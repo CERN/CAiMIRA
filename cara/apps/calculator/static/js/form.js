@@ -256,6 +256,17 @@ function on_short_range_option_change() {
     if (this.checked) {
       getChildElement($(this)).show();
       require_fields(this);
+      // Disable face mask selection if short_range_yes is selected
+      if (this.id == "short_range_yes") {
+        $('#mask_off').click();
+        require_mask(false);
+        $('input[name="mask_wearing_option"]').attr('disabled', true);
+        $("#face_mask_warning").show();
+      }
+      else {
+        $('input[name="mask_wearing_option"]').attr('disabled', false);
+        $("#face_mask_warning").hide();
+      }
     } 
     else {
       getChildElement($(this)).hide();
