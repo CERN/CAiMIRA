@@ -37,7 +37,6 @@ import typing
 
 import numpy as np
 from scipy.interpolate import interp1d
-import scipy.integrate
 
 if not typing.TYPE_CHECKING:
     from memoization import cached
@@ -1075,11 +1074,8 @@ class ConcentrationModel:
 
 @dataclass(frozen=True)
 class ShortRangeModel:
-    #: Short range activities
-    activities: typing.Tuple[str, ...]
-    
-    #: Short range interactions
-    presence: typing.Tuple[SpecificInterval, ...]
+    #: Short range activities and respective interactions
+    presence: typing.Tuple[typing.Tuple[str, SpecificInterval], ...]
 
     #: Expiration types
     expirations: typing.Tuple[_ExpirationBase, ...]
@@ -1095,7 +1091,7 @@ class ShortRangeModel:
         short range concentration normalized by the virus viral load. Otherwise
         it returns 0.
         """ 
-        for index, period in enumerate(self.presence):
+        for index, (activity, period) in enumerate(self.presence):
             start, stop = tuple(period.boundaries())
             # Verifies if the given time falls within a short range interaction
             if start < time <= stop:
@@ -1122,15 +1118,41 @@ class ShortRangeModel:
         return (self._normed_concentration(concentration_model, time) * 
             concentration_model.virus.viral_load_in_sputum)
 
-    def normed_exposure_between_bounds(self, concentration_model, time1, time2):
+    @method_cache
+    def _normed_short_range_concentration_cached(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
+        # A cached version of the _normed_concentration method. Use this
+        # method if you expect that there may be multiple short range concentration
+        # calculations for the same time (e.g. at state change times).
+        return self._normed_concentration(concentration_model, time)
+
+    def normed_exposure_between_bounds(self, concentration_model: ConcentrationModel, time1: float, time2: float):
         """
         Get the integrated short range concentration of viruses in the air between the times start and stop,
         normalized by the virus viral load.
         """
-        # TODO Implement the integration without using scipy.
-        return scipy.integrate.quad_vec(lambda t: self._normed_concentration(concentration_model, t), time1, time2)[0]
+        for index, (activity, period) in enumerate(self.presence):
+            start, stop = tuple(period.boundaries())
+            if stop < time1:
+                continue
+            elif start > time2:
+                break
+            elif start <= time1 and time2<= stop:
+                start_bound, stop_bound = time1, time2
+            elif start <= time1 and stop < time2:
+                start_bound, stop_bound = time1, stop
+            elif time1 < start and time2 <= stop:
+                start_bound, stop_bound = start, time2
+            elif time1 <= start and stop < time2:
+                start_bound, stop_bound = start, stop
+            
+            jet_origin_integrated = self.expirations[index].jet_origin_concentration()
+            dilution = self.dilutions[index]
 
-    
+            total_normed_concentration = -(concentration_model.integrated_concentration(start_bound, stop_bound)/concentration_model.virus.viral_load_in_sputum/dilution)
+            total_normed_concentration_interpolated = np.interp(self.expirations[index].particle.diameter, concentration_model.infected.particle.diameter, total_normed_concentration)
+            return (jet_origin_integrated/dilution * (stop_bound - start_bound)) + total_normed_concentration_interpolated
+
+
 @dataclass(frozen=True)
 class ExposureModel:
     """
@@ -1201,7 +1223,7 @@ class ExposureModel:
         initial deposited exposure. 
         """
         deposited_exposure = 0.
-        for index, period in enumerate(self.short_range.presence):
+        for index, (activity, period) in enumerate(self.short_range.presence):
             start, stop = tuple(period.boundaries())
             if stop < time1:
                 continue
@@ -1217,7 +1239,7 @@ class ExposureModel:
                 start_bound, stop_bound = start, stop
             short_range_exposure = self.short_range.normed_exposure_between_bounds(self.concentration_model, start_bound, stop_bound)
 
-            fdep = self.short_range.expirations[index].particle.fraction_deposited(evaporation_factor=1.0) #ASK for evaporation factor
+            fdep = self.short_range.expirations[index].particle.fraction_deposited(evaporation_factor=1.0)
             diameter = self.short_range.expirations[index].particle.diameter
             
             # Aerosols not considered given the formula for the initial concentration at mouth/nose.

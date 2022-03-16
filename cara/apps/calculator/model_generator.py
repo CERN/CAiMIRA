@@ -259,7 +259,6 @@ class FormData:
                 evaporation_factor=0.3,
             ),
             short_range = mc.ShortRangeModel(
-                activities=sr_activities,
                 presence=sr_presence,
                 expirations=short_range_expirations,
                 dilutions=dilution_factor(activities=sr_activities, distance=np.random.uniform(0.5, 1.5, 250000)),
@@ -639,13 +638,13 @@ class FormData:
             breaks=self.infected_lunch_break_times() + self.infected_coffee_break_times(),
         )
 
-    def short_range_intervals(self) -> typing.Tuple[models.SpecificInterval, ...]:
+    def short_range_intervals(self) -> typing.Tuple[typing.Tuple[str, models.SpecificInterval], ...]:
         if (self.short_range_interactions):
             short_range_intervals = []
             for interaction in self.short_range_interactions:
                 start_time = time_string_to_minutes(interaction['start_time'])
                 duration = float(interaction['duration'])
-                short_range_intervals.append(models.SpecificInterval((start_time/60, (start_time + duration)/60)))
+                short_range_intervals.append((interaction['activity'], models.SpecificInterval((start_time/60, (start_time + duration)/60))))
             return tuple(short_range_intervals)
         else:
             return ()

@@ -98,8 +98,10 @@ def interesting_times(model: models.ExposureModel, approx_n_pts=100) -> typing.L
 
 def calculate_report_data(model: models.ExposureModel):
     times = interesting_times(model)
+    short_range_activities = []
     short_range_intervals = []
-    for interval in model.short_range.presence:
+    for (activity, interval) in model.short_range.presence:
+        short_range_activities.append(activity)
         short_range_intervals.append(list(interval.boundaries()))
 
     short_range_concentrations = [
@@ -111,7 +113,7 @@ def calculate_report_data(model: models.ExposureModel):
     if len(short_range_intervals) != 0:
         for index, (start, stop) in enumerate(short_range_intervals):
             # For visualization issues, add short range breathing activity to the initial long range concentrations
-            if model.short_range.activities[index] == 'Breathing':
+            if short_range_activities[index] == 'Breathing':
                 sr_breathing_concentrations.append(np.array(model.concentration(float(stop))).mean())
                 break
     

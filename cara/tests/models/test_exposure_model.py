@@ -172,7 +172,6 @@ def conc_model():
 @pytest.fixture
 def sr_model():
     return models.ShortRangeModel(
-        activities=(),
         presence=(),
         expirations=(),
         dilutions=(),
