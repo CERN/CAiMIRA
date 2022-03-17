@@ -89,19 +89,19 @@
 									{% endblock report_summary_footnote %}
 								</div>
 								<p id="section1">* The results are based on the parameters and assumptions published in the CERN Open Report <a href="https://cds.cern.ch/record/2756083"> CERN-OPEN-2021-004</a>.</p>
-								{% if (form.short_range_option == "short_range_yes" and concentrations|length > 0 and concentrations|max|int != short_range_concentrations|max|int ) %}
+								{% if (form.short_range_option == "short_range_yes" and concentrations|max|int != short_range_concentrations|max|int ) %}
 									<button class="btn btn-sm btn-primary" id="button_full_exposure" disabled>Show full exposure</button>
 									<button class="btn btn-sm btn-primary ml-0" id="button_long_exposure">Hide high concentration</button>
 								{% endif %}	
 								<div id="concentration_plot" style="height: 400px"></div>
 								<script type="application/javascript">
 									var times = {{ times | JSONify }}
-									var short_range_concentrations = {{ short_range_concentrations | JSONify }}
 									var concentrations = {{ concentrations | JSONify }}
+									var short_range_concentrations = {{ short_range_concentrations | JSONify }}
 									var cumulative_doses = {{ cumulative_doses | JSONify }}
 									var exposed_presence_intervals = {{ exposed_presence_intervals | JSONify }}
 									var short_range_intervals = {{ short_range_intervals | JSONify }}
-									draw_plot("concentration_plot", times, concentrations, short_range_concentrations, cumulative_doses)
+									draw_plot("concentration_plot", times, concentrations, short_range_concentrations, cumulative_doses, exposed_presence_intervals, short_range_intervals)
 								</script>
               				</p>
 						</div>

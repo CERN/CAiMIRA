@@ -1,5 +1,5 @@
 /* Generate the concentration plot using d3 library. */
-function draw_plot(svg_id, times, concentrations, short_range_concentrations, cumulative_doses) {
+function draw_plot(svg_id, times, concentrations, short_range_concentrations, cumulative_doses,  exposed_presence_intervals, short_range_intervals) {
 
     // Used for controlling the short range interactions 
     let button_full_exposure = document.getElementById("button_full_exposure");
@@ -124,9 +124,16 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
         .attr('stroke-linejoin', 'round')
         .attr('fill', 'none');
 
+    var clip = vis.append("defs").append("svg:clipPath")
+        .attr("id", "clip")
+        .append("svg:rect");
+
+    var draw_area = vis.append('svg:g')
+        .attr('clip-path', 'url(#clip)');
     // Line representing the mean concentration.
     var lineFunc = d3.line();
-    var draw_line = vis.append('svg:path')
+    draw_area.append('svg:path')
+        .attr('class', 'line')
         .attr('stroke', '#1f77b4')
         .attr('stroke-width', 2)
         .attr('fill', 'none');
@@ -144,7 +151,7 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
     var drawArea = {};
     exposed_presence_intervals.forEach((b, index) => {
         exposedArea[index] = d3.area();
-        drawArea[index] = vis.append('svg:path')
+        drawArea[index] = draw_area.append('svg:path')
             .attr('fill', '#1f77b4')
             .attr('fill-opacity', '0.1');
     });
@@ -154,7 +161,8 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
     var drawShortRangeArea = {};
     short_range_intervals.forEach((b, index) => {
         shortRangeArea[index] = d3.area();
-        drawShortRangeArea[index] = vis.append('svg:path')
+        drawShortRangeArea[index] = draw_area.append('svg:path')
+            .attr('class', 'draw_short_range_area')
             .attr('fill', '#1f00b4')
             .attr('fill-opacity', '0.1');
     });
@@ -197,12 +205,12 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
     function update_concentration_plot(data) {
         yRange.domain([0., Math.max(...data)]);
         yAxisEl.transition().duration(1000).call(yAxis);
-       
+        
+        // Concentration line
         lineFunc.defined(d => !isNaN(d.concentration))
             .x(d => xTimeRange(d.time))
             .y(d => yRange(d.concentration));
-        draw_line.enter()
-            .merge(draw_line)
+        draw_area.select('.line')
             .transition()
             .duration(1000)
             .attr("d", lineFunc(data_for_graphs.concentrations));
@@ -286,7 +294,7 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
             var margins = { top: 30, right: 20, bottom: 50, left: 60 };
             div_width = 900;
             graph_width = div_width * (2/3);
-            const svg_margins = {'margin-left': '0rem', 'margin-top': '0rem'};
+            const svg_margins = {'margin-left': '0rem'};
             Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
         }
         else {
@@ -294,7 +302,7 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
             div_width = div_width * 1.1
             graph_width = div_width * .9;
             graph_height = div_height * 0.65; // On mobile screen sizes we want the legend to be on the bottom of the graph.
-            const svg_margins = {'margin-left': '-1rem', 'margin-top': '3rem'};
+            const svg_margins = {'margin-left': '-1rem'};
             Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
         };
 
@@ -303,6 +311,12 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
             .attr('height', div_height);
 
         // SVG components according to the width and height.
+
+        // clipPath: everything out of this area won't be drawn.
+        clip.attr("x", margins.left)
+            .attr("y", margins.top)
+            .attr("width", graph_width - margins.right - margins.left)
+            .attr("height", graph_height - margins.top - margins.bottom);
 
         // Axis ranges.
         xRange.range([margins.left, graph_width - margins.right]);
@@ -434,7 +448,8 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
     // Redraw based on the new size whenever the browser window is resized.
     window.addEventListener("resize", e => {
         redraw();
-        update_concentration_plot(short_range_concentrations);
+        if (button_full_exposure.disabled) update_concentration_plot(short_range_concentrations);
+        else update_concentration_plot(concentrations)
     });
 
 
