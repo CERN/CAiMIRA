@@ -408,9 +408,10 @@ function validate_form(form) {
   var short_range_interactions = [];
   $(".form_field_outer_row").each(function (index, element){
       let obj = {};
-      obj.activity = $(element).find("[name='short_range_activity']").val();
-      obj.start_time = $(element).find("[name='short_range_start_time']").val();
-      obj.duration = $(element).find("[name='short_range_duration']").val();
+      const $element = $(element);
+      obj.activity = $element.find("[name='short_range_activity']").val();
+      obj.start_time = $element.find("[name='short_range_start_time']").val();
+      obj.duration = $element.find("[name='short_range_duration']").val();
       short_range_interactions.push(JSON.stringify(obj));
   });
 
