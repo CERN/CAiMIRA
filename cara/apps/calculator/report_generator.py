@@ -127,12 +127,18 @@ def calculate_report_data(model: models.ExposureModel):
         np.array(model.deposited_exposure_between_bounds(float(time1), float(time2))).mean()
         for time1, time2 in zip(times[:-1], times[1:])
     ])
+    long_range_cumulative_doses = np.cumsum([
+        np.array(model.long_range_deposited_exposure_between_bounds(float(time1), float(time2))).mean()
+        for time1, time2 in zip(times[:-1], times[1:])
+    ])
 
     return {
         "times": list(times),
         "short_range_intervals": short_range_intervals,
+        "short_range_activities": short_range_activities,
         "exposed_presence_intervals": [list(interval) for interval in model.exposed.presence.boundaries()],
         "cumulative_doses": list(cumulative_doses),
+        "long_range_cumulative_doses": list(long_range_cumulative_doses),
         "short_range_concentrations": short_range_concentrations,
         "concentrations": sr_breathing_concentrations,
         "highest_const": highest_const,

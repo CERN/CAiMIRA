@@ -1212,6 +1212,38 @@ class ExposureModel:
         return (self.concentration_model.concentration(time) + 
             self.short_range.short_range_concentration(self.concentration_model, time))
 
+    def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
+        deposited_exposure = 0.
+
+        emission_rate_per_aerosol = self.concentration_model.infected.emission_rate_per_aerosol_when_present()
+        aerosols = self.concentration_model.infected.aerosols()
+        f_inf = self.concentration_model.infected.fraction_of_infectious_virus()
+        fdep = self.long_range_fraction_deposited()
+
+        diameter = self.concentration_model.infected.particle.diameter
+
+        if not np.isscalar(diameter) and diameter is not None:
+            # we compute first the mean of all diameter-dependent quantities
+            # to perform properly the Monte-Carlo integration over
+            # particle diameters (doing things in another order would
+            # lead to wrong results).
+            dep_exposure_integrated = np.array(self._long_range_normed_exposure_between_bounds(time1, time2) *
+                                                aerosols *
+                                                fdep).mean()
+        else:
+            # in the case of a single diameter or no diameter defined,
+            # one should not take any mean at this stage.
+            dep_exposure_integrated = self._long_range_normed_exposure_between_bounds(time1, time2)*aerosols*fdep
+
+        # then we multiply by the diameter-independent quantity emission_rate_per_aerosol,
+        # and parameters of the vD equation (i.e. BR_k and n_in).
+        deposited_exposure += (dep_exposure_integrated * emission_rate_per_aerosol * 
+                self.exposed.activity.inhalation_rate * 
+                (1 - self.exposed.mask.inhale_efficiency()))
+
+        # In the end we multiply the final results by the fraction of infectious virus of the vD equation.
+        return deposited_exposure * f_inf
+
     def deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         """
         The number of virus per m^3 deposited on the respiratory tract
@@ -1257,36 +1289,11 @@ class ExposureModel:
         
         # then we multiply by the diameter-independent quantity virus viral load
         deposited_exposure *= self.concentration_model.virus.viral_load_in_sputum
-
-        # Long range concentration
-        emission_rate_per_aerosol = self.concentration_model.infected.emission_rate_per_aerosol_when_present()
+        # long range concentration
         f_inf = self.concentration_model.infected.fraction_of_infectious_virus()
-        aerosols = self.concentration_model.infected.aerosols()
-        fdep = self.long_range_fraction_deposited()
+        deposited_exposure += self.long_range_deposited_exposure_between_bounds(time1, time2)/f_inf
 
-        diameter = self.concentration_model.infected.particle.diameter
-
-        if not np.isscalar(diameter) and diameter is not None:
-            # we compute first the mean of all diameter-dependent quantities
-            # to perform properly the Monte-Carlo integration over
-            # particle diameters (doing things in another order would
-            # lead to wrong results).
-            dep_exposure_integrated = np.array(self._long_range_normed_exposure_between_bounds(time1, time2) *
-                                                aerosols *
-                                                fdep).mean()
-        else:
-            # in the case of a single diameter or no diameter defined,
-            # one should not take any mean at this stage.
-            dep_exposure_integrated = self._long_range_normed_exposure_between_bounds(time1, time2)*aerosols*fdep
-
-        # then we multiply by the diameter-independent quantity emission_rate_per_aerosol,
-        # and parameters of the vD equation (i.e. BR_k and n_in).
-        deposited_exposure += (dep_exposure_integrated * emission_rate_per_aerosol * 
-                self.exposed.activity.inhalation_rate * 
-                (1 - self.exposed.mask.inhale_efficiency()))
-
-        # In the end we multiply the final results by the fraction of infectious virus of the vD equation.
-        return f_inf * deposited_exposure
+        return deposited_exposure * f_inf
 
     def deposited_exposure(self) -> _VectorisedFloat:
         """

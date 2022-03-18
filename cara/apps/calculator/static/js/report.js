@@ -1,17 +1,22 @@
 /* Generate the concentration plot using d3 library. */
-function draw_plot(svg_id, times, concentrations, short_range_concentrations, cumulative_doses,  exposed_presence_intervals, short_range_intervals) {
+function draw_plot(svg_id, times, concentrations, short_range_concentrations, 
+                    cumulative_doses, long_range_cumulative_doses, exposed_presence_intervals, 
+                    short_range_intervals, short_range_activities) {
 
     // Used for controlling the short range interactions 
     let button_full_exposure = document.getElementById("button_full_exposure");
     let button_long_exposure = document.getElementById("button_long_exposure");
+    let long_range_checkbox = document.getElementById('long_range_cumulative_checkbox')
     let show_sr_legend = button_full_exposure || Math.round(Math.max(...concentrations)) == Math.round(Math.max(...short_range_concentrations))
     
     var data_for_graphs = {
         'concentrations': [],
         'cumulative_doses': [],
+        'long_range_cumulative_doses': [],
     }
     times.map((time, index) => data_for_graphs.concentrations.push({ 'time': time, 'hour': new Date().setHours(Math.trunc(time), (time - Math.trunc(time)) * 60), 'concentration': short_range_concentrations[index]}));
     times.map((time, index) => data_for_graphs.cumulative_doses.push({ 'time': time, 'hour': new Date().setHours(Math.trunc(time), (time - Math.trunc(time)) * 60), 'concentration': cumulative_doses[index]}));
+    times.map((time, index) => data_for_graphs.long_range_cumulative_doses.push({ 'time': time, 'hour': new Date().setHours(Math.trunc(time), (time - Math.trunc(time)) * 60), 'concentration': long_range_cumulative_doses[index]}));
 
     // Add main SVG element
     var plot_div = document.getElementById(svg_id);
@@ -24,10 +29,10 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
     bisecHour = d3.bisector((d) => { return d.hour; }).left,
 
     yRange = d3.scaleLinear(),
-    yCumulativeRange = d3.scaleLinear().domain([0., Math.max(...cumulative_doses)*1.1]),
+    yCumulativeRange = d3.scaleLinear(),
     
-    yAxis = d3.axisLeft();
-    yCumulativeAxis = d3.axisRight(yCumulativeRange).ticks(4);
+    yAxis = d3.axisLeft(),
+    yCumulativeAxis = d3.axisRight();
 
     // X axis declaration.
     var xAxisEl = vis.append('svg:g')
@@ -54,7 +59,6 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
     // Y cumulative concentration axis declaration.
     var yAxisCumEl = vis.append('svg:g')
         .attr('class', 'y axis')
-        .style('font-size', 14)
         .style("stroke-dasharray", "5 5");
 
     // Y cumulated concentration axis label.
@@ -81,12 +85,17 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
         .attr('fill', '#1f77b4')
         .attr('fill-opacity', '0.1');
 
+    sr_unique_activities = [...new Set(short_range_activities)]
     if (show_sr_legend) {
-        var legendShortRangeAreaIcon = vis.append('rect')
+        var legendShortRangeAreaIcon = {};
+        sr_unique_activities.forEach((b, index) => {
+        legendShortRangeAreaIcon[index] = vis.append('rect')
             .attr('width', 20)
-            .attr('height', 15)
-            .attr('fill', '#1f00b4')
-            .attr('fill-opacity', '0.1');
+            .attr('height', 15);
+        if (sr_unique_activities[index] == 'Breathing') legendShortRangeAreaIcon[index].attr('fill', 'red').attr('fill-opacity', '0.2');
+        else if (sr_unique_activities[index] == 'Speaking') legendShortRangeAreaIcon[index].attr('fill', 'green').attr('fill-opacity', '0.1');
+        else legendShortRangeAreaIcon[index].attr('fill', 'blue').attr('fill-opacity', '0.1');
+        });
     }
 
     var legendLineText = vis.append('text')
@@ -105,14 +114,17 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
         .attr('alignment-baseline', 'central');
 
     if (show_sr_legend) {
-        var legendShortRangeText = vis.append('text')
-            .text('Short range interaction(s)')
+        var legendShortRangeText = {};
+        sr_unique_activities.forEach((b, index) => {
+            legendShortRangeText[index] = vis.append('text')
+            .text('Short range - ' + sr_unique_activities[index])
             .style('font-size', '15px')
             .attr('alignment-baseline', 'central');
+        });
     }
 
     // Legend bounding
-    if (show_sr_legend) legendBBox_height = 90;
+    if (show_sr_legend) legendBBox_height = 68 + 20 * sr_unique_activities.length;
     else legendBBox_height = 68;
     var legendBBox = vis.append('rect')
         .attr('width', 255)
@@ -140,11 +152,22 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
     
     // Line representing the cumulative concentration.
     var lineCumulative = d3.line();
-    var draw_cumulative_line = vis.append('svg:path')
+    var draw_cumulative_line = draw_area.append('svg:path')
         .attr('stroke', '#1f77b4')
         .attr('stroke-width', 2)
         .style("stroke-dasharray", "5 5")
         .attr('fill', 'none');
+
+    // Line representing the long range cumulative concentration.
+    if (show_sr_legend) {
+        var longRangeCumulative = d3.line();
+        var draw_long_range_cumulative_line = draw_area.append('svg:path')
+            .attr('stroke', 'purple')
+            .attr('stroke-width', 2)
+            .style("stroke-dasharray", "5 5")
+            .attr('fill', 'none')
+            .attr('opacity', 0);      
+    }
 
     // Area representing the presence of exposed person(s).
     var exposedArea = {};
@@ -161,10 +184,11 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
     var drawShortRangeArea = {};
     short_range_intervals.forEach((b, index) => {
         shortRangeArea[index] = d3.area();
-        drawShortRangeArea[index] = draw_area.append('svg:path')
-            .attr('class', 'draw_short_range_area')
-            .attr('fill', '#1f00b4')
-            .attr('fill-opacity', '0.1');
+        drawShortRangeArea[index] = draw_area.append('svg:path');
+
+        if (short_range_activities[index] == 'Breathing') drawShortRangeArea[index].attr('fill', 'red').attr('fill-opacity', '0.2');
+        else if (short_range_activities[index] == 'Speaking') drawShortRangeArea[index].attr('fill', 'green').attr('fill-opacity', '0.1');
+        else drawShortRangeArea[index].attr('fill', 'blue').attr('fill-opacity', '0.1');
     });
 
     // Tooltip.
@@ -202,9 +226,12 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
             .attr('pointer-events', 'all');
     }
 
-    function update_concentration_plot(data) {
-        yRange.domain([0., Math.max(...data)]);
+    function update_concentration_plot(concentration_data, cumulative_data) {
+        yRange.domain([0., Math.max(...concentration_data)*1.1]);
         yAxisEl.transition().duration(1000).call(yAxis);
+
+        yCumulativeRange.domain([0., Math.max(...cumulative_data)*1.1]);
+        yAxisCumEl.transition().duration(1000).call(yCumulativeAxis)
         
         // Concentration line
         lineFunc.defined(d => !isNaN(d.concentration))
@@ -214,6 +241,24 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
             .transition()
             .duration(1000)
             .attr("d", lineFunc(data_for_graphs.concentrations));
+
+        // Cumulative line.
+        lineCumulative.defined(d => !isNaN(d.concentration))
+            .x(d => xTimeRange(d.time))
+            .y(d => yCumulativeRange(d.concentration));
+        draw_cumulative_line.transition()
+            .duration(1000)
+            .attr("d", lineCumulative(data_for_graphs.cumulative_doses));
+    
+        // Long range cumulative line.
+        if (show_sr_legend) {
+            longRangeCumulative.defined(d => !isNaN(d.concentration))
+                .x(d => xTimeRange(d.time))
+                .y(d => yCumulativeRange(d.concentration));
+            draw_long_range_cumulative_line.transition()
+                .duration(1000)
+                .attr("d", lineCumulative(data_for_graphs.long_range_cumulative_doses));
+        }
 
         // Area.
         exposed_presence_intervals.forEach((b, index) => {
@@ -327,6 +372,7 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
         // Axis.
         var xAxis = d3.axisBottom(xRange).tickFormat(d => time_format(d));
         yAxis.scale(yRange);
+        yCumulativeAxis.scale(yCumulativeRange);
 
         xAxisEl.attr('transform', 'translate(0,' + (graph_height - margins.bottom) + ')')
             .call(xAxis);
@@ -374,10 +420,12 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
                 .attr('y', margins.top + 3 * size);
             
             if (show_sr_legend) {
-                legendShortRangeAreaIcon.attr('x', graph_width + size * 2.5)
-                    .attr('y', margins.top + 3.6 * size);
-                legendShortRangeText.attr('x', graph_width + 4 * size)
-                    .attr('y', margins.top + 4 * size);
+                sr_unique_activities.forEach((b, index) => {
+                    legendShortRangeAreaIcon[index].attr('x', graph_width + size * 2.5)
+                        .attr('y', margins.top + 3.6 * size + index * size);
+                    legendShortRangeText[index].attr('x', graph_width + 4 * size)
+                        .attr('y', margins.top + 4 * size + index * size);
+                });
             }
             
             legendBBox.attr('x', graph_width * 1.07)
@@ -403,10 +451,12 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
                 .attr('y', graph_height + 2.6 * size);
 
             if (show_sr_legend) {
-                legendShortRangeAreaIcon.attr('x', size * 0.50)
-                    .attr('y', graph_height * 1.175 + size);
-                legendShortRangeText.attr('x', 2 * size)
-                    .attr('y', graph_height + 3.65 * size);
+                sr_unique_activities.forEach((b, index) => {
+                    legendShortRangeAreaIcon[index].attr('x', size * 0.50)
+                        .attr('y', graph_height * 1.175 + size + index * size);
+                    legendShortRangeText[index].attr('x', 2 * size)
+                        .attr('y', graph_height + 3.65 * size + index * size);
+                });
             }
 
             legendBBox.attr('x', 1)
@@ -419,23 +469,25 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
                 .attr('height', graph_height);
         }
 
-        // Cumulative line.
-        lineCumulative.defined(d => !isNaN(d.concentration))
-            .x(d => xTimeRange(d.time))
-            .y(d => yCumulativeRange(d.concentration));
-        draw_cumulative_line.attr("d", lineCumulative(data_for_graphs.cumulative_doses));
     }
+
+    if (long_range_checkbox) {
+        long_range_checkbox.addEventListener("click", () => {
+            if (long_range_checkbox.checked) draw_long_range_cumulative_line.transition().duration(1000).attr("opacity", 1);
+            else draw_long_range_cumulative_line.transition().duration(1000).attr("opacity", 0);
+        });
+    };
 
     if (button_full_exposure) {
         button_full_exposure.addEventListener("click", () => {
-            update_concentration_plot(short_range_concentrations);
+            update_concentration_plot(short_range_concentrations, cumulative_doses);
             button_full_exposure.disabled = true;
             button_long_exposure.disabled = false;
         });
     }
     if (button_long_exposure) {
         button_long_exposure.addEventListener("click", () => {
-            update_concentration_plot(concentrations);
+            update_concentration_plot(concentrations, long_range_cumulative_doses);
             button_full_exposure.disabled = false;
             button_long_exposure.disabled = true;
         });
@@ -443,13 +495,13 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations, cu
 
     // Draw for the first time to initialize.
     redraw();
-    update_concentration_plot(short_range_concentrations);
+    update_concentration_plot(short_range_concentrations, cumulative_doses);
 
     // Redraw based on the new size whenever the browser window is resized.
     window.addEventListener("resize", e => {
         redraw();
-        if (button_full_exposure.disabled) update_concentration_plot(short_range_concentrations);
-        else update_concentration_plot(concentrations)
+        if (button_full_exposure.disabled) update_concentration_plot(short_range_concentrations, cumulative_doses);
+        else update_concentration_plot(concentrations, long_range_cumulative_doses)
     });
 
 

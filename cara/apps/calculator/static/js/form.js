@@ -405,13 +405,18 @@ function validate_form(form) {
   }
 
   // Generate the short range interactions list
-  let short_range_interactions = [];
+  var short_range_interactions = [];
   $(".form_field_outer_row").each(function (index, element){
       let obj = {};
       obj.activity = $(element).find("[name='short_range_activity']").val();
       obj.start_time = $(element).find("[name='short_range_start_time']").val();
       obj.duration = $(element).find("[name='short_range_duration']").val();
       short_range_interactions.push(JSON.stringify(obj));
+  });
+
+  // Sort list by time
+  short_range_interactions.sort(function (a, b) {
+    return JSON.parse(a).start_time.localeCompare(JSON.parse(b).start_time);
   });
   $("input[type=text][name=short_range_interactions]").val('[' + short_range_interactions + ']');
   if (short_range_interactions.length == 0) {

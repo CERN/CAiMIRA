@@ -245,11 +245,17 @@ class FormData:
         else:
             humidity = 0.5
         room = models.Room(volume=volume, humidity=humidity)
+        
+        if self.short_range_option == "short_range_yes":
+            sr_presence=self.short_range_intervals()
+            sr_activities=self.short_range_activities()
+            short_range_expirations = tuple(short_range_expiration_distributions[activity] for activity in sr_activities)
+            dilutions=dilution_factor(activities=sr_activities, distance=np.random.uniform(0.5, 1.5, 250000))
+        else:
+            sr_presence=()
+            short_range_expirations=()
+            dilutions=()
             
-        sr_presence=self.short_range_intervals()
-        sr_activities=self.short_range_activities()
-        short_range_expirations = tuple(short_range_expiration_distributions[activity] for activity in sr_activities)
-
         # Initializes and returns a model with the attributes defined above
         return mc.ExposureModel(
             concentration_model=mc.ConcentrationModel(
@@ -261,7 +267,7 @@ class FormData:
             short_range = mc.ShortRangeModel(
                 presence=sr_presence,
                 expirations=short_range_expirations,
-                dilutions=dilution_factor(activities=sr_activities, distance=np.random.uniform(0.5, 1.5, 250000)),
+                dilutions=dilutions,
             ),
             exposed=self.exposed_population(),
         )
@@ -639,15 +645,13 @@ class FormData:
         )
 
     def short_range_intervals(self) -> typing.Tuple[typing.Tuple[str, models.SpecificInterval], ...]:
-        if (self.short_range_interactions):
-            short_range_intervals = []
-            for interaction in self.short_range_interactions:
-                start_time = time_string_to_minutes(interaction['start_time'])
-                duration = float(interaction['duration'])
-                short_range_intervals.append((interaction['activity'], models.SpecificInterval((start_time/60, (start_time + duration)/60))))
-            return tuple(short_range_intervals)
-        else:
-            return ()
+        short_range_intervals = []
+        for interaction in self.short_range_interactions:
+            start_time = time_string_to_minutes(interaction['start_time'])
+            duration = float(interaction['duration'])
+            short_range_intervals.append((interaction['activity'], models.SpecificInterval((start_time/60, (start_time + duration)/60))))
+        return tuple(short_range_intervals)
+        
 
     def exposed_present_interval(self) -> models.Interval:
         return self.present_interval(
