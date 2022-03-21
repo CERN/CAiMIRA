@@ -7,8 +7,8 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations,
     let button_full_exposure = document.getElementById("button_full_exposure");
     let button_long_exposure = document.getElementById("button_long_exposure");
     let long_range_checkbox = document.getElementById('long_range_cumulative_checkbox')
-    let show_sr_legend = button_full_exposure || Math.round(Math.max(...concentrations)) == Math.round(Math.max(...short_range_concentrations))
-    
+    let show_sr_legend = short_range_activities.length > 0;
+
     var data_for_graphs = {
         'concentrations': [],
         'cumulative_doses': [],
@@ -17,6 +17,8 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations,
     times.map((time, index) => data_for_graphs.concentrations.push({ 'time': time, 'hour': new Date().setHours(Math.trunc(time), (time - Math.trunc(time)) * 60), 'concentration': short_range_concentrations[index]}));
     times.map((time, index) => data_for_graphs.cumulative_doses.push({ 'time': time, 'hour': new Date().setHours(Math.trunc(time), (time - Math.trunc(time)) * 60), 'concentration': cumulative_doses[index]}));
     times.map((time, index) => data_for_graphs.long_range_cumulative_doses.push({ 'time': time, 'hour': new Date().setHours(Math.trunc(time), (time - Math.trunc(time)) * 60), 'concentration': long_range_cumulative_doses[index]}));
+
+    const tooltip_data_for_graphs = Object.fromEntries(Object.entries(data_for_graphs).filter(([key]) => !key.includes('long_range_cumulative_doses')));
 
     // Add main SVG element
     var plot_div = document.getElementById(svg_id);
@@ -193,7 +195,7 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations,
 
     // Tooltip.
     var focus = {}, tooltip_rect = {}, tooltip_time = {}, tooltip_concentration = {}, toolBox = {};
-    for (const [concentration, data] of Object.entries(data_for_graphs)) {
+    for (const [concentration, data] of Object.entries(tooltip_data_for_graphs)) {
 
         focus[concentration] = vis.append('svg:g')
             .style('display', 'none');
@@ -206,7 +208,6 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations,
             .attr('stroke', '#000')
             .attr('width', 85)
             .attr('height', 50)
-            .attr('x', 10)
             .attr('y', -22)
             .attr('rx', 4)
             .attr('ry', 4);
@@ -223,7 +224,10 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations,
 
         toolBox[concentration] = vis.append('rect')
             .attr('fill', 'none')
-            .attr('pointer-events', 'all');
+            .attr('pointer-events', 'all')
+            .on('mouseover', () => { for (const [concentration, data] of Object.entries(focus)) focus[concentration].style('display', null); })
+            .on('mouseout', () => { for (const [concentration, data] of Object.entries(focus)) focus[concentration].style('display', 'none'); })
+            .on('mousemove', mousemove);;
     }
 
     function update_concentration_plot(concentration_data, cumulative_data) {
@@ -282,50 +286,6 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations,
             })));
         });
 
-        // Tooltip.
-        for (const [concentration, data] of Object.entries(data_for_graphs)) {
-            toolBox[concentration]
-                .on('mouseover', () => { for (const [concentration, data] of Object.entries(focus)) focus[concentration].style('display', null); })
-                .on('mouseout', () => { for (const [concentration, data] of Object.entries(focus)) focus[concentration].style('display', 'none'); })
-                .on('mousemove', mousemove);
-        }
-
-        function mousemove() {
-            for (const [scenario, data] of Object.entries(data_for_graphs)) {
-                if (d3.pointer(event)[0] < graph_width / 2) {
-                    tooltip_rect[scenario].attr('x', 10)
-                    tooltip_time[scenario].attr('x', 18)
-                    tooltip_concentration[scenario].attr('x', 18);
-                }
-                else {
-                    tooltip_rect[scenario].attr('x', -90)
-                    tooltip_time[scenario].attr('x', -82)
-                    tooltip_concentration[scenario].attr('x', -82)
-                }
-            }
-            // Concentration line
-            var x0 = xRange.invert(d3.pointer(event, this)[0]),
-                i = bisecHour(data_for_graphs.concentrations, x0, 1),
-                d0 = data_for_graphs.concentrations[i - 1],
-                d1 = data_for_graphs.concentrations[i];
-            if (d1) {
-                var d = x0 - d0.hour > d1.hour - x0 ? d1 : d0;
-                focus.concentrations.attr('transform', 'translate(' + xRange(d.hour) + ',' + yRange(d.concentration) + ')');
-                focus.concentrations.select('#tooltip-time').text('x = ' + time_format(d.hour));
-                focus.concentrations.select('#tooltip-concentration').text('y = ' + d.concentration.toFixed(2));
-            }
-            // Cumulative line
-            var x0 = xRange.invert(d3.pointer(event, this)[0]),
-                i = bisecHour(data_for_graphs.cumulative_doses, x0, 1),
-                d0 = data_for_graphs.cumulative_doses[i - 1],
-                d1 = data_for_graphs.cumulative_doses[i];
-            if (d1 && d1.concentration) {
-                var d = x0 - d0.hour > d1.hour - x0 ? d1 : d0;
-                focus.cumulative_doses.attr('transform', 'translate(' + xRange(d.hour) + ',' + yCumulativeRange(d.concentration) + ')');
-                focus.cumulative_doses.select('#tooltip-time').text('x = ' + time_format(d.hour));
-                focus.cumulative_doses.select('#tooltip-concentration').text('y = ' + d.concentration.toFixed(2));
-            }
-        }
     }
 
     function redraw() {
@@ -464,7 +424,7 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations,
         }
 
         // ToolBox.
-        for (const [concentration, data] of Object.entries(data_for_graphs)) {
+        for (const [concentration, data] of Object.entries(tooltip_data_for_graphs)) {
             toolBox[concentration].attr('width', graph_width - margins.right)
                 .attr('height', graph_height);
         }
@@ -493,6 +453,43 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations,
         });
     }
 
+    function mousemove() {
+        for (const [scenario, data] of Object.entries(tooltip_data_for_graphs)) {
+            if (d3.pointer(event)[0] < graph_width / 2) {
+                tooltip_rect[scenario].attr('x', 10)
+                tooltip_time[scenario].attr('x', 18)
+                tooltip_concentration[scenario].attr('x', 18);
+            }
+            else {
+                tooltip_rect[scenario].attr('x', -90)
+                tooltip_time[scenario].attr('x', -82)
+                tooltip_concentration[scenario].attr('x', -82)
+            }
+        }
+        // Concentration line
+        var x0 = xRange.invert(d3.pointer(event, this)[0]),
+            i = bisecHour(data_for_graphs.concentrations, x0, 1),
+            d0 = data_for_graphs.concentrations[i - 1],
+            d1 = data_for_graphs.concentrations[i];
+        if (d1) {
+            var d = x0 - d0.hour > d1.hour - x0 ? d1 : d0;
+            focus.concentrations.attr('transform', 'translate(' + xRange(d.hour) + ',' + yRange(d.concentration) + ')');
+            focus.concentrations.select('#tooltip-time').text('x = ' + time_format(d.hour));
+            focus.concentrations.select('#tooltip-concentration').text('y = ' + d.concentration.toFixed(2));
+        }
+        // Cumulative line
+        var x0 = xRange.invert(d3.pointer(event, this)[0]),
+            i = bisecHour(data_for_graphs.cumulative_doses, x0, 1),
+            d0 = data_for_graphs.cumulative_doses[i - 1],
+            d1 = data_for_graphs.cumulative_doses[i];
+        if (d1 && d1.concentration) {
+            var d = x0 - d0.hour > d1.hour - x0 ? d1 : d0;
+            focus.cumulative_doses.attr('transform', 'translate(' + xRange(d.hour) + ',' + yCumulativeRange(d.concentration) + ')');
+            focus.cumulative_doses.select('#tooltip-time').text('x = ' + time_format(d.hour));
+            focus.cumulative_doses.select('#tooltip-concentration').text('y = ' + d.concentration.toFixed(2));
+        }
+    }
+
     // Draw for the first time to initialize.
     redraw();
     update_concentration_plot(short_range_concentrations, cumulative_doses);
@@ -500,11 +497,9 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations,
     // Redraw based on the new size whenever the browser window is resized.
     window.addEventListener("resize", e => {
         redraw();
-        if (button_full_exposure.disabled) update_concentration_plot(short_range_concentrations, cumulative_doses);
+        if (button_full_exposure && button_full_exposure.disabled) update_concentration_plot(short_range_concentrations, cumulative_doses);
         else update_concentration_plot(concentrations, long_range_cumulative_doses)
     });
-
-
 }
 
 
