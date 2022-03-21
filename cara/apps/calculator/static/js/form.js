@@ -560,7 +560,7 @@ function overlapped_times(obj, start_time, finish_time) {
       let parameter = document.getElementById($(obj).attr('id'));
       //Adds the red border and error message.
       if (!$(obj).hasClass("red_border")) $(parameter).addClass("red_border");
-      insertErrorFor(parameter, "Short range interactions must be within the simulation time.");
+      insertErrorFor(parameter, "Simulation time.");
       return false;
   } 
   let current_interaction = $(obj).closest(".form_field_outer_row");
@@ -852,13 +852,13 @@ $(document).ready(function () {
           </div>
             <div class='form-group row'>
               <div class="col-sm-4"><label class="col-form-label"> Start: </label></div>
-              <div class="col-sm-6"><input type="time" class="form-control short_range_option" name="short_range_start_time" id="sr_start_no_${index}" value="${value.start_time}" onchange="validate_sr_time(this)" form="not-submitted"></br></div>
+              <div class="col-sm-7"><input type="time" class="form-control short_range_option" name="short_range_start_time" id="sr_start_no_${index}" value="${value.start_time}" onchange="validate_sr_time(this)" form="not-submitted"></br></div>
             </div>
         </div>
         <div class="split" style="flex: 2">
           <div class='form-group row' style="flex: 2">
             <div class="col-sm-4"><label class="col-form-label"> Duration:</label></div>
-            <div class="col-sm-7"><input type="number" id="sr_duration_no_${index}" value="${value.duration}" class="form-control short_range_option" name="short_range_duration" min=1 placeholder="Minutes" onchange="validate_sr_time(this)" form="not-submitted"></br></div>
+            <div class="col-sm-8"><input type="number" id="sr_duration_no_${index}" value="${value.duration}" class="form-control short_range_option" name="short_range_duration" min=1 placeholder="Minutes" onchange="validate_sr_time(this)" form="not-submitted"></br></div>
           </div>
           <div class="form-group mt-1" style="flex: 1">
             <button type="button" id="edit_row_no_${index}" class="edit_node_btn_frm_field btn btn-success btn-sm d-none">Edit</button>
@@ -877,10 +877,11 @@ $(document).ready(function () {
 
   // When short_range_yes option is selected, we want to inject rows for each expiractory activity, start_time and duration.
   $("body").on("click", ".add_node_btn_frm_field", function(e) {
-    let index = $(".form_field_outer").find(".form_field_outer_row").length;
-    if (index == 0) $("#dialog_sr").append(inject_sr_interaction(1, value = { activity: "", start_time: "", duration: "" }));
+    let last_row = $(".form_field_outer").find(".form_field_outer_row");
+    if (last_row.length == 0) $("#dialog_sr").append(inject_sr_interaction(1, value = { activity: "", start_time: "", duration: "" }));
     else {
-        index = index + 1;
+        last_index = last_row.last().find(".short_range_option").prop("id").split("_").slice(-1)[0];
+        index = parseInt(last_index) + 1;
         $("#dialog_sr").append(inject_sr_interaction(index, value = { activity: "", start_time: "", duration: "" }));
     }
   });
@@ -902,6 +903,7 @@ $(document).ready(function () {
         index = index + 1;
       }
     }
+    // On save, check open/unvalidated rows.
     $(".validate_node_btn_frm_field").not(".row_validated").not(this).each(function( index ) {
       index = $(this).attr('id').split('_').slice(-1)[0];
       if ($('#sr_start_no_' + String(index)[0]).val() != "") validate_sr_parameter('#sr_start_no_' + String(index)[0], "Required input.");
@@ -922,6 +924,12 @@ $(document).ready(function () {
   //Remove short range interaction (modal field row).
   $("body").on("click", ".remove_node_btn_frm_field", function() {
     $(this).closest(".form_field_outer_row").remove();
+    // On delete, check open/unvalidated rows.
+    $(".validate_node_btn_frm_field").not(".row_validated").not(this).each(function( index ) {
+      index = $(this).attr('id').split('_').slice(-1)[0];
+      if ($('#sr_start_no_' + String(index)[0]).val() != "") validate_sr_parameter('#sr_start_no_' + String(index)[0], "Required input.");
+      if ($('#sr_duration_no_' + String(index)[0]).val() != "") validate_sr_parameter('#sr_duration_no_' + String(index)[0], "Required input.");
+    });
   });
 
   //Short range modal - close and save button
