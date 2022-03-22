@@ -5,7 +5,7 @@ import numpy as np
 from scipy import special as sp
 
 import cara.monte_carlo as mc
-from cara.monte_carlo.sampleable import Normal,LogNormal,LogCustomKernel,CustomKernel,Uniform
+from cara.monte_carlo.sampleable import LogNormal,LogCustomKernel,CustomKernel,Uniform
 
 
 sqrt2pi = np.sqrt(2.*np.pi)
@@ -182,7 +182,11 @@ def expiration_distribution(
     )
 
 
-def dilution_factor(activities, distance, D=0.02):
+def dilution_factor(activities):
+    D = 0.02
+    # From https://www.mdpi.com/1660-4601/17/4/1445/htm
+    distance = LogNormal(0.8542127255693238, 0.42755967248106513).generate_samples(250_000)
+    
     factors = []
     for activity in activities:
         u0 = 0.98 if activity == "Breathing" else 3.9

@@ -47,10 +47,7 @@ def expirations(presences) -> typing.Tuple[mc_models.Expiration, ...]:
 
 @pytest.fixture
 def dilutions(presences):
-    return dilution_factor(
-        activities=[activity for (activity, presence) in presences],
-        distance=np.random.uniform(0.5, 1.5, 250_000),
-    )
+    return dilution_factor(activities=[activity for (activity, presence) in presences])
 
 
 def test_short_range_model_ndarray(concentration_model, presences, expirations, dilutions):
@@ -64,9 +61,9 @@ def test_short_range_model_ndarray(concentration_model, presences, expirations, 
 
 @pytest.mark.parametrize(
     "start, stop, expected_exposure", [
-        [8.5, 12.5, 5.844666077067048e-09],
-        [10.5, 11.0, 5.830120846251791e-09],
-        [10.6, 11.9, 4.6397748633454945e-09],
+        [8.5, 12.5, 5.963061627547172e-10],
+        [10.5, 11.0,  5.934552264225482e-10],
+        [10.6, 11.9, 4.709684623109963e-10],
     ]
 )
 def test_normed_exposure_between_bounds(
@@ -76,15 +73,15 @@ def test_normed_exposure_between_bounds(
     model = mc_models.ShortRangeModel(presences, expirations, dilutions)
     model = model.build_model(250_000)
     np.testing.assert_almost_equal(
-        model.normed_exposure_between_bounds(concentration_model, start, stop).mean(), expected_exposure
+        model.normed_exposure_between_bounds(concentration_model, start, stop).mean(), expected_exposure, decimal=10
     )
 
 
 @pytest.mark.parametrize(
     "time, expected_sr_normed_concentration, expected_concentration", [
-        [10.75, 1.1670056689678455e-08, 11.67005668967846],
-        # [14.75, 3.6414877020308386e-06, 3641.4877020308395],
-        # [16.75, 1.973757599365769e-05, 19737.57599365769],
+        [10.75, 1.1670056689678455e-08, 1.1731466540816526],
+        # [14.75, 3.6414877020308386e-06, 474.36376505412574],
+        # [16.75, 1.973757599365769e-05, 2850.6219623225024],
     ]
 )
 def test_short_range_model(

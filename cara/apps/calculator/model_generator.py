@@ -250,7 +250,7 @@ class FormData:
             sr_presence=self.short_range_intervals()
             sr_activities=self.short_range_activities()
             short_range_expirations = tuple(short_range_expiration_distributions[activity] for activity in sr_activities)
-            dilutions=dilution_factor(activities=sr_activities, distance=np.random.uniform(0.5, 1.5, 250000))
+            dilutions=dilution_factor(activities=sr_activities)
         else:
             sr_presence=()
             short_range_expirations=()
