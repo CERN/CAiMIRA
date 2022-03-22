@@ -24,7 +24,7 @@
 			<h2 class="header_text mb-0">REPORT</h1>
 			<p class="mb-0" id="report_version"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
 		</div>
-		<button type="button" class="btn btn-outline-dark align-self-center" id="download-pdf" style="margin-right: -100pt" onclick="print()">Print Report</button>
+		<button type="button" class="btn btn-outline-dark align-self-center" id="download-pdf" style="margin-right: -100pt" onclick="print();">Print Report</button>
 		<a href="{{ permalink.link }}" style="float: left;" id="pdf_qrcode_aref" class="align-self-center invisible mr-0"><div id="pdf_qrcode"></div></a>
 	</div>
 
@@ -90,25 +90,25 @@
 								</div>
 								<p id="section1">* The results are based on the parameters and assumptions published in the CERN Open Report <a href="https://cds.cern.ch/record/2756083"> CERN-OPEN-2021-004</a>.</p>
 								{% if form.short_range_option == "short_range_yes" %}
-									{% if concentrations|max|int != short_range_concentrations|max|int %}
+									{% if 'Speaking' in form.short_range_interactions|string or 'Shouting' in form.short_range_interactions|string %}
 										<button class="btn btn-sm btn-primary" id="button_full_exposure" disabled>Show full exposure</button>
-										<button class="btn btn-sm btn-primary ml-0" id="button_long_exposure">Hide high concentration</button>
+										<button class="btn btn-sm btn-primary ml-0" id="button_hide_high_concentration">Hide high concentration</button>
 									{% endif %}	
 									<input type="checkbox" id="long_range_cumulative_checkbox">
-									<label class="form-check-label" for="long_range_cumulative_checkbox">Show long range cumulative doses</label>
+									<label class="form-check-label" for="long_range_cumulative_checkbox" id="lr_cumulative_checkbox_label">Show long range cumulative doses</label>
 								{% endif %}
 								<div id="concentration_plot" style="height: 400px"></div>
 								<script type="application/javascript">
-									var times = {{ times | JSONify }}
-									var concentrations = {{ concentrations | JSONify }}
-									var short_range_concentrations = {{ short_range_concentrations | JSONify }}
-									var cumulative_doses = {{ cumulative_doses | JSONify }}
-									var long_range_cumulative_doses = {{ long_range_cumulative_doses | JSONify }}
-									var exposed_presence_intervals = {{ exposed_presence_intervals | JSONify }}
-									var short_range_intervals = {{ short_range_intervals | JSONify }}
-									var short_range_activities = {{ short_range_activities | JSONify }}
-									draw_plot("concentration_plot", times, concentrations, short_range_concentrations, cumulative_doses, 
-										long_range_cumulative_doses, exposed_presence_intervals, short_range_intervals, short_range_activities)
+									let times = {{ times | JSONify }}
+									let concentrations_zoomed = {{ concentrations_zoomed | JSONify }}
+									let concentrations = {{ concentrations | JSONify }}
+									let cumulative_doses = {{ cumulative_doses | JSONify }}
+									let long_range_cumulative_doses = {{ long_range_cumulative_doses | JSONify }}
+									let exposed_presence_intervals = {{ exposed_presence_intervals | JSONify }}
+									let short_range_intervals = {{ short_range_intervals | JSONify }}
+									let short_range_activities = {{ short_range_activities | JSONify }}
+									let alternative_scenarios = {{ alternative_scenarios.stats | JSONify }}
+									draw_plot("concentration_plot")
 								</script>
               				</p>
 						</div>
@@ -125,11 +125,15 @@
 					<div class="collapse" id="collapseAlternativeScenarios">
 						<div class="card-body">
 							<div>
+								{% if form.short_range_option == "short_range_yes" %}
+									{% if 'Speaking' in form.short_range_interactions|string or 'Shouting' in form.short_range_interactions|string %}
+										<button class="btn btn-sm btn-primary" id="button_alternative_full_exposure" disabled>Show full exposure</button>
+										<button class="btn btn-sm btn-primary ml-0" id="button_alternative_hide_high_concentration">Hide high concentration</button>
+									{% endif %}
+								{% endif %}
 								<div id="alternative_scenario_plot" style="height: 400px"></div>
 								<script type="application/javascript">
-									var alternative_scenarios = {{ alternative_scenarios.stats | JSONify }}
-									var times = {{ times | JSONify }}
-									draw_alternative_scenarios_plot("concentration_plot", "alternative_scenario_plot", times, alternative_scenarios);
+									draw_alternative_scenarios_plot("concentration_plot", "alternative_scenario_plot");
 								</script>
 								<br>
 								{% block report_scenarios_summary_table %}

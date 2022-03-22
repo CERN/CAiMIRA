@@ -1,11 +1,9 @@
 /* Generate the concentration plot using d3 library. */
-function draw_plot(svg_id, times, concentrations, short_range_concentrations, 
-                    cumulative_doses, long_range_cumulative_doses, exposed_presence_intervals, 
-                    short_range_intervals, short_range_activities) {
+function draw_plot(svg_id) {
 
     // Used for controlling the short range interactions 
     let button_full_exposure = document.getElementById("button_full_exposure");
-    let button_long_exposure = document.getElementById("button_long_exposure");
+    let button_hide_high_concentration = document.getElementById("button_hide_high_concentration");
     let long_range_checkbox = document.getElementById('long_range_cumulative_checkbox')
     let show_sr_legend = short_range_activities.length > 0;
 
@@ -14,7 +12,7 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations,
         'cumulative_doses': [],
         'long_range_cumulative_doses': [],
     }
-    times.map((time, index) => data_for_graphs.concentrations.push({ 'time': time, 'hour': new Date().setHours(Math.trunc(time), (time - Math.trunc(time)) * 60), 'concentration': short_range_concentrations[index]}));
+    times.map((time, index) => data_for_graphs.concentrations.push({ 'time': time, 'hour': new Date().setHours(Math.trunc(time), (time - Math.trunc(time)) * 60), 'concentration': concentrations[index]}));
     times.map((time, index) => data_for_graphs.cumulative_doses.push({ 'time': time, 'hour': new Date().setHours(Math.trunc(time), (time - Math.trunc(time)) * 60), 'concentration': cumulative_doses[index]}));
     times.map((time, index) => data_for_graphs.long_range_cumulative_doses.push({ 'time': time, 'hour': new Date().setHours(Math.trunc(time), (time - Math.trunc(time)) * 60), 'concentration': long_range_cumulative_doses[index]}));
 
@@ -440,16 +438,16 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations,
 
     if (button_full_exposure) {
         button_full_exposure.addEventListener("click", () => {
-            update_concentration_plot(short_range_concentrations, cumulative_doses);
+            update_concentration_plot(concentrations, cumulative_doses);
             button_full_exposure.disabled = true;
-            button_long_exposure.disabled = false;
+            button_hide_high_concentration.disabled = false;
         });
     }
-    if (button_long_exposure) {
-        button_long_exposure.addEventListener("click", () => {
-            update_concentration_plot(concentrations, long_range_cumulative_doses);
+    if (button_hide_high_concentration) {
+        button_hide_high_concentration.addEventListener("click", () => {
+            update_concentration_plot(concentrations_zoomed, long_range_cumulative_doses);
             button_full_exposure.disabled = false;
-            button_long_exposure.disabled = true;
+            button_hide_high_concentration.disabled = true;
         });
     }
 
@@ -492,13 +490,13 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations,
 
     // Draw for the first time to initialize.
     redraw();
-    update_concentration_plot(short_range_concentrations, cumulative_doses);
+    update_concentration_plot(concentrations, cumulative_doses);
 
     // Redraw based on the new size whenever the browser window is resized.
     window.addEventListener("resize", e => {
         redraw();
-        if (button_full_exposure && button_full_exposure.disabled) update_concentration_plot(short_range_concentrations, cumulative_doses);
-        else update_concentration_plot(concentrations, long_range_cumulative_doses)
+        if (button_full_exposure && button_full_exposure.disabled) update_concentration_plot(concentrations, cumulative_doses);
+        else update_concentration_plot(concentrations_zoomed, long_range_cumulative_doses)
     });
 }
 
@@ -506,18 +504,22 @@ function draw_plot(svg_id, times, concentrations, short_range_concentrations,
 // Generate the alternative scenarios plot using d3 library.
 // 'alternative_scenarios' is a dictionary with all the alternative scenarios 
 // 'times' is a list of times for all the scenarios
-function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_plot_svg_id, times, alternative_scenarios) {
-     // H:M format
+function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_plot_svg_id) {
+    // H:M format
     var time_format = d3.timeFormat('%H:%M');
     // D3 array of ten categorical colors represented as RGB hexadecimal strings.
     var colors = d3.schemeAccent;
+
+    // Used for controlling the short range interactions 
+    let button_full_exposure = document.getElementById("button_alternative_full_exposure");
+    let button_hide_high_concentration = document.getElementById("button_alternative_hide_high_concentration");
 
     // Variable for the highest concentration for all the scenarios
     var highest_concentration = 0.
 
     var data_for_scenarios = {}
     for (scenario in alternative_scenarios) {
-        scenario_concentrations = alternative_scenarios[scenario].concentrations
+        scenario_concentrations = alternative_scenarios[scenario].concentrations;
 
         highest_concentration = Math.max(highest_concentration, Math.max(...scenario_concentrations))
 
@@ -539,34 +541,9 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
     var xTimeRange = d3.scaleLinear().domain([times[0], times[times.length - 1]]);
     var bisecHour = d3.bisector((d) => { return d.hour; }).left;
 
-    var yRange = d3.scaleLinear().domain([0., highest_concentration]);
+    var yRange = d3.scaleLinear();
+    var yAxis = d3.axisLeft();
 
-    // Line representing the mean concentration for each scenario.
-    var lineFuncs = {}, draw_lines  = {}, label_icons = {}, label_text = {};
-    for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
-        var scenario_index = Object.keys(data_for_scenarios).indexOf(scenario_name)
-
-        // Line representing the mean concentration.
-        lineFuncs[scenario_name] = d3.line();
-
-        draw_lines[scenario_name] = vis.append('svg:path')
-            .attr("stroke", colors[scenario_index])
-            .attr('stroke-width', 2)
-            .attr('fill', 'none');
-
-        // Legend for the plot elements - lines.
-        label_icons[scenario_name] = vis.append('rect')
-            .attr('width', 20)
-            .attr('height', 3)
-            .style('fill', colors[scenario_index]);
-
-        label_text[scenario_name] = vis.append('text')
-            .text(scenario_name)
-            .style('font-size', '15px')
-            .attr('alignment-baseline', 'central');
-
-    }
-    
     // X axis.
     var xAxisEl = vis.append('svg:g')
         .attr('class', 'x axis');
@@ -599,6 +576,39 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
         .attr('ry', '5px')
         .attr('stroke-linejoin', 'round')
         .attr('fill', 'none');
+
+    var clip = vis.append("defs").append("svg:clipPath")
+        .attr("id", "clip")
+        .append("svg:rect");
+
+    var draw_area = vis.append('svg:g')
+        .attr('clip-path', 'url(#clip)');
+
+    // Line representing the mean concentration for each scenario.
+    var lineFuncs = {}, draw_lines  = {}, label_icons = {}, label_text = {};
+    for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
+        var scenario_index = Object.keys(data_for_scenarios).indexOf(scenario_name)
+
+        // Line representing the mean concentration.
+        lineFuncs[scenario_name] = d3.line();
+
+        draw_lines[scenario_name] = draw_area.append('svg:path')
+            .attr("stroke", colors[scenario_index])
+            .attr('stroke-width', 2)
+            .attr('fill', 'none');
+
+        // Legend for the plot elements - lines.
+        label_icons[scenario_name] = vis.append('rect')
+            .attr('width', 20)
+            .attr('height', 3)
+            .style('fill', colors[scenario_index]);
+
+        label_text[scenario_name] = vis.append('text')
+            .text(scenario_name)
+            .style('font-size', '15px')
+            .attr('alignment-baseline', 'central');
+
+    }
 
     // Tooltip.
     var focus = {}, tooltip_rect = {}, tooltip_time = {}, tooltip_concentration = {}, toolBox = {};
@@ -635,6 +645,26 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
             .on('mousemove', mousemove);
     }
 
+    function update_alternative_concentration_plot(concentration_data) {
+        var highest_concentration = 0.
+
+        for (scenario in alternative_scenarios) {
+            scenario_concentrations = alternative_scenarios[scenario][concentration_data];
+            highest_concentration = Math.max(highest_concentration, Math.max(...scenario_concentrations));
+        }
+
+        yRange.domain([0., highest_concentration]);
+        yAxisEl.transition().duration(1000).call(yAxis);
+
+        for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
+            // Lines.
+            lineFuncs[scenario_name].defined(d => !isNaN(d.concentration))
+                .x(d => xTimeRange(d.time))
+                .y(d => yRange(d.concentration));
+            draw_lines[scenario_name].transition().duration(1000).attr("d", lineFuncs[scenario_name](data));
+        }
+    }
+
     var graph_width;
     var graph_height;
 
@@ -665,6 +695,11 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
             .attr('height', div_height);
 
         // SVG components according to the width and height.
+        // clipPath: everything out of this area won't be drawn.
+        clip.attr("x", margins.left)
+            .attr("y", margins.top)
+            .attr("width", graph_width - margins.right - margins.left)
+            .attr("height", graph_height - margins.top - margins.bottom);
 
         // Axis ranges.
         xRange.range([margins.left, graph_width - margins.right]);
@@ -673,12 +708,6 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
 
         for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
             var scenario_index = Object.keys(data_for_scenarios).indexOf(scenario_name)
-            // Lines.
-            lineFuncs[scenario_name].defined(d => !isNaN(d.concentration))
-                .x(d => xTimeRange(d.time))
-                .y(d => yRange(d.concentration));
-            draw_lines[scenario_name].attr("d", lineFuncs[scenario_name](data));
-
             // Legend on right side.
             var size = 20 * (scenario_index + 1);
             if (document.getElementById(concentration_plot_svg_id).clientWidth >= 900) {
@@ -699,7 +728,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
 
         // Axis.
         var xAxis = d3.axisBottom(xRange).tickFormat(d => time_format(d));
-        var yAxis = d3.axisLeft(yRange);
+        yAxis.scale(yRange);
 
         xAxisEl.attr('transform', 'translate(0,' + (graph_height - margins.bottom) + ')')
             .call(xAxis);
@@ -731,8 +760,20 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
         }
     }
 
-    // Draw for the first time to initialize.
-    redraw();
+    if (button_full_exposure) {
+        button_full_exposure.addEventListener("click", () => {
+            update_alternative_concentration_plot('concentrations');
+            button_full_exposure.disabled = true;
+            button_hide_high_concentration.disabled = false;
+        });
+    }
+    if (button_hide_high_concentration) {
+            button_hide_high_concentration.addEventListener("click", () => {
+            update_alternative_concentration_plot('concentrations_zoomed');
+            button_full_exposure.disabled = false;
+            button_hide_high_concentration.disabled = true;
+        });
+    }
 
     function mousemove() {
         for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
@@ -757,8 +798,16 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
         }
     }
 
+    // Draw for the first time to initialize.
+    redraw();
+    update_alternative_concentration_plot('concentrations');
+
     // Redraw based on the new size whenever the browser window is resized.
-    window.addEventListener("resize", redraw);
+    window.addEventListener("resize", e => {
+        redraw();
+        if (button_full_exposure && button_full_exposure.disabled) update_alternative_concentration_plot('concentrations');
+        else update_alternative_concentration_plot('concentrations_zoomed')
+    });
 }
 
 function copy_clipboard(shareable_link) {

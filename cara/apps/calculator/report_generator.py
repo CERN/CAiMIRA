@@ -96,33 +96,39 @@ def interesting_times(model: models.ExposureModel, approx_n_pts=100) -> typing.L
     return nice_times
 
 
-def calculate_report_data(model: models.ExposureModel):
-    times = interesting_times(model)
+def interesting_sr_interactions(model: models.ExposureModel) -> typing.Tuple[typing.List, typing.List]:
     short_range_activities = []
     short_range_intervals = []
     for (activity, interval) in model.short_range.presence:
         short_range_activities.append(activity)
         short_range_intervals.append(list(interval.boundaries()))
+    return short_range_activities, short_range_intervals
 
-    short_range_concentrations = [
-        np.array(model.concentration(float(time))).mean()
-        for time in times
-    ]
 
-    sr_breathing_concentrations = []
+def concentrations_with_sr_breathing(model: models.ExposureModel, times: typing.List[float], short_range_intervals: typing.List, 
+                                short_range_activities:typing.List) -> typing.List[float]:
+    lower_concentrations = []
     for time in times:
         for index, (start, stop) in enumerate(short_range_intervals):
             # For visualization issues, add short range breathing activity to the initial long range concentrations
             if start <= time <= stop and short_range_activities[index] == 'Breathing':
-                sr_breathing_concentrations.append(np.array(model.concentration(float(time))).mean())
+                lower_concentrations.append(np.array(model.concentration(float(time))).mean())
                 break
-        sr_breathing_concentrations.append(np.array(model.concentration_model.concentration(float(time))).mean())
+        lower_concentrations.append(np.array(model.concentration_model.concentration(float(time))).mean())
+    return lower_concentrations
+
+
+def calculate_report_data(model: models.ExposureModel):
+    times = interesting_times(model)
+    short_range_activities, short_range_intervals = interesting_sr_interactions(model)
     
-    highest_const = max(short_range_concentrations)
-    prob = np.array(model.infection_probability()).mean()
-    er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
-    exposed_occupants = model.exposed.number
-    expected_new_cases = np.array(model.expected_new_cases()).mean()
+    concentrations = [
+        np.array(model.concentration(float(time))).mean()
+        for time in times
+    ]  
+    lower_concentrations = concentrations_with_sr_breathing(model, times, short_range_intervals, short_range_activities)
+    highest_const = max(concentrations)
+    
     cumulative_doses = np.cumsum([
         np.array(model.deposited_exposure_between_bounds(float(time1), float(time2))).mean()
         for time1, time2 in zip(times[:-1], times[1:])
@@ -132,16 +138,21 @@ def calculate_report_data(model: models.ExposureModel):
         for time1, time2 in zip(times[:-1], times[1:])
     ])
 
+    prob = np.array(model.infection_probability()).mean()
+    er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
+    exposed_occupants = model.exposed.number
+    expected_new_cases = np.array(model.expected_new_cases()).mean()
+
     return {
         "times": list(times),
+        "exposed_presence_intervals": [list(interval) for interval in model.exposed.presence.boundaries()],
         "short_range_intervals": short_range_intervals,
         "short_range_activities": short_range_activities,
-        "exposed_presence_intervals": [list(interval) for interval in model.exposed.presence.boundaries()],
+        "concentrations": concentrations,
+        "concentrations_zoomed": lower_concentrations,
+        "highest_const": highest_const,
         "cumulative_doses": list(cumulative_doses),
         "long_range_cumulative_doses": list(long_range_cumulative_doses),
-        "short_range_concentrations": short_range_concentrations,
-        "concentrations": sr_breathing_concentrations,
-        "highest_const": highest_const,
         "prob_inf": prob,
         "emission_rate": er,
         "exposed_occupants": exposed_occupants,
@@ -257,8 +268,12 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
     return scenarios
 
 
-def scenario_statistics(mc_model: mc.ExposureModel, sample_times: np.ndarray):
+def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[float]):
     model = mc_model.build_model(size=_DEFAULT_MC_SAMPLE_SIZE)
+
+    short_range_activities, short_range_intervals = interesting_sr_interactions(model)
+    lower_concentrations = concentrations_with_sr_breathing(model, sample_times, short_range_intervals, short_range_activities)
+
     return {
         'probability_of_infection': np.mean(model.infection_probability()),
         'expected_new_cases': np.mean(model.expected_new_cases()),
@@ -266,6 +281,7 @@ def scenario_statistics(mc_model: mc.ExposureModel, sample_times: np.ndarray):
             np.mean(model.concentration(time))
             for time in sample_times
         ],
+        'concentrations_zoomed': lower_concentrations,
     }
 
 

@@ -144,10 +144,13 @@ p.notes {
         padding: 15px; 
         page-break-inside: avoid;
     }
-    #button_full_exposure {
+    #button_full_exposure, #button_hide_high_concentration {
         display: none!important;
     }
-    #button_long_exposure {
+    #long_range_cumulative_checkbox, #lr_cumulative_checkbox_label {
+        display: none!important;
+    }
+    #button_alternative_full_exposure, #button_alternative_hide_high_concentration {
         display: none!important;
     }
 }
