@@ -268,7 +268,6 @@
       <label for="mask_on">Yes</label>
     <input class="ml-2" type="radio" id="mask_off"  name="mask_wearing_option" value="mask_off" checked="checked">
       <label for="mask_off">No</label><br>
-    <p id="face_mask_warning" class="red_text">The analytical model with short range interactions does not take mask wearing into account.</p>    
       
     <div id="DIVmasks_used" style="display:none">
       <div class='sub_title'>Type of masks used:</div>
@@ -367,7 +366,7 @@
     <hr width="80%">
 
     <div class="split">
-      <div style="min-width: 20em">Short range interactions (no masks):</div>
+      <div style="min-width: 22em">Short range interactions (without masks):</div>
       <div>
         <input class="ml-2" type="radio" id="short_range_no" name="short_range_option" value="short_range_no" checked="checked">
           <label for="short_range_no">No</label>
@@ -375,6 +374,7 @@
           <label for="short_range_yes">Yes</label>
       </div>
     </div>
+    <p id="short_range_warning" class="red_text" style="margin-right: 2rem">The use of masks mitigates exposure at short-range. The analytical model with short range interactions does not take mask wearing into account.</p>
 
     <div id="DIVsr_interactions" class="none">
       <div class="d-flex">

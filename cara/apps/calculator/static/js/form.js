@@ -242,6 +242,16 @@ function on_wearing_mask_change() {
     if (this.checked) {
       getChildElement($(this)).show();
       require_fields(this);
+      if (this.id == "mask_on") {
+        $('#short_range_no').click();
+        $('input[name="short_range_option"]').attr('disabled', true);
+        $("#short_range_warning").show();
+      }
+      else {
+        $('input[name="short_range_option"]').attr('disabled', false);
+        $("#short_range_warning").hide();
+      }
+
     }
     else {
       getChildElement($(this)).hide();
@@ -256,17 +266,6 @@ function on_short_range_option_change() {
     if (this.checked) {
       getChildElement($(this)).show();
       require_fields(this);
-      // Disable face mask selection if short_range_yes is selected
-      if (this.id == "short_range_yes") {
-        $('#mask_off').click();
-        require_mask(false);
-        $('input[name="mask_wearing_option"]').attr('disabled', true);
-        $("#face_mask_warning").show();
-      }
-      else {
-        $('input[name="mask_wearing_option"]').attr('disabled', false);
-        $("#face_mask_warning").hide();
-      }
     } 
     else {
       getChildElement($(this)).hide();
@@ -720,6 +719,7 @@ $(document).ready(function () {
   // When the short_range_option changes we want to make its respective
   // children show/hide.
   $("input[type=radio][name=short_range_option]").change(on_short_range_option_change);
+
   // Call the function now to handle forward/back button presses in the browser.
   on_short_range_option_change();
 
