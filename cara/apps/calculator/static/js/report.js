@@ -69,51 +69,66 @@ function draw_plot(svg_id) {
         .text('Mean cumulative dose (infectious virus)');
 
     // Legend for the plot elements - line and area.
+    
+    // Concentration line icon
     var legendLineIcon = vis.append('rect')
         .attr('width', 20)
         .attr('height', 3)
         .style('fill', '#1f77b4');
-
-    var legendCumulativeIcon = vis.append('line')
-        .style("stroke-dasharray", "5 5") //dashed array for line
-        .attr('stroke-width', '2')
-        .style("stroke", '#1f77b4');
-
-    var legendAreaIcon = vis.append('rect')
-        .attr('width', 20)
-        .attr('height', 15)
-        .attr('fill', '#1f77b4')
-        .attr('fill-opacity', '0.1');
-
-    sr_unique_activities = [...new Set(short_range_activities)]
-    if (show_sr_legend) {
-        var legendShortRangeAreaIcon = {};
-        sr_unique_activities.forEach((b, index) => {
-        legendShortRangeAreaIcon[index] = vis.append('rect')
-            .attr('width', 20)
-            .attr('height', 15);
-        if (sr_unique_activities[index] == 'Breathing') legendShortRangeAreaIcon[index].attr('fill', 'red').attr('fill-opacity', '0.2');
-        else if (sr_unique_activities[index] == 'Speaking') legendShortRangeAreaIcon[index].attr('fill', 'green').attr('fill-opacity', '0.1');
-        else legendShortRangeAreaIcon[index].attr('fill', 'blue').attr('fill-opacity', '0.1');
-        });
-    }
-
+    // Concentration line text
     var legendLineText = vis.append('text')
         .text('Mean concentration')
         .style('font-size', '15px')
         .attr('alignment-baseline', 'central');
 
+    // Cumulative dose line icon
+    var legendCumulativeIcon = vis.append('line')
+        .style("stroke-dasharray", "5 5") //dashed array for line
+        .attr('stroke-width', '2')
+        .style("stroke", '#1f77b4');
+    // Cumulative dose line text
     var legendCumutiveText = vis.append('text')
         .text('Cumulative dose')
         .style('font-size', '15px')
         .attr('alignment-baseline', 'central');
 
+    //  Area line icon
+    var legendAreaIcon = vis.append('rect')
+        .attr('width', 20)
+        .attr('height', 15)
+        .attr('fill', '#1f77b4')
+        .attr('fill-opacity', '0.1');
+    //  Area line text
     var legendAreaText = vis.append('text')
         .text('Presence of exposed person(s)')
         .style('font-size', '15px')
         .attr('alignment-baseline', 'central');
 
+    sr_unique_activities = [...new Set(short_range_activities)]
     if (show_sr_legend) {
+        // Long range cumulative dose line legend - line and area
+        var legendLongCumulativeIcon = vis.append('line')
+            .style("stroke-dasharray", "5 5") //dashed array for line
+            .attr('stroke-width', '2')
+            .style("stroke", 'purple')
+            .attr('opacity', 0);
+        var legendLongCumutiveText = vis.append('text')
+            .text('Long-range cumulative dose')
+            .style('font-size', '15px')
+            .attr('alignment-baseline', 'central')
+            .attr('opacity', 0);
+        // Short range area icon
+        var legendShortRangeAreaIcon = {};
+        sr_unique_activities.forEach((b, index) => {
+        legendShortRangeAreaIcon[index] = vis.append('rect')
+            .attr('width', 20)
+            .attr('height', 15);
+        // Short range area icon colors
+        if (sr_unique_activities[index] == 'Breathing') legendShortRangeAreaIcon[index].attr('fill', 'red').attr('fill-opacity', '0.2');
+        else if (sr_unique_activities[index] == 'Speaking') legendShortRangeAreaIcon[index].attr('fill', 'green').attr('fill-opacity', '0.1');
+        else legendShortRangeAreaIcon[index].attr('fill', 'blue').attr('fill-opacity', '0.1');
+        });
+        // Short range area text
         var legendShortRangeText = {};
         sr_unique_activities.forEach((b, index) => {
             legendShortRangeText[index] = vis.append('text')
@@ -357,33 +372,41 @@ function draw_plot(svg_id) {
                 .attr('y', graph_width + 290);
         }
 
-        // Legend on right side.
         const size = 20;
+        var legend_x_start = 50;
+        const space_between_text_icon = 30;
+        // Legend on right side.
         if (plot_div.clientWidth >= 900) {
-            legendLineIcon.attr('x', graph_width + size * 2.5)
+            legendLineIcon.attr('x', graph_width + legend_x_start)
                 .attr('y', margins.top + size);
-            legendLineText.attr('x', graph_width + 4 * size)
+            legendLineText.attr('x', graph_width + legend_x_start + space_between_text_icon)
                 .attr('y', margins.top + size);
-            
-            legendCumulativeIcon.attr("x1", graph_width + size + 30)
-                .attr("x2", graph_width + 2 * size + 32)
-                .attr("y1", 3.5 * size)
-                .attr("y2", 3.5 * size);
-            legendCumutiveText.attr('x', graph_width + 2.5 * size + 30)
+
+            legendCumulativeIcon.attr("x1", graph_width + legend_x_start)
+                .attr("x2", graph_width + legend_x_start + 20)
+                .attr("y1", margins.top + 2 * size)
+                .attr("y2", margins.top + 2 * size);
+            legendCumutiveText.attr('x', graph_width + legend_x_start + space_between_text_icon)
                 .attr('y', margins.top + 2 * size);
             
-            legendAreaIcon.attr('x', graph_width + size * 2.5)
-                .attr('y', margins.top + 2.6 * size);
-            legendAreaText.attr('x', graph_width + 4 * size)
+            legendAreaIcon.attr('x', graph_width + legend_x_start)
+                .attr('y', margins.top + (3 * size) - 15/2);
+            legendAreaText.attr('x', graph_width + legend_x_start + space_between_text_icon)
                 .attr('y', margins.top + 3 * size);
             
             if (show_sr_legend) {
                 sr_unique_activities.forEach((b, index) => {
-                    legendShortRangeAreaIcon[index].attr('x', graph_width + size * 2.5)
-                        .attr('y', margins.top + 3.6 * size + index * size);
-                    legendShortRangeText[index].attr('x', graph_width + 4 * size)
-                        .attr('y', margins.top + 4 * size + index * size);
+                    legendShortRangeAreaIcon[index].attr('x', graph_width + legend_x_start)
+                        .attr('y', margins.top + (4 + index) * size - 15/2);
+                    legendShortRangeText[index].attr('x', graph_width + legend_x_start + space_between_text_icon)
+                        .attr('y', margins.top + (4 + index) * size);
                 });
+                legendLongCumulativeIcon.attr("x1", graph_width + legend_x_start)
+                    .attr("x2", graph_width + legend_x_start + 20)
+                    .attr("y1", margins.top + (4 + sr_unique_activities.length) * size)
+                    .attr("y2", margins.top + (4 + sr_unique_activities.length) * size);
+                legendLongCumutiveText.attr('x', graph_width + legend_x_start + space_between_text_icon)
+                    .attr('y', margins.top + (4 + sr_unique_activities.length) * size); 
             }
             
             legendBBox.attr('x', graph_width * 1.07)
@@ -391,34 +414,42 @@ function draw_plot(svg_id) {
         }
         // Legend on the bottom.
         else {
-            legendLineIcon.attr('x', size * 0.5)
-                .attr('y', graph_height * 1.05);
-            legendLineText.attr('x', 2 * size)
-                .attr('y', graph_height * 1.05);
+            legend_x_start = 10;
 
-            legendCumulativeIcon.attr("x1", size * 0.5)
-                .attr("x2", size * 1.55)
-                .attr("y1", graph_height * 1.05 + size)
-                .attr("y2", graph_height * 1.05 + size);
-            legendCumutiveText.attr('x', 2 * size)
-                .attr('y', graph_height + 1.65 * size);
+            legendLineIcon.attr('x', legend_x_start)
+                .attr('y', graph_height + size);
+            legendLineText.attr('x', legend_x_start + space_between_text_icon)
+                .attr('y', graph_height + size);
 
-            legendAreaIcon.attr('x', size * 0.50)
-                .attr('y', graph_height * 1.09 + size);
-            legendAreaText.attr('x', 2 * size)
-                .attr('y', graph_height + 2.6 * size);
+            legendCumulativeIcon.attr("x1", legend_x_start)
+                .attr("x2", legend_x_start + 20)
+                .attr("y1", graph_height + 2 * size)
+                .attr("y2", graph_height + 2 * size);
+            legendCumutiveText.attr('x', legend_x_start + space_between_text_icon)
+                .attr('y', graph_height + 2 * size);
+
+            legendAreaIcon.attr('x', legend_x_start)
+                .attr('y', graph_height + 3 * size - 15/2);
+            legendAreaText.attr('x', legend_x_start + space_between_text_icon)
+                .attr('y', graph_height + 3 * size);
 
             if (show_sr_legend) {
                 sr_unique_activities.forEach((b, index) => {
-                    legendShortRangeAreaIcon[index].attr('x', size * 0.50)
-                        .attr('y', graph_height * 1.175 + size + index * size);
-                    legendShortRangeText[index].attr('x', 2 * size)
-                        .attr('y', graph_height + 3.65 * size + index * size);
+                    legendShortRangeAreaIcon[index].attr('x', legend_x_start)
+                        .attr('y', graph_height + 4 * size - 15/2);
+                    legendShortRangeText[index].attr('x', legend_x_start + space_between_text_icon)
+                        .attr('y', graph_height + 4 * size);
                 });
+                legendLongCumulativeIcon.attr("x1", legend_x_start)
+                    .attr("x2", legend_x_start + 20)
+                    .attr("y1", graph_height + (4 + sr_unique_activities.length) * size)
+                    .attr("y2", graph_height + (4 + sr_unique_activities.length) * size)
+                legendLongCumutiveText.attr('x', legend_x_start + space_between_text_icon)
+                    .attr('y', graph_height + (4 + sr_unique_activities.length) * size);
             }
 
             legendBBox.attr('x', 1)
-                .attr('y', graph_height);
+                .attr('y', graph_height + 6);
         }
 
         // ToolBox.
@@ -429,10 +460,20 @@ function draw_plot(svg_id) {
 
     }
 
-    if (long_range_checkbox) {
+    if (show_sr_legend) {
         long_range_checkbox.addEventListener("click", () => {
-            if (long_range_checkbox.checked) draw_long_range_cumulative_line.transition().duration(1000).attr("opacity", 1);
-            else draw_long_range_cumulative_line.transition().duration(1000).attr("opacity", 0);
+            if (long_range_checkbox.checked) {
+                draw_long_range_cumulative_line.transition().duration(1000).attr("opacity", 1);
+                legendBBox.transition().duration(1000).attr("height", legendBBox_height + 20);
+                legendLongCumulativeIcon.transition().duration(1000).attr("opacity", 1);
+                legendLongCumutiveText.transition().duration(1000).attr("opacity", 1);
+            }
+            else {
+                draw_long_range_cumulative_line.transition().duration(1000).attr("opacity", 0);
+                legendBBox.transition().duration(1000).attr("height", legendBBox_height);
+                legendLongCumulativeIcon.transition().duration(1000).attr("opacity", 0);
+                legendLongCumutiveText.transition().duration(1000).attr("opacity", 0);
+            }
         });
     };
 
@@ -706,21 +747,25 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
         xTimeRange.range([margins.left, graph_width - margins.right]);
         yRange.range([graph_height - margins.bottom, margins.top]);
 
+        var legend_x_start = 25;
+        const space_between_text_icon = 30;
         for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
             var scenario_index = Object.keys(data_for_scenarios).indexOf(scenario_name)
             // Legend on right side.
             var size = 20 * (scenario_index + 1);
             if (document.getElementById(concentration_plot_svg_id).clientWidth >= 900) {
-                label_icons[scenario_name].attr('x', graph_width + 20)
+                label_icons[scenario_name].attr('x', graph_width + legend_x_start)
                     .attr('y', margins.top + size);
-                label_text[scenario_name].attr('x', graph_width + 3 * 20)
+                label_text[scenario_name].attr('x', graph_width + legend_x_start + space_between_text_icon)
                     .attr('y', margins.top + size);
             }
             // Legend on the bottom.
             else {
-                label_icons[scenario_name].attr('x', margins.left * 0.3)
+                legend_x_start = 10;
+
+                label_icons[scenario_name].attr('x', legend_x_start)
                     .attr('y', graph_height + size);
-                label_text[scenario_name].attr('x', margins.left * 1.4)
+                label_text[scenario_name].attr('x', legend_x_start + space_between_text_icon)
                     .attr('y', graph_height + size);
             }
 
