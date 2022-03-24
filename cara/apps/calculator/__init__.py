@@ -140,7 +140,6 @@ class StaticModel(BaseRequestHandler):
             executor_factory=functools.partial(
                 concurrent.futures.ThreadPoolExecutor,
                 self.settings['report_generation_parallelism'],
-                self.settings["template_environment"].globals['common_text'],
             ),
         )
         report: str = await asyncio.wrap_future(report_task)
@@ -150,7 +149,7 @@ class StaticModel(BaseRequestHandler):
 class LandingPage(BaseRequestHandler):
     def get(self):
         template_environment = self.settings["template_environment"]
-        template = self.settings["template_environment"].get_template(
+        template = template_environment.get_template(
             "index.html.j2")
         report = template.render(
             user=self.current_user,
@@ -176,7 +175,7 @@ class AboutPage(BaseRequestHandler):
 class CalculatorForm(BaseRequestHandler):
     def get(self):
         template_environment = self.settings["template_environment"]
-        template = self.settings["template_environment"].get_template(
+        template = template_environment.get_template(
             "calculator.form.html.j2")
         report = template.render(
             user=self.current_user,
@@ -203,7 +202,7 @@ class CompressedCalculatorFormInputs(BaseRequestHandler):
 class ReadmeHandler(BaseRequestHandler):
     def get(self):
         template_environment = self.settings["template_environment"]
-        template = self.settings['template_environment'].get_template("userguide.html.j2")
+        template = template_environment.get_template("userguide.html.j2")
         readme = template.render(
             active_page="calculator/user-guide",
             user=self.current_user,
