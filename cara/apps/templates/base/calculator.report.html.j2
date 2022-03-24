@@ -106,69 +106,72 @@
 									let exposed_presence_intervals = {{ exposed_presence_intervals | JSONify }}
 									let short_range_intervals = {{ short_range_intervals | JSONify }}
 									let short_range_activities = {{ short_range_activities | JSONify }}
-									let alternative_scenarios = {{ alternative_scenarios.stats | JSONify }}
 									draw_plot("concentration_plot")
 								</script>
               				</p>
 						</div>
 					</div>
 				</div>
-				<div class="card bg-light mb-3">
-  					<div class="card-header"><strong>Alternative scenarios</strong>
-						<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseAlternativeScenarios" role="button" aria-expanded="false" aria-controls="collapseAlternativeScenarios">
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
-								<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
-							</svg>
-						</button>
-					</div>	
-					<div class="collapse" id="collapseAlternativeScenarios">
-						<div class="card-body">
-							<div>
-								{% if form.short_range_option == "short_range_yes" %}
-									{% if 'Speaking' in form.short_range_interactions|string or 'Shouting' in form.short_range_interactions|string %}
-										<button class="btn btn-sm btn-primary" id="button_alternative_full_exposure" disabled>Show full exposure</button>
-										<button class="btn btn-sm btn-primary ml-0" id="button_alternative_hide_high_concentration">Hide high concentration</button>
+
+				{% if form.short_range_option == "short_range_no" %}
+					<div class="card bg-light mb-3">
+						<div class="card-header"><strong>Alternative scenarios</strong>
+							<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseAlternativeScenarios" role="button" aria-expanded="false" aria-controls="collapseAlternativeScenarios">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
+									<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
+								</svg>
+							</button>
+						</div>	
+						<div class="collapse" id="collapseAlternativeScenarios">
+							<div class="card-body">
+								<div>
+									{% if form.short_range_option == "short_range_yes" %}
+										{% if 'Speaking' in form.short_range_interactions|string or 'Shouting' in form.short_range_interactions|string %}
+											<button class="btn btn-sm btn-primary" id="button_alternative_full_exposure" disabled>Show full exposure</button>
+											<button class="btn btn-sm btn-primary ml-0" id="button_alternative_hide_high_concentration">Hide high concentration</button>
+										{% endif %}
 									{% endif %}
-								{% endif %}
-								<div id="alternative_scenario_plot" style="height: 400px"></div>
-								<script type="application/javascript">
-									draw_alternative_scenarios_plot("concentration_plot", "alternative_scenario_plot");
-								</script>
-								<br>
-								{% block report_scenarios_summary_table %}
-									<table class="table w-auto">
-										<thead class="thead-light">
-											<tr>
-												<th>Scenario</th>
-												<th>P(I)</th>
-												<th>Expected new cases</th>
-											</tr>
-										</thead>
-										<tbody>
-										{% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
-											<tr>
-												<td> {{ scenario_name }}</td>
-												<td> {{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
-												<td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>
-											</tr>
-										{% endfor %}
-										</tbody>
-									</table>
-								{% endblock report_scenarios_summary_table %}
+									<div id="alternative_scenario_plot" style="height: 400px"></div>
+									<script type="application/javascript">
+										let alternative_scenarios = {{ alternative_scenarios.stats | JSONify }}
+										draw_alternative_scenarios_plot("concentration_plot", "alternative_scenario_plot");
+									</script>
+									<br>
+									{% block report_scenarios_summary_table %}
+										<table class="table w-auto">
+											<thead class="thead-light">
+												<tr>
+													<th>Scenario</th>
+													<th>P(I)</th>
+													<th>Expected new cases</th>
+												</tr>
+											</thead>
+											<tbody>
+											{% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
+												<tr>
+													<td> {{ scenario_name }}</td>
+													<td> {{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
+													<td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>
+												</tr>
+											{% endfor %}
+											</tbody>
+										</table>
+									{% endblock report_scenarios_summary_table %}
+								</div>
+								<br/>
+								<p class="data_text"> <strong> Notes for alternative scenarios: </strong><br>
+									<ol>
+										<li>This graph shows the concentration of infectious quanta in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation).
+									For this reason, scenarios with different types of mask will show the same concentration on the graph but have different absorbed doses and infection probabilities.</li>
+										<li>If you have selected more sophisticated options, such as HEPA filtration or FFP2 masks, this will be indicated in the plot as the "base scenario", representing the inputs inserted in the form.<br>
+										The other alternative scenarios shown for comparison will not include either HEPA filtration or FFP2 masks.</li>
+									</ol>
+									<br>
+								</p>
 							</div>
-							<br/>
-							<p class="data_text"> <strong> Notes for alternative scenarios: </strong><br>
-								<ol>
-									<li>This graph shows the concentration of infectious quanta in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation).
-								For this reason, scenarios with different types of mask will show the same concentration on the graph but have different absorbed doses and infection probabilities.</li>
-									<li>If you have selected more sophisticated options, such as HEPA filtration or FFP2 masks, this will be indicated in the plot as the "base scenario", representing the inputs inserted in the form.<br>
-									The other alternative scenarios shown for comparison will not include either HEPA filtration or FFP2 masks.</li>
-								</ol>
-								<br>
-							</p>
 						</div>
 					</div>
-				</div>
+				{% endif %}
 			{% endblock report_results %}
 
 			{% block report_footer %}
