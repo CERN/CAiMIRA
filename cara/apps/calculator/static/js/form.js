@@ -559,7 +559,7 @@ function overlapped_times(obj, start_time, finish_time) {
       let parameter = document.getElementById($(obj).attr('id'));
       //Adds the red border and error message.
       if (!$(obj).hasClass("red_border")) $(parameter).addClass("red_border");
-      insertErrorFor(parameter, "Simulation time.");
+      insertErrorFor(parameter, "Out of event time.");
       return false;
   } 
   let current_interaction = $(obj).closest(".form_field_outer_row");
