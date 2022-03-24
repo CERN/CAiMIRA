@@ -1074,7 +1074,7 @@ class ConcentrationModel:
 
 @dataclass(frozen=True)
 class ShortRangeModel:
-    #: Short range activities and respective interactions
+    #: Short-range activities and respective interactions
     presence: typing.Tuple[typing.Tuple[str, SpecificInterval], ...]
 
     #: Expiration types
@@ -1085,15 +1085,15 @@ class ShortRangeModel:
 
     def _normed_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
         """
-        Virus short range exposure concentration, as a function of time.
+        Virus short-range exposure concentration, as a function of time.
 
-        If the given time falls within a short range interval it returns the 
-        short range concentration normalized by the virus viral load. Otherwise
+        If the given time falls within a short-range interval it returns the 
+        short-range concentration normalized by the virus viral load. Otherwise
         it returns 0.
         """ 
         for index, (activity, period) in enumerate(self.presence):
             start, stop = tuple(period.boundaries())
-            # Verifies if the given time falls within a short range interaction
+            # Verifies if the given time falls within a short-range interaction
             if start < time <= stop:
                 dilution = self.dilutions[index]
                 jet_origin_concentration = self.expirations[index].jet_origin_concentration()
@@ -1101,19 +1101,19 @@ class ShortRangeModel:
                 long_range_normed_concentration = concentration_model.concentration(time) / concentration_model.virus.viral_load_in_sputum
                 
                 # The long range concentration values are then approximated using interpolation:
-                # The set of points where we want the interpolated values are the short range particle diameters (given the current expiration); 
+                # The set of points where we want the interpolated values are the short-range particle diameters (given the current expiration); 
                 # The set of points with a known value are the long range particle diameters (given the initial expiration);
                 # The set of known values are the long range concentration values normalized by the viral load.
                 long_range_normed_concentration_interpolated=np.interp(self.expirations[index].particle.diameter, concentration_model.infected.particle.diameter, long_range_normed_concentration)
                 
-                # Short range concentration formula. The long range concentration is added in the concentration method (ExposureModel).
+                # Short-range concentration formula. The long range concentration is added in the concentration method (ExposureModel).
                 return ((1/dilution)*(jet_origin_concentration - long_range_normed_concentration_interpolated))
         
         return 0.
 
     def short_range_concentration(self, concentration_model: ConcentrationModel, time: float):
         """
-        Virus short range exposure concentration, as a function of time.
+        Virus short-range exposure concentration, as a function of time.
         """
         return (self._normed_concentration(concentration_model, time) * 
             concentration_model.virus.viral_load_in_sputum)
@@ -1121,13 +1121,13 @@ class ShortRangeModel:
     @method_cache
     def _normed_short_range_concentration_cached(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
         # A cached version of the _normed_concentration method. Use this
-        # method if you expect that there may be multiple short range concentration
+        # method if you expect that there may be multiple short-range concentration
         # calculations for the same time (e.g. at state change times).
         return self._normed_concentration(concentration_model, time)
 
     def normed_exposure_between_bounds(self, concentration_model: ConcentrationModel, time1: float, time2: float):
         """
-        Get the integrated short range concentration of viruses in the air between the times start and stop,
+        Get the integrated short-range concentration of viruses in the air between the times start and stop,
         normalized by the virus viral load.
         """
         for index, (activity, period) in enumerate(self.presence):
@@ -1165,7 +1165,7 @@ class ExposureModel:
     #: The virus concentration model which this exposure model should consider.
     concentration_model: ConcentrationModel
 
-    #: The short range model which this exposure model should consider.
+    #: The short-range model which this exposure model should consider.
     short_range: ShortRangeModel
 
     #: The population of non-infected people to be used in the model.
@@ -1207,7 +1207,7 @@ class ExposureModel:
         Virus exposure concentration, as a function of time.
 
         It considers the long range concentration with the
-        contribution of the short range concentration.
+        contribution of the short-range concentration.
         """        
         return (self.concentration_model.concentration(time) + 
             self.short_range.short_range_concentration(self.concentration_model, time))
@@ -1249,8 +1249,8 @@ class ExposureModel:
         The number of virus per m^3 deposited on the respiratory tract
         between any two times.
 
-        Considers a contribution between the short range and long range exposures:
-        It calculates the deposited exposure given a short range interaction (if any).
+        Considers a contribution between the short-range and long range exposures:
+        It calculates the deposited exposure given a short-range interaction (if any).
         Then, the deposited exposure given the long range interactions is added to the
         initial deposited exposure. 
         """

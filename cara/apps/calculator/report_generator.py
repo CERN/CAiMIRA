@@ -110,7 +110,7 @@ def concentrations_with_sr_breathing(model: models.ExposureModel, times: typing.
     lower_concentrations = []
     for time in times:
         for index, (start, stop) in enumerate(short_range_intervals):
-            # For visualization issues, add short range breathing activity to the initial long range concentrations
+            # For visualization issues, add short-range breathing activity to the initial long range concentrations
             if start <= time <= stop and short_range_activities[index] == 'Breathing':
                 lower_concentrations.append(np.array(model.concentration(float(time))).mean())
                 break

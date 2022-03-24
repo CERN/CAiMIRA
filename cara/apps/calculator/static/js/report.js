@@ -1,7 +1,7 @@
 /* Generate the concentration plot using d3 library. */
 function draw_plot(svg_id) {
 
-    // Used for controlling the short range interactions 
+    // Used for controlling the short-range interactions 
     let button_full_exposure = document.getElementById("button_full_exposure");
     let button_hide_high_concentration = document.getElementById("button_hide_high_concentration");
     let long_range_checkbox = document.getElementById('long_range_cumulative_checkbox')
@@ -117,7 +117,7 @@ function draw_plot(svg_id) {
         var legendShortRangeText = {};
         sr_unique_activities.forEach((b, index) => {
             legendShortRangeText[index] = vis.append('text')
-            .text('Short range - ' + sr_unique_activities[index])
+            .text('Short-range - ' + sr_unique_activities[index])
             .style('font-size', '15px')
             .attr('alignment-baseline', 'central');
         });
@@ -179,7 +179,7 @@ function draw_plot(svg_id) {
             .attr('fill-opacity', '0.1');
     });
 
-    // Area representing the short range interaction(s).
+    // Area representing the short-range interaction(s).
     var shortRangeArea = {};
     var drawShortRangeArea = {};
     short_range_intervals.forEach((b, index) => {
@@ -273,7 +273,7 @@ function draw_plot(svg_id) {
             })));
         });
 
-        // Short Range Area.
+        // Short-Range Area.
         short_range_intervals.forEach((b, index) => {
             shortRangeArea[index].x(d => xTimeRange(d.time))
                 .y0(graph_height - 50)
@@ -510,7 +510,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
     // D3 array of ten categorical colors represented as RGB hexadecimal strings.
     var colors = d3.schemeAccent;
 
-    // Used for controlling the short range interactions 
+    // Used for controlling the short-range interactions 
     let button_full_exposure = document.getElementById("button_alternative_full_exposure");
     let button_hide_high_concentration = document.getElementById("button_alternative_hide_high_concentration");
 

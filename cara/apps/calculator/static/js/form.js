@@ -403,7 +403,7 @@ function validate_form(form) {
     }
   }
 
-  // Generate the short range interactions list
+  // Generate the short-range interactions list
   var short_range_interactions = [];
   $(".form_field_outer_row").each(function (index, element){
       let obj = {};
@@ -598,7 +598,7 @@ function validate_sr_time(obj) {
     return overlapped_times(obj, start_time, finish_time);
 };
 
-// Check if short range durations are filled, and if there is no repetitions
+// Check if short-range durations are filled, and if there is no repetitions
 function validate_sr_parameter(obj, error_message) {
   if ($(obj).val() == "" || $(obj).val() == null) {
     if (!$(obj).hasClass("red_border") && !$(obj).prop("disabled")) {
@@ -651,7 +651,7 @@ $(document).ready(function () {
         elemObj.checked = (value==1);
       }
 
-      // Read short range from URL
+      // Read short-range from URL
       else if (name == 'short_range_interactions') {
         let index = 1;
         for (const interaction of JSON.parse(value)) {
@@ -911,7 +911,7 @@ $(document).ready(function () {
     });
   });
 
-  //Edit short range activity type
+  //Edit short-range activity type
   $("body").on("click", ".edit_node_btn_frm_field", function() {
     $(this).hide();
     let id = $(this).attr('id').split('_').slice(-1)[0];
@@ -921,7 +921,7 @@ $(document).ready(function () {
     document.getElementById('validate_row_no_' + String(id)).style.cssText = 'display:inline !important';
   })
 
-  //Remove short range interaction (modal field row).
+  //Remove short-range interaction (modal field row).
   $("body").on("click", ".remove_node_btn_frm_field", function() {
     $(this).closest(".form_field_outer_row").remove();
     // On delete, check open/unvalidated rows.
@@ -932,7 +932,7 @@ $(document).ready(function () {
     });
   });
 
-  //Short range modal - close and save button
+  //Short-range modal - close and save button
   $("body").on("click", ".close_btn_frm_field", function() {
     $(".validate_node_btn_frm_field").click();
     if ($(".form_field_outer").find(".form_field_outer_row.row_validated").length == $(".form_field_outer").find(".form_field_outer_row").length) {
@@ -942,7 +942,7 @@ $(document).ready(function () {
     }
   });
 
-  //Short range modal - reset button
+  //Short-range modal - reset button
   $("body").on("click", ".dismiss_btn_frm_field", function() {
     $(".form_field_outer_row").remove();
     $("#sr_interactions").text(0);
