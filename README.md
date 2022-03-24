@@ -50,7 +50,7 @@ _Note that the short-range component of the model has not yet been published._
 
 ### COVID Calculator
 
-A risk assessment tool which simulates the long range airborne spread of the SARS-CoV-2 virus for space managers.
+A risk assessment tool which simulates the long-range airborne spread of the SARS-CoV-2 virus for space managers.
 
 
 ### CARA Expert App

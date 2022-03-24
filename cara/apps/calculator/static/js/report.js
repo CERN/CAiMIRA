@@ -158,7 +158,7 @@ function draw_plot(svg_id) {
         .style("stroke-dasharray", "5 5")
         .attr('fill', 'none');
 
-    // Line representing the long range cumulative concentration.
+    // Line representing the long-range cumulative concentration.
     if (show_sr_legend) {
         var longRangeCumulative = d3.line();
         var draw_long_range_cumulative_line = draw_area.append('svg:path')
@@ -252,7 +252,7 @@ function draw_plot(svg_id) {
             .duration(1000)
             .attr("d", lineCumulative(data_for_graphs.cumulative_doses));
     
-        // Long range cumulative line.
+        // Long-range cumulative line.
         if (show_sr_legend) {
             longRangeCumulative.defined(d => !isNaN(d.concentration))
                 .x(d => xTimeRange(d.time))

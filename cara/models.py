@@ -1000,7 +1000,7 @@ class ConcentrationModel:
 
     def _normed_concentration(self, time: float) -> _VectorisedFloat:
         """
-        Virus long range exposure concentration, as a function of time, and
+        Virus long-range exposure concentration, as a function of time, and
         normalized by the emission rate.
         The formulas used here assume that all parameters (ventilation,
         emission rate) are constant between two state changes - only
@@ -1026,7 +1026,7 @@ class ConcentrationModel:
 
     def concentration(self, time: float) -> _VectorisedFloat:
         """
-        Virus long range exposure concentration, as a function of time.
+        Virus long-range exposure concentration, as a function of time.
 
         Note that time is not vectorised. You can only pass a single float
         to this method.
@@ -1037,7 +1037,7 @@ class ConcentrationModel:
     @method_cache
     def normed_integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
         """
-        Get the integrated long range concentration of viruses in the air  between the times start and stop,
+        Get the integrated long-range concentration of viruses in the air  between the times start and stop,
         normalized by the emission rate.
         """
         if stop <= self._first_presence_time():
@@ -1097,16 +1097,16 @@ class ShortRangeModel:
             if start < time <= stop:
                 dilution = self.dilutions[index]
                 jet_origin_concentration = self.expirations[index].jet_origin_concentration()
-                # Long range concentration normalized by the virus viral load
+                # Long-range concentration normalized by the virus viral load
                 long_range_normed_concentration = concentration_model.concentration(time) / concentration_model.virus.viral_load_in_sputum
                 
-                # The long range concentration values are then approximated using interpolation:
+                # The long-range concentration values are then approximated using interpolation:
                 # The set of points where we want the interpolated values are the short-range particle diameters (given the current expiration); 
-                # The set of points with a known value are the long range particle diameters (given the initial expiration);
-                # The set of known values are the long range concentration values normalized by the viral load.
+                # The set of points with a known value are the long-range particle diameters (given the initial expiration);
+                # The set of known values are the long-range concentration values normalized by the viral load.
                 long_range_normed_concentration_interpolated=np.interp(self.expirations[index].particle.diameter, concentration_model.infected.particle.diameter, long_range_normed_concentration)
                 
-                # Short-range concentration formula. The long range concentration is added in the concentration method (ExposureModel).
+                # Short-range concentration formula. The long-range concentration is added in the concentration method (ExposureModel).
                 return ((1/dilution)*(jet_origin_concentration - long_range_normed_concentration_interpolated))
         
         return 0.
@@ -1206,7 +1206,7 @@ class ExposureModel:
         """
         Virus exposure concentration, as a function of time.
 
-        It considers the long range concentration with the
+        It considers the long-range concentration with the
         contribution of the short-range concentration.
         """        
         return (self.concentration_model.concentration(time) + 
@@ -1249,9 +1249,9 @@ class ExposureModel:
         The number of virus per m^3 deposited on the respiratory tract
         between any two times.
 
-        Considers a contribution between the short-range and long range exposures:
+        Considers a contribution between the short-range and long-range exposures:
         It calculates the deposited exposure given a short-range interaction (if any).
-        Then, the deposited exposure given the long range interactions is added to the
+        Then, the deposited exposure given the long-range interactions is added to the
         initial deposited exposure. 
         """
         deposited_exposure = 0.
@@ -1289,7 +1289,7 @@ class ExposureModel:
         
         # then we multiply by the diameter-independent quantity virus viral load
         deposited_exposure *= self.concentration_model.virus.viral_load_in_sputum
-        # long range concentration
+        # long-range concentration
         f_inf = self.concentration_model.infected.fraction_of_infectious_virus()
         deposited_exposure += self.long_range_deposited_exposure_between_bounds(time1, time2)/f_inf
 
