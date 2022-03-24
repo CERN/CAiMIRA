@@ -78,7 +78,7 @@
 										<div class="col-md-8 pr-0 pl-0 d-flex">
 											{% block report_summary %}
 												<div class="align-self-center alert alert-dark mb-0" role="alert">
-													Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>*.
+													Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>*.
 												</div>
 											{% endblock report_summary %}
 										</div>
@@ -93,9 +93,8 @@
 									{% if 'Speaking' in form.short_range_interactions|string or 'Shouting' in form.short_range_interactions|string %}
 										<button class="btn btn-sm btn-primary" id="button_full_exposure" disabled>Show full exposure</button>
 										<button class="btn btn-sm btn-primary ml-0" id="button_hide_high_concentration">Hide high concentration</button>
-									{% endif %}	
-									<input type="checkbox" id="long_range_cumulative_checkbox">
-									<label class="form-check-label" for="long_range_cumulative_checkbox" id="lr_cumulative_checkbox_label">Show long range cumulative doses</label>
+									{% endif %}
+									<input type="checkbox" id="long_range_cumulative_checkbox"><label class="form-check-label ml-1" for="long_range_cumulative_checkbox" id="lr_cumulative_checkbox_label">Show doses from long range exposure alone</label>
 								{% endif %}
 								<div id="concentration_plot" style="height: 400px"></div>
 								<script type="application/javascript">
