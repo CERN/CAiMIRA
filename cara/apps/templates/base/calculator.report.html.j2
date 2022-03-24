@@ -88,7 +88,7 @@
 									{% block report_summary_footnote %}
 									{% endblock report_summary_footnote %}
 								</div>
-								<p id="section1">* The results are based on the parameters and assumptions published in the CERN Open Report <a href="https://cds.cern.ch/record/2756083"> CERN-OPEN-2021-004</a>.</p>
+								<p id="section1">* The results are based on the parameters and assumptions published in the CARA publication: <a href="https://doi.org/10.1098/rsfs.2021.0076"> doi.org/10.1098/rsfs.2021.0076</a>.</p><br>
 								{% if form.short_range_option == "short_range_yes" %}
 									{% if 'Speaking' in form.short_range_interactions|string or 'Shouting' in form.short_range_interactions|string %}
 										<button class="btn btn-sm btn-primary" id="button_full_exposure" disabled>Show full exposure</button>
@@ -304,8 +304,10 @@
 							Activity type:
 							{% if form.activity_type == "office" %}
 							Office – typical scenario with all persons seated, speaking occasionally (speaking assumed for 1/3rd of the time).
-							{% elif form.activity_type == "meeting" %}
-							Meeting – typical scenario with all persons seated, one person speaking at a time.
+							{% elif form.activity_type == "smallmeeting" %}
+							Small meeting – typical scenario with all persons seated, one person speaking at a time.
+							{% elif form.activity_type == "largemeeting" %}
+							Large meeting – infected occupant(s) is standing and speaking 1/3rd of the time, while the other occupants are seated.							
 							{% elif form.activity_type == "callcentre" %}
 							Call Centre = typical office-like scenario with all persons seated, all speaking continuously.
 							{% elif form.activity_type == "controlroom-day" %}
