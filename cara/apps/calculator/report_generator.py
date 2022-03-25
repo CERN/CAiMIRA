@@ -12,6 +12,7 @@ import jinja2
 import numpy as np
 
 from cara import models
+from cara.apps.calculator import markdown_tools
 from ... import monte_carlo as mc
 from .model_generator import FormData, _DEFAULT_MC_SAMPLE_SIZE
 from ... import dataclass_utils
@@ -354,6 +355,9 @@ class ReportGenerator:
             loader=self.jinja_loader,
             undefined=jinja2.StrictUndefined,
         )
+        env.globals['common_text'] = markdown_tools.extract_rendered_markdown_blocks(
+            env.get_template('common_text.md.j2')
+        )
         env.filters['non_zero_percentage'] = non_zero_percentage
         env.filters['readable_minutes'] = readable_minutes
         env.filters['minutes_to_time'] = minutes_to_time
@@ -364,4 +368,4 @@ class ReportGenerator:
 
     def render(self, context: dict) -> str:
         template = self._template_environment().get_template("calculator.report.html.j2")
-        return template.render(**context)
+        return template.render(**context, text_blocks=template.globals['common_text'])
