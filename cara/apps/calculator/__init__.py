@@ -149,12 +149,12 @@ class StaticModel(BaseRequestHandler):
 class LandingPage(BaseRequestHandler):
     def get(self):
         template_environment = self.settings["template_environment"]
-        template = self.settings["template_environment"].get_template(
+        template = template_environment.get_template(
             "index.html.j2")
         report = template.render(
             user=self.current_user,
             calculator_prefix=self.settings["calculator_prefix"],
-            text_blocks=template_environment.globals['common_text']
+            text_blocks=template_environment.globals['common_text'],
         )
         self.finish(report)
 
@@ -174,13 +174,15 @@ class AboutPage(BaseRequestHandler):
 
 class CalculatorForm(BaseRequestHandler):
     def get(self):
-        template = self.settings["template_environment"].get_template(
+        template_environment = self.settings["template_environment"]
+        template = template_environment.get_template(
             "calculator.form.html.j2")
         report = template.render(
             user=self.current_user,
             xsrf_form_html=self.xsrf_form_html(),
             calculator_prefix=self.settings["calculator_prefix"],
             calculator_version=__version__,
+            text_blocks=template_environment.globals['common_text'],
         )
         self.finish(report)
 
@@ -199,11 +201,13 @@ class CompressedCalculatorFormInputs(BaseRequestHandler):
 
 class ReadmeHandler(BaseRequestHandler):
     def get(self):
-        template = self.settings['template_environment'].get_template("userguide.html.j2")
+        template_environment = self.settings["template_environment"]
+        template = template_environment.get_template("userguide.html.j2")
         readme = template.render(
             active_page="calculator/user-guide",
             user=self.current_user,
             calculator_prefix=self.settings["calculator_prefix"],
+            text_blocks=template_environment.globals['common_text'],
         )
         self.finish(readme)
 
