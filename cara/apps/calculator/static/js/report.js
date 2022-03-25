@@ -78,8 +78,7 @@ function draw_plot(svg_id) {
     // Concentration line text
     var legendLineText = vis.append('text')
         .text('Mean concentration')
-        .style('font-size', '15px')
-        .attr('alignment-baseline', 'central');
+        .style('font-size', '15px');
 
     // Cumulative dose line icon
     var legendCumulativeIcon = vis.append('line')
@@ -89,8 +88,7 @@ function draw_plot(svg_id) {
     // Cumulative dose line text
     var legendCumutiveText = vis.append('text')
         .text('Cumulative dose')
-        .style('font-size', '15px')
-        .attr('alignment-baseline', 'central');
+        .style('font-size', '15px');
 
     //  Area line icon
     var legendAreaIcon = vis.append('rect')
@@ -101,8 +99,7 @@ function draw_plot(svg_id) {
     //  Area line text
     var legendAreaText = vis.append('text')
         .text('Presence of exposed person(s)')
-        .style('font-size', '15px')
-        .attr('alignment-baseline', 'central');
+        .style('font-size', '15px');
 
     sr_unique_activities = [...new Set(short_range_activities)]
     if (show_sr_legend) {
@@ -115,7 +112,6 @@ function draw_plot(svg_id) {
         var legendLongCumutiveText = vis.append('text')
             .text('Long-range cumulative dose')
             .style('font-size', '15px')
-            .attr('alignment-baseline', 'central')
             .attr('opacity', 0);
         // Short range area icon
         var legendShortRangeAreaIcon = {};
@@ -133,8 +129,7 @@ function draw_plot(svg_id) {
         sr_unique_activities.forEach((b, index) => {
             legendShortRangeText[index] = vis.append('text')
             .text('Short-range - ' + sr_unique_activities[index])
-            .style('font-size', '15px')
-            .attr('alignment-baseline', 'central');
+            .style('font-size', '15px');
         });
     }
 
@@ -375,38 +370,39 @@ function draw_plot(svg_id) {
         const size = 20;
         var legend_x_start = 50;
         const space_between_text_icon = 30;
+        const text_height = 6;
         // Legend on right side.
         if (plot_div.clientWidth >= 900) {
             legendLineIcon.attr('x', graph_width + legend_x_start)
                 .attr('y', margins.top + size);
             legendLineText.attr('x', graph_width + legend_x_start + space_between_text_icon)
-                .attr('y', margins.top + size);
+                .attr('y', margins.top + size + text_height);
 
             legendCumulativeIcon.attr("x1", graph_width + legend_x_start)
                 .attr("x2", graph_width + legend_x_start + 20)
                 .attr("y1", margins.top + 2 * size)
                 .attr("y2", margins.top + 2 * size);
             legendCumutiveText.attr('x', graph_width + legend_x_start + space_between_text_icon)
-                .attr('y', margins.top + 2 * size);
+                .attr('y', margins.top + 2 * size + text_height);
             
             legendAreaIcon.attr('x', graph_width + legend_x_start)
                 .attr('y', margins.top + (3 * size) - 15/2);
             legendAreaText.attr('x', graph_width + legend_x_start + space_between_text_icon)
-                .attr('y', margins.top + 3 * size);
+                .attr('y', margins.top + 3 * size + text_height);
             
             if (show_sr_legend) {
                 sr_unique_activities.forEach((b, index) => {
                     legendShortRangeAreaIcon[index].attr('x', graph_width + legend_x_start)
                         .attr('y', margins.top + (4 + index) * size - 15/2);
                     legendShortRangeText[index].attr('x', graph_width + legend_x_start + space_between_text_icon)
-                        .attr('y', margins.top + (4 + index) * size);
+                        .attr('y', margins.top + (4 + index) * size + text_height);
                 });
                 legendLongCumulativeIcon.attr("x1", graph_width + legend_x_start)
                     .attr("x2", graph_width + legend_x_start + 20)
                     .attr("y1", margins.top + (4 + sr_unique_activities.length) * size)
                     .attr("y2", margins.top + (4 + sr_unique_activities.length) * size);
                 legendLongCumutiveText.attr('x', graph_width + legend_x_start + space_between_text_icon)
-                    .attr('y', margins.top + (4 + sr_unique_activities.length) * size); 
+                    .attr('y', margins.top + (4 + sr_unique_activities.length) * size +  + text_height); 
             }
             
             legendBBox.attr('x', graph_width * 1.07)
@@ -419,33 +415,33 @@ function draw_plot(svg_id) {
             legendLineIcon.attr('x', legend_x_start)
                 .attr('y', graph_height + size);
             legendLineText.attr('x', legend_x_start + space_between_text_icon)
-                .attr('y', graph_height + size);
+                .attr('y', graph_height + size + text_height);
 
             legendCumulativeIcon.attr("x1", legend_x_start)
                 .attr("x2", legend_x_start + 20)
                 .attr("y1", graph_height + 2 * size)
                 .attr("y2", graph_height + 2 * size);
             legendCumutiveText.attr('x', legend_x_start + space_between_text_icon)
-                .attr('y', graph_height + 2 * size);
+                .attr('y', graph_height + 2 * size + text_height);
 
             legendAreaIcon.attr('x', legend_x_start)
                 .attr('y', graph_height + 3 * size - 15/2);
             legendAreaText.attr('x', legend_x_start + space_between_text_icon)
-                .attr('y', graph_height + 3 * size);
+                .attr('y', graph_height + 3 * size + text_height);
 
             if (show_sr_legend) {
                 sr_unique_activities.forEach((b, index) => {
                     legendShortRangeAreaIcon[index].attr('x', legend_x_start)
                         .attr('y', graph_height + 4 * size - 15/2);
                     legendShortRangeText[index].attr('x', legend_x_start + space_between_text_icon)
-                        .attr('y', graph_height + 4 * size);
+                        .attr('y', graph_height + 4 * size + text_height);
                 });
                 legendLongCumulativeIcon.attr("x1", legend_x_start)
                     .attr("x2", legend_x_start + 20)
                     .attr("y1", graph_height + (4 + sr_unique_activities.length) * size)
                     .attr("y2", graph_height + (4 + sr_unique_activities.length) * size)
                 legendLongCumutiveText.attr('x', legend_x_start + space_between_text_icon)
-                    .attr('y', graph_height + (4 + sr_unique_activities.length) * size);
+                    .attr('y', graph_height + (4 + sr_unique_activities.length) * size + text_height);
             }
 
             legendBBox.attr('x', 1)
@@ -646,8 +642,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
 
         label_text[scenario_name] = vis.append('text')
             .text(scenario_name)
-            .style('font-size', '15px')
-            .attr('alignment-baseline', 'central');
+            .style('font-size', '15px');
 
     }
 
@@ -749,6 +744,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
 
         var legend_x_start = 25;
         const space_between_text_icon = 30;
+        const text_height = 6;
         for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
             var scenario_index = Object.keys(data_for_scenarios).indexOf(scenario_name)
             // Legend on right side.
@@ -757,7 +753,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
                 label_icons[scenario_name].attr('x', graph_width + legend_x_start)
                     .attr('y', margins.top + size);
                 label_text[scenario_name].attr('x', graph_width + legend_x_start + space_between_text_icon)
-                    .attr('y', margins.top + size);
+                    .attr('y', margins.top + size  + text_height);
             }
             // Legend on the bottom.
             else {
@@ -766,7 +762,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
                 label_icons[scenario_name].attr('x', legend_x_start)
                     .attr('y', graph_height + size);
                 label_text[scenario_name].attr('x', legend_x_start + space_between_text_icon)
-                    .attr('y', graph_height + size);
+                    .attr('y', graph_height + size  + text_height);
             }
 
         }
