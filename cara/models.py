@@ -1074,14 +1074,52 @@ class ConcentrationModel:
 
 @dataclass(frozen=True)
 class ShortRangeModel:
-    #: Short-range activities and respective interactions
-    presence: typing.Tuple[typing.Tuple[str, SpecificInterval], ...]
-
     #: Expiration types
     expirations: typing.Tuple[_ExpirationBase, ...]
 
-    #: The dilution factors for each of the expiratory activity
-    dilutions: typing.Tuple[_VectorisedFloat, ...]
+    #: Activity types
+    activities: typing.Tuple[Activity, ...]
+
+    #: Short-range expirtory activities and respective interactions
+    presence: typing.Tuple[typing.Tuple[str, SpecificInterval], ...]
+
+    #: Interpersonal distances
+    distances: _VectorisedFloat
+
+    def dilution_factor(self, BR: _VectorisedFloat) -> _VectorisedFloat:
+        '''
+        The dilution factor for the respective expiratory activity type.
+        '''
+        # Average mouth diameter
+        D = 0.02
+        # Convert Breathing rate from m3/h to m3/s
+        BR_s = BR/3600
+        # Area of the mouth assuming a perfect circle
+        Am = np.pi*(D**2)/4 
+        # Initial velocity from the division of the Breathing rate with the area
+        u0 = BR_s/Am
+        
+        tstar = 2.0
+        Cr1 = 0.18
+        Cr2 = 0.2
+        Cx1 = 2.4
+        
+        # The expired flow rate during the expiration period, m^3/s
+        Q0 = u0 * np.pi/4*D**2 
+        # Parameters in the jet-like stage
+        x01 = D/2/Cr1
+        # Time of virtual origin
+        t01 = (x01/Cx1)**2 * (Q0*u0)**(-0.5)
+        # The transition point, m
+        xstar = np.mean(Cx1*(Q0*u0)**0.25*(tstar + t01)**0.5 - x01)
+        # Dilution factor at the transition point xstar
+        Sxstar = np.mean(2*Cr1*(xstar+x01)/D)
+
+        return np.piecewise(self.distances, [self.distances < xstar, self.distances >= xstar],
+            [
+                lambda distance: 2*Cr1*(distance + x01)/D, 
+                lambda distance: Sxstar*(1 + Cr2*(distance - xstar)/Cr1/(xstar + x01))**3
+            ])
 
     def _normed_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
         """
@@ -1095,16 +1133,18 @@ class ShortRangeModel:
             start, stop = tuple(period.boundaries())
             # Verifies if the given time falls within a short-range interaction
             if start < time <= stop:
-                dilution = self.dilutions[index]
+                dilution = self.dilution_factor(self.activities[index].exhalation_rate)
                 jet_origin_concentration = self.expirations[index].jet_origin_concentration()
                 # Long-range concentration normalized by the virus viral load
-                long_range_normed_concentration = concentration_model.concentration(time) / concentration_model.virus.viral_load_in_sputum
+                long_range_normed_concentration = (concentration_model.concentration(time) / 
+                                            concentration_model.virus.viral_load_in_sputum)
                 
                 # The long-range concentration values are then approximated using interpolation:
                 # The set of points where we want the interpolated values are the short-range particle diameters (given the current expiration); 
                 # The set of points with a known value are the long-range particle diameters (given the initial expiration);
                 # The set of known values are the long-range concentration values normalized by the viral load.
-                long_range_normed_concentration_interpolated=np.interp(self.expirations[index].particle.diameter, concentration_model.infected.particle.diameter, long_range_normed_concentration)
+                long_range_normed_concentration_interpolated=np.interp(self.expirations[index].particle.diameter, 
+                                    concentration_model.infected.particle.diameter, long_range_normed_concentration)
                 
                 # Short-range concentration formula. The long-range concentration is added in the concentration method (ExposureModel).
                 return ((1/dilution)*(jet_origin_concentration - long_range_normed_concentration_interpolated))
@@ -1146,7 +1186,7 @@ class ShortRangeModel:
                 start_bound, stop_bound = start, stop
             
             jet_origin_integrated = self.expirations[index].jet_origin_concentration()
-            dilution = self.dilutions[index]
+            dilution = self.dilution_factor(self.activities[index].exhalation_rate)
 
             total_normed_concentration = -(concentration_model.integrated_concentration(start_bound, stop_bound)/concentration_model.virus.viral_load_in_sputum/dilution)
             total_normed_concentration_interpolated = np.interp(self.expirations[index].particle.diameter, concentration_model.infected.particle.diameter, total_normed_concentration)

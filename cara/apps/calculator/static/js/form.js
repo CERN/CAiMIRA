@@ -408,7 +408,7 @@ function validate_form(form) {
   $(".form_field_outer_row").each(function (index, element){
       let obj = {};
       const $element = $(element);
-      obj.activity = $element.find("[name='short_range_activity']").val();
+      obj.expiration = $element.find("[name='short_range_expiration']").val();
       obj.start_time = $element.find("[name='short_range_start_time']").val();
       obj.duration = $element.find("[name='short_range_duration']").val();
       short_range_interactions.push(JSON.stringify(obj));
@@ -656,8 +656,8 @@ $(document).ready(function () {
         let index = 1;
         for (const interaction of JSON.parse(value)) {
           $("#dialog_sr").append(inject_sr_interaction(index, value = interaction, is_validated="row_validated"))
-          $('#sr_activity_no_' + String(index)).val(interaction.activity).change();
-          document.getElementById('sr_activity_no_' + String(index)).disabled = true;
+          $('#sr_expiration_no_' + String(index)).val(interaction.expiration).change();
+          document.getElementById('sr_expiration_no_' + String(index)).disabled = true;
           document.getElementById('sr_start_no_' + String(index)).disabled = true;
           document.getElementById('sr_duration_no_' + String(index)).disabled = true;
           document.getElementById('edit_row_no_' + String(index)).style.cssText = 'display:inline !important';
@@ -838,35 +838,35 @@ $(document).ready(function () {
 
   function inject_sr_interaction(index, value, is_validated) {
     return `<div class="col-md-12 form_field_outer p-0">
-      <div class="form_field_outer_row split ${is_validated}">
-        <div class="split" style="flex: 3">
+      <div class="form_field_outer_row ${is_validated} split">
+
           <div class='form-group row'>
-            <div class="col-sm-4"><label class="col-form-label"> Activity: </label></br></div>
-            <div class="col-sm-7"><select id="sr_activity_no_${index}" name="short_range_activity" class="form-control" onchange="validate_sr_parameter(this)" form="not-submitted">
+            <div class="col-sm-4"><label class="col-form-label col-form-label-sm"> Expiration: </label><br></div>
+            <div class="col-sm-8"><select id="sr_expiration_no_${index}" name="short_range_expiration" class="form-control form-control-sm" onchange="validate_sr_parameter(this)" form="not-submitted">
               <option value="" selected disabled>Select type</option>
               <option value="Breathing">Breathing</option>
               <option value="Speaking">Speaking</option>
               <option value="Shouting">Shouting</option>
-            </select></br>
+            </select><br>
             </div>
           </div>
-            <div class='form-group row'>
-              <div class="col-sm-4"><label class="col-form-label"> Start: </label></div>
-              <div class="col-sm-7"><input type="time" class="form-control short_range_option" name="short_range_start_time" id="sr_start_no_${index}" value="${value.start_time}" onchange="validate_sr_time(this)" form="not-submitted"></br></div>
-            </div>
-        </div>
-        <div class="split" style="flex: 2">
-          <div class='form-group row' style="flex: 2">
-            <div class="col-sm-4"><label class="col-form-label"> Duration:</label></div>
-            <div class="col-sm-8"><input type="number" id="sr_duration_no_${index}" value="${value.duration}" class="form-control short_range_option" name="short_range_duration" min=1 placeholder="Minutes" onchange="validate_sr_time(this)" form="not-submitted"></br></div>
+            
+          <div class='form-group row'>
+            <div class="col-sm-4"><label class="col-form-label col-form-label-sm"> Start: </label></div>
+            <div class="col-sm-8"><input type="time" class="form-control form-control-sm short_range_option" name="short_range_start_time" id="sr_start_no_${index}" value="${value.start_time}" onchange="validate_sr_time(this)" form="not-submitted"><br></div>
           </div>
-          <div class="form-group mt-1" style="flex: 1">
+        
+          <div class='form-group row'>
+            <div class="col-sm-4"><label class="col-form-label col-form-label-sm"> Duration:</label></div>
+            <div class="col-sm-8"><input type="number" id="sr_duration_no_${index}" value="${value.duration}" class="form-control form-control-sm short_range_option" name="short_range_duration" min=1 placeholder="Minutes" onchange="validate_sr_time(this)" form="not-submitted"><br></div>
+          </div>
+
+          <div class="form-group" style="max-width: 8rem">
             <button type="button" id="edit_row_no_${index}" class="edit_node_btn_frm_field btn btn-success btn-sm d-none">Edit</button>
             <button type="button" id="validate_row_no_${index}" class="validate_node_btn_frm_field btn btn-success btn-sm">Save</button>
             <button type="button" class="remove_node_btn_frm_field btn btn-danger btn-sm">Delete</button>
           </div>
         </div>
-      </div>
     </div>`
   }
 
@@ -889,12 +889,12 @@ $(document).ready(function () {
   // Validate row button (Save button)
   $("body").on("click", ".validate_node_btn_frm_field", function() {
     var index = $(this).attr('id').split('_').slice(-1)[0];
-    let activity = validate_sr_parameter('#sr_activity_no_' + String(index)[0], "Required input.");
+    let activity = validate_sr_parameter('#sr_expiration_no_' + String(index)[0], "Required input.");
     let start = validate_sr_parameter('#sr_start_no_' + String(index)[0], "Required input.");
     let duration = validate_sr_parameter('#sr_duration_no_' + String(index)[0], "Required input.");
     if (activity && start && duration) {
       if (validate_sr_time('#sr_start_no_' + String(index)) && validate_sr_time('#sr_start_no_' + String(index))) {
-        document.getElementById('sr_activity_no_' + String(index)).disabled = true;
+        document.getElementById('sr_expiration_no_' + String(index)).disabled = true;
         document.getElementById('sr_start_no_' + String(index)).disabled = true;
         document.getElementById('sr_duration_no_' + String(index)).disabled = true;
         document.getElementById('edit_row_no_' + String(index)).style.cssText = 'display:inline !important';
@@ -915,7 +915,7 @@ $(document).ready(function () {
   $("body").on("click", ".edit_node_btn_frm_field", function() {
     $(this).hide();
     let id = $(this).attr('id').split('_').slice(-1)[0];
-    document.getElementById('sr_activity_no_' + String(id)).disabled = false;
+    document.getElementById('sr_expiration_no_' + String(id)).disabled = false;
     document.getElementById('sr_start_no_' + String(id)).disabled = false;
     document.getElementById('sr_duration_no_' + String(id)).disabled = false;
     document.getElementById('validate_row_no_' + String(id)).style.cssText = 'display:inline !important';

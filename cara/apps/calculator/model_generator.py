@@ -13,7 +13,7 @@ from cara import data
 import cara.data.weather
 import cara.monte_carlo as mc
 from .. import calculator
-from cara.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions, dilution_factor
+from cara.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions, short_range_distances
 from cara.monte_carlo.data import expiration_distribution, expiration_BLO_factors, expiration_distributions, short_range_expiration_distributions
 
 
@@ -245,29 +245,31 @@ class FormData:
         else:
             humidity = 0.5
         room = models.Room(volume=volume, humidity=humidity)
+
+        infected_population = self.infected_population()
         
         if self.short_range_option == "short_range_yes":
+            short_range_expirations = tuple(short_range_expiration_distributions[interaction['expiration']] for interaction in self.short_range_interactions)
+            short_range_activities = tuple([infected_population.activity for _ in self.short_range_interactions])
             sr_presence=self.short_range_intervals()
-            sr_activities=self.short_range_activities()
-            short_range_expirations = tuple(short_range_expiration_distributions[activity] for activity in sr_activities)
-            dilutions=dilution_factor(activities=sr_activities)
         else:
-            sr_presence=()
             short_range_expirations=()
-            dilutions=()
-            
+            short_range_activities=()
+            sr_presence=()
+
         # Initializes and returns a model with the attributes defined above
         return mc.ExposureModel(
             concentration_model=mc.ConcentrationModel(
                 room=room,
                 ventilation=self.ventilation(),
-                infected=self.infected_population(),
+                infected=infected_population,
                 evaporation_factor=0.3,
             ),
             short_range = mc.ShortRangeModel(
-                presence=sr_presence,
                 expirations=short_range_expirations,
-                dilutions=dilutions,
+                activities=short_range_activities,
+                presence=sr_presence,
+                distances=short_range_distances,
             ),
             exposed=self.exposed_population(),
         )
@@ -655,7 +657,7 @@ class FormData:
         for interaction in self.short_range_interactions:
             start_time = time_string_to_minutes(interaction['start_time'])
             duration = float(interaction['duration'])
-            short_range_intervals.append((interaction['activity'], models.SpecificInterval((start_time/60, (start_time + duration)/60))))
+            short_range_intervals.append((interaction['expiration'], models.SpecificInterval((start_time/60, (start_time + duration)/60))))
         return tuple(short_range_intervals)
         
 
@@ -664,10 +666,6 @@ class FormData:
             self.exposed_start, self.exposed_finish,
             breaks=self.exposed_lunch_break_times() + self.exposed_coffee_break_times(),
         )
-
-    def short_range_activities(self) -> typing.List[str]:
-        return ([interaction['activity'] for interaction in self.short_range_interactions] 
-            if self.short_range_interactions else [])
 
 
 def build_expiration(expiration_definition) -> mc._ExpirationBase:
