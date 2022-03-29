@@ -31,11 +31,7 @@ def baseline_concentration_model():
 
 @pytest.fixture
 def baseline_sr_model():
-    return models.ShortRangeModel(
-        presence=(),
-        expirations=(),
-        dilutions=(),
-    )
+    return ()
 
 
 @pytest.fixture

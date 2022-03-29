@@ -97,37 +97,28 @@ def interesting_times(model: models.ExposureModel, approx_n_pts=100) -> typing.L
     return nice_times
 
 
-def interesting_sr_interactions(model: models.ExposureModel) -> typing.Tuple[typing.List, typing.List]:
-    short_range_activities = []
-    short_range_intervals = []
-    for (activity, interval) in model.short_range.presence:
-        short_range_activities.append(activity)
-        short_range_intervals.append(list(interval.boundaries()))
-    return short_range_activities, short_range_intervals
-
-
-def concentrations_with_sr_breathing(model: models.ExposureModel, times: typing.List[float], short_range_intervals: typing.List, 
-                                short_range_activities:typing.List) -> typing.List[float]:
+def concentrations_with_sr_breathing(form: FormData, model: models.ExposureModel, times: typing.List[float], short_range_intervals: typing.List) -> typing.List[float]:
     lower_concentrations = []
     for time in times:
         for index, (start, stop) in enumerate(short_range_intervals):
             # For visualization issues, add short-range breathing activity to the initial long-range concentrations
-            if start <= time <= stop and short_range_activities[index] == 'Breathing':
+            if start <= time <= stop and form.short_range_interactions[index]['expiration'] == 'Breathing':
                 lower_concentrations.append(np.array(model.concentration(float(time))).mean())
                 break
         lower_concentrations.append(np.array(model.concentration_model.concentration(float(time))).mean())
     return lower_concentrations
 
 
-def calculate_report_data(model: models.ExposureModel):
+def calculate_report_data(form: FormData, model: models.ExposureModel):
     times = interesting_times(model)
-    short_range_activities, short_range_intervals = interesting_sr_interactions(model)
+    short_range_intervals = [interaction.presence.boundaries()[0] for interaction in model.short_range]
+    short_range_expirations = [interaction['expiration'] for interaction in form.short_range_interactions] if form.short_range_option == "short_range_yes" else []
     
     concentrations = [
         np.array(model.concentration(float(time))).mean()
         for time in times
     ]  
-    lower_concentrations = concentrations_with_sr_breathing(model, times, short_range_intervals, short_range_activities)
+    lower_concentrations = concentrations_with_sr_breathing(form, model, times, short_range_intervals)
     highest_const = max(concentrations)
     
     cumulative_doses = np.cumsum([
@@ -148,7 +139,7 @@ def calculate_report_data(model: models.ExposureModel):
         "times": list(times),
         "exposed_presence_intervals": [list(interval) for interval in model.exposed.presence.boundaries()],
         "short_range_intervals": short_range_intervals,
-        "short_range_activities": short_range_activities,
+        "short_range_expirations": short_range_expirations,
         "concentrations": concentrations,
         "concentrations_zoomed": lower_concentrations,
         "highest_const": highest_const,
@@ -272,9 +263,6 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
 def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[float]):
     model = mc_model.build_model(size=_DEFAULT_MC_SAMPLE_SIZE)
 
-    short_range_activities, short_range_intervals = interesting_sr_interactions(model)
-    lower_concentrations = concentrations_with_sr_breathing(model, sample_times, short_range_intervals, short_range_activities)
-
     return {
         'probability_of_infection': np.mean(model.infection_probability()),
         'expected_new_cases': np.mean(model.expected_new_cases()),
@@ -282,7 +270,6 @@ def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[fl
             np.mean(model.concentration(time))
             for time in sample_times
         ],
-        'concentrations_zoomed': lower_concentrations,
     }
 
 
@@ -340,7 +327,7 @@ class ReportGenerator:
 
         scenario_sample_times = interesting_times(model)
 
-        context.update(calculate_report_data(model))
+        context.update(calculate_report_data(form, model))
         alternative_scenarios = manufacture_alternative_scenarios(form)
         context['alternative_scenarios'] = comparison_report(
             alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,

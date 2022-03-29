@@ -182,41 +182,6 @@ def expiration_distribution(
     )
 
 
-# def dilution_factor(activities):
-#     D = 0.02
-#     # Fit from Fig 8 a) "stand-stand" in https://www.mdpi.com/1660-4601/17/4/1445/htm
-#     distance = LogNormal(-0.269359136417347, 0.4728300188814934).generate_samples(250_000)
-    
-#     factors = []
-#     for activity in activities:
-#         u0 = 0.98 if activity == "Breathing" else 3.9
-#         tstar = 2.0
-#         Cr1 = 0.18
-#         Cr2 = 0.2
-#         Cx1 = 2.4
-#         # The expired flow rate during the expiration period, m^3/s
-#         Q0 = u0 * np.pi/4*D**2 
-#         # Parameters in the jet-like stage
-#         x01 = D/2/Cr1
-#         # Time of virtual origin
-#         t01 = (x01/Cx1)**2 * (Q0*u0)**(-0.5)
-#         # The transition point, m
-#         xstar = Cx1*(Q0*u0)**0.25*(tstar + t01)**0.5 - x01
-#         # Dilution factor at the transition point xstar
-#         Sxstar = 2*Cr1*(xstar+x01)/D
-#         factors.append(
-#             np.piecewise(
-#                 distance,
-#                 [distance < xstar, distance >= xstar],
-#                 [
-#                     lambda distance: 2*Cr1*(distance + x01)/D,
-#                     lambda distance: Sxstar*(1 + Cr2*(distance - xstar)/Cr1/(xstar + x01))**3
-#                 ]
-#             )
-#         )
-#     return factors
-
-
 expiration_BLO_factors = {
     'Breathing': (1., 0., 0.),
     'Speaking':   (1., 1., 1.),
@@ -237,4 +202,5 @@ short_range_expiration_distributions = {
 }
 
 
+# Fit from Fig 8 a) "stand-stand" in https://www.mdpi.com/1660-4601/17/4/1445/htm
 short_range_distances = LogNormal(-0.269359136417347, 0.4728300188814934)

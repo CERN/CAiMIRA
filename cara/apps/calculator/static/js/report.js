@@ -5,7 +5,7 @@ function draw_plot(svg_id) {
     let button_full_exposure = document.getElementById("button_full_exposure");
     let button_hide_high_concentration = document.getElementById("button_hide_high_concentration");
     let long_range_checkbox = document.getElementById('long_range_cumulative_checkbox')
-    let show_sr_legend = short_range_activities.length > 0;
+    let show_sr_legend = short_range_expirations.length > 0;
 
     var data_for_graphs = {
         'concentrations': [],
@@ -101,7 +101,7 @@ function draw_plot(svg_id) {
         .text('Presence of exposed person(s)')
         .style('font-size', '15px');
 
-    sr_unique_activities = [...new Set(short_range_activities)]
+    sr_unique_activities = [...new Set(short_range_expirations)]
     if (show_sr_legend) {
         // Long range cumulative dose line legend - line and area
         var legendLongCumulativeIcon = vis.append('line')
@@ -196,8 +196,8 @@ function draw_plot(svg_id) {
         shortRangeArea[index] = d3.area();
         drawShortRangeArea[index] = draw_area.append('svg:path');
 
-        if (short_range_activities[index] == 'Breathing') drawShortRangeArea[index].attr('fill', 'red').attr('fill-opacity', '0.2');
-        else if (short_range_activities[index] == 'Speaking') drawShortRangeArea[index].attr('fill', 'green').attr('fill-opacity', '0.1');
+        if (short_range_expirations[index] == 'Breathing') drawShortRangeArea[index].attr('fill', 'red').attr('fill-opacity', '0.2');
+        else if (short_range_expirations[index] == 'Speaking') drawShortRangeArea[index].attr('fill', 'green').attr('fill-opacity', '0.1');
         else drawShortRangeArea[index].attr('fill', 'blue').attr('fill-opacity', '0.1');
     });
 
@@ -541,6 +541,7 @@ function draw_plot(svg_id) {
 // Generate the alternative scenarios plot using d3 library.
 // 'alternative_scenarios' is a dictionary with all the alternative scenarios 
 // 'times' is a list of times for all the scenarios
+// The method is prepared to consider short range interactions if needed.
 function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_plot_svg_id) {
     // H:M format
     var time_format = d3.timeFormat('%H:%M');
@@ -847,7 +848,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
     window.addEventListener("resize", e => {
         redraw();
         if (button_full_exposure && button_full_exposure.disabled) update_alternative_concentration_plot('concentrations');
-        else update_alternative_concentration_plot('concentrations_zoomed')
+        else update_alternative_concentration_plot('concentrations')
     });
 }
 

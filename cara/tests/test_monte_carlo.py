@@ -63,11 +63,7 @@ def baseline_mc_concentration_model() -> cara.monte_carlo.ConcentrationModel:
 
 @pytest.fixture
 def baseline_mc_sr_model() -> cara.monte_carlo.ShortRangeModel:
-    return cara.monte_carlo.ShortRangeModel(
-        presence=(),
-        expirations=(),
-        dilutions=(),
-    )
+    return ()
 
 
 @pytest.fixture

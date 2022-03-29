@@ -1074,30 +1074,30 @@ class ConcentrationModel:
 
 @dataclass(frozen=True)
 class ShortRangeModel:
-    #: Expiration types
-    expirations: typing.Tuple[_ExpirationBase, ...]
+    #: Expiration type
+    expiration: _ExpirationBase
 
-    #: Activity types
-    activities: typing.Tuple[Activity, ...]
+    #: Activity type
+    activity: Activity
 
-    #: Short-range expirtory activities and respective interactions
-    presence: typing.Tuple[typing.Tuple[str, SpecificInterval], ...]
+    #: Short-range expiration and respective presence
+    presence: SpecificInterval
 
     #: Interpersonal distances
     distances: _VectorisedFloat
 
-    def dilution_factor(self, BR: _VectorisedFloat) -> _VectorisedFloat:
+    def dilution_factor(self) -> _VectorisedFloat:
         '''
         The dilution factor for the respective expiratory activity type.
         '''
         # Average mouth diameter
         D = 0.02
         # Convert Breathing rate from m3/h to m3/s
-        BR_s = BR/3600
+        BR = self.activity.exhalation_rate/3600
         # Area of the mouth assuming a perfect circle
         Am = np.pi*(D**2)/4 
         # Initial velocity from the division of the Breathing rate with the area
-        u0 = BR_s/Am
+        u0 = BR/Am
         
         tstar = 2.0
         Cr1 = 0.18
@@ -1111,15 +1111,18 @@ class ShortRangeModel:
         # Time of virtual origin
         t01 = (x01/Cx1)**2 * (Q0*u0)**(-0.5)
         # The transition point, m
-        xstar = np.mean(Cx1*(Q0*u0)**0.25*(tstar + t01)**0.5 - x01)
+        xstar = Cx1*(Q0*u0)**0.25*(tstar + t01)**0.5 - x01
         # Dilution factor at the transition point xstar
-        Sxstar = np.mean(2*Cr1*(xstar+x01)/D)
+        Sxstar = 2*Cr1*(xstar+x01)/D
 
-        return np.piecewise(self.distances, [self.distances < xstar, self.distances >= xstar],
-            [
-                lambda distance: 2*Cr1*(distance + x01)/D, 
-                lambda distance: Sxstar*(1 + Cr2*(distance - xstar)/Cr1/(xstar + x01))**3
-            ])
+        distances = np.array(self.distances)
+        intermediate_range1 = distances < xstar
+        intermediate_range2 = distances >= xstar
+        
+        factors = np.empty(distances.shape, dtype=np.float64)
+        factors[intermediate_range1] = 2*Cr1*(distances[intermediate_range1] + x01)/D
+        factors[intermediate_range2] = Sxstar[intermediate_range2]*(1 + Cr2*(distances[intermediate_range2] - xstar[intermediate_range2])/Cr1/(xstar[intermediate_range2] + x01))**3
+        return factors
 
     def _normed_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
         """
@@ -1129,29 +1132,27 @@ class ShortRangeModel:
         short-range concentration normalized by the virus viral load. Otherwise
         it returns 0.
         """ 
-        for index, (activity, period) in enumerate(self.presence):
-            start, stop = tuple(period.boundaries())
-            # Verifies if the given time falls within a short-range interaction
-            if start < time <= stop:
-                dilution = self.dilution_factor(self.activities[index].exhalation_rate)
-                jet_origin_concentration = self.expirations[index].jet_origin_concentration()
-                # Long-range concentration normalized by the virus viral load
-                long_range_normed_concentration = (concentration_model.concentration(time) / 
-                                            concentration_model.virus.viral_load_in_sputum)
-                
-                # The long-range concentration values are then approximated using interpolation:
-                # The set of points where we want the interpolated values are the short-range particle diameters (given the current expiration); 
-                # The set of points with a known value are the long-range particle diameters (given the initial expiration);
-                # The set of known values are the long-range concentration values normalized by the viral load.
-                long_range_normed_concentration_interpolated=np.interp(self.expirations[index].particle.diameter, 
-                                    concentration_model.infected.particle.diameter, long_range_normed_concentration)
-                
-                # Short-range concentration formula. The long-range concentration is added in the concentration method (ExposureModel).
-                return ((1/dilution)*(jet_origin_concentration - long_range_normed_concentration_interpolated))
-        
+        start, stop = self.presence.boundaries()[0]
+        # Verifies if the given time falls within a short-range interaction
+        if start <= time <= stop:
+            dilution = self.dilution_factor()
+            jet_origin_concentration = self.expiration.jet_origin_concentration()
+            # Long-range concentration normalized by the virus viral load
+            long_range_normed_concentration = (concentration_model.concentration(time) / 
+                                        concentration_model.virus.viral_load_in_sputum)
+            
+            # The long-range concentration values are then approximated using interpolation:
+            # The set of points where we want the interpolated values are the short-range particle diameters (given the current expiration); 
+            # The set of points with a known value are the long-range particle diameters (given the initial expiration);
+            # The set of known values are the long-range concentration values normalized by the viral load.
+            long_range_normed_concentration_interpolated=np.interp(self.expiration.particle.diameter, 
+                                concentration_model.infected.particle.diameter, long_range_normed_concentration)
+            
+            # Short-range concentration formula. The long-range concentration is added in the concentration method (ExposureModel).
+            return ((1/dilution)*(jet_origin_concentration - long_range_normed_concentration_interpolated))
         return 0.
 
-    def short_range_concentration(self, concentration_model: ConcentrationModel, time: float):
+    def short_range_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
         """
         Virus short-range exposure concentration, as a function of time.
         """
@@ -1170,27 +1171,14 @@ class ShortRangeModel:
         Get the integrated short-range concentration of viruses in the air between the times start and stop,
         normalized by the virus viral load.
         """
-        for index, (activity, period) in enumerate(self.presence):
-            start, stop = tuple(period.boundaries())
-            if stop < time1:
-                continue
-            elif start > time2:
-                break
-            elif start <= time1 and time2<= stop:
-                start_bound, stop_bound = time1, time2
-            elif start <= time1 and stop < time2:
-                start_bound, stop_bound = time1, stop
-            elif time1 < start and time2 <= stop:
-                start_bound, stop_bound = start, time2
-            elif time1 <= start and stop < time2:
-                start_bound, stop_bound = start, stop
-            
-            jet_origin_integrated = self.expirations[index].jet_origin_concentration()
-            dilution = self.dilution_factor(self.activities[index].exhalation_rate)
+        start_bound, stop_bound = self.presence.boundaries()[0]
+        
+        jet_origin_integrated = self.expiration.jet_origin_concentration()
+        dilution = self.dilution_factor()
 
-            total_normed_concentration = -(concentration_model.integrated_concentration(start_bound, stop_bound)/concentration_model.virus.viral_load_in_sputum/dilution)
-            total_normed_concentration_interpolated = np.interp(self.expirations[index].particle.diameter, concentration_model.infected.particle.diameter, total_normed_concentration)
-            return (jet_origin_integrated/dilution * (stop_bound - start_bound)) + total_normed_concentration_interpolated
+        total_normed_concentration = -(concentration_model.integrated_concentration(start_bound, stop_bound)/concentration_model.virus.viral_load_in_sputum/dilution)
+        total_normed_concentration_interpolated = np.interp(self.expiration.particle.diameter, concentration_model.infected.particle.diameter, total_normed_concentration)
+        return (jet_origin_integrated/dilution * (stop_bound - start_bound)) + total_normed_concentration_interpolated
 
 
 @dataclass(frozen=True)
@@ -1205,8 +1193,8 @@ class ExposureModel:
     #: The virus concentration model which this exposure model should consider.
     concentration_model: ConcentrationModel
 
-    #: The short-range model which this exposure model should consider.
-    short_range: ShortRangeModel
+    #: The list of short-range models which this exposure model should consider.
+    short_range: typing.Tuple[ShortRangeModel, ...]
 
     #: The population of non-infected people to be used in the model.
     exposed: Population
@@ -1248,9 +1236,11 @@ class ExposureModel:
 
         It considers the long-range concentration with the
         contribution of the short-range concentration.
-        """        
-        return (self.concentration_model.concentration(time) + 
-            self.short_range.short_range_concentration(self.concentration_model, time))
+        """
+        concentration = self.concentration_model.concentration(time)
+        for interaction in self.short_range:
+            concentration += interaction.short_range_concentration(self.concentration_model, time)
+        return concentration
 
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         deposited_exposure = 0.
@@ -1295,8 +1285,8 @@ class ExposureModel:
         initial deposited exposure. 
         """
         deposited_exposure = 0.
-        for index, (activity, period) in enumerate(self.short_range.presence):
-            start, stop = tuple(period.boundaries())
+        for interaction in self.short_range:
+            start, stop = interaction.presence.boundaries()[0]
             if stop < time1:
                 continue
             elif start > time2:
@@ -1309,10 +1299,10 @@ class ExposureModel:
                 start_bound, stop_bound = start, time2
             elif time1 <= start and stop < time2:
                 start_bound, stop_bound = start, stop
-            short_range_exposure = self.short_range.normed_exposure_between_bounds(self.concentration_model, start_bound, stop_bound)
+            short_range_exposure = interaction.normed_exposure_between_bounds(self.concentration_model, start_bound, stop_bound)
 
-            fdep = self.short_range.expirations[index].particle.fraction_deposited(evaporation_factor=1.0)
-            diameter = self.short_range.expirations[index].particle.diameter
+            fdep = interaction.expiration.particle.fraction_deposited(evaporation_factor=1.0)
+            diameter = interaction.expiration.particle.diameter
             
             # Aerosols not considered given the formula for the initial concentration at mouth/nose.
             if diameter is not None and not np.isscalar(diameter):
