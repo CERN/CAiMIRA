@@ -255,7 +255,7 @@ class FormData:
                     expiration=short_range_expiration_distributions[interaction['expiration']],
                     activity=infected_population.activity,
                     presence=self.short_range_interval(interaction),
-                    distances=short_range_distances,
+                    distance=short_range_distances,
                 ))
 
         # Initializes and returns a model with the attributes defined above
@@ -651,7 +651,7 @@ class FormData:
     def short_range_interval(self, interaction) -> models.SpecificInterval:
         start_time = time_string_to_minutes(interaction['start_time'])
         duration = float(interaction['duration'])
-        return models.SpecificInterval(present_times=((start_time/60, (start_time + duration)/60),),)
+        return models.SpecificInterval(present_times=((start_time/60, (start_time + duration)/60),))
 
     def exposed_present_interval(self) -> models.Interval:
         return self.present_interval(

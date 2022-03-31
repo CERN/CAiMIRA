@@ -1084,7 +1084,7 @@ class ShortRangeModel:
     presence: SpecificInterval
 
     #: Interpersonal distances
-    distances: _VectorisedFloat
+    distance: _VectorisedFloat
 
     def dilution_factor(self) -> _VectorisedFloat:
         '''
@@ -1093,17 +1093,17 @@ class ShortRangeModel:
         # Average mouth diameter
         D = 0.02
         # Convert Breathing rate from m3/h to m3/s
-        BR = self.activity.exhalation_rate/3600
+        BR = np.array(self.activity.exhalation_rate/3600.)
         # Area of the mouth assuming a perfect circle
         Am = np.pi*(D**2)/4 
         # Initial velocity from the division of the Breathing rate with the area
-        u0 = BR/Am
-        
+        u0 = np.array(BR/Am)
+
         tstar = 2.0
         Cr1 = 0.18
         Cr2 = 0.2
         Cx1 = 2.4
-        
+
         # The expired flow rate during the expiration period, m^3/s
         Q0 = u0 * np.pi/4*D**2 
         # Parameters in the jet-like stage
@@ -1111,17 +1111,19 @@ class ShortRangeModel:
         # Time of virtual origin
         t01 = (x01/Cx1)**2 * (Q0*u0)**(-0.5)
         # The transition point, m
-        xstar = Cx1*(Q0*u0)**0.25*(tstar + t01)**0.5 - x01
+        xstar = np.array(Cx1*(Q0*u0)**0.25*(tstar + t01)**0.5 - x01)
         # Dilution factor at the transition point xstar
-        Sxstar = 2*Cr1*(xstar+x01)/D
+        Sxstar = np.array(2*Cr1*(xstar+x01)/D)
 
-        distances = np.array(self.distances)
-        intermediate_range1 = distances < xstar
-        intermediate_range2 = distances >= xstar
-        
+        distances = np.array(self.distance)
+
         factors = np.empty(distances.shape, dtype=np.float64)
-        factors[intermediate_range1] = 2*Cr1*(distances[intermediate_range1] + x01)/D
-        factors[intermediate_range2] = Sxstar[intermediate_range2]*(1 + Cr2*(distances[intermediate_range2] - xstar[intermediate_range2])/Cr1/(xstar[intermediate_range2] + x01))**3
+        factors[distances < xstar] = 2*Cr1*(distances[distances < xstar]
+                                        + x01)/D
+        factors[distances >= xstar] = Sxstar[distances >= xstar]*(1 +
+            Cr2*(distances[distances >= xstar] -
+            xstar[distances >= xstar])/Cr1/(xstar[distances >= xstar]
+            + x01))**3
         return factors
 
     def _normed_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:

@@ -9,8 +9,8 @@ from cara.apps.calculator.model_generator import build_expiration
 
 # TODO: seed better the random number generators
 np.random.seed(2000)
-SAMPLE_SIZE = 250000
-TOLERANCE = 0.05
+SAMPLE_SIZE = 250_000
+TOLERANCE = 0.06
 
 # Load the weather data (temperature in kelvin) for Toronto.
 toronto_coordinates = (43.667, 79.400)

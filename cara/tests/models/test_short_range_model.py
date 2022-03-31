@@ -8,6 +8,8 @@ import cara.monte_carlo as mc_models
 from cara.apps.calculator.model_generator import build_expiration
 from cara.monte_carlo.data import short_range_expiration_distributions, short_range_distances, activity_distributions
 
+# TODO: seed better the random number generators
+np.random.seed(2000)
 
 @pytest.fixture
 def concentration_model() -> mc_models.ConcentrationModel:
@@ -33,9 +35,9 @@ def concentration_model() -> mc_models.ConcentrationModel:
 @pytest.fixture
 def short_range_model():
     return mc_models.ShortRangeModel(expiration=short_range_expiration_distributions['Breathing'],
-                                    activity=activity_distributions['Seated'],
-                                    presence=models.SpecificInterval(present_times=((10.5, 11.0),),),
-                                    distances=short_range_distances) 
+                                     activity=activity_distributions['Seated'],
+                                     presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
+                                     distance=short_range_distances)
 
 
 def test_short_range_model_ndarray(concentration_model, short_range_model):
@@ -49,38 +51,39 @@ def test_short_range_model_ndarray(concentration_model, short_range_model):
 
 @pytest.mark.parametrize(
     "activity, expected_dilution", [
-        ["Seated", 1016.558562890949],
-        ["Standing", 258.848724384952],
-        ["Light activity", 101.71457048643958],
-        ["Moderate activity", 77.93123076916304],
-        ["Heavy exercise", 145.70265022304739],
+        ["Seated", 176.04075727780327],
+        ["Standing", 157.12965288170005],
+        ["Light activity", 69.06672998536413],
+        ["Moderate activity", 47.165817446310115],
+        ["Heavy exercise", 23.759992220217875],
     ]
 )
 def test_dilution_factor(activity, expected_dilution):
-    model = mc_models.ShortRangeModel(expiration="Breathing", 
-                                    activity=activity_distributions[activity], 
-                                    presence=models.SpecificInterval(present_times=((10.5, 11.0),),), 
-                                    distances=short_range_distances).build_model(10)
+    model = models.ShortRangeModel(expiration="Breathing",
+                                    activity=models.Activity.types[activity],
+                                    presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
+                                    distance=0.854)
     assert isinstance(model.dilution_factor(), np.ndarray)
     np.testing.assert_almost_equal(
-        model.dilution_factor().mean(), expected_dilution, decimal=10
+        model.dilution_factor(), expected_dilution, decimal=10
     )
 
 
 @pytest.mark.parametrize(
     "time, expected_short_range_concentration", [
         [8.5, 0.],
-        [10.5, 15.124713216706837],
-        [10.6, 15.193703513876928],
-        [11.0, 15.265132134078277],
+        [10.5, 15.24806213],
+        [10.6, 15.24806213],
+        [11.0, 15.24806213],
         [12.0, 0.],
     ]
 )
 def test_short_range_concentration(time, expected_short_range_concentration, concentration_model, short_range_model):
     concentration_model = concentration_model.build_model(250_000)
     model = short_range_model.build_model(250_000)
-    np.testing.assert_almost_equal(
-        np.array(model.short_range_concentration(concentration_model, time)).mean(), expected_short_range_concentration
+    np.testing.assert_allclose(
+        np.array(model.short_range_concentration(concentration_model, time)).mean(),
+        expected_short_range_concentration, rtol=0.01
     )
 
 @pytest.mark.parametrize(
