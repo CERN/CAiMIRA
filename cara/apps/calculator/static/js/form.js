@@ -545,7 +545,7 @@ function overlapped_times(obj, start_time, finish_time) {
 
   if ($(obj).attr('name') == "short_range_duration" && parseFloat($(obj).val()) < 15.0) {
     if (!$(obj).hasClass("red_border")) $(parameter).addClass("red_border"); //Adds the red border and error message.
-        insertErrorFor(parameter, "Each short range interaction must be at least 15 minutes in length.")
+        insertErrorFor(parameter, "Must be ≥ 15 min.")
     return false;
   }
   
@@ -907,8 +907,14 @@ $(document).ready(function () {
     // On save, check open/unvalidated rows.
     $(".validate_node_btn_frm_field").not(".row_validated").not(this).each(function( index ) {
       index = $(this).attr('id').split('_').slice(-1)[0];
-      if ($('#sr_start_no_' + String(index)[0]).val() != "") validate_sr_parameter('#sr_start_no_' + String(index)[0], "Required input.");
-      if ($('#sr_duration_no_' + String(index)[0]).val() != "") validate_sr_parameter('#sr_duration_no_' + String(index)[0], "Required input.");
+      if ($('#sr_start_no_' + String(index)[0]).val() != "") {
+        validate_sr_parameter('#sr_start_no_' + String(index)[0], "Required input.")
+        validate_sr_time('#sr_start_no_' + String(index));
+      };
+      if ($('#sr_duration_no_' + String(index)[0]).val() != "") {
+        validate_sr_parameter('#sr_duration_no_' + String(index)[0], "Required input.");
+        validate_sr_time('#sr_duration_no_' + String(index));
+      }
     });
   });
 
@@ -929,8 +935,14 @@ $(document).ready(function () {
     // On delete, check open/unvalidated rows.
     $(".validate_node_btn_frm_field").not(".row_validated").not(this).each(function( index ) {
       index = $(this).attr('id').split('_').slice(-1)[0];
-      if ($('#sr_start_no_' + String(index)[0]).val() != "") validate_sr_parameter('#sr_start_no_' + String(index)[0], "Required input.");
-      if ($('#sr_duration_no_' + String(index)[0]).val() != "") validate_sr_parameter('#sr_duration_no_' + String(index)[0], "Required input.");
+      if ($('#sr_start_no_' + String(index)[0]).val() != "") {
+        validate_sr_parameter('#sr_start_no_' + String(index)[0], "Required input.")
+        validate_sr_time('#sr_start_no_' + String(index));
+      };
+      if ($('#sr_duration_no_' + String(index)[0]).val() != "") {
+        validate_sr_parameter('#sr_duration_no_' + String(index)[0], "Required input.");
+        validate_sr_time('#sr_duration_no_' + String(index));
+      }
     });
   });
 
