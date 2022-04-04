@@ -541,6 +541,13 @@ function overlapped_times(obj, start_time, finish_time) {
   removeErrorFor($(obj));
   $(obj).removeClass("red_border");
 
+  let parameter = document.getElementById($(obj).attr('id'));
+
+  if ($(obj).attr('name') == "short_range_duration" && parseFloat($(obj).val()) < 15.0) {
+    if (!$(obj).hasClass("red_border")) $(parameter).addClass("red_border"); //Adds the red border and error message.
+        insertErrorFor(parameter, "Each short range interaction must be at least 15 minutes in length.")
+    return false;
+  }
   
   let simulation_start = parseTimeToMins($("#exposed_start").val())
   let simulation_finish = parseTimeToMins($("#exposed_finish").val())
@@ -556,7 +563,6 @@ function overlapped_times(obj, start_time, finish_time) {
     finish_time < simulation_start || finish_time > simulation_finish ||
     start_time >= simulation_lunch_start && start_time <= simulation_lunch_finish ||
     finish_time >= simulation_lunch_start && finish_time <= simulation_lunch_finish ) {//If start and finish inputs are out of the simulation period
-      let parameter = document.getElementById($(obj).attr('id'));
       //Adds the red border and error message.
       if (!$(obj).hasClass("red_border")) $(parameter).addClass("red_border");
       insertErrorFor(parameter, "Out of event time.");
@@ -573,7 +579,6 @@ function overlapped_times(obj, start_time, finish_time) {
       finish_time > start_time_2 && finish_time < finish_time_2) || //If finish time input is within other time range
         (start_time <= start_time_2 && finish_time >= finish_time_2) || //If start and finish inputs encompass other time range 
         start_time == start_time_2) {
-        let parameter = document.getElementById($(obj).attr('id'));
         if (!$(obj).hasClass("red_border")) $(parameter).addClass("red_border"); //Adds the red border and error message.
         insertErrorFor(parameter, "Time overlap.")
         toReturn = false;
@@ -587,13 +592,9 @@ function validate_sr_time(obj) {
     let obj_id = $(obj).attr('id').split('_').slice(-1)[0];
     var start_time, finish_time;
     if ($(obj).val() != "") {
-      $("#sr_duration_no_" + obj_id).prop("disabled", false);
-      start_time = parseTimeToMins($('#sr_start_no_' + String(obj_id)).val());
+      if ($('#sr_start_no_' + String(obj_id)).val()) start_time = parseTimeToMins($('#sr_start_no_' + String(obj_id)).val());
+      else start = 0.
       finish_time = start_time + parseInt($('#sr_duration_no_' + String(obj_id)).val());
-    }
-    else {
-      $("#sr_duration_no_" + obj_id).val("");
-      $("#sr_duration_no_" + obj_id).prop("disabled", true);
     }
     return overlapped_times(obj, start_time, finish_time);
 };
@@ -878,11 +879,11 @@ $(document).ready(function () {
   // When short_range_yes option is selected, we want to inject rows for each expiractory activity, start_time and duration.
   $("body").on("click", ".add_node_btn_frm_field", function(e) {
     let last_row = $(".form_field_outer").find(".form_field_outer_row");
-    if (last_row.length == 0) $("#dialog_sr").append(inject_sr_interaction(1, value = { activity: "", start_time: "", duration: "" }));
+    if (last_row.length == 0) $("#dialog_sr").append(inject_sr_interaction(1, value = { activity: "", start_time: "", duration: "15" }));
     else {
         last_index = last_row.last().find(".short_range_option").prop("id").split("_").slice(-1)[0];
         index = parseInt(last_index) + 1;
-        $("#dialog_sr").append(inject_sr_interaction(index, value = { activity: "", start_time: "", duration: "" }));
+        $("#dialog_sr").append(inject_sr_interaction(index, value = { activity: "", start_time: "", duration: "15" }));
     }
   });
 
@@ -893,7 +894,7 @@ $(document).ready(function () {
     let start = validate_sr_parameter('#sr_start_no_' + String(index)[0], "Required input.");
     let duration = validate_sr_parameter('#sr_duration_no_' + String(index)[0], "Required input.");
     if (activity && start && duration) {
-      if (validate_sr_time('#sr_start_no_' + String(index)) && validate_sr_time('#sr_start_no_' + String(index))) {
+      if (validate_sr_time('#sr_start_no_' + String(index)) && validate_sr_time('#sr_duration_no_' + String(index))) {
         document.getElementById('sr_expiration_no_' + String(index)).disabled = true;
         document.getElementById('sr_start_no_' + String(index)).disabled = true;
         document.getElementById('sr_duration_no_' + String(index)).disabled = true;
@@ -913,6 +914,7 @@ $(document).ready(function () {
 
   //Edit short-range activity type
   $("body").on("click", ".edit_node_btn_frm_field", function() {
+    $(this).closest(".form_field_outer_row").removeClass("row_validated");
     $(this).hide();
     let id = $(this).attr('id').split('_').slice(-1)[0];
     document.getElementById('sr_expiration_no_' + String(id)).disabled = false;
