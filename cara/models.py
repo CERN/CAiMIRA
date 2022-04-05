@@ -1318,14 +1318,20 @@ class ExposureModel:
                 # in the case of a single diameter or no diameter defined,
                 # one should not take any mean at this stage.
                 deposited_exposure += short_range_exposure*fdep  
-        
-        # then we multiply by the diameter-independent quantity virus viral load
-        deposited_exposure *= self.concentration_model.virus.viral_load_in_sputum
-        # long-range concentration
-        f_inf = self.concentration_model.infected.fraction_of_infectious_virus()
-        deposited_exposure += self.long_range_deposited_exposure_between_bounds(time1, time2)/f_inf
 
-        return deposited_exposure * f_inf
+            # multiply by the (diameter-independent) inhalation rate
+            deposited_exposure *= interaction.activity.inhalation_rate
+
+        # then we multiply by diameter-independent quantities: viral load
+        # and fraction of infected virions
+        f_inf = self.concentration_model.infected.fraction_of_infectious_virus()
+        deposited_exposure *= (f_inf
+                * self.concentration_model.virus.viral_load_in_sputum
+                )
+        # long-range concentration
+        deposited_exposure += self.long_range_deposited_exposure_between_bounds(time1, time2)
+
+        return deposited_exposure
 
     def deposited_exposure(self) -> _VectorisedFloat:
         """
