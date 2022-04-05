@@ -28,22 +28,22 @@
 {% endblock warning_animation %}
 
 {% block report_summary %}
+  {% set report_message =  "Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally, the <b>probability of one exposed occupant getting infected is " + prob_inf | non_zero_percentage + "</b> and the <b>expected number of new cases is " + expected_new_cases | float_format + "</b>*." %}
   <div class="flex-row align-self-center">
       {% if scale_warning == 'red' %}
         <div class="alert alert-danger mb-0" role="alert">
           <strong>Not Acceptable:</strong>
-              Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>*.
-
+              {{ report_message }}
         </div>
       {% elif scale_warning == 'orange' %}
         <div class="alert alert-warning mb-0" role="alert">
           <strong>Attention:</strong>
-              Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>*.
+              {{ report_message }}
         </div>
       {% elif scale_warning == 'green' %}
         <div class="alert alert-success mb-0" role="alert">
           <strong>Acceptable:</strong>
-              Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>*.
+              {{ report_message }}
         </div>
       {% endif %}
 

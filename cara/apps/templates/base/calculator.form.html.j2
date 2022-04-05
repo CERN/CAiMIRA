@@ -366,6 +366,47 @@
 
     <hr width="80%">
 
+    <div class="split">
+      <div style="min-width: 22em">Short-range interactions (without masks):</div>
+      <div>
+        <input class="ml-2" type="radio" id="short_range_no" name="short_range_option" value="short_range_no" checked="checked">
+          <label for="short_range_no">No</label>
+        <input class="ml-2" type="radio" id="short_range_yes" name="short_range_option" value="short_range_yes" data-enables="#DIVsr_interactions">
+          <label for="short_range_yes">Yes</label>
+      </div>
+    </div>
+    <p id="short_range_warning" class="red_text" style="margin-right: 2rem">The use of masks mitigates exposure at short-range. The analytical model with short-range interactions does not take mask wearing into account.</p>
+
+    <div id="DIVsr_interactions" class="none">
+      <div class="d-flex">
+        <button type="button" id="set_interactions_button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#short_range_dialog" data-keyboard="false" data-backdrop="static">Set interactions</button>
+        <p class="align-self-center pl-4"><b id="sr_interactions">0</b> short-range interactions.</p>
+      </div>
+    </div>
+
+    <div class="modal fade" id="short_range_dialog" tabindex="-1" role="dialog" aria-labelledby="short_range_dialogTitle" aria-hidden="true">
+      <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="short_range_dialogTitle">Short-range interactions</h5>
+          </div>
+          <div class="modal-body">
+
+            <div class="col-md-12 p-0 form-group" id="dialog_sr"></div>
+            <div class="text-center"><button type="button" class="add_node_btn_frm_field btn btn-primary btn-sm">Add row</button></div>
+            <input type="text" class="form-control d-none" name="short_range_interactions">
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary dismiss_btn_frm_field" data-dismiss="modal">Clear all</button>
+            <button type="button" class="btn btn-primary close_btn_frm_field">Save all</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr width="80%">
+
     <div class="form-group row">
     <div class="col-sm-4"><label class="col-form-label">Which month is the event?</label></div>
     <div class="col-sm-6 align-self-center">
@@ -515,7 +556,7 @@
 
 <div class="container container--padding">
   <b>Quick Guide:</b><br>
-  This tool simulates the long range airborne spread SARS-CoV-2 virus in a finite volume and estimates the risk of COVID-19 infection. It is based on current scientific data and can be used to compare the effectiveness of different mitigation measures.<br>
+  This tool simulates the long-range airborne spread SARS-CoV-2 virus in a finite volume and estimates the risk of COVID-19 infection. It is based on current scientific data and can be used to compare the effectiveness of different mitigation measures.<br>
   <b>Virus data:</b> <br>
   SARS-CoV-2 covers the original "wild type" strain of the virus and three variants of concern (VOC):<br>
   <ul>

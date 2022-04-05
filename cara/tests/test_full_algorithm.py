@@ -1,0 +1,383 @@
+from dataclasses import dataclass
+import typing
+
+import numpy as np
+from scipy.integrate import quad
+from scipy.special import erf
+import numpy.testing as npt
+import pytest
+
+import cara.monte_carlo as mc
+from cara import models,data
+from cara.utils import method_cache
+from cara.models import _VectorisedFloat,Interval,SpecificInterval
+from cara.monte_carlo.sampleable import LogNormal
+from cara.monte_carlo.data import (expiration_distributions,
+            expiration_BLO_factors,short_range_expiration_distributions,
+            short_range_distances)
+
+# TODO: seed better the random number generators
+np.random.seed(2000)
+SAMPLE_SIZE = 500000
+TOLERANCE = 0.05
+
+sqrt2pi = np.sqrt(2.*np.pi)
+sqrt2 = np.sqrt(2.)
+ln2 = np.log(2)
+
+@dataclass(frozen=True)
+class SimpleConcentrationModel:
+    """
+    Simple model for the background (long-range) concentration, without
+    all the flexibility of cara.models.ConcentrationModel.
+    For independent, end-to-end testing purposes.
+    This assumes no mask wearing, and the same ventilation rate at all
+    times.
+    """
+
+    #: infected people presence interval
+    infected_presence: Interval
+
+    #: viral load (RNA copies  / mL)
+    viral_load: _VectorisedFloat
+
+    #: breathing rate (m^3/h)
+    breathing_rate: _VectorisedFloat
+
+    #: room volume (m^3)
+    room_volume: _VectorisedFloat
+
+    #: ventilation rate (air changes per hour) - including HEPA
+    lambda_ventilation: _VectorisedFloat
+
+    #: BLO factors
+    BLO_factors: typing.Tuple[float, float, float]
+
+    #: number of infected people
+    num_infected: int = 1
+
+    #: relative humidity RH
+    humidity: float = 0.3
+
+    #: minimum particle diameter considered (microns)
+    diameter_min: float = 0.1
+
+    #: maximum particle diameter considered (microns)
+    diameter_max: float = 30.
+
+    #: evaporation factor
+    evaporation: float = 0.3
+    
+    #: cn (cm^-3) for resp. the B, L and O modes. Corresponds to the
+    # total concentration of aerosols for each mode.
+    cn: typing.Tuple[float, float, float] = (0.06, 0.2, 0.0010008)
+
+    # mean of the underlying normal distributions (represents the log of a
+    # diameter in microns), for resp. the B, L and O modes.
+    mu: typing.Tuple[float, float, float] = (0.989541, 1.38629, 4.97673)
+
+    # std deviation of the underlying normal distribution, for resp.
+    # the B, L and O modes.
+    sigma: typing.Tuple[float, float, float] = (0.262364, 0.506818, 0.585005)
+
+    def removal_rate(self) -> _VectorisedFloat:
+        """
+        removal rate lambda in h^-1, excluding the deposition rate.
+        """
+        return (self.lambda_ventilation 
+                + ln2/(6.43 if self.humidity<=0.4 else 1.1) )
+
+    @method_cache
+    def deposition_removal_coefficient(self) -> float:
+        """
+        coefficient in front of gravitational deposition rate, in h^-1.microns^-2
+        Note: 0.4512 = 1.88e-4 * 3600 / 1.5
+        """
+        return 0.4512*(self.evaporation/2.5)**2
+
+    @method_cache
+    def aerosol_volume(self,diameter: float) -> float:
+        """
+        particle volume in microns^3
+        """
+        return 4*np.pi/3. * (diameter/2.)**3
+
+    @method_cache
+    def Np(self,diameter: float) -> float:
+        """
+        number of emitted particles per unit volume (BLO model)
+        in cm^-3.ln(micron)^-1
+        """
+        result = 0.
+        for cn,mu,sigma,famp in zip(self.cn,self.mu,self.sigma,
+                                    self.BLO_factors):
+            result += ( (cn * famp)/sigma * 
+                        np.exp(-(np.log(diameter)-mu)**2/(2*sigma**2)))
+        return result/(diameter*sqrt2pi)
+
+    def vR(self,diameter: float) -> float:
+        """
+        emission rate per unit diameter, in RNA copies / h / micron
+        """
+        return (self.viral_load * self.breathing_rate * self.Np(diameter)
+                * self.aerosol_volume(diameter) * 1e-6)
+
+    @method_cache
+    def f(self, removal_rate: _VectorisedFloat, deltat: float) -> _VectorisedFloat:
+        """
+        A general function to compute the main integral over diameters
+        """
+        def integrand(diameter):
+            # function to return the integrand
+            a = self.deposition_removal_coefficient()
+            a_dsquare = a*diameter**2
+            return (self.vR(diameter)/(a_dsquare + removal_rate)
+                    * np.exp(-a_dsquare*deltat))
+
+        return quad(integrand,self.diameter_min,self.diameter_max)[0]
+
+    def concentration(self,t: float) -> _VectorisedFloat:
+        """
+        concentration at a given time t
+        """
+        trans_times = sorted(self.infected_presence.transition_times())
+        if t==trans_times[0]:
+            return 0.
+
+        lambda_rate = self.removal_rate()
+        # transition_times[i] < t <=  transition_times[i]+1
+        i: int = np.searchsorted(trans_times,t) - 1 # type: ignore
+        ti = trans_times[i]
+        Pim1 = self.infected_presence.triggered((trans_times[i-1]+ti)/2.)
+        Pi = self.infected_presence.triggered((ti+trans_times[i+1])/2.)
+
+        result = (0 if not Pim1 else self.f(lambda_rate,t-ti))
+        result -= (0 if not Pi else self.f(lambda_rate,t-ti))
+
+        for k,tk in enumerate(trans_times[:i]):
+            Pkm1 = self.infected_presence.triggered((trans_times[k-1]+tk)/2.)
+            Pk = self.infected_presence.triggered((tk+trans_times[k+1])/2.)
+            s = np.sum([lambda_rate*(trans_times[l]-trans_times[l-1])
+                        for l in range(k+1,i+1)])
+            result += ( (0 if not Pkm1 else self.f(lambda_rate,t-tk))
+                       -(0 if not Pk else self.f(lambda_rate,t-tk))
+                       ) * np.exp(-s)
+
+        return ( ( (0 if not self.infected_presence.triggered(t)
+                    else self.f(lambda_rate,0))
+                  + result * np.exp(-lambda_rate*(t-ti)) )
+                * self.num_infected/self.room_volume)
+
+
+@dataclass(frozen=True)
+class SimpleShortRangeModel:
+    """
+    Simple model for the short-range concentration, without
+    all the flexibility of cara.models.ShortRangeModel.
+    For independent, end-to-end testing purposes.
+    This assumes no mask wearing.
+    """
+    
+    #: time intervals in which a short-range interaction occurs
+    interaction_interval: SpecificInterval
+
+    #: tuple with interpersonal distanced from infected person (m)
+    distance : _VectorisedFloat = 0.854
+    
+    #: breathing rate (m^3/h)
+    breathing_rate: _VectorisedFloat = 0.51
+    
+    #: tuple with BLO factors
+    BLO_factors: typing.Tuple[float, float, float] = (1,0,0)
+
+    #: minimum diameter for integration (short-range only) (microns)
+    diameter_min: float = 0.1
+
+    #: maximum diameter for integration (short-range only) (microns)
+    diameter_max: float = 100.
+    
+    #: mouth opening diameter (m)
+    D: float = 0.02
+    
+    #: duration of the expiration (s)
+    tstar: float = 2.
+    
+    #: Streamwise and radial penetration coefficients
+    Cr1: float = 0.18
+    Cx1: float = 2.4
+    Cr2: float = 0.2
+    Cx2: float = 2.2
+    
+    @method_cache
+    def dilution_factor(self) -> _VectorisedFloat:
+        """
+        computes dilution factor at a certain distance x
+        based on Wei JIA matlab script.
+        """
+        x = np.array(self.distance)
+        dilution = np.empty(x.shape, dtype=np.float64)
+        # expired flow rate during the expiration period, m^3/s
+        Q0 = np.array(self.breathing_rate/3600)
+        # the expired flow velocity at the noozle (mouth opening), m/s
+        u0 = np.array(Q0/(np.pi/4. * self.D**2))
+        # parameters in the jet-like stage
+        # position of virtual origin
+        x01 = self.D/2/self.Cr1
+        # time of virtual origin
+        t01 = (x01/self.Cx1)**2 * (Q0*u0)**(-0.5)
+        # transition point (in m)
+        xstar = np.array(self.Cx1*(Q0*u0)**0.25*(self.tstar + t01)**0.5
+                         - x01)
+        # dilution factor at the transition point xstar
+        Sxstar = np.array(2.*self.Cr1*(xstar+x01)/self.D)
+
+        # calculate dilution factor at the short-range distance x
+        dilution[x <= xstar] = 2.*self.Cr1*(x[x <= xstar] + x01)/self.D
+        dilution[x > xstar] = Sxstar[x > xstar]*(1. + self.Cr2*(x[x > xstar]
+                                - xstar[x > xstar])
+                                /self.Cr1/(xstar[x > xstar] + x01))**3
+
+        return dilution
+
+    @method_cache
+    def jet_concentration(self,conc_model: SimpleConcentrationModel) -> _VectorisedFloat:
+        """
+        virion concentration at the origin of the jet (close to
+        the mouth of the infected person), in m^-3
+        we perform the integral of Np(d)*V(d) over diameter analytically
+        """
+        vl = conc_model.viral_load
+        dmin = self.diameter_min
+        dmax = self.diameter_max
+        result = 0.
+        for cn,mu,sigma,famp in zip(conc_model.cn,conc_model.mu,conc_model.sigma,
+                                    self.BLO_factors):
+            d0 = np.exp(mu)
+            ymin = (np.log(dmin)-mu)/(sqrt2*sigma)-3.*sigma/sqrt2
+            ymax = (np.log(dmax)-mu)/(sqrt2*sigma)-3.*sigma/sqrt2
+            result += ( (cn * famp * d0**3)/2. * np.exp(9*sigma**2/2.) *
+                        (erf(ymax) - erf(ymin)) )
+        return vl * 1e-6 * result * np.pi/6.
+
+    def concentration(self, conc_model: SimpleConcentrationModel, time: float) -> _VectorisedFloat:
+        """
+        compute the short-range part of the concentration, and add it
+        to the background concentration
+        """
+        if self.interaction_interval.triggered(time):
+            background_concentration = conc_model.concentration(time)
+            S = self.dilution_factor()
+            return (self.jet_concentration(conc_model)
+                    - background_concentration) / S
+        else:
+            return 0.
+        
+
+presence = models.SpecificInterval(present_times=((8.5, 12), (13, 17.5)))
+interaction_intervals = (models.SpecificInterval(present_times=((10.5, 11.0),)),
+                         models.SpecificInterval(present_times=((14.5, 15.0),))
+                         )
+
+
+@pytest.fixture
+def conc_model() -> mc.ConcentrationModel:
+    return mc.ConcentrationModel(
+        room=models.Room(volume=50, humidity=0.3),
+        ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=1.),
+        infected=mc.InfectedPopulation(
+            number=1,
+            presence=presence,
+            virus=models.Virus.types['SARS_CoV_2_DELTA'],
+            mask=models.Mask.types['No mask'],
+            activity=models.Activity.types['Seated'],
+            expiration=expiration_distributions['Breathing'],
+            host_immunity=0.,
+        ),
+        evaporation_factor=0.3,
+    ).build_model(SAMPLE_SIZE)
+
+
+@pytest.fixture
+def simple_conc_model() -> SimpleConcentrationModel:
+    return SimpleConcentrationModel(
+        infected_presence = presence,
+        viral_load        = models.Virus.types['SARS_CoV_2_DELTA'].viral_load_in_sputum,
+        breathing_rate    = models.Activity.types['Seated'].exhalation_rate,
+        room_volume       = 50.,
+        lambda_ventilation= 1.,
+        BLO_factors       = expiration_BLO_factors['Breathing'],
+    )
+
+
+@pytest.fixture
+def sr_models() -> typing.Tuple[mc.ShortRangeModel, ...]:
+    return (
+        mc.ShortRangeModel(
+            expiration = short_range_expiration_distributions['Breathing'],
+            activity = models.Activity.types['Seated'],
+            presence = interaction_intervals[0],
+            distance = 0.854,
+        ).build_model(SAMPLE_SIZE),
+        mc.ShortRangeModel(
+            expiration = short_range_expiration_distributions['Speaking'],
+            activity = models.Activity.types['Seated'],
+            presence = interaction_intervals[1],
+            distance = 0.854,
+        ).build_model(SAMPLE_SIZE),
+    )
+
+
+@pytest.fixture
+def simple_sr_models() -> typing.Tuple[SimpleShortRangeModel, ...]:
+    return (
+        SimpleShortRangeModel(
+            interaction_interval = interaction_intervals[0],
+            distance = 0.854,
+            breathing_rate = models.Activity.types['Seated'].exhalation_rate,
+            BLO_factors = expiration_BLO_factors['Breathing'],
+        ),
+        SimpleShortRangeModel(
+            interaction_interval = interaction_intervals[1],
+            distance = 0.854,
+            breathing_rate = models.Activity.types['Seated'].exhalation_rate,
+            BLO_factors = expiration_BLO_factors['Speaking'],
+        )
+    )
+
+
+@pytest.mark.parametrize(
+    "time", np.linspace(8.5,17.5,12),
+)
+def test_background_concentration(time,conc_model,simple_conc_model):
+    npt.assert_allclose(
+        conc_model.concentration(time).mean(),
+        simple_conc_model.concentration(time), rtol=TOLERANCE
+        )
+
+@pytest.mark.parametrize(
+    "time", [10, 10.7, 11., 12.5, 14.75, 14.9, 17]
+)
+def test_shortrange_concentration(time,conc_model,simple_conc_model,
+                                  sr_models,simple_sr_models):
+    result_sr_model = np.sum([np.array(
+            sr_mod.short_range_concentration(conc_model,time)).mean()
+        for sr_mod in sr_models])
+    result_simple_sr_model = np.sum([np.array(
+            sr_mod.concentration(simple_conc_model,time)).mean()
+        for sr_mod in simple_sr_models])
+    npt.assert_allclose(
+        result_sr_model,result_simple_sr_model,rtol=TOLERANCE
+        )
+
+
+#times = np.linspace(8.5,17.5,120)
+#plt.plot(times,[conc_model.concentration(t).mean() for t in times])
+#plt.plot(times,[simple_conc_model.concentration(t) for t in times])
+
+#plt.plot(times,[np.sum([np.array(sr_mod.short_range_concentration(conc_model,t)).mean()
+#                        for sr_mod in sr_models])
+#                + conc_model.concentration(t).mean() for t in times])
+#plt.plot(times,[np.sum([np.array(sr_mod.concentration(simple_conc_model,t)).mean()
+#                        for sr_mod in simple_sr_models])
+#                + simple_conc_model.concentration(t)
+#                for t in times])
