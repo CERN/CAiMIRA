@@ -74,7 +74,7 @@ def classroom_model_lunch_vent(mask: str, lunch_break: bool, ventilation: bool, 
                                     window_height=1.6,
                                     opening_length=0.5,
                                 ),
-                                models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=0.25),
+                                models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=0.0),
                                 models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120),
                                       q_air_mech=volume*5))
             )
@@ -87,7 +87,7 @@ def classroom_model_lunch_vent(mask: str, lunch_break: bool, ventilation: bool, 
                                     window_height=1.6,
                                     opening_length=0.5,
                                 ),
-                                models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=0.25)))
+                                models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=0.0)))
     elif not ventilation:
         if hepa:
             vent = models.MultipleVentilation(
