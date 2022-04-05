@@ -4,13 +4,10 @@ import uuid
 
 import ipympl.backend_nbagg
 import ipywidgets as widgets
-import numpy as np
 import matplotlib
 import matplotlib.figure
-
-from cara import models
-from cara import state
-from cara import data
+import numpy as np
+from cara import data, models, state
 
 
 def collapsible(widgets_to_collapse: typing.List, title: str, start_collapsed=False):
@@ -229,20 +226,21 @@ class ModelWidgets(View):
         self.widget.children += (self._build_infectivity(node.concentration_model.infected),)
 
     def _build_exposed(self, node):
-        return collapsible([widgets.HBox([
+        return collapsible([widgets.VBox([
             self._build_mask(node.exposed.mask),
             self._build_activity(node.exposed.activity),
         ])], title="Exposed")
 
     def _build_infected(self, node):
-        return collapsible([widgets.HBox([
+        return collapsible([widgets.VBox([
             self._build_mask(node.mask),
             self._build_activity(node.activity),
             self._build_expiration(node.expiration),
         ])], title="Infected")
 
     def _build_room(self, node):
-        room_volume = widgets.IntSlider(value=node.volume, min=10, max=150)
+        room_volume = widgets.FloatSlider(value=node.volume, min=10, max=500
+        , step=5)
 
         def on_value_change(change):
             node.volume = change['new']
@@ -302,7 +300,7 @@ class ModelWidgets(View):
             'Daily variation': self._build_month(node),
         }
 
-        outsidetemp_w = widgets.ToggleButtons(
+        outsidetemp_w = widgets.Dropdown(
             options=outsidetemp_widgets.keys(),
         )
 
@@ -341,8 +339,8 @@ class ModelWidgets(View):
             result.add_pairs(sub_group.pairs())
         return result
 
-    def _build_mechanical(self, node):
-        q_air_mech = widgets.IntSlider(value=node.q_air_mech, min=0, max=1000, step=5)
+    def _build_q_air_mech(self, node):
+        q_air_mech = widgets.FloatSlider(value=node.q_air_mech, min=0, max=1000, step=5)
 
         def q_air_mech_change(change):
             node.q_air_mech = change['new']
@@ -350,13 +348,48 @@ class ModelWidgets(View):
         # TODO: Link the state back to the widget, not just the other way around.
         q_air_mech.observe(q_air_mech_change, names=['value'])
 
-        auto_width = widgets.Layout(width='auto')
-        return widgets.VBox([widget_group([
-            [
-                widgets.Label('Flow rate (m³/h)', layout=auto_width),
-                q_air_mech,
-            ],
-         ])])
+        return widgets.HBox([q_air_mech, widgets.Label('m³/h')])
+
+    def _build_ach(self, node):
+        air_exch = widgets.IntSlider(value=node.air_exch, min=0, max=50, step=5)
+
+        def air_exch_change(change):
+            node.air_exch = change['new']
+
+        # TODO: Link the state back to the widget, not just the other way around.
+        air_exch.observe(air_exch_change, names=['value'])
+
+        return widgets.HBox([air_exch, widgets.Label('h⁻¹')])
+
+    def _build_mechanical(self, node):
+        mechanical_widgets = {
+            'HVACMechanical': self._build_q_air_mech(node._states['HVACMechanical']),
+            'AirChange': self._build_ach(node._states['AirChange']),
+        }
+
+        for name, widget in mechanical_widgets.items():
+            widget.layout.visible = False
+
+        mechanival_w = widgets.RadioButtons(
+            options=list(zip(['Air supply flow rate (m³/h)', 'Air changes per hour (h⁻¹)'], mechanical_widgets.keys())),
+            # button_style='info',
+        )
+
+        def toggle_mechanical(value):
+            for name, widget in mechanical_widgets.items():
+                widget.layout.visible = False
+                widget.layout.display = 'none'
+
+            node.dcs_select(value)
+
+            widget = mechanical_widgets[value]
+            widget.layout.visible = True
+            widget.layout.display = 'flex'
+
+        mechanival_w.observe(lambda event: toggle_mechanical(event['new']), 'value')
+        toggle_mechanical(mechanival_w.value)
+
+        return widgets.VBox([mechanival_w, widgets.HBox(list(mechanical_widgets.values()))])
 
     def _build_month(self, node) -> WidgetGroup:
 
@@ -377,7 +410,7 @@ class ModelWidgets(View):
         for name, activity_ in models.Activity.types.items():
             if activity == activity_:
                 break
-        activity = widgets.Select(options=list(models.Activity.types.keys()), value=name)
+        activity = widgets.Dropdown(options=list(models.Activity.types.keys()), value=name)
 
         def on_activity_change(change):
             act = models.Activity.types[change['new']]
@@ -393,7 +426,7 @@ class ModelWidgets(View):
         for name, mask_ in models.Mask.types.items():
             if mask == mask_:
                 break
-        mask_choice = widgets.Select(options=list(models.Mask.types.keys()), value=name)
+        mask_choice = widgets.Dropdown(options=list(models.Mask.types.keys()), value=name)
 
         def on_mask_change(change):
             node.dcs_select(change['new'])
@@ -408,7 +441,7 @@ class ModelWidgets(View):
         for name, expiration_ in models.Expiration.types.items():
             if expiration == expiration_:
                 break
-        expiration_choice = widgets.Select(options=list(models.Expiration.types.keys()), value=name)
+        expiration_choice = widgets.Dropdown(options=list(models.Expiration.types.keys()), value=name)
 
         def on_expiration_change(change):
             expiration = models.Expiration.types[change['new']]
@@ -428,13 +461,16 @@ class ModelWidgets(View):
     ) -> widgets.Widget:
         ventilation_widgets = {
             'Natural': self._build_window(node._states['Natural']).build(),
-            'Mechanical': self._build_mechanical(node._states['Mechanical']),
+            'HVACMechanical': self._build_mechanical(node),
         }
+
+        keys=["Natural","HVACMechanical","No ventilation"]
+
         for name, widget in ventilation_widgets.items():
             widget.layout.visible = False
 
-        ventilation_w = widgets.ToggleButtons(
-            options=ventilation_widgets.keys(),
+        ventilation_w = widgets.Dropdown(
+            options=keys,
         )
 
         def toggle_ventilation(value):
@@ -459,7 +495,7 @@ class ModelWidgets(View):
         return w
 
     def _build_infectivity(self,node):
-        return collapsible([widgets.HBox([
+        return collapsible([widgets.VBox([
             self._build_virus(node.virus),
         ])], title="Virus variant")
 
@@ -468,7 +504,7 @@ class ModelWidgets(View):
         for name, virus_ in models.Virus.types.items():
             if virus == virus_:
                 break
-        virus_choice = widgets.Select(options=list(models.Virus.types.keys()), value=name)
+        virus_choice = widgets.Dropdown(options=list(models.Virus.types.keys()), value=name)
 
         def on_virus_change(change):
             node.dcs_select(change['new'])
@@ -534,13 +570,28 @@ class CARAStateBuilder(state.StateBuilder):
         s: state.DataclassStateNamed = state.DataclassStateNamed(
             states={
                 'Natural': self.build_generic(models.WindowOpening),
-                'Mechanical': self.build_generic(models.HVACMechanical),
+                'No ventilation': self.build_generic(models.AirChange),
+                'HVACMechanical': self.build_generic(models.HVACMechanical),
+                'AirChange': self.build_generic(models.AirChange),
+                'No ventilation': self.build_generic(models.AirChange),
+
+
             },
             state_builder=self,
         )
-        # Initialise the HVAC state
-        s._states['Mechanical'].dcs_update_from(
-            models.HVACMechanical(models.PeriodicInterval(period=24*60, duration=24*60), 500.)
+        # Initialise the "HVAC" state
+        s._states['HVACMechanical'].dcs_update_from(
+            #models.MultipleVentilation(ventilations=[
+                #models.AirChange(active=models.PeriodicInterval(period=60, duration=60), air_exch=0.25),
+            models.HVACMechanical(active=models.PeriodicInterval(period=24*60, duration=24*60), q_air_mech=500.)
+            #])
+        )
+        s._states['AirChange'].dcs_update_from(
+            models.AirChange(models.PeriodicInterval(period=24*60, duration=24*60), 10.)
+        )
+        # Initialize the "No ventilation" state
+        s._states['No ventilation'].dcs_update_from(
+            models.AirChange(active=models.PeriodicInterval(period=60, duration=60), air_exch=0.)  #will need to add the residual air change of 0.25
         )
         return s
 
