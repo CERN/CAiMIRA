@@ -116,7 +116,7 @@ def compare_concentration_curves(models, labels, colors):
         ax.plot(times, c, label=label, color=color, lw=2)
 
     # ax.legend(fontsize=12, loc='lower left', bbox_to_anchor=(1.12, 0.))
-    ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.05)
+    ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.01)
     ax.spines["right"].set_visible(False)
 
     cumulative_doses = [np.cumsum([
@@ -173,7 +173,8 @@ def plot_pi_vs_viral_load(activity, expiration, mask):
         pi_omicron = exposure_omicron_model.infection_probability()/100
         pi_omicron_means.append(np.mean(pi_omicron))
 
-        # Omicron and vaccinated
+        # nominal and vaccinated
+        #TODO change exposure_omicron_vaccinated_mc to exposure_delta_vaccinated_mc (etc.) here below
         exposure_omicron_vaccinated_mc = exposure_vl(activity, expiration, mask, vl, virus_t_factor=0.51, hi=0.75)
         exposure_omicron_vaccinated_model = exposure_omicron_vaccinated_mc.build_model(size=SAMPLE_SIZE)
         pi_omicron_vaccinated = exposure_omicron_vaccinated_model.infection_probability()/100
@@ -255,20 +256,21 @@ def plot_pi_vs_viral_load_box_plot(activity, expiration, mask):
         pi_omicron_lower_percentiles.append(np.quantile(pi_omicron, 0.05))
         pi_omicron_upper_percentiles.append(np.quantile(pi_omicron, 0.95))
 
-        # Omicron and vaccinated
-        exposure_omicron_vaccinated_mc = exposure_vl(activity, expiration, mask, vl, virus_t_factor=0.51, hi=0.75)
+        # nominal and vaccinated
+        #TODO change exposure_omicron_vaccinated_mc to exposure_vaccinated_mc (etc.) here below
+        exposure_omicron_vaccinated_mc = exposure_vl(activity, expiration, mask, vl, virus_t_factor=1, hi=0.75)
         exposure_omicron_vaccinated_model = exposure_omicron_vaccinated_mc.build_model(size=SAMPLE_SIZE)
         pi_omicron_vaccinated = exposure_omicron_vaccinated_model.infection_probability()/100
         pi_omicron_vaccinated_means.append(np.mean(pi_omicron_vaccinated))
         pi_omicron_vaccinated_lower_percentiles.append(np.quantile(pi_omicron_vaccinated, 0.05))
         pi_omicron_vaccinated_upper_percentiles.append(np.quantile(pi_omicron_vaccinated, 0.95))
 
-    ax.plot(viral_loads, pi_means, label='')
+    ax.plot(viral_loads, pi_means, label='Wild strain', color='royalblue')
     ax.fill_between(viral_loads, lower_percentiles,
-                    upper_percentiles, alpha=0.2)
+                    upper_percentiles, color='royalblue', alpha=0.2)
 
-    ax.plot(viral_loads, pi_omicron_means, label='', linestyle='--', color='orange')
-    ax.plot(viral_loads, pi_omicron_vaccinated_means, label='', linestyle='--', color='violet')
+    ax.plot(viral_loads, pi_omicron_vaccinated_means, linestyle='--', color='royalblue', label='Vaccination')    
+    ax.plot(viral_loads, pi_omicron_means, linestyle='--', color='orange', label='Omicron VOC')
 
 
     # add vertical lines for the critical viral loads for which pi= 5 or 95
@@ -289,21 +291,21 @@ def plot_pi_vs_viral_load_box_plot(activity, expiration, mask):
 
     plt.vlines(x=(left, right), ymin=0, ymax=1,
               colors=('grey', 'grey'), linestyles='dotted')
-    plt.text(left - 1.3, 0.80, '$vl_{crit, a}$', fontsize=14,color='black')
-    plt.text(right + 0.1, 0.80, '$vl_{crit, b}$', fontsize=14,color='black')
+    plt.text(left - 1.1, 0.80, '$vl_{crit, a}$', fontsize=14,color='black')
+    plt.text(right + 0.1, 0.20, '$vl_{crit, b}$', fontsize=14,color='black')
     # add 3 shaded areas
-    plt.axvspan(2, left, alpha=0.1, color='limegreen')
-    plt.axvspan(left, right, alpha=0.1, color='orange')
-    plt.axvspan(right, 12, alpha=0.1, color='tomato')
+    plt.axvspan(2, left, alpha=0.08, color='limegreen')
+    plt.axvspan(left, right, alpha=0.08, color='orange')
+    plt.axvspan(right, 12, alpha=0.08, color='tomato')
             
     # Boxplots
     ax1=ax.twinx()
     ax1.tick_params(left=False, labelleft=False, top=False, labeltop=False, right=False, labelright=False, bottom=False, labelbottom=False)
     ax1.set_ylim(ax.get_ylim())
 
-    for t_factor, hi, means, lower_percentiles, upper_percentiles, color in zip((0.2, 0.51), (0, 0.75), (pi_omicron_means, pi_omicron_vaccinated_means), 
+    for t_factor, hi, means, lower_percentiles, upper_percentiles, color in zip((0.2, 1), (0, 0.75), (pi_omicron_means, pi_omicron_vaccinated_means), 
                                                         (pi_omicron_lower_percentiles, pi_omicron_vaccinated_lower_percentiles),
-                                                        (pi_omicron_upper_percentiles, pi_omicron_vaccinated_upper_percentiles), ('orange', 'violet')):
+                                                        (pi_omicron_upper_percentiles, pi_omicron_vaccinated_upper_percentiles), ('orange', 'royalblue')):
 
         left_index, right_index, mean_index = 0, 0, 0
         for i, pi in enumerate(means):
@@ -337,7 +339,7 @@ def plot_pi_vs_viral_load_box_plot(activity, expiration, mask):
             item["whishi"] = viral_loads[index1] # required
             item["fliers"] = [] # required if showfliers=True
 
-            ax1.bxp([item], positions=[np.mean(pi)+0.01], widths = 0.05, vert=False, showbox=False, showmeans=True, 
+            ax1.bxp([item], positions=[np.mean(pi)], widths = 0.05, vert=False, showbox=False, showmeans=True, 
                 showfliers=False, medianprops=dict(linewidth=0), 
                 meanprops=dict(marker='o', markerfacecolor=color, markeredgecolor='none'),
                 whiskerprops=dict(color=color), capprops=dict(color=color))
@@ -346,5 +348,6 @@ def plot_pi_vs_viral_load_box_plot(activity, expiration, mask):
     ############ Plot ############
     ax.set_ylabel('Probability of infection', fontsize=14)
     ax.set_xlabel('NP viral load, $\mathrm{vl_{in}}$\n(RNA copies)', fontsize=14)
+    ax.legend(loc='upper left', framealpha=0.5)
     plt.xticks(ticks=[i for i in range(2, 13)], labels=['$10^{' + str(i) + '}$' for i in range(2, 13)])
     plt.show()

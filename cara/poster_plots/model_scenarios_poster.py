@@ -68,7 +68,7 @@ def classroom_model_lunch_vent(mask: str, lunch_break: bool, ventilation: bool, 
         if hepa:
             vent = models.MultipleVentilation(
                 ventilations= (models.SlidingWindow(
-                                    active=models.PeriodicInterval(period=120, duration=60),
+                                    active=models.PeriodicInterval(period=120, duration=120),
                                     inside_temp=models.PiecewiseConstant((0., 24.), (293,)),
                                     outside_temp=data.GenevaTemperatures['Dec'],
                                     window_height=1.6,
