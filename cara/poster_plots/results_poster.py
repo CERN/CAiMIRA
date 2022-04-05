@@ -9,7 +9,8 @@ from scripts_poster import *
 ############# PLOTS ############
 
 #### Generic P(I) vs vl plot
-plot_pi_vs_viral_load(activity='Heavy exercise', expiration='Shouting', mask='No mask')
+#plot_pi_vs_viral_load(activity='Heavy exercise', expiration='Shouting', mask='No mask')
+plot_pi_vs_viral_load_box_plot(activity='Heavy exercise', expiration='Shouting', mask='No mask')
 
 
 ### Paper classroom scenarios concentration curves
