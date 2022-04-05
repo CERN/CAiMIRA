@@ -464,7 +464,7 @@ class ModelWidgets(View):
             'HVACMechanical': self._build_mechanical(node),
         }
 
-        keys=["Natural","HVACMechanical","No ventilation"]
+        keys=[("Natural", "Natural"), ("Mechanical", "HVACMechanical"), ("No ventilation", "No ventilation")]
 
         for name, widget in ventilation_widgets.items():
             widget.layout.visible = False
