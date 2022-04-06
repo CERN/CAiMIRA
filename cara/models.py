@@ -1175,12 +1175,21 @@ class ShortRangeModel:
         """
         start_bound, stop_bound = self.presence.boundaries()[0]
         
-        jet_origin_integrated = self.expiration.jet_origin_concentration()
+        jet_origin = self.expiration.jet_origin_concentration()
         dilution = self.dilution_factor()
 
-        total_normed_concentration = -(concentration_model.integrated_concentration(start_bound, stop_bound)/concentration_model.virus.viral_load_in_sputum/dilution)
-        total_normed_concentration_interpolated = np.interp(self.expiration.particle.diameter, concentration_model.infected.particle.diameter, total_normed_concentration)
-        return (jet_origin_integrated/dilution * (stop_bound - start_bound)) + total_normed_concentration_interpolated
+        total_normed_concentration_diluted = (
+            concentration_model.integrated_concentration(start_bound,
+                stop_bound)/dilution/
+                concentration_model.virus.viral_load_in_sputum
+                )
+        total_normed_concentration_interpolated = np.interp(
+                self.expiration.particle.diameter,
+                concentration_model.infected.particle.diameter,
+                total_normed_concentration_diluted
+                )
+        return (jet_origin/dilution * (stop_bound - start_bound)
+                ) - total_normed_concentration_interpolated
 
 
 @dataclass(frozen=True)
