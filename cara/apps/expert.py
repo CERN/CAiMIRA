@@ -1,4 +1,7 @@
 import dataclasses
+from msilib.schema import RadioButton
+from tkinter import Radiobutton
+from turtle import window_height
 import typing
 import uuid
 
@@ -276,10 +279,55 @@ class ModelWidgets(View):
             ),
         )
 
+    def _build_hinged_window(self, node):
+            hinged_window = widgets.FloatSlider(value=node.window_width, min=0.1, max=2, step=0.1)
+
+            def hinged_window_change(change):
+                node.window_width = change['new']
+
+            # TODO: Link the state back to the widget, not just the other way around.
+            hinged_window.observe(hinged_window_change, names=['value'])
+
+            return widgets.HBox([widgets.Label('Window width: '),hinged_window, widgets.Label('m')])
+
+    def _build_sliding_window(self, node):
+
+        return widgets.HBox([]) 
+
     def _build_window(self, node) -> WidgetGroup:
+        window_widgets = {
+            'Natural': self._build_sliding_window(node._states['Natural']),
+            'Hinged window': self._build_hinged_window(node._states['Hinged window']), 
+        }
+
+        for name, widget in window_widgets.items():
+            widget.layout.visible = False
+
+        window_w = widgets.RadioButtons(
+            options= list(zip(['Sliding window', 'Hinged window'], window_widgets.keys())),
+            button_style='info',
+            layout=widgets.Layout(height='45px', width='auto'),
+        )
+
+        def toggle_window(value):
+            for name, widget in window_widgets.items():
+                widget.layout.visible = False
+                widget.layout.display = 'none'
+
+            node.dcs_select(value)
+
+            widget = window_widgets[value]
+            widget.layout.visible = True
+            widget.layout.display = 'flex'
+
+        window_w.observe(lambda event: toggle_window(event['new']), 'value')
+        toggle_window(window_w.value)
+
         period = widgets.IntSlider(value=node.active.period, min=0, max=240)
         interval = widgets.IntSlider(value=node.active.duration, min=0, max=240)
         inside_temp = widgets.IntSlider(value=node.inside_temp.values[0]-273.15, min=15., max=25.)
+        #window_type = widgets.RadioButtons(options=['Sliding window', 'Hinged window'], disabled=False)
+        opening_length = widgets.FloatSlider(value=node.opening_length, min=0, max=2, step=0.1)
 
         def on_period_change(change):
             node.active.period = change['new']
@@ -290,10 +338,14 @@ class ModelWidgets(View):
         def insidetemp_change(change):
             node.inside_temp.values = (change['new']+273.15,)
 
+        def opening_length_change(change):
+            node.opening_length = change['new']
+
         # TODO: Link the state back to the widget, not just the other way around.
         period.observe(on_period_change, names=['value'])
         interval.observe(on_interval_change, names=['value'])
         inside_temp.observe(insidetemp_change, names=['value'])
+        opening_length.observe(opening_length_change, names=['value'])
 
         outsidetemp_widgets = {
             'Fixed': self._build_outsidetemp(node.outside_temp),
@@ -318,6 +370,10 @@ class ModelWidgets(View):
         result = WidgetGroup(
             (
                 (
+                    widgets.Label('Opening distance (meters)', layout=auto_width),
+                    opening_length,
+                ),
+                (
                     widgets.Label('Interval between openings (minutes)', layout=auto_width),
                     period,
                 ),
@@ -337,7 +393,7 @@ class ModelWidgets(View):
         )
         for sub_group in outsidetemp_widgets.values():
             result.add_pairs(sub_group.pairs())
-        return result
+        return widgets.VBox([widgets.VBox([window_w, widgets.HBox(list(window_widgets.values()))]), result.build()])
 
     def _build_q_air_mech(self, node):
         q_air_mech = widgets.FloatSlider(value=node.q_air_mech, min=0, max=1000, step=5)
@@ -372,7 +428,7 @@ class ModelWidgets(View):
 
         mechanival_w = widgets.RadioButtons(
             options=list(zip(['Air supply flow rate (m³/h)', 'Air changes per hour (h⁻¹)'], mechanical_widgets.keys())),
-            # button_style='info',
+            button_style='info',
         )
 
         def toggle_mechanical(value):
@@ -460,11 +516,12 @@ class ModelWidgets(View):
             ],
     ) -> widgets.Widget:
         ventilation_widgets = {
-            'Natural': self._build_window(node._states['Natural']).build(),
+            'Natural': self._build_window(node),
             'HVACMechanical': self._build_mechanical(node),
+            'HEPAFilter': self._build_HEPA(node),
         }
 
-        keys=[("Natural", "Natural"), ("Mechanical", "HVACMechanical"), ("No ventilation", "No ventilation")]
+        keys=[("Natural", "Natural"), ("Mechanical", "HVACMechanical"), ("No ventilation", "No ventilation"), ("HEPA Filter", "HEPAFilter")]
 
         for name, widget in ventilation_widgets.items():
             widget.layout.visible = False
@@ -493,6 +550,20 @@ class ModelWidgets(View):
             title='Ventilation scheme',
         )
         return w
+
+    def _build_HEPA(
+        self,
+        node: state.DataclassStateNamed[models.HEPAFilter],
+    ) -> widgets.Widget:
+        
+        HEPA_w = widgets.FloatSlider(value=node.q_air_mech, min=10, max=500, step=5)
+
+        def on_value_change(change):
+            node.q_air_mech=change['new']
+
+        HEPA_w.observe(on_value_change,names= ['value'])
+
+        return widgets.HBox([widgets.Label('HEPA Filtration: '),HEPA_w, widgets.Label('m³/h')])
 
     def _build_infectivity(self,node):
         return collapsible([widgets.VBox([
@@ -523,7 +594,7 @@ baseline_model = models.ExposureModel(
     concentration_model=models.ConcentrationModel(
         room=models.Room(volume=75),
         ventilation=models.SlidingWindow(
-            active=models.PeriodicInterval(period=120, duration=15),
+            active=models.PeriodicInterval(period= 120, duration= 15),
             inside_temp=models.PiecewiseConstant((0., 24.), (293.15,)),
             outside_temp=models.PiecewiseConstant((0., 24.), (283.15,)),
             window_height=1.6, opening_length=0.6,
@@ -573,11 +644,21 @@ class CARAStateBuilder(state.StateBuilder):
                 'No ventilation': self.build_generic(models.AirChange),
                 'HVACMechanical': self.build_generic(models.HVACMechanical),
                 'AirChange': self.build_generic(models.AirChange),
-                'No ventilation': self.build_generic(models.AirChange),
-
+                'Hinged window': self.build_generic(models.WindowOpening),
+                'HEPAFilter': self.build_generic(models.HEPAFilter),
 
             },
             state_builder=self,
+        )
+        #Initialise the "Hinged window" state
+        s._states['Hinged window'].dcs_update_from(
+            models.HingedWindow(active=models.PeriodicInterval(period=120, duration=15),
+            inside_temp=models.PiecewiseConstant((0,24.), (293.15,)),
+            outside_temp=models.PiecewiseConstant((0,24.), (283.15,)),
+            window_height=1.6, opening_length=0.6,
+            window_width=10.
+            ),
+
         )
         # Initialise the "HVAC" state
         s._states['HVACMechanical'].dcs_update_from(
@@ -592,6 +673,9 @@ class CARAStateBuilder(state.StateBuilder):
         # Initialize the "No ventilation" state
         s._states['No ventilation'].dcs_update_from(
             models.AirChange(active=models.PeriodicInterval(period=60, duration=60), air_exch=0.)  #will need to add the residual air change of 0.25
+        )
+        s._states['HEPAFilter'].dcs_update_from(
+            models.HEPAFilter(active=models.PeriodicInterval(period=60, duration=60), q_air_mech=500.)
         )
         return s
 
