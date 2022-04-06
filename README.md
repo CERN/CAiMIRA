@@ -79,16 +79,11 @@ This will start a local version of CARA, which can be visited at http://localhos
 
 ## Development guide
 
-The CARA repository makes use of Git's Large File Storage (LFS) feature.
-You will need a working installation of git-lfs in order to run CARA in development mode.
-See https://git-lfs.github.com/ for installation instructions.
-
 CARA is also mirrored to Github if you wish to collaborate on development and can be found at: https://github.com/CERN/cara
 
 ### Installing CARA in editable mode
 
 ```
-git lfs pull   # Fetch the data from LFS
 pip install -e .   # At the root of the repository
 ```
 
