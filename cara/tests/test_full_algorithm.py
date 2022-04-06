@@ -18,8 +18,8 @@ from cara.monte_carlo.data import (expiration_distributions,
 
 # TODO: seed better the random number generators
 np.random.seed(2000)
-SAMPLE_SIZE = 500000
-TOLERANCE = 0.05
+SAMPLE_SIZE = 1_000_000
+TOLERANCE = 0.02
 
 sqrt2pi = np.sqrt(2.*np.pi)
 sqrt2 = np.sqrt(2.)
@@ -135,7 +135,8 @@ class SimpleConcentrationModel:
             return (self.vR(diameter)/(a_dsquare + removal_rate)
                     * np.exp(-a_dsquare*deltat))
 
-        return (quad(integrand,self.diameter_min,self.diameter_max)[0]
+        return (quad(integrand,self.diameter_min,self.diameter_max,
+                     epsabs=0.,limit=500)[0]
                 * self.viral_load * self.breathing_rate)
 
     def concentration(self,t: float) -> _VectorisedFloat:
@@ -317,7 +318,8 @@ class SimpleExposureModel(SimpleConcentrationModel):
         return fdep
 
     @method_cache
-    def F(self, removal_rate: _VectorisedFloat, deltat: float) -> _VectorisedFloat:
+    def F(self, removal_rate: _VectorisedFloat, deltat: float,
+          evaporation: float) -> _VectorisedFloat:
         """
         A general function to compute the main integral over diameters
         """
@@ -325,15 +327,17 @@ class SimpleExposureModel(SimpleConcentrationModel):
             # function to return the integrand
             a = self.deposition_removal_coefficient()
             a_dsquare = a*diameter**2
-            return -(self.vR(diameter)*self.fdep(diameter,self.evaporation)/(
+            return -(self.vR(diameter)*self.fdep(diameter,evaporation)/(
                     (a_dsquare + removal_rate)**2)
                     * np.exp(-a_dsquare*deltat))
 
-        return (quad(integrand,self.diameter_min,self.diameter_max)[0]
+        return (quad(integrand,self.diameter_min,self.diameter_max,
+                epsabs=0.,limit=500)[0]
                 * self.viral_load * self.breathing_rate)
 
     @method_cache
-    def f_with_fdep(self, removal_rate: _VectorisedFloat, deltat: float) -> _VectorisedFloat:
+    def f_with_fdep(self, removal_rate: _VectorisedFloat, deltat: float,
+                    evaporation: float) -> _VectorisedFloat:
         """
         Same as f but with fdep included in the integral.
         """
@@ -341,14 +345,16 @@ class SimpleExposureModel(SimpleConcentrationModel):
             # function to return the integrand
             a = self.deposition_removal_coefficient()
             a_dsquare = a*diameter**2
-            return (self.vR(diameter)*self.fdep(diameter,self.evaporation)
+            return (self.vR(diameter)*self.fdep(diameter,evaporation)
                     /(a_dsquare + removal_rate) * np.exp(-a_dsquare*deltat))
 
-        return (quad(integrand,self.diameter_min,self.diameter_max)[0]
+        return (quad(integrand,self.diameter_min,self.diameter_max,
+                epsabs=0.,limit=500)[0]
                 * self.viral_load * self.breathing_rate)
 
     @method_cache
-    def integrated_background_concentration(self,t1: float,t2: float) -> _VectorisedFloat:
+    def integrated_background_concentration(self,t1: float,t2: float,
+                            evaporation: float) -> _VectorisedFloat:
         """
         background (long-range) concentration integrated from t1 to t2
         assuming both t1 and t2 are within a single presence interval.
@@ -372,8 +378,8 @@ class SimpleExposureModel(SimpleConcentrationModel):
         Pi = self.infected_presence.triggered((ti+trans_times[i+1])/2.)
 
         def primitive(time):
-            result = (0 if not Pim1 else self.F(lambda_rate,time-ti))
-            result -= (0 if not Pi else self.F(lambda_rate,time-ti))
+            result = (0 if not Pim1 else self.F(lambda_rate,time-ti,evaporation))
+            result -= (0 if not Pi else self.F(lambda_rate,time-ti,evaporation))
 
             for k,tk in enumerate(trans_times[:i]):
                 Pkm1 = (False if k==0 else
@@ -381,13 +387,13 @@ class SimpleExposureModel(SimpleConcentrationModel):
                 Pk = self.infected_presence.triggered((tk+trans_times[k+1])/2.)
                 s = np.sum([lambda_rate*(trans_times[l]-trans_times[l-1])
                             for l in range(k+1,i+1)])
-                result += ( (0 if not Pkm1 else self.F(lambda_rate,time-tk))
-                           -(0 if not Pk else self.F(lambda_rate,time-tk))
+                result += ( (0 if not Pkm1 else self.F(lambda_rate,time-tk,evaporation))
+                           -(0 if not Pk else self.F(lambda_rate,time-tk,evaporation))
                            ) * np.exp(-s)
             return result
 
         return ( ( (0 if not self.infected_presence.triggered((t1+t2)/2.)
-                    else self.f_with_fdep(lambda_rate,0)*(t2-t1))
+                    else self.f_with_fdep(lambda_rate,0,evaporation)*(t2-t1))
                   + (primitive(t2) * np.exp(-lambda_rate*(t2-ti)) -
                      primitive(t1) * np.exp(-lambda_rate*(t1-ti)) ) )
                 * self.num_infected/self.room_volume)
@@ -399,18 +405,22 @@ class SimpleExposureModel(SimpleConcentrationModel):
         diameters. This includes the deposition fraction (fdep).
         """
         result = 0.
+        # evaporation set to 1 (particles do not have time to evaporate)
+        evaporation = 1.
         for sr_model in self.sr_models:
             t1,t2 = sr_model.interaction_interval.boundaries()[0]
             # function to return the integrand
             integrand = lambda d: (self.aerosol_volume(d)
-                    * self.Np(d,sr_model.BLO_factors)*self.fdep(d,1.0))
+                    * self.Np(d,sr_model.BLO_factors)*self.fdep(d,evaporation))
             res = (quad(integrand,
-                        sr_model.diameter_min,sr_model.diameter_max)[0]
-                   * (t2-t1) )
-            result += (res-self.integrated_background_concentration(t1,t2)
-                       )/sr_model.dilution_factor()
+                        sr_model.diameter_min,sr_model.diameter_max,
+                        epsabs=0.,limit=500)[0]
+                   * self.viral_load * 1e-6 * (t2-t1) )
+            result += sr_model.breathing_rate * (
+                        res-self.integrated_background_concentration(t1,t2,evaporation)
+                        )/sr_model.dilution_factor()
 
-        return self.viral_load * 1e-6 * result
+        return result
 
     def dose(self) -> _VectorisedFloat:
         """
@@ -419,11 +429,12 @@ class SimpleExposureModel(SimpleConcentrationModel):
         """
         result = 0.
         for t1,t2 in self.infected_presence.boundaries():
-            result += self.integrated_background_concentration(t1,t2)
+            result += (self.integrated_background_concentration(t1,t2,self.evaporation)
+                       * self.breathing_rate)
 
         result += self.integrated_shortrange_concentration()
 
-        return result * self.finf * self.breathing_rate * (1. - self.HI)
+        return result * self.finf * (1. - self.HI)
 
     def probability_infection(self):
         """
