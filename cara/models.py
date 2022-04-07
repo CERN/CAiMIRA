@@ -501,7 +501,7 @@ Virus.types = {
     ),
     'SARS_CoV_2_OMICRON': SARSCoV2(
         viral_load_in_sputum=1e9,
-        infectious_dose=20.,
+        infectious_dose=50.,
         viable_to_RNA_ratio=0.5,
         transmissibility_factor=0.2
     ),
