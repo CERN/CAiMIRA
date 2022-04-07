@@ -562,7 +562,7 @@ class ModelWidgets(View):
 
     def _build_HEPA(
         self,
-        node: state.DataclassStateNamed[models.HEPAFilter],
+        node,
     ) -> widgets.Widget:
         
         HEPA_w = widgets.FloatSlider(value=node.q_air_mech, min=10, max=500, step=5)
