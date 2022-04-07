@@ -9,7 +9,7 @@ from cara.apps.calculator.model_generator import build_expiration
 
 # TODO: seed better the random number generators
 np.random.seed(2000)
-SAMPLE_SIZE = 250_000
+SAMPLE_SIZE = 600_000
 TOLERANCE = 0.06
 
 # Load the weather data (temperature in kelvin) for Toronto.

@@ -501,7 +501,7 @@ Virus.types = {
     ),
     'SARS_CoV_2_OMICRON': SARSCoV2(
         viral_load_in_sputum=1e9,
-        infectious_dose=20.,
+        infectious_dose=50.,
         viable_to_RNA_ratio=0.5,
         transmissibility_factor=0.2
     ),
@@ -1175,12 +1175,21 @@ class ShortRangeModel:
         """
         start_bound, stop_bound = self.presence.boundaries()[0]
         
-        jet_origin_integrated = self.expiration.jet_origin_concentration()
+        jet_origin = self.expiration.jet_origin_concentration()
         dilution = self.dilution_factor()
 
-        total_normed_concentration = -(concentration_model.integrated_concentration(start_bound, stop_bound)/concentration_model.virus.viral_load_in_sputum/dilution)
-        total_normed_concentration_interpolated = np.interp(self.expiration.particle.diameter, concentration_model.infected.particle.diameter, total_normed_concentration)
-        return (jet_origin_integrated/dilution * (stop_bound - start_bound)) + total_normed_concentration_interpolated
+        total_normed_concentration_diluted = (
+            concentration_model.integrated_concentration(start_bound,
+                stop_bound)/dilution/
+                concentration_model.virus.viral_load_in_sputum
+                )
+        total_normed_concentration_interpolated = np.interp(
+                self.expiration.particle.diameter,
+                concentration_model.infected.particle.diameter,
+                total_normed_concentration_diluted
+                )
+        return (jet_origin/dilution * (stop_bound - start_bound)
+                ) - total_normed_concentration_interpolated
 
 
 @dataclass(frozen=True)
@@ -1318,14 +1327,20 @@ class ExposureModel:
                 # in the case of a single diameter or no diameter defined,
                 # one should not take any mean at this stage.
                 deposited_exposure += short_range_exposure*fdep  
-        
-        # then we multiply by the diameter-independent quantity virus viral load
-        deposited_exposure *= self.concentration_model.virus.viral_load_in_sputum
-        # long-range concentration
-        f_inf = self.concentration_model.infected.fraction_of_infectious_virus()
-        deposited_exposure += self.long_range_deposited_exposure_between_bounds(time1, time2)/f_inf
 
-        return deposited_exposure * f_inf
+            # multiply by the (diameter-independent) inhalation rate
+            deposited_exposure *= interaction.activity.inhalation_rate
+
+        # then we multiply by diameter-independent quantities: viral load
+        # and fraction of infected virions
+        f_inf = self.concentration_model.infected.fraction_of_infectious_virus()
+        deposited_exposure *= (f_inf
+                * self.concentration_model.virus.viral_load_in_sputum
+                )
+        # long-range concentration
+        deposited_exposure += self.long_range_deposited_exposure_between_bounds(time1, time2)
+
+        return deposited_exposure
 
     def deposited_exposure(self) -> _VectorisedFloat:
         """
