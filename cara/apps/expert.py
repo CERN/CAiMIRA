@@ -7,6 +7,7 @@ import ipywidgets as widgets
 import matplotlib
 import matplotlib.figure
 import numpy as np
+from numpy import object_
 from cara import data, models, state
 
 
@@ -209,6 +210,7 @@ class ExposureComparissonResult(View):
 
 
 class ModelWidgets(View):
+    
     def __init__(self, model_state: state.DataclassState):
         #: The widgets that this view produces (inputs and outputs together)
         self.widget = widgets.VBox([])
@@ -252,11 +254,9 @@ class ModelWidgets(View):
         node.dcs_observe(on_state_change)
 
         widget = collapsible(
-            [widget_group(
-                [[widgets.Label('Room volume (m³)'), room_volume]]
-            )],
-            title='Specification of workplace',
-        )
+            [widgets.HBox([widgets.Label('Room volume (m³)'), room_volume], layout=widgets.Layout(justify_content='space-between'))
+            ],title='Specification of workplace',
+            )
         return widget
 
     def _build_outsidetemp(self, node) -> WidgetGroup:
@@ -284,8 +284,9 @@ class ModelWidgets(View):
 
             # TODO: Link the state back to the widget, not just the other way around.
             hinged_window.observe(hinged_window_change, names=['value'])
-
-            return widgets.HBox([widgets.Label('Window width: '),hinged_window, widgets.Label('m')])
+            
+            auto_width = widgets.Layout(width='auto')
+            return widgets.HBox([widgets.Label('Window width (meters) '), hinged_window], layout=widgets.Layout(justify_content='space-between'))
 
     def _build_sliding_window(self, node):
 
@@ -456,7 +457,6 @@ class ModelWidgets(View):
     def _build_month(self, node) -> WidgetGroup:
 
         month_choice = widgets.Select(options=list(data.GenevaTemperatures.keys()), value='Jan')
-
         def on_month_change(change):
             node.outside_temp = data.GenevaTemperatures[change['new']]
         month_choice.observe(on_month_change, names=['value'])
@@ -473,18 +473,17 @@ class ModelWidgets(View):
             if activity == activity_:
                 break
         activity = widgets.Dropdown(options=list(models.Activity.types.keys()), value=name)
-
+        
         def on_activity_change(change):
             act = models.Activity.types[change['new']]
             node.dcs_update_from(act)
         activity.observe(on_activity_change, names=['value'])
 
-        return widget_group(
-            [[widgets.Label("Activity"), activity]]
-        )
+        return widgets.HBox([widgets.Label("Activity"), activity], layout=widgets.Layout(justify_content='space-between'))
 
     def _build_mask(self, node):
         mask = node.dcs_instance()
+
         for name, mask_ in models.Mask.types.items():
             if mask == mask_:
                 break
@@ -494,9 +493,7 @@ class ModelWidgets(View):
             node.dcs_select(change['new'])
         mask_choice.observe(on_mask_change, names=['value'])
 
-        return widget_group(
-            [[widgets.Label("Mask"), mask_choice]]
-        )
+        return widgets.HBox([widgets.Label("Mask"), mask_choice], layout=widgets.Layout(justify_content='space-between'))
 
     def _build_expiration(self, node):
         expiration = node.dcs_instance()
@@ -509,10 +506,8 @@ class ModelWidgets(View):
             expiration = models.Expiration.types[change['new']]
             node.dcs_update_from(expiration)
         expiration_choice.observe(on_expiration_change, names=['value'])
-
-        return widget_group(
-            [[widgets.Label("Expiration"), expiration_choice]]
-        )
+        
+        return widgets.HBox([widgets.Label("Expiration"), expiration_choice], layout=widgets.Layout(justify_content='space-between'))
 
     def _build_ventilation(
             self,
@@ -549,9 +544,9 @@ class ModelWidgets(View):
 
         ventilation_w.observe(lambda event: toggle_ventilation(event['new']), 'value')
         toggle_ventilation(ventilation_w.value)
-
+        
         w = collapsible(
-            [widget_group([[widgets.Label('Ventilation type'), ventilation_w]])]
+            ([widgets.HBox([widgets.Label('Ventilation type'), ventilation_w], layout=widgets.Layout(justify_content='space-between'))])
             + list(ventilation_widgets.values()),
             title='Ventilation scheme',
         )
@@ -587,9 +582,7 @@ class ModelWidgets(View):
             node.dcs_select(change['new'])
         virus_choice.observe(on_virus_change, names=['value'])
 
-        return widget_group(
-            [[widgets.Label("Virus"), virus_choice]]
-        )
+        return widgets.HBox([widgets.Label("Virus"), virus_choice], layout=widgets.Layout(justify_content='space-between'))
 
 
     def present(self):
