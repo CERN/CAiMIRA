@@ -327,7 +327,8 @@ class ModelWidgets(View):
         interval = widgets.IntSlider(value=node.active.duration, min=0, max=240)
         inside_temp = widgets.IntSlider(value=node.inside_temp.values[0]-273.15, min=15., max=25.)
         #window_type = widgets.RadioButtons(options=['Sliding window', 'Hinged window'], disabled=False)
-        opening_length = widgets.FloatSlider(value=node.opening_length, min=0, max=2, step=0.1)
+        opening_length = widgets.FloatSlider(value=node.opening_length, min=0, max=3, step=0.1)
+        window_height = widgets.FloatSlider(value=node.window_height, min=0, max=3, step=0.1)
 
         def on_period_change(change):
             node.active.period = change['new']
@@ -340,12 +341,16 @@ class ModelWidgets(View):
 
         def opening_length_change(change):
             node.opening_length = change['new']
+        
+        def window_height_change(change):
+            node.window_height = change['new']
 
         # TODO: Link the state back to the widget, not just the other way around.
         period.observe(on_period_change, names=['value'])
         interval.observe(on_interval_change, names=['value'])
         inside_temp.observe(insidetemp_change, names=['value'])
         opening_length.observe(opening_length_change, names=['value'])
+        window_height.observe(window_height_change, names=['value'])
 
         outsidetemp_widgets = {
             'Fixed': self._build_outsidetemp(node.outside_temp),
@@ -372,6 +377,10 @@ class ModelWidgets(View):
                 (
                     widgets.Label('Opening distance (meters)', layout=auto_width),
                     opening_length,
+                ),
+                (
+                    widgets.Label('Window height (meters)', layout=auto_width),
+                    window_height,
                 ),
                 (
                     widgets.Label('Interval between openings (minutes)', layout=auto_width),
