@@ -4,6 +4,7 @@ import uuid
 
 import ipympl.backend_nbagg
 import ipywidgets as widgets
+from ipywidgets import interact
 import matplotlib
 import matplotlib.figure
 import numpy as np
@@ -240,7 +241,7 @@ class ModelWidgets(View):
             self._build_expiration(node.expiration),
         ])], title="Infected")
 
-    def _build_room(self, node):
+    def _build_room_volume(self, node):
         room_volume = widgets.FloatSlider(value=node.volume, min=10, max=500
         , step=5)
 
@@ -249,14 +250,61 @@ class ModelWidgets(View):
 
         # TODO: Link the state back to the widget, not just the other way around.
         room_volume.observe(on_value_change, names=['value'])
-        def on_state_change():
-            room_volume.value = node.volume
-        node.dcs_observe(on_state_change)
+    
+        return widgets.HBox([widgets.Label('Room volume (m³)'), room_volume], layout=widgets.Layout(justify_content='space-between'))
+
+
+    def _build_room_area(self, node):
+ 
+        room_surface = widgets.FloatSlider(value=1, min=1, max=200, step=5)
+        room_ceiling_height = widgets.FloatSlider(value=1, min=1, max=20, step=1)
+        displayed_volume=widgets.Label('1')
+
+        def room_surface_change(change):
+            node.volume = change['new']*room_ceiling_height.value 
+            displayed_volume.value=str(node.volume)
+
+        def room_ceiling_height_change(change):
+            node.volume = change['new']*room_surface.value 
+            displayed_volume.value=str(node.volume)
+
+        room_surface.observe(room_surface_change, names=['value'])
+        room_ceiling_height.observe(room_ceiling_height_change, names=['value'])        
+
+        return widgets.VBox([widgets.HBox([widgets.Label('Room surface area '), room_surface, widgets.Label('m²')]), widgets.HBox([widgets.Label('Room ceiling height '), room_ceiling_height, widgets.Label('m')]), widgets.HBox([widgets.Label('Total volume :'), displayed_volume, widgets.Label('m³')], layout=widgets.Layout(width='auto'))])
+
+    def _build_room(self,node):
+        room_widgets={
+            'Volume': self._build_room_volume(node),
+            'Room area and height': self._build_room_area(node),
+        }
+
+        for name, widget in room_widgets.items():
+            widget.layout.visible = False
+            widget.layout.display = 'none'
+
+        room_w = widgets.RadioButtons(
+            options= list(zip(['Volume', 'Room area and height'], room_widgets.keys())),
+            button_style='info',
+            layout=widgets.Layout(height='45px', width='auto'),
+        )
+
+        def toggle_room(value):
+            for name, widget in room_widgets.items():
+                widget.layout.visible = False
+                widget.layout.display = 'none'
+
+            widget = room_widgets[value]
+            widget.layout.visible = True
+            widget.layout.display = 'flex'
+
+        room_w.observe(lambda event: toggle_room(event['new']), 'value')
+        toggle_room(room_w.value)
 
         widget = collapsible(
-            [widgets.HBox([widgets.Label('Room volume (m³)'), room_volume], layout=widgets.Layout(justify_content='space-between'))
-            ],title='Specification of workplace',
-            )
+            [ widgets.VBox([room_w, widgets.VBox(list(room_widgets.values()))])], title="Specification of workspace"
+        )
+
         return widget
 
     def _build_outsidetemp(self, node) -> WidgetGroup:
@@ -285,8 +333,7 @@ class ModelWidgets(View):
             # TODO: Link the state back to the widget, not just the other way around.
             hinged_window.observe(hinged_window_change, names=['value'])
             
-            auto_width = widgets.Layout(width='auto')
-            return widgets.HBox([widgets.Label('Window width (meters) '), hinged_window], layout=widgets.Layout(justify_content='space-between'))
+            return widgets.HBox([widgets.Label('Window width (meters) '), hinged_window], layout=widgets.Layout(justify_content='space-between', width='100%'))
 
     def _build_sliding_window(self, node):
 
@@ -300,6 +347,7 @@ class ModelWidgets(View):
 
         for name, widget in window_widgets.items():
             widget.layout.visible = False
+            widget.layout.display = 'none'
 
         window_w = widgets.RadioButtons(
             options= list(zip(['Sliding window', 'Hinged window'], window_widgets.keys())),
@@ -400,7 +448,7 @@ class ModelWidgets(View):
         )
         for sub_group in outsidetemp_widgets.values():
             result.add_pairs(sub_group.pairs())
-        return widgets.VBox([widgets.VBox([window_w, widgets.HBox(list(window_widgets.values()))]), result.build()])
+        return widgets.VBox([window_w, widgets.HBox(list(window_widgets.values())), result.build()])
 
     def _build_q_air_mech(self, node):
         q_air_mech = widgets.FloatSlider(value=node.q_air_mech, min=0, max=1000, step=5)
@@ -564,7 +612,7 @@ class ModelWidgets(View):
 
         HEPA_w.observe(on_value_change,names= ['value'])
 
-        return widgets.HBox([widgets.Label('HEPA Filtration: '),HEPA_w, widgets.Label('m³/h')])
+        return widgets.HBox([widgets.Label('HEPA Filtration (m³/h) '),HEPA_w], layout=widgets.Layout(justify_content='space-between'))
 
     def _build_infectivity(self,node):
         return collapsible([widgets.VBox([
