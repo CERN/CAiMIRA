@@ -4,7 +4,6 @@ import uuid
 
 import ipympl.backend_nbagg
 import ipywidgets as widgets
-from ipywidgets import interact
 import matplotlib
 import matplotlib.figure
 import numpy as np
@@ -59,7 +58,7 @@ class WidgetGroup:
         return widgets.VBox(
             [
                 widgets.HBox(
-                    [labels_w, widgets_w],
+                    [labels_w, widgets_w], layout=widgets.Layout(justify_content='space-between')
                 ),
             ],
         )
@@ -224,22 +223,30 @@ class ModelWidgets(View):
     def _build_widget(self, node):
         self.widget.children += (self._build_room(node.concentration_model.room),)
         self.widget.children += (self._build_ventilation(node.concentration_model.ventilation),)
+        self.widget.children += (self._build_working_time(node),)
         self.widget.children += (self._build_infected(node.concentration_model.infected),)
         self.widget.children += (self._build_exposed(node),)
         self.widget.children += (self._build_infectivity(node.concentration_model.infected),)
 
     def _build_exposed(self, node):
         return collapsible([widgets.VBox([
+            self._build_exposed_number(node.exposed),
             self._build_mask(node.exposed.mask),
             self._build_activity(node.exposed.activity),
         ])], title="Exposed")
 
     def _build_infected(self, node):
         return collapsible([widgets.VBox([
+            self._build_infected_number(node),
             self._build_mask(node.mask),
             self._build_activity(node.activity),
             self._build_expiration(node.expiration),
         ])], title="Infected")
+
+    def _build_working_time(self, node):
+        return collapsible([widgets.VBox([
+            self._build_lunch_time(node.concentration_model.infected),
+        ])], title="Working time")
 
     def _build_room_volume(self, node):
         room_volume = widgets.FloatSlider(value=node.volume, min=10, max=500
@@ -256,7 +263,7 @@ class ModelWidgets(View):
 
     def _build_room_area(self, node):
  
-        room_surface = widgets.FloatSlider(value=1, min=1, max=200, step=5)
+        room_surface = widgets.FloatSlider(value=1, min=1, max=200, step=10)
         room_ceiling_height = widgets.FloatSlider(value=1, min=1, max=20, step=1)
         displayed_volume=widgets.Label('1')
 
@@ -271,12 +278,13 @@ class ModelWidgets(View):
         room_surface.observe(room_surface_change, names=['value'])
         room_ceiling_height.observe(room_ceiling_height_change, names=['value'])        
 
-        return widgets.VBox([widgets.HBox([widgets.Label('Room surface area '), room_surface, widgets.Label('m²')]), widgets.HBox([widgets.Label('Room ceiling height '), room_ceiling_height, widgets.Label('m')]), widgets.HBox([widgets.Label('Total volume :'), displayed_volume, widgets.Label('m³')], layout=widgets.Layout(width='auto'))])
+        return widgets.VBox([widgets.HBox([widgets.Label('Room surface area (m²) '), room_surface], layout=widgets.Layout(justify_content='space-between', width='100%')), widgets.HBox([widgets.Label('Room ceiling height (m)'), room_ceiling_height], layout=widgets.Layout(justify_content='space-between', width='100%')), widgets.HBox([widgets.Label('Total volume :'), displayed_volume, widgets.Label('m³')])])
 
     def _build_room(self,node):
+        room_number = widgets.Text(value='', placeholder='653/R-004', disabled=False) #not linked to volume yet
         room_widgets={
             'Volume': self._build_room_volume(node),
-            'Room area and height': self._build_room_area(node),
+            'Room area and height': self._build_room_area(node)
         }
 
         for name, widget in room_widgets.items():
@@ -301,8 +309,29 @@ class ModelWidgets(View):
         room_w.observe(lambda event: toggle_room(event['new']), 'value')
         toggle_room(room_w.value)
 
+        heating_w = widgets.RadioButtons(
+            options= list(['Yes', 'No']),
+            button_style='info',
+            layout=widgets.Layout(height='45px', width='auto'),
+        )
+
+        def toggle_central_heating(value):
+            print (node)
+            for name in (heating_w.options):
+                print (name)
+                if name=='Yes':
+                    node.humidity = 0.3
+                else:
+                    node.humidiy = 0.5
+                    print ('oui')
+            return node.humidity
+
+        heating_w.observe(lambda event: toggle_central_heating(event['new']), 'value')
+        toggle_central_heating(room_w.value) 
+        
+
         widget = collapsible(
-            [ widgets.VBox([room_w, widgets.VBox(list(room_widgets.values()))])], title="Specification of workspace"
+            [ widgets.VBox([widgets.HBox([widgets.Label('Room number '), room_number], layout=widgets.Layout(width='100%', justify_content='space-between')), room_w, widgets.VBox(list(room_widgets.values())), widgets.HBox([widgets.Label('Central heating system in use '), heating_w], layout=widgets.Layout(width='100%', justify_content='space-between'))])], title="Specification of workspace"
         )
 
         return widget
@@ -352,7 +381,7 @@ class ModelWidgets(View):
         window_w = widgets.RadioButtons(
             options= list(zip(['Sliding window', 'Hinged window'], window_widgets.keys())),
             button_style='info',
-            layout=widgets.Layout(height='45px', width='auto'),
+            layout=widgets.Layout(height='auto', width='auto'),
         )
 
         def toggle_window(value):
@@ -369,13 +398,16 @@ class ModelWidgets(View):
         window_w.observe(lambda event: toggle_window(event['new']), 'value')
         toggle_window(window_w.value)
 
+        number_of_windows= widgets.IntSlider(value= 1, min= 0, max= 5, step=1)
         period = widgets.IntSlider(value=node.active.period, min=0, max=240)
         interval = widgets.IntSlider(value=node.active.duration, min=0, max=240)
         inside_temp = widgets.IntSlider(value=node.inside_temp.values[0]-273.15, min=15., max=25.)
-        #window_type = widgets.RadioButtons(options=['Sliding window', 'Hinged window'], disabled=False)
         opening_length = widgets.FloatSlider(value=node.opening_length, min=0, max=3, step=0.1)
         window_height = widgets.FloatSlider(value=node.window_height, min=0, max=3, step=0.1)
 
+        def on_value_change(change):
+            node.number_of_windows = change['new']
+        
         def on_period_change(change):
             node.active.period = change['new']
 
@@ -392,6 +424,7 @@ class ModelWidgets(View):
             node.window_height = change['new']
 
         # TODO: Link the state back to the widget, not just the other way around.
+        number_of_windows.observe(on_value_change, names=['value'])
         period.observe(on_period_change, names=['value'])
         interval.observe(on_interval_change, names=['value'])
         inside_temp.observe(insidetemp_change, names=['value'])
@@ -417,9 +450,13 @@ class ModelWidgets(View):
         outsidetemp_w.observe(lambda event: toggle_outsidetemp(event['new']), 'value')
         toggle_outsidetemp(outsidetemp_w.value)
 
-        auto_width = widgets.Layout(width='auto')
+        auto_width = widgets.Layout(width='auto', justify_content='space-between')
         result = WidgetGroup(
             (
+                (
+                   widgets.Label('Number of windows ', layout=auto_width), 
+                   number_of_windows,
+                ),                
                 (
                     widgets.Label('Opening distance (meters)', layout=auto_width),
                     opening_length,
@@ -543,6 +580,26 @@ class ModelWidgets(View):
 
         return widgets.HBox([widgets.Label("Mask"), mask_choice], layout=widgets.Layout(justify_content='space-between'))
 
+    def _build_exposed_number(self, node):
+        number = widgets.IntSlider(value=node.number, min=1, max=200, step=1)
+
+        def exposed_number_change(change):
+            node.number = change['new']
+        # TODO: Link the state back to the widget, not just the other way around.
+        number.observe(exposed_number_change, names=['value'])
+
+        return widgets.HBox([widgets.Label('Number of exposed people in the room '), number], layout=widgets.Layout(justify_content='space-between'))
+
+    def _build_infected_number(self, node):
+        number = widgets.IntSlider(value=node.number, min=1, max=200, step=1)
+
+        def infected_number_change(change):
+            node.number = change['new']
+        # TODO: Link the state back to the widget, not just the other way around.
+        number.observe(infected_number_change, names=['value'])
+
+        return widgets.HBox([widgets.Label('Number of infected people in the room '), number], layout=widgets.Layout(justify_content='space-between'))
+
     def _build_expiration(self, node):
         expiration = node.dcs_instance()
         for name, expiration_ in models.Expiration.types.items():
@@ -556,6 +613,15 @@ class ModelWidgets(View):
         expiration_choice.observe(on_expiration_change, names=['value'])
         
         return widgets.HBox([widgets.Label("Expiration"), expiration_choice], layout=widgets.Layout(justify_content='space-between'))
+    
+    def _build_lunch_time(self, node):
+        presence = widgets.FloatRangeSlider(values=node.presence, min=8, max=18, step=1)
+        #test=widgets.Datetime(description='test:')
+        def on_lunch_time_change(change):
+            node.presence = change['new']
+        # TODO: Link the state back to the widget, not just the other way around.
+        presence.observe(on_lunch_time_change, names=['value'])
+        return widgets.HBox([widgets.Label('Lunch time '), presence], layout=widgets.Layout(justify_content='space-between') )
 
     def _build_ventilation(
             self,
