@@ -96,7 +96,7 @@ def interesting_times(model: models.ExposureModel, approx_n_pts=100) -> typing.L
     return nice_times
 
 
-def calculate_report_data(model: models.ExposureModel):
+def calculate_report_data(model: models.ExposureModel) -> typing.Dict[str, typing.Any]:
     times = interesting_times(model)
 
     concentrations = [
