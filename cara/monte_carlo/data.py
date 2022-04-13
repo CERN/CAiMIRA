@@ -5,10 +5,12 @@ import numpy as np
 from scipy import special as sp
 
 import cara.monte_carlo as mc
-from cara.monte_carlo.sampleable import Normal,LogNormal,LogCustomKernel,CustomKernel,Uniform
+from cara.monte_carlo.sampleable import LogNormal,LogCustomKernel,CustomKernel,Uniform
+
 
 sqrt2pi = np.sqrt(2.*np.pi)
 sqrt2 = np.sqrt(2.)
+
 
 @dataclass(frozen=True)
 class BLOmodel:
@@ -65,7 +67,7 @@ class BLOmodel:
         return result
 
 
-# From https://doi.org/10.1101/2021.10.14.21264988 and refererences therein
+# From https://doi.org/10.1101/2021.10.14.21264988 and references therein
 activity_distributions = {
     'Seated': mc.Activity(LogNormal(-0.6872121723362303, 0.10498338229297108),
                           LogNormal(-0.6872121723362303, 0.10498338229297108)),
@@ -84,7 +86,7 @@ activity_distributions = {
 }
 
 
-# From https://doi.org/10.1101/2021.10.14.21264988 and refererences therein
+# From https://doi.org/10.1101/2021.10.14.21264988 and references therein
 symptomatic_vl_frequencies = LogCustomKernel(
     np.array((2.46032, 2.67431, 2.85434, 3.06155, 3.25856, 3.47256, 3.66957, 3.85979, 4.09927, 4.27081,
      4.47631, 4.66653, 4.87204, 5.10302, 5.27456, 5.46478, 5.6533, 5.88428, 6.07281, 6.30549,
@@ -157,7 +159,10 @@ mask_distributions = {
 }
 
 
-def expiration_distribution(BLO_factors):
+def expiration_distribution(
+        BLO_factors,
+        d_max=30.,
+) -> mc.Expiration:
     """
     Returns an Expiration with an aerosol diameter distribution, defined
     by the BLO factors (a length-3 tuple).
@@ -166,10 +171,15 @@ def expiration_distribution(BLO_factors):
     an historical choice based on previous implementations of the model
     (it limits the influence of the O-mode).
     """
-    dscan = np.linspace(0.1, 30. ,3000)
-    return mc.Expiration(CustomKernel(dscan,
-                BLOmodel(BLO_factors).distribution(dscan),kernel_bandwidth=0.1),
-                cn=BLOmodel(BLO_factors).integrate(0.1, 30.))
+    dscan = np.linspace(0.1, d_max, 3000)
+    return mc.Expiration(
+        CustomKernel(
+            dscan,
+            BLOmodel(BLO_factors).distribution(dscan),
+            kernel_bandwidth=0.1,
+        ),
+        cn=BLOmodel(BLO_factors).integrate(0.1, d_max),
+    )
 
 
 expiration_BLO_factors = {
@@ -182,5 +192,15 @@ expiration_BLO_factors = {
 
 expiration_distributions = {
     exp_type: expiration_distribution(BLO_factors)
-    for exp_type,BLO_factors in expiration_BLO_factors.items()
+    for exp_type, BLO_factors in expiration_BLO_factors.items()
 }
+
+
+short_range_expiration_distributions = {
+    exp_type: expiration_distribution(BLO_factors, d_max=100)
+    for exp_type, BLO_factors in expiration_BLO_factors.items()
+}
+
+
+# Fit from Fig 8 a) "stand-stand" in https://www.mdpi.com/1660-4601/17/4/1445/htm
+short_range_distances = LogNormal(-0.269359136417347, 0.4728300188814934)

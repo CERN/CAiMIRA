@@ -33,7 +33,7 @@ from .user import AuthenticatedUser, AnonymousUser
 # calculator version. If the calculator needs to make breaking changes (e.g. change
 # form attributes) then it can also increase its MAJOR version without needing to
 # increase the overall CARA version (found at ``cara.__version__``).
-__version__ = "4.0.0"
+__version__ = "4.1.1"
 
 
 class BaseRequestHandler(RequestHandler):
@@ -162,7 +162,7 @@ class ConcentrationModelJsonResponse(BaseRequestHandler):
             max_workers=self.settings['handler_worker_pool_size'],
             timeout=300,
         )
-        report_data_task = executor.submit(calculate_report_data, form.build_model())
+        report_data_task = executor.submit(calculate_report_data, form, form.build_model())
         report_data: dict = await asyncio.wrap_future(report_data_task)
         await self.finish(report_data)
 
@@ -187,12 +187,12 @@ class StaticModel(BaseRequestHandler):
 class LandingPage(BaseRequestHandler):
     def get(self):
         template_environment = self.settings["template_environment"]
-        template = self.settings["template_environment"].get_template(
+        template = template_environment.get_template(
             "index.html.j2")
         report = template.render(
             user=self.current_user,
             calculator_prefix=self.settings["calculator_prefix"],
-            text_blocks=template_environment.globals['common_text']
+            text_blocks=template_environment.globals['common_text'],
         )
         self.finish(report)
 
@@ -212,13 +212,15 @@ class AboutPage(BaseRequestHandler):
 
 class CalculatorForm(BaseRequestHandler):
     def get(self):
-        template = self.settings["template_environment"].get_template(
+        template_environment = self.settings["template_environment"]
+        template = template_environment.get_template(
             "calculator.form.html.j2")
         report = template.render(
             user=self.current_user,
             xsrf_form_html=self.xsrf_form_html(),
             calculator_prefix=self.settings["calculator_prefix"],
             calculator_version=__version__,
+            text_blocks=template_environment.globals['common_text'],
         )
         self.finish(report)
 
@@ -237,11 +239,13 @@ class CompressedCalculatorFormInputs(BaseRequestHandler):
 
 class ReadmeHandler(BaseRequestHandler):
     def get(self):
-        template = self.settings['template_environment'].get_template("userguide.html.j2")
+        template_environment = self.settings["template_environment"]
+        template = template_environment.get_template("userguide.html.j2")
         readme = template.render(
             active_page="calculator/user-guide",
             user=self.current_user,
             calculator_prefix=self.settings["calculator_prefix"],
+            text_blocks=template_environment.globals['common_text'],
         )
         self.finish(readme)
 

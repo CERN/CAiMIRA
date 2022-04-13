@@ -1,2 +1,0 @@
-global_weather_set.json filter=lfs diff=lfs merge=lfs -text
-hadisd_station_fullinfo_v311_202001p.txt filter=lfs diff=lfs merge=lfs -text

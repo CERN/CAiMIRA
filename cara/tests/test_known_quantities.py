@@ -6,10 +6,10 @@ import cara.models as models
 import cara.data as data
 
 
-def test_no_mask_superspeading_emission_rate(baseline_model):
+def test_no_mask_superspeading_emission_rate(baseline_concentration_model):
     expected_rate = 48500.
     npt.assert_allclose(
-        [baseline_model.infected.emission_rate(float(t)) for t in [0, 1, 4, 4.5, 5, 8, 9]],
+        [baseline_concentration_model.infected.emission_rate(float(t)) for t in [0, 1, 4, 4.5, 5, 8, 9]],
         [0, expected_rate, expected_rate, 0, 0, expected_rate, 0],
         rtol=1e-12
     )
@@ -38,10 +38,10 @@ def baseline_periodic_hepa():
     )
 
 
-def test_concentrations(baseline_model):
+def test_concentrations(baseline_concentration_model):
     # expected concentrations were computed analytically
     ts = [0, 4, 5, 7, 10]
-    concentrations = [baseline_model.concentration(float(t)) for t in ts]
+    concentrations = [baseline_concentration_model.concentration(float(t)) for t in ts]
     npt.assert_allclose(
         concentrations,
         [0.000000e+00, 20.805628, 6.602814e-13, 20.805628, 2.09545e-26],
@@ -49,13 +49,13 @@ def test_concentrations(baseline_model):
     )
 
 
-def test_smooth_concentrations(baseline_model):
+def test_smooth_concentrations(baseline_concentration_model):
     # We don't care about the actual concentrations in this test, but rather
     # that the curve itself is smooth.
     dx = 0.002
     dy_limit = 0.2  # Anything more than this (in relative) is a bit steep.
     ts = np.arange(0, 10, dx)
-    concentrations = [baseline_model.concentration(float(t)) for t in ts]
+    concentrations = [baseline_concentration_model.concentration(float(t)) for t in ts]
     assert np.abs(np.diff(concentrations)).max()/np.mean(concentrations) < dy_limit
 
 
@@ -367,10 +367,11 @@ def test_concentrations_refine_times(time):
     npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-8)
 
 
-def build_exposure_model(concentration_model):
+def build_exposure_model(concentration_model, short_range_model):
     infected = concentration_model.infected
     return models.ExposureModel(
         concentration_model=concentration_model,
+        short_range=short_range_model,
         exposed=models.Population(
             number=10,
             presence=infected.presence,
@@ -390,13 +391,13 @@ def build_exposure_model(concentration_model):
         ['Jun', 1721.03336729],
     ],
 )
-def test_exposure_hourly_dep(month,expected_deposited_exposure):
+def test_exposure_hourly_dep(month,expected_deposited_exposure, baseline_sr_model):
     m = build_exposure_model(
         build_hourly_dependent_model(
             month,
             intervals_open=((0., 24.), ),
             intervals_presence_infected=((8., 12.), (13., 17.))
-        )
+        ), baseline_sr_model
     )
     deposited_exposure = m.deposited_exposure()
     npt.assert_allclose(deposited_exposure, expected_deposited_exposure)
@@ -411,14 +412,14 @@ def test_exposure_hourly_dep(month,expected_deposited_exposure):
         ['Jun', 1799.17597184],
     ],
 )
-def test_exposure_hourly_dep_refined(month,expected_deposited_exposure):
+def test_exposure_hourly_dep_refined(month,expected_deposited_exposure, baseline_sr_model):
     m = build_exposure_model(
         build_hourly_dependent_model(
             month,
             intervals_open=((0., 24.),),
             intervals_presence_infected=((8., 12.), (13., 17.)),
             temperatures=data.GenevaTemperatures,
-        )
+        ), baseline_sr_model
     )
     deposited_exposure = m.deposited_exposure()
     npt.assert_allclose(deposited_exposure, expected_deposited_exposure, rtol=0.02)
