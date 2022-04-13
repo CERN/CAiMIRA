@@ -5,7 +5,7 @@ import numpy as np
 from scipy import special as sp
 
 import cara.monte_carlo as mc
-from cara.monte_carlo.sampleable import LogNormal,LogCustomKernel,CustomKernel,Uniform
+from cara.monte_carlo.sampleable import LogNormal,LogCustomKernel,CustomKernel,Uniform, Beta
 
 
 sqrt2pi = np.sqrt(2.*np.pi)
@@ -202,5 +202,5 @@ short_range_expiration_distributions = {
 }
 
 
-# Fit from Fig 8 a) "stand-stand" in https://www.mdpi.com/1660-4601/17/4/1445/htm
-short_range_distances = LogNormal(-0.269359136417347, 0.4728300188814934)
+# Derived from Fig 8 a) "stand-stand" in https://www.mdpi.com/1660-4601/17/4/1445/htm
+short_range_distances = Beta(alpha=1.4342766632654418, beta=27.49916410927064)
