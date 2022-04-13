@@ -3,6 +3,8 @@ import datetime
 import html
 import logging
 import typing
+import ast
+import json 
 
 import numpy as np
 
@@ -11,8 +13,8 @@ from cara import data
 import cara.data.weather
 import cara.monte_carlo as mc
 from .. import calculator
-from cara.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions
-from cara.monte_carlo.data import expiration_distribution, expiration_BLO_factors, expiration_distributions
+from cara.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions, short_range_distances
+from cara.monte_carlo.data import expiration_distribution, expiration_BLO_factors, expiration_distributions, short_range_expiration_distributions
 
 
 LOG = logging.getLogger(__name__)
@@ -79,6 +81,8 @@ class FormData:
     window_width: float
     windows_number: int
     window_opening_regime: str
+    short_range_option: str
+    short_range_interactions: list
 
     #: The default values for undefined fields. Note that the defaults here
     #: and the defaults in the html form must not be contradictory.
@@ -133,6 +137,8 @@ class FormData:
         'windows_frequency': 0.,
         'windows_number': 0,
         'window_opening_regime': 'windows_open_permanently',
+        'short_range_option': 'short_range_no',
+        'short_range_interactions': '[]',
     }
 
     @classmethod
@@ -246,14 +252,27 @@ class FormData:
             humidity = 0.5
         room = models.Room(volume=volume, humidity=humidity)
 
+        infected_population = self.infected_population()
+        
+        short_range = []
+        if self.short_range_option == "short_range_yes":
+            for interaction in self.short_range_interactions:
+                short_range.append(mc.ShortRangeModel(
+                    expiration=short_range_expiration_distributions[interaction['expiration']],
+                    activity=infected_population.activity,
+                    presence=self.short_range_interval(interaction),
+                    distance=short_range_distances,
+                ))
+
         # Initializes and returns a model with the attributes defined above
         return mc.ExposureModel(
             concentration_model=mc.ConcentrationModel(
                 room=room,
                 ventilation=self.ventilation(),
-                infected=self.infected_population(),
+                infected=infected_population,
                 evaporation_factor=0.3,
             ),
+            short_range = tuple(short_range),
             exposed=self.exposed_population(),
             geographic_population=self.geographic_population,
             geographic_cases=self.geographic_cases
@@ -395,10 +414,15 @@ class FormData:
                 # Nightshift control room, 10% speaking.
                 {'Speaking': 1, 'Breathing': 9}
             ),
-            'meeting': (
+            'smallmeeting': (
                 'Seated',
                 # Conversation of N people is approximately 1/N% of the time speaking.
                 {'Speaking': 1, 'Breathing': self.total_people - 1}
+            ),
+            'largemeeting': (
+                'Standing',
+                # each infected person spends 1/3 of time speaking.
+                {'Speaking': 1, 'Breathing': 2}
             ),
             'callcentre': ('Seated', 'Speaking'),
             'library': ('Seated', 'Breathing'),
@@ -436,7 +460,8 @@ class FormData:
             'office': 'Seated',
             'controlroom-day': 'Seated',
             'controlroom-night': 'Seated',
-            'meeting': 'Seated',
+            'smallmeeting': 'Seated',
+            'largemeeting': 'Seated',
             'callcentre': 'Seated',
             'library': 'Seated',
             'training': 'Seated',
@@ -631,6 +656,11 @@ class FormData:
             breaks=self.infected_lunch_break_times() + self.infected_coffee_break_times(),
         )
 
+    def short_range_interval(self, interaction) -> models.SpecificInterval:
+        start_time = time_string_to_minutes(interaction['start_time'])
+        duration = float(interaction['duration'])
+        return models.SpecificInterval(present_times=((start_time/60, (start_time + duration)/60),))
+
     def exposed_present_interval(self) -> models.Interval:
         return self.present_interval(
             self.exposed_start, self.exposed_finish,
@@ -638,7 +668,7 @@ class FormData:
         )
 
 
-def build_expiration(expiration_definition) -> models._ExpirationBase:
+def build_expiration(expiration_definition) -> mc._ExpirationBase:
     if isinstance(expiration_definition, str):
         return expiration_distributions[expiration_definition]
     elif isinstance(expiration_definition, dict):
@@ -647,7 +677,7 @@ def build_expiration(expiration_definition) -> models._ExpirationBase:
             np.array(expiration_BLO_factors[exp_type]) * weight/total_weight
             for exp_type, weight in expiration_definition.items()
             ], axis=0)
-        return expiration_distribution(tuple(BLO_factors))
+        return expiration_distribution(BLO_factors=tuple(BLO_factors))
 
 
 def baseline_raw_form_data():
@@ -699,11 +729,13 @@ def baseline_raw_form_data():
         'window_type': 'window_sliding',
         'window_width': '2',
         'windows_number': '1',
-        'window_opening_regime': 'windows_open_permanently'
+        'window_opening_regime': 'windows_open_permanently',
+        'short_range_option': 'short_range_no',
+        'short_range_interactions': '[]',
     }
 
 
-ACTIVITY_TYPES = {'office', 'meeting', 'training', 'callcentre', 'controlroom-day', 'controlroom-night', 'library', 'workshop', 'lab', 'gym'}
+ACTIVITY_TYPES = {'office', 'smallmeeting', 'largemeeting', 'training', 'callcentre', 'controlroom-day', 'controlroom-night', 'library', 'workshop', 'lab', 'gym'}
 MECHANICAL_VENTILATION_TYPES = {'mech_type_air_changes', 'mech_type_air_supply', 'not-applicable'}
 MASK_TYPES = {'Type I', 'FFP2'}
 MASK_WEARING_OPTIONS = {'mask_on', 'mask_off'}
@@ -744,6 +776,14 @@ def time_minutes_to_string(time: int) -> str:
     return "{0:0=2d}".format(int(time/60)) + ":" + "{0:0=2d}".format(time%60)
 
 
+def string_to_list(l: str) -> list:
+    return list(ast.literal_eval(l.replace("&quot;", "\"")))
+
+
+def list_to_string(s: list) -> str:
+    return json.dumps(s)
+
+
 def _safe_int_cast(value) -> int:
     if isinstance(value, int):
         return value
@@ -775,3 +815,6 @@ for _field in dataclasses.fields(FormData):
     elif _field.type is bool:
         _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = lambda v: v == '1'
         _CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = int
+    elif _field.type is list:
+        _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = string_to_list
+        _CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = list_to_string

@@ -270,7 +270,31 @@ function on_wearing_mask_change() {
     if (this.checked) {
       getChildElement($(this)).show();
       require_fields(this);
+      if (this.id == "mask_on") {
+        $('#short_range_no').click();
+        $('input[name="short_range_option"]').attr('disabled', true);
+        $("#short_range_warning").show();
+      }
+      else {
+        $('input[name="short_range_option"]').attr('disabled', false);
+        $("#short_range_warning").hide();
+      }
+
     }
+    else {
+      getChildElement($(this)).hide();
+      require_fields(this);
+    }
+  })
+}
+
+function on_short_range_option_change() {
+  short_range = $('input[type=radio][name=short_range_option]')
+  short_range.each(function (index){
+    if (this.checked) {
+      getChildElement($(this)).show();
+      require_fields(this);
+    } 
     else {
       getChildElement($(this)).hide();
       require_fields(this);
@@ -407,6 +431,27 @@ function validate_form(form) {
     }
   }
 
+  // Generate the short-range interactions list
+  var short_range_interactions = [];
+  $(".form_field_outer_row").each(function (index, element){
+      let obj = {};
+      const $element = $(element);
+      obj.expiration = $element.find("[name='short_range_expiration']").val();
+      obj.start_time = $element.find("[name='short_range_start_time']").val();
+      obj.duration = $element.find("[name='short_range_duration']").val();
+      short_range_interactions.push(JSON.stringify(obj));
+  });
+
+  // Sort list by time
+  short_range_interactions.sort(function (a, b) {
+    return JSON.parse(a).start_time.localeCompare(JSON.parse(b).start_time);
+  });
+  $("input[type=text][name=short_range_interactions]").val('[' + short_range_interactions + ']');
+  if (short_range_interactions.length == 0) {
+    $("input[type=radio][id=short_range_no]").prop("checked", true);
+    on_short_range_option_change();
+  }
+
   if (submit) {
     $("#generate_report").prop("disabled", true);
     //Add spinner to button
@@ -520,6 +565,84 @@ function validateLunchTime(obj) {
   return true;
 }
 
+function overlapped_times(obj, start_time, finish_time) {
+  removeErrorFor($(obj));
+  $(obj).removeClass("red_border");
+
+  let parameter = document.getElementById($(obj).attr('id'));
+
+  if ($(obj).attr('name') == "short_range_duration" && parseFloat($(obj).val()) < 15.0) {
+    if (!$(obj).hasClass("red_border")) $(parameter).addClass("red_border"); //Adds the red border and error message.
+        insertErrorFor(parameter, "Must be ≥ 15 min.")
+    return false;
+  }
+  
+  let simulation_start = parseTimeToMins($("#exposed_start").val())
+  let simulation_finish = parseTimeToMins($("#exposed_finish").val())
+  var simulation_lunch_start, simulation_lunch_finish;
+  if ($('input[name=exposed_lunch_option]:checked').val() == 1) {
+    simulation_lunch_start = parseTimeToMins($("#exposed_lunch_start").val())
+    simulation_lunch_finish = parseTimeToMins($("#exposed_lunch_finish").val())
+  } else {
+    simulation_lunch_start = 0
+    simulation_lunch_finish = 0
+  }
+  if (start_time < simulation_start || start_time > simulation_finish  ||
+    finish_time < simulation_start || finish_time > simulation_finish ||
+    start_time >= simulation_lunch_start && start_time <= simulation_lunch_finish ||
+    finish_time >= simulation_lunch_start && finish_time <= simulation_lunch_finish ) {//If start and finish inputs are out of the simulation period
+      //Adds the red border and error message.
+      if (!$(obj).hasClass("red_border")) $(parameter).addClass("red_border");
+      insertErrorFor(parameter, "Out of event time.");
+      return false;
+  } 
+  let current_interaction = $(obj).closest(".form_field_outer_row");
+  var toReturn = true;
+  $(".form_field_outer_row.row_validated").not(current_interaction).each(function(index, el) {
+    let current_start_el = $(el).find("input[name='short_range_start_time']");
+    let current_duration_el = $(el).find("input[name='short_range_duration']")
+    start_time_2 = parseTimeToMins(current_start_el.val())
+    finish_time_2 = parseTimeToMins(current_start_el.val()) + parseInt(current_duration_el.val());
+    if ((start_time > start_time_2 && start_time < finish_time_2) || ( //If hour input is within other time range
+      finish_time > start_time_2 && finish_time < finish_time_2) || //If finish time input is within other time range
+        (start_time <= start_time_2 && finish_time >= finish_time_2) || //If start and finish inputs encompass other time range 
+        start_time == start_time_2) {
+        if (!$(obj).hasClass("red_border")) $(parameter).addClass("red_border"); //Adds the red border and error message.
+        insertErrorFor(parameter, "Time overlap.")
+        toReturn = false;
+        return false;
+    }
+  });
+  return toReturn;
+}
+
+function validate_sr_time(obj) {
+    let obj_id = $(obj).attr('id').split('_').slice(-1)[0];
+    var start_time, finish_time;
+    if ($(obj).val() != "") {
+      if ($('#sr_start_no_' + String(obj_id)).val()) start_time = parseTimeToMins($('#sr_start_no_' + String(obj_id)).val());
+      else start = 0.
+      finish_time = start_time + parseInt($('#sr_duration_no_' + String(obj_id)).val());
+    }
+    return overlapped_times(obj, start_time, finish_time);
+};
+
+// Check if short-range durations are filled, and if there is no repetitions
+function validate_sr_parameter(obj, error_message) {
+  if ($(obj).val() == "" || $(obj).val() == null) {
+    if (!$(obj).hasClass("red_border") && !$(obj).prop("disabled")) {
+      var parameter = document.getElementById($(obj).attr('id'));
+      insertErrorFor(parameter, error_message)
+      $(parameter).addClass("red_border");
+    }
+    return false;
+  } else {
+    removeErrorFor($(obj));
+    $(obj).removeClass("red_border");
+    return true;
+  }
+}
+
 function parseValToNumber(val) {
   return parseInt(val.replace(':',''), 10);
 }
@@ -555,6 +678,22 @@ $(document).ready(function () {
       //Pre-select checkboxes
       else if (elemObj.type === 'checkbox') {
         elemObj.checked = (value==1);
+      }
+
+      // Read short-range from URL
+      else if (name == 'short_range_interactions') {
+        let index = 1;
+        for (const interaction of JSON.parse(value)) {
+          $("#dialog_sr").append(inject_sr_interaction(index, value = interaction, is_validated="row_validated"))
+          $('#sr_expiration_no_' + String(index)).val(interaction.expiration).change();
+          document.getElementById('sr_expiration_no_' + String(index)).disabled = true;
+          document.getElementById('sr_start_no_' + String(index)).disabled = true;
+          document.getElementById('sr_duration_no_' + String(index)).disabled = true;
+          document.getElementById('edit_row_no_' + String(index)).style.cssText = 'display:inline !important';
+          document.getElementById('validate_row_no_' + String(index)).style.cssText = 'display: none !important';
+          index++;
+        }
+        $("#sr_interactions").text(index - 1);
       }
 
       //Ignore 0 (default) values from server side
@@ -611,6 +750,13 @@ $(document).ready(function () {
   $("input[type=radio][name=mask_wearing_option]").change(on_wearing_mask_change);
   // Call the function now to handle forward/back button presses in the browser.
   on_wearing_mask_change();
+
+  // When the short_range_option changes we want to make its respective
+  // children show/hide.
+  $("input[type=radio][name=short_range_option]").change(on_short_range_option_change);
+
+  // Call the function now to handle forward/back button presses in the browser.
+  on_short_range_option_change();
 
   // Setup the maximum number of people at page load (to handle back/forward),
   // and update it when total people is changed.
@@ -724,6 +870,134 @@ $(document).ready(function () {
     }
     return selectedSuggestion.text;
   }
+
+  function inject_sr_interaction(index, value, is_validated) {
+    return `<div class="col-md-12 form_field_outer p-0">
+      <div class="form_field_outer_row ${is_validated} split">
+
+          <div class='form-group row'>
+            <div class="col-sm-4"><label class="col-form-label col-form-label-sm"> Expiration: </label><br></div>
+            <div class="col-sm-8"><select id="sr_expiration_no_${index}" name="short_range_expiration" class="form-control form-control-sm" onchange="validate_sr_parameter(this)" form="not-submitted">
+              <option value="" selected disabled>Select type</option>
+              <option value="Breathing">Breathing</option>
+              <option value="Speaking">Speaking</option>
+              <option value="Shouting">Shouting</option>
+            </select><br>
+            </div>
+          </div>
+            
+          <div class='form-group row'>
+            <div class="col-sm-4"><label class="col-form-label col-form-label-sm"> Start: </label></div>
+            <div class="col-sm-8"><input type="time" class="form-control form-control-sm short_range_option" name="short_range_start_time" id="sr_start_no_${index}" value="${value.start_time}" onchange="validate_sr_time(this)" form="not-submitted"><br></div>
+          </div>
+        
+          <div class='form-group row'>
+            <div class="col-sm-4"><label class="col-form-label col-form-label-sm"> Duration:</label></div>
+            <div class="col-sm-8"><input type="number" id="sr_duration_no_${index}" value="${value.duration}" class="form-control form-control-sm short_range_option" name="short_range_duration" min=1 placeholder="Minutes" onchange="validate_sr_time(this)" form="not-submitted"><br></div>
+          </div>
+
+          <div class="form-group" style="max-width: 8rem">
+            <button type="button" id="edit_row_no_${index}" class="edit_node_btn_frm_field btn btn-success btn-sm d-none">Edit</button>
+            <button type="button" id="validate_row_no_${index}" class="validate_node_btn_frm_field btn btn-success btn-sm">Save</button>
+            <button type="button" class="remove_node_btn_frm_field btn btn-danger btn-sm">Delete</button>
+          </div>
+        </div>
+    </div>`
+  }
+
+  // Add one empty row if none.
+  $("#set_interactions_button").on("click", e => {
+    if ($(".form_field_outer").find(".form_field_outer_row").length == 0) $(".add_node_btn_frm_field").click();
+  });
+
+  // When short_range_yes option is selected, we want to inject rows for each expiractory activity, start_time and duration.
+  $("body").on("click", ".add_node_btn_frm_field", function(e) {
+    let last_row = $(".form_field_outer").find(".form_field_outer_row");
+    if (last_row.length == 0) $("#dialog_sr").append(inject_sr_interaction(1, value = { activity: "", start_time: "", duration: "15" }));
+    else {
+        last_index = last_row.last().find(".short_range_option").prop("id").split("_").slice(-1)[0];
+        index = parseInt(last_index) + 1;
+        $("#dialog_sr").append(inject_sr_interaction(index, value = { activity: "", start_time: "", duration: "15" }));
+    }
+  });
+
+  // Validate row button (Save button)
+  $("body").on("click", ".validate_node_btn_frm_field", function() {
+    var index = $(this).attr('id').split('_').slice(-1)[0];
+    let activity = validate_sr_parameter('#sr_expiration_no_' + String(index)[0], "Required input.");
+    let start = validate_sr_parameter('#sr_start_no_' + String(index)[0], "Required input.");
+    let duration = validate_sr_parameter('#sr_duration_no_' + String(index)[0], "Required input.");
+    if (activity && start && duration) {
+      if (validate_sr_time('#sr_start_no_' + String(index)) && validate_sr_time('#sr_duration_no_' + String(index))) {
+        document.getElementById('sr_expiration_no_' + String(index)).disabled = true;
+        document.getElementById('sr_start_no_' + String(index)).disabled = true;
+        document.getElementById('sr_duration_no_' + String(index)).disabled = true;
+        document.getElementById('edit_row_no_' + String(index)).style.cssText = 'display:inline !important';
+        $(this).closest(".form_field_outer_row").addClass("row_validated");
+        $(this).hide();
+        index = index + 1;
+      }
+    }
+    // On save, check open/unvalidated rows.
+    $(".validate_node_btn_frm_field").not(".row_validated").not(this).each(function( index ) {
+      index = $(this).attr('id').split('_').slice(-1)[0];
+      if ($('#sr_start_no_' + String(index)[0]).val() != "") {
+        validate_sr_parameter('#sr_start_no_' + String(index)[0], "Required input.")
+        validate_sr_time('#sr_start_no_' + String(index));
+      };
+      if ($('#sr_duration_no_' + String(index)[0]).val() != "") {
+        validate_sr_parameter('#sr_duration_no_' + String(index)[0], "Required input.");
+        validate_sr_time('#sr_duration_no_' + String(index));
+      }
+    });
+  });
+
+  //Edit short-range activity type
+  $("body").on("click", ".edit_node_btn_frm_field", function() {
+    $(this).closest(".form_field_outer_row").removeClass("row_validated");
+    $(this).hide();
+    let id = $(this).attr('id').split('_').slice(-1)[0];
+    document.getElementById('sr_expiration_no_' + String(id)).disabled = false;
+    document.getElementById('sr_start_no_' + String(id)).disabled = false;
+    document.getElementById('sr_duration_no_' + String(id)).disabled = false;
+    document.getElementById('validate_row_no_' + String(id)).style.cssText = 'display:inline !important';
+  })
+
+  //Remove short-range interaction (modal field row).
+  $("body").on("click", ".remove_node_btn_frm_field", function() {
+    $(this).closest(".form_field_outer_row").remove();
+    // On delete, check open/unvalidated rows.
+    $(".validate_node_btn_frm_field").not(".row_validated").not(this).each(function( index ) {
+      index = $(this).attr('id').split('_').slice(-1)[0];
+      if ($('#sr_start_no_' + String(index)[0]).val() != "") {
+        validate_sr_parameter('#sr_start_no_' + String(index)[0], "Required input.")
+        validate_sr_time('#sr_start_no_' + String(index));
+      };
+      if ($('#sr_duration_no_' + String(index)[0]).val() != "") {
+        validate_sr_parameter('#sr_duration_no_' + String(index)[0], "Required input.");
+        validate_sr_time('#sr_duration_no_' + String(index));
+      }
+    });
+  });
+
+  //Short-range modal - close and save button
+  $("body").on("click", ".close_btn_frm_field", function() {
+    $(".validate_node_btn_frm_field").click();
+    if ($(".form_field_outer").find(".form_field_outer_row.row_validated").length == $(".form_field_outer").find(".form_field_outer_row").length) {
+      $("#sr_interactions").text($(".form_field_outer").find(".form_field_outer_row.row_validated").length);
+      $(".form_field_outer_row").not(".row_validated").remove();
+      $('#short_range_dialog').modal('hide');
+    }
+  });
+
+  //Short-range modal - reset button
+  $("body").on("click", ".dismiss_btn_frm_field", function() {
+    $(".form_field_outer_row").remove();
+    $("#sr_interactions").text(0);
+    $('input[type=radio][id=short_range_no]').prop("checked", true);
+    on_short_range_option_change();
+  });
+
 });
 
 

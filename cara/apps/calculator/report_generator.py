@@ -12,6 +12,7 @@ import jinja2
 import numpy as np
 
 from cara import models
+from cara.apps.calculator import markdown_tools
 from ... import monte_carlo as mc
 from .model_generator import FormData, _DEFAULT_MC_SAMPLE_SIZE
 from ... import dataclass_utils
@@ -96,30 +97,55 @@ def interesting_times(model: models.ExposureModel, approx_n_pts=100) -> typing.L
     return nice_times
 
 
-def calculate_report_data(model: models.ExposureModel):
-    times = interesting_times(model)
+def concentrations_with_sr_breathing(form: FormData, model: models.ExposureModel, times: typing.List[float], short_range_intervals: typing.List) -> typing.List[float]:
+    lower_concentrations = []
+    for time in times:
+        for index, (start, stop) in enumerate(short_range_intervals):
+            # For visualization issues, add short-range breathing activity to the initial long-range concentrations
+            if start <= time <= stop and form.short_range_interactions[index]['expiration'] == 'Breathing':
+                lower_concentrations.append(np.array(model.concentration(float(time))).mean())
+                break
+        lower_concentrations.append(np.array(model.concentration_model.concentration(float(time))).mean())
+    return lower_concentrations
 
+
+def calculate_report_data(form: FormData, model: models.ExposureModel):
+    times = interesting_times(model)
+    short_range_intervals = [interaction.presence.boundaries()[0] for interaction in model.short_range]
+    short_range_expirations = [interaction['expiration'] for interaction in form.short_range_interactions] if form.short_range_option == "short_range_yes" else []
+    
     concentrations = [
-        np.array(model.concentration_model.concentration(float(time))).mean()
+        np.array(model.concentration(float(time))).mean()
         for time in times
-    ]
+    ]  
+    lower_concentrations = concentrations_with_sr_breathing(form, model, times, short_range_intervals)
     highest_const = max(concentrations)
+    
+    cumulative_doses = np.cumsum([
+        np.array(model.deposited_exposure_between_bounds(float(time1), float(time2))).mean()
+        for time1, time2 in zip(times[:-1], times[1:])
+    ])
+    long_range_cumulative_doses = np.cumsum([
+        np.array(model.long_range_deposited_exposure_between_bounds(float(time1), float(time2))).mean()
+        for time1, time2 in zip(times[:-1], times[1:])
+    ])
+
     prob = np.array(model.infection_probability()).mean()
     prob_specific_event = np.array(model.total_probability_rule()).mean()
     er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
     exposed_occupants = model.exposed.number
     expected_new_cases = np.array(model.expected_new_cases()).mean()
-    cumulative_doses = np.cumsum([
-        np.array(model.deposited_exposure_between_bounds(float(time1), float(time2))).mean()
-        for time1, time2 in zip(times[:-1], times[1:])
-    ])
 
     return {
         "times": list(times),
         "exposed_presence_intervals": [list(interval) for interval in model.exposed.presence.boundaries()],
-        "cumulative_doses": list(cumulative_doses),
+        "short_range_intervals": short_range_intervals,
+        "short_range_expirations": short_range_expirations,
         "concentrations": concentrations,
+        "concentrations_zoomed": lower_concentrations,
         "highest_const": highest_const,
+        "cumulative_doses": list(cumulative_doses),
+        "long_range_cumulative_doses": list(long_range_cumulative_doses),
         "prob_inf": prob,
         "prob_specific_event": prob_specific_event,
         "emission_rate": er,
@@ -198,51 +224,52 @@ def non_zero_percentage(percentage: int) -> str:
 
 def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.ExposureModel]:
     scenarios = {}
+    if (form.short_range_option == "short_range_no"):
+        # Two special option cases - HEPA and/or FFP2 masks.
+        FFP2_being_worn = bool(form.mask_wearing_option == 'mask_on' and form.mask_type == 'FFP2')
+        if FFP2_being_worn and form.hepa_option:
+            FFP2andHEPAalternative = dataclass_utils.replace(form, mask_type='Type I')
+            scenarios['Base scenario with HEPA filter and Type I masks'] = FFP2andHEPAalternative.build_mc_model()
+        if not FFP2_being_worn and form.hepa_option:
+            noHEPAalternative = dataclass_utils.replace(form, mask_type = 'FFP2')
+            noHEPAalternative = dataclass_utils.replace(noHEPAalternative, mask_wearing_option = 'mask_on')
+            noHEPAalternative = dataclass_utils.replace(noHEPAalternative, hepa_option=False)
+            scenarios['Base scenario without HEPA filter, with FFP2 masks'] = noHEPAalternative.build_mc_model()
 
-    # Two special option cases - HEPA and/or FFP2 masks.
-    FFP2_being_worn = bool(form.mask_wearing_option == 'mask_on' and form.mask_type == 'FFP2')
-    if FFP2_being_worn and form.hepa_option:
-        FFP2andHEPAalternative = dataclass_utils.replace(form, mask_type='Type I')
-        scenarios['Base scenario with HEPA filter and Type I masks'] = FFP2andHEPAalternative.build_mc_model()
-    if not FFP2_being_worn and form.hepa_option:
-        noHEPAalternative = dataclass_utils.replace(form, mask_type = 'FFP2')
-        noHEPAalternative = dataclass_utils.replace(noHEPAalternative, mask_wearing_option = 'mask_on')
-        noHEPAalternative = dataclass_utils.replace(noHEPAalternative, hepa_option=False)
-        scenarios['Base scenario without HEPA filter, with FFP2 masks'] = noHEPAalternative.build_mc_model()
+        # The remaining scenarios are based on Type I masks (possibly not worn)
+        # and no HEPA filtration.
+        form = dataclass_utils.replace(form, mask_type='Type I')
+        if form.hepa_option:
+            form = dataclass_utils.replace(form, hepa_option=False)
 
-    # The remaining scenarios are based on Type I masks (possibly not worn)
-    # and no HEPA filtration.
-    form = dataclass_utils.replace(form, mask_type='Type I')
-    if form.hepa_option:
-        form = dataclass_utils.replace(form, hepa_option=False)
+        with_mask = dataclass_utils.replace(form, mask_wearing_option='mask_on')
+        without_mask = dataclass_utils.replace(form, mask_wearing_option='mask_off')
 
-    with_mask = dataclass_utils.replace(form, mask_wearing_option='mask_on')
-    without_mask = dataclass_utils.replace(form, mask_wearing_option='mask_off')
+        if form.ventilation_type == 'mechanical_ventilation':
+            #scenarios['Mechanical ventilation with Type I masks'] = with_mask.build_mc_model()
+            scenarios['Mechanical ventilation without masks'] = without_mask.build_mc_model()
 
-    if form.ventilation_type == 'mechanical_ventilation':
-        #scenarios['Mechanical ventilation with Type I masks'] = with_mask.build_mc_model()
-        scenarios['Mechanical ventilation without masks'] = without_mask.build_mc_model()
+        elif form.ventilation_type == 'natural_ventilation':
+            #scenarios['Windows open with Type I masks'] = with_mask.build_mc_model()
+            scenarios['Windows open without masks'] = without_mask.build_mc_model()
 
-    elif form.ventilation_type == 'natural_ventilation':
-        #scenarios['Windows open with Type I masks'] = with_mask.build_mc_model()
-        scenarios['Windows open without masks'] = without_mask.build_mc_model()
-
-    # No matter the ventilation scheme, we include scenarios which don't have any ventilation.
-    with_mask_no_vent = dataclass_utils.replace(with_mask, ventilation_type='no_ventilation')
-    without_mask_or_vent = dataclass_utils.replace(without_mask, ventilation_type='no_ventilation')
-    scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_mc_model()
-    scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_mc_model()
+        # No matter the ventilation scheme, we include scenarios which don't have any ventilation.
+        with_mask_no_vent = dataclass_utils.replace(with_mask, ventilation_type='no_ventilation')
+        without_mask_or_vent = dataclass_utils.replace(without_mask, ventilation_type='no_ventilation')
+        scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_mc_model()
+        scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_mc_model()
 
     return scenarios
 
 
-def scenario_statistics(mc_model: mc.ExposureModel, sample_times: np.ndarray):
+def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[float]):
     model = mc_model.build_model(size=_DEFAULT_MC_SAMPLE_SIZE)
+
     return {
         'probability_of_infection': np.mean(model.infection_probability()),
         'expected_new_cases': np.mean(model.expected_new_cases()),
         'concentrations': [
-            np.mean(model.concentration_model.concentration(time))
+            np.mean(model.concentration(time))
             for time in sample_times
         ],
     }
@@ -302,7 +329,7 @@ class ReportGenerator:
 
         scenario_sample_times = interesting_times(model)
 
-        context.update(calculate_report_data(model))
+        context.update(calculate_report_data(form, model))
         alternative_scenarios = manufacture_alternative_scenarios(form)
         context['alternative_scenarios'] = comparison_report(
             alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
@@ -310,19 +337,15 @@ class ReportGenerator:
         context['permalink'] = generate_permalink(base_url, self.calculator_prefix, form)
         context['calculator_prefix'] = self.calculator_prefix
 
-        # For further information about these values visit https://gitlab.cern.ch/cara/cara/-/merge_requests/321.
-        context['scale_warning'] = {
-            'level': 'red-4', # 'red-4' - 'orange-3' - 'yellow-2' - 'green-1'
-            'risk': 'strong', # 'strong' - 'medium' - 'reduced' - ''
-            'onsite_access': '4’000', # '4’000' - '5’000' - '6’500' - '8’000'
-            'threshold': '2%' # '2%' - '' - '' - ''
-        }
         return context
 
     def _template_environment(self) -> jinja2.Environment:
         env = jinja2.Environment(
             loader=self.jinja_loader,
             undefined=jinja2.StrictUndefined,
+        )
+        env.globals['common_text'] = markdown_tools.extract_rendered_markdown_blocks(
+            env.get_template('common_text.md.j2')
         )
         env.filters['non_zero_percentage'] = non_zero_percentage
         env.filters['readable_minutes'] = readable_minutes
@@ -334,4 +357,4 @@ class ReportGenerator:
 
     def render(self, context: dict) -> str:
         template = self._template_environment().get_template("calculator.report.html.j2")
-        return template.render(**context)
+        return template.render(**context, text_blocks=template.globals['common_text'])

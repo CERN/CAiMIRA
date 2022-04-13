@@ -121,6 +121,11 @@ body {
   font-size: 1.25rem;
 }
 
+.acknowledgements {
+  text-align: left;
+  font-size: 1.5rem;
+}
+
 .center {
   position: relative;
   display: flex;
@@ -220,11 +225,6 @@ footer img {
     text-align: left;
     font-size: 2rem;
   }
-  
-  .developers {
-    text-align: left;
-    font-size: 1.5rem;
-  }
 
   .split > * + * {
     margin-left: 2em;
@@ -299,7 +299,7 @@ footer img {
   #download-pdf, #pdf_qrcode_aref {
     display: none;
   }
-  #cern_level{
+  #scale_warning{
     height: 15em;
     margin-top: 1em;
   }
