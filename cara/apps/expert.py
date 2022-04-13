@@ -223,7 +223,7 @@ class ModelWidgets(View):
     def _build_widget(self, node):
         self.widget.children += (self._build_room(node.concentration_model.room),)
         self.widget.children += (self._build_ventilation(node.concentration_model.ventilation),)
-        self.widget.children += (self._build_working_time(node),)
+        #self.widget.children += (self._build_working_time(node),)
         self.widget.children += (self._build_infected(node.concentration_model.infected),)
         self.widget.children += (self._build_exposed(node),)
         self.widget.children += (self._build_infectivity(node.concentration_model.infected),)
@@ -278,7 +278,11 @@ class ModelWidgets(View):
         room_surface.observe(room_surface_change, names=['value'])
         room_ceiling_height.observe(room_ceiling_height_change, names=['value'])        
 
-        return widgets.VBox([widgets.HBox([widgets.Label('Room surface area (m²) '), room_surface], layout=widgets.Layout(justify_content='space-between', width='100%')), widgets.HBox([widgets.Label('Room ceiling height (m)'), room_ceiling_height], layout=widgets.Layout(justify_content='space-between', width='100%')), widgets.HBox([widgets.Label('Total volume :'), displayed_volume, widgets.Label('m³')])])
+        return widgets.VBox([widgets.HBox([widgets.Label('Room surface area (m²) '), room_surface]
+        , layout=widgets.Layout(justify_content='space-between', width='100%'))
+        , widgets.HBox([widgets.Label('Room ceiling height (m)'), room_ceiling_height]
+        , layout=widgets.Layout(justify_content='space-between', width='100%'))
+        , widgets.HBox([widgets.Label('Total volume :'), displayed_volume, widgets.Label('m³')])])
 
     def _build_room(self,node):
         room_number = widgets.Text(value='', placeholder='653/R-004', disabled=False) #not linked to volume yet
@@ -294,7 +298,7 @@ class ModelWidgets(View):
         room_w = widgets.RadioButtons(
             options= list(zip(['Volume', 'Room area and height'], room_widgets.keys())),
             button_style='info',
-            layout=widgets.Layout(height='45px', width='auto'),
+            layout=widgets.Layout(height='auto', width='auto'),
         )
 
         def toggle_room(value):
@@ -309,29 +313,23 @@ class ModelWidgets(View):
         room_w.observe(lambda event: toggle_room(event['new']), 'value')
         toggle_room(room_w.value)
 
-        heating_w = widgets.RadioButtons(
-            options= list(['Yes', 'No']),
-            button_style='info',
-            layout=widgets.Layout(height='45px', width='auto'),
-        )
+        humidity = widgets.FloatSlider(value = node.humidity, min=0, max=1, step=0.01)
 
-        def toggle_central_heating(value):
-            print (node)
-            for name in (heating_w.options):
-                print (name)
-                if name=='Yes':
-                    node.humidity = 0.3
-                else:
-                    node.humidiy = 0.5
-                    print ('oui')
-            return node.humidity
+        def humidity_change(change):
+            node.humidity = change['new']
 
-        heating_w.observe(lambda event: toggle_central_heating(event['new']), 'value')
-        toggle_central_heating(room_w.value) 
-        
+        humidity.observe(humidity_change, names=['value'])
 
         widget = collapsible(
-            [ widgets.VBox([widgets.HBox([widgets.Label('Room number '), room_number], layout=widgets.Layout(width='100%', justify_content='space-between')), room_w, widgets.VBox(list(room_widgets.values())), widgets.HBox([widgets.Label('Central heating system in use '), heating_w], layout=widgets.Layout(width='100%', justify_content='space-between'))])], title="Specification of workspace"
+            [ widgets.VBox([
+                widgets.HBox([
+                    widgets.Label('Room number '), room_number]
+                    , layout=widgets.Layout(width='100%', justify_content='space-between'))
+            , room_w, widgets.VBox(list(room_widgets.values()))
+            , widgets.HBox([widgets.Label('Relative humidity rate in the room depending on the use of a central heating system'),humidity]
+            , layout=widgets.Layout(width='100%', justify_content='space-between'))
+            ])]
+            , title="Specification of workspace"
         )
 
         return widget
@@ -529,7 +527,6 @@ class ModelWidgets(View):
                 widget.layout.display = 'none'
 
             node.dcs_select(value)
-
             widget = mechanical_widgets[value]
             widget.layout.visible = True
             widget.layout.display = 'flex'
@@ -615,13 +612,21 @@ class ModelWidgets(View):
         return widgets.HBox([widgets.Label("Expiration"), expiration_choice], layout=widgets.Layout(justify_content='space-between'))
     
     def _build_lunch_time(self, node):
-        presence = widgets.FloatRangeSlider(values=node.presence, min=8, max=18, step=1)
+        presence_start = widgets.FloatRangeSlider(values=node.presence, min=8, max=18, step=1)
+        presence_finish = widgets.FloatRangeSlider(values=node.presence, min=13, max=18, step=1)
+        #infected_start = presence_start.value
+        #infected_finish = presence_finish.value
+        #node.presence = (((infected_start), (infected_finish)))
         #test=widgets.Datetime(description='test:')
         def on_lunch_time_change(change):
-            node.presence = change['new']
+            node.infected_start = change['new']
+            node.infected_finish = change['new']
+            #node.presence = change['new']
+
         # TODO: Link the state back to the widget, not just the other way around.
-        presence.observe(on_lunch_time_change, names=['value'])
-        return widgets.HBox([widgets.Label('Lunch time '), presence], layout=widgets.Layout(justify_content='space-between') )
+        node.infected_start.observe(on_lunch_time_change, names=['value'])
+        #node.infected_finish.observe(on_lunch_time_change, names=['value'])
+        return widgets.HBox([widgets.Label('Lunch time '), node.presence], layout=widgets.Layout(justify_content='space-between') )
 
     def _build_ventilation(
             self,
@@ -705,7 +710,7 @@ class ModelWidgets(View):
 
 baseline_model = models.ExposureModel(
     concentration_model=models.ConcentrationModel(
-        room=models.Room(volume=75),
+        room=models.Room(volume=75, humidity=0.5),
         ventilation=models.SlidingWindow(
             active=models.PeriodicInterval(period= 120, duration= 15),
             inside_temp=models.PiecewiseConstant((0., 24.), (293.15,)),
