@@ -263,8 +263,8 @@ class ModelWidgets(View):
 
     def _build_room_area(self, node):
  
-        room_surface = widgets.FloatSlider(value=1, min=1, max=200, step=10)
-        room_ceiling_height = widgets.FloatSlider(value=1, min=1, max=20, step=1)
+        room_surface = widgets.FloatSlider(value=25, min=1, max=200, step=10)
+        room_ceiling_height = widgets.FloatSlider(value=3, min=1, max=20, step=1)
         displayed_volume=widgets.Label('1')
 
         def room_surface_change(change):
