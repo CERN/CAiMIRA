@@ -210,7 +210,6 @@ class ExposureComparissonResult(View):
 
 
 class ModelWidgets(View):
-    
     def __init__(self, model_state: state.DataclassState):
         #: The widgets that this view produces (inputs and outputs together)
         self.widget = widgets.VBox([])
@@ -223,7 +222,6 @@ class ModelWidgets(View):
     def _build_widget(self, node):
         self.widget.children += (self._build_room(node.concentration_model.room),)
         self.widget.children += (self._build_ventilation(node.concentration_model.ventilation),)
-        #self.widget.children += (self._build_working_time(node),)
         self.widget.children += (self._build_infected(node.concentration_model.infected),)
         self.widget.children += (self._build_exposed(node),)
         self.widget.children += (self._build_infectivity(node.concentration_model.infected),)
@@ -243,11 +241,6 @@ class ModelWidgets(View):
             self._build_expiration(node.expiration),
         ])], title="Infected")
 
-    def _build_working_time(self, node):
-        return collapsible([widgets.VBox([
-            self._build_lunch_time(node.concentration_model.infected),
-        ])], title="Working time")
-
     def _build_room_volume(self, node):
         room_volume = widgets.FloatSlider(value=node.volume, min=10, max=500
         , step=5)
@@ -262,7 +255,6 @@ class ModelWidgets(View):
 
 
     def _build_room_area(self, node):
- 
         room_surface = widgets.FloatSlider(value=25, min=1, max=200, step=10)
         room_ceiling_height = widgets.FloatSlider(value=3, min=1, max=20, step=1)
         displayed_volume=widgets.Label('1')
@@ -363,7 +355,6 @@ class ModelWidgets(View):
             return widgets.HBox([widgets.Label('Window width (meters) '), hinged_window], layout=widgets.Layout(justify_content='space-between', width='100%'))
 
     def _build_sliding_window(self, node):
-
         return widgets.HBox([]) 
 
     def _build_window(self, node) -> WidgetGroup:
@@ -539,6 +530,7 @@ class ModelWidgets(View):
     def _build_month(self, node) -> WidgetGroup:
 
         month_choice = widgets.Select(options=list(data.GenevaTemperatures.keys()), value='Jan')
+
         def on_month_change(change):
             node.outside_temp = data.GenevaTemperatures[change['new']]
         month_choice.observe(on_month_change, names=['value'])
@@ -611,23 +603,6 @@ class ModelWidgets(View):
         
         return widgets.HBox([widgets.Label("Expiration"), expiration_choice], layout=widgets.Layout(justify_content='space-between'))
     
-    def _build_lunch_time(self, node):
-        presence_start = widgets.FloatRangeSlider(values=node.presence, min=8, max=18, step=1)
-        presence_finish = widgets.FloatRangeSlider(values=node.presence, min=13, max=18, step=1)
-        #infected_start = presence_start.value
-        #infected_finish = presence_finish.value
-        #node.presence = (((infected_start), (infected_finish)))
-        #test=widgets.Datetime(description='test:')
-        def on_lunch_time_change(change):
-            node.infected_start = change['new']
-            node.infected_finish = change['new']
-            #node.presence = change['new']
-
-        # TODO: Link the state back to the widget, not just the other way around.
-        node.infected_start.observe(on_lunch_time_change, names=['value'])
-        #node.infected_finish.observe(on_lunch_time_change, names=['value'])
-        return widgets.HBox([widgets.Label('Lunch time '), node.presence], layout=widgets.Layout(justify_content='space-between') )
-
     def _build_ventilation(
             self,
             node: typing.Union[
@@ -781,10 +756,7 @@ class CARAStateBuilder(state.StateBuilder):
         )
         # Initialise the "HVAC" state
         s._states['HVACMechanical'].dcs_update_from(
-            #models.MultipleVentilation(ventilations=[
-                #models.AirChange(active=models.PeriodicInterval(period=60, duration=60), air_exch=0.25),
             models.HVACMechanical(active=models.PeriodicInterval(period=24*60, duration=24*60), q_air_mech=500.)
-            #])
         )
         s._states['AirChange'].dcs_update_from(
             models.AirChange(models.PeriodicInterval(period=24*60, duration=24*60), 10.)
