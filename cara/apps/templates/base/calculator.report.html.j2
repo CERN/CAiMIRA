@@ -24,7 +24,7 @@
 			<h2 class="header_text mb-0">REPORT</h1>
 			<p class="mb-0" id="report_version"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
 		</div>
-		<button type="button" class="btn btn-outline-dark align-self-center" id="download-pdf" style="margin-right: -100pt" onclick="print()">Print Report</button>
+		<button type="button" class="btn btn-outline-dark align-self-center" id="download-pdf" style="margin-right: -100pt" onclick="print();">Print Report</button>
 		<a href="{{ permalink.link }}" style="float: left;" id="pdf_qrcode_aref" class="align-self-center invisible mr-0"><div id="pdf_qrcode"></div></a>
 	</div>
 
@@ -78,7 +78,7 @@
 										<div class="col-md-8 pr-0 pl-0 d-flex">
 											{% block report_summary %}
 												<div class="align-self-center alert alert-dark mb-0" role="alert">
-													Taking into account the uncertainties tied to the model variables, in this scenario, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>*.
+													Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>*.
 												</div>
 											{% endblock report_summary %}
 										</div>
@@ -88,72 +88,90 @@
 									{% block report_summary_footnote %}
 									{% endblock report_summary_footnote %}
 								</div>
-								<p id="section1">* The results are based on the parameters and assumptions published in the CERN Open Report <a href="https://cds.cern.ch/record/2756083"> CERN-OPEN-2021-004</a>.</p>
-
+								<p id="section1">* The results are based on the parameters and assumptions published in the CARA publication: <a href="https://doi.org/10.1098/rsfs.2021.0076"> doi.org/10.1098/rsfs.2021.0076</a>.</p><br>
+								{% if form.short_range_option == "short_range_yes" %}
+									{% if 'Speaking' in form.short_range_interactions|string or 'Shouting' in form.short_range_interactions|string %}
+										<button class="btn btn-sm btn-primary" id="button_full_exposure" disabled>Show full exposure</button>
+										<button class="btn btn-sm btn-primary ml-0" id="button_hide_high_concentration">Hide high concentration</button>
+									{% endif %}
+									<input type="checkbox" id="long_range_cumulative_checkbox"><label class="form-check-label ml-1" for="long_range_cumulative_checkbox" id="lr_cumulative_checkbox_label">Show doses from long-range exposure alone</label>
+								{% endif %}
 								<div id="concentration_plot" style="height: 400px"></div>
 								<script type="application/javascript">
-									var times = {{ times | JSONify }}
-									var concentrations = {{ concentrations | JSONify }}
-									var cumulative_doses = {{ cumulative_doses | JSONify }}
-									var exposed_presence_intervals = {{ exposed_presence_intervals | JSONify }}
-									draw_concentration_plot("concentration_plot", times, concentrations, cumulative_doses, exposed_presence_intervals);
+									let times = {{ times | JSONify }}
+									let concentrations_zoomed = {{ concentrations_zoomed | JSONify }}
+									let concentrations = {{ concentrations | JSONify }}
+									let cumulative_doses = {{ cumulative_doses | JSONify }}
+									let long_range_cumulative_doses = {{ long_range_cumulative_doses | JSONify }}
+									let exposed_presence_intervals = {{ exposed_presence_intervals | JSONify }}
+									let short_range_intervals = {{ short_range_intervals | JSONify }}
+									let short_range_expirations = {{ short_range_expirations | JSONify }}
+									draw_plot("concentration_plot")
 								</script>
               				</p>
 						</div>
 					</div>
 				</div>
-				<div class="card bg-light mb-3">
-  					<div class="card-header"><strong>Alternative scenarios</strong>
-						<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseAlternativeScenarios" role="button" aria-expanded="false" aria-controls="collapseAlternativeScenarios">
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
-								<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
-							</svg>
-						</button>
-					</div>	
-					<div class="collapse" id="collapseAlternativeScenarios">
-						<div class="card-body">
-							<div>
-								<div id="alternative_scenario_plot" style="height: 400px"></div>
-								<script type="application/javascript">
-									var alternative_scenarios = {{ alternative_scenarios.stats | JSONify }}
-									var times = {{ times | JSONify }}
-									draw_alternative_scenarios_plot("concentration_plot", "alternative_scenario_plot", times, alternative_scenarios);
-								</script>
-								<br>
-								{% block report_scenarios_summary_table %}
-									<table class="table w-auto">
-										<thead class="thead-light">
-											<tr>
-												<th>Scenario</th>
-												<th>P(I)</th>
-												<th>Expected new cases</th>
-											</tr>
-										</thead>
-										<tbody>
-										{% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
-											<tr>
-												<td> {{ scenario_name }}</td>
-												<td> {{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
-												<td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>
-											</tr>
-										{% endfor %}
-										</tbody>
-									</table>
-								{% endblock report_scenarios_summary_table %}
+
+				{% if form.short_range_option == "short_range_no" %}
+					<div class="card bg-light mb-3">
+						<div class="card-header"><strong>Alternative scenarios</strong>
+							<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseAlternativeScenarios" role="button" aria-expanded="false" aria-controls="collapseAlternativeScenarios">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
+									<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
+								</svg>
+							</button>
+						</div>	
+						<div class="collapse" id="collapseAlternativeScenarios">
+							<div class="card-body">
+								<div>
+									{% if form.short_range_option == "short_range_yes" %}
+										{% if 'Speaking' in form.short_range_interactions|string or 'Shouting' in form.short_range_interactions|string %}
+											<button class="btn btn-sm btn-primary" id="button_alternative_full_exposure" disabled>Show full exposure</button>
+											<button class="btn btn-sm btn-primary ml-0" id="button_alternative_hide_high_concentration">Hide high concentration</button>
+										{% endif %}
+									{% endif %}
+									<div id="alternative_scenario_plot" style="height: 400px"></div>
+									<script type="application/javascript">
+										let alternative_scenarios = {{ alternative_scenarios.stats | JSONify }}
+										draw_alternative_scenarios_plot("concentration_plot", "alternative_scenario_plot");
+									</script>
+									<br>
+									{% block report_scenarios_summary_table %}
+										<table class="table w-auto">
+											<thead class="thead-light">
+												<tr>
+													<th>Scenario</th>
+													<th>P(I)</th>
+													<th>Expected new cases</th>
+												</tr>
+											</thead>
+											<tbody>
+											{% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
+												<tr>
+													<td> {{ scenario_name }}</td>
+													<td> {{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
+													<td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>
+												</tr>
+											{% endfor %}
+											</tbody>
+										</table>
+									{% endblock report_scenarios_summary_table %}
+								</div>
+								<br/>
+								<p class="data_text"> <strong> Notes for alternative scenarios: </strong><br>
+									<ol>
+										<li>This graph shows the concentration of infectious quanta in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation).
+									For this reason, scenarios with different types of mask will show the same concentration on the graph but have different absorbed doses and infection probabilities.</li>
+										<li>If you have selected more sophisticated options, such as HEPA filtration or FFP2 masks, this will be indicated in the plot as the "base scenario", representing the inputs inserted in the form.<br>
+										The other alternative scenarios shown for comparison will not include either HEPA filtration or FFP2 masks.</li>
+									</ol>
+									<br>
+								</p>
 							</div>
-							<br/>
-							<p class="data_text"> <strong> Notes for alternative scenarios: </strong><br>
-								<ol>
-									<li>This graph shows the concentration of infectious quanta in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation).
-								For this reason, scenarios with different types of mask will show the same concentration on the graph but have different absorbed doses and infection probabilities.</li>
-									<li>If you have selected more sophisticated options, such as HEPA filtration or FFP2 masks, this will be indicated in the plot as the "base scenario", representing the inputs inserted in the form.<br>
-									The other alternative scenarios shown for comparison will not include either HEPA filtration or FFP2 masks.</li>
-								</ol>
-								<br>
-							</p>
 						</div>
 					</div>
-				</div>
+				{% endif %}
 			{% endblock report_results %}
 
 			{% block report_footer %}
@@ -289,8 +307,10 @@
 							Activity type:
 							{% if form.activity_type == "office" %}
 							Office – typical scenario with all persons seated, speaking occasionally (speaking assumed for 1/3rd of the time).
-							{% elif form.activity_type == "meeting" %}
-							Meeting – typical scenario with all persons seated, one person speaking at a time.
+							{% elif form.activity_type == "smallmeeting" %}
+							Small meeting – typical scenario with all persons seated, one person speaking at a time.
+							{% elif form.activity_type == "largemeeting" %}
+							Large meeting – infected occupant(s) is standing and speaking 1/3rd of the time, while the other occupants are seated.							
 							{% elif form.activity_type == "callcentre" %}
 							Call Centre = typical office-like scenario with all persons seated, all speaking continuously.
 							{% elif form.activity_type == "controlroom-day" %}
@@ -309,6 +329,18 @@
 							Gym = For comparison only, all persons doing heavy physical exercise, breathing and not speaking.
 							{% endif %}
 							</p></li>
+							{% if form.short_range_option == "short_range_yes" %}
+							<li><p class="data_text">
+							Short-range interactions: {{ form.short_range_interactions|length }}
+							</p></li>
+							<ul>
+							{% for interaction in form.short_range_interactions %}
+								<li>Expiratory activity {{ loop.index if form.short_range_interactions|length > 1 }}: {{ interaction.expiration }} </li>
+								<li>Start time {{ loop.index if form.short_range_interactions|length > 1 }}: {{ interaction.start_time }} </li>
+								<li>Duration {{ loop.index if form.short_range_interactions|length > 1 }}: {{ interaction.duration }} {{ "minutes" if interaction.duration|float > 1 else "minute" }}</li>
+							{% endfor %}
+							</ul>
+							{% endif %}
 							<li><p class="data_text">Exposed occupant(s) activity time:</p></li>
 								<ul>
 									<li><p class="data_subtext">Start time: {{ form.exposed_start | minutes_to_time }}</p></li>
@@ -408,42 +440,8 @@
 	<br><br><br>
 	<div id="disclaimer" style="border: #dee2e6 1px solid; margin: 1%; padding: 20px" class="rounded">
 		{% block disclaimer %}
-		<p class="image"> <img align="middle" src="{{ calculator_prefix }}/static/images/disclaimer.jpg" width="40" height="40"><b>Disclaimer:</b><br><br></p>
-
-		<p>
-			CARA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.
-		</p>
-		<p>
-			CARA models the concentration profile of potential infectious viruses in enclosed spaces with clear and intuitive graphs.
-			The user can set a number of parameters, including room volume, exposure time, activity type, mask-wearing and ventilation.
-			The report generated indicates how to avoid exceeding critical concentrations and chains of airborne transmission in spaces such as individual offices, meeting rooms and labs.
-		</p>
-		<p>
-			The risk assessment tool simulates the long-range airborne spread SARS-CoV-2 virus in a finite volume, assuming a homogenous mixture, and estimates the risk of COVID-19 airborne transmission therein.
-			The results DO NOT include short-range airborne exposure (where the physical distance is a significant factor) nor the other known modes of SARS-CoV-2 transmission.
-			Hence, the output from this model is only valid when the other recommended public health & safety instructions are observed, such as adequate physical distancing, good hand hygiene and other barrier measures.
-		</p>
-		<p>
-			The model used is based on scientific publications relating to airborne transmission of infectious diseases, dose-response exposures and aerosol science, as of February 2021.
-			It can be used to compare the effectiveness of different airborne-related risk mitigation measures.
-		</p>
-		<p>
-			Note that this model applies a deterministic approach, i.e., it is assumed at least one person is infected and shedding viruses into the simulated volume.
-			Nonetheless, it is also important to understand that the absolute risk of infection is uncertain, as it will depend on the probability that someone infected attends the event.
-			The model is most useful for comparing the impact and effectiveness of different mitigation measures such as ventilation, filtration, exposure time, physical activity and
-			the size of the room, only considering long-range airborne transmission of COVID-19 in indoor settings.
-		</p>
-		<p>
-			This tool is designed to be informative, allowing the user to adapt different settings and model the relative impact on the estimated infection probabilities.
-			The objective is to facilitate targeted decision-making and investment through comparisons, rather than a singular determination of absolute risk.
-			While the SARS-CoV-2 virus is in circulation among the population, the notion of 'zero risk' or 'completely safe scenario' does not exist.
-			Each event modelled is unique, and the results generated therein are only as accurate as the inputs and assumptions.
-		</p>
-		<p>
-			CARA has not undergone review, approval or certification by competent authorities, and as a result, it cannot be considered
-			as a fully endorsed and reliable tool, namely in the assessment of potential viral emissions from infected hosts to be modelled.
-		</p>
-
+			<p class="image"> <img align="middle" src="{{ calculator_prefix }}/static/images/disclaimer.jpg" width="40" height="40"><b>Disclaimer:</b><br><br></p>
+			{{ text_blocks['Disclaimer'] }}
 		{% endblock disclaimer %}
 	</div>
 {% endblock disclaimer_container %}

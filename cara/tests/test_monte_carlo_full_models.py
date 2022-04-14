@@ -9,8 +9,8 @@ from cara.apps.calculator.model_generator import build_expiration
 
 # TODO: seed better the random number generators
 np.random.seed(2000)
-SAMPLE_SIZE = 250000
-TOLERANCE = 0.05
+SAMPLE_SIZE = 600_000
+TOLERANCE = 0.06
 
 # Load the weather data (temperature in kelvin) for Toronto.
 toronto_coordinates = (43.667, 79.400)
@@ -39,7 +39,6 @@ TorontoTemperatures = {
 
 # references values for infection_probability and expected new cases
 # in the following tests, were obtained from the feature/mc branch
-
 @pytest.fixture
 def shared_office_mc():
     """
@@ -72,6 +71,7 @@ def shared_office_mc():
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
+        short_range=(),
         exposed=mc.Population(
             number=3,
             presence=mc.SpecificInterval(present_times=((0, 3.5), (4.5, 9))),
@@ -114,6 +114,7 @@ def classroom_mc():
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
+        short_range=(),
         exposed=mc.Population(
             number=19,
             presence=models.SpecificInterval(((0, 2), (2.5, 4), (5, 7), (7.5, 9))),
@@ -147,6 +148,7 @@ def ski_cabin_mc():
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
+        short_range=(),
         exposed=mc.Population(
             number=3,
             presence=models.SpecificInterval(((0, 20/60),)),
@@ -186,6 +188,7 @@ def skagit_chorale_mc():
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
+        short_range=(),
         exposed=mc.Population(
             number=60,
             presence=models.SpecificInterval(((0, 2.5), )),
@@ -225,6 +228,7 @@ def bus_ride_mc():
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
+        short_range=(),
         exposed=mc.Population(
             number=67,
             presence=models.SpecificInterval(((0, 1.67), )),
@@ -259,6 +263,7 @@ def gym_mc():
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
+        short_range=(),
         exposed=mc.Population(
             number=28,
             presence=concentration_mc.infected.presence,
@@ -293,6 +298,7 @@ def waiting_room_mc():
     )
     return mc.ExposureModel(
         concentration_model=concentration_mc,
+        short_range=(),
         exposed=mc.Population(
             number=14,
             presence=concentration_mc.infected.presence,
@@ -370,6 +376,7 @@ def test_small_shared_office_Geneva(mask_type, month, expected_pi,
     )
     exposure_mc = mc.ExposureModel(
         concentration_model=concentration_mc,
+        short_range=(),
         exposed=mc.Population(
             number=1,
             presence=concentration_mc.infected.presence,

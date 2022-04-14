@@ -37,7 +37,7 @@ class MCModelBase(typing.Generic[_ModelType]):
 
     def build_model(self, size: int) -> _ModelType:
         """
-        Turn this MCModelBase subclass into a cara.models Model instance
+        Turn this MCModelBase subclass into a cara.model Model instance
         from which you can then run the model.
 
         """
@@ -72,6 +72,9 @@ def _build_mc_model(model: _ModelType) -> typing.Type[MCModelBase[_ModelType]]:
             elif new_field.type == typing.Tuple[cara.models._ExpirationBase, ...]:
                 EB = getattr(sys.modules[__name__], "_ExpirationBase")
                 field_type = typing.Tuple[typing.Union[cara.models._ExpirationBase, EB], ...]
+            elif new_field.type == typing.Tuple[cara.models.SpecificInterval, ...]:
+                SI = getattr(sys.modules[__name__], "SpecificInterval")
+                field_type = typing.Tuple[typing.Union[cara.models.SpecificInterval, SI], ...]
             else:
                 # Check that we don't need to do anything with this type.
                 for item in new_field.type.__args__:
