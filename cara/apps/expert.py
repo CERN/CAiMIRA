@@ -318,7 +318,7 @@ class ModelWidgets(View):
                     widgets.Label('Room number '), room_number]
                     , layout=widgets.Layout(width='100%', justify_content='space-between'))
             , room_w, widgets.VBox(list(room_widgets.values()))
-            , widgets.HBox([widgets.Label('Relative humidity rate in the room depending on the use of a central heating system'),humidity]
+            , widgets.HBox([widgets.Label('Indoor relative humidity '),humidity]
             , layout=widgets.Layout(width='100%', justify_content='space-between'))
             ])]
             , title="Specification of workspace"
