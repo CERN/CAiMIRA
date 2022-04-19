@@ -110,7 +110,9 @@ class ExposureModelResult(View):
         ipympl_canvas(self.figure)
         self.html_output = widgets.HTML()
         self.ax = self.figure.add_subplot(1, 1, 1)
-        self.line = None
+        self.ax2 = self.ax.twinx()
+        self.concentration_line = None
+        self.cumulative_line = None
 
     @property
     def widget(self):
@@ -120,34 +122,61 @@ class ExposureModelResult(View):
         ])
 
     def update(self, model: models.ExposureModel):
-        self.update_plot(model.concentration_model)
+        self.update_plot(model)
         self.update_textual_result(model)
 
-    def update_plot(self, model: models.ConcentrationModel):
+    def update_plot(self, model: models.ExposureModel):
         resolution = 600
-        ts = np.linspace(sorted(model.infected.presence.transition_times())[0],
-                         sorted(model.infected.presence.transition_times())[-1], resolution)
+        ts = np.linspace(sorted(model.concentration_model.infected.presence.transition_times())[0],
+                         sorted(model.concentration_model.infected.presence.transition_times())[-1], resolution)
         concentration = [model.concentration(t) for t in ts]
-        if self.line is None:
-            [self.line] = self.ax.plot(ts, concentration)
+        
+        cumulative_doses = np.cumsum([
+            np.array(model.deposited_exposure_between_bounds(float(time1), float(time2))).mean()
+            for time1, time2 in zip(ts[:-1], ts[1:])
+        ])
+
+        if self.concentration_line is None:
+            [self.concentration_line] = self.ax.plot(ts, concentration, color='blue', label='Concentration')
+
             ax = self.ax
 
-            # ax.text(0.5, 0.9, 'Without masks & window open', transform=ax.transAxes, ha='center')
+            #ax.text(0.5, 0.9, 'Without masks & window open', transform=ax.transAxes, ha='center')
 
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
 
             ax.set_xlabel('Time (hours)')
-            ax.set_ylabel('Concentration ($virions/m^{3}$)')
-            ax.set_title('Concentration of virions')
+            ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
+            ax.set_title('Concentration of virions and Cumulative dose')
         else:
             self.ax.ignore_existing_data_limits = True
-            self.line.set_data(ts, concentration)
+            self.concentration_line.set_data(ts, concentration)
+
+        if self.cumulative_line is None:
+            [self.cumulative_line] = self.ax2.plot(ts[:-1], cumulative_doses, color='red', label='Cumulative dose')
+
+            ax2 = self.ax2 
+
+            ax2.spines['left'].set_visible(False)
+            ax2.spines['top'].set_visible(False)
+
+            ax2.set_ylabel('Mean cumulative dose (infectious virus)')
+            
+        else:
+            self.ax2.ignore_existing_data_limits = True
+            self.cumulative_line.set_data(ts[:-1], cumulative_doses)
+
         # Update the top limit based on the concentration if it exceeds 5
         # (rare but possible).
-        top = max([3, max(concentration)])
-        self.ax.set_ylim(bottom=0., top=top)
+        #top = max([3, max(concentration)])
+        concentration_top = max([3, max(concentration)])
+        self.ax.set_ylim(bottom=0., top=concentration_top)
+        cumulative_top = max([3, max(cumulative_doses)])
+        self.ax2.set_ylim(bottom=0., top=cumulative_top)
+
         self.figure.canvas.draw()
+        self.figure.legend(loc="upper right", title="Legend", frameon=False)
 
     def update_textual_result(self, model: models.ExposureModel):
         lines = []
