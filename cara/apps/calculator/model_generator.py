@@ -672,7 +672,7 @@ def build_expiration(expiration_definition) -> mc._ExpirationBase:
         return expiration_distribution(BLO_factors=tuple(BLO_factors))
 
 
-def baseline_raw_form_data():
+def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
     # Note: This isn't a special "baseline". It can be updated as required.
     return {
         'activity_type': 'office',
