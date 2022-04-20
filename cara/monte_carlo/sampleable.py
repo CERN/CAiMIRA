@@ -144,7 +144,7 @@ class Beta(SampleableDistribution):
         self.beta = beta
 
     def generate_samples(self, size: int) -> float_array_size_n:
-        return beta.rvs(a = self.alpha, b = self.beta, loc=0.5, scale=7, size=size)
+        return beta.rvs(a = self.alpha, b = self.beta, loc=0.5, scale=(2 - 0.5), size=size)
 
 
 _VectorisedFloatOrSampleable = typing.Union[
