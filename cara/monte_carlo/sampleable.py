@@ -138,13 +138,15 @@ class Beta(SampleableDistribution):
     variable and control the shape of the distribution.
     """
 
-    def __init__(self, alpha: float, beta: float):
+    def __init__(self, alpha: float, beta: float, loc: float, scale: float):
         # these are resp. the alpha and beta of the underlying distribution
         self.alpha = alpha
         self.beta = beta
+        self.loc = loc
+        self.scale = scale
 
     def generate_samples(self, size: int) -> float_array_size_n:
-        return beta.rvs(a = self.alpha, b = self.beta, loc=0.5, scale=(2 - 0.5), size=size)
+        return beta.rvs(a = self.alpha, b = self.beta, loc=self.loc, scale=self.scale, size=size)
 
 
 _VectorisedFloatOrSampleable = typing.Union[

@@ -203,4 +203,4 @@ short_range_expiration_distributions = {
 
 
 # Derived from Fig 8 a) "stand-stand" in https://www.mdpi.com/1660-4601/17/4/1445/htm
-short_range_distances = Beta(alpha=0.588715, beta=1.50214)
+short_range_distances = Beta(alpha=0.588715, beta=1.50214, loc=0.5, scale=1.5)
