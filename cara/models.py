@@ -439,28 +439,28 @@ class Virus:
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
 
-    def halflife(self, humidity: _VectorisedFloat) -> _VectorisedFloat:
+    def halflife(self, humidity: _VectorisedFloat, inside_temp: _VectorisedFloat) -> _VectorisedFloat:
         # Biological decay (inactivation of the virus in air) - virus 
         # dependent and function of humidity
         raise NotImplementedError
 
-    def decay_constant(self, humidity: _VectorisedFloat) -> _VectorisedFloat:
+    def decay_constant(self, humidity: _VectorisedFloat, inside_temp: _VectorisedFloat) -> _VectorisedFloat:
         # Viral inactivation per hour (h^-1) (function of humidity)
-        return np.log(2) / self.halflife(humidity)
+        return np.log(2) / self.halflife(humidity, inside_temp)
 
 
 @dataclass(frozen=True)
 class SARSCoV2(Virus):
 
-    def halflife(self, humidity: _VectorisedFloat) -> _VectorisedFloat:
+    def halflife(self, humidity: _VectorisedFloat, inside_temp: _VectorisedFloat) -> _VectorisedFloat:
         """
         Half-life changes with humidity level. Here is implemented a simple
         piecewise constant model (for more details see A. Henriques et al,
         CERN-OPEN-2021-004, DOI: 10.17181/CERN.1GDQ.5Y75)
         """
-        # Taken from Morris et al (https://doi.org/10.7554/eLife.65902) data at T = 22°C and RH = 40 %,
-        # and from Doremalen et al (https://www.nejm.org/doi/10.1056/NEJMc2004973).
-        return np.piecewise(humidity, [humidity <= 0.4, humidity > 0.4], [6.43, 1.1])
+        # Updated to use the formula from Dabish et al. https://doi.org/10.1080/02786826.2020.1829536
+        # with a minimum at hl = 1.1
+        return max(1.1, (0.693/(0.16030 + 0.04018((inside_temp-20.615)/10.585)+0.2176((humidity-45.235)/28.665)+0.1)))
         
 
 Virus.types = {
@@ -917,9 +917,9 @@ class ConcentrationModel:
         h = 1.5
         # Deposition rate (h^-1)
         k = (vg * 3600) / h
-
+        #todo: Inside_temp needs to be exposed/added to the room;
         return (
-            k + self.virus.decay_constant(self.room.humidity)
+            k + self.virus.decay_constant(self.room.humidity, self.room.inside_temp)
             + self.ventilation.air_exchange(self.room, time)
         )
 
