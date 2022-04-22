@@ -1192,29 +1192,46 @@ class ShortRangeModel:
         elif time1 <= start and stop < time2:
             return start, stop
 
-    def normed_exposure_between_bounds(self, concentration_model: ConcentrationModel,
-                                       time1: float, time2: float):
+    def _normed_jet_exposure_between_bounds(self,
+                    concentration_model: ConcentrationModel,
+                    time1: float, time2: float):
         """
-        Get the integrated short-range concentration of viruses in the air between the times start and stop,
-        normalized by the virus viral load.
+        Get the part of the integrated short-range concentration of
+        viruses in the air, between the times start and stop, coming
+        from the jet concentration, normalized by the viral load, and
+        without dilution.
         """
         start, stop = self.extract_between_bounds(time1, time2)
-        
         jet_origin = self.expiration.jet_origin_concentration()
-        dilution = self.dilution_factor()
+        return jet_origin * (stop - start)
 
-        total_normed_concentration_diluted = (
-            concentration_model.integrated_concentration(start, stop
-                )/dilution/
-                concentration_model.virus.viral_load_in_sputum
+    def _normed_interpolated_longrange_exposure_between_bounds(
+                    self, concentration_model: ConcentrationModel,
+                    time1: float, time2: float):
+        """
+        Get the part of the integrated short-range concentration due
+        to the background concentration, normalized by the viral load
+        and the breathing rate, and without dilution.
+        One needs to interpolate the integrated long-range concentration
+        for the particle diameters defined here.
+        TODO: make sure any potential extrapolation has a
+        negligible effect.
+        """
+        start, stop = self.extract_between_bounds(time1, time2)
+        if stop<=start:
+            return 0.
+
+        normed_int_concentration = (
+            concentration_model.integrated_concentration(start, stop)
+                /concentration_model.virus.viral_load_in_sputum
+                /concentration_model.infected.activity.exhalation_rate
                 )
-        total_normed_concentration_interpolated = np.interp(
+        normed_int_concentration_interpolated = np.interp(
                 self.expiration.particle.diameter,
                 concentration_model.infected.particle.diameter,
-                total_normed_concentration_diluted
+                normed_int_concentration
                 )
-        return (jet_origin/dilution * (stop - start)
-                ) - total_normed_concentration_interpolated
+        return normed_int_concentration_interpolated
 
 
 @dataclass(frozen=True)
@@ -1292,7 +1309,7 @@ class ExposureModel:
             # we compute first the mean of all diameter-dependent quantities
             # to perform properly the Monte-Carlo integration over
             # particle diameters (doing things in another order would
-            # lead to wrong results).
+            # lead to wrong results for the probability of infection).
             dep_exposure_integrated = np.array(self._long_range_normed_exposure_between_bounds(time1, time2) *
                                                 aerosols *
                                                 fdep).mean()
@@ -1323,24 +1340,35 @@ class ExposureModel:
         deposited_exposure = 0.
         for interaction in self.short_range:
             start, stop = interaction.extract_between_bounds(time1, time2)
-            short_range_exposure = interaction.normed_exposure_between_bounds(
+            short_range_jet_exposure = interaction._normed_jet_exposure_between_bounds(
                                         self.concentration_model, start, stop)
+            short_range_lr_exposure = interaction._normed_interpolated_longrange_exposure_between_bounds(
+                                        self.concentration_model, start, stop)
+            dilution = interaction.dilution_factor()
 
             fdep = interaction.expiration.particle.fraction_deposited(evaporation_factor=1.0)
             diameter = interaction.expiration.particle.diameter
             
-            # Aerosols not considered given the formula for the initial concentration at mouth/nose.
+            # Aerosols not considered given the formula for the initial
+            # concentration at mouth/nose.
             if diameter is not None and not np.isscalar(diameter):
                 # we compute first the mean of all diameter-dependent quantities
                 # to perform properly the Monte-Carlo integration over
                 # particle diameters (doing things in another order would
-                # lead to wrong results).
-                deposited_exposure += np.array(short_range_exposure *
-                                                fdep).mean()
+                # lead to wrong results for the probability of infection).
+                deposited_exposure += (np.array(short_range_jet_exposure
+                    * fdep).mean()/dilution
+                    - np.array(short_range_lr_exposure * fdep).mean()
+                    * self.concentration_model.infected.activity.exhalation_rate
+                    /dilution)
             else:
                 # in the case of a single diameter or no diameter defined,
                 # one should not take any mean at this stage.
-                deposited_exposure += short_range_exposure*fdep  
+                deposited_exposure += (short_range_jet_exposure
+                    * fdep/dilution
+                    - short_range_lr_exposure * fdep
+                    * self.concentration_model.infected.activity.exhalation_rate
+                    /dilution)
 
             # multiply by the (diameter-independent) inhalation rate
             deposited_exposure *= interaction.activity.inhalation_rate
