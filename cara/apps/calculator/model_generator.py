@@ -244,7 +244,7 @@ class FormData:
             humidity = 0.3
         else:
             humidity = 0.5
-        room = models.Room(volume=volume, humidity=humidity)
+        room = models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (293,)), humidity=humidity)
 
         infected_population = self.infected_population()
         
@@ -329,13 +329,11 @@ class FormData:
                 window_interval = always_on
 
             outside_temp = self.outside_temp()
-            inside_temp = models.PiecewiseConstant((0, 24), (293,))
 
             ventilation: models.Ventilation
             if self.window_type == 'window_sliding':
                 ventilation = models.SlidingWindow(
                     active=window_interval,
-                    inside_temp=inside_temp,
                     outside_temp=outside_temp,
                     window_height=self.window_height,
                     opening_length=self.opening_distance,
@@ -344,7 +342,6 @@ class FormData:
             elif self.window_type == 'window_hinged':
                 ventilation = models.HingedWindow(
                     active=window_interval,
-                    inside_temp=inside_temp,
                     outside_temp=outside_temp,
                     window_height=self.window_height,
                     window_width=self.window_width,

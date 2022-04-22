@@ -26,7 +26,7 @@ def test_concentration_model_vectorisation(override_params):
 
     always = models.PeriodicInterval(240, 240)  # TODO: This should be a thing on an interval.
     c_model = models.ConcentrationModel(
-        models.Room(defaults['volume'], defaults['humidity']),
+        models.Room(defaults['volume'], models.PiecewiseConstant((0., 24.), (293,)), defaults['humidity']),
         models.AirChange(always, defaults['air_change']),
         models.InfectedPopulation(
             number=1,

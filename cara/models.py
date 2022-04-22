@@ -57,15 +57,6 @@ _VectorisedFloat = typing.Union[float, np.ndarray]
 _VectorisedInt = typing.Union[int, np.ndarray]
 
 
-@dataclass(frozen=True)
-class Room:
-    #: The total volume of the room
-    volume: _VectorisedFloat
-
-    #: The humidity in the room (from 0 to 1 - e.g. 0.5 is 50% humidity)
-    humidity: _VectorisedFloat = 0.5
-
-
 Time_t = typing.TypeVar('Time_t', float, int)
 BoundaryPair_t = typing.Tuple[Time_t, Time_t]
 BoundarySequence_t = typing.Union[typing.Tuple[BoundaryPair_t, ...], typing.Tuple]
@@ -196,6 +187,18 @@ class PiecewiseConstant:
 
 
 @dataclass(frozen=True)
+class Room:
+    #: The total volume of the room
+    volume: _VectorisedFloat
+
+    #: The temperature inside the room (Kelvin).
+    inside_temp: PiecewiseConstant = PiecewiseConstant((0, 24), (293,))
+
+    #: The humidity in the room (from 0 to 1 - e.g. 0.5 is 50% humidity)
+    humidity: _VectorisedFloat = 0.5
+
+
+@dataclass(frozen=True)
 class _VentilationBase:
     """
     Represents a mechanism by which air can be exchanged (replaced/filtered)
@@ -207,7 +210,7 @@ class _VentilationBase:
     mechanical air exchange through a filter.
 
     """
-    def transition_times(self) -> typing.Set[float]:
+    def transition_times(self, room: Room) -> typing.Set[float]:
         raise NotImplementedError("Subclass must implement")
 
     def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
@@ -228,7 +231,7 @@ class Ventilation(_VentilationBase):
     #: The interval in which the ventilation is active.
     active: Interval
 
-    def transition_times(self) -> typing.Set[float]:
+    def transition_times(self, room: Room) -> typing.Set[float]:
         return self.active.transition_times()
 
 
@@ -243,10 +246,10 @@ class MultipleVentilation(_VentilationBase):
     """
     ventilations: typing.Tuple[_VentilationBase, ...]
 
-    def transition_times(self) -> typing.Set[float]:
+    def transition_times(self, room: Room) -> typing.Set[float]:
         transitions = set()
         for ventilation in self.ventilations:
-            transitions.update(ventilation.transition_times())
+            transitions.update(ventilation.transition_times(room))
         return transitions
 
     def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
@@ -264,9 +267,6 @@ class MultipleVentilation(_VentilationBase):
 class WindowOpening(Ventilation):
     #: The interval in which the window is open.
     active: Interval
-
-    #: The temperature inside the room (Kelvin).
-    inside_temp: PiecewiseConstant
 
     #: The temperature outside of the window (Kelvin).
     outside_temp: PiecewiseConstant
@@ -292,9 +292,10 @@ class WindowOpening(Ventilation):
         """
         raise NotImplementedError("Unknown discharge coefficient")
 
-    def transition_times(self) -> typing.Set[float]:
-        transitions = super().transition_times()
-        transitions.update(self.inside_temp.transition_times)
+    def transition_times(self, room: Room) -> typing.Set[float]:
+        transitions = super().transition_times(room)
+        print(room.inside_temp.transition_times)
+        transitions.update(room.inside_temp.transition_times)
         transitions.update(self.outside_temp.transition_times)
         return transitions
 
@@ -304,7 +305,7 @@ class WindowOpening(Ventilation):
             return 0.
 
         # Reminder, no dependence on time in the resulting calculation.
-        inside_temp: _VectorisedFloat = self.inside_temp.value(time)
+        inside_temp: _VectorisedFloat = room.inside_temp.value(time)
         outside_temp: _VectorisedFloat = self.outside_temp.value(time)
 
         # The inside_temperature is forced to be always at least min_deltaT degree
@@ -439,20 +440,20 @@ class Virus:
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
 
-    def halflife(self, humidity: _VectorisedFloat, inside_temp: _VectorisedFloat) -> _VectorisedFloat:
+    def halflife(self, humidity: _VectorisedFloat, inside_temp: PiecewiseConstant, time: float) -> _VectorisedFloat:
         # Biological decay (inactivation of the virus in air) - virus 
         # dependent and function of humidity
         raise NotImplementedError
 
-    def decay_constant(self, humidity: _VectorisedFloat, inside_temp: _VectorisedFloat) -> _VectorisedFloat:
+    def decay_constant(self, humidity: _VectorisedFloat, inside_temp: PiecewiseConstant, time: float) -> _VectorisedFloat:
         # Viral inactivation per hour (h^-1) (function of humidity)
-        return np.log(2) / self.halflife(humidity, inside_temp)
+        return np.log(2) / self.halflife(humidity, inside_temp, time)
 
 
 @dataclass(frozen=True)
 class SARSCoV2(Virus):
 
-    def halflife(self, humidity: _VectorisedFloat, inside_temp: _VectorisedFloat) -> _VectorisedFloat:
+    def halflife(self, humidity: _VectorisedFloat, inside_temp: PiecewiseConstant, time: float) -> _VectorisedFloat:
         """
         Half-life changes with humidity level. Here is implemented a simple
         piecewise constant model (for more details see A. Henriques et al,
@@ -460,7 +461,8 @@ class SARSCoV2(Virus):
         """
         # Updated to use the formula from Dabish et al. https://doi.org/10.1080/02786826.2020.1829536
         # with a minimum at hl = 1.1
-        return max(1.1, (0.693/(0.16030 + 0.04018((inside_temp-20.615)/10.585)+0.2176((humidity-45.235)/28.665)+0.1)))
+        inside_temp = inside_temp.value(time)
+        return max(1.1, (0.693/(0.16030 + 0.04018*(((inside_temp-274.15)-20.615)/10.585)+0.02176*((humidity-45.235)/28.665)+0.1)))
         
 
 Virus.types = {
@@ -919,7 +921,7 @@ class ConcentrationModel:
         k = (vg * 3600) / h
         #todo: Inside_temp needs to be exposed/added to the room;
         return (
-            k + self.virus.decay_constant(self.room.humidity, self.room.inside_temp)
+            k + self.virus.decay_constant(self.room.humidity, self.room.inside_temp, time)
             + self.ventilation.air_exchange(self.room, time)
         )
 
@@ -950,7 +952,7 @@ class ConcentrationModel:
         """
         state_change_times = {0.}
         state_change_times.update(self.infected.presence.transition_times())
-        state_change_times.update(self.ventilation.transition_times())
+        state_change_times.update(self.ventilation.transition_times(self.room))
         return sorted(state_change_times)
 
     @method_cache

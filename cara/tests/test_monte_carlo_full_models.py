@@ -45,12 +45,11 @@ def shared_office_mc():
     Corresponds to the 1st line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988
     """
     concentration_mc = mc.ConcentrationModel(
-        room=models.Room(volume=50, humidity=0.5),
+        room=models.Room(volume=50, inside_temp=models.PiecewiseConstant((0., 24.), (298,)), humidity=0.5),
         ventilation=models.MultipleVentilation(
             ventilations=(
                 models.SlidingWindow(
                     active=models.PeriodicInterval(period=120, duration=120),
-                    inside_temp=models.PiecewiseConstant((0., 24.), (298,)),
                     outside_temp=data.GenevaTemperatures['Jun'],
                     window_height=1.6,
                     opening_length=0.2,
@@ -88,12 +87,11 @@ def classroom_mc():
     Corresponds to the 2nd line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988
     """
     concentration_mc = mc.ConcentrationModel(
-        room=models.Room(volume=160, humidity=0.3),
+        room=models.Room(volume=160, inside_temp=models.PiecewiseConstant((0., 24.), (293,)), humidity=0.3),
         ventilation=models.MultipleVentilation(
             ventilations=(
                 models.SlidingWindow(
                     active=models.PeriodicInterval(period=120, duration=120),
-                    inside_temp=models.PiecewiseConstant((0., 24.), (293,)),
                     outside_temp=TorontoTemperatures['Dec'],
                     window_height=1.6,
                     opening_length=0.2,
@@ -348,12 +346,11 @@ def test_report_models(mc_model, expected_pi, expected_new_cases,
 def test_small_shared_office_Geneva(mask_type, month, expected_pi,
                                     expected_dose, expected_ER):
     concentration_mc = mc.ConcentrationModel(
-        room=models.Room(volume=33, humidity=0.5),
+        room=models.Room(volume=33, inside_temp=models.PiecewiseConstant((0., 24.), (293,)), humidity=0.5),
         ventilation=models.MultipleVentilation(
             (
                 models.SlidingWindow(
                     active=models.SpecificInterval(((0., 24.),)),
-                    inside_temp=models.PiecewiseConstant((0., 24.), (293,)),
                     outside_temp=data.GenevaTemperatures[month],
                     window_height=1.5, opening_length=0.2,
                 ),
