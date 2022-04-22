@@ -45,7 +45,8 @@ def test_short_range_model_ndarray(concentration_model, short_range_model):
     model = short_range_model.build_model(250_000)
     assert isinstance(model._normed_concentration(concentration_model, 10.75), np.ndarray)
     assert isinstance(model.short_range_concentration(concentration_model, 10.75), np.ndarray)
-    assert isinstance(model.normed_exposure_between_bounds(concentration_model, 10.75, 10.85), np.ndarray) 
+    assert isinstance(model._normed_jet_exposure_between_bounds(concentration_model, 10.75, 10.85), np.ndarray)
+    assert isinstance(model._normed_interpolated_longrange_exposure_between_bounds(concentration_model, 10.75, 10.85), np.ndarray)
     assert isinstance(model.short_range_concentration(concentration_model, 14.0), float)
 
 
@@ -69,6 +70,32 @@ def test_dilution_factor(activity, expected_dilution):
     )
 
 
+def test_extract_between_bounds_raise_on_wrong_order(short_range_model):
+    model = short_range_model.build_model(1)
+    with pytest.raises(ValueError, match='time1 must be less or equal to time2'):
+        model.extract_between_bounds(11.,10.)
+
+
+@pytest.mark.parametrize(
+    "time1, time2, expected_start, expected_stop", [
+        [10., 12., 10.5, 11.],
+        [10., 10.7, 10.5, 10.7],
+        [10., 10.45, 0., 0.],
+        [11.01, 11.5, 0., 0.],
+        [10.8, 10.9, 10.8, 10.9],
+        [10.8, 11.5, 10.8, 11.],
+        [10.5, 11., 10.5, 11.],
+    ]
+)
+def test_extract_between_bounds(short_range_model, time1, time2,
+                                expected_start, expected_stop):
+    model = short_range_model.build_model(1)
+    np.testing.assert_equal(
+        model.extract_between_bounds(time1, time2),
+        (expected_start, expected_stop),
+    )
+
+
 @pytest.mark.parametrize(
     "time, expected_short_range_concentration", [
         [8.5, 0.],
@@ -83,23 +110,6 @@ def test_short_range_concentration(time, expected_short_range_concentration, con
     model = short_range_model.build_model(250_000)
     np.testing.assert_allclose(
         np.array(model.short_range_concentration(concentration_model, time)).mean(),
-        expected_short_range_concentration, rtol=0.01
+        expected_short_range_concentration, rtol=0.02
     )
 
-@pytest.mark.parametrize(
-    "start, stop, expected_exposure", [
-        [8.5, 12.5, 7.875963317294013e-09],
-        [10.5, 11.0, 7.875963317294013e-09],
-        [10.4, 11.1, 7.875963317294013e-09],
-        [10.5, 11.1, 7.875963317294013e-09],
-        [10.6, 11.1, 7.66539809488759e-09],
-        [10.4, 10.9, 7.66539809488759e-09],
-        
-    ]
-)
-def test_normed_exposure_between_bounds(start, stop, expected_exposure, concentration_model, short_range_model):
-    concentration_model = concentration_model.build_model(250_000)
-    model = short_range_model.build_model(250_000)
-    np.testing.assert_almost_equal(
-        model.normed_exposure_between_bounds(concentration_model, start, stop).mean(), expected_exposure
-    )
