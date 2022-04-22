@@ -244,7 +244,7 @@ class SimpleShortRangeModel:
 
         return dilution
 
-    @method_cache
+#    @method_cache
     def jet_concentration(self,conc_model: SimpleConcentrationModel) -> _VectorisedFloat:
         """
         virion concentration at the origin of the jet (close to
@@ -267,13 +267,13 @@ class SimpleShortRangeModel:
     def concentration(self, conc_model: SimpleConcentrationModel, time: float) -> _VectorisedFloat:
         """
         compute the short-range part of the concentration, and add it
-        to the background concentration
+        to the long-range concentration
         """
         if self.interaction_interval.triggered(time):
-            background_concentration = conc_model.concentration(time)
+            lr_concentration = conc_model.concentration(time)
             S = self.dilution_factor()
             return (self.jet_concentration(conc_model)
-                    - background_concentration) / S
+                    - lr_concentration) / S
         else:
             return 0.
 
@@ -352,8 +352,17 @@ class SimpleExposureModel(SimpleConcentrationModel):
                 epsabs=0.,limit=500)[0]
                 * self.viral_load * self.breathing_rate)
 
+    def total_concentration(self, t: float):
+        """
+        total concentration at time t
+        """
+        res = self.concentration(t)
+        for sr_mod in self.sr_models:
+            res += sr_mod.concentration(self,t)
+        return res
+
     @method_cache
-    def integrated_background_concentration(self,t1: float,t2: float,
+    def integrated_longrange_concentration(self,t1: float,t2: float,
                             evaporation: float) -> _VectorisedFloat:
         """
         background (long-range) concentration integrated from t1 to t2
@@ -417,7 +426,7 @@ class SimpleExposureModel(SimpleConcentrationModel):
                         epsabs=0.,limit=500)[0]
                    * self.viral_load * 1e-6 * (t2-t1) )
             result += sr_model.breathing_rate * (
-                        res-self.integrated_background_concentration(t1,t2,evaporation)
+                        res-self.integrated_longrange_concentration(t1,t2,evaporation)
                         )/sr_model.dilution_factor()
 
         return result
@@ -429,7 +438,7 @@ class SimpleExposureModel(SimpleConcentrationModel):
         """
         result = 0.
         for t1,t2 in self.infected_presence.boundaries():
-            result += (self.integrated_background_concentration(t1,t2,self.evaporation)
+            result += (self.integrated_longrange_concentration(t1,t2,self.evaporation)
                        * self.breathing_rate)
 
         result += self.integrated_shortrange_concentration()
@@ -461,6 +470,25 @@ def c_model() -> mc.ConcentrationModel:
             virus=models.Virus.types['SARS_CoV_2_DELTA'],
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Seated'],
+            expiration=expiration_distributions['Breathing'],
+            host_immunity=0.,
+        ),
+        evaporation_factor=0.3,
+    ).build_model(SAMPLE_SIZE)
+
+
+@pytest.fixture
+def c_model_distr() -> mc.ConcentrationModel:
+    return mc.ConcentrationModel(
+        room=models.Room(volume=50, humidity=0.3),
+        ventilation=models.AirChange(active=models.PeriodicInterval(
+                            period=120, duration=120), air_exch=1.),
+        infected=mc.InfectedPopulation(
+            number=1,
+            presence=presence,
+            virus=virus_distributions['SARS_CoV_2_DELTA'],
+            mask=models.Mask.types['No mask'],
+            activity=activity_distributions['Seated'],
             expiration=expiration_distributions['Breathing'],
             host_immunity=0.,
         ),
@@ -516,10 +544,107 @@ def simple_sr_models() -> typing.Tuple[SimpleShortRangeModel, ...]:
     )
 
 
+@pytest.fixture
+def expo_sr_model(c_model,sr_models) -> mc.ExposureModel:
+    return mc.ExposureModel(
+        concentration_model=c_model,
+        short_range=sr_models,
+        exposed=mc.Population(
+            number=1,
+            presence=presence,
+            mask=models.Mask.types['No mask'],
+            activity=models.Activity.types['Seated'],
+            host_immunity=0.,
+        ),
+    ).build_model(SAMPLE_SIZE)
+
+
+@pytest.fixture
+def simple_expo_sr_model(simple_sr_models) -> SimpleExposureModel:
+    return SimpleExposureModel(
+        infected_presence = presence,
+        viral_load        = models.Virus.types['SARS_CoV_2_DELTA'].viral_load_in_sputum,
+        breathing_rate    = models.Activity.types['Seated'].exhalation_rate,
+        room_volume       = 50.,
+        lambda_ventilation= 1.,
+        BLO_factors       = expiration_BLO_factors['Breathing'],
+        finf              = models.Virus.types['SARS_CoV_2_DELTA'].viable_to_RNA_ratio,
+        HI                = 0.,
+        ID50              = models.Virus.types['SARS_CoV_2_DELTA'].infectious_dose,
+        transmissibility  = models.Virus.types['SARS_CoV_2_DELTA'].transmissibility_factor,
+        sr_models         = simple_sr_models,
+    )
+
+
+@pytest.fixture
+def expo_sr_model_distr(c_model_distr) -> mc.ExposureModel:
+    return mc.ExposureModel(
+        concentration_model=c_model_distr,
+        short_range=(
+            mc.ShortRangeModel(
+                expiration = short_range_expiration_distributions['Breathing'],
+                activity = activity_distributions['Seated'],
+                presence = interaction_intervals[0],
+                distance = short_range_distances,
+            ).build_model(SAMPLE_SIZE),
+            mc.ShortRangeModel(
+                expiration = short_range_expiration_distributions['Speaking'],
+                activity = activity_distributions['Seated'],
+                presence = interaction_intervals[1],
+                distance = short_range_distances,
+            ).build_model(SAMPLE_SIZE),
+        ),
+        exposed=mc.Population(
+            number=1,
+            presence=presence,
+            mask=models.Mask.types['No mask'],
+            activity=models.Activity.types['Seated'],
+            host_immunity=0.,
+        ),
+    ).build_model(SAMPLE_SIZE)
+
+
+@pytest.fixture
+def simple_expo_sr_model_distr(c_model_distr) -> SimpleExposureModel:
+    return SimpleExposureModel(
+        infected_presence = presence,
+        viral_load        = virus_distributions['SARS_CoV_2_DELTA'
+                        ].build_model(SAMPLE_SIZE).viral_load_in_sputum,
+        breathing_rate    = activity_distributions['Seated'].build_model(
+                                            SAMPLE_SIZE).exhalation_rate,
+        room_volume       = 50.,
+        lambda_ventilation= 1.,
+        BLO_factors       = expiration_BLO_factors['Breathing'],
+        finf              = virus_distributions['SARS_CoV_2_DELTA'
+                        ].build_model(SAMPLE_SIZE).viable_to_RNA_ratio,
+        HI                = 0.,
+        ID50              = virus_distributions['SARS_CoV_2_DELTA'
+                        ].build_model(SAMPLE_SIZE).infectious_dose,
+        transmissibility  = virus_distributions['SARS_CoV_2_DELTA'
+                        ].transmissibility_factor,
+        sr_models         = (
+            SimpleShortRangeModel(
+                interaction_interval = interaction_intervals[0],
+                distance = short_range_distances.generate_samples(SAMPLE_SIZE),
+                breathing_rate = activity_distributions['Seated'].build_model(
+                                            SAMPLE_SIZE).exhalation_rate,
+                BLO_factors = expiration_BLO_factors['Breathing'],
+            ),
+            SimpleShortRangeModel(
+                interaction_interval = interaction_intervals[1],
+                distance = short_range_distances.generate_samples(SAMPLE_SIZE),
+                breathing_rate = activity_distributions['Seated'].build_model(
+                                            SAMPLE_SIZE).exhalation_rate,
+                BLO_factors = expiration_BLO_factors['Speaking'],
+            )
+        ),
+    )
+
+
 @pytest.mark.parametrize(
     "time", np.linspace(8.5,17.5,12),
 )
-def test_background_concentration(time,c_model,simple_c_model):
+def test_longrange_concentration(time,c_model,simple_c_model):
     npt.assert_allclose(
         c_model.concentration(time).mean(),
         simple_c_model.concentration(time), rtol=TOLERANCE
@@ -542,7 +667,7 @@ def test_shortrange_concentration(time,c_model,simple_c_model,
         )
 
 
-def test_background_exposure(c_model):
+def test_longrange_exposure(c_model):
     simple_expo_model = SimpleExposureModel(
         infected_presence = presence,
         viral_load        = models.Virus.types['SARS_CoV_2_DELTA'].viral_load_in_sputum,
@@ -577,7 +702,27 @@ def test_background_exposure(c_model):
         )
 
 
-def test_background_exposure_with_distributions():
+@pytest.mark.parametrize(
+    "time", [11., 12.5, 17.]
+)
+def test_longrange_concentration_with_distributions(c_model_distr,time):
+    simple_expo_model = SimpleConcentrationModel(
+        infected_presence = presence,
+        viral_load        = virus_distributions['SARS_CoV_2_DELTA'
+                        ].build_model(SAMPLE_SIZE).viral_load_in_sputum,
+        breathing_rate    = activity_distributions['Seated'].build_model(
+                                            SAMPLE_SIZE).exhalation_rate,
+        room_volume       = 50.,
+        lambda_ventilation= 1.,
+        BLO_factors       = expiration_BLO_factors['Breathing'],
+    )
+    npt.assert_allclose(
+        c_model_distr.concentration(time).mean(),
+        simple_expo_model.concentration(time).mean(), rtol=TOLERANCE
+        )
+
+
+def test_longrange_exposure_with_distributions(c_model_distr):
     simple_expo_model = SimpleExposureModel(
         infected_presence = presence,
         viral_load        = virus_distributions['SARS_CoV_2_DELTA'
@@ -597,21 +742,7 @@ def test_background_exposure_with_distributions():
         sr_models         = (),
     )
     expo_model = mc.ExposureModel(
-            concentration_model=mc.ConcentrationModel(
-                room=models.Room(volume=50, humidity=0.3),
-                ventilation=models.AirChange(active=models.PeriodicInterval(
-                                    period=120, duration=120), air_exch=1.),
-                infected=mc.InfectedPopulation(
-                    number=1,
-                    presence=presence,
-                    virus=virus_distributions['SARS_CoV_2_DELTA'],
-                    mask=models.Mask.types['No mask'],
-                    activity=activity_distributions['Seated'],
-                    expiration=expiration_distributions['Breathing'],
-                    host_immunity=0.,
-                ),
-                evaporation_factor=0.3,
-            ),
+            concentration_model=c_model_distr,
             short_range=(),
             exposed=mc.Population(
                 number=1,
@@ -631,31 +762,21 @@ def test_background_exposure_with_distributions():
         )
 
 
-def test_exposure_with_shortrange(c_model,sr_models,simple_sr_models):
-    simple_expo_sr_model = SimpleExposureModel(
-        infected_presence = presence,
-        viral_load        = models.Virus.types['SARS_CoV_2_DELTA'].viral_load_in_sputum,
-        breathing_rate    = models.Activity.types['Seated'].exhalation_rate,
-        room_volume       = 50.,
-        lambda_ventilation= 1.,
-        BLO_factors       = expiration_BLO_factors['Breathing'],
-        finf              = models.Virus.types['SARS_CoV_2_DELTA'].viable_to_RNA_ratio,
-        HI                = 0.,
-        ID50              = models.Virus.types['SARS_CoV_2_DELTA'].infectious_dose,
-        transmissibility  = models.Virus.types['SARS_CoV_2_DELTA'].transmissibility_factor,
-        sr_models         = simple_sr_models,
-    )
-    expo_sr_model = mc.ExposureModel(
-            concentration_model=c_model,
-            short_range=sr_models,
-            exposed=mc.Population(
-                number=1,
-                presence=presence,
-                mask=models.Mask.types['No mask'],
-                activity=models.Activity.types['Seated'],
-                host_immunity=0.,
-            ),
-        ).build_model(SAMPLE_SIZE)
+# tests on the concentration with short-range should be skipped until
+# one finds a way to avoid the large variability of the concentration
+# with short-range 'Speaking' or 'Shouting' interactions
+@pytest.mark.skip
+@pytest.mark.parametrize(
+    "time", [10.75, 14.75, 16.]
+)
+def test_concentration_with_shortrange(expo_sr_model,simple_expo_sr_model,time):
+    npt.assert_allclose(
+        expo_sr_model.concentration(time).mean(),
+        simple_expo_sr_model.total_concentration(time).mean(), rtol=TOLERANCE
+        )
+
+
+def test_exposure_with_shortrange(expo_sr_model,simple_expo_sr_model):
     npt.assert_allclose(
         expo_sr_model.deposited_exposure().mean(),
         simple_expo_sr_model.dose().mean(), rtol=TOLERANCE
@@ -663,5 +784,31 @@ def test_exposure_with_shortrange(c_model,sr_models,simple_sr_models):
     npt.assert_allclose(
         expo_sr_model.infection_probability().mean(),
         simple_expo_sr_model.probability_infection().mean(), rtol=TOLERANCE
+        )
+
+
+@pytest.mark.skip
+@pytest.mark.parametrize(
+    "time", [10.75, 14.75, 16.]
+)
+def test_concentration_with_shortrange_and_distributions(
+                    expo_sr_model_distr,simple_expo_sr_model_distr,time):
+    npt.assert_allclose(
+        expo_sr_model_distr.concentration(time).mean(),
+        simple_expo_sr_model_distr.total_concentration(time).mean(),
+        rtol=TOLERANCE
+        )
+
+
+def test_exposure_with_shortrange_and_distributions(expo_sr_model_distr,
+                                            simple_expo_sr_model_distr):
+    npt.assert_allclose(
+        expo_sr_model_distr.deposited_exposure().mean(),
+        simple_expo_sr_model_distr.dose().mean(), rtol=0.05
+        )
+    npt.assert_allclose(
+        expo_sr_model_distr.infection_probability().mean(),
+        simple_expo_sr_model_distr.probability_infection().mean(),
+        rtol=0.03
         )
 
