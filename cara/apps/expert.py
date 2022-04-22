@@ -7,6 +7,7 @@ import ipywidgets as widgets
 import matplotlib
 import matplotlib.figure
 import numpy as np
+from matplotlib import pyplot as plt
 from numpy import object_
 from cara import data, models, state
 
@@ -109,7 +110,7 @@ class ExposureModelResult(View):
         self.figure = matplotlib.figure.Figure(figsize=(9, 6))
         ipympl_canvas(self.figure)
         self.html_output = widgets.HTML()
-        self.ax = self.figure.add_subplot(1, 1, 1)
+        self.ax = self.figure.add_subplot(2, 1, 2)
         self.ax2 = self.ax.twinx()
         self.concentration_line = None
         self.cumulative_line = None
@@ -137,7 +138,7 @@ class ExposureModelResult(View):
         ])
 
         if self.concentration_line is None:
-            [self.concentration_line] = self.ax.plot(ts, concentration, color='blue', label='Concentration')
+            [self.concentration_line] = self.ax.plot(ts, concentration, color='#3530fe', label='Concentration')
 
             ax = self.ax
 
@@ -154,7 +155,7 @@ class ExposureModelResult(View):
             self.concentration_line.set_data(ts, concentration)
 
         if self.cumulative_line is None:
-            [self.cumulative_line] = self.ax2.plot(ts[:-1], cumulative_doses, color='red', label='Cumulative dose')
+            [self.cumulative_line] = self.ax2.plot(ts[:-1], cumulative_doses, color='#0000c8', label='Cumulative dose', linestyle='dotted')
 
             ax2 = self.ax2 
 
@@ -162,6 +163,7 @@ class ExposureModelResult(View):
             ax2.spines['top'].set_visible(False)
 
             ax2.set_ylabel('Mean cumulative dose (infectious virus)')
+            ax2.spines['right'].set_linestyle((0,(1,4)))
             
         else:
             self.ax2.ignore_existing_data_limits = True
@@ -169,14 +171,15 @@ class ExposureModelResult(View):
 
         # Update the top limit based on the concentration if it exceeds 5
         # (rare but possible).
-        #top = max([3, max(concentration)])
         concentration_top = max([3, max(concentration)])
         self.ax.set_ylim(bottom=0., top=concentration_top)
         cumulative_top = max([3, max(cumulative_doses)])
         self.ax2.set_ylim(bottom=0., top=cumulative_top)
 
+        self.ax.legend(bbox_to_anchor=(1.4, 1.15), frameon=True)
+        self.ax2.legend(bbox_to_anchor=(1.433, 1), frameon=True)      
         self.figure.canvas.draw()
-        self.figure.legend(loc="upper right", title="Legend", frameon=False)
+        self.figure.tight_layout()
 
     def update_textual_result(self, model: models.ExposureModel):
         lines = []
@@ -199,7 +202,11 @@ class ExposureComparissonResult(View):
     def __init__(self):
         self.figure = matplotlib.figure.Figure(figsize=(9, 6))
         ipympl_canvas(self.figure)
-        self.ax = self.initialize_axes()
+        self.html_output = widgets.HTML()
+        self.ax = self.figure.add_subplot(2, 1, 2)
+        self.ax2 = self.ax.twinx()
+        self.concentration_line = None
+        self.cumulative_line = None
 
     @property
     def widget(self):
