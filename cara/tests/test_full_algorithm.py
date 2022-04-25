@@ -89,9 +89,10 @@ class SimpleConcentrationModel:
         """
 
         return (self.lambda_ventilation
-                + ln2/(max(1.1, (0.693 / (0.16030 + 0.04018 * (((22) - 20.615) / 10.585) + 0.02176 * (
-                    (self.humidity - 45.235) / 28.665) + 0.1)))))
-        #6.43 if self.humidity<=0.4 else 1.1) )
+                + ln2/(max(1.1, (0.693 / ((0.16030 + 0.04018 * (((22) - 20.615) / 10.585)
+                                           + 0.02176 * ((self.humidity - 45.235) / 28.665)
+                                           - 0.14369
+                                           - 0.2636((22-20.615)/10.585)))))))
 
     @method_cache
     def deposition_removal_coefficient(self) -> float:

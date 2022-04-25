@@ -459,10 +459,13 @@ class SARSCoV2(Virus):
         piecewise constant model (for more details see A. Henriques et al,
         CERN-OPEN-2021-004, DOI: 10.17181/CERN.1GDQ.5Y75)
         """
-        # Updated to use the formula from Dabish et al. https://doi.org/10.1080/02786826.2020.1829536
+        # Updated to use the formula from Dabish et al. with correction https://doi.org/10.1080/02786826.2020.1829536
         # with a minimum at hl = 1.1
         temperature: _VectorisedFloat = inside_temp.value(time)
-        return np.maximum(1.1, (0.693/(0.16030 + 0.04018*(((temperature-273.15)-20.615)/10.585)+0.02176*((humidity-45.235)/28.665)+0.1)))
+        return np.maximum(1.1, (0.693/((0.16030 + 0.04018*(((temperature-273.15)-20.615)/10.585)
+                                       +0.02176*((humidity-45.235)/28.665)
+                                       -0.14369
+                                       -0.2636*((temperature-273.15)-20.615)/10.585))))
         
 
 Virus.types = {
