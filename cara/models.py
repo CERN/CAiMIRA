@@ -462,7 +462,7 @@ class SARSCoV2(Virus):
         # Updated to use the formula from Dabish et al. https://doi.org/10.1080/02786826.2020.1829536
         # with a minimum at hl = 1.1
         inside_temp = inside_temp.value(time)
-        return max(1.1, (0.693/(0.16030 + 0.04018*(((inside_temp-274.15)-20.615)/10.585)+0.02176*((humidity-45.235)/28.665)+0.1)))
+        return max(1.1, (0.693/(0.16030 + 0.04018*(((inside_temp-273.15)-20.615)/10.585)+0.02176*((humidity-45.235)/28.665)+0.1)))
         
 
 Virus.types = {

@@ -47,6 +47,9 @@ class SimpleConcentrationModel:
     #: room volume (m^3)
     room_volume: _VectorisedFloat
 
+    #: The temperature inside the room (Kelvin).
+    #inside_temp: float = 293.15
+
     #: ventilation rate (air changes per hour) - including HEPA
     lambda_ventilation: _VectorisedFloat
 
@@ -84,8 +87,11 @@ class SimpleConcentrationModel:
         """
         removal rate lambda in h^-1, excluding the deposition rate.
         """
-        return (self.lambda_ventilation 
-                + ln2/(6.43 if self.humidity<=0.4 else 1.1) )
+
+        return (self.lambda_ventilation
+                + ln2/(max(1.1, (0.693 / (0.16030 + 0.04018 * (((22) - 20.615) / 10.585) + 0.02176 * (
+                    (self.humidity - 45.235) / 28.665) + 0.1)))))
+        #6.43 if self.humidity<=0.4 else 1.1) )
 
     @method_cache
     def deposition_removal_coefficient(self) -> float:
