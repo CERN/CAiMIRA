@@ -1356,7 +1356,7 @@ class ExposureModel:
                 # to perform properly the Monte-Carlo integration over
                 # particle diameters (doing things in another order would
                 # lead to wrong results for the probability of infection).
-                deposited_exposure += (np.array(short_range_jet_exposure
+                this_deposited_exposure = (np.array(short_range_jet_exposure
                     * fdep).mean()/dilution
                     - np.array(short_range_lr_exposure * fdep).mean()
                     * self.concentration_model.infected.activity.exhalation_rate
@@ -1364,14 +1364,15 @@ class ExposureModel:
             else:
                 # in the case of a single diameter or no diameter defined,
                 # one should not take any mean at this stage.
-                deposited_exposure += (short_range_jet_exposure
+                this_deposited_exposure = (short_range_jet_exposure
                     * fdep/dilution
                     - short_range_lr_exposure * fdep
                     * self.concentration_model.infected.activity.exhalation_rate
                     /dilution)
 
             # multiply by the (diameter-independent) inhalation rate
-            deposited_exposure *= interaction.activity.inhalation_rate
+            deposited_exposure += (this_deposited_exposure *
+                                   interaction.activity.inhalation_rate)
 
         # then we multiply by diameter-independent quantities: viral load
         # and fraction of infected virions
