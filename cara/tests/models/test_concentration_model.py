@@ -59,7 +59,7 @@ def test_concentration_model_vectorisation(override_params):
 def simple_conc_model():
     interesting_times = models.SpecificInterval(([0.5, 1.], [1.1, 2], [2., 3.]), )
     return models.ConcentrationModel(
-        models.Room(75),
+        models.Room(75, models.PiecewiseConstant((0., 24.), (293,))),
         models.AirChange(interesting_times, 100),
         models.InfectedPopulation(
             number=1,
