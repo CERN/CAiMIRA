@@ -47,9 +47,6 @@ class SimpleConcentrationModel:
     #: room volume (m^3)
     room_volume: _VectorisedFloat
 
-    #: The temperature inside the room (Kelvin).
-    #inside_temp: float = 293.15
-
     #: ventilation rate (air changes per hour) - including HEPA
     lambda_ventilation: _VectorisedFloat
 
@@ -89,10 +86,10 @@ class SimpleConcentrationModel:
         """
 
         return (self.lambda_ventilation
-                + ln2/(max(1.1, (0.693 / ((0.16030 + 0.04018 * (((22) - 20.615) / 10.585)
-                                           + 0.02176 * ((self.humidity - 45.235) / 28.665)
+                + ln2/(np.maximum(1.1, (0.693 / ((0.16030 + 0.04018 * (((21) - 20.615) / 10.585)
+                                           + 0.02176*((self.humidity - 45.235) / 28.665)
                                            - 0.14369
-                                           - 0.2636((22-20.615)/10.585)))))))
+                                           - 0.02636*((21-20.615)/10.585)))))))
 
     @method_cache
     def deposition_removal_coefficient(self) -> float:
@@ -460,7 +457,7 @@ interaction_intervals = (models.SpecificInterval(present_times=((10.5, 11.0),)),
 @pytest.fixture
 def c_model() -> mc.ConcentrationModel:
     return mc.ConcentrationModel(
-        room=models.Room(volume=50, humidity=0.3),
+        room=models.Room(volume=50, inside_temp=models.PiecewiseConstant((0., 24.), (293,)), humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=1.),
         infected=mc.InfectedPopulation(
             number=1,
