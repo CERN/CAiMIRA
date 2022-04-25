@@ -19,7 +19,7 @@ from cara.monte_carlo.data import (expiration_distributions,
 # TODO: seed better the random number generators
 np.random.seed(2000)
 SAMPLE_SIZE = 1_000_000
-TOLERANCE = 0.02
+TOLERANCE = 0.04
 
 sqrt2pi = np.sqrt(2.*np.pi)
 sqrt2 = np.sqrt(2.)
@@ -244,7 +244,6 @@ class SimpleShortRangeModel:
 
         return dilution
 
-#    @method_cache
     def jet_concentration(self,conc_model: SimpleConcentrationModel) -> _VectorisedFloat:
         """
         virion concentration at the origin of the jet (close to
@@ -500,14 +499,14 @@ def c_model_distr() -> mc.ConcentrationModel:
 def sr_models() -> typing.Tuple[mc.ShortRangeModel, ...]:
     return (
         mc.ShortRangeModel(
-            expiration = short_range_expiration_distributions['Breathing'],
+            expiration = short_range_expiration_distributions['Speaking'],
             activity = models.Activity.types['Seated'],
             presence = interaction_intervals[0],
             distance = 0.854,
         ).build_model(SAMPLE_SIZE),
         mc.ShortRangeModel(
-            expiration = short_range_expiration_distributions['Speaking'],
-            activity = models.Activity.types['Seated'],
+            expiration = short_range_expiration_distributions['Breathing'],
+            activity = models.Activity.types['Heavy exercise'],
             presence = interaction_intervals[1],
             distance = 0.854,
         ).build_model(SAMPLE_SIZE),
@@ -533,14 +532,14 @@ def simple_sr_models() -> typing.Tuple[SimpleShortRangeModel, ...]:
             interaction_interval = interaction_intervals[0],
             distance = 0.854,
             breathing_rate = models.Activity.types['Seated'].exhalation_rate,
-            BLO_factors = expiration_BLO_factors['Breathing'],
+            BLO_factors = expiration_BLO_factors['Speaking'],
         ),
         SimpleShortRangeModel(
             interaction_interval = interaction_intervals[1],
             distance = 0.854,
-            breathing_rate = models.Activity.types['Seated'].exhalation_rate,
-            BLO_factors = expiration_BLO_factors['Speaking'],
-        )
+            breathing_rate = models.Activity.types['Heavy exercise'].exhalation_rate,
+            BLO_factors = expiration_BLO_factors['Breathing'],
+        ),
     )
 
 
