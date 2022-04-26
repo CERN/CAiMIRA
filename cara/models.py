@@ -1377,7 +1377,7 @@ class ExposureModel:
         f_inf = self.concentration_model.infected.fraction_of_infectious_virus()
         deposited_exposure *= (f_inf
                 * self.concentration_model.virus.viral_load_in_sputum
-                )
+                * (1 - self.exposed.mask.inhale_efficiency()))
         # long-range concentration
         deposited_exposure += self.long_range_deposited_exposure_between_bounds(time1, time2)
 
