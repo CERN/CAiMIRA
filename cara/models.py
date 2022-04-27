@@ -294,7 +294,6 @@ class WindowOpening(Ventilation):
 
     def transition_times(self, room: Room) -> typing.Set[float]:
         transitions = super().transition_times(room)
-        print(room.inside_temp.transition_times)
         transitions.update(room.inside_temp.transition_times)
         transitions.update(self.outside_temp.transition_times)
         return transitions
@@ -440,20 +439,20 @@ class Virus:
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
 
-    def halflife(self, humidity: _VectorisedFloat, inside_temp: PiecewiseConstant, time: float) -> _VectorisedFloat:
+    def halflife(self, humidity: _VectorisedFloat, inside_temp: _VectorisedFloat) -> _VectorisedFloat:
         # Biological decay (inactivation of the virus in air) - virus 
         # dependent and function of humidity
         raise NotImplementedError
 
-    def decay_constant(self, humidity: _VectorisedFloat, inside_temp: PiecewiseConstant, time: float) -> _VectorisedFloat:
+    def decay_constant(self, humidity: _VectorisedFloat, inside_temp: _VectorisedFloat) -> _VectorisedFloat:
         # Viral inactivation per hour (h^-1) (function of humidity)
-        return np.log(2) / self.halflife(humidity, inside_temp, time)
+        return np.log(2) / self.halflife(humidity, inside_temp)
 
 
 @dataclass(frozen=True)
 class SARSCoV2(Virus):
 
-    def halflife(self, humidity: _VectorisedFloat, inside_temp: PiecewiseConstant, time: float) -> _VectorisedFloat:
+    def halflife(self, humidity: _VectorisedFloat, inside_temp: _VectorisedFloat) -> _VectorisedFloat:
         """
         Half-life changes with humidity level. Here is implemented a simple
         piecewise constant model (for more details see A. Henriques et al,
@@ -461,11 +460,10 @@ class SARSCoV2(Virus):
         """
         # Updated to use the formula from Dabish et al. with correction https://doi.org/10.1080/02786826.2020.1829536
         # with a minimum at hl = 1.1
-        temperature: _VectorisedFloat = inside_temp.value(time)
-        return np.maximum(1.1, (0.693/((0.16030 + 0.04018*(((temperature-273.15)-20.615)/10.585)
+        return np.maximum(1.1, (0.693/((0.16030 + 0.04018*(((inside_temp-273.15)-20.615)/10.585)
                                        +0.02176*((humidity-45.235)/28.665)
                                        -0.14369
-                                       -0.02636*((temperature-273.15)-20.615)/10.585))))
+                                       -0.02636*((inside_temp-273.15)-20.615)/10.585))))
         
 
 Virus.types = {
@@ -924,7 +922,7 @@ class ConcentrationModel:
         k = (vg * 3600) / h
         #todo: Inside_temp needs to be exposed/added to the room;
         return (
-            k + self.virus.decay_constant(self.room.humidity, self.room.inside_temp, time)
+            k + self.virus.decay_constant(self.room.humidity, self.room.inside_temp.value(time))
             + self.ventilation.air_exchange(self.room, time)
         )
 
