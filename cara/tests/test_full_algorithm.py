@@ -87,7 +87,7 @@ class SimpleConcentrationModel:
 
         return (self.lambda_ventilation
                 + ln2/(np.maximum(1.1, (0.693 / ((0.16030 + 0.04018 * (((21) - 20.615) / 10.585)
-                                           + 0.02176*((self.humidity - 45.235) / 28.665)
+                                           + 0.02176*(((self.humidity * 100) - 45.235) / 28.665)
                                            - 0.14369
                                            - 0.02636*((21-20.615)/10.585)))))))
 
