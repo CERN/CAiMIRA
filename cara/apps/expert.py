@@ -458,7 +458,7 @@ class ModelWidgets(View):
 
         outsidetemp_widgets = {
             'Fixed': self._build_outsidetemp(node.outside_temp),
-            'Daily variation': self._build_month(node),
+            'Meteorological data': self._build_month(node),
         }
 
         outsidetemp_w = widgets.Dropdown(
@@ -699,7 +699,7 @@ class ModelWidgets(View):
     def _build_infectivity(self,node):
         return collapsible([widgets.VBox([
             self._build_virus(node.virus),
-        ])], title="Virus variant")
+        ])], title="Virus data")
 
     def _build_virus(self, node):
         virus = node.dcs_instance()
