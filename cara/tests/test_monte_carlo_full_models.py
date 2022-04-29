@@ -9,8 +9,8 @@ from cara.apps.calculator.model_generator import build_expiration
 
 # TODO: seed better the random number generators
 np.random.seed(2000)
-SAMPLE_SIZE = 600_000
-TOLERANCE = 0.06
+SAMPLE_SIZE = 500_000
+TOLERANCE = 0.05
 
 # Load the weather data (temperature in kelvin) for Toronto.
 toronto_coordinates = (43.667, 79.400)
@@ -340,7 +340,7 @@ def test_report_models(mc_model, expected_pi, expected_new_cases,
         ["No mask", "Jul", 11.81, 14.137, 809],
         ["Type I",  "Jul", 2.33, 1.305, 149],
         ["FFP2",    "Jul", 0.73, 0.351, 149],
-        ["Type I",  "Feb", 0.62, 0.291, 162],
+        ["Type I",  "Feb", 0.62, 0.291, 149],
     ],
 )
 def test_small_shared_office_Geneva(mask_type, month, expected_pi,
