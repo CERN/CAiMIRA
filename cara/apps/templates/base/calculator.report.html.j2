@@ -46,6 +46,13 @@
 	
 		<div class="tab-pane show active" id="results" role="tabpanel" aria-labelledby="results-tab" style="padding: 1%">
 			
+			{% if form.short_range_option == "short_range_yes" %} 
+				{% set scenario = alternative_scenarios.stats.values() | first %}
+				{% set long_range_prob_inf = scenario.probability_of_infection %}
+			{% else %}
+				{% set long_range_prob_inf = prob_inf %}
+			{% endif %}
+			
 			{% block report_results %}
 				<div class="card bg-light mb-3" id="results-div">
   					<div class="card-header"><strong>Results </strong>
@@ -63,7 +70,9 @@
 											<div class="card card-body align-self-center" style="text-align:center; max-width: 300px">
 												<h6 class="card-title">
 													<b>Probability of infection (%)</b><br>
-													{% if form.short_range_option == "short_range_yes" %} Without <b>short range interactions</b> {% endif %}
+													{% if form.short_range_option == "short_range_yes" %}
+														Without <b>short range interactions</b> 
+													{% endif %}
 												</h6>
 												<br>
 												<img src="/static/images/1.png" class="align-middle mb-3">
@@ -111,7 +120,7 @@
 													{% if form.short_range_option == "short_range_yes" %}
 														<br>
 														<div class="align-self-center alert alert-dark mb-0" role="alert">
-															Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>*.
+															Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b>.
 														</div>
 													{% endif %}
 												</div>
