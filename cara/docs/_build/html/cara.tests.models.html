@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cara.tests.models package &mdash; CARA 4.1.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Full diameter-dependent model" href="full_diameter_dependence.html" />
+    <link rel="prev" title="cara.tests.data package" href="cara.tests.data.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> CARA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="cara.html">cara package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="cara.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="cara.apps.html">cara.apps package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cara.data.html">cara.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cara.monte_carlo.html">cara.monte_carlo package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="cara.tests.html">cara.tests package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="cara.tests.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.conftest">cara.tests.conftest module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_cara">cara.tests.test_cara module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_dataclass_utils">cara.tests.test_dataclass_utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_expiration">cara.tests.test_expiration module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_full_algorithm">cara.tests.test_full_algorithm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_infected_population">cara.tests.test_infected_population module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_known_quantities">cara.tests.test_known_quantities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_model">cara.tests.test_model module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_monte_carlo">cara.tests.test_monte_carlo module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_monte_carlo_full_models">cara.tests.test_monte_carlo_full_models module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_predefined_distributions">cara.tests.test_predefined_distributions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_sampleable_distribution">cara.tests.test_sampleable_distribution module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_state">cara.tests.test_state module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_ventilation">cara.tests.test_ventilation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cara.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cara.html#module-cara.dataclass_utils">cara.dataclass_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cara.html#module-cara.models">cara.models module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cara.html#module-cara.state">cara.state module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cara.html#module-cara.utils">cara.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cara.html#module-cara">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="full_diameter_dependence.html">Full diameter-dependent model</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">CARA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="cara.html">cara package</a> &raquo;</li>
+          <li><a href="cara.tests.html">cara.tests package</a> &raquo;</li>
+      <li>cara.tests.models package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/cara.tests.models.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="cara-tests-models-package">
+<h1>cara.tests.models package<a class="headerlink" href="#cara-tests-models-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-cara.tests.models.test_concentration_model">
+<span id="cara-tests-models-test-concentration-model-module"></span><h2>cara.tests.models.test_concentration_model module<a class="headerlink" href="#module-cara.tests.models.test_concentration_model" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_concentration_model.simple_conc_model">
+<span class="sig-name descname"><span class="pre">simple_conc_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_concentration_model.simple_conc_model" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_concentration_model.test_concentration_model_vectorisation">
+<span class="sig-name descname"><span class="pre">test_concentration_model_vectorisation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">override_params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_concentration_model.test_concentration_model_vectorisation" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_concentration_model.test_first_presence_time">
+<span class="sig-name descname"><span class="pre">test_first_presence_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simple_conc_model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_concentration_model.test_first_presence_time" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_concentration_model.test_integrated_concentration">
+<span class="sig-name descname"><span class="pre">test_integrated_concentration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simple_conc_model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_concentration_model.test_integrated_concentration" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_concentration_model.test_last_state_change_time">
+<span class="sig-name descname"><span class="pre">test_last_state_change_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simple_conc_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.html#cara.models.ConcentrationModel" title="cara.models.ConcentrationModel"><span class="pre">cara.models.ConcentrationModel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_last_state_change</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_concentration_model.test_last_state_change_time" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_concentration_model.test_next_state_change_time">
+<span class="sig-name descname"><span class="pre">test_next_state_change_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simple_conc_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.html#cara.models.ConcentrationModel" title="cara.models.ConcentrationModel"><span class="pre">cara.models.ConcentrationModel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_next_state_change</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_concentration_model.test_next_state_change_time" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_concentration_model.test_next_state_change_time_out_of_range">
+<span class="sig-name descname"><span class="pre">test_next_state_change_time_out_of_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simple_conc_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.html#cara.models.ConcentrationModel" title="cara.models.ConcentrationModel"><span class="pre">cara.models.ConcentrationModel</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_concentration_model.test_next_state_change_time_out_of_range" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-cara.tests.models.test_exposure_model">
+<span id="cara-tests-models-test-exposure-model-module"></span><h2>cara.tests.models.test_exposure_model module<a class="headerlink" href="#module-cara.tests.models.test_exposure_model" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cara.tests.models.test_exposure_model.KnownNormedconcentration">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">KnownNormedconcentration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">room:</span> <span class="pre">cara.models.Room</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ventilation:</span> <span class="pre">cara.models._VentilationBase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infected:</span> <span class="pre">cara.models.InfectedPopulation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaporation_factor:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normed_concentration_function:</span> <span class="pre">typing.Callable</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">KnownNormedconcentration.&lt;lambda&gt;&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_exposure_model.KnownNormedconcentration" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="cara.html#cara.models.ConcentrationModel" title="cara.models.ConcentrationModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">cara.models.ConcentrationModel</span></code></a></p>
+<p>A ConcentrationModel which is based on pre-known exposure concentrations and
+which therefore doesn’t need other components. Useful for testing.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cara.tests.models.test_exposure_model.KnownNormedconcentration.infectious_virus_removal_rate">
+<span class="sig-name descname"><span class="pre">infectious_virus_removal_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#cara.tests.models.test_exposure_model.KnownNormedconcentration.infectious_virus_removal_rate" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cara.tests.models.test_exposure_model.KnownNormedconcentration.normed_concentration_function">
+<span class="sig-name descname"><span class="pre">normed_concentration_function</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_exposure_model.KnownNormedconcentration.normed_concentration_function" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cara.tests.models.test_exposure_model.KnownNormedconcentration.state_change_times">
+<span class="sig-name descname"><span class="pre">state_change_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_exposure_model.KnownNormedconcentration.state_change_times" title="Permalink to this definition"></a></dt>
+<dd><p>All time dependent entities on this model must provide information about
+the times at which their state changes.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_exposure_model.conc_model">
+<span class="sig-name descname"><span class="pre">conc_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_exposure_model.conc_model" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_exposure_model.known_concentrations">
+<span class="sig-name descname"><span class="pre">known_concentrations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_exposure_model.known_concentrations" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_exposure_model.sr_model">
+<span class="sig-name descname"><span class="pre">sr_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_exposure_model.sr_model" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_exposure_model.test_exposure_model_integral_accuracy">
+<span class="sig-name descname"><span class="pre">test_exposure_model_integral_accuracy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exposed_time_interval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_deposited_exposure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conc_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sr_model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_exposure_model.test_exposure_model_integral_accuracy" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_exposure_model.test_exposure_model_ndarray">
+<span class="sig-name descname"><span class="pre">test_exposure_model_ndarray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_exposure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_probability</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sr_model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_exposure_model.test_exposure_model_ndarray" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_exposure_model.test_exposure_model_ndarray_and_float_mix">
+<span class="sig-name descname"><span class="pre">test_exposure_model_ndarray_and_float_mix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_deposited_exposure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sr_model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_exposure_model.test_exposure_model_ndarray_and_float_mix" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_exposure_model.test_exposure_model_scalar">
+<span class="sig-name descname"><span class="pre">test_exposure_model_scalar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sr_model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_exposure_model.test_exposure_model_scalar" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_exposure_model.test_exposure_model_vector">
+<span class="sig-name descname"><span class="pre">test_exposure_model_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_deposited_exposure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sr_model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_exposure_model.test_exposure_model_vector" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_exposure_model.test_infectious_dose_vectorisation">
+<span class="sig-name descname"><span class="pre">test_infectious_dose_vectorisation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sr_model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_exposure_model.test_infectious_dose_vectorisation" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-cara.tests.models.test_mask">
+<span id="cara-tests-models-test-mask-module"></span><h2>cara.tests.models.test_mask module<a class="headerlink" href="#module-cara.tests.models.test_mask" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_mask.test_mask_exhale">
+<span class="sig-name descname"><span class="pre">test_mask_exhale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diameter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor_exhale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_exhale_efficiency</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_mask.test_mask_exhale" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_mask.test_mask_inhale">
+<span class="sig-name descname"><span class="pre">test_mask_inhale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">η_inhale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_inhale_efficiency</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_mask.test_mask_inhale" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-cara.tests.models.test_piecewiseconstant">
+<span id="cara-tests-models-test-piecewiseconstant-module"></span><h2>cara.tests.models.test_piecewiseconstant module<a class="headerlink" href="#module-cara.tests.models.test_piecewiseconstant" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_piecewiseconstant.test_constantfunction">
+<span class="sig-name descname"><span class="pre">test_constantfunction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_piecewiseconstant.test_constantfunction" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_piecewiseconstant.test_piecewiseconstant">
+<span class="sig-name descname"><span class="pre">test_piecewiseconstant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_piecewiseconstant.test_piecewiseconstant" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_piecewiseconstant.test_piecewiseconstant_interp">
+<span class="sig-name descname"><span class="pre">test_piecewiseconstant_interp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_piecewiseconstant.test_piecewiseconstant_interp" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_piecewiseconstant.test_piecewiseconstant_interp_vectorised">
+<span class="sig-name descname"><span class="pre">test_piecewiseconstant_interp_vectorised</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_piecewiseconstant.test_piecewiseconstant_interp_vectorised" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_piecewiseconstant.test_piecewiseconstant_transition_times">
+<span class="sig-name descname"><span class="pre">test_piecewiseconstant_transition_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_piecewiseconstant.test_piecewiseconstant_transition_times" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_piecewiseconstant.test_piecewiseconstant_vs_interval">
+<span class="sig-name descname"><span class="pre">test_piecewiseconstant_vs_interval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_piecewiseconstant.test_piecewiseconstant_vs_interval" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_piecewiseconstant.test_piecewiseconstantfunction_wrongarguments">
+<span class="sig-name descname"><span class="pre">test_piecewiseconstantfunction_wrongarguments</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_piecewiseconstant.test_piecewiseconstantfunction_wrongarguments" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-cara.tests.models.test_short_range_model">
+<span id="cara-tests-models-test-short-range-model-module"></span><h2>cara.tests.models.test_short_range_model module<a class="headerlink" href="#module-cara.tests.models.test_short_range_model" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_short_range_model.concentration_model">
+<span class="sig-name descname"><span class="pre">concentration_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="cara.monte_carlo.html#cara.monte_carlo.models.ConcentrationModel" title="cara.monte_carlo.models.ConcentrationModel"><span class="pre">cara.monte_carlo.models.ConcentrationModel</span></a></span></span><a class="headerlink" href="#cara.tests.models.test_short_range_model.concentration_model" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_short_range_model.short_range_model">
+<span class="sig-name descname"><span class="pre">short_range_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_short_range_model.short_range_model" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_short_range_model.test_dilution_factor">
+<span class="sig-name descname"><span class="pre">test_dilution_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">activity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_dilution</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_short_range_model.test_dilution_factor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_short_range_model.test_normed_exposure_between_bounds">
+<span class="sig-name descname"><span class="pre">test_normed_exposure_between_bounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_exposure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">concentration_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">short_range_model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_short_range_model.test_normed_exposure_between_bounds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_short_range_model.test_short_range_concentration">
+<span class="sig-name descname"><span class="pre">test_short_range_concentration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_short_range_concentration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">concentration_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">short_range_model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_short_range_model.test_short_range_concentration" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.models.test_short_range_model.test_short_range_model_ndarray">
+<span class="sig-name descname"><span class="pre">test_short_range_model_ndarray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">concentration_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">short_range_model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.models.test_short_range_model.test_short_range_model_ndarray" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-cara.tests.models">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cara.tests.models" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="cara.tests.data.html" class="btn btn-neutral float-left" title="cara.tests.data package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="full_diameter_dependence.html" class="btn btn-neutral float-right" title="Full diameter-dependent model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Andre Henriques et al..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

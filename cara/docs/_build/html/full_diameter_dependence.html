@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Full diameter-dependent model &mdash; CARA 4.1.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="cara.tests.models package" href="cara.tests.models.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> CARA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="cara.html">cara package</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Full diameter-dependent model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#context">Context</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#expiration">Expiration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#emission-rate-vr-d">Emission Rate - vR(D)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#long-range-approach">Long-range approach</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#concentration-c-t-d">Concentration - C(t, D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dose-vd">Dose - vD</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#short-range-approach">Short-range approach</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Concentration - C(t, D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Dose - vD</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">CARA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Full diameter-dependent model</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/full_diameter_dependence.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="full-diameter-dependent-model">
+<h1>Full diameter-dependent model<a class="headerlink" href="#full-diameter-dependent-model" title="Permalink to this headline"></a></h1>
+<section id="context">
+<h2>Context<a class="headerlink" href="#context" title="Permalink to this headline"></a></h2>
+<p>The <a class="reference internal" href="cara.apps.calculator.html#module-cara.apps.calculator.model_generator" title="cara.apps.calculator.model_generator"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cara.apps.calculator.model_generator</span></code></a> module is responsible to bind all the inputs defined in the user interface into the respective model variables.
+The <a class="reference internal" href="cara.apps.calculator.html#module-cara.apps.calculator.report_generator" title="cara.apps.calculator.report_generator"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cara.apps.calculator.report_generator</span></code></a> module is responsible to bind the results from the model calculations into the respective output variables presented in the CARA report.
+The <a class="reference internal" href="cara.html#module-cara.models" title="cara.models"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cara.models</span></code></a> module itself implements the core CARA methods.  A useful feature of the implementation is that we can benefit from vectorization in the case of wanting to run multiple parameterizations of the model at the same time.</p>
+<p>Many of the model variables are considered for a given aerosol diameter <strong>D</strong>, as the dynamics in the room and the deposition efficiency in the respiratory tract are diameter depend on the particle size. Some of these variables are the <strong>emission rate - vR(D)</strong>, <strong>removal rate - vRR</strong>, and <strong>concentration - C(t, D)</strong>.</p>
+<p>In the model, most of the integrals dependent on the diameter are not integrated in the stage they are written in the paper, but rather when computing the dose, since many other parameters also depend on the diameter.
+This way, the resulting dose is computed over a distribution of particle diameters, which is then followed by a Monte-Carlo integration.</p>
+<p>One thing that we should keep in mind is that under the calculations, there are Monte-Carlo variables, some of them vectorized dependent on the diameter.
+Since the integrals dependent on the diameter are integrated when computing the dose, when performing some of the calculations, we normalize the results according to the Monte-Carlo variables that are diameter-independent, so that they are not considered in the Monte-Carlo integration.</p>
+</section>
+<section id="expiration">
+<h2>Expiration<a class="headerlink" href="#expiration" title="Permalink to this headline"></a></h2>
+<p>One of the properties of the Expiration class is the <a class="reference internal" href="cara.html#cara.models.Expiration.particle" title="cara.models.Expiration.particle"><code class="xref py py-attr docutils literal notranslate"><span class="pre">cara.models.Expiration.particle</span></code></a>, that represents the aerosol with a vectorised parameter, the diameter.
+For a given diameter of aerosol, one <a class="reference internal" href="cara.html#cara.models.Expiration" title="cara.models.Expiration"><code class="xref py py-class docutils literal notranslate"><span class="pre">cara.models.Expiration</span></code></a> object provides the aerosol <strong>volume - Vp(D)</strong>, weighted by the <strong>mask outward efficiency - ηout(D)</strong> when applicable.</p>
+<p>The BLO model represents the probability distribution from the BLO model. It is a sum of three lognormal distributions, weighted by the <strong>B</strong>, <strong>L</strong> and <strong>O</strong> modes.
+The aerosol diameters are sampled through the <a class="reference internal" href="cara.monte_carlo.html#cara.monte_carlo.data.BLOmodel.distribution" title="cara.monte_carlo.data.BLOmodel.distribution"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.monte_carlo.data.BLOmodel.distribution()</span></code></a> method, as for other Monte-Carlo sampled parameters.</p>
+<p>The <a class="reference internal" href="cara.monte_carlo.html#cara.monte_carlo.data.BLOmodel" title="cara.monte_carlo.data.BLOmodel"><code class="xref py py-class docutils literal notranslate"><span class="pre">cara.monte_carlo.data.BLOmodel</span></code></a> class itself contains the method to return the raw value of the probability distribution for a given diameter (in microns), as well as the method to return the integral between the <strong>min</strong> and <strong>max</strong> diameters of the probability distribution.
+It is important to note that the BLO model is only used to compute the total number of particles per mode B, L and O, <strong>cn</strong>. In other words, <strong>cn</strong> is the total concentration of aerosols per unit volume of expired air, integrated over all aerosol diameters, used as a scaling factor.</p>
+<p>Under the <a class="reference internal" href="cara.apps.calculator.html#module-cara.apps.calculator.model_generator" title="cara.apps.calculator.model_generator"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cara.apps.calculator.model_generator</span></code></a>, when it comes to generate the Expiration, the diameters property is sampled through the BLO <a class="reference internal" href="cara.monte_carlo.html#cara.monte_carlo.data.BLOmodel.distribution" title="cara.monte_carlo.data.BLOmodel.distribution"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.monte_carlo.data.BLOmodel.distribution()</span></code></a> method, while the value for the <strong>cn</strong> is sampled from the <a class="reference internal" href="cara.monte_carlo.html#cara.monte_carlo.data.BLOmodel.integrate" title="cara.monte_carlo.data.BLOmodel.integrate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.monte_carlo.data.BLOmodel.integrate()</span></code></a> method.
+To sum up, the expiration contains the distribution of the diameters as a vectorised float. Depending on different expiratory types, the contributions from each mode will be different, therefore the result in the distribution is different.
+The cn is considered a scaling factor that results from the integration between the diameter limits, so that we can have a value for the concentration of aerosols per unit volume of expired air, integrated over all aerosol diameters.</p>
+</section>
+<section id="emission-rate-vr-d">
+<h2>Emission Rate - vR(D)<a class="headerlink" href="#emission-rate-vr-d" title="Permalink to this headline"></a></h2>
+<p>The mathematical equations to calculate the vR(D) are defined in the paper as follows:</p>
+<p><span class="math notranslate nohighlight">\(vR(D)_j=vl_{in} . E_{c, j}(D, f_{amp}, η_{out}(D)) . BR_k\)</span></p>
+<p><span class="math notranslate nohighlight">\(E_{c, j}^{total}=\int_0^{D_{\mathrm{max}}} E_{c,j}(D)\, \mathrm{d}D\)</span></p>
+<p>The later integral, which is used to compute the total emission, is calculated using a Monte-Carlo sampling of the particle diameters which follow the distribution given by <strong>Np(D)</strong>, the scaling factor <strong>cn</strong>.</p>
+<p>In the code, given an Expiration, we have different methods that perfom part of the calculations:</p>
+<ul class="simple">
+<li><p>Calculate the emission rate per aerosol, which is the multiplication of the diameter-independent variables: <a class="reference internal" href="cara.html#cara.models.InfectedPopulation.emission_rate_per_aerosol_when_present" title="cara.models.InfectedPopulation.emission_rate_per_aerosol_when_present"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.models.InfectedPopulation.emission_rate_per_aerosol_when_present()</span></code></a>. It corresponds to <span class="math notranslate nohighlight">\(vl_{in} . BR_{k}\)</span> part.</p></li>
+<li><p>Calculate the aerosols, which is the result of <span class="math notranslate nohighlight">\(E_{c,j}(D) = Np(D) . Vp(D) . (1 − ηout(D))\)</span>: <a class="reference internal" href="cara.html#cara.models.InfectedPopulation.aerosols" title="cara.models.InfectedPopulation.aerosols"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.models.InfectedPopulation.aerosols()</span></code></a>. Note that this result is not integrated over the diameters at this stage.</p></li>
+<li><p>Calculate the full emission rate, which is the multiplication of the two previous methods, and corresponds to the <span class="math notranslate nohighlight">\(E_{c,j}(D)\)</span>: <code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.models._PopulationWithVirus.emission_rate_when_present()</span></code></p></li>
+</ul>
+<p>Note that in the model the integral over the diameters is not realized at this stage, but rather when computing the dose, since other parameters also depend on <strong>diameter</strong> (D).
+In order to perform the Monte-Carlo integration at this stage, the final result of the calculation should be averaged.</p>
+</section>
+<section id="long-range-approach">
+<h2>Long-range approach<a class="headerlink" href="#long-range-approach" title="Permalink to this headline"></a></h2>
+<section id="concentration-c-t-d">
+<h3>Concentration - C(t, D)<a class="headerlink" href="#concentration-c-t-d" title="Permalink to this headline"></a></h3>
+<p>Starting with the long-range concentration of virus, that depends on the <strong>emission rate</strong>, the concentration of viruses in aerosols of a given size <strong>D</strong> is:</p>
+<p><span class="math notranslate nohighlight">\(C(t, D)=\frac{\mathrm{vR}(D) \cdot N_{\mathrm{inf}}}{\lambda_{\mathrm{vRR}}(D) \cdot V_r}-\left (\frac{\mathrm{vR}(D) \cdot N_{\mathrm{inf}}}{\lambda_{\mathrm{vRR}}(D) \cdot V_r}-C_0(D) \right )e^{-\lambda_{\mathrm{vRR}}(D)t}\)</span></p>
+<p>Where <strong>emission rate</strong> and <strong>λvRR (viral removal rate)</strong> depend on the particle diameter <strong>D</strong>.
+Since the emission rate is dependent on diameter-independent variables (<cite>vl_{in}</cite> and <cite>BR_k`</cite>) that should not be included when calculating the integral, the concentration method was written to be normalized by the emission rate.</p>
+<p>In other words, we can split the concentration in two different formulations:</p>
+<ul class="simple">
+<li><p>Normed concentration : <span class="math notranslate nohighlight">\(CN(t, D)\)</span> that calculates the concentration without the multiplication by the emission rate.</p></li>
+<li><p>Concentration: <span class="math notranslate nohighlight">\(C(t, D) = [CN(t, D) * vR(D)] * BR_k * vl_{in}\)</span>, where <cite>vR(D)</cite> is the result of the <a class="reference internal" href="cara.html#cara.models.Expiration.aerosols" title="cara.models.Expiration.aerosols"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.models.Expiration.aerosols()</span></code></a> method, while <cite>BR_k</cite> and <cite>vl_{in}</cite> are the diameter-independet Monte-Carlo variables.</p></li>
+</ul>
+<p>This way, to calculate the concentration in the model, there are different methods that consider the normalization by the emission rate:</p>
+<ul class="simple">
+<li><p><strong>_normed_concentration</strong>, that calculates the virus long-range exposure concentration, as function of time, and normalized by the emission rate. It corresponds to the previously mentioned <span class="math notranslate nohighlight">\(CN(t, D)\)</span> equation.</p></li>
+<li><p><a class="reference internal" href="cara.html#cara.models.ConcentrationModel.concentration" title="cara.models.ConcentrationModel.concentration"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.models.ConcentrationModel.concentration()</span></code></a>, which calculates the virus long-range exposure concentration of viruses as function of time. Note that the concentration depends on the total emission rate, that contains one integral over the diameters. This way, in order to get the correct concentration value in this stage, the final result should be averaged according to the Monte-Carlo integration. Otherwise, the integral over the diameters is perfomed at a later stage, when calculating the dose.</p></li>
+</ul>
+<p>These two methods are used to calculate the concentration at a given time. At this stage to perform the integral over the diameters the resulting value should be averaged according to the Monte-Carlo integration.</p>
+<p>The following methods calculate the integrated concentration over any two times. They are mostly used when calculating the <strong>Dose</strong>:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="cara.html#cara.models.ConcentrationModel.normed_integrated_concentration" title="cara.models.ConcentrationModel.normed_integrated_concentration"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.models.ConcentrationModel.normed_integrated_concentration()</span></code></a>, normed_integrated_concentration that returns the integrated long-range concentration of viruses in the air, between any two times, normalized by the emission rate. Note that this method performs the integral between any two times of the previously mentioned <strong>_normed_concentration</strong> method.</p></li>
+<li><p><a class="reference internal" href="cara.html#cara.models.ConcentrationModel.integrated_concentration" title="cara.models.ConcentrationModel.integrated_concentration"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.models.ConcentrationModel.integrated_concentration()</span></code></a>, that returns the same result as the one previous one, but multiplied by the missing parameters of the normalization, the emission rate.</p></li>
+</ul>
+<p>Note that the integral over the diameters is performed later in the dose, with the average of the samples, since the diameters are sampled according to the distribution given by <strong>Np(D)</strong>. The integral over different times is calculated directly in the class (integrated methods).</p>
+</section>
+<section id="dose-vd">
+<h3>Dose - vD<a class="headerlink" href="#dose-vd" title="Permalink to this headline"></a></h3>
+<p>The term “dose” refers the number of viable virions that will contribute to a potential infection.</p>
+<p>The receiving dose, which is inhaled by the exposed host, in infectious virions per unit diameter, is calculated by first integrating the viral concentration profile (for a given particle diameter) over the exposure time and multiplying by a scaling factor to determine the proportion of virions which are infectious.</p>
+<p><span class="math notranslate nohighlight">\(\mathrm{vD}(D)=\int_{t1}^{t2}C(t, D)\;dt \cdot f_{\mathrm{inf}} \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot   (1-\eta_{\mathrm{in}})\)</span></p>
+<p>Given that the calculation is diameter-dependent, to calculate the dose in the model, the code contains different methods that consider the parameters that are dependent on the aerosol size, <strong>D</strong>.
+The total dose results from the sum of all the doses accumulated for each particle size:</p>
+<p><span class="math notranslate nohighlight">\(\mathrm{vD^{total}} = \int_0^{D_{\mathrm{max}}} \mathrm{vD}(D) \, \mathrm{d}D\)</span></p>
+<p>This calculation is computed using a Monte-Carlo integration. As previously described, many different parameters samples are generated using the probability distribution from the <strong>Np(D)</strong> equation.
+The dose for each of them is then computed, and their <strong>average</strong> value over all samples represents a good approximation of the total dose, provided that the number of samples are large enough.</p>
+<p>Regarding the first parameter, concentration integated over the time, the respective method is the <code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.models.ExposureModel._long_range_normed_exposure_between_bounds()</span></code>, which calculates the long-range exposure (concentration) between two bounds (time1 and time2), normalized by the emission rate of the infected population.
+This method filters the given bounds considering the breaks (though the day) and calls the <a class="reference internal" href="cara.html#cara.models.ConcentrationModel.normed_integrated_concentration" title="cara.models.ConcentrationModel.normed_integrated_concentration"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.models.ConcentrationModel.normed_integrated_concentration()</span></code></a> that get the integrated long-range concentration of viruses in the air between any two times.
+It corresponds to the <span class="math notranslate nohighlight">\(\int_{t1}^{t2}C(t, D)\;dt\)</span> equation, normalized by the emission rate of the infected population.</p>
+<p>After the calculations of the integrated concentration over the time, in order to calculate the final dose, we have to compute the remaining values that are missing on the equation.
+Note that the Monte-Carlo integration is performed at this stage, where all the parameters that are diameter dependent are placed together to calculate the final average, which is a good approximation of the integral provided that the initial number of samples is large enough.
+In other words, in the code the procedure is the following:</p>
+<p><span class="math notranslate nohighlight">\(vD_{normed} = (\int_{t1}^{t2}C(t, D)\;dt \cdot aerosols \cdot f_{\mathrm{dep}}(D)).mean()\)</span></p>
+<p>The aerosols is introduced because of the integrated concentration over the time was previously normalized by the emission rate.
+This way, to calculate the integral over the diameters we also need to consider the diameter dependent variables that are on the emission rate, represented by the aerosols (<span class="math notranslate nohighlight">\(E_{c,j}(D) = Np(D) \cdot Vp(D) \cdot (1 − ηout(D))\)</span>).</p>
+<p>Finally we multiply for all the remaining diameter-independent variables:</p>
+<p><span class="math notranslate nohighlight">\(vD^{total} = vD_{normed} \cdot f_{inf} \cdot BR_{k} \cdot (1 - η_{in}) \cdot vR_{ND}\)</span></p>
+<p><span class="math notranslate nohighlight">\({vR_{ND}}\)</span> = <cite>emission_rate_when_present</cite> (<span class="math notranslate nohighlight">\(vl_{in} \cdot BR_{k}\)</span>)</p>
+<p>The <cite>emission_rate_per_aerosol</cite> is introduced because of the previous normalization by the emission rate.
+Note that the diameter-dependent variables from the emission rate were already added in the <cite>vD_normed</cite> with the <cite>aerosols</cite>, so the missing parameters should be added: the <span class="math notranslate nohighlight">\(vl_{in}\)</span> and <span class="math notranslate nohighlight">\(BR_{k}\)</span>, defined in the <a class="reference internal" href="cara.html#cara.models.InfectedPopulation.emission_rate_per_aerosol_when_present" title="cara.models.InfectedPopulation.emission_rate_per_aerosol_when_present"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.models.InfectedPopulation.emission_rate_per_aerosol_when_present()</span></code></a>.</p>
+<p>In the end, the dose is a vectorized float used in the probability of infection formula.</p>
+</section>
+</section>
+<section id="short-range-approach">
+<h2>Short-range approach<a class="headerlink" href="#short-range-approach" title="Permalink to this headline"></a></h2>
+<p>The short-range data class models a close-range interaction <strong>concentration</strong> and the respective <strong>dilution_factor</strong>.
+Its properties are the <strong>expiration</strong> definition, the <strong>activity type</strong>, the <strong>presence time</strong>, and the <strong>interpersonal distance</strong> between any two individuals.
+When generating a full model, the short-range class is defined with a new <strong>Expiration</strong> distribution, given that the <strong>min</strong> and <strong>max</strong> diameters for the short range interations are different.</p>
+<p>To calculate the short-range concentration, we first need to calculate what is the <strong>concentration at the jet origin</strong>, that depends on the diameter <strong>D</strong>. Very similar to what we did with the <strong>emission rate</strong>, we need to calculate the scaling factor from the probability distribution, <strong>Np(D)</strong>, as well as the <strong>volume</strong> for those diameters.</p>
+<p>In the code, the <a class="reference internal" href="cara.html#cara.models.Expiration.jet_origin_concentration" title="cara.models.Expiration.jet_origin_concentration"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.models.Expiration.jet_origin_concentration()</span></code></a> computes the same of the <a class="reference internal" href="cara.html#cara.models.Expiration.aerosols" title="cara.models.Expiration.aerosols"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.models.Expiration.aerosols()</span></code></a>, except for the mask inclusion. As previously mentioned, it is normalized by the <strong>viral load</strong>, the diameter-independent property.</p>
+<p>When calculating the dose, we get the concentration normalized by the <strong>viral load</strong>, <strong>breathing rate</strong> and without the <strong>dilution factor</strong>, since these parameters are Monte-Carlo variables that do not depend on the diameter.</p>
+<section id="id1">
+<h3>Concentration - C(t, D)<a class="headerlink" href="#id1" title="Permalink to this headline"></a></h3>
+<p>As well as for the long-range concentration of viruses, when dealing with short-range interactions one may have the respective short-range concentration:</p>
+<p><span class="math notranslate nohighlight">\(C_{SR}(t, D) = C(t, D) + \frac{1}{S({x})}*(C_{0, SR}(D) - C(t, D))\)</span></p>
+<p>It depends on the <strong>long-range concentration</strong> of viruses, on the <strong>dilution factor</strong> and on the <strong>initial concentration</strong> of viruses on the mouth or nose.
+As for the long-range concentration, we must normalize the short-range concentration on parameters that are diameter-dependent variables, to profit from the Monte-Carlo integration.
+Besides that, one should consider that for each interaction, the expiration type may be different, therefore a new distribution of diameters should be taken into consideration.</p>
+<p>The method to calculate the concentration viruses on the mouth or nose has the viral load as parameter:</p>
+<p><span class="math notranslate nohighlight">\(C_{0, SR}=(\int_{D_{min}}^{D_{\mathrm{max = 1000μm}}} N_p(D) \cdot V_p(D)\, \mathrm{d}D) \cdot 10^{-6} \cdot vl_{in}\)</span></p>
+<p>In other words, in the code we have one method that returns the value of <span class="math notranslate nohighlight">\(N_p(D) \cdot V_p(D)\)</span>, <a class="reference internal" href="cara.html#cara.models.Expiration.jet_origin_concentration" title="cara.models.Expiration.jet_origin_concentration"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.models.Expiration.jet_origin_concentration()</span></code></a>. Note that similarly to the <cite>long-range</cite> approach, the integral over the diameters is not calculated at this stage.</p>
+<p>To calculate the <cite>long-range</cite> concentration of viruses, <cite>C(t, D)</cite>, we profit from the <code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.models.ConcentrationModel.long_range_normed_concentration()</span></code> method, normalized by the viral load, the diameter-independent variable in the concentration.
+However, since the diameter distribution is different on the <cite>short-range</cite> interactions, we need to perform one approximation using interpolation. The set of points we want the interpolated values are the short-range particle diameters (given by the current expiration). The set of points with a known value are the long-range particle diameters (given by the initial expiration). The set of known values are the long-range concentration values normalised by the viral load. At this point, we have a procedure to calculate <span class="math notranslate nohighlight">\(C_{0, SR}  - C(t, D)\)</span>. Given that we already have the result of the <cite>dilution_factor</cite>, the result of <span class="math notranslate nohighlight">\(\frac{1}{S({x})} \cdot (C_{0, SR}  - C(t, D))\)</span> is given by the method <code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.models.ShortRangeModel.normed_concentration()</span></code>. To sum up, this method calculates the virus <cite>short-range</cite> exposure concentration, as a function of time. It is normalized by the viral load, and the integral over the diameters is not performed at this stage.</p>
+<p>The method <a class="reference internal" href="cara.html#cara.models.ShortRangeModel.short_range_concentration" title="cara.models.ShortRangeModel.short_range_concentration"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.models.ShortRangeModel.short_range_concentration()</span></code></a> applies the multiplication by the viral load to the result of the previous method, returning the final short-range concentration for a given time.</p>
+<p>The final concentration is the sum of the <cite>short-range</cite> and <cite>long-range</cite> concentrations.</p>
+</section>
+<section id="id2">
+<h3>Dose - vD<a class="headerlink" href="#id2" title="Permalink to this headline"></a></h3>
+<p>In theory, the <cite>short-range</cite> dose is defined as follows:</p>
+<p><span class="math notranslate nohighlight">\(\mathrm{vD}(D)= \sum\limits_{i=1}^{n} \int_{t1}^{t2}C_{SR}(t, D)\;dt \cdot f_{\mathrm{inf}} \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})\)</span></p>
+<p><span class="math notranslate nohighlight">\(\mathrm{vD^{total}} = \int_0^{D_{\mathrm{max}}} \mathrm{vD}(D) \, \mathrm{d}D\)</span></p>
+<p>In the code, the method that returns the value for the dose is the <a class="reference internal" href="cara.html#cara.models.ExposureModel.deposited_exposure_between_bounds" title="cara.models.ExposureModel.deposited_exposure_between_bounds"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.models.ExposureModel.deposited_exposure_between_bounds()</span></code></a>. First we perform the multiplications by the diameter-dependent variables so that we can profit from the Monte-Carlo integration. After we multiply the final value by the diameter-independent variables.</p>
+<p>The method <code class="xref py py-meth docutils literal notranslate"><span class="pre">cara.models.ShortRangeModel.normed_jet_exposure_between_bounds()</span></code> gets the integrated short-range concentration of viruses in the air between the times start and stop, normalized by the virus <strong>viral load</strong>, and without <strong>dilution</strong>. Very similar to the long-range procedure, this method performs the integral of the concentration for the given time boundaries.</p>
+<p>Once we have the integral of the concentration normalized by the <strong>viral load</strong>, we add the remaining diameter-dependent properties to perform the integral over the particle diameters, the <strong>fraction deposited</strong> with an evaporation factor of <cite>1</cite>:</p>
+<p><span class="math notranslate nohighlight">\(\int_{0}^{D_{max}}C_{SR}(t, D) \cdot f_{dep}(D) \;dD\)</span></p>
+<p>Note that in the code we perform the subtraction between the concentration at the jet origin and the <cite>long-range</cite> concentration of viruses in two steps when we calculate the dose, since the contribution of the diamater-dependent variable <span class="math notranslate nohighlight">\(f_{dep}\)</span> has to be multiplied separately in substractions:</p>
+<p><cite>integral_over_diameters =</cite> <span class="math notranslate nohighlight">\(((C_{0, SR} \cdot f_{dep}) - (C(t, D) \cdot f_{dep})).mean()\)</span></p>
+<p>To perform the integral, we calculate the average since it is a good approximation of the <strong>vD</strong> total, provided that the number of samples is large enough.</p>
+<p>Then, we add the contribution to the result of the diameter-independent vectorized properties, which are the <strong>dilution factor</strong>, <strong>viral load</strong>, <strong>fraction of infectious virus</strong> and <strong>breathing rate</strong>:</p>
+<p><cite>vD = integral_over_diameters . exhalation_rate . inhalation_rate / dilution</cite> <span class="math notranslate nohighlight">\(\cdot f_{inf} \cdot vl_{in} \cdot (1 - η_{in})\)</span>.</p>
+<p>Note that the multiplication over the <cite>exhalation_rate</cite> is done at each <cite>short-range</cite> interaction since the Expiratory type may be different for different interactions.</p>
+<p>The final dose is the sum of the <cite>short-range</cite> and <cite>long-range</cite> doses.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="cara.tests.models.html" class="btn btn-neutral float-left" title="cara.tests.models package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Andre Henriques et al..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

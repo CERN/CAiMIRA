@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cara.tests.apps.calculator package &mdash; CARA 4.1.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="cara.tests.data package" href="cara.tests.data.html" />
+    <link rel="prev" title="cara.tests.apps package" href="cara.tests.apps.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> CARA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="cara.html">cara package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="cara.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="cara.apps.html">cara.apps package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cara.data.html">cara.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cara.monte_carlo.html">cara.monte_carlo package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="cara.tests.html">cara.tests package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="cara.tests.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.conftest">cara.tests.conftest module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_cara">cara.tests.test_cara module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_dataclass_utils">cara.tests.test_dataclass_utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_expiration">cara.tests.test_expiration module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_full_algorithm">cara.tests.test_full_algorithm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_infected_population">cara.tests.test_infected_population module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_known_quantities">cara.tests.test_known_quantities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_model">cara.tests.test_model module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_monte_carlo">cara.tests.test_monte_carlo module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_monte_carlo_full_models">cara.tests.test_monte_carlo_full_models module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_predefined_distributions">cara.tests.test_predefined_distributions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_sampleable_distribution">cara.tests.test_sampleable_distribution module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_state">cara.tests.test_state module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests.test_ventilation">cara.tests.test_ventilation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cara.tests.html#module-cara.tests">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cara.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cara.html#module-cara.dataclass_utils">cara.dataclass_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cara.html#module-cara.models">cara.models module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cara.html#module-cara.state">cara.state module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cara.html#module-cara.utils">cara.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cara.html#module-cara">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="full_diameter_dependence.html">Full diameter-dependent model</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">CARA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="cara.html">cara package</a> &raquo;</li>
+          <li><a href="cara.tests.html">cara.tests package</a> &raquo;</li>
+          <li><a href="cara.tests.apps.html">cara.tests.apps package</a> &raquo;</li>
+      <li>cara.tests.apps.calculator package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/cara.tests.apps.calculator.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="cara-tests-apps-calculator-package">
+<h1>cara.tests.apps.calculator package<a class="headerlink" href="#cara-tests-apps-calculator-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-cara.tests.apps.calculator.conftest">
+<span id="cara-tests-apps-calculator-conftest-module"></span><h2>cara.tests.apps.calculator.conftest module<a class="headerlink" href="#module-cara.tests.apps.calculator.conftest" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.conftest.baseline_form">
+<span class="sig-name descname"><span class="pre">baseline_form</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.conftest.baseline_form" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.conftest.baseline_form_data">
+<span class="sig-name descname"><span class="pre">baseline_form_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.conftest.baseline_form_data" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-cara.tests.apps.calculator.test_markdown_tools">
+<span id="cara-tests-apps-calculator-test-markdown-tools-module"></span><h2>cara.tests.apps.calculator.test_markdown_tools module<a class="headerlink" href="#module-cara.tests.apps.calculator.test_markdown_tools" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_markdown_tools.example_template">
+<span class="sig-name descname"><span class="pre">example_template</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_markdown_tools.example_template" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_markdown_tools.test_extract_blocks">
+<span class="sig-name descname"><span class="pre">test_extract_blocks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">example_template</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_markdown_tools.test_extract_blocks" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-cara.tests.apps.calculator.test_model_generator">
+<span id="cara-tests-apps-calculator-test-model-generator-module"></span><h2>cara.tests.apps.calculator.test_model_generator module<a class="headerlink" href="#module-cara.tests.apps.calculator.test_model_generator" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.assert_boundaries">
+<span class="sig-name descname"><span class="pre">assert_boundaries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundaries_in_time_string_form</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.assert_boundaries" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.breaks_every_25_mins_for_20_mins">
+<span class="sig-name descname"><span class="pre">breaks_every_25_mins_for_20_mins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.apps.calculator.html#cara.apps.calculator.model_generator.FormData" title="cara.apps.calculator.model_generator.FormData"><span class="pre">cara.apps.calculator.model_generator.FormData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.breaks_every_25_mins_for_20_mins" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.coffee_break_between_1045_and_1115">
+<span class="sig-name descname"><span class="pre">coffee_break_between_1045_and_1115</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.apps.calculator.html#cara.apps.calculator.model_generator.FormData" title="cara.apps.calculator.model_generator.FormData"><span class="pre">cara.apps.calculator.model_generator.FormData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.coffee_break_between_1045_and_1115" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.present_times">
+<span class="sig-name descname"><span class="pre">present_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.html#cara.models.Interval" title="cara.models.Interval"><span class="pre">cara.models.Interval</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">cara.models.Time_t</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">cara.models.Time_t</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.present_times" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_blend_expiration">
+<span class="sig-name descname"><span class="pre">test_blend_expiration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_blend_expiration" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_coffee_breaks">
+<span class="sig-name descname"><span class="pre">test_coffee_breaks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.apps.calculator.html#cara.apps.calculator.model_generator.FormData" title="cara.apps.calculator.model_generator.FormData"><span class="pre">cara.apps.calculator.model_generator.FormData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_coffee_breaks" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_coffee_lunch_breaks">
+<span class="sig-name descname"><span class="pre">test_coffee_lunch_breaks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.apps.calculator.html#cara.apps.calculator.model_generator.FormData" title="cara.apps.calculator.model_generator.FormData"><span class="pre">cara.apps.calculator.model_generator.FormData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_coffee_lunch_breaks" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_coffee_lunch_breaks_unbalance">
+<span class="sig-name descname"><span class="pre">test_coffee_lunch_breaks_unbalance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.apps.calculator.html#cara.apps.calculator.model_generator.FormData" title="cara.apps.calculator.model_generator.FormData"><span class="pre">cara.apps.calculator.model_generator.FormData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_coffee_lunch_breaks_unbalance" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_default_types">
+<span class="sig-name descname"><span class="pre">test_default_types</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_default_types" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_exposed_present_intervals">
+<span class="sig-name descname"><span class="pre">test_exposed_present_intervals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.apps.calculator.html#cara.apps.calculator.model_generator.FormData" title="cara.apps.calculator.model_generator.FormData"><span class="pre">cara.apps.calculator.model_generator.FormData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_exposed_present_intervals" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_exposed_present_intervals_ending_with_lunch">
+<span class="sig-name descname"><span class="pre">test_exposed_present_intervals_ending_with_lunch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.apps.calculator.html#cara.apps.calculator.model_generator.FormData" title="cara.apps.calculator.model_generator.FormData"><span class="pre">cara.apps.calculator.model_generator.FormData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_exposed_present_intervals_ending_with_lunch" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_exposed_present_intervals_starting_with_lunch">
+<span class="sig-name descname"><span class="pre">test_exposed_present_intervals_starting_with_lunch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.apps.calculator.html#cara.apps.calculator.model_generator.FormData" title="cara.apps.calculator.model_generator.FormData"><span class="pre">cara.apps.calculator.model_generator.FormData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_exposed_present_intervals_starting_with_lunch" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_exposed_present_lunch_end_before_beginning">
+<span class="sig-name descname"><span class="pre">test_exposed_present_lunch_end_before_beginning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.apps.calculator.html#cara.apps.calculator.model_generator.FormData" title="cara.apps.calculator.model_generator.FormData"><span class="pre">cara.apps.calculator.model_generator.FormData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_exposed_present_lunch_end_before_beginning" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_form_timezone">
+<span class="sig-name descname"><span class="pre">test_form_timezone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">month</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_tz_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_offset</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_form_timezone" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_form_to_dict">
+<span class="sig-name descname"><span class="pre">test_form_to_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_form_to_dict" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_infected_present_intervals">
+<span class="sig-name descname"><span class="pre">test_infected_present_intervals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.apps.calculator.html#cara.apps.calculator.model_generator.FormData" title="cara.apps.calculator.model_generator.FormData"><span class="pre">cara.apps.calculator.model_generator.FormData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_infected_present_intervals" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_key_validation">
+<span class="sig-name descname"><span class="pre">test_key_validation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_key_validation" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_key_validation_event_month">
+<span class="sig-name descname"><span class="pre">test_key_validation_event_month</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_key_validation_event_month" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_key_validation_mech_ventilation_type_na">
+<span class="sig-name descname"><span class="pre">test_key_validation_mech_ventilation_type_na</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_key_validation_mech_ventilation_type_na" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_key_validation_natural_ventilation_window_opening_regime_na">
+<span class="sig-name descname"><span class="pre">test_key_validation_natural_ventilation_window_opening_regime_na</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_key_validation_natural_ventilation_window_opening_regime_na" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_key_validation_natural_ventilation_window_type_na">
+<span class="sig-name descname"><span class="pre">test_key_validation_natural_ventilation_window_type_na</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_key_validation_natural_ventilation_window_type_na" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_model_from_dict">
+<span class="sig-name descname"><span class="pre">test_model_from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_model_from_dict" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_model_from_dict_invalid">
+<span class="sig-name descname"><span class="pre">test_model_from_dict_invalid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_model_from_dict_invalid" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_no_breaks">
+<span class="sig-name descname"><span class="pre">test_no_breaks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.apps.calculator.html#cara.apps.calculator.model_generator.FormData" title="cara.apps.calculator.model_generator.FormData"><span class="pre">cara.apps.calculator.model_generator.FormData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_no_breaks" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_present_after_coffee">
+<span class="sig-name descname"><span class="pre">test_present_after_coffee</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coffee_break_between_1045_and_1115</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_present_after_coffee" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_present_after_two_breaks_for_small_interval">
+<span class="sig-name descname"><span class="pre">test_present_after_two_breaks_for_small_interval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">breaks_every_25_mins_for_20_mins</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_present_after_two_breaks_for_small_interval" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_present_before_coffee">
+<span class="sig-name descname"><span class="pre">test_present_before_coffee</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coffee_break_between_1045_and_1115</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_present_before_coffee" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_present_intervals_common_breaks">
+<span class="sig-name descname"><span class="pre">test_present_intervals_common_breaks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.apps.calculator.html#cara.apps.calculator.model_generator.FormData" title="cara.apps.calculator.model_generator.FormData"><span class="pre">cara.apps.calculator.model_generator.FormData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_present_intervals_common_breaks" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_present_intervals_split_breaks">
+<span class="sig-name descname"><span class="pre">test_present_intervals_split_breaks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.apps.calculator.html#cara.apps.calculator.model_generator.FormData" title="cara.apps.calculator.model_generator.FormData"><span class="pre">cara.apps.calculator.model_generator.FormData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_present_intervals_split_breaks" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_present_only_during_second_break">
+<span class="sig-name descname"><span class="pre">test_present_only_during_second_break</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">breaks_every_25_mins_for_20_mins</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_present_only_during_second_break" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_present_only_for_coffee_ends">
+<span class="sig-name descname"><span class="pre">test_present_only_for_coffee_ends</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coffee_break_between_1045_and_1115</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_present_only_for_coffee_ends" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_present_when_coffee_ends">
+<span class="sig-name descname"><span class="pre">test_present_when_coffee_ends</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coffee_break_between_1045_and_1115</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_present_when_coffee_ends" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_present_when_coffee_starts">
+<span class="sig-name descname"><span class="pre">test_present_when_coffee_starts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coffee_break_between_1045_and_1115</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_present_when_coffee_starts" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_valid_no_lunch">
+<span class="sig-name descname"><span class="pre">test_valid_no_lunch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.apps.calculator.html#cara.apps.calculator.model_generator.FormData" title="cara.apps.calculator.model_generator.FormData"><span class="pre">cara.apps.calculator.model_generator.FormData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_valid_no_lunch" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_ventilation_airchanges">
+<span class="sig-name descname"><span class="pre">test_ventilation_airchanges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.apps.calculator.html#cara.apps.calculator.model_generator.FormData" title="cara.apps.calculator.model_generator.FormData"><span class="pre">cara.apps.calculator.model_generator.FormData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_ventilation_airchanges" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_ventilation_hingedwindow">
+<span class="sig-name descname"><span class="pre">test_ventilation_hingedwindow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.apps.calculator.html#cara.apps.calculator.model_generator.FormData" title="cara.apps.calculator.model_generator.FormData"><span class="pre">cara.apps.calculator.model_generator.FormData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_ventilation_hingedwindow" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_ventilation_mechanical">
+<span class="sig-name descname"><span class="pre">test_ventilation_mechanical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.apps.calculator.html#cara.apps.calculator.model_generator.FormData" title="cara.apps.calculator.model_generator.FormData"><span class="pre">cara.apps.calculator.model_generator.FormData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_ventilation_mechanical" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_ventilation_slidingwindow">
+<span class="sig-name descname"><span class="pre">test_ventilation_slidingwindow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.apps.calculator.html#cara.apps.calculator.model_generator.FormData" title="cara.apps.calculator.model_generator.FormData"><span class="pre">cara.apps.calculator.model_generator.FormData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_ventilation_slidingwindow" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.test_ventilation_window_hepa">
+<span class="sig-name descname"><span class="pre">test_ventilation_window_hepa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cara.apps.calculator.html#cara.apps.calculator.model_generator.FormData" title="cara.apps.calculator.model_generator.FormData"><span class="pre">cara.apps.calculator.model_generator.FormData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.test_ventilation_window_hepa" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_model_generator.time2mins">
+<span class="sig-name descname"><span class="pre">time2mins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">minutes_since_midnight</span></span></span><a class="headerlink" href="#cara.tests.apps.calculator.test_model_generator.time2mins" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-cara.tests.apps.calculator.test_report_generator">
+<span id="cara-tests-apps-calculator-test-report-generator-module"></span><h2>cara.tests.apps.calculator.test_report_generator module<a class="headerlink" href="#module-cara.tests.apps.calculator.test_report_generator" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_report_generator.test_fill_big_gaps">
+<span class="sig-name descname"><span class="pre">test_fill_big_gaps</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_report_generator.test_fill_big_gaps" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_report_generator.test_fill_big_gaps__float_tolerance">
+<span class="sig-name descname"><span class="pre">test_fill_big_gaps__float_tolerance</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_report_generator.test_fill_big_gaps__float_tolerance" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_report_generator.test_generate_report">
+<span class="sig-name descname"><span class="pre">test_generate_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_report_generator.test_generate_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_report_generator.test_interesting_times_many">
+<span class="sig-name descname"><span class="pre">test_interesting_times_many</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_exposure_model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_report_generator.test_interesting_times_many" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_report_generator.test_interesting_times_small">
+<span class="sig-name descname"><span class="pre">test_interesting_times_small</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_exposure_model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_report_generator.test_interesting_times_small" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_report_generator.test_interesting_times_w_temp">
+<span class="sig-name descname"><span class="pre">test_interesting_times_w_temp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exposure_model_w_outside_temp_changes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_report_generator.test_interesting_times_w_temp" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_report_generator.test_non_temp_transition_times">
+<span class="sig-name descname"><span class="pre">test_non_temp_transition_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_exposure_model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_report_generator.test_non_temp_transition_times" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_report_generator.test_readable_minutes">
+<span class="sig-name descname"><span class="pre">test_readable_minutes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_report_generator.test_readable_minutes" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-cara.tests.apps.calculator.test_webapp">
+<span id="cara-tests-apps-calculator-test-webapp-module"></span><h2>cara.tests.apps.calculator.test_webapp module<a class="headerlink" href="#module-cara.tests.apps.calculator.test_webapp" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.TestBasicApp">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestBasicApp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.TestBasicApp" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tornado.testing.AsyncHTTPTestCase</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.TestBasicApp.get_app">
+<span class="sig-name descname"><span class="pre">get_app</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.TestBasicApp.get_app" title="Permalink to this definition"></a></dt>
+<dd><p>Should be overridden by subclasses to return a
+<cite>tornado.web.Application</cite> or other <cite>.HTTPServer</cite> callback.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.TestBasicApp.test_report">
+<span class="sig-name descname"><span class="pre">test_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.TestBasicApp.test_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.TestCernApp">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestCernApp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.TestCernApp" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tornado.testing.AsyncHTTPTestCase</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.TestCernApp.get_app">
+<span class="sig-name descname"><span class="pre">get_app</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.TestCernApp.get_app" title="Permalink to this definition"></a></dt>
+<dd><p>Should be overridden by subclasses to return a
+<cite>tornado.web.Application</cite> or other <cite>.HTTPServer</cite> callback.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.TestCernApp.test_report">
+<span class="sig-name descname"><span class="pre">test_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.TestCernApp.test_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.TestError500">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestError500</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.TestError500" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tornado.testing.AsyncHTTPTestCase</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.TestError500.get_app">
+<span class="sig-name descname"><span class="pre">get_app</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.TestError500.get_app" title="Permalink to this definition"></a></dt>
+<dd><p>Should be overridden by subclasses to return a
+<cite>tornado.web.Application</cite> or other <cite>.HTTPServer</cite> callback.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.TestError500.test_500">
+<span class="sig-name descname"><span class="pre">test_500</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.TestError500.test_500" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.TestOpenApp">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestOpenApp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.TestOpenApp" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tornado.testing.AsyncHTTPTestCase</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.TestOpenApp.get_app">
+<span class="sig-name descname"><span class="pre">get_app</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.TestOpenApp.get_app" title="Permalink to this definition"></a></dt>
+<dd><p>Should be overridden by subclasses to return a
+<cite>tornado.web.Application</cite> or other <cite>.HTTPServer</cite> callback.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.TestOpenApp.test_calculator_404">
+<span class="sig-name descname"><span class="pre">test_calculator_404</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.TestOpenApp.test_calculator_404" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.TestOpenApp.test_report">
+<span class="sig-name descname"><span class="pre">test_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.TestOpenApp.test_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.app">
+<span class="sig-name descname"><span class="pre">app</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.app" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.test_404">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">test_404</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">http_server_client</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.test_404" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.test_about">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">test_about</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">http_server_client</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.test_about" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.test_calculator_form">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">test_calculator_form</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">http_server_client</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.test_calculator_form" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.test_homepage">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">test_homepage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">http_server_client</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.test_homepage" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.test_invalid_compressed_url">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">test_invalid_compressed_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">http_server_client</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.test_invalid_compressed_url" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.test_permalink_urls">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">test_permalink_urls</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">http_server_client</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseline_form</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.test_permalink_urls" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cara.tests.apps.calculator.test_webapp.test_user_guide">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">test_user_guide</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">http_server_client</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cara.tests.apps.calculator.test_webapp.test_user_guide" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-cara.tests.apps.calculator">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cara.tests.apps.calculator" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="cara.tests.apps.html" class="btn btn-neutral float-left" title="cara.tests.apps package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="cara.tests.data.html" class="btn btn-neutral float-right" title="cara.tests.data package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Andre Henriques et al..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
