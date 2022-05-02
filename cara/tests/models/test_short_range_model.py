@@ -72,9 +72,9 @@ def test_dilution_factor(activity, expected_dilution):
 @pytest.mark.parametrize(
     "time, expected_short_range_concentration", [
         [8.5, 0.],
-        [10.5, 8.037883241318065],
-        [10.6, 8.037883241318065],
-        [11.0, 8.037883241318065],
+        [10.5, 5.401601371244907],
+        [10.6, 5.401601371244907],
+        [11.0, 5.401601371244907],
         [12.0, 0.],
     ]
 )

@@ -2,7 +2,6 @@ import typing
 
 import numpy as np
 from sklearn.neighbors import KernelDensity # type: ignore
-from scipy.stats import beta
 
 import cara.models
 
@@ -129,24 +128,6 @@ class LogCustomKernel(SampleableDistribution):
         kde_model.fit(self.log_variable.reshape(-1, 1),
                       sample_weight=self.frequencies)
         return 10 ** kde_model.sample(n_samples=size)[:, 0]
-
-
-class Beta(SampleableDistribution):
-    """
-    Defines a Beta distribution parameterized by two positive shape parameters, 
-    denoted by alpha (α) and beta (β), that appear as exponents of the random 
-    variable and control the shape of the distribution.
-    """
-
-    def __init__(self, alpha: float, beta: float, loc: float, scale: float):
-        # these are resp. the alpha and beta of the underlying distribution
-        self.alpha = alpha
-        self.beta = beta
-        self.loc = loc
-        self.scale = scale
-
-    def generate_samples(self, size: int) -> float_array_size_n:
-        return beta.rvs(a = self.alpha, b = self.beta, loc=self.loc, scale=self.scale, size=size)
 
 
 _VectorisedFloatOrSampleable = typing.Union[
