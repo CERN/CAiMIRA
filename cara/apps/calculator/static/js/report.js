@@ -432,9 +432,9 @@ function draw_plot(svg_id) {
             if (show_sr_legend) {
                 sr_unique_activities.forEach((b, index) => {
                     legendShortRangeAreaIcon[index].attr('x', legend_x_start)
-                        .attr('y', graph_height + 4 * size - 15/2);
+                        .attr('y', graph_height + (4 + index) * size - 15/2);
                     legendShortRangeText[index].attr('x', legend_x_start + space_between_text_icon)
-                        .attr('y', graph_height + 4 * size + text_height);
+                        .attr('y', graph_height + (4 + index) * size + text_height);
                 });
                 legendLongCumulativeIcon.attr("x1", legend_x_start)
                     .attr("x2", legend_x_start + 20)
