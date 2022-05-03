@@ -26,13 +26,25 @@ class StateBuilder:
     def resolve_builder(self, field: dataclasses.Field):
         method_name = [
             f'build_name_{field.name}',
-            f'build_type_{field.type.__name__}',
         ]
+
+        origin = getattr(field.type, '__origin__', None)
+        if origin is tuple:
+            args = field.type.__args__
+            assert len(args) == 2
+            assert args[-1] == Ellipsis
+            collection_type = args[0]
+            method_name.append(f'build_type_tuple_of_{collection_type.__name__}')
+            method_name.append(f'build_type_tuple')
+        else:
+            method_name.append(f'build_type_{field.type.__name__}')
+            method_name.append(f'build_generic')
+
         for name in method_name:
             method = getattr(self, name, None)
             if method is not None:
                 return method
-        return self.build_generic
+        raise TypeError(f"Type not handled by builder {field.type}. Tried methods: {', '.join(method_name)}")
 
     def build_generic(self, type_to_build: typing.Type) -> "DataclassInstanceState":
         return DataclassInstanceState(type_to_build, state_builder=self)
@@ -103,6 +115,67 @@ class DataclassState(typing.Generic[Datamodel_T]):
         """
 
 
+TupleComponent_T = typing.TypeVar('Datamodel_T')
+Tuple_T = typing.Tuple[TupleComponent_T, ...]
+
+
+class TupleState(DataclassState[Tuple_T]):
+    """Represents the state of a tuple of a fixed type"""
+    def __init__(self, state_builder=StateBuilder()):
+        super().__init__(state_builder=state_builder)
+
+        with self._object_setattr():
+            self._states: typing.Optional[typing.List[DataclassState]] = None
+            self._observers = []
+
+    def __len__(self):
+        if self._states is None:
+            raise RuntimeError("TupleState not initialised. Use dcs_update_from first.")
+        return len(self._states)
+
+    def __getitem__(self, item):
+        if self._states is None:
+            raise RuntimeError("TupleState not initialised. Use dcs_update_from first.")
+        return self._states.__getitem__(item)
+
+    def __setattr__(self, name, value):
+        if name in self.__dict__ or self.__dict__.get('_use_base_setattr', True):
+            return object.__setattr__(self, name, value)
+        raise AttributeError('No attributes to set on a tuple...')
+
+    def dcs_instance(self):
+        return tuple(state.dcs_instance() for state in self._states)
+
+    def __repr__(self):
+        if self._states is None:
+            state = 'Uninitialised'
+        else:
+            state = 'Holding {len(self._states)} state(s)'
+        return f"<state for tuple. {state}>"
+
+    def dcs_observe(self, callback: typing.Callable):
+        if self._states is None:
+            self._observers.append(callback)
+        else:
+            for state in self._states:
+                state.dcs_observe(callback)
+
+    def dcs_update_from(self, data: Tuple_T):
+        if self._states is not None:
+            raise ValueError("Already initialised")
+        with self._object_setattr():
+            states = self._states = []
+        for instance in data:
+            state_handler = DataclassInstanceState(type(instance))
+            state_handler.dcs_update_from(instance)
+            for observer in self._observers:
+                state_handler.dcs_observe(observer)
+            states.append(state_handler)
+
+    def dcs_set_instance_type(self, instance_dataclass: typing.Type[Tuple_T]):
+        raise TypeError("Cannot set the type of a tuple type")
+
+
 class DataclassInstanceState(DataclassState[Datamodel_T]):
     """
     Represents the state of a frozen dataclass.
@@ -127,7 +200,7 @@ class DataclassInstanceState(DataclassState[Datamodel_T]):
 
         # Note that the constructor does *not* insert any data by default. It
         # therefore doesn't build nested DataclassState instances when a dataclass contains another.
-        # For that, use the build classmethod.
+        # For that, use the state_builder.
         if not dataclasses.is_dataclass(dataclass):
             raise TypeError("The given class is not a valid dataclass")
         if not isinstance(dataclass, type):
@@ -179,6 +252,12 @@ class DataclassInstanceState(DataclassState[Datamodel_T]):
                 new_value = getattr(data, attr)
                 if dataclasses.is_dataclass(field.type):
                     assert isinstance(current_value, DataclassState)
+                    current_value.dcs_update_from(new_value)
+                elif getattr(field.type, '__origin__', None) is tuple:
+                    args = field.type.__args__
+                    assert len(args) == 2
+                    assert args[-1] == Ellipsis
+                    assert isinstance(current_value, TupleState)
                     current_value.dcs_update_from(new_value)
                 else:
                     self._data[attr] = new_value
@@ -237,6 +316,13 @@ class DataclassInstanceState(DataclassState[Datamodel_T]):
         self._data.clear()
         for field in dataclasses.fields(instance_dataclass):
             if dataclasses.is_dataclass(field.type):
+                self._data[field.name] = self._state_builder.visit(field)
+                self._data[field.name].dcs_observe(self._fire_observers)
+            elif getattr(field.type, '__origin__', None) is tuple:
+                args = field.type.__args__
+                assert len(args) == 2
+                assert args[-1] == Ellipsis
+                collection_type = args[0]
                 self._data[field.name] = self._state_builder.visit(field)
                 self._data[field.name].dcs_observe(self._fire_observers)
 
@@ -378,14 +464,3 @@ class DataclassStateNamed(DataclassState[Datamodel_T]):
     def dcs_set_instance_type(self, instance_dataclass: typing.Type[Datamodel_T]):
         return self._selected_state().dcs_set_instance_type(instance_dataclass)
 
-    @contextmanager
-    def dcs_state_transaction(self):
-        orig = [s._hold_fire for s in self._states.values()]
-        for s in self._states.values():
-            s._hold_fire = True
-        yield
-        for orig_hold, s in zip(orig, self._states.values()):
-            s._hold_fire = orig_hold
-            if s._held_events:
-                s._held_events.clear()
-                s._fire_observers()

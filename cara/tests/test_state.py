@@ -1,3 +1,4 @@
+import dataclasses
 from dataclasses import dataclass
 import typing
 from unittest.mock import Mock
@@ -36,6 +37,11 @@ class DCClassVar(DCSimple):
 @dataclass
 class DCRecursive(DCSimple):
     simple: DCSimple
+
+
+@dataclass
+class DCContainer:
+    contained: typing.Tuple[DCSimple, ...]
 
 
 @dataclass
@@ -136,6 +142,34 @@ def test_observe_instance_nested():
     s.vanilla = 'something new'
     top_level.assert_called_with()
     nested.assert_not_called()
+
+
+class CustomStateBuilderForContainer(state.StateBuilder):
+    def build_type_tuple_of_DCSimple(self, field):
+        return state.TupleState(state_builder=self)
+
+
+def test_observe_instance_container__container():
+    top_level = Mock()
+    nested = Mock()
+
+    builder = CustomStateBuilderForContainer()
+    dc1 = DCSimple(attr1='foo', attr2=2)
+    dc2 = DCSimple(attr1='bar', attr2=3)
+    s = state.DataclassInstanceState(DCContainer, builder)
+    u = DCContainer(contained=(dc1, dc2))
+    s.dcs_update_from(u)
+
+    s.dcs_observe(top_level)
+    s.contained[0].dcs_observe(nested)
+
+    s.contained[0].attr1 = 'something new'
+    nested.assert_called_with()
+    top_level.assert_called_with()
+    first = s.dcs_instance().contained[0]
+    assert isinstance(first, DCSimple)
+    assert first.attr1 == 'something new'
+    assert first.attr2 == 2
 
 
 def test_DCS_predefined():
