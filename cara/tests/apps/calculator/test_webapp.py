@@ -6,7 +6,7 @@ import tornado.testing
 import cara.apps.calculator
 from cara.apps.calculator.report_generator import generate_permalink
 
-_TIMEOUT = 20.
+_TIMEOUT = 30.
 
 @pytest.fixture
 def app():
