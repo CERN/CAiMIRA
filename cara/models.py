@@ -459,11 +459,14 @@ class SARSCoV2(Virus):
         CERN-OPEN-2021-004, DOI: 10.17181/CERN.1GDQ.5Y75)
         """
         # Updated to use the formula from Dabish et al. with correction https://doi.org/10.1080/02786826.2020.1829536
-        # with a minimum at hl = 1.1. Note that humidity is in percentage and inside_temp in °C.
-        return np.maximum(1.1, (0.693/((0.16030 + 0.04018*(((inside_temp-273.15)-20.615)/10.585)
+        # with a maximum at hl = 6.43. Note that humidity is in percentage and inside_temp in °C.
+        hl_calc = ((0.693/((0.16030 + 0.04018*(((inside_temp-273.15)-20.615)/10.585)
                                        +0.02176*(((humidity*100)-45.235)/28.665)
                                        -0.14369
-                                       -0.02636*((inside_temp-273.15)-20.615)/10.585))))
+                                       -0.02636*((inside_temp-273.15)-20.615)/10.585)))/60)
+        if (hl_calc <= 0):
+        	hl_calc = 6.43
+        return hl_calc
         
 
 Virus.types = {
