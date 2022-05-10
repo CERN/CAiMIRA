@@ -45,6 +45,7 @@ class FormData:
     floor_area: float
     hepa_amount: float
     hepa_option: bool
+    humidity: str
     infected_coffee_break_option: str               #Used if infected_dont_have_breaks_with_exposed
     infected_coffee_duration: int                   #Used if infected_dont_have_breaks_with_exposed
     infected_dont_have_breaks_with_exposed: bool
@@ -54,6 +55,7 @@ class FormData:
     infected_lunch_start: minutes_since_midnight    #Used if infected_dont_have_breaks_with_exposed
     infected_people: int
     infected_start: minutes_since_midnight
+    inside_temp: float
     location_name: str
     location_latitude: float
     location_longitude: float
@@ -100,6 +102,7 @@ class FormData:
         'floor_area': 0.,
         'hepa_amount': 0.,
         'hepa_option': False,
+        'humidity': '',
         'infected_coffee_break_option': 'coffee_break_0',
         'infected_coffee_duration': 5,
         'infected_dont_have_breaks_with_exposed': False,
@@ -109,6 +112,7 @@ class FormData:
         'infected_lunch_start': '12:30',
         'infected_people': _NO_DEFAULT,
         'infected_start': '08:30',
+        'inside_temp': 293.,
         'location_latitude': _NO_DEFAULT,
         'location_longitude': _NO_DEFAULT,
         'location_name': _NO_DEFAULT,
@@ -240,11 +244,14 @@ class FormData:
             volume = self.room_volume
         else:
             volume = self.floor_area * self.ceiling_height
-        if self.room_heating_option:
-            humidity = 0.3
+        if self.humidity == '':
+            if self.room_heating_option:
+                humidity = 0.3
+            else:
+                humidity = 0.5
         else:
-            humidity = 0.5
-        room = models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (293,)), humidity=humidity)
+            humidity = float(self.humidity)
+        room = models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (self.inside_temp,)), humidity=humidity)
 
         infected_population = self.infected_population()
         

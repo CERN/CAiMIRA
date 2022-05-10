@@ -783,6 +783,9 @@ $(document).ready(function () {
     templateSelection: formatLocationSelection
   });
 
+  // Logic for the API requests. Always set humity input as the empty string so that we can profit from the "room_heating_option default" values for humidity.
+  $("[name='humidity']").val("");
+
   function formatlocation(suggestedLocation) {
     // Function is called for each location from the geocoding API.
 
