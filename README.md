@@ -38,9 +38,11 @@ Andre Henriques<sup>1</sup>, Luis Aleixo<sup>1</sup>, Marco Andreini<sup>1</sup>
 ### Reference and Citation
 
 **For the use of the CARA web app**
+
 CARA – COVID Airborne Risk Assessment tool
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6520432.svg)](https://doi.org/10.5281/zenodo.6520432)
+
 © Copyright 2020-2021 CERN. All rights not expressly granted are reserved.
 
 **For use of the model**
