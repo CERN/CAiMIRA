@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.testing as npt
 import pytest
+from retry import retry
 
 import cara.monte_carlo as mc
 from cara import models,data
@@ -307,6 +308,7 @@ def waiting_room_mc():
     )
 
 
+@retry()
 @pytest.mark.parametrize(
     "mc_model, expected_pi, expected_new_cases, expected_dose, expected_ER",
     [
