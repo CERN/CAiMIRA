@@ -84,8 +84,13 @@ class SimpleConcentrationModel:
         """
         removal rate lambda in h^-1, excluding the deposition rate.
         """
-        return (self.lambda_ventilation 
-                + ln2/(6.43 if self.humidity<=0.4 else 1.1) )
+        hl_calc = ((ln2/((0.16030 + 0.04018*(((293-273.15)-20.615)/10.585)
+                                       +0.02176*(((self.humidity*100)-45.235)/28.665)
+                                       -0.14369
+                                       -0.02636*((293-273.15)-20.615)/10.585)))/60)
+
+        return (self.lambda_ventilation
+                + ln2/(np.where(hl_calc <= 0, 6.43, np.minimum(6.43, hl_calc))))
 
     @method_cache
     def deposition_removal_coefficient(self) -> float:
@@ -461,7 +466,7 @@ interaction_intervals = (models.SpecificInterval(present_times=((10.5, 11.0),)),
 @pytest.fixture
 def c_model() -> mc.ConcentrationModel:
     return mc.ConcentrationModel(
-        room=models.Room(volume=50, humidity=0.3),
+        room=models.Room(volume=50, inside_temp=models.PiecewiseConstant((0., 24.), (293,)), humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=1.),
         infected=mc.InfectedPopulation(
             number=1,

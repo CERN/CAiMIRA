@@ -243,19 +243,29 @@ class ModelWidgets(View):
 
     def _build_room(self, node):
         room_volume = widgets.IntSlider(value=node.volume, min=10, max=150)
+        inside_temp = widgets.IntSlider(value=node.inside_temp.values[0]-273.15, min=15., max=25.)
 
-        def on_value_change(change):
+        def on_volume_change(change):
             node.volume = change['new']
 
+        def on_insidetemp_change(change):
+            node.inside_temp.values = (change['new']+273.15,)
+
         # TODO: Link the state back to the widget, not just the other way around.
-        room_volume.observe(on_value_change, names=['value'])
+        room_volume.observe(on_volume_change, names=['value'])
+        inside_temp.observe(on_insidetemp_change, names=['value'])
+        
         def on_state_change():
             room_volume.value = node.volume
+            inside_temp.value = node.inside_temp
+            
         node.dcs_observe(on_state_change)
 
         widget = collapsible(
             [widget_group(
-                [[widgets.Label('Room volume (m³)'), room_volume]]
+                [[widgets.Label('Room volume (m³)'), room_volume], 
+                 [widgets.Label('Inside temperature (℃)'), inside_temp],
+                ]
             )],
             title='Specification of workplace',
         )
@@ -281,7 +291,6 @@ class ModelWidgets(View):
     def _build_window(self, node) -> WidgetGroup:
         period = widgets.IntSlider(value=node.active.period, min=0, max=240)
         interval = widgets.IntSlider(value=node.active.duration, min=0, max=240)
-        inside_temp = widgets.IntSlider(value=node.inside_temp.values[0]-273.15, min=15., max=25.)
 
         def on_period_change(change):
             node.active.period = change['new']
@@ -289,13 +298,9 @@ class ModelWidgets(View):
         def on_interval_change(change):
             node.active.duration = change['new']
 
-        def insidetemp_change(change):
-            node.inside_temp.values = (change['new']+273.15,)
-
         # TODO: Link the state back to the widget, not just the other way around.
         period.observe(on_period_change, names=['value'])
         interval.observe(on_interval_change, names=['value'])
-        inside_temp.observe(insidetemp_change, names=['value'])
 
         outsidetemp_widgets = {
             'Fixed': self._build_outsidetemp(node.outside_temp),
@@ -326,10 +331,6 @@ class ModelWidgets(View):
                 (
                     widgets.Label('Duration of opening (minutes)', layout=auto_width),
                     interval,
-                ),
-                (
-                    widgets.Label('Inside temperature (℃)', layout=auto_width),
-                    inside_temp,
                 ),
                 (
                     widgets.Label('Outside temperature scheme', layout=auto_width),
@@ -485,10 +486,9 @@ class ModelWidgets(View):
 
 baseline_model = models.ExposureModel(
     concentration_model=models.ConcentrationModel(
-        room=models.Room(volume=75),
+        room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293.15,))),
         ventilation=models.SlidingWindow(
             active=models.PeriodicInterval(period=120, duration=15),
-            inside_temp=models.PiecewiseConstant((0., 24.), (293.15,)),
             outside_temp=models.PiecewiseConstant((0., 24.), (283.15,)),
             window_height=1.6, opening_length=0.6,
         ),
