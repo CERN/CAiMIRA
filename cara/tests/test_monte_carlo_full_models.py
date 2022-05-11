@@ -45,11 +45,12 @@ def shared_office_mc():
     Corresponds to the 1st line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988
     """
     concentration_mc = mc.ConcentrationModel(
-        room=models.Room(volume=50, inside_temp=models.PiecewiseConstant((0., 24.), (298,)), humidity=0.5),
+        room=models.Room(volume=50, humidity=0.5),
         ventilation=models.MultipleVentilation(
             ventilations=(
                 models.SlidingWindow(
                     active=models.PeriodicInterval(period=120, duration=120),
+                    inside_temp=models.PiecewiseConstant((0., 24.), (298,)),
                     outside_temp=data.GenevaTemperatures['Jun'],
                     window_height=1.6,
                     opening_length=0.2,
@@ -87,11 +88,12 @@ def classroom_mc():
     Corresponds to the 2nd line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988
     """
     concentration_mc = mc.ConcentrationModel(
-        room=models.Room(volume=160, inside_temp=models.PiecewiseConstant((0., 24.), (293,)), humidity=0.3),
+        room=models.Room(volume=160, humidity=0.3),
         ventilation=models.MultipleVentilation(
             ventilations=(
                 models.SlidingWindow(
                     active=models.PeriodicInterval(period=120, duration=120),
+                    inside_temp=models.PiecewiseConstant((0., 24.), (293,)),
                     outside_temp=TorontoTemperatures['Dec'],
                     window_height=1.6,
                     opening_length=0.2,
@@ -310,13 +312,13 @@ def waiting_room_mc():
 @pytest.mark.parametrize(
     "mc_model, expected_pi, expected_new_cases, expected_dose, expected_ER",
     [
-        ["shared_office_mc", 5.55, 0.17, 2.699, 809],
-        ["classroom_mc",     9.58, 1.82, 9.034, 5624],
-        ["ski_cabin_mc",     16.0, 0.47, 17.315, 7966],
-        ["skagit_chorale_mc",61.01, 36.53, 84.730, 190422],
-        ["bus_ride_mc",      10.59, 7.06, 6.65, 5419],
-        ["gym_mc",           0.43, 0.12, 0.197, 1145],
-        ["waiting_room_mc",  1.34, 0.18, 0.670, 737],
+        ["shared_office_mc", 6.03, 0.18, 3.198, 809],
+        ["classroom_mc",     9.5, 1.85, 9.478, 5624],
+        ["ski_cabin_mc",     16.0, 0.5, 17.315, 7966],
+        ["skagit_chorale_mc",65.7, 40.0, 102.213, 190422],
+        ["bus_ride_mc",      12.0, 8.0, 7.65, 5419],
+        ["gym_mc",           0.45, 0.13, 0.208, 1145],
+        ["waiting_room_mc",  1.59, 0.22, 0.821, 737],
     ]
 )
 def test_report_models(mc_model, expected_pi, expected_new_cases,
@@ -337,20 +339,21 @@ def test_report_models(mc_model, expected_pi, expected_new_cases,
 @pytest.mark.parametrize(
     "mask_type, month, expected_pi, expected_dose, expected_ER",
     [
-        ["No mask", "Jul", 8.46, 8.113, 809],
-        ["Type I",  "Jul", 1.44, 0.727, 149],
-        ["FFP2",    "Jul", 0.43, 0.197, 149],
-        ["Type I",  "Feb", 0.54, 0.253, 149],
+        ["No mask", "Jul", 9.52, 9.920, 809],
+        ["Type I",  "Jul", 1.7, 0.913, 149],
+        ["FFP2",    "Jul", 0.51, 0.239, 149],
+        ["Type I",  "Feb", 0.57, 0.272, 149],
     ],
 )
 def test_small_shared_office_Geneva(mask_type, month, expected_pi,
                                     expected_dose, expected_ER):
     concentration_mc = mc.ConcentrationModel(
-        room=models.Room(volume=33, inside_temp=models.PiecewiseConstant((0., 24.), (293,)), humidity=0.5),
+        room=models.Room(volume=33, humidity=0.5),
         ventilation=models.MultipleVentilation(
             (
                 models.SlidingWindow(
                     active=models.SpecificInterval(((0., 24.),)),
+                    inside_temp=models.PiecewiseConstant((0., 24.), (293,)),
                     outside_temp=data.GenevaTemperatures[month],
                     window_height=1.5, opening_length=0.2,
                 ),

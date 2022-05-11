@@ -11,6 +11,7 @@ from cara import models
 def baseline_slidingwindow():
     return models.SlidingWindow(
             active=models.SpecificInterval(((0, 4), (5, 9))),
+            inside_temp=models.PiecewiseConstant((0, 24), (293,)),
             outside_temp=models.PiecewiseConstant((0, 24), (283,)),
             window_height=1.6, opening_length=0.6,
         )
@@ -20,13 +21,14 @@ def baseline_slidingwindow():
 def baseline_hingedwindow():
     return models.HingedWindow(
             active=models.SpecificInterval(((0, 4), (5, 9))),
+            inside_temp=models.PiecewiseConstant((0, 24), (293,)),
             outside_temp=models.PiecewiseConstant((0, 24), (283,)),
             window_height=1.6, opening_length=0.6, window_width=1.,
         )
 
 
 def test_number_of_windows(baseline_slidingwindow):
-    room = models.Room(volume=75, inside_temp=models.PiecewiseConstant((0, 24), (293,)))
+    room = models.Room(75)
     two_windows = dataclasses.replace(baseline_slidingwindow, number_of_windows=2)
 
     one_window_exchange = baseline_slidingwindow.air_exchange(room, 1)
@@ -61,6 +63,9 @@ def test_hinged_window(baseline_hingedwindow, window_width,
         {'outside_temp': models.PiecewiseConstant(
             (0, 2, 3), (np.array([20, 30, 28]), np.array([25, 30, 27]))
         )},
+        {'inside_temp': models.PiecewiseConstant(
+            (0, 20), (np.array([20, 30, 25]), )
+        )},
     ]
 )
 def test_hinged_window_vectorisation(override_params):
@@ -68,10 +73,11 @@ def test_hinged_window_vectorisation(override_params):
         'window_height': 0.15,
         'window_width': 0.15,
         'opening_length': 0.15,
+        'inside_temp': models.PiecewiseConstant((0, 2, 3), (20, 25)),
         'outside_temp': models.PiecewiseConstant((0, 2, 3), (10, 15)),
     }
     defaults.update(override_params)
-    room = models.Room(volume=75, inside_temp=models.PiecewiseConstant((0, 2, 3), (20, 25)))
+    room = models.Room(volume=75)
     t = 0.5
     window = models.HingedWindow(models.PeriodicInterval(60, 30), **defaults)
     if {'window_height', 'opening_length', 'window_width'}.intersection(override_params):

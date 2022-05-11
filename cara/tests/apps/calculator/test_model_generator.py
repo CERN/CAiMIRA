@@ -60,6 +60,7 @@ def test_ventilation_slidingwindow(baseline_form: model_generator.FormData):
 
     window = models.SlidingWindow(
         active=models.PeriodicInterval(period=120, duration=10, start=9),
+        inside_temp=models.PiecewiseConstant((0, 24), (293,)),
         outside_temp=baseline_window.outside_temp,
         window_height=1.6, opening_length=0.6,
     )
@@ -91,6 +92,7 @@ def test_ventilation_hingedwindow(baseline_form: model_generator.FormData):
 
     window = models.HingedWindow(
         active=models.PeriodicInterval(period=120, duration=10, start=9),
+        inside_temp=models.PiecewiseConstant((0, 24), (293,)),
         outside_temp=baseline_window.outside_temp,
         window_height=1.6, window_width=1., opening_length=0.6,
     )
@@ -104,7 +106,7 @@ def test_ventilation_hingedwindow(baseline_form: model_generator.FormData):
 
 
 def test_ventilation_mechanical(baseline_form: model_generator.FormData):
-    room = models.Room(volume=75, inside_temp=models.PiecewiseConstant((0, 24), (293,)))
+    room = models.Room(75)
     mech = models.HVACMechanical(
         active=models.PeriodicInterval(period=120, duration=120),
         q_air_mech=500.,
@@ -119,7 +121,7 @@ def test_ventilation_mechanical(baseline_form: model_generator.FormData):
 
 
 def test_ventilation_airchanges(baseline_form: model_generator.FormData):
-    room = models.Room(75, inside_temp=models.PiecewiseConstant((0, 24), (293,)))
+    room = models.Room(75)
     airchange = models.AirChange(
         active=models.PeriodicInterval(period=120, duration=120),
         air_exch=3.,
@@ -151,6 +153,7 @@ def test_ventilation_window_hepa(baseline_form: model_generator.FormData):
     # Now build the equivalent ventilation instance directly, and compare.
     window = models.SlidingWindow(
         active=models.PeriodicInterval(period=120, duration=10, start=9),
+        inside_temp=models.PiecewiseConstant((0, 24), (293,)),
         outside_temp=baseline_window.outside_temp,
         window_height=1.6, opening_length=0.6,
     )

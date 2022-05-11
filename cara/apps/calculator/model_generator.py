@@ -45,7 +45,6 @@ class FormData:
     floor_area: float
     hepa_amount: float
     hepa_option: bool
-    humidity: str
     infected_coffee_break_option: str               #Used if infected_dont_have_breaks_with_exposed
     infected_coffee_duration: int                   #Used if infected_dont_have_breaks_with_exposed
     infected_dont_have_breaks_with_exposed: bool
@@ -55,7 +54,6 @@ class FormData:
     infected_lunch_start: minutes_since_midnight    #Used if infected_dont_have_breaks_with_exposed
     infected_people: int
     infected_start: minutes_since_midnight
-    inside_temp: float
     location_name: str
     location_latitude: float
     location_longitude: float
@@ -102,7 +100,6 @@ class FormData:
         'floor_area': 0.,
         'hepa_amount': 0.,
         'hepa_option': False,
-        'humidity': '',
         'infected_coffee_break_option': 'coffee_break_0',
         'infected_coffee_duration': 5,
         'infected_dont_have_breaks_with_exposed': False,
@@ -112,7 +109,6 @@ class FormData:
         'infected_lunch_start': '12:30',
         'infected_people': _NO_DEFAULT,
         'infected_start': '08:30',
-        'inside_temp': 293.,
         'location_latitude': _NO_DEFAULT,
         'location_longitude': _NO_DEFAULT,
         'location_name': _NO_DEFAULT,
@@ -244,14 +240,11 @@ class FormData:
             volume = self.room_volume
         else:
             volume = self.floor_area * self.ceiling_height
-        if self.humidity == '':
-            if self.room_heating_option:
-                humidity = 0.3
-            else:
-                humidity = 0.5
+        if self.room_heating_option:
+            humidity = 0.3
         else:
-            humidity = float(self.humidity)
-        room = models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (self.inside_temp,)), humidity=humidity)
+            humidity = 0.5
+        room = models.Room(volume=volume, humidity=humidity)
 
         infected_population = self.infected_population()
         
@@ -336,11 +329,13 @@ class FormData:
                 window_interval = always_on
 
             outside_temp = self.outside_temp()
+            inside_temp = models.PiecewiseConstant((0, 24), (293,))
 
             ventilation: models.Ventilation
             if self.window_type == 'window_sliding':
                 ventilation = models.SlidingWindow(
                     active=window_interval,
+                    inside_temp=inside_temp,
                     outside_temp=outside_temp,
                     window_height=self.window_height,
                     opening_length=self.opening_distance,
@@ -349,6 +344,7 @@ class FormData:
             elif self.window_type == 'window_hinged':
                 ventilation = models.HingedWindow(
                     active=window_interval,
+                    inside_temp=inside_temp,
                     outside_temp=outside_temp,
                     window_height=self.window_height,
                     window_width=self.window_width,
@@ -693,7 +689,6 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'floor_area': '',
         'hepa_amount': '250',
         'hepa_option': '0',
-        'humidity': '',
         'infected_coffee_break_option': 'coffee_break_4',
         'infected_coffee_duration': '10',
         'infected_dont_have_breaks_with_exposed': '1',
@@ -703,7 +698,6 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'infected_lunch_start': '12:30',
         'infected_people': '1',
         'infected_start': '09:00',
-        'inside_temp': 293.,
         'location_latitude': 46.20833,
         'location_longitude': 6.14275,
         'location_name': 'Geneva',
