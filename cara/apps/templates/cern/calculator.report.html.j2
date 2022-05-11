@@ -76,7 +76,7 @@
       {% endif %}
       {% if form.short_range_option == "short_range_yes" %} 
         <br>
-        {% set report_message =  "Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally, the <b>probability of one exposed occupant getting infected is " + prob_inf | non_zero_percentage + "</b>." %}
+        {% set report_message =  "In this scenario, during <b>short-range interactions</b>, the <b>probability of one exposed occupant getting infected can go as high as " + prob_inf | non_zero_percentage + "</b>." %}
         {% if scale_warning == 'red' %}
           <div class="alert alert-danger mb-0" role="alert">
             <strong>Not Acceptable:</strong>
