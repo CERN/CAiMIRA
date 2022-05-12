@@ -242,34 +242,75 @@ class ExposureComparissonResult(View):
         # unless the widget is wrapped in a container (it is seen on all tabs otherwise!).
         return widgets.HBox([self.figure.canvas])
 
-    def initialize_axes(self) -> matplotlib.figure.Axes:
-        ax = self.figure.add_subplot(1, 1, 1)
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
-        ax.set_xlabel('Time (hours)')
-        ax.set_ylabel('Concentration ($virions/m^{3}$)')
-        ax.set_title('Concentration of virions')
-        return ax
-
     def scenarios_updated(self, scenarios: typing.Sequence[ScenarioType], _):
         updated_labels, updated_models = zip(*scenarios)
-        conc_models = tuple(
-            model.concentration_model.dcs_instance() for model in updated_models
+        exp_models = tuple(
+            model.dcs_instance() for model in updated_models
         )
-        self.update_plot(conc_models, updated_labels)
+        self.update_plot(exp_models, updated_labels)
 
-    def update_plot(self, conc_models: typing.Tuple[models.ConcentrationModel, ...], labels: typing.Tuple[str, ...]):
+    def update_plot(self, exp_models: typing.Tuple[models.ExposureModel, ...], labels: typing.Tuple[str, ...]):
         self.ax.lines.clear()
-        start, finish = models_start_end(conc_models)
+        self.ax2.lines.clear()
+        start, finish = models_start_end(exp_models)
+        colors=['blue', 'red', 'orange', 'yellow', 'pink', 'purple', 'green', 'brown', 'black' ]
         ts = np.linspace(start, finish, num=250)
-        concentrations = [[conc_model.concentration(t) for t in ts] for conc_model in conc_models]
-        for label, concentration in zip(labels, concentrations):
-            self.ax.plot(ts, concentration, label=label)
+        concentrations = [[conc_model.concentration_model.concentration(t) for t in ts] for conc_model in exp_models]
+        for label, concentration, color in zip(labels, concentrations, colors):
+            self.ax.plot(ts, concentration, label=label, color=color)
+            
+        cumulative_doses = [np.cumsum([
+            np.array(conc_model.deposited_exposure_between_bounds(float(time1), float(time2))).mean()
+            for time1, time2 in zip(ts[:-1], ts[1:])
+        ]) for conc_model in exp_models]
+        
+        for label, cumulative_dose, color in zip(labels, cumulative_doses, colors):
+            self.ax2.plot(ts[:-1], cumulative_dose, label=label, color=color, linestyle="dotted")
 
-        top = max(3., max([max(conc) for conc in concentrations]))
-        self.ax.set_ylim(bottom=0., top=top)
+        if self.concentration_line is None:
+            [self.concentration_line] = self.ax.plot(ts, concentration, '#3530fe', label='Concentration')
 
-        self.ax.legend()
+            ax = self.ax
+
+
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+
+            ax.set_xlabel('Time (hours)')
+            ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
+            ax.set_title('Concentration of virions \nand Cumulative dose')
+
+        else:
+            self.ax.ignore_existing_data_limits = True
+            self.concentration_line.set_data(ts, concentration)
+
+        if self.cumulative_line is None:
+            [self.cumulative_line] = self.ax2.plot(ts[:-1], cumulative_dose, '#1ffd01', label='Cumulative dose', linestyle='dotted')
+            ax2 = self.ax2 
+
+            ax2.spines['left'].set_visible(False)
+            ax2.spines['top'].set_visible(False)
+
+            ax2.set_ylabel('Mean cumulative dose (infectious virus)')
+            ax2.spines['right'].set_linestyle((0,(1,4)))
+            self.cumulative_line.set_linestyle((0,(1,4)))
+            
+        else:
+            self.ax2.ignore_existing_data_limits = True
+            self.cumulative_line.set_data(ts[:-1], cumulative_dose)
+            
+        # Update the top limit based on the concentration if it exceeds 5
+        # (rare but possible).
+
+        concentration_top = max([max(concentration) for concentration in concentrations])
+        self.ax.set_ylim(bottom=0., top=concentration_top)
+        cumulative_top = max([max(cumulative_dose) for cumulative_dose in cumulative_doses])
+        self.ax2.set_ylim(bottom=0., top=cumulative_top)
+
+        figure_legends = [mlines.Line2D([], [], color='#3530fe', markersize=15, label='Mean concentration'),
+                   mlines.Line2D([], [], color='#0000c8', markersize=15, ls="dotted", label='Cumulative dose')]
+        self.figure.legend(handles=figure_legends)
+
         self.figure.canvas.draw()
 
 
