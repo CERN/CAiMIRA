@@ -7,7 +7,6 @@ import ipywidgets as widgets
 import matplotlib
 import matplotlib.figure
 import numpy as np
-import mplcursors
 from matplotlib import pyplot as plt
 from cara import data, models, state    
 import matplotlib.lines as mlines
@@ -166,7 +165,6 @@ class ExposureModelResult(View):
         else:
             self.ax.ignore_existing_data_limits = False
             self.concentration_line.set_data(ts, concentration)
-            mplcursors.cursor(self.ax, hover=True)
         
         if self.concentration_area is None:
             self.concentration_area = self.ax.fill_between(x = ts, y1=0, y2=concentration, color="#96cbff", label="Exposed person presence",
@@ -205,7 +203,7 @@ class ExposureModelResult(View):
         figure_legends = [mlines.Line2D([], [], color='#3530fe', markersize=15, label='Mean concentration'),
                    mlines.Line2D([], [], color='#0000c8', markersize=15, ls="dotted", label='Cumulative dose'),
                    patches.Patch(edgecolor="#96cbff", facecolor='#96cbff', label='Presence of exposed person(s)')]
-        self.figure.legend(handles=figure_legends)
+        self.ax.legend(handles=figure_legends)
 
         self.figure.canvas.draw()
 
@@ -350,14 +348,13 @@ class ModelWidgets(View):
         ])], title="Infected")
 
     def _build_room_volume(self, node):
-        room_volume = widgets.IntText(value=node.volume, min=10, max=500
-        , step=5)
+        room_volume = widgets.IntText(value=node.volume, min=10, max=500, step=5)
 
-        def on_value_change(change):
+        def on_volume_change(change):
             node.volume = change['new']
 
         # TODO: Link the state back to the widget, not just the other way around.
-        room_volume.observe(on_value_change, names=['value'])
+        room_volume.observe(on_volume_change, names=['value'])
     
         return widgets.HBox([widgets.Label('Room volume (m³)'), room_volume], layout=widgets.Layout(justify_content='space-between'))
 
@@ -367,22 +364,22 @@ class ModelWidgets(View):
         room_ceiling_height = widgets.IntText(value=3, min=1, max=20, step=1)
         displayed_volume=widgets.Label('1')
 
-        def room_surface_change(change):
+        def on_room_surface_change(change):
             node.volume = change['new']*room_ceiling_height.value 
             displayed_volume.value=str(node.volume)
 
-        def room_ceiling_height_change(change):
+        def on_room_ceiling_height_change(change):
             node.volume = change['new']*room_surface.value 
             displayed_volume.value=str(node.volume)
 
-        room_surface.observe(room_surface_change, names=['value'])
-        room_ceiling_height.observe(room_ceiling_height_change, names=['value'])        
+        room_surface.observe(on_room_surface_change, names=['value'])
+        room_ceiling_height.observe(on_room_ceiling_height_change, names=['value'])        
 
-        return widgets.VBox([widgets.HBox([widgets.Label('Room surface area (m²) '), room_surface]
-        , layout=widgets.Layout(justify_content='space-between', width='100%'))
-        , widgets.HBox([widgets.Label('Room ceiling height (m)'), room_ceiling_height]
-        , layout=widgets.Layout(justify_content='space-between', width='100%'))
-        , widgets.HBox([widgets.Label('Total volume :'), displayed_volume, widgets.Label('m³')])])
+        return widgets.VBox([widgets.HBox([widgets.Label('Room surface area (m²) '), room_surface],
+        layout=widgets.Layout(justify_content='space-between', width='100%')),
+        widgets.HBox([widgets.Label('Room ceiling height (m)'), room_ceiling_height],
+        layout=widgets.Layout(justify_content='space-between', width='100%')),
+        widgets.HBox([widgets.Label('Total volume :'), displayed_volume, widgets.Label('m³')])])
 
     def _build_room(self,node):
         room_number = widgets.Text(value='', placeholder='653/R-004', disabled=False) #not linked to volume yet
@@ -414,20 +411,27 @@ class ModelWidgets(View):
         toggle_room(room_w.value)
 
         humidity = widgets.FloatSlider(value = node.humidity, min=0, max=1, step=0.01)
+        inside_temp = widgets.IntSlider(value=node.inside_temp.values[0]-273.15, min=15., max=25.)
 
-        def humidity_change(change):
+        def on_humidity_change(change):
             node.humidity = change['new']
 
-        humidity.observe(humidity_change, names=['value'])
+        def on_insidetemp_change(change):
+            node.inside_temp.values = (change['new']+273.15,)
+
+        humidity.observe(on_humidity_change, names=['value'])
+        inside_temp.observe(on_insidetemp_change, names=['value'])
 
         widget = collapsible(
             [ widgets.VBox([
                 widgets.HBox([
-                    widgets.Label('Room number '), room_number]
-                    , layout=widgets.Layout(width='100%', justify_content='space-between'))
-            , room_w, widgets.VBox(list(room_widgets.values()))
-            , widgets.HBox([widgets.Label('Indoor relative humidity '),humidity]
-            , layout=widgets.Layout(width='100%', justify_content='space-between'))
+                    widgets.Label('Room number'), room_number],
+                    layout=widgets.Layout(width='100%', justify_content='space-between')),
+            room_w, widgets.VBox(list(room_widgets.values())),
+            widgets.HBox([widgets.Label('Inside temperature (℃)'), inside_temp],
+            layout=widgets.Layout(width='100%', justify_content='space-between')),
+            widgets.HBox([widgets.Label('Indoor relative humidity'), humidity],
+            layout=widgets.Layout(width='100%', justify_content='space-between')),
             ])]
             , title="Specification of workspace"
         )
@@ -437,10 +441,10 @@ class ModelWidgets(View):
     def _build_outsidetemp(self, node) -> WidgetGroup:
         outside_temp = widgets.IntSlider(value=10, min=-10, max=30)
 
-        def outsidetemp_change(change):
+        def on_outsidetemp_change(change):
             node.values = (change['new'] + 273.15, )
 
-        outside_temp.observe(outsidetemp_change, names=['value'])
+        outside_temp.observe(on_outsidetemp_change, names=['value'])
         auto_width = widgets.Layout(width='auto')
         return WidgetGroup(
             (
@@ -454,11 +458,11 @@ class ModelWidgets(View):
     def _build_hinged_window(self, node):
             hinged_window = widgets.FloatSlider(value=node.window_width, min=0.1, max=2, step=0.1)
 
-            def hinged_window_change(change):
+            def on_hinged_window_change(change):
                 node.window_width = change['new']
 
             # TODO: Link the state back to the widget, not just the other way around.
-            hinged_window.observe(hinged_window_change, names=['value'])
+            hinged_window.observe(on_hinged_window_change, names=['value'])
             
             return widgets.HBox([widgets.Label('Window width (meters) '), hinged_window], layout=widgets.Layout(justify_content='space-between', width='100%'))
 
@@ -510,22 +514,18 @@ class ModelWidgets(View):
         def on_interval_change(change):
             node.active.duration = change['new']
 
-        def insidetemp_change(change):
-            node.inside_temp.values = (change['new']+273.15,)
-
-        def opening_length_change(change):
+        def on_opening_length_change(change):
             node.opening_length = change['new']
         
-        def window_height_change(change):
+        def on_window_height_change(change):
             node.window_height = change['new']
 
         # TODO: Link the state back to the widget, not just the other way around.
         number_of_windows.observe(on_value_change, names=['value'])
         period.observe(on_period_change, names=['value'])
         interval.observe(on_interval_change, names=['value'])
-        inside_temp.observe(insidetemp_change, names=['value'])
-        opening_length.observe(opening_length_change, names=['value'])
-        window_height.observe(window_height_change, names=['value'])
+        opening_length.observe(on_opening_length_change, names=['value'])
+        window_height.observe(on_window_height_change, names=['value'])
 
         outsidetemp_widgets = {
             'Fixed': self._build_outsidetemp(node.outside_temp),
@@ -570,10 +570,6 @@ class ModelWidgets(View):
                     interval,
                 ),
                 (
-                    widgets.Label('Inside temperature (℃)', layout=auto_width),
-                    inside_temp,
-                ),
-                (
                     widgets.Label('Outside temperature scheme', layout=auto_width),
                     outsidetemp_w,
                 ),
@@ -586,22 +582,22 @@ class ModelWidgets(View):
     def _build_q_air_mech(self, node):
         q_air_mech = widgets.FloatSlider(value=node.q_air_mech, min=0, max=1000, step=5)
 
-        def q_air_mech_change(change):
+        def on_q_air_mech_change(change):
             node.q_air_mech = change['new']
 
         # TODO: Link the state back to the widget, not just the other way around.
-        q_air_mech.observe(q_air_mech_change, names=['value'])
+        q_air_mech.observe(on_q_air_mech_change, names=['value'])
 
         return widgets.HBox([q_air_mech, widgets.Label('m³/h')])
 
     def _build_ach(self, node):
         air_exch = widgets.IntSlider(value=node.air_exch, min=0, max=50, step=5)
 
-        def air_exch_change(change):
+        def on_air_exch_change(change):
             node.air_exch = change['new']
 
         # TODO: Link the state back to the widget, not just the other way around.
-        air_exch.observe(air_exch_change, names=['value'])
+        air_exch.observe(on_air_exch_change, names=['value'])
 
         return widgets.HBox([air_exch, widgets.Label('h⁻¹')])
 
@@ -679,10 +675,10 @@ class ModelWidgets(View):
     def _build_exposed_number(self, node):
         number = widgets.IntSlider(value=node.number, min=1, max=200, step=1)
 
-        def exposed_number_change(change):
+        def on_exposed_number_change(change):
             node.number = change['new']
         # TODO: Link the state back to the widget, not just the other way around.
-        number.observe(exposed_number_change, names=['value'])
+        number.observe(on_exposed_number_change, names=['value'])
 
         return widgets.HBox([widgets.Label('Number of exposed people in the room '), number], layout=widgets.Layout(justify_content='space-between'))
 
@@ -704,10 +700,10 @@ class ModelWidgets(View):
     def _build_infected_number(self, node):
         number = widgets.IntSlider(value=node.number, min=1, max=200, step=1)
 
-        def infected_number_change(change):
+        def on_infected_number_change(change):
             node.number = change['new']
         # TODO: Link the state back to the widget, not just the other way around.
-        number.observe(infected_number_change, names=['value'])
+        number.observe(on_infected_number_change, names=['value'])
 
         return widgets.HBox([widgets.Label('Number of infected people in the room '), number], layout=widgets.Layout(justify_content='space-between'))
 
@@ -729,11 +725,11 @@ class ModelWidgets(View):
     def _build_viral_load(self, node):
         viral_load_in_sputum = widgets.Text(continuous_update=False, value=("{:.2e}".format(node.viral_load_in_sputum)))
 
-        def viral_load_change(change):
+        def on_viral_load_change(change):
             viral_load_in_sputum.value = "{:.2e}".format(float(change['new']))
             node.viral_load_in_sputum = float(viral_load_in_sputum.value)
 
-        viral_load_in_sputum.observe(viral_load_change, names=['value'])
+        viral_load_in_sputum.observe(on_viral_load_change, names=['value'])
         
         return widgets.HBox([widgets.Label("Viral load (copies/ml)"), viral_load_in_sputum], layout=widgets.Layout(justify_content='space-between'))
     
@@ -832,14 +828,14 @@ class ModelWidgets(View):
             transmissibility_factor.value = virus.transmissibility_factor
             infectious_dose.value = virus.infectious_dose
             
-        def transmissibility_change(change):
+        def on_transmissibility_change(change):
             virus = models.SARSCoV2(viral_load_in_sputum=ModelWidgets._build_viral_load(self, node).children[1].value, infectious_dose=infectious_dose.value, viable_to_RNA_ratio=0.5, transmissibility_factor=change['new'])
             node.dcs_update_from(virus)
             if (transmissibility_factor.value != models.Virus.types[virus_choice.value].transmissibility_factor):
                 virus_choice.options = list(models.Virus.types.keys()) + ["Custom"]
                 virus_choice.value = "Custom"
         
-        def infectious_dose_change(change):
+        def on_infectious_dose_change(change):
             virus = models.SARSCoV2(viral_load_in_sputum=ModelWidgets._build_viral_load(self, node).children[1].value, infectious_dose=change['new'], viable_to_RNA_ratio=0.5, transmissibility_factor=transmissibility_factor.value)
             node.dcs_update_from(virus)
             if (infectious_dose.value != models.Virus.types[virus_choice.value].infectious_dose):
@@ -847,8 +843,8 @@ class ModelWidgets(View):
                 virus_choice.value = "Custom"
 
         virus_choice.observe(on_virus_change, names=['value'])
-        transmissibility_factor.observe(transmissibility_change, names=['value'])
-        infectious_dose.observe(infectious_dose_change, names=['value'])
+        transmissibility_factor.observe(on_transmissibility_change, names=['value'])
+        infectious_dose.observe(on_infectious_dose_change, names=['value'])
 
         space_between=widgets.Layout(justify_content='space-between')
         return widgets.VBox([
@@ -861,10 +857,9 @@ class ModelWidgets(View):
 
 baseline_model = models.ExposureModel(
     concentration_model=models.ConcentrationModel(
-        room=models.Room(volume=75, humidity=0.5),
+        room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293.15,))),
         ventilation=models.SlidingWindow(
-            active=models.PeriodicInterval(period= 120, duration= 15, start=8.0),
-            inside_temp=models.PiecewiseConstant((0., 24.), (293.15,)),
+            active=models.PeriodicInterval(period=120, duration=15),
             outside_temp=models.PiecewiseConstant((0., 24.), (283.15,)),
             window_height=1.6, opening_length=0.6,
         ),
@@ -923,7 +918,6 @@ class CARAStateBuilder(state.StateBuilder):
         #Initialise the "Hinged window" state
         s._states['Hinged window'].dcs_update_from(
             models.HingedWindow(active=models.PeriodicInterval(period=120, duration=15),
-            inside_temp=models.PiecewiseConstant((0,24.), (293.15,)),
             outside_temp=models.PiecewiseConstant((0,24.), (283.15,)),
             window_height=1.6, opening_length=0.6,
             window_width=10.

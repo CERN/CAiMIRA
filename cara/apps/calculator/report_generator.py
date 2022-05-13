@@ -109,7 +109,7 @@ def concentrations_with_sr_breathing(form: FormData, model: models.ExposureModel
     return lower_concentrations
 
 
-def calculate_report_data(form: FormData, model: models.ExposureModel):
+def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing.Dict[str, typing.Any]:
     times = interesting_times(model)
     short_range_intervals = [interaction.presence.boundaries()[0] for interaction in model.short_range]
     short_range_expirations = [interaction['expiration'] for interaction in form.short_range_interactions] if form.short_range_option == "short_range_yes" else []
