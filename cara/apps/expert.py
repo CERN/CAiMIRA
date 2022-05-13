@@ -168,14 +168,14 @@ class ExposureModelResult(View):
         
         if self.concentration_area is None:
             self.concentration_area = self.ax.fill_between(x = ts, y1=0, y2=concentration, color="#96cbff", label="Exposed person presence",
-                where = ((model.exposed.presence.present_times[0][0] < ts) & (ts < model.exposed.presence.present_times[0][1]) | 
-                    (model.exposed.presence.present_times[1][0] < ts) & (ts < model.exposed.presence.present_times[1][1])))
-
+                where = ((model.exposed.presence.boundaries()[0][0] < ts) & (ts < model.exposed.presence.boundaries()[0][1]) | 
+                    (model.exposed.presence.boundaries()[1][0] < ts) & (ts < model.exposed.presence.boundaries()[1][1])))
+                   
         else:
             self.concentration_area.remove()         
             self.concentration_area = self.ax.fill_between(x = ts, y1=0, y2=concentration, color="#96cbff", label="Exposed person presence",
-                where = ((model.exposed.presence.present_times[0][0] < ts) & (ts < model.exposed.presence.present_times[0][1]) | 
-                    (model.exposed.presence.present_times[1][0] < ts) & (ts < model.exposed.presence.present_times[1][1])))
+                where = ((model.exposed.presence.boundaries()[0][0] < ts) & (ts < model.exposed.presence.boundaries()[0][1]) | 
+                    (model.exposed.presence.boundaries()[1][0] < ts) & (ts < model.exposed.presence.boundaries()[1][1])))
 
         if self.cumulative_line is None:
             [self.cumulative_line] = self.ax2.plot(ts[:-1], cumulative_doses, color='#0000c8', label='Cumulative dose', linestyle='dotted')
@@ -198,7 +198,7 @@ class ExposureModelResult(View):
         cumulative_top = max([1e-5, max(cumulative_doses)])
         self.ax2.set_ylim(bottom=0., top=cumulative_top)
 
-        self.ax.set_xlim(left = min(min(model.concentration_model.infected.presence.present_times[0]), min(model.exposed.presence.present_times[0])), right = max(max(model.concentration_model.infected.presence.present_times[1]), max(model.exposed.presence.present_times[1])))
+        self.ax.set_xlim(left = min(min(model.concentration_model.infected.presence.boundaries()[0]), min(model.exposed.presence.boundaries()[0])), right = max(max(model.concentration_model.infected.presence.boundaries()[1]), max(model.exposed.presence.boundaries()[1])))
    
         figure_legends = [mlines.Line2D([], [], color='#3530fe', markersize=15, label='Mean concentration'),
                    mlines.Line2D([], [], color='#0000c8', markersize=15, ls="dotted", label='Cumulative dose'),
