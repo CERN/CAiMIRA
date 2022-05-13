@@ -49,6 +49,9 @@ class StateBuilder:
     def build_generic(self, type_to_build: typing.Type) -> "DataclassInstanceState":
         return DataclassInstanceState(type_to_build, state_builder=self)
 
+    def build_type_tuple(self, field) -> "TupleState":
+        return TupleState(state_builder=self)
+
 
 class DataclassState(typing.Generic[Datamodel_T]):
     def __init__(self, state_builder=StateBuilder()):

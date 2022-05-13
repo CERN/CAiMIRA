@@ -144,19 +144,13 @@ def test_observe_instance_nested():
     nested.assert_not_called()
 
 
-class CustomStateBuilderForContainer(state.StateBuilder):
-    def build_type_tuple_of_DCSimple(self, field):
-        return state.TupleState(state_builder=self)
-
-
 def test_observe_instance_container__container():
     top_level = Mock()
     nested = Mock()
 
-    builder = CustomStateBuilderForContainer()
     dc1 = DCSimple(attr1='foo', attr2=2)
     dc2 = DCSimple(attr1='bar', attr2=3)
-    s = state.DataclassInstanceState(DCContainer, builder)
+    s = state.DataclassInstanceState(DCContainer)
     u = DCContainer(contained=(dc1, dc2))
     s.dcs_update_from(u)
 

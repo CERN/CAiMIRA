@@ -531,20 +531,6 @@ class CARAStateBuilder(state.StateBuilder):
             choices=models.Virus.types,
         )
 
-    def build_type__VentilationBase(self, _: dataclasses.Field):
-        s: state.DataclassStateNamed = state.DataclassStateNamed(
-            states={
-                'Natural': self.build_generic(models.WindowOpening),
-                'Mechanical': self.build_generic(models.HVACMechanical),
-            },
-            state_builder=self,
-        )
-        # Initialise the HVAC state
-        s._states['Mechanical'].dcs_update_from(
-            models.HVACMechanical(models.PeriodicInterval(period=24*60, duration=24*60), 500.)
-        )
-        return s
-
 
 class ExpertApplication(Controller):
     def __init__(self):
