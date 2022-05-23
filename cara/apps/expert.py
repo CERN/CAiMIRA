@@ -410,7 +410,7 @@ class ModelWidgets(View):
         room_w.observe(lambda event: toggle_room(event['new']), 'value')
         toggle_room(room_w.value)
 
-        humidity = widgets.FloatSlider(value = node.humidity, min=0, max=1, step=0.01)
+        humidity = widgets.FloatSlider(value = node.humidity, min=20, max=80, step=5)
         inside_temp = widgets.IntSlider(value=node.inside_temp.values[0]-273.15, min=15., max=25.)
 
         def on_humidity_change(change):
@@ -430,7 +430,7 @@ class ModelWidgets(View):
             room_w, widgets.VBox(list(room_widgets.values())),
             widgets.HBox([widgets.Label('Inside temperature (℃)'), inside_temp],
             layout=widgets.Layout(width='100%', justify_content='space-between')),
-            widgets.HBox([widgets.Label('Indoor relative humidity'), humidity],
+            widgets.HBox([widgets.Label('Indoor relative humidity (%)'), humidity],
             layout=widgets.Layout(width='100%', justify_content='space-between')),
             ])]
             , title="Specification of workspace"
