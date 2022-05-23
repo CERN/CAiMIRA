@@ -410,7 +410,7 @@ class ModelWidgets(View):
         room_w.observe(lambda event: toggle_room(event['new']), 'value')
         toggle_room(room_w.value)
 
-        humidity = widgets.FloatSlider(value = node.humidity, min=20, max=80, step=5)
+        humidity = widgets.FloatSlider(value = node.humidity*100, min=20, max=80, step=5)
         inside_temp = widgets.IntSlider(value=node.inside_temp.values[0]-273.15, min=15., max=25.)
 
         def on_humidity_change(change):
