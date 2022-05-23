@@ -414,7 +414,7 @@ class ModelWidgets(View):
         inside_temp = widgets.IntSlider(value=node.inside_temp.values[0]-273.15, min=15., max=25.)
 
         def on_humidity_change(change):
-            node.humidity = change['new']
+            node.humidity = change['new']/100
 
         def on_insidetemp_change(change):
             node.inside_temp.values = (change['new']+273.15,)
