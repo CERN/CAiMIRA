@@ -6,11 +6,13 @@ import ipympl.backend_nbagg
 import ipywidgets as widgets
 import matplotlib
 import matplotlib.figure
-import numpy as np
-from matplotlib import pyplot as plt
-from cara import data, models, state    
 import matplotlib.lines as mlines
 import matplotlib.patches as patches
+from matplotlib import pyplot as plt
+import numpy as np
+
+from cara import data, models, state    
+
 
 def collapsible(widgets_to_collapse: typing.List, title: str, start_collapsed=False):
     collapsed = widgets.Accordion([widgets.VBox(widgets_to_collapse)])
@@ -110,8 +112,7 @@ class ExposureModelResult(View):
         self.figure = matplotlib.figure.Figure(figsize=(9, 6))
         ipympl_canvas(self.figure)
         self.html_output = widgets.HTML()
-        self.ax = self.figure.add_subplot(1, 1, 1)
-        self.ax2 = self.ax.twinx()
+        self.ax, self.ax2 = self.initialize_axes()
         self.concentration_line = None
         self.concentration_area = None
         self.cumulative_line = None
@@ -128,9 +129,16 @@ class ExposureModelResult(View):
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
         ax.set_xlabel('Time (hours)')
-        ax.set_ylabel('Concentration ($virions/m^{3}$)')
-        ax.set_title('Concentration of virions')
-        return ax
+        ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
+        ax.set_title('Concentration of virions \nand Cumulative dose')
+
+        ax2 = ax.twinx() 
+        ax2.spines['left'].set_visible(False)
+        ax2.spines['top'].set_visible(False)
+        ax2.set_ylabel('Mean cumulative dose (infectious virus)')
+        ax2.spines['right'].set_linestyle((0,(1,4)))
+        
+        return ax, ax2
 
     def update(self, model: models.ExposureModel):
         self.update_plot(model)
@@ -148,57 +156,37 @@ class ExposureModelResult(View):
         ])
 
         if self.concentration_line is None:
-            [self.concentration_line] = self.ax.plot(ts, concentration, color='#3530fe', label='Concentration')
-            ax = self.ax
-
-            #ax.text(0.5, 0.9, 'Without masks & window open', transform=ax.transAxes, ha='center')
-
-            ax.spines['right'].set_visible(False)
-            ax.spines['top'].set_visible(False)
-
-            ax.set_xlabel('Time (hours)')
-            ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
-            ax.set_title('Concentration of virions \nand Cumulative dose')
-
-            #cursor = SnaptoCursor(self.ax, ts, concentration)
+            [self.concentration_line] = self.ax.plot(ts, concentration, color='#3530fe')
 
         else:
             self.ax.ignore_existing_data_limits = False
             self.concentration_line.set_data(ts, concentration)
         
         if self.concentration_area is None:
-            self.concentration_area = self.ax.fill_between(x = ts, y1=0, y2=concentration, color="#96cbff", label="Exposed person presence",
+            self.concentration_area = self.ax.fill_between(x = ts, y1=0, y2=concentration, color="#96cbff",
                 where = ((model.exposed.presence.boundaries()[0][0] < ts) & (ts < model.exposed.presence.boundaries()[0][1]) | 
                     (model.exposed.presence.boundaries()[1][0] < ts) & (ts < model.exposed.presence.boundaries()[1][1])))
                    
         else:
             self.concentration_area.remove()         
-            self.concentration_area = self.ax.fill_between(x = ts, y1=0, y2=concentration, color="#96cbff", label="Exposed person presence",
+            self.concentration_area = self.ax.fill_between(x = ts, y1=0, y2=concentration, color="#96cbff",
                 where = ((model.exposed.presence.boundaries()[0][0] < ts) & (ts < model.exposed.presence.boundaries()[0][1]) | 
                     (model.exposed.presence.boundaries()[1][0] < ts) & (ts < model.exposed.presence.boundaries()[1][1])))
 
         if self.cumulative_line is None:
-            [self.cumulative_line] = self.ax2.plot(ts[:-1], cumulative_doses, color='#0000c8', label='Cumulative dose', linestyle='dotted')
-
-            ax2 = self.ax2 
-            ax2.spines['left'].set_visible(False)
-            ax2.spines['top'].set_visible(False)
-
-            ax2.set_ylabel('Mean cumulative dose (infectious virus)')
-            ax2.spines['right'].set_linestyle((0,(1,4)))
+            [self.cumulative_line] = self.ax2.plot(ts[:-1], cumulative_doses, color='#0000c8', linestyle='dotted')
             
         else:
             self.ax2.ignore_existing_data_limits = False
             self.cumulative_line.set_data(ts[:-1], cumulative_doses)
 
-        # Update the top limit based on the concentration if it exceeds 5
-        # (rare but possible).
-        concentration_top = max([1e-5, max(concentration)])
+        concentration_top = max(concentration)
         self.ax.set_ylim(bottom=0., top=concentration_top)
-        cumulative_top = max([1e-5, max(cumulative_doses)])
+        cumulative_top = max(cumulative_doses)
         self.ax2.set_ylim(bottom=0., top=cumulative_top)
 
-        self.ax.set_xlim(left = min(min(model.concentration_model.infected.presence.boundaries()[0]), min(model.exposed.presence.boundaries()[0])), right = max(max(model.concentration_model.infected.presence.boundaries()[1]), max(model.exposed.presence.boundaries()[1])))
+        self.ax.set_xlim(left = min(min(model.concentration_model.infected.presence.boundaries()[0]), min(model.exposed.presence.boundaries()[0])), 
+                        right = max(max(model.concentration_model.infected.presence.boundaries()[1]), max(model.exposed.presence.boundaries()[1])))
    
         figure_legends = [mlines.Line2D([], [], color='#3530fe', markersize=15, label='Mean concentration'),
                    mlines.Line2D([], [], color='#0000c8', markersize=15, ls="dotted", label='Cumulative dose'),
@@ -229,16 +217,31 @@ class ExposureComparissonResult(View):
         self.figure = matplotlib.figure.Figure(figsize=(9, 6))
         ipympl_canvas(self.figure)
         self.html_output = widgets.HTML()
-        self.ax = self.figure.add_subplot(1, 1, 1)
-        self.ax2 = self.ax.twinx()
-        self.concentration_line = None
-        self.cumulative_line = None
+        self.ax, self.ax2 = self.initialize_axes()
 
     @property
     def widget(self):
         # Workaround to a bug with ipymlp, which doesn't work well with tabs
         # unless the widget is wrapped in a container (it is seen on all tabs otherwise!).
         return widgets.HBox([self.figure.canvas])
+
+    def initialize_axes(self) -> matplotlib.figure.Axes:
+        ax = self.figure.add_subplot(1, 1, 1)
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        
+        ax.set_xlabel('Time (hours)')
+        ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
+        ax.set_title('Concentration of virions \nand Cumulative dose')
+        
+        ax2 = ax.twinx()
+        ax2.spines['left'].set_visible(False)
+        ax2.spines['top'].set_visible(False)
+        ax2.spines['right'].set_linestyle((0,(1,4)))
+
+        ax2.set_ylabel('Mean cumulative dose (infectious virus)')
+
+        return ax, ax2
 
     def scenarios_updated(self, scenarios: typing.Sequence[ScenarioType], _):
         updated_labels, updated_models = zip(*scenarios)
@@ -264,51 +267,13 @@ class ExposureComparissonResult(View):
         
         for label, cumulative_dose, color in zip(labels, cumulative_doses, colors):
             self.ax2.plot(ts[:-1], cumulative_dose, label=label, color=color, linestyle="dotted")
-
-        if self.concentration_line is None:
-            [self.concentration_line] = self.ax.plot(ts, concentration, '#3530fe', label='Concentration')
-
-            ax = self.ax
-
-
-            ax.spines['right'].set_visible(False)
-            ax.spines['top'].set_visible(False)
-
-            ax.set_xlabel('Time (hours)')
-            ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
-            ax.set_title('Concentration of virions \nand Cumulative dose')
-
-        else:
-            self.ax.ignore_existing_data_limits = True
-            self.concentration_line.set_data(ts, concentration)
-
-        if self.cumulative_line is None:
-            [self.cumulative_line] = self.ax2.plot(ts[:-1], cumulative_dose, '#1ffd01', label='Cumulative dose', linestyle='dotted')
-            ax2 = self.ax2 
-
-            ax2.spines['left'].set_visible(False)
-            ax2.spines['top'].set_visible(False)
-
-            ax2.set_ylabel('Mean cumulative dose (infectious virus)')
-            ax2.spines['right'].set_linestyle((0,(1,4)))
-            self.cumulative_line.set_linestyle((0,(1,4)))
             
-        else:
-            self.ax2.ignore_existing_data_limits = True
-            self.cumulative_line.set_data(ts[:-1], cumulative_dose)
-            
-        # Update the top limit based on the concentration if it exceeds 5
-        # (rare but possible).
-
         concentration_top = max([max(concentration) for concentration in concentrations])
         self.ax.set_ylim(bottom=0., top=concentration_top)
         cumulative_top = max([max(cumulative_dose) for cumulative_dose in cumulative_doses])
         self.ax2.set_ylim(bottom=0., top=cumulative_top)
 
-        figure_legends = [mlines.Line2D([], [], color='#3530fe', markersize=15, label='Mean concentration'),
-                   mlines.Line2D([], [], color='#0000c8', markersize=15, ls="dotted", label='Cumulative dose')]
-        self.figure.legend(handles=figure_legends)
-
+        self.ax.legend()
         self.figure.canvas.draw()
 
 
@@ -724,7 +689,6 @@ class ModelWidgets(View):
 
     def _build_viral_load(self, node):
         viral_load_in_sputum = widgets.Text(continuous_update=False, value=("{:.2e}".format(node.viral_load_in_sputum)))
-
         def on_viral_load_change(change):
             viral_load_in_sputum.value = "{:.2e}".format(float(change['new']))
             node.viral_load_in_sputum = float(viral_load_in_sputum.value)
@@ -737,7 +701,7 @@ class ModelWidgets(View):
        
         presence_start = widgets.FloatRangeSlider(value = node.present_times[0], min = 8., max=13., step=0.1)
         presence_finish = widgets.FloatRangeSlider(value = node.present_times[1], min = 13., max=18., step=0.1)
-        #node.present_times = ((presence_start), (presence_stop))
+
         def on_presence_start_change(change):
             node.present_times = (change['new'], presence_finish.value)
             
@@ -808,15 +772,14 @@ class ModelWidgets(View):
 
         return widgets.HBox([widgets.Label('HEPA Filtration (m³/h) '),HEPA_w], layout=widgets.Layout(justify_content='space-between'))
 
-    def _build_infectivity(self,node):
+    def _build_infectivity(self, node):
         return collapsible([widgets.VBox([
             self._build_virus(node.virus),
         ])], title="Virus data")
 
     def _build_virus(self, node):
-        virus = node.dcs_instance()
         for name, virus_ in models.Virus.types.items():
-            if virus == virus_:
+            if node.dcs_instance() == virus_:
                 break
         virus_choice = widgets.Dropdown(options=list(models.Virus.types.keys()), value=name)
         transmissibility_factor = widgets.FloatSlider(value=node.transmissibility_factor, min=0, max=1, step=0.1)
@@ -829,17 +792,19 @@ class ModelWidgets(View):
             infectious_dose.value = virus.infectious_dose
             
         def on_transmissibility_change(change):
-            virus = models.SARSCoV2(viral_load_in_sputum=ModelWidgets._build_viral_load(self, node).children[1].value, infectious_dose=infectious_dose.value, viable_to_RNA_ratio=0.5, transmissibility_factor=change['new'])
+            virus = models.SARSCoV2(viral_load_in_sputum=node.dcs_instance().viral_load_in_sputum, infectious_dose=infectious_dose.value, 
+                                    viable_to_RNA_ratio=0.5, transmissibility_factor=change['new'])
             node.dcs_update_from(virus)
             if (transmissibility_factor.value != models.Virus.types[virus_choice.value].transmissibility_factor):
                 virus_choice.options = list(models.Virus.types.keys()) + ["Custom"]
                 virus_choice.value = "Custom"
         
         def on_infectious_dose_change(change):
-            virus = models.SARSCoV2(viral_load_in_sputum=ModelWidgets._build_viral_load(self, node).children[1].value, infectious_dose=change['new'], viable_to_RNA_ratio=0.5, transmissibility_factor=transmissibility_factor.value)
+            virus = models.SARSCoV2(viral_load_in_sputum=node.dcs_instance().viral_load_in_sputum, infectious_dose=change['new'], 
+                                    viable_to_RNA_ratio=0.5, transmissibility_factor=transmissibility_factor.value)
             node.dcs_update_from(virus)
             if (infectious_dose.value != models.Virus.types[virus_choice.value].infectious_dose):
-                virus_choice.options = list(models.Virus.types.keys()) + ["Custom"]
+                virus_choice.options.append("Custom")
                 virus_choice.value = "Custom"
 
         virus_choice.observe(on_virus_change, names=['value'])
@@ -896,12 +861,6 @@ class CARAStateBuilder(state.StateBuilder):
             choices=models.Mask.types,
         )
 
-    def build_type_Virus(self, _: dataclasses.Field):
-        return state.DataclassStatePredefined(
-            models.Virus,
-            choices=models.Virus.types,
-        )
-
     def build_type__VentilationBase(self, _: dataclasses.Field):
         s: state.DataclassStateNamed = state.DataclassStateNamed(
             states={
@@ -918,11 +877,10 @@ class CARAStateBuilder(state.StateBuilder):
         #Initialise the "Hinged window" state
         s._states['Hinged window'].dcs_update_from(
             models.HingedWindow(active=models.PeriodicInterval(period=120, duration=15),
-            outside_temp=models.PiecewiseConstant((0,24.), (283.15,)),
-            window_height=1.6, opening_length=0.6,
-            window_width=10.
+                outside_temp=models.PiecewiseConstant((0,24.), (283.15,)),
+                window_height=1.6, opening_length=0.6,
+                window_width=10.
             ),
-
         )
         # Initialise the "HVAC" state
         s._states['HVACMechanical'].dcs_update_from(
