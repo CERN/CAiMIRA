@@ -309,7 +309,7 @@ class ModelWidgets(View):
             self._build_expiration(node.expiration),
             self._build_viral_load(node.virus),
             self._build_infected_presence(node.presence, ventilation_node.active),
-            ModelWidgets._build_infectivity(self,node)
+            self._build_infectivity(node)
         ])], title="Infected")
 
     def _build_room_volume(self, node):
