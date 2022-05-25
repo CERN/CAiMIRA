@@ -292,8 +292,7 @@ class ModelWidgets(View):
         self.widget.children += (self._build_ventilation(node.concentration_model.ventilation),)
         self.widget.children += (self._build_infected(node.concentration_model.infected, node.concentration_model.ventilation),)
         self.widget.children += (self._build_exposed(node),)
-        self.widget.children += (self._build_infectivity(node.concentration_model.infected),)
-
+        
     def _build_exposed(self, node):
         return collapsible([widgets.VBox([
             self._build_exposed_number(node.exposed),
@@ -309,7 +308,8 @@ class ModelWidgets(View):
             self._build_activity(node.activity),
             self._build_expiration(node.expiration),
             self._build_viral_load(node.virus),
-            self._build_infected_presence(node.presence, ventilation_node.active)
+            self._build_infected_presence(node.presence, ventilation_node.active),
+            ModelWidgets._build_infectivity(self,node)
         ])], title="Infected")
 
     def _build_room_volume(self, node):
