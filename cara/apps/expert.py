@@ -327,7 +327,7 @@ class ModelWidgets(View):
     def _build_room_area(self, node):
         room_surface = widgets.IntText(value=25, min=1, max=200, step=10)
         room_ceiling_height = widgets.IntText(value=3, min=1, max=20, step=1)
-        displayed_volume=widgets.Label('1')
+        displayed_volume=widgets.Label('75')
 
         def on_room_surface_change(change):
             node.volume = change['new']*room_ceiling_height.value 
@@ -545,7 +545,7 @@ class ModelWidgets(View):
         return widgets.VBox([window_w, widgets.HBox(list(window_widgets.values())), result.build()])
 
     def _build_q_air_mech(self, node):
-        q_air_mech = widgets.FloatSlider(value=node.q_air_mech, min=0, max=1000, step=5)
+        q_air_mech = widgets.FloatSlider(value=node.q_air_mech, min=0, max=5000, step=25)
 
         def on_q_air_mech_change(change):
             node.q_air_mech = change['new']
@@ -556,7 +556,7 @@ class ModelWidgets(View):
         return widgets.HBox([q_air_mech, widgets.Label('m³/h')])
 
     def _build_ach(self, node):
-        air_exch = widgets.IntSlider(value=node.air_exch, min=0, max=50, step=5)
+        air_exch = widgets.IntSlider(value=node.air_exch, min=0, max=20, step=1)
 
         def on_air_exch_change(change):
             node.air_exch = change['new']
