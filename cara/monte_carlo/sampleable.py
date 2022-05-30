@@ -62,7 +62,9 @@ class Custom(SampleableDistribution):
     """
     Defines a distribution which follows a custom curve vs. the random
     variable. Uses a simple algorithm. This is appropriate for a smooth
-    distribution function (one should know its maximum).
+    distribution function.
+    Note: in max_function, a value slightly above the maximum of the distribution 
+    function should be provided.
     """
     def __init__(self, bounds: typing.Tuple[float, float],
                  function: typing.Callable, max_function: float):
@@ -84,9 +86,11 @@ class Custom(SampleableDistribution):
 
 class LogCustom(SampleableDistribution):
     """
-    Defines a distribution which follows a custom curve vs. the the log (in base 10)
+    Defines a distribution which follows a custom curve vs. the log (in base 10)
     of the random variable. Uses a simple algorithm. This is appropriate for a smooth
-    distribution function (one should know its maximum).
+    distribution function. 
+    Note: in max_function, a value slightly above the maximum of the distribution 
+    function should be provided.
     """
     def __init__(self, bounds: typing.Tuple[float, float],
                  function: typing.Callable, max_function: float):
