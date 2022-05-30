@@ -82,6 +82,30 @@ class Custom(SampleableDistribution):
         return x
 
 
+class LogCustom(SampleableDistribution):
+    """
+    Defines a distribution which follows a custom curve vs. the the log (in base 10)
+    of the random variable. Uses a simple algorithm. This is appropriate for a smooth
+    distribution function (one should know its maximum).
+    """
+    def __init__(self, bounds: typing.Tuple[float, float],
+                 function: typing.Callable, max_function: float):
+        self.bounds = bounds
+        self.function = function
+        self.max_function = max_function
+
+    def generate_samples(self, size: int) -> float_array_size_n:
+        fvalue = np.random.uniform(0,self.max_function,size)
+        x = np.random.uniform(*self.bounds,size)
+        invalid = np.where(fvalue>self.function(x))[0]
+        while len(invalid)>0:
+            fvalue[invalid] = np.random.uniform(0,self.max_function,len(invalid))
+            x[invalid] = np.random.uniform(*self.bounds,len(invalid))
+            invalid = np.where(fvalue>self.function(x))[0]
+
+        return 10 ** x
+
+
 class CustomKernel(SampleableDistribution):
     """
     Defines a distribution which follows a custom curve vs. the

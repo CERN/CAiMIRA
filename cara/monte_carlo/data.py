@@ -6,7 +6,7 @@ from scipy import special as sp
 from scipy.stats import weibull_min
 
 import cara.monte_carlo as mc
-from cara.monte_carlo.sampleable import LogNormal,LogCustomKernel,CustomKernel,Uniform, Custom
+from cara.monte_carlo.sampleable import LogCustom, LogNormal,LogCustomKernel,CustomKernel,Uniform, Custom
 
 
 sqrt2pi = np.sqrt(2.*np.pi)
@@ -108,8 +108,10 @@ symptomatic_vl_frequencies = LogCustomKernel(
 # https://iiif.elifesciences.org/lax:65774%2Felife-65774-fig4-figsupp3-v2.tif/full/1500,/0/default.jpg
 viral_load = np.linspace(weibull_min.ppf(0.01, c=3.47, scale=7.01),
                 weibull_min.ppf(0.99, c=3.47, scale=7.01), 30)
-frequencies = weibull_min.pdf(viral_load, c=3.47, scale=7.01)
-covid_overal_vl_data = Custom(bounds=(2, 10), function=lambda d: np.interp(d, viral_load, frequencies, right=0., left=0.), max_function=0.16)
+frequencies_pdf = weibull_min.pdf(viral_load, c=3.47, scale=7.01)
+covid_overal_vl_data = LogCustom(bounds=(2, 10), 
+                        function=lambda d: np.interp(d, viral_load, frequencies_pdf, right=0., left=0.), 
+                        max_function=0.2)
 
 
 # Derived from data in doi.org/10.1016/j.ijid.2020.09.025 and
