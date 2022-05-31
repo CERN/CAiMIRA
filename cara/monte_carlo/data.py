@@ -126,31 +126,31 @@ infectious_dose_distribution = Uniform(10., 100.)
 # From https://doi.org/10.1101/2021.10.14.21264988 and refererences therein
 virus_distributions = {
     'SARS_CoV_2': mc.SARSCoV2(
-                viral_load_in_sputum=symptomatic_vl_frequencies,
+                viral_load_in_sputum=covid_overal_vl_data,
                 infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
                 transmissibility_factor=1.,
                 ),
     'SARS_CoV_2_ALPHA': mc.SARSCoV2(
-                viral_load_in_sputum=symptomatic_vl_frequencies,
+                viral_load_in_sputum=covid_overal_vl_data,
                 infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
                 transmissibility_factor=0.78,
                 ),
     'SARS_CoV_2_BETA': mc.SARSCoV2(
-                viral_load_in_sputum=symptomatic_vl_frequencies,
+                viral_load_in_sputum=covid_overal_vl_data,
                 infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
                 transmissibility_factor=0.8,
                 ),
     'SARS_CoV_2_GAMMA': mc.SARSCoV2(
-                viral_load_in_sputum=symptomatic_vl_frequencies,
+                viral_load_in_sputum=covid_overal_vl_data,
                 infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
                 transmissibility_factor=0.72,
                 ),
     'SARS_CoV_2_DELTA': mc.SARSCoV2(
-                viral_load_in_sputum=symptomatic_vl_frequencies,
+                viral_load_in_sputum=covid_overal_vl_data,
                 infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
                 transmissibility_factor=0.51,
