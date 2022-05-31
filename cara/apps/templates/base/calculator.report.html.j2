@@ -46,6 +46,13 @@
 	
 		<div class="tab-pane show active" id="results" role="tabpanel" aria-labelledby="results-tab" style="padding: 1%">
 			
+			{% if form.short_range_option == "short_range_yes" %} 
+				{% set scenario = alternative_scenarios.stats.values() | first %}
+				{% set long_range_prob_inf = scenario.probability_of_infection %}
+			{% else %}
+				{% set long_range_prob_inf = prob_inf %}
+			{% endif %}
+			
 			{% block report_results %}
 				<div class="card bg-light mb-3" id="results-div">
   					<div class="card-header"><strong>Results </strong>
@@ -59,36 +66,73 @@
 						<div class="card-body">
 							<p class="card-text">
 								<div class="align-self-center">
-									<div class="d-flex">
 									<div class="split">
-										<div class="col-md-3">
-											<div style="text-align:center"><b>Probability of infection (%)</b></div>
-											<div class="d-flex" style="min-height: 160px">
-												{% block warning_animation %}
-													<div class="intro-banner-vdo-play-btn animation-color m-auto d-flex align-items-center justify-content-center">
-														<b>{{prob_inf | non_zero_percentage}}</b>
-														<i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
-														<span class="ripple animation-color"></span>
-														<span class="ripple animation-color"></span>
-														<span class="ripple animation-color"></span>
-													</div>
-												{% endblock warning_animation %}
+											<div class="card card-body align-self-center" style="text-align:center; max-width: 300px">
+												<h6 class="card-title">
+													<b>Probability of infection (%)</b><br>
+													{% if form.short_range_option == "short_range_yes" %}
+														Without <b>short-range interactions</b> 
+													{% endif %}
+												</h6>
+												<br>
+												<img src="/static/images/long_range_anim.png" class="align-middle mb-3">
+												<div class="d-flex" style="min-height: 160px">
+													{% block long_range_warning_animation %}
+														<div class="intro-banner-vdo-play-btn animation-color m-auto d-flex align-items-center justify-content-center">
+															<b>{{long_range_prob_inf | non_zero_percentage}}</b>
+															<i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
+															<span class="ripple animation-color"></span>
+															<span class="ripple animation-color"></span>
+															<span class="ripple animation-color"></span>
+														</div>
+													{% endblock long_range_warning_animation %}
+												</div>
 											</div>
-										</div>
-										<div class="col-md-8 pr-0 pl-0 d-flex">
+											<br>
+											{% if form.short_range_option == "short_range_yes" %}
+												<div class="card card-body align-self-center" style="text-align:center; max-width: 300px">
+													<h6 class="card-title">
+														<b>Probability of infection (%)</b><br>
+														With <b>short-range interactions</b>
+													</h6>
+													<br>
+													<img src="/static/images/short_range_anim.png" class="align-middle mb-3">
+													<div class="d-flex" style="min-height: 160px">
+														{% block warning_animation %}
+															<div class="intro-banner-vdo-play-btn animation-color m-auto d-flex align-items-center justify-content-center">
+															<b>{{prob_inf | non_zero_percentage}}</b>
+															<i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
+															<span class="ripple animation-color"></span>
+															<span class="ripple animation-color"></span>
+															<span class="ripple animation-color"></span>
+														</div>
+														{% endblock warning_animation %}
+													</div>
+												</div>
+											{% endif %}
+										<div class="d-flex">
 											{% block report_summary %}
-												<div class="align-self-center alert alert-dark mb-0" role="alert">
-													Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally, the <b>probability of one exposed occupant getting infected is {{ prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>*.
+												<br>
+												<div class="flex-row align-self-center">
+													<br>
+													<div class="align-self-center alert alert-dark mb-0" role="alert">
+														Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally (i.e. without short-range interactions), the <b>probability of one exposed occupant getting infected is {{ long_range_prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>*.
+													</div>
+													{% if form.short_range_option == "short_range_yes" %}
+														<br>
+														<div class="align-self-center alert alert-dark mb-0" role="alert">
+															In this scenario, assuming <b>short-range interactions</b> occur, the <b>probability of one exposed occupant getting infected can go as high as {{ prob_inf | non_zero_percentage }}</b>.
+														</div>
+													{% endif %}
 												</div>
 											{% endblock report_summary %}
 										</div>
-									</div>
 									</div>
 									<br>
 									{% block report_summary_footnote %}
 									{% endblock report_summary_footnote %}
 								</div>
-								<p id="section1">* The results are based on the parameters and assumptions published in the CARA publication: <a href="https://doi.org/10.1098/rsfs.2021.0076"> doi.org/10.1098/rsfs.2021.0076</a>.</p><br>
+								<br><p id="section1">* The results are based on the parameters and assumptions published in the CARA publication: <a href="https://doi.org/10.1098/rsfs.2021.0076"> doi.org/10.1098/rsfs.2021.0076</a>.</p><br>
 								{% if form.short_range_option == "short_range_yes" %}
 									{% if 'Speaking' in form.short_range_interactions|string or 'Shouting' in form.short_range_interactions|string %}
 										<button class="btn btn-sm btn-primary" id="button_full_exposure" disabled>Show full exposure</button>

@@ -438,7 +438,7 @@ class SimpleExposureModel(SimpleConcentrationModel):
     def dose(self) -> _VectorisedFloat:
         """
         total deposited dose (integrated over time and over particle
-        diameters), including short and long range.
+        diameters), including short and long-range.
         """
         result = 0.
         for t1,t2 in self.infected_presence.boundaries():

@@ -256,6 +256,10 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
         without_mask_or_vent = dataclass_utils.replace(without_mask, ventilation_type='no_ventilation')
         scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_mc_model()
         scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_mc_model()
+    
+    else:
+        no_short_range_alternative = dataclass_utils.replace(form, short_range_interactions=[])
+        scenarios['Base scenario without short-range interactions'] = no_short_range_alternative.build_mc_model()
 
     return scenarios
 
