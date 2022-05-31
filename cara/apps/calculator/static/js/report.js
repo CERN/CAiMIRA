@@ -103,7 +103,7 @@ function draw_plot(svg_id) {
 
     sr_unique_activities = [...new Set(short_range_expirations)]
     if (show_sr_legend) {
-        // Long range cumulative dose line legend - line and area
+        // Long-range cumulative dose line legend - line and area
         var legendLongCumulativeIcon = vis.append('line')
             .style("stroke-dasharray", "5 5") //dashed array for line
             .attr('stroke-width', '2')
@@ -113,18 +113,18 @@ function draw_plot(svg_id) {
             .text('Long-range cumulative dose')
             .style('font-size', '15px')
             .attr('opacity', 0);
-        // Short range area icon
+        // Short-range area icon
         var legendShortRangeAreaIcon = {};
         sr_unique_activities.forEach((b, index) => {
         legendShortRangeAreaIcon[index] = vis.append('rect')
             .attr('width', 20)
             .attr('height', 15);
-        // Short range area icon colors
+        // Short-range area icon colors
         if (sr_unique_activities[index] == 'Breathing') legendShortRangeAreaIcon[index].attr('fill', 'red').attr('fill-opacity', '0.2');
         else if (sr_unique_activities[index] == 'Speaking') legendShortRangeAreaIcon[index].attr('fill', 'green').attr('fill-opacity', '0.1');
         else legendShortRangeAreaIcon[index].attr('fill', 'blue').attr('fill-opacity', '0.1');
         });
-        // Short range area text
+        // Short-range area text
         var legendShortRangeText = {};
         sr_unique_activities.forEach((b, index) => {
             legendShortRangeText[index] = vis.append('text')
@@ -541,7 +541,7 @@ function draw_plot(svg_id) {
 // Generate the alternative scenarios plot using d3 library.
 // 'alternative_scenarios' is a dictionary with all the alternative scenarios 
 // 'times' is a list of times for all the scenarios
-// The method is prepared to consider short range interactions if needed.
+// The method is prepared to consider short-range interactions if needed.
 function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_plot_svg_id) {
     // H:M format
     var time_format = d3.timeFormat('%H:%M');
