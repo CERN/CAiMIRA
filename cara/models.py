@@ -1159,7 +1159,7 @@ class ShortRangeModel:
                                 concentration_model.infected.particle.diameter, long_range_normed_concentration)
             
             # Short-range concentration formula. The long-range concentration is added in the concentration method (ExposureModel).
-            # based on continuum model proposed by 
+            # based on continuum model proposed by Wei et al (2022) - https://doi.org/10.1016/j.buildenv.2022.109166
             return ((1/dilution)*(jet_origin_concentration - long_range_normed_concentration_interpolated))
         return 0.
 
