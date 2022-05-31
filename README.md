@@ -49,7 +49,7 @@ CARA – COVID Airborne Risk Assessment tool
 Henriques A, Mounet N, Aleixo L, Elson P, Devine J, Azzopardi G, Andreini M, Rognlien M, Tarocco N, Tang J. (2022). Modelling airborne transmission of SARS-CoV-2 using CARA: risk assessment for enclosed spaces. _Interface Focus 20210076_. https://doi.org/10.1098/rsfs.2021.0076
 
 Reference on the Short-range expiratory jet model from:
-Wei Jia, Jianjian Wei, Pan Cheng, Qun Wang, Yuguo Li. (2022). Exposure and respiratory infection risk via the short-range airborne route. _Building and Environment_ *219*: 109166. 
+Jia W, Wei J, Cheng P, Wang Q, Li Y. (2022). Exposure and respiratory infection risk via the short-range airborne route. _Building and Environment_ *219*: 109166. 
 https://doi.org/10.1016/j.buildenv.2022.109166
 
 ## Applications

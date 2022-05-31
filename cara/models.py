@@ -1096,7 +1096,7 @@ class ShortRangeModel:
     def dilution_factor(self) -> _VectorisedFloat:
         '''
         The dilution factor for the respective expiratory activity type.
-        Based on the two-stage (jet/puff) expiratory jet model by Wei et al (2022) - https://doi.org/10.1016/j.buildenv.2022.109166
+        Based on the two-stage (jet/puff) expiratory jet model by Jia et al (2022) - https://doi.org/10.1016/j.buildenv.2022.109166
         '''
         # Average mouth diameter
         D = 0.02
@@ -1159,7 +1159,7 @@ class ShortRangeModel:
                                 concentration_model.infected.particle.diameter, long_range_normed_concentration)
             
             # Short-range concentration formula. The long-range concentration is added in the concentration method (ExposureModel).
-            # based on continuum model proposed by Wei et al (2022) - https://doi.org/10.1016/j.buildenv.2022.109166
+            # based on continuum model proposed by Jia et al (2022) - https://doi.org/10.1016/j.buildenv.2022.109166
             return ((1/dilution)*(jet_origin_concentration - long_range_normed_concentration_interpolated))
         return 0.
 
