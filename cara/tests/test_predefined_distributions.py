@@ -34,11 +34,11 @@ def test_activity_distributions(distribution, mean, std):
 # - with a refined precision on the values
 @pytest.mark.parametrize(
     "distribution, mean, std",[
-        ['SARS_CoV_2', 6.59, 1.74],
+        ['SARS_CoV_2', 6.22, 1.80],
 
-        ['SARS_CoV_2_ALPHA', 6.59, 1.74],
+        ['SARS_CoV_2_ALPHA', 6.22, 1.80],
 
-        ['SARS_CoV_2_GAMMA', 6.59, 1.74],
+        ['SARS_CoV_2_GAMMA', 6.22, 1.80],
     ]
 )
 def test_viral_load_logdistribution(distribution, mean, std):

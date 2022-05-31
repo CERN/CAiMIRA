@@ -308,17 +308,17 @@ def waiting_room_mc():
     )
 
 
-@retry()
+@retry(tries=10)
 @pytest.mark.parametrize(
     "mc_model, expected_pi, expected_new_cases, expected_dose, expected_ER",
     [
-        ["shared_office_mc", 5.55, 0.17, 2.699, 809],
-        ["classroom_mc",     9.58, 1.82, 9.034, 5624],
-        ["ski_cabin_mc",     16.0, 0.47, 17.315, 7966],
+        ["shared_office_mc", 5.38, 0.16, 3.350, 1056],
+        ["classroom_mc",     8.21, 1.56, 11.356, 7416],
+        ["ski_cabin_mc",     12.92, 0.39, 21.796, 10231],
         ["skagit_chorale_mc",61.01, 36.53, 84.730, 190422],
-        ["bus_ride_mc",      10.59, 7.06, 6.65, 5419],
-        ["gym_mc",           0.43, 0.12, 0.197, 1145],
-        ["waiting_room_mc",  1.34, 0.18, 0.670, 737],
+        ["bus_ride_mc",      10.59, 7.06, 6.650, 5419],
+        ["gym_mc",           0.52, 0.14, 0.249, 1450],
+        ["waiting_room_mc",  1.53, 0.21, 0.844, 929],
     ]
 )
 def test_report_models(mc_model, expected_pi, expected_new_cases,
@@ -339,10 +339,10 @@ def test_report_models(mc_model, expected_pi, expected_new_cases,
 @pytest.mark.parametrize(
     "mask_type, month, expected_pi, expected_dose, expected_ER",
     [
-        ["No mask", "Jul", 8.46, 8.113, 809],
-        ["Type I",  "Jul", 1.44, 0.727, 149],
-        ["FFP2",    "Jul", 0.43, 0.197, 149],
-        ["Type I",  "Feb", 0.54, 0.253, 149],
+        ["No mask", "Jul", 7.689, 10.050, 1034.435],
+        ["Type I",  "Jul", 1.663, 0.938, 193.52],
+        ["FFP2",    "Jul", 0.523, 0.253, 193.52],
+        ["Type I",  "Feb", 0.659, 0.325, 193.52],
     ],
 )
 def test_small_shared_office_Geneva(mask_type, month, expected_pi,

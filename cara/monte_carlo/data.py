@@ -110,7 +110,7 @@ viral_load = np.linspace(weibull_min.ppf(0.01, c=3.47, scale=7.01),
                 weibull_min.ppf(0.99, c=3.47, scale=7.01), 30)
 frequencies_pdf = weibull_min.pdf(viral_load, c=3.47, scale=7.01)
 covid_overal_vl_data = LogCustom(bounds=(2, 10), 
-                        function=lambda d: np.interp(d, viral_load, frequencies_pdf, right=0., left=0.), 
+                        function=lambda d: np.interp(d, viral_load, frequencies_pdf, left=0., right=0.), 
                         max_function=0.2)
 
 
@@ -156,7 +156,7 @@ virus_distributions = {
                 transmissibility_factor=0.51,
                 ),
     'SARS_CoV_2_OMICRON': mc.SARSCoV2(
-                viral_load_in_sputum=symptomatic_vl_frequencies,
+                viral_load_in_sputum=covid_overal_vl_data,
                 infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
                 transmissibility_factor=0.2,
