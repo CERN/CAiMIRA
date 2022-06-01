@@ -105,6 +105,14 @@ To run the calculator on a different URL path:
 python -m cara.apps.calculator --prefix=/mycalc
 ```
 
+### How to compile and read the documentation
+
+In order to generate the documentation, CARA must be installed first.
+
+If any of the `.rst` files under the `cara/docs` folder is changed, the command `make html` should be executed in the docs directory.
+
+Then, right click on `cara/docs/index.rst` and select `Open with` your preferred web browser.
+
 ### Running the CARA Expert-App app in development mode
 
 ```
