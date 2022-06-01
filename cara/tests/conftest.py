@@ -8,7 +8,7 @@ import pytest
 @pytest.fixture
 def baseline_concentration_model():
     model = models.ConcentrationModel(
-        room=models.Room(volume=75),
+        room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293,))),
         ventilation=models.AirChange(
             active=models.SpecificInterval(((0., 24.), )),
             air_exch=30.,
@@ -55,7 +55,6 @@ def exposure_model_w_outside_temp_changes(baseline_exposure_model: models.Exposu
         baseline_exposure_model, {
             'concentration_model.ventilation': models.SlidingWindow(
                 active=models.PeriodicInterval(2.2 * 60, 1.8 * 60),
-                inside_temp=models.PiecewiseConstant((0., 24.), (293,)),
                 outside_temp=cara.data.GenevaTemperatures['Jan'],
                 window_height=1.6,
                 opening_length=0.6,

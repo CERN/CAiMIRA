@@ -19,7 +19,6 @@ def test_no_mask_superspeading_emission_rate(baseline_concentration_model):
 def baseline_periodic_window():
     return models.SlidingWindow(
         active=models.PeriodicInterval(period=120, duration=15),
-        inside_temp=models.PiecewiseConstant((0., 24.), (293,)),
         outside_temp=models.PiecewiseConstant((0., 24.), (283,)),
         window_height=1.6, opening_length=0.6,
     )
@@ -27,7 +26,7 @@ def baseline_periodic_window():
 
 @pytest.fixture
 def baseline_room():
-    return models.Room(volume=75)
+    return models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293,)))
 
 
 @pytest.fixture
@@ -44,7 +43,7 @@ def test_concentrations(baseline_concentration_model):
     concentrations = [baseline_concentration_model.concentration(float(t)) for t in ts]
     npt.assert_allclose(
         concentrations,
-        [0.000000e+00, 20.805628, 6.602814e-13, 20.805628, 2.09545e-26],
+        [0.000000e+00, 2.046096e+01, 3.846725e-13, 2.046096e+01, 7.231966e-27],
         rtol=1e-6
     )
 
@@ -95,7 +94,7 @@ def test_r0(baseline_exposure_model):
     # expected r0 was computed with a trapezoidal integration, using
     # a mesh of 100'000 pts per exposed presence interval.
     r0 = baseline_exposure_model.reproduction_number()
-    npt.assert_allclose(r0, 776.941990)
+    npt.assert_allclose(r0, 771.380385)
 
 
 def test_periodic_window(baseline_periodic_window, baseline_room):
@@ -131,11 +130,10 @@ def test_periodic_hepa(baseline_periodic_hepa, baseline_room):
     ],
 )
 def test_multiple_ventilation_HEPA_window(baseline_periodic_hepa, time, expected_value):
-    room = models.Room(volume=68.)
+    room = models.Room(volume=68., inside_temp=models.PiecewiseConstant((0., 24.),(293.15,)))
     tempOutside = models.PiecewiseConstant((0., 1., 2.5),(273.15, 283.15))
-    tempInside = models.PiecewiseConstant((0., 24.),(293.15,))
     window = models.SlidingWindow(active=models.SpecificInterval([(1 / 60, 24.)]),
-                inside_temp=tempInside,outside_temp=tempOutside,
+                outside_temp=tempOutside,
                 window_height=1.,opening_length=0.6)
     vent = models.MultipleVentilation([window, baseline_periodic_hepa])
     npt.assert_allclose(vent.air_exchange(room,time), expected_value, rtol=1e-5)
@@ -143,12 +141,12 @@ def test_multiple_ventilation_HEPA_window(baseline_periodic_hepa, time, expected
 
 def test_multiple_ventilation_HEPA_window_transitions(baseline_periodic_hepa):
     tempOutside = models.PiecewiseConstant((0., 1., 2.5),(273.15, 283.15))
-    tempInside = models.PiecewiseConstant((0., 24.),(293.15,))
+    room = models.Room(68, models.PiecewiseConstant((0., 24.),(293.15,)))
     window = models.SlidingWindow(active=models.SpecificInterval([(1 / 60, 24.)]),
-                inside_temp=tempInside,outside_temp=tempOutside,
+                outside_temp=tempOutside,
                 window_height=1.,opening_length=0.6)
     vent = models.MultipleVentilation([window, baseline_periodic_hepa])
-    assert set(vent.transition_times()) == set([0.0, 1/60, 0.25, 1.0, 2.0, 2.25,
+    assert set(vent.transition_times(room)) == set([0.0, 1/60, 0.25, 1.0, 2.0, 2.25,
             2.5, 4.0, 4.25, 6.0, 6.25, 8.0, 8.25, 10.0, 10.25, 12.0, 12.25,
             14.0, 14.25, 16.0, 16.25, 18.0, 18.25, 20.0, 20.25, 22.0, 22.25, 24.])
 
@@ -188,14 +186,13 @@ def test_multiple_ventilation_HEPA_HVAC_AirChange(volume, expected_value):
 )
 def test_windowopening(time, expected_value):
     tempOutside = models.PiecewiseConstant((0., 10., 24.),(273.15, 283.15))
-    tempInside = models.PiecewiseConstant((0., 24.), (293.15,))
     w = models.SlidingWindow(
         active=models.SpecificInterval([(0., 24.)]),
-        inside_temp=tempInside,outside_temp=tempOutside,
+        outside_temp=tempOutside,
         window_height=1., opening_length=0.6,
     )
     npt.assert_allclose(
-        w.air_exchange(models.Room(volume=68), time), expected_value, rtol=1e-5
+        w.air_exchange(models.Room(volume=68, inside_temp=models.PiecewiseConstant((0., 24.), (293.15, ))), time), expected_value, rtol=1e-5
     )
 
 
@@ -223,10 +220,9 @@ def build_hourly_dependent_model(
         outside_temp = temperatures[month]
 
     model = models.ConcentrationModel(
-        room=models.Room(volume=75),
+        room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293, ))),
         ventilation=models.SlidingWindow(
             active=models.SpecificInterval(intervals_open),
-            inside_temp=models.PiecewiseConstant((0., 24.), (293, )),
             outside_temp=outside_temp,
             window_height=1.6, opening_length=0.6,
         ),
@@ -246,10 +242,9 @@ def build_hourly_dependent_model(
 
 def build_constant_temp_model(outside_temp, intervals_open=((7.5, 8.5),)):
     model = models.ConcentrationModel(
-        room=models.Room(volume=75),
+        room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293,))),
         ventilation=models.SlidingWindow(
             active=models.SpecificInterval(intervals_open),
-            inside_temp=models.PiecewiseConstant((0., 24.), (293,)),
             outside_temp=models.PiecewiseConstant((0., 24.), (outside_temp,)),
             window_height=1.6, opening_length=0.6,
         ),
@@ -271,7 +266,6 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
     vent = models.MultipleVentilation((
         models.SlidingWindow(
             active=models.SpecificInterval(intervals_open),
-            inside_temp=models.PiecewiseConstant((0., 24.), (293,)),
             outside_temp=data.GenevaTemperatures[month],
             window_height=1.6, opening_length=0.6,
         ),
@@ -281,7 +275,7 @@ def build_hourly_dependent_model_multipleventilation(month, intervals_open=((7.5
         ),
     ))
     model = models.ConcentrationModel(
-        room=models.Room(volume=75),
+        room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293,))),
         ventilation=vent,
         infected=models.EmittingPopulation(
             number=1,
@@ -387,8 +381,8 @@ def build_exposure_model(concentration_model, short_range_model):
 @pytest.mark.parametrize(
     "month, expected_deposited_exposure",
     [
-        ['Jan', 377.440565819],
-        ['Jun', 1721.03336729],
+        ['Jan', 359.140499],
+        ['Jun', 1385.917562],
     ],
 )
 def test_exposure_hourly_dep(month,expected_deposited_exposure, baseline_sr_model):
@@ -408,8 +402,8 @@ def test_exposure_hourly_dep(month,expected_deposited_exposure, baseline_sr_mode
 @pytest.mark.parametrize(
     "month, expected_deposited_exposure",
     [
-        ['Jan', 383.339206111],
-        ['Jun', 1799.17597184],
+        ['Jan', 359.983716],
+        ['Jun', 1439.267381],
     ],
 )
 def test_exposure_hourly_dep_refined(month,expected_deposited_exposure, baseline_sr_model):

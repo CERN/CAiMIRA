@@ -152,7 +152,7 @@ def conc_model():
     )
     always = models.SpecificInterval(((0., 24.), ))
     return models.ConcentrationModel(
-        models.Room(25),
+        models.Room(25, models.PiecewiseConstant((0., 24.), (293,))),
         models.AirChange(always, 5),
         models.EmittingPopulation(
             number=1,
@@ -179,12 +179,12 @@ def sr_model():
 @pytest.mark.parametrize(
     ["exposed_time_interval", "expected_deposited_exposure"],
     [
-        [(0., 1.), 45.6008710],
-        [(1., 1.01), 0.5280401],
-        [(1.01, 1.02), 0.51314096385],
-        [(12., 12.01), 0.016255813185],
-        [(12., 24.), 645.63619275],
-        [(0., 24.), 700.7322474],
+        [(0., 1.), 42.63222033436878],
+        [(1., 1.01), 0.485377549596179],
+        [(1.01, 1.02), 0.47058239520823814],
+        [(12., 12.01), 0.01622776617499709],
+        [(12., 24.), 595.1115223695439],
+        [(0., 24.), 645.8401125684933],
     ]
 )
 def test_exposure_model_integral_accuracy(exposed_time_interval,

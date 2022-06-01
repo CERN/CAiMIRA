@@ -109,7 +109,7 @@ def concentrations_with_sr_breathing(form: FormData, model: models.ExposureModel
     return lower_concentrations
 
 
-def calculate_report_data(form: FormData, model: models.ExposureModel):
+def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing.Dict[str, typing.Any]:
     times = interesting_times(model)
     short_range_intervals = [interaction.presence.boundaries()[0] for interaction in model.short_range]
     short_range_expirations = [interaction['expiration'] for interaction in form.short_range_interactions] if form.short_range_option == "short_range_yes" else []
@@ -258,6 +258,10 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
         without_mask_or_vent = dataclass_utils.replace(without_mask, ventilation_type='no_ventilation')
         scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_mc_model()
         scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_mc_model()
+    
+    else:
+        no_short_range_alternative = dataclass_utils.replace(form, short_range_interactions=[])
+        scenarios['Base scenario without short-range interactions'] = no_short_range_alternative.build_mc_model()
 
     return scenarios
 

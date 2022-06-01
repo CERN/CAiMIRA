@@ -1,6 +1,25 @@
 {% extends "base/calculator.report.html.j2" %}
 
 {% set cern_level = 'green-1' %} <!-- green-1, yellow-2, orange-3, red-4 -->
+
+{% if form.short_range_option == "short_range_yes" %} 
+  {% set scenario = alternative_scenarios.stats.values() | first %}
+  {% set long_range_prob_inf = scenario.probability_of_infection %}
+{% else %}
+  {% set long_range_prob_inf = prob_inf %}
+{% endif %}
+
+{% if ((long_range_prob_inf > 10) or (expected_new_cases >= 1)) %} 
+  {% set long_range_scale_warning = 'red' %}
+  {% set long_range_warning_color= 'bg-danger' %}
+{% elif (2 <= long_range_prob_inf <= 10) %}
+   {% set long_range_scale_warning = 'orange' %} 
+   {% set long_range_warning_color = 'bg-warning' %} 
+{% else %} 
+  {% set long_range_scale_warning = 'green' %} 
+  {% set long_range_warning_color = 'bg-success' %} 
+{% endif %}
+
 {% if ((prob_inf > 10) or (expected_new_cases >= 1)) %} {% set scale_warning = 'red' %}
 {% elif (2 <= prob_inf <= 10) %} {% set scale_warning = 'orange' %} 
 {% else %} {% set scale_warning = 'green' %} 
@@ -12,12 +31,21 @@
   </li>
 {% endblock report_preamble_navtab %}
 
+{% block long_range_warning_animation %}
+  <div class="intro-banner-vdo-play-btn {{long_range_warning_color}} m-auto d-flex align-items-center justify-content-center">
+    <b>{{long_range_prob_inf | non_zero_percentage}}</b>
+    <i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
+    <span class="ripple {{long_range_warning_color}}"></span>
+    <span class="ripple {{long_range_warning_color}}"></span>
+    <span class="ripple {{long_range_warning_color}}"></span>
+  </div>
+{% endblock long_range_warning_animation %}
+
 {% block warning_animation %}
   {% if scale_warning == 'red' %} {% set warning_color= 'bg-danger' %}
   {% elif scale_warning == 'orange' %} {% set warning_color = 'bg-warning' %} 
   {% elif scale_warning == 'green' %} {% set warning_color = 'bg-success' %} 
   {% endif %}
-  
   <div class="intro-banner-vdo-play-btn {{warning_color}} m-auto d-flex align-items-center justify-content-center">
     <b>{{prob_inf | non_zero_percentage}}</b>
     <i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
@@ -28,55 +56,68 @@
 {% endblock warning_animation %}
 
 {% block report_summary %}
-  {% set report_message =  "Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally, the <b>probability of one exposed occupant getting infected is " + prob_inf | non_zero_percentage + "</b> and the <b>expected number of new cases is " + expected_new_cases | float_format + "</b>*." %}
   <div class="flex-row align-self-center">
-      {% if scale_warning == 'red' %}
+      <br>
+      {% if long_range_scale_warning == 'red' %}
         <div class="alert alert-danger mb-0" role="alert">
           <strong>Not Acceptable:</strong>
-              {{ report_message }}
-        </div>
-      {% elif scale_warning == 'orange' %}
+      {% elif long_range_scale_warning == 'orange' %}
         <div class="alert alert-warning mb-0" role="alert">
           <strong>Attention:</strong>
-              {{ report_message }}
-        </div>
-      {% elif scale_warning == 'green' %}
+      {% elif long_range_scale_warning == 'green' %}
         <div class="alert alert-success mb-0" role="alert">
           <strong>Acceptable:</strong>
-              {{ report_message }}
+      {% endif %}
+        Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally (i.e. without short-range interactions), the <b>probability of one exposed occupant getting infected is {{long_range_prob_inf | non_zero_percentage}}</b> and the <b>expected number of new cases is {{expected_new_cases | float_format}}</b>*.
+      </div>
+      {% if form.short_range_option == "short_range_yes" %} 
+        <br>
+        {% if scale_warning == 'red' %}
+          <div class="alert alert-danger mb-0" role="alert">
+            <strong>Not Acceptable:</strong>
+        {% elif scale_warning == 'orange' %}
+          <div class="alert alert-warning mb-0" role="alert">
+            <strong>Attention:</strong>
+        {% elif scale_warning == 'green' %}
+          <div class="alert alert-success mb-0" role="alert">
+            <strong>Acceptable:</strong>
+        {% endif %}
+        In this scenario, assuming <b>short-range interactions</b> occur, the <b>probability of one exposed occupant getting infected can go as high as {{prob_inf | non_zero_percentage}}</b>.
         </div>
       {% endif %}
-
+      
       {% block specific_event_probability %}
         {{ super() }}
       {% endblock specific_event_probability %}
 
-    {% if (prob_inf > 2) %}
-      <br>
-      {% if cern_level == "green-1" %}  
-        <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
-          Note: the current CERN COVID Scale is <b>Green – 1</b>. The risk of circulation of asymptomatic or pre-symptomatic infected individuals within the CERN site is considered negligible. There may be more than <b>8'000 daily on-site accesses</b>. Align your risk assessment with the guidance and instructions provided by the HSE Unit.
-        </div>
-      {% elif cern_level == "yellow-2" %}
-        <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
-          Note: the current CERN COVID Scale is <b>Yellow - 2</b>. There is a reduced risk that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site. There may be around <b>6'500 daily on-site accesses</b> during this stage. See with your supervisor, DSO/LEXGLIMOS and space manager if this scenario is acceptable and if any additional measures can be applied (ALARA).
-        </div>
-      {% elif cern_level == "orange-3" %}
-        <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
-          Warning: the current CERN COVID Scale is <b>Orange - 3</b>. There is a medium risk that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site. There may be around <b>5'000 daily on-site accesses</b> during this stage. See with your supervisor, DSO/LEXGLIMOS and space manager if this scenario is acceptable and if any additional measures can be applied (ALARA).
-        </div>
-      {% elif cern_level == "red-4" %}
-        <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
-          Warning: the current CERN COVID Scale is <b>Red - 4</b>. There is a strong risk that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site. There may be around <b>4'000 daily on-site accesses</b> during this stage. Please reduce the value below the threshold of 2%. See with your supervisor, DSO/LEXGLIMOS and space manager if this scenario is acceptable and if any additional measures are required.
-        </div>
-      {% else %}
-        <p><b>Note:</b> The CERN COVID Level is not specified.</p>
-      {% endif %}
-    {% endif %}
-  </div>
+      {% if (prob_inf > 2) %}
+        <br>
+        {% if cern_level == "green-1" %}  
+          <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
+            <b>Note:</b> the current CERN COVID Scale is <b>Green – 1</b>. The public health and safety restrictions are reduced to a mininum. Align your risk assessment with the guidance and instructions provided by the HSE Unit.
+          </div>
+        {% elif cern_level == "yellow-2" %}
+          <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
+            <b>Note:</b> the current CERN COVID Scale is <b>Yellow - 2</b>. There is a reduced risk that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site. There may be around <b>6'500 daily on-site accesses</b> during this stage. See with your supervisor, DSO/LEXGLIMOS and space manager if this scenario is acceptable and if any additional measures can be applied (ALARA).
+          </div>
+        {% elif cern_level == "orange-3" %}
+          <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
+            <b>Warning</b>: the current CERN COVID Scale is <b>Orange - 3</b>. There is a medium risk that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site. There may be around <b>5'000 daily on-site accesses</b> during this stage. See with your supervisor, DSO/LEXGLIMOS and space manager if this scenario is acceptable and if any additional measures can be applied (ALARA).
+          </div>
+        {% elif cern_level == "red-4" %}
+          <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
+            <b>Warning</b>: the current CERN COVID Scale is <b>Red - 4</b>. There is a strong risk that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site. There may be around <b>4'000 daily on-site accesses</b> during this stage. Please reduce the value below the threshold of 2%. See with your supervisor, DSO/LEXGLIMOS and space manager if this scenario is acceptable and if any additional measures are required.
+          </div>
+        {% else %}
+          <p><b>Note:</b> The CERN COVID Level is not specified.</p>
+        {% endif %}
+      {% endif %}      
+      <br>         
+    </div>
 {% endblock report_summary %}
 
-{% block report_summary_footnote %}  
+{% block report_summary_footnote %}
+  <br>  
   {% if scale_warning == 'red' %}
     This exceeds the authorised risk threshold or number of expected new cases.
     The risk level must be reduced before this activity can be undertaken.
