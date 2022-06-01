@@ -32,6 +32,8 @@ REQUIREMENTS: dict = {
         'python-dateutil',
         'scipy',
         'sklearn',
+        'sphinx',
+        'sphinx_rtd_theme',
         'timezonefinder',
         'tornado',
         'voila >=0.2.4',
