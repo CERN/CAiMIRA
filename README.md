@@ -111,7 +111,7 @@ In order to generate the documentation, CARA must be installed first.
 
 If any of the `.rst` files under the `cara/docs` folder is changed, the command `make html` should be executed in the docs directory.
 
-Then, right click on `cara/docs/index.rst` and select `Open with` your preferred web browser.
+Then, right click on `cara/docs/_build/html/index.html` and select `Open with` your preferred web browser.
 
 ### Running the CARA Expert-App app in development mode
 
