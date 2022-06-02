@@ -4,8 +4,6 @@ import pytest
 
 from cara.monte_carlo.data import activity_distributions, virus_distributions
 
-# TODO: seed better the random number generators
-np.random.seed(2000)
 
 
 # mean & std deviations from https://doi.org/10.1101/2021.10.14.21264988 (Table 3)

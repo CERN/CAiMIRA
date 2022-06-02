@@ -6,6 +6,7 @@ from scipy.integrate import quad
 from scipy.special import erf
 import numpy.testing as npt
 import pytest
+from retry import retry
 
 import cara.monte_carlo as mc
 from cara import models,data
@@ -16,8 +17,6 @@ from cara.monte_carlo.data import (expiration_distributions,
         expiration_BLO_factors,short_range_expiration_distributions,
         short_range_distances,virus_distributions,activity_distributions)
 
-# TODO: seed better the random number generators
-np.random.seed(2000)
 SAMPLE_SIZE = 1_000_000
 TOLERANCE = 0.04
 
@@ -655,6 +654,7 @@ def test_longrange_concentration(time,c_model,simple_c_model):
         )
 
 
+@retry(tries=10)
 @pytest.mark.parametrize(
     "time", [10, 10.7, 11., 12.5, 14.75, 14.9, 17]
 )
