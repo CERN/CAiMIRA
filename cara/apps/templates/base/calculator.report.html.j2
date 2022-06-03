@@ -474,6 +474,14 @@
 				</div>
 				<br>
 			{% endblock simulation_overview %}	
+			<div><button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseCodeRepr" aria-expanded="false" aria-controls="collapseCodeRepr">
+				Code representation
+			</button></div>
+			<div class="collapse mt-4" id="collapseCodeRepr">
+				<div class="card card-body">
+					{{ model_repr }}
+				</div>
+			</div>	
 		</div>
 		{% block report_preamble %}
 		{% endblock report_preamble %}	

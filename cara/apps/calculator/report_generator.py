@@ -136,6 +136,7 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
     expected_new_cases = np.array(model.expected_new_cases()).mean()
 
     return {
+        "model_repr": repr(model),
         "times": list(times),
         "exposed_presence_intervals": [list(interval) for interval in model.exposed.presence.boundaries()],
         "short_range_intervals": short_range_intervals,
