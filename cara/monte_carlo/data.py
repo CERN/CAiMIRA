@@ -8,7 +8,6 @@ from scipy.stats import weibull_min
 import cara.monte_carlo as mc
 from cara.monte_carlo.sampleable import LogCustom, LogNormal,LogCustomKernel,CustomKernel,Uniform, Custom
 
-
 sqrt2pi = np.sqrt(2.*np.pi)
 sqrt2 = np.sqrt(2.)
 

@@ -16,12 +16,9 @@ from .. import calculator
 from cara.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions, short_range_distances
 from cara.monte_carlo.data import expiration_distribution, expiration_BLO_factors, expiration_distributions, short_range_expiration_distributions
 
-
 LOG = logging.getLogger(__name__)
 
-
 minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
-
 
 # Used to declare when an attribute of a class must have a value provided, and
 # there should be no default value used.

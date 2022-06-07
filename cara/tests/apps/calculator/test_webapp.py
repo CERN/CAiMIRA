@@ -9,6 +9,7 @@ from cara.apps.calculator.report_generator import generate_permalink
 
 _TIMEOUT = 20.
 
+
 @pytest.fixture
 def app():
     return cara.apps.calculator.make_app()

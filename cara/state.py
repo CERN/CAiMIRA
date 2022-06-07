@@ -13,7 +13,6 @@ from contextlib import contextmanager
 import dataclasses
 import typing
 
-
 Datamodel_T = typing.TypeVar('Datamodel_T')
 dataclass_instance = typing.Any
 

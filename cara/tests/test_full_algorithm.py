@@ -24,6 +24,7 @@ sqrt2pi = np.sqrt(2.*np.pi)
 sqrt2 = np.sqrt(2.)
 ln2 = np.log(2)
 
+
 @dataclass(frozen=True)
 class SimpleConcentrationModel:
     """

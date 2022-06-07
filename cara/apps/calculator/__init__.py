@@ -25,7 +25,6 @@ from . import model_generator
 from .report_generator import ReportGenerator, calculate_report_data
 from .user import AuthenticatedUser, AnonymousUser
 
-
 # The calculator version is based on a combination of the model version and the
 # semantic version of the calculator itself. The version uses the terms
 # "{MAJOR}.{MINOR}.{PATCH}" to describe the 3 distinct numbers constituting a version.

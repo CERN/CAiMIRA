@@ -16,7 +16,6 @@ toronto_coordinates = (43.667, 79.400)
 toronto_hourly_temperatures_celsius_per_hour = data.get_hourly_temperatures_celsius_per_hour(
     toronto_coordinates)
 
-
 # Toronto hourly temperatures as piecewise constant function (in Kelvin).
 TorontoTemperatures_hourly = {
     month: models.PiecewiseConstant(
@@ -27,7 +26,6 @@ TorontoTemperatures_hourly = {
     )
     for month, temperatures in toronto_hourly_temperatures_celsius_per_hour.items()
 }
-
 
 # Same Toronto temperatures on a finer temperature mesh (every 6 minutes).
 TorontoTemperatures = {
