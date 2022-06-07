@@ -107,9 +107,14 @@ python -m cara.apps.calculator --prefix=/mycalc
 
 ### How to compile and read the documentation
 
-In order to generate the documentation, CARA must be installed first.
+In order to generate the documentation, CARA must be installed first with the `doc` dependencies:
 
-If any of the `.rst` files under the `cara/docs` folder is changed, the command `make html` should be executed in the docs directory.
+```
+pip install -e .[doc]
+```
+
+To generate the HTML documentation page, the command `make html` should be executed in the `cara/docs` directory. 
+If any of the `.rst` files under the `cara/docs` folder is changed, this command should be executed again.
 
 Then, right click on `cara/docs/_build/html/index.html` and select `Open with` your preferred web browser.
 

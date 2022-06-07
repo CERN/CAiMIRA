@@ -32,8 +32,6 @@ REQUIREMENTS: dict = {
         'python-dateutil',
         'scipy',
         'sklearn',
-        'sphinx',
-        'sphinx_rtd_theme',
         'timezonefinder',
         'tornado',
         'voila >=0.2.4',
@@ -49,6 +47,10 @@ REQUIREMENTS: dict = {
     ],
     'dev': [
         'jupyterlab',
+    ],
+    'doc': [
+        'sphinx',
+        'sphinx_rtd_theme',
     ],
 }
 
