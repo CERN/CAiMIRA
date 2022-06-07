@@ -923,7 +923,6 @@ class ConcentrationModel:
         h = 1.5
         # Deposition rate (h^-1)
         k = (vg * 3600) / h
-        #TODO: Inside_temp needs to be exposed/added to the room;
         return (
             k + self.virus.decay_constant(self.room.humidity, self.room.inside_temp.value(time))
             + self.ventilation.air_exchange(self.room, time)
