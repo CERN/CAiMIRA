@@ -43,7 +43,7 @@ def test_multiple():
 
 
 @retry(tries=10)
-# expected values obtained from analytical formulas
+# Expected values obtained from analytical formulas
 @pytest.mark.parametrize(
     "BLO_weights, expected_aerosols",
     [

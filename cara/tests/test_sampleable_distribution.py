@@ -11,7 +11,7 @@ from cara.monte_carlo import sampleable
     ]
 )
 def test_normal(mean, std):
-    # test that the sample has approximately the right mean,
+    # Test that the sample has approximately the right mean,
     # std deviation and distribution function.
     sample_size = 2000000
     samples = sampleable.Normal(mean, std).generate_samples(sample_size)
@@ -32,7 +32,7 @@ def test_normal(mean, std):
     ]
 )
 def test_lognormal(mean_gaussian, std_gaussian):
-    # test that the sample has approximately the right mean,
+    # Test that the sample has approximately the right mean,
     # std deviation and distribution function.
     sample_size = 2000000
     samples = sampleable.LogNormal(mean_gaussian, std_gaussian
@@ -58,7 +58,7 @@ def test_lognormal(mean_gaussian, std_gaussian):
     [False, True],
 )
 def test_custom(use_kernel):
-    # test that the sample has approximately the right distribution
+    # Test that the sample has approximately the right distribution
     # function, with both Custom and CustomKernel method. The latter
     # is less accurate for smooth functions.
     # the distribution function is an inverted parabola, with maximum 0.15,
@@ -87,7 +87,7 @@ def test_custom(use_kernel):
 
 
 def test_logcustomkernel():
-    # test that the sample has approximately the right distribution
+    # Test that the sample has approximately the right distribution
     # function, for the LogCustomKernel.
     # the distribution function is an inverted parabola vs. the log of
     # the variable (normalized)

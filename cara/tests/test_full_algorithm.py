@@ -35,54 +35,54 @@ class SimpleConcentrationModel:
     times.
     """
 
-    #: infected people presence interval
+    #: Infected people presence interval
     infected_presence: Interval
 
-    #: viral load (RNA copies  / mL)
+    #: Viral load (RNA copies  / mL)
     viral_load: _VectorisedFloat
 
-    #: breathing rate (m^3/h)
+    #: Breathing rate (m^3/h)
     breathing_rate: _VectorisedFloat
 
-    #: room volume (m^3)
+    #: Room volume (m^3)
     room_volume: _VectorisedFloat
 
-    #: ventilation rate (air changes per hour) - including HEPA
+    #: Ventilation rate (air changes per hour) - including HEPA
     lambda_ventilation: _VectorisedFloat
 
     #: BLO factors
     BLO_factors: typing.Tuple[float, float, float]
 
-    #: number of infected people
+    #: Number of infected people
     num_infected: int = 1
 
-    #: relative humidity RH
+    #: Relative humidity RH
     humidity: float = 0.3
 
-    #: minimum particle diameter considered (microns)
+    #: Minimum particle diameter considered (microns)
     diameter_min: float = 0.1
 
-    #: maximum particle diameter considered (microns)
+    #: Maximum particle diameter considered (microns)
     diameter_max: float = 30.
 
-    #: evaporation factor
+    #: Evaporation factor
     evaporation: float = 0.3
     
     #: cn (cm^-3) for resp. the B, L and O modes. Corresponds to the
     # total concentration of aerosols for each mode.
     cn: typing.Tuple[float, float, float] = (0.06, 0.2, 0.0010008)
 
-    # mean of the underlying normal distributions (represents the log of a
+    # Mean of the underlying normal distributions (represents the log of a
     # diameter in microns), for resp. the B, L and O modes.
     mu: typing.Tuple[float, float, float] = (0.989541, 1.38629, 4.97673)
 
-    # std deviation of the underlying normal distribution, for resp.
+    # Std deviation of the underlying normal distribution, for resp.
     # the B, L and O modes.
     sigma: typing.Tuple[float, float, float] = (0.262364, 0.506818, 0.585005)
 
     def removal_rate(self) -> _VectorisedFloat:
         """
-        removal rate lambda in h^-1, excluding the deposition rate.
+        Removal rate lambda in h^-1, excluding the deposition rate.
         """
         hl_calc = ((ln2/((0.16030 + 0.04018*(((293-273.15)-20.615)/10.585)
                                        +0.02176*(((self.humidity*100)-45.235)/28.665)
@@ -95,7 +95,7 @@ class SimpleConcentrationModel:
     @method_cache
     def deposition_removal_coefficient(self) -> float:
         """
-        coefficient in front of gravitational deposition rate, in h^-1.microns^-2
+        Coefficient in front of gravitational deposition rate, in h^-1.microns^-2
         Note: 0.4512 = 1.88e-4 * 3600 / 1.5
         """
         return 0.4512*(self.evaporation/2.5)**2
@@ -103,7 +103,7 @@ class SimpleConcentrationModel:
     @method_cache
     def aerosol_volume(self,diameter: float) -> float:
         """
-        particle volume in microns^3
+        Particle volume in microns^3
         """
         return 4*np.pi/3. * (diameter/2.)**3
 
@@ -111,7 +111,7 @@ class SimpleConcentrationModel:
     def Np(self,diameter: float,
            BLO_factors: typing.Tuple[float, float, float]) -> float:
         """
-        number of emitted particles per unit volume (BLO model)
+        Number of emitted particles per unit volume (BLO model)
         in cm^-3.ln(micron)^-1
         """
         result = 0.
@@ -123,7 +123,7 @@ class SimpleConcentrationModel:
 
     def vR(self,diameter: float) -> float:
         """
-        emission rate per unit diameter, in RNA copies / h / micron
+        Emission rate per unit diameter, in RNA copies / h / micron
         """
         return (self.Np(diameter, self.BLO_factors)
                 * self.aerosol_volume(diameter) * 1e-6)
@@ -146,7 +146,7 @@ class SimpleConcentrationModel:
 
     def concentration(self,t: float) -> _VectorisedFloat:
         """
-        concentration at a given time t
+        Concentration at a given time t
         """
         trans_times = sorted(self.infected_presence.transition_times())
         if t==trans_times[0]:
@@ -188,28 +188,28 @@ class SimpleShortRangeModel:
     This assumes no mask wearing.
     """
     
-    #: time intervals in which a short-range interaction occurs
+    #: Time intervals in which a short-range interaction occurs
     interaction_interval: SpecificInterval
 
-    #: tuple with interpersonal distanced from infected person (m)
+    #: Tuple with interpersonal distanced from infected person (m)
     distance : _VectorisedFloat = 0.854
     
-    #: breathing rate (m^3/h)
+    #: Breathing rate (m^3/h)
     breathing_rate: _VectorisedFloat = 0.51
     
-    #: tuple with BLO factors
+    #: Tuple with BLO factors
     BLO_factors: typing.Tuple[float, float, float] = (1,0,0)
 
-    #: minimum diameter for integration (short-range only) (microns)
+    #: Minimum diameter for integration (short-range only) (microns)
     diameter_min: float = 0.1
 
-    #: maximum diameter for integration (short-range only) (microns)
+    #: Maximum diameter for integration (short-range only) (microns)
     diameter_max: float = 100.
     
-    #: mouth opening diameter (m)
+    #: Mouth opening diameter (m)
     D: float = 0.02
     
-    #: duration of the expiration (s)
+    #: Duration of the expiration (s)
     tstar: float = 2.
     
     #: Streamwise and radial penetration coefficients
@@ -221,27 +221,27 @@ class SimpleShortRangeModel:
     @method_cache
     def dilution_factor(self) -> _VectorisedFloat:
         """
-        computes dilution factor at a certain distance x
+        Computes dilution factor at a certain distance x
         based on Wei JIA matlab script.
         """
         x = np.array(self.distance)
         dilution = np.empty(x.shape, dtype=np.float64)
-        # expired flow rate during the expiration period, m^3/s
+        # Expired flow rate during the expiration period, m^3/s
         Q0 = np.array(self.breathing_rate/3600)
-        # the expired flow velocity at the noozle (mouth opening), m/s
+        # The expired flow velocity at the noozle (mouth opening), m/s
         u0 = np.array(Q0/(np.pi/4. * self.D**2))
-        # parameters in the jet-like stage
+        # Parameters in the jet-like stage
         # position of virtual origin
         x01 = self.D/2/self.Cr1
-        # time of virtual origin
+        # Time of virtual origin
         t01 = (x01/self.Cx1)**2 * (Q0*u0)**(-0.5)
-        # transition point (in m)
+        # Transition point (in m)
         xstar = np.array(self.Cx1*(Q0*u0)**0.25*(self.tstar + t01)**0.5
                          - x01)
-        # dilution factor at the transition point xstar
+        # Dilution factor at the transition point xstar
         Sxstar = np.array(2.*self.Cr1*(xstar+x01)/self.D)
 
-        # calculate dilution factor at the short-range distance x
+        # Calculate dilution factor at the short-range distance x
         dilution[x <= xstar] = 2.*self.Cr1*(x[x <= xstar] + x01)/self.D
         dilution[x > xstar] = Sxstar[x > xstar]*(1. + self.Cr2*(x[x > xstar]
                                 - xstar[x > xstar])
@@ -251,7 +251,7 @@ class SimpleShortRangeModel:
 
     def jet_concentration(self,conc_model: SimpleConcentrationModel) -> _VectorisedFloat:
         """
-        virion concentration at the origin of the jet (close to
+        Virion concentration at the origin of the jet (close to
         the mouth of the infected person), in m^-3
         we perform the integral of Np(d)*V(d) over diameter analytically
         """
@@ -270,7 +270,7 @@ class SimpleShortRangeModel:
 
     def concentration(self, conc_model: SimpleConcentrationModel, time: float) -> _VectorisedFloat:
         """
-        compute the short-range part of the concentration, and add it
+        Compute the short-range part of the concentration, and add it
         to the long-range concentration
         """
         if self.interaction_interval.triggered(time):
@@ -294,25 +294,25 @@ class SimpleExposureModel(SimpleConcentrationModel):
     interaction intervals are within presence intervals of the infected.
     """
 
-    #: fraction of infected viruses
+    #: Fraction of infected viruses
     finf: _VectorisedFloat = 0.5
 
-    #: host immunity factor (0. for not immune)
+    #: Host immunity factor (0. for not immune)
     HI: _VectorisedFloat = 0.
 
-    #: infectious dose (ID50)
+    #: Infectious dose (ID50)
     ID50: _VectorisedFloat = 50.
 
-    #: transmissibility factor w.r.t. original strain
+    #: Transmissibility factor w.r.t. original strain
     # (<1 means more transmissible)
     transmissibility: _VectorisedFloat = 1.
 
-    #: list of short-range interaction models
+    #: List of short-range interaction models
     sr_models: typing.Tuple[SimpleShortRangeModel, ...] = ()
 
     def fdep(self, diameter: float, evaporation: float) -> float:
         """
-        fraction deposited
+        Fraction deposited
         """
         d = diameter * evaporation
         IFrac = 1 - 0.5 * (1 - (1 / (1 + (0.00076*(d**2.8)))))
@@ -328,7 +328,7 @@ class SimpleExposureModel(SimpleConcentrationModel):
         A general function to compute the main integral over diameters
         """
         def integrand(diameter):
-            # function to return the integrand
+            # Function to return the integrand
             a = self.deposition_removal_coefficient()
             a_dsquare = a*diameter**2
             return -(self.vR(diameter)*self.fdep(diameter,evaporation)/(
@@ -346,7 +346,7 @@ class SimpleExposureModel(SimpleConcentrationModel):
         Same as f but with fdep included in the integral.
         """
         def integrand(diameter):
-            # function to return the integrand
+            # Function to return the integrand
             a = self.deposition_removal_coefficient()
             a_dsquare = a*diameter**2
             return (self.vR(diameter)*self.fdep(diameter,evaporation)
@@ -358,7 +358,7 @@ class SimpleExposureModel(SimpleConcentrationModel):
 
     def total_concentration(self, t: float):
         """
-        total concentration at time t
+        Total concentration at time t
         """
         res = self.concentration(t)
         for sr_mod in self.sr_models:
@@ -369,7 +369,7 @@ class SimpleExposureModel(SimpleConcentrationModel):
     def integrated_longrange_concentration(self,t1: float,t2: float,
                             evaporation: float) -> _VectorisedFloat:
         """
-        background (long-range) concentration integrated from t1 to t2
+        Background (long-range) concentration integrated from t1 to t2
         assuming both t1 and t2 are within a single presence interval.
         This includes the deposition fraction (fdep).
         """
@@ -414,7 +414,7 @@ class SimpleExposureModel(SimpleConcentrationModel):
     @method_cache
     def integrated_shortrange_concentration(self) -> _VectorisedFloat:
         """
-        short-range concentration integrated over interaction times and
+        Short-range concentration integrated over interaction times and
         diameters. This includes the deposition fraction (fdep).
         """
         result = 0.
@@ -437,7 +437,7 @@ class SimpleExposureModel(SimpleConcentrationModel):
 
     def dose(self) -> _VectorisedFloat:
         """
-        total deposited dose (integrated over time and over particle
+        Total deposited dose (integrated over time and over particle
         diameters), including short and long-range.
         """
         result = 0.
@@ -451,7 +451,7 @@ class SimpleExposureModel(SimpleConcentrationModel):
 
     def probability_infection(self):
         """
-        total probability of infection
+        Total probability of infection
         """
         return (1. - np.exp(-self.dose() * ln2 * (1-self.HI)
                            /(self.ID50 * self.transmissibility) )) * 100.
@@ -767,7 +767,7 @@ def test_longrange_exposure_with_distributions(c_model_distr):
         )
 
 
-# tests on the concentration with short-range should be skipped until
+# Tests on the concentration with short-range should be skipped until
 # one finds a way to avoid the large variability of the concentration
 # with short-range 'Speaking' or 'Shouting' interactions
 @pytest.mark.skip

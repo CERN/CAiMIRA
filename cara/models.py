@@ -129,7 +129,7 @@ class PeriodicInterval(Interval):
 @dataclass(frozen=True)
 class PiecewiseConstant:
 
-    # TODO: implement rather a periodic version (24-hour period), where
+    # TODO: Implement rather a periodic version (24-hour period), where
     # transition_times and values have the same length.
 
     #: transition times at which the function changes value (hours).
@@ -160,7 +160,7 @@ class PiecewiseConstant:
         return value
 
     def interval(self) -> Interval:
-        # build an Interval object
+        # Build an Interval object
         present_times = []
         for t1, t2, value in zip(self.transition_times[:-1],
                                  self.transition_times[1:], self.values):
@@ -169,7 +169,7 @@ class PiecewiseConstant:
         return SpecificInterval(present_times=tuple(present_times))
 
     def refine(self, refine_factor=10) -> "PiecewiseConstant":
-        # build a new PiecewiseConstant object with a refined mesh,
+        # Build a new PiecewiseConstant object with a refined mesh,
         # using a linear interpolation in-between the initial mesh points
         refined_times = np.linspace(self.transition_times[0], self.transition_times[-1],
                                     (len(self.transition_times)-1) * refine_factor+1)
@@ -481,7 +481,7 @@ Virus.types = {
         transmissibility_factor=1.0,
     ),
     'SARS_CoV_2_ALPHA': SARSCoV2(
-        # also called VOC-202012/01
+        # Also called VOC-202012/01
         viral_load_in_sputum=1e9,
         infectious_dose=50.,
         viable_to_RNA_ratio = 0.5,
@@ -629,19 +629,19 @@ class _ExpirationBase:
     @property
     def particle(self) -> Particle:
         """
-        the Particle object representing the aerosol - here the default one
+        The Particle object representing the aerosol - here the default one
         """
         return Particle()
 
     def aerosols(self, mask: Mask):
         """
-        total volume of aerosols expired per volume of air (mL/cm^3).
+        Total volume of aerosols expired per volume of air (mL/cm^3).
         """
         raise NotImplementedError("Subclass must implement")
 
     def jet_origin_concentration(self):
         """
-        concentration of viruses at the jet origin (mL/m3).
+        Concentration of viruses at the jet origin (mL/m3).
         """
         raise NotImplementedError("Subclass must implement")
 
@@ -656,7 +656,7 @@ class Expiration(_ExpirationBase):
     #: diameter of the aerosol in microns
     diameter: _VectorisedFloat
 
-    #: total concentration of aerosols per unit volume of expired air
+    #: Total concentration of aerosols per unit volume of expired air
     # (in cm^-3), integrated over all aerosol diameters (corresponding
     # to c_n,i in Eq. (4) of https://doi.org/10.1101/2021.10.14.21264988)
     cn: float = 1.
@@ -664,7 +664,7 @@ class Expiration(_ExpirationBase):
     @property
     def particle(self) -> Particle:
         """
-        the Particle object representing the aerosol
+        The Particle object representing the aerosol
         """
         return Particle(diameter=self.diameter)
 
@@ -674,7 +674,7 @@ class Expiration(_ExpirationBase):
         def volume(d):
             return (np.pi * d**3) / 6.
 
-        # final result converted from microns^3/cm3 to mL/cm^3
+        # Final result converted from microns^3/cm3 to mL/cm^3
         return self.cn * (volume(self.diameter) *
                 (1 - mask.exhale_efficiency(self.diameter))) * 1e-12
 
@@ -683,7 +683,7 @@ class Expiration(_ExpirationBase):
         def volume(d):
             return (np.pi * d**3) / 6.
         
-        # final result converted from microns^3/cm3 to mL/m3
+        # Final result converted from microns^3/cm3 to mL/m3
         return self.cn * volume(self.diameter) * 1e-6
 
 
@@ -791,7 +791,7 @@ class _PopulationWithVirus(Population):
 
     def aerosols(self):
         """
-        total volume of aerosols expired per volume of air (mL/cm^3).
+        Total volume of aerosols expired per volume of air (mL/cm^3).
         """
         raise NotImplementedError("Subclass must implement")
 
@@ -832,7 +832,7 @@ class _PopulationWithVirus(Population):
     @property
     def particle(self) -> Particle:
         """
-        the Particle object representing the aerosol expired by the
+        The Particle object representing the aerosol expired by the
         population - here we take the default Particle object
         """
         return Particle()
@@ -845,7 +845,7 @@ class EmittingPopulation(_PopulationWithVirus):
 
     def aerosols(self):
         """
-        total volume of aerosols expired per volume of air (mL/cm^3).
+        Total volume of aerosols expired per volume of air (mL/cm^3).
         Here arbitrarily set to 1 as the full emission rate is known.
         """
         return 1.
@@ -874,7 +874,7 @@ class InfectedPopulation(_PopulationWithVirus):
 
     def aerosols(self):
         """
-        total volume of aerosols expired per volume of air (mL/cm^3).
+        Total volume of aerosols expired per volume of air (mL/cm^3).
         """
         return self.expiration.aerosols(self.mask)
 
@@ -896,7 +896,7 @@ class InfectedPopulation(_PopulationWithVirus):
     @property
     def particle(self) -> Particle:
         """
-        the Particle object representing the aerosol - here the default one
+        The Particle object representing the aerosol - here the default one
         """
         return self.expiration.particle
 
@@ -923,7 +923,7 @@ class ConcentrationModel:
         h = 1.5
         # Deposition rate (h^-1)
         k = (vg * 3600) / h
-        #todo: Inside_temp needs to be exposed/added to the room;
+        #TODO: Inside_temp needs to be exposed/added to the room;
         return (
             k + self.virus.decay_constant(self.room.humidity, self.room.inside_temp.value(time))
             + self.ventilation.air_exchange(self.room, time)
@@ -1273,8 +1273,10 @@ class ExposureModel:
                     self.concentration_model.evaporation_factor)
 
     def _long_range_normed_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
-        """The number of virions per meter^3 between any two times, normalized 
-        by the emission rate of the infected population"""
+        """
+        The number of virions per meter^3 between any two times, normalized 
+        by the emission rate of the infected population
+        """
         exposure = 0.
         for start, stop in self.exposed.presence.boundaries():
             if stop < time1:
@@ -1314,7 +1316,7 @@ class ExposureModel:
         diameter = self.concentration_model.infected.particle.diameter
 
         if not np.isscalar(diameter) and diameter is not None:
-            # we compute first the mean of all diameter-dependent quantities
+            # We compute first the mean of all diameter-dependent quantities
             # to perform properly the Monte-Carlo integration over
             # particle diameters (doing things in another order would
             # lead to wrong results for the probability of infection).
@@ -1322,11 +1324,11 @@ class ExposureModel:
                                                 aerosols *
                                                 fdep).mean()
         else:
-            # in the case of a single diameter or no diameter defined,
+            # In the case of a single diameter or no diameter defined,
             # one should not take any mean at this stage.
             dep_exposure_integrated = self._long_range_normed_exposure_between_bounds(time1, time2)*aerosols*fdep
 
-        # then we multiply by the diameter-independent quantity emission_rate_per_aerosol,
+        # Then we multiply by the diameter-independent quantity emission_rate_per_aerosol,
         # and parameters of the vD equation (i.e. BR_k and n_in).
         deposited_exposure += (dep_exposure_integrated * emission_rate_per_aerosol * 
                 self.exposed.activity.inhalation_rate * 
@@ -1360,7 +1362,7 @@ class ExposureModel:
             # Aerosols not considered given the formula for the initial
             # concentration at mouth/nose.
             if diameter is not None and not np.isscalar(diameter):
-                # we compute first the mean of all diameter-dependent quantities
+                # We compute first the mean of all diameter-dependent quantities
                 # to perform properly the Monte-Carlo integration over
                 # particle diameters (doing things in another order would
                 # lead to wrong results for the probability of infection).
@@ -1369,24 +1371,24 @@ class ExposureModel:
                     - np.array(short_range_lr_exposure * fdep).mean()
                     * self.concentration_model.infected.activity.exhalation_rate)
             else:
-                # in the case of a single diameter or no diameter defined,
+                # In the case of a single diameter or no diameter defined,
                 # one should not take any mean at this stage.
                 this_deposited_exposure = (short_range_jet_exposure * fdep
                     - short_range_lr_exposure * fdep
                     * self.concentration_model.infected.activity.exhalation_rate)
 
-            # multiply by the (diameter-independent) inhalation rate
+            # Multiply by the (diameter-independent) inhalation rate
             deposited_exposure += (this_deposited_exposure *
                                    interaction.activity.inhalation_rate
                                    /dilution)
 
-        # then we multiply by diameter-independent quantities: viral load
+        # Then we multiply by diameter-independent quantities: viral load
         # and fraction of infected virions
         f_inf = self.concentration_model.infected.fraction_of_infectious_virus()
         deposited_exposure *= (f_inf
                 * self.concentration_model.virus.viral_load_in_sputum
                 * (1 - self.exposed.mask.inhale_efficiency()))
-        # long-range concentration
+        # Long-range concentration
         deposited_exposure += self.long_range_deposited_exposure_between_bounds(time1, time2)
 
         return deposited_exposure
@@ -1403,7 +1405,7 @@ class ExposureModel:
         return deposited_exposure * self.repeats
 
     def infection_probability(self) -> _VectorisedFloat:
-        # viral dose (vD)
+        # Viral dose (vD)
         vD = self.deposited_exposure()
 
         # oneoverln2 multiplied by ID_50 corresponds to ID_63.

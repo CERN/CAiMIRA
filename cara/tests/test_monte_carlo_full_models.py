@@ -34,7 +34,7 @@ TorontoTemperatures = {
 }
 
 
-# references values for infection_probability and expected new cases
+# References values for infection_probability and expected new cases
 # in the following tests, were obtained from the feature/mc branch
 @pytest.fixture
 def shared_office_mc():
