@@ -8,8 +8,6 @@ from cara import models,data
 from cara.monte_carlo.data import activity_distributions, virus_distributions, expiration_distributions, infectious_dose_distribution, viable_to_RNA_ratio_distribution
 from cara.apps.calculator.model_generator import build_expiration
 
-# TODO: seed better the random number generators
-np.random.seed(2000)
 SAMPLE_SIZE = 500_000
 TOLERANCE = 0.05
 
@@ -336,6 +334,7 @@ def test_report_models(mc_model, expected_pi, expected_new_cases,
         expected_ER, rtol=TOLERANCE)
 
 
+@retry(tries=10)
 @pytest.mark.parametrize(
     "mask_type, month, expected_pi, expected_dose, expected_ER",
     [

@@ -6,6 +6,7 @@ from scipy.integrate import quad
 from scipy.special import erf
 import numpy.testing as npt
 import pytest
+from retry import retry
 
 import cara.monte_carlo as mc
 from cara import models,data
@@ -16,8 +17,6 @@ from cara.monte_carlo.data import (expiration_distributions,
         expiration_BLO_factors,short_range_expiration_distributions,
         short_range_distances,virus_distributions,activity_distributions)
 
-# TODO: seed better the random number generators
-np.random.seed(2000)
 SAMPLE_SIZE = 1_000_000
 TOLERANCE = 0.04
 
@@ -478,7 +477,7 @@ def c_model() -> mc.ConcentrationModel:
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
-    ).build_model(SAMPLE_SIZE)
+    )
 
 
 @pytest.fixture
@@ -497,7 +496,7 @@ def c_model_distr() -> mc.ConcentrationModel:
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
-    ).build_model(SAMPLE_SIZE)
+    )
 
 
 @pytest.fixture
@@ -508,13 +507,13 @@ def sr_models() -> typing.Tuple[mc.ShortRangeModel, ...]:
             activity = models.Activity.types['Seated'],
             presence = interaction_intervals[0],
             distance = 0.854,
-        ).build_model(SAMPLE_SIZE),
+        ),
         mc.ShortRangeModel(
             expiration = short_range_expiration_distributions['Breathing'],
             activity = models.Activity.types['Heavy exercise'],
             presence = interaction_intervals[1],
             distance = 0.854,
-        ).build_model(SAMPLE_SIZE),
+        ),
     )
 
 
@@ -560,7 +559,7 @@ def expo_sr_model(c_model,sr_models) -> mc.ExposureModel:
             activity=models.Activity.types['Seated'],
             host_immunity=0.,
         ),
-    ).build_model(SAMPLE_SIZE)
+    )
 
 
 @pytest.fixture
@@ -590,13 +589,13 @@ def expo_sr_model_distr(c_model_distr) -> mc.ExposureModel:
                 activity = activity_distributions['Seated'],
                 presence = interaction_intervals[0],
                 distance = short_range_distances,
-            ).build_model(SAMPLE_SIZE),
+            ),
             mc.ShortRangeModel(
                 expiration = short_range_expiration_distributions['Speaking'],
                 activity = activity_distributions['Seated'],
                 presence = interaction_intervals[1],
                 distance = short_range_distances,
-            ).build_model(SAMPLE_SIZE),
+            ),
         ),
         exposed=mc.Population(
             number=1,
@@ -605,11 +604,11 @@ def expo_sr_model_distr(c_model_distr) -> mc.ExposureModel:
             activity=models.Activity.types['Seated'],
             host_immunity=0.,
         ),
-    ).build_model(SAMPLE_SIZE)
+    )
 
 
 @pytest.fixture
-def simple_expo_sr_model_distr(c_model_distr) -> SimpleExposureModel:
+def simple_expo_sr_model_distr() -> SimpleExposureModel:
     return SimpleExposureModel(
         infected_presence = presence,
         viral_load        = virus_distributions['SARS_CoV_2_DELTA'
@@ -650,18 +649,19 @@ def simple_expo_sr_model_distr(c_model_distr) -> SimpleExposureModel:
 )
 def test_longrange_concentration(time,c_model,simple_c_model):
     npt.assert_allclose(
-        c_model.concentration(time).mean(),
+        c_model.build_model(SAMPLE_SIZE).concentration(time).mean(),
         simple_c_model.concentration(time), rtol=TOLERANCE
         )
 
 
+@retry(tries=10)
 @pytest.mark.parametrize(
     "time", [10, 10.7, 11., 12.5, 14.75, 14.9, 17]
 )
 def test_shortrange_concentration(time,c_model,simple_c_model,
                                   sr_models,simple_sr_models):
     result_sr_model = np.sum([np.array(
-            sr_mod.short_range_concentration(c_model,time)).mean()
+            sr_mod.build_model(SAMPLE_SIZE).short_range_concentration(c_model.build_model(SAMPLE_SIZE),time)).mean()
         for sr_mod in sr_models])
     result_simple_sr_model = np.sum([np.array(
             sr_mod.concentration(simple_c_model,time)).mean()
@@ -686,7 +686,7 @@ def test_longrange_exposure(c_model):
         sr_models         = (),
     )
     expo_model = mc.ExposureModel(
-            concentration_model=c_model,
+            concentration_model=c_model.build_model(SAMPLE_SIZE),
             short_range=(),
             exposed=mc.Population(
                 number=1,
@@ -721,7 +721,7 @@ def test_longrange_concentration_with_distributions(c_model_distr,time):
         BLO_factors       = expiration_BLO_factors['Breathing'],
     )
     npt.assert_allclose(
-        c_model_distr.concentration(time).mean(),
+        c_model_distr.build_model(SAMPLE_SIZE).concentration(time).mean(),
         simple_expo_model.concentration(time).mean(), rtol=TOLERANCE
         )
 
@@ -746,7 +746,7 @@ def test_longrange_exposure_with_distributions(c_model_distr):
         sr_models         = (),
     )
     expo_model = mc.ExposureModel(
-            concentration_model=c_model_distr,
+            concentration_model=c_model_distr.build_model(SAMPLE_SIZE),
             short_range=(),
             exposed=mc.Population(
                 number=1,
@@ -775,18 +775,18 @@ def test_longrange_exposure_with_distributions(c_model_distr):
 )
 def test_concentration_with_shortrange(expo_sr_model,simple_expo_sr_model,time):
     npt.assert_allclose(
-        expo_sr_model.concentration(time).mean(),
+        expo_sr_model.build_model(SAMPLE_SIZE).concentration(time).mean(),
         simple_expo_sr_model.total_concentration(time).mean(), rtol=TOLERANCE
         )
 
 
 def test_exposure_with_shortrange(expo_sr_model,simple_expo_sr_model):
     npt.assert_allclose(
-        expo_sr_model.deposited_exposure().mean(),
+        expo_sr_model.build_model(SAMPLE_SIZE).deposited_exposure().mean(),
         simple_expo_sr_model.dose().mean(), rtol=TOLERANCE
         )
     npt.assert_allclose(
-        expo_sr_model.infection_probability().mean(),
+        expo_sr_model.build_model(SAMPLE_SIZE).infection_probability().mean(),
         simple_expo_sr_model.probability_infection().mean(), rtol=TOLERANCE
         )
 
@@ -798,7 +798,7 @@ def test_exposure_with_shortrange(expo_sr_model,simple_expo_sr_model):
 def test_concentration_with_shortrange_and_distributions(
                     expo_sr_model_distr,simple_expo_sr_model_distr,time):
     npt.assert_allclose(
-        expo_sr_model_distr.concentration(time).mean(),
+        expo_sr_model_distr.build_model(SAMPLE_SIZE).concentration(time).mean(),
         simple_expo_sr_model_distr.total_concentration(time).mean(),
         rtol=TOLERANCE
         )
@@ -807,11 +807,11 @@ def test_concentration_with_shortrange_and_distributions(
 def test_exposure_with_shortrange_and_distributions(expo_sr_model_distr,
                                             simple_expo_sr_model_distr):
     npt.assert_allclose(
-        expo_sr_model_distr.deposited_exposure().mean(),
+        expo_sr_model_distr.build_model(SAMPLE_SIZE).deposited_exposure().mean(),
         simple_expo_sr_model_distr.dose().mean(), rtol=0.05
         )
     npt.assert_allclose(
-        expo_sr_model_distr.infection_probability().mean(),
+        expo_sr_model_distr.build_model(SAMPLE_SIZE).infection_probability().mean(),
         simple_expo_sr_model_distr.probability_infection().mean(),
         rtol=0.03
         )

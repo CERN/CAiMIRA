@@ -3,6 +3,7 @@ import re
 import numpy as np
 import numpy.testing as npt
 import pytest
+from retry import retry
 
 from cara import models
 from cara.monte_carlo.data import expiration_distribution
@@ -41,6 +42,7 @@ def test_multiple():
     npt.assert_almost_equal(aerosol_expected, e.aerosols(mask))
 
 
+@retry(tries=10)
 # expected values obtained from analytical formulas
 @pytest.mark.parametrize(
     "BLO_weights, expected_aerosols",
