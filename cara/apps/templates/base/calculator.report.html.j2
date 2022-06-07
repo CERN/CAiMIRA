@@ -16,6 +16,10 @@
 
 <body id="body">
 
+<!-- Code Representation: 
+{{ model_repr }}
+-->
+
 {% block report_header %}
 
 	<div id="report-header-div" class="d-flex flex-row" style="margin: 1%">
@@ -473,15 +477,7 @@
 					</div>
 				</div>
 				<br>
-			{% endblock simulation_overview %}	
-			<div><button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseCodeRepr" aria-expanded="false" aria-controls="collapseCodeRepr">
-				Code representation
-			</button></div>
-			<div class="collapse mt-4" id="collapseCodeRepr">
-				<div class="card card-body">
-					{{ model_repr }}
-				</div>
-			</div>	
+			{% endblock simulation_overview %}		
 		</div>
 		{% block report_preamble %}
 		{% endblock report_preamble %}	
