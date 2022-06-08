@@ -10,17 +10,20 @@ The :mod:`cara.apps.calculator.model_generator` module is responsible to bind al
 The :py:mod:`cara.apps.calculator.report_generator` module is responsible to bind the results from the model calculations into the respective output variables presented in the CARA report.
 The :mod:`cara.models` module itself implements the core CARA methods.  A useful feature of the implementation is that we can benefit from vectorization, which allows runnning multiple parameterizations of the model at the same time.
 
-Many of the model variables are considered for a given aerosol diameter **D**, as the dynamics in the room and the deposition efficiency in the respiratory tract are diameter-dependent. Some of these variables are the **emission rate** -- **vR(D)**, **removal rate** -- **vRR(D)**, and **concentration** -- **C(t, D)**.
+Unlike other similar models, some of the CARA varibles are considered for a given aerosol diameter **D**, 
+as the behaviour of the virus-laden particles in the room environment and inside the succeptible host (once inhaled) are diameter-dependent. 
+These variables are identified by **(D)** in the variable name, such as the **emission rate** -- **vR(D)**, **removal rate** -- **vRR(D)**, and **concentration** -- **C(t, D)**.
 
-In the model, most of the variables and parameters are kept in their diameter-dependent form,
-rather than integrated right away over the diameters.
-Only the final quantities shown in output, such as the concentration and the dose, are integrated over diameters.
-This is performed thanks to a Monte-Carlo integration: the dose is computed over a distribution of particle diameters,
-from which the average value is then calculated -- this is equivalent to an integral over diameters
-provided the samples are numerous enough.
+Despite the outcome of the CARA results include the entire range of diameters, throughout the model,
+most of the variables and parameters are kept in their diameter-dependent form for any possible detailed analysis of intermidiate results.
+Only the final quantities shown in output, such as the concentration and the dose, are integrated over the diameter distribuion.
+This is performed thanks to a Monte-Carlo integration at the level of the dose (**vD\ :sup:`total`\**) which is computed over a distribution of particle diameters,
+from which the average value is then calculated -- this is equivalent to an analytical integral over diameters
+provided the sample size is large enough.
 
-One thing that we should keep in mind is that under the calculations, there are Monte-Carlo variables, some of them vectorized independently on the diameter.
-Since the integrals dependent on the diameter are integrated when computing the dose, when performing some of the calculations, we normalize the results according to the Monte-Carlo variables that are diameter-independent, so that they are not considered in the Monte-Carlo integration.
+It is important to distinguish between 1) Monte-Carlo random variables (which are vectorized independently on its diameter-dependence) and 2) numerical Monte-Carlo integration for the diameter-dependence
+Since the integral of the diameter-dependent variables are solved when computing the dose -- **vD\ :sup:`total`\**, while performing some of the intermediate calculations, 
+we normalize the results by *dividing* by the Monte-Carlo variables that are diameter-independent, so that they are not considered in the Monte-Carlo integration (e.g. :meth:`cara.models.ConcentrationModel.normed_integrated_concentration`).
 
 Expiration
 ==========
