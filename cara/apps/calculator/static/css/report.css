@@ -136,6 +136,12 @@ p.notes {
     .card {
         page-break-inside: avoid;
     }
+    .pi-image {
+        max-height: 9em;
+    }
+    .pi-box {
+        max-width: 260px!important;
+    }
     #link-results {
         display: none;
     }
