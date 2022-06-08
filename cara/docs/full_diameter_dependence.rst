@@ -8,38 +8,41 @@ Context
 
 The :mod:`cara.apps.calculator.model_generator` module is responsible to bind all the inputs defined in the user interface into the respective model variables.
 The :py:mod:`cara.apps.calculator.report_generator` module is responsible to bind the results from the model calculations into the respective output variables presented in the CARA report.
-The :mod:`cara.models` module itself implements the core CARA methods.  A useful feature of the implementation is that we can benefit from vectorization, which allows runnning multiple parameterizations of the model at the same time.
+The :mod:`cara.models` module itself implements the core CARA methods.  A useful feature of the implementation is that we can benefit from vectorization, which allows running multiple parameterization of the model at the same time.
 
-Unlike other similar models, some of the CARA varibles are considered for a given aerosol diameter **D**, 
-as the behaviour of the virus-laden particles in the room environment and inside the succeptible host (once inhaled) are diameter-dependent. 
+Unlike other similar models, some of the CARA variables are considered for a given aerosol diameter **D**, 
+as the behavior of the virus-laden particles in the room environment and inside the susceptible host (once inhaled) are diameter-dependent. 
 These variables are identified by **(D)** in the variable name, such as the **emission rate** -- **vR(D)**, **removal rate** -- **vRR(D)**, and **concentration** -- **C(t, D)**.
 
 Despite the outcome of the CARA results include the entire range of diameters, throughout the model,
-most of the variables and parameters are kept in their diameter-dependent form for any possible detailed analysis of intermidiate results.
-Only the final quantities shown in output, such as the concentration and the dose, are integrated over the diameter distribuion.
+most of the variables and parameters are kept in their diameter-dependent form for any possible detailed analysis of intermediate results.
+Only the final quantities shown in output, such as the concentration and the dose, are integrated over the diameter distribution.
 This is performed thanks to a Monte-Carlo integration at the level of the dose (**vD\ :sup:`total`\**) which is computed over a distribution of particle diameters,
 from which the average value is then calculated -- this is equivalent to an analytical integral over diameters
 provided the sample size is large enough.
 
-It is important to distinguish between 1) Monte-Carlo random variables (which are vectorized independently on its diameter-dependence) and 2) numerical Monte-Carlo integration for the diameter-dependence
-Since the integral of the diameter-dependent variables are solved when computing the dose -- **vD\ :sup:`total`\**, while performing some of the intermediate calculations, 
+It is important to distinguish between 1) Monte-Carlo random variables (which are vectorised independently on its diameter-dependence) and 2) numerical Monte-Carlo integration for the diameter-dependence
+Since the integral of the diameter-dependent variables are solved when computing the dose -- **vD:math:'^{total}'**, while performing some of the intermediate calculations, 
 we normalize the results by *dividing* by the Monte-Carlo variables that are diameter-independent, so that they are not considered in the Monte-Carlo integration (e.g. :meth:`cara.models.ConcentrationModel.normed_integrated_concentration`).
 
 Expiration
 ==========
 
-One of the properties of the Expiration class is the :attr:`cara.models.Expiration.particle`, that represents the aerosol with a vectorised parameter, the diameter.
-For a given diameter of aerosol, one :class:`cara.models.Expiration` object provides the aerosol **volume - Vp(D)**, weighted by the **mask outward efficiency - ηout(D)** when applicable.
+In the **Expiration** class (representing the expiration of aerosols by an infected person) has , as one of its properties `Particle`, :attr:`cara.models.Expiration.particle`, 
+which represents the virus-laden aerosol with a vectorised parameter: the particle `diameter` (assuming a perfect sphere).
+For a given aerosol diameter, one :class:`cara.models.Expiration` object provides the aerosol **volume - Vp(D)**, multiplied by the **mask outward efficiency - ηout(D)** to include the filteration capacity, when applicable.
 
-The BLO model represents the distribution of diameters used in the model. It is a sum of three lognormal distributions, weighted by the **B**, **L** and **O** modes.
-The aerosol diameters distribution is given by the :meth:`cara.monte_carlo.data.BLOmodel.distribution` method.
+The BLO model represents the distribution of diameters used in the model. It corresponds to the sum of three lognormal distributions, weighted by the **B**, **L** and **O** modes.
+The aerosol diameter distributions are given by the :meth:`cara.monte_carlo.data.BLOmodel.distribution` method.
 
-The :class:`cara.monte_carlo.data.BLOmodel` class itself contains the method to return the raw value of the probability distribution for a given diameter (in microns), as well as the method to return the integral between the **min** and **max** diameters of the probability distribution.
-The BLO model is only used to provide the distribution followed by the aerosol diameters, and to compute the total number of particles per mode B, L and O, **cn**. In other words, **cn** is the total concentration of aerosols per unit volume of expired air, integrated over all aerosol diameters. In the model it is used as a scaling factor.
+The :class:`cara.monte_carlo.data.BLOmodel` class itself contains the method to return the mathematical values of the probability distribution for a given diameter (in microns), 
+as well as the method to return the limits of integration between the **min** and **max** diameters.
+The BLO model is used to provide the probability density function (PDF) of the aerosol diameters for a given **Expiration** type defined in :meth:`cara.monte_carlo.data.expiration_distribution`.
+To compute the total number concentration of particles per mode (B, L and O), **cn** in particles/cm:math:'^3', in other words, the total concentration of aerosols per unit volume of expired air, 
+an integration of the lognormal distributions is performed over all aerosol diameters. In the code it is used as a scaling factor in the :class:`cara.models.Expiration` class.
 
-Under the :mod:`cara.apps.calculator.model_generator`, when it comes to generate the Expiration, the diameters property is sampled through the BLO :meth:`cara.monte_carlo.data.BLOmodel.distribution` method, while the value for the **cn** is given by the :meth:`cara.monte_carlo.data.BLOmodel.integrate` method.
-To sum up, the expiration contains the distribution of the diameters as a vectorised float. Depending on different expiratory types, the contributions from each mode will be different, therefore the result in the distribution is different.
-The cn is considered a scaling factor that results from the integration between the diameter limits -- it represents the total concentration of aerosols per unit volume of expired air (integrated over all aerosol diameters).
+Under the :mod:`cara.apps.calculator.model_generator`, when it comes to generate the Expiration model, the `diameter` property is sampled through the BLO :meth:`cara.monte_carlo.data.BLOmodel.distribution` method, while the value for the **cn** is given by the :meth:`cara.monte_carlo.data.BLOmodel.integrate` method.
+To summarize, the Expiration contains the distribution of the diameters as a vectorised float. Depending on different expiratory types, the contributions from each mode will be different, therefore the result in the distribution also differs from model to model.
 
 Emission Rate - vR(D)
 =====================
