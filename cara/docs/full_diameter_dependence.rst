@@ -28,7 +28,7 @@ we normalize the results by *dividing* by the Monte-Carlo variables that are dia
 Expiration
 ==========
 
-In the **Expiration** class (representing the expiration of aerosols by an infected person) has , as one of its properties `Particle`, :attr:`cara.models.Expiration.particle`, 
+The **Expiration** class (representing the expiration of aerosols by an infected person) has the `Particle` -- :attr:`cara.models.Expiration.particle` -- as one of its properties, 
 which represents the virus-laden aerosol with a vectorised parameter: the particle `diameter` (assuming a perfect sphere).
 For a given aerosol diameter, one :class:`cara.models.Expiration` object provides the aerosol **volume - Vp(D)**, multiplied by the **mask outward efficiency - ηout(D)** to include the filteration capacity, when applicable.
 
