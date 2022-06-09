@@ -635,7 +635,7 @@ class _ExpirationBase:
 
     def aerosols(self, mask: Mask):
         """
-        Total volume of aerosols expired per volume of air (mL/cm^3).
+        Total volume of aerosols expired per volume of exhaled air (mL/cm^3).
         """
         raise NotImplementedError("Subclass must implement")
 
@@ -670,7 +670,10 @@ class Expiration(_ExpirationBase):
 
     @cached()
     def aerosols(self, mask: Mask):
-        """ Result is in mL.cm^-3 """
+        """ 
+        Total volume of aerosols expired per volume of exhaled air.
+        Result is in mL.cm^-3 
+        """
         def volume(d):
             return (np.pi * d**3) / 6.
 
@@ -791,14 +794,15 @@ class _PopulationWithVirus(Population):
 
     def aerosols(self):
         """
-        Total volume of aerosols expired per volume of air (mL/cm^3).
+        Total volume of aerosols expired per volume of exhaled air (mL/cm^3).
         """
         raise NotImplementedError("Subclass must implement")
 
     def emission_rate_per_aerosol_when_present(self) -> _VectorisedFloat:
         """
-        The emission rate of virions per fraction of aerosol volume in
-        the expired air, if the infected population is present, in cm^3/(mL.h).
+        The emission rate of virions in the expired air per aerosol volume, 
+        if the infected population is present, in (virion.cm^3)/(mL.h).
+        This method includes the diameter-independent variables of the emission rate.
         It should not be a function of time.
         """
         raise NotImplementedError("Subclass must implement")
@@ -845,7 +849,7 @@ class EmittingPopulation(_PopulationWithVirus):
 
     def aerosols(self):
         """
-        Total volume of aerosols expired per volume of air (mL/cm^3).
+        Total volume of aerosols expired per volume of exhaled air (mL/cm^3).
         Here arbitrarily set to 1 as the full emission rate is known.
         """
         return 1.
@@ -853,8 +857,9 @@ class EmittingPopulation(_PopulationWithVirus):
     @method_cache
     def emission_rate_per_aerosol_when_present(self) -> _VectorisedFloat:
         """
-        The emission rate of virions per fraction of aerosol volume in
-        the expired air, if the infected population is present, in cm^3/(mL.h).
+        The emission rate of virions in the expired air per aerosol volume, 
+        if the infected population is present, in (virion.cm^3)/(mL.h).
+        This method includes the diameter-independent variables of the emission rate.
         It should not be a function of time.
         """
         return self.known_individual_emission_rate * self.number
@@ -874,18 +879,20 @@ class InfectedPopulation(_PopulationWithVirus):
 
     def aerosols(self):
         """
-        Total volume of aerosols expired per volume of air (mL/cm^3).
+        Total volume of aerosols expired per volume of exhaled air (mL/cm^3).
         """
         return self.expiration.aerosols(self.mask)
 
     @method_cache
     def emission_rate_per_aerosol_when_present(self) -> _VectorisedFloat:
         """
-        The emission rate of virions per fraction of aerosol volume in
-        the expired air, if the infected population is present, in cm^3/(mL.h).
+        The emission rate of virions in the expired air per aerosol volume, 
+        if the infected population is present, in (virion.cm^3)/(mL.h).
+        This method includes the diameter-independent variables of the emission rate.
         It should not be a function of time.
         """
         # Note on units: exhalation rate is in m^3/h -> 1e6 conversion factor
+        # returns the results of ER times the 'numeber' of infected hosts in the room
 
         ER = (self.virus.viral_load_in_sputum *
               self.activity.exhalation_rate *
