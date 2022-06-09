@@ -7,7 +7,6 @@ import cara.models
 import cara.monte_carlo.models as mc_models
 import cara.monte_carlo.sampleable
 
-
 MODEL_CLASSES = [
     cls for cls in vars(cara.models).values()
     if dataclasses.is_dataclass(cls)

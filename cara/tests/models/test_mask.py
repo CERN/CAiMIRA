@@ -4,6 +4,7 @@ import pytest
 
 from cara import models
 
+
 @pytest.mark.parametrize(
     "η_inhale, expected_inhale_efficiency",
     [
