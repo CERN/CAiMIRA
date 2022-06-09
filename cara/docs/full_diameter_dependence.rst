@@ -47,24 +47,27 @@ To summarize, the Expiration contains the distribution of the diameters as a vec
 Emission Rate - vR(D)
 =====================
 
-The mathematical equations to calculate vR(D) are defined in the paper
+The mathematical equations to calculate **vR(D)** are defined in the paper
 (Henriques A et al, Modelling airborne transmission of SARS-CoV-2 using CARA: risk assessment for enclosed spaces.
-Interface Focus 20210076, https://doi.org/10.1098/rsfs.2021.0076) as follows:
+Interface Focus 20210076, https://doi.org/10.1098/rsfs.2021.0076), as follows:
 
 :math:`vR(D)_j=vl_{in} . E_{c, j}(D, f_{amp}, η_{out}(D)) . BR_k` ,
 
 :math:`E_{c, j}^{total}=\int_0^{D_{\mathrm{max}}} E_{c,j}(D)\, \mathrm{d}D` .
 
-The later integral, which is giving the total emission rate, is calculated using a Monte-Carlo sampling of the particle diameters which follow the distribution given by **Np(D)**, which contains the scaling factor **cn**.
+The later integral, which is giving the total volumetric particle emission concentration (in mL/m:math:'^3'), is a example of a numerical Monte-Carlo integration over the particle diameters, 
+since vR(D) is a diameter-dependent quantity. :math:`E_{c, j}` is calculated using a Monte-Carlo sampling of the BLO distribution given by **Np(D)**, which contains the scaling factor **cn**.
 
-In the code, given an Expiration, we have different methods that perfom part of the calculations:
+In the code, for a given Expiration, we use different methods to perform the calculations *set-by-step*:
 
-* Calculate the emission rate per aerosol, which is the multiplication of the diameter-independent variables: :meth:`cara.models.InfectedPopulation.emission_rate_per_aerosol_when_present`. It corresponds to :math:`vl_{in} . BR_{k}` part.
-* Calculate the aerosols, which is the result of :math:`E_{c,j}(D) = Np(D) . Vp(D) . (1 − ηout(D))`: :meth:`cara.models.InfectedPopulation.aerosols`. Note that this result is not integrated over the diameters at this stage.
-* Calculate the full emission rate, which is the multiplication of the two previous methods, and corresponds to the :math:`E_{c,j}(D)`: :meth:`cara.models._PopulationWithVirus.emission_rate_when_present`
+1. Calculate the emission rate per aerosol, which is the multiplication of the diameter-**independent** variables: :meth:`cara.models.InfectedPopulation.emission_rate_per_aerosol_when_present`. This corresponds to the :math:`vl_{in} . BR_{k}` part of the vR(D) equation.
+2. Calculate the the diameter-**dependent** variable :meth:`cara.models.InfectedPopulation.aerosols`, which is the result of :math:`E_{c,j}(D) = Np(D) . Vp(D) . (1 − ηout(D))` (in mL/(m:math:'^3.µm)). 
+Note that this result is not integrated over the diameters at this stage, thus the units are still *'per aerosol diameter'*.
+3. Calculate the full emission rate, which is the multiplication of the two previous methods, and corresponds to **vR(D)**: :meth:`cara.models._PopulationWithVirus.emission_rate_when_present`
 
-Note that in the model the integral over the diameters is not realized at this stage, but rather when computing the dose, since other parameters also depend on **diameter** (D).
-In order to perform the Monte-Carlo integration at this stage, the final result of the calculation should be averaged.
+Note that the diameter-dependence is kept at this stage. Since other parameters downstream in code are also diameter-dependent, the Monte-Carlo integration over the aerosol sizes is computed at the level of the dose **vD:math:'^{total}'**.
+In case one would like to have intermediate results for emission rate, perform the Monte-Carlo integration of :math:`E_{c, j}^{total} and compute :math:`vR^{total} =vl_{in} . E_{c, j}^{total} . BR_k`
+
 
 Long-range approach
 ===================
