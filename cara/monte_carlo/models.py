@@ -7,7 +7,6 @@ import cara.models
 
 from .sampleable import SampleableDistribution, _VectorisedFloatOrSampleable
 
-
 _ModelType = typing.TypeVar('_ModelType')
 
 

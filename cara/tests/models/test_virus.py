@@ -4,6 +4,7 @@ import pytest
 
 from cara import models
 
+
 @pytest.mark.parametrize(
     "inside_temp, humidity, expected_halflife, expected_decay_constant",
     [

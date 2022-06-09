@@ -5,8 +5,7 @@ import pytest
 from cara.monte_carlo.data import activity_distributions, virus_distributions
 
 
-
-# mean & std deviations from https://doi.org/10.1101/2021.10.14.21264988 (Table 3)
+# Mean & std deviations from https://doi.org/10.1101/2021.10.14.21264988 (Table 3)
 # NOTE: a mistake was corrected for the std deviation of the
 # "Moderate exercise" case (0.37 in the report, but should be 0.34)
 @pytest.mark.parametrize(
@@ -28,7 +27,7 @@ def test_activity_distributions(distribution, mean, std):
     npt.assert_allclose(activity.inhalation_rate.std(), std, atol=0.01)
 
 
-# mean & std deviations from https://doi.org/10.1101/2021.10.14.21264988 (Table 3) 
+# Mean & std deviations from https://doi.org/10.1101/2021.10.14.21264988 (Table 3) 
 # - with a refined precision on the values
 @pytest.mark.parametrize(
     "distribution, mean, std",[

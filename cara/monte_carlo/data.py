@@ -8,7 +8,6 @@ from scipy.stats import weibull_min
 import cara.monte_carlo as mc
 from cara.monte_carlo.sampleable import LogCustom, LogNormal,LogCustomKernel,CustomKernel,Uniform, Custom
 
-
 sqrt2pi = np.sqrt(2.*np.pi)
 sqrt2 = np.sqrt(2.)
 
@@ -26,7 +25,7 @@ class BLOmodel:
     vol. 42, no. 12, pp. 839 – 851, 2011,
     https://doi.org/10.1016/j.jaerosci.2011.07.009).
     """
-    #: factors assigned to resp. the B, L and O modes. They are
+    #: Factors assigned to resp. the B, L and O modes. They are
     # charateristics of the kind of expiratory activity (e.g. breathing,
     # speaking, singing, or shouting). These are applied on top of the
     # cn concentrations (see below), and depend on the kind of activity
@@ -37,11 +36,11 @@ class BLOmodel:
     # total concentration of aerosols for each mode.
     cn: typing.Tuple[float, float, float] = (0.06, 0.2, 0.0010008)
 
-    # mean of the underlying normal distributions (represents the log of a
+    # Mean of the underlying normal distributions (represents the log of a
     # diameter in microns), for resp. the B, L and O modes.
     mu: typing.Tuple[float, float, float] = (0.989541, 1.38629, 4.97673)
 
-    # std deviation of the underlying normal distribution, for resp.
+    # Std deviation of the underlying normal distribution, for resp.
     # the B, L and O modes.
     sigma: typing.Tuple[float, float, float] = (0.262364, 0.506818, 0.585005)
 

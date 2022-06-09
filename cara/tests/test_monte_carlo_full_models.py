@@ -16,7 +16,6 @@ toronto_coordinates = (43.667, 79.400)
 toronto_hourly_temperatures_celsius_per_hour = data.get_hourly_temperatures_celsius_per_hour(
     toronto_coordinates)
 
-
 # Toronto hourly temperatures as piecewise constant function (in Kelvin).
 TorontoTemperatures_hourly = {
     month: models.PiecewiseConstant(
@@ -28,7 +27,6 @@ TorontoTemperatures_hourly = {
     for month, temperatures in toronto_hourly_temperatures_celsius_per_hour.items()
 }
 
-
 # Same Toronto temperatures on a finer temperature mesh (every 6 minutes).
 TorontoTemperatures = {
     month: TorontoTemperatures_hourly[month].refine(refine_factor=10)
@@ -36,7 +34,7 @@ TorontoTemperatures = {
 }
 
 
-# references values for infection_probability and expected new cases
+# References values for infection_probability and expected new cases
 # in the following tests, were obtained from the feature/mc branch
 @pytest.fixture
 def shared_office_mc():
