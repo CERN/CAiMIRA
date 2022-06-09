@@ -17,12 +17,12 @@ These variables are identified by **(D)** in the variable name, such as the **em
 Despite the outcome of the CARA results include the entire range of diameters, throughout the model,
 most of the variables and parameters are kept in their diameter-dependent form for any possible detailed analysis of intermediate results.
 Only the final quantities shown in output, such as the concentration and the dose, are integrated over the diameter distribution.
-This is performed thanks to a Monte-Carlo integration at the level of the dose (**vD\ :sup:`total`\**) which is computed over a distribution of particle diameters,
+This is performed thanks to a Monte-Carlo integration at the level of the dose (vD\ :sup:`total`\) which is computed over a distribution of particle diameters,
 from which the average value is then calculated -- this is equivalent to an analytical integral over diameters
 provided the sample size is large enough.
 
 It is important to distinguish between 1) Monte-Carlo random variables (which are vectorised independently on its diameter-dependence) and 2) numerical Monte-Carlo integration for the diameter-dependence
-Since the integral of the diameter-dependent variables are solved when computing the dose -- **vD:math:'^{total}'**, while performing some of the intermediate calculations, 
+Since the integral of the diameter-dependent variables are solved when computing the dose -- vD\ :sup:`total`\ -- while performing some of the intermediate calculations, 
 we normalize the results by *dividing* by the Monte-Carlo variables that are diameter-independent, so that they are not considered in the Monte-Carlo integration (e.g. :meth:`cara.models.ConcentrationModel.normed_integrated_concentration`).
 
 Expiration
@@ -38,7 +38,7 @@ The aerosol diameter distributions are given by the :meth:`cara.monte_carlo.data
 The :class:`cara.monte_carlo.data.BLOmodel` class itself contains the method to return the mathematical values of the probability distribution for a given diameter (in microns), 
 as well as the method to return the limits of integration between the **min** and **max** diameters.
 The BLO model is used to provide the probability density function (PDF) of the aerosol diameters for a given **Expiration** type defined in :meth:`cara.monte_carlo.data.expiration_distribution`.
-To compute the total number concentration of particles per mode (B, L and O), **cn** in particles/cm:math:'^3', in other words, the total concentration of aerosols per unit volume of expired air, 
+To compute the total number concentration of particles per mode (B, L and O), **cn** in particles/cm\ :sup:`3`\, in other words, the total concentration of aerosols per unit volume of expired air, 
 an integration of the lognormal distributions is performed over all aerosol diameters. In the code it is used as a scaling factor in the :class:`cara.models.Expiration` class.
 
 Under the :mod:`cara.apps.calculator.model_generator`, when it comes to generate the Expiration model, the `diameter` property is sampled through the BLO :meth:`cara.monte_carlo.data.BLOmodel.distribution` method, while the value for the **cn** is given by the :meth:`cara.monte_carlo.data.BLOmodel.integrate` method.
