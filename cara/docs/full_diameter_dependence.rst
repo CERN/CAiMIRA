@@ -60,7 +60,7 @@ since vR(D) is a diameter-dependent quantity. :math:`E_{c, j}` is calculated usi
 
 In the code, for a given Expiration, we use different methods to perform the calculations *set-by-step*:
 
-1. Calculate the emission rate per aerosol, which is the multiplication of the diameter-**independent** variables: :meth:`cara.models.InfectedPopulation.emission_rate_per_aerosol_when_present`. This corresponds to the :math:`vl_{in} . BR_{k}` part of the vR(D) equation.
+1. Calculate the non aerosol-dependent quantities in the emission rate, which is the multiplication of the diameter-**independent** variables: :meth:`cara.models.InfectedPopulation.emission_rate_per_aerosol_when_present`. This corresponds to the :math:`vl_{in} . BR_{k}` part of the vR(D) equation.
 2. Calculate the the diameter-**dependent** variable :meth:`cara.models.InfectedPopulation.aerosols`, which is the result of :math:`E_{c,j}(D) = Np(D) . Vp(D) . (1 − ηout(D))` (in mL/(m:math:'^3.µm)). 
 Note that this result is not integrated over the diameters at this stage, thus the units are still *'per aerosol diameter'*.
 3. Calculate the full emission rate, which is the multiplication of the two previous methods, and corresponds to **vR(D)**: :meth:`cara.models._PopulationWithVirus.emission_rate_when_present`
