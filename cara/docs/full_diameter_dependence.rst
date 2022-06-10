@@ -55,18 +55,18 @@ Interface Focus 20210076, https://doi.org/10.1098/rsfs.2021.0076), as follows:
 
 :math:`E_{c, j}^{total}=\int_0^{D_{\mathrm{max}}} E_{c,j}(D)\, \mathrm{d}D` .
 
-The later integral, which is giving the total volumetric particle emission concentration (in mL/m:math:'^3'), is a example of a numerical Monte-Carlo integration over the particle diameters, 
+The later integral, which is giving the total volumetric particle emission concentration (in mL/m\ :sup:`3` \), is a example of a numerical Monte-Carlo integration over the particle diameters, 
 since vR(D) is a diameter-dependent quantity. :math:`E_{c, j}` is calculated using a Monte-Carlo sampling of the BLO distribution given by **Np(D)**, which contains the scaling factor **cn**.
 
 In the code, for a given Expiration, we use different methods to perform the calculations *set-by-step*:
 
 1. Calculate the non aerosol-dependent quantities in the emission rate, which is the multiplication of the diameter-**independent** variables: :meth:`cara.models.InfectedPopulation.emission_rate_per_aerosol_when_present`. This corresponds to the :math:`vl_{in} . BR_{k}` part of the vR(D) equation.
-2. Calculate the the diameter-**dependent** variable :meth:`cara.models.InfectedPopulation.aerosols`, which is the result of :math:`E_{c,j}(D) = Np(D) . Vp(D) . (1 − ηout(D))` (in mL/(m:math:'^3.µm)). 
+2. Calculate the the diameter-**dependent** variable :meth:`cara.models.InfectedPopulation.aerosols`, which is the result of :math:`E_{c,j}(D) = Np(D) . Vp(D) . (1 − ηout(D))` (in mL/(m\ :sup:`3` \.µm)). 
 Note that this result is not integrated over the diameters at this stage, thus the units are still *'per aerosol diameter'*.
 3. Calculate the full emission rate, which is the multiplication of the two previous methods, and corresponds to **vR(D)**: :meth:`cara.models._PopulationWithVirus.emission_rate_when_present`
 
-Note that the diameter-dependence is kept at this stage. Since other parameters downstream in code are also diameter-dependent, the Monte-Carlo integration over the aerosol sizes is computed at the level of the dose **vD:math:'^{total}'**.
-In case one would like to have intermediate results for emission rate, perform the Monte-Carlo integration of :math:`E_{c, j}^{total} and compute :math:`vR^{total} =vl_{in} . E_{c, j}^{total} . BR_k`
+Note that the diameter-dependence is kept at this stage. Since other parameters downstream in code are also diameter-dependent, the Monte-Carlo integration over the aerosol sizes is computed at the level of the dose vD\ :sup:`total` \.
+In case one would like to have intermediate results for emission rate, perform the Monte-Carlo integration of :math:`E_{c, j}^{total}` and compute :math:`vR^{total} =vl_{in} . E_{c, j}^{total} . BR_k`
 
 
 Long-range approach
