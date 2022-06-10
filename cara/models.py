@@ -800,9 +800,9 @@ class _PopulationWithVirus(Population):
 
     def emission_rate_per_aerosol_when_present(self) -> _VectorisedFloat:
         """
-        The emission rate of virions in the expired air per aerosol volume, 
+        The emission rate of virions in the expired air per mL of respiratory fluid, 
         if the infected population is present, in (virion.cm^3)/(mL.h).
-        This method includes the diameter-independent variables of the emission rate.
+        This method includes only the diameter-independent variables within the emission rate.
         It should not be a function of time.
         """
         raise NotImplementedError("Subclass must implement")
@@ -857,9 +857,9 @@ class EmittingPopulation(_PopulationWithVirus):
     @method_cache
     def emission_rate_per_aerosol_when_present(self) -> _VectorisedFloat:
         """
-        The emission rate of virions in the expired air per aerosol volume, 
+        The emission rate of virions in the expired air per mL of respiratory fluid, 
         if the infected population is present, in (virion.cm^3)/(mL.h).
-        This method includes the diameter-independent variables of the emission rate.
+        This method includes only the diameter-independent variables within the emission rate.
         It should not be a function of time.
         """
         return self.known_individual_emission_rate * self.number
@@ -886,13 +886,13 @@ class InfectedPopulation(_PopulationWithVirus):
     @method_cache
     def emission_rate_per_aerosol_when_present(self) -> _VectorisedFloat:
         """
-        The emission rate of virions in the expired air per aerosol volume, 
+        The emission rate of virions in the expired air per mL of respiratory fluid, 
         if the infected population is present, in (virion.cm^3)/(mL.h).
-        This method includes the diameter-independent variables of the emission rate.
+        This method includes only the diameter-independent variables within the emission rate.
         It should not be a function of time.
         """
         # Note on units: exhalation rate is in m^3/h -> 1e6 conversion factor
-        # returns the results of ER times the 'numeber' of infected hosts in the room
+        # Returns the emission rate times the number of infected hosts in the room
 
         ER = (self.virus.viral_load_in_sputum *
               self.activity.exhalation_rate *
