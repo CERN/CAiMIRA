@@ -183,7 +183,6 @@ function require_mask(option) {
 
 function require_hepa(option) {
   require_input_field("#hepa_amount", option);
-  set_disabled_status("#hepa_amount", !option);
 }
 
 function require_input_field(id, option) {
@@ -234,6 +233,20 @@ function on_ventilation_type_change() {
       removeInvalid("#"+getChildElement($(this)).find('input').not('input[type=radio]').attr('id'));
     }
   });
+}
+
+function on_hepa_option_change() {
+  hepa_option = $('input[type=radio][name=hepa_option]')
+  hepa_option.each(function (index) {
+    if (this.checked) {
+      getChildElement($(this)).show();
+      require_fields(this);
+    }
+    else {
+      getChildElement($(this)).hide();
+      require_fields(this);
+    }
+  })
 }
 
 function on_wearing_mask_change() {
@@ -711,6 +724,12 @@ $(document).ready(function () {
   // Call the function now to handle forward/back button presses in the browser.
   on_ventilation_type_change();
 
+  // When the hepa filtration option changes we want to make its respective
+  // children show/hide.
+  $("input[type=radio][name=hepa_option]").change(on_hepa_option_change);
+  // Call the function now to handle forward/back button presses in the browser.
+  on_hepa_option_change();
+
   // When the mask_wearing_option changes we want to make its respective
   // children show/hide.
   $("input[type=radio][name=mask_wearing_option]").change(on_wearing_mask_change);
@@ -861,8 +880,8 @@ $(document).ready(function () {
           </div>
         
           <div class='form-group row'>
-            <div class="col-sm-4"><label class="col-form-label col-form-label-sm"> Duration:</label></div>
-            <div class="col-sm-8"><input type="number" id="sr_duration_no_${index}" value="${value.duration}" class="form-control form-control-sm short_range_option" name="short_range_duration" min=1 placeholder="Minutes" onchange="validate_sr_time(this)" form="not-submitted"><br></div>
+            <div class="col-sm-6"><label class="col-form-label col-form-label-sm"> Duration (min):</label></div>
+            <div class="col-sm-6"><input type="number" id="sr_duration_no_${index}" value="${value.duration}" class="form-control form-control-sm short_range_option" name="short_range_duration" min=1 placeholder="Minutes" onchange="validate_sr_time(this)" form="not-submitted"><br></div>
           </div>
 
           <div class="form-group" style="max-width: 8rem">

@@ -88,11 +88,11 @@
     <br>
 
     <div class="form-group row">
-      <div class="col-sm-4">
+      <div class="col-sm-5">
         <input type="radio" id="room_data_volume" name="volume_type" value="room_volume_explicit" onclick="require_fields(this)" tabindex="-1" required>
-        <label class="col-form-label">Room volume:</label>
+        <label class="col-form-label">Room volume (m³):</label>
       </div>
-      <div class="col-sm-6">
+      <div class="col-sm-5">
         <input type="number" step="any" id="room_volume" class="non_zero form-control" name="room_volume" placeholder="Room volume (m³)" min="0" data-has-radio="#room_data_volume">
       </div>
     </div>
@@ -101,7 +101,7 @@
     <div class="form-group row">
       <div class="col-sm-4">
         <input type="radio" id="room_data_dimensions" name="volume_type" value="room_volume_from_dimensions" onclick="require_fields(this)" tabindex="-1" required>
-        <label for="room_data_dimensions">Floor area:</label>
+        <label class="col-form-label" for="room_data_dimensions">Floor area (m²):</label>
       </div>
       <div class="col-sm-6">
         <input type="number" step="any" id="floor_area" class="non_zero form-control" name="floor_area" placeholder="Room floor area (m²)" min="0" data-has-radio="#room_data_dimensions">
@@ -109,7 +109,7 @@
     </div>
     <div class="form-group row">
       <div class="col-sm-4">
-        <label for="room_data_dimensions">Ceiling height:</label>
+        <label class="col-form-label" for="room_data_dimensions">Ceiling height (m):</label>
       </div>
       <div class="col-sm-6">
         <input type="number" step="any" id="ceiling_height" class="non_zero form-control" name="ceiling_height" placeholder="Room ceiling height (m)" min="0" data-has-radio="#room_data_dimensions">
@@ -189,21 +189,21 @@
 
     <div id="DIVmechanical_ventilation" class="tabbed" style="display:none">
         <div class="split">
-          <div>
-          <input type="radio" id="mech_type_air_supply" name="mechanical_ventilation_type" value="mech_type_air_supply" class="center_radio" onclick="require_fields(this)" tabindex="-1">
-          <label for="mech_type_air_supply" class="col-form-label ml-2">Air supply flow rate</label>
+          <div style="min-width: 55%">
+            <input type="radio" id="mech_type_air_supply" name="mechanical_ventilation_type" value="mech_type_air_supply" class="center_radio" onclick="require_fields(this)" tabindex="-1">
+            <label for="mech_type_air_supply" class="col-form-label ml-2">Air supply flow rate (m³ / hour)</label>
           </div>
           <div>
-          <input type="number" step="any" id="air_supply" class="non_zero form-control" name="air_supply" min="0" placeholder="Flow rate (m³ / hour)" data-has-radio="#mech_type_air_supply"><br>
+            <input type="number" step="any" id="air_supply" class="non_zero form-control" name="air_supply" min="0" placeholder="Flow rate (m³ / hour)" data-has-radio="#mech_type_air_supply"><br>
           </div>
         </div>
         <div class="split">
-          <div>
-          <input type="radio" id="mech_type_air_changes" name="mechanical_ventilation_type" value="mech_type_air_changes" class="center_radio" onclick="require_fields(this)" tabindex="-1">
-          <label for="mech_type_air_changes" class="col-form-label ml-2">Air changes per hour</label>
+          <div style="min-width: 55%">
+            <input type="radio" id="mech_type_air_changes" name="mechanical_ventilation_type" value="mech_type_air_changes" class="center_radio" onclick="require_fields(this)" tabindex="-1">
+            <label for="mech_type_air_changes" class="col-form-label ml-2">Air changes per hour (h⁻¹)</label>
           </div>
           <div>
-          <input type="number" step="any" id="air_changes" class="non_zero form-control" name="air_changes" min="0" placeholder="Air exchange (h⁻¹)" data-has-radio="#mech_type_air_changes"><br>
+            <input type="number" step="any" id="air_changes" class="non_zero form-control" name="air_changes" min="0" placeholder="Air exchange (h⁻¹)" data-has-radio="#mech_type_air_changes"><br>
           </div>
         </div>
     </div>
@@ -214,7 +214,7 @@
         <div><input type="number" id="windows_number" class="non_zero form-control" name="windows_number" placeholder="Number (#)" min="1"><br></div>
       </div>
       <div class="split">
-        <div><label class="col-form-label">Height of window: </label></div>
+        <div><label class="col-form-label">Height of window (m): </label></div>
         <div><input type="number" step="any" id="window_height" class="non_zero form-control" name="window_height" placeholder="Height (m)" min="0"><br></div>
       </div>
         <div class='sub_title'>Window type:</div>
@@ -223,11 +223,11 @@
         <input class="ml-2" type="radio" id="window_hinged" name="window_type" value="window_hinged" onclick="require_fields(this)">
           <label for="window_hinged">Top- or Bottom-Hung</label><br>
         <div class="split">
-          <div><label class="col-form-label">Width of window: </label></div>
+          <div><label class="col-form-label">Width of window (m): </label></div>
           <div><input type="number" step="any" id="window_width" class="non_zero disabled form-control" name="window_width" placeholder="Width (m)" min="0" data-has-radio="#window_hinged"><br></div>
         </div>
         <div class="split">
-          <div><label class="col-form-label">Opening distance: </label></div>
+          <div><label class="col-form-label">Opening distance (m): </label></div>
           <div><input type="number" step="any" id="opening_distance" class="non_zero form-control" name="opening_distance" placeholder="Opening distance (m)" min="0"><br></div>
         </div>
         <div class='sub_title'>Window open:</div>
@@ -245,17 +245,16 @@
     </div>
 
     <div class='sub_title'>HEPA filtration:</div>
-    <div class="split">
-    <div>
-    <input type="radio" id="hepa_no" name="hepa_option" value=0 onclick="require_fields(this)" checked="checked">
-      <label for="hepa_no" class="col-form-label ml-2">No</label>
-    <input class="ml-2" type="radio" id="hepa_yes" name="hepa_option" value=1 onclick="require_fields(this)">
-      <label for="hepa_yes" class="col-form-label ml-2">Yes</label>
-    </div>
-    <div>
-    <input type="number" step="any" id="hepa_amount" class="non_zero disabled form-control" name="hepa_amount" placeholder="Flow rate (m³ / hour)" min="0" data-has-radio="#hepa_yes">
-    </div>
-    </div>
+      <div>
+        <input type="radio" id="hepa_yes" name="hepa_option" value=1 onclick="require_fields(this)" data-enables="#DIVhepa_amount">
+          <label for="hepa_yes" class="col-form-label ml-2">Yes</label>
+        <input class="ml-2" type="radio" id="hepa_no" name="hepa_option" value=0 onclick="require_fields(this)" checked="checked">
+          <label for="hepa_no" class="col-form-label ml-2">No</label>
+      </div>
+      <div class="split" id="DIVhepa_amount">
+        <div><label for="hepa_amount" class="col-form-label ml-2">Flow rate (m³ / hour):</label></div>
+        <div><input type="number" step="any" id="hepa_amount" class="non_zero form-control" name="hepa_amount" placeholder="Flow rate (m³ / hour)" min="0" data-has-radio="#hepa_yes"></div>
+      </div>
     <hr width="80%">
 
     <b>Face masks:</b>
