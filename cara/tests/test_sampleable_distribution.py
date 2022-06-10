@@ -1,10 +1,12 @@
 import numpy as np
 import numpy.testing as npt
 import pytest
+from retry import retry
 
 from cara.monte_carlo import sampleable
 
 
+@retry(tries=10)
 @pytest.mark.parametrize(
     "mean, std",[
         [1., 0.5],
