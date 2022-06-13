@@ -237,9 +237,8 @@
         </div>
         <div class="form-group row">
           <span class="tabbed center_radio"><input type="radio" id="windows_open_periodically" name="window_opening_regime" value="windows_open_periodically" onclick="require_fields(this)"></span>
-          <label for="windows_open_periodically" class="col-form-label ml-2 mr-2">Periodically:</label><br>
-          <input type="number" step="any" id="windows_duration" class="non_zero disabled form-control col-sm-4" name="windows_duration" placeholder="Duration (min)" min="1" data-has-radio="#windows_open_periodically"> 
-          <input type="number" step="any" id="windows_frequency" class="non_zero disabled form-control col-sm-4" name="windows_frequency" placeholder="Frequency (min)" min="1" data-has-radio="#windows_open_periodically">
+          <label for="windows_open_periodically" class="col-form-label ml-2 mr-2">Periodically (open minutes per hour):</label><br>
+          <input type="number" step="any" id="windows_duration" class="non_zero disabled form-control col-sm-4 ml-2 mr-2" name="windows_duration" placeholder="Duration (min)" min="1" data-has-radio="#windows_open_periodically"> 
         </div>
         <br>
     </div>
@@ -575,7 +574,7 @@
   <b>Ventilation data:</b> <br>
   <ul>
     <li>Mechanical ventilation = the HVAC supply of fresh air. Check the flow rates with the concerned technical department.</li>
-    <li>Natural ventilation = the type of window opening. The opening distance is between the fixed frame and movable part when open (commonly used values are window height of 1.6m and window opening between 0.15m and 0.6m). In case of periodic opening, specify the duration (e.g. for 10 min) and frequency (e.g. every 60 min).</li>
+    <li>Natural ventilation = the type of window opening. The opening distance is between the fixed frame and movable part when open (commonly used values are window height of 1.6m and window opening between 0.15m and 0.6m). In case of periodic opening, specify the duration (e.g. 10 min) per hour.</li>
     <li>HEPA filtration = the air flow of the device. The following values are based on the different fan velocities of a specific commercial device proposed by the HSE Unit:</li>
     <ul>
         <li>Level 6 (max) = 430 m<sup>3</sup>/h (noisy),</li>
