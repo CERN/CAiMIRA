@@ -93,7 +93,7 @@
         <label class="col-form-label">Room volume (m³):</label>
       </div>
       <div class="col-sm-5">
-        <input type="number" step="any" id="room_volume" class="non_zero form-control" name="room_volume" placeholder="Room volume (m³)" min="0" data-has-radio="#room_data_volume">
+        <input type="number" step="any" id="room_volume" class="non_zero form-control" name="room_volume" placeholder="Room volume" min="0" data-has-radio="#room_data_volume">
       </div>
     </div>
     
@@ -104,7 +104,7 @@
         <label class="col-form-label" for="room_data_dimensions">Floor area (m²):</label>
       </div>
       <div class="col-sm-6">
-        <input type="number" step="any" id="floor_area" class="non_zero form-control" name="floor_area" placeholder="Room floor area (m²)" min="0" data-has-radio="#room_data_dimensions">
+        <input type="number" step="any" id="floor_area" class="non_zero form-control" name="floor_area" placeholder="Room floor area" min="0" data-has-radio="#room_data_dimensions">
       </div>  
     </div>
     <div class="form-group row">
@@ -112,7 +112,7 @@
         <label class="col-form-label" for="room_data_dimensions">Ceiling height (m):</label>
       </div>
       <div class="col-sm-6">
-        <input type="number" step="any" id="ceiling_height" class="non_zero form-control" name="ceiling_height" placeholder="Room ceiling height (m)" min="0" data-has-radio="#room_data_dimensions">
+        <input type="number" step="any" id="ceiling_height" class="non_zero form-control" name="ceiling_height" placeholder="Room ceiling height" min="0" data-has-radio="#room_data_dimensions">
       </div>
     </div>
 
@@ -194,7 +194,7 @@
             <label for="mech_type_air_supply" class="col-form-label ml-2">Air supply flow rate (m³ / hour)</label>
           </div>
           <div>
-            <input type="number" step="any" id="air_supply" class="non_zero form-control" name="air_supply" min="0" placeholder="Flow rate (m³ / hour)" data-has-radio="#mech_type_air_supply"><br>
+            <input type="number" step="any" id="air_supply" class="non_zero form-control" name="air_supply" min="0" placeholder="Flow rate" data-has-radio="#mech_type_air_supply"><br>
           </div>
         </div>
         <div class="split">
@@ -203,7 +203,7 @@
             <label for="mech_type_air_changes" class="col-form-label ml-2">Air changes per hour (h⁻¹)</label>
           </div>
           <div>
-            <input type="number" step="any" id="air_changes" class="non_zero form-control" name="air_changes" min="0" placeholder="Air exchange (h⁻¹)" data-has-radio="#mech_type_air_changes"><br>
+            <input type="number" step="any" id="air_changes" class="non_zero form-control" name="air_changes" min="0" placeholder="Air exchange" data-has-radio="#mech_type_air_changes"><br>
           </div>
         </div>
     </div>
@@ -211,11 +211,11 @@
     <div id="DIVnatural_ventilation" class="tabbed" style="display:none">
       <div class="split">
         <div><label class="col-form-label">Number of windows:</label></div>
-        <div><input type="number" id="windows_number" class="non_zero form-control" name="windows_number" placeholder="Number (#)" min="1"><br></div>
+        <div><input type="number" id="windows_number" class="non_zero form-control" name="windows_number" placeholder="Number" min="1"><br></div>
       </div>
       <div class="split">
         <div><label class="col-form-label">Height of window (m): </label></div>
-        <div><input type="number" step="any" id="window_height" class="non_zero form-control" name="window_height" placeholder="Height (m)" min="0"><br></div>
+        <div><input type="number" step="any" id="window_height" class="non_zero form-control" name="window_height" placeholder="Height" min="0"><br></div>
       </div>
         <div class='sub_title'>Window type:</div>
         <input class="ml-2" type="radio" id="window_sliding" name="window_type" value="window_sliding" onclick="require_fields(this)" checked="checked">
@@ -224,11 +224,11 @@
           <label for="window_hinged">Top- or Bottom-Hung</label><br>
         <div class="split">
           <div><label class="col-form-label">Width of window (m): </label></div>
-          <div><input type="number" step="any" id="window_width" class="non_zero disabled form-control" name="window_width" placeholder="Width (m)" min="0" data-has-radio="#window_hinged"><br></div>
+          <div><input type="number" step="any" id="window_width" class="non_zero disabled form-control" name="window_width" placeholder="Width" min="0" data-has-radio="#window_hinged"><br></div>
         </div>
         <div class="split">
           <div><label class="col-form-label">Opening distance (m): </label></div>
-          <div><input type="number" step="any" id="opening_distance" class="non_zero form-control" name="opening_distance" placeholder="Opening distance (m)" min="0"><br></div>
+          <div><input type="number" step="any" id="opening_distance" class="non_zero form-control" name="opening_distance" placeholder="Opening distance" min="0"><br></div>
         </div>
         <div class='sub_title'>Window open:</div>
         <div class="form-group row">
@@ -238,7 +238,7 @@
         <div class="form-group row">
           <span class="tabbed center_radio"><input type="radio" id="windows_open_periodically" name="window_opening_regime" value="windows_open_periodically" onclick="require_fields(this)"></span>
           <label for="windows_open_periodically" class="col-form-label ml-2 mr-2">Periodically (open minutes per hour):</label><br>
-          <input type="number" step="any" id="windows_duration" class="non_zero disabled form-control col-sm-4 ml-2 mr-2" name="windows_duration" placeholder="Duration (min)" min="1" data-has-radio="#windows_open_periodically"> 
+          <input type="number" step="any" id="windows_duration" class="non_zero disabled form-control col-sm-4 ml-2 mr-2" name="windows_duration" placeholder="Duration" min="1" data-has-radio="#windows_open_periodically"> 
         </div>
         <br>
     </div>
@@ -252,7 +252,7 @@
       </div>
       <div class="split" id="DIVhepa_amount">
         <div><label for="hepa_amount" class="col-form-label ml-2">Flow rate (m³ / hour):</label></div>
-        <div><input type="number" step="any" id="hepa_amount" class="non_zero form-control" name="hepa_amount" placeholder="Flow rate (m³ / hour)" min="0" data-has-radio="#hepa_yes"></div>
+        <div><input type="number" step="any" id="hepa_amount" class="non_zero form-control" name="hepa_amount" placeholder="Flow rate" min="0" data-has-radio="#hepa_yes"></div>
       </div>
     <hr width="80%">
 
@@ -301,7 +301,7 @@
 
     <div class="form-group row">
       <div class="col-sm-4"><label class="col-form-label">Total number of occupants:</label></div>
-      <div class="col-sm-6 align-self-center"><input type="number" id="total_people" class="form-control" name="total_people" placeholder="Number (#)" min=1 required></div>
+      <div class="col-sm-6 align-self-center"><input type="number" id="total_people" class="form-control" name="total_people" placeholder="Number" min=1 required></div>
     </div>
 
     <div class="form-group row">
