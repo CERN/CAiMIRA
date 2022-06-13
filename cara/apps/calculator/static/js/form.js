@@ -865,7 +865,7 @@ $(document).ready(function () {
               <option value="" selected disabled>Select type</option>
               <option value="Breathing">Breathing</option>
               <option value="Speaking">Speaking</option>
-              <option value="Shouting">Shouting</option>
+              <option value="Shouting">Shouting/Singing</option>
             </select><br>
             </div>
           </div>
