@@ -71,7 +71,6 @@ class FormData:
     virus_type: str
     volume_type: str
     windows_duration: float
-    windows_frequency: float
     window_height: float
     window_type: str
     window_width: float
@@ -129,7 +128,6 @@ class FormData:
         'window_height': 0.,
         'window_width': 0.,
         'windows_duration': 0.,
-        'windows_frequency': 0.,
         'windows_number': 0,
         'window_opening_regime': 'windows_open_permanently',
         'short_range_option': 'short_range_no',
@@ -324,11 +322,11 @@ class FormData:
         return outside_temp
 
     def ventilation(self) -> models._VentilationBase:
-        always_on = models.PeriodicInterval(period=120, duration=120)
+        always_on = models.PeriodicInterval(period=60, duration=60)
         # Initializes a ventilation instance as a window if 'natural_ventilation' is selected, or as a HEPA-filter otherwise
         if self.ventilation_type == 'natural_ventilation':
             if self.window_opening_regime == 'windows_open_periodically':
-                window_interval = models.PeriodicInterval(self.windows_frequency, self.windows_duration, min(self.infected_start, self.exposed_start)/60)
+                window_interval = models.PeriodicInterval(60, self.windows_duration, min(self.infected_start, self.exposed_start)/60)
             else:
                 window_interval = always_on
 
@@ -717,7 +715,6 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'virus_type': 'SARS_CoV_2',
         'volume_type': 'room_volume_explicit',
         'windows_duration': '',
-        'windows_frequency': '',
         'window_height': '2',
         'window_type': 'window_sliding',
         'window_width': '2',
