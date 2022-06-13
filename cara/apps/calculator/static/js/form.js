@@ -401,7 +401,7 @@ function validate_form(form) {
     }
   });
 
-  //Validate window venting duration > 60 minutes.
+  //Validate window venting duration < 60 minutes.
   if (!$("#windows_duration").hasClass("disabled")) {
     var windowsDurationObj = document.getElementById("windows_duration");
     removeErrorFor(windowsDurationObj);
