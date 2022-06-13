@@ -45,8 +45,7 @@ def test_blend_expiration(mask_type):
 
 def test_ventilation_slidingwindow(baseline_form: model_generator.FormData):
     baseline_form.ventilation_type = 'natural_ventilation'
-    baseline_form.windows_duration = 10
-    baseline_form.windows_frequency = 120
+    baseline_form.windows_duration = 5
     baseline_form.window_opening_regime = 'windows_open_periodically'
     baseline_form.window_type = 'window_sliding'
     baseline_form.event_month = 'December'
@@ -59,13 +58,13 @@ def test_ventilation_slidingwindow(baseline_form: model_generator.FormData):
     assert isinstance(baseline_window, models.SlidingWindow)
 
     window = models.SlidingWindow(
-        active=models.PeriodicInterval(period=120, duration=10, start=9),
+        active=models.PeriodicInterval(period=60, duration=5, start=9),
         outside_temp=baseline_window.outside_temp,
         window_height=1.6, opening_length=0.6,
     )
 
     ach = models.AirChange(
-        active=models.PeriodicInterval(period=120, duration=120),
+        active=models.PeriodicInterval(period=60, duration=60),
         air_exch=0.25,
     )
     ventilation = models.MultipleVentilation((window, ach))
@@ -75,8 +74,7 @@ def test_ventilation_slidingwindow(baseline_form: model_generator.FormData):
 
 def test_ventilation_hingedwindow(baseline_form: model_generator.FormData):
     baseline_form.ventilation_type = 'natural_ventilation'
-    baseline_form.windows_duration = 10
-    baseline_form.windows_frequency = 120
+    baseline_form.windows_duration = 5
     baseline_form.window_opening_regime = 'windows_open_periodically'
     baseline_form.window_type = 'window_hinged'
     baseline_form.event_month = 'December'
@@ -90,12 +88,12 @@ def test_ventilation_hingedwindow(baseline_form: model_generator.FormData):
     assert isinstance(baseline_window, models.HingedWindow)
 
     window = models.HingedWindow(
-        active=models.PeriodicInterval(period=120, duration=10, start=9),
+        active=models.PeriodicInterval(period=60, duration=5, start=9),
         outside_temp=baseline_window.outside_temp,
         window_height=1.6, window_width=1., opening_length=0.6,
     )
     ach = models.AirChange(
-        active=models.PeriodicInterval(period=120, duration=120),
+        active=models.PeriodicInterval(period=60, duration=60),
         air_exch=0.25,
     )
     ventilation = models.MultipleVentilation((window, ach))
@@ -135,8 +133,7 @@ def test_ventilation_airchanges(baseline_form: model_generator.FormData):
 
 def test_ventilation_window_hepa(baseline_form: model_generator.FormData):
     baseline_form.ventilation_type = 'natural_ventilation'
-    baseline_form.windows_duration = 10
-    baseline_form.windows_frequency = 120
+    baseline_form.windows_duration = 5
     baseline_form.window_opening_regime = 'windows_open_periodically'
     baseline_form.event_month = 'December'
     baseline_form.window_height = 1.6
@@ -150,16 +147,16 @@ def test_ventilation_window_hepa(baseline_form: model_generator.FormData):
 
     # Now build the equivalent ventilation instance directly, and compare.
     window = models.SlidingWindow(
-        active=models.PeriodicInterval(period=120, duration=10, start=9),
+        active=models.PeriodicInterval(period=60, duration=5, start=9),
         outside_temp=baseline_window.outside_temp,
         window_height=1.6, opening_length=0.6,
     )
     hepa = models.HEPAFilter(
-        active=models.PeriodicInterval(period=120, duration=120),
+        active=models.PeriodicInterval(period=60, duration=60),
         q_air_mech=250.,
     )
     ach = models.AirChange(
-        active=models.PeriodicInterval(period=120, duration=120),
+        active=models.PeriodicInterval(period=60, duration=60),
         air_exch=0.25,
     )
     ventilation = models.MultipleVentilation((window, hepa, ach))
