@@ -63,24 +63,6 @@ p.notes {
     width: 100pt;
 }
 
-.red_bkg {
-    color: #000000;
-    background-color: #CD5C5C;
-    text-decoration: none;
-}
-
-.yellow_bkg {
-    color: #000000;
-    background-color: #FFFF00;
-    text-decoration: none;
-}
-
-.green_bkg {
-    color: #000000;
-    background-color: #90EE90;
-    text-decoration: none;
-}
-
 .icon_button {
     border: none;
     background: none;
@@ -113,9 +95,6 @@ p.notes {
     #rules,
     #data {
         display: contents!important;
-    .card {
-        page-break-inside: avoid!important;
-        break-inside: avoid!important;
     }
     #link_reproduce_results {
         display: none!important;
@@ -143,6 +122,10 @@ p.notes {
     }
     .pi-box {
         max-width: 260px!important;
+    }
+    .card {
+        page-break-inside: avoid!important;
+        break-inside: avoid!important;
     }
     #link-results {
         display: none;

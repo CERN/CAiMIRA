@@ -135,12 +135,12 @@
             </thead>
             <tbody>
             {% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
-                {%if (( scenario_stats.probability_of_infection  > 15) or (scenario_stats.expected_new_cases >= 1)) %}
-                  <tr class="red_bkg">
-                {% elif (5 <= scenario_stats.probability_of_infection <= 15) %}
-                  <tr class="yellow_bkg">
-                {% elif (scenario_stats.probability_of_infection < 5) %}
-                  <tr class="green_bkg">
+                {%if (( scenario_stats.probability_of_infection  > 10) or (scenario_stats.expected_new_cases >= 1)) %}
+                  <tr class="alert-danger">
+                {% elif (2 <= scenario_stats.probability_of_infection <= 10) %}
+                  <tr class="alert-warning">
+                {% elif (scenario_stats.probability_of_infection < 2) %}
+                  <tr class="alert-success">
                 {% endif%}
                     <td> {{ scenario_name }}</td>
                     <td> {{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
