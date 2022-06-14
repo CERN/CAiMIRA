@@ -4,6 +4,8 @@
     bottom: 20px;
     right: 20px;
     padding: 20px;
+    -webkit-print-color-adjust: exact; /* chrome & webkit browsers */
+    print-color-adjust: exact; /*firefox & IE */
 }
 
 h1 {
@@ -111,6 +113,9 @@ p.notes {
     #rules,
     #data {
         display: contents!important;
+    .card {
+        page-break-inside: avoid!important;
+        break-inside: avoid!important;
     }
     #link_reproduce_results {
         display: none!important;
@@ -132,9 +137,6 @@ p.notes {
     }
     .icon_button {
         display: none!important;
-    }
-    .card {
-        page-break-inside: avoid;
     }
     .pi-image {
         max-height: 9em;
@@ -172,6 +174,7 @@ p.notes {
     border-radius: 100px;
     z-index: 1;
     -webkit-print-color-adjust: exact!important;
+    print-color-adjust: exact!important;
 }
 
 .intro-banner-vdo-play-btn i {
