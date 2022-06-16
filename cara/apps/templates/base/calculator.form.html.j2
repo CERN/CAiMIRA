@@ -99,19 +99,19 @@
     
 
     <div class="form-group row">
-      <div class="col-sm-4">
+      <div class="col-sm-5">
         <input type="radio" id="room_data_dimensions" name="volume_type" value="room_volume_from_dimensions" onclick="require_fields(this)" tabindex="-1" required>
         <label class="col-form-label" for="room_data_dimensions">Floor area (m²):</label>
       </div>
-      <div class="col-sm-6">
+      <div class="col-sm-5">
         <input type="number" step="any" id="floor_area" class="non_zero form-control" name="floor_area" placeholder="Room floor area" min="0" data-has-radio="#room_data_dimensions">
       </div>  
     </div>
     <div class="form-group row">
-      <div class="col-sm-4">
-        <label class="col-form-label" for="room_data_dimensions">Ceiling height (m):</label>
+      <div class="col-sm-5">
+        <label class="col-form-label ml-3" for="room_data_dimensions">Ceiling height (m):</label>
       </div>
-      <div class="col-sm-6">
+      <div class="col-sm-5">
         <input type="number" step="any" id="ceiling_height" class="non_zero form-control" name="ceiling_height" placeholder="Room ceiling height" min="0" data-has-radio="#room_data_dimensions">
       </div>
     </div>
@@ -208,42 +208,49 @@
         </div>
     </div>
 
-    <div id="DIVnatural_ventilation" class="tabbed" style="display:none">
-      <div class="split">
-        <div><label class="col-form-label">Number of windows:</label></div>
-        <div><input type="number" id="windows_number" class="non_zero form-control" name="windows_number" placeholder="Number" min="1"><br></div>
+    <div id="DIVnatural_ventilation" style="display:none">
+      <div class="form-group row tabbed">
+        <div class="col-md-5"><label class="col-form-label">Number of windows:</label></div>
+        <div class="col-md-5"><input type="number" id="windows_number" class="non_zero form-control" name="windows_number" placeholder="Number" min="1"></div>
       </div>
-      <div class="split">
-        <div><label class="col-form-label">Height of window (m): </label></div>
-        <div><input type="number" step="any" id="window_height" class="non_zero form-control" name="window_height" placeholder="Height" min="0"><br></div>
+      <div class="form-group row tabbed">
+        <div class="col-md-5"><label class="col-form-label">Height of window (m): </label></div>
+        <div class="col-md-5"><input type="number" step="any" id="window_height" class="non_zero form-control" name="window_height" placeholder="Height" min="0"></div>
       </div>
         <div class='sub_title'>Window type:</div>
         <input class="ml-2" type="radio" id="window_sliding" name="window_type" value="window_sliding" onclick="require_fields(this)" checked="checked">
           <label for="window_sliding">Sliding / Side-Hung</label>
         <input class="ml-2" type="radio" id="window_hinged" name="window_type" value="window_hinged" onclick="require_fields(this)">
           <label for="window_hinged">Top- or Bottom-Hung</label><br>
-        <div class="split">
-          <div><label class="col-form-label">Width of window (m): </label></div>
-          <div><input type="number" step="any" id="window_width" class="non_zero disabled form-control" name="window_width" placeholder="Width" min="0" data-has-radio="#window_hinged"><br></div>
+        <div class="form-group row tabbed">
+          <div class="col-md-5"><label class="col-form-label">Width of window (m): </label></div>
+          <div class="col-md-5"><input type="number" step="any" id="window_width" class="non_zero disabled form-control" name="window_width" placeholder="Width" min="0" data-has-radio="#window_hinged"></div>
         </div>
-        <div class="split">
-          <div><label class="col-form-label">Opening distance (m): </label></div>
-          <div><input type="number" step="any" id="opening_distance" class="non_zero form-control" name="opening_distance" placeholder="Opening distance" min="0"><br></div>
+        <div class="form-group row tabbed">
+          <div class="col-md-5"><label class="col-form-label">Opening distance (m): </label></div>
+          <div class="col-md-5"><input type="number" step="any" id="opening_distance" class="non_zero form-control" name="opening_distance" placeholder="Opening distance" min="0"></div>
         </div>
-        <div class='sub_title'>Window open:</div>
-        <div class="form-group row">
-          <span class="tabbed center_radio"><input type="radio" id="windows_open_permanently" name="window_opening_regime" value="windows_open_permanently" onclick="require_fields(this)" checked="checked"></span>
-          <label for="windows_open_permanently" class="col-form-label ml-2">Permanently</label><br>
+        <div class='sub_title'>Window open:
+          <div data-tooltip="Permanently or periodically - e.g. open the window for 10 minutes (duration) every 60 minutes (frequency).">
+              <span class="tooltip_text">?</span>
+          </div>
         </div>
-        <div class="form-group row">
-          <span class="tabbed center_radio"><input type="radio" id="windows_open_periodically" name="window_opening_regime" value="windows_open_periodically" onclick="require_fields(this)"></span>
+        <input class="ml-2" type="radio" id="windows_open_permanently" name="window_opening_regime" value="windows_open_permanently" onclick="require_fields(this)" checked="checked"></span>
+          <label for="windows_open_permanently" class="col-form-label ml-2">Permanently</label>
+        <input class="ml-2" type="radio" id="windows_open_periodically" name="window_opening_regime" value="windows_open_periodically" onclick="require_fields(this)"></span>
           <label for="windows_open_periodically" class="col-form-label ml-2 mr-2">Periodically:</label><br>
-          <input type="number" step="any" id="windows_duration" class="non_zero disabled form-control col-sm-4" name="windows_duration" placeholder="Duration (min)" min="1" data-has-radio="#windows_open_periodically"> 
-          <input type="number" step="any" id="windows_frequency" class="non_zero disabled form-control col-sm-4" name="windows_frequency" placeholder="Frequency (min)" min="1" data-has-radio="#windows_open_periodically">
+
+        <div class="form-group row tabbed">     
+          <div class="col-md-5"><label for="window_duration" class="col-form-label ml-2">Frequency (min):</label></div>
+          <div class="col-md-5"><input type="number" step="any" id="windows_duration" class="non_zero disabled form-control" name="windows_duration" placeholder="Duration" min="1" data-has-radio="#windows_open_periodically"></div>
+        </div>
+        <div class="form-group row tabbed">
+          <div class="col-md-5"><label for="window_frequency" class="col-form-label ml-2">Duration (min):</label></div>
+          <div class="col-md-5"><input type="number" step="any" id="windows_frequency" class="non_zero disabled form-control" name="windows_frequency" placeholder="Frequency" min="1" data-has-radio="#windows_open_periodically"></div>
         </div>
         <br>
     </div>
-
+    <br/>
     <div class='sub_title'>HEPA filtration:</div>
       <div>
         <input type="radio" id="hepa_yes" name="hepa_option" value=1 onclick="require_fields(this)" data-enables="#DIVhepa_amount">
@@ -251,9 +258,9 @@
         <input class="ml-2" type="radio" id="hepa_no" name="hepa_option" value=0 onclick="require_fields(this)" checked="checked">
           <label for="hepa_no" class="col-form-label ml-2">No</label>
       </div>
-      <div class="split" id="DIVhepa_amount">
-        <div><label for="hepa_amount" class="col-form-label ml-2">Flow rate (m³ / hour):</label></div>
-        <div><input type="number" step="any" id="hepa_amount" class="non_zero form-control" name="hepa_amount" placeholder="Flow rate" min="0" data-has-radio="#hepa_yes"></div>
+      <div class="form-group row tabbed" id="DIVhepa_amount">
+        <div class="col-md-5"><label for="hepa_amount" class="col-form-label">Flow rate (m³ / hour):</label></div>
+        <div class="col-md-5"><input type="number" step="any" id="hepa_amount" class="non_zero form-control" name="hepa_amount" placeholder="Flow rate" min="0" data-has-radio="#hepa_yes"></div>
       </div>
     <hr width="80%">
 
