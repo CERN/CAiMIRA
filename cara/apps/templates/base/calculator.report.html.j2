@@ -319,7 +319,8 @@
 								<li><p class="data_subtext">Opening distance: {{ form.opening_distance }} m</p></li>
 								<li><p class="data_subtext">Windows open:
 								{% if form.window_opening_regime == "windows_open_periodically" %}
-								Periodically for {{ form.windows_duration | readable_minutes}} every 1 hour.
+								Periodically for {{ form.windows_duration | readable_minutes}}
+									every {{ form.windows_frequency | readable_minutes}}
 								{% elif form.window_opening_regime == "windows_open_permanently" %}
 								Permanently
 								{% endif %}
