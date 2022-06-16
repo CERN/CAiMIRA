@@ -1,6 +1,8 @@
 {% extends "base/calculator.report.html.j2" %}
 
 {% set cern_level = 'green-1' %} <!-- green-1, yellow-2, orange-3, red-4 -->
+{% set orange_prob_lim = 2 %}
+{% set red_prob_lim = 10 %}
 
 {% if form.short_range_option == "short_range_yes" %} 
   {% set scenario = alternative_scenarios.stats.values() | first %}
@@ -9,10 +11,10 @@
   {% set long_range_prob_inf = prob_inf %}
 {% endif %}
 
-{% if ((long_range_prob_inf > 10) or (expected_new_cases >= 1)) %} 
+{% if ((long_range_prob_inf > red_prob_lim) or (expected_new_cases >= 1)) %} 
   {% set long_range_scale_warning = 'red' %}
   {% set long_range_warning_color= 'bg-danger' %}
-{% elif (2 <= long_range_prob_inf <= 10) %}
+{% elif (orange_prob_lim <= long_range_prob_inf <= red_prob_lim) %}
    {% set long_range_scale_warning = 'orange' %} 
    {% set long_range_warning_color = 'bg-warning' %} 
 {% else %} 
@@ -20,8 +22,8 @@
   {% set long_range_warning_color = 'bg-success' %} 
 {% endif %}
 
-{% if ((prob_inf > 10) or (expected_new_cases >= 1)) %} {% set scale_warning = 'red' %}
-{% elif (2 <= prob_inf <= 10) %} {% set scale_warning = 'orange' %} 
+{% if ((prob_inf > red_prob_lim) or (expected_new_cases >= 1)) %} {% set scale_warning = 'red' %}
+{% elif (orange_prob_lim <= prob_inf <= red_prob_lim) %} {% set scale_warning = 'orange' %} 
 {% else %} {% set scale_warning = 'green' %} 
 {% endif %}
 
@@ -135,11 +137,11 @@
             </thead>
             <tbody>
             {% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
-                {%if (( scenario_stats.probability_of_infection  > 10) or (scenario_stats.expected_new_cases >= 1)) %}
+                {%if (( scenario_stats.probability_of_infection  > red_prob_lim) or (scenario_stats.expected_new_cases >= 1)) %}
                   <tr class="alert-danger">
-                {% elif (2 <= scenario_stats.probability_of_infection <= 10) %}
+                {% elif (orange_prob_lim <= scenario_stats.probability_of_infection <= red_prob_lim) %}
                   <tr class="alert-warning">
-                {% elif (scenario_stats.probability_of_infection < 2) %}
+                {% elif (scenario_stats.probability_of_infection < orange_prob_lim) %}
                   <tr class="alert-success">
                 {% endif%}
                     <td> {{ scenario_name }}</td>
