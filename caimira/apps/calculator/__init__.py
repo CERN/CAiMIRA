@@ -40,6 +40,9 @@ __version__ = "4.6"
 
 class BaseRequestHandler(RequestHandler):
     async def prepare(self):
+        template_environment = self.settings["template_environment"]
+        selected_language = self.get_cookie('language')
+        template_environment.globals['_']=tornado.locale.get(selected_language).translate
         """Called at the beginning of a request before  `get`/`post`/etc."""
 
         # Read the secure cookie which exists if we are in an authenticated
@@ -72,6 +75,7 @@ class BaseRequestHandler(RequestHandler):
             print(f"ERROR UUID {error_id}")
             print(traceback.format_exc())
         self.finish(template.render(
+            language=self.get_cookie('language'),
             user=self.current_user,
             calculator_prefix=self.settings["calculator_prefix"],
             active_page='Error',
@@ -86,6 +90,7 @@ class Missing404Handler(BaseRequestHandler):
         template = self.settings["template_environment"].get_template(
             "page.html.j2")
         self.finish(template.render(
+            language=self.get_cookie('language'),
             user=self.current_user,
             calculator_prefix=self.settings["calculator_prefix"],
             active_page='Error',
@@ -192,9 +197,10 @@ class LandingPage(BaseRequestHandler):
         template = template_environment.get_template(
             "index.html.j2")
         report = template.render(
+            language=self.get_cookie('language'),
             user=self.current_user,
             calculator_prefix=self.settings["calculator_prefix"],
-            text_blocks=template_environment.globals['common_text'],
+            text_blocks=markdown_tools.extract_rendered_markdown_blocks(template_environment.get_template('common_text.md.j2')),
         )
         self.finish(report)
 
@@ -204,10 +210,11 @@ class AboutPage(BaseRequestHandler):
         template_environment = self.settings["template_environment"]
         template = template_environment.get_template("about.html.j2")
         report = template.render(
+            language=self.get_cookie('language'),
             user=self.current_user,
             calculator_prefix=self.settings["calculator_prefix"],
             active_page="about",
-            text_blocks=template_environment.globals['common_text']
+            text_blocks=markdown_tools.extract_rendered_markdown_blocks(template_environment.get_template('common_text.md.j2')),
         )
         self.finish(report)
 
@@ -218,11 +225,12 @@ class CalculatorForm(BaseRequestHandler):
         template = template_environment.get_template(
             "calculator.form.html.j2")
         report = template.render(
+            language=self.get_cookie('language'),
             user=self.current_user,
             xsrf_form_html=self.xsrf_form_html(),
             calculator_prefix=self.settings["calculator_prefix"],
             calculator_version=__version__,
-            text_blocks=template_environment.globals['common_text'],
+            text_blocks=markdown_tools.extract_rendered_markdown_blocks(template_environment.get_template('common_text.md.j2')),
         )
         self.finish(report)
 
@@ -244,10 +252,11 @@ class ReadmeHandler(BaseRequestHandler):
         template_environment = self.settings["template_environment"]
         template = template_environment.get_template("userguide.html.j2")
         readme = template.render(
+            language=self.get_cookie('language'),
             active_page="calculator/user-guide",
             user=self.current_user,
             calculator_prefix=self.settings["calculator_prefix"],
-            text_blocks=template_environment.globals['common_text'],
+            text_blocks=markdown_tools.extract_rendered_markdown_blocks(template_environment.get_template('common_text.md.j2')),
         )
         self.finish(readme)
 
@@ -370,10 +379,6 @@ def make_app(
     template_environment = jinja2.Environment(
         loader=loader,
         undefined=jinja2.StrictUndefined,  # fail when rendering any undefined template context variable
-    )
-
-    template_environment.globals['common_text'] = markdown_tools.extract_rendered_markdown_blocks(
-        template_environment.get_template('common_text.md.j2')
     )
 
     if debug:

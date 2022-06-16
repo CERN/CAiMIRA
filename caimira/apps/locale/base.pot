@@ -1,0 +1,228 @@
+# Translations template for PROJECT.
+# Copyright (C) 2022 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2022.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-06-16 10:50+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: templates/common_text.md.j2:23
+msgid ""
+"We wish to thank CERN’s HSE Unit, Beams Department, Experimental Physics "
+"Department, Information Technology Department, Industry, Procurement and "
+"Knowledge Transfer Department and International Relations Sector for "
+"their support to the study. Thanks to Doris Forkel-Wirth, Benoit Delille,"
+" Walid Fadel, Olga Beltramello, Letizia Di Giulio, Evelyne Dho, Wayne "
+"Salter, Benoit Salvant and colleagues from the COVID working group for "
+"providing expert advice and extensively testing the model. Finally, we "
+"wish to thank Fabienne Landua and the design service for preparing the "
+"illustrations and Alessandro Raimondo and Manuela Cirilli from the "
+"Knowledge Transfer Group for their continuous support. Our compliments "
+"towards the work and research performed by world leading scientists in "
+"this domain: Dr. Julian Tang, Prof. Manuel Gameiro, Dr. Linsey Marr, "
+"Prof. Lidia Morawska, Prof. Yuguo Li, and others – their scientific "
+"contribution was indispensable for this project. "
+msgstr ""
+
+#: templates/common_text.md.j2:27
+msgid ""
+"CARA is a risk assessment tool developed to model the concentration of "
+"viruses in enclosed spaces, in order to inform space-management "
+"decisions."
+msgstr ""
+
+#: templates/common_text.md.j2:30
+msgid ""
+"CARA models the concentration profile of virions in enclosed spaces with "
+"clear and intuitive graphs.\n"
+"    The user can set a number of parameters, including room volume, "
+"exposure time, activity type, mask-wearing and ventilation.\n"
+"    The report generated indicates how to avoid exceeding critical "
+"concentrations and chains of airborne transmission in spaces such as "
+"individual offices, meeting rooms and labs."
+msgstr ""
+
+#: templates/common_text.md.j2:35
+msgid ""
+"The risk assessment tool simulates the long-range airborne spread SARS-"
+"CoV-2 virus in a finite volume, assuming a homogenous mixture, and "
+"estimates the risk of COVID-19 airborne transmission therein.\n"
+"    The results DO NOT include short-range airborne exposure (where the "
+"physical distance is a significant factor) nor the other known modes of "
+"SARS-CoV-2 transmission.\n"
+"    Hence, the output from this model is only valid when the other "
+"recommended public health & safety instructions are observed, such as "
+"adequate physical distancing, good hand hygiene and other barrier "
+"measures."
+msgstr ""
+
+#: templates/common_text.md.j2:40
+msgid ""
+"The model used is based on scientific publications relating to airborne "
+"transmission of infectious diseases, dose-response exposures and aerosol "
+"science, as of February 2021.\n"
+"    It can be used to compare the effectiveness of different airborne-"
+"related risk mitigation measures."
+msgstr ""
+
+#: templates/common_text.md.j2:44
+msgid ""
+"Note that this model applies a deterministic approach, i.e., it is "
+"assumed at least one person is infected and shedding viruses into the "
+"simulated volume.\n"
+"    Nonetheless, it is also important to understand that the absolute "
+"risk of infection is uncertain, as it will depend on the probability that"
+" someone infected attends the event.\n"
+"    The model is most useful for comparing the impact and effectiveness "
+"of different mitigation measures such as ventilation, filtration, "
+"exposure time, physical activity and\n"
+"    the size of the room, only considering long-range airborne "
+"transmission of COVID-19 in indoor settings."
+msgstr ""
+
+#: templates/common_text.md.j2:50
+msgid ""
+"This tool is designed to be informative, allowing the user to adapt "
+"different settings and model the relative impact on the estimated "
+"infection probabilities.\n"
+"    The objective is to facilitate targeted decision-making and "
+"investment through comparisons, rather than a singular determination of "
+"absolute risk.\n"
+"    While the SARS-CoV-2 virus is in circulation among the population, "
+"the notion of 'zero risk' or 'completely safe scenario' does not exist.\n"
+"    Each event modelled is unique, and the results generated therein are "
+"only as accurate as the inputs and assumptions."
+msgstr ""
+
+#: templates/common_text.md.j2:56
+msgid ""
+"CARA has not undergone review, approval or certification by competent "
+"authorities, and as a result, it cannot be considered\n"
+"    as a fully endorsed and reliable tool, namely in the assessment of "
+"potential viral emissions from infected hosts to be modelled."
+msgstr ""
+
+#: templates/common_text.md.j2:62
+msgid "Reference list can be found in the CARA paper: "
+msgstr ""
+
+#: templates/base/index.html.j2:15 templates/base/index.html.j2:43
+msgid "Calculator"
+msgstr ""
+
+#: templates/base/index.html.j2:19
+msgid "Introduction"
+msgstr ""
+
+#: templates/base/index.html.j2:22
+msgid ""
+"CARA is a risk assessment tool developed to model the concentration of "
+"viruses in enclosed spaces, in order to inform space-management "
+"decisions.\n"
+"          It does this by simulating the long-range airborne spread SARS-"
+"CoV-2 virus in a finite volume, assuming homogenous mixing, and it "
+"estimates the risk of COVID-19 airborne transmission therein.\n"
+"          Please see the "
+msgstr ""
+
+#: templates/base/index.html.j2:24
+msgid "About"
+msgstr ""
+
+#: templates/base/index.html.j2:24
+msgid ""
+"page for more details on the methodology, assumptions and limitations of "
+"CARA."
+msgstr ""
+
+#: templates/base/index.html.j2:27
+msgid ""
+"The full CARA source code can be accessed freely under an Apache 2.0 open"
+" source license from our"
+msgstr ""
+
+#: templates/base/index.html.j2:27
+msgid "code repository"
+msgstr ""
+
+#: templates/base/index.html.j2:28
+msgid ""
+"It includes detailed instructions on how to run your own version of this "
+"tool."
+msgstr ""
+
+#: templates/base/index.html.j2:41
+msgid "Apps"
+msgstr ""
+
+#: templates/base/index.html.j2:45
+msgid "Expert (beta)"
+msgstr ""
+
+#: templates/base/index.html.j2:55
+msgid "Reference & Citation"
+msgstr ""
+
+#: templates/base/index.html.j2:57
+msgid "For use of the CARA model:"
+msgstr ""
+
+#: templates/base/index.html.j2:62
+msgid "Download citation"
+msgstr ""
+
+#: templates/base/index.html.j2:63
+msgid "Short-range expiratory jet model from:"
+msgstr ""
+
+#: templates/base/index.html.j2:71
+msgid "For use of the CARA web app:"
+msgstr ""
+
+#: templates/base/index.html.j2:75
+msgid "© Copyright 2020-2021 CERN. All rights not expressly granted are reserved."
+msgstr ""
+
+#: templates/base/index.html.j2:76
+msgid "Licensed under the Apache License, Version 2.0"
+msgstr ""
+
+#: templates/base/index.html.j2:77
+msgid "LICENSE"
+msgstr ""
+
+#: templates/base/index.html.j2:83
+msgid "Acknowledgements"
+msgstr ""
+
+#: templates/base/index.html.j2:85
+msgid "Click to expand"
+msgstr ""
+
+#: templates/cern/index.html.j2:7
+msgid ""
+"CARA has been developed by CERN with the intention of allowing members of"
+" personnel with roles related to supervision, health & safety or space "
+"management to simulate the concerned workplaces on CERN sites.\n"
+"  A hosted "
+msgstr ""
+
+#: templates/cern/index.html.j2:8
+msgid "CERN version of the CARA Covid Calculator"
+msgstr ""
+
+#: templates/cern/index.html.j2:8
+msgid "is available on this site to members of the CERN personnel."
+msgstr ""
+
