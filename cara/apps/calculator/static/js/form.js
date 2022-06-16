@@ -125,6 +125,7 @@ function require_natural_ventilation(option) {
   if (!option) {
     require_input_field("#window_width", option);
     require_input_field("#windows_duration", option);
+    require_input_field("#windows_frequency", option);
   }
 }
 
@@ -145,7 +146,9 @@ function require_air_supply(option) {
 
 function require_venting(option) {
   require_input_field("#windows_duration", option);
+  require_input_field("#windows_frequency", option);
   set_disabled_status("#windows_duration", !option);
+  set_disabled_status("#windows_frequency", !option);
 }
 
 function require_lunch(id, option) {
@@ -401,13 +404,14 @@ function validate_form(form) {
     }
   });
 
-  //Validate window venting duration < 60 minutes.
+  //Validate window venting duration < venting frequency
   if (!$("#windows_duration").hasClass("disabled")) {
     var windowsDurationObj = document.getElementById("windows_duration");
-    removeErrorFor(windowsDurationObj);
+    var windowsFrequencyObj = document.getElementById("windows_frequency");
+    removeErrorFor(windowsFrequencyObj);
 
-    if (parseInt(windowsDurationObj.value) > 60.) {
-      insertErrorFor(windowsDurationObj, "Duration > 60 minutes.");
+    if (parseInt(windowsDurationObj.value) >= parseInt(windowsFrequencyObj.value)) {
+      insertErrorFor(windowsFrequencyObj, "Duration >= Frequency");
       submit = false;
     }
   }
