@@ -4,12 +4,14 @@ import dataclasses
 from datetime import datetime
 import io
 import json
+import os
 import typing
 import urllib
 import zlib
 
 import jinja2
 import numpy as np
+import tornado
 
 from caimira import models
 from caimira.apps.calculator import markdown_tools
@@ -387,9 +389,6 @@ class ReportGenerator:
             loader=self.jinja_loader,
             undefined=jinja2.StrictUndefined,
         )
-        env.globals['common_text'] = markdown_tools.extract_rendered_markdown_blocks(
-            env.get_template('common_text.md.j2')
-        )
         env.filters['non_zero_percentage'] = non_zero_percentage
         env.filters['readable_minutes'] = readable_minutes
         env.filters['minutes_to_time'] = minutes_to_time
@@ -397,8 +396,11 @@ class ReportGenerator:
         env.filters['int_format'] = "{:0.0f}".format
         env.filters['percentage'] = percentage
         env.filters['JSONify'] = json.dumps
+        env.globals['_'] = tornado.locale.get().translate
         return env
 
     def render(self, context: dict) -> str:
-        template = self._template_environment().get_template("calculator.report.html.j2")
-        return template.render(**context, text_blocks=template.globals['common_text'])
+        template_environment = self._template_environment()
+        template = template_environment.get_template("calculator.report.html.j2")
+        text_blocks = markdown_tools.extract_rendered_markdown_blocks(template_environment.get_template('common_text.md.j2'))
+        return template.render(**context, text_blocks = text_blocks)
