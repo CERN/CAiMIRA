@@ -91,7 +91,8 @@ def known_concentrations(func):
     ])
 def test_exposure_model_ndarray(population, cm,
                                 expected_exposure, expected_probability, sr_model):
-    model = ExposureModel(cm, sr_model, population)
+    geographical_data = models.Cases()
+    model = ExposureModel(cm, sr_model, population, geographical_data)
     np.testing.assert_almost_equal(
         model.deposited_exposure(), expected_exposure
     )
@@ -113,7 +114,8 @@ def test_exposure_model_ndarray(population, cm,
 def test_exposure_model_ndarray_and_float_mix(population, expected_deposited_exposure, sr_model):
     cm = known_concentrations(
         lambda t: 0. if np.floor(t) % 2 else np.array([1.2, 1.2]))
-    model = ExposureModel(cm, sr_model, population)
+    geographical_data = models.Cases()
+    model = ExposureModel(cm, sr_model, population, geographical_data)
 
     np.testing.assert_almost_equal(
         model.deposited_exposure(), expected_deposited_exposure
@@ -130,7 +132,8 @@ def test_exposure_model_ndarray_and_float_mix(population, expected_deposited_exp
     ])
 def test_exposure_model_vector(population, expected_deposited_exposure, sr_model):
     cm_array = known_concentrations(lambda t: np.array([1.2, 1.2]))
-    model_array = ExposureModel(cm_array, sr_model, population)
+    geographical_data = models.Cases()
+    model_array = ExposureModel(cm_array, sr_model, population, geographical_data)
     np.testing.assert_almost_equal(
         model_array.deposited_exposure(), np.array(expected_deposited_exposure)
     )
@@ -138,7 +141,8 @@ def test_exposure_model_vector(population, expected_deposited_exposure, sr_model
 
 def test_exposure_model_scalar(sr_model):
     cm_scalar = known_concentrations(lambda t: 1.2)
-    model_scalar = ExposureModel(cm_scalar, sr_model, populations[0])
+    geographical_data = models.Cases()
+    model_scalar = ExposureModel(cm_scalar, sr_model, populations[0], geographical_data)
     expected_deposited_exposure = 1.52436206
     np.testing.assert_almost_equal(
         model_scalar.deposited_exposure(), expected_deposited_exposure
@@ -194,7 +198,8 @@ def test_exposure_model_integral_accuracy(exposed_time_interval,
         10, presence_interval, models.Mask.types['Type I'],
         models.Activity.types['Standing'], 0.,
     )
-    model = ExposureModel(conc_model, sr_model, population)
+    geographical_data = models.Cases()
+    model = ExposureModel(conc_model, sr_model, population, geographical_data)
     np.testing.assert_allclose(model.deposited_exposure(), expected_deposited_exposure)
 
 
@@ -221,24 +226,25 @@ def test_infectious_dose_vectorisation(sr_model):
         10, presence_interval, models.Mask.types['Type I'],
         models.Activity.types['Standing'], 0.,
     )
-    model = ExposureModel(cm, sr_model, population)
+    geographical_data = models.Cases()
+    model = ExposureModel(cm, sr_model, population, geographical_data)
     inf_probability = model.infection_probability()
     assert isinstance(inf_probability, np.ndarray)
     assert inf_probability.shape == (3, )
 
 
 @pytest.mark.parametrize(
-    "population, cm, pop, cases, specific_event_probability",[
+    "population, cm, pop, cases, AB, specific_event_probability",[
     [populations[1], known_concentrations(lambda t: 36.),
-     100000, 68, 2.24124],
+     100000, 68, 5, 2.24124],
     [populations[0], known_concentrations(lambda t: 36.),
-     100000, 68, 1.875652],
+     100000, 68, 5, 1.875652],
 
     ])
 def test_specific_event_probability(population, cm,
-        pop, cases, specific_event_probability):
-    model = ExposureModel(cm, (), population, geographic_population=pop,
-    geographic_cases=cases)
+        pop, AB, cases, specific_event_probability):
+    model = ExposureModel(cm, (), population, models.Cases(geographic_population=pop,
+    geographic_cases=cases, geographic_conf_level=AB))
     np.testing.assert_allclose(
         model.total_probability_rule(), specific_event_probability, rtol=0.05
     )

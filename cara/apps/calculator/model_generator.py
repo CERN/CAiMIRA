@@ -61,6 +61,7 @@ class FormData:
     location_longitude: float
     geographic_population: int
     geographic_cases: int
+    geographic_conf_level: int
     p_recurrent_option: str
     mask_type: str
     mask_wearing_option: str
@@ -120,6 +121,7 @@ class FormData:
         'location_longitude': _NO_DEFAULT,
         'geographic_population': 0,
         'geographic_cases': 0,
+        'geographic_conf_level': 0,
         'p_recurrent_option': 'p_recurrent_event',
         'location_name': _NO_DEFAULT,
         'mask_type': 'Type I',
@@ -281,8 +283,11 @@ class FormData:
             ),
             short_range = tuple(short_range),
             exposed=self.exposed_population(),
-            geographic_population=self.geographic_population,
-            geographic_cases=self.geographic_cases
+            geographical_data=mc.Cases(
+                geographic_population=self.geographic_population,
+                geographic_cases=self.geographic_cases,
+                geographic_conf_level=self.geographic_conf_level,
+            ), 
         )
 
     def build_model(self, sample_size=_DEFAULT_MC_SAMPLE_SIZE) -> models.ExposureModel:

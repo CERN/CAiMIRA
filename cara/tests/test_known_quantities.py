@@ -373,6 +373,7 @@ def build_exposure_model(concentration_model, short_range_model):
             mask=infected.mask,
             host_immunity=0.,
         ),
+        geographical_data = models.Cases(),
     )
 
 

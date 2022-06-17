@@ -148,6 +148,7 @@ def test_short_range_exposure_with_ndarray_mask():
             activity=models.Activity.types['Light activity'],
             host_immunity=0.,
         ),
+        geographical_data = mc_models.Cases(),
     ).build_model(SAMPLE_SIZE)
     assert isinstance(e_model.deposited_exposure(), np.ndarray)
     assert len(e_model.deposited_exposure()) == 3

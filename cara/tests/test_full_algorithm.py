@@ -560,6 +560,7 @@ def expo_sr_model(c_model,sr_models) -> mc.ExposureModel:
             activity=models.Activity.types['Seated'],
             host_immunity=0.,
         ),
+        geographical_data=mc.Cases(),
     ).build_model(SAMPLE_SIZE)
 
 
@@ -605,6 +606,7 @@ def expo_sr_model_distr(c_model_distr) -> mc.ExposureModel:
             activity=models.Activity.types['Seated'],
             host_immunity=0.,
         ),
+        geographical_data=mc.Cases(),
     ).build_model(SAMPLE_SIZE)
 
 
@@ -695,6 +697,7 @@ def test_longrange_exposure(c_model):
                 activity=models.Activity.types['Seated'],
                 host_immunity=0.,
             ),
+            geographical_data=mc.Cases(),
     ).build_model(SAMPLE_SIZE)
     npt.assert_allclose(
         expo_model.deposited_exposure().mean(),
@@ -755,6 +758,7 @@ def test_longrange_exposure_with_distributions(c_model_distr):
                 activity=activity_distributions['Seated'],
                 host_immunity=0.,
             ),
+            geographical_data=mc.Cases(),
     ).build_model(SAMPLE_SIZE)
     npt.assert_allclose(
         expo_model.deposited_exposure().mean(),

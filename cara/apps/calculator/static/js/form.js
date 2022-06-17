@@ -185,6 +185,7 @@ function require_lunch(id, option) {
 function require_population(option) {
   require_input_field("#geographic_population", option);
   require_input_field("#geographic_cases", option);
+  require_input_field("#geographic_conf_level", option);
 }
 
 function require_mask(option) {
