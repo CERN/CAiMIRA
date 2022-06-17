@@ -16,12 +16,9 @@ from .. import calculator
 from cara.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions, short_range_distances
 from cara.monte_carlo.data import expiration_distribution, expiration_BLO_factors, expiration_distributions, short_range_expiration_distributions
 
-
 LOG = logging.getLogger(__name__)
 
-
 minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
-
 
 # Used to declare when an attribute of a class must have a value provided, and
 # there should be no default value used.
@@ -378,7 +375,7 @@ class FormData:
                 ventilation = models.HVACMechanical(
                     active=always_on, q_air_mech=self.air_supply)
 
-        # this is a minimal, always present source of ventilation, due
+        # This is a minimal, always present source of ventilation, due
         # to the air infiltration from the outside.
         # See CERN-OPEN-2021-004, p. 12.
         infiltration_ventilation = models.AirChange(active=always_on, air_exch=0.25)
@@ -595,8 +592,6 @@ class FormData:
             prev_break_end = break_end
 
         present_intervals = []
-
-        # def add_interval(start, end):
 
         current_time = start
         LOG.debug(f"starting time march at {_hours2timestring(current_time/60)} to {_hours2timestring(finish/60)}")

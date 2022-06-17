@@ -38,7 +38,7 @@ def baseline_periodic_hepa():
 
 
 def test_concentrations(baseline_concentration_model):
-    # expected concentrations were computed analytically
+    # Expected concentrations were computed analytically
     ts = [0, 4, 5, 7, 10]
     concentrations = [baseline_concentration_model.concentration(float(t)) for t in ts]
     npt.assert_allclose(
@@ -73,7 +73,7 @@ def build_model(interval_duration):
             activity=models.Activity.types['Light activity'],
             known_individual_emission_rate=970 * 50,
             host_immunity=0.,
-            # superspreading event, where ejection factor is fixed based
+            # Superspreading event, where ejection factor is fixed based
             # on Miller et al. (2020) - 50 represents the infectious dose.
         ),
         evaporation_factor=0.3,
@@ -91,7 +91,7 @@ def test_concentrations_startup():
 
 
 def test_r0(baseline_exposure_model):
-    # expected r0 was computed with a trapezoidal integration, using
+    # Expected r0 was computed with a trapezoidal integration, using
     # a mesh of 100'000 pts per exposed presence interval.
     r0 = baseline_exposure_model.reproduction_number()
     npt.assert_allclose(r0, 771.380385)
@@ -377,7 +377,7 @@ def build_exposure_model(concentration_model, short_range_model):
     )
 
 
-# expected deposited exposure were computed with a trapezoidal integration, using
+# Expected deposited exposure were computed with a trapezoidal integration, using
 # a mesh of 100'000 pts per exposed presence interval.
 @pytest.mark.parametrize(
     "month, expected_deposited_exposure",
@@ -397,7 +397,7 @@ def test_exposure_hourly_dep(month,expected_deposited_exposure, baseline_sr_mode
     deposited_exposure = m.deposited_exposure()
     npt.assert_allclose(deposited_exposure, expected_deposited_exposure)
 
-# expected deposited exposure were computed with a trapezoidal integration, using
+# Expected deposited exposure were computed with a trapezoidal integration, using
 # a mesh of 100'000 pts per exposed presence interval and 25 pts per hour
 # for the temperature discretization.
 @pytest.mark.parametrize(

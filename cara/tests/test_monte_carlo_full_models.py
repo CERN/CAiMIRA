@@ -8,8 +8,6 @@ from cara import models,data
 from cara.monte_carlo.data import activity_distributions, virus_distributions, expiration_distributions, infectious_dose_distribution, viable_to_RNA_ratio_distribution
 from cara.apps.calculator.model_generator import build_expiration
 
-# TODO: seed better the random number generators
-np.random.seed(2000)
 SAMPLE_SIZE = 500_000
 TOLERANCE = 0.05
 
@@ -17,7 +15,6 @@ TOLERANCE = 0.05
 toronto_coordinates = (43.667, 79.400)
 toronto_hourly_temperatures_celsius_per_hour = data.get_hourly_temperatures_celsius_per_hour(
     toronto_coordinates)
-
 
 # Toronto hourly temperatures as piecewise constant function (in Kelvin).
 TorontoTemperatures_hourly = {
@@ -30,7 +27,6 @@ TorontoTemperatures_hourly = {
     for month, temperatures in toronto_hourly_temperatures_celsius_per_hour.items()
 }
 
-
 # Same Toronto temperatures on a finer temperature mesh (every 6 minutes).
 TorontoTemperatures = {
     month: TorontoTemperatures_hourly[month].refine(refine_factor=10)
@@ -38,7 +34,7 @@ TorontoTemperatures = {
 }
 
 
-# references values for infection_probability and expected new cases
+# References values for infection_probability and expected new cases
 # in the following tests, were obtained from the feature/mc branch
 @pytest.fixture
 def shared_office_mc():
@@ -343,6 +339,7 @@ def test_report_models(mc_model, expected_pi, expected_new_cases,
         expected_ER, rtol=TOLERANCE)
 
 
+@retry(tries=10)
 @pytest.mark.parametrize(
     "mask_type, month, expected_pi, expected_dose, expected_ER",
     [

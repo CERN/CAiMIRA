@@ -4,6 +4,7 @@ import typing
 import numpy as np
 import numpy.testing as npt
 import pytest
+from retry import retry 
 
 from cara.apps.calculator import model_generator
 from cara.apps.calculator.model_generator import _hours2timestring
@@ -11,8 +12,6 @@ from cara.apps.calculator.model_generator import minutes_since_midnight
 from cara import models
 from cara.monte_carlo.data import expiration_distributions
 
-# TODO: seed better the random number generators
-np.random.seed(2000)
 
 def test_model_from_dict(baseline_form_data):
     form = model_generator.FormData.from_dict(baseline_form_data)
@@ -25,6 +24,7 @@ def test_model_from_dict_invalid(baseline_form_data):
         model_generator.FormData.from_dict(baseline_form_data)
 
 
+@retry(tries=10)
 @pytest.mark.parametrize(
     ["mask_type"],
     [

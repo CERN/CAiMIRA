@@ -9,6 +9,7 @@ from cara.apps.calculator.report_generator import generate_permalink
 
 _TIMEOUT = 20.
 
+
 @pytest.fixture
 def app():
     return cara.apps.calculator.make_app()
@@ -43,7 +44,7 @@ async def test_404(http_server_client):
     assert resp.code == 404
 
 
-@retry()
+@retry(tries=10)
 class TestBasicApp(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return cara.apps.calculator.make_app()
@@ -72,7 +73,7 @@ class TestBasicApp(tornado.testing.AsyncHTTPTestCase):
         assert 'expected number of new cases is' in response.body.decode()
 
 
-@retry()
+@retry(tries=10)
 class TestCernApp(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         cern_theme = Path(cara.apps.calculator.__file__).parent.parent / 'themes' / 'cern'
@@ -85,7 +86,7 @@ class TestCernApp(tornado.testing.AsyncHTTPTestCase):
         assert 'expected number of new cases is' in response.body.decode()
 
 
-retry()
+retry(tries=10)
 class TestOpenApp(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return cara.apps.calculator.make_app(calculator_prefix="/mycalc")

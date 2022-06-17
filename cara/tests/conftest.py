@@ -21,7 +21,7 @@ def baseline_concentration_model():
             activity=models.Activity.types['Light activity'],
             known_individual_emission_rate=970 * 50,
             host_immunity=0.,
-            # superspreading event, where ejection factor is fixed based
+            # Superspreading event, where ejection factor is fixed based
             # on Miller et al. (2020) - 50 represents the infectious dose.
         ),
         evaporation_factor=0.3,

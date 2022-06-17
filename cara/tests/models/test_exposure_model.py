@@ -20,7 +20,7 @@ class KnownNormedconcentration(models.ConcentrationModel):
     normed_concentration_function: typing.Callable = lambda x: 0
 
     def infectious_virus_removal_rate(self, time: float) -> models._VectorisedFloat:
-        # very large decay constant -> same as constant concentration
+        # Very large decay constant -> same as constant concentration
         return 1.e50
 
     def _normed_concentration_limit(self, time: float) -> models._VectorisedFloat:

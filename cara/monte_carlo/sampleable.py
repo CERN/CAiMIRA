@@ -5,7 +5,6 @@ from sklearn.neighbors import KernelDensity # type: ignore
 
 import cara.models
 
-
 # Declare a float array type of a given size.
 # There is no better way to declare this currently, unfortunately.
 float_array_size_n = np.ndarray

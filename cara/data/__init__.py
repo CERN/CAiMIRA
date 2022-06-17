@@ -11,7 +11,7 @@ MONTH_NAMES = [
 def get_hourly_temperatures_celsius_per_hour(coordinates):
     wx_station_id = nearest_wx_station(
         longitude=coordinates[1], latitude=coordinates[0])[0]
-    # average temperature of each month, hour per hour (from midnight to 11 pm)
+    # Average temperature of each month, hour per hour (from midnight to 11 pm)
     return {month.replace(month, MONTH_NAMES[i][:3]):
             [t - 273.15 for t in temp] for i, (month, temp)
             in enumerate(wx_data()[wx_station_id].items())}

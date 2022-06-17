@@ -8,11 +8,9 @@ https://packaging.python.org/guides/distributing-packages-using-setuptools/
 from pathlib import Path
 from setuptools import setup, find_packages
 
-
 HERE = Path(__file__).parent.absolute()
 with (HERE / 'README.md').open('rt') as fh:
     LONG_DESCRIPTION = fh.read().strip()
-
 
 REQUIREMENTS: dict = {
     'core': [
@@ -26,7 +24,6 @@ REQUIREMENTS: dict = {
     'dev': [
     ],
 }
-
 
 setup(
     name='auth-service',
