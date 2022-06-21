@@ -68,19 +68,18 @@ Note that this result is not integrated over the diameters at this stage, thus t
 Note that the diameter-dependence is kept at this stage. Since other parameters downstream in code are also diameter-dependent, the Monte-Carlo integration over the aerosol sizes is computed at the level of the dose :math:`\mathrm{vD^{total}}`.
 In case one would like to have intermediate results for emission rate, perform the Monte-Carlo integration of :math:`E_{c, j}^{\mathrm{total}}` and compute :math:`\mathrm{vR^{total}} =\mathrm{vl_{in}} \cdot E_{c, j}^{\mathrm{total}} \cdot \mathrm{BR_k}`
 
+Concentration - C(t, D)
+=======================
 
 Long-range approach
-===================
+*******************
 
-Concentration - :math:`C(t, D)`
-***********************
-
-Starting with the long-range concentration of virus, that depends on the **emission rate**, the concentration of viruses in aerosols of a given size :math:`D` is:
+Starting with the long-range concentration of virus-laden aerosols of a given size **D**, that is based on the mass balance equation between the emission and removal rates, is given by:
 
 :math:`C(t, D)=\frac{\mathrm{vR}(D) \cdot N_{\mathrm{inf}}}{\lambda_{\mathrm{vRR}}(D) \cdot V_r}-\left (\frac{\mathrm{vR}(D) \cdot N_{\mathrm{inf}}}{\lambda_{\mathrm{vRR}}(D) \cdot V_r}-C_0(D) \right )e^{-\lambda_{\mathrm{vRR}}(D)t}` ,
 
-where :math:`\mathrm{vR}(D)` **(emission rate)** and :math:`\lambda_{\mathrm{vRR}}` **(viral removal rate)** depend on the particle diameter :math:`D`.
-Since the emission rate is dependent on diameter-independent variables (:math:`\mathrm{vl_{in}}` and :math:`\mathrm{BR_k}`) that should not be included when calculating the integral, the concentration method was written to be normalized by the emission rate.
+where **emission rate vR(D)** and **viral removal rate** :math:`\lambda_{\mathrm{vRR}}` (:meth: `infectious_virus_removal_rate`) are diameter-dependent.
+Since the emission rate is, in turn, dependent on other diameter-independent variables (:math:`\mathrm{vl}_\mathrm{in}` and :math:`\mathrm{BR}_k``) that should not be included when calculating the integral, the concentration method was written to be normalized by the emission rate.
 
 In other words, we can split the concentration in two different formulations:
 
