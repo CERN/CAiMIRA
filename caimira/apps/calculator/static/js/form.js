@@ -271,6 +271,72 @@ function on_wearing_mask_change() {
   })
 }
 
+function populate_temp_hum_values(data, index) {
+  $("#sensor_temperature").text(data[index].Details.T + '°C');
+  $("#sensor_humidity").text(data[index].Details.RH + '%');
+  $("[name='inside_temp']").val(data[index].Details.T + 273.15);
+  $("[name='humidity']").val(data[index].Details.RH/100);
+};
+
+function clear_sensors_data() {
+  $("#sensor_temperature").text();
+  $("#sensor_humidity").text();
+  $("[name='inside_temp']").val();
+  $("[name='humidity']").val();
+}
+
+//Data from ARVE sensors
+var DATA_FROM_SENSORS;
+function show_sensors_data(url) {
+
+  const HOTEL_ID = "CERN"
+  const FLOOR_ID = "1"
+
+  if ($('#sensors  > option').length == 0) {
+    $.ajax({
+      url: `${$('#url_prefix').data().calculator_prefix}/api/arve/v1/${HOTEL_ID}/${FLOOR_ID}`,
+      type: 'GET',
+      success: function (result) {
+        DATA_FROM_SENSORS = result;
+        result.map(room => {
+          $("#sensors").append(`<option id=${room.RoomId} value=${room.RoomId}>Sensor ${room.RoomId}</option>`);
+        });
+        populate_temp_hum_values(result, 0);
+        if (url.searchParams.has('sensor_in_use')) {
+          $("#sensors").val(url.searchParams.get('sensor_in_use'));
+          populate_temp_hum_values(result, result.findIndex(function(sensor) {
+            return sensor.RoomId == url.searchParams.get('sensor_in_use');
+          }));
+        }
+      },
+      error: function() {
+        alert('One error occured.');
+      },
+    });
+  }
+};
+
+$("#sensors").change(function (el) {
+  sensor_id = DATA_FROM_SENSORS.findIndex(function(sensor) {
+    return sensor.RoomId == el.target.value
+  });
+  populate_temp_hum_values(DATA_FROM_SENSORS, sensor_id);
+});
+
+function on_use_sensors_data_change(url) {
+  sensor_data = $('input[type=radio][name=arve_sensors_option]')
+  sensor_data.each(function (index) {
+    if (this.checked) {
+      getChildElement($(this)).show();
+      show_sensors_data(url);
+    }
+    else {
+      getChildElement($(this)).hide();
+      clear_sensors_data();
+    }
+  })
+}
+
 function on_short_range_option_change() {
   short_range = $('input[type=radio][name=short_range_option]')
   short_range.each(function (index){
@@ -706,6 +772,10 @@ $(document).ready(function () {
         $("#sr_interactions").text(index - 1);
       }
 
+      else if (name == 'sensor_in_use') {
+        // TODO - Validate if sensor exists
+      }
+
       //Ignore 0 (default) values from server side
       else if (!(elemObj.classList.contains("non_zero") || elemObj.classList.contains("remove_zero")) || (value != "0.0" && value != "0")) {
         elemObj.value = value;
@@ -742,6 +812,12 @@ $(document).ready(function () {
 
   //Check all radio buttons previously selected
   $("input[type=radio]:checked").each(function() {require_fields(this)});
+
+  // When the arve_sensors_option changes we want to make its respective
+  // children show/hide.
+  $("input[type=radio][name=arve_sensors_option]").change(on_use_sensors_data_change);
+  // Call the function now to handle forward/back button presses in the browser.
+  on_use_sensors_data_change(url);
 
   // When the ventilation_type changes we want to make its respective
   // children show/hide.
