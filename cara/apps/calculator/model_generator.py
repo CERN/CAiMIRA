@@ -135,7 +135,7 @@ class FormData:
         'windows_frequency': 0.,
         'windows_number': 0,
         'window_opening_regime': 'windows_open_permanently',
-        'sensor_in_use': _NO_DEFAULT,
+        'sensor_in_use': '',
         'short_range_option': 'short_range_no',
         'short_range_interactions': '[]',
     }
