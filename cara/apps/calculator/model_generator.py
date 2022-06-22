@@ -31,6 +31,7 @@ class FormData:
     activity_type: str
     air_changes: float
     air_supply: float
+    arve_sensors_option: bool
     ceiling_height: float
     exposed_coffee_break_option: str
     exposed_coffee_duration: int
@@ -77,6 +78,7 @@ class FormData:
     window_width: float
     windows_number: int
     window_opening_regime: str
+    sensor_in_use: str
     short_range_option: str
     short_range_interactions: list
 
@@ -86,6 +88,7 @@ class FormData:
         'activity_type': 'office',
         'air_changes': 0.,
         'air_supply': 0.,
+        'arve_sensors_option': False,
         'calculator_version': _NO_DEFAULT,
         'ceiling_height': 0.,
         'exposed_coffee_break_option': 'coffee_break_0',
@@ -132,6 +135,7 @@ class FormData:
         'windows_frequency': 0.,
         'windows_number': 0,
         'window_opening_regime': 'windows_open_permanently',
+        'sensor_in_use': _NO_DEFAULT,
         'short_range_option': 'short_range_no',
         'short_range_interactions': '[]',
     }
