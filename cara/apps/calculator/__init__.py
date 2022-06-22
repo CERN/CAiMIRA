@@ -249,6 +249,50 @@ class ReadmeHandler(BaseRequestHandler):
         self.finish(readme)
 
 
+class ArveData(BaseRequestHandler):
+    async def get(self, hotel_id, floor_id):
+        client_id = self.settings["arve_client_id"]
+        client_secret = self.settings['arve_client_secret']
+        arve_api_key = self.settings['arve_api_key']
+
+        # import tornado.httpclient
+        # http_client = tornado.httpclient.AsyncHTTPClient()
+        import requests
+
+        payload = {"grant_type": "client_credentials"}
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        URL = 'https://arveapi.auth.eu-central-1.amazoncognito.com/oauth2/token'
+        from requests.auth import HTTPBasicAuth
+        response = requests.post(URL, auth=HTTPBasicAuth(client_id, client_secret), data=payload, headers=headers)
+
+        # TODO: use tornado Async client. For now, use requests as it is quicker to prototype.
+        # response = await http_client.fetch(
+        #     "https://arveapi.auth.eu-central-1.amazoncognito.com/oauth2/token",
+        #     method='POST',
+        #     body=json.dumps({"grant_type": "client_credentials"}),
+        #     headers={
+        #       "Content-Type": "application/x-www-form-urlencoded",
+        #       "Authorization": b"Basic " + base64.b64encode(f'{CLIENT_ID}:{CLIENT_SECRET}'.encode()),
+        #     },
+        #     # raise_error=True,
+        # )
+        # print(response)
+        # print(response.body)
+        response.raise_for_status()
+        access_token = response.json()['access_token']
+
+        URL = f'https://api.arve.swiss/v1/{hotel_id}/{floor_id}'
+
+        headers = {
+              "x-api-key": arve_api_key,
+              "Authorization": f'Bearer {access_token}'
+        }
+        response = requests.get(URL, headers=headers)
+        response.raise_for_status()
+        self.set_header("Content-Type", 'application/json')
+        return self.finish(response.content)
+
+
 def make_app(
         debug: bool = False,
         calculator_prefix: str = '/calculator',
@@ -266,6 +310,7 @@ def make_app(
         (calculator_prefix + r'/report-json', ConcentrationModelJsonResponse),
         (calculator_prefix + r'/baseline-model/result', StaticModel),
         (calculator_prefix + r'/user-guide', ReadmeHandler),
+        (calculator_prefix + r'/api/arve/v1/(.*)/(.*)', ArveData),
         (calculator_prefix + r'/static/(.*)', StaticFileHandler, {'path': calculator_static_dir}),
     ]
 
@@ -298,6 +343,9 @@ def make_app(
         # COOKIE_SECRET being undefined will result in no login information being
         # presented to the user.
         cookie_secret=os.environ.get('COOKIE_SECRET', '<undefined>'),
+        arve_client_id=os.environ.get('ARVE_CLIENT_ID', '<undefined>'),
+        arve_client_secret=os.environ.get('ARVE_CLIENT_SECRET', '<undefined>'),
+        arve_api_key=os.environ.get('ARVE_API_KEY', '<undefined>'),
 
         # Process parallelism controls. There is a balance between serving a single report
         # requests quickly or serving multiple requests concurrently.
