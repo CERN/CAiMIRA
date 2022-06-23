@@ -207,7 +207,7 @@ To perform the integral, we calculate the average since it is a good approximati
 
 Then, we add the contribution to the result of the diameter-independent vectorized properties, which are the **dilution factor**, **viral load**, **fraction of infectious virus** and **breathing rate**:
 
-`vD = integral_over_diameters . exhalation_rate . inhalation_rate / dilution` :math:`\cdot f_{\mathrm{inf}} \cdot \mathrm{vl_{in}} \cdot (1 - η_{\mathrm{in}})` .
+`vD = integral_over_diameters \cdot exhalation_rate \cdot inhalation_rate / dilution` :math:`\cdot f_{\mathrm{inf}} \cdot \mathrm{vl_{in}} \cdot (1 - η_{\mathrm{in}})` .
 
 Note that the multiplication over the `exhalation_rate` is done at each `short-range` interaction since the `Activity` type may be different for different interactions.
 
