@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2022-06-23 10:22+0100\n"
+"POT-Creation-Date: 2022-06-23 11:18+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -310,7 +310,7 @@ msgid ""
 "          Please see the "
 msgstr ""
 
-#: templates/base/index.html.j2:24
+#: templates/base/index.html.j2:24 templates/base/layout.html.j2:56
 msgid "About"
 msgstr ""
 
@@ -336,7 +336,7 @@ msgid ""
 "tool."
 msgstr ""
 
-#: templates/base/index.html.j2:41
+#: templates/base/index.html.j2:41 templates/base/layout.html.j2:41
 msgid "Apps"
 msgstr ""
 
@@ -378,6 +378,65 @@ msgstr ""
 
 #: templates/base/index.html.j2:83
 msgid "Acknowledgements"
+msgstr ""
+
+#: templates/base/layout.html.j2:11
+msgid "CARA | COVID Airborne Risk Assessment"
+msgstr ""
+
+#: templates/base/layout.html.j2:37
+msgid "Home"
+msgstr ""
+
+#: templates/base/layout.html.j2:44 templates/base/layout.html.j2:51
+msgid "CARA Calculator"
+msgstr ""
+
+#: templates/base/layout.html.j2:45 templates/base/layout.html.j2:52
+msgid "User Guide"
+msgstr ""
+
+#: templates/base/layout.html.j2:46
+msgid "Expert app (beta)"
+msgstr ""
+
+#: templates/base/layout.html.j2:60
+msgid "Signed in as:"
+msgstr ""
+
+#: templates/base/layout.html.j2:63
+msgid "Sign out"
+msgstr ""
+
+#: templates/base/layout.html.j2:90
+msgid ""
+"CERN strives to deploy its know-how and technologies to help solve\n"
+"                    the challenges arising in the local and global fight "
+"against COVID-19. As a particle physics\n"
+"                    research organisation, CERN is not in a position to "
+"advise on medical research, health or health\n"
+"                    policy issues. Any initiative is conducted on a best "
+"effort and as-is basis, without liability or\n"
+"                    warranty."
+msgstr ""
+
+#: templates/base/layout.html.j2:97
+msgid "CARA is"
+msgstr ""
+
+#: templates/base/layout.html.j2:97
+msgid "Apache 2.0 licensed"
+msgstr ""
+
+#: templates/base/layout.html.j2:97
+msgid ""
+"open-source\n"
+"              software developed at CERN.\n"
+"              You can find the source code at"
+msgstr ""
+
+#: templates/base/layout.html.j2:100
+msgid "where we welcome contributions, feature requests and issue reports."
 msgstr ""
 
 #: templates/cern/index.html.j2:7

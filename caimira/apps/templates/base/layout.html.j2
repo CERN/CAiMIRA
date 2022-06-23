@@ -9,7 +9,7 @@
 
   <title>
   {% block title %}
-  CAiMIRA | CERN Airborne Model for Indoor Risk Assessment
+  {{_("CAiMIRA | CERN Airborne Model for Indoor Risk Assessment")}}
   {% endblock title %}
   </title>
   
@@ -36,33 +36,33 @@
 
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
-          <li class="nav-link"><a href="/" class="{{ "header-navbar nav-link active" if "home/" == active_page else "header-navbar nav-link" }}">Home</a></li>
+          <li class="nav-link"><a href="/" class="{{ "header-navbar nav-link active" if "home/" == active_page else "header-navbar nav-link" }}">{{_("Home")}}</a></li>
           <div id="apps_dropdown">
             <li class="nav-item dropdown p-2">
               <a class="nav-link dropdown-toggle {{ "header-navbar nav-link active" if "calculator/" in active_page else "header-navbar nav-link" }}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Apps
+                {{_("Apps")}}
               </a>
               <ul class="dropdown-menu dropwown-navbar-colors" style="min-width: 12rem;" aria-labelledby="navbarDropdown">
-                <li><a href="{{ calculator_prefix }}" class="{{ "header-navbar nav-link active" if "calculator/" == active_page else "header-navbar nav-link" }}">Calculator</a></li>
-                <li><div class="d-flex"><span class="d-flex align-self-center submenu-division"></span><a href="{{ calculator_prefix }}/user-guide" class="{{ "header-navbar nav-link active" if "user-guide" in active_page else "header-navbar nav-link" }}">User Guide</a></div></li>
-                <li><a href="/expert-app" class="{{ "header-navbar nav-link active" if "/expert-app" == active_page else "header-navbar nav-link" }}">Expert app (beta)</a></li>
+                <li><a href="{{ calculator_prefix }}" class="{{ "header-navbar nav-link active" if "calculator/" == active_page else "header-navbar nav-link" }}">{{_("Calculator")}}</a></li>
+                <li><div class="d-flex"><span class="d-flex align-self-center submenu-division"></span><a href="{{ calculator_prefix }}/user-guide" class="{{ "header-navbar nav-link active" if "user-guide" in active_page else "header-navbar nav-link" }}">{{_("User Guide")}}</a></div></li>
+                <li><a href="/expert-app" class="{{ "header-navbar nav-link active" if "/expert-app" == active_page else "header-navbar nav-link" }}">{{_("Expert app (beta)")}}</a></li>
               </ul>
             </li>
           </div>
           <div id="mobile_calculator_option">
-            <li class="nav-link"><a href="{{ calculator_prefix }}" class="{{ "header-navbar nav-link active" if "calculator/" == active_page else "header-navbar nav-link" }}">Calculator</a></li>
-            <li class="nav-link"><a href="{{ calculator_prefix }}/user-guide" class="{{ "header-navbar nav-link active" if "user-guide" in active_page else "header-navbar nav-link" }}">User Guide</a></li>
+            <li class="nav-link"><a href="{{ calculator_prefix }}" class="{{ "header-navbar nav-link active" if "calculator/" == active_page else "header-navbar nav-link" }}">{{_("Calculator")}}</a></li>
+            <li class="nav-link"><a href="{{ calculator_prefix }}/user-guide" class="{{ "header-navbar nav-link active" if "user-guide" in active_page else "header-navbar nav-link" }}">{{_("User Guide")}}</a></li>
           </div>
           {% block covid_information%}
           {% endblock covid_information%}
-          <li class="nav-link"><a href="/about" class="{{ "header-navbar nav-link active" if "about" == active_page else "header-navbar nav-link" }}">About</a></li>
+          <li class="nav-link"><a href="/about" class="{{ "header-navbar nav-link active" if "about" == active_page else "header-navbar nav-link" }}">{{_("About")}}</a></li>
             {% if user.is_authenticated() %}
             <li class="nav-item dropdown p-2">
               <a class="nav-link active dropdown-toggle d-inline-block" href="https://cern.ch/users-portal" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Signed in as: {{ user.username }}
+                {{_("Signed in as:")}} {{ user.username }}
               </a>
             <ul class="dropdown-menu dropwown-navbar-colors" style="min-width: 14rem;" aria-labelledby="navbarDropdown">
-                <li><a href="/auth/logout" class="nav-link ml-2">Sign out</a></li>
+                <li><a href="/auth/logout" class="nav-link ml-2">{{_("Sign out")}}</a></li>
             </ul>
             {# Sent to Piwik for statistics #}
             <script>
@@ -88,16 +88,17 @@
 
         <div class="col-sm-10 col-md-8 col-lg-6">
           <img src="/static/images/caimira_logo_white_text.png" alt="Logo">
-          <p><span style="font-size:10px;"><em>CERN strives to deploy its know-how and technologies to help solve
+          <p><span style="font-size:10px;"><em>{{_("CERN strives to deploy its know-how and technologies to help solve
                     the challenges arising in the local and global fight against COVID-19. As a particle physics
                     research organisation, CERN is not in a position to advise on medical research, health or health
                     policy issues. Any initiative is conducted on a best effort and as-is basis, without liability or
-                    warranty.</em></span></p>
+                    warranty.")}}
+          </em></span></p>
           <p style="font-size:10px;">
-              CAiMIRA is <a href="https://gitlab.cern.ch/caimira/caimira/-/blob/master/LICENSE" class="ext">Apache 2.0 licensed</a> open-source
+              {{_("CAiMIRA")}} is <a href="https://gitlab.cern.ch/caimira/caimira/-/blob/master/LICENSE" class="ext">{{_("Apache 2.0 licensed")}}</a> {{_("open-source
               software developed at CERN.
-              You can find the source code at <a href="https://gitlab.cern.ch/caimira/caimira">https://gitlab.cern.ch/caimira/caimira</a>,
-              where we welcome contributions, feature requests and issue reports.
+              You can find the source code at")}} <a href="https://gitlab.cern.ch/caimira/caimira">https://gitlab.cern.ch/caimira/caimira</a>,
+              {{_("where we welcome contributions, feature requests and issue reports.")}}
           </p>
         </div>
 

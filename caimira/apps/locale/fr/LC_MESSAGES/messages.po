@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2022-06-23 10:22+0100\n"
+"POT-Creation-Date: 2022-06-23 11:18+0100\n"
 "PO-Revision-Date: 2022-06-16 09:53+0200\n"
 "Last-Translator: Luis Aleixo <luis.aleixo@cern.ch>\n"
 "Language: fr\n"
@@ -98,14 +98,14 @@ msgid ""
 "when the other recommended public health & safety instructions are "
 "observed, such as good hand hygiene and other barrier measures."
 msgstr ""
-"Le modèle mathématique et physique simule la propagation aéroportée "
-"du virus SARS-CoV-2 dans un volume fini, en supposant un "
-"mélange homogène, et estime le risque de transmission aéroportée du "
-"COVID-19. Les résultats n'incluent pas "
-"autres modes connus de transmission SARS-CoV-2. Par conséquent,les "
-"résultats de ce modèle ne sont valables que lorsque les autres "
-"instructions de santé publique et de sécurité recommandées sont "
-"observées, comme une bonne hygiène des mains et d'autres mesures barrières."
+"Le modèle mathématique et physique simule la propagation aéroportée du "
+"virus SARS-CoV-2 dans un volume fini, en supposant un mélange homogène, "
+"et estime le risque de transmission aéroportée du COVID-19. Les résultats"
+" n'incluent pas autres modes connus de transmission SARS-CoV-2. Par "
+"conséquent,les résultats de ce modèle ne sont valables que lorsque les "
+"autres instructions de santé publique et de sécurité recommandées sont "
+"observées, comme une bonne hygiène des mains et d'autres mesures "
+"barrières."
 
 #: templates/about.html.j2:21
 msgid ""
@@ -121,7 +121,9 @@ msgstr "La composante à courte portée du modèle a été adaptée de"
 
 #: templates/about.html.j2:22
 msgid "Exposure and respiratory infection risk via the short-range airborne route"
-msgstr "Exposition et risque d'infection respiratoire par voie aérienne à courte distance"
+msgstr ""
+"Exposition et risque d'infection respiratoire par voie aérienne à courte "
+"distance"
 
 #: templates/about.html.j2:24
 msgid ""
@@ -440,7 +442,7 @@ msgstr ""
 "mélange homogène, et il estime le risque de transmission aéroportée \n"
 "                Veuillez voir la page "
 
-#: templates/base/index.html.j2:24
+#: templates/base/index.html.j2:24 templates/base/layout.html.j2:56
 msgid "About"
 msgstr "A propos"
 
@@ -472,7 +474,7 @@ msgstr ""
 "Il comprend des instructions détaillées sur la façon d'exécuter votre "
 "propre version de cet outil."
 
-#: templates/base/index.html.j2:41
+#: templates/base/index.html.j2:41 templates/base/layout.html.j2:41
 msgid "Apps"
 msgstr "Applications:"
 
@@ -518,6 +520,78 @@ msgstr "LICENCE"
 msgid "Acknowledgements"
 msgstr "Remerciements:"
 
+#: templates/base/layout.html.j2:11
+msgid "CARA | COVID Airborne Risk Assessment"
+msgstr "CARA | COVID Airborne Risk Assessment"
+
+#: templates/base/layout.html.j2:37
+msgid "Home"
+msgstr "Home"
+
+#: templates/base/layout.html.j2:44 templates/base/layout.html.j2:51
+#, fuzzy
+msgid "CARA Calculator"
+msgstr "Calculateur"
+
+#: templates/base/layout.html.j2:45 templates/base/layout.html.j2:52
+msgid "User Guide"
+msgstr "Mode d'emploi"
+
+#: templates/base/layout.html.j2:46
+#, fuzzy
+msgid "Expert app (beta)"
+msgstr "Expert (beta)"
+
+#: templates/base/layout.html.j2:60
+msgid "Signed in as:"
+msgstr "Connecté en tant que:"
+
+#: templates/base/layout.html.j2:63
+msgid "Sign out"
+msgstr "Déconnexion"
+
+#: templates/base/layout.html.j2:90
+msgid ""
+"CERN strives to deploy its know-how and technologies to help solve\n"
+"                    the challenges arising in the local and global fight "
+"against COVID-19. As a particle physics\n"
+"                    research organisation, CERN is not in a position to "
+"advise on medical research, health or health\n"
+"                    policy issues. Any initiative is conducted on a best "
+"effort and as-is basis, without liability or\n"
+"                    warranty."
+msgstr ""
+"Le CERN s'efforce de déployer son savoir-faire et ses technologies pour aider à résoudre\n"
+" les défis qui se posent dans la lutte locale et globale "
+"contre COVID-19. En tant que physique des particules\n"
+" organisme de recherche, le CERN n'est pas en mesure de "
+"conseiller sur la recherche médicale, la santé ou la santé\n"
+" questions politiques. Toute initiative est menée sur une meilleure "
+"effort et tel quel, sans responsabilité ou\n"
+"                    garantie."
+
+#: templates/base/layout.html.j2:97
+msgid "CARA is"
+msgstr "CARA est"
+
+#: templates/base/layout.html.j2:97
+msgid "Apache 2.0 licensed"
+msgstr "distribués sous licence Apache 2.0."
+
+#: templates/base/layout.html.j2:97
+msgid ""
+"open-source\n"
+"              software developed at CERN.\n"
+"              You can find the source code at"
+msgstr ""
+"open-source\n"
+" logiciel développé au CERN.\n"
+" Vous pouvez trouver le code source sur"
+
+#: templates/base/layout.html.j2:100
+msgid "where we welcome contributions, feature requests and issue reports."
+msgstr "où nous accueillons les contributions, les demandes de fonctionnalités et les rapports de publication."
+
 #: templates/cern/index.html.j2:7
 msgid ""
 "CARA has been developed by CERN with the intention of allowing members of"
@@ -538,3 +612,4 @@ msgstr "version CERN du Covid calculateur CARA"
 #: templates/cern/index.html.j2:8
 msgid "is available on this site to members of the CERN personnel."
 msgstr "est disponible sur ce site pour les membres du personnel du CERN."
+
