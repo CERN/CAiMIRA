@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2022-06-16 10:50+0200\n"
+"POT-Creation-Date: 2022-06-23 10:22+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,180 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.1\n"
+
+#: templates/about.html.j2:7
+msgid "Airborne Transmission of SARS-CoV-2"
+msgstr ""
+
+#: templates/about.html.j2:8
+msgid ""
+"Currently, the existing public health measures point to the importance of"
+" proper building and environmental engineering control measures, such as "
+"proper Indoor Air Quality (IAQ).\n"
+"This pandemic clearly raised increased awareness on airborne transmission"
+" of respiratory viruses in indoor settings.\n"
+"Out of the main modes of viral transmission, the airborne route of SARS-"
+"CoV-2 seems to have a significant importance to the spread of COVID-19 "
+"infections world-wide, hence proper guidance to building engineers or "
+"facility managers, on how to prevent on-site transmission, is essential."
+msgstr ""
+
+#: templates/about.html.j2:11
+msgid ""
+"For information on the Airborne Transmission of SARS-CoV-2, feel free to "
+"check out the special issue on the Interface Focus journal from Royal "
+"Society publishing:"
+msgstr ""
+
+#: templates/about.html.j2:11
+msgid "Interface Focus: Volume 12, Issue 2"
+msgstr ""
+
+#: templates/about.html.j2:11
+msgid "and an CERN HSE Seminar:"
+msgstr ""
+
+#: templates/about.html.j2:13
+msgid "What is CARA?"
+msgstr ""
+
+#: templates/about.html.j2:14
+msgid ""
+"CARA stands for COVID Airborne Risk Assessment and was developed in the "
+"spring of 2020 to better understand and quantify the risk of long-range "
+"airborne spread of SARS-CoV-2 virus in workplaces. CARA comes with "
+"different applications that allow more or less flexibility in the input "
+"parameters:"
+msgstr ""
+
+#: templates/about.html.j2:16
+msgid "CARA calculator app"
+msgstr ""
+
+#: templates/about.html.j2:17
+msgid "CARA expert app"
+msgstr ""
+
+#: templates/about.html.j2:20
+msgid ""
+"The mathematical and physical model simulate the airborne spread of SARS-"
+"CoV-2 virus in a finite volume, assuming a homogenous mixture and a two-"
+"stage exhaled jet model, and estimates the risk of COVID-19 airborne "
+"transmission therein. The results DO NOT include other known modes of "
+"SARS-CoV-2 transmission. Hence, the output from this model is only valid "
+"when the other recommended public health & safety instructions are "
+"observed, such as good hand hygiene and other barrier measures."
+msgstr ""
+
+#: templates/about.html.j2:21
+msgid ""
+"The methodology, mathematical equations and parameters of the model are "
+"published here in the CARA paper:"
+msgstr ""
+
+#: templates/about.html.j2:22
+msgid "The short-range component of the model was adapted from"
+msgstr ""
+
+#: templates/about.html.j2:22
+msgid "Exposure and respiratory infection risk via the short-range airborne route"
+msgstr ""
+
+#: templates/about.html.j2:24
+msgid ""
+"The model used is based on scientific publications relating to airborne "
+"transmission of infectious diseases, virology, epidemiology and aerosol "
+"science. It can be used to compare the effectiveness of different "
+"airborne-related risk mitigation measures."
+msgstr ""
+
+#: templates/about.html.j2:26
+msgid ""
+"The tool helps assess the potential dose of infectious airborne viruses "
+"in indoor gatherings, with people seated, standing, moving around, while "
+"breathing, speaking or shouting/singing. The model is based on the "
+"exponential dose-response of disease transmission, which assumes a fixed "
+"value for the average infectious dose. \n"
+"The methodology of the model is divided into five parts:"
+msgstr ""
+
+#: templates/about.html.j2:29
+msgid "Estimating the emission rate of virions;"
+msgstr ""
+
+#: templates/about.html.j2:30
+msgid "Estimating the removal rate of virions;"
+msgstr ""
+
+#: templates/about.html.j2:31
+msgid ""
+"Modeling the concentration of virions within a given volume, as a "
+"function of time;"
+msgstr ""
+
+#: templates/about.html.j2:32
+msgid "Absorbed dose of infectious viruses, inhaled during the exposure time;"
+msgstr ""
+
+#: templates/about.html.j2:33
+msgid ""
+"Estimating the probability of a COVID-19 infection (or secondary "
+"transmission) and the expected number of new cases arising from the event"
+msgstr ""
+
+#: templates/about.html.j2:36
+msgid "What is the aim of CARA?"
+msgstr ""
+
+#: templates/about.html.j2:37
+msgid ""
+"Although the user is able to calculate the infection probability of a "
+"stand-alone event with a pre-defined set of protection measures, the main"
+" utility of CARA is to compare the relative impact of different measures "
+"and/or combination of measure. For example:"
+msgstr ""
+
+#: templates/about.html.j2:39
+msgid "Compare keeping a window slightly open vs one or two windows open entirely"
+msgstr ""
+
+#: templates/about.html.j2:40
+msgid ""
+"Compare opening one entire window every 2h for 10 min vs keeping half a "
+"window open all day"
+msgstr ""
+
+#: templates/about.html.j2:41
+msgid "Compare the effect of an FFP2 with respect to a Type I surgical mask"
+msgstr ""
+
+#: templates/about.html.j2:42
+msgid "Adapt the maximum occupancy considering the effect of HEPA filters"
+msgstr ""
+
+#: templates/about.html.j2:43
+msgid "Etc…"
+msgstr ""
+
+#: templates/about.html.j2:46
+msgid "Main Developers:"
+msgstr ""
+
+#: templates/about.html.j2:49
+msgid "Code Contributors:"
+msgstr ""
+
+#: templates/about.html.j2:52
+msgid "References:"
+msgstr ""
+
+#: templates/about.html.j2:55
+msgid "Acknowledgements:"
+msgstr ""
+
+#: templates/about.html.j2:57 templates/base/index.html.j2:85
+msgid "Click to expand"
+msgstr ""
 
 #: templates/common_text.md.j2:23
 msgid ""
@@ -204,10 +378,6 @@ msgstr ""
 
 #: templates/base/index.html.j2:83
 msgid "Acknowledgements"
-msgstr ""
-
-#: templates/base/index.html.j2:85
-msgid "Click to expand"
 msgstr ""
 
 #: templates/cern/index.html.j2:7

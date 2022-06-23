@@ -7,16 +7,412 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2022-06-16 10:50+0200\n"
+"POT-Creation-Date: 2022-06-23 10:22+0100\n"
 "PO-Revision-Date: 2022-06-16 09:53+0200\n"
 "Last-Translator: Luis Aleixo <luis.aleixo@cern.ch>\n"
-"Language-Team: French <traduc@traduc.org>\n"
 "Language: fr\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Language-Team: French <traduc@traduc.org>\n"
 "Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.1\n"
+
+#: templates/about.html.j2:7
+msgid "Airborne Transmission of SARS-CoV-2"
+msgstr "Transmission aéroportée du SARS-CoV-2"
+
+#: templates/about.html.j2:8
+msgid ""
+"Currently, the existing public health measures point to the importance of"
+" proper building and environmental engineering control measures, such as "
+"proper Indoor Air Quality (IAQ).\n"
+"This pandemic clearly raised increased awareness on airborne transmission"
+" of respiratory viruses in indoor settings.\n"
+"Out of the main modes of viral transmission, the airborne route of SARS-"
+"CoV-2 seems to have a significant importance to the spread of COVID-19 "
+"infections world-wide, hence proper guidance to building engineers or "
+"facility managers, on how to prevent on-site transmission, is essential."
+msgstr ""
+"Actuellement, les mesures de santé publique existantes soulignent "
+"l'importance des mesures appropriées de contrôle de la construction et du"
+" génie environnemental, telles que la bonne qualité de l'air intérieur "
+"(QAI).\n"
+"        Cette pandémie a clairement augmenté la sensibilisation à la "
+"transmission aéroportée des virus respiratoires en milieu intérieur.\n"
+"        Parmi les principaux modes de transmission virale, la voie "
+"aéroportée du SARS-CoV-2 semble avoir une importance significative pour "
+"la propagation des infections Covid-19 dans le monde."
+
+#: templates/about.html.j2:11
+msgid ""
+"For information on the Airborne Transmission of SARS-CoV-2, feel free to "
+"check out the special issue on the Interface Focus journal from Royal "
+"Society publishing:"
+msgstr ""
+"Pour plus d'informations sur la transmission aéroportée du SARS-CoV-2, "
+"n'hésitez pas à consulter le numéro spécial Interface Focus du Journal de"
+" Royal Society Publishing:"
+
+#: templates/about.html.j2:11
+msgid "Interface Focus: Volume 12, Issue 2"
+msgstr "Interface Focus: volume 12, numéro 2"
+
+#: templates/about.html.j2:11
+msgid "and an CERN HSE Seminar:"
+msgstr "Et un séminaire du service HSE du CERN:"
+
+#: templates/about.html.j2:13
+msgid "What is CARA?"
+msgstr "Qu'est-ce que CARA?"
+
+#: templates/about.html.j2:14
+msgid ""
+"CARA stands for COVID Airborne Risk Assessment and was developed in the "
+"spring of 2020 to better understand and quantify the risk of long-range "
+"airborne spread of SARS-CoV-2 virus in workplaces. CARA comes with "
+"different applications that allow more or less flexibility in the input "
+"parameters:"
+msgstr ""
+"CARA signifie COVID Airborne Risk Assessment et a été développé pour "
+"mieux comprendre et quantifier le risque de propagation de pathogènes "
+"aéroportés à longue portée dans les lieux de travail. CARA est livré avec"
+" différentes applications qui permettent une flexibilité dans les "
+"paramètres d'entrée:"
+
+#: templates/about.html.j2:16
+msgid "CARA calculator app"
+msgstr "Calculateur CARA"
+
+#: templates/about.html.j2:17
+msgid "CARA expert app"
+msgstr "Experte CARA"
+
+#: templates/about.html.j2:20
+msgid ""
+"The mathematical and physical model simulate the airborne spread of SARS-"
+"CoV-2 virus in a finite volume, assuming a homogenous mixture and a two-"
+"stage exhaled jet model, and estimates the risk of COVID-19 airborne "
+"transmission therein. The results DO NOT include other known modes of "
+"SARS-CoV-2 transmission. Hence, the output from this model is only valid "
+"when the other recommended public health & safety instructions are "
+"observed, such as good hand hygiene and other barrier measures."
+msgstr ""
+"Le modèle mathématique et physique simule la propagation aéroportée "
+"du virus SARS-CoV-2 dans un volume fini, en supposant un "
+"mélange homogène, et estime le risque de transmission aéroportée du "
+"COVID-19. Les résultats n'incluent pas "
+"autres modes connus de transmission SARS-CoV-2. Par conséquent,les "
+"résultats de ce modèle ne sont valables que lorsque les autres "
+"instructions de santé publique et de sécurité recommandées sont "
+"observées, comme une bonne hygiène des mains et d'autres mesures barrières."
+
+#: templates/about.html.j2:21
+msgid ""
+"The methodology, mathematical equations and parameters of the model are "
+"published here in the CARA paper:"
+msgstr ""
+"La méthodologie, les équations mathématiques et les paramètres du modèle "
+"sont publiées dans le CARA article:"
+
+#: templates/about.html.j2:22
+msgid "The short-range component of the model was adapted from"
+msgstr "La composante à courte portée du modèle a été adaptée de"
+
+#: templates/about.html.j2:22
+msgid "Exposure and respiratory infection risk via the short-range airborne route"
+msgstr "Exposition et risque d'infection respiratoire par voie aérienne à courte distance"
+
+#: templates/about.html.j2:24
+msgid ""
+"The model used is based on scientific publications relating to airborne "
+"transmission of infectious diseases, virology, epidemiology and aerosol "
+"science. It can be used to compare the effectiveness of different "
+"airborne-related risk mitigation measures."
+msgstr ""
+"Le modèle utilisé est basé sur des publications scientifiques relatives à"
+" la transmission aéroportée des maladies infectieuses, aux expositions "
+"dose-réponse et à la science des aérosols.\n"
+"        Il peut être utilisé pour comparer l'efficacité de différentes "
+"mesures de réduction des risques aéroportés."
+
+#: templates/about.html.j2:26
+msgid ""
+"The tool helps assess the potential dose of infectious airborne viruses "
+"in indoor gatherings, with people seated, standing, moving around, while "
+"breathing, speaking or shouting/singing. The model is based on the "
+"exponential dose-response of disease transmission, which assumes a fixed "
+"value for the average infectious dose. \n"
+"The methodology of the model is divided into five parts:"
+msgstr ""
+"L'outil aide à évaluer la dose potentielle des virus aéroportés "
+"infectieux dans les rassemblements intérieurs, avec des gens assis, "
+"debout, se déplaçant, tout en respirant, en parlant ou en criant / "
+"chantant. Le modèle est basé sur la dose-réponse exponentielle de la "
+"transmission de la maladie, qui assume une valeur fixe pour la dose "
+"infectieuse moyenne.\n"
+"La méthodologie du modèle est divisée en cinq parties:"
+
+#: templates/about.html.j2:29
+msgid "Estimating the emission rate of virions;"
+msgstr "Estimation du taux d'émission de virions;"
+
+#: templates/about.html.j2:30
+msgid "Estimating the removal rate of virions;"
+msgstr "Estimation du taux de disparition de virions;"
+
+#: templates/about.html.j2:31
+msgid ""
+"Modeling the concentration of virions within a given volume, as a "
+"function of time;"
+msgstr ""
+"Modélisation de la concentration de virions dans un volume donné, en "
+"fonction du temps;"
+
+#: templates/about.html.j2:32
+msgid "Absorbed dose of infectious viruses, inhaled during the exposure time;"
+msgstr "Dose absorbée de virus infectieux, inhalée pendant le temps d'exposition;"
+
+#: templates/about.html.j2:33
+msgid ""
+"Estimating the probability of a COVID-19 infection (or secondary "
+"transmission) and the expected number of new cases arising from the event"
+msgstr ""
+"Estimation de la probabilité d'une infection COVID-19 (ou transmission "
+"secondaire) et du nombre attendu de nouveaux cas résultant de l'événement"
+
+#: templates/about.html.j2:36
+msgid "What is the aim of CARA?"
+msgstr "Quel est le but de CARA?"
+
+#: templates/about.html.j2:37
+msgid ""
+"Although the user is able to calculate the infection probability of a "
+"stand-alone event with a pre-defined set of protection measures, the main"
+" utility of CARA is to compare the relative impact of different measures "
+"and/or combination of measure. For example:"
+msgstr ""
+"Bien que l'utilisateur soit en mesure de calculer une probabilité "
+"d'infection d'un événement avec un ensemble prédéfini de mesures de "
+"protection, l'utilité principale du CARA est de comparer l'impact relatif"
+" de différentes mesures et/ou combinaisons de mesures. Par example:"
+
+#: templates/about.html.j2:39
+msgid "Compare keeping a window slightly open vs one or two windows open entirely"
+msgstr ""
+"Comparez une fenêtre légèrement ouverte contre une ou deux fenêtres "
+"entièrement ouvertes"
+
+#: templates/about.html.j2:40
+msgid ""
+"Compare opening one entire window every 2h for 10 min vs keeping half a "
+"window open all day"
+msgstr ""
+"Comparez l'ouverture d'une fenêtre entière toutes les 2 heures pendant 10"
+" min vs en gardant une demi-fenêtre ouverte toute la journée"
+
+#: templates/about.html.j2:41
+msgid "Compare the effect of an FFP2 with respect to a Type I surgical mask"
+msgstr "Comparez l'effet d'un FFP2 par rapport à un masque chirurgical de type I"
+
+#: templates/about.html.j2:42
+msgid "Adapt the maximum occupancy considering the effect of HEPA filters"
+msgstr "Adapter la jauge maximaler d'occupation en fonction des filtres HEPA."
+
+#: templates/about.html.j2:43
+msgid "Etc…"
+msgstr "Etc…"
+
+#: templates/about.html.j2:46
+msgid "Main Developers:"
+msgstr "Principaux développeurs"
+
+#: templates/about.html.j2:49
+msgid "Code Contributors:"
+msgstr "Contributeurs du code"
+
+#: templates/about.html.j2:52
+msgid "References:"
+msgstr "Références"
+
+#: templates/about.html.j2:55
+msgid "Acknowledgements:"
+msgstr "Remerciements:"
+
+#: templates/about.html.j2:57 templates/base/index.html.j2:85
+msgid "Click to expand"
+msgstr "Cliquez pour agrandir"
+
+#: templates/common_text.md.j2:23
+msgid ""
+"We wish to thank CERN’s HSE Unit, Beams Department, Experimental Physics "
+"Department, Information Technology Department, Industry, Procurement and "
+"Knowledge Transfer Department and International Relations Sector for "
+"their support to the study. Thanks to Doris Forkel-Wirth, Benoit Delille,"
+" Walid Fadel, Olga Beltramello, Letizia Di Giulio, Evelyne Dho, Wayne "
+"Salter, Benoit Salvant and colleagues from the COVID working group for "
+"providing expert advice and extensively testing the model. Finally, we "
+"wish to thank Fabienne Landua and the design service for preparing the "
+"illustrations and Alessandro Raimondo and Manuela Cirilli from the "
+"Knowledge Transfer Group for their continuous support. Our compliments "
+"towards the work and research performed by world leading scientists in "
+"this domain: Dr. Julian Tang, Prof. Manuel Gameiro, Dr. Linsey Marr, "
+"Prof. Lidia Morawska, Prof. Yuguo Li, and others – their scientific "
+"contribution was indispensable for this project. "
+msgstr ""
+"Nous tenons à remercier l'unité HSE du CERN, le département des "
+"faisceaux, le département de physique expérimentale, le département des "
+"technologies de l'information, le département de l'industrie, des achats "
+"et du transfert de connaissances et le secteur des relations "
+"internationales pour leur soutien à l'étude. Merci à Doris Forkel-Wirth, "
+"Benoit Delille, Walid Fadel, Olga Beltramello, Letizia Di Giulio, Evelyne"
+" Dho, Wayne Salter, Benoit Salvant et leurs collègues du groupe de "
+"travail COVID pour avoir fourni des conseils d'experts et testé de "
+"manière approfondie le modèle. Enfin, nous tenons à remercier Fabienne "
+"Landua et le service de conception pour la préparation des illustrations "
+"et Alessandro Raimondo et Manuela Cirilli du groupe de transfert des "
+"connaissances pour leur soutien continu. Nos compliments pour le travail "
+"et la recherche effectués par des scientifiques de renommée mondiale dans"
+" ce domaine : Dr Julian Tang, Prof. Manuel Gameiro, Dr Linsey Marr, Prof."
+" Lidia Morawska, Prof. Yuguo Li et d'autres - leur contribution "
+"scientifique a été indispensable pour ce projet."
+
+#: templates/common_text.md.j2:27
+msgid ""
+"CARA is a risk assessment tool developed to model the concentration of "
+"viruses in enclosed spaces, in order to inform space-management "
+"decisions."
+msgstr ""
+"CARA est un outil d'évaluation des risques développé pour modéliser la "
+"concentration des virus dans les espaces fermés, afin d'éclairer les "
+"décisions de gestion de l'espace."
+
+#: templates/common_text.md.j2:30
+msgid ""
+"CARA models the concentration profile of virions in enclosed spaces with "
+"clear and intuitive graphs.\n"
+"    The user can set a number of parameters, including room volume, "
+"exposure time, activity type, mask-wearing and ventilation.\n"
+"    The report generated indicates how to avoid exceeding critical "
+"concentrations and chains of airborne transmission in spaces such as "
+"individual offices, meeting rooms and labs."
+msgstr ""
+"CARA modélise le profil de concentration des virions dans les espaces "
+"fermés avec des graphiques clairs et intuitifs.\n"
+"        L'utilisateur peut définir un certain nombre de paramètres, y "
+"compris le volume de la pièce, le temps d'exposition, le type d'activité,"
+" le port de masque et la ventilation.\n"
+"        Le rapport généré indique comment éviter de dépasser les "
+"concentrations critiques et les chaînes de transmission aéroportées dans "
+"des espaces tels que les bureaux individuels, les salles de réunion et "
+"les laboratoires."
+
+#: templates/common_text.md.j2:35
+msgid ""
+"The risk assessment tool simulates the long-range airborne spread SARS-"
+"CoV-2 virus in a finite volume, assuming a homogenous mixture, and "
+"estimates the risk of COVID-19 airborne transmission therein.\n"
+"    The results DO NOT include short-range airborne exposure (where the "
+"physical distance is a significant factor) nor the other known modes of "
+"SARS-CoV-2 transmission.\n"
+"    Hence, the output from this model is only valid when the other "
+"recommended public health & safety instructions are observed, such as "
+"adequate physical distancing, good hand hygiene and other barrier "
+"measures."
+msgstr ""
+"L'outil d'évaluation des risques simule le virus SARS-CoV-2 à propagation"
+" aéroportée à longue portée dans un volume fini, en supposant un mélange "
+"homogène, et estime le risque de transmission aéroportée de COVID-19.\n"
+"        Les résultats N'INCLUENT PAS l'exposition à courte portée (où la "
+"distance physique est un facteur significatif) ni les autres modes connus"
+" de transmission SAR-COV-2.\n"
+"        Par conséquent, les résultats de ce modèle ne sont valables que "
+"lorsque les autres instructions de santé publique et de sécurité "
+"recommandées sont observées, comme une distanciation physique adéquate, "
+"une bonne hygiène des mains et d'autres mesures de barrière."
+
+#: templates/common_text.md.j2:40
+msgid ""
+"The model used is based on scientific publications relating to airborne "
+"transmission of infectious diseases, dose-response exposures and aerosol "
+"science, as of February 2021.\n"
+"    It can be used to compare the effectiveness of different airborne-"
+"related risk mitigation measures."
+msgstr ""
+"Le modèle utilisé est basé sur des publications scientifiques relatives à"
+" la transmission aéroportée des maladies infectieuses, aux expositions "
+"dose-réponse et à la science des aérosols, en date de février 2022.\n"
+"        Il peut être utilisé pour comparer l'efficacité de différentes "
+"mesures de réduction des risques aéroportés."
+
+#: templates/common_text.md.j2:44
+msgid ""
+"Note that this model applies a deterministic approach, i.e., it is "
+"assumed at least one person is infected and shedding viruses into the "
+"simulated volume.\n"
+"    Nonetheless, it is also important to understand that the absolute "
+"risk of infection is uncertain, as it will depend on the probability that"
+" someone infected attends the event.\n"
+"    The model is most useful for comparing the impact and effectiveness "
+"of different mitigation measures such as ventilation, filtration, "
+"exposure time, physical activity and\n"
+"    the size of the room, only considering long-range airborne "
+"transmission of COVID-19 in indoor settings."
+msgstr ""
+"Notez que ce modèle applique une approche déterministe, c'est-à-dire "
+"qu'il est supposé qu'au moins une personne est infectée et répand des "
+"virus dans le volume simulé.\n"
+"        Néanmoins, il est également important de comprendre que le risque"
+" absolu d'infection est incertain, car il dépendra de la probabilité "
+"qu'une personne infectée assiste à l'événement.\n"
+"        Le modèle est très utile pour comparer l'impact et l'efficacité "
+"de différentes mesures de prévention telles que la ventilation, la "
+"bioventilation, le temps d'exposition, l'activité physique et\n"
+"        la taille de la pièce, en ne tenant compte que de la transmission"
+" aéroportée à longue distance du COVID-19 en intérieur."
+
+#: templates/common_text.md.j2:50
+msgid ""
+"This tool is designed to be informative, allowing the user to adapt "
+"different settings and model the relative impact on the estimated "
+"infection probabilities.\n"
+"    The objective is to facilitate targeted decision-making and "
+"investment through comparisons, rather than a singular determination of "
+"absolute risk.\n"
+"    While the SARS-CoV-2 virus is in circulation among the population, "
+"the notion of 'zero risk' or 'completely safe scenario' does not exist.\n"
+"    Each event modelled is unique, and the results generated therein are "
+"only as accurate as the inputs and assumptions."
+msgstr ""
+"Cet outil est conçu pour être informatif, permettant à l'utilisateur "
+"d'adapter différents paramètres et de modéliser l'impact relatif sur les "
+"probabilités d'infection estimées.\n"
+"        L'objectif est de faciliter la prise de décision et "
+"l'investissement ciblé par des comparaisons, plutôt qu'une détermination "
+"singulière du risque absolu.\n"
+"        Bien que le virus SARS-CoV-2 soit en circulation parmi la "
+"population, la notion de «risque zéro» ou de «scénario complètement sûr» "
+"n'existe pas.\n"
+"        Chaque événement modélisé est unique, et les résultats qui y sont"
+" générés ne sont que justes qu'en fonction des données d'entrées et des "
+"hypothèses du modèle."
+
+#: templates/common_text.md.j2:56
+msgid ""
+"CARA has not undergone review, approval or certification by competent "
+"authorities, and as a result, it cannot be considered\n"
+"    as a fully endorsed and reliable tool, namely in the assessment of "
+"potential viral emissions from infected hosts to be modelled."
+msgstr ""
+"CARA n'a pas subi d'examen, d'approbation ou de certification par les "
+"autorités compétentes et, par conséquent, il ne peut pas être considéré\n"
+"        en tant qu'outil entièrement approuvé et fiable, à savoir dans "
+"l'évaluation des émissions virales potentielles des hôtes infectés à "
+"modéliser."
+
+#: templates/common_text.md.j2:62
+msgid "Reference list can be found in the CARA paper: "
+msgstr "La liste de référence est dans le document CARA: "
 
 #: templates/base/index.html.j2:15 templates/base/index.html.j2:43
 msgid "Calculator"
@@ -28,12 +424,20 @@ msgstr "Introduction"
 
 #: templates/base/index.html.j2:22
 msgid ""
-"CARA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.\n"
-"          It does this by simulating the long-range airborne spread SARS-CoV-2 virus in a finite volume, assuming homogenous mixing, and it estimates the risk of COVID-19 airborne transmission therein.\n"
+"CARA is a risk assessment tool developed to model the concentration of "
+"viruses in enclosed spaces, in order to inform space-management "
+"decisions.\n"
+"          It does this by simulating the long-range airborne spread SARS-"
+"CoV-2 virus in a finite volume, assuming homogenous mixing, and it "
+"estimates the risk of COVID-19 airborne transmission therein.\n"
 "          Please see the "
 msgstr ""
-"CARA est un outil d'évaluation des risques développé pour modéliser la concentration des virus dans les espaces fermés, afin d'éclairer les décisions de gestion de l'espace.\n"
-"                    Il le fait en simulant la propagation aéroportée du virus SARS-CoV-2 à longue portée dans un volume fini, en supposant un mélange homogène, et il estime le risque de transmission aéroportée \n"
+"CARA est un outil d'évaluation des risques développé pour modéliser la "
+"concentration des virus dans les espaces fermés, afin d'éclairer les "
+"décisions de gestion de l'espace.\n"
+"                    Il le fait en simulant la propagation aéroportée du "
+"virus SARS-CoV-2 à longue portée dans un volume fini, en supposant un "
+"mélange homogène, et il estime le risque de transmission aéroportée \n"
 "                Veuillez voir la page "
 
 #: templates/base/index.html.j2:24
@@ -41,20 +445,32 @@ msgid "About"
 msgstr "A propos"
 
 #: templates/base/index.html.j2:24
-msgid "page for more details on the methodology, assumptions and limitations of CARA."
-msgstr "pour plus de détails sur la méthodologie, les hypothèses et les limites du CARA."
+msgid ""
+"page for more details on the methodology, assumptions and limitations of "
+"CARA."
+msgstr ""
+"pour plus de détails sur la méthodologie, les hypothèses et les limites "
+"du CARA."
 
 #: templates/base/index.html.j2:27
-msgid "The full CARA source code can be accessed freely under an Apache 2.0 open source license from our"
-msgstr "Le code source complet de CARA est accessible librement sous une licence open source Apache 2.0 de notre"
+msgid ""
+"The full CARA source code can be accessed freely under an Apache 2.0 open"
+" source license from our"
+msgstr ""
+"Le code source complet de CARA est accessible librement sous une licence "
+"open source Apache 2.0 de notre"
 
 #: templates/base/index.html.j2:27
 msgid "code repository"
 msgstr "code repository"
 
 #: templates/base/index.html.j2:28
-msgid "It includes detailed instructions on how to run your own version of this tool."
-msgstr "Il comprend des instructions détaillées sur la façon d'exécuter votre propre version de cet outil."
+msgid ""
+"It includes detailed instructions on how to run your own version of this "
+"tool."
+msgstr ""
+"Il comprend des instructions détaillées sur la façon d'exécuter votre "
+"propre version de cet outil."
 
 #: templates/base/index.html.j2:41
 msgid "Apps"
@@ -86,7 +502,9 @@ msgstr "Pour l'utilisation de l'application web CARA:"
 
 #: templates/base/index.html.j2:75
 msgid "© Copyright 2020-2021 CERN. All rights not expressly granted are reserved."
-msgstr "© Copyright 2020-2021 CERN. Tous les droits non expressément accordés sont réservés."
+msgstr ""
+"© Copyright 2020-2021 CERN. Tous les droits non expressément accordés "
+"sont réservés."
 
 #: templates/base/index.html.j2:76
 msgid "Licensed under the Apache License, Version 2.0"
@@ -100,16 +518,17 @@ msgstr "LICENCE"
 msgid "Acknowledgements"
 msgstr "Remerciements:"
 
-#: templates/base/index.html.j2:85
-msgid "Click to expand"
-msgstr "Cliquez pour agrandir"
-
 #: templates/cern/index.html.j2:7
 msgid ""
-"CARA has been developed by CERN with the intention of allowing members of personnel with roles related to supervision, health & safety or space management to simulate the concerned workplaces on CERN sites.\n"
+"CARA has been developed by CERN with the intention of allowing members of"
+" personnel with roles related to supervision, health & safety or space "
+"management to simulate the concerned workplaces on CERN sites.\n"
 "  A hosted "
 msgstr ""
-"CARA a été développé par le CERN dans le but de permettre aux membres du personnel ayant des rôles liés à la supervision, à la santé et à la sécurité ou à la gestion de l'espace de simuler les postes de travail concernés sur les sites du CERN.\n"
+"CARA a été développé par le CERN dans le but de permettre aux membres du "
+"personnel ayant des rôles liés à la supervision, à la santé et à la "
+"sécurité ou à la gestion de l'espace de simuler les postes de travail "
+"concernés sur les sites du CERN.\n"
 "  Un hébergé "
 
 #: templates/cern/index.html.j2:8
@@ -119,75 +538,3 @@ msgstr "version CERN du Covid calculateur CARA"
 #: templates/cern/index.html.j2:8
 msgid "is available on this site to members of the CERN personnel."
 msgstr "est disponible sur ce site pour les membres du personnel du CERN."
-
-#: templates/common_text.md.j2:23
-msgid "We wish to thank CERN’s HSE Unit, Beams Department, Experimental Physics Department, Information Technology Department, Industry, Procurement and Knowledge Transfer Department and International Relations Sector for their support to the study. Thanks to Doris Forkel-Wirth, Benoit Delille, Walid Fadel, Olga Beltramello, Letizia Di Giulio, Evelyne Dho, Wayne Salter, Benoit Salvant and colleagues from the COVID working group for providing expert advice and extensively testing the model. Finally, we wish to thank Fabienne Landua and the design service for preparing the illustrations and Alessandro Raimondo and Manuela Cirilli from the Knowledge Transfer Group for their continuous support. Our compliments towards the work and research performed by world leading scientists in this domain: Dr. Julian Tang, Prof. Manuel Gameiro, Dr. Linsey Marr, Prof. Lidia Morawska, Prof. Yuguo Li, and others – their scientific contribution was indispensable for this project. "
-msgstr "Nous tenons à remercier l'unité HSE du CERN, le département des faisceaux, le département de physique expérimentale, le département des technologies de l'information, le département de l'industrie, des achats et du transfert de connaissances et le secteur des relations internationales pour leur soutien à l'étude. Merci à Doris Forkel-Wirth, Benoit Delille, Walid Fadel, Olga Beltramello, Letizia Di Giulio, Evelyne Dho, Wayne Salter, Benoit Salvant et leurs collègues du groupe de travail COVID pour avoir fourni des conseils d'experts et testé de manière approfondie le modèle. Enfin, nous tenons à remercier Fabienne Landua et le service de conception pour la préparation des illustrations et Alessandro Raimondo et Manuela Cirilli du groupe de transfert des connaissances pour leur soutien continu. Nos compliments pour le travail et la recherche effectués par des scientifiques de renommée mondiale dans ce domaine : Dr Julian Tang, Prof. Manuel Gameiro, Dr Linsey Marr, Prof. Lidia Morawska, Prof. Yuguo Li et d'autres - leur contribution scientifique a été indispensable pour ce projet."
-
-#: templates/common_text.md.j2:27
-msgid "CARA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions."
-msgstr "CARA est un outil d'évaluation des risques développé pour modéliser la concentration des virus dans les espaces fermés, afin d'éclairer les décisions de gestion de l'espace."
-
-#: templates/common_text.md.j2:30
-msgid ""
-"CARA models the concentration profile of virions in enclosed spaces with clear and intuitive graphs.\n"
-"    The user can set a number of parameters, including room volume, exposure time, activity type, mask-wearing and ventilation.\n"
-"    The report generated indicates how to avoid exceeding critical concentrations and chains of airborne transmission in spaces such as individual offices, meeting rooms and labs."
-msgstr ""
-"CARA modélise le profil de concentration des virions dans les espaces fermés avec des graphiques clairs et intuitifs.\n"
-"        L'utilisateur peut définir un certain nombre de paramètres, y compris le volume de la pièce, le temps d'exposition, le type d'activité, le port de masque et la ventilation.\n"
-"        Le rapport généré indique comment éviter de dépasser les concentrations critiques et les chaînes de transmission aéroportées dans des espaces tels que les bureaux individuels, les salles de réunion et les laboratoires."
-
-#: templates/common_text.md.j2:35
-msgid ""
-"The risk assessment tool simulates the long-range airborne spread SARS-CoV-2 virus in a finite volume, assuming a homogenous mixture, and estimates the risk of COVID-19 airborne transmission therein.\n"
-"    The results DO NOT include short-range airborne exposure (where the physical distance is a significant factor) nor the other known modes of SARS-CoV-2 transmission.\n"
-"    Hence, the output from this model is only valid when the other recommended public health & safety instructions are observed, such as adequate physical distancing, good hand hygiene and other barrier measures."
-msgstr ""
-"L'outil d'évaluation des risques simule le virus SARS-CoV-2 à propagation aéroportée à longue portée dans un volume fini, en supposant un mélange homogène, et estime le risque de transmission aéroportée de COVID-19.\n"
-"        Les résultats N'INCLUENT PAS l'exposition à courte portée (où la distance physique est un facteur significatif) ni les autres modes connus de transmission SAR-COV-2.\n"
-"        Par conséquent, les résultats de ce modèle ne sont valables que lorsque les autres instructions de santé publique et de sécurité recommandées sont observées, comme une distanciation physique adéquate, une bonne hygiène des mains et d'autres mesures de barrière."
-
-#: templates/common_text.md.j2:40
-msgid ""
-"The model used is based on scientific publications relating to airborne transmission of infectious diseases, dose-response exposures and aerosol science, as of February 2021.\n"
-"    It can be used to compare the effectiveness of different airborne-related risk mitigation measures."
-msgstr ""
-"Le modèle utilisé est basé sur des publications scientifiques relatives à la transmission aéroportée des maladies infectieuses, aux expositions dose-réponse et à la science des aérosols, en date de février 2022.\n"
-"        Il peut être utilisé pour comparer l'efficacité de différentes mesures de réduction des risques aéroportés."
-
-#: templates/common_text.md.j2:44
-msgid ""
-"Note that this model applies a deterministic approach, i.e., it is assumed at least one person is infected and shedding viruses into the simulated volume.\n"
-"    Nonetheless, it is also important to understand that the absolute risk of infection is uncertain, as it will depend on the probability that someone infected attends the event.\n"
-"    The model is most useful for comparing the impact and effectiveness of different mitigation measures such as ventilation, filtration, exposure time, physical activity and\n"
-"    the size of the room, only considering long-range airborne transmission of COVID-19 in indoor settings."
-msgstr ""
-"Notez que ce modèle applique une approche déterministe, c'est-à-dire qu'il est supposé qu'au moins une personne est infectée et répand des virus dans le volume simulé.\n"
-"        Néanmoins, il est également important de comprendre que le risque absolu d'infection est incertain, car il dépendra de la probabilité qu'une personne infectée assiste à l'événement.\n"
-"        Le modèle est très utile pour comparer l'impact et l'efficacité de différentes mesures de prévention telles que la ventilation, la bioventilation, le temps d'exposition, l'activité physique et\n"
-"        la taille de la pièce, en ne tenant compte que de la transmission aéroportée à longue distance du COVID-19 en intérieur."
-
-#: templates/common_text.md.j2:50
-msgid ""
-"This tool is designed to be informative, allowing the user to adapt different settings and model the relative impact on the estimated infection probabilities.\n"
-"    The objective is to facilitate targeted decision-making and investment through comparisons, rather than a singular determination of absolute risk.\n"
-"    While the SARS-CoV-2 virus is in circulation among the population, the notion of 'zero risk' or 'completely safe scenario' does not exist.\n"
-"    Each event modelled is unique, and the results generated therein are only as accurate as the inputs and assumptions."
-msgstr ""
-"Cet outil est conçu pour être informatif, permettant à l'utilisateur d'adapter différents paramètres et de modéliser l'impact relatif sur les probabilités d'infection estimées.\n"
-"        L'objectif est de faciliter la prise de décision et l'investissement ciblé par des comparaisons, plutôt qu'une détermination singulière du risque absolu.\n"
-"        Bien que le virus SARS-CoV-2 soit en circulation parmi la population, la notion de «risque zéro» ou de «scénario complètement sûr» n'existe pas.\n"
-"        Chaque événement modélisé est unique, et les résultats qui y sont générés ne sont que justes qu'en fonction des données d'entrées et des hypothèses du modèle."
-
-#: templates/common_text.md.j2:56
-msgid ""
-"CARA has not undergone review, approval or certification by competent authorities, and as a result, it cannot be considered\n"
-"    as a fully endorsed and reliable tool, namely in the assessment of potential viral emissions from infected hosts to be modelled."
-msgstr ""
-"CARA n'a pas subi d'examen, d'approbation ou de certification par les autorités compétentes et, par conséquent, il ne peut pas être considéré\n"
-"        en tant qu'outil entièrement approuvé et fiable, à savoir dans l'évaluation des émissions virales potentielles des hôtes infectés à modéliser."
-
-#: templates/common_text.md.j2:62
-msgid "Reference list can be found in the CARA paper: "
-msgstr "La liste de référence est dans le document CARA: "
