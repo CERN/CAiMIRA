@@ -93,16 +93,13 @@ The long-range concentration, integrated over the exposure time (in piecewise co
 
 In the :math:`C_{\mathrm{LR}}(t, D)` equation above, the **emission rate** :math:`\mathrm{vR}(D)` and **viral removal rate** :math:`\lambda_{\mathrm{vRR}}` (:meth: `infectious_virus_removal_rate`) are both diameter-dependent.
 ???? Hence, the concentration needs, equally, to be normalized by the diameter-dependent quantities: emission rate (AND VRR??). 
-???? Since the emission rate is, in turn, dependent on other diameter-independent variables (:math:`\mathrm{vl}_\mathrm{in}` and :math:`\mathrm{BR}_k``) (WHERE IS THIS?), those parameters shall also be excluded when calculating the integral, 
-the concentration method was written to be normalized by the emission rate.
 
 In other words, we can split the concentration in two different formulations:
 
 * Normalized concentration :meth:`cara.models.ConcentrationModel._normed_concentration` : :math:`\mathrm{C_\mathrm{LR, normed}}(t, D)` that cumputes the concentration without including the emission rate.
-???? * Concentration :meth:`cara.models.ConcentrationModel.concentration` : :math:`C_{\mathrm{LR}}(t, D) = [\mathrm{C_\mathrm{LR, normed}}(t, D) \cdot \mathrm{vR}(D)] \cdot \mathrm{BR_k} \cdot \mathrm{vl_{in}}`, (WHERE IS THIS?) 
-where :math:`\mathrm{vR}(D)` that cumputes the full concentration, still as a function of the particle diameter, 
+* Concentration :meth:`cara.models.ConcentrationModel.concentration` : :math:`C_{\mathrm{LR}}(t, D) = \mathrm{C_\mathrm{LR, normed}}(t, D) \cdot \mathrm{vR}(D)`,
 where \mathrm{vR}(D) is the result of the :meth:`cara.models._PopulationWithVirus.emission_rate_when_present` method.
- 
+
 Note that in order to get the total concentration value in this stage, the final result should be averaged by the particle diameters (i.e. Monte-Carlo integration over diameters, see above). 
 In the calculator app, the total concentration (MC integral over the diameter) :meth:??? is performed only when generating the concentration plot. Otherwise, the diameter-dependence continues until we cumpute the inhaled dose in :class:`cara.models.ExposureModel` class.
 
