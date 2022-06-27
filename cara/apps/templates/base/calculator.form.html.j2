@@ -241,12 +241,12 @@
           <label for="windows_open_periodically" class="col-form-label ml-2 mr-2">Periodically:</label><br>
 
         <div class="form-group row tabbed">     
-          <div class="col-md-5"><label for="window_duration" class="col-form-label ml-2">Frequency (min):</label></div>
-          <div class="col-md-5"><input type="number" step="any" id="windows_duration" class="non_zero disabled form-control" name="windows_duration" placeholder="Duration" min="1" data-has-radio="#windows_open_periodically"></div>
+          <div class="col-md-5"><label for="window_duration" class="col-form-label ml-2">Duration (min):</label></div>
+          <div class="col-md-5"><input type="number" step="any" id="windows_duration" class="non_zero disabled form-control" name="windows_duration" value="10" min="1" data-has-radio="#windows_open_periodically"></div>
         </div>
         <div class="form-group row tabbed">
-          <div class="col-md-5"><label for="window_frequency" class="col-form-label ml-2">Duration (min):</label></div>
-          <div class="col-md-5"><input type="number" step="any" id="windows_frequency" class="non_zero disabled form-control" name="windows_frequency" placeholder="Frequency" min="1" data-has-radio="#windows_open_periodically"></div>
+          <div class="col-md-5"><label for="window_frequency" class="col-form-label ml-2">Frequency (min):</label></div>
+          <div class="col-md-5"><input type="number" step="any" id="windows_frequency" class="non_zero disabled form-control" name="windows_frequency" value="60" min="1" data-has-radio="#windows_open_periodically"></div>
         </div>
         <br>
     </div>
