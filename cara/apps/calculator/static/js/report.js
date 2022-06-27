@@ -605,8 +605,9 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
         .text('Mean concentration (virions/m³)');
 
     // Legend bounding box.
+    max_key_length = Math.max(...(Object.keys(data_for_scenarios).map(el => el.length)));
     var legendBBox = vis.append('rect')
-        .attr('width', 275)
+        .attr('width', 8.25 * max_key_length )
         .attr('height', 25 * (Object.keys(data_for_scenarios).length))
         .attr('stroke', 'lightgrey')
         .attr('stroke-width', '2')
@@ -711,10 +712,10 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
         var div_height = document.getElementById(concentration_plot_svg_id).clientHeight;
         graph_width = div_width;
         graph_height = div_height
-        if (div_width >= 900) { // For screens with width > 900px legend can be on the graph's right side.
+        if (div_width >= 1200) { // For screens with width > 900px legend can be on the graph's right side.
             var margins = { top: 30, right: 20, bottom: 50, left: 60 };
-            div_width = 900;
-            graph_width = div_width * (2/3);
+            div_width = 1200;
+            graph_width = 600;
             const svg_margins = {'margin-left': '0rem'};
             Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
         }

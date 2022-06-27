@@ -4,6 +4,8 @@
     bottom: 20px;
     right: 20px;
     padding: 20px;
+    -webkit-print-color-adjust: exact; /* chrome & webkit browsers */
+    print-color-adjust: exact; /*firefox & IE */
 }
 
 h1 {
@@ -61,24 +63,6 @@ p.notes {
     width: 100pt;
 }
 
-.red_bkg {
-    color: #000000;
-    background-color: #CD5C5C;
-    text-decoration: none;
-}
-
-.yellow_bkg {
-    color: #000000;
-    background-color: #FFFF00;
-    text-decoration: none;
-}
-
-.green_bkg {
-    color: #000000;
-    background-color: #90EE90;
-    text-decoration: none;
-}
-
 .icon_button {
     border: none;
     background: none;
@@ -133,14 +117,15 @@ p.notes {
     .icon_button {
         display: none!important;
     }
-    .card {
-        page-break-inside: avoid;
-    }
     .pi-image {
         max-height: 9em;
     }
     .pi-box {
         max-width: 260px!important;
+    }
+    .card {
+        page-break-inside: avoid!important;
+        break-inside: avoid!important;
     }
     #link-results {
         display: none;
@@ -172,6 +157,7 @@ p.notes {
     border-radius: 100px;
     z-index: 1;
     -webkit-print-color-adjust: exact!important;
+    print-color-adjust: exact!important;
 }
 
 .intro-banner-vdo-play-btn i {
