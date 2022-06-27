@@ -8,7 +8,7 @@ Context
 
 The :mod:`cara.apps.calculator.model_generator` module is responsible to bind all the inputs defined in the user interface into the respective model variables.
 The :py:mod:`cara.apps.calculator.report_generator` module is responsible to bind the results from the model calculations into the respective output variables presented in the CARA report.
-The :mod:`cara.models` module itself implements the core CARA methods.  A useful feature of the implementation is that we can benefit from vectorization, which allows running multiple parameterization of the model at the same time.
+The :mod:`cara.models` module itself implements the core CARA methods.  A useful feature of the implementation is that we can benefit from vectorisation, which allows running multiple parameterization of the model at the same time.
 
 Unlike other similar models, some of the CARA variables are considered for a given aerosol diameter :math:`D`, 
 as the behavior of the virus-laden particles in the room environment and inside the susceptible host (once inhaled) are diameter-dependent. 
@@ -31,16 +31,16 @@ Expiration
 
 The **Expiration** class (representing the expiration of aerosols by an infected person) has the `Particle` -- :attr:`cara.models.Expiration.particle` -- as one of its properties, 
 which represents the virus-laden aerosol with a vectorised parameter: the particle `diameter` (assuming a perfect sphere).
-For a given aerosol diameter, one :class:`cara.models.Expiration` object provides the aerosol **volume** - :math:`V_p(D)`, multiplied by the **mask outward efficiency** - :math:`η_\mathrm{out}(D)` to include the filteration capacity, when applicable.
+For a given aerosol diameter, one :class:`cara.models.Expiration` object provides the aerosol **volume** - :math:`V_p(D)`, multiplied by the **mask outward efficiency** - :math:`η_\mathrm{out}(D)` to include the filtration capacity, when applicable.
 
-The BLO model represents the distribution of diameters used in the model. It corresponds to the sum of three lognormal distributions, weighted by the **B**, **L** and **O** modes.
+The BLO model represents the distribution of diameters used in the model. It corresponds to the sum of three log-normal distributions, weighted by the **B**, **L** and **O** modes.
 The aerosol diameter distributions are given by the :meth:`cara.monte_carlo.data.BLOmodel.distribution` method.
 
 The :class:`cara.monte_carlo.data.BLOmodel` class itself contains the method to return the mathematical values of the probability distribution for a given diameter (in microns), 
 as well as the method to return the limits of integration between the **min** and **max** diameters.
 The BLO model is used to provide the probability density function (PDF) of the aerosol diameters for a given **Expiration** type defined in :meth:`cara.monte_carlo.data.expiration_distribution`.
 To compute the total number concentration of particles per mode (B, L and O), **cn** in particles/cm\ :sup:`3`\, in other words, the total concentration of aerosols per unit volume of expired air, 
-an integration of the lognormal distributions is performed over all aerosol diameters. In the code it is used as a scaling factor in the :class:`cara.models.Expiration` class.
+an integration of the log-normal distributions is performed over all aerosol diameters. In the code it is used as a scaling factor in the :class:`cara.models.Expiration` class.
 
 Under the :mod:`cara.apps.calculator.model_generator`, when it comes to generate the Expiration model, the `diameter` property is sampled through the BLO :meth:`cara.monte_carlo.data.BLOmodel.distribution` method, while the value for the **cn** is given by the :meth:`cara.monte_carlo.data.BLOmodel.integrate` method.
 To summarize, the Expiration contains the distribution of the diameters as a vectorised float. Depending on different expiratory types, the contributions from each mode will be different, therefore the result in the distribution also differs from model to model.
@@ -58,7 +58,7 @@ Interface Focus 20210076, https://doi.org/10.1098/rsfs.2021.0076), as follows:
 
 The later integral, which is giving the total volumetric particle emission concentration (in mL/m\ :sup:`3` \), is a example of a numerical Monte-Carlo integration over the particle diameters, 
 since :math:`\mathrm{vR}(D)` is a diameter-dependent quantity. :math:`E_{c, j}` is calculated using a Monte-Carlo sampling of the BLO distribution given by :math:`N_p(D)`, which contains the scaling factor :math:`cn`.
-Note that :math: `D_{\mathrm{max}}` value will differe, depending on the type of exposrue (see below).
+Note that :math: `D_{\mathrm{max}}` value will differ, depending on the type of exposure (see below).
 
 In the code, for a given Expiration, we use different methods to perform the calculations *set-by-step*:
 
@@ -72,7 +72,7 @@ In case one would like to have intermediate results for emission rate, perform t
 Concentration - :math:`C(t, D)`
 ===============================
 
-The estimate of the concentration of virus-laden particules in a given room is based on a two-box exposure model:
+The estimate of the concentration of virus-laden particles in a given room is based on a two-box exposure model:
 * Box 1 - long-range exposure: also known as the *background* concentration, 
 corresponds to the exposure of airborne virions where the susceptible (exposed) host is more than 2 m away from the infected host, 
 considering the result of a mass balance equation between the emission rate of the infected host and the removal rates of the environmental/virological characteristics.
@@ -88,7 +88,7 @@ Starting with the long-range concentration of virus-laden aerosols of a given si
 
 :math:`C_{\mathrm{LR}}(t, D)=\frac{\mathrm{vR}(D) \cdot N_{\mathrm{inf}}}{\lambda_{\mathrm{vRR}}(D) \cdot V_r}-\left (\frac{\mathrm{vR}(D) \cdot N_{\mathrm{inf}}}{\lambda_{\mathrm{vRR}}(D) \cdot V_r}-C_0(D) \right )e^{-\lambda_{\mathrm{vRR}}(D)t}` ,
 
-and uses this :meth:`cara.models.ConcentrationModel.concentration` method, which cumputes the long-range concentration, as a function of the exposure time and particle diamter.
+and uses this :meth:`cara.models.ConcentrationModel.concentration` method, which computes the long-range concentration, as a function of the exposure time and particle diameter.
 The long-range concentration, integrated over the exposure time (in piecewise constant steps), :math:`C(D)`, is given by the :meth:`cara.models.ConcentrationModel.integrated_concentration` 
 
 In the :math:`C_{\mathrm{LR}}(t, D)` equation above, the **emission rate** :math:`\mathrm{vR}(D)` and **viral removal rate** :math:`\lambda_{\mathrm{vRR}}` (:meth: `cara.models.ConcentrationModel.infectious_virus_removal_rate`) are both diameter-dependent.
@@ -96,7 +96,7 @@ The concentration is, hence,  normalized by the emission rate. Since the viral r
 
 To summarize, we can split the concentration in two different formulations:
 
-* Normalized concentration :meth:`cara.models.ConcentrationModel._normed_concentration` : :math:`\mathrm{C_\mathrm{LR, normed}}(t, D)` that cumputes the concentration without including the emission rate.
+* Normalized concentration :meth:`cara.models.ConcentrationModel._normed_concentration` : :math:`\mathrm{C_\mathrm{LR, normed}}(t, D)` that computes the concentration without including the emission rate.
 * Concentration :meth:`cara.models.ConcentrationModel.concentration` : :math:`C_{\mathrm{LR}}(t, D) = \mathrm{C_\mathrm{LR, normed}}(t, D) \cdot \mathrm{vR}(D)`,
 where \mathrm{vR}(D) is the result of the :meth:`cara.models._PopulationWithVirus.emission_rate_when_present` method.
 
@@ -119,20 +119,20 @@ The short-range concentration is the result of a two-stage exhaled jet model dev
 
 :math:`C_{\mathrm{SR}}(t, D) = C_{\mathrm{LR}, 100μm} (t, D) + \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100μm}(t, D))` ,
 
-where :math: `S(x)` is the dilution factor due to jet dynamics, as a function of the interpersonal distance *x* and :math: `C_{0, \mathrm{SR}}(D)` corresponds to the initial concetration of virions at the mouth/nose outlet during exhalation.
+where :math: `S(x)` is the dilution factor due to jet dynamics, as a function of the interpersonal distance *x* and :math: `C_{0, \mathrm{SR}}(D)` corresponds to the initial concentration of virions at the mouth/nose outlet during exhalation.
 :math:`C_{\mathrm{LR}, 100μm}(t, D)` is the long-range concentration, calculated in :meth:`cara.models.ConcentrationModel.concentration` method but **interpolated** to the diameter range used for close-proximity (from 0 to 100μm).
 Note that :math: `C_{0, \mathrm{SR}}(D)` is constant over time, hence only dependent on the particle diameter distribution. 
 
 As mentioned in *JIA W. et al.*, the jet concentration depends on the **long-range concentration** of viruses. 
 Here, once again, we shall normalize the short-range concentration to the diameter-dependent quantities. 
-IMPORTANT NOTE: since the susceptible host is physicully closer to the infector, the emitted particles are larger in size, 
+IMPORTANT NOTE: since the susceptible host is physically closer to the infector, the emitted particles are larger in size, 
 hence a new distribution of diameters should be taken into consideration. 
 As opposed to :math: `D_{\mathrm{max}} = 30 μm` for the long-range MC integration, the short-range model will assume a :math: `D_{\mathrm{max}} = 100 μm`
 
 During as given exposure time, multiple short-range interactions can be defined in the model.
 In addition, for each individual interaction, the expiration type may be different.
 
-The initial concetration of virions at the mouth/nose, :math: `C_{0, \mathrm{SR}}(D)` is calculated as follows:
+The initial concentration of virions at the mouth/nose, :math: `C_{0, \mathrm{SR}}(D)` is calculated as follows:
 
 :math:`C_{0, \mathrm{SR}}(D) = N_p(D) \cdot V_p(D) \cdot \mathrm{vl_{in}}` \cdot 10^{-6}.
 
@@ -164,8 +164,6 @@ Note that the diameter-dependence is kept at this stage. Since other parameters 
 In case one would like to have intermediate results for the initial short-range concentration, perform the Monte-Carlo integration of :math:`C_{0, SR}^{\mathrm{total}}` and compute 
 :math:`C_{0, SR}^{\mathrm{total}}=(\int_{D_{min}}^{D_{\mathrm{max = 100μm}}} N_p(D) \cdot V_p(D)\, \mathrm{d}D) \cdot 10^{-6} \cdot \mathrm{vl_{in}}` .
 
-
->>>>>>>
 
 
 Dose - :math:`\mathrm{vD}`
