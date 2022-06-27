@@ -46,7 +46,7 @@ Under the :mod:`cara.apps.calculator.model_generator`, when it comes to generate
 To summarize, the Expiration contains the distribution of the diameters as a vectorised float. Depending on different expiratory types, the contributions from each mode will be different, therefore the result in the distribution also differs from model to model.
 
 Emission Rate - :math:`\mathrm{vR}(D)`
-=====================
+======================================
 
 The mathematical equations to calculate :math:`\mathrm{vR}(D)` are defined in the paper
 (Henriques A et al, Modelling airborne transmission of SARS-CoV-2 using CARA: risk assessment for enclosed spaces.
@@ -63,15 +63,14 @@ Note that :math: `D_{\mathrm{max}}` value will differe, depending on the type of
 In the code, for a given Expiration, we use different methods to perform the calculations *set-by-step*:
 
 1. Calculate the non aerosol-dependent quantities in the emission rate, which is the multiplication of the diameter-**independent** variables: :meth:`cara.models.InfectedPopulation.emission_rate_per_aerosol_when_present`. This corresponds to the :math:`\mathrm{vl_{in}} \cdot \mathrm{BR_{k}}` part of the :math:`\mathrm{vR}(D)` equation.
-2. Calculate the diameter-**dependent** variable :meth:`cara.models.InfectedPopulation.aerosols`, which is the result of :math:`E_{c,j}(D) = N_p(D) \cdot V_p(D) \cdot (1 − η_\mathrm{out}(D))` (in mL/(m\ :sup:`3` \.µm)). 
-Note that this result is not integrated over the diameters at this stage, thus the units are still *'per aerosol diameter'*.
-1. Calculate the full emission rate, which is the multiplication of the two previous methods, and corresponds to :math:`\mathrm{vR(D)}`: :meth:`cara.models._PopulationWithVirus.emission_rate_when_present`
+2. Calculate the diameter-**dependent** variable :meth:`cara.models.InfectedPopulation.aerosols`, which is the result of :math:`E_{c,j}(D) = N_p(D) \cdot V_p(D) \cdot (1 − η_\mathrm{out}(D))` (in mL/(m\ :sup:`3` \.µm)). Note that this result is not integrated over the diameters at this stage, thus the units are still *'per aerosol diameter'*.
+3. Calculate the full emission rate, which is the multiplication of the two previous methods, and corresponds to :math:`\mathrm{vR(D)}`: :meth:`cara.models._PopulationWithVirus.emission_rate_when_present`.
 
 Note that the diameter-dependence is kept at this stage. Since other parameters downstream in code are also diameter-dependent, the Monte-Carlo integration over the aerosol sizes is computed at the level of the dose :math:`\mathrm{vD^{total}}`.
 In case one would like to have intermediate results for emission rate, perform the Monte-Carlo integration of :math:`E_{c, j}^{\mathrm{total}}` and compute :math:`\mathrm{vR^{total}} =\mathrm{vl_{in}} \cdot E_{c, j}^{\mathrm{total}} \cdot \mathrm{BR_k}`
 
-Concentration - C(t, D)
-=======================
+Concentration - :math:`C(t, D)`
+===============================
 
 The estimate of the concentration of virus-laden particules in a given room is based on a two-box exposure model:
 * Box 1 - long-range exposure: also known as the *background* concentration, 
@@ -170,7 +169,7 @@ In case one would like to have intermediate results for the initial short-range 
 
 
 Dose - :math:`\mathrm{vD}`
-*********
+**************************
 
 The term “dose” refers to the number of viable virions that will contribute to a potential infection.
 
@@ -229,12 +228,12 @@ In the code, :meth:`cara.models.Expiration.jet_origin_concentration` computes th
 When calculating the dose, we get the concentration normalized by the **viral load** and **breathing rate**, and without the **dilution factor**, since these parameters are Monte-Carlo variables that do not depend on the diameter.
 
 Concentration - :math:`C(t, D)`
-***********************
+*******************************
 
 
 
 Dose - :math:`vD`
-*********
+*****************
 
 In theory, the `short-range` dose is defined as follows:
 
@@ -260,7 +259,7 @@ To perform the integral, we calculate the average since it is a good approximati
 
 Then, we add the contribution to the result of the diameter-independent vectorized properties, which are the **dilution factor**, **viral load**, **fraction of infectious virus** and **breathing rate**:
 
-`vD = integral_over_diameters . exhalation_rate . inhalation_rate / dilution` :math:`\cdot f_{\mathrm{inf}} \cdot \mathrm{vl_{in}} \cdot (1 - η_{\mathrm{in}})` .
+`vD = integral_over_diameters \cdot exhalation_rate \cdot inhalation_rate / dilution` :math:`\cdot f_{\mathrm{inf}} \cdot \mathrm{vl_{in}} \cdot (1 - η_{\mathrm{in}})` .
 
 Note that the multiplication over the `exhalation_rate` is done at each `short-range` interaction since the `Activity` type may be different for different interactions.
 
