@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2022-06-23 11:18+0100\n"
+"POT-Creation-Date: 2022-06-27 10:07+0100\n"
 "PO-Revision-Date: 2022-06-16 09:53+0200\n"
 "Last-Translator: Luis Aleixo <luis.aleixo@cern.ch>\n"
 "Language: fr\n"
@@ -561,11 +561,12 @@ msgid ""
 "effort and as-is basis, without liability or\n"
 "                    warranty."
 msgstr ""
-"Le CERN s'efforce de déployer son savoir-faire et ses technologies pour aider à résoudre\n"
-" les défis qui se posent dans la lutte locale et globale "
-"contre COVID-19. En tant que physique des particules\n"
-" organisme de recherche, le CERN n'est pas en mesure de "
-"conseiller sur la recherche médicale, la santé ou la santé\n"
+"Le CERN s'efforce de déployer son savoir-faire et ses technologies pour "
+"aider à résoudre\n"
+" les défis qui se posent dans la lutte locale et globale contre COVID-19."
+" En tant que physique des particules\n"
+" organisme de recherche, le CERN n'est pas en mesure de conseiller sur la"
+" recherche médicale, la santé ou la santé\n"
 " questions politiques. Toute initiative est menée sur une meilleure "
 "effort et tel quel, sans responsabilité ou\n"
 "                    garantie."
@@ -590,7 +591,1082 @@ msgstr ""
 
 #: templates/base/layout.html.j2:100
 msgid "where we welcome contributions, feature requests and issue reports."
-msgstr "où nous accueillons les contributions, les demandes de fonctionnalités et les rapports de publication."
+msgstr ""
+"où nous accueillons les contributions, les demandes de fonctionnalités et"
+" les rapports de publication."
+
+#: templates/base/userguide.html.j2:6
+msgid "Instructions for use"
+msgstr "Mode d'emploi"
+
+#: templates/base/userguide.html.j2:7
+msgid ""
+"This is a guide to help you use the calculator app.\n"
+"    If you are using the expert version of the tool,  you should look at "
+"the expert notes."
+msgstr ""
+"Ceci est un guide pour vous aider à utiliser l'application du "
+"calculateur.\n"
+" Si vous utilisez la version experte de l'outil, vous devriez regarder "
+"les notes d'experts."
+
+#: templates/base/userguide.html.j2:9
+#, fuzzy
+msgid ""
+"For more information on the Airborne Transmission of SARS-CoV-2, feel "
+"free to check out the HSE Seminar: "
+msgstr ""
+"Pour plus d'informations sur la transmission aéroportée du SARS-CoV-2, "
+"n'hésitez pas à consulter le numéro spécial Interface Focus du Journal de"
+" Royal Society Publishing:"
+
+#: templates/base/userguide.html.j2:10
+#, fuzzy
+msgid ""
+"The methodology, mathematical equations and parameters of the model are "
+"described here in the CERN Report: "
+msgstr ""
+"La méthodologie, les équations mathématiques et les paramètres du modèle "
+"sont publiées dans le CARA article:"
+
+#: templates/base/userguide.html.j2:15
+msgid "Disclaimer"
+msgstr "Avertissement"
+
+#: templates/base/userguide.html.j2:25
+msgid "How to use this tool"
+msgstr "Comment utiliser cet outil"
+
+#: templates/base/userguide.html.j2:26
+msgid "Simulation Name &amp; Room number"
+msgstr "Nom de simulation &amp; Numéro du local"
+
+#: templates/base/userguide.html.j2:28
+msgid ""
+"In order to be able to trace back the simulations in your workplace risk "
+"assessments, performed with the tool, you can give each one a unique name"
+" - for example \"Office use on Tuesday mornings\".\n"
+"The simulation name has no bearing on the calculation."
+msgstr ""
+"Afin de pouvoir retracer les simulations de vos évaluations des risques "
+"de travail, effectuées avec l'outil, vous pouvez donner à chacun un nom "
+"unique - par exemple 'Utilisation du bureau le mardi matin'.\n"
+"        Le nom de simulation n'a aucune incidence sur le calcul."
+
+#: templates/base/userguide.html.j2:30
+msgid ""
+"A room number is included, if you do not wish to use a formal room number"
+" any reference will do - for example"
+msgstr ""
+"Un numéro de pièce est inclus, si vous ne souhaitez pas utiliser un "
+"numéro de pièce formel, toute référence est possible - par exemple"
+
+#: templates/base/userguide.html.j2:31
+msgid "Virus Data"
+msgstr "Données de virus"
+
+#: templates/base/userguide.html.j2:32
+msgid ""
+"Please choose the correct virus strain or any reported Variant of Concern"
+" (VOC) from the list. \n"
+"Changing this setting alters the properties of the virus which are used "
+"for the simulation.\n"
+"This has a significant effect on the probability of infection. \n"
+"The choices are:"
+msgstr ""
+"Veuillez choisir la bonne souche de virus ou tout variant préoccupant sur"
+" la liste.\n"
+"        La modification de ce paramètre modifie les propriétés du virus "
+"qui sont utilisées pour la simulation.\n"
+"        Cela a un effet significatif sur la probabilité d'infection.\n"
+"        Les choix sont:"
+
+#: templates/base/userguide.html.j2:37
+msgid "SARS-CoV-2 (nominal strain)"
+msgstr "SARS-CoV-2 (souche nominale)"
+
+#: templates/base/userguide.html.j2:37
+msgid ""
+", covering typical strains and variants which are not of concern from an "
+"epidemiologic point of view of the virus;"
+msgstr ""
+", couvrant les souches et variantes typiques qui ne sont pas "
+"préoccupantes d'un point de vue épidémiologique du virus"
+
+#: templates/base/userguide.html.j2:38
+msgid "SARS-CoV-2 (Alpha VOC)"
+msgstr "SARS-CoV-2 (Variant Alpha)"
+
+#: templates/base/userguide.html.j2:38
+msgid ""
+", first identified in the UK at the end of 2020 which is found to be "
+"approximately 1.5x more transmissible compared to the non-VOCs;"
+msgstr ""
+", identifié d'abord au Royaume-Uni à la fin de 2020, qui est environ 1,5 "
+"fois plus transmissible par rapport à la souche d'origine"
+
+#: templates/base/userguide.html.j2:39
+msgid "SARS-CoV-2 (Beta VOC)"
+msgstr "SARS-CoV-2 (Variant Beta)"
+
+#: templates/base/userguide.html.j2:39
+msgid ""
+", first identified in South Africa in May 2020 which is found to be "
+"approximately 1.25x more transmissible compared to the non-VOCs;"
+msgstr ""
+", identifié d'abord en Afrique du Sud en mai 2020, qui est environ 1,25 "
+"fois plus transmissible par rapport à la souche d'origine"
+
+#: templates/base/userguide.html.j2:40
+msgid "SARS-CoV-2 (Gamma VOC)"
+msgstr "SARS-CoV-2 (Variant Gamma)"
+
+#: templates/base/userguide.html.j2:40
+msgid ""
+", first identified in Brazil in January 2021 which is found to be "
+"approximately 2.2x more transmissible compared to the non-VOCs."
+msgstr ""
+", identifié pour la première fois au Brésil en janvier 2021, qui est "
+"environ 2,2x plus transmissible par rapport à la souche d'origine."
+
+#: templates/base/userguide.html.j2:41
+msgid "SARS-CoV-2 (Delta VOC)"
+msgstr "SARS-CoV-2 (Variant Delta)"
+
+#: templates/base/userguide.html.j2:41
+msgid ""
+", first identified in India towards the end of 2020 which is found to be "
+"approximately 60% more transmissible compared to the ALPHA VOC."
+msgstr ""
+", identifié d'abord en Inde vers la fin de 2020, qui est environ 60% plus"
+" transmissible par rapport au variant Alpha."
+
+#: templates/base/userguide.html.j2:42
+msgid "SARS-CoV-2 (Omicron VOC)"
+msgstr "SARS-CoV-2 (Variant Omicron)"
+
+#: templates/base/userguide.html.j2:42
+msgid ""
+", first identified in South Africa in November 2021 which is found to be "
+"at least 2.53x more transmissible compared to the DELTA VOC."
+msgstr ""
+", identifié pour la première fois en Afrique du Sud en novembre 2021, qui"
+" est au moins 2,53x plus transmissible par rapport au variant Delta."
+
+#: templates/base/userguide.html.j2:44
+msgid ""
+"The user can modify the selected variant from the default, according to "
+"the prevalence of the different variants in the local area. Access to "
+"this information can be found here:"
+msgstr ""
+
+#: templates/base/userguide.html.j2:46
+msgid "Geneva:"
+msgstr "Genève:"
+
+#: templates/base/userguide.html.j2:47
+msgid "Ain (France):"
+msgstr "Aïn (France):"
+
+#: templates/base/userguide.html.j2:49
+msgid ""
+"N.B. The transmission data for the Gamma variant has been taken from a "
+"study data gathered in Manaus, Brazil where the variant was first "
+"observed.\n"
+"The local population in Manaus had very high levels of Covid-19 "
+"antibodies (&gt;67%) in recent months.\n"
+"This factor has been taken into account by the authors of the study, via "
+"statistical adjustments to the transmission value (i.e. it has been "
+"increased, to account for spread in a population with significant "
+"acquired Covid-19 immunity).\n"
+"However, this value may be revised in the future as more studies of the "
+"Gamma VOC transmission in different geographical locations become "
+"available."
+msgstr ""
+"N.B. Les données de transmission du variant gamma ont été tirées de "
+"données d'étude recueillies à Manaus, au Brésil, où le variant a été "
+"observé pour la première fois.\n"
+"    La population locale de Manaus avait des niveaux très élevés de "
+"Covid-19 anticorps (&gt;67%) ces derniers mois.    Ce facteur a été pris "
+"en compte par les auteurs de l'étude, via des ajustements statistiques à "
+"la valeur de transmission (c'est-à-dire qu'il a été augmenté, pour tenir "
+"compte de la propagation dans une population avec une immunité importante"
+" acquise de Covid-19).\n"
+"    Cependant, cette valeur peut être révisée à l'avenir à mesure que de "
+"plus en plus d'études sur la transmission du variant Gamma dans "
+"différents emplacements géographiques deviendront disponibles."
+
+#: templates/base/userguide.html.j2:54
+msgid "Room Data"
+msgstr "Données du local"
+
+#: templates/base/userguide.html.j2:56
+msgid ""
+"Please enter either the room volume (in m³) or both the floor area (m²) "
+"and the room height (m)"
+msgstr ""
+"Veuillez saisir soit le volume de la pièce (en m³) ou la surface au sol "
+"(m²) et la hauteur de la pièce (m)."
+
+#: templates/base/userguide.html.j2:61
+msgid "Room heating system"
+msgstr "Chauffage central ou climatisation"
+
+#: templates/base/userguide.html.j2:63
+msgid ""
+"The use of central heating (e.g. radiators) reduces relative humidity of "
+"the indoor air, which can decrease the decay rate of viral infectivity. "
+"If your space is heated with such water radiators, select 'Yes'. If your "
+"space does not have such heating, or they are not in use in the period of"
+" the simulation (e.g. summer), select 'No'."
+msgstr ""
+"L'utilisation du chauffage ou de climatisation réduit l'humidité relative"
+" de l'air intérieur, ce qui peut diminuer le taux de mortalité du virus. "
+"Si votre espace est équipé de ces systèmes, sélectionnez \"Oui\". Si "
+"votre espace ne dispose pas d'un tels systèmes, ou s'il ne sont pas "
+"utilisés pendant la période de simulation, sélectionnez « Non »."
+
+#: templates/base/userguide.html.j2:65
+msgid "Ventilation type"
+msgstr "Type de ventilation"
+
+#: templates/base/userguide.html.j2:67
+msgid "There are three main options:"
+msgstr "Il y a trois options principales:"
+
+#: templates/base/userguide.html.j2:69
+msgid "Mechanical ventilation"
+msgstr "Ventilation mécanique"
+
+#: templates/base/userguide.html.j2:71
+msgid ""
+"If the room has mechanical ventilation, suppling fresh air from outside "
+"(either a local or centralised system), you should select this option.\n"
+"In order to make an accurate calculation you will need to know either the"
+" flow rate of fresh air supplied in the room or th total number of air "
+"changes per hour with fresh air."
+msgstr ""
+"Si la pièce a une ventilation mécanique, en supposant de l'air frais de "
+"l'extérieur (un système local ou centralisé), vous devez sélectionner "
+"cette option.\n"
+"    Afin de faire un calcul précis, vous devrez connaître le débit d'air "
+"frais fourni dans la pièce ou le nombre total de changements d'air par "
+"heure avec de l'air frais."
+
+#: templates/base/userguide.html.j2:73
+msgid ""
+"Please bear in mind that any of the two inputs only consider the supply "
+"of fresh air. If a portion of air is recirculated, it shall not be "
+"accounted for in the inputs."
+msgstr ""
+"Veuillez garder à l'esprit que chacune des deux entrées ne considèrent "
+"que l'approvisionnement en air frais. Si une partie de l'air est "
+"recirculée, elle ne doit pas être prise en compte dans les entrées."
+
+#: templates/base/userguide.html.j2:75
+msgid "Natural ventilation"
+msgstr "Ventilation naturelle"
+
+#: templates/base/userguide.html.j2:77
+msgid ""
+"Natural ventilation refers to rooms which have openable windows. \n"
+"There are many possibilities to calculate natural ventilation air flows, "
+"for simplification this tool assumes a single-sided natural ventilation "
+"scheme which is a conservative approach for the purpose of this tool."
+msgstr ""
+"La ventilation naturelle fait référence aux pièces qui ont des fenêtres "
+"ouvertes.\n"
+"    Il existe de nombreuses possibilités de calculer les flux d'air de "
+"ventilation naturelle, pour simplifier cet outil suppose un schéma de "
+"ventilation naturelle un seul côté qui est une approche conservatrice aux"
+" fins de cet outil."
+
+#: templates/base/userguide.html.j2:79
+msgid "Please choose the type of window (see illustration below):"
+msgstr "Veuillez choisir le type de fenêtre (voir illustration ci-dessous):"
+
+#: templates/base/userguide.html.j2:81
+msgid "Sliding or side-hung"
+msgstr "Coulissante ou charnière latérale"
+
+#: templates/base/userguide.html.j2:82
+msgid "Top- or bottom-hung"
+msgstr "Charnière haute ou basse"
+
+#: templates/base/userguide.html.j2:85
+msgid ""
+"Please enter the number, height and width and opening distance of the "
+"windows (in m).\n"
+"If there are multiple windows of different sizes, you should take an "
+"average."
+msgstr ""
+"Veuillez saisir le nombre, la hauteur et la largeur et la distance "
+"d'ouverture des fenêtres (en m).\n"
+"    S'il y a plusieurs fenêtres de différentes tailles, vous devez "
+"prendre une moyenne."
+
+#: templates/base/userguide.html.j2:87
+msgid "The window opening distance (in m) is:"
+msgstr "La distance d'ouverture de la fenêtre (en m) est:"
+
+#: templates/base/userguide.html.j2:89
+msgid ""
+"In the case of Sliding or Side-Hung option, the length the window is "
+"moved open."
+msgstr ""
+"Dans le cas de l'option coulissante ou charnière latérale, la longueur de"
+" la fenêtre est mesurée ouverte."
+
+#: templates/base/userguide.html.j2:90
+msgid "Window opening distance example (image of open window and measuring tape):"
+msgstr ""
+"Exemple de distance d'ouverture de la fenêtre (image de la fenêtre "
+"ouverte et de la prise de mesure):"
+
+#: templates/base/userguide.html.j2:92
+msgid ""
+"In case of Top- or Bottom-Hung, the distance between the fixed frame and "
+"the movable glazed part when open."
+msgstr ""
+"En cas de charnière supérieure ou inférieure, la distance entre le cadre "
+"fixe et la partie vitrée mobile lorsqu'elle est ouverte."
+
+#: templates/base/userguide.html.j2:94
+msgid "Notes"
+msgstr "Remarques"
+
+#: templates/base/userguide.html.j2:94
+msgid ""
+"If you are unsure about the opening distance for the window, it is "
+"recommended to choose a conservative value (5 cms, 0.05m or 10cms, "
+"0.10m).\n"
+"If you open the window at different distances throughout the day, choose "
+"an average value."
+msgstr ""
+"Si vous n'êtes pas sûr de la distance d'ouverture pour la fenêtre, il est"
+" recommandé de choisir une valeur conservatrice (5 cm, 0,05 m ou 10 cm, "
+"0,10 m).\n"
+"Si vous ouvrez la fenêtre à différentes distances tout au long de la "
+"journée, choisissez une valeur moyenne."
+
+#: templates/base/userguide.html.j2:96
+msgid ""
+"When using natural ventilation, the circulation of air is simulated as a "
+"function of the difference between the temperature inside the room and "
+"the outside air temperature. The average outdoor temperature for each "
+"hour of the day has been computed for every month of the year based on "
+"historical data for Geneva, Switzerland.\n"
+"It is therefore very important to enter the correct time and date in the "
+"event data section.\n"
+"Finally, you must specify if the windows are open permanently (at all the"
+" times), or periodically (in intervals for a certain duration and "
+"frequency - both in minutes) - e.g. open the window for 10 minutes "
+"(duration) every 60 minutes (frequency)."
+msgstr ""
+"Lors de l'utilisation de la ventilation naturelle, la circulation de "
+"l'air est simulée en fonction de la différence entre la température à "
+"l'intérieur de la pièce et la température extérieure de l'air. La "
+"température extérieure moyenne pour chaque heure de la journée a été "
+"calculé pour chaque mois de l'année sur la base de données historiques "
+"pour Genève, Suisse.\n"
+"    Il est donc très important de saisir l'heure et la date correctes "
+"dans la section des données de l'événement.\n"
+"    Enfin, vous devez spécifier si les fenêtres sont ouvertes de façon "
+"permanente (en tout temps), ou périodiquement (par intervalles pour une "
+"certaine durée et une certaine fréquence - les deux en minutes) - par ex."
+" si vous ouvrez la fenêtre pendant 10 minutes (durée) toutes les 60 "
+"minutes (fréquence)."
+
+#: templates/base/userguide.html.j2:100
+msgid "No ventilation"
+msgstr "Pas de ventilation"
+
+#: templates/base/userguide.html.j2:102
+msgid ""
+"This option assumes there is neither Mechanical nor Natural ventilation "
+"in the simulation."
+msgstr ""
+"Cette option suppose qu'il n'y a ni ventilation mécanique ni naturelle "
+"dans la simulation."
+
+#: templates/base/userguide.html.j2:104
+msgid "HEPA filtration"
+msgstr "Filtration HEPA"
+
+#: templates/base/userguide.html.j2:106
+msgid ""
+"A HEPA filter is a high efficiency particulate matter filter, which "
+"removes small airborne particles from the air.\n"
+"They can be very useful for removing particles with viruses from the air "
+"in an enclosed space.\n"
+"The calculator allows you to simulate the installation of a HEPA air "
+"filter within the room.\n"
+"The recommended airflow rate for the HEPA filter should correspond to a "
+"total air exchange rate of 3 - 6 ACH (the higher the better, even beyond "
+"6)."
+msgstr ""
+"Un filtre HEPA est un filtre à particules à haute efficacité, qui élimine"
+" les petites particules en suspension dans l'air.\n"
+"Ils peuvent être très utiles pour éliminer les particules contenant des "
+"virus de l'airdans un espace clos.\n"
+"Le calculateur permet de simuler l'installation d'un air HEPAfiltrer dans"
+" la salle.\n"
+"Le débit d'air recommandé pour le filtre HEPA doit correspondre à un taux"
+" d'échange d'air total de 3 à 6 ACH (plus il est élevé, mieux c'est, même"
+" au-delà 6)."
+
+#: templates/base/userguide.html.j2:111
+msgid "Event Data"
+msgstr "Données de l'événement"
+
+#: templates/base/userguide.html.j2:113
+msgid ""
+"Here we capture the information about the event being simulated.\n"
+"First enter the number of occupants in the space, if you have a (small) "
+"variation in the number of people, please input the average or consider "
+"using the expert tool.\n"
+"Within the number of people occupying the space, you should specify how "
+"many are infected."
+msgstr ""
+"Ici, nous définissons les informations sur l'événement simulé.\n"
+"    Entrez d'abord le nombre d'occupants dans l'espace, si vous avez une "
+"(petite) variation du nombre de personnes, veuillez saisir la moyenne ou "
+"envisager à l'aide de l'outil expert.\n"
+"    Dans le nombre de personnes occupant l'espace, vous devez spécifier "
+"le nombre d'infectés."
+
+#: templates/base/userguide.html.j2:116
+msgid ""
+"As an example, for a shared office with 4 people, where one person is "
+"infected, we enter 4 occupants and 1 infected person."
+msgstr ""
+"Par exemple, pour un bureau partagé avec 4 personnes, où une personne est"
+" infectée, nous entrons dans 4 occupants et 1 personne infectée."
+
+#: templates/base/userguide.html.j2:118
+msgid "Activity type"
+msgstr "Type d'activité"
+
+#: templates/base/userguide.html.j2:120
+msgid "There are a few predefined activities in the tool at present."
+msgstr "Il existe actuellement quelques activités prédéfinies dans l'outil."
+
+#: templates/base/userguide.html.j2:122
+msgid "Office"
+msgstr "Bureau"
+
+#: templates/base/userguide.html.j2:122
+msgid ""
+"All persons seated, talking occasionally (1/3rd of the time, with normal "
+"breathing the other 2/3rds of the time). Everyone (exposed and infected "
+"occupants) is treated the same in this model."
+msgstr ""
+"Toutes les personnes assises, parlant occasionnellement (1/3 du temps, "
+"avec respirer l'autre les 2/3 du temps). Tout le monde (exposé et infecté"
+" occupants) est traité de la même manière dans ce modèle."
+
+#: templates/base/userguide.html.j2:123
+msgid "Small meeting"
+msgstr "Petite réunion"
+
+#: templates/base/userguide.html.j2:123
+#, python-format
+msgid ""
+"Less than 10 participants. All persons seated, having a conversation "
+"(approximately each occupant is 1/N % of the time talking, where N is the"
+" number of occupants). Everyone (exposed and infected occupants) is "
+"treated the same in this model."
+msgstr ""
+"Moins de 10 participants. Toutes les personnes assises, en "
+"conversation(approximativement chaque occupant parle 1/N % du temps, où N"
+" est le nombre d'occupants). Tout le monde (occupants exposés et "
+"infectés) est traité de la même manière dans ce modèle."
+
+#: templates/base/userguide.html.j2:124
+msgid "Large Meeting"
+msgstr "Grande réunion"
+
+#: templates/base/userguide.html.j2:124
+msgid ""
+"10 or more participants. Similar to a seminar with 'speakers and "
+"audience'. Infected occupant(s) is standing and speaking 1/3rd of the "
+"time, while the other occupants are seated."
+msgstr ""
+"10 participants ou plus. Similaire à un séminaire avec 'conférenciers et "
+"public''. Le ou les occupants infectés sont debout et parlent 1/3 du "
+"heure, tandis que les autres occupants sont assis."
+
+#: templates/base/userguide.html.j2:125
+msgid "Library"
+msgstr "Bibliothèque"
+
+#: templates/base/userguide.html.j2:125
+msgid "All persons seated, breathing only (not talking), all the time."
+msgstr ""
+"Toutes les personnes assises, respirant seulement (ne parlant pas), tout "
+"le temps."
+
+#: templates/base/userguide.html.j2:126
+msgid "Call Centre"
+msgstr "Centre d'appel"
+
+#: templates/base/userguide.html.j2:126
+msgid ""
+"All persons seated, all talking simultaneously, all the time. This is a "
+"conservative profile, i.e. will show an increased"
+msgstr ""
+"Toutes les personnes assises, toutes parlant simultanément, tout le "
+"temps. C'est un profil conservateur, c'est-à-dire montrera une "
+"augmentation"
+
+#: templates/base/userguide.html.j2:126 templates/base/userguide.html.j2:127
+msgid ""
+"compared to office/meeting activity. Everyone (exposed and infected "
+"occupants) is treated the same in this model."
+msgstr ""
+"par rapport à l'activité de bureau/réunion. Tout le monde (exposé et "
+"infecté occupants) est traité de la même manière dans ce modèle."
+
+#: templates/base/userguide.html.j2:127
+msgid "Control Room (day shift)"
+msgstr "Salle de contrôle (équipe de jour)"
+
+#: templates/base/userguide.html.j2:127
+#, python-format
+msgid ""
+"All persons seated, all talking 50% of the time. This is a conservative "
+"profile, i.e. will show an increased"
+msgstr ""
+"Toutes les personnes assises, toutes parlant 50 % du temps. C'est un "
+"conservateur profil, c'est-à-dire montrera une augmentation"
+
+#: templates/base/userguide.html.j2:128
+msgid "Control Room (night shift)"
+msgstr "Salle de contrôle (équipe de nuit)"
+
+#: templates/base/userguide.html.j2:128
+#, python-format
+msgid ""
+"All persons seated, all talking 10% of the time. Everyone (exposed and "
+"infected occupants) is treated the same in this model."
+msgstr ""
+"Toutes les personnes assises, parlant toutes 10 % du temps. Tout le monde"
+" (exposé et occupants infectés) est traité de la même manière dans ce "
+"modèle."
+
+#: templates/base/userguide.html.j2:129
+msgid "Lab"
+msgstr "Laboratoire"
+
+#: templates/base/userguide.html.j2:129
+#, python-format
+msgid ""
+"Based on a typical lab or technical working area, all persons are doing "
+"light activity and talking 50% of the time. Everyone (exposed and "
+"infected occupants) is treated the same in this model."
+msgstr ""
+"Sur la base d'un laboratoire typique ou d'une zone de travail technique, "
+"toutes les personnes fontactivité légère et parler 50 % du temps. Tout le"
+" monde (exposé et occupants infectés) est traité de la même manière dans "
+"ce modèle."
+
+#: templates/base/userguide.html.j2:130
+msgid "Workshop"
+msgstr "Atelier"
+
+#: templates/base/userguide.html.j2:130
+#, python-format
+msgid ""
+"Based on a mechanical assembly workshop or equipment installation "
+"scenario, all persons are doing moderate activity and talking 50% of the "
+"time. This activity is equally applicable to bicycling, or walking on a "
+"gradient, in the LHC tunnels. Everyone (exposed and infected occupants) "
+"is treated the same in this model."
+msgstr ""
+"Sur la base d'un atelier de montage mécanique ou d'installation "
+"d'équipementsscénario, toutes les personnes font une activité modérée et "
+"parlent 50 % du temps. Cette activité s'applique également à la "
+"bicyclette ou à la marche sur un gradient, dans les tunnels du LHC. Tout "
+"le monde (occupants exposés et infectés) est traité de la même manière "
+"dans ce modèle."
+
+#: templates/base/userguide.html.j2:131
+msgid "Conference/Training"
+msgstr "Conférence/Formation"
+
+#: templates/base/userguide.html.j2:131
+msgid ""
+"Based on a typical conference/training course scenario.\n"
+"One individual (the speaker/trainer) is standing and talking, with all "
+"other individuals seated and talking quietly (whispering).\n"
+"In this case it is assumed that the infected person is the "
+"speaker/trainer, because this is the worst case in terms of viral "
+"shedding."
+msgstr ""
+"Basé sur un scénario type de cours de conférence/formation.\n"
+"Une personne (l'orateur/formateur) est debout et parle, avec tousd'autres"
+" personnes assises et parlant doucement (chuchotant).\n"
+"Dans ce cas, on suppose que la personne infectée est la "
+"conférencier/formateur, car c'est le pire des cas en termes de viralité "
+"perte."
+
+#: templates/base/userguide.html.j2:134
+msgid "Gym"
+msgstr "Gym"
+
+#: templates/base/userguide.html.j2:134
+msgid ""
+"All persons are doing heavy exercise and breathing (not talking). "
+"Everyone (exposed and infected occupants) is treated the same in this "
+"model."
+msgstr ""
+"Toutes les personnes font de l'exercice intense et respirent (sans "
+"parler). Tout le monde (occupants exposés et infectés) est traité de la "
+"même manière dans ce maquette."
+
+#: templates/base/userguide.html.j2:136
+msgid "Timings"
+msgstr "Horaires"
+
+#: templates/base/userguide.html.j2:137
+msgid ""
+"You should enter the time (hours:minutes) for the start and end of the "
+"simulation period (i.e. 8:30 to 17:30 for a typical office day).\n"
+"It is important to enter the correct times for the simulation, in "
+"particular when using natural ventilation.\n"
+"It is possible to specify a different time for the entry and exit of both"
+" the exposed and infected person, however for most cases (where we do not"
+" know apriori which of the occupants is infected), it is recommended to "
+"set these to the same values as the activity start and end."
+msgstr ""
+"Vous devez entrer l'heure (heures:minutes) pour le début et la fin du "
+"période de simulation (c'est-à-dire de 8h30 à 17h30 pour une journée de "
+"bureau type).\n"
+"Il est important d'entrer les heures correctes pour la simulation, dans "
+"particulièrement lors de l'utilisation de la ventilation naturelle.\n"
+"Il est possible de spécifier une heure différente pour l'entrée et la "
+"sortie des deux la personne exposée et infectée, mais dans la plupart des"
+" cas (là où nous ne le faisons pas savoir a priori lequel des occupants "
+"est infecté), il est recommandé de définissez-les sur les mêmes valeurs "
+"que le début et la fin de l'activité."
+
+#: templates/base/userguide.html.j2:140
+msgid "When is the event?"
+msgstr "Quand est l'événement?"
+
+#: templates/base/userguide.html.j2:141
+msgid ""
+"This is included for completeness in all simulations, however it is of "
+"particular relevance to those using natural ventilation because of "
+"variations in outside air temperature."
+msgstr ""
+"Ceci est inclus pour l'exhaustivité dans toutes les simulations, mais il "
+"est particulièrement pertinent pour ceux qui utilisent une ventilation "
+"naturelle en raison des variations de la température extérieure de l'air."
+
+#: templates/base/userguide.html.j2:142
+msgid ""
+"Only the month is used by the model to retrieve the average outdoor air "
+"temperatures for the Geneva region."
+msgstr ""
+"Le mois est utilisé par le modèle pour récupérer les températures "
+"moyennes de l'air extérieur pour la région genevoise."
+
+#: templates/base/userguide.html.j2:144
+msgid "Breaks"
+msgstr "Pauses"
+
+#: templates/base/userguide.html.j2:146
+msgid "Lunch Break"
+msgstr "Heure du déjeuner"
+
+#: templates/base/userguide.html.j2:148
+msgid ""
+"You have the option to specify a lunch break.\n"
+"This will be useful if you plan to simulate a typical full working day.\n"
+"During the lunch break it is assumed that all occupants will leave the "
+"simulated space (to go eat lunch somewhere else - restaurant or break "
+"room).\n"
+"If you plan to eat lunch in the same area where you have been working, "
+"you should select 'No' even if a lunch break will be taken, since the "
+"risk of infection is related to the occupation of the simulated space.\n"
+"See 'Split Breaks' if the occupants do not break at the same time."
+msgstr ""
+"Vous avez la possibilité de spécifier une pause déjeuner.\n"
+"    Cela sera utile si vous prévoyez de simuler une journée de travail "
+"complète typique.\n"
+"    Pendant la pause déjeuner, on suppose que tous les occupants "
+"quitteront l'espace simulé (pour aller déjeuner ailleurs - restaurant ou "
+"salle de pause).\n"
+"    Si vous prévoyez de déjeuner dans la même zone où vous travaillez, "
+"vous devez sélectionner «non» même si une pause déjeuner sera prise, car "
+"le risque d'infection est lié à l'occupation de l'espace simulé.\n"
+"    Voir «Split Breaks» si les occupants ne prennent pas leurs pauses en "
+"même temps."
+
+#: templates/base/userguide.html.j2:153 templates/base/userguide.html.j2:165
+msgid ""
+"It should also be noted that the infection probabilities presented in the"
+" report does not take into account any potential exposures during the "
+"break times."
+msgstr ""
+"Il convient également de noter que les probabilités d'infection "
+"présentées dans le rapport ne prennent en compte aucune exposition "
+"potentielle pendant les temps de pause."
+
+#: templates/base/userguide.html.j2:155
+msgid "Coffee Breaks"
+msgstr "Pauses café"
+
+#: templates/base/userguide.html.j2:157
+msgid ""
+"You have the option to choose 0(No breaks), 2 or 4 coffee breaks during "
+"the simulated period.\n"
+"It is assumed that all occupants vacate the space during the break "
+"period.\n"
+"If coffee breaks are taken in-situ, this option should be set to 'No "
+"breaks'."
+msgstr ""
+"Vous avez la possibilité de choisir 0 (pas de pauses), 2 ou 4 pauses café"
+" pendant la période simulée.\n"
+"    On suppose que tous les occupants quittent l'espace pendant la "
+"période de rupture.\n"
+"    Si les pauses-café sont prises in situ, cette option doit être "
+"définie sur «pas de pauses»."
+
+#: templates/base/userguide.html.j2:160
+msgid ""
+"When enabled, the breaks are spread equally throughout the day - for "
+"example if we simulate the period from 9:00 to 18:00, with a lunch break "
+"from 13:00 to 14:00 and considering 2 coffee breaks, the tool will "
+"schedule the first coffee break around 11:00 and the second around 16:00."
+"\n"
+"The exact timing of the breaks within the day is not particularly "
+"critical to an accurate simulation, so you do not need to be concerned "
+"about major differences if you take a coffee break at 10:00 instead of "
+"11:00.\n"
+"The variation of coffee breaks can be altered in 5 minute increments up "
+"to 30 minutes in length.\n"
+"Note that this doesn't necessarily have to be a coffee break, it can "
+"represent any period where the simulated space is vacated.\n"
+"See 'Split Breaks' if the occupants do not break at the same time."
+msgstr ""
+"Lorsqu'elles sont activées, les pauses sont réparties également tout au "
+"long de la journée - par exemple si nous simulons la période de 9h00 à "
+"18h00, avec une pause déjeuner de 13h00 à 14h00 et en considérant 2 "
+"pauses-café, l'outil planifiera la première pause-café vers 11h00 et la "
+"seconde vers 16h00.\n"
+"    Le moment exact des pauses dans la journée n'est pas particulièrement"
+" essentiel à une simulation précise, vous n'avez donc pas besoin de vous "
+"soucier des différences majeures si vous prenez une pause-café à 10h00 au"
+" lieu de 11h00.\n"
+"    La variation des pauses café peut être modifiée par incréments de 5 "
+"minutes jusqu'à 30 minutes.\n"
+"    Notez que cela ne doit pas nécessairement être une pause-café, cela "
+"peut représenter n'importe quelle période où l'espace simulé est libéré."
+"\n"
+"    Voir «Pauses séparées» si les occupants ne prennent pas leurs pauses "
+"en même temps."
+
+#: templates/base/userguide.html.j2:167
+msgid "Split breaks"
+msgstr "Pauses séparées"
+
+#: templates/base/userguide.html.j2:169
+msgid ""
+"You have the option to specify whether the exposed and infected person(s)"
+" break at the same time.\n"
+"If not, then you can input separate breaks. This is particularly "
+"different when specifying coffee breaks as they are spread evenly "
+"throughout the activity times specified."
+msgstr ""
+"Vous avez la possibilité de spécifier si la ou les personnes exposées et "
+"infectées prennent leurs pauses en même temps.\n"
+"    Sinon, vous pouvez saisir des pauses séparées. Ceci est "
+"particulièrement différent lors de la spécification des pauses café car "
+"elles sont réparties uniformément tout au long des temps d'activité "
+"spécifiés."
+
+#: templates/base/userguide.html.j2:171
+msgid ""
+"If we take an example where the exposed person(s) activity time is from "
+"9:00 to 18:00 and the infected person(s) is from 10:00 to 17:00, with "
+"both having a lunch break from 13:00 to 14:00 and have 2 coffee breaks "
+"each, we can have two different results:"
+msgstr ""
+"Si nous prenons un exemple où le temps d'activité de la personne exposée "
+"est de 9h00 à 18h00 et que la  personne infectée est de 10h00 à 17h00, "
+"les deux ont une pause déjeuner à partir de 13h00 à 14h00 et ont 2 pauses"
+" café chacun, nous pouvons avoir deux résultats différents:"
+
+#: templates/base/userguide.html.j2:173
+msgid ""
+"Specify the default situtaion where both exposed and infected persons(s) "
+"have their breaks at the same time: in this case the coffee break times "
+"are calculated based on the activity time of the exposed - both will have"
+" their first coffee break around 11:00 and the second around 16:00."
+msgstr ""
+"Spécifiez la situation par défaut où les personnes exposées et infectées "
+"ont leurs pauses en même temps: dans ce cas, les temps de pause café sont"
+" calculés en fonction du temps d'activité des exposés - les deux auront "
+"leur première pause vers 11h00 et la seconde vers 16h00."
+
+#: templates/base/userguide.html.j2:175
+msgid ""
+"Specify separate breaks for the infected person(s): in this case the "
+"coffee breaks will be calculated based on the different activity times "
+"(i.e. exposed from 9:00 to 18:00 and infected from 10:00 to 17:00) - the "
+"exposed person(s) will have their first coffee break around 11:00 and the"
+" second around 16:00, whereas the infected will have their first coffee "
+"break around 11:30 and the second around 15:30."
+msgstr ""
+"Spécifiez des pauses distinctes pour les personnes infectées: dans ce "
+"cas, les pauses café seront calculées sur la base des différents temps "
+"d'activité (c'est-à-dire exposés de 9h00 à 18h00 et infectés de 10h00 à "
+"17h00) - les personnes exposées auront leur première pause café vers "
+"11h00 et la seconde vers 16h00, tandis que l'infecté aura sa première "
+"pause café vers 11h30 et la seconde vers 15h30."
+
+#: templates/base/userguide.html.j2:179
+msgid "Face Masks"
+msgstr "Masques faciaux"
+
+#: templates/base/userguide.html.j2:181
+msgid ""
+"The model allows for a simulation with either a continuous wearing of "
+"face masks throughout the duration of the event, or have the removed at "
+"all times - i.e. all occupants (infected and exposed alike) wear or not "
+"masks for the duration of the simulation. \n"
+"Please bear in mind the user inputs shall be aligned with the current "
+"applicable public health &amp; safety instructions. \n"
+"Please check what are the applicable rules, before deciding which "
+"assumptions are used for the simulation."
+msgstr ""
+"Le modèle permet une simulation avec soit un port continu de masques "
+"faciaux pendant toute la durée de l'événement, ou faire retirer les tous "
+"les temps - c'est-à-dire que tous les occupants (infectés et exposés) "
+"portent ou nonmasques pour la durée de la simulation. \n"
+"Veuillez garder à l'esprit que les entrées de l'utilisateur doivent être "
+"alignées sur consignes de santé publique et de sécurité applicables. \n"
+"Veuillez vérifier quelles sont les règles applicables, avant de décider "
+"quelles hypothèses sont utilisées pour la simulation."
+
+#: templates/base/userguide.html.j2:184
+msgid ""
+"If you have selected the Conference/Training activity type, this equates "
+"to the speakr/trainer and all participants either wearing masks "
+"throughout the conference/training (Yes), or removing them when "
+"seated/standing at their socially distanced positions within the "
+"conference/training room (No). \n"
+"Please confirm what are the applicable rules, before deciding which "
+"assumptions are used for the simulation"
+msgstr ""
+"Si vous avez sélectionné le type d'activité Conférence/Formation, cela "
+"équivaut à au conférencier/formateur et à tous les participants portant "
+"soit un masquetout au long de la conférence/formation (Oui), ou les "
+"supprimer lorsque assis/debout à leurs positions socialement éloignées au"
+" sein du salle de conférence/formation (Non). \n"
+"Veuillez confirmer quelles sont les règles applicables, avant de décider "
+"lesquellesdes hypothèses sont utilisées pour la simulation"
+
+#: templates/base/userguide.html.j2:186
+msgid ""
+"For the time being only the Type 1 surgical and FFP2 masks can be "
+"selected."
+msgstr ""
+"Pour le moment, seuls les masques chirurgicaux de type 1 et FFP2 peuvent "
+"être sélectionnés."
+
+#: templates/base/userguide.html.j2:188
+msgid "Generate Report"
+msgstr "Générer un rapport"
+
+#: templates/base/userguide.html.j2:190
+msgid ""
+"When you have entered all the necessary information, please click on the "
+"Generate Report button to execute the model. With the implementation of "
+"Monte Carlo simulations, the browser might take a few secounds to react."
+msgstr ""
+"Lorsque vous avez entré toutes les informations nécessaires, veuillez "
+"cliquer sur le bouton Générer pour exécuter le modèle. Avec la mise en "
+"œuvre des simulations de Monte Carlo, le navigateur pourrait prendre "
+"quelques secondes pour réagir."
+
+#: templates/base/userguide.html.j2:191
+msgid "Report"
+msgstr "Rapport"
+
+#: templates/base/userguide.html.j2:192
+msgid ""
+"The report will open in your web browser.\n"
+"It contains a summary of all the input data, which will allow the "
+"simulation to be repeated if required in the future as we improve the "
+"model."
+msgstr ""
+"Le rapport s'ouvrira dans votre navigateur Web.\n"
+"    Il contient un résumé de toutes les données d'entrée, ce qui "
+"permettra de répéter la simulation si nécessaire à l'avenir, car nous "
+"améliorons le modèle."
+
+#: templates/base/userguide.html.j2:195
+msgid "Results"
+msgstr "Résultats"
+
+#: templates/base/userguide.html.j2:197
+msgid "This part of the report shows the"
+msgstr "Cette partie du rapport montre la"
+
+#: templates/base/userguide.html.j2:197
+msgid ""
+"or probability of one exposed person getting infected.\n"
+"It is estimated based on the emission rate of virus into the simulated "
+"volume, and the amount which is inhaled by exposed individuals.\n"
+"This probability is valid for the simulation duration - i.e. the start "
+"and end time.\n"
+"If you are using the natural ventilation option, the simulation is only "
+"valid for the selected month, because the following or preceding month "
+"will have a different average temperature profile.\n"
+"The"
+msgstr ""
+"ou la probabilité qu'une personne exposée soit infectée.\n"
+"Elle est estimée sur la base du taux d'émission du virus dans le volume "
+"simulé et de la quantité qui est inhalée par des individus exposés.\n"
+"Cette probabilité est valable pour la durée de simulation - c'est-à-dire "
+"l'heure de début et de fin.\n"
+"Si vous utilisez l'option de ventilation naturelle, la simulation n'est "
+"valable que pour le mois sélectionné, car le mois suivant ou précédent "
+"aura un profil de température moyen différent.\n"
+"Le "
+
+#: templates/base/userguide.html.j2:201
+msgid "expected number of new cases"
+msgstr "nombre attendu de nouveaux cas"
+
+#: templates/base/userguide.html.j2:201
+msgid ""
+"for the simulation is calculated based on the probability of infection, "
+"multiplied by the number of exposed occupants."
+msgstr ""
+"est calculé en fonction de la probabilité d'infection, multipliée par le "
+"nombre d'occupants exposés."
+
+#: templates/base/userguide.html.j2:202
+msgid ""
+"The graph shows the variation in the concentration of virions within the "
+"simulated volume.\n"
+"It is determined by:"
+msgstr ""
+"Le graphique montre la variation de la concentration de virions dans le "
+"volume simulé.\n"
+"    Il est déterminé par:"
+
+#: templates/base/userguide.html.j2:205
+msgid ""
+"The presence of the infected person, who emits airborne viruses in the "
+"volume."
+msgstr ""
+"La présence de la personne infectée, qui émet des virus aéroportés dans "
+"le volume."
+
+#: templates/base/userguide.html.j2:206
+msgid ""
+"The emission rate is related to the type of activity of the infected "
+"person (sitting, light exercise), their level of vocalisation (breathing,"
+" speaking or shouting)."
+msgstr ""
+"Le taux d'émission est lié au type d'activité de la personne infectée "
+"(exercice assis, à l'exercice léger), leur niveau de vocalisation "
+"(respiration, parler, parler fort ou crier)."
+
+#: templates/base/userguide.html.j2:207
+msgid ""
+"The accumulation of virions in the volume, which is driven, among other "
+"factors, by ventilation (if applicable)."
+msgstr ""
+"L'accumulation de virions dans le volume, qui est entraînée, entre autres"
+" facteurs, par ventilation (le cas échéant)."
+
+#: templates/base/userguide.html.j2:208
+msgid ""
+"In a mechanical ventilation scenario, the removal rate is constant, based"
+" on fresh airflow supply in and out of the simulated space."
+msgstr ""
+"Dans un scénario de ventilation mécanique, le taux d'élimination est "
+"constant, basé sur le débit d'air frais dans et hors de l'espace simulé."
+
+#: templates/base/userguide.html.j2:209
+msgid ""
+"Under natural ventilation conditions, the effectiveness of ventilation "
+"relies upon the hourly temperature difference between the inside and "
+"outside air temperature."
+msgstr ""
+"Dans des conditions de ventilation naturelle, l'efficacité de la "
+"ventilation repose sur la différence de température horaire entre la "
+"température intérieure et extérieure de l'air."
+
+#: templates/base/userguide.html.j2:210
+msgid ""
+"A HEPA filter removes virions from the air at a constant rate and is "
+"modelled in the same way as mechanical ventilation, however air passed "
+"through a HEPA filter is recycled (i.e. it is not fresh air)."
+msgstr ""
+"Un filtre HEPA élimine les virions de l'air à un rythme constant et est "
+"modélisé de la même manière que la ventilation mécanique, mais l'air est "
+"passéà travers un filtre HEPA est recyclé (c'est-à-dire qu'il ne s'agit "
+"pas d'air frais)."
+
+#: templates/base/userguide.html.j2:215
+msgid "QR code"
+msgstr "QR code"
+
+#: templates/base/userguide.html.j2:217
+msgid ""
+"At the end of the report you can find a unique QR code / hyperlink for "
+"this report. This provides an automatic way to review the calculator form"
+" with the corresponding specified parameters.\n"
+"This allows for:"
+msgstr ""
+"À la fin du rapport, vous pouvez trouver un QR code unique pour ce "
+"rapport. Cela fournit un moyen automatique de revoir le formulaire du "
+"calculateur avec les paramètres spécifiés correspondants.\n"
+"    Cela permet:"
+
+#: templates/base/userguide.html.j2:220
+msgid ""
+"sharing reports by either scanning or clicking on the QR code to obtain a"
+" shareable link."
+msgstr ""
+"de partager des rapports en numérisant ou en cliquant sur le QR code pour"
+" obtenir un lien partageable."
+
+#: templates/base/userguide.html.j2:221
+msgid ""
+"easily regenerating reports with any new versions of the CARA model "
+"released in the future."
+msgstr ""
+"de régénérer facilement les rapports avec toutes les nouvelles versions "
+"du modèle FARC publiées à l'avenir."
+
+#: templates/base/userguide.html.j2:224
+msgid "Conclusion"
+msgstr "Conclusion"
+
+#: templates/base/userguide.html.j2:226
+msgid ""
+"This tool provides informative comparisons for COVID-19 (long-range) "
+"airborne risk only - see Disclaimer\n"
+"If you have any comments on your experience with the app, or feedback for"
+" potential improvements, please share them with the development team"
+msgstr ""
+"Cet outil fournit des comparaisons informatives pour le risque aéroporté "
+"de Covid-19 (à longue portée) uniquement - voir l'avertissement.\n"
+"Si vous avez des commentaires sur votre expérience avec l'application ou "
+"des commentaires pour des améliorations potentielles, veuillez les "
+"partager avec l'équipe de développement"
+
+#: templates/base/userguide.html.j2:227
+msgid "Send email"
+msgstr "Envoyer un e-mail"
 
 #: templates/cern/index.html.j2:7
 msgid ""
