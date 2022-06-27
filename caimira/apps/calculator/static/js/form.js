@@ -272,8 +272,8 @@ function on_wearing_mask_change() {
 }
 
 function populate_temp_hum_values(data, index) {
-  $("#sensor_temperature").text(data[index].Details.T + '°C');
-  $("#sensor_humidity").text(data[index].Details.RH + '%');
+  $("#sensor_temperature").text(Math.round(data[index].Details.T) + '°C');
+  $("#sensor_humidity").text(Math.round(data[index].Details.RH) + '%');
   $("[name='inside_temp']").val(data[index].Details.T + 273.15);
   $("[name='humidity']").val(data[index].Details.RH/100);
 };
