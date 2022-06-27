@@ -16,6 +16,8 @@ import caimira.monte_carlo as mc
 from .. import calculator
 from caimira.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions, short_range_distances
 from caimira.monte_carlo.data import expiration_distribution, expiration_BLO_factors, expiration_distributions, short_range_expiration_distributions
+from .DEFAULT_DATA import __version__, _NO_DEFAULT, _DEFAULT_MC_SAMPLE_SIZE, _DEFAULTS as d, ACTIVITY_TYPES, MECHANICAL_VENTILATION_TYPES, MASK_TYPES, MASK_WEARING_OPTIONS, VENTILATION_TYPES
+from .DEFAULT_DATA import VIRUS_TYPES, VOLUME_TYPES, WINDOWS_OPENING_REGIMES, WINDOWS_TYPES, COFFEE_OPTIONS_INT, MONTH_NAMES, CONFIDENCE_LEVEL_OPTIONS, VACCINE_TYPE, VACCINE_BOOSTER_TYPE
 
 LOG = logging.getLogger(__name__)
 
@@ -95,71 +97,10 @@ class FormData:
 
     #: The default values for undefined fields. Note that the defaults here
     #: and the defaults in the html form must not be contradictory.
-    _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = {
-        'activity_type': 'office',
-        'air_changes': 0.,
-        'air_supply': 0.,
-        'arve_sensors_option': False,
-        'specific_breaks': '{}',
-        'precise_activity': '{}',
-        'calculator_version': _NO_DEFAULT,
-        'ceiling_height': 0.,
-        'exposed_coffee_break_option': 'coffee_break_0',
-        'exposed_coffee_duration': 5,
-        'exposed_finish': '17:30',
-        'exposed_lunch_finish': '13:30',
-        'exposed_lunch_option': True,
-        'exposed_lunch_start': '12:30',
-        'exposed_start': '08:30',
-        'event_month': 'January',
-        'floor_area': 0.,
-        'hepa_amount': 0.,
-        'hepa_option': False,
-        'humidity': '',
-        'infected_coffee_break_option': 'coffee_break_0',
-        'infected_coffee_duration': 5,
-        'infected_dont_have_breaks_with_exposed': False,
-        'infected_finish': '17:30',
-        'infected_lunch_finish': '13:30',
-        'infected_lunch_option': True,
-        'infected_lunch_start': '12:30',
-        'infected_people': 1,
-        'infected_start': '08:30',
-        'inside_temp': _NO_DEFAULT,
-        'location_latitude': _NO_DEFAULT,
-        'location_longitude': _NO_DEFAULT,
-        'location_name': _NO_DEFAULT,
-        'geographic_population': 0,
-        'geographic_cases': 0,
-        'ascertainment_bias': 'confidence_low',
-        'exposure_option': 'p_deterministic_exposure',
-        'mask_type': 'Type I',
-        'mask_wearing_option': 'mask_off',
-        'mechanical_ventilation_type': 'not-applicable',
-        'opening_distance': 0.,
-        'room_heating_option': False,
-        'room_number': _NO_DEFAULT,
-        'room_volume': 0.,
-        'simulation_name': _NO_DEFAULT,
-        'total_people': _NO_DEFAULT,
-        'vaccine_option': False,
-        'vaccine_booster_option': False,
-        'vaccine_type': 'AZD1222_(AstraZeneca)',
-        'vaccine_booster_type': 'AZD1222_(AstraZeneca)',
-        'ventilation_type': 'no_ventilation',
-        'virus_type': 'SARS_CoV_2',
-        'volume_type': _NO_DEFAULT,
-        'window_type': 'window_sliding',
-        'window_height': 0.,
-        'window_width': 0.,
-        'windows_duration': 10.,
-        'windows_frequency': 60.,
-        'windows_number': 0,
-        'window_opening_regime': 'windows_open_permanently',
-        'sensor_in_use': '',
-        'short_range_option': 'short_range_no',
-        'short_range_interactions': '[]',
-    }
+    _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = d
+    MONTHS = list(MONTH_NAMES.keys())
+    ACTIVITIES = { activity['id'] for activity in ACTIVITY_TYPES }
+
 
     @classmethod
     def from_dict(cls, form_data: typing.Dict) -> "FormData":
@@ -271,7 +212,7 @@ class FormData:
                     f"Length of breaks >= Length of {population} presence."
                 )
 
-        validation_tuples = [('activity_type', ACTIVITY_TYPES),    
+        validation_tuples = [('activity_type', self.ACTIVITIES),    
                              ('exposed_coffee_break_option', COFFEE_OPTIONS_INT), 
                              ('infected_coffee_break_option', COFFEE_OPTIONS_INT),   
                              ('mechanical_ventilation_type', MECHANICAL_VENTILATION_TYPES),
@@ -286,6 +227,7 @@ class FormData:
                              ('ascertainment_bias', CONFIDENCE_LEVEL_OPTIONS),
                              ('vaccine_type', VACCINE_TYPE),
                              ('vaccine_booster_type', VACCINE_BOOSTER_TYPE),]
+
         for attr_name, valid_set in validation_tuples:
             if getattr(self, attr_name) not in valid_set:
                 raise ValueError(f"{getattr(self, attr_name)} is not a valid value for {attr_name}")
@@ -429,7 +371,7 @@ class FormData:
         be *added* to UTC to convert to the form location's timezone.
 
         """
-        month = MONTH_NAMES.index(self.event_month) + 1
+        month = self.MONTHS.index(self.event_month) + 1
         timezone = caimira.data.weather.timezone_at(
             latitude=self.location_latitude, longitude=self.location_longitude,
         )
@@ -448,7 +390,7 @@ class FormData:
         timezone.
 
         """
-        month = MONTH_NAMES.index(self.event_month) + 1
+        month = self.MONTHS.index(self.event_month) + 1
 
         wx_station = self.nearest_weather_station()
         temp_profile = caimira.data.weather.mean_hourly_temperatures(wx_station[0], month)
@@ -546,74 +488,16 @@ class FormData:
         # Initializes the virus
         virus = virus_distributions[self.virus_type]
 
-        scenario_activity_and_expiration = {
-            'office': (
-                'Seated',
-                # Mostly silent in the office, but 1/3rd of time speaking.
-                {'Speaking': 1, 'Breathing': 2}
-            ),
-            'controlroom-day': (
-                'Seated',
-                # Daytime control room shift, 50% speaking.
-                {'Speaking': 1, 'Breathing': 1}
-            ),
-            'controlroom-night': (
-                'Seated',
-                # Nightshift control room, 10% speaking.
-                {'Speaking': 1, 'Breathing': 9}
-            ),
-            'smallmeeting': (
-                'Seated',
-                # Conversation of N people is approximately 1/N% of the time speaking.
-                {'Speaking': 1, 'Breathing': self.total_people - 1}
-            ),
-            'largemeeting': (
-                'Standing',
-                # each infected person spends 1/3 of time speaking.
-                {'Speaking': 1, 'Breathing': 2}
-            ),
-            'callcentre': ('Seated', 'Speaking'),
-            'library': ('Seated', 'Breathing'),
-            'training': ('Standing', 'Speaking'),
-            'training_attendee': ('Seated', 'Breathing'),
-            'lab': (
-                'Light activity',
-                #Model 1/2 of time spent speaking in a lab.
-                {'Speaking': 1, 'Breathing': 1}),
-            'workshop': (
-                'Moderate activity',
-                #Model 1/2 of time spent speaking in a workshop.
-                {'Speaking': 1, 'Breathing': 1}),
-            'gym':('Heavy exercise', 'Breathing'),
-            # Other activity types
-            'household-day': (
-                'Light activity',
-                {'Breathing': 5, 'Speaking': 5}
-            ),
-            'household-night': (
-                'Seated',
-                {'Breathing': 7, 'Speaking': 3}
-            ),
-            'primary-school': (
-                'Light activity',
-                {'Breathing': 5, 'Speaking': 5}
-            ),
-            'secondary-school': (
-                'Light activity',
-                {'Breathing': 7, 'Speaking': 3}
-            ),
-            'university': (
-                'Seated',
-                {'Breathing': 9, 'Speaking': 1}
-            ),
-            'restaurant': (
-                'Seated',
-                {'Breathing': 1, 'Speaking': 9}
-            ),
-            'precise': self.generate_precise_activity_expiration(),
-        }
-        
-        [activity_defn, expiration_defn] = scenario_activity_and_expiration[self.activity_type]
+        activity_index = list(self.ACTIVITIES).index(self.activity_type)
+        activity_defn = ACTIVITY_TYPES[activity_index]['activity']
+        if (self.activity_type == 'smallmeeting'):
+            # Conversation of N people is approximately 1/N% of the time speaking.
+            expiration_defn = {'Speaking': 1, 'Breathing': self.total_people - 1}
+        elif (self.activity_type == 'precise'):
+            expiration_defn = self.generate_precise_activity_expiration()
+        else:
+            expiration_defn = ACTIVITY_TYPES[activity_index]['expiration']
+
         activity = activity_distributions[activity_defn]
         expiration = build_expiration(expiration_defn)
 
@@ -930,7 +814,7 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': '',
-        'calculator_version': calculator.__version__,
+        'calculator_version': __version__,
         'opening_distance': '0.2',
         'event_month': 'January',
         'room_heating_option': '0',
@@ -957,6 +841,7 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
     }
 
 
+<<<<<<< HEAD
 ACTIVITY_TYPES = {
     'office', 'smallmeeting', 'largemeeting', 'callcentre', 'controlroom-day', 'controlroom-night', 'library', 'lab', 'workshop', 'training', 
     'training_attendee', 'gym', 'household-day', 'household-night', 'primary-school', 'secondary-school', 'university', 'restaurant', 'precise',
@@ -982,6 +867,8 @@ VACCINE_BOOSTER_TYPE = ['AZD1222_(AstraZeneca)', 'Ad26.COV2.S_(Janssen)', 'BNT16
     'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)', 'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)_(4th_dose)', 'CoronaVac_(Sinovac)', 'Coronavac_(Sinovac)', 'Sinopharm',
     'mRNA-1273_(Moderna)', 'mRNA-1273_(Moderna)_(4th_dose)', 'Other']
 
+=======
+>>>>>>> 51a0a8cc (started extraction of default data and form translation)
 def _hours2timestring(hours: float):
     # Convert times like 14.5 to strings, like "14:30"
     return f"{int(np.floor(hours)):02d}:{int(np.round((hours % 1) * 60)):02d}"

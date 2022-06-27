@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2022-06-27 10:07+0100\n"
+"POT-Creation-Date: 2022-06-27 14:44+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,54 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.1\n"
+
+#: calculator/DEFAULT_DATA.py:104
+msgid "January"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:104
+msgid "February"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:104
+msgid "March"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:104
+msgid "April"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:104
+msgid "May"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:104
+msgid "June"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:104
+msgid "July"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:105
+msgid "August"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:105
+msgid "September"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:105
+msgid "October"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:105
+msgid "November"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:105
+msgid "December"
+msgstr ""
 
 #: templates/about.html.j2:7
 msgid "Airborne Transmission of SARS-CoV-2"
@@ -291,8 +339,538 @@ msgstr ""
 msgid "Reference list can be found in the CARA paper: "
 msgstr ""
 
-#: templates/base/index.html.j2:15 templates/base/index.html.j2:43
+#: templates/base/calculator.form.html.j2:22
+msgid "Please send feedback to"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:26 templates/base/index.html.j2:15
+#: templates/base/index.html.j2:43
 msgid "Calculator"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:48
+msgid "Simulation name:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:53
+msgid "Room number:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:59
+#: templates/base/calculator.form.html.j2:558
+msgid "Virus data:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:66
+msgid "Variant:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:69
+#: templates/base/userguide.html.j2:37
+msgid "SARS-CoV-2 (nominal strain)"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:70
+#: templates/base/userguide.html.j2:38
+msgid "SARS-CoV-2 (Alpha VOC)"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:71
+#: templates/base/userguide.html.j2:39
+msgid "SARS-CoV-2 (Beta VOC)"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:72
+#: templates/base/userguide.html.j2:40
+msgid "SARS-CoV-2 (Gamma VOC)"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:73
+#: templates/base/userguide.html.j2:41
+msgid "SARS-CoV-2 (Delta VOC)"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:74
+#: templates/base/userguide.html.j2:42
+msgid "SARS-CoV-2 (Omicron VOC)"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:81
+msgid "Room data:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:93
+msgid "Room volume:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:104
+msgid "Floor area:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:112
+msgid "Ceiling height:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:120
+msgid "Central heating system in use:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:123
+#: templates/base/calculator.form.html.j2:251
+#: templates/base/calculator.form.html.j2:272
+#: templates/base/calculator.form.html.j2:375
+#: templates/base/calculator.form.html.j2:447
+#: templates/base/calculator.form.html.j2:494
+msgid "No"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:125
+#: templates/base/calculator.form.html.j2:253
+#: templates/base/calculator.form.html.j2:270
+#: templates/base/calculator.form.html.j2:377
+#: templates/base/calculator.form.html.j2:449
+#: templates/base/calculator.form.html.j2:496
+msgid "Yes"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:129
+msgid "Geographic location:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:147
+#: templates/base/calculator.form.html.j2:569
+msgid "Ventilation data:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:154
+msgid "Ventilation type:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:159
+#: templates/base/userguide.html.j2:100
+msgid "No ventilation"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:161
+msgid "Mechanical"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:165
+msgid "Natural"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:174
+msgid "Natural Ventilation"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:180
+msgid ""
+"Single-sided ventilation is assumed in the model and is typically "
+"effective for room depths up to a depth 2.5 x the ceiling height. \n"
+"            If these conditions are not met, the air exchange might not "
+"be homogenous producing an artificially lower risk further away from the "
+"window."
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:194
+msgid "Air supply flow rate"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:203
+msgid "Air changes per hour"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:213
+msgid "Number of windows:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:217
+msgid "Height of window:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:220
+msgid "Window type:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:222
+msgid "Sliding / Side-Hung"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:224
+msgid "Top- or Bottom-Hung"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:226
+msgid "Width of window:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:230
+msgid "Opening distance:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:233
+msgid "Window open:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:236
+msgid "Permanently"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:240
+msgid "Periodically:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:247
+msgid "HEPA filtration:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:261
+msgid "Face masks:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:268
+msgid "Are masks worn when occupants are at workstations?"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:275
+msgid "Type of masks used:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:280
+msgid "Surgical/Type I"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:287
+msgid "Respirator/FFP2"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:299
+msgid "Event data:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:305
+msgid "Total number of occupants:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:310
+msgid "Number of infected people:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:314
+msgid "Conference/Training activities limited to 1 infected"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:318
+msgid "Activity type:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:339
+msgid "Exposed person(s) presence:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:342
+#: templates/base/calculator.form.html.j2:357
+#: templates/base/calculator.form.html.j2:452
+#: templates/base/calculator.form.html.j2:500
+msgid "Start:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:346
+#: templates/base/calculator.form.html.j2:361
+#: templates/base/calculator.form.html.j2:455
+#: templates/base/calculator.form.html.j2:503
+msgid "Finish:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:354
+msgid "Infected person(s) presence:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:372
+msgid "Short-range interactions (without masks):"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:380
+msgid ""
+"The use of masks mitigates exposure at short-range. The analytical model "
+"with short-range interactions does not take mask wearing into account."
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:384
+msgid "Set interactions"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:385
+msgid "short-range interactions."
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:393
+msgid "Short-range interactions"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:398
+msgid "Add row"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:403
+msgid "Clear all"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:404
+msgid "Save all"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:413
+msgid "Which month is the event?"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:430
+#: templates/base/calculator.form.html.j2:597
+msgid "Activity breaks:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:439
+msgid "Input separate breaks for infected and exposed person(s)"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:443
+msgid "Exposed person(s) breaks:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:445
+#: templates/base/calculator.form.html.j2:492
+msgid "Lunch break:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:462
+#: templates/base/calculator.form.html.j2:510
+msgid "Coffee Breaks:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:466
+#: templates/base/calculator.form.html.j2:514
+msgid "No breaks"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:476
+msgid "Duration (minutes)"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:490
+msgid "Infected person(s) breaks:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:524
+msgid "Duration (minutes):"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:538
+msgid "Coffee breaks are spread evenly throughout the day."
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:549
+msgid "Generate report"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:556
+msgid "Quick Guide:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:557
+msgid ""
+"This tool simulates the long-range airborne spread SARS-CoV-2 virus in a "
+"finite volume and estimates the risk of COVID-19 infection. It is based "
+"on current scientific data and can be used to compare the effectiveness "
+"of different mitigation measures."
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:559
+msgid ""
+"SARS-CoV-2 covers the original \"wild type\" strain of the virus and "
+"three variants of concern (VOC):"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:561
+msgid "Alpha (also known as B.1.1.7, first identified in UK, Sept 2020),"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:562
+msgid "Beta (also known as B.1.351, first identified in South Africa, May 2020)."
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:563
+msgid "Gamma (also known as P.1, first identified in Brazil/Japan, Jan 2021)."
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:564
+msgid "Delta (also known as B.1.617.2, first identified in India, Oct 2020)."
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:565
+msgid ""
+"Omicron (also known as B.1.1.529, first identified in South Africa, "
+"November 2021)."
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:567
+msgid ""
+"Modify the default as necessary, according to local area prevalence e.g. "
+"for "
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:567
+msgid "Geneva"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:568
+msgid "or"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:568
+msgid "Ain (France)"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:571
+msgid ""
+"Mechanical ventilation = the HVAC supply of fresh air. Check the flow "
+"rates with the concerned technical department."
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:572
+msgid ""
+"Natural ventilation = the type of window opening. The opening distance is"
+" between the fixed frame and movable part when open (commonly used values"
+" are window height of 1.6m and window opening between 0.15m and 0.6m). In"
+" case of periodic opening, specify the duration (e.g. for 10 min) and "
+"frequency (e.g. every 60 min)."
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:573
+msgid ""
+"HEPA filtration = the air flow of the device. The following values are "
+"based on the different fan velocities of a specific commercial device "
+"proposed by the HSE Unit:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:575
+msgid "Level 6 (max) = 430 m"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:575
+msgid "/h (noisy),"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:576
+msgid "Level 5 = 250 m"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:576
+msgid "/h (ok w.r.t. noise, recommended),"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:577
+msgid "Level 4 = 130 m"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:577
+msgid "/h (silent),"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:578
+msgid "Level 3 = 95 m"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:578
+msgid "/h (silent)."
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:581
+msgid "Activity types:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:582
+msgid "The type of activity applies to both the infected and exposed persons:"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:584
+#, python-format
+msgid "Office = all seated, talking 33% of the time,"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:585
+msgid ""
+"Small meeting (< 10 occ.) = all seated, talking time shared between all "
+"persons,"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:586
+#, python-format
+msgid ""
+"Large meeting (>= 10 occ.) = speaker is standing and speaking 33% of the "
+"time, other occupants are seated,"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:587
+msgid "Call Centre = all seated, continuous talking,"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:588
+#, python-format
+msgid "Control Room (day shift) = all seated, talking 50% of the time,"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:589
+#, python-format
+msgid "Control Room (night shift) = all seated, talking 10% of the time,"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:590
+msgid "Library = all seated, no talking, just breathing,"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:591
+#, python-format
+msgid "Laboratory = light physical activity, talking 50% of the time,"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:592
+#, python-format
+msgid "Workshop = moderate physical activity, talking 50% of the time,"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:593
+msgid ""
+"Conference/Training = speaker/trainer standing and talking, rest seated "
+"and talking quietly.\n"
+"    Speaker/Trainer assumed infected (worst case scenario),"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:595
+msgid "Gym = heavy exercise, no talking, just breathing."
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:599
+msgid ""
+"If coffee breaks are included, they are spread out evenly throughout the "
+"day,\n"
+"    in addition to any lunch break (if applicable)."
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:602
+msgid "Refer to"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:602
+msgid "COVID Calculator App user guide"
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:603
+msgid "for more detailed explanations on how to use this tool."
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:611
+#: templates/base/userguide.html.j2:15
+msgid "Disclaimer"
 msgstr ""
 
 #: templates/base/index.html.j2:19
@@ -462,10 +1040,6 @@ msgid ""
 "described here in the CERN Report: "
 msgstr ""
 
-#: templates/base/userguide.html.j2:15
-msgid "Disclaimer"
-msgstr ""
-
 #: templates/base/userguide.html.j2:25
 msgid "How to use this tool"
 msgstr ""
@@ -503,17 +1077,9 @@ msgid ""
 msgstr ""
 
 #: templates/base/userguide.html.j2:37
-msgid "SARS-CoV-2 (nominal strain)"
-msgstr ""
-
-#: templates/base/userguide.html.j2:37
 msgid ""
 ", covering typical strains and variants which are not of concern from an "
 "epidemiologic point of view of the virus;"
-msgstr ""
-
-#: templates/base/userguide.html.j2:38
-msgid "SARS-CoV-2 (Alpha VOC)"
 msgstr ""
 
 #: templates/base/userguide.html.j2:38
@@ -523,17 +1089,9 @@ msgid ""
 msgstr ""
 
 #: templates/base/userguide.html.j2:39
-msgid "SARS-CoV-2 (Beta VOC)"
-msgstr ""
-
-#: templates/base/userguide.html.j2:39
 msgid ""
 ", first identified in South Africa in May 2020 which is found to be "
 "approximately 1.25x more transmissible compared to the non-VOCs;"
-msgstr ""
-
-#: templates/base/userguide.html.j2:40
-msgid "SARS-CoV-2 (Gamma VOC)"
 msgstr ""
 
 #: templates/base/userguide.html.j2:40
@@ -543,17 +1101,9 @@ msgid ""
 msgstr ""
 
 #: templates/base/userguide.html.j2:41
-msgid "SARS-CoV-2 (Delta VOC)"
-msgstr ""
-
-#: templates/base/userguide.html.j2:41
 msgid ""
 ", first identified in India towards the end of 2020 which is found to be "
 "approximately 60% more transmissible compared to the ALPHA VOC."
-msgstr ""
-
-#: templates/base/userguide.html.j2:42
-msgid "SARS-CoV-2 (Omicron VOC)"
 msgstr ""
 
 #: templates/base/userguide.html.j2:42
@@ -722,10 +1272,6 @@ msgid ""
 " times), or periodically (in intervals for a certain duration and "
 "frequency - both in minutes) - e.g. open the window for 10 minutes "
 "(duration) every 60 minutes (frequency)."
-msgstr ""
-
-#: templates/base/userguide.html.j2:100
-msgid "No ventilation"
 msgstr ""
 
 #: templates/base/userguide.html.j2:102

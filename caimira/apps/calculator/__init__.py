@@ -229,8 +229,10 @@ class CalculatorForm(BaseRequestHandler):
             user=self.current_user,
             xsrf_form_html=self.xsrf_form_html(),
             calculator_prefix=self.settings["calculator_prefix"],
-            calculator_version=__version__,
+            calculator_version=DEFAULT_DATA.__version__,
             text_blocks=markdown_tools.extract_rendered_markdown_blocks(template_environment.get_template('common_text.md.j2')),
+            default = DEFAULT_DATA._DEFAULTS,
+            MONTH_NAMES = DEFAULT_DATA.MONTH_NAMES
         )
         self.finish(report)
 
