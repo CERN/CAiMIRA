@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2022-06-27 14:44+0100\n"
+"POT-Creation-Date: 2022-06-28 14:24+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -653,15 +653,12 @@ msgid "No breaks"
 msgstr ""
 
 #: templates/base/calculator.form.html.j2:476
-msgid "Duration (minutes)"
+#: templates/base/calculator.form.html.j2:524
+msgid "Duration (minutes):"
 msgstr ""
 
 #: templates/base/calculator.form.html.j2:490
 msgid "Infected person(s) breaks:"
-msgstr ""
-
-#: templates/base/calculator.form.html.j2:524
-msgid "Duration (minutes):"
 msgstr ""
 
 #: templates/base/calculator.form.html.j2:538
@@ -866,6 +863,10 @@ msgstr ""
 
 #: templates/base/calculator.form.html.j2:603
 msgid "for more detailed explanations on how to use this tool."
+msgstr ""
+
+#: templates/base/calculator.form.html.j2:608
+msgid "User guide"
 msgstr ""
 
 #: templates/base/calculator.form.html.j2:611
