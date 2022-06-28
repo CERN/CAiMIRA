@@ -1470,7 +1470,13 @@ class ExposureModel:
             return 0
 
     def expected_new_cases(self) -> _VectorisedFloat:
-        prob = self.infection_probability()
+        # Create an equivalent exposure model without short-range interactions, if any.
+        if (len(self.short_range) == 0): 
+            exposure_model = nested_replace(self, {'short_range': ()})
+            prob = exposure_model.infection_probability()
+        else:
+            prob = self.infection_probability()
+            
         exposed_occupants = self.exposed.number
         return prob * exposed_occupants / 100
 
