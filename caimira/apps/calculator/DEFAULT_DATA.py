@@ -1,4 +1,5 @@
 import tornado.web
+import typing
 
 # ------------------ Translation ----------------------
 
@@ -86,22 +87,26 @@ _DEFAULTS = {
 
 # ------------------ Activities ----------------------
 
-# ACTIVITY_TYPES = [
-#     {'name:': 'office', 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 2}}, # Mostly silent in the office, but 1/3rd of time speaking.
-#     {'name:': 'controlroom-day', 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 1}}, # Daytime control room shift, 50% speaking.
-#     {'name:': 'controlroom-night', 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 9}}, # Nightshift control room, 10% speaking.
-#     {'name:': 'smallmeeting', 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 2}}, #self.total_people - 1}}, # Conversation of N people is approximately 1/N% of the time speaking.
-#     {'name:': 'largemeeting', 'activity': 'Standing', 'expiration': {'Speaking': 1, 'Breathing': 2}}, # each infected person spends 1/3 of time speaking.
-#     {'name:': 'callcentre', 'activity': 'Seated', 'expiration': 'Speaking'},
-#     {'name:': 'library', 'activity': 'Seated', 'expiration': 'Breathing'}, 
-#     {'name:': 'training', 'activity': 'Standing', 'expiration': 'Speaking'},
-#     {'name:': 'training_attendee', 'activity': 'Seated', 'expiration': 'Breathing'},
-#     {'name:': 'lab', 'activity': 'Light activity', 'expiration': {'Speaking': 1, 'Breathing': 1}}, #Model 1/2 of time spent speaking in a lab.
-#     {'name:': 'workshop', 'activity': 'Moderate activity', 'expiration': {'Speaking': 1, 'Breathing': 1}}, #Model 1/2 of time spent speaking in a workshop.
-#     {'name:': 'gym', 'activity': 'Heavy exercise', 'expiration': 'Breathing'}]
-
-ACTIVITY_TYPES = {'office', 'controlroom-day', 'controlroom-night', 'smallmeeting', 'largemeeting', 'callcentre', 'library', 'training', 'training_attendee',
-                'lab', 'workshop', 'gym', 'household-day', 'household-night', 'primary_school', 'secundary_school', 'university', 'restaurant', 'precise'}
+ACTIVITY_TYPES = typing.List[typing.Dict[str, typing.Any]] = [
+    {'name:': 'office', 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 2}}, # Mostly silent in the office, but 1/3rd of time speaking.
+    {'name:': 'controlroom-day', 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 1}}, # Daytime control room shift, 50% speaking.
+    {'name:': 'controlroom-night', 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 9}}, # Nightshift control room, 10% speaking.
+    {'name:': 'smallmeeting', 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 2}}, #self.total_people - 1}}, # Conversation of N people is approximately 1/N% of the time speaking.
+    {'name:': 'largemeeting', 'activity': 'Standing', 'expiration': {'Speaking': 1, 'Breathing': 2}}, # each infected person spends 1/3 of time speaking.
+    {'name:': 'callcentre', 'activity': 'Seated', 'expiration': 'Speaking'},
+    {'name:': 'library', 'activity': 'Seated', 'expiration': 'Breathing'}, 
+    {'name:': 'training', 'activity': 'Standing', 'expiration': 'Speaking'},
+    {'name:': 'training_attendee', 'activity': 'Seated', 'expiration': 'Breathing'},
+    {'name:': 'lab', 'activity': 'Light activity', 'expiration': {'Speaking': 1, 'Breathing': 1}}, #Model 1/2 of time spent speaking in a lab.
+    {'name:': 'workshop', 'activity': 'Moderate activity', 'expiration': {'Speaking': 1, 'Breathing': 1}}, #Model 1/2 of time spent speaking in a workshop.
+    {'name:': 'gym', 'activity': 'Heavy exercise', 'expiration': 'Breathing'},
+    {'name:': 'household-day', 'activity': '', 'expiration': ''},
+    {'name:': 'household-night', 'activity': '', 'expiration': ''},
+    {'name:': 'primary_school', 'activity': '', 'expiration': ''},
+    {'name:': 'secundary_school', 'activity': '', 'expiration': ''},
+    {'name:': 'university', 'activity': '', 'expiration': ''},
+    {'name:': 'restaurant', 'activity': '', 'expiration': ''},
+    {'name:': 'precise', 'activity': '', 'expiration': ''},]
 
 # ------------------ Validation ----------------------
 

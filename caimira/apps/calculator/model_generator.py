@@ -99,8 +99,8 @@ class FormData:
     #: and the defaults in the html form must not be contradictory.
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = d
     MONTHS = list(MONTH_NAMES.keys())
-    ACTIVITIES = { activity['id'] for activity in ACTIVITY_TYPES }
-
+    ACTIVITIES = { activity['name'] for activity in ACTIVITY_TYPES }
+    
 
     @classmethod
     def from_dict(cls, form_data: typing.Dict) -> "FormData":
@@ -497,7 +497,7 @@ class FormData:
             expiration_defn = self.generate_precise_activity_expiration()
         else:
             expiration_defn = ACTIVITY_TYPES[activity_index]['expiration']
-
+            
         activity = activity_distributions[activity_defn]
         expiration = build_expiration(expiration_defn)
 
