@@ -232,6 +232,7 @@ class CalculatorForm(BaseRequestHandler):
             calculator_version=DEFAULT_DATA.__version__,
             text_blocks=markdown_tools.extract_rendered_markdown_blocks(template_environment.get_template('common_text.md.j2')),
             default = DEFAULT_DATA._DEFAULTS,
+            ACTIVITY_TYPES = DEFAULT_DATA.ACTIVITY_TYPES,
             PLACEHOLDERS = DEFAULT_DATA.PLACEHOLDERS,
             TOOLTIPS = DEFAULT_DATA.TOOLTIPS,
             MONTH_NAMES = DEFAULT_DATA.MONTH_NAMES

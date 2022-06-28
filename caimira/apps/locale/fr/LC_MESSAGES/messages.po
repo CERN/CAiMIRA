@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2022-06-28 15:06+0100\n"
+"POT-Creation-Date: 2022-06-28 16:08+0100\n"
 "PO-Revision-Date: 2022-06-16 09:53+0200\n"
 "Last-Translator: Luis Aleixo <luis.aleixo@cern.ch>\n"
 "Language: fr\n"
@@ -17,6 +17,50 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.1\n"
+
+#: calculator/DEFAULT_DATA.py:79 templates/base/userguide.html.j2:122
+msgid "Office"
+msgstr "Bureau"
+
+#: calculator/DEFAULT_DATA.py:80
+msgid "Small meeting (<10 occ.)"
+msgstr "Petite réunion (<10 occ.)"
+
+#: calculator/DEFAULT_DATA.py:81
+msgid "Large meeting (>=10 occ.)"
+msgstr "Grande réunion (>=10 occ.)"
+
+#: calculator/DEFAULT_DATA.py:82 templates/base/userguide.html.j2:131
+msgid "Conference/Training"
+msgstr "Conférence/Formation"
+
+#: calculator/DEFAULT_DATA.py:83 templates/base/userguide.html.j2:126
+msgid "Call Centre"
+msgstr "Centre d'appel"
+
+#: calculator/DEFAULT_DATA.py:84
+msgid "Control Room - Day shift"
+msgstr "Salle de contrôle (équipe de jour)"
+
+#: calculator/DEFAULT_DATA.py:85
+msgid "Control Room - Night shift"
+msgstr "Salle de contrôle (équipe de nuit)"
+
+#: calculator/DEFAULT_DATA.py:86 templates/base/userguide.html.j2:125
+msgid "Library"
+msgstr "Bibliothèque"
+
+#: calculator/DEFAULT_DATA.py:87 templates/base/userguide.html.j2:130
+msgid "Workshop"
+msgstr "Atelier"
+
+#: calculator/DEFAULT_DATA.py:88
+msgid "Laboratory"
+msgstr "Laboratoire"
+
+#: calculator/DEFAULT_DATA.py:89 templates/base/userguide.html.j2:134
+msgid "Gym"
+msgstr "Gym"
 
 #: calculator/DEFAULT_DATA.py:104
 msgid "January"
@@ -1747,10 +1791,6 @@ msgid "There are a few predefined activities in the tool at present."
 msgstr "Il existe actuellement quelques activités prédéfinies dans l'outil."
 
 #: templates/base/userguide.html.j2:122
-msgid "Office"
-msgstr "Bureau"
-
-#: templates/base/userguide.html.j2:122
 msgid ""
 "All persons seated, talking occasionally (1/3rd of the time, with normal "
 "breathing the other 2/3rds of the time). Everyone (exposed and infected "
@@ -1792,18 +1832,10 @@ msgstr ""
 "heure, tandis que les autres occupants sont assis."
 
 #: templates/base/userguide.html.j2:125
-msgid "Library"
-msgstr "Bibliothèque"
-
-#: templates/base/userguide.html.j2:125
 msgid "All persons seated, breathing only (not talking), all the time."
 msgstr ""
 "Toutes les personnes assises, respirant seulement (ne parlant pas), tout "
 "le temps."
-
-#: templates/base/userguide.html.j2:126
-msgid "Call Centre"
-msgstr "Centre d'appel"
 
 #: templates/base/userguide.html.j2:126
 msgid ""
@@ -1866,10 +1898,6 @@ msgstr ""
 "ce modèle."
 
 #: templates/base/userguide.html.j2:130
-msgid "Workshop"
-msgstr "Atelier"
-
-#: templates/base/userguide.html.j2:130
 #, python-format
 msgid ""
 "Based on a mechanical assembly workshop or equipment installation "
@@ -1886,10 +1914,6 @@ msgstr ""
 "dans ce modèle."
 
 #: templates/base/userguide.html.j2:131
-msgid "Conference/Training"
-msgstr "Conférence/Formation"
-
-#: templates/base/userguide.html.j2:131
 msgid ""
 "Based on a typical conference/training course scenario.\n"
 "One individual (the speaker/trainer) is standing and talking, with all "
@@ -1904,10 +1928,6 @@ msgstr ""
 "Dans ce cas, on suppose que la personne infectée est la "
 "conférencier/formateur, car c'est le pire des cas en termes de viralité "
 "perte."
-
-#: templates/base/userguide.html.j2:134
-msgid "Gym"
-msgstr "Gym"
 
 #: templates/base/userguide.html.j2:134
 msgid ""
@@ -2383,4 +2403,28 @@ msgstr "version CERN du Covid calculateur CARA"
 #: templates/cern/index.html.j2:8
 msgid "is available on this site to members of the CERN personnel."
 msgstr "est disponible sur ce site pour les membres du personnel du CERN."
+
+#~ msgid "office"
+#~ msgstr "Bureau"
+
+#~ msgid "training"
+#~ msgstr ""
+
+#~ msgid "callcentre"
+#~ msgstr "Centre d'appel"
+
+#~ msgid "controlroom-day"
+#~ msgstr "Salle de contrôle (équipe de jour)"
+
+#~ msgid "controlroom-night"
+#~ msgstr "Salle de contrôle (équipe de nuit)"
+
+#~ msgid "workshop"
+#~ msgstr "Atelier"
+
+#~ msgid "lab"
+#~ msgstr "Laboratoire"
+
+#~ msgid "gym"
+#~ msgstr "Gym"
 

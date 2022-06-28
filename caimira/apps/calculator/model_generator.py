@@ -99,7 +99,7 @@ class FormData:
     #: and the defaults in the html form must not be contradictory.
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = d
     MONTHS = list(MONTH_NAMES.keys())
-    ACTIVITIES = { activity['name'] for activity in ACTIVITY_TYPES }
+    ACTIVITIES = { activity['id'] for activity in ACTIVITY_TYPES }
     
 
     @classmethod

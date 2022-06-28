@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2022-06-28 15:06+0100\n"
+"POT-Creation-Date: 2022-06-28 16:08+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,50 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.1\n"
+
+#: calculator/DEFAULT_DATA.py:79 templates/base/userguide.html.j2:122
+msgid "Office"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:80
+msgid "Small meeting (<10 occ.)"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:81
+msgid "Large meeting (>=10 occ.)"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:82 templates/base/userguide.html.j2:131
+msgid "Conference/Training"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:83 templates/base/userguide.html.j2:126
+msgid "Call Centre"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:84
+msgid "Control Room - Day shift"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:85
+msgid "Control Room - Night shift"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:86 templates/base/userguide.html.j2:125
+msgid "Library"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:87 templates/base/userguide.html.j2:130
+msgid "Workshop"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:88
+msgid "Laboratory"
+msgstr ""
+
+#: calculator/DEFAULT_DATA.py:89 templates/base/userguide.html.j2:134
+msgid "Gym"
+msgstr ""
 
 #: calculator/DEFAULT_DATA.py:104
 msgid "January"
@@ -1418,10 +1462,6 @@ msgid "There are a few predefined activities in the tool at present."
 msgstr ""
 
 #: templates/base/userguide.html.j2:122
-msgid "Office"
-msgstr ""
-
-#: templates/base/userguide.html.j2:122
 msgid ""
 "All persons seated, talking occasionally (1/3rd of the time, with normal "
 "breathing the other 2/3rds of the time). Everyone (exposed and infected "
@@ -1453,15 +1493,7 @@ msgid ""
 msgstr ""
 
 #: templates/base/userguide.html.j2:125
-msgid "Library"
-msgstr ""
-
-#: templates/base/userguide.html.j2:125
 msgid "All persons seated, breathing only (not talking), all the time."
-msgstr ""
-
-#: templates/base/userguide.html.j2:126
-msgid "Call Centre"
 msgstr ""
 
 #: templates/base/userguide.html.j2:126
@@ -1511,10 +1543,6 @@ msgid ""
 msgstr ""
 
 #: templates/base/userguide.html.j2:130
-msgid "Workshop"
-msgstr ""
-
-#: templates/base/userguide.html.j2:130
 #, python-format
 msgid ""
 "Based on a mechanical assembly workshop or equipment installation "
@@ -1525,10 +1553,6 @@ msgid ""
 msgstr ""
 
 #: templates/base/userguide.html.j2:131
-msgid "Conference/Training"
-msgstr ""
-
-#: templates/base/userguide.html.j2:131
 msgid ""
 "Based on a typical conference/training course scenario.\n"
 "One individual (the speaker/trainer) is standing and talking, with all "
@@ -1536,10 +1560,6 @@ msgid ""
 "In this case it is assumed that the infected person is the "
 "speaker/trainer, because this is the worst case in terms of viral "
 "shedding."
-msgstr ""
-
-#: templates/base/userguide.html.j2:134
-msgid "Gym"
 msgstr ""
 
 #: templates/base/userguide.html.j2:134

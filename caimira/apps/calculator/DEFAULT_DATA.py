@@ -88,25 +88,25 @@ _DEFAULTS = {
 # ------------------ Activities ----------------------
 
 ACTIVITY_TYPES = typing.List[typing.Dict[str, typing.Any]] = [
-    {'name:': 'office', 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 2}}, # Mostly silent in the office, but 1/3rd of time speaking.
-    {'name:': 'controlroom-day', 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 1}}, # Daytime control room shift, 50% speaking.
-    {'name:': 'controlroom-night', 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 9}}, # Nightshift control room, 10% speaking.
-    {'name:': 'smallmeeting', 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 2}}, #self.total_people - 1}}, # Conversation of N people is approximately 1/N% of the time speaking.
-    {'name:': 'largemeeting', 'activity': 'Standing', 'expiration': {'Speaking': 1, 'Breathing': 2}}, # each infected person spends 1/3 of time speaking.
-    {'name:': 'callcentre', 'activity': 'Seated', 'expiration': 'Speaking'},
-    {'name:': 'library', 'activity': 'Seated', 'expiration': 'Breathing'}, 
-    {'name:': 'training', 'activity': 'Standing', 'expiration': 'Speaking'},
-    {'name:': 'training_attendee', 'activity': 'Seated', 'expiration': 'Breathing'},
-    {'name:': 'lab', 'activity': 'Light activity', 'expiration': {'Speaking': 1, 'Breathing': 1}}, #Model 1/2 of time spent speaking in a lab.
-    {'name:': 'workshop', 'activity': 'Moderate activity', 'expiration': {'Speaking': 1, 'Breathing': 1}}, #Model 1/2 of time spent speaking in a workshop.
-    {'name:': 'gym', 'activity': 'Heavy exercise', 'expiration': 'Breathing'},
-    {'name:': 'household-day', 'activity': '', 'expiration': ''},
-    {'name:': 'household-night', 'activity': '', 'expiration': ''},
-    {'name:': 'primary_school', 'activity': '', 'expiration': ''},
-    {'name:': 'secundary_school', 'activity': '', 'expiration': ''},
-    {'name:': 'university', 'activity': '', 'expiration': ''},
-    {'name:': 'restaurant', 'activity': '', 'expiration': ''},
-    {'name:': 'precise', 'activity': '', 'expiration': ''},]
+    {'id:': 'office', 'name': _('Office'), 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 2}}, # Mostly silent in the office, but 1/3rd of time speaking.
+    {'id:': 'controlroom-day', 'name': _('Control Room - Day shift'), 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 1}}, # Daytime control room shift, 50% speaking.
+    {'id:': 'controlroom-night', 'name': _('Control Room - Night shift'), 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 9}}, # Nightshift control room, 10% speaking.
+    {'id:': 'smallmeeting', 'name': _('Small meeting (<10 occ.)'), 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 2}}, #self.total_people - 1}}, # Conversation of N people is approximately 1/N% of the time speaking.
+    {'id:': 'largemeeting', 'name': _('Large meeting (>=10 occ.)'), 'activity': 'Standing', 'expiration': {'Speaking': 1, 'Breathing': 2}}, # each infected person spends 1/3 of time speaking.
+    {'id:': 'callcentre', 'name': _('Call Centre'), 'activity': 'Seated', 'expiration': 'Speaking'},
+    {'id:': 'library', 'name': _('Library'), 'activity': 'Seated', 'expiration': 'Breathing'}, 
+    {'id:': 'training', 'name': _('Conference/Training (speaker infected'), 'activity': 'Standing', 'expiration': 'Speaking'},
+    {'id:': 'training_attendee', 'name': _('Conference/Training (attendee infected'), 'activity': 'Seated', 'expiration': 'Breathing'},
+    {'id:': 'lab', 'name': _('Laboratory'), 'activity': 'Light activity', 'expiration': {'Speaking': 1, 'Breathing': 1}}, #Model 1/2 of time spent speaking in a lab.
+    {'id:': 'workshop', 'name': _('Workshop'), 'activity': 'Moderate activity', 'expiration': {'Speaking': 1, 'Breathing': 1}}, #Model 1/2 of time spent speaking in a workshop.
+    {'id:': 'gym', 'name': _('Gym'), 'activity': 'Heavy exercise', 'expiration': 'Breathing'},
+    {'id:': 'household-day', 'name:': _('household-day'), 'activity': '', 'expiration': ''},
+    {'id:': 'household-night', 'name:': _('household_night'), 'activity': '', 'expiration': ''},
+    {'id:': 'primary_school', 'name': _('primary_school'), 'activity': '', 'expiration': ''},
+    {'id:': 'secundary_school', 'name': _('secundary_school'), 'activity': '', 'expiration': ''},
+    {'id:': 'university', 'name': _('university'), 'activity': '', 'expiration': ''},
+    {'id:': 'restaurant', 'name': _('restaurant'), 'activity': '', 'expiration': ''},
+    {'id:': 'precise', 'name': _('precise'), 'activity': '', 'expiration': ''},]
 
 # ------------------ Validation ----------------------
 
