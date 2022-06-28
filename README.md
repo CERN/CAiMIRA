@@ -286,6 +286,13 @@ $ oc create secret generic \
   auth-service-secrets
 ```
 
+### External APIs
+
+- **Geographical location:**
+There is one external API call to fetch required information related to the geographical location inserted by a user.
+The documentation for this geocoding service is available at https://developers.arcgis.com/rest/geocode/api-reference/geocoding-suggest.htm . 
+Please note that there is no need for keys on this API call. It is **free-of-charge**.
+
 ## Update configuration
 
 If you need to **update** existing configuration, then modify this repository and after having logged in, run:
