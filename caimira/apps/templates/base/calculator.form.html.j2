@@ -46,19 +46,19 @@
 
     <div class="form-group">
       <b><label class="col-form-label">{{_("Simulation name:")}}</label></b>
-      <input type="text" class="col-sm-10 form-control" name="simulation_name" placeholder="E.g. Workshop without masks" required>
+      <input type="text" class="col-sm-10 form-control" name="simulation_name" placeholder="{{_(PLACEHOLDERS.simulation_name)}}" required>
     </div>
 
     <div class="form-group">
       <b><label class="col-form-label">{{_("Room number:")}}</label></b>
-      <input type="text" class="col-sm-10 form-control" name="room_number" placeholder="E.g. 17/R-033" required>
+      <input type="text" class="col-sm-10 form-control" name="room_number" placeholder="{{_(PLACEHOLDERS.room_number)}}" required>
     </div>
 
     <hr width="80%">
 
     <b>{{_("Virus data:")}}</b>
 
-    <div data-tooltip="Choose the SARS-CoV-2 Variant of Concern (VOC) and select the vaccine type taken by the majority of the exposed population.">
+    <div data-tooltip="{{_(TOOLTIPS.virus_data)}}">
         <span class="tooltip_text">?</span>
     </div><br>
 
@@ -123,7 +123,7 @@
 
     <b>{{_("Room data:")}}</b>
     {% block room_data %}
-    <div data-tooltip="The area you wish to study (choose one of the 2 options). Indicate if a central (radiator-type) heating system is in use.">
+    <div data-tooltip="{{_(TOOLTIPS.room_data)}}">
         <span class="tooltip_text">?</span>
     </div>
     {% endblock room_data %}
@@ -134,7 +134,7 @@
         <label class="col-form-label">{{_("Room volume")}} (m³):</label>
       </div>
       <div class="col-sm-5">
-        <input type="number" step="any" id="room_volume" class="non_zero form-control" name="room_volume" placeholder="Room volume" min="0" data-has-radio="#room_data_volume">
+        <input type="number" step="any" id="room_volume" class="non_zero form-control" name="room_volume" placeholder="{{_(PLACEHOLDERS.room_volume)}}" min="0" data-has-radio="#room_data_volume">
       </div>
     </div>
     
@@ -145,7 +145,7 @@
         <label class="col-form-label" for="room_data_dimensions">{{_("Floor area")}} (m²):</label>
       </div>
       <div class="col-sm-5">
-        <input type="number" step="any" id="floor_area" class="non_zero form-control" name="floor_area" placeholder="Room floor area" min="0" data-has-radio="#room_data_dimensions">
+        <input type="number" step="any" id="floor_area" class="non_zero form-control" name="floor_area" placeholder="{{_(PLACEHOLDERS.room_floor_area)}}" min="0" data-has-radio="#room_data_dimensions">
       </div>  
     </div>
     <div class="form-group row">
@@ -153,7 +153,7 @@
         <label class="col-form-label ml-3" for="room_data_dimensions">{{_("Ceiling height")}} (m):</label>
       </div>
       <div class="col-sm-5">
-        <input type="number" step="any" id="ceiling_height" class="non_zero form-control" name="ceiling_height" placeholder="Room ceiling height" min="0" data-has-radio="#room_data_dimensions">
+        <input type="number" step="any" id="ceiling_height" class="non_zero form-control" name="ceiling_height" placeholder="{{_(PLACEHOLDERS.ceiling_height)}}" min="0" data-has-radio="#room_data_dimensions">
       </div>
     </div>
 
@@ -186,7 +186,7 @@
 
     <!-- Ventilation Options -->
     <b>{{_("Ventilation data:")}}</b>
-    <div data-tooltip="The available means of venting / filtration of indoor spaces.">
+    <div data-tooltip="{{_(TOOLTIPS.ventilation_data)}}">
         <span class="tooltip_text">?</span>
     </div>
     
@@ -195,7 +195,7 @@
     <div class='sub_title'>{{_("Ventilation type:")}}</div>
     
     <div class="split">
-    <div>
+    <div style="min-width: 51%">
     <input type="radio" id="no_ventilation" name="ventilation_type" value="no_ventilation" checked>
       <label for="no_ventilation">{{_("No ventilation")}}</label>
     <input class="ml-2" type="radio" id="mechanical_ventilation" name="ventilation_type" value="mechanical_ventilation" data-enables="#DIVmechanical_ventilation">
@@ -235,7 +235,7 @@
             <label for="mech_type_air_supply" class="col-form-label ml-2">{{_("Air supply flow rate")}} (m³ / hour)</label>
           </div>
           <div>
-            <input type="number" step="any" id="air_supply" class="non_zero form-control" name="air_supply" min="0" placeholder="Flow rate" data-has-radio="#mech_type_air_supply"><br>
+            <input type="number" step="any" id="air_supply" class="non_zero form-control" name="air_supply" min="0" placeholder="{{_(PLACEHOLDERS.air_supply)}}" data-has-radio="#mech_type_air_supply"><br>
           </div>
         </div>
         <div class="split">
@@ -244,7 +244,7 @@
             <label for="mech_type_air_changes" class="col-form-label ml-2">{{_("Air changes per hour")}} (h⁻¹)</label>
           </div>
           <div>
-            <input type="number" step="any" id="air_changes" class="non_zero form-control" name="air_changes" min="0" placeholder="Air exchange" data-has-radio="#mech_type_air_changes"><br>
+            <input type="number" step="any" id="air_changes" class="non_zero form-control" name="air_changes" min="0" placeholder="{{_(PLACEHOLDERS.air_changes)}}" data-has-radio="#mech_type_air_changes"><br>
           </div>
         </div>
     </div>
@@ -252,11 +252,11 @@
     <div id="DIVnatural_ventilation" style="display:none">
       <div class="form-group row tabbed">
         <div class="col-md-5"><label class="col-form-label">{{_("Number of windows")}}:</label></div>
-        <div class="col-md-5"><input type="number" id="windows_number" class="non_zero form-control" name="windows_number" placeholder="Number" min="1"></div>
+        <div class="col-md-5"><input type="number" id="windows_number" class="non_zero form-control" name="windows_number" placeholder="{{_(PLACEHOLDERS.windows_number)}}" min="1"></div>
       </div>
       <div class="form-group row tabbed">
         <div class="col-md-5"><label class="col-form-label">{{_("Height of window")}} (m): </label></div>
-        <div class="col-md-5"><input type="number" step="any" id="window_height" class="non_zero form-control" name="window_height" placeholder="Height" min="0"></div>
+        <div class="col-md-5"><input type="number" step="any" id="window_height" class="non_zero form-control" name="window_height" placeholder="{{_(PLACEHOLDERS.window_height)}}" min="0"></div>
       </div>
         <div class='sub_title'>{{_("Window type:")}}</div>
         <input class="ml-2" type="radio" id="window_sliding" name="window_type" value="window_sliding" onclick="require_fields(this)" checked="checked">
@@ -265,14 +265,14 @@
           <label for="window_hinged">{{_("Top- or Bottom-Hung")}}</label><br>
         <div class="form-group row tabbed">
           <div class="col-md-5"><label class="col-form-label">{{_("Width of window")}} (m): </label></div>
-          <div class="col-md-5"><input type="number" step="any" id="window_width" class="non_zero disabled form-control" name="window_width" placeholder="Width" min="0" data-has-radio="#window_hinged"></div>
+          <div class="col-md-5"><input type="number" step="any" id="window_width" class="non_zero disabled form-control" name="window_width" placeholder="{{_(PLACEHOLDERS.window_width)}}" min="0" data-has-radio="#window_hinged"></div>
         </div>
         <div class="form-group row tabbed">
           <div class="col-md-5"><label class="col-form-label">{{_("Opening distance")}} (m): </label></div>
-          <div class="col-md-5"><input type="number" step="any" id="opening_distance" class="non_zero form-control" name="opening_distance" placeholder="Opening distance" min="0"></div>
+          <div class="col-md-5"><input type="number" step="any" id="opening_distance" class="non_zero form-control" name="opening_distance" placeholder="{{_(PLACEHOLDERS.opening_distance)}}" min="0"></div>
         </div>
         <div class='sub_title'>{{_("Window open:")}}
-          <div data-tooltip="Permanently or periodically - e.g. open the window for 10 minutes (duration) every 60 minutes (frequency).">
+          <div data-tooltip="{{_(TOOLTIP.window_open)}}">
               <span class="tooltip_text">?</span>
           </div>
         </div>
@@ -303,12 +303,12 @@
       </div>
       <div class="form-group row tabbed" id="DIVhepa_amount">
         <div class="col-md-5"><label for="hepa_amount" class="col-form-label">{{_("Flow rate")}} (m³ / hour):</label></div>
-        <div class="col-md-5"><input type="number" step="any" id="hepa_amount" class="non_zero form-control" name="hepa_amount" placeholder="Flow rate" min="0" data-has-radio="#hepa_yes"></div>
+        <div class="col-md-5"><input type="number" step="any" id="hepa_amount" class="non_zero form-control" name="hepa_amount" placeholder="{{_(PLACEHOLDERS.hepa_amount)}}" min="0" data-has-radio="#hepa_yes"></div>
       </div>
     <hr width="80%">
 
     <b>{{_("Face masks:")}}</b>
-    <div data-tooltip="Masks worn at workstations or removed when a 2m physical distance is respected and proper venting is ensured.">
+    <div data-tooltip="{{_(TOOLTIPS.face_masks)}}">
         <span class="tooltip_text">?</span>
     </div>
     
@@ -353,15 +353,13 @@
 
     <!-- Event Options -->
     <b>{{_("Event data:")}}</b>
-    <div id="event_data_tooltip" data-tooltip="The total no. of occupants in the room. 
-    Deterministic exposure: add no. occupants that are infected.
-    Probabilistic exposure: event at a given time & location (e.g. meeting or conference), considering the incidence rate in that area.">
+    <div id="event_data_tooltip" data-tooltip="{{_(TOOLTIPS.event_data)}}">
         <span class="tooltip_text">?</span>
     </div><br>
 
     <div class="form-group row">
       <div class="col-sm-4"><label class="col-form-label">{{_("Total number of occupants:")}}</label></div>
-      <div class="col-sm-6 align-self-center"><input type="number" id="total_people" class="form-control" name="total_people" placeholder="Number" min=1 required></div>
+      <div class="col-sm-6 align-self-center"><input type="number" id="total_people" class="form-control" name="total_people" placeholder="{{_(PLACEHOLDERS.total_people)}}"  min=1 required></div>
     </div>
 
     <div class="form-group mb-1">
@@ -383,12 +381,12 @@
     <div id="DIVp_probabilistic_exposure" class="tabbed" style="display: none">
       <div class="form-group row">
         <div class="col-sm-4"><label class="col-form-label">{{_("Population:")}}</label></div>
-        <div class="col-sm-6 pl-0 align-self-center"><input type="number" step="any" id="geographic_population" class="non_zero form-control" name="geographic_population" placeholder="Inhabitants (#)" min="0"></div>
+        <div class="col-sm-6 pl-0 align-self-center"><input type="number" step="any" id="geographic_population" class="non_zero form-control" name="geographic_population" placeholder="{{_(PLACEHOLDERS.geographic_population)}}" min="0"></div>
       </div>
       <div class="form-group row">
-        <div class="col-sm-4"><label class="col-form-label pt-0">{{_("New confirmed cases (weekly):")}}</label></div>
+        <div class="col-sm-4"><label class="col-form-label">{{_("New confirmed cases (weekly):")}}</label></div>
         <div class="col-sm-6 pl-0 align-self-center">
-          <input type="number" step="any" id="geographic_cases" class="non_zero form-control" name="geographic_cases" placeholder="Cases (#7-day rolling avg)" min="0">
+          <input type="number" step="any" id="geographic_cases" class="non_zero form-control" name="geographic_cases" placeholder="{{_(PLACEHOLDERS.geographic_cases)}}" min="0">
           <small id="source_geographic_cases" class="form-text text-muted" style="display: none">
             {{_("Source: World Health Organization.")}}
           </small>
@@ -528,7 +526,7 @@
 
     <span id="activity_breaks">
       <b>{{_("Activity breaks:")}}</b>
-      <div data-tooltip="Input breaks that, by default, are the same for infected/exposed person(s) unless specified otherwise.">
+      <div data-tooltip="{{_(TOOLTIPS.activity_breaks)}}">
         <span class="tooltip_text">?</span>
       </div>
       <input type="text" class="form-control d-none" name="specific_breaks" value='{}'>

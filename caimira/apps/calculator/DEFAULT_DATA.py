@@ -125,3 +125,34 @@ VACCINE_TYPE = ['Ad26.COV2.S_(Janssen)', 'Any_mRNA_-_heterologous', 'AZD1222_(As
 VACCINE_BOOSTER_TYPE = ['AZD1222_(AstraZeneca)', 'Ad26.COV2.S_(Janssen)', 'BNT162b2_(Pfizer)', 'BNT162b2_(Pfizer)_(4th_dose)', 'BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)',
     'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)', 'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)_(4th_dose)', 'CoronaVac_(Sinovac)', 'Coronavac_(Sinovac)', 'Sinopharm',
     'mRNA-1273_(Moderna)', 'mRNA-1273_(Moderna)_(4th_dose)', 'Other']
+
+# ------------------ Text ----------------------
+
+TOOLTIPS = {
+    'virus_data': _('Choose the SARS-CoV-2 Variant of Concern (VOC) and select the vaccine type taken by the majority of the exposed population.'),
+    'room_data': _('The area you wish to study (choose one of the 2 options). Indicate if a central (radiator-type) heating system is in use.'),
+    'room_data_cern': _('The area you wish to study (choose one of the 2 options). Use GIS Portal or measure. Also indicate if a central (radiator-type) heating system is in use.'),
+    'ventilation_data': _('The available means of venting / filtration of indoor spaces.'),
+    'face_masks': _('Masks worn at workstations or removed when a 2m physical distance is respected and proper venting is ensured.'),
+    'event_data': _('"The total no. of occupants in the room.\nDeterministic exposure: add no. occupants that are infected.\nProbabilistic exposure: event at a given time & location (e.g. meeting or conference), considering the incidence rate in that area."'),
+    'activity_breaks': _('Input breaks that, by default, are the same for infected/exposed person(s) unless specified otherwise.'),
+    'window_open': _('Permanently or periodically - e.g. open the window for 10 minutes (duration) every 60 minutes (frequency).'),
+}
+
+PLACEHOLDERS = {
+    'simulation_name': _('E.g. Workshop without masks'),
+    'room_number': _('E.g. 17/R-033'),
+    'room_volume': _('Room volume'),
+    'room_floor_area': _('Room floor area'),
+    'ceiling_height': _('Room ceiling height'),
+    'air_supply': _('Flow rate'),
+    'air_changes': _('Air exchange'),
+    'windows_number': _('Number'),
+    'window_height': _('Height'),
+    'window_width': _('Width'),
+    'opening_distance': _('Opening distance'),
+    'hepa_amount': _('Flow rate'),
+    'total_people': _('Number'),
+    'geographic_population': _('Inhabitants'),
+    'geographic_cases': _('Cases (#7-day rolling avg)'),
+}

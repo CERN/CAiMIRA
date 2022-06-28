@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2022-06-28 14:24+0100\n"
+"POT-Creation-Date: 2022-06-28 15:06+0100\n"
 "PO-Revision-Date: 2022-06-16 09:53+0200\n"
 "Last-Translator: Luis Aleixo <luis.aleixo@cern.ch>\n"
 "Language: fr\n"
@@ -65,6 +65,107 @@ msgstr "Novembre"
 #: calculator/DEFAULT_DATA.py:105
 msgid "December"
 msgstr "Décembre"
+
+#: calculator/DEFAULT_DATA.py:111
+msgid "Choose the SARS-CoV-2 Variant of Concern (VOC)."
+msgstr "Choisissez le variant SARS-CoV-2."
+
+#: calculator/DEFAULT_DATA.py:112
+msgid ""
+"The area you wish to study (choose one of the 2 options). Indicate if a "
+"central (radiator-type) heating system is in use."
+msgstr ""
+"Local étudié. Indiquer si du chauffage ou de l'air conditionné sont "
+"utilisés."
+
+#: calculator/DEFAULT_DATA.py:113
+msgid ""
+"The area you wish to study (choose one of the 2 options). Use GIS Portal "
+"or measure. Also indicate if a central (radiator-type) heating system is "
+"in use."
+msgstr ""
+"Local étudié. Indiquer si du chauffage ou de l'air conditionné sont "
+"utilisés. Utiliser le portail GIS ou mesurer."
+
+#: calculator/DEFAULT_DATA.py:114
+msgid "The available means of venting / filtration of indoor spaces."
+msgstr "Moyens de ventilation / filtration du local."
+
+#: calculator/DEFAULT_DATA.py:115
+msgid ""
+"Masks worn at workstations or removed when a 2m physical distance is "
+"respected and proper venting is ensured."
+msgstr ""
+"Masques portés aux postes de travail ou retirés lorsqu'une distanciation "
+"physique de 2m est respecté et une bonne ventilation est assurée."
+
+#: calculator/DEFAULT_DATA.py:116
+msgid ""
+"The total no. of occupants in the room and how many of them you assume "
+"are infected."
+msgstr ""
+"Nombre total des occupants dans le local et combien d'entre eux sont "
+"infectés."
+
+#: calculator/DEFAULT_DATA.py:117
+msgid ""
+"Input breaks that, by default, are the same for infected/exposed "
+"person(s) unless specified otherwise."
+msgstr ""
+"Pauses qui, par défaut, sont les mêmes pour les personnes infectées / "
+"exposées, sauf indication contraire"
+
+#: calculator/DEFAULT_DATA.py:121
+msgid "E.g. Workshop without masks"
+msgstr "Par exemple, Atelier sans masques"
+
+#: calculator/DEFAULT_DATA.py:122
+msgid "E.g. 17/R-033"
+msgstr "Par exemple, 17/R-033"
+
+#: calculator/DEFAULT_DATA.py:123
+msgid "Room volume (m³)"
+msgstr "Volume de chambre (m³):"
+
+#: calculator/DEFAULT_DATA.py:124
+msgid "Room floor area (m²)"
+msgstr "Surface du local (m²)"
+
+#: calculator/DEFAULT_DATA.py:125
+msgid "Room ceiling height (m)"
+msgstr "Hauteur du plafond (m)"
+
+#: calculator/DEFAULT_DATA.py:126 calculator/DEFAULT_DATA.py:134
+msgid "Flow rate (m³ / hour)"
+msgstr "Débit (m³ / heure)"
+
+#: calculator/DEFAULT_DATA.py:127
+msgid "Air exchange (h⁻¹)"
+msgstr "Renouvellements d'air (h⁻¹)"
+
+#: calculator/DEFAULT_DATA.py:128 calculator/DEFAULT_DATA.py:135
+msgid "Number (#)"
+msgstr "Numéro (#)"
+
+#: calculator/DEFAULT_DATA.py:129
+msgid "Height (m)"
+msgstr "Hauteur (m)"
+
+#: calculator/DEFAULT_DATA.py:130
+msgid "Width (m)"
+msgstr "Largeur (m)"
+
+#: calculator/DEFAULT_DATA.py:131
+msgid "Opening distance (m)"
+msgstr "Distance d'ouverture (m)"
+
+#: calculator/DEFAULT_DATA.py:132
+msgid "Duration (min)"
+msgstr "Durée (min)"
+
+#: calculator/DEFAULT_DATA.py:133
+msgid "Frequency (min)"
+msgstr "Fréquence (min)"
 
 #: templates/about.html.j2:7
 msgid "Airborne Transmission of SARS-CoV-2"
@@ -293,7 +394,7 @@ msgstr "Remerciements:"
 msgid "Click to expand"
 msgstr "Cliquez pour agrandir"
 
-#: templates/common_text.md.j2:23
+#: templates/common_text.md.j2:24
 msgid ""
 "We wish to thank CERN’s HSE Unit, Beams Department, Experimental Physics "
 "Department, Information Technology Department, Industry, Procurement and "
@@ -327,7 +428,7 @@ msgstr ""
 " Lidia Morawska, Prof. Yuguo Li et d'autres - leur contribution "
 "scientifique a été indispensable pour ce projet."
 
-#: templates/common_text.md.j2:27
+#: templates/common_text.md.j2:28
 msgid ""
 "CARA is a risk assessment tool developed to model the concentration of "
 "viruses in enclosed spaces, in order to inform space-management "
@@ -337,7 +438,7 @@ msgstr ""
 "concentration des virus dans les espaces fermés, afin d'éclairer les "
 "décisions de gestion de l'espace."
 
-#: templates/common_text.md.j2:30
+#: templates/common_text.md.j2:31
 msgid ""
 "CARA models the concentration profile of virions in enclosed spaces with "
 "clear and intuitive graphs.\n"
@@ -357,7 +458,7 @@ msgstr ""
 "des espaces tels que les bureaux individuels, les salles de réunion et "
 "les laboratoires."
 
-#: templates/common_text.md.j2:35
+#: templates/common_text.md.j2:36
 msgid ""
 "The risk assessment tool simulates the long-range airborne spread SARS-"
 "CoV-2 virus in a finite volume, assuming a homogenous mixture, and "
@@ -381,7 +482,7 @@ msgstr ""
 "recommandées sont observées, comme une distanciation physique adéquate, "
 "une bonne hygiène des mains et d'autres mesures de barrière."
 
-#: templates/common_text.md.j2:40
+#: templates/common_text.md.j2:41
 msgid ""
 "The model used is based on scientific publications relating to airborne "
 "transmission of infectious diseases, dose-response exposures and aerosol "
@@ -395,7 +496,7 @@ msgstr ""
 "        Il peut être utilisé pour comparer l'efficacité de différentes "
 "mesures de réduction des risques aéroportés."
 
-#: templates/common_text.md.j2:44
+#: templates/common_text.md.j2:45
 msgid ""
 "Note that this model applies a deterministic approach, i.e., it is "
 "assumed at least one person is infected and shedding viruses into the "
@@ -421,7 +522,7 @@ msgstr ""
 "        la taille de la pièce, en ne tenant compte que de la transmission"
 " aéroportée à longue distance du COVID-19 en intérieur."
 
-#: templates/common_text.md.j2:50
+#: templates/common_text.md.j2:51
 msgid ""
 "This tool is designed to be informative, allowing the user to adapt "
 "different settings and model the relative impact on the estimated "
@@ -447,7 +548,7 @@ msgstr ""
 " générés ne sont que justes qu'en fonction des données d'entrées et des "
 "hypothèses du modèle."
 
-#: templates/common_text.md.j2:56
+#: templates/common_text.md.j2:57
 msgid ""
 "CARA has not undergone review, approval or certification by competent "
 "authorities, and as a result, it cannot be considered\n"
@@ -460,7 +561,7 @@ msgstr ""
 "l'évaluation des émissions virales potentielles des hôtes infectés à "
 "modéliser."
 
-#: templates/common_text.md.j2:62
+#: templates/common_text.md.j2:63
 msgid "Reference list can be found in the CARA paper: "
 msgstr "La liste de référence est dans le document CARA: "
 
@@ -482,7 +583,7 @@ msgid "Room number:"
 msgstr "Numéro du local:"
 
 #: templates/base/calculator.form.html.j2:59
-#: templates/base/calculator.form.html.j2:558
+#: templates/base/calculator.form.html.j2:561
 msgid "Virus data:"
 msgstr "Données de virus"
 
@@ -544,8 +645,8 @@ msgstr "Chauffage central ou climatisation"
 #: templates/base/calculator.form.html.j2:251
 #: templates/base/calculator.form.html.j2:272
 #: templates/base/calculator.form.html.j2:375
-#: templates/base/calculator.form.html.j2:447
-#: templates/base/calculator.form.html.j2:494
+#: templates/base/calculator.form.html.j2:450
+#: templates/base/calculator.form.html.j2:497
 msgid "No"
 msgstr "Non"
 
@@ -553,8 +654,8 @@ msgstr "Non"
 #: templates/base/calculator.form.html.j2:253
 #: templates/base/calculator.form.html.j2:270
 #: templates/base/calculator.form.html.j2:377
-#: templates/base/calculator.form.html.j2:449
-#: templates/base/calculator.form.html.j2:496
+#: templates/base/calculator.form.html.j2:452
+#: templates/base/calculator.form.html.j2:499
 msgid "Yes"
 msgstr "Oui"
 
@@ -563,7 +664,7 @@ msgid "Geographic location:"
 msgstr "Position géographique:"
 
 #: templates/base/calculator.form.html.j2:147
-#: templates/base/calculator.form.html.j2:569
+#: templates/base/calculator.form.html.j2:572
 msgid "Ventilation data:"
 msgstr "Type de ventilation"
 
@@ -609,7 +710,7 @@ msgstr "Débit d'air neuf"
 
 #: templates/base/calculator.form.html.j2:203
 msgid "Air changes per hour"
-msgstr "Changements d'air par heure"
+msgstr "Changements d'air"
 
 #: templates/base/calculator.form.html.j2:213
 msgid "Number of windows:"
@@ -637,7 +738,7 @@ msgstr "Largeur de la fenêtre:"
 
 #: templates/base/calculator.form.html.j2:230
 msgid "Opening distance:"
-msgstr "La distance d'ouverture de la fenêtre (en m) est:"
+msgstr "Distance d'ouverture (m):"
 
 #: templates/base/calculator.form.html.j2:233
 msgid "Window open:"
@@ -703,15 +804,15 @@ msgstr "Présence de personne(s) exposée(s):"
 
 #: templates/base/calculator.form.html.j2:342
 #: templates/base/calculator.form.html.j2:357
-#: templates/base/calculator.form.html.j2:452
-#: templates/base/calculator.form.html.j2:500
+#: templates/base/calculator.form.html.j2:455
+#: templates/base/calculator.form.html.j2:503
 msgid "Start:"
 msgstr "Début:"
 
 #: templates/base/calculator.form.html.j2:346
 #: templates/base/calculator.form.html.j2:361
-#: templates/base/calculator.form.html.j2:455
-#: templates/base/calculator.form.html.j2:503
+#: templates/base/calculator.form.html.j2:458
+#: templates/base/calculator.form.html.j2:506
 msgid "Finish:"
 msgstr "Fin:"
 
@@ -744,72 +845,72 @@ msgstr "interactions à courte portée."
 msgid "Short-range interactions"
 msgstr "Interactions à courte portée."
 
-#: templates/base/calculator.form.html.j2:398
+#: templates/base/calculator.form.html.j2:401
 msgid "Add row"
-msgstr "Ajouter une rangée"
+msgstr "Ajouter une interaction"
 
-#: templates/base/calculator.form.html.j2:403
+#: templates/base/calculator.form.html.j2:406
 msgid "Clear all"
 msgstr "Tout effacer"
 
-#: templates/base/calculator.form.html.j2:404
+#: templates/base/calculator.form.html.j2:407
 msgid "Save all"
 msgstr "Sauver tous"
 
-#: templates/base/calculator.form.html.j2:413
+#: templates/base/calculator.form.html.j2:416
 msgid "Which month is the event?"
 msgstr "Quand est l'événement?"
 
-#: templates/base/calculator.form.html.j2:430
-#: templates/base/calculator.form.html.j2:597
+#: templates/base/calculator.form.html.j2:433
+#: templates/base/calculator.form.html.j2:600
 msgid "Activity breaks:"
 msgstr "Pauses dans l'activité:"
 
-#: templates/base/calculator.form.html.j2:439
+#: templates/base/calculator.form.html.j2:442
 msgid "Input separate breaks for infected and exposed person(s)"
 msgstr "Saisir des pauses distinctes pour les personnes infectées et exposées"
 
-#: templates/base/calculator.form.html.j2:443
+#: templates/base/calculator.form.html.j2:446
 msgid "Exposed person(s) breaks:"
 msgstr "Pauses des personnes exposées:"
 
-#: templates/base/calculator.form.html.j2:445
-#: templates/base/calculator.form.html.j2:492
+#: templates/base/calculator.form.html.j2:448
+#: templates/base/calculator.form.html.j2:495
 msgid "Lunch break:"
 msgstr "Heure du déjeuner"
 
-#: templates/base/calculator.form.html.j2:462
-#: templates/base/calculator.form.html.j2:510
+#: templates/base/calculator.form.html.j2:465
+#: templates/base/calculator.form.html.j2:513
 msgid "Coffee Breaks:"
 msgstr "Pauses café"
 
-#: templates/base/calculator.form.html.j2:466
-#: templates/base/calculator.form.html.j2:514
+#: templates/base/calculator.form.html.j2:469
+#: templates/base/calculator.form.html.j2:517
 msgid "No breaks"
 msgstr "Pas de pause"
 
-#: templates/base/calculator.form.html.j2:476
-#: templates/base/calculator.form.html.j2:524
+#: templates/base/calculator.form.html.j2:479
+#: templates/base/calculator.form.html.j2:527
 msgid "Duration (minutes):"
 msgstr "Durée (minutes):"
 
-#: templates/base/calculator.form.html.j2:490
+#: templates/base/calculator.form.html.j2:493
 msgid "Infected person(s) breaks:"
 msgstr "Pauses des personnes infectées:"
 
-#: templates/base/calculator.form.html.j2:538
+#: templates/base/calculator.form.html.j2:541
 msgid "Coffee breaks are spread evenly throughout the day."
 msgstr "Les pauses café sont réparties uniformément tout au long de la journée."
 
-#: templates/base/calculator.form.html.j2:549
+#: templates/base/calculator.form.html.j2:552
 msgid "Generate report"
 msgstr "Générer un rapport"
 
-#: templates/base/calculator.form.html.j2:556
+#: templates/base/calculator.form.html.j2:559
 msgid "Quick Guide:"
 msgstr "Guide rapide:"
 
-#: templates/base/calculator.form.html.j2:557
+#: templates/base/calculator.form.html.j2:560
 msgid ""
 "This tool simulates the long-range airborne spread SARS-CoV-2 virus in a "
 "finite volume and estimates the risk of COVID-19 infection. It is based "
@@ -821,7 +922,7 @@ msgstr ""
 "est basé sur des données scientifiques actuels et peut être utilisé pour "
 "comparer l'efficacité de différentes mesures de prévention."
 
-#: templates/base/calculator.form.html.j2:559
+#: templates/base/calculator.form.html.j2:562
 msgid ""
 "SARS-CoV-2 covers the original \"wild type\" strain of the virus and "
 "three variants of concern (VOC):"
@@ -829,31 +930,31 @@ msgstr ""
 "SARS-CoV-2 couvre la souche d'origine du virus «wild strain» et "
 "différents variants préoccupants:"
 
-#: templates/base/calculator.form.html.j2:561
+#: templates/base/calculator.form.html.j2:564
 msgid "Alpha (also known as B.1.1.7, first identified in UK, Sept 2020),"
 msgstr ""
 "Alpha (également connu sous le nom de B.1.1.7, identifié pour la première"
 " fois au Royaume-Uni, septembre 2020),"
 
-#: templates/base/calculator.form.html.j2:562
+#: templates/base/calculator.form.html.j2:565
 msgid "Beta (also known as B.1.351, first identified in South Africa, May 2020)."
 msgstr ""
 "Beta (également connu sous le nom de 1.351, identifié pour la première "
 "fois en Afrique du Sud, mai 2020)."
 
-#: templates/base/calculator.form.html.j2:563
+#: templates/base/calculator.form.html.j2:566
 msgid "Gamma (also known as P.1, first identified in Brazil/Japan, Jan 2021)."
 msgstr ""
 "Gamma (également connu sous le nom de P.1, identifié pour la première "
 "fois au Brésil / Japon, janvier 2021)."
 
-#: templates/base/calculator.form.html.j2:564
+#: templates/base/calculator.form.html.j2:567
 msgid "Delta (also known as B.1.617.2, first identified in India, Oct 2020)."
 msgstr ""
 "Delta (également connu sous le nom de 1.617.2, identifié pour la première"
 " fois en Inde, octobre 2020)."
 
-#: templates/base/calculator.form.html.j2:565
+#: templates/base/calculator.form.html.j2:568
 msgid ""
 "Omicron (also known as B.1.1.529, first identified in South Africa, "
 "November 2021)."
@@ -861,7 +962,7 @@ msgstr ""
 "Omicron (également connu sous le nom de B.1.1.529, identifié pour la "
 "première fois en Afrique du Sud, novembre 2021)."
 
-#: templates/base/calculator.form.html.j2:567
+#: templates/base/calculator.form.html.j2:570
 msgid ""
 "Modify the default as necessary, according to local area prevalence e.g. "
 "for "
@@ -869,19 +970,19 @@ msgstr ""
 "Modifiez la valeur par défaut si nécessaire, en fonction de la prévalence"
 " de la zone locale, par exemple pour "
 
-#: templates/base/calculator.form.html.j2:567
+#: templates/base/calculator.form.html.j2:570
 msgid "Geneva"
 msgstr "Genève"
 
-#: templates/base/calculator.form.html.j2:568
+#: templates/base/calculator.form.html.j2:571
 msgid "or"
 msgstr "ou"
 
-#: templates/base/calculator.form.html.j2:568
+#: templates/base/calculator.form.html.j2:571
 msgid "Ain (France)"
 msgstr "Aïn (France)"
 
-#: templates/base/calculator.form.html.j2:571
+#: templates/base/calculator.form.html.j2:574
 msgid ""
 "Mechanical ventilation = the HVAC supply of fresh air. Check the flow "
 "rates with the concerned technical department."
@@ -889,7 +990,7 @@ msgstr ""
 "Ventilation mécanique = l'alimentation HVAC en l'air frais. Vérifiez les "
 "débits avec le service technique concerné."
 
-#: templates/base/calculator.form.html.j2:572
+#: templates/base/calculator.form.html.j2:575
 msgid ""
 "Natural ventilation = the type of window opening. The opening distance is"
 " between the fixed frame and movable part when open (commonly used values"
@@ -904,7 +1005,7 @@ msgstr ""
 "d'ouverture périodique, spécifiez la durée (par exemple pendant 10 min) "
 "et la fréquence (par exemple toutes les 60 min)."
 
-#: templates/base/calculator.form.html.j2:573
+#: templates/base/calculator.form.html.j2:576
 msgid ""
 "HEPA filtration = the air flow of the device. The following values are "
 "based on the different fan velocities of a specific commercial device "
@@ -914,54 +1015,54 @@ msgstr ""
 "sont basé sur les différentes vitesses de ventilation d'un appareil "
 "commercial spécifique, proposé par la HSE unité:"
 
-#: templates/base/calculator.form.html.j2:575
+#: templates/base/calculator.form.html.j2:578
 msgid "Level 6 (max) = 430 m"
 msgstr "Niveau 6 (max) = 430 m"
 
-#: templates/base/calculator.form.html.j2:575
+#: templates/base/calculator.form.html.j2:578
 msgid "/h (noisy),"
 msgstr "/h (bruyant),"
 
-#: templates/base/calculator.form.html.j2:576
+#: templates/base/calculator.form.html.j2:579
 msgid "Level 5 = 250 m"
 msgstr "Niveau 5 = 250 m"
 
-#: templates/base/calculator.form.html.j2:576
+#: templates/base/calculator.form.html.j2:579
 msgid "/h (ok w.r.t. noise, recommended),"
 msgstr "/h (ok en ce qui concerne noise, recommandé),"
 
-#: templates/base/calculator.form.html.j2:577
+#: templates/base/calculator.form.html.j2:580
 msgid "Level 4 = 130 m"
 msgstr "Niveau 4 = 130 m"
 
-#: templates/base/calculator.form.html.j2:577
+#: templates/base/calculator.form.html.j2:580
 msgid "/h (silent),"
 msgstr "/h (silencieux),"
 
-#: templates/base/calculator.form.html.j2:578
+#: templates/base/calculator.form.html.j2:581
 msgid "Level 3 = 95 m"
 msgstr "Niveau 3 = 95 m"
 
-#: templates/base/calculator.form.html.j2:578
+#: templates/base/calculator.form.html.j2:581
 msgid "/h (silent)."
 msgstr "/h (silencieux)."
 
-#: templates/base/calculator.form.html.j2:581
+#: templates/base/calculator.form.html.j2:584
 msgid "Activity types:"
 msgstr "Type d'activité"
 
-#: templates/base/calculator.form.html.j2:582
+#: templates/base/calculator.form.html.j2:585
 msgid "The type of activity applies to both the infected and exposed persons:"
 msgstr ""
 "Le type d'activité s'applique à la fois aux personnes infectées et aux "
 "personnes exposées:"
 
-#: templates/base/calculator.form.html.j2:584
+#: templates/base/calculator.form.html.j2:587
 #, python-format
 msgid "Office = all seated, talking 33% of the time,"
 msgstr "Bureau = tous assis, parlant 33% du temps,"
 
-#: templates/base/calculator.form.html.j2:585
+#: templates/base/calculator.form.html.j2:588
 msgid ""
 "Small meeting (< 10 occ.) = all seated, talking time shared between all "
 "persons,"
@@ -969,7 +1070,7 @@ msgstr ""
 "Petite réunion (< 10 occ.) = tous assis, temps de parole partagé entre "
 "tous personnes,"
 
-#: templates/base/calculator.form.html.j2:586
+#: templates/base/calculator.form.html.j2:589
 #, python-format
 msgid ""
 "Large meeting (>= 10 occ.) = speaker is standing and speaking 33% of the "
@@ -978,35 +1079,35 @@ msgstr ""
 "Grande réunion (>= 10 occ.) = l'orateur est debout et parle 33 % de la le"
 " temps, les autres occupants sont assis,"
 
-#: templates/base/calculator.form.html.j2:587
+#: templates/base/calculator.form.html.j2:590
 msgid "Call Centre = all seated, continuous talking,"
 msgstr "Call Center = tous assis, conversation continue,"
 
-#: templates/base/calculator.form.html.j2:588
+#: templates/base/calculator.form.html.j2:591
 #, python-format
 msgid "Control Room (day shift) = all seated, talking 50% of the time,"
 msgstr "Salle de contrôle (équipe de jour) = tous assis, parlant 50 % du temps,"
 
-#: templates/base/calculator.form.html.j2:589
+#: templates/base/calculator.form.html.j2:592
 #, python-format
 msgid "Control Room (night shift) = all seated, talking 10% of the time,"
 msgstr "Control Room (équipe de nuit) = tous assis, parlant 10% du temps,"
 
-#: templates/base/calculator.form.html.j2:590
+#: templates/base/calculator.form.html.j2:593
 msgid "Library = all seated, no talking, just breathing,"
 msgstr "Bibliothèque = tous assis, sans parler, juste respirer,"
 
-#: templates/base/calculator.form.html.j2:591
+#: templates/base/calculator.form.html.j2:594
 #, python-format
 msgid "Laboratory = light physical activity, talking 50% of the time,"
 msgstr "Laboratoire = activité physique légère, parler 50% du temps,"
 
-#: templates/base/calculator.form.html.j2:592
+#: templates/base/calculator.form.html.j2:595
 #, python-format
 msgid "Workshop = moderate physical activity, talking 50% of the time,"
 msgstr "Atelier = activité physique modérée, parler 50% du temps,"
 
-#: templates/base/calculator.form.html.j2:593
+#: templates/base/calculator.form.html.j2:596
 msgid ""
 "Conference/Training = speaker/trainer standing and talking, rest seated "
 "and talking quietly.\n"
@@ -1016,11 +1117,11 @@ msgstr ""
 "assiset parler doucement.\n"
 "   Conférencier/formateur présumé infecté (pire des cas),"
 
-#: templates/base/calculator.form.html.j2:595
+#: templates/base/calculator.form.html.j2:598
 msgid "Gym = heavy exercise, no talking, just breathing."
 msgstr "Gym = exercice intense, sans parler, juste respirer."
 
-#: templates/base/calculator.form.html.j2:599
+#: templates/base/calculator.form.html.j2:602
 msgid ""
 "If coffee breaks are included, they are spread out evenly throughout the "
 "day,\n"
@@ -1030,23 +1131,23 @@ msgstr ""
 "au long de la jour,\n"
 "   en plus de toute pause déjeuner (le cas échéant)."
 
-#: templates/base/calculator.form.html.j2:602
+#: templates/base/calculator.form.html.j2:605
 msgid "Refer to"
 msgstr "Faire référence à"
 
-#: templates/base/calculator.form.html.j2:602
+#: templates/base/calculator.form.html.j2:605
 msgid "COVID Calculator App user guide"
 msgstr "Guide d'utilisation de l'application COVID Calculator"
 
-#: templates/base/calculator.form.html.j2:603
+#: templates/base/calculator.form.html.j2:606
 msgid "for more detailed explanations on how to use this tool."
 msgstr "pour des explications plus détaillées sur la façon d'utiliser cet outil."
 
-#: templates/base/calculator.form.html.j2:608
+#: templates/base/calculator.form.html.j2:611
 msgid "User guide"
 msgstr "Mode d'emploi"
 
-#: templates/base/calculator.form.html.j2:611
+#: templates/base/calculator.form.html.j2:614
 #: templates/base/userguide.html.j2:15
 msgid "Disclaimer"
 msgstr "Avertissement"
