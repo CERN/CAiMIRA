@@ -124,7 +124,7 @@ Very similar to what we did with the **emission rate**, we need to calculate the
 
 The short-range concentration is the result of a two-stage exhaled jet model developed by *JIA W. et al.* and is expressed as:
 
-:math:`C_{\mathrm{SR}}(t, D) = C_{\mathrm{LR}} (t, D) + \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100μm}(t, D))` ,
+:math:`C_{\mathrm{SR}}(t, D) = C_{\mathrm{LR}, 100μm} (t, D) + \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100μm}(t, D))` ,
 
 where :math:`S(x)` is the dilution factor due to jet dynamics, as a function of the interpersonal distance *x* and :math:`C_{0, \mathrm{SR}}(D)` corresponds to the initial concentration of virions at the mouth/nose outlet during exhalation.
 :math:`C_{\mathrm{LR}, 100μm}(t, D)` is the long-range concentration, calculated in :meth:`cara.models.ConcentrationModel.concentration` method but **interpolated** to the diameter range used for close-proximity (from 0 to 100μm).
@@ -241,12 +241,12 @@ where :math:`\mathrm{vD^{long-range}}(D)` is the long-range, diameter-dependent 
 
 From above, the short-range concentration:
 
-:math:`C_{\mathrm{SR}}(t, D) = C_{\mathrm{LR}} (t, D) + \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100μm}(t, D))` ,
+:math:`C_{\mathrm{SR}}(t, D) = C_{\mathrm{LR}, 100μm} (t, D) + \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100μm}(t, D))` ,
 
 In the code, the method that returns the value for the total dose (independently if it is short- or long-range) is given by :meth:`cara.models.ExposureModel.deposited_exposure_between_bounds`.
 For code simplification, we split the :math:`C_{\mathrm{SR}}(t, D)` equation into two components: 
 * short-range component: :math:`\frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100μm}(t, D))`
-* long-range component: :math:`C_{\mathrm{LR}} (t, D)`
+* long-range component: :math:`C_{\mathrm{LR}, 100μm} (t, D)`
 
 Similar as above, first we perform the multiplications by the diameter-dependent variables so that we can profit from the Monte-Carlo integration. Then we multiply the final value by the diameter-independent variables.
 The method :meth:`cara.models.ShortRangeModel._normed_jet_exposure_between_bounds` gets the integrated short-range concentration of viruses in the air between the times start and stop, normalized by the **viral load**, 
@@ -267,7 +267,7 @@ And after perform the MC intergration using the *mean*, which corresponds to:
 Note that in the code we perform the subtraction between the concentration at the jet origin and the `long-range` concentration of viruses in two steps when we calculate the dose, 
 since the contribution of the diameter-dependent variable :math:`f_{\mathrm{dep}}` has to be multiplied separately in substractions:
 
-`integral_over_diameters =` :math:`((C_{0, \mathrm{SR}} \cdot f_{\mathrm{dep}}) - (C(t, D) \cdot f_{\mathrm{dep}})) \cdot \mathrm{mean()}` .
+`integral_over_diameters =` :math:`((C_{0, \mathrm{SR}} \cdot f_{\mathrm{dep}}) - (C_{\mathrm{LR}, 100μm} (t, D) \cdot f_{\mathrm{dep}})) \cdot \mathrm{mean()}` .
 
 To perform the integral, we calculate the average since it is a good approximation of the :math:`\mathrm{vD^{total}}`, provided that the number of samples is large enough.
 
