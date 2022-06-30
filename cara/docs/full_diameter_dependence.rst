@@ -113,9 +113,18 @@ The integral over the exposure times is calculated directly in the class (integr
 Short-range approach
 ********************
 
+The short-range data class models a close-range interaction **concentration** and the respective **dilution_factor**.
+Its properties are the **expiration** definition, the **activity type**, the **presence time**, and the **interpersonal distance** between any two individuals.
+When generating a full model, the short-range class is defined with a new **Expiration** distribution, 
+given that the **min** and **max** diameters for the short-range interactions are different from those used in the long-range concentration (the idea is that very large particles should not be considered in the long-range case as they fall rapidly on the floor, 
+while they must be in for the short-range case).
+To calculate the short-range concentration, we first need to calculate what is the **concentration at the jet origin**, that depends on the diameter :math:`D`. 
+Very similar to what we did with the **emission rate**, we need to calculate the scaling factor from the probability distribution, :math:`N_p(D)`, as well as the **volume concentration** for those diameters.
+
+
 The short-range concentration is the result of a two-stage exhaled jet model developed by *JIA W. et al.* and is expressed as:
 
-:math:`C_{\mathrm{SR}}(t, D) = C_{\mathrm{LR}, 100μm} (t, D) + \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100μm}(t, D))` ,
+:math:`C_{\mathrm{SR}}(t, D) = C_{\mathrm{LR}} (t, D) + \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100μm}(t, D))` ,
 
 where :math:`S(x)` is the dilution factor due to jet dynamics, as a function of the interpersonal distance *x* and :math:`C_{0, \mathrm{SR}}(D)` corresponds to the initial concentration of virions at the mouth/nose outlet during exhalation.
 :math:`C_{\mathrm{LR}, 100μm}(t, D)` is the long-range concentration, calculated in :meth:`cara.models.ConcentrationModel.concentration` method but **interpolated** to the diameter range used for close-proximity (from 0 to 100μm).
@@ -132,12 +141,10 @@ In addition, for each individual interaction, the expiration type may be differe
 
 The initial concentration of virions at the mouth/nose, :math:`C_{0, \mathrm{SR}}(D)` is calculated as follows:
 
-:math:`C_{0, \mathrm{SR}}(D) = N_p(D) \cdot V_p(D) \cdot \mathrm{vl_{in}} \cdot 10^{-6}`.
-
+:math:`C_{0, \mathrm{SR}}(D) = N_p(D) \cdot V_p(D) \cdot \mathrm{vl_{in}} \cdot 10^{-6}`, 
+given by :meth:`cara.models.Expiration.jet_origin_concentration`. It computes the same quatity as :meth:`cara.models.Expiration.aerosols`, except for the mask inclusion. As previously mentioned, it is normalized by the **viral load**, which is a diameter-independent property. 
 Note, the :math:`10^{-6}` factor corresponds to the conversion from :math:`\mathrm{μm}^{3} \cdot \mathrm{cm}{-3}` to :math:`\mathrm{mL} \cdot m^{3}`
 
-To respect the diameter-dependence, the initial concentration has to be normalized by the viral load.
-Hence, in the code we have one method that returns the value of :math:`N_p(D) \cdot V_p(D) \cdot 10^{-6}`, :meth:`cara.models.Expiration.jet_origin_concentration`. 
 Note that similarly to the `long-range` approach, the MC integral over the diameters is not calculated at this stage.
 
 For mathematical consistency, the long-range concentration parameter, :math:`C_{\mathrm{LR}, 100μm}(t, D)` in the :class:`cara.models.ShortRangeModel` class **only**, 
@@ -222,6 +229,8 @@ The :math:`\mathrm{cn}` factor, which represents the total number of aerosols em
 
 Note: for simplification, the dose corresponding exclusively to the long-range contribution can be shown as :math:`\mathrm{vD^{LR}}(D)= \mathrm{vD}(D)`
 
+In the end, the governing method is :meth:`cara.models.ExposureModel.deposited_exposure_between_bounds`, in which the `deposited_exposure` is equal to `long_range_deposited_exposure_between_bounds` in the absence of short-range interactions.
+
 Short-range approach
 ********************
 In theory, the dose during a close-proximity interaction (`short-range`) is simply added to the dose inhaled due to the long-range and may be defined as follows:
@@ -230,58 +239,40 @@ In theory, the dose during a close-proximity interaction (`short-range`) is simp
 
 where :math:`\mathrm{vD^{long-range}}(D)` is the long-range, diameter-dependent dose computed previously.
 
-In the code, the method that returns the value for the total dose (independently if it is short- or long-range) is given by :meth:`cara.models.ExposureModel.deposited_exposure_between_bounds`. 
-Similar as above, first we perform the multiplications by the diameter-dependent variables so that we can profit from the Monte-Carlo integration. Then we multiply the final value by the diameter-independent variables.
+From above, the short-range concentration:
 
-The method :meth:`cara.models.ShortRangeModel.normed_exposure_between_bounds` gets the integrated short-range concentration of viruses in the air between the times start and stop, normalized by the virus **viral load**, and excluding the jet **dilution**. 
+:math:`C_{\mathrm{SR}}(t, D) = C_{\mathrm{LR}} (t, D) + \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100μm}(t, D))` ,
+
+In the code, the method that returns the value for the total dose (independently if it is short- or long-range) is given by :meth:`cara.models.ExposureModel.deposited_exposure_between_bounds`.
+For code simplification, we split the :math:`C_{\mathrm{SR}}(t, D)` equation into two components: 
+* short-range component: :math:`\frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100μm}(t, D))`
+* long-range component: :math:`C_{\mathrm{LR}} (t, D)`
+
+Similar as above, first we perform the multiplications by the diameter-dependent variables so that we can profit from the Monte-Carlo integration. Then we multiply the final value by the diameter-independent variables.
+The method :meth:`cara.models.ShortRangeModel._normed_jet_exposure_between_bounds` gets the integrated short-range concentration of viruses in the air between the times start and stop, normalized by the **viral load**, 
+and excluding the jet **dilution** since it is also diameter-independent. 
+???? Here the viral load normalization was performed in :meth:`cara.models.Expiration.jet_origin_concentration` (WHERE is viral load?)
+This corresponds to :math:`C_{0, \mathrm{SR}}(D)`. 
+
+The method :meth:`cara.models.ShortRangeModel._normed_interpolated_longrange_exposure_between_bounds` retrieves the integrated short-range concentration due to the background concentration, 
+normalized by the **viral load** and the **breathing rate**, and excluding the jet **dilution**.
+The result is then interpolated to the particle diameter range used in the short-range model (i.e. 100 μm).
+This corresponds to :math:`\int_{t1}^{t2} \cdot C_{\mathrm{LR}, 100μm} (t, D);\mathrm{d}t`
 Very similar to the long-range procedure, this method performs the integral of the concentration for the given time boundaries.
 
-Once we have the integral of the concentration normalized by the **viral load**, we multiply by the remaining diameter-dependent properties to perform the integral over the particle diameters, including the **fraction deposited** computed with an evaporation factor of `1` (as the aerosols do not have time to evaporate during a short-range interaction):
-
+Once we have the integral of the concentration normalized by the diameter independent quantities, we multiply by the remaining diameter-dependent properties to perform the integral over the particle diameters, including the **fraction deposited** computed with an evaporation factor of `1` (as the aerosols do not have time to evaporate during a short-range interaction):
+And after perform the MC intergration using the *mean*, which corresponds to:
 :math:`\int_{0}^{D_{max}}C_{\mathrm{SR}}(t, D) \cdot f_{\mathrm{dep}}(D) \;\mathrm{d}D` .
 
-Note that in the code we perform the subtraction between the concentration at the jet origin and the `long-range` concentration of viruses in two steps when we calculate the dose, since the contribution of the diameter-dependent variable :math:`f_{\mathrm{dep}}` has to be multiplied separately in substractions:
+Note that in the code we perform the subtraction between the concentration at the jet origin and the `long-range` concentration of viruses in two steps when we calculate the dose, 
+since the contribution of the diameter-dependent variable :math:`f_{\mathrm{dep}}` has to be multiplied separately in substractions:
 
 `integral_over_diameters =` :math:`((C_{0, \mathrm{SR}} \cdot f_{\mathrm{dep}}) - (C(t, D) \cdot f_{\mathrm{dep}})) \cdot \mathrm{mean()}` .
 
-To perform the integral, we calculate the average since it is a good approximation of the :math:`\mathrm{vD}` total, provided that the number of samples is large enough.
+To perform the integral, we calculate the average since it is a good approximation of the :math:`\mathrm{vD^{total}}`, provided that the number of samples is large enough.
 
-Then, we add the contribution to the result of the diameter-independent vectorized properties, which are the **dilution factor**, **viral load**, **fraction of infectious virus** and **breathing rate**:
-
-`vD = integral_over_diameters \cdot exhalation_rate \cdot inhalation_rate / dilution` :math:`\cdot f_{\mathrm{inf}} \cdot \mathrm{vl_{in}} \cdot (1 - η_{\mathrm{in}})` .
-
-Note that the multiplication over the `exhalation_rate` is done at each `short-range` interaction since the `Activity` type may be different for different interactions.
+Then, we add the contribution to the result of the diameter-**independent** vectorized properties **in two seperate phases**:
+* multiply by the diameter-independent properties than are dependent on the `Activity` type of different short-range interactions: **breathing rate** and **dilution factor** - within the *for* cycle;
+* multiply by the other properties that are **not** dependent on the type of short-range interaction: **viral load**, **fraction of infectious virus** and **inwards mask efficiency**.
 
 The final dose is the sum of the `short-range` and `long-range` doses.
-
-
-
->>>>>>>>>>>>>>>>>
-
-
-
-
-
-Short-range approach
-====================
-
-The short-range data class models a close-range interaction **concentration** and the respective **dilution_factor**.
-Its properties are the **expiration** definition, the **activity type**, the **presence time**, and the **interpersonal distance** between any two individuals.
-When generating a full model, the short-range class is defined with a new **Expiration** distribution, given that the **min** and **max** diameters for the short-range interations are different from those used in the long-range concentration (the idea is that very large particles should not be considered in the long-range case as they fall rapidly on the floor, while they must be in for the short-range case).
-
-To calculate the short-range concentration, we first need to calculate what is the **concentration at the jet origin**, that depends on the diameter :math:`D`. Very similar to what we did with the **emission rate**, we need to calculate the scaling factor from the probability distribution, :math:`N_p(D)`, as well as the **volume** for those diameters.
-
-In the code, :meth:`cara.models.Expiration.jet_origin_concentration` computes the same quatity as :meth:`cara.models.Expiration.aerosols`, except for the mask inclusion. As previously mentioned, it is normalized by the **viral load**, which is a diameter-independent property.
-
-When calculating the dose, we get the concentration normalized by the **viral load** and **breathing rate**, and without the **dilution factor**, since these parameters are Monte-Carlo variables that do not depend on the diameter.
-
-Concentration - :math:`C(t, D)`
-*******************************
-
-`vD` = `integral_over_diameters` :math:`\cdot` `exhalation_rate` :math:`\cdot` `inhalation_rate / dilution` :math:`\cdot f_{\mathrm{inf}} \cdot \mathrm{vl_{in}} \cdot (1 - η_{\mathrm{in}})`.
-
-
-Dose - :math:`vD`
-*****************
-
-I
