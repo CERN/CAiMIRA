@@ -131,7 +131,10 @@
 															</b> in the room. 
 															By taking into account the estimate of cases currently circulating in <b>{{ form.location_name }}</b>, 
 															the probability of on-site transmission, having at least 1 new infection in an <b>event 
-															with {{ form.total_people }} occupants, is {{ prob_specific_event | non_zero_percentage }}</b>. 
+															with {{ form.total_people }} occupants, is {{ prob_specific_event | non_zero_percentage }}</b>.
+															{% if prob_specific_event > prob_inf %}
+																<p>The probability of infection is larger than above which signifies that the chosen number of infected occupants in the form was underestimated.</p>
+															{% endif %} 
 														</div>
 													{% endif %}
 												{% endblock %}
