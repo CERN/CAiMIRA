@@ -359,9 +359,9 @@
 							{{ "is" if form.infected_people == 1 else "are" }}
 							infected.</p></li>
 							{% if form.p_recurrent_option == "p_specific_event" %}
-							{% if form.geographic_conf_level == "10" %}
+							{% if form.geographic_conf_level == "confidence_high" %}
 								{% set conf_level = "High - Mandatory population surveillance." %}
-							{% elif form.geographic_conf_level == "5" %}
+							{% elif form.geographic_conf_level == "confidence_medium" %}
 								{% set conf_level = "Medium - Recommended population wide surveillance." %}
 							{% else %}
 								{% set conf_level = "Low - Surveillance only for sympotmatic patients." %}

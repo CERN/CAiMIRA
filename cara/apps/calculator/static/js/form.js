@@ -432,6 +432,18 @@ function validate_form(form) {
     }
   }
 
+  // Validate cases < population
+  if ($("#p_specific_event").prop('checked')) {
+    var geographicPopulationObj = document.getElementById("geographic_population");
+    var geographicCasesObj = document.getElementById("geographic_cases");
+    removeErrorFor(geographicCasesObj);
+
+    if (parseInt(geographicPopulationObj.value) < parseInt(geographicCasesObj.value)) {
+      insertErrorFor(geographicCasesObj, "Cases > Population");
+      submit = false;
+    }
+  }
+
   // Generate the short-range interactions list
   var short_range_interactions = [];
   $(".form_field_outer_row").each(function (index, element){
