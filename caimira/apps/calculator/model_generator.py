@@ -53,7 +53,7 @@ class FormData:
     infected_lunch_start: minutes_since_midnight    #Used if infected_dont_have_breaks_with_exposed
     infected_people: int
     infected_start: minutes_since_midnight
-    inside_temp: float
+    inside_temp: str
     location_name: str
     location_latitude: float
     location_longitude: float
@@ -112,7 +112,7 @@ class FormData:
         'infected_lunch_start': '12:30',
         'infected_people': _NO_DEFAULT,
         'infected_start': '08:30',
-        'inside_temp': 293.,
+        'inside_temp': '',
         'location_latitude': _NO_DEFAULT,
         'location_longitude': _NO_DEFAULT,
         'location_name': _NO_DEFAULT,
@@ -291,14 +291,17 @@ class FormData:
             volume = self.room_volume
         else:
             volume = self.floor_area * self.ceiling_height
-        if self.humidity == '':
+
+        if self.arve_sensors_option == False:
             if self.room_heating_option:
                 humidity = 0.3
             else:
                 humidity = 0.5
+            inside_temp = 293.
         else:
             humidity = float(self.humidity)
-        room = models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (self.inside_temp,)), humidity=humidity)
+            inside_temp = float(self.inside_temp)
+        room = models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (inside_temp,)), humidity=humidity)
 
         infected_population = self.infected_population()
         
@@ -748,7 +751,7 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'infected_lunch_start': '12:30',
         'infected_people': '1',
         'infected_start': '09:00',
-        'inside_temp': 293.,
+        'inside_temp': '293.',
         'location_latitude': 46.20833,
         'location_longitude': 6.14275,
         'location_name': 'Geneva',
