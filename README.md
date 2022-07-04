@@ -293,6 +293,9 @@ There is one external API call to fetch required information related to the geog
 The documentation for this geocoding service is available at https://developers.arcgis.com/rest/geocode/api-reference/geocoding-suggest.htm . 
 Please note that there is no need for keys on this API call. It is **free-of-charge**.
 
+- **Humidity and Inside Temperature:**
+There may be one external API call to fetch information related to a location specified in the UI. The data is related to the inside temperature and humidity of the selected location. 
+
 ## Update configuration
 
 If you need to **update** existing configuration, then modify this repository and after having logged in, run:
