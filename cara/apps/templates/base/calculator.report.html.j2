@@ -393,8 +393,8 @@
 							Workshop = assembly workshop environment, all persons doing moderate physical activity, speaking 50% of the time.
 							{% elif form.activity_type == "training" %}
 							Conference/Training (speaker infected) – one person (the speaker/trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the speaker/trainer is the infected person, for the worst case scenario.
-							{% elif form.activity_type == "training_audience" %}
-							Conference/Training (audience infected) – all persons seated, talking quietly (whispering). 
+							{% elif form.activity_type == "training_attendee" %}
+							Conference/Training (attendee infected) – the infected person(s) are in the audience. All persons seated and breathing. 
 							{% elif form.activity_type == "lab" %}
 							Laboratory = Lab or technical environment, all persons doing light physical activity, speaking 50% of the time.
 							{% elif form.activity_type == "gym" %}

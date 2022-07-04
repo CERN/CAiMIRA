@@ -434,7 +434,7 @@ class FormData:
             'callcentre': ('Seated', 'Speaking'),
             'library': ('Seated', 'Breathing'),
             'training': ('Standing', 'Speaking'),
-            'training_audience': ('Seated', 'Breathing'),
+            'training_attendee': ('Seated', 'Breathing'),
             'lab': (
                 'Light activity',
                 #Model 1/2 of time spent speaking in a lab.
@@ -473,7 +473,7 @@ class FormData:
             'callcentre': 'Seated',
             'library': 'Seated',
             'training': 'Seated',
-            'training_audience': 'Seated',
+            'training_attendee': 'Seated',
             'workshop': 'Moderate activity',
             'lab':'Light activity',
             'gym':'Heavy exercise',
@@ -747,7 +747,7 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
     }
 
 
-ACTIVITY_TYPES = {'office', 'smallmeeting', 'largemeeting', 'training', 'training_audience', 'callcentre', 'controlroom-day', 'controlroom-night', 'library', 'workshop', 'lab', 'gym'}
+ACTIVITY_TYPES = {'office', 'smallmeeting', 'largemeeting', 'training', 'training_attendee', 'callcentre', 'controlroom-day', 'controlroom-night', 'library', 'workshop', 'lab', 'gym'}
 MECHANICAL_VENTILATION_TYPES = {'mech_type_air_changes', 'mech_type_air_supply', 'not-applicable'}
 MASK_TYPES = {'Type I', 'FFP2'}
 MASK_WEARING_OPTIONS = {'mask_on', 'mask_off'}
