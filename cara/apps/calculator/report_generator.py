@@ -285,18 +285,22 @@ def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[fl
 
 
 def comparison_report(
+        form: FormData,
         report_data: typing.Dict[str, typing.Any],
         scenarios: typing.Dict[str, mc.ExposureModel],
         sample_times: typing.List[float],
         executor_factory: typing.Callable[[], concurrent.futures.Executor],
 ):
-    statistics = {
-        'Current scenario' : {
-            'probability_of_infection': report_data['prob_inf'],
-            'expected_new_cases': report_data['expected_new_cases'],
-            'concentrations': report_data['concentrations'],
+    if (form.short_range_option == "short_range_no"):
+        statistics = {
+            'Current scenario' : {
+                'probability_of_infection': report_data['prob_inf'],
+                'expected_new_cases': report_data['expected_new_cases'],
+                'concentrations': report_data['concentrations'],
+            }
         }
-    }
+    else:
+        statistics = {}
     
     with executor_factory() as executor:
         results = executor.map(
@@ -350,7 +354,7 @@ class ReportGenerator:
         context.update(report_data)
         alternative_scenarios = manufacture_alternative_scenarios(form)
         context['alternative_scenarios'] = comparison_report(
-            report_data, alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
+            form, report_data, alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
         )
         context['permalink'] = generate_permalink(base_url, self.calculator_prefix, form)
         context['calculator_prefix'] = self.calculator_prefix
