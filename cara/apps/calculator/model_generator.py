@@ -43,7 +43,7 @@ class FormData:
     floor_area: float
     hepa_amount: float
     hepa_option: bool
-    humidity: str
+    humidity: float
     infected_coffee_break_option: str               #Used if infected_dont_have_breaks_with_exposed
     infected_coffee_duration: int                   #Used if infected_dont_have_breaks_with_exposed
     infected_dont_have_breaks_with_exposed: bool
@@ -53,7 +53,7 @@ class FormData:
     infected_lunch_start: minutes_since_midnight    #Used if infected_dont_have_breaks_with_exposed
     infected_people: int
     infected_start: minutes_since_midnight
-    inside_temp: str
+    inside_temp: float
     location_name: str
     location_latitude: float
     location_longitude: float
@@ -102,7 +102,7 @@ class FormData:
         'floor_area': 0.,
         'hepa_amount': 0.,
         'hepa_option': False,
-        'humidity': '',
+        'humidity': _NO_DEFAULT,
         'infected_coffee_break_option': 'coffee_break_0',
         'infected_coffee_duration': 5,
         'infected_dont_have_breaks_with_exposed': False,
@@ -112,7 +112,7 @@ class FormData:
         'infected_lunch_start': '12:30',
         'infected_people': _NO_DEFAULT,
         'infected_start': '08:30',
-        'inside_temp': '',
+        'inside_temp': _NO_DEFAULT,
         'location_latitude': _NO_DEFAULT,
         'location_longitude': _NO_DEFAULT,
         'location_name': _NO_DEFAULT,
@@ -253,8 +253,9 @@ class FormData:
                 humidity = 0.5
             inside_temp = 293.
         else:
-            humidity = float(self.humidity)
-            inside_temp = float(self.inside_temp)
+            humidity = self.humidity
+            inside_temp = self.inside_temp
+
         room = models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (inside_temp,)), humidity=humidity)
 
         infected_population = self.infected_population()
@@ -695,7 +696,7 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'floor_area': '',
         'hepa_amount': '250',
         'hepa_option': '0',
-        'humidity': '',
+        'humidity': '0.5',
         'infected_coffee_break_option': 'coffee_break_4',
         'infected_coffee_duration': '10',
         'infected_dont_have_breaks_with_exposed': '1',
