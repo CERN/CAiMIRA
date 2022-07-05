@@ -45,8 +45,8 @@ an integration of the log-normal distributions is performed over all aerosol dia
 Under the :mod:`cara.apps.calculator.model_generator`, when it comes to generate the Expiration model, the `diameter` property is sampled through the BLO :meth:`cara.monte_carlo.data.BLOmodel.distribution` method, while the value for the **cn** is given by the :meth:`cara.monte_carlo.data.BLOmodel.integrate` method.
 To summarize, the Expiration contains the distribution of the diameters as a vectorised float. Depending on different expiratory types, the contributions from each mode will be different, therefore the result in the distribution also differs from model to model.
 
-Emission Rate - :math:`\mathrm{vR}(D)`
-======================================
+Emission Rate - vR(D)
+=====================
 
 The mathematical equations to calculate :math:`\mathrm{vR}(D)` are defined in the paper
 (Henriques A et al, Modelling airborne transmission of SARS-CoV-2 using CARA: risk assessment for enclosed spaces.
@@ -69,8 +69,8 @@ In the code, for a given Expiration, we use different methods to perform the cal
 Note that the diameter-dependence is kept at this stage. Since other parameters downstream in code are also diameter-dependent, the Monte-Carlo integration over the aerosol sizes is computed at the level of the dose :math:`\mathrm{vD^{total}}`.
 In case one would like to have intermediate results for emission rate, perform the Monte-Carlo integration of :math:`E_{c, j}^{\mathrm{total}}` and compute :math:`\mathrm{vR^{total}} =\mathrm{vl_{in}} \cdot E_{c, j}^{\mathrm{total}} \cdot \mathrm{BR_k}`
 
-Concentration - :math:`C(t, D)`
-===============================
+Concentration - C(t, D)
+=======================
 
 The estimate of the concentration of virus-laden particles in a given room is based on a two-box exposure model:
 * Box 1 - long-range exposure: also known as the *background* concentration, 
@@ -84,7 +84,7 @@ considering the result of a two-stage exhaled jet model.
 Long-range approach
 *******************
 
-Starting with the long-range concentration of virus-laden aerosols of a given size **D**, that is based on the mass balance equation between the emission and removal rates, is given by:
+Starting with the long-range concentration of virus-laden aerosols of a given size :math:`D`, that is based on the mass balance equation between the emission and removal rates, is given by:
 
 :math:`C_{\mathrm{LR}}(t, D)=\frac{\mathrm{vR}(D) \cdot N_{\mathrm{inf}}}{\lambda_{\mathrm{vRR}}(D) \cdot V_r}-\left (\frac{\mathrm{vR}(D) \cdot N_{\mathrm{inf}}}{\lambda_{\mathrm{vRR}}(D) \cdot V_r}-C_0(D) \right )e^{-\lambda_{\mathrm{vRR}}(D)t}` ,
 
@@ -121,9 +121,10 @@ where :math:`S(x)` is the dilution factor due to jet dynamics, as a function of 
 :math:`C_{\mathrm{LR}, 100μm}(t, D)` is the long-range concentration, calculated in :meth:`cara.models.ConcentrationModel.concentration` method but **interpolated** to the diameter range used for close-proximity (from 0 to 100μm).
 Note that :math:`C_{0, \mathrm{SR}}(D)` is constant over time, hence only dependent on the particle diameter distribution. 
 
-For code simplification, we split the :math:`C_{\mathrm{SR}}(t, D)` equation into two components: 
-* short-range component: :math:`\frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100μm}(t, D))` , dealt with in data class :class:`cara.models.ShortRangeModel`
-* long-range component: :math:`C_{\mathrm{LR}} (t, D)`
+For code simplification, we split the :math:`C_{\mathrm{SR}}(t, D)` equation into two components:
+
+* short-range component: :math:`\frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100μm}(t, D))`, dealt with in data class :class:`cara.models.ShortRangeModel`.
+* long-range component: :math:`C_{\mathrm{LR}} (t, D)`.
 
 The short-range data class (:class:`cara.models.ShortRangeModel`) models the short-range component of a close-range interaction **concentration** and the respective **dilution_factor**.
 Its properties are the **expiration** definition, the **activity type**, the **presence time**, and the **interpersonal distance** between any two individuals.
@@ -146,7 +147,7 @@ The initial concentration of virions at the mouth/nose, :math:`C_{0, \mathrm{SR}
 
 :math:`C_{0, \mathrm{SR}}(D) = N_p(D) \cdot V_p(D) \cdot \mathrm{vl_{in}} \cdot 10^{-6}`, 
 given by :meth:`cara.models.Expiration.jet_origin_concentration`. It computes the same quantity as :meth:`cara.models.Expiration.aerosols`, except for the mask inclusion. As previously mentioned, it is normalized by the **viral load**, which is a diameter-independent property. 
-Note, the :math:`10^{-6}` factor corresponds to the conversion from :math:`\mathrm{μm}^{3} \cdot \mathrm{cm}{-3}` to :math:`\mathrm{mL} \cdot m^{3}`
+Note, the :math:`10^{-6}` factor corresponds to the conversion from :math:`\mathrm{μm}^{3} \cdot \mathrm{cm}^{-3}` to :math:`\mathrm{mL} \cdot m^{3}`
 
 Note that similarly to the `long-range` approach, the MC integral over the diameters is not calculated at this stage.
 
@@ -164,8 +165,7 @@ To summarize, in the code, :math:`C_{\mathrm{SR}}(t, D)` is computed as follows:
 * calculate the `dilution_factor` - :math:`S({x})` - in the method :meth:`cara.models.ShortRangeModel.dilution_factor`, with the distance *x* as a random variable (log normal distribution in :meth:`cara.monte_carlo.data.short_range_distances`)
 * compute :math:`\frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100μm}(t, D))` in method :meth:`cara.models.ShortRangeModel.normed_concentration`,
 * multiply by the diameter-dependent parameter,  viral load, in method :meth:`cara.models.ShortRangeModel.short_range_concentration`
-* complete the equation of :math:`C_{\mathrm{SR}}(t, D)` by adding the long-range concentration from the :meth:`cara.models.ConcentrationModel.concentration` (all integrated over *D*), returning the final short-range concentration value for a given time and expiration activity. 
-This is done at the level of the Exposure Model (:meth:`cara.models.ExposureModel.concentration`).
+* complete the equation of :math:`C_{\mathrm{SR}}(t, D)` by adding the long-range concentration from the :meth:`cara.models.ConcentrationModel.concentration` (all integrated over :math:`D`), returning the final short-range concentration value for a given time and expiration activity. This is done at the level of the Exposure Model (:meth:`cara.models.ExposureModel.concentration`).
 
 Note that :meth:`cara.models.ShortRangeModel._normed_concentration` method is different from :meth:`cara.models.ConcentrationModel._normed_concentration` and :meth:`cara.models.ConcentrationModel.concentration` differs from :meth:`cara.models.ExposureModel.concentration`.
 
@@ -173,8 +173,9 @@ Unless one is comupting the mean concentration values (e.g. for the plots in the
 In case one would like to have intermediate results for the initial short-range concentration, this is done at the level of the :class:`cara.models.ExposureModel` class.
 
 
-Dose - :math:`\mathrm{vD}`
-==========================
+Dose - vD
+=========
+
 The term `dose` refers to the number of viable virions (infectious virus) that will contribute to a potential infection.
 It results in a combination of several properties: exposure, ratio of viable virions, inhalation rate, aerosol deposition in the respiratory tract and the effect of protective equipment such as masks.
 
@@ -185,14 +186,14 @@ as well as the inhalation rate and the effect of masks:
 :math:`\mathrm{vD}(D) = \int_{t1}^{t2}C(t, D)\;\mathrm{d}t \cdot f_{\mathrm{inf}} \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})` .
 
 where :math:`C(t, D)` is the concentration value at a given time, which can be either the short- or long-range concentration, :math:`f_{\mathrm{inf}}` is the fraction of infectious virus, 
-:math:`f_{\mathrm{dep}}(D)` is the (diameter-dependent) deposition fraction in the respiratory tract, :math:` \mathrm{BR}_{\mathrm{k}}` is the inhalation rate and :math:`\eta_{\mathrm{in}}` is the inward efficiency of the face mask.
+:math:`f_{\mathrm{dep}}(D)` is the (diameter-dependent) deposition fraction in the respiratory tract, :math:`\mathrm{BR}_{\mathrm{k}}` is the inhalation rate and :math:`\eta_{\mathrm{in}}` is the inward efficiency of the face mask.
 
-Given that the calculation is diameter-dependent, to calculate the dose in the model, the code contains different methods that consider the parameters that are dependent on the aerosol size, **D**.
+Given that the calculation is diameter-dependent, to calculate the dose in the model, the code contains different methods that consider the parameters that are dependent on the aerosol size, :math:`D`.
 The total dose, at the end of the exposure scenario, results from the sum of the dose accumulated over time, for each particle size, is:
 
 :math:`\mathrm{vD^{total}} = \int_0^{D_{\mathrm{max}}} \mathrm{vD}(D) \, \mathrm{d}D` .
 
-This calculation is computed using a Monte-Carlo integration over *D*. As previously described, many different parameters samples are generated using the probability distribution from the :math:`N_p(D)` equation.
+This calculation is computed using a Monte-Carlo integration over :math:`D`. As previously described, many different parameters samples are generated using the probability distribution from the :math:`N_p(D)` equation.
 The dose for each of them is then computed, and their **average** value over all samples represents a good approximation of the total dose, provided that the number of samples is large enough.
 
 Long-range approach
@@ -203,24 +204,23 @@ which calculates the long-range exposure (concentration) between two bounds (tim
 The former method filters out the given bounds considering the breaks through the day (i.e. the time intervals during which there is no exposition to the virus) and retrieves the integrated long-range concentration of viruses in the air between any two times.
 
 After the calculations of the integrated concentration over the time, in order to calculate the final dose, we have to compute the remaining factors in the above equation.
-Note that the **Monte-Carlo integration over the diameters is performed at this stage**, where all the diameter-dependent parameters are grouped together to calculate the final average (np.mean()).
+Note that the **Monte-Carlo integration over the diameters is performed at this stage**, where all the diameter-dependent parameters are grouped together to calculate the final average (:code:`np.mean()`).
 
-Since, in the previous chapters, the quantities where normalised by the emission rate, one will need to re-integrate in the equations before performing the MC integrations over *D*.
-For that we need to split :math: `\mathrm{vR}(D)` (:meth:`cara.models._PopulationWithVirus.emission_rate_when_present`) in diameter-dependent and diameter-independent quantities:
+Since, in the previous chapters, the quantities where normalised by the emission rate, one will need to re-integrate in the equations before performing the MC integrations over :math:`D`.
+For that we need to split :math:`\mathrm{vR}(D)` (:meth:`cara.models._PopulationWithVirus.emission_rate_when_present`) in diameter-dependent and diameter-independent quantities:
 
-:math: `\mathrm{vR}(D-dependent) = \mathrm{cn} \cdot V_p(D) \cdot (1 − \mathrm{ηout}(D))` - :meth:`cara.models.InfectedPopulation.aerosols`
+:math:`\mathrm{vR}(D-\mathrm{dependent}) = \mathrm{cn} \cdot V_p(D) \cdot (1 − \mathrm{ηout}(D))` - :meth:`cara.models.InfectedPopulation.aerosols`
 
-:math: `\mathrm{vR}(D-independent) = \mathrm{vl_{in}} \cdot \mathrm{BR_{k}}` - :meth:`cara.models.InfectedPopulation.emission_rate_per_aerosol_when_present`
+:math:`\mathrm{vR}(D-\mathrm{independent}) = \mathrm{vl_{in}} \cdot \mathrm{BR_{k}}` - :meth:`cara.models.InfectedPopulation.emission_rate_per_aerosol_when_present`
 
 
-In other words, in the code the procedure is the following (all performed in :meth: `cara.models.ExposureModel.long_range_deposited_exposure_between_bounds` method):
+In other words, in the code the procedure is the following (all performed in :meth:`cara.models.ExposureModel.long_range_deposited_exposure_between_bounds` method):
 
-* Re-establish the emission rate by first multiplying by the diameter-dependent quantities: :math:`\mathrm{vD_{aerosol}}(D) = (\int_{t1}^{t2}C_{\mathrm{LR}}(t, D)\;\mathrm{d}t \cdot \mathrm{vR}(D-dependent) \cdot f_{\mathrm{dep}}(D))`,
-in :meth: `cara.models.ExposureModel.long_range_deposited_exposure_between_bounds` method;
-* perform the **MC integration over the diameters**, which is considered equivalent as the mean of the distribution if the sample size is large enough: :math:`\mathrm{vD_{aerosol}} = np.(\mathrm{vD_{aerosol}}(D)).mean();
-* multiply the result with the remaining diameter-independent quantities of the emission rate used previously to normalize: :math:`\mathrm{vD_{emission rate}} = \mathrm{vD_{aerosol}} \cdot \mathrm{vR}(D-independent)
-* in order to complete the equation, multiply but the the remaining diameter-independent variables in :math:`\mathrm{vD}` to obtain the total value: 
-:math:`\mathrm{vD^{total}} = \mathrm{vD_{emission rate}} \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \cdot f_{\mathrm{inf}}
+* Re-establish the emission rate by first multiplying by the diameter-dependent quantities: :math:`\mathrm{vD_{aerosol}}(D) = (\int_{t1}^{t2}C_{\mathrm{LR}}(t, D)\;\mathrm{d}t \cdot \mathrm{vR}(D-dependent) \cdot f_{\mathrm{dep}}(D))`, in :meth:`cara.models.ExposureModel.long_range_deposited_exposure_between_bounds` method;
+
+* perform the **MC integration over the diameters**, which is considered equivalent as the mean of the distribution if the sample size is large enough: :math:`\mathrm{vD_{aerosol}} = \mathrm{np.mean}(\mathrm{vD_{aerosol}}(D))`;
+* multiply the result with the remaining diameter-independent quantities of the emission rate used previously to normalize: :math:`\mathrm{vD_{emission-rate}} = \mathrm{vD_{aerosol}} \cdot \mathrm{vR}(D-\mathrm{independent})`
+* in order to complete the equation, multiply but the the remaining diameter-independent variables in :math:`\mathrm{vD}` to obtain the total value: :math:`\mathrm{vD^{total}} = \mathrm{vD_{emission-rate}} \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \cdot f_{\mathrm{inf}}`
 * In the end, the dose is a vectorized float used in the probability of infection formula.
 
 Note: The aerosol volume concentration (*aerosols*) is introduced because the integrated concentration over the time was previously normalized by the emission rate.
@@ -229,7 +229,7 @@ Here, to calculate the integral over the diameters we also need to consider the 
 :math:`aerosols = \mathrm{cn} \cdot V_p(D) \cdot (1 − \mathrm{ηout}(D))` .
 The :math:`\mathrm{cn}` factor, which represents the total number of aerosols emitted, is introduced here as a scaling factor, as otherwise the Monte-Carlo integral would be normalized to 1 as the probability distribution.
 
-Note: for simplification, the dose corresponding exclusively to the long-range contribution can be shown as :math:`\mathrm{vD^{LR}}(D)= \mathrm{vD}(D)`
+Note: for simplification, the dose corresponding exclusively to the long-range contribution can be shown as :math:`\mathrm{vD^{LR}}(D)= \mathrm{vD}(D)`.
 
 In the end, the governing method is :meth:`cara.models.ExposureModel.deposited_exposure_between_bounds`, in which the `deposited_exposure` is equal to `long_range_deposited_exposure_between_bounds` in the absence of short-range interactions.
 
@@ -277,7 +277,7 @@ Then, we add the contribution to the result of the diameter-**independent** vect
 * multiply by the diameter-independent properties than are dependent on the `Activity` type of the different short-range interactions: **breathing rate** and **dilution factor** - within the *for* cycle;
 * multiply by the other properties that are **not** dependent on the type of short-range interactions: **viral load**, **fraction of infectious virus** and **inwards mask efficiency**.
 
-The final operation in the :meth:`cara.models.ExposureModel.deposited_exposure_between_bounds`accounts for the addition of the long-range component of the dose.
+The final operation in the :meth:`cara.models.ExposureModel.deposited_exposure_between_bounds` accounts for the addition of the long-range component of the dose.
 
 If short-range interactions exist: the long-range component is added to the already calculated short-range component (`deposited_exposure`), hence completing :math:`C_{\mathrm{SR}}`
 If the are no short-range interactions: the short-range component (`deposited_exposure`) is zero, hence the result is equal soely to the long-range component :math:`C_{\mathrm{LR}}`
