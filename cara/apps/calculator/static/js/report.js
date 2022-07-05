@@ -691,7 +691,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
             highest_concentration = Math.max(highest_concentration, Math.max(...scenario_concentrations));
         }
 
-        yRange.domain([0., highest_concentration]);
+        yRange.domain([0., highest_concentration*1.1]);
         yAxisEl.transition().duration(1000).call(yAxis);
 
         for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
