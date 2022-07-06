@@ -31,6 +31,8 @@
 			<p class="mb-0" id="report_version"> {{_("Created")}} {{ creation_date }} {{_("using CAiMIRA calculator version")}} v{{ form.calculator_version }}</p>
 		</div>
 		<!-- Export CVS Concentration Button and Print Report Button -->
+		<button type="button" class="mr-1 btn btn-outline-dark align-self-center" onclick="document.cookie = 'language=en;path=/;SameSite=Lax'; window.location.reload()" {{ 'disabled' if not language or language == "en" }}>EN</button>
+		<button type="button" class="mr-3 btn btn-outline-dark align-self-center" onclick="document.cookie = 'language=fr;path=/;SameSite=Lax'; window.location.reload()" {{ 'disabled' if  language == "fr" }}>FR</button>
 		<button type="button" class="btn btn-outline-dark align-self-center"  id="export-csv" data-toggle="modal" data-target="#modalCSV">{{_("Export Data")}}</button>
 		<button type="button" class="btn btn-outline-dark align-self-center ml-3" id="download-pdf" style="margin-right: -100pt" onclick="print();">{{_("Print Report")}}</button>
 		<a href="{{ permalink.link }}" style="float: left;" id="pdf_qrcode_aref" class="align-self-center invisible mr-0"><div id="pdf_qrcode"></div></a>
@@ -76,7 +78,7 @@
 							<p class="card-text">
 								<div class="align-self-center">
 									<div class="split">
-											<div class="card card-body align-self-center pi-box" style="text-align:center; max-width: 300px">
+											<div class="card card-body align-self-center pi-box" style="text-align:center; max-width: 330px">
 												<h6 class="card-title">
 													<b>{{_("Probability of infection (%)")}}</b><br>
 													{% if form.short_range_option == "short_range_yes" %}
@@ -99,7 +101,7 @@
 											</div>
 											<br>
 											{% if form.short_range_option == "short_range_yes" %}
-												<div class="card card-body align-self-center pi-box" style="text-align:center; max-width: 300px">
+												<div class="card card-body align-self-center pi-box" style="text-align:center; max-width: 330px">
 													<h6 class="card-title">
 														<b>{{_("Probability of infection (%)")}}</b><br>
 														{{_("With")}} <b>{{_("short-range interactions")}}</b>
@@ -160,7 +162,7 @@
 									{% block report_summary_footnote %}
 									{% endblock report_summary_footnote %}
 								</div>
-								<br><p id="section1">* {{_("The results are based on the parameters and assumptions published in the CARA publication:")}}" <a href="https://doi.org/10.1098/rsfs.2021.0076"> doi.org/10.1098/rsfs.2021.0076</a>.</p><br>
+								<br><p id="section1">* {{_("The results are based on the parameters and assumptions published in the CARA publication:")}} <a href="https://doi.org/10.1098/rsfs.2021.0076"> doi.org/10.1098/rsfs.2021.0076</a>.</p><br>
 								{% if form.short_range_option == "short_range_yes" %}
 									{% if 'Speaking' in form.short_range_interactions|string or 'Shouting' in form.short_range_interactions|string %}
 										<button class="btn btn-sm btn-primary" id="button_full_exposure" disabled>{{_("Show full exposure")}}</button>
@@ -234,7 +236,7 @@
 								<p class="data_text"> <strong> {{_("Notes for alternative scenarios:")}}</strong><br>
 									<ol>
 										<li>{{_("This graph shows the concentration of infectious quanta in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation).
-									For this reason, scenarios with different types of mask will show the same concentration on the graph but have different absorbed doses and infection probabilities.")}}</li>
+										For this reason, scenarios with different types of mask will show the same concentration on the graph but have different absorbed doses and infection probabilities.")}}</li>
 										<li>{{_('If you have selected more sophisticated options, such as HEPA filtration or FFP2 masks, this will be indicated in the plot as the "base scenario", representing the inputs inserted in the form.')}}<br>
 										{{_("The other alternative scenarios shown for comparison will not include either HEPA filtration or FFP2 masks.")}}</li>
 									</ol>
