@@ -27,6 +27,7 @@ from . import markdown_tools
 from . import model_generator
 from .report_generator import ReportGenerator, calculate_report_data
 from .user import AuthenticatedUser, AnonymousUser
+from . import DEFAULT_DATA
 
 # The calculator version is based on a combination of the model version and the
 # semantic version of the calculator itself. The version uses the terms
@@ -100,6 +101,14 @@ class Missing404Handler(BaseRequestHandler):
 
 class ConcentrationModel(BaseRequestHandler):
     async def post(self) -> None:
+        language = self.get_cookie('language') or 'null'
+        template_environment = self.settings["template_environment"]
+        if language == "null" : 
+            template_environment.globals['_']=tornado.locale.get(self.locale.code).translate
+            _ = tornado.locale.get(self.locale.code).translate
+        else :
+            template_environment.globals['_']=tornado.locale.get(language ).translate
+            _ = tornado.locale.get(language ).translate    
         requested_model_config = {
             name: self.get_argument(name) for name in self.request.arguments
         }
@@ -126,7 +135,7 @@ class ConcentrationModel(BaseRequestHandler):
             timeout=300,
         )
         report_task = executor.submit(
-            report_generator.build_report, base_url, form,
+            report_generator.build_report, base_url, form, language,
             executor_factory=functools.partial(
                 concurrent.futures.ThreadPoolExecutor,
                 self.settings['report_generation_parallelism'],

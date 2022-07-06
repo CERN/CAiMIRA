@@ -345,15 +345,22 @@ def comparison_report(
 class ReportGenerator:
     jinja_loader: jinja2.BaseLoader
     calculator_prefix: str
+    locale = tornado.locale.get()
+    _ = locale.translate
+
+    def set_locale(self, locale):
+        self.locale = locale
+        self._ = locale.translate
 
     def build_report(
             self,
             base_url: str,
             form: FormData,
+            language: str,
             executor_factory: typing.Callable[[], concurrent.futures.Executor],
     ) -> str:
         model = form.build_model()
-        context = self.prepare_context(base_url, model, form, executor_factory=executor_factory)
+        context = self.prepare_context(base_url, model, form, language, executor_factory=executor_factory)
         return self.render(context)
 
     def prepare_context(
@@ -361,6 +368,7 @@ class ReportGenerator:
             base_url: str,
             model: models.ExposureModel,
             form: FormData,
+            language: str,
             executor_factory: typing.Callable[[], concurrent.futures.Executor],
     ) -> dict:
         now = datetime.utcnow().astimezone()
@@ -370,6 +378,7 @@ class ReportGenerator:
             'model': model,
             'form': form,
             'creation_date': time,
+            'language': language,
         }
 
         scenario_sample_times = interesting_times(model)
@@ -396,7 +405,7 @@ class ReportGenerator:
         env.filters['int_format'] = "{:0.0f}".format
         env.filters['percentage'] = percentage
         env.filters['JSONify'] = json.dumps
-        env.globals['_'] = tornado.locale.get().translate
+        env.globals['_'] = self._
         return env
 
     def render(self, context: dict) -> str:
