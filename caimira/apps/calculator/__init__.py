@@ -104,11 +104,15 @@ class ConcentrationModel(BaseRequestHandler):
         language = self.get_cookie('language') or 'null'
         template_environment = self.settings["template_environment"]
         if language == "null" : 
-            template_environment.globals['_']=tornado.locale.get(self.locale.code).translate
-            _ = tornado.locale.get(self.locale.code).translate
+            template_environment = self.settings["template_environment"]
+            template_environment.globals['_']=tornado.locale.get('en').translate
+            _ = tornado.locale.get('en').translate
+            locale_code = tornado.locale.get(language)    
         else :
-            template_environment.globals['_']=tornado.locale.get(language ).translate
-            _ = tornado.locale.get(language ).translate    
+            template_environment = self.settings["template_environment"]
+            template_environment.globals['_']=tornado.locale.get(language).translate
+            _ = tornado.locale.get(language ).translate
+            locale_code = tornado.locale.get(language)    
         requested_model_config = {
             name: self.get_argument(name) for name in self.request.arguments
         }
@@ -130,6 +134,7 @@ class ConcentrationModel(BaseRequestHandler):
 
         base_url = self.request.protocol + "://" + self.request.host
         report_generator: ReportGenerator = self.settings['report_generator']
+        report_generator.set_locale(locale_code)
         executor = loky.get_reusable_executor(
             max_workers=self.settings['handler_worker_pool_size'],
             timeout=300,
@@ -185,12 +190,20 @@ class ConcentrationModelJsonResponse(BaseRequestHandler):
 
 class StaticModel(BaseRequestHandler):
     async def get(self) -> None:
+        language = self.get_cookie('language') or 'null'
+        template_environment = self.settings["template_environment"]
+        if language == "null" : 
+            template_environment.globals['_']=tornado.locale.get('en').translate
+            _ = tornado.locale.get('en').translate
+        else :
+            template_environment.globals['_']=tornado.locale.get(language).translate
+            _ = tornado.locale.get(language ).translate
         form = model_generator.FormData.from_dict(model_generator.baseline_raw_form_data())
         base_url = self.request.protocol + "://" + self.request.host
         report_generator: ReportGenerator = self.settings['report_generator']
         executor = loky.get_reusable_executor(max_workers=self.settings['handler_worker_pool_size'])
         report_task = executor.submit(
-            report_generator.build_report, base_url, form,
+            report_generator.build_report, base_url, form, language,
             executor_factory=functools.partial(
                 concurrent.futures.ThreadPoolExecutor,
                 self.settings['report_generation_parallelism'],

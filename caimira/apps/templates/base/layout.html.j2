@@ -70,7 +70,7 @@
             </script>
             {% endif %}
           </li>
-          <li class="nav-link pr-0"><a href="" class="pr-0 {{ "header-navbar nav-link active" if  not language or "en" == language else "header-navbar nav-link" }}" onclick="document.cookie = 'language=en;path=/;SameSite=Lax'">EN</a></li>
+          <li class="nav-link pr-0"><a href="" class="pr-0 {{ "header-navbar nav-link active" if "en" == language else "header-navbar nav-link" }}" onclick="document.cookie = 'language=en;path=/;SameSite=Lax'">EN</a></li>
           <li class="nav-link pl-0"><a href="" class=" {{ "header-navbar nav-link active" if "fr" == language else "header-navbar nav-link" }}" onclick="document.cookie = 'language=fr;path=/;SameSite=Lax'">FR</a></li>
         </ul>
       </div>
