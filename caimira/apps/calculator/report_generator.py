@@ -345,8 +345,8 @@ def comparison_report(
 class ReportGenerator:
     jinja_loader: jinja2.BaseLoader
     calculator_prefix: str
-    locale = tornado.locale.get()
-    _ = locale.translate
+    locale: typing.Any = tornado.locale.get()
+    _: typing.Any = locale.translate
 
     def set_locale(self, locale):
         self.locale = locale

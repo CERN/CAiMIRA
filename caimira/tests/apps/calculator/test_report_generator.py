@@ -21,7 +21,7 @@ def test_generate_report(baseline_form) -> None:
     start = time.perf_counter()
 
     generator: ReportGenerator = make_app().settings['report_generator']
-    report = generator.build_report("", baseline_form, partial(
+    report = generator.build_report("", baseline_form, "en", partial(
         concurrent.futures.ThreadPoolExecutor, 1,
     ))
     end = time.perf_counter()

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2022-07-06 16:04+0200\n"
+"POT-Creation-Date: 2022-07-06 16:38+0200\n"
 "PO-Revision-Date: 2022-06-16 09:53+0200\n"
 "Last-Translator: Luis Aleixo <luis.aleixo@cern.ch>\n"
 "Language: fr\n"
@@ -1224,6 +1224,10 @@ msgstr "Avertissement"
 #: templates/base/calculator.report.html.j2:7
 msgid "Report | CARA (COVID Airborne Risk Assessment)"
 msgstr "Report | CARA (COVID Airborne Risk Assessment)"
+
+#: templates/base/calculator.report.html.j2:30
+msgid "REPORT"
+msgstr "RAPPORT"
 
 #: templates/base/calculator.report.html.j2:31
 msgid "Created"
