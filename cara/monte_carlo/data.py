@@ -3,10 +3,10 @@ import typing
 
 import numpy as np
 from scipy import special as sp
+from scipy.stats import weibull_min
 
 import cara.monte_carlo as mc
-from cara.monte_carlo.sampleable import LogNormal,LogCustomKernel,CustomKernel,Uniform
-
+from cara.monte_carlo.sampleable import LogCustom, LogNormal,LogCustomKernel,CustomKernel,Uniform, Custom
 
 sqrt2pi = np.sqrt(2.*np.pi)
 sqrt2 = np.sqrt(2.)
@@ -25,7 +25,7 @@ class BLOmodel:
     vol. 42, no. 12, pp. 839 – 851, 2011,
     https://doi.org/10.1016/j.jaerosci.2011.07.009).
     """
-    #: factors assigned to resp. the B, L and O modes. They are
+    #: Factors assigned to resp. the B, L and O modes. They are
     # charateristics of the kind of expiratory activity (e.g. breathing,
     # speaking, singing, or shouting). These are applied on top of the
     # cn concentrations (see below), and depend on the kind of activity
@@ -36,11 +36,11 @@ class BLOmodel:
     # total concentration of aerosols for each mode.
     cn: typing.Tuple[float, float, float] = (0.06, 0.2, 0.0010008)
 
-    # mean of the underlying normal distributions (represents the log of a
+    # Mean of the underlying normal distributions (represents the log of a
     # diameter in microns), for resp. the B, L and O modes.
     mu: typing.Tuple[float, float, float] = (0.989541, 1.38629, 4.97673)
 
-    # std deviation of the underlying normal distribution, for resp.
+    # Std deviation of the underlying normal distribution, for resp.
     # the B, L and O modes.
     sigma: typing.Tuple[float, float, float] = (0.262364, 0.506818, 0.585005)
 
@@ -101,47 +101,61 @@ symptomatic_vl_frequencies = LogCustomKernel(
     kernel_bandwidth=0.1
 )
 
+
+# Weibull distribution with a shape factor of 3.47 and a scale factor of 7.01.
+# From https://elifesciences.org/articles/65774 and first line of the figure in
+# https://iiif.elifesciences.org/lax:65774%2Felife-65774-fig4-figsupp3-v2.tif/full/1500,/0/default.jpg
+viral_load = np.linspace(weibull_min.ppf(0.01, c=3.47, scale=7.01),
+                weibull_min.ppf(0.99, c=3.47, scale=7.01), 30)
+frequencies_pdf = weibull_min.pdf(viral_load, c=3.47, scale=7.01)
+covid_overal_vl_data = LogCustom(bounds=(2, 10), 
+                        function=lambda d: np.interp(d, viral_load, frequencies_pdf, left=0., right=0.), 
+                        max_function=0.2)
+
+
 # Derived from data in doi.org/10.1016/j.ijid.2020.09.025 and
 # https://iosh.com/media/8432/aerosol-infection-risk-hospital-patient-care-full-report.pdf (page 60)
 viable_to_RNA_ratio_distribution = Uniform(0.01, 0.6)
 
+
 # From discussion with virologists
 infectious_dose_distribution = Uniform(10., 100.)
+
 
 # From https://doi.org/10.1101/2021.10.14.21264988 and refererences therein
 virus_distributions = {
     'SARS_CoV_2': mc.SARSCoV2(
-                viral_load_in_sputum=symptomatic_vl_frequencies,
+                viral_load_in_sputum=covid_overal_vl_data,
                 infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
                 transmissibility_factor=1.,
                 ),
     'SARS_CoV_2_ALPHA': mc.SARSCoV2(
-                viral_load_in_sputum=symptomatic_vl_frequencies,
+                viral_load_in_sputum=covid_overal_vl_data,
                 infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
                 transmissibility_factor=0.78,
                 ),
     'SARS_CoV_2_BETA': mc.SARSCoV2(
-                viral_load_in_sputum=symptomatic_vl_frequencies,
+                viral_load_in_sputum=covid_overal_vl_data,
                 infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
                 transmissibility_factor=0.8,
                 ),
     'SARS_CoV_2_GAMMA': mc.SARSCoV2(
-                viral_load_in_sputum=symptomatic_vl_frequencies,
+                viral_load_in_sputum=covid_overal_vl_data,
                 infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
                 transmissibility_factor=0.72,
                 ),
     'SARS_CoV_2_DELTA': mc.SARSCoV2(
-                viral_load_in_sputum=symptomatic_vl_frequencies,
+                viral_load_in_sputum=covid_overal_vl_data,
                 infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
                 transmissibility_factor=0.51,
                 ),
     'SARS_CoV_2_OMICRON': mc.SARSCoV2(
-                viral_load_in_sputum=symptomatic_vl_frequencies,
+                viral_load_in_sputum=covid_overal_vl_data,
                 infectious_dose=infectious_dose_distribution,
                 viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
                 transmissibility_factor=0.2,
@@ -202,5 +216,9 @@ short_range_expiration_distributions = {
 }
 
 
-# Fit from Fig 8 a) "stand-stand" in https://www.mdpi.com/1660-4601/17/4/1445/htm
-short_range_distances = LogNormal(-0.269359136417347, 0.4728300188814934)
+# Derived from Fig 8 a) "stand-stand" in https://www.mdpi.com/1660-4601/17/4/1445/htm
+distances = np.array((0.5,0.6,0.7,0.8,0.9,1,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2))
+frequencies = np.array((0.0598036,0.0946154,0.1299152,0.1064905,0.1099066,0.0998209, 0.0845298,0.0479286,0.0406084,0.039795,0.0205997,0.0152316,0.0118155,0.0118155,0.018485,0.0205997))
+short_range_distances = Custom(bounds=(0.5,2.), 
+                            function=lambda x: np.interp(x,distances,frequencies,left=0.,right=0.),
+                            max_function=0.13)

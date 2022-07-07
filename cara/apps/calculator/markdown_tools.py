@@ -3,7 +3,6 @@ import re
 import jinja2
 import mistune
 
-
 HEADER_PATTERN = re.compile(r'\n(#+)(.*)')
 
 

@@ -109,7 +109,7 @@ def concentrations_with_sr_breathing(form: FormData, model: models.ExposureModel
     return lower_concentrations
 
 
-def calculate_report_data(form: FormData, model: models.ExposureModel):
+def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing.Dict[str, typing.Any]:
     times = interesting_times(model)
     short_range_intervals = [interaction.presence.boundaries()[0] for interaction in model.short_range]
     short_range_expirations = [interaction['expiration'] for interaction in form.short_range_interactions] if form.short_range_option == "short_range_yes" else []
@@ -136,6 +136,7 @@ def calculate_report_data(form: FormData, model: models.ExposureModel):
     expected_new_cases = np.array(model.expected_new_cases()).mean()
 
     return {
+        "model_repr": repr(model),
         "times": list(times),
         "exposed_presence_intervals": [list(interval) for interval in model.exposed.presence.boundaries()],
         "short_range_intervals": short_range_intervals,
@@ -227,12 +228,14 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
         FFP2_being_worn = bool(form.mask_wearing_option == 'mask_on' and form.mask_type == 'FFP2')
         if FFP2_being_worn and form.hepa_option:
             FFP2andHEPAalternative = dataclass_utils.replace(form, mask_type='Type I')
-            scenarios['Base scenario with HEPA filter and Type I masks'] = FFP2andHEPAalternative.build_mc_model()
+            if not (form.hepa_option and form.mask_wearing_option == 'mask_on' and form.mask_type == 'Type I'):
+                scenarios['Base scenario with HEPA filter and Type I masks'] = FFP2andHEPAalternative.build_mc_model()
         if not FFP2_being_worn and form.hepa_option:
             noHEPAalternative = dataclass_utils.replace(form, mask_type = 'FFP2')
             noHEPAalternative = dataclass_utils.replace(noHEPAalternative, mask_wearing_option = 'mask_on')
             noHEPAalternative = dataclass_utils.replace(noHEPAalternative, hepa_option=False)
-            scenarios['Base scenario without HEPA filter, with FFP2 masks'] = noHEPAalternative.build_mc_model()
+            if not (not form.hepa_option and FFP2_being_worn):
+                scenarios['Base scenario without HEPA filter, with FFP2 masks'] = noHEPAalternative.build_mc_model()
 
         # The remaining scenarios are based on Type I masks (possibly not worn)
         # and no HEPA filtration.
@@ -245,17 +248,26 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
 
         if form.ventilation_type == 'mechanical_ventilation':
             #scenarios['Mechanical ventilation with Type I masks'] = with_mask.build_mc_model()
-            scenarios['Mechanical ventilation without masks'] = without_mask.build_mc_model()
+            if not (form.mask_wearing_option == 'mask_off'):
+                scenarios['Mechanical ventilation without masks'] = without_mask.build_mc_model()
 
         elif form.ventilation_type == 'natural_ventilation':
             #scenarios['Windows open with Type I masks'] = with_mask.build_mc_model()
-            scenarios['Windows open without masks'] = without_mask.build_mc_model()
+            if not (form.mask_wearing_option == 'mask_off'):
+                scenarios['Windows open without masks'] = without_mask.build_mc_model()
 
         # No matter the ventilation scheme, we include scenarios which don't have any ventilation.
         with_mask_no_vent = dataclass_utils.replace(with_mask, ventilation_type='no_ventilation')
         without_mask_or_vent = dataclass_utils.replace(without_mask, ventilation_type='no_ventilation')
-        scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_mc_model()
-        scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_mc_model()
+
+        if not (form.mask_wearing_option == 'mask_on' and form.mask_type == 'Type I' and form.ventilation_type == 'no_ventilation'):
+            scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_mc_model()
+        if not (form.mask_wearing_option == 'mask_off' and form.ventilation_type == 'no_ventilation'):
+            scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_mc_model()
+    
+    else:
+        no_short_range_alternative = dataclass_utils.replace(form, short_range_interactions=[])
+        scenarios['Base scenario without short-range interactions'] = no_short_range_alternative.build_mc_model()
 
     return scenarios
 
@@ -274,11 +286,23 @@ def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[fl
 
 
 def comparison_report(
+        form: FormData,
+        report_data: typing.Dict[str, typing.Any],
         scenarios: typing.Dict[str, mc.ExposureModel],
         sample_times: typing.List[float],
         executor_factory: typing.Callable[[], concurrent.futures.Executor],
 ):
-    statistics = {}
+    if (form.short_range_option == "short_range_no"):
+        statistics = {
+            'Current scenario' : {
+                'probability_of_infection': report_data['prob_inf'],
+                'expected_new_cases': report_data['expected_new_cases'],
+                'concentrations': report_data['concentrations'],
+            }
+        }
+    else:
+        statistics = {}
+    
     with executor_factory() as executor:
         results = executor.map(
             scenario_statistics,
@@ -289,6 +313,7 @@ def comparison_report(
 
     for (name, model), model_stats in zip(scenarios.items(), results):
         statistics[name] = model_stats
+
     return {
         'stats': statistics,
     }
@@ -326,11 +351,11 @@ class ReportGenerator:
         }
 
         scenario_sample_times = interesting_times(model)
-
-        context.update(calculate_report_data(form, model))
+        report_data = calculate_report_data(form, model)
+        context.update(report_data)
         alternative_scenarios = manufacture_alternative_scenarios(form)
         context['alternative_scenarios'] = comparison_report(
-            alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
+            form, report_data, alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
         )
         context['permalink'] = generate_permalink(base_url, self.calculator_prefix, form)
         context['calculator_prefix'] = self.calculator_prefix

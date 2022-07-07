@@ -56,16 +56,6 @@ oneoverln2 = 1 / np.log(2)
 _VectorisedFloat = typing.Union[float, np.ndarray]
 _VectorisedInt = typing.Union[int, np.ndarray]
 
-
-@dataclass(frozen=True)
-class Room:
-    #: The total volume of the room
-    volume: _VectorisedFloat
-
-    #: The humidity in the room (from 0 to 1 - e.g. 0.5 is 50% humidity)
-    humidity: _VectorisedFloat = 0.5
-
-
 Time_t = typing.TypeVar('Time_t', float, int)
 BoundaryPair_t = typing.Tuple[Time_t, Time_t]
 BoundarySequence_t = typing.Union[typing.Tuple[BoundaryPair_t, ...], typing.Tuple]
@@ -139,7 +129,7 @@ class PeriodicInterval(Interval):
 @dataclass(frozen=True)
 class PiecewiseConstant:
 
-    # TODO: implement rather a periodic version (24-hour period), where
+    # TODO: Implement rather a periodic version (24-hour period), where
     # transition_times and values have the same length.
 
     #: transition times at which the function changes value (hours).
@@ -170,7 +160,7 @@ class PiecewiseConstant:
         return value
 
     def interval(self) -> Interval:
-        # build an Interval object
+        # Build an Interval object
         present_times = []
         for t1, t2, value in zip(self.transition_times[:-1],
                                  self.transition_times[1:], self.values):
@@ -179,7 +169,7 @@ class PiecewiseConstant:
         return SpecificInterval(present_times=tuple(present_times))
 
     def refine(self, refine_factor=10) -> "PiecewiseConstant":
-        # build a new PiecewiseConstant object with a refined mesh,
+        # Build a new PiecewiseConstant object with a refined mesh,
         # using a linear interpolation in-between the initial mesh points
         refined_times = np.linspace(self.transition_times[0], self.transition_times[-1],
                                     (len(self.transition_times)-1) * refine_factor+1)
@@ -196,6 +186,18 @@ class PiecewiseConstant:
 
 
 @dataclass(frozen=True)
+class Room:
+    #: The total volume of the room
+    volume: _VectorisedFloat
+
+    #: The temperature inside the room (Kelvin).
+    inside_temp: PiecewiseConstant = PiecewiseConstant((0, 24), (293,))
+
+    #: The humidity in the room (from 0 to 1 - e.g. 0.5 is 50% humidity)
+    humidity: _VectorisedFloat = 0.5
+
+
+@dataclass(frozen=True)
 class _VentilationBase:
     """
     Represents a mechanism by which air can be exchanged (replaced/filtered)
@@ -207,7 +209,7 @@ class _VentilationBase:
     mechanical air exchange through a filter.
 
     """
-    def transition_times(self) -> typing.Set[float]:
+    def transition_times(self, room: Room) -> typing.Set[float]:
         raise NotImplementedError("Subclass must implement")
 
     def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
@@ -228,7 +230,7 @@ class Ventilation(_VentilationBase):
     #: The interval in which the ventilation is active.
     active: Interval
 
-    def transition_times(self) -> typing.Set[float]:
+    def transition_times(self, room: Room) -> typing.Set[float]:
         return self.active.transition_times()
 
 
@@ -243,10 +245,10 @@ class MultipleVentilation(_VentilationBase):
     """
     ventilations: typing.Tuple[_VentilationBase, ...]
 
-    def transition_times(self) -> typing.Set[float]:
+    def transition_times(self, room: Room) -> typing.Set[float]:
         transitions = set()
         for ventilation in self.ventilations:
-            transitions.update(ventilation.transition_times())
+            transitions.update(ventilation.transition_times(room))
         return transitions
 
     def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
@@ -264,9 +266,6 @@ class MultipleVentilation(_VentilationBase):
 class WindowOpening(Ventilation):
     #: The interval in which the window is open.
     active: Interval
-
-    #: The temperature inside the room (Kelvin).
-    inside_temp: PiecewiseConstant
 
     #: The temperature outside of the window (Kelvin).
     outside_temp: PiecewiseConstant
@@ -292,9 +291,9 @@ class WindowOpening(Ventilation):
         """
         raise NotImplementedError("Unknown discharge coefficient")
 
-    def transition_times(self) -> typing.Set[float]:
-        transitions = super().transition_times()
-        transitions.update(self.inside_temp.transition_times)
+    def transition_times(self, room: Room) -> typing.Set[float]:
+        transitions = super().transition_times(room)
+        transitions.update(room.inside_temp.transition_times)
         transitions.update(self.outside_temp.transition_times)
         return transitions
 
@@ -304,7 +303,7 @@ class WindowOpening(Ventilation):
             return 0.
 
         # Reminder, no dependence on time in the resulting calculation.
-        inside_temp: _VectorisedFloat = self.inside_temp.value(time)
+        inside_temp: _VectorisedFloat = room.inside_temp.value(time)
         outside_temp: _VectorisedFloat = self.outside_temp.value(time)
 
         # The inside_temperature is forced to be always at least min_deltaT degree
@@ -439,28 +438,35 @@ class Virus:
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
 
-    def halflife(self, humidity: _VectorisedFloat) -> _VectorisedFloat:
+    def halflife(self, humidity: _VectorisedFloat, inside_temp: _VectorisedFloat) -> _VectorisedFloat:
         # Biological decay (inactivation of the virus in air) - virus 
         # dependent and function of humidity
         raise NotImplementedError
 
-    def decay_constant(self, humidity: _VectorisedFloat) -> _VectorisedFloat:
-        # Viral inactivation per hour (h^-1) (function of humidity)
-        return np.log(2) / self.halflife(humidity)
+    def decay_constant(self, humidity: _VectorisedFloat, inside_temp: _VectorisedFloat) -> _VectorisedFloat:
+        # Viral inactivation per hour (h^-1) (function of humidity and inside temperature)
+        return np.log(2) / self.halflife(humidity, inside_temp)
 
 
 @dataclass(frozen=True)
 class SARSCoV2(Virus):
 
-    def halflife(self, humidity: _VectorisedFloat) -> _VectorisedFloat:
+    def halflife(self, humidity: _VectorisedFloat, inside_temp: _VectorisedFloat) -> _VectorisedFloat:
         """
         Half-life changes with humidity level. Here is implemented a simple
         piecewise constant model (for more details see A. Henriques et al,
         CERN-OPEN-2021-004, DOI: 10.17181/CERN.1GDQ.5Y75)
         """
-        # Taken from Morris et al (https://doi.org/10.7554/eLife.65902) data at T = 22°C and RH = 40 %,
-        # and from Doremalen et al (https://www.nejm.org/doi/10.1056/NEJMc2004973).
-        return np.piecewise(humidity, [humidity <= 0.4, humidity > 0.4], [6.43, 1.1])
+        # Updated to use the formula from Dabish et al. with correction https://doi.org/10.1080/02786826.2020.1829536
+        # with a maximum at hl = 6.43 (compensate for the negative decay values in the paper). 
+        # Note that humidity is in percentage and inside_temp in °C.
+        # factor np.log(2) -> decay rate to half-life; factor 60 -> minutes to hours
+        hl_calc = ((np.log(2)/((0.16030 + 0.04018*(((inside_temp-273.15)-20.615)/10.585)
+                                       +0.02176*(((humidity*100)-45.235)/28.665)
+                                       -0.14369
+                                       -0.02636*((inside_temp-273.15)-20.615)/10.585)))/60)
+        
+        return np.where(hl_calc <= 0, 6.43, np.minimum(6.43, hl_calc))
         
 
 Virus.types = {
@@ -475,7 +481,7 @@ Virus.types = {
         transmissibility_factor=1.0,
     ),
     'SARS_CoV_2_ALPHA': SARSCoV2(
-        # also called VOC-202012/01
+        # Also called VOC-202012/01
         viral_load_in_sputum=1e9,
         infectious_dose=50.,
         viable_to_RNA_ratio = 0.5,
@@ -623,19 +629,19 @@ class _ExpirationBase:
     @property
     def particle(self) -> Particle:
         """
-        the Particle object representing the aerosol - here the default one
+        The Particle object representing the aerosol - here the default one
         """
         return Particle()
 
     def aerosols(self, mask: Mask):
         """
-        total volume of aerosols expired per volume of air (mL/cm^3).
+        Total volume of aerosols expired per volume of exhaled air (mL/cm^3).
         """
         raise NotImplementedError("Subclass must implement")
 
     def jet_origin_concentration(self):
         """
-        concentration of viruses at the jet origin (mL/m3).
+        Concentration of viruses at the jet origin (mL/m3).
         """
         raise NotImplementedError("Subclass must implement")
 
@@ -650,7 +656,7 @@ class Expiration(_ExpirationBase):
     #: diameter of the aerosol in microns
     diameter: _VectorisedFloat
 
-    #: total concentration of aerosols per unit volume of expired air
+    #: Total concentration of aerosols per unit volume of expired air
     # (in cm^-3), integrated over all aerosol diameters (corresponding
     # to c_n,i in Eq. (4) of https://doi.org/10.1101/2021.10.14.21264988)
     cn: float = 1.
@@ -658,17 +664,20 @@ class Expiration(_ExpirationBase):
     @property
     def particle(self) -> Particle:
         """
-        the Particle object representing the aerosol
+        The Particle object representing the aerosol
         """
         return Particle(diameter=self.diameter)
 
     @cached()
     def aerosols(self, mask: Mask):
-        """ Result is in mL.cm^-3 """
+        """ 
+        Total volume of aerosols expired per volume of exhaled air.
+        Result is in mL.cm^-3 
+        """
         def volume(d):
             return (np.pi * d**3) / 6.
 
-        # final result converted from microns^3/cm3 to mL/cm^3
+        # Final result converted from microns^3/cm3 to mL/cm^3
         return self.cn * (volume(self.diameter) *
                 (1 - mask.exhale_efficiency(self.diameter))) * 1e-12
 
@@ -677,7 +686,7 @@ class Expiration(_ExpirationBase):
         def volume(d):
             return (np.pi * d**3) / 6.
         
-        # final result converted from microns^3/cm3 to mL/m3
+        # Final result converted from microns^3/cm3 to mL/m3
         return self.cn * volume(self.diameter) * 1e-6
 
 
@@ -785,14 +794,15 @@ class _PopulationWithVirus(Population):
 
     def aerosols(self):
         """
-        total volume of aerosols expired per volume of air (mL/cm^3).
+        Total volume of aerosols expired per volume of exhaled air (mL/cm^3).
         """
         raise NotImplementedError("Subclass must implement")
 
     def emission_rate_per_aerosol_when_present(self) -> _VectorisedFloat:
         """
-        The emission rate of virions per fraction of aerosol volume in
-        the expired air, if the infected population is present, in cm^3/(mL.h).
+        The emission rate of virions in the expired air per mL of respiratory fluid, 
+        if the infected population is present, in (virion.cm^3)/(mL.h).
+        This method includes only the diameter-independent variables within the emission rate.
         It should not be a function of time.
         """
         raise NotImplementedError("Subclass must implement")
@@ -826,7 +836,7 @@ class _PopulationWithVirus(Population):
     @property
     def particle(self) -> Particle:
         """
-        the Particle object representing the aerosol expired by the
+        The Particle object representing the aerosol expired by the
         population - here we take the default Particle object
         """
         return Particle()
@@ -839,7 +849,7 @@ class EmittingPopulation(_PopulationWithVirus):
 
     def aerosols(self):
         """
-        total volume of aerosols expired per volume of air (mL/cm^3).
+        Total volume of aerosols expired per volume of exhaled air (mL/cm^3).
         Here arbitrarily set to 1 as the full emission rate is known.
         """
         return 1.
@@ -847,8 +857,9 @@ class EmittingPopulation(_PopulationWithVirus):
     @method_cache
     def emission_rate_per_aerosol_when_present(self) -> _VectorisedFloat:
         """
-        The emission rate of virions per fraction of aerosol volume in
-        the expired air, if the infected population is present, in cm^3/(mL.h).
+        The emission rate of virions in the expired air per mL of respiratory fluid, 
+        if the infected population is present, in (virion.cm^3)/(mL.h).
+        This method includes only the diameter-independent variables within the emission rate.
         It should not be a function of time.
         """
         return self.known_individual_emission_rate * self.number
@@ -868,18 +879,20 @@ class InfectedPopulation(_PopulationWithVirus):
 
     def aerosols(self):
         """
-        total volume of aerosols expired per volume of air (mL/cm^3).
+        Total volume of aerosols expired per volume of exhaled air (mL/cm^3).
         """
         return self.expiration.aerosols(self.mask)
 
     @method_cache
     def emission_rate_per_aerosol_when_present(self) -> _VectorisedFloat:
         """
-        The emission rate of virions per fraction of aerosol volume in
-        the expired air, if the infected population is present, in cm^3/(mL.h).
+        The emission rate of virions in the expired air per mL of respiratory fluid, 
+        if the infected population is present, in (virion.cm^3)/(mL.h).
+        This method includes only the diameter-independent variables within the emission rate.
         It should not be a function of time.
         """
         # Note on units: exhalation rate is in m^3/h -> 1e6 conversion factor
+        # Returns the emission rate times the number of infected hosts in the room
 
         ER = (self.virus.viral_load_in_sputum *
               self.activity.exhalation_rate *
@@ -890,7 +903,7 @@ class InfectedPopulation(_PopulationWithVirus):
     @property
     def particle(self) -> Particle:
         """
-        the Particle object representing the aerosol - here the default one
+        The Particle object representing the aerosol - here the default one
         """
         return self.expiration.particle
 
@@ -917,9 +930,8 @@ class ConcentrationModel:
         h = 1.5
         # Deposition rate (h^-1)
         k = (vg * 3600) / h
-
         return (
-            k + self.virus.decay_constant(self.room.humidity)
+            k + self.virus.decay_constant(self.room.humidity, self.room.inside_temp.value(time))
             + self.ventilation.air_exchange(self.room, time)
         )
 
@@ -950,7 +962,7 @@ class ConcentrationModel:
         """
         state_change_times = {0.}
         state_change_times.update(self.infected.presence.transition_times())
-        state_change_times.update(self.ventilation.transition_times())
+        state_change_times.update(self.ventilation.transition_times(self.room))
         return sorted(state_change_times)
 
     @method_cache
@@ -1089,6 +1101,7 @@ class ShortRangeModel:
     def dilution_factor(self) -> _VectorisedFloat:
         '''
         The dilution factor for the respective expiratory activity type.
+        Based on the two-stage (jet/puff) expiratory jet model by Jia et al (2022) - https://doi.org/10.1016/j.buildenv.2022.109166
         '''
         # Average mouth diameter
         D = 0.02
@@ -1151,6 +1164,7 @@ class ShortRangeModel:
                                 concentration_model.infected.particle.diameter, long_range_normed_concentration)
             
             # Short-range concentration formula. The long-range concentration is added in the concentration method (ExposureModel).
+            # based on continuum model proposed by Jia et al (2022) - https://doi.org/10.1016/j.buildenv.2022.109166
             return ((1/dilution)*(jet_origin_concentration - long_range_normed_concentration_interpolated))
         return 0.
 
@@ -1168,28 +1182,70 @@ class ShortRangeModel:
         # calculations for the same time (e.g. at state change times).
         return self._normed_concentration(concentration_model, time)
 
-    def normed_exposure_between_bounds(self, concentration_model: ConcentrationModel, time1: float, time2: float):
+    @method_cache
+    def extract_between_bounds(self, time1: float, time2: float) -> typing.Tuple[float,float]:
         """
-        Get the integrated short-range concentration of viruses in the air between the times start and stop,
-        normalized by the virus viral load.
+        Extract the bounds of the interval resulting from the
+        intersection of [time1, time2] and the presence interval.
+        If [time1, time2] has nothing common to the presence interval,
+        we return (0, 0).
+        Raise an error if time1 and time2 are not in ascending order.
         """
-        start_bound, stop_bound = self.presence.boundaries()[0]
-        
-        jet_origin = self.expiration.jet_origin_concentration()
-        dilution = self.dilution_factor()
+        if time1>time2:
+            raise ValueError("time1 must be less or equal to time2")
 
-        total_normed_concentration_diluted = (
-            concentration_model.integrated_concentration(start_bound,
-                stop_bound)/dilution/
-                concentration_model.virus.viral_load_in_sputum
+        start, stop = self.presence.boundaries()[0]
+        if (stop < time1) or (start > time2):
+            return (0, 0)
+        elif start <= time1 and time2<= stop:
+            return time1, time2
+        elif start <= time1 and stop < time2:
+            return time1, stop
+        elif time1 < start and time2 <= stop:
+            return start, time2
+        elif time1 <= start and stop < time2:
+            return start, stop
+
+    def _normed_jet_exposure_between_bounds(self,
+                    concentration_model: ConcentrationModel,
+                    time1: float, time2: float):
+        """
+        Get the part of the integrated short-range concentration of
+        viruses in the air, between the times start and stop, coming
+        from the jet concentration, normalized by the viral load, and
+        without dilution.
+        """
+        start, stop = self.extract_between_bounds(time1, time2)
+        jet_origin = self.expiration.jet_origin_concentration()
+        return jet_origin * (stop - start)
+
+    def _normed_interpolated_longrange_exposure_between_bounds(
+                    self, concentration_model: ConcentrationModel,
+                    time1: float, time2: float):
+        """
+        Get the part of the integrated short-range concentration due
+        to the background concentration, normalized by the viral load
+        and the breathing rate, and without dilution.
+        One needs to interpolate the integrated long-range concentration
+        for the particle diameters defined here.
+        TODO: make sure any potential extrapolation has a
+        negligible effect.
+        """
+        start, stop = self.extract_between_bounds(time1, time2)
+        if stop<=start:
+            return 0.
+
+        normed_int_concentration = (
+            concentration_model.integrated_concentration(start, stop)
+                /concentration_model.virus.viral_load_in_sputum
+                /concentration_model.infected.activity.exhalation_rate
                 )
-        total_normed_concentration_interpolated = np.interp(
+        normed_int_concentration_interpolated = np.interp(
                 self.expiration.particle.diameter,
                 concentration_model.infected.particle.diameter,
-                total_normed_concentration_diluted
+                normed_int_concentration
                 )
-        return (jet_origin/dilution * (stop_bound - start_bound)
-                ) - total_normed_concentration_interpolated
+        return normed_int_concentration_interpolated
 
 
 @dataclass(frozen=True)
@@ -1223,8 +1279,10 @@ class ExposureModel:
                     self.concentration_model.evaporation_factor)
 
     def _long_range_normed_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
-        """The number of virions per meter^3 between any two times, normalized 
-        by the emission rate of the infected population"""
+        """
+        The number of virions per meter^3 between any two times, normalized 
+        by the emission rate of the infected population
+        """
         exposure = 0.
         for start, stop in self.exposed.presence.boundaries():
             if stop < time1:
@@ -1264,19 +1322,19 @@ class ExposureModel:
         diameter = self.concentration_model.infected.particle.diameter
 
         if not np.isscalar(diameter) and diameter is not None:
-            # we compute first the mean of all diameter-dependent quantities
+            # We compute first the mean of all diameter-dependent quantities
             # to perform properly the Monte-Carlo integration over
             # particle diameters (doing things in another order would
-            # lead to wrong results).
+            # lead to wrong results for the probability of infection).
             dep_exposure_integrated = np.array(self._long_range_normed_exposure_between_bounds(time1, time2) *
                                                 aerosols *
                                                 fdep).mean()
         else:
-            # in the case of a single diameter or no diameter defined,
+            # In the case of a single diameter or no diameter defined,
             # one should not take any mean at this stage.
             dep_exposure_integrated = self._long_range_normed_exposure_between_bounds(time1, time2)*aerosols*fdep
 
-        # then we multiply by the diameter-independent quantity emission_rate_per_aerosol,
+        # Then we multiply by the diameter-independent quantity emission_rate_per_aerosol,
         # and parameters of the vD equation (i.e. BR_k and n_in).
         deposited_exposure += (dep_exposure_integrated * emission_rate_per_aerosol * 
                 self.exposed.activity.inhalation_rate * 
@@ -1297,47 +1355,46 @@ class ExposureModel:
         """
         deposited_exposure = 0.
         for interaction in self.short_range:
-            start, stop = interaction.presence.boundaries()[0]
-            if stop < time1:
-                continue
-            elif start > time2:
-                break
-            elif start <= time1 and time2<= stop:
-                start_bound, stop_bound = time1, time2
-            elif start <= time1 and stop < time2:
-                start_bound, stop_bound = time1, stop
-            elif time1 < start and time2 <= stop:
-                start_bound, stop_bound = start, time2
-            elif time1 <= start and stop < time2:
-                start_bound, stop_bound = start, stop
-            short_range_exposure = interaction.normed_exposure_between_bounds(self.concentration_model, start_bound, stop_bound)
+            start, stop = interaction.extract_between_bounds(time1, time2)
+            short_range_jet_exposure = interaction._normed_jet_exposure_between_bounds(
+                                        self.concentration_model, start, stop)
+            short_range_lr_exposure = interaction._normed_interpolated_longrange_exposure_between_bounds(
+                                        self.concentration_model, start, stop)
+            dilution = interaction.dilution_factor()
 
             fdep = interaction.expiration.particle.fraction_deposited(evaporation_factor=1.0)
             diameter = interaction.expiration.particle.diameter
             
-            # Aerosols not considered given the formula for the initial concentration at mouth/nose.
+            # Aerosols not considered given the formula for the initial
+            # concentration at mouth/nose.
             if diameter is not None and not np.isscalar(diameter):
-                # we compute first the mean of all diameter-dependent quantities
+                # We compute first the mean of all diameter-dependent quantities
                 # to perform properly the Monte-Carlo integration over
                 # particle diameters (doing things in another order would
-                # lead to wrong results).
-                deposited_exposure += np.array(short_range_exposure *
-                                                fdep).mean()
+                # lead to wrong results for the probability of infection).
+                this_deposited_exposure = (np.array(short_range_jet_exposure
+                    * fdep).mean()
+                    - np.array(short_range_lr_exposure * fdep).mean()
+                    * self.concentration_model.infected.activity.exhalation_rate)
             else:
-                # in the case of a single diameter or no diameter defined,
+                # In the case of a single diameter or no diameter defined,
                 # one should not take any mean at this stage.
-                deposited_exposure += short_range_exposure*fdep  
+                this_deposited_exposure = (short_range_jet_exposure * fdep
+                    - short_range_lr_exposure * fdep
+                    * self.concentration_model.infected.activity.exhalation_rate)
 
-            # multiply by the (diameter-independent) inhalation rate
-            deposited_exposure *= interaction.activity.inhalation_rate
+            # Multiply by the (diameter-independent) inhalation rate
+            deposited_exposure += (this_deposited_exposure *
+                                   interaction.activity.inhalation_rate
+                                   /dilution)
 
-        # then we multiply by diameter-independent quantities: viral load
+        # Then we multiply by diameter-independent quantities: viral load
         # and fraction of infected virions
         f_inf = self.concentration_model.infected.fraction_of_infectious_virus()
         deposited_exposure *= (f_inf
                 * self.concentration_model.virus.viral_load_in_sputum
-                )
-        # long-range concentration
+                * (1 - self.exposed.mask.inhale_efficiency()))
+        # Long-range concentration
         deposited_exposure += self.long_range_deposited_exposure_between_bounds(time1, time2)
 
         return deposited_exposure
@@ -1354,7 +1411,7 @@ class ExposureModel:
         return deposited_exposure * self.repeats
 
     def infection_probability(self) -> _VectorisedFloat:
-        # viral dose (vD)
+        # Viral dose (vD)
         vD = self.deposited_exposure()
 
         # oneoverln2 multiplied by ID_50 corresponds to ID_63.
@@ -1365,7 +1422,13 @@ class ExposureModel:
                 self.concentration_model.virus.transmissibility_factor)))) * 100
 
     def expected_new_cases(self) -> _VectorisedFloat:
-        prob = self.infection_probability()
+        # Create an equivalent exposure model without short-range interactions, if any.
+        if (len(self.short_range) == 0): 
+            exposure_model = nested_replace(self, {'short_range': ()})
+            prob = exposure_model.infection_probability()
+        else:
+            prob = self.infection_probability()
+            
         exposed_occupants = self.exposed.number
         return prob * exposed_occupants / 100
 

@@ -276,4 +276,3 @@ The final operation in the :meth:`cara.models.ExposureModel.deposited_exposure_b
 
 If short-range interactions exist: the long-range component is added to the already calculated short-range component (`deposited_exposure`), hence completing :math:`C_{\mathrm{SR}}`.
 If the are no short-range interactions: the short-range component (`deposited_exposure`) is zero, hence the result is equal soely to the long-range component :math:`C_{\mathrm{LR}}`.
-

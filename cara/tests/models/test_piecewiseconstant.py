@@ -6,12 +6,12 @@ from cara import data
 
 
 def test_piecewiseconstantfunction_wrongarguments():
-    # number of values should be 1+number of transition times
+    # Number of values should be 1+number of transition times
     pytest.raises(ValueError, models.PiecewiseConstant, (0, 1), (0, 0))
     pytest.raises(ValueError, models.PiecewiseConstant, (0,), (0, 0))
-    # two transition times cannot be equal
+    # Two transition times cannot be equal
     pytest.raises(ValueError, models.PiecewiseConstant, (0, 2, 2), (0, 0))
-    # unsorted transition times are not allowed
+    # Unsorted transition times are not allowed
     pytest.raises(ValueError, models.PiecewiseConstant, (2, 0), (0, 0))
 
     # If vectors, must all be same length.

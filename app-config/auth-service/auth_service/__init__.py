@@ -13,7 +13,6 @@ from keycloak.aio.realm import KeycloakRealm
 from tornado.web import Application, RequestHandler
 import tornado.log
 
-
 LOG = logging.getLogger(__name__)
 
 

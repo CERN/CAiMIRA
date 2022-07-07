@@ -16,12 +16,9 @@ from .. import calculator
 from cara.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions, short_range_distances
 from cara.monte_carlo.data import expiration_distribution, expiration_BLO_factors, expiration_distributions, short_range_expiration_distributions
 
-
 LOG = logging.getLogger(__name__)
 
-
 minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
-
 
 # Used to declare when an attribute of a class must have a value provided, and
 # there should be no default value used.
@@ -45,6 +42,7 @@ class FormData:
     floor_area: float
     hepa_amount: float
     hepa_option: bool
+    humidity: str
     infected_coffee_break_option: str               #Used if infected_dont_have_breaks_with_exposed
     infected_coffee_duration: int                   #Used if infected_dont_have_breaks_with_exposed
     infected_dont_have_breaks_with_exposed: bool
@@ -54,6 +52,7 @@ class FormData:
     infected_lunch_start: minutes_since_midnight    #Used if infected_dont_have_breaks_with_exposed
     infected_people: int
     infected_start: minutes_since_midnight
+    inside_temp: float
     location_name: str
     location_latitude: float
     location_longitude: float
@@ -100,6 +99,7 @@ class FormData:
         'floor_area': 0.,
         'hepa_amount': 0.,
         'hepa_option': False,
+        'humidity': '',
         'infected_coffee_break_option': 'coffee_break_0',
         'infected_coffee_duration': 5,
         'infected_dont_have_breaks_with_exposed': False,
@@ -109,6 +109,7 @@ class FormData:
         'infected_lunch_start': '12:30',
         'infected_people': _NO_DEFAULT,
         'infected_start': '08:30',
+        'inside_temp': 293.,
         'location_latitude': _NO_DEFAULT,
         'location_longitude': _NO_DEFAULT,
         'location_name': _NO_DEFAULT,
@@ -240,11 +241,14 @@ class FormData:
             volume = self.room_volume
         else:
             volume = self.floor_area * self.ceiling_height
-        if self.room_heating_option:
-            humidity = 0.3
+        if self.humidity == '':
+            if self.room_heating_option:
+                humidity = 0.3
+            else:
+                humidity = 0.5
         else:
-            humidity = 0.5
-        room = models.Room(volume=volume, humidity=humidity)
+            humidity = float(self.humidity)
+        room = models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (self.inside_temp,)), humidity=humidity)
 
         infected_population = self.infected_population()
         
@@ -324,18 +328,16 @@ class FormData:
         # Initializes a ventilation instance as a window if 'natural_ventilation' is selected, or as a HEPA-filter otherwise
         if self.ventilation_type == 'natural_ventilation':
             if self.window_opening_regime == 'windows_open_periodically':
-                window_interval = models.PeriodicInterval(self.windows_frequency, self.windows_duration, min(self.infected_start, self.exposed_start))
+                window_interval = models.PeriodicInterval(self.windows_frequency, self.windows_duration, min(self.infected_start, self.exposed_start)/60)
             else:
                 window_interval = always_on
 
             outside_temp = self.outside_temp()
-            inside_temp = models.PiecewiseConstant((0, 24), (293,))
 
             ventilation: models.Ventilation
             if self.window_type == 'window_sliding':
                 ventilation = models.SlidingWindow(
                     active=window_interval,
-                    inside_temp=inside_temp,
                     outside_temp=outside_temp,
                     window_height=self.window_height,
                     opening_length=self.opening_distance,
@@ -344,7 +346,6 @@ class FormData:
             elif self.window_type == 'window_hinged':
                 ventilation = models.HingedWindow(
                     active=window_interval,
-                    inside_temp=inside_temp,
                     outside_temp=outside_temp,
                     window_height=self.window_height,
                     window_width=self.window_width,
@@ -361,7 +362,7 @@ class FormData:
                 ventilation = models.HVACMechanical(
                     active=always_on, q_air_mech=self.air_supply)
 
-        # this is a minimal, always present source of ventilation, due
+        # This is a minimal, always present source of ventilation, due
         # to the air infiltration from the outside.
         # See CERN-OPEN-2021-004, p. 12.
         infiltration_ventilation = models.AirChange(active=always_on, air_exch=0.25)
@@ -579,8 +580,6 @@ class FormData:
 
         present_intervals = []
 
-        # def add_interval(start, end):
-
         current_time = start
         LOG.debug(f"starting time march at {_hours2timestring(current_time/60)} to {_hours2timestring(finish/60)}")
 
@@ -672,7 +671,7 @@ def build_expiration(expiration_definition) -> mc._ExpirationBase:
         return expiration_distribution(BLO_factors=tuple(BLO_factors))
 
 
-def baseline_raw_form_data():
+def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
     # Note: This isn't a special "baseline". It can be updated as required.
     return {
         'activity_type': 'office',
@@ -689,6 +688,7 @@ def baseline_raw_form_data():
         'floor_area': '',
         'hepa_amount': '250',
         'hepa_option': '0',
+        'humidity': '',
         'infected_coffee_break_option': 'coffee_break_4',
         'infected_coffee_duration': '10',
         'infected_dont_have_breaks_with_exposed': '1',
@@ -698,6 +698,7 @@ def baseline_raw_form_data():
         'infected_lunch_start': '12:30',
         'infected_people': '1',
         'infected_start': '09:00',
+        'inside_temp': 293.,
         'location_latitude': 46.20833,
         'location_longitude': 6.14275,
         'location_name': 'Geneva',

@@ -7,7 +7,6 @@ import cara.models
 import cara.monte_carlo.models as mc_models
 import cara.monte_carlo.sampleable
 
-
 MODEL_CLASSES = [
     cls for cls in vars(cara.models).values()
     if dataclasses.is_dataclass(cls)
@@ -40,10 +39,10 @@ def test_type_annotations():
 @pytest.fixture
 def baseline_mc_concentration_model() -> cara.monte_carlo.ConcentrationModel:
     mc_model = cara.monte_carlo.ConcentrationModel(
-        room=cara.monte_carlo.Room(volume=cara.monte_carlo.sampleable.Normal(75, 20)),
+        room=cara.monte_carlo.Room(volume=cara.monte_carlo.sampleable.Normal(75, 20), 
+                        inside_temp=cara.models.PiecewiseConstant((0., 24.), (293,))),
         ventilation=cara.monte_carlo.SlidingWindow(
             active=cara.models.PeriodicInterval(period=120, duration=120),
-            inside_temp=cara.models.PiecewiseConstant((0., 24.), (293,)),
             outside_temp=cara.models.PiecewiseConstant((0., 24.), (283,)),
             window_height=1.6, opening_length=0.6,
         ),

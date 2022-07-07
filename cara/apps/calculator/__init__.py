@@ -22,9 +22,8 @@ import tornado.log
 
 from . import markdown_tools
 from . import model_generator
-from .report_generator import ReportGenerator
+from .report_generator import ReportGenerator, calculate_report_data
 from .user import AuthenticatedUser, AnonymousUser
-
 
 # The calculator version is based on a combination of the model version and the
 # semantic version of the calculator itself. The version uses the terms
@@ -33,7 +32,7 @@ from .user import AuthenticatedUser, AnonymousUser
 # calculator version. If the calculator needs to make breaking changes (e.g. change
 # form attributes) then it can also increase its MAJOR version without needing to
 # increase the overall CARA version (found at ``cara.__version__``).
-__version__ = "4.1.1"
+__version__ = "4.2"
 
 
 class BaseRequestHandler(RequestHandler):
@@ -127,6 +126,44 @@ class ConcentrationModel(BaseRequestHandler):
         )
         report: str = await asyncio.wrap_future(report_task)
         self.finish(report)
+
+
+class ConcentrationModelJsonResponse(BaseRequestHandler):
+    def check_xsrf_cookie(self):
+        """
+        This request handler implements a stateless API that returns report data in JSON format.
+        Thus, XSRF cookies are disabled by overriding base class implementation of this method with a pass statement.
+        """
+        pass
+
+    async def post(self):
+        """
+        Expects algorithm input in HTTP POST request body in JSON format.
+        Returns report data (algorithm output) in HTTP POST response body in JSON format.
+        """
+        requested_model_config = json.loads(self.request.body)
+        if self.settings.get("debug", False):
+            from pprint import pprint
+            pprint(requested_model_config)
+
+        try:
+            form = model_generator.FormData.from_dict(requested_model_config)
+        except Exception as err:
+            if self.settings.get("debug", False):
+                import traceback
+                print(traceback.format_exc())
+            response_json = {'code': 400, 'error': f'Your request was invalid {html.escape(str(err))}'}
+            self.set_status(400)
+            await self.finish(json.dumps(response_json))
+            return
+
+        executor = loky.get_reusable_executor(
+            max_workers=self.settings['handler_worker_pool_size'],
+            timeout=300,
+        )
+        report_data_task = executor.submit(calculate_report_data, form, form.build_model())
+        report_data: dict = await asyncio.wrap_future(report_data_task)
+        await self.finish(report_data)
 
 
 class StaticModel(BaseRequestHandler):
@@ -226,6 +263,7 @@ def make_app(
         (r'/static/(.*)', StaticFileHandler, {'path': static_dir}),
         (calculator_prefix + r'/?', CalculatorForm),
         (calculator_prefix + r'/report', ConcentrationModel),
+        (calculator_prefix + r'/report-json', ConcentrationModelJsonResponse),
         (calculator_prefix + r'/baseline-model/result', StaticModel),
         (calculator_prefix + r'/user-guide', ReadmeHandler),
         (calculator_prefix + r'/static/(.*)', StaticFileHandler, {'path': calculator_static_dir}),

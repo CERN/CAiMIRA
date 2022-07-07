@@ -103,7 +103,7 @@ function draw_plot(svg_id) {
 
     sr_unique_activities = [...new Set(short_range_expirations)]
     if (show_sr_legend) {
-        // Long range cumulative dose line legend - line and area
+        // Long-range cumulative dose line legend - line and area
         var legendLongCumulativeIcon = vis.append('line')
             .style("stroke-dasharray", "5 5") //dashed array for line
             .attr('stroke-width', '2')
@@ -113,18 +113,18 @@ function draw_plot(svg_id) {
             .text('Long-range cumulative dose')
             .style('font-size', '15px')
             .attr('opacity', 0);
-        // Short range area icon
+        // Short-range area icon
         var legendShortRangeAreaIcon = {};
         sr_unique_activities.forEach((b, index) => {
         legendShortRangeAreaIcon[index] = vis.append('rect')
             .attr('width', 20)
             .attr('height', 15);
-        // Short range area icon colors
+        // Short-range area icon colors
         if (sr_unique_activities[index] == 'Breathing') legendShortRangeAreaIcon[index].attr('fill', 'red').attr('fill-opacity', '0.2');
         else if (sr_unique_activities[index] == 'Speaking') legendShortRangeAreaIcon[index].attr('fill', 'green').attr('fill-opacity', '0.1');
         else legendShortRangeAreaIcon[index].attr('fill', 'blue').attr('fill-opacity', '0.1');
         });
-        // Short range area text
+        // Short-range area text
         var legendShortRangeText = {};
         sr_unique_activities.forEach((b, index) => {
             legendShortRangeText[index] = vis.append('text')
@@ -432,9 +432,9 @@ function draw_plot(svg_id) {
             if (show_sr_legend) {
                 sr_unique_activities.forEach((b, index) => {
                     legendShortRangeAreaIcon[index].attr('x', legend_x_start)
-                        .attr('y', graph_height + 4 * size - 15/2);
+                        .attr('y', graph_height + (4 + index) * size - 15/2);
                     legendShortRangeText[index].attr('x', legend_x_start + space_between_text_icon)
-                        .attr('y', graph_height + 4 * size + text_height);
+                        .attr('y', graph_height + (4 + index) * size + text_height);
                 });
                 legendLongCumulativeIcon.attr("x1", legend_x_start)
                     .attr("x2", legend_x_start + 20)
@@ -541,7 +541,7 @@ function draw_plot(svg_id) {
 // Generate the alternative scenarios plot using d3 library.
 // 'alternative_scenarios' is a dictionary with all the alternative scenarios 
 // 'times' is a list of times for all the scenarios
-// The method is prepared to consider short range interactions if needed.
+// The method is prepared to consider short-range interactions if needed.
 function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_plot_svg_id) {
     // H:M format
     var time_format = d3.timeFormat('%H:%M');
@@ -605,8 +605,9 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
         .text('Mean concentration (virions/m³)');
 
     // Legend bounding box.
+    max_key_length = Math.max(...(Object.keys(data_for_scenarios).map(el => el.length)));
     var legendBBox = vis.append('rect')
-        .attr('width', 275)
+        .attr('width', 8.25 * max_key_length )
         .attr('height', 25 * (Object.keys(data_for_scenarios).length))
         .attr('stroke', 'lightgrey')
         .attr('stroke-width', '2')
@@ -690,7 +691,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
             highest_concentration = Math.max(highest_concentration, Math.max(...scenario_concentrations));
         }
 
-        yRange.domain([0., highest_concentration]);
+        yRange.domain([0., highest_concentration*1.1]);
         yAxisEl.transition().duration(1000).call(yAxis);
 
         for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
@@ -711,10 +712,10 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
         var div_height = document.getElementById(concentration_plot_svg_id).clientHeight;
         graph_width = div_width;
         graph_height = div_height
-        if (div_width >= 900) { // For screens with width > 900px legend can be on the graph's right side.
+        if (div_width >= 1200) { // For screens with width > 900px legend can be on the graph's right side.
             var margins = { top: 30, right: 20, bottom: 50, left: 60 };
-            div_width = 900;
-            graph_width = div_width * (2/3);
+            div_width = 1200;
+            graph_width = 600;
             const svg_margins = {'margin-left': '0rem'};
             Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
         }
