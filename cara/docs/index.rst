@@ -10,8 +10,8 @@ Welcome to CARA's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   cara
    full_diameter_dependence
+   cara
 
 
 Indices and tables

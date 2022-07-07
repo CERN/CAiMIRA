@@ -1,5 +1,5 @@
-cara package
-============
+CARA source code
+================
 
 Subpackages
 -----------
