@@ -2,6 +2,8 @@
 Diameter-dependent model
 *************************
 
+This section describes the model and the its dependence on the Particles diameter. An Unified Modeling Language (UML) diagram describing all the data classes and their relations can be found :ref:`here<cara-uml-diagram>`, at the bottom of the document.  
+
 Context
 =======
 
@@ -276,3 +278,17 @@ The final operation in the :meth:`cara.models.ExposureModel.deposited_exposure_b
 
 If short-range interactions exist: the long-range component is added to the already calculated short-range component (`deposited_exposure`), hence completing :math:`C_{\mathrm{SR}}`.
 If the are no short-range interactions: the short-range component (`deposited_exposure`) is zero, hence the result is equal soely to the long-range component :math:`C_{\mathrm{LR}}`.
+
+
+.. _cara-uml-diagram:
+
+CARA UML Diagram
+================
+
+The following diagram describes all the data classes and their relations under the `models.py` file. Click the diagram to zoom-in.
+
+.. figure:: ./UML-CARA.png
+   :scale: 20 %
+   :align: center
+
+   CARA `models.py` file UML diagram.
