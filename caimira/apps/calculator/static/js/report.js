@@ -43,7 +43,7 @@ function draw_plot(svg_id) {
         .attr('class', 'x label')
         .attr('fill', 'black')
         .attr('text-anchor', 'middle')
-        .text('Time of day')
+        .text(language == 'en' ? 'Time of day' : 'Heure de la journée');
 
     // Y axis declaration.
     var yAxisEl = vis.append('svg:g')
@@ -54,7 +54,7 @@ function draw_plot(svg_id) {
         .attr('class', 'y label')
         .attr('fill', 'black')
         .attr('text-anchor', 'middle')
-        .text('Mean concentration (virions/m³)');
+        .text(language == 'en' ? 'Mean concentration (virions/m³)' : 'Concentration moyenne (virions/m³)');
 
     // Y cumulative concentration axis declaration.
     var yAxisCumEl = vis.append('svg:g')
@@ -66,7 +66,7 @@ function draw_plot(svg_id) {
         .attr('class', 'y label')
         .attr('fill', 'black')
         .attr('text-anchor', 'middle')
-        .text('Mean cumulative dose (infectious virus)');
+        .text(language == 'en' ? 'Mean cumulative dose (infectious virus)' : 'Dose cumulée moyenne (virus infectieux)');
 
     // Legend for the plot elements - line and area.
     
@@ -77,7 +77,7 @@ function draw_plot(svg_id) {
         .style('fill', '#1f77b4');
     // Concentration line text
     var legendLineText = vis.append('text')
-        .text('Mean concentration')
+        .text(language == 'en' ? 'Mean concentration' : 'Concentration moyenne')
         .style('font-size', '15px');
 
     // Cumulative dose line icon
@@ -87,7 +87,7 @@ function draw_plot(svg_id) {
         .style("stroke", '#1f77b4');
     // Cumulative dose line text
     var legendCumutiveText = vis.append('text')
-        .text('Cumulative dose')
+        .text(language == 'en' ? 'Cumulative dose' : 'Dose cumulée')
         .style('font-size', '15px');
 
     //  Area line icon
@@ -98,7 +98,7 @@ function draw_plot(svg_id) {
         .attr('fill-opacity', '0.1');
     //  Area line text
     var legendAreaText = vis.append('text')
-        .text('Presence of exposed person(s)')
+        .text(language == 'en' ? 'Presence of exposed person(s)' : 'Personne(s) exposée(s)')
         .style('font-size', '15px');
 
     sr_unique_activities = [...new Set(short_range_expirations)]
@@ -591,7 +591,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
         .attr('class', 'x label')
         .attr('fill', 'black')
         .attr('text-anchor', 'middle')
-        .text('Time of day');
+        .text(language == 'en' ? 'Time of day': 'Heure de la journée');
 
     // Y axis declaration.
     var yAxisEl = vis.append('svg:g')
@@ -602,7 +602,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
         .attr('class', 'y label')
         .attr('fill', 'black')
         .attr('text-anchor', 'middle')
-        .text('Mean concentration (virions/m³)');
+        .text(language == 'en' ? 'Mean concentration (virions/m³)' : 'Concentration moyenne (virions/m³)');
 
     // Legend bounding box.
     max_key_length = Math.max(...(Object.keys(data_for_scenarios).map(el => el.length)));

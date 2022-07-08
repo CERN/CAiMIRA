@@ -231,7 +231,7 @@ def non_zero_percentage(percentage: int) -> str:
         return "{:0.1f}%".format(percentage)
 
 
-def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.ExposureModel]:
+def manufacture_alternative_scenarios(form: FormData, language: str) -> typing.Dict[str, mc.ExposureModel]:
     scenarios = {}
     if (form.short_range_option == "short_range_no"):
         # Two special option cases - HEPA and/or FFP2 masks.
@@ -239,13 +239,15 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
         if FFP2_being_worn and form.hepa_option:
             FFP2andHEPAalternative = dataclass_utils.replace(form, mask_type='Type I')
             if not (form.hepa_option and form.mask_wearing_option == 'mask_on' and form.mask_type == 'Type I'):
-                scenarios['Base scenario with HEPA filter and Type I masks'] = FFP2andHEPAalternative.build_mc_model()
+                scenario_key = 'Base scenario with HEPA filter and Type I masks' if language == 'en' else 'Scénario de base avec filtre HEPA et masques de type I'
+                scenarios[scenario_key] = FFP2andHEPAalternative.build_mc_model()
         if not FFP2_being_worn and form.hepa_option:
             noHEPAalternative = dataclass_utils.replace(form, mask_type = 'FFP2')
             noHEPAalternative = dataclass_utils.replace(noHEPAalternative, mask_wearing_option = 'mask_on')
             noHEPAalternative = dataclass_utils.replace(noHEPAalternative, hepa_option=False)
             if not (not form.hepa_option and FFP2_being_worn):
-                scenarios['Base scenario without HEPA filter, with FFP2 masks'] = noHEPAalternative.build_mc_model()
+                scenario_key = 'Base scenario without HEPA filter, with FFP2 masks' if language == 'en' else 'Scénario de base sans filtre HEPA, avec masques FFP2'
+                scenarios[scenario_key] = noHEPAalternative.build_mc_model()
 
         # The remaining scenarios are based on Type I masks (possibly not worn)
         # and no HEPA filtration.
@@ -259,21 +261,25 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
         if form.ventilation_type == 'mechanical_ventilation':
             #scenarios['Mechanical ventilation with Type I masks'] = with_mask.build_mc_model()
             if not (form.mask_wearing_option == 'mask_off'):
-                scenarios['Mechanical ventilation without masks'] = without_mask.build_mc_model()
+                scenario_key = 'Mechanical ventilation without masks' if language == 'en' else 'Ventilation mécanique sans masque'
+                scenarios[scenario_key] = without_mask.build_mc_model()
 
         elif form.ventilation_type == 'natural_ventilation':
             #scenarios['Windows open with Type I masks'] = with_mask.build_mc_model()
             if not (form.mask_wearing_option == 'mask_off'):
-                scenarios['Windows open without masks'] = without_mask.build_mc_model()
+                scenario_key = 'Windows open without masks' if language == 'en' else 'Fenêtres ouvertes sans masques'
+                scenarios[scenario_key] = without_mask.build_mc_model()
 
         # No matter the ventilation scheme, we include scenarios which don't have any ventilation.
         with_mask_no_vent = dataclass_utils.replace(with_mask, ventilation_type='no_ventilation')
         without_mask_or_vent = dataclass_utils.replace(without_mask, ventilation_type='no_ventilation')
 
         if not (form.mask_wearing_option == 'mask_on' and form.mask_type == 'Type I' and form.ventilation_type == 'no_ventilation'):
-            scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_mc_model()
+            scenario_key = 'No ventilation with Type I masks' if language == 'en' else 'Pas de ventilation avec les masques de type I'
+            scenarios[scenario_key] = with_mask_no_vent.build_mc_model()
         if not (form.mask_wearing_option == 'mask_off' and form.ventilation_type == 'no_ventilation'):
-            scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_mc_model()
+            scenario_key = 'Neither ventilation nor masks' if language == 'en' else 'Ni ventilation ni masques'
+            scenarios[scenario_key] = without_mask_or_vent.build_mc_model()
     
     else:
         no_short_range_alternative = dataclass_utils.replace(form, short_range_interactions=[])
@@ -303,14 +309,16 @@ def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[fl
 
 def comparison_report(
         form: FormData,
+        language: str,
         report_data: typing.Dict[str, typing.Any],
         scenarios: typing.Dict[str, mc.ExposureModel],
         sample_times: typing.List[float],
         executor_factory: typing.Callable[[], concurrent.futures.Executor],
 ):
     if (form.short_range_option == "short_range_no"):
+        current_scenario_key = 'Current scenario' if language == 'en' else 'Scénario actuel'
         statistics = {
-            'Current scenario' : {
+            current_scenario_key : {
                 'probability_of_infection': report_data['prob_inf'],
                 'expected_new_cases': report_data['expected_new_cases'],
                 'concentrations': report_data['concentrations'],
@@ -384,9 +392,9 @@ class ReportGenerator:
         scenario_sample_times = interesting_times(model)
         report_data = calculate_report_data(form, model)
         context.update(report_data)
-        alternative_scenarios = manufacture_alternative_scenarios(form)
+        alternative_scenarios = manufacture_alternative_scenarios(form, language)
         context['alternative_scenarios'] = comparison_report(
-            form, report_data, alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
+            form, language, report_data, alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
         )
         context['permalink'] = generate_permalink(base_url, self.calculator_prefix, form)
         context['calculator_prefix'] = self.calculator_prefix
