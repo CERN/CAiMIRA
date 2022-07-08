@@ -1158,34 +1158,36 @@ $(document).ready(function () {
   }
 
   function inject_sr_interaction(index, value, is_validated) {
+    let language = document.getElementById('website-language').textContent;
+    
     return `<div class="col-md-12 form_field_outer p-0">
       <div class="form_field_outer_row ${is_validated} split">
 
           <div class='form-group row'>
             <div class="col-sm-4"><label class="col-form-label col-form-label-sm"> Expiration: </label><br></div>
             <div class="col-sm-8"><select id="sr_expiration_no_${index}" name="short_range_expiration" class="form-control form-control-sm" onchange="validate_sr_parameter(this)" form="not-submitted">
-              <option value="" selected disabled>Select type</option>
-              <option value="Breathing">Breathing</option>
-              <option value="Speaking">Speaking</option>
-              <option value="Shouting">Shouting/Singing</option>
+              <option value="" selected disabled>${language == 'en' ? 'Select type' : 'Sélectionner le type'}</option>
+              <option value="Breathing">${language == 'en' ? 'Breathing' : 'Respiration'}</option>
+              <option value="Speaking">${language == 'en' ? 'Speaking' : 'Parlant'}</option>
+              <option value="Shouting">${language == 'en' ? 'Shouting' : 'En criant'}</option>
             </select><br>
             </div>
           </div>
             
           <div class='form-group row'>
-            <div class="col-sm-4"><label class="col-form-label col-form-label-sm"> Start: </label></div>
+            <div class="col-sm-4"><label class="col-form-label col-form-label-sm">${language == 'en' ? 'Start' : 'Début'}:</label></div>
             <div class="col-sm-8"><input type="time" class="form-control form-control-sm short_range_option" name="short_range_start_time" id="sr_start_no_${index}" value="${value.start_time}" onchange="validate_sr_time(this)" form="not-submitted"><br></div>
           </div>
         
           <div class='form-group row'>
-            <div class="col-sm-6"><label class="col-form-label col-form-label-sm"> Duration (min):</label></div>
-            <div class="col-sm-6"><input type="number" id="sr_duration_no_${index}" value="${value.duration}" class="form-control form-control-sm short_range_option" name="short_range_duration" min=1 placeholder="Minutes" onchange="validate_sr_time(this)" form="not-submitted"><br></div>
+            <div class="col-sm-4"><label class="col-form-label col-form-label-sm">${language == 'en' ? 'Duration' : 'Durée'}:</label></div>
+            <div class="col-sm-8"><input type="number" id="sr_duration_no_${index}" value="${value.duration}" class="form-control form-control-sm short_range_option" name="short_range_duration" min=1 placeholder="Minutes" onchange="validate_sr_time(this)" form="not-submitted"><br></div>
           </div>
 
-          <div class="form-group" style="max-width: 8rem">
-            <button type="button" id="edit_row_no_${index}" class="edit_node_btn_frm_field btn btn-success btn-sm d-none">Edit</button>
-            <button type="button" id="validate_row_no_${index}" class="validate_node_btn_frm_field btn btn-success btn-sm">Save</button>
-            <button type="button" class="remove_node_btn_frm_field btn btn-danger btn-sm">Delete</button>
+          <div class="form-group" style="max-width: 12rem">
+            <button type="button" id="edit_row_no_${index}" class="edit_node_btn_frm_field btn btn-success btn-sm d-none">${language == 'en' ? 'Edit' : 'Éditer'}</button>
+            <button type="button" id="validate_row_no_${index}" class="validate_node_btn_frm_field btn btn-success btn-sm">${language == 'en' ? 'Save' : 'Sauvegarder'}</button>
+            <button type="button" class="remove_node_btn_frm_field btn btn-danger btn-sm">${language == 'en' ? 'Delete' : 'Effacer'}</button>
           </div>
         </div>
     </div>`
