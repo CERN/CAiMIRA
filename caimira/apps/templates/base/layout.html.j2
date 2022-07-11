@@ -26,8 +26,9 @@
 <body>
 
   <nav class="navbar navbar-dark navbar-expand-lg">
-    <div class="container">
-
+    {% if active_page != 'calculator/report' %} <div class="container">
+    {% else %} <div class="w-100 d-flex justify-content-between pl-2">
+    {% endif %}
       <a href="/" class="navbar-brand"><img src="/static/images/caimira_logo_white_text.png" alt="Logo" title="Logo"></a>
       
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">

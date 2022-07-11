@@ -1,5 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "layout.html.j2" %}
+{% set active_page="calculator/report" %}
+
+{% block main %}
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0">
@@ -14,7 +16,7 @@
 
 </head>
 
-<body id="body">
+<body id="body" class="p-0">
 
 <!-- MODEL REPR - Available in the developer tools once the report is generated. Useful to re-create the model using an interpreter that has CAiMIRA installed:
 
@@ -40,8 +42,8 @@
 
 {% endblock report_header %}
 
-<div class="tabs-div">
-	<ul class="nav nav-tabs" role="tablist" style="margin: 0.5% 0% 0% 1%">
+<div class="tabs-div mt-0">
+	<ul class="nav nav-tabs" role="tablist" style="margin: 0% 0% 0% 1%">
 		<li class="nav-item">
 			<a class="nav-link active" id="results-tab" data-toggle="tab" href="#results" role="tab" aria-controls="results" aria-selected="true">{{_("Results")}}</a>
 		</li>
@@ -643,5 +645,4 @@
     });
 </script>
 
-</body>
-</html>
+{% endblock main %}

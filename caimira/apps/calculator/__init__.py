@@ -41,10 +41,13 @@ __version__ = "4.6"
 
 class BaseRequestHandler(RequestHandler):
     async def prepare(self):
-        template_environment = self.settings["template_environment"]
-        selected_language = self.get_cookie('language')
-        template_environment.globals['_']=tornado.locale.get(selected_language).translate
         """Called at the beginning of a request before  `get`/`post`/etc."""
+        
+        language_cookie = self.get_cookie('language') or 'null'
+        language = 'en' if language_cookie == 'null' else language_cookie
+
+        template_environment = self.settings["template_environment"]
+        template_environment.globals['_']=tornado.locale.get(language).translate
 
         # Read the secure cookie which exists if we are in an authenticated
         # context (though not if the caimira webservice is running standalone).
@@ -60,6 +63,9 @@ class BaseRequestHandler(RequestHandler):
             self.current_user = AnonymousUser()
 
     def write_error(self, status_code: int, **kwargs) -> None:
+        language_cookie = self.get_cookie('language') or 'null'
+        language = 'en' if language_cookie == 'null' else language_cookie
+
         template = self.settings["template_environment"].get_template(
             "page.html.j2")
 
@@ -76,7 +82,7 @@ class BaseRequestHandler(RequestHandler):
             print(f"ERROR UUID {error_id}")
             print(traceback.format_exc())
         self.finish(template.render(
-            language=self.get_cookie('language'),
+            language=language,
             user=self.current_user,
             calculator_prefix=self.settings["calculator_prefix"],
             active_page='Error',
@@ -88,10 +94,13 @@ class Missing404Handler(BaseRequestHandler):
     async def prepare(self):
         await super().prepare()
         self.set_status(404)
+
+        language_cookie = self.get_cookie('language') or 'null'
+        language = 'en' if language_cookie == 'null' else language_cookie
         template = self.settings["template_environment"].get_template(
             "page.html.j2")
         self.finish(template.render(
-            language=self.get_cookie('language'),
+            language=language,
             user=self.current_user,
             calculator_prefix=self.settings["calculator_prefix"],
             active_page='Error',
@@ -101,18 +110,14 @@ class Missing404Handler(BaseRequestHandler):
 
 class ConcentrationModel(BaseRequestHandler):
     async def post(self) -> None:
-        language = self.get_cookie('language') or 'null'
+        language_cookie = self.get_cookie('language') or 'null'
+        language = 'en' if language_cookie == 'null' else language_cookie
+
+        _ = tornado.locale.get(language).translate
+        locale_code = tornado.locale.get(language)    
         template_environment = self.settings["template_environment"]
-        if language == "null" : 
-            template_environment = self.settings["template_environment"]
-            template_environment.globals['_']=tornado.locale.get('en').translate
-            _ = tornado.locale.get('en').translate
-            locale_code = tornado.locale.get(language)    
-        else :
-            template_environment = self.settings["template_environment"]
-            template_environment.globals['_']=tornado.locale.get(language).translate
-            _ = tornado.locale.get(language ).translate
-            locale_code = tornado.locale.get(language)    
+        template_environment.globals['_']=tornado.locale.get(language).translate
+
         requested_model_config = {
             name: self.get_argument(name) for name in self.request.arguments
         }
@@ -140,7 +145,7 @@ class ConcentrationModel(BaseRequestHandler):
             timeout=300,
         )
         report_task = executor.submit(
-            report_generator.build_report, base_url, form, language,
+            report_generator.build_report, base_url, form, language, self.current_user,
             executor_factory=functools.partial(
                 concurrent.futures.ThreadPoolExecutor,
                 self.settings['report_generation_parallelism'],
@@ -190,20 +195,18 @@ class ConcentrationModelJsonResponse(BaseRequestHandler):
 
 class StaticModel(BaseRequestHandler):
     async def get(self) -> None:
-        language = self.get_cookie('language') or 'null'
+        language_cookie = self.get_cookie('language') or 'null'
+        language = 'en' if language_cookie == 'null' else language_cookie
         template_environment = self.settings["template_environment"]
-        if language == "null" : 
-            template_environment.globals['_']=tornado.locale.get('en').translate
-            _ = tornado.locale.get('en').translate
-        else :
-            template_environment.globals['_']=tornado.locale.get(language).translate
-            _ = tornado.locale.get(language ).translate
+        template_environment.globals['_']=tornado.locale.get(language).translate
+        _ = tornado.locale.get(language).translate
+
         form = model_generator.FormData.from_dict(model_generator.baseline_raw_form_data())
         base_url = self.request.protocol + "://" + self.request.host
         report_generator: ReportGenerator = self.settings['report_generator']
         executor = loky.get_reusable_executor(max_workers=self.settings['handler_worker_pool_size'])
         report_task = executor.submit(
-            report_generator.build_report, base_url, form, language,
+            report_generator.build_report, base_url, form, language, self.current_user,
             executor_factory=functools.partial(
                 concurrent.futures.ThreadPoolExecutor,
                 self.settings['report_generation_parallelism'],
@@ -215,11 +218,13 @@ class StaticModel(BaseRequestHandler):
 
 class LandingPage(BaseRequestHandler):
     def get(self):
+        language_cookie = self.get_cookie('language') or 'null'
+        language = 'en' if language_cookie == 'null' else language_cookie
         template_environment = self.settings["template_environment"]
         template = template_environment.get_template(
             "index.html.j2")
         report = template.render(
-            language=self.get_cookie('language'),
+            language=language,
             user=self.current_user,
             calculator_prefix=self.settings["calculator_prefix"],
             text_blocks=markdown_tools.extract_rendered_markdown_blocks(template_environment.get_template('common_text.md.j2')),
@@ -229,10 +234,12 @@ class LandingPage(BaseRequestHandler):
 
 class AboutPage(BaseRequestHandler):
     def get(self):
+        language_cookie = self.get_cookie('language') or 'null'
+        language = 'en' if language_cookie == 'null' else language_cookie
         template_environment = self.settings["template_environment"]
         template = template_environment.get_template("about.html.j2")
         report = template.render(
-            language=self.get_cookie('language'),
+            language=language,
             user=self.current_user,
             calculator_prefix=self.settings["calculator_prefix"],
             active_page="about",
@@ -243,11 +250,13 @@ class AboutPage(BaseRequestHandler):
 
 class CalculatorForm(BaseRequestHandler):
     def get(self):
+        language_cookie = self.get_cookie('language') or 'null'
+        language = 'en' if language_cookie == 'null' else language_cookie
         template_environment = self.settings["template_environment"]
         template = template_environment.get_template(
             "calculator.form.html.j2")
         report = template.render(
-            language=self.get_cookie('language'),
+            language=language,
             user=self.current_user,
             xsrf_form_html=self.xsrf_form_html(),
             calculator_prefix=self.settings["calculator_prefix"],
@@ -276,10 +285,12 @@ class CompressedCalculatorFormInputs(BaseRequestHandler):
 
 class ReadmeHandler(BaseRequestHandler):
     def get(self):
+        language_cookie = self.get_cookie('language') or 'null'
+        language = 'en' if language_cookie == 'null' else language_cookie
         template_environment = self.settings["template_environment"]
         template = template_environment.get_template("userguide.html.j2")
         readme = template.render(
-            language=self.get_cookie('language'),
+            language=language,
             active_page="calculator/user-guide",
             user=self.current_user,
             calculator_prefix=self.settings["calculator_prefix"],
