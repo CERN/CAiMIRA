@@ -145,7 +145,7 @@ class ConcentrationModel(BaseRequestHandler):
             timeout=300,
         )
         report_task = executor.submit(
-            report_generator.build_report, base_url, form, language, self.current_user,
+            report_generator.build_report, base_url, form, language,
             executor_factory=functools.partial(
                 concurrent.futures.ThreadPoolExecutor,
                 self.settings['report_generation_parallelism'],
@@ -206,7 +206,7 @@ class StaticModel(BaseRequestHandler):
         report_generator: ReportGenerator = self.settings['report_generator']
         executor = loky.get_reusable_executor(max_workers=self.settings['handler_worker_pool_size'])
         report_task = executor.submit(
-            report_generator.build_report, base_url, form, language, self.current_user,
+            report_generator.build_report, base_url, form, language,
             executor_factory=functools.partial(
                 concurrent.futures.ThreadPoolExecutor,
                 self.settings['report_generation_parallelism'],
