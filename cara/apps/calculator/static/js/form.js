@@ -267,13 +267,6 @@ function populate_temp_hum_values(data, index) {
   $("[name='humidity']").val(data[index].Details.RH/100);
 };
 
-function clear_sensors_data() {
-  $("#sensor_temperature").text();
-  $("#sensor_humidity").text();
-  $("[name='inside_temp']").val();
-  $("[name='humidity']").val();
-}
-
 //Data from ARVE sensors
 var DATA_FROM_SENSORS;
 function show_sensors_data(url) {
@@ -321,7 +314,6 @@ function on_use_sensors_data_change(url) {
     }
     else {
       getChildElement($(this)).hide();
-      clear_sensors_data();
     }
   })
 }
@@ -430,6 +422,11 @@ function validate_form(form) {
         }
       }
     });
+  }
+
+  // Logic for the API requests. Always set humity input as the empty string so that we can profit from the "room_heating_option default" values for humidity.
+  if ($("#arve_sensor_no").prop('checked')) {
+    $("[name='humidity']").val('');
   }
 
   // Validate location input.
@@ -775,11 +772,13 @@ $(document).ready(function () {
   //Check all radio buttons previously selected
   $("input[type=radio]:checked").each(function() {require_fields(this)});
 
-  // When the arve_sensors_option changes we want to make its respective
+  // On CERN theme, When the arve_sensors_option changes we want to make its respective
   // children show/hide.
-  $("input[type=radio][name=arve_sensors_option]").change(on_use_sensors_data_change);
-  // Call the function now to handle forward/back button presses in the browser.
-  on_use_sensors_data_change(url);
+  if ($("input[type=radio][name=arve_sensors_option]").length > 0) {
+    $("input[type=radio][name=arve_sensors_option]").change(on_use_sensors_data_change);
+    // Call the function now to handle forward/back button presses in the browser.
+    on_use_sensors_data_change(url);
+  }
 
   // When the ventilation_type changes we want to make its respective
   // children show/hide.
@@ -858,9 +857,6 @@ $(document).ready(function () {
     templateResult: formatlocation,
     templateSelection: formatLocationSelection
   });
-
-  // Logic for the API requests. Always set humity input as the empty string so that we can profit from the "room_heating_option default" values for humidity.
-  $("[name='humidity']").val("");
 
   function formatlocation(suggestedLocation) {
     // Function is called for each location from the geocoding API.

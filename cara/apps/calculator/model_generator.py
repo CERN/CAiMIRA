@@ -43,7 +43,7 @@ class FormData:
     floor_area: float
     hepa_amount: float
     hepa_option: bool
-    humidity: float
+    humidity: str
     infected_coffee_break_option: str               #Used if infected_dont_have_breaks_with_exposed
     infected_coffee_duration: int                   #Used if infected_dont_have_breaks_with_exposed
     infected_dont_have_breaks_with_exposed: bool
@@ -102,7 +102,7 @@ class FormData:
         'floor_area': 0.,
         'hepa_amount': 0.,
         'hepa_option': False,
-        'humidity': _NO_DEFAULT,
+        'humidity': '',
         'infected_coffee_break_option': 'coffee_break_0',
         'infected_coffee_duration': 5,
         'infected_dont_have_breaks_with_exposed': False,
@@ -253,7 +253,7 @@ class FormData:
                 humidity = 0.5
             inside_temp = 293.
         else:
-            humidity = self.humidity
+            humidity = float(self.humidity)
             inside_temp = self.inside_temp
 
         room = models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (inside_temp,)), humidity=humidity)
