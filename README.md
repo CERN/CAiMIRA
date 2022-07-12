@@ -308,7 +308,7 @@ The documentation for this geocoding service is available at https://developers.
 Please note that there is no need for keys on this API call. It is **free-of-charge**.
 
 - **Humidity and Inside Temperature:**
-There may be one external API call to fetch information related to a location specified in the UI. The data is related to the inside temperature and humidity of the selected location. 
+There is the possibility of using one external API call to fetch information related to a location specified in the UI. The data is related to the inside temperature and humidity taken from an indoor measurement device. Note that the API currently used from ARVE is only available for the `CERN theme` as the authorised sensors are installed at CERN." 
 
 ## Update configuration
 
