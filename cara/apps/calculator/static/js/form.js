@@ -772,7 +772,7 @@ $(document).ready(function () {
   //Check all radio buttons previously selected
   $("input[type=radio]:checked").each(function() {require_fields(this)});
 
-  // On CERN theme, When the arve_sensors_option changes we want to make its respective
+  // On CERN theme, when the arve_sensors_option changes we want to make its respective
   // children show/hide.
   if ($("input[type=radio][name=arve_sensors_option]").length > 0) {
     $("input[type=radio][name=arve_sensors_option]").change(on_use_sensors_data_change);
