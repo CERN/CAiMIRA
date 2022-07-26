@@ -313,7 +313,7 @@ class ModelWidgets(View):
         ])], title="Infected")
 
     def _build_room_volume(self, node):
-        room_volume = widgets.IntText(value=node.volume, min=10, max=500, step=5)
+        room_volume = widgets.IntText(value=node.volume, step=5)
 
         def on_volume_change(change):
             node.volume = change['new']
@@ -325,8 +325,8 @@ class ModelWidgets(View):
 
 
     def _build_room_area(self, node):
-        room_surface = widgets.IntText(value=25, min=1, max=200, step=10)
-        room_ceiling_height = widgets.IntText(value=3, min=1, max=20, step=1)
+        room_surface = widgets.IntText(value=25, step=10)
+        room_ceiling_height = widgets.IntText(value=3, step=1)
         displayed_volume=widgets.Label('75')
 
         def on_room_surface_change(change):
@@ -359,7 +359,6 @@ class ModelWidgets(View):
 
         room_w = widgets.RadioButtons(
             options= list(zip(['Volume', 'Room area and height'], room_widgets.keys())),
-            button_style='info',
             layout=widgets.Layout(height='auto', width='auto'),
         )
 
@@ -446,7 +445,6 @@ class ModelWidgets(View):
 
         window_w = widgets.RadioButtons(
             options= list(zip(['Sliding window', 'Hinged window'], window_widgets.keys())),
-            button_style='info',
             layout=widgets.Layout(height='auto', width='auto'),
         )
 
@@ -464,7 +462,7 @@ class ModelWidgets(View):
         window_w.observe(lambda event: toggle_window(event['new']), 'value')
         toggle_window(window_w.value)
 
-        number_of_windows= widgets.IntText(value= 1, min= 0, max= 5, step=1)
+        number_of_windows= widgets.IntText(value=1, step=1)
         period = widgets.IntSlider(value=node.active.period, min=0, max=240)
         interval = widgets.IntSlider(value=node.active.duration, min=0, max=240)
         opening_length = widgets.FloatSlider(value=node.opening_length, min=0, max=3, step=0.1)
@@ -577,7 +575,6 @@ class ModelWidgets(View):
 
         mechanival_w = widgets.RadioButtons(
             options=list(zip(['Air supply flow rate (m³/h)', 'Air changes per hour (h⁻¹)'], mechanical_widgets.keys())),
-            button_style='info',
         )
 
         def toggle_mechanical(value):
@@ -783,7 +780,7 @@ class ModelWidgets(View):
                 break
         virus_choice = widgets.Dropdown(options=list(models.Virus.types.keys()), value=name)
         transmissibility_factor = widgets.FloatSlider(value=node.transmissibility_factor, min=0, max=1, step=0.1)
-        infectious_dose = widgets.FloatText(value=node.infectious_dose, placeholder='50', disabled=False)
+        infectious_dose = widgets.FloatText(value=node.infectious_dose, disabled=False)
 
         def on_virus_change(change):
             virus = models.Virus.types[change['new']]
