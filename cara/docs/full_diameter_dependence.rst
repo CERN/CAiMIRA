@@ -2,7 +2,7 @@
 Diameter-dependent model
 *************************
 
-This section describes the model and the its dependence on the Particles diameter. An Unified Modeling Language (UML) diagram describing all the data classes and their relations can be found :ref:`here<cara-uml-diagram>`, at the bottom of the document.  
+This section describes the model and its dependence on the Particles diameter. A Unified Modeling Language (UML) diagram describing all the data classes and their relations can be found :ref:`here<cara-uml-diagram>`, at the bottom of the document.
 
 Context
 =======
@@ -10,11 +10,11 @@ Context
 
 The :mod:`cara.apps.calculator.model_generator` module is responsible to bind all the inputs defined in the user interface into the respective model variables.
 The :py:mod:`cara.apps.calculator.report_generator` module is responsible to bind the results from the model calculations into the respective output variables presented in the CARA report.
-The :mod:`cara.models` module itself implements the core CARA methods.  A useful feature of the implementation is that we can benefit from vectorisation, which allows running multiple parameterization of the model at the same time.
+The :mod:`cara.models` module itself implements the core CARA methods.  A useful feature of the implementation is that we can benefit from vectorisation, which allows running multiple parameterizations of the model at the same time.
 
 Unlike other similar models, some of the CARA variables are considered for a given aerosol diameter :math:`D`, 
 as the behavior of the virus-laden particles in the room environment and inside the susceptible host (once inhaled) are diameter-dependent. 
-These variables are identified by :math:`D` in the variable name, such as the **emission rate** -- :math:`\mathrm{vR}(D)`, **removal rate** -- :math:`\mathrm{vRR}(D)`, and **concentration** -- :math:`C(t, D)`.
+Here, these variables are identified by their functional dependency on :math:`D`, as for the **emission rate** -- :math:`\mathrm{vR}(D)`, **removal rate** -- :math:`\mathrm{vRR}(D)`, and **concentration** -- :math:`C(t, D)`.
 
 Despite the outcome of the CARA results include the entire range of diameters, throughout the model,
 most of the variables and parameters are kept in their diameter-dependent form for any possible detailed analysis of intermediate results.
@@ -39,13 +39,13 @@ The BLO model represents the distribution of diameters used in the model. It cor
 The aerosol diameter distributions are given by the :meth:`cara.monte_carlo.data.BLOmodel.distribution` method.
 
 The :class:`cara.monte_carlo.data.BLOmodel` class itself contains the method to return the mathematical values of the probability distribution for a given diameter (in microns), 
-as well as the method to return the limits of integration between the **min** and **max** diameters.
+as well as the method to return its integral between the **min** and **max** diameters.
 The BLO model is used to provide the probability density function (PDF) of the aerosol diameters for a given **Expiration** type defined in :meth:`cara.monte_carlo.data.expiration_distribution`.
 To compute the total number concentration of particles per mode (B, L and O), :math:`cn` in particles/cm\ :sup:`3`\, in other words, the total concentration of aerosols per unit volume of expired air, 
 an integration of the log-normal distributions is performed over all aerosol diameters. In the code it is used as a scaling factor in the :class:`cara.models.Expiration` class.
 
 Under the :mod:`cara.apps.calculator.model_generator`, when it comes to generate the Expiration model, the `diameter` property is sampled through the BLO :meth:`cara.monte_carlo.data.BLOmodel.distribution` method, while the value for the :math:`cn` is given by the :meth:`cara.monte_carlo.data.BLOmodel.integrate` method.
-To summarize, the Expiration contains the distribution of the diameters as a vectorised float. Depending on different expiratory types, the contributions from each mode will be different, therefore the result in the distribution also differs from model to model.
+To summarize, the Expiration object contains, as a vectorised float, a sample of diameters following the BLO distribution. Depending on different expiratory types, the contributions from each mode will be different, therefore the resulting distribution also differs from model to model.
 
 Emission Rate - vR(D)
 =====================
