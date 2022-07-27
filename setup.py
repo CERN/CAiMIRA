@@ -35,7 +35,7 @@ REQUIREMENTS: dict = {
         'scipy',
         'scikit-learn',
         'timezonefinder',
-        'tornado',
+        'tornado == 6.1',
         'types-retry',
         'voila >=0.2.4',
     ],
