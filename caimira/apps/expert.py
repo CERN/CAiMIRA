@@ -98,6 +98,9 @@ class Controller:
 
 
 def ipympl_canvas(figure):
+    import warnings
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+
     matplotlib.interactive(False)
     ipympl.backend_nbagg.new_figure_manager_given_figure(hash(uuid.uuid1()), figure)
     figure.canvas.toolbar_visible = True
