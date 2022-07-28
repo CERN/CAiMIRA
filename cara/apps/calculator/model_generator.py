@@ -202,6 +202,23 @@ class FormData:
                 raise ValueError(
                     f"{start_name} must be less than {end_name}. Got {start} and {end}.")
 
+        # Validate lunch time within the activity times.
+        def validate_lunch(start, finish, time):
+            return start < time < finish 
+        if (self.exposed_lunch_option and (
+                not validate_lunch(self.exposed_start, self.exposed_finish, self.exposed_lunch_start) or
+                not validate_lunch(self.exposed_start, self.exposed_finish, self.exposed_lunch_finish))):
+            raise ValueError(
+                "Exposed lunch break must be within presence times."
+            )
+
+        if (self.infected_dont_have_breaks_with_exposed and self.infected_lunch_option and (
+                not validate_lunch(self.infected_start, self.infected_finish, self.infected_lunch_start) or
+                not validate_lunch(self.infected_start, self.infected_finish, self.infected_lunch_finish))):
+            raise ValueError(
+                "Infected lunch break must be within presence times."
+            )
+
         validation_tuples = [('activity_type', ACTIVITY_TYPES),    
                              ('exposed_coffee_break_option', COFFEE_OPTIONS_INT), 
                              ('infected_coffee_break_option', COFFEE_OPTIONS_INT),   
