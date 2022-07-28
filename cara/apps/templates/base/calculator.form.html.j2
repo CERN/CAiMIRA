@@ -476,25 +476,27 @@
         </div>
         <div>
         <input type="radio" id="exposed_coffee_break_0" name="exposed_coffee_break_option" value="coffee_break_0" checked="checked">
-          <label for="exposed_coffee_break_0" >No breaks</label>
-        <input class="ml-2" type="radio" id="exposed_coffee_break_2" name="exposed_coffee_break_option" value="coffee_break_2">
+          <label for="exposed_coffee_break_0">No breaks</label>
+        <input class="ml-2" type="radio" id="exposed_coffee_break_2" name="exposed_coffee_break_option" value="coffee_break_2" data-enables="#DIVexposed_breaks_duration">
           <label for="exposed_coffee_break_2">2</label>
-        <input class="ml-2" type="radio" id="exposed_coffee_break_4" name="exposed_coffee_break_option" value="coffee_break_4">
+        <input class="ml-2" type="radio" id="exposed_coffee_break_4" name="exposed_coffee_break_option" value="coffee_break_4" data-enables="#DIVexposed_breaks_duration">
           <label for="exposed_coffee_break_4">4</label><br>
         </div>
         </div>
 
         <br>
 
-        Duration (minutes):
-        <select id="exposed_coffee_duration" name="exposed_coffee_duration">
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="15">15</option>
-          <option value="20">20</option>
-          <option value="25">25</option>
-          <option value="30">30</option>
-        </select><br>
+        <div id="DIVexposed_breaks_duration" style="display:none">
+          Duration (minutes):
+          <select id="exposed_coffee_duration" name="exposed_coffee_duration">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="15">15</option>
+            <option value="20">20</option>
+            <option value="25">25</option>
+            <option value="30">30</option>
+          </select><br>
+        </div>
       </div>
       <br>
     </div>
@@ -525,17 +527,18 @@
         <div>
         <input type="radio" id="infected_coffee_break_0" name="infected_coffee_break_option" value="coffee_break_0" checked="checked">
           <label for="infected_coffee_break_0" >No breaks</label>
-        <input style="ml-2" type="radio" id="infected_coffee_break_2" name="infected_coffee_break_option" value="coffee_break_2">
+        <input style="ml-2" type="radio" id="infected_coffee_break_2" name="infected_coffee_break_option" value="coffee_break_2" data-enables="#DIVinfected_breaks_duration">
           <label for="infected_coffee_break_2">2</label>
-        <input style="ml-2" type="radio" id="infected_coffee_break_4" name="infected_coffee_break_option" value="coffee_break_4">
+        <input style="ml-2" type="radio" id="infected_coffee_break_4" name="infected_coffee_break_option" value="coffee_break_4" data-enables="#DIVinfected_breaks_duration">
           <label for="infected_coffee_break_4">4</label><br>
         </div>
         </div>
 
         <br>
 
+        <div id="DIVinfected_breaks_duration" style="display:none">
         Duration (minutes):
-        <select id="infected_coffee_duration" name="infected_coffee_duration">
+        <select id="DIVinfected_coffee_duration" name="infected_coffee_duration">
           <option value="5">5</option>
           <option value="10">10</option>
           <option value="15">15</option>
@@ -543,6 +546,7 @@
           <option value="25">25</option>
           <option value="30">30</option>
         </select><br>
+        </div>
       </div>
       <br>
     </div>
