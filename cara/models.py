@@ -1143,6 +1143,14 @@ class ShortRangeModel:
             + x01))**3
         return factors
 
+    def _long_range_normed_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
+        """
+        Virus long-range exposure concentration normalized by the 
+        virus viral load, as function of time.
+        """
+        return (concentration_model.concentration(time) / 
+                concentration_model.virus.viral_load_in_sputum)
+
     def _normed_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
         """
         Virus short-range exposure concentration, as a function of time.
@@ -1157,8 +1165,7 @@ class ShortRangeModel:
             dilution = self.dilution_factor()
             jet_origin_concentration = self.expiration.jet_origin_concentration()
             # Long-range concentration normalized by the virus viral load
-            long_range_normed_concentration = (concentration_model.concentration(time) / 
-                                        concentration_model.virus.viral_load_in_sputum)
+            long_range_normed_concentration = self._long_range_normed_concentration(concentration_model, time)
             
             # The long-range concentration values are then approximated using interpolation:
             # The set of points where we want the interpolated values are the short-range particle diameters (given the current expiration); 
