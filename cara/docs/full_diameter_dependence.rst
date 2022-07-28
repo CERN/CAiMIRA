@@ -24,7 +24,7 @@ from which the average value (i.e. :code:`.mean()` of the numpy array) is then c
 provided the sample size is large enough. Example of the MC integration over the diameters for the dose:
 :code:`deposited_exposure += np.array(short_range_exposure * fdep).mean()`
 
-It is important to distinguish between 1) Monte-Carlo random variables (which are vectorised independently on its diameter-dependence) and 2) numerical Monte-Carlo integration for the diameter-dependence
+It is important to distinguish between 1) Monte-Carlo random variables (which are vectorised independently on its diameter-dependence) and 2) numerical Monte-Carlo integration for the diameter-dependence.
 Since the integral of the diameter-dependent variables are solved when computing the dose -- :math:`\mathrm{vD^{total}}` -- while performing some of the intermediate calculations, 
 we normalize the results by *dividing* by the Monte-Carlo variables that are diameter-independent, so that they are not considered in the Monte-Carlo integration (e.g. :meth:`cara.models.InfectedPopulation.aerosols`).
 
@@ -152,10 +152,10 @@ Note that similarly to the `long-range` approach, the MC integral over the diame
 For consistency, the long-range concentration parameter, :math:`C_{\mathrm{LR}, 100\mathrm{μm}}(t, D)` in the :class:`cara.models.ShortRangeModel` class **only**, 
 shall also be normalized by the **viral load** and, since in the short-range model the diameter range is different than at long-range (as mentioned above), 
 we need to account for that difference.
-The former operation is given in method :meth:`cara.models.ShortRangeModel.long_range_normed_concentration`. For the diameter range difference, there are a few options:
+The former operation is given in method :meth:`cara.models.ShortRangeModel._long_range_normed_concentration`. For the diameter range difference, there are a few options:
 one solution would be to recompute the values a second time using :math:`D_{\mathrm{max}} = 100\mathrm{μm}`;
 or perform a approximation using linear interpolation, which is possible and more effective in terms of performance. We decided to adopt the interpolation solution.
-The set of points with a known value are given by the default expiration particle diameters for long-range, i.e. from o to 30 :math:`\mathrm{μm}`.
+The set of points with a known value are given by the default expiration particle diameters for long-range, i.e. from 0 to 30 :math:`\mathrm{μm}`.
 The set of points we want the interpolated values are given by the short-range expiration particle diameters, i.e. from 0 to 100:math:`\mathrm{μm}`. 
 
 To summarize, in the code, :math:`C_{\mathrm{SR}}(t, D)` is computed as follows:
