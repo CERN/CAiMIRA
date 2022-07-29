@@ -254,6 +254,11 @@ class FormData:
                     "window_opening_regime cannot be 'not-applicable' if "
                     "ventilation_type is 'natural_ventilation'"
                 )
+            if (self.window_opening_regime == 'windows_open_periodically' and
+                self.windows_duration > self.windows_frequency):
+                raise ValueError(
+                    'Duration cannot be bigger than frequency.'
+                )
 
         if (self.ventilation_type == 'mechanical_ventilation'
                 and self.mechanical_ventilation_type == 'not-applicable'):

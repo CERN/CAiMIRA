@@ -508,6 +508,14 @@ def test_key_validation_natural_ventilation_window_opening_regime_na(baseline_fo
         model_generator.FormData.from_dict(baseline_form_data)
 
 
+def test_natural_ventilation_window_opening_periodically(baseline_form: model_generator.FormData):
+    baseline_form.window_opening_regime = 'windows_open_periodically'
+    baseline_form.windows_duration = 20
+    baseline_form.windows_frequency = 10
+    with pytest.raises(ValueError, match='Duration cannot be bigger than frequency.'):
+        baseline_form.validate()
+
+
 def test_key_validation_mech_ventilation_type_na(baseline_form_data):
     baseline_form_data['ventilation_type'] = 'mechanical_ventilation'
     baseline_form_data['mechanical_ventilation_type'] = 'not-applicable'
