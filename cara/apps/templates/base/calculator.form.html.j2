@@ -452,21 +452,25 @@
       <label for="infected_dont_have_breaks_with_exposed" class="form-check-label col-sm-12">Input separate breaks for infected and exposed person(s)</label>
 
     </div><br>
-    <div class="breakBoxExposed" id="DIVexposed_breaks">
+    <div class="breakBoxExposed" id="DIVexposed_breaks" style="min-width:500px">
       <span id="exposed_break_title" style="display:none;"><b>Exposed person(s) breaks:</b></span>
       <div class="boxMargin">
-        Lunch break:
-        <input class="ml-2" type="radio" id="exposed_lunch_option_no" data-lunch-select="exposed" name="exposed_lunch_option" value=0 onclick="require_fields(this)">
-          <label for="exposed_lunch_option_no">No</label>
-        <input class="ml-2" type="radio" id="exposed_lunch_option_yes" data-lunch-select="exposed" name="exposed_lunch_option" value=1 checked="checked" onclick="require_fields(this)">
-          <label for="exposed_lunch_option_yes">Yes</label><br>
         <div class="split">
+        <div>Lunch break:</div>
         <div>
-        Start: <input type="time" id="exposed_lunch_start" class="start_time" data-time-group="exposed_lunch" data-lunch-for="exposed" data-has-radio="#exposed_lunch_option_yes" name="exposed_lunch_start" value="12:30" required>
+        <input type="radio" id="exposed_lunch_option_no" data-lunch-select="exposed" name="exposed_lunch_option" value=0>
+          <label for="exposed_lunch_option_no">No</label>
+        <input class="ml-2" type="radio" id="exposed_lunch_option_yes" data-lunch-select="exposed" data-enables="#DIVexposed_lunch_time" name="exposed_lunch_option" value=1 checked="checked">
+          <label for="exposed_lunch_option_yes">Yes</label><br>
         </div>
-        <div>
-        Finish: <input type="time" id="exposed_lunch_finish" class="finish_time" data-time-group="exposed_lunch" data-lunch-for="exposed" data-has-radio="#exposed_lunch_option_yes" name="exposed_lunch_finish" value="13:30" required><br>
         </div>
+        <div id="DIVexposed_lunch_time" class="split">
+          <div>
+          Start: <input type="time" id="exposed_lunch_start" class="start_time" data-time-group="exposed_lunch" data-lunch-for="exposed" data-has-radio="#exposed_lunch_option_yes" name="exposed_lunch_start" value="12:30" required onclick="require_fields(this)">
+          </div>
+          <div>
+          Finish: <input type="time" id="exposed_lunch_finish" class="finish_time" data-time-group="exposed_lunch" data-lunch-for="exposed" data-has-radio="#exposed_lunch_option_yes" name="exposed_lunch_finish" value="13:30" required onclick="require_fields(this)"><br>
+          </div>
         </div>
 
         <!-- Coffee Options -->
@@ -501,21 +505,21 @@
       <br>
     </div>
 
-    <div class="breakBoxInfected" id="DIVinfected_breaks">
+    <div class="breakBoxInfected" id="DIVinfected_breaks" style="min-width:500px">
       <b>Infected person(s) breaks:</b>
       <div class="boxMargin">
         Lunch break:
         <input class="ml-2" type="radio" id="infected_lunch_option_no" data-lunch-select="infected" name="infected_lunch_option" value=0 onclick="require_fields(this)">
           <label for="infected_lunch_option_no">No</label>
-        <input class="ml-2" type="radio" id="infected_lunch_option_yes" data-lunch-select="infected" name="infected_lunch_option" value=1 checked="checked" onclick="require_fields(this)">
+        <input class="ml-2" type="radio" id="infected_lunch_option_yes" data-lunch-select="infected" data-enables="#DIVinfected_lunch_time" name="infected_lunch_option" value=1 checked="checked" onclick="require_fields(this)">
           <label for="infected_lunch_option_yes">Yes</label><br>
 
-        <div class="split">
+        <div id="DIVinfected_lunch_time" class="split">
         <div>
-        Start: <input type="time" id="infected_lunch_start" class="start_time" data-time-group="infected_lunch" data-lunch-for="infected" data-has-radio="#infected_lunch_option_yes" name="infected_lunch_start" value="12:30">
+        Start: <input type="time" id="infected_lunch_start" class="start_time" data-time-group="infected_lunch" data-lunch-for="infected" data-has-radio="#infected_lunch_option_yes" name="infected_lunch_start" value="12:30" onclick="require_fields(this)">
         </div>
         <div>
-        Finish: <input type="time" id="infected_lunch_finish" class="finish_time" data-time-group="infected_lunch" data-lunch-for="infected" data-has-radio="#infected_lunch_option_yes" name="infected_lunch_finish" value="13:30"><br>
+        Finish: <input type="time" id="infected_lunch_finish" class="finish_time" data-time-group="infected_lunch" data-lunch-for="infected" data-has-radio="#infected_lunch_option_yes" name="infected_lunch_finish" value="13:30" onclick="require_fields(this)"><br>
         </div>
         </div>
 

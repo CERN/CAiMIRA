@@ -160,8 +160,6 @@ function require_lunch(id, option) {
 
   require_input_field(startID, option);
   require_input_field(finishID, option);
-  set_disabled_status(startID, !option);
-  set_disabled_status(finishID, !option);
 
   if (!option) {
     $(finishID).removeClass("red_border finish_time_error lunch_break_error");
@@ -285,6 +283,17 @@ function on_short_range_option_change() {
       require_fields(this);
     }
   })
+}
+
+function on_lunch_break_option_change() {
+  all_lunch_breaks = [$('input[type=radio][name=exposed_lunch_option]'), $('input[type=radio][name=infected_lunch_option]')];
+  for (lunch_break of all_lunch_breaks) {
+    lunch_break.each(function() {
+      children = getChildElement($(this));
+      this.checked ? children.show() : children.hide();
+      require_fields(this);
+    })
+  }
 }
 
 function on_coffee_break_option_change() {
@@ -758,6 +767,13 @@ $(document).ready(function () {
 
   // Call the function now to handle forward/back button presses in the browser.
   on_short_range_option_change();
+
+  // When a lunch_option changes we want to make its respective children
+  // to show/hide
+  $("input[type=radio][name=exposed_lunch_option]").change(on_lunch_break_option_change);
+  $("input[type=radio][name=infected_lunch_option]").change(on_lunch_break_option_change);
+  // Call the function now to handle forward/back button presses in the browser.
+  on_lunch_break_option_change();
 
   // When the coffee_break_option changes we want to make its respective
   // children show/hide
