@@ -167,6 +167,13 @@ def test_ventilation_window_hepa(baseline_form: model_generator.FormData):
     assert ventilation == baseline_vent
 
 
+def test_infected_less_than_total_people(baseline_form: model_generator.FormData):
+    baseline_form.total_people = 10
+    baseline_form.infected_people = 11
+    with pytest.raises(ValueError, match='Number of infected people should be less than number of total people.'):
+        baseline_form.validate()
+
+
 def present_times(interval: models.Interval) -> models.BoundarySequence_t:
     assert isinstance(interval, models.SpecificInterval)
     return interval.present_times

@@ -185,6 +185,10 @@ class FormData:
         return form_dict
 
     def validate(self):
+        # Validate number of infected <= number of total people
+        if self.infected_people > self.total_people:
+            raise ValueError('Number of infected people should be less than number of total people.')
+
         # Validate time intervals selected by user
         time_intervals = [
             ['exposed_start', 'exposed_finish'],
