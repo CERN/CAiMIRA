@@ -205,19 +205,27 @@ class FormData:
         # Validate lunch time within the activity times.
         def validate_lunch(start, finish, time):
             return start < time < finish 
-        if (self.exposed_lunch_option and (
-                not validate_lunch(self.exposed_start, self.exposed_finish, self.exposed_lunch_start) or
-                not validate_lunch(self.exposed_start, self.exposed_finish, self.exposed_lunch_finish))):
-            raise ValueError(
-                "Exposed lunch break must be within presence times."
-            )
 
-        if (self.infected_dont_have_breaks_with_exposed and self.infected_lunch_option and (
-                not validate_lunch(self.infected_start, self.infected_finish, self.infected_lunch_start) or
-                not validate_lunch(self.infected_start, self.infected_finish, self.infected_lunch_finish))):
-            raise ValueError(
-                "Infected lunch break must be within presence times."
-            )
+        populations = ['exposed', 'infected'] if self.infected_dont_have_breaks_with_exposed else ['exposed'] 
+        for population in populations:
+            
+            if (getattr(self, f'{population}_lunch_option') and (
+                    not validate_lunch(getattr(self, f'{population}_start'), getattr(self, f'{population}_finish'), getattr(self, f'{population}_lunch_start')) or
+                    not validate_lunch(getattr(self, f'{population}_start'), getattr(self, f'{population}_finish'), getattr(self, f'{population}_lunch_finish')))):
+                raise ValueError(
+                    f"{population} lunch break must be within presence times."
+                )
+            
+            # Length of breaks < length of activity
+            lunch_mins, coffee_mins = 0, 0
+            if getattr(self, f'{population}_lunch_option'):
+                lunch_mins = getattr(self, f'{population}_lunch_finish') - getattr(self, f'{population}_lunch_start')
+            if getattr(self, f'{population}_coffee_break_option') != 'coffee_break_0':
+                coffee_mins = COFFEE_OPTIONS_INT[getattr(self, f'{population}_coffee_break_option')] * getattr(self, f'{population}_coffee_duration')
+            if (lunch_mins + coffee_mins) >= (getattr(self, f'{population}_finish') - getattr(self, f'{population}_start')) :
+                raise ValueError(
+                    f"Length of breaks >= Length of {population} presence."
+                )
 
         validation_tuples = [('activity_type', ACTIVITY_TYPES),    
                              ('exposed_coffee_break_option', COFFEE_OPTIONS_INT), 
