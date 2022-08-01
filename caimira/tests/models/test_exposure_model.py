@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from caimira import models
 from caimira.models import ExposureModel
 from caimira.dataclass_utils import replace
-
+from caimira.monte_carlo.data import expiration_distributions
 
 @dataclass(frozen=True)
 class KnownNormedconcentration(models.ConcentrationModel):
@@ -90,9 +90,8 @@ def known_concentrations(func):
          np.array([40.91708675, 91.46172332]), np.array([51.6749232285, 80.3196524031])],
     ])
 def test_exposure_model_ndarray(population, cm,
-                                expected_exposure, expected_probability, sr_model):
-    geographical_data = models.Cases()
-    model = ExposureModel(cm, sr_model, population, geographical_data)
+                                expected_exposure, expected_probability, sr_model, cases_model):
+    model = ExposureModel(cm, sr_model, population, cases_model)
     np.testing.assert_almost_equal(
         model.deposited_exposure(), expected_exposure
     )
@@ -111,11 +110,10 @@ def test_exposure_model_ndarray(population, cm,
         [populations[1], np.array([2.13410688, 1.98167067])],
         [populations[2], np.array([1.36390289, 1.52436206])],
     ])
-def test_exposure_model_ndarray_and_float_mix(population, expected_deposited_exposure, sr_model):
+def test_exposure_model_ndarray_and_float_mix(population, expected_deposited_exposure, sr_model, cases_model):
     cm = known_concentrations(
         lambda t: 0. if np.floor(t) % 2 else np.array([1.2, 1.2]))
-    geographical_data = models.Cases()
-    model = ExposureModel(cm, sr_model, population, geographical_data)
+    model = ExposureModel(cm, sr_model, population, cases_model)
 
     np.testing.assert_almost_equal(
         model.deposited_exposure(), expected_deposited_exposure
@@ -130,19 +128,17 @@ def test_exposure_model_ndarray_and_float_mix(population, expected_deposited_exp
         [populations[1], np.array([2.13410688, 1.98167067])],
         [populations[2], np.array([1.36390289, 1.52436206])],
     ])
-def test_exposure_model_vector(population, expected_deposited_exposure, sr_model):
+def test_exposure_model_vector(population, expected_deposited_exposure, sr_model, cases_model):
     cm_array = known_concentrations(lambda t: np.array([1.2, 1.2]))
-    geographical_data = models.Cases()
-    model_array = ExposureModel(cm_array, sr_model, population, geographical_data)
+    model_array = ExposureModel(cm_array, sr_model, population, cases_model)
     np.testing.assert_almost_equal(
         model_array.deposited_exposure(), np.array(expected_deposited_exposure)
     )
 
 
-def test_exposure_model_scalar(sr_model):
+def test_exposure_model_scalar(sr_model, cases_model):
     cm_scalar = known_concentrations(lambda t: 1.2)
-    geographical_data = models.Cases()
-    model_scalar = ExposureModel(cm_scalar, sr_model, populations[0], geographical_data)
+    model_scalar = ExposureModel(cm_scalar, sr_model, populations[0], cases_model)
     expected_deposited_exposure = 1.52436206
     np.testing.assert_almost_equal(
         model_scalar.deposited_exposure(), expected_deposited_exposure
@@ -174,7 +170,27 @@ def conc_model():
 
 
 @pytest.fixture
+def diameter_dependent_model(conc_model) -> models.InfectedPopulation:
+    # Generate a diameter dependent model
+    return replace(conc_model,
+        infected = models.InfectedPopulation(
+            number=1,
+            presence=halftime,
+            virus=models.Virus.types['SARS_CoV_2_DELTA'],
+            mask=models.Mask.types['No mask'],
+            activity=models.Activity.types['Seated'],
+            expiration=expiration_distributions['Breathing'],
+            host_immunity=0.,
+        ))
+
+
+@pytest.fixture
 def sr_model():
+    return ()
+
+
+@pytest.fixture
+def cases_model():
     return ()
     
 
@@ -192,18 +208,17 @@ def sr_model():
     ]
 )
 def test_exposure_model_integral_accuracy(exposed_time_interval,
-                                          expected_deposited_exposure, conc_model, sr_model):
+                                          expected_deposited_exposure, conc_model, sr_model, cases_model):
     presence_interval = models.SpecificInterval((exposed_time_interval,))
     population = models.Population(
         10, presence_interval, models.Mask.types['Type I'],
         models.Activity.types['Standing'], 0.,
     )
-    geographical_data = models.Cases()
-    model = ExposureModel(conc_model, sr_model, population, geographical_data)
+    model = ExposureModel(conc_model, sr_model, population, cases_model)
     np.testing.assert_allclose(model.deposited_exposure(), expected_deposited_exposure)
 
 
-def test_infectious_dose_vectorisation(sr_model):
+def test_infectious_dose_vectorisation(sr_model, cases_model):
     infected_population = models.InfectedPopulation(
         number=1,
         presence=halftime,
@@ -226,8 +241,7 @@ def test_infectious_dose_vectorisation(sr_model):
         10, presence_interval, models.Mask.types['Type I'],
         models.Activity.types['Standing'], 0.,
     )
-    geographical_data = models.Cases()
-    model = ExposureModel(cm, sr_model, population, geographical_data)
+    model = ExposureModel(cm, sr_model, population, cases_model)
     inf_probability = model.infection_probability()
     assert isinstance(inf_probability, np.ndarray)
     assert inf_probability.shape == (3, )
@@ -294,3 +308,74 @@ def test_probabilistic_exposure_probability(exposed_population, cm,
     np.testing.assert_allclose(
         model.total_probability_rule(), probabilistic_exposure_probability, rtol=0.05
     )
+
+
+@pytest.mark.parametrize(
+    "active, outside_temp, window_height, opening_length", [
+        [models.PeriodicInterval(period=120, duration=120), models.PiecewiseConstant((0., 24.), 
+        (np.array([293., 300.]),)), 1., 1.,], # Verify (ventilation) outside_temp vectorisation.
+        [models.PeriodicInterval(period=120, duration=120), models.PiecewiseConstant((0., 24.), (293.,)), 
+        np.array([1., 0.5]), 1.], # Verify (ventilation) window_height vectorisation.
+        [models.PeriodicInterval(period=120, duration=120), models.PiecewiseConstant((0., 24.), (293.,)),
+        1., np.array([1., 0.5])], # Verify (ventilation) opening_length vectorisation.
+    ]
+)
+def test_diameter_vectorisation_window_opening(diameter_dependent_model, sr_model, active, outside_temp, 
+                                                window_height, opening_length, cases_model):
+    concentration = replace(diameter_dependent_model, 
+        ventilation=models.WindowOpening(active=active, 
+                                    outside_temp=outside_temp,
+                                    window_height=window_height,
+                                    opening_length=opening_length)
+    )
+    with pytest.raises(ValueError, match="Ventilation parameters and diameter cannot be arrays at the same time."):
+        models.ExposureModel(concentration, sr_model, populations[0], cases_model)
+    
+
+def test_diameter_vectorisation_hinged_window(diameter_dependent_model, sr_model, cases_model):
+    # Verify (ventilation) window_width vectorisation.
+    concentration = replace(diameter_dependent_model, 
+        ventilation = models.HingedWindow(active=models.PeriodicInterval(period=120, duration=120), 
+                                    outside_temp=models.PiecewiseConstant((0., 24.), (293.,)),
+                                    window_height=1.,
+                                    opening_length=1.,
+                                    window_width=np.array([1., 0.5]))
+    )
+    with pytest.raises(ValueError, match="Ventilation parameters and diameter cannot be arrays at the same time."):
+        models.ExposureModel(concentration, sr_model, populations[0], cases_model)
+
+
+def test_diameter_vectorisation_HEPA_filter(diameter_dependent_model, sr_model, cases_model):
+    # Verify (ventilation) q_air_mech vectorisation.
+    concentration = replace(diameter_dependent_model, 
+        ventilation = models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120), q_air_mech=np.array([0.5, 1.]))
+    )
+    with pytest.raises(ValueError, match="Ventilation rate and diameter cannot be arrays at the same time."):
+        models.ExposureModel(concentration, sr_model, populations[1], cases_model)
+
+
+def test_diameter_vectorisation_air_change(diameter_dependent_model, sr_model, cases_model):
+    # Verify (ventilation) air_exch vectorisation.
+    concentration = replace(diameter_dependent_model, 
+        ventilation = models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=np.array([0.5, 1.]))
+    )
+    with pytest.raises(ValueError, match="Ventilation rate and diameter cannot be arrays at the same time."):
+        models.ExposureModel(concentration, sr_model, populations[2], cases_model)
+
+
+@pytest.mark.parametrize(
+    "volume, inside_temp, humidity, error", [
+        [np.array([50, 100]), models.PiecewiseConstant((0., 24.), (293,)), 0.3,
+        "Room volume and diameter cannot be arrays at the same time."], # Verify room volume vectorisation
+        [50, models.PiecewiseConstant((0., 24.), (np.array([293., 300.]),)), 0.3, 
+        "Virus decay constant and diameter cannot be arrays at the same time."], # Verify room inside_temp vectorisation
+        [50, models.PiecewiseConstant((0., 24.), (293.,)), np.array([0.3, 0.5]), 
+        "Virus decay constant and diameter cannot be arrays at the same time."], # Verify room humidity vectorisation
+    ]
+)
+def test_diameter_vectorisation_room(diameter_dependent_model, sr_model, cases_model, volume, inside_temp, humidity, error):
+    concentration = replace(diameter_dependent_model, 
+        room = models.Room(volume=volume, inside_temp=inside_temp, humidity=humidity))
+    with pytest.raises(ValueError, match=error):
+        models.ExposureModel(concentration, sr_model, populations[0], cases_model)
+        
