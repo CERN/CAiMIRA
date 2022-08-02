@@ -26,7 +26,7 @@ provided the sample size is large enough. Example of the MC integration over the
 
 It is important to distinguish between 1) Monte-Carlo random variables (which are vectorised independently on its diameter-dependence) and 2) numerical Monte-Carlo integration for the diameter-dependence.
 Since the integral of the diameter-dependent variables are solved when computing the dose -- :math:`\mathrm{vD^{total}}` -- while performing some of the intermediate calculations, 
-we normalize the results by *dividing* by the Monte-Carlo variables that are diameter-independent, so that they are not considered in the Monte-Carlo integration (e.g. :meth:`cara.models.InfectedPopulation.aerosols`).
+we normalize the results by *dividing* by the Monte-Carlo variables that are diameter-independent, so that they are not considered in the Monte-Carlo integration (e.g. the **viral load** parameter, or the result of the :meth:`cara.models.InfectedPopulation.emission_rate_per_aerosol_when_present` method).
 
 Expiration
 ==========
@@ -50,9 +50,7 @@ To summarize, the Expiration object contains, as a vectorised float, a sample of
 Emission Rate - vR(D)
 =====================
 
-The mathematical equations to calculate :math:`\mathrm{vR}(D)` are defined in the paper
-(Henriques A et al, Modelling airborne transmission of SARS-CoV-2 using CARA: risk assessment for enclosed spaces.
-Interface Focus 20210076, https://doi.org/10.1098/rsfs.2021.0076), as follows:
+The mathematical equations to calculate :math:`\mathrm{vR}(D)` are defined in the paper - Henriques, A. et al. [2]_ - as follows:
 
 :math:`\mathrm{vR}(D)_j= \mathrm{vl_{in}} \cdot E_{c,j}(D,f_{\mathrm{amp}},\eta_{\mathrm{out}}(D)) \cdot {\mathrm{BR}}_{\mathrm{k}}` ,
 
@@ -112,7 +110,7 @@ The integral over the exposure times is calculated directly in the class (integr
 Short-range approach
 ********************
 
-The short-range concentration is the result of a two-stage exhaled jet model developed by *JIA W. et al.* and is expressed as:
+The short-range concentration is the result of a two-stage exhaled jet model developed by Jia, W. et al. [1]_ and is expressed as:
 
 :math:`C_{\mathrm{SR}}(t, D) = C_{\mathrm{LR}} (t, D) + \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100μm}(t, D))` ,
 
@@ -131,7 +129,7 @@ When generating a full model, the short-range class is defined with a new **Expi
 given that the **min** and **max** diameters for the short-range interactions are different from those used in the long-range concentration (the idea is that very large particles should not be considered in the long-range case as they fall rapidly on the floor, 
 while they must be in for the short-range case).
 
-As mentioned in *JIA W. et al.*, the jet concentration depends on the **long-range concentration** of viruses. 
+As mentioned in Jia, W. et al. [1]_, the jet concentration depends on the **long-range concentration** of viruses. 
 Here, once again, we shall normalize the short-range concentration to the diameter-independent quantities. 
 IMPORTANT NOTE: since the susceptible host is physically closer to the infector, the emitted particles are larger in size, 
 hence a new distribution of diameters should be taken into consideration. 
@@ -298,3 +296,9 @@ The following diagram describes all the data classes and their relations under t
    :align: center
 
    CARA `models.py` file UML diagram.
+
+REFERENCES
+==========
+
+.. [1] Jia, Wei, et al. "Exposure and respiratory infection risk via the short-range airborne route." Building and environment 219 (2022): 109166.
+.. [2] Henriques, Andre, et al. "Modelling airborne transmission of SARS-CoV-2 using CARA: risk assessment for enclosed spaces." Interface Focus 12.2 (2022): 20210076.
