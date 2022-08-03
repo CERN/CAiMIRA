@@ -1,8 +1,8 @@
-# CARA - COVID Airborne Risk Assessment
+# CAiMIRA - CERN Airborne Model for Risk Assessment
 
-CARA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.
+CAiMIRA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.
 
-CARA models the concentration profile of potential virions in enclosed spaces , both as background (room) concentration and during close-proximity interations, with clear and intuitive graphs.
+CAiMIRA models the concentration profile of potential virions in enclosed spaces , both as background (room) concentration and during close-proximity interations, with clear and intuitive graphs.
 The user can set a number of parameters, including room volume, exposure time, activity type, mask-wearing and ventilation.
 The report generated indicates how to avoid exceeding critical concentrations and chains of airborne transmission in spaces such as individual offices, meeting rooms and labs.
 
@@ -24,7 +24,7 @@ While the SARS-CoV-2 virus is in circulation among the population, the notion of
 Each event modelled is unique, and the results generated therein are only as accurate as the inputs and assumptions.
 
 ## Authors
-CARA was developed by following members of CERN - European Council for Nuclear Research (visit https://home.cern/):
+CAiMIRA was developed by following members of CERN - European Council for Nuclear Research (visit https://home.cern/):
 
 Andre Henriques<sup>1</sup>, Luis Aleixo<sup>1</sup>, Marco Andreini<sup>1</sup>, Gabriella Azzopardi<sup>2</sup>, James Devine<sup>3</sup>, Philip Elson<sup>4</sup>, Nicolas Mounet<sup>2</sup>, Markus Kongstein Rognlien<sup>2,6</sup>, Nicola Tarocco<sup>5</sup>
 
@@ -37,9 +37,9 @@ Andre Henriques<sup>1</sup>, Luis Aleixo<sup>1</sup>, Marco Andreini<sup>1</sup>
 
 ### Reference and Citation
 
-**For the use of the CARA web app**
+**For the use of the CAiMIRA web app**
 
-CARA – COVID Airborne Risk Assessment tool
+CAiMIRA – CERN Airborne Model for Indoor Risk Assessment tool
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6520432.svg)](https://doi.org/10.5281/zenodo.6520432)
 
@@ -60,35 +60,35 @@ https://doi.org/10.1016/j.buildenv.2022.109166
 A risk assessment tool which simulates the airborne spread of the SARS-CoV-2 virus for space managers.
 
 
-### CARA Expert App
+### CAiMIRA Expert App
 
-A tool to interact with various parameters of the CARA model.
+A tool to interact with various parameters of the CAiMIRA model.
 
 
 ## Disclaimer
 
-CARA has not undergone review, approval or certification by competent authorities, and as a result, it cannot be considered as a fully endorsed and reliable tool, namely in the assessment of potential viral emissions from infected hosts to be modelled.
+CAiMIRA has not undergone review, approval or certification by competent authorities, and as a result, it cannot be considered as a fully endorsed and reliable tool, namely in the assessment of potential viral emissions from infected hosts to be modelled.
 
 The software is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and non-infringement.
 In no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software or the use or other dealings in the software.
 
 
-## Running CARA locally
+## Running CAiMIRA locally
 
-The easiest way to run a version of CARA Calculator is to use docker. A pre-built
-image of CARA is made available at https://gitlab.cern.ch/cara/cara/container_registry.
-In order to run cara locally with docker, run the following:
+The easiest way to run a version of CAiMIRA Calculator is to use docker. A pre-built
+image of CAiMIRA is made available at https://gitlab.cern.ch/cara/cara/container_registry.
+In order to run CAiMIRA locally with docker, run the following:
 
     $ docker run -it -p 8080:8080 gitlab-registry.cern.ch/cara/cara/calculator
 
-This will start a local version of CARA, which can be visited at http://localhost:8080/.
+This will start a local version of CAiMIRA, which can be visited at http://localhost:8080/.
 
 
 ## Development guide
 
-CARA is also mirrored to Github if you wish to collaborate on development and can be found at: https://github.com/CERN/cara
+CAiMIRA is also mirrored to Github if you wish to collaborate on development and can be found at: https://github.com/CERN/cara
 
-### Installing CARA in editable mode
+### Installing CAiMIRA in editable mode
 
 ```
 pip install -e .   # At the root of the repository
