@@ -935,6 +935,9 @@ class ConcentrationModel:
             + self.ventilation.air_exchange(self.room, time)
         )
 
+    def air_exch_virus_removal_rate(self, time: float) -> _VectorisedFloat:
+        return self.ventilation.air_exchange(self.room, time)
+
     @method_cache
     def _normed_concentration_limit(self, time: float) -> _VectorisedFloat:
         """
@@ -950,6 +953,15 @@ class ConcentrationModel:
             return 0.
         V = self.room.volume
         IVRR = self.infectious_virus_removal_rate(time)
+
+        return 1. / (IVRR * V)
+
+    @method_cache
+    def _CO2_concentration_limit(self, time: float) -> _VectorisedFloat:
+        if not self.infected.person_present(time):
+            return 0.
+        V = self.room.volume
+        IVRR = self.air_exch_virus_removal_rate(time)
 
         return 1. / (IVRR * V)
 
@@ -1310,6 +1322,28 @@ class ExposureModel:
         for interaction in self.short_range:
             concentration += interaction.short_range_concentration(self.concentration_model, time)
         return concentration
+
+    def _CO2_concentration_cached(self, time: float) -> _VectorisedFloat:
+        return self._CO2_concentration(time)
+
+    def _CO2_concentration(self, time: float) -> _VectorisedFloat:
+        if time <= self.concentration_model._first_presence_time():
+            return 0.0
+        next_state_change_time = self.concentration_model._next_state_change(time)
+        IVRR = self.concentration_model.air_exch_virus_removal_rate(next_state_change_time)
+        CO2_conc_limit = (self.concentration_model._CO2_concentration_limit(next_state_change_time) *
+                            (self.concentration_model.infected.activity.exhalation_rate * (self.exposed.number + self.concentration_model.infected.number)))
+        
+        t_last_state_change = self.concentration_model.last_state_change(time)
+        co2_conc_at_last_state_change = self._CO2_concentration_cached(t_last_state_change)
+
+        delta_time = time - t_last_state_change
+        fac = np.exp(-IVRR * delta_time)
+
+        return (CO2_conc_limit * (1 - fac) + (co2_conc_at_last_state_change - 0.0004) * fac) + 0.0004
+
+    def CO2_concentration(self, time: float) -> _VectorisedFloat:
+        return max(440, self._CO2_concentration(time) * 10**6)
 
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         deposited_exposure = 0.
