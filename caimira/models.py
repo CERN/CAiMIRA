@@ -1432,7 +1432,7 @@ class ExposureModel:
         return (CO2_conc_limit * (1 - fac) + (co2_conc_at_last_state_change - 0.0004) * fac) + 0.0004
 
     def CO2_concentration(self, time: float) -> _VectorisedFloat:
-        return max(440, self._CO2_concentration(time) * 10**6)
+        return self._CO2_concentration(time) * 10**6
 
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         deposited_exposure = 0.
