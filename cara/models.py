@@ -1335,7 +1335,7 @@ class ExposureModel:
                             (self.concentration_model.infected.activity.exhalation_rate * (self.exposed.number + self.concentration_model.infected.number)))
         
         t_last_state_change = self.concentration_model.last_state_change(time)
-        co2_conc_at_last_state_change = self._CO2_concentration_cached(t_last_state_change)
+        co2_conc_at_last_state_change = 0.00044
 
         delta_time = time - t_last_state_change
         fac = np.exp(-IVRR * delta_time)
@@ -1343,7 +1343,8 @@ class ExposureModel:
         return (CO2_conc_limit * (1 - fac) + (co2_conc_at_last_state_change - 0.0004) * fac) + 0.0004
 
     def CO2_concentration(self, time: float) -> _VectorisedFloat:
-        return self._CO2_concentration(time) * 10**6
+        # Correction due to the number of generated points.
+        return max(440, self._CO2_concentration(time) * 10**6)
 
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         deposited_exposure = 0.
