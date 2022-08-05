@@ -296,7 +296,7 @@ footer img {
   #report_version {
     font-size: .5rem;
   }
-  #download-pdf, #pdf_qrcode_aref {
+  #download-pdf, #pdf_qrcode_aref, #export-csv {
     display: none;
   }
   #scale_warning{

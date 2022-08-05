@@ -30,12 +30,12 @@
 			<h2 class="header_text mb-0"><a href="{{ permalink.shortened }}" style="color: #2f4858">REPORT - {{ form.simulation_name }}</a></h2>
 			<p class="mb-0" id="report_version"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
 		</div>
-		<button type="button" class="btn btn-outline-dark align-self-center" id="download-pdf" style="margin-right: -100pt" onclick="print();">Print Report</button>
+		<button type="button" class="btn btn-outline-dark align-self-center"  id="export-csv" data-toggle="modal" data-target="#modalCSV">Export CSV</button>
+		<button type="button" class="btn btn-outline-dark align-self-center ml-2" id="download-pdf" style="margin-right: -100pt" onclick="print();">Print Report</button>
 		<a href="{{ permalink.link }}" style="float: left;" id="pdf_qrcode_aref" class="align-self-center invisible mr-0"><div id="pdf_qrcode"></div></a>
 	</div>
-	<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalCSV">Export CSV</button>
 	
-	<!-- Modal -->
+	<!-- Export CSV Modal -->
 	<div class="modal fade" id="modalCSV" tabindex="-1" role="dialog" aria-labelledby="modalCSV" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered" role="document">
 		<div class="modal-content">

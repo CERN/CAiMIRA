@@ -863,13 +863,12 @@ function copy_clipboard(shareable_link) {
 }
 
 function export_csv() {
-    ```
-    This function generates a CSV file according to the user's input.
-    It is composed of a list of lists. 
-    The first item of the main list corresponds to the columns' name.
-    The remaining items correspond to each of the file row, i.e. the 
-    respective data from the selected inputs.
-    ```
+    // This function generates a CSV file according to the user's input.
+    // It is composed of a list of lists. 
+    // The first item of the main list corresponds to the columns' name.
+    // The remaining items correspond to each of the file row, i.e. the 
+    // respective data from the selected inputs.
+
     let final_export = [];
 
     // Verify which items are checked
