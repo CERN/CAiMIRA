@@ -862,6 +862,11 @@ function copy_clipboard(shareable_link) {
     navigator.clipboard.writeText(shareable_link);
 }
 
+function display_rename_column(bool, id) {
+    if (bool) document.getElementById(id).style.display = 'block';
+    else document.getElementById(id).style.display = 'none';
+}
+
 function export_csv() {
     // This function generates a CSV file according to the user's input.
     // It is composed of a list of lists. 
@@ -870,7 +875,6 @@ function export_csv() {
     // respective data from the selected inputs.
 
     let final_export = [];
-
     // Verify which items are checked
     let export_lists = document.getElementsByName('checkedItems');
     let checked_items = [];
