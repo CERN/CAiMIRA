@@ -861,3 +861,61 @@ function copy_clipboard(shareable_link) {
           
     navigator.clipboard.writeText(shareable_link);
 }
+
+function export_csv() {
+    ```
+    This function generates a CSV file according to the user's input.
+    It is composed of a list of lists. 
+    The first item of the main list corresponds to the columns' name.
+    The remaining items correspond to each of the file row, i.e. the 
+    respective data from the selected inputs.
+    ```
+    let final_export = [];
+
+    // Verify which items are checked
+    let export_lists = document.getElementsByName('checkedItems');
+    let checked_items = [];
+    let has_alternative_scenario = false;
+    export_lists.forEach(e => {
+        if (e.checked) {
+            if (e.id != "Alternative Scenarios") checked_items.push(e.id);
+            else if (e.id == "Alternative Scenarios") {
+                Object.entries(alternative_scenarios).map((scenario) => {
+                    if (scenario[0] != 'Current scenario') {
+                        checked_items.push(`Alternative scenario - ${scenario[0]}`);
+                        has_alternative_scenario = true;
+                    };
+                });
+            }
+        }
+    });
+    final_export.push(checked_items);
+
+    // Add the data for each column.
+    times.forEach((e, i) => {
+        let this_row = [];
+        checked_items.includes("Times") && this_row.push(times[i]);
+        checked_items.includes("Concentrations") && this_row.push(concentrations[i]);
+        checked_items.includes("Cumulative Dose") && this_row.push(cumulative_doses[i]);
+        checked_items.includes("Long-Range Dose") && this_row.push(long_range_cumulative_doses[i]);
+        if (has_alternative_scenario) {
+            Object.entries(alternative_scenarios).map((scenario) => {
+                if (scenario[0] != 'Current scenario') {
+                    this_row.push(scenario[1].concentrations[i]);
+                };
+            });
+        };
+        final_export.push(this_row);
+    });
+
+    // Prepare the CSV file.
+    let csvContent = "data:text/csv;charset=utf8," 
+        + final_export.map(e => e.join(",")).join("\n");
+    var encodedUri = encodeURI(csvContent);
+    // Set a name for the file.
+    var link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "report_data.csv");
+    document.body.appendChild(link);
+    link.click();    
+}

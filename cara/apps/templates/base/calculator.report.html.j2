@@ -33,6 +33,51 @@
 		<button type="button" class="btn btn-outline-dark align-self-center" id="download-pdf" style="margin-right: -100pt" onclick="print();">Print Report</button>
 		<a href="{{ permalink.link }}" style="float: left;" id="pdf_qrcode_aref" class="align-self-center invisible mr-0"><div id="pdf_qrcode"></div></a>
 	</div>
+	<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalCSV">Export CSV</button>
+	
+	<!-- Modal -->
+	<div class="modal fade" id="modalCSV" tabindex="-1" role="dialog" aria-labelledby="modalCSV" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered" role="document">
+		<div class="modal-content">
+		<div class="modal-header">
+			<h5 class="modal-title" id="exampleModalLongTitle">Export CSV Data</h5>
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+			</button>
+		</div>
+		<div class="modal-body">
+			<b>Select the data to export:</b>
+			<div class="form-check mt-3">
+				<input type="checkbox" class="form-check-input" name="checkedItems" id="Times">
+				<label class="form-check-label" for="Times">Times of day</label>
+			</div>
+			<div class="form-check">
+				<input type="checkbox" class="form-check-input" name="checkedItems" id="Concentrations">
+				<label class="form-check-label" for="Concentrations">Concentrations</label>
+			</div>
+			<div class="form-check">
+				<input type="checkbox" class="form-check-input" name="checkedItems" id="Cumulative Dose">
+				<label class="form-check-label" for="Cumulative Dose">Cumulative dose</label>
+			</div>
+			{% if form.short_range_option == "short_range_yes" %}
+			<div class="form-check">
+				<input type="checkbox" class="form-check-input" name="checkedItems" id="Long-Range Dose">
+				<label class="form-check-label" for="Long-Range Dose">Long-range dose</label>
+			</div>
+			{% else %}
+			<div class="form-check">
+				<input type="checkbox" class="form-check-input" name="checkedItems" id="Alternative Scenarios">
+				<label class="form-check-label" for="Alternative Scenarios">Alternative Scenarios</label>
+			</div>
+			{% endif %}
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+			<button type="button" class="btn btn-primary" onClick="export_csv();">Export</button>
+		</div>
+		</div>
+	</div>
+	</div>
 
 {% endblock report_header %}
 
