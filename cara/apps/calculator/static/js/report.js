@@ -863,7 +863,7 @@ function copy_clipboard(shareable_link) {
 }
 
 function display_rename_column(bool, id) {
-    if (bool) document.getElementById(id).style.display = 'block';
+    if (bool) document.getElementById(id).style.display = 'flex';
     else document.getElementById(id).style.display = 'none';
 }
 
@@ -877,24 +877,31 @@ function export_csv() {
     let final_export = [];
     // Verify which items are checked
     let export_lists = document.getElementsByName('checkedItems');
-    let checked_items = [];
+    let checked_items = []; // The column to be added, with the id to be identified.
+    let checked_names = []; // The column with the respective rename.
     let has_alternative_scenario = false;
     export_lists.forEach(e => {
         if (e.checked) {
-            if (e.id != "Alternative Scenarios") checked_items.push(e.id);
+            let has_rename = document.getElementById(`${e.id}__rename`).value;
+            let column_name = has_rename != '' ? has_rename : e.id;
+            if (e.id != "Alternative Scenarios") {
+                checked_names.push(column_name);
+                checked_items.push(e.id);
+            }
             else if (e.id == "Alternative Scenarios") {
                 Object.entries(alternative_scenarios).map((scenario) => {
                     if (scenario[0] != 'Current scenario') {
-                        checked_items.push(`Alternative scenario - ${scenario[0]}`);
+                        checked_names.push(`Alternative scenario - ${column_name}`);
+                        checked_items.push(`Alternative scenario - ${e.id}`);
                         has_alternative_scenario = true;
                     };
                 });
             }
         }
     });
-    final_export.push(checked_items);
+    final_export.push(checked_names);
 
-    // Add the data for each column.
+    // Add data for each column.
     times.forEach((e, i) => {
         let this_row = [];
         checked_items.includes("Times") && this_row.push(times[i]);
