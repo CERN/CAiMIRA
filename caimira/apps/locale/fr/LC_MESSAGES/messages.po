@@ -60,7 +60,7 @@ msgstr "Laboratoire"
 
 #: calculator/DEFAULT_DATA.py:89 templates/base/userguide.html.j2:134
 msgid "Gym"
-msgstr "Gym"
+msgstr "Salle de sport"
 
 #: calculator/DEFAULT_DATA.py:104
 msgid "January"
@@ -119,7 +119,7 @@ msgid ""
 "The area you wish to study (choose one of the 2 options). Indicate if a "
 "central (radiator-type) heating system is in use."
 msgstr ""
-"Local étudié. Indiquer si du chauffage ou de l'air conditionné sont "
+"Zone étudié. Indiquer si du chauffage ou de l'air conditionné sont "
 "utilisés."
 
 #: calculator/DEFAULT_DATA.py:113
@@ -128,12 +128,12 @@ msgid ""
 "or measure. Also indicate if a central (radiator-type) heating system is "
 "in use."
 msgstr ""
-"Local étudié. Indiquer si du chauffage ou de l'air conditionné sont "
+"Zone étudié. Indiquer si du chauffage ou de l'air conditionné sont "
 "utilisés. Utiliser le portail GIS ou mesurer."
 
 #: calculator/DEFAULT_DATA.py:114
 msgid "The available means of venting / filtration of indoor spaces."
-msgstr "Moyens de ventilation / filtration du local."
+msgstr "Système de ventilation / filtration du local."
 
 #: calculator/DEFAULT_DATA.py:115
 msgid ""
@@ -141,7 +141,7 @@ msgid ""
 "respected and proper venting is ensured."
 msgstr ""
 "Masques portés aux postes de travail ou retirés lorsqu'une distanciation "
-"physique de 2m est respecté et une bonne ventilation est assurée."
+"physique de 2m est respectée et lorsqu'une bonne ventilation est assurée."
 
 #: calculator/DEFAULT_DATA.py:116
 msgid ""
@@ -156,12 +156,12 @@ msgid ""
 "Input breaks that, by default, are the same for infected/exposed "
 "person(s) unless specified otherwise."
 msgstr ""
-"Pauses qui, par défaut, sont les mêmes pour les personnes infectées / "
-"exposées, sauf indication contraire"
+"Pauses de travail qui, par défaut, sont les mêmes pour les personnes infectées / "
+"exposées, sauf indication contraire."
 
 #: calculator/DEFAULT_DATA.py:121
 msgid "E.g. Workshop without masks"
-msgstr "Par exemple, Atelier sans masques"
+msgstr "Par exemple, Atelier sans masques porté"
 
 #: calculator/DEFAULT_DATA.py:122
 msgid "E.g. 17/R-033"
@@ -169,7 +169,7 @@ msgstr "Par exemple, 17/R-033"
 
 #: calculator/DEFAULT_DATA.py:123
 msgid "Room volume (m³)"
-msgstr "Volume de chambre (m³):"
+msgstr "Volume de de la pièce (m³):"
 
 #: calculator/DEFAULT_DATA.py:124
 msgid "Room floor area (m²)"
@@ -185,7 +185,7 @@ msgstr "Débit (m³ / heure)"
 
 #: calculator/DEFAULT_DATA.py:127
 msgid "Air exchange (h⁻¹)"
-msgstr "Renouvellements d'air (h⁻¹)"
+msgstr "Renouvellement d'air (h⁻¹)"
 
 #: calculator/DEFAULT_DATA.py:128 calculator/DEFAULT_DATA.py:135
 msgid "Number (#)"
@@ -228,8 +228,8 @@ msgid ""
 "facility managers, on how to prevent on-site transmission, is essential."
 msgstr ""
 "Actuellement, les mesures de santé publique existantes soulignent "
-"l'importance des mesures appropriées de contrôle de la construction et du"
-" génie environnemental, telles que la bonne qualité de l'air intérieur "
+"l'importance de mesures de contrôle appropriées de l'ingénierie du bâtiment et "
+"de l'environnement, telles qu'une bonne qualité de l'air intérieur (QAI).\n"
 "(QAI).\n"
 "        Cette pandémie a clairement augmenté la sensibilisation à la "
 "transmission aéroportée des virus respiratoires en milieu intérieur.\n"
@@ -244,8 +244,8 @@ msgid ""
 "Society publishing:"
 msgstr ""
 "Pour plus d'informations sur la transmission aéroportée du SARS-CoV-2, "
-"n'hésitez pas à consulter le numéro spécial Interface Focus du Journal de"
-" Royal Society Publishing:"
+"n'hésitez pas à consulter le numéro spécial Interface Focus du Journal "
+"Royal Society Publishing:"
 
 #: templates/about.html.j2:11
 msgid "Interface Focus: Volume 12, Issue 2"
@@ -257,7 +257,7 @@ msgstr "Et un séminaire du service HSE du CERN:"
 
 #: templates/about.html.j2:13
 msgid "What is CARA?"
-msgstr "Qu'est-ce que CARA?"
+msgstr "Qu'est-ce que CARA ?"
 
 #: templates/about.html.j2:14
 msgid ""
@@ -279,7 +279,7 @@ msgstr "Calculateur CARA"
 
 #: templates/about.html.j2:17
 msgid "CARA expert app"
-msgstr "Experte CARA"
+msgstr "Calculateur experte CARA"
 
 #: templates/about.html.j2:20
 msgid ""
@@ -294,7 +294,7 @@ msgstr ""
 "Le modèle mathématique et physique simule la propagation aéroportée du "
 "virus SARS-CoV-2 dans un volume fini, en supposant un mélange homogène, "
 "et estime le risque de transmission aéroportée du COVID-19. Les résultats"
-" n'incluent pas autres modes connus de transmission SARS-CoV-2. Par "
+" n'incluent pas autres modes connus de transmission du SARS-CoV-2. Par "
 "conséquent,les résultats de ce modèle ne sont valables que lorsque les "
 "autres instructions de santé publique et de sécurité recommandées sont "
 "observées, comme une bonne hygiène des mains et d'autres mesures "
@@ -306,7 +306,7 @@ msgid ""
 "published here in the CARA paper:"
 msgstr ""
 "La méthodologie, les équations mathématiques et les paramètres du modèle "
-"sont publiées dans le CARA article:"
+"sont publiées dans l'article de CARA:"
 
 #: templates/about.html.j2:22
 msgid "The short-range component of the model was adapted from"
@@ -340,8 +340,8 @@ msgid ""
 "value for the average infectious dose. \n"
 "The methodology of the model is divided into five parts:"
 msgstr ""
-"L'outil aide à évaluer la dose potentielle des virus aéroportés "
-"infectieux dans les rassemblements intérieurs, avec des gens assis, "
+"L'outil aide à évaluer la dose potentielle des virus infectieux "
+"aéroportés dans les rassemblements intérieurs, avec des gens assis, "
 "debout, se déplaçant, tout en respirant, en parlant ou en criant / "
 "chantant. Le modèle est basé sur la dose-réponse exponentielle de la "
 "transmission de la maladie, qui assume une valeur fixe pour la dose "
@@ -366,7 +366,7 @@ msgstr ""
 
 #: templates/about.html.j2:32
 msgid "Absorbed dose of infectious viruses, inhaled during the exposure time;"
-msgstr "Dose absorbée de virus infectieux, inhalée pendant le temps d'exposition;"
+msgstr "Dose de virus infectieux absorbée et inhalée pendant le temps d'exposition;"
 
 #: templates/about.html.j2:33
 msgid ""
@@ -378,7 +378,7 @@ msgstr ""
 
 #: templates/about.html.j2:36
 msgid "What is the aim of CARA?"
-msgstr "Quel est le but de CARA?"
+msgstr "Quel est le but de CARA ?"
 
 #: templates/about.html.j2:37
 msgid ""
@@ -390,33 +390,33 @@ msgstr ""
 "Bien que l'utilisateur soit en mesure de calculer une probabilité "
 "d'infection d'un événement avec un ensemble prédéfini de mesures de "
 "protection, l'utilité principale du CARA est de comparer l'impact relatif"
-" de différentes mesures et/ou combinaisons de mesures. Par example:"
+" de différentes mesures et/ou combinaisons de mesures. Par exemple :"
 
 #: templates/about.html.j2:39
 msgid "Compare keeping a window slightly open vs one or two windows open entirely"
 msgstr ""
-"Comparez une fenêtre légèrement ouverte contre une ou deux fenêtres "
-"entièrement ouvertes"
+"Comparez la différence entre une fenêtre légèrement ouverte "
+"et une ou deux fenêtres entièrement ouvertes"
 
 #: templates/about.html.j2:40
 msgid ""
 "Compare opening one entire window every 2h for 10 min vs keeping half a "
 "window open all day"
 msgstr ""
-"Comparez l'ouverture d'une fenêtre entière toutes les 2 heures pendant 10"
-" min vs en gardant une demi-fenêtre ouverte toute la journée"
+"Comparez la différence entre une fenêtre entièrement ouverte pendant 10 "
+"min toutes les 2 heures et une fenêtre demi-ouverte toute la journée"
 
 #: templates/about.html.j2:41
 msgid "Compare the effect of an FFP2 with respect to a Type I surgical mask"
-msgstr "Comparez l'effet d'un FFP2 par rapport à un masque chirurgical de type I"
+msgstr "Comparez l'effet d'un masque FFP2 par rapport à un masque chirurgical de type I"
 
 #: templates/about.html.j2:42
 msgid "Adapt the maximum occupancy considering the effect of HEPA filters"
-msgstr "Adapter la jauge maximaler d'occupation en fonction des filtres HEPA."
+msgstr "Adapter l'occupation maximale de la pièce en fonction des filtres HEPA"
 
 #: templates/about.html.j2:43
 msgid "Etc…"
-msgstr "Etc…"
+msgstr "Etc."
 
 #: templates/about.html.j2:46
 msgid "Main Developers:"
@@ -432,7 +432,7 @@ msgstr "Références"
 
 #: templates/about.html.j2:55
 msgid "Acknowledgements:"
-msgstr "Remerciements:"
+msgstr "Remerciements :"
 
 #: templates/about.html.j2:57 templates/base/index.html.j2:85
 msgid "Click to expand"
@@ -479,7 +479,7 @@ msgid ""
 "decisions."
 msgstr ""
 "CARA est un outil d'évaluation des risques développé pour modéliser la "
-"concentration des virus dans les espaces fermés, afin d'éclairer les "
+"concentration des virus dans les espaces fermés, afin de faciliter les "
 "décisions de gestion de l'espace."
 
 #: templates/common_text.md.j2:31
@@ -492,7 +492,7 @@ msgid ""
 "concentrations and chains of airborne transmission in spaces such as "
 "individual offices, meeting rooms and labs."
 msgstr ""
-"CARA modélise le profil de concentration des virions dans les espaces "
+"CARA modélise le profil de concentration de virions dans les espaces "
 "fermés avec des graphiques clairs et intuitifs.\n"
 "        L'utilisateur peut définir un certain nombre de paramètres, y "
 "compris le volume de la pièce, le temps d'exposition, le type d'activité,"
@@ -520,7 +520,7 @@ msgstr ""
 "homogène, et estime le risque de transmission aéroportée de COVID-19.\n"
 "        Les résultats N'INCLUENT PAS l'exposition à courte portée (où la "
 "distance physique est un facteur significatif) ni les autres modes connus"
-" de transmission SAR-COV-2.\n"
+" de transmission du SAR-COV-2.\n"
 "        Par conséquent, les résultats de ce modèle ne sont valables que "
 "lorsque les autres instructions de santé publique et de sécurité "
 "recommandées sont observées, comme une distanciation physique adéquate, "
@@ -607,7 +607,7 @@ msgstr ""
 
 #: templates/common_text.md.j2:63
 msgid "Reference list can be found in the CARA paper: "
-msgstr "La liste de référence est dans le document CARA: "
+msgstr "La liste de référence est dans le document CARA : "
 
 #: templates/base/calculator.form.html.j2:22
 msgid "Please send feedback to"
@@ -620,11 +620,11 @@ msgstr "Calculateur"
 
 #: templates/base/calculator.form.html.j2:48
 msgid "Simulation name:"
-msgstr "Nom de la simulation:"
+msgstr "Nom de la simulation :"
 
 #: templates/base/calculator.form.html.j2:53
 msgid "Room number:"
-msgstr "Numéro du local:"
+msgstr "Numéro du local :"
 
 #: templates/base/calculator.form.html.j2:59
 #: templates/base/calculator.form.html.j2:557
@@ -633,7 +633,7 @@ msgstr "Données de virus"
 
 #: templates/base/calculator.form.html.j2:66
 msgid "Variant:"
-msgstr "Variant:"
+msgstr "Variant :"
 
 #: templates/base/calculator.form.html.j2:69
 #: templates/base/calculator.report.html.j2:272
@@ -677,15 +677,15 @@ msgstr "Données du local"
 
 #: templates/base/calculator.form.html.j2:93
 msgid "Room volume:"
-msgstr "Volume du local:"
+msgstr "Volume du local :"
 
 #: templates/base/calculator.form.html.j2:104
 msgid "Floor area:"
-msgstr "Surface au sol:"
+msgstr "Surface au sol :"
 
 #: templates/base/calculator.form.html.j2:112
 msgid "Ceiling height:"
-msgstr "Hauteur de plafond:"
+msgstr "Hauteur sous plafond :"
 
 #: templates/base/calculator.form.html.j2:120
 msgid "Central heating system in use:"
@@ -715,7 +715,7 @@ msgstr "Oui"
 
 #: templates/base/calculator.form.html.j2:129
 msgid "Geographic location:"
-msgstr "Position géographique:"
+msgstr "Position géographique :"
 
 #: templates/base/calculator.form.html.j2:147
 #: templates/base/calculator.form.html.j2:568
@@ -770,17 +770,17 @@ msgstr "Changements d'air"
 #: templates/base/calculator.form.html.j2:213
 #: templates/base/calculator.report.html.j2:318
 msgid "Number of windows:"
-msgstr "Nombre de fenêtres:"
+msgstr "Nombre de fenêtres :"
 
 #: templates/base/calculator.form.html.j2:217
 #: templates/base/calculator.report.html.j2:319
 msgid "Height of window:"
-msgstr "Hauteur de fenêtre:"
+msgstr "Hauteur de fenêtre :"
 
 #: templates/base/calculator.form.html.j2:220
 #: templates/base/calculator.report.html.j2:320
 msgid "Window type:"
-msgstr "Type de fenêtre:"
+msgstr "Type de fenêtre :"
 
 #: templates/base/calculator.form.html.j2:222
 #: templates/base/calculator.report.html.j2:325
@@ -795,12 +795,12 @@ msgstr "Charnière haute ou basse"
 #: templates/base/calculator.form.html.j2:226
 #: templates/base/calculator.report.html.j2:323
 msgid "Width of window:"
-msgstr "Largeur de la fenêtre:"
+msgstr "Largeur de la fenêtre :"
 
 #: templates/base/calculator.form.html.j2:230
 #: templates/base/calculator.report.html.j2:327
 msgid "Opening distance:"
-msgstr "Distance d'ouverture (m):"
+msgstr "Distance d'ouverture (m) :"
 
 #: templates/base/calculator.form.html.j2:233
 msgid "Window open:"
@@ -813,7 +813,7 @@ msgstr "En permanence"
 
 #: templates/base/calculator.form.html.j2:240
 msgid "Periodically:"
-msgstr "Périodique:"
+msgstr "Périodiquement :"
 
 #: templates/base/calculator.form.html.j2:247
 msgid "HEPA filtration:"
@@ -827,15 +827,15 @@ msgstr "Masques faciaux"
 msgid "Are masks worn when occupants are at workstations?"
 msgstr ""
 "Les masques sont-ils portés lorsque les occupants sont aux postes de "
-"travail?"
+"travail ?"
 
 #: templates/base/calculator.form.html.j2:275
 msgid "Type of masks used:"
-msgstr "Type de masque:"
+msgstr "Type de masque :"
 
 #: templates/base/calculator.form.html.j2:280
 msgid "Surgical/Type I"
-msgstr "Chirurgie / Type I"
+msgstr "Chirurgical / Type I"
 
 #: templates/base/calculator.form.html.j2:287
 msgid "Respirator/FFP2"
@@ -844,15 +844,15 @@ msgstr "FFP2 ou similaire"
 #: templates/base/calculator.form.html.j2:299
 #: templates/base/calculator.report.html.j2:352
 msgid "Event data:"
-msgstr "Données sur l'événement:"
+msgstr "Données sur l'événement :"
 
 #: templates/base/calculator.form.html.j2:305
 msgid "Total number of occupants:"
-msgstr "Nombre total d'occupants:"
+msgstr "Nombre total d'occupants :"
 
 #: templates/base/calculator.form.html.j2:310
 msgid "Number of infected people:"
-msgstr "Nombre de personnes infectées:"
+msgstr "Nombre de personnes infectées :"
 
 #: templates/base/calculator.form.html.j2:314
 msgid "Conference/Training activities limited to 1 infected"
@@ -865,7 +865,7 @@ msgstr "Type d'activité"
 
 #: templates/base/calculator.form.html.j2:335
 msgid "Exposed person(s) presence:"
-msgstr "Présence de personne(s) exposée(s):"
+msgstr "Présence de personne(s) exposée(s) :"
 
 #: templates/base/calculator.form.html.j2:338
 #: templates/base/calculator.form.html.j2:353
@@ -874,22 +874,22 @@ msgstr "Présence de personne(s) exposée(s):"
 #: templates/base/calculator.report.html.j2:435
 #: templates/base/calculator.report.html.j2:461
 msgid "Start:"
-msgstr "Début:"
+msgstr "Début :"
 
 #: templates/base/calculator.form.html.j2:342
 #: templates/base/calculator.form.html.j2:357
 #: templates/base/calculator.form.html.j2:454
 #: templates/base/calculator.form.html.j2:502
 msgid "Finish:"
-msgstr "Fin:"
+msgstr "Fin :"
 
 #: templates/base/calculator.form.html.j2:350
 msgid "Infected person(s) presence:"
-msgstr "Présence de personne(s) infectée(s):"
+msgstr "Présence de personne(s) infectée(s) :"
 
 #: templates/base/calculator.form.html.j2:368
 msgid "Short-range interactions (without masks):"
-msgstr "Interactions à courte portée (sans masques):"
+msgstr "Interactions à courte portée (sans masques) :"
 
 #: templates/base/calculator.form.html.j2:376
 msgid ""
@@ -926,20 +926,20 @@ msgstr "Sauver tous"
 
 #: templates/base/calculator.form.html.j2:412
 msgid "Which month is the event?"
-msgstr "Quand est l'événement?"
+msgstr "Quel est le mois de l'évenement ?"
 
 #: templates/base/calculator.form.html.j2:429
 #: templates/base/calculator.form.html.j2:596
 msgid "Activity breaks:"
-msgstr "Pauses dans l'activité:"
+msgstr "Pauses de travail :"
 
 #: templates/base/calculator.form.html.j2:438
 msgid "Input separate breaks for infected and exposed person(s)"
-msgstr "Saisir des pauses distinctes pour les personnes infectées et exposées"
+msgstr "Saisir des pauses de travail distinctes pour les personnes infectées et exposées"
 
 #: templates/base/calculator.form.html.j2:442
 msgid "Exposed person(s) breaks:"
-msgstr "Pauses des personnes exposées:"
+msgstr "Pauses des personnes exposées :"
 
 #: templates/base/calculator.form.html.j2:444
 #: templates/base/calculator.form.html.j2:491
@@ -951,7 +951,7 @@ msgstr "Heure du déjeuner"
 #: templates/base/calculator.form.html.j2:461
 #: templates/base/calculator.form.html.j2:509
 msgid "Coffee Breaks:"
-msgstr "Pauses café"
+msgstr "Pauses café :"
 
 #: templates/base/calculator.form.html.j2:465
 #: templates/base/calculator.form.html.j2:513
@@ -961,11 +961,11 @@ msgstr "Pas de pause"
 #: templates/base/calculator.form.html.j2:475
 #: templates/base/calculator.form.html.j2:523
 msgid "Duration (minutes):"
-msgstr "Durée (minutes):"
+msgstr "Durée (minutes) :"
 
 #: templates/base/calculator.form.html.j2:489
 msgid "Infected person(s) breaks:"
-msgstr "Pauses des personnes infectées:"
+msgstr "Pauses des personnes infectées :"
 
 #: templates/base/calculator.form.html.j2:537
 msgid "Coffee breaks are spread evenly throughout the day."
@@ -977,7 +977,7 @@ msgstr "Générer un rapport"
 
 #: templates/base/calculator.form.html.j2:555
 msgid "Quick Guide:"
-msgstr "Guide rapide:"
+msgstr "Guide rapide :"
 
 #: templates/base/calculator.form.html.j2:556
 msgid ""
@@ -988,7 +988,7 @@ msgid ""
 msgstr ""
 "Cet outil simule le virus SARS-CoV-2 par propagation aéroportée à longue "
 "portée dans un volume fini et estime le risque d'infection Covid-19. Il "
-"est basé sur des données scientifiques actuels et peut être utilisé pour "
+"est basé sur des données scientifiques actuelles et peut être utilisé pour "
 "comparer l'efficacité de différentes mesures de prévention."
 
 #: templates/base/calculator.form.html.j2:558
@@ -996,8 +996,8 @@ msgid ""
 "SARS-CoV-2 covers the original \"wild type\" strain of the virus and "
 "three variants of concern (VOC):"
 msgstr ""
-"SARS-CoV-2 couvre la souche d'origine du virus \"wild strain\" et "
-"différents variants préoccupants:"
+"SARS-CoV-2 couvre la souche d'origine du virus \"souche sauvage\" et "
+"trois variants préocupants :"
 
 #: templates/base/calculator.form.html.j2:560
 msgid "Alpha (also known as B.1.1.7, first identified in UK, Sept 2020),"
@@ -1049,14 +1049,14 @@ msgstr "ou"
 
 #: templates/base/calculator.form.html.j2:567
 msgid "Ain (France)"
-msgstr "Aïn (France)"
+msgstr "Ain (France)"
 
 #: templates/base/calculator.form.html.j2:570
 msgid ""
 "Mechanical ventilation = the HVAC supply of fresh air. Check the flow "
 "rates with the concerned technical department."
 msgstr ""
-"Ventilation mécanique = l'alimentation HVAC en l'air frais. Vérifiez les "
+"Ventilation mécanique = l'alimentation d'air frais HVAC. Vérifiez les "
 "débits avec le service technique concerné."
 
 #: templates/base/calculator.form.html.j2:571
@@ -1068,7 +1068,7 @@ msgid ""
 "frequency (e.g. every 60 min)."
 msgstr ""
 "Ventilation naturelle = le type d'ouverture de la fenêtre. La distance "
-"d'ouverture est entre le cadre fixe et la pièce mobile lorsqu'elle est "
+"d'ouverture est entre le cadre fixe et la partie mobile lorsqu'elle est "
 "ouverte (les valeurs couramment utilisées sont une hauteur de fenêtre de "
 "1,6 m et une ouverture de fenêtre entre 0,15 m et 0,6 m). En cas "
 "d'ouverture périodique, spécifiez la durée (par exemple pendant 10 min) "
@@ -1082,7 +1082,7 @@ msgid ""
 msgstr ""
 "Filtration HEPA = le débit d'air de l'appareil. Les valeurs suivantes "
 "sont basé sur les différentes vitesses de ventilation d'un appareil "
-"commercial spécifique, proposé par la HSE unité:"
+"commercial spécifique, proposé par l'unité HSE :"
 
 #: templates/base/calculator.form.html.j2:574
 msgid "Level 6 (max) = 430 m"
@@ -1098,7 +1098,7 @@ msgstr "Niveau 5 = 250 m"
 
 #: templates/base/calculator.form.html.j2:575
 msgid "/h (ok w.r.t. noise, recommended),"
-msgstr "/h (ok en ce qui concerne noise, recommandé),"
+msgstr "/h (ok en ce qui concerne le bruit, recommandé),"
 
 #: templates/base/calculator.form.html.j2:576
 msgid "Level 4 = 130 m"
@@ -1137,7 +1137,7 @@ msgid ""
 "persons,"
 msgstr ""
 "Petite réunion (< 10 occ.) = tous assis, temps de parole partagé entre "
-"tous personnes,"
+"toutes les personnes,"
 
 #: templates/base/calculator.form.html.j2:585
 #, python-format
@@ -1145,7 +1145,7 @@ msgid ""
 "Large meeting (>= 10 occ.) = speaker is standing and speaking 33% of the "
 "time, other occupants are seated,"
 msgstr ""
-"Grande réunion (>= 10 occ.) = l'orateur est debout et parle 33 % de la le"
+"Grande réunion (>= 10 occ.) = l'orateur est debout et parle 33 % du"
 " temps, les autres occupants sont assis,"
 
 #: templates/base/calculator.form.html.j2:586
@@ -1182,13 +1182,13 @@ msgid ""
 "and talking quietly.\n"
 "    Speaker/Trainer assumed infected (worst case scenario),"
 msgstr ""
-"Conférence/Formation = intervenant/formateur debout et parlant, reste "
-"assiset parler doucement.\n"
+"Conférence/Formation = intervenant/formateur debout et parlant, le reste "
+"est assis et parle doucement.\n"
 "   Conférencier/formateur présumé infecté (pire des cas),"
 
 #: templates/base/calculator.form.html.j2:594
 msgid "Gym = heavy exercise, no talking, just breathing."
-msgstr "Gym = exercice intense, sans parler, juste respirer."
+msgstr "Salle de sport = exercice intense, sans parler, juste respirer."
 
 #: templates/base/calculator.form.html.j2:598
 msgid ""
@@ -1196,13 +1196,13 @@ msgid ""
 "day,\n"
 "    in addition to any lunch break (if applicable)."
 msgstr ""
-"Si les pauses-café sont incluses, elles sont réparties uniformément tout "
+"Si les pauses café sont incluses, elles sont réparties uniformément tout "
 "au long de la jour,\n"
 "   en plus de toute pause déjeuner (le cas échéant)."
 
 #: templates/base/calculator.form.html.j2:601
 msgid "Refer to"
-msgstr "Faire référence à"
+msgstr "Fait référence"
 
 #: templates/base/calculator.form.html.j2:601
 msgid "COVID Calculator App user guide"
@@ -1223,7 +1223,7 @@ msgstr "Avertissement"
 
 #: templates/base/calculator.report.html.j2:7
 msgid "Report | CARA (COVID Airborne Risk Assessment)"
-msgstr "Report | CARA (COVID Airborne Risk Assessment)"
+msgstr "Rapport | CARA (COVID Airborne Risk Assessment)"
 
 #: templates/base/calculator.report.html.j2:30
 msgid "REPORT"
@@ -1318,7 +1318,7 @@ msgid ""
 "CARA publication:"
 msgstr ""
 "Les résultats sont basés sur les paramètres et les hypothèses publiés "
-"dans le CARA publication:"
+"dans la publication CARA :"
 
 #: templates/base/calculator.report.html.j2:146
 #: templates/base/calculator.report.html.j2:182
@@ -1365,12 +1365,12 @@ msgid ""
 "mask will show the same concentration on the graph but have different "
 "absorbed doses and infection probabilities."
 msgstr ""
-"Ce graphique montre la concentration de quanta infectieuse dans l'air. La"
-" filtration des masques de type I et FFP2, si elle est portée, s'applique"
+"Ce graphique montre la concentration de quanta infectieux dans l'air. La"
+" filtration des masques de type I et FFP2, s'ils sont portés, s'applique"
 " non seulement au taux d'émission mais aussi à l'exposition individuelle "
 "(c'est-à-dire l'inhalation). Pour cette raison, les scénarios avec "
 "différents types de masques montreront la même concentration sur le "
-"graphique mais ont des doses absorbées et des probabilités d'infection "
+"graphique mais auront des doses absorbées et des probabilités d'infection "
 "différentes."
 
 #: templates/base/calculator.report.html.j2:218
@@ -1390,7 +1390,7 @@ msgid ""
 "either HEPA filtration or FFP2 masks."
 msgstr ""
 "Les autres scénarios alternatifs présentés pour la comparaison "
-"n'incluront ni la filtration HEPA ou les masques FFP2."
+"n'incluront ni la filtration HEPA ni les masques FFP2."
 
 #: templates/base/calculator.report.html.j2:231
 msgid "Link to reproduce results"
@@ -1408,51 +1408,51 @@ msgstr ""
 
 #: templates/base/calculator.report.html.j2:245
 msgid "Alternatively, scan to regenerate the report."
-msgstr "Alternativement, scanner pour régénérer le rapport."
+msgstr "Alternativement, scanner pour regénérer le rapport."
 
 #: templates/base/calculator.report.html.j2:259
 msgid "Simulation:"
-msgstr "Simulation:"
+msgstr "Simulatio :"
 
 #: templates/base/calculator.report.html.j2:261
 msgid "Simulation Name:"
-msgstr "Nom de la simulation:"
+msgstr "Nom de la simulation :"
 
 #: templates/base/calculator.report.html.j2:262
 msgid "Room Number:"
-msgstr "Numéro de chambre:"
+msgstr "Numéro de la pièce :"
 
 #: templates/base/calculator.report.html.j2:267
 msgid "Input data:"
-msgstr "Données d'entrée:"
+msgstr "Données d'entrée :"
 
 #: templates/base/calculator.report.html.j2:270
 msgid "Virus variant:"
-msgstr "Variant du virus:"
+msgstr "Variant du virus :"
 
 #: templates/base/calculator.report.html.j2:285
 msgid "Room Volume:"
-msgstr "Volume du local:"
+msgstr "Volume du local :"
 
 #: templates/base/calculator.report.html.j2:286
 msgid "Room Central Heating:"
-msgstr "Chauffage central de la chambre:"
+msgstr "Chauffage central de la pièce :"
 
 #: templates/base/calculator.report.html.j2:287
 msgid "Geographic Location:"
-msgstr "Position géographique:"
+msgstr "Position géographique :"
 
 #: templates/base/calculator.report.html.j2:289
 msgid "Nearest weather station:"
-msgstr "Station météorologique la plus proche:"
+msgstr "Station météorologique la plus proche :"
 
 #: templates/base/calculator.report.html.j2:299
 msgid "Mechanical ventilation:"
-msgstr "Ventilation mécanique:"
+msgstr "Ventilation mécanique :"
 
 #: templates/base/calculator.report.html.j2:305
 msgid "Air supply flow rate:"
-msgstr "Débit d'air neuf:"
+msgstr "Débit d'air neuf :"
 
 #: templates/base/calculator.report.html.j2:305
 #: templates/base/calculator.report.html.j2:344
@@ -1461,15 +1461,15 @@ msgstr "heure"
 
 #: templates/base/calculator.report.html.j2:307
 msgid "Air changes per hour:"
-msgstr "Changements d'air par heure:"
+msgstr "Changements d'air par heure :"
 
 #: templates/base/calculator.report.html.j2:314
 msgid "Natural ventilation:"
-msgstr "Ventilation naturelle:"
+msgstr "Ventilation naturelle :"
 
 #: templates/base/calculator.report.html.j2:328
 msgid "Windows open:"
-msgstr "Ouverture fenêtres:"
+msgstr "Fenêtres ouvertes :"
 
 #: templates/base/calculator.report.html.j2:330
 msgid "Periodically for"
@@ -1498,11 +1498,11 @@ msgstr "Filtration HEPA"
 
 #: templates/base/calculator.report.html.j2:344
 msgid "HEPA amount:"
-msgstr "Quantité HEPA:"
+msgstr "Quantité HEPA :"
 
 #: templates/base/calculator.report.html.j2:355
 msgid "Number of attendees and infected people:"
-msgstr "Nombre de participants et de personnes infectées:"
+msgstr "Nombre de participants et de personnes infectées :"
 
 #: templates/base/calculator.report.html.j2:355
 msgid "in attendance, of whom"
@@ -1526,14 +1526,14 @@ msgid ""
 "speaking at a time."
 msgstr ""
 "Petite réunion - scénario typique avec toutes les personnes assises, une "
-"personne parler à la fois."
+"personne parle à la fois."
 
 #: templates/base/calculator.report.html.j2:365
 msgid ""
 "Large meeting – infected occupant(s) is standing and speaking 1/3rd of "
 "the time, while the other occupants are seated.\t"
 msgstr ""
-"Grande réunion (>= 10 occ.) = l'orateur est debout et parle 33 % de la le"
+"Grande réunion (>= 10 occ.) = l'orateur est debout et parle 33 % du"
 " temps, les autres occupants sont assis.\t"
 
 #: templates/base/calculator.report.html.j2:367
@@ -1542,7 +1542,7 @@ msgid ""
 "speaking continuously."
 msgstr ""
 "Centre d'appels = scénario typique de type bureau avec toutes les "
-"personnes assises, toutes parler continuellement."
+"personnes assises, toutes parlent continuellement."
 
 #: templates/base/calculator.report.html.j2:369
 #, python-format
@@ -1551,7 +1551,7 @@ msgid ""
 "seated, all speaking 50% of the time."
 msgstr ""
 "Salle de contrôle (équipe de jour) = scénario de salle de contrôle "
-"spécifique, toutes personnes assis, tous parlant 50% du temps."
+"spécifique, toutes les personnes sont assises, tous parlant 50% du temps."
 
 #: templates/base/calculator.report.html.j2:371
 #, python-format
@@ -1559,8 +1559,8 @@ msgid ""
 "Control Room (Night Shift) = specific control room scenario with all "
 "persons seated, all speaking for 10% of the time."
 msgstr ""
-"Control Room (Night Shift) = scénario spécifique de la salle de contrôle "
-"avec personnes assises, toutes parlant pendant 10 % du temps."
+"Salle de contrôle (équipe de nuit) = scénario spécifique de la salle de contrôle "
+"avec les personnes assises, toutes parlant pendant 10 % du temps."
 
 #: templates/base/calculator.report.html.j2:373
 msgid ""
@@ -1568,7 +1568,7 @@ msgid ""
 "speaking."
 msgstr ""
 "Bibliothèque = Scénario de bibliothèque avec toutes les personnes "
-"assises, respirant et non parlant."
+"assises, respirant et ne parlant pas."
 
 #: templates/base/calculator.report.html.j2:375
 #, python-format
@@ -1577,7 +1577,7 @@ msgid ""
 "physical activity, speaking 50% of the time."
 msgstr ""
 "Atelier = environnement d'atelier de montage, toutes les personnes "
-"faisant modéré activité physique, parlant 50% du temps."
+"faisant une activité physique modérée, parlant 50% du temps."
 
 #: templates/base/calculator.report.html.j2:377
 msgid ""
@@ -1597,19 +1597,19 @@ msgid ""
 "physical activity, speaking 50% of the time."
 msgstr ""
 "Laboratoire = Laboratoire ou environnement technique, toutes les "
-"personnes faisant de la lumière activité physique, parlant 50% du temps."
+"personnes faisant dde l'activié physique légère, parlant 50% du temps."
 
 #: templates/base/calculator.report.html.j2:381
 msgid ""
 "Gym = For comparison only, all persons doing heavy physical exercise, "
 "breathing and not speaking."
 msgstr ""
-"Gym = À titre de comparaison uniquement, toutes les personnes faisant de "
+"Salle de sport = À titre de comparaison uniquement, toutes les personnes faisant de "
 "l'exercice physique intense, respirer et ne pas parler."
 
 #: templates/base/calculator.report.html.j2:386
 msgid "Short-range interactions:"
-msgstr "Interactions à courte portée:"
+msgstr "Interactions à courte portée :"
 
 #: templates/base/calculator.report.html.j2:390
 msgid "Expiratory activity"
@@ -1625,7 +1625,7 @@ msgstr "Durée"
 
 #: templates/base/calculator.report.html.j2:396
 msgid "Exposed occupant(s) activity time:"
-msgstr "Temps d'activité des occupants exposés:"
+msgstr "Temps d'activité des occupants exposés :"
 
 #: templates/base/calculator.report.html.j2:398
 #: templates/base/calculator.report.html.j2:403
@@ -1639,11 +1639,11 @@ msgstr "Heure de début"
 #: templates/base/calculator.report.html.j2:423
 #: templates/base/calculator.report.html.j2:449
 msgid "End time:"
-msgstr "Heure de fin:"
+msgstr "Heure de fin :"
 
 #: templates/base/calculator.report.html.j2:401
 msgid "Infected occupant(s) activity time:"
-msgstr "Temps d'activité des occupants infectés:"
+msgstr "Temps d'activité des occupants infectés :"
 
 #: templates/base/calculator.report.html.j2:406
 msgid "Event for the month of"
@@ -1651,16 +1651,16 @@ msgstr "Événement pour le mois de"
 
 #: templates/base/calculator.report.html.j2:412
 msgid "Break data:"
-msgstr "Données de pauses:"
+msgstr "Données de pauses de travail :"
 
 #: templates/base/calculator.report.html.j2:415
 msgid "Exposed occupant(s):"
-msgstr "Occupant exposés:"
+msgstr "Occupant(s) exposés :"
 
 #: templates/base/calculator.report.html.j2:429
 #: templates/base/calculator.report.html.j2:455
 msgid "Coffee breaks:"
-msgstr "Pauses café:"
+msgstr "Pauses café :"
 
 #: templates/base/calculator.report.html.j2:431
 #: templates/base/calculator.report.html.j2:457
@@ -1680,27 +1680,27 @@ msgstr "Pauses café"
 #: templates/base/calculator.report.html.j2:435
 #: templates/base/calculator.report.html.j2:461
 msgid "End:"
-msgstr "Finir:"
+msgstr "Finir :"
 
 #: templates/base/calculator.report.html.j2:441
 msgid "Infected occupant(s):"
-msgstr "Occupants infectés:"
+msgstr "Occupants infectés :"
 
 #: templates/base/calculator.report.html.j2:467
 msgid "Same breaks taken by the exposed and infected persons."
-msgstr "Les pauses prises par les personnes exposées et infectées sont les mêmes."
+msgstr "Les pauses de travail prises par les personnes exposées et infectées sont les mêmes."
 
 #: templates/base/calculator.report.html.j2:473
 msgid "Mask wearing:"
-msgstr "Port du masque:"
+msgstr "Port du masque :"
 
 #: templates/base/calculator.report.html.j2:476
 msgid "Masks worn at workstations?"
-msgstr "Masques portés?"
+msgstr "Masques portés ?"
 
 #: templates/base/calculator.report.html.j2:478
 msgid "Mask type:"
-msgstr "Type de masque:"
+msgstr "Type de masque :"
 
 #: templates/base/calculator.report.html.j2:495
 msgid "Disclaimer:"
@@ -1824,7 +1824,7 @@ msgstr "Mode d'emploi"
 
 #: templates/base/layout.html.j2:46
 msgid "Expert app (beta)"
-msgstr "Expert (beta)"
+msgstr "Calculateur expert (beta)"
 
 #: templates/base/layout.html.j2:60
 msgid "Signed in as:"
@@ -1908,7 +1908,7 @@ msgid ""
 "described here in the CERN Report: "
 msgstr ""
 "La méthodologie, les équations mathématiques et les paramètres du modèle "
-"sont publiées dans le CARA article:"
+"sont publiées dans l'article de CARA:"
 
 #: templates/base/userguide.html.j2:25
 msgid "How to use this tool"
@@ -2477,7 +2477,7 @@ msgstr ""
 
 #: templates/base/userguide.html.j2:140
 msgid "When is the event?"
-msgstr "Quand est l'événement?"
+msgstr "Quel est le mois de l'évenement ?"
 
 #: templates/base/userguide.html.j2:141
 msgid ""
@@ -2526,7 +2526,7 @@ msgstr ""
 "    Si vous prévoyez de déjeuner dans la même zone où vous travaillez, "
 "vous devez sélectionner «non» même si une pause déjeuner sera prise, car "
 "le risque d'infection est lié à l'occupation de l'espace simulé.\n"
-"    Voir «Split Breaks» si les occupants ne prennent pas leurs pauses en "
+"    Voir 'Split Breaks' si les occupants ne prennent pas leurs pauses de travail en "
 "même temps."
 
 #: templates/base/userguide.html.j2:153 templates/base/userguide.html.j2:165
@@ -2556,8 +2556,8 @@ msgstr ""
 " pendant la période simulée.\n"
 "    On suppose que tous les occupants quittent l'espace pendant la "
 "période de rupture.\n"
-"    Si les pauses-café sont prises in situ, cette option doit être "
-"définie sur «pas de pauses»."
+"    Si les pauses café sont prises in situ, cette option doit être "
+"définie sur 'pas de pauses'."
 
 #: templates/base/userguide.html.j2:160
 msgid ""
@@ -2574,12 +2574,12 @@ msgid ""
 "to 30 minutes in length.\n"
 "Note that this doesn't necessarily have to be a coffee break, it can "
 "represent any period where the simulated space is vacated.\n"
-"See 'Split Breaks' if the occupants do not break at the same time."
+"See 'Split breaks' if the occupants do not break at the same time."
 msgstr ""
-"Lorsqu'elles sont activées, les pauses sont réparties également tout au "
+"Lorsqu'elles sont activées, les pauses de travail sont réparties également tout au "
 "long de la journée - par exemple si nous simulons la période de 9h00 à "
 "18h00, avec une pause déjeuner de 13h00 à 14h00 et en considérant 2 "
-"pauses-café, l'outil planifiera la première pause-café vers 11h00 et la "
+"pauses café, l'outil planifiera la première pause-café vers 11h00 et la "
 "seconde vers 16h00.\n"
 "    Le moment exact des pauses dans la journée n'est pas particulièrement"
 " essentiel à une simulation précise, vous n'avez donc pas besoin de vous "
@@ -2590,12 +2590,12 @@ msgstr ""
 "    Notez que cela ne doit pas nécessairement être une pause-café, cela "
 "peut représenter n'importe quelle période où l'espace simulé est libéré."
 "\n"
-"    Voir «Pauses séparées» si les occupants ne prennent pas leurs pauses "
+"    Voir 'Pauses de travail séparées' si les occupants ne prennent pas leurs pauses "
 "en même temps."
 
 #: templates/base/userguide.html.j2:167
 msgid "Split breaks"
-msgstr "Pauses séparées"
+msgstr "Pauses de travail séparées"
 
 #: templates/base/userguide.html.j2:169
 msgid ""
@@ -2933,7 +2933,7 @@ msgid ""
 msgstr ""
 "Les restrictions de santé et de sécurité publiques sont réduites au "
 "minimum. Alignez-vous votre évaluation des risques avec les conseils et "
-"instructions fournis par le Unité HSE."
+"instructions fournis par l'unité HSE."
 
 #: templates/cern/calculator.report.html.j2:98
 msgid "Yellow - 2"
@@ -3203,21 +3203,3 @@ msgstr "est disponible sur ce site pour les membres du personnel du CERN."
 #: templates/cern/userguide.html.j2:4
 msgid "This information is available via GIS Portal"
 msgstr "Ces informations sont disponibles via le portail SIG"
-
-#~ msgid ""
-#~ "Taking into account the uncertainties "
-#~ "tied to the model variables, in "
-#~ "this scenario and assuming all occupants"
-#~ " are exposed equally (i.e. without "
-#~ "short-range interactions), the <b>probability "
-#~ "of one exposed occupant getting infected"
-#~ " is"
-#~ msgstr ""
-#~ " Compte tenu des incertitudes liées "
-#~ "aux variables du modèle, en ce "
-#~ "scénario et en supposant que tous "
-#~ "les occupants sont exposés de manière"
-#~ " égale (c'est-à-dire sans interactions à"
-#~ " courte portée), la <b>probabilité d'être"
-#~ " exposé l'occupant infecté est"
-
