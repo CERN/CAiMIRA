@@ -1,0 +1,129 @@
+# CAiMIRA workflow
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+        reason:
+          description: 'Reason'
+          required: false
+          default: 'Manual trigger'
+
+env:
+  PROJECT_NAME: cara
+  PROJECT_ROOT: ./
+
+# ###################################################################################################
+# Test code
+jobs:
+  # A full installation of CARA, tested with pytest.
+  # test_install:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Set up Python 3.7
+  #       uses: actions/setup-python@v3
+  #       with:
+  #         python-version: 3.7
+
+  #     - name: Install dependencies
+  #       run: |
+  #         pip install ${PROJECT_ROOT}[test]
+
+  #     - name: Run tests
+  #       run: |
+  #         mkdir -p ~/not-the-source-dir && cd ~/not-the-source-dir
+  #         python -m pytest --pyargs ${PROJECT_NAME}
+  # # A development installation of CARA tested with pytest.
+
+  # test_dev:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Set up Python 3.7
+  #       uses: actions/setup-python@v3
+  #       with:
+  #         python-version: 3.7
+    
+  #     - name: Install dependencies
+  #       run: |
+  #         python -m pip install -e ${PROJECT_ROOT}[test]
+  #         python -m pip install pytest-cov
+
+  #     - name: Run tests
+  #       # Run the unit-tests with coverage output.
+  #       run: |
+  #         cd ${PROJECT_ROOT}
+  #         python -m pytest ./${PROJECT_NAME} --cov=${PROJECT_NAME} --junitxml=report.xml
+  # # A development installation of CARA tested with pytest.
+  # container:
+  #   runs-on: ubuntu-latest
+  #   container: mambaorg/micromamba
+  #   steps:
+  #     - name: Run in container
+  #       run: |
+  #         micromamba create --yes -p /home/mambauser/env python=3.9 ruamel.yaml wget -c conda-forge
+        
+
+  # test_dev-39:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Set up Python 3.9
+  #       uses: actions/setup-python@v3
+  #       with:
+  #         python-version: 3.9
+    
+  #     - name: Install dependencies
+  #       run: |
+  #         python -m pip install -e ${PROJECT_ROOT}[test]
+  #         python -m pip install pytest-cov
+
+  #     - name: Run tests
+  #       # Run the unit-tests with coverage output.
+  #       run: |
+  #         cd ${PROJECT_ROOT}
+  #         python -m pytest ./${PROJECT_NAME} --cov=${PROJECT_NAME} --junitxml=report.xml
+
+  check_openshift_config_test:
+    runs-on: ubuntu-latest
+    container: 
+      image: mambaorg/micromamba
+      options: --user 1000
+    env:
+      CARA_INSTANCE: 'test-cara'
+      BRANCH: 'live/test-cara'
+      OC_SERVER: https://api.paas.okd.cern.ch
+      OC_TOKEN: "${OPENSHIFT_TEST_CONFIG_CHECKER_TOKEN}"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Before script
+        run: |
+          micromamba create --yes -p /home/mambauser/env python=3.9 ruamel.yaml wget -c conda-forge
+          export PATH=/home/mambauser/env/bin/:$PATH
+          wget https://github.com/openshift/origin/releases/download/v3.11.0/openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit.tar.gz -P /home/mambauser/env
+          cd /home/mambauser/env
+          tar xzf ./openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit.tar.gz
+          mv openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit/oc /home/mambauser/env/bin/
+          cd ../../..
+        
+      - name: Script
+        run: |
+          cd ./app-config/openshift
+          # oc login ${OC_SERVER} --token="${OC_TOKEN}"
+          # python ./config-fetch.py ${CARA_INSTANCE} --output-directory ./${CARA_INSTANCE}/actual
+          # python ./config-generate.py ${CARA_INSTANCE} --output-directory ./${CARA_INSTANCE}/expected
+          # python ./config-normalise.py ./${CARA_INSTANCE}/actual ./${CARA_INSTANCE}/actual-normed
+          # python ./config-normalise.py ./${CARA_INSTANCE}/expected ./${CARA_INSTANCE}/expected-normed
+          # diff -u ./${CARA_INSTANCE}/actual-normed/ ./${CARA_INSTANCE}/expected-normed/
