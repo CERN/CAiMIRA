@@ -213,14 +213,16 @@ class FormData:
                 start <= lunch_finish <= finish)
 
         def get_lunch_mins(population):
+            lunch_mins = 0
             if getattr(self, f'{population}_lunch_option'):
-                return getattr(self, f'{population}_lunch_finish') - getattr(self, f'{population}_lunch_start')
-            return 0
+                lunch_mins = getattr(self, f'{population}_lunch_finish') - getattr(self, f'{population}_lunch_start')
+            return lunch_mins
         
         def get_coffee_mins(population):
+            coffee_mins = 0
             if getattr(self, f'{population}_coffee_break_option') != 'coffee_break_0':
-                return COFFEE_OPTIONS_INT[getattr(self, f'{population}_coffee_break_option')] * getattr(self, f'{population}_coffee_duration')
-            return 0
+                coffee_mins = COFFEE_OPTIONS_INT[getattr(self, f'{population}_coffee_break_option')] * getattr(self, f'{population}_coffee_duration')
+            return coffee_mins
 
         def get_activity_mins(population):
             return getattr(self, f'{population}_finish') - getattr(self, f'{population}_start')
