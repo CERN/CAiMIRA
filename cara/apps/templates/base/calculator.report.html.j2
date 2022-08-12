@@ -48,9 +48,9 @@
 		<div class="modal-body">
 			<b>Select the data to export:</b>
 			<div class="form-check mt-3">
-				<input type="checkbox" class="form-check-input" name="checkedItems" id="Times" onclick="display_rename_column(this.checked, 'times-rename-div')">
+				<input type="checkbox" class="form-check-input" name="checkedItems" id="Times" onclick="display_rename_column(this.checked, 'times-rename-div')" checked>
 				<label class="form-check-label" for="Times">Times of day</label>
-				<div id="times-rename-div" class="align-items-center" style="display:none">
+				<div id="times-rename-div" class="align-items-center">
 					<label class="col-form-label" for="times-rename-div">Column name:</label>
 					<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Times__rename" placeholder="Times" value="Times">
 				</div>
@@ -89,7 +89,7 @@
 		</div>
 		<div class="modal-footer">
 			<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-			<button type="button" class="btn btn-primary" onclick="export_csv();">Download</button>
+			<button id="downloadCSV" type="button" class="btn btn-primary" onclick="export_csv();">Download</button>
 		</div>
 		</div>
 	</div>
