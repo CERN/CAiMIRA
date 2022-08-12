@@ -170,7 +170,7 @@ def test_ventilation_window_hepa(baseline_form: model_generator.FormData):
 def test_infected_less_than_total_people(baseline_form: model_generator.FormData):
     baseline_form.total_people = 10
     baseline_form.infected_people = 11
-    with pytest.raises(ValueError, match='Number of infected people should be less than number of total people.'):
+    with pytest.raises(ValueError, match='Number of infected people cannot be more than number of total people.'):
         baseline_form.validate()
 
 
@@ -262,56 +262,45 @@ def test_exposed_present_lunch_end_before_beginning(baseline_form: model_generat
         baseline_form.validate()
 
 
-def test_exposed_presence_lunch_start_before_begining(baseline_form: model_generator.FormData):
+def test_exposed_presence_lunch_break(baseline_form: model_generator.FormData):
+    # lunch_start before the presence begining
     baseline_form.exposed_lunch_start = minutes_since_midnight(8 * 60)
     with pytest.raises(ValueError, match='exposed lunch break must be within presence times.'):
         baseline_form.validate()
-
-
-def test_exposed_presence_lunch_start_after_finishing(baseline_form: model_generator.FormData):
+    # lunch_start after the presence finishing
     baseline_form.exposed_lunch_start = minutes_since_midnight(19 * 60)
     baseline_form.exposed_lunch_finish = minutes_since_midnight(20 * 60)
     with pytest.raises(ValueError, match='exposed lunch break must be within presence times.'):
         baseline_form.validate()
-
-
-def test_exposed_presence_lunch_finish_before_begining(baseline_form: model_generator.FormData):
+    # lunch_finish before the presence begining
     baseline_form.exposed_lunch_start = minutes_since_midnight(7 * 60)
     baseline_form.exposed_lunch_finish = minutes_since_midnight(8 * 60)
     with pytest.raises(ValueError, match='exposed lunch break must be within presence times.'):
         baseline_form.validate()
-
-
-def test_exposed_presence_lunch_finish_after_finishing(baseline_form: model_generator.FormData):
+    # lunch_finish after the presence finishing
     baseline_form.exposed_lunch_finish = minutes_since_midnight(19 * 60)
     with pytest.raises(ValueError, match='exposed lunch break must be within presence times.'):
         baseline_form.validate()
 
-
-def test_infected_presence_lunch_start_before_begining(baseline_form: model_generator.FormData):
+def test_infected_presence_lunch_break(baseline_form: model_generator.FormData):
+    # lunch_start before the presence begining
     baseline_form.infected_lunch_start = minutes_since_midnight(8 * 60)
     with pytest.raises(ValueError, match='infected lunch break must be within presence times.'):
         baseline_form.validate()
-
-
-def test_infected_presence_lunch_start_after_finishing(baseline_form: model_generator.FormData):
+    # lunch_start after the presence finishing
     baseline_form.infected_lunch_start = minutes_since_midnight(19 * 60)
     baseline_form.infected_lunch_finish = minutes_since_midnight(20 * 60)
     with pytest.raises(ValueError, match='infected lunch break must be within presence times.'):
         baseline_form.validate()
-
-
-def test_infected_presence_lunch_finish_before_begining(baseline_form: model_generator.FormData):
+    # lunch_finish before the presence begining
     baseline_form.infected_lunch_start = minutes_since_midnight(7 * 60)
     baseline_form.infected_lunch_finish = minutes_since_midnight(8 * 60)
     with pytest.raises(ValueError, match='infected lunch break must be within presence times.'):
         baseline_form.validate()
-
-
-def test_infected_presence_lunch_finish_after_finishing(baseline_form: model_generator.FormData):
+    # lunch_finish after the presence finishing
     baseline_form.infected_lunch_finish = minutes_since_midnight(19 * 60)
     with pytest.raises(ValueError, match='infected lunch break must be within presence times.'):
-        baseline_form.validate()
+        baseline_form.validate()  
 
 
 def test_exposed_breaks_length(baseline_form: model_generator.FormData):
