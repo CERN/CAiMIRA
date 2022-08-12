@@ -891,17 +891,16 @@ function export_csv() {
     let has_alternative_scenario = false;
     export_lists.forEach(e => {
         if (e.checked) {
-            let has_rename = document.getElementById(`${e.id}__rename`).value;
-            let column_name = has_rename != '' ? has_rename : e.id;
             if (e.id != "Alternative Scenarios") {
+                let has_rename = document.getElementById(`${e.id}__rename`).value;
+                let column_name = has_rename != '' ? has_rename : e.id;
                 checked_names.push(column_name);
                 checked_items.push(e.id);
             }
             else if (e.id == "Alternative Scenarios") {
                 Object.entries(alternative_scenarios).map((scenario) => {
                     if (scenario[0] != 'Current scenario') {
-                        checked_names.push(`Alternative scenario - ${column_name}`);
-                        checked_items.push(`Alternative scenario - ${e.id}`);
+                        checked_names.push(`Alternative scenario - ${scenario[0]}`);
                         has_alternative_scenario = true;
                     };
                 });
