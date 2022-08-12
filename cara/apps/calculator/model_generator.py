@@ -208,7 +208,7 @@ class FormData:
 
         # Validate lunch time within the activity times.
         def validate_lunch(start, finish, time):
-            return start < time < finish 
+            return start <= time <= finish 
 
         populations = ['exposed', 'infected'] if self.infected_dont_have_breaks_with_exposed else ['exposed'] 
         for population in populations:
