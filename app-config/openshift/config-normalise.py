@@ -51,6 +51,16 @@ def clean_ephemeral_config(config: dict):
             for trigger in item['spec'].get('triggers', []):
                 trigger.get('imageChangeParams', {}).pop('lastTriggeredImage', None)
 
+        # Drop the tags on ImageStream
+        if item['kind'] == 'ImageStream':
+            item['spec'].pop('tags', None)
+
+        # Drop the unnecessary elements on Service
+        if item['kind'] == 'Service':
+            item['spec'].pop('internalTrafficPolicy', None)
+            item['spec'].pop('ipFamilies', None)
+            item['spec'].pop('ipFamilyPolicy', None)
+
         for label in list(item['metadata'].get('labels', {}).keys()):
             for prefix in CERN_OKD4_METADATA_LABELS:
                 if label.startswith(prefix):
@@ -64,6 +74,17 @@ def clean_ephemeral_config(config: dict):
             # Remove the empty labels dict if there is nothing left after popping the template item.
             item['metadata'].pop('labels')
 
+    # Fix the configmap single element data structure
+    if config['kind'] == 'ConfigMap':
+        config['items'] = [{
+            'apiVersion': config.get('apiVersion', {}), 
+            'data': config.get('data', {}), 
+            'kind': config.get('kind', {}), 
+            'metadata': {'name': 'auth-service'}
+        }]
+        config['kind'] = 'List'
+        config.pop('data', None)
+    
     return config
 
 
