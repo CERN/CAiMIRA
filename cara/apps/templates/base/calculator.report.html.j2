@@ -385,7 +385,7 @@
 							</p></li>
 							<ul>
 							{% for interaction in form.short_range_interactions %}
-								<li>Expiratory activity {{ loop.index if form.short_range_interactions|length > 1 }}: {{ interaction.expiration }} </li>
+								<li>Expiratory activity {{ loop.index if form.short_range_interactions|length > 1 }}: {{ "Shouting/Singing" if interaction.expiration == "Shouting" else interaction.expiration }} </li>
 								<li>Start time {{ loop.index if form.short_range_interactions|length > 1 }}: {{ interaction.start_time }} </li>
 								<li>Duration {{ loop.index if form.short_range_interactions|length > 1 }}: {{ interaction.duration }} {{ "minutes" if interaction.duration|float > 1 else "minute" }}</li>
 							{% endfor %}
