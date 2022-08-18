@@ -300,5 +300,5 @@ The following diagram describes all the data classes and their relations under t
 REFERENCES
 ==========
 
-.. [1] Jia, Wei, et al. "Exposure and respiratory infection risk via the short-range airborne route." Building and environment 219 (2022): 109166.
-.. [2] Henriques, Andre, et al. "Modelling airborne transmission of SARS-CoV-2 using CARA: risk assessment for enclosed spaces." Interface Focus 12.2 (2022): 20210076.
+.. [1] Jia, Wei, et al. "Exposure and respiratory infection risk via the short-range airborne route." Building and environment 219 (2022): 109166. `doi.org/10.1016/j.buildenv.2022.109166 <https://doi.org/10.1016/j.buildenv.2022.109166>`_
+.. [2] Henriques, Andre, et al. "Modelling airborne transmission of SARS-CoV-2 using CARA: risk assessment for enclosed spaces." Interface Focus 12.2 (2022): 20210076. `doi.org/10.1098/rsfs.2021.0076 <https://doi.org/10.1098/rsfs.2021.0076>`_
