@@ -1086,6 +1086,11 @@ class ConcentrationModel:
 
 @dataclass(frozen=True)
 class ShortRangeModel:
+    '''
+    Based on the two-stage (jet/puff) expiratory jet model by 
+    Jia et al (2022) - https://doi.org/10.1016/j.buildenv.2022.109166
+    '''
+    
     #: Expiration type
     expiration: _ExpirationBase
 
@@ -1101,7 +1106,6 @@ class ShortRangeModel:
     def dilution_factor(self) -> _VectorisedFloat:
         '''
         The dilution factor for the respective expiratory activity type.
-        Based on the two-stage (jet/puff) expiratory jet model by Jia et al (2022) - https://doi.org/10.1016/j.buildenv.2022.109166
         '''
         # Average mouth diameter
         D = 0.02

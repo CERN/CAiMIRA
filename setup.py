@@ -50,6 +50,10 @@ REQUIREMENTS: dict = {
     'dev': [
         'jupyterlab',
     ],
+    'doc': [
+        'sphinx',
+        'sphinx_rtd_theme',
+    ],
 }
 
 
