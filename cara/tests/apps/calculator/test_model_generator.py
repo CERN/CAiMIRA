@@ -268,7 +268,7 @@ def test_exposed_present_lunch_end_before_beginning(baseline_form: model_generat
         [8, 14], # lunch_start before the presence begining
         [19, 20], # lunch_start after the presence finishing
         [7, 8], # lunch_finish before the presence begining
-        [19, 20], # lunch_finish after the presence finishing
+        [9, 20], # lunch_finish after the presence finishing
     ],
 )
 def test_exposed_presence_lunch_break(baseline_form: model_generator.FormData, exposed_lunch_start, exposed_lunch_finish):
@@ -284,7 +284,7 @@ def test_exposed_presence_lunch_break(baseline_form: model_generator.FormData, e
         [8, 14], # lunch_start before the presence begining
         [19, 20], # lunch_start after the presence finishing
         [7, 8], # lunch_finish before the presence begining
-        [19, 20], # lunch_finish after the presence finishing
+        [9, 20], # lunch_finish after the presence finishing
     ],
 )
 def test_infected_presence_lunch_break(baseline_form: model_generator.FormData, infected_lunch_start, infected_lunch_finish):
