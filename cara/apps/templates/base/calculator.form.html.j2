@@ -455,46 +455,52 @@
     <div class="breakBoxExposed" id="DIVexposed_breaks">
       <span id="exposed_break_title" style="display:none;"><b>Exposed person(s) breaks:</b></span>
       <div class="boxMargin">
-        Lunch break:
-        <input class="ml-2" type="radio" id="exposed_lunch_option_no" data-lunch-select="exposed" name="exposed_lunch_option" value=0 onclick="require_fields(this)">
-          <label for="exposed_lunch_option_no">No</label>
-        <input class="ml-2" type="radio" id="exposed_lunch_option_yes" data-lunch-select="exposed" name="exposed_lunch_option" value=1 checked="checked" onclick="require_fields(this)">
-          <label for="exposed_lunch_option_yes">Yes</label><br>
         <div class="split">
-        <div>
-        Start: <input type="time" id="exposed_lunch_start" class="start_time" data-time-group="exposed_lunch" data-lunch-for="exposed" data-has-radio="#exposed_lunch_option_yes" name="exposed_lunch_start" value="12:30" required>
+          <div>Lunch break:</div>
+          <div>
+            <input type="radio" id="exposed_lunch_option_no" data-lunch-select="exposed" name="exposed_lunch_option" value=0>
+              <label for="exposed_lunch_option_no">No</label>
+            <input class="ml-2" type="radio" id="exposed_lunch_option_yes" data-lunch-select="exposed" data-enables="#DIVexposed_lunch_time" name="exposed_lunch_option" value=1 checked="checked">
+              <label for="exposed_lunch_option_yes">Yes</label><br>
+          </div>
         </div>
-        <div>
-        Finish: <input type="time" id="exposed_lunch_finish" class="finish_time" data-time-group="exposed_lunch" data-lunch-for="exposed" data-has-radio="#exposed_lunch_option_yes" name="exposed_lunch_finish" value="13:30" required><br>
-        </div>
+        <div id="DIVexposed_lunch_time" class="split">
+          <div>
+          Start: <input type="time" id="exposed_lunch_start" class="start_time" data-time-group="exposed_lunch" data-lunch-for="exposed" data-has-radio="#exposed_lunch_option_yes" name="exposed_lunch_start" value="12:30" required onclick="require_fields(this)">
+          </div>
+          <div>
+          Finish: <input type="time" id="exposed_lunch_finish" class="finish_time" data-time-group="exposed_lunch" data-lunch-for="exposed" data-has-radio="#exposed_lunch_option_yes" name="exposed_lunch_finish" value="13:30" required onclick="require_fields(this)"><br>
+          </div>
         </div>
 
         <!-- Coffee Options -->
         <div class="split">
-        <div>
-        Coffee Breaks:
+          <div>Coffee Breaks:</div>
+          <div>
+            <input type="radio" id="exposed_coffee_break_0" name="exposed_coffee_break_option" value="coffee_break_0" checked="checked">
+              <label for="exposed_coffee_break_0">No breaks</label>
+            <input class="ml-2" type="radio" id="exposed_coffee_break_2" name="exposed_coffee_break_option" value="coffee_break_2" data-enables="#DIVexposed_breaks_duration">
+              <label for="exposed_coffee_break_2">2</label>
+            <input class="ml-2" type="radio" id="exposed_coffee_break_4" name="exposed_coffee_break_option" value="coffee_break_4" data-enables="#DIVexposed_breaks_duration">
+              <label for="exposed_coffee_break_4">4</label><br>
+          </div>
         </div>
-        <div>
-        <input type="radio" id="exposed_coffee_break_0" name="exposed_coffee_break_option" value="coffee_break_0" checked="checked">
-          <label for="exposed_coffee_break_0" >No breaks</label>
-        <input class="ml-2" type="radio" id="exposed_coffee_break_2" name="exposed_coffee_break_option" value="coffee_break_2">
-          <label for="exposed_coffee_break_2">2</label>
-        <input class="ml-2" type="radio" id="exposed_coffee_break_4" name="exposed_coffee_break_option" value="coffee_break_4">
-          <label for="exposed_coffee_break_4">4</label><br>
-        </div>
-        </div>
-
         <br>
-
-        Duration (minutes):
-        <select id="exposed_coffee_duration" name="exposed_coffee_duration">
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="15">15</option>
-          <option value="20">20</option>
-          <option value="25">25</option>
-          <option value="30">30</option>
-        </select><br>
+        <div id="DIVexposed_breaks_duration" style="display:none">
+        <div class="split">
+          <div>Duration (minutes):</div>
+          <div>
+            <select id="exposed_coffee_duration" name="exposed_coffee_duration">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+              <option value="25">25</option>
+              <option value="30">30</option>
+            </select><br>
+          </div>
+        </div>
+        </div>
       </div>
       <br>
     </div>
@@ -502,47 +508,54 @@
     <div class="breakBoxInfected" id="DIVinfected_breaks">
       <b>Infected person(s) breaks:</b>
       <div class="boxMargin">
-        Lunch break:
-        <input class="ml-2" type="radio" id="infected_lunch_option_no" data-lunch-select="infected" name="infected_lunch_option" value=0 onclick="require_fields(this)">
-          <label for="infected_lunch_option_no">No</label>
-        <input class="ml-2" type="radio" id="infected_lunch_option_yes" data-lunch-select="infected" name="infected_lunch_option" value=1 checked="checked" onclick="require_fields(this)">
-          <label for="infected_lunch_option_yes">Yes</label><br>
-
         <div class="split">
+          <div>Lunch break:</div>
+          <div>
+            <input type="radio" id="infected_lunch_option_no" data-lunch-select="infected" name="infected_lunch_option" value=0 onclick="require_fields(this)">
+              <label for="infected_lunch_option_no">No</label>
+            <input class="ml-2" type="radio" id="infected_lunch_option_yes" data-lunch-select="infected" data-enables="#DIVinfected_lunch_time" name="infected_lunch_option" value=1 checked="checked" onclick="require_fields(this)">
+              <label for="infected_lunch_option_yes">Yes</label><br>
+          </div>
+        </div>
+        <div id="DIVinfected_lunch_time" class="split">
         <div>
-        Start: <input type="time" id="infected_lunch_start" class="start_time" data-time-group="infected_lunch" data-lunch-for="infected" data-has-radio="#infected_lunch_option_yes" name="infected_lunch_start" value="12:30">
+        Start: <input type="time" id="infected_lunch_start" class="start_time" data-time-group="infected_lunch" data-lunch-for="infected" data-has-radio="#infected_lunch_option_yes" name="infected_lunch_start" value="12:30" onclick="require_fields(this)">
         </div>
         <div>
-        Finish: <input type="time" id="infected_lunch_finish" class="finish_time" data-time-group="infected_lunch" data-lunch-for="infected" data-has-radio="#infected_lunch_option_yes" name="infected_lunch_finish" value="13:30"><br>
+        Finish: <input type="time" id="infected_lunch_finish" class="finish_time" data-time-group="infected_lunch" data-lunch-for="infected" data-has-radio="#infected_lunch_option_yes" name="infected_lunch_finish" value="13:30" onclick="require_fields(this)"><br>
         </div>
         </div>
 
         <!-- Coffee Options -->
         <div class="split">
-        <div>
-        Coffee Breaks:
-        </div>
-        <div>
-        <input type="radio" id="infected_coffee_break_0" name="infected_coffee_break_option" value="coffee_break_0" checked="checked">
-          <label for="infected_coffee_break_0" >No breaks</label>
-        <input style="ml-2" type="radio" id="infected_coffee_break_2" name="infected_coffee_break_option" value="coffee_break_2">
-          <label for="infected_coffee_break_2">2</label>
-        <input style="ml-2" type="radio" id="infected_coffee_break_4" name="infected_coffee_break_option" value="coffee_break_4">
-          <label for="infected_coffee_break_4">4</label><br>
-        </div>
+          <div>Coffee Breaks:</div>
+          <div>
+            <input type="radio" id="infected_coffee_break_0" name="infected_coffee_break_option" value="coffee_break_0" checked="checked">
+              <label for="infected_coffee_break_0" >No breaks</label>
+            <input style="ml-2" type="radio" id="infected_coffee_break_2" name="infected_coffee_break_option" value="coffee_break_2" data-enables="#DIVinfected_breaks_duration">
+              <label for="infected_coffee_break_2">2</label>
+            <input style="ml-2" type="radio" id="infected_coffee_break_4" name="infected_coffee_break_option" value="coffee_break_4" data-enables="#DIVinfected_breaks_duration">
+              <label for="infected_coffee_break_4">4</label><br>
+          </div>
         </div>
 
         <br>
 
-        Duration (minutes):
-        <select id="infected_coffee_duration" name="infected_coffee_duration">
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="15">15</option>
-          <option value="20">20</option>
-          <option value="25">25</option>
-          <option value="30">30</option>
-        </select><br>
+        <div id="DIVinfected_breaks_duration" style="display:none">
+        <div class="split">
+          <div>Duration (minutes):</div>
+          <div>
+            <select id="DIVinfected_coffee_duration" name="infected_coffee_duration">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+              <option value="25">25</option>
+              <option value="30">30</option>
+            </select><br>
+          </div>
+        </div>
+        </div>
       </div>
       <br>
     </div>
