@@ -588,10 +588,9 @@ class Particle:
         due to instantaneous evaporation of the particle in the air.
         """
         if self.diameter is None:
-            vg = 1.88e-4
+            return 1.88e-4
         else:
-            vg = 1.88e-4 * (self.diameter*evaporation_factor / 2.5)**2
-        return vg
+            return 1.88e-4 * (self.diameter*evaporation_factor / 2.5)**2
 
     def fraction_deposited(self, evaporation_factor: float=0.3) -> _VectorisedFloat:
         """
@@ -1164,8 +1163,8 @@ class ShortRangeModel:
             # The set of points where we want the interpolated values are the short-range particle diameters (given the current expiration); 
             # The set of points with a known value are the long-range particle diameters (given the initial expiration);
             # The set of known values are the long-range concentration values normalized by the viral load.
-            long_range_normed_concentration_interpolated=np.interp(self.expiration.particle.diameter, 
-                                concentration_model.infected.particle.diameter, long_range_normed_concentration)
+            long_range_normed_concentration_interpolated=np.interp(np.array(self.expiration.particle.diameter), 
+                                np.array(concentration_model.infected.particle.diameter), long_range_normed_concentration)
             
             # Short-range concentration formula. The long-range concentration is added in the concentration method (ExposureModel).
             # based on continuum model proposed by Jia et al (2022) - https://doi.org/10.1016/j.buildenv.2022.109166
@@ -1245,8 +1244,8 @@ class ShortRangeModel:
                 /concentration_model.infected.activity.exhalation_rate
                 )
         normed_int_concentration_interpolated = np.interp(
-                self.expiration.particle.diameter,
-                concentration_model.infected.particle.diameter,
+                np.array(self.expiration.particle.diameter),
+                np.array(concentration_model.infected.particle.diameter),
                 normed_int_concentration
                 )
         return normed_int_concentration_interpolated
@@ -1357,7 +1356,7 @@ class ExposureModel:
         Then, the deposited exposure given the long-range interactions is added to the
         initial deposited exposure. 
         """
-        deposited_exposure = 0.
+        deposited_exposure: _VectorisedFloat = 0.
         for interaction in self.short_range:
             start, stop = interaction.extract_between_bounds(time1, time2)
             short_range_jet_exposure = interaction._normed_jet_exposure_between_bounds(
@@ -1407,7 +1406,7 @@ class ExposureModel:
         """
         The number of virus per m^3 deposited on the respiratory tract.
         """
-        deposited_exposure = 0.0
+        deposited_exposure: _VectorisedFloat = 0.0
 
         for start, stop in self.exposed.presence.boundaries():
             deposited_exposure += self.deposited_exposure_between_bounds(start, stop)

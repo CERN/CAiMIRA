@@ -180,7 +180,7 @@ class ExposureModelResult(View):
             self.ax2.ignore_existing_data_limits = False
             self.cumulative_line.set_data(ts[:-1], cumulative_doses)
 
-        concentration_top = max(concentration)
+        concentration_top = max(np.array(concentration))
         self.ax.set_ylim(bottom=0., top=concentration_top)
         cumulative_top = max(cumulative_doses)
         self.ax2.set_ylim(bottom=0., top=cumulative_top)
@@ -268,7 +268,7 @@ class ExposureComparissonResult(View):
         for label, cumulative_dose, color in zip(labels, cumulative_doses, colors):
             self.ax2.plot(ts[:-1], cumulative_dose, label=label, color=color, linestyle="dotted")
             
-        concentration_top = max([max(concentration) for concentration in concentrations])
+        concentration_top = max([max(np.array(concentration)) for concentration in concentrations])
         self.ax.set_ylim(bottom=0., top=concentration_top)
         cumulative_top = max([max(cumulative_dose) for cumulative_dose in cumulative_doses])
         self.ax2.set_ylim(bottom=0., top=cumulative_top)
