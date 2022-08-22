@@ -30,69 +30,8 @@
 			<h2 class="header_text mb-0"><a href="{{ permalink.shortened }}" style="color: #2f4858">REPORT - {{ form.simulation_name }}</a></h2>
 			<p class="mb-0" id="report_version"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
 		</div>
-		<button type="button" class="btn btn-outline-dark align-self-center"  id="export-csv" data-toggle="modal" data-target="#modalCSV">Export CSV</button>
-		<button type="button" class="btn btn-outline-dark align-self-center ml-2" id="download-pdf" style="margin-right: -100pt" onclick="print();">Print Report</button>
+		<button type="button" class="btn btn-outline-dark align-self-center" id="download-pdf" style="margin-right: -100pt" onclick="print();">Print Report</button>
 		<a href="{{ permalink.link }}" style="float: left;" id="pdf_qrcode_aref" class="align-self-center invisible mr-0"><div id="pdf_qrcode"></div></a>
-	</div>
-	
-	<!-- Export CSV Modal -->
-	<div class="modal fade" id="modalCSV" tabindex="-1" role="dialog" aria-labelledby="modalCSV" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered" role="document">
-		<div class="modal-content">
-		<div class="modal-header">
-			<h5 class="modal-title" id="exampleModalLongTitle">Export CSV Data</h5>
-			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-			<span aria-hidden="true">&times;</span>
-			</button>
-		</div>
-		<div class="modal-body">
-			<b>Select the data to export:</b>
-			<div class="form-check mt-3">
-				<input type="checkbox" class="form-check-input" name="checkedItems" id="Times" onclick="display_rename_column(this.checked, 'times-rename-div')" checked>
-				<label class="form-check-label" for="Times">Times of day</label>
-				<div id="times-rename-div" class="align-items-center">
-					<label class="col-form-label" for="times-rename-div">Column name:</label>
-					<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Times__rename" placeholder="Times" value="Times">
-				</div>
-			</div>
-			<div class="form-check">
-				<input type="checkbox" class="form-check-input" name="checkedItems" id="Concentrations" onclick="display_rename_column(this.checked, 'concentrations-rename-div')">
-				<label class="form-check-label" for="Concentrations">Concentrations</label>
-				<div id="concentrations-rename-div" class="align-items-center" style="display:none">
-					<label class="col-form-label" for="concentrations-rename-div">Column name:</label>
-					<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Concentrations__rename" placeholder="Concentrations" value="Concentrations">
-				</div>
-			</div>
-			<div class="form-check">
-				<input type="checkbox" class="form-check-input" name="checkedItems" id="Cumulative Dose" onclick="display_rename_column(this.checked, 'cumulative-dose-rename-div')">
-				<label class="form-check-label" for="Cumulative Dose">Cumulative dose</label>
-				<div id="cumulative-dose-rename-div" class="align-items-center" style="display:none">
-					<label class="col-form-label" for="cumulative-dose-rename-div">Column name:</label>
-					<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Cumulative Dose__rename" placeholder="Cumulative Dose" value="Cumulative Dose">
-				</div>
-			</div>
-			{% if form.short_range_option == "short_range_yes" %}
-			<div class="form-check">
-				<input type="checkbox" class="form-check-input" name="checkedItems" id="Long-Range Dose" onclick="display_rename_column(this.checked, 'long-range-rename-div')">
-				<label class="form-check-label" for="Long-Range Dose">Long-range dose</label>
-				<div id="long-range-rename-div" class="align-items-center" style="display:none">
-					<label class="col-form-label" for="long-range-rename-div">Column name:</label>
-					<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Long-Range Dose__rename" placeholder="Long-Range Dose" value="Long-Range Dose">
-				</div>
-			</div>
-			{% else %}
-			<div class="form-check">
-				<input type="checkbox" class="form-check-input" name="checkedItems" id="Alternative Scenarios">
-				<label class="form-check-label" for="Alternative Scenarios">Alternative Scenarios</label>
-			</div>
-			{% endif %}
-		</div>
-		<div class="modal-footer">
-			<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-			<button id="downloadCSV" type="button" class="btn btn-primary" onclick="export_csv();">Download</button>
-		</div>
-		</div>
-	</div>
 	</div>
 
 {% endblock report_header %}
@@ -284,6 +223,68 @@
 					</div>
 				{% endif %}
 			{% endblock report_results %}
+			<!-- Export CVS Concentration Button -->
+			<div class="d-flex justify-content-center"><button type="button" class="btn btn-outline-dark align-self-center mb-3"  id="export-csv" data-toggle="modal" data-target="#modalCSV">Export Concentration Data</button></div>
+
+			<!-- Export CSV Concentration Modal -->
+			<div class="modal fade" id="modalCSV" tabindex="-1" role="dialog" aria-labelledby="modalCSV" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="exampleModalLongTitle">Export Concentration Data in CSV format</h5>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<b>Select the data to export:</b>
+							<div class="form-check mt-3">
+								<input type="checkbox" class="form-check-input" name="checkedItems" id="Times" onclick="display_rename_column(this.checked, 'times-rename-div')" checked>
+								<label class="form-check-label" for="Times">Times of day</label>
+								<div id="times-rename-div" class="align-items-center">
+									<label class="col-form-label" for="times-rename-div">Column name:</label>
+									<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Times__rename" placeholder="Times" value="Times">
+								</div>
+							</div>
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input" name="checkedItems" id="Concentrations" onclick="display_rename_column(this.checked, 'concentrations-rename-div')">
+								<label class="form-check-label" for="Concentrations">Concentrations</label>
+								<div id="concentrations-rename-div" class="align-items-center" style="display:none">
+									<label class="col-form-label" for="concentrations-rename-div">Column name:</label>
+									<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Concentrations__rename" placeholder="Concentrations" value="Concentrations">
+								</div>
+							</div>
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input" name="checkedItems" id="Cumulative Dose" onclick="display_rename_column(this.checked, 'cumulative-dose-rename-div')">
+								<label class="form-check-label" for="Cumulative Dose">Cumulative dose</label>
+								<div id="cumulative-dose-rename-div" class="align-items-center" style="display:none">
+									<label class="col-form-label" for="cumulative-dose-rename-div">Column name:</label>
+									<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Cumulative Dose__rename" placeholder="Cumulative Dose" value="Cumulative Dose">
+								</div>
+							</div>
+							{% if form.short_range_option == "short_range_yes" %}
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input" name="checkedItems" id="Long-Range Dose" onclick="display_rename_column(this.checked, 'long-range-rename-div')">
+								<label class="form-check-label" for="Long-Range Dose">Long-range dose</label>
+								<div id="long-range-rename-div" class="align-items-center" style="display:none">
+									<label class="col-form-label" for="long-range-rename-div">Column name:</label>
+									<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Long-Range Dose__rename" placeholder="Long-Range Dose" value="Long-Range Dose">
+								</div>
+							</div>
+							{% else %}
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input" name="checkedItems" id="Alternative Scenarios">
+								<label class="form-check-label" for="Alternative Scenarios">Alternative Scenarios</label>
+							</div>
+							{% endif %}
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+							<button id="downloadCSV" type="button" class="btn btn-primary" onclick="export_csv();">Download</button>
+						</div>
+					</div>
+				</div>
+			</div>
 
 			{% block report_footer %}
 				<div class="card bg-light mb-3" id="link-results">
