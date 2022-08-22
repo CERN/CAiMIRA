@@ -20,7 +20,7 @@ REQUIREMENTS: dict = {
     'core': [
         'dataclasses; python_version < "3.7"',
         'ipykernel',
-        'ipympl != 0.8.0, != 0.8.1',
+        'ipympl != 0.8.0, != 0.8.1, != 0.9.2',
         'ipywidgets',
         'Jinja2',
         'loky',
