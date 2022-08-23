@@ -69,8 +69,8 @@ test_dev-39:
 check_openshift_config_test:
   extends: .test_openshift_config
   variables:
-    CARA_INSTANCE: 'test-cara'
-    BRANCH: 'live/test-cara'
+    CARA_INSTANCE: 'caimira-test'
+    BRANCH: 'live/caimira-test'
     OC_SERVER: https://api.paas.okd.cern.ch
     OC_TOKEN: "${OPENSHIFT_TEST_CONFIG_CHECKER_TOKEN}"
 
@@ -91,9 +91,9 @@ check_openshift_config_prod:
   # Build and push images to the openshift instance, which automatically triggers an application re-deployment.
   stage: docker-build
   rules:
-    - if: '$CI_COMMIT_BRANCH == "live/test-cara"'
+    - if: '$CI_COMMIT_BRANCH == "live/caimira-test"'
       variables:
-        IMAGE_TAG: test-cara-latest
+        IMAGE_TAG: caimira-test-latest
     - if: '$CI_COMMIT_BRANCH == "master"'
       variables:
         IMAGE_TAG: cara-prod-latest
@@ -141,11 +141,11 @@ oci_calculator:
   stage: oc-tag
   image: gitlab-registry.cern.ch/paas-tools/openshift-client:latest
   rules:
-    - if: '$CI_COMMIT_BRANCH == "live/test-cara"'
+    - if: '$CI_COMMIT_BRANCH == "live/caimira-test"'
       variables:
-        OC_PROJECT: "test-cara"
+        OC_PROJECT: "caimira-test"
         OC_TOKEN: ${OPENSHIFT_TEST_DEPLOY_TOKEN}
-        IMAGE_TAG: test-cara-latest
+        IMAGE_TAG: caimira-test-latest
     - if: '$CI_COMMIT_BRANCH == "master"'
       variables:
         OC_PROJECT: "cara-prod"
@@ -179,9 +179,9 @@ link_calculator_with_gitlab_registry:
 trigger_cara-router_build_on_openshift:
   stage: deploy
   rules:
-    - if: '$CI_COMMIT_BRANCH == "live/test-cara"'
+    - if: '$CI_COMMIT_BRANCH == "live/caimira-test"'
       variables:
-        OC_PROJECT: "test-cara"
+        OC_PROJECT: "caimira-test"
         BUILD_WEBHOOK_SECRET: ${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}
     - if: '$CI_COMMIT_BRANCH == "master"'
       variables:

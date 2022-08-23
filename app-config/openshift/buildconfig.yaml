@@ -54,5 +54,5 @@
       description: The GIT repo URL
       value: 'ssh://git@gitlab.cern.ch:7999/cara/cara.git'
     - name: GIT_BRANCH
-      description: The name of the GIT branch to use when building the app, e.g. `live/test-cara` in TEST, `master` in prod
+      description: The name of the GIT branch to use when building the app, e.g. `live/caimira-test` in TEST, `master` in prod
       required: true
