@@ -72,7 +72,7 @@ check_openshift_config_test:
     CARA_INSTANCE: 'caimira-test'
     BRANCH: 'live/caimira-test'
     OC_SERVER: https://api.paas.okd.cern.ch
-    OC_TOKEN: "${OPENSHIFT_TEST_CONFIG_CHECKER_TOKEN}"
+    OC_TOKEN: "${OPENSHIFT_CAIMIRA_TEST_CONFIG_CHECKER_TOKEN}"
 
 
 check_openshift_config_prod:
@@ -144,7 +144,7 @@ oci_calculator:
     - if: '$CI_COMMIT_BRANCH == "live/caimira-test"'
       variables:
         OC_PROJECT: "caimira-test"
-        OC_TOKEN: ${OPENSHIFT_TEST_DEPLOY_TOKEN}
+        OC_TOKEN: ${OPENSHIFT_CAIMIRA_TEST_DEPLOY_TOKEN}
         IMAGE_TAG: caimira-test-latest
     - if: '$CI_COMMIT_BRANCH == "master"'
       variables:
@@ -182,7 +182,7 @@ trigger_cara-router_build_on_openshift:
     - if: '$CI_COMMIT_BRANCH == "live/caimira-test"'
       variables:
         OC_PROJECT: "caimira-test"
-        BUILD_WEBHOOK_SECRET: ${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}
+        BUILD_WEBHOOK_SECRET: ${OPENSHIFT_CAIMIRA_TEST_BUILD_WEBHOOK_SECRET}
     - if: '$CI_COMMIT_BRANCH == "master"'
       variables:
         OC_PROJECT: "cara-prod"
