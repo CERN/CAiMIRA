@@ -865,7 +865,7 @@ function copy_clipboard(shareable_link) {
 function display_rename_column(bool, id) {
     // Handle the disable property of the download button
     let download_button = document.getElementById('downloadCSV');
-    if (document.querySelectorAll('input[type="checkbox"]:checked').length == 0) {
+    if (document.querySelectorAll('input[type="checkbox"]:checked').length <= 1) {
         download_button.disabled = true;
     }
     else {

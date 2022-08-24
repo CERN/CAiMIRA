@@ -30,7 +30,9 @@
 			<h2 class="header_text mb-0"><a href="{{ permalink.shortened }}" style="color: #2f4858">REPORT - {{ form.simulation_name }}</a></h2>
 			<p class="mb-0" id="report_version"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
 		</div>
-		<button type="button" class="btn btn-outline-dark align-self-center" id="download-pdf" style="margin-right: -100pt" onclick="print();">Print Report</button>
+		<!-- Export CVS Concentration Button and Print Report Button -->
+		<button type="button" class="btn btn-outline-dark align-self-center"  id="export-csv" data-toggle="modal" data-target="#modalCSV">Export Concentration Data</button>
+		<button type="button" class="btn btn-outline-dark align-self-center ml-3" id="download-pdf" style="margin-right: -100pt" onclick="print();">Print Report</button>
 		<a href="{{ permalink.link }}" style="float: left;" id="pdf_qrcode_aref" class="align-self-center invisible mr-0"><div id="pdf_qrcode"></div></a>
 	</div>
 
@@ -223,8 +225,6 @@
 					</div>
 				{% endif %}
 			{% endblock report_results %}
-			<!-- Export CVS Concentration Button -->
-			<div class="d-flex justify-content-center"><button type="button" class="btn btn-outline-dark align-self-center mb-3"  id="export-csv" data-toggle="modal" data-target="#modalCSV">Export Concentration Data</button></div>
 
 			<!-- Export CSV Concentration Modal -->
 			<div class="modal fade" id="modalCSV" tabindex="-1" role="dialog" aria-labelledby="modalCSV" aria-hidden="true">
@@ -239,7 +239,7 @@
 						<div class="modal-body">
 							<b>Select the data to export:</b>
 							<div class="form-check mt-3">
-								<input type="checkbox" class="form-check-input" name="checkedItems" id="Times" onclick="display_rename_column(this.checked, 'times-rename-div')" checked>
+								<input type="checkbox" class="form-check-input" name="checkedItems" id="Times" onclick="display_rename_column(this.checked, 'times-rename-div')" checked disabled>
 								<label class="form-check-label" for="Times">Times of day</label>
 								<div id="times-rename-div" class="align-items-center">
 									<label class="col-form-label" for="times-rename-div">Column name:</label>
@@ -280,7 +280,7 @@
 						</div>
 						<div class="modal-footer">
 							<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-							<button id="downloadCSV" type="button" class="btn btn-primary" onclick="export_csv();">Download</button>
+							<button id="downloadCSV" type="button" class="btn btn-primary" onclick="export_csv();" disabled>Download</button>
 						</div>
 					</div>
 				</div>
