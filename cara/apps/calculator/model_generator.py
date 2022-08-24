@@ -185,6 +185,10 @@ class FormData:
         return form_dict
 
     def validate(self):
+        # Validate number of infected <= number of total people
+        if self.infected_people > self.total_people:
+            raise ValueError('Number of infected people cannot be more than number of total people.')
+
         # Validate time intervals selected by user
         time_intervals = [
             ['exposed_start', 'exposed_finish'],
@@ -201,6 +205,43 @@ class FormData:
             if start > end:
                 raise ValueError(
                     f"{start_name} must be less than {end_name}. Got {start} and {end}.")
+
+        def validate_lunch(start, finish):
+            lunch_start = getattr(self, f'{population}_lunch_start')
+            lunch_finish = getattr(self, f'{population}_lunch_finish')
+            return (start <= lunch_start <= finish and 
+                start <= lunch_finish <= finish)
+
+        def get_lunch_mins(population):
+            lunch_mins = 0
+            if getattr(self, f'{population}_lunch_option'):
+                lunch_mins = getattr(self, f'{population}_lunch_finish') - getattr(self, f'{population}_lunch_start')
+            return lunch_mins
+        
+        def get_coffee_mins(population):
+            coffee_mins = 0
+            if getattr(self, f'{population}_coffee_break_option') != 'coffee_break_0':
+                coffee_mins = COFFEE_OPTIONS_INT[getattr(self, f'{population}_coffee_break_option')] * getattr(self, f'{population}_coffee_duration')
+            return coffee_mins
+
+        def get_activity_mins(population):
+            return getattr(self, f'{population}_finish') - getattr(self, f'{population}_start')
+
+        populations = ['exposed', 'infected'] if self.infected_dont_have_breaks_with_exposed else ['exposed'] 
+        for population in populations:
+            # Validate lunch time within the activity times.
+            if (getattr(self, f'{population}_lunch_option') and
+                not validate_lunch(getattr(self, f'{population}_start'), getattr(self, f'{population}_finish'))
+            ):
+                raise ValueError(
+                    f"{population} lunch break must be within presence times."
+                )
+            
+            # Length of breaks < length of activity
+            if (get_lunch_mins(population) + get_coffee_mins(population)) >= get_activity_mins(population):
+                raise ValueError(
+                    f"Length of breaks >= Length of {population} presence."
+                )
 
         validation_tuples = [('activity_type', ACTIVITY_TYPES),    
                              ('exposed_coffee_break_option', COFFEE_OPTIONS_INT), 
@@ -228,6 +269,11 @@ class FormData:
                 raise ValueError(
                     "window_opening_regime cannot be 'not-applicable' if "
                     "ventilation_type is 'natural_ventilation'"
+                )
+            if (self.window_opening_regime == 'windows_open_periodically' and
+                self.windows_duration > self.windows_frequency):
+                raise ValueError(
+                    'Duration cannot be bigger than frequency.'
                 )
 
         if (self.ventilation_type == 'mechanical_ventilation'
