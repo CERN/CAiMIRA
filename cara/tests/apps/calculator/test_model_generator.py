@@ -167,6 +167,13 @@ def test_ventilation_window_hepa(baseline_form: model_generator.FormData):
     assert ventilation == baseline_vent
 
 
+def test_infected_less_than_total_people(baseline_form: model_generator.FormData):
+    baseline_form.total_people = 10
+    baseline_form.infected_people = 11
+    with pytest.raises(ValueError, match='Number of infected people cannot be more than number of total people.'):
+        baseline_form.validate()
+
+
 def present_times(interval: models.Interval) -> models.BoundarySequence_t:
     assert isinstance(interval, models.SpecificInterval)
     return interval.present_times
@@ -252,6 +259,59 @@ def test_exposed_present_lunch_end_before_beginning(baseline_form: model_generat
     baseline_form.exposed_lunch_start = minutes_since_midnight(14 * 60)
     baseline_form.exposed_lunch_finish = minutes_since_midnight(13 * 60)
     with pytest.raises(ValueError):
+        baseline_form.validate()
+
+
+@pytest.mark.parametrize(
+    "exposed_lunch_start, exposed_lunch_finish",
+    [
+        [8, 14], # lunch_start before the presence begining
+        [19, 20], # lunch_start after the presence finishing
+        [7, 8], # lunch_finish before the presence begining
+        [9, 20], # lunch_finish after the presence finishing
+    ],
+)
+def test_exposed_presence_lunch_break(baseline_form: model_generator.FormData, exposed_lunch_start, exposed_lunch_finish):
+    baseline_form.exposed_lunch_start = minutes_since_midnight(exposed_lunch_start * 60)
+    baseline_form.exposed_lunch_finish = minutes_since_midnight(exposed_lunch_finish * 60)
+    with pytest.raises(ValueError, match='exposed lunch break must be within presence times.'):
+        baseline_form.validate()
+
+
+@pytest.mark.parametrize(
+    "infected_lunch_start, infected_lunch_finish",
+    [
+        [8, 14], # lunch_start before the presence begining
+        [19, 20], # lunch_start after the presence finishing
+        [7, 8], # lunch_finish before the presence begining
+        [9, 20], # lunch_finish after the presence finishing
+    ],
+)
+def test_infected_presence_lunch_break(baseline_form: model_generator.FormData, infected_lunch_start, infected_lunch_finish):
+    baseline_form.infected_lunch_start = minutes_since_midnight(infected_lunch_start * 60)
+    baseline_form.infected_lunch_finish = minutes_since_midnight(infected_lunch_finish * 60)
+    with pytest.raises(ValueError, match='infected lunch break must be within presence times.'):
+        baseline_form.validate()
+
+
+def test_exposed_breaks_length(baseline_form: model_generator.FormData):
+    baseline_form.exposed_coffee_break_option = 'coffee_break_4'
+    baseline_form.exposed_coffee_duration = 30
+    baseline_form.exposed_start = minutes_since_midnight(10 * 60)
+    baseline_form.exposed_finish = minutes_since_midnight(11 * 60)
+    baseline_form.exposed_lunch_option = False
+    with pytest.raises(ValueError, match='Length of breaks >= Length of exposed presence.'):
+        baseline_form.validate()
+
+
+def test_infected_breaks_length(baseline_form: model_generator.FormData):
+    baseline_form.infected_start = minutes_since_midnight(9 * 60)
+    baseline_form.infected_finish = minutes_since_midnight(12 * 60)
+    baseline_form.infected_lunch_start = minutes_since_midnight(10 * 60)
+    baseline_form.infected_lunch_finish = minutes_since_midnight(11 * 60)
+    baseline_form.infected_coffee_break_option = 'coffee_break_4'
+    baseline_form.infected_coffee_duration = 30
+    with pytest.raises(ValueError, match='Length of breaks >= Length of infected presence.'):
         baseline_form.validate()
 
 
@@ -433,6 +493,14 @@ def test_key_validation_natural_ventilation_window_opening_regime_na(baseline_fo
     baseline_form_data['window_opening_regime'] = 'not-applicable'
     with pytest.raises(ValueError, match='window_opening_regime cannot be \'not-applicable\''):
         model_generator.FormData.from_dict(baseline_form_data)
+
+
+def test_natural_ventilation_window_opening_periodically(baseline_form: model_generator.FormData):
+    baseline_form.window_opening_regime = 'windows_open_periodically'
+    baseline_form.windows_duration = 20
+    baseline_form.windows_frequency = 10
+    with pytest.raises(ValueError, match='Duration cannot be bigger than frequency.'):
+        baseline_form.validate()
 
 
 def test_key_validation_mech_ventilation_type_na(baseline_form_data):
