@@ -15,8 +15,8 @@ It can be used to compare the effectiveness of different airborne-related risk m
 
 Note that this model applies a deterministic approach, i.e., it is assumed at least one person is infected and shedding viruses into the simulated volume.
 Nonetheless, it is also important to understand that the absolute risk of infection is uncertain, as it will depend on the probability that someone infected attends the event.
-The model is most useful for comparing the impact and effectiveness of different mitigation measures such as ventilation, filtration, exposure time, physical activity and
-the size of the room, only considering long-range airborne transmission of COVID-19 in indoor settings.
+The model is most useful for comparing the impact and effectiveness of different mitigation measures such as ventilation, filtration, exposure time, physical activity, amount and nature of close-range interactions and
+the size of the room, considering both long- and short-range airborne transmission modes of COVID-19 in indoor settings.
 
 This tool is designed to be informative, allowing the user to adapt different settings and model the relative impact on the estimated infection probabilities.
 The objective is to facilitate targeted decision-making and investment through comparisons, rather than a singular determination of absolute risk.
@@ -57,7 +57,7 @@ https://doi.org/10.1016/j.buildenv.2022.109166
 
 ### COVID Calculator
 
-A risk assessment tool which simulates the long-range airborne spread of the SARS-CoV-2 virus for space managers.
+A risk assessment tool which simulates the airborne spread of the SARS-CoV-2 virus for space managers.
 
 
 ### CARA Expert App
