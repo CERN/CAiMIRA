@@ -31,7 +31,7 @@
 			<p class="mb-0" id="report_version"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
 		</div>
 		<!-- Export CVS Concentration Button and Print Report Button -->
-		<button type="button" class="btn btn-outline-dark align-self-center"  id="export-csv" data-toggle="modal" data-target="#modalCSV">Export Concentration Data</button>
+		<button type="button" class="btn btn-outline-dark align-self-center"  id="export-csv" data-toggle="modal" data-target="#modalCSV">Export Data</button>
 		<button type="button" class="btn btn-outline-dark align-self-center ml-3" id="download-pdf" style="margin-right: -100pt" onclick="print();">Print Report</button>
 		<a href="{{ permalink.link }}" style="float: left;" id="pdf_qrcode_aref" class="align-self-center invisible mr-0"><div id="pdf_qrcode"></div></a>
 	</div>
@@ -226,12 +226,12 @@
 				{% endif %}
 			{% endblock report_results %}
 
-			<!-- Export CSV Concentration Modal -->
+			<!-- Export Data Concentration Modal -->
 			<div class="modal fade" id="modalCSV" tabindex="-1" role="dialog" aria-labelledby="modalCSV" aria-hidden="true">
 				<div class="modal-dialog modal-dialog-centered" role="document">
 					<div class="modal-content">
 						<div class="modal-header">
-							<h5 class="modal-title" id="exampleModalLongTitle">Export Concentration Data in CSV format</h5>
+							<h5 class="modal-title" id="exampleModalLongTitle">Export data (.csv)</h5>
 							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 							<span aria-hidden="true">&times;</span>
 							</button>
