@@ -239,11 +239,11 @@
 						<div class="modal-body">
 							<b>Select the data to export:</b>
 							<div class="form-check mt-3">
-								<input type="checkbox" class="form-check-input" name="checkedItems" id="Times" onclick="display_rename_column(this.checked, 'times-rename-div')" checked disabled>
-								<label class="form-check-label" for="Times">Times of day</label>
-								<div id="times-rename-div" class="d-flex align-items-center">
-									<label class="col-form-label" for="times-rename-div">Column name:</label>
-									<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Times__rename" placeholder="Times" value="Times">
+								<input type="checkbox" class="form-check-input" name="checkedItems" id="Time" onclick="display_rename_column(this.checked, 'time-rename-div')" checked disabled>
+								<label class="form-check-label" for="Time">Time of day</label>
+								<div id="time-rename-div" class="d-flex align-items-center">
+									<label class="col-form-label" for="time-rename-div">Column name:</label>
+									<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Time__rename" placeholder="Time" value="Time">
 								</div>
 							</div>
 							{# If short-range interactions are set, we don't display Alternative Scenarios, and there is no need to arrange items in a list #}
@@ -253,11 +253,11 @@
 									Current Scenario
 							{% endif %}
 									<div class="form-check">
-										<input type="checkbox" class="form-check-input" name="checkedItems" id="Concentrations" onclick="display_rename_column(this.checked, 'concentrations-rename-div')">
-										<label class="form-check-label" for="Concentrations">Concentrations</label>
-										<div id="concentrations-rename-div" class="align-items-center" style="display:none">
-											<label class="col-form-label" for="concentrations-rename-div">Column name:</label>
-											<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Concentrations__rename" placeholder="Concentrations" value="Concentrations">
+										<input type="checkbox" class="form-check-input" name="checkedItems" id="Concentration" onclick="display_rename_column(this.checked, 'concentration-rename-div')">
+										<label class="form-check-label" for="Concentration">Concentration</label>
+										<div id="concentration-rename-div" class="align-items-center" style="display:none">
+											<label class="col-form-label" for="concentration-rename-div">Column name:</label>
+											<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Concentration__rename" placeholder="Concentration" value="Concentration">
 										</div>
 									</div>
 									<div class="form-check">
@@ -274,7 +274,7 @@
 											Alternative Scenarios
 											<div class="form-check">
 												<input type="checkbox" class="form-check-input" name="checkedItems" id="Alternative Scenarios" onclick="check_download_button(); display_column_name_warning(this.checked);">
-												<label class="form-check-label" for="Alternative Scenarios">Concentrations</label>
+												<label class="form-check-label" for="Alternative Scenarios">Concentration</label>
 												<p id="alternative_scenario_warning" class="text-warning" style="display: none">The column name will be the scenario name.</p>
 											</div>
 										</li>
