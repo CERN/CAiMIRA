@@ -862,15 +862,14 @@ function copy_clipboard(shareable_link) {
     navigator.clipboard.writeText(shareable_link);
 }
 
-function display_rename_column(bool, id) {
+function check_download_button() {
     // Handle the disable property of the download button
     let download_button = document.getElementById('downloadCSV');
-    if (document.querySelectorAll('input[type="checkbox"]:checked').length <= 1) {
-        download_button.disabled = true;
-    }
-    else {
-        download_button.disabled = false;
-    }
+    document.querySelectorAll('input[type="checkbox"]:checked').length <= 1 ? download_button.disabled = true : download_button.disabled = false;
+}
+
+function display_rename_column(bool, id) {
+    check_download_button();
     // Change the visibility of renaming section
     if (bool) document.getElementById(id).style.display = 'flex';
     else document.getElementById(id).style.display = 'none';
