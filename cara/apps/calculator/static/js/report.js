@@ -868,6 +868,11 @@ function check_download_button() {
     document.querySelectorAll('input[type="checkbox"]:checked').length <= 1 ? download_button.disabled = true : download_button.disabled = false;
 }
 
+function display_column_name_warning(checked) {
+    let warning_element = document.getElementById("alternative_scenario_warning");
+    checked ? warning_element.style.display = 'flex' : warning_element.style.display = 'none';
+}
+
 function display_rename_column(bool, id) {
     check_download_button();
     // Change the visibility of renaming section
@@ -890,19 +895,34 @@ function export_csv() {
     let has_alternative_scenario = false;
     export_lists.forEach(e => {
         if (e.checked) {
-            if (e.id != "Alternative Scenarios") {
-                let has_rename = document.getElementById(`${e.id}__rename`).value;
-                let column_name = has_rename != '' ? has_rename : e.id;
-                checked_names.push(column_name);
-                checked_items.push(e.id);
-            }
-            else if (e.id == "Alternative Scenarios") {
+            if (e.id == "Alternative Scenarios") {
                 Object.entries(alternative_scenarios).map((scenario) => {
                     if (scenario[0] != 'Current scenario') {
-                        checked_names.push(`Alternative scenario - ${scenario[0]}`);
+                        checked_names.push(`Alternative scenario concentrations - ${scenario[0]} (virions m⁻³)`);
                         has_alternative_scenario = true;
                     };
                 });
+            }
+            else if (e.id == "Cumulative Dose") {
+                var has_rename = document.getElementById(`${e.id}__rename`).value;
+                var column_name = has_rename != '' ? has_rename : e.id;
+                if (short_range_expirations.length > 0) {
+                    checked_names.push(`Long-Range ${column_name} (infectious virus)`);
+                    checked_items.push('Long-Range Dose');
+                    // When we have short range interactions, we want the column for the cumulative dose to have the "Total" word before the column name
+                    checked_names.push(`Total ${column_name} (infectious virus)`); 
+                }
+                else {
+                    checked_names.push(`${column_name} (infectious virus)`);
+                }
+                checked_items.push(e.id);
+            }
+            else {
+                var has_rename = document.getElementById(`${e.id}__rename`).value;
+                var column_name = has_rename != '' ? has_rename : e.id;
+                if (e.id == "Times") checked_names.push(`${column_name} (h)`);
+                else if (e.id == "Concentrations") checked_names.push(`${column_name} (virions m⁻³)`);
+                checked_items.push(e.id);
             }
         }
     });
@@ -911,7 +931,7 @@ function export_csv() {
     // Add data for each column.
     times.forEach((e, i) => {
         let this_row = [];
-        checked_items.includes("Times") && this_row.push(times[i]);
+        checked_items.includes("Times") && this_row.push(times[i].toFixed(2));
         checked_items.includes("Concentrations") && this_row.push(concentrations[i]);
         checked_items.includes("Cumulative Dose") && this_row.push(cumulative_doses[i]);
         checked_items.includes("Long-Range Dose") && this_row.push(long_range_cumulative_doses[i]);

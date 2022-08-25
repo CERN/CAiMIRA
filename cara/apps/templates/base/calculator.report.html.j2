@@ -241,42 +241,46 @@
 							<div class="form-check mt-3">
 								<input type="checkbox" class="form-check-input" name="checkedItems" id="Times" onclick="display_rename_column(this.checked, 'times-rename-div')" checked disabled>
 								<label class="form-check-label" for="Times">Times of day</label>
-								<div id="times-rename-div" class="align-items-center">
+								<div id="times-rename-div" class="d-flex align-items-center">
 									<label class="col-form-label" for="times-rename-div">Column name:</label>
 									<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Times__rename" placeholder="Times" value="Times">
 								</div>
 							</div>
-							<div class="form-check">
-								<input type="checkbox" class="form-check-input" name="checkedItems" id="Concentrations" onclick="display_rename_column(this.checked, 'concentrations-rename-div')">
-								<label class="form-check-label" for="Concentrations">Concentration - Current scenario</label>
-								<div id="concentrations-rename-div" class="align-items-center" style="display:none">
-									<label class="col-form-label" for="concentrations-rename-div">Column name:</label>
-									<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Concentrations__rename" placeholder="Concentrations" value="Concentrations">
-								</div>
-							</div>
-							<div class="form-check">
-								<input type="checkbox" class="form-check-input" name="checkedItems" id="Cumulative Dose" onclick="display_rename_column(this.checked, 'cumulative-dose-rename-div')">
-								<label class="form-check-label" for="Cumulative Dose">Cumulative dose</label>
-								<div id="cumulative-dose-rename-div" class="align-items-center" style="display:none">
-									<label class="col-form-label" for="cumulative-dose-rename-div">Column name:</label>
-									<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Cumulative Dose__rename" placeholder="Cumulative Dose" value="Cumulative Dose">
-								</div>
-							</div>
-							{% if form.short_range_option == "short_range_yes" %}
-							<div class="form-check">
-								<input type="checkbox" class="form-check-input" name="checkedItems" id="Long-Range Dose" onclick="display_rename_column(this.checked, 'long-range-rename-div')">
-								<label class="form-check-label" for="Long-Range Dose">Long-range dose</label>
-								<div id="long-range-rename-div" class="align-items-center" style="display:none">
-									<label class="col-form-label" for="long-range-rename-div">Column name:</label>
-									<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Long-Range Dose__rename" placeholder="Long-Range Dose" value="Long-Range Dose">
-								</div>
-							</div>
-							{% else %}
-							<div class="form-check">
-								<input type="checkbox" class="form-check-input" name="checkedItems" id="Alternative Scenarios" onclick="check_download_button()">
-								<label class="form-check-label" for="Alternative Scenarios">Concentration - Alternative scenarios</label>
-							</div>
+							{# If short-range interactions are set, we don't display Alternative Scenarios, and there is no need to arrange items in a list #}
+							{% if form.short_range_option == "short_range_no" %} 
+							<ul style="padding-left: inherit">
+								<li>
+									Current Scenario
 							{% endif %}
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input" name="checkedItems" id="Concentrations" onclick="display_rename_column(this.checked, 'concentrations-rename-div')">
+										<label class="form-check-label" for="Concentrations">Concentrations</label>
+										<div id="concentrations-rename-div" class="align-items-center" style="display:none">
+											<label class="col-form-label" for="concentrations-rename-div">Column name:</label>
+											<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Concentrations__rename" placeholder="Concentrations" value="Concentrations">
+										</div>
+									</div>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input" name="checkedItems" id="Cumulative Dose" onclick="display_rename_column(this.checked, 'cumulative-dose-rename-div')">
+										<label class="form-check-label" for="Cumulative Dose">Cumulative dose</label>
+										<div id="cumulative-dose-rename-div" class="align-items-center" style="display:none">
+											<label class="col-form-label" for="cumulative-dose-rename-div">Column name:</label>
+											<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Cumulative Dose__rename" placeholder="Cumulative Dose" value="Cumulative Dose">
+										</div>
+									</div>
+									{% if form.short_range_option == "short_range_no" %}
+										</li>	
+										<li>
+											Alternative Scenarios
+											<div class="form-check">
+												<input type="checkbox" class="form-check-input" name="checkedItems" id="Alternative Scenarios" onclick="check_download_button(); display_column_name_warning(this.checked);">
+												<label class="form-check-label" for="Alternative Scenarios">Concentrations</label>
+												<p id="alternative_scenario_warning" class="text-warning" style="display: none">The column name will be the scenario name.</p>
+											</div>
+										</li>
+									{% endif %}
+							</ul>
+							
 						</div>
 						<div class="modal-footer">
 							<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
