@@ -144,6 +144,9 @@ p.notes {
     #button_alternative_full_exposure, #button_alternative_hide_high_concentration {
         display: none!important;
     }
+    #export-csv {
+        display: none;
+    }
 }
 
 

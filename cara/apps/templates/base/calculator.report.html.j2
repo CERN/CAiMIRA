@@ -30,7 +30,9 @@
 			<h2 class="header_text mb-0"><a href="{{ permalink.shortened }}" style="color: #2f4858">REPORT - {{ form.simulation_name }}</a></h2>
 			<p class="mb-0" id="report_version"> Created {{ creation_date }} using CARA calculator version v{{ form.calculator_version }}</p>
 		</div>
-		<button type="button" class="btn btn-outline-dark align-self-center" id="download-pdf" style="margin-right: -100pt" onclick="print();">Print Report</button>
+		<!-- Export CVS Concentration Button and Print Report Button -->
+		<button type="button" class="btn btn-outline-dark align-self-center"  id="export-csv" data-toggle="modal" data-target="#modalCSV">Export Data</button>
+		<button type="button" class="btn btn-outline-dark align-self-center ml-3" id="download-pdf" style="margin-right: -100pt" onclick="print();">Print Report</button>
 		<a href="{{ permalink.link }}" style="float: left;" id="pdf_qrcode_aref" class="align-self-center invisible mr-0"><div id="pdf_qrcode"></div></a>
 	</div>
 
@@ -223,6 +225,70 @@
 					</div>
 				{% endif %}
 			{% endblock report_results %}
+
+			<!-- Export Data Concentration Modal -->
+			<div class="modal fade" id="modalCSV" tabindex="-1" role="dialog" aria-labelledby="modalCSV" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="exampleModalLongTitle">Export data (.csv)</h5>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<b>Select the data to export:</b>
+							<div class="form-check mt-3">
+								<input type="checkbox" class="form-check-input" name="checkedItems" id="Time" onclick="display_rename_column(this.checked, 'time-rename-div')" checked disabled>
+								<label class="form-check-label" for="Time">Time of day</label>
+								<div id="time-rename-div" class="d-flex align-items-center">
+									<label class="col-form-label" for="time-rename-div">Column name:</label>
+									<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Time__rename" placeholder="Time" value="Time">
+								</div>
+							</div>
+							{# If short-range interactions are set, we don't display Alternative Scenarios, and there is no need to arrange items in a list #}
+							{% if form.short_range_option == "short_range_no" %} 
+							<ul style="padding-left: inherit">
+								<li>
+									Current Scenario
+							{% endif %}
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input" name="checkedItems" id="Concentration" onclick="display_rename_column(this.checked, 'concentration-rename-div')">
+										<label class="form-check-label" for="Concentration">Concentration</label>
+										<div id="concentration-rename-div" class="align-items-center" style="display:none">
+											<label class="col-form-label" for="concentration-rename-div">Column name:</label>
+											<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Concentration__rename" placeholder="Concentration" value="Concentration">
+										</div>
+									</div>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input" name="checkedItems" id="Cumulative Dose" onclick="display_rename_column(this.checked, 'cumulative-dose-rename-div')">
+										<label class="form-check-label" for="Cumulative Dose">Cumulative dose</label>
+										<div id="cumulative-dose-rename-div" class="align-items-center" style="display:none">
+											<label class="col-form-label" for="cumulative-dose-rename-div">Column name:</label>
+											<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Cumulative Dose__rename" placeholder="Cumulative Dose" value="Cumulative Dose">
+										</div>
+									</div>
+									{% if form.short_range_option == "short_range_no" %}
+										</li>	
+										<li>
+											Alternative Scenarios
+											<div class="form-check">
+												<input type="checkbox" class="form-check-input" name="checkedItems" id="Alternative Scenarios" onclick="check_download_button(); display_column_name_warning(this.checked);">
+												<label class="form-check-label" for="Alternative Scenarios">Concentration</label>
+												<p id="alternative_scenario_warning" class="text-warning" style="display: none">The column name will be the scenario name.</p>
+											</div>
+										</li>
+									{% endif %}
+							</ul>
+							
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+							<button id="downloadCSV" type="button" class="btn btn-primary" onclick="export_csv();" disabled>Download</button>
+						</div>
+					</div>
+				</div>
+			</div>
 
 			{% block report_footer %}
 				<div class="card bg-light mb-3" id="link-results">

@@ -861,3 +861,98 @@ function copy_clipboard(shareable_link) {
           
     navigator.clipboard.writeText(shareable_link);
 }
+
+function check_download_button() {
+    // Handle the disable property of the download button
+    let download_button = document.getElementById('downloadCSV');
+    document.querySelectorAll('input[type="checkbox"]:checked').length <= 1 ? download_button.disabled = true : download_button.disabled = false;
+}
+
+function display_column_name_warning(checked) {
+    let warning_element = document.getElementById("alternative_scenario_warning");
+    checked ? warning_element.style.display = 'flex' : warning_element.style.display = 'none';
+}
+
+function display_rename_column(bool, id) {
+    check_download_button();
+    // Change the visibility of renaming section
+    if (bool) document.getElementById(id).style.display = 'flex';
+    else document.getElementById(id).style.display = 'none';
+}
+
+function export_csv() {
+    // This function generates a CSV file according to the user's input.
+    // It is composed of a list of lists. 
+    // The first item of the main list corresponds to the columns' name.
+    // The remaining items correspond to each of the file row, i.e. the 
+    // respective data from the selected inputs.
+
+    let final_export = [];
+    // Verify which items are checked
+    let export_lists = document.getElementsByName('checkedItems');
+    let checked_items = []; // The column to be added, with the id to be identified.
+    let checked_names = []; // The column with the respective rename.
+    let has_alternative_scenario = false;
+    export_lists.forEach(e => {
+        if (e.checked) {
+            if (e.id == "Alternative Scenarios") {
+                Object.entries(alternative_scenarios).map((scenario) => {
+                    if (scenario[0] != 'Current scenario') {
+                        checked_names.push(`Alternative scenario concentration - ${scenario[0]} \u2028(virions m⁻³)`);
+                        has_alternative_scenario = true;
+                    };
+                });
+            }
+            else if (e.id == "Cumulative Dose") {
+                var has_rename = document.getElementById(`${e.id}__rename`).value;
+                var column_name = has_rename != '' ? has_rename : e.id;
+                if (short_range_expirations.length > 0) {
+                    checked_names.push(`Long-Range ${column_name} \u2028(infectious virus)`);
+                    checked_items.push('Long-Range Dose');
+                    // When we have short range interactions, we want the column for the cumulative dose to have the "Total" word before the column name
+                    checked_names.push(`Total ${column_name} \u2028(infectious virus)`); 
+                }
+                else {
+                    checked_names.push(`${column_name} \u2028(infectious virus)`);
+                }
+                checked_items.push(e.id);
+            }
+            else {
+                var has_rename = document.getElementById(`${e.id}__rename`).value;
+                var column_name = has_rename != '' ? has_rename : e.id;
+                if (e.id == "Time") checked_names.push(`${column_name} \u2028(h)`);
+                else if (e.id == "Concentration") checked_names.push(`${column_name} \u2028(virions m⁻³)`);
+                checked_items.push(e.id);
+            }
+        }
+    });
+    final_export.push(checked_names);
+
+    // Add data for each column.
+    times.forEach((e, i) => {
+        let this_row = [];
+        checked_items.includes("Time") && this_row.push(times[i].toFixed(2));
+        checked_items.includes("Concentration") && this_row.push(concentrations[i]);
+        checked_items.includes("Cumulative Dose") && this_row.push(cumulative_doses[i]);
+        checked_items.includes("Long-Range Dose") && this_row.push(long_range_cumulative_doses[i]);
+        if (has_alternative_scenario) {
+            Object.entries(alternative_scenarios).map((scenario) => {
+                if (scenario[0] != 'Current scenario') {
+                    this_row.push(scenario[1].concentrations[i]);
+                };
+            });
+        };
+        final_export.push(this_row);
+    });
+
+    // Prepare the CSV file.
+    let csvContent = "data:text/csv;charset=utf8," 
+        + final_export.map(e => e.join(",")).join("\n");
+    var encodedUri = encodeURI(csvContent);
+    // Set a name for the file.
+    var link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "report_data.csv");
+    document.body.appendChild(link);
+    link.click();    
+}
