@@ -316,7 +316,7 @@ class ModelWidgets(View):
         ])], title="Infected")
 
     def _build_room_volume(self, node):
-        room_volume = widgets.IntText(value=node.volume, step=5)
+        room_volume = widgets.BoundedIntText(value=node.volume, min=10, max=500, step=5)
 
         def on_volume_change(change):
             node.volume = change['new']
@@ -328,8 +328,8 @@ class ModelWidgets(View):
 
 
     def _build_room_area(self, node):
-        room_surface = widgets.IntText(value=25, step=10)
-        room_ceiling_height = widgets.IntText(value=3, step=1)
+        room_surface = widgets.BoundedIntText(value=25, min=1, max=200, step=10)
+        room_ceiling_height = widgets.BoundedFloatText(value=3.5, min=1, max=10, step=0.1)
         displayed_volume=widgets.Label('75')
 
         def on_room_surface_change(change):
@@ -465,7 +465,7 @@ class ModelWidgets(View):
         window_w.observe(lambda event: toggle_window(event['new']), 'value')
         toggle_window(window_w.value)
 
-        number_of_windows= widgets.IntText(value=1, step=1)
+        number_of_windows= widgets.BoundedIntText(value=1, min=1, max=10, step=1)
         period = widgets.IntSlider(value=node.active.period, min=0, max=240)
         interval = widgets.IntSlider(value=node.active.duration, min=0, max=240)
         opening_length = widgets.FloatSlider(value=node.opening_length, min=0, max=3, step=0.1)
