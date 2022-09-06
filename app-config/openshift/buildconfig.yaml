@@ -18,6 +18,11 @@
         labels:
           template: "cara-application"
       spec:
+        source:
+          type: Git
+          git:
+            ref: ${GIT_BRANCH}
+            uri: ${GIT_REPO}
         postCommit: {}
         resources: {}
         runPolicy: Serial
