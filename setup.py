@@ -35,7 +35,7 @@ REQUIREMENTS: dict = {
         'scipy',
         'scikit-learn',
         'timezonefinder',
-        'tornado == 6.1',
+        'tornado == 6.1', # Pinned to v6.1 due to terminal warnings when running pytest
         'types-retry',
         'voila >=0.2.4',
     ],
