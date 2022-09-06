@@ -256,8 +256,8 @@ $ cd app-config/openshift
 $ oc process -f configmap.yaml | oc create -f -
 $ oc process -f services.yaml | oc create -f -
 $ oc process -f imagestreams.yaml | oc create -f -
-$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/test-cara' | oc create -f -
-$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='cara-test'  | oc create -f -
+$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/caimira-test' | oc create -f -
+$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='caimira-test'  | oc create -f -
 ```
 
 ### CERN SSO integration
@@ -318,8 +318,8 @@ $ cd app-config/openshift
 $ oc process -f configmap.yaml | oc replace -f -
 $ oc process -f services.yaml | oc replace -f -
 $ oc process -f imagestreams.yaml | oc replace -f -
-$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/test-cara' | oc replace -f -
-$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='cara-test' | oc replace -f -
+$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/caimira-test' | oc replace -f -
+$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='caimira-test' | oc replace -f -
 ```
 
 Be aware that if you create/recreate the environment you must manually create a **route** in OpenShift, 

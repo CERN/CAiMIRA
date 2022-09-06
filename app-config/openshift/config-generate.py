@@ -36,7 +36,7 @@ def generate_config(output_directory: pathlib.Path, project_name: str, hostname:
 
     print(f'Config in: {output_directory.absolute()}')
 
-
+ 
 def handler(args: argparse.ArgumentParser) -> None:
     if args.instance == 'cara-prod':
         project_name = 'cara-prod'
