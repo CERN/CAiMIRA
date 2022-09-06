@@ -55,7 +55,7 @@ https://doi.org/10.1016/j.buildenv.2022.109166
 
 ## Applications
 
-### COVID Calculator
+### Calculator
 
 A risk assessment tool which simulates the airborne spread of the SARS-CoV-2 virus for space managers.
 
@@ -94,7 +94,7 @@ CAiMIRA is also mirrored to Github if you wish to collaborate on development and
 pip install -e .   # At the root of the repository
 ```
 
-### Running the COVID calculator app in development mode
+### Running the Calculator app in development mode
 
 ```
 python -m cara.apps.calculator
