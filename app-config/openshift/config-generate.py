@@ -8,7 +8,7 @@ def configure_parser(parser: argparse.ArgumentParser) -> None:
     parser.description = "Generate the config files which can be later submitted to openshift"
     parser.set_defaults(handler=handler)
     parser.add_argument(
-        "instance", choices=['cara-prod', 'test-cara'],
+        "instance", choices=['cara-prod', 'caimira-test'],
         help="Pick the instance for which you want to generate the config",
     )
     parser.add_argument(
@@ -42,10 +42,10 @@ def handler(args: argparse.ArgumentParser) -> None:
         project_name = 'cara-prod'
         branch = 'master'
         hostname = 'cara.web.cern.ch'
-    elif args.instance == 'test-cara':
-        project_name = 'test-cara'
-        branch = 'live/test-cara'
-        hostname = 'test-cara.web.cern.ch'
+    elif args.instance == 'caimira-test':
+        project_name = 'caimira-test'
+        branch = 'live/caimira-test'
+        hostname = 'caimira-test.web.cern.ch'
 
     generate_config(pathlib.Path(args.output_directory), project_name, hostname, branch)
 

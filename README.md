@@ -151,7 +151,7 @@ docker build . -f ./app-config/cara-webservice/Dockerfile -t cara-webservice
 docker build ./app-config/auth-service -t auth-service
 ```
 
-Get the client secret from the CERN Application portal for the `cara-test` app. See [CERN-SSO-integration](#CERN-SSO-integration) for more info.
+Get the client secret from the CERN Application portal for the `caimira-test` app. See [CERN-SSO-integration](#CERN-SSO-integration) for more info.
 ```
 read CLIENT_SECRET
 ```
@@ -161,7 +161,7 @@ Define some env vars (copy/paste):
 export COOKIE_SECRET=$(openssl rand -hex 50)
 export OIDC_SERVER=https://auth.cern.ch/auth
 export OIDC_REALM=CERN
-export CLIENT_ID=cara-test
+export CLIENT_ID=caimira-test
 export CLIENT_SECRET
 ```
 
@@ -181,15 +181,15 @@ The https://cern.ch/cara application is running on CERN's OpenShift platform. In
  * Created a Python 3.6 (the highest possible at the time of writing) application in OpenShift
  * Configured a generic webhook on OpenShift, and call that from the CI of the GitLab repository
 
-### Updating the test-cara.web.cern.ch instance
+### Updating the caimira-test.web.cern.ch instance
 
-We have a replica of https://cara.web.cern.ch running on http://test-cara.web.cern.ch. Its purpose is to simulate what will happen when
-a feature is merged. To push your changes to test-cara, simply push your branch to `live/test-cara` and the CI pipeline will trigger the
+We have a replica of https://cara.web.cern.ch running on http://caimira-test.web.cern.ch. Its purpose is to simulate what will happen when
+a feature is merged. To push your changes to caimira-test, simply push your branch to `live/caimira-test` and the CI pipeline will trigger the
 deployment. To push to this branch, there is a good chance that you will need to force push - you should always force push with care and
 understanding why you are doing it. Syntactically, it will look something like (assuming that you have "upstream" as your remote name,
 but it may be origin if you haven't configured it differently):
 
-    git push --force upstream name-of-local-branch:live/test-cara
+    git push --force upstream name-of-local-branch:live/caimira-test
 
 
 ## OpenShift templates
@@ -205,7 +205,7 @@ $ oc login https://api.paas.okd.cern.ch
 Then, switch to the project that you want to update:
 
 ```console
-$ oc project cara-test
+$ oc project caimira-test
 ```
 
 Create a new service account in OpenShift to use GitLab container registry:
@@ -256,8 +256,8 @@ $ cd app-config/openshift
 $ oc process -f configmap.yaml | oc create -f -
 $ oc process -f services.yaml | oc create -f -
 $ oc process -f imagestreams.yaml | oc create -f -
-$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/test-cara' | oc create -f -
-$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='cara-test'  | oc create -f -
+$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/caimira-test' | oc create -f -
+$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='caimira-test'  | oc create -f -
 ```
 
 ### CERN SSO integration
@@ -265,12 +265,12 @@ $ oc process -f deploymentconfig.yaml --param PROJECT_NAME='cara-test'  | oc cre
 The SSO integration uses OpenID credentials configured in [CERN Applications portal](https://application-portal.web.cern.ch/).
 How to configure the application:
 
-* Application Identifier: `cara-test`
-* Homepage: `https://test-cara.web.cern.ch`
+* Application Identifier: `caimira-test`
+* Homepage: `https://caimira-test.web.cern.ch`
 * Administrators: `cara-dev`
 * SSO Registration:
     * Protocol: `OpenID (OIDC)`
-    * Redirect URI: `https://test-cara.web.cern.ch/auth/authorize`
+    * Redirect URI: `https://caimira-test.web.cern.ch/auth/authorize`
     * Leave unchecked all the other checkboxes
 * Define new roles:
     * Name: `CERN Users`
@@ -318,8 +318,8 @@ $ cd app-config/openshift
 $ oc process -f configmap.yaml | oc replace -f -
 $ oc process -f services.yaml | oc replace -f -
 $ oc process -f imagestreams.yaml | oc replace -f -
-$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/test-cara' | oc replace -f -
-$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='cara-test' | oc replace -f -
+$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/caimira-test' | oc replace -f -
+$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='caimira-test' | oc replace -f -
 ```
 
 Be aware that if you create/recreate the environment you must manually create a **route** in OpenShift, 

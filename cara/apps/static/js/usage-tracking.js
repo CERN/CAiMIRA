@@ -1,4 +1,4 @@
-if (document.location.hostname == "test-cara.web.cern.ch") {
+if (document.location.hostname == "caimira-test.web.cern.ch") {
   var _paq = _paq || [];
   if (typeof AuthUserDomain !== 'undefined') {
       _paq.push(["setCustomVariable", 1, "AuthUserDomain", AuthUserDomain, "visit"]);

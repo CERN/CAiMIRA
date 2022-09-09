@@ -32,6 +32,6 @@
 
   parameters:
     - name: HOST
-      description: The hostname of the site, e.g. test-cara.web.cern.ch
+      description: The hostname of the site, e.g. caimira-test.web.cern.ch
       required: true
 
