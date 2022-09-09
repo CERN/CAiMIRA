@@ -40,7 +40,7 @@ def generate_config(output_directory: pathlib.Path, project_name: str, hostname:
 def handler(args: argparse.ArgumentParser) -> None:
     if args.instance == 'caimira-prod':
         project_name = 'caimira-prod'
-        branch = 'feature/CAIMIRA_infrastructure'
+        branch = 'master'
         hostname = 'caimira.web.cern.ch'
     elif args.instance == 'caimira-test':
         project_name = 'caimira-test'

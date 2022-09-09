@@ -24,8 +24,8 @@ test_install:
 
 
 # A development installation of CAiMIRA tested with pytest.
-# test_dev:
-#   extends: .acc_py_dev_test
+test_dev:
+  extends: .acc_py_dev_test
 
 
 # A development installation of CAiMIRA tested with pytest.
@@ -79,7 +79,7 @@ check_openshift_config_prod:
   extends: .test_openshift_config
   variables:
     CAIMIRA_INSTANCE: 'caimira-prod'
-    BRANCH: 'feature/CAIMIRA_infrastructure'
+    BRANCH: 'master'
     OC_SERVER: https://api.paas.okd.cern.ch
     OC_TOKEN: "${OPENSHIFT_CAIMIRA_PROD_CONFIG_CHECKER_TOKEN}"
 
@@ -88,7 +88,7 @@ oci_calculator:
   extends: .image_builder
   variables:
     IMAGE_NAME: calculator
-    DOCKERFILE_DIRECTORY: app-config/cara-public-docker-image
+    DOCKERFILE_DIRECTORY: app-config/caimira-public-docker-image
     DOCKER_CONTEXT_DIRECTORY: ""
 
 
@@ -102,7 +102,7 @@ oci_calculator:
     - if: '$CI_COMMIT_BRANCH == "live/caimira-test"'
       variables:
         IMAGE_TAG: caimira-test-latest
-    - if: '$CI_COMMIT_BRANCH == "feature/CAIMIRA_infrastructure"'
+    - if: '$CI_COMMIT_BRANCH == "master"'
       variables:
         IMAGE_TAG: caimira-prod-latest
   image:
@@ -145,7 +145,7 @@ caimira-webservice-image_builder:
         OC_PROJECT: "caimira-test"
         OC_TOKEN: ${OPENSHIFT_CAIMIRA_TEST_DEPLOY_TOKEN}
         IMAGE_TAG: caimira-test-latest
-    - if: '$CI_COMMIT_BRANCH == "feature/CAIMIRA_infrastructure"'
+    - if: '$CI_COMMIT_BRANCH == "master"'
       variables:
         OC_PROJECT: "caimira-prod"
         OC_TOKEN: ${OPENSHIFT_CAIMIRA_PROD_DEPLOY_TOKEN}
@@ -182,7 +182,7 @@ trigger_caimira-router_build_on_openshift:
       variables:
         OC_PROJECT: "caimira-test"
         BUILD_WEBHOOK_SECRET: ${OPENSHIFT_CAIMIRA_TEST_BUILD_WEBHOOK_SECRET}
-    - if: '$CI_COMMIT_BRANCH == "feature/CAIMIRA_infrastructure"'
+    - if: '$CI_COMMIT_BRANCH == "master"'
       variables:
         OC_PROJECT: "caimira-prod"
         BUILD_WEBHOOK_SECRET: ${OPENSHIFT_CAIMIRA_PROD_BUILD_WEBHOOK_SECRET}
