@@ -45,7 +45,7 @@ CAiMIRA – CERN Airborne Model for Indoor Risk Assessment tool
 
 © Copyright 2020-2021 CERN. All rights not expressly granted are reserved.
 
-**For use of the CARA model**
+**For use of the CAiMIRA model**
 
 Henriques A, Mounet N, Aleixo L, Elson P, Devine J, Azzopardi G, Andreini M, Rognlien M, Tarocco N, Tang J. (2022). Modelling airborne transmission of SARS-CoV-2 using CARA: risk assessment for enclosed spaces. _Interface Focus 20210076_. https://doi.org/10.1098/rsfs.2021.0076
 
@@ -114,7 +114,7 @@ python -m cara.apps.calculator --prefix=/mycalc
 
 ### How to compile and read the documentation
 
-In order to generate the documentation, CARA must be installed first with the `doc` dependencies:
+In order to generate the documentation, CAiMIRA must be installed first with the `doc` dependencies:
 
 ```
 pip install -e .[doc]
@@ -125,7 +125,7 @@ If any of the `.rst` files under the `cara/docs` folder is changed, this command
 
 Then, right click on `cara/docs/_build/html/index.html` and select `Open with` your preferred web browser.
 
-### Running the CARA Expert-App app in development mode
+### Running the CAiMIRA Expert-App app in development mode
 
 ```
 voila cara/apps/expert/cara.ipynb --port=8080

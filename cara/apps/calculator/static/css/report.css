@@ -81,11 +81,7 @@ p.notes {
     border-radius: 5px;
 }
 
-/* @media (width: 1200px) { */
 @media print {
-    /* #body {
-        min-width: 1200px;
-    } */
     #results,
     #rules,
     #data {
