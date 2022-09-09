@@ -14,11 +14,11 @@ if [[ "$APP_NAME" == "caimira-webservice" ]]; then
         args+=("--prefix=${CAIMIRA_CALCULATOR_PREFIX}")
     fi
 
-    echo "Starting the caimira webservice with: python -m cara.apps.calculator ${args[@]}"
-    python -m cara.apps.calculator "${args[@]}"
+    echo "Starting the caimira webservice with: python -m caimira.apps.calculator ${args[@]}"
+    python -m caimira.apps.calculator "${args[@]}"
 elif [[ "$APP_NAME" == "caimira-voila" ]]; then
     echo "Starting the voila service"
-    voila cara/apps/expert/ --port=8080 --no-browser --base_url=/voila-server/ --tornado_settings 'allow_origin=*'
+    voila caimira/apps/expert/ --port=8080 --no-browser --base_url=/voila-server/ --tornado_settings 'allow_origin=*'
 else
     echo "No APP_NAME specified"
     exit 1

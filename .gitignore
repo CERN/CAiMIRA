@@ -18,4 +18,4 @@ app-config/openshift/caimira-test
 app-config/openshift/caimira-prod
 
 # documentation build folder
-cara/docs/_build
+caimira/docs/_build

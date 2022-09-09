@@ -1,0 +1,396 @@
+*,
+*::before,
+*::after {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+body,
+main,
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+/*-- Body Reset --*/
+body {
+  /* overflow-x: hidden */
+  font-family: 'Montserrat', sans-serif;
+  color: rgb(47, 72, 88);
+}
+
+/*============= TOP BAR HEADER =============*/
+
+.dropwown-navbar-colors {
+  background: rgb(42, 52, 66); 
+  border-color: rgb(42, 52, 66);
+}
+
+/*============= NAVIGATION =============*/
+
+.navbar-brand img {
+  height: 4rem;
+}
+
+.navbar {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: .1rem;
+  /* box-shadow: 0 .5rem .5rem rgba(0,0,0,.5); */
+  z-index: 1;
+  background: rgb(42, 52, 66);
+}
+
+.nav {
+  margin-inline: auto;
+  width: min(90%, 70.5rem);
+}
+
+.nav-item {
+  padding: .2rem;
+}
+
+.header-navbar.nav-link {
+  color: rgb(255, 255, 255)!important;
+}
+
+.header-navbar.nav-link.active,
+.header-navbar.nav-link:hover {
+  color: rgb(45, 138, 241)!important;
+}
+
+
+/*============= SPLIT =============*/
+
+.split {
+  /* flex: 1; */
+  clear: both;
+  display: inline-flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+
+
+/*============= TEXT AND CONTENT =============*/
+
+.header-height {
+  height: 96px;
+}
+
+.logo {
+  height: 4em;
+}
+
+.logo_form {
+  height: 3em;
+}
+
+#nat_vent_image {
+  height: 10em;
+}
+
+.caimira_home_image {
+  height: 18rem;
+  padding: 1rem;
+  border-radius: 1.25rem!important;
+}
+
+.container {
+  margin-inline: auto;
+  width: min(90%, 70.5rem);
+}
+
+.container--narrow {
+  max-width: 44rem;
+}
+
+.container--padding {
+  padding: 2rem 0;
+}
+
+.paragraph-title {
+  text-align: center;
+  font-size: 2rem;
+}
+
+.contributors {
+  text-align: left;
+  font-size: 1.25rem;
+}
+
+.acknowledgements {
+  text-align: left;
+  font-size: 1.5rem;
+}
+
+.center {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.bigButton {
+  width: 18em;
+  height: 4em;
+  background: rgb(45, 138, 241);
+}
+
+.breakBoxExposed {
+  float:left; 
+  margin-left:1rem; 
+  margin-right:2rem;
+}
+
+.breakBoxInfected {
+  display:none; 
+  float:left; 
+  margin-left:1rem; 
+  margin-right:2rem;
+}
+
+.boxMargin {
+  padding:10px; 
+  border: 2px solid rgb(47, 52, 66);
+}
+
+.disclaimer {
+  background: rgb(45, 138, 241);
+  padding: 1.5rem 0;
+  color: black;
+}
+
+.icon-calculator {
+  background: url(../icons/calculator.svg);
+  width: 30px;
+  display: block;
+}
+
+.icon-expert {
+  background: url(../icons/expert.svg);
+  width: 30px;
+  display: block;
+}
+
+.mask_icons {
+  height: 4em;
+}
+
+/*===== FIXED BACKGROUND IMG =====*/
+
+.fixed-background {
+  overflow: hidden; /*-- Correction for iOS --*/
+}
+
+/*===== INPUT =====*/
+
+
+/*============= FOOTER =============*/
+
+footer {
+  background-color: rgb(42, 52, 66);
+  padding: 1rem 2rem 3rem;
+}
+
+footer img {
+  height: 5.5rem;
+  margin: 1.5rem auto;
+}
+
+/*============= REPORT =============*/
+#report_logo {
+  height: 4em;
+  margin: 1%;
+}
+.animation-color {
+  background-color: #d5d8d9!important;
+}
+
+/*============= MEDIA QUERIES =============*/
+
+/* Devices over 640px (xl) */
+@media (min-width: 40em) {
+  .split {
+    flex-direction: row;
+  }
+
+  .split > * {
+    flex-basis: 100%;
+  }
+
+  .paragraph-title {
+    text-align: left;
+    font-size: 2rem;
+  }
+
+  .split > * + * {
+    margin-left: 2em;
+  }
+
+  .bigButton {
+    width: 25%;
+  }
+
+  #mobile_calculator_option {
+    display: none;
+  }
+
+  #nat_vent_image {
+    height: 15em;
+  }
+
+  .header_text {
+    font-weight: bold;
+  }
+
+  #report_logo {
+    height: 6em;
+    margin: 1%;
+  }
+  #calculator_app_button {
+    display: none!important;
+  }
+  .feedback {
+    float:right; 
+    font-size:1rem; 
+    font-weight:bold;
+  }
+  .caimira_version {
+    float:left; 
+    font-size:1rem; 
+  }
+  .caimira_home_image {
+    float: right;
+  }
+
+  .navbar .nav-item .dropdown-menu{ display: none; }
+  
+  .navbar .nav-item:hover .dropdown-menu{ display: block; }
+  
+  .navbar .nav-item .dropdown-menu{ margin-top:0; }
+
+  #apps_section {
+    display: inline!important;
+  }
+
+}
+
+@media (max-width: 40em) {
+  #body {
+    font-size: .75rem;
+    padding: 20px 10px;
+  }
+  .header_text {
+    font-size: 1rem;
+    font-weight: bold;
+  }
+  .nav-link {
+    padding: .5rem .5rem!important;
+  }
+  #apps_dropdown {
+    display: none;
+  }
+  #report_version {
+    font-size: .5rem;
+  }
+  #download-pdf, #pdf_qrcode_aref, #export-csv {
+    display: none;
+  }
+  #scale_warning{
+    height: 15em;
+    margin-top: 1em;
+  }
+  #link_reproduce_results {
+    display: none;
+  }
+  #mobile_link {
+    display: inline!important;
+  }
+  .feedback {
+    float:right; 
+    font-size:.75rem; 
+    font-weight:bold;
+  }
+  .caimira_version {
+    float:left; 
+    font-size:.75rem; 
+  }
+  .h1-text {
+    font-size: 1.5rem;
+  }
+}
+
+/* Devices under 768px (md) */
+/* @media (max-width: 767.98px) {
+
+} */
+
+/* Large (lg) devices (tablets) */
+@media (max-width: 64em) { 
+  .expert_app_button {
+    display: none;
+  }
+  #desktop_logo {
+    display: none!important;
+  }
+  #mobile_logo {
+    display: block!important;
+  }
+}
+
+/*============ BOOTSTRAP BREAK POINTS:
+
+Extra small (xs) devices (portrait phones, less than 576px)
+No media query since this is the default in Bootstrap
+
+Small (sm) devices (landscape phones, 576px and up)
+@media (min-width: 576px) { ... }
+
+Medium (md) devices (tablets, 768px and up)
+@media (min-width: 768px) { ... }
+
+Large (lg) devices (desktops, 992px and up)
+@media (min-width: 992px) { ... }
+
+Extra (xl) large devices (large desktops, 1200px and up)
+@media (min-width: 1200px) { ... }
+
+=============*/
+
+/* -- Bootstrap Mobile Gutter Fix -- */
+/* .row, .container-fluid {
+  margin-left: 0px !important;
+  margin-right: 0px !important;
+} */
+
+/*-- Fixed Background Image --*/
+/* .fixed-background {
+  position: relative;
+  width: 100%;
+  z-index: 1000!important;
+}
+.fixed-wrap {
+  clip: rect(0, auto, auto, 0);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -999 !important;
+}
+.fixed {
+  z-index: -999!important;
+  display: block;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center center;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  will-change: transform;
+} */

@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y nginx
 
 # Now that we have done the installation of the dependencies, copy the caimira source.
 COPY ./ /opt/caimira/src
-COPY ./app-config/caimira-public-docker-image/run_cara.sh /opt/caimira/start.sh
+COPY ./app-config/caimira-public-docker-image/run_caimira.sh /opt/caimira/start.sh
 
 # To ensure that we have installed the full requirements, re-run the pip install.
 # In the best case this will be a no-op.

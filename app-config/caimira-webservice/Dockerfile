@@ -29,7 +29,7 @@ RUN mkdir -p /scratch \
 # Set the HOME directory to something that anybody can write to (to support non root users, such as on openshift).
 ENV HOME=/scratch
 WORKDIR /scratch
-RUN CAIMIRA_INIT_FILE=$(/opt/app/bin/python -c "import cara; print(cara.__file__)") \
+RUN CAIMIRA_INIT_FILE=$(/opt/app/bin/python -c "import caimira; print(caimira.__file__)") \
  && ln -s $(dirname ${CAIMIRA_INIT_FILE}) /scratch/caimira
 CMD [ \
   "caimira-app.sh" \

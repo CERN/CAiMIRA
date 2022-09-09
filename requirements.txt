@@ -1,6 +1,6 @@
-# Created by installing the cara[app] extra and running:
+# Created by installing the caimira[app] extra and running:
 #  echo '.[app]' > requirements.txt
-#  pip list --format freeze | grep -vi cara | grep -v pip | grep -v setuptools >> requirements.txt
+#  pip list --format freeze | grep -vi caimira | grep -v pip | grep -v setuptools >> requirements.txt
 
 .[app]
 anyio==3.3.0

@@ -208,7 +208,7 @@
                 - name: CAIMIRA_CALCULATOR_PREFIX
                   value: /calculator-cern
                 - name: CAIMIRA_THEME
-                  value: cara/apps/templates/cern
+                  value: caimira/apps/templates/cern
                 image: '${PROJECT_NAME}/caimira-webservice'
                 ports:
                   - containerPort: 8080

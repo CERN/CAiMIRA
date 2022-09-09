@@ -11,7 +11,7 @@ include:
    file: acc_py_devtools/templates/gitlab-ci/python.yml
 
 variables:
-  project_name: cara
+  project_name: caimira
   PY_VERSION: "3.9"
 
 

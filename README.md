@@ -86,7 +86,7 @@ This will start a local version of CAiMIRA, which can be visited at http://local
 
 ## Development guide
 
-CAiMIRA is also mirrored to Github if you wish to collaborate on development and can be found at: https://github.com/CERN/cara
+CAiMIRA is also mirrored to Github if you wish to collaborate on development and can be found at: https://github.com/CERN/caimira
 
 ### Installing CAiMIRA in editable mode
 
@@ -97,19 +97,19 @@ pip install -e .   # At the root of the repository
 ### Running the COVID calculator app in development mode
 
 ```
-python -m cara.apps.calculator
+python -m caimira.apps.calculator
 ```
 
 To run with the CERN theme:
 
 ```
-python -m cara.apps.calculator --theme=cara/apps/templates/cern
+python -m caimira.apps.calculator --theme=caimira/apps/templates/cern
 ```
 
 To run the calculator on a different URL path:
 
 ```
-python -m cara.apps.calculator --prefix=/mycalc
+python -m caimira.apps.calculator --prefix=/mycalc
 ```
 
 ### How to compile and read the documentation
@@ -120,15 +120,15 @@ In order to generate the documentation, CAiMIRA must be installed first with the
 pip install -e .[doc]
 ```
 
-To generate the HTML documentation page, the command `make html` should be executed in the `cara/docs` directory. 
-If any of the `.rst` files under the `cara/docs` folder is changed, this command should be executed again.
+To generate the HTML documentation page, the command `make html` should be executed in the `caimira/docs` directory. 
+If any of the `.rst` files under the `caimira/docs` folder is changed, this command should be executed again.
 
-Then, right click on `cara/docs/_build/html/index.html` and select `Open with` your preferred web browser.
+Then, right click on `caimira/docs/_build/html/index.html` and select `Open with` your preferred web browser.
 
 ### Running the CAiMIRA Expert-App app in development mode
 
 ```
-voila cara/apps/expert/cara.ipynb --port=8080
+voila caimira/apps/expert/caimira.ipynb --port=8080
 ```
 
 Then visit http://localhost:8080.
@@ -138,7 +138,7 @@ Then visit http://localhost:8080.
 
 ```
 pip install -e .[test]
-pytest ./cara
+pytest ./caimira
 ```
 
 ### Building the whole environment for local development
@@ -175,7 +175,7 @@ Then visit http://localhost:8080/.
 
 ### Setting up the application on openshift
 
-The https://cern.ch/cara application is running on CERN's OpenShift platform. In order to set it up for the first time, we followed the documentation at https://cern.service-now.com/service-portal?id=kb_article&n=KB0004498. In particular we:
+The https://cern.ch/caimira application is running on CERN's OpenShift platform. In order to set it up for the first time, we followed the documentation at https://cern.service-now.com/service-portal?id=kb_article&n=KB0004498. In particular we:
 
  * Added the OpenShift application deploy key to the GitLab repository
  * Created a Python 3.6 (the highest possible at the time of writing) application in OpenShift
@@ -183,7 +183,7 @@ The https://cern.ch/cara application is running on CERN's OpenShift platform. In
 
 ### Updating the caimira-test.web.cern.ch instance
 
-We have a replica of https://cara.web.cern.ch running on http://caimira-test.web.cern.ch. Its purpose is to simulate what will happen when
+We have a replica of https://caimira.web.cern.ch running on http://caimira-test.web.cern.ch. Its purpose is to simulate what will happen when
 a feature is merged. To push your changes to caimira-test, simply push your branch to `live/caimira-test` and the CI pipeline will trigger the
 deployment. To push to this branch, there is a good chance that you will need to force push - you should always force push with care and
 understanding why you are doing it. Syntactically, it will look something like (assuming that you have "upstream" as your remote name,
