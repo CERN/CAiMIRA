@@ -146,8 +146,8 @@ pytest ./cara
 **Simulate the docker build that takes place on openshift with:**
 
 ```
-s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./app-config/nginx/ centos/nginx-112-centos7 cara-nginx-app
-docker build . -f ./app-config/cara-webservice/Dockerfile -t cara-webservice
+s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./app-config/nginx/ centos/nginx-112-centos7 caimira-nginx-app
+docker build . -f ./app-config/caimira-webservice/Dockerfile -t caimira-webservice
 docker build ./app-config/auth-service -t auth-service
 ```
 
@@ -221,17 +221,17 @@ $ oc serviceaccounts get-token gitlabci-deployer
 <...test-token...>
 ```
 
-Add the token to GitLab to allow GitLab to access OpenShift and define/change image stream tags. Go to `Settings` -> `CI / CD` -> `Variables` -> click on `Expand` button and create the variable `OPENSHIFT_TEST_DEPLOY_TOKEN`: insert the token `<...test-token...>`.
+Add the token to GitLab to allow GitLab to access OpenShift and define/change image stream tags. Go to `Settings` -> `CI / CD` -> `Variables` -> click on `Expand` button and create the variable `OPENSHIFT_CAIMIRA_TEST_DEPLOY_TOKEN`: insert the token `<...test-token...>`.
 
 Then, create the webhook secret to be able to trigger automatic builds from GitLab.
 
-Create and store the secret. Copy the secret above and add it to the GitLab project under `CI /CD` -> `Variables` with the name `OPENSHIFT_TEST_WEBHOOK_SECRET`.
+Create and store the secret. Copy the secret above and add it to the GitLab project under `CI /CD` -> `Variables` with the name `OPENSHIFT_CAIMIRA_TEST_WEBHOOK_SECRET`.
 
 ```console
 $ WEBHOOKSECRET=$(openssl rand -hex 50)
 $ oc create secret generic \
   --from-literal="WebHookSecretKey=$WEBHOOKSECRET" \
-  gitlab-cara-webhook-secret
+  gitlab-caimira-webhook-secret
 ```
 
 For CI usage, we also suggest creating a service account:
@@ -267,7 +267,7 @@ How to configure the application:
 
 * Application Identifier: `caimira-test`
 * Homepage: `https://caimira-test.web.cern.ch`
-* Administrators: `cara-dev`
+* Administrators: `caimira-dev`
 * SSO Registration:
     * Protocol: `OpenID (OIDC)`
     * Redirect URI: `https://caimira-test.web.cern.ch/auth/authorize`
@@ -282,12 +282,12 @@ How to configure the application:
         * Role Identifier: `admin`
         * Leave unchecked checkboxes
         * Minimum Level Of Assurance: `Any (no restrictions)`
-        * Assign role to groups: `cara-app-external-access` e-group
+        * Assign role to groups: `caimira-app-external-access` e-group
     * Name: `Allowed users`
         * Role Identifier: `allowed-users`
         * Check `This role is required to access my application`
         * Minimum Level Of Assurance:`Any (no restrictions)`
-        * Assign role to groups: `cern-accounts-primary` and `cara-app-external-access` e-groups
+        * Assign role to groups: `cern-accounts-primary` and `caimira-app-external-access` e-groups
 
 Copy the client id and client secret and use it below.
 

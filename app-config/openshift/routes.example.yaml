@@ -2,21 +2,21 @@
   kind: "Template"
   apiVersion: template.openshift.io/v1
   metadata:
-    name: "cara-route"
+    name: "caimira-route"
     creationTimestamp: null
     annotations:
-      description: "CARA route OpenShift template."
-      tags: "cara-route"
+      description: "CAiMIRA route OpenShift template."
+      tags: "caimira-route"
   labels:
-    template: "cara-route"
+    template: "caimira-route"
   objects:
     -
       apiVersion: route.openshift.io/v1
       kind: Route
       metadata:
-        name: cara-route
+        name: caimira-route
         labels:
-          app: "cara-route"
+          app: "caimira-route"
       spec:
         host: ${HOST}
         port:
@@ -26,7 +26,7 @@
           termination: edge
         to:
           kind: Service
-          name: cara-router
+          name: caimira-router
           weight: 100
         wildcardPolicy: None
 

@@ -15,7 +15,7 @@ support
 
 # openshift config check folder
 app-config/openshift/caimira-test
-app-config/openshift/cara-prod
+app-config/openshift/caimira-prod
 
 # documentation build folder
 cara/docs/_build

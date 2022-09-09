@@ -24,8 +24,8 @@ test_install:
 
 
 # A development installation of CAiMIRA tested with pytest.
-test_dev:
-  extends: .acc_py_dev_test
+# test_dev:
+#   extends: .acc_py_dev_test
 
 
 # A development installation of CAiMIRA tested with pytest.
@@ -78,10 +78,10 @@ check_openshift_config_test:
 check_openshift_config_prod:
   extends: .test_openshift_config
   variables:
-    CAIMIRA_INSTANCE: 'cara-prod'
-    BRANCH: 'master'
+    CAIMIRA_INSTANCE: 'caimira-prod'
+    BRANCH: 'feature/CAIMIRA_infrastructure'
     OC_SERVER: https://api.paas.okd.cern.ch
-    OC_TOKEN: "${OPENSHIFT_PROD_CONFIG_CHECKER_TOKEN}"
+    OC_TOKEN: "${OPENSHIFT_CAIMIRA_PROD_CONFIG_CHECKER_TOKEN}"
 
 
 # ###################################################################################################
@@ -94,9 +94,9 @@ check_openshift_config_prod:
     - if: '$CI_COMMIT_BRANCH == "live/caimira-test"'
       variables:
         IMAGE_TAG: caimira-test-latest
-    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_COMMIT_BRANCH == "feature/CAIMIRA_infrastructure"'
       variables:
-        IMAGE_TAG: cara-prod-latest
+        IMAGE_TAG: caimira-prod-latest
   image:
     # Based on guidance at https://gitlab.cern.ch/gitlabci-examples/build_docker_image.
     name: gitlab-registry.cern.ch/ci-tools/docker-image-builder
@@ -120,8 +120,8 @@ caimira-webservice-image_builder:
   extends:
     - .image_builder
   variables:
-    IMAGE_NAME: cara-webservice
-    DOCKERFILE_DIRECTORY: app-config/cara-webservice
+    IMAGE_NAME: caimira-webservice
+    DOCKERFILE_DIRECTORY: app-config/caimira-webservice
     DOCKER_CONTEXT_DIRECTORY: ""
 
 
@@ -137,11 +137,11 @@ caimira-webservice-image_builder:
         OC_PROJECT: "caimira-test"
         OC_TOKEN: ${OPENSHIFT_CAIMIRA_TEST_DEPLOY_TOKEN}
         IMAGE_TAG: caimira-test-latest
-    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_COMMIT_BRANCH == "feature/CAIMIRA_infrastructure"'
       variables:
-        OC_PROJECT: "cara-prod"
-        OC_TOKEN: ${OPENSHIFT_PROD_DEPLOY_TOKEN}
-        IMAGE_TAG: cara-prod-latest
+        OC_PROJECT: "caimira-prod"
+        OC_TOKEN: ${OPENSHIFT_CAIMIRA_PROD_DEPLOY_TOKEN}
+        IMAGE_TAG: caimira-prod-latest
   script:
      - oc tag --source=docker ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest --token ${OC_TOKEN} --server=https://api.paas.okd.cern.ch -n ${OC_PROJECT}
 
@@ -155,7 +155,7 @@ link_caimira-webservice_with_gitlab_registry:
   extends:
     - .link_docker_images_with_gitlab_registry
   variables:
-    IMAGE_NAME: cara-webservice
+    IMAGE_NAME: caimira-webservice
 
 
 # ###################################################################################################
@@ -168,9 +168,9 @@ trigger_caimira-router_build_on_openshift:
       variables:
         OC_PROJECT: "caimira-test"
         BUILD_WEBHOOK_SECRET: ${OPENSHIFT_CAIMIRA_TEST_BUILD_WEBHOOK_SECRET}
-    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_COMMIT_BRANCH == "feature/CAIMIRA_infrastructure"'
       variables:
-        OC_PROJECT: "cara-prod"
-        BUILD_WEBHOOK_SECRET: ${OPENSHIFT_PROD_BUILD_WEBHOOK_SECRET}
+        OC_PROJECT: "caimira-prod"
+        BUILD_WEBHOOK_SECRET: ${OPENSHIFT_CAIMIRA_PROD_BUILD_WEBHOOK_SECRET}
   script:
-     - curl -X POST -k https://api.paas.okd.cern.ch/apis/build.openshift.io/v1/namespaces/${OC_PROJECT}/buildconfigs/cara-router/webhooks/${BUILD_WEBHOOK_SECRET}/generic
+     - curl -X POST -k https://api.paas.okd.cern.ch/apis/build.openshift.io/v1/namespaces/${OC_PROJECT}/buildconfigs/caimira-router/webhooks/${BUILD_WEBHOOK_SECRET}/generic

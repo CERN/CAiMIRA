@@ -2,13 +2,13 @@
   kind: "Template"
   apiVersion: template.openshift.io/v1
   metadata:
-    name: "cara-imagestreams"
+    name: "caimira-imagestreams"
     creationTimestamp: null
     annotations:
-      description: "CARA imagestreams OpenShift template."
-      tags: "cara-imagestreams"
+      description: "CAiMIRA imagestreams OpenShift template."
+      tags: "caimira-imagestreams"
   labels:
-    template: "cara-application"
+    template: "caimira-application"
   objects:
     -
       kind: ImageStream
@@ -22,7 +22,7 @@
       kind: ImageStream
       apiVersion: image.openshift.io/v1
       metadata:
-        name: cara-router
+        name: caimira-router
       spec:
         lookupPolicy:
           local: False
@@ -30,7 +30,7 @@
       kind: ImageStream
       apiVersion: image.openshift.io/v1
       metadata:
-        name: cara-webservice
+        name: caimira-webservice
       spec:
         lookupPolicy:
           local: False

@@ -2,21 +2,21 @@
   kind: "Template"
   apiVersion: template.openshift.io/v1
   metadata:
-    name: "cara-application"
+    name: "caimira-application"
     creationTimestamp: null
     annotations:
-      description: "CARA build config OpenShift template."
-      tags: "cara-application"
+      description: "CAiMIRA build config OpenShift template."
+      tags: "caimira-application"
   labels:
-    template: "cara-application"
+    template: "caimira-application"
   objects:
     -
       kind: BuildConfig
       apiVersion: build.openshift.io/v1
       metadata:
-        name: cara-router
+        name: caimira-router
         labels:
-          template: "cara-application"
+          template: "caimira-application"
       spec:
         source:
           type: Git
@@ -30,7 +30,7 @@
         output:
           to:
             kind: ImageStreamTag
-            name: 'cara-router:latest'
+            name: 'caimira-router:latest'
         strategy:
           sourceStrategy:
             from:
@@ -44,7 +44,7 @@
           - type: ConfigChange
           - generic:
               secretReference:
-                name: gitlab-cara-webhook-secret
+                name: gitlab-caimira-webhook-secret
             type: Generic
         nodeSelector: null
   parameters:
