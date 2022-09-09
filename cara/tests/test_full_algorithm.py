@@ -805,6 +805,7 @@ def test_concentration_with_shortrange_and_distributions(
         )
 
 
+@retry(tries=10)
 def test_exposure_with_shortrange_and_distributions(expo_sr_model_distr,
                                             simple_expo_sr_model_distr):
     npt.assert_allclose(
