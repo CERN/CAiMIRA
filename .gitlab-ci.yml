@@ -83,6 +83,14 @@ check_openshift_config_prod:
     OC_SERVER: https://api.paas.okd.cern.ch
     OC_TOKEN: "${OPENSHIFT_CAIMIRA_PROD_CONFIG_CHECKER_TOKEN}"
 
+  
+oci_calculator:
+  extends: .image_builder
+  variables:
+    IMAGE_NAME: calculator
+    DOCKERFILE_DIRECTORY: app-config/cara-public-docker-image
+    DOCKER_CONTEXT_DIRECTORY: ""
+
 
 # ###################################################################################################
 # Build docker images
@@ -156,6 +164,12 @@ link_caimira-webservice_with_gitlab_registry:
     - .link_docker_images_with_gitlab_registry
   variables:
     IMAGE_NAME: caimira-webservice
+
+link_calculator_with_gitlab_registry:
+  extends:
+    - .link_docker_images_with_gitlab_registry
+  variables:
+    IMAGE_NAME: calculator
 
 
 # ###################################################################################################
