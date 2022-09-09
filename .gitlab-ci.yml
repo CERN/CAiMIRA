@@ -116,21 +116,12 @@ auth-service-image_builder:
     DOCKER_CONTEXT_DIRECTORY: app-config/auth-service
 
 
-cara-webservice-image_builder:
+caimira-webservice-image_builder:
   extends:
     - .image_builder
   variables:
     IMAGE_NAME: cara-webservice
     DOCKERFILE_DIRECTORY: app-config/cara-webservice
-    DOCKER_CONTEXT_DIRECTORY: ""
-
-
-oci_calculator:
-  extends:
-    - .image_builder
-  variables:
-    IMAGE_NAME: calculator
-    DOCKERFILE_DIRECTORY: app-config/cara-public-docker-image
     DOCKER_CONTEXT_DIRECTORY: ""
 
 
@@ -160,23 +151,17 @@ link_auth-service_with_gitlab_registry:
   variables:
     IMAGE_NAME: auth-service
 
-link_cara-webservice_with_gitlab_registry:
+link_caimira-webservice_with_gitlab_registry:
   extends:
     - .link_docker_images_with_gitlab_registry
   variables:
     IMAGE_NAME: cara-webservice
 
-link_calculator_with_gitlab_registry:
-  extends:
-    - .link_docker_images_with_gitlab_registry
-  variables:
-    IMAGE_NAME: calculator
-
 
 # ###################################################################################################
 # Trigger build of CAiMIRA router on OpenShift
 
-trigger_cara-router_build_on_openshift:
+trigger_caimira-router_build_on_openshift:
   stage: deploy
   rules:
     - if: '$CI_COMMIT_BRANCH == "live/caimira-test"'
