@@ -1,5 +1,5 @@
-cara.apps package
-=================
+caimira.apps package
+====================
 
 Subpackages
 -----------
@@ -7,15 +7,15 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   cara.apps.calculator
+   caimira.apps.calculator
 
 Submodules
 ----------
 
-cara.apps.expert module
------------------------
+caimira.apps.expert module
+--------------------------
 
-.. automodule:: cara.apps.expert
+.. automodule:: caimira.apps.expert
    :members:
    :undoc-members:
    :show-inheritance:
@@ -23,7 +23,7 @@ cara.apps.expert module
 Module contents
 ---------------
 
-.. automodule:: cara.apps
+.. automodule:: caimira.apps
    :members:
    :undoc-members:
    :show-inheritance:

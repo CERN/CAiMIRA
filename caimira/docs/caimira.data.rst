@@ -1,13 +1,13 @@
-cara.data package
-=================
+caimira.data package
+====================
 
 Submodules
 ----------
 
-cara.data.weather module
-------------------------
+caimira.data.weather module
+---------------------------
 
-.. automodule:: cara.data.weather
+.. automodule:: caimira.data.weather
    :members:
    :undoc-members:
    :show-inheritance:
@@ -15,7 +15,7 @@ cara.data.weather module
 Module contents
 ---------------
 
-.. automodule:: cara.data
+.. automodule:: caimira.data
    :members:
    :undoc-members:
    :show-inheritance:
