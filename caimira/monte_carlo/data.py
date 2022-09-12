@@ -168,8 +168,9 @@ virus_distributions = {
 # https://doi.org/10.1016/j.jhin.2013.02.007
 # https://doi.org/10.4209/aaqr.2020.08.0531
 mask_distributions = {
-    'Type I': mc.Mask(Uniform(0.25, 0.80)),
-    'FFP2': mc.Mask(Uniform(0.83, 0.91)),
+    'Type I': mc.Mask(η_inhale=Uniform(0.25, 0.80)),
+    'FFP2': mc.Mask(η_inhale=Uniform(0.83, 0.91)),
+    'Cloth': mc.Mask(η_inhale=Uniform(0.05, 0.40), η_exhale=Uniform(0.20, 0.50)),
 }
 
 
