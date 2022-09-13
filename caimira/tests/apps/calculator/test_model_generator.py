@@ -30,6 +30,7 @@ def test_model_from_dict_invalid(baseline_form_data):
     [
         ["No mask"],
         ["Type I"],
+        ["Cloth"],
     ]
 )
 def test_blend_expiration(mask_type):
