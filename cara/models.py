@@ -469,6 +469,7 @@ class SARSCoV2(Virus):
         return np.where(hl_calc <= 0, 6.43, np.minimum(6.43, hl_calc))
         
 
+# Example of Viruses only used for the Expert app and tests.
 Virus.types = {
     'SARS_CoV_2': SARSCoV2(
         viral_load_in_sputum=1e9,
@@ -554,6 +555,7 @@ class Mask:
         return self.η_inhale
 
 
+# Example of Masks only used for the Expert app and tests.
 Mask.types = {
     'No mask': Mask(0, 0),
     'Type I': Mask(
@@ -721,6 +723,7 @@ class MultipleExpiration(_ExpirationBase):
 # the same as the total aerosol volume given by the full BLO model
 # (integrated between 0.1 and 30 microns)
 # The correspondence with the BLO coefficients is given.
+# Only used for the Expert app and tests.
 _ExpirationBase.types = {
     'Breathing': Expiration(1.3844), # corresponds to B/L/O coefficients of (1, 0, 0)
     'Speaking': Expiration(5.8925),   # corresponds to B/L/O coefficients of (1, 1, 1)
@@ -737,10 +740,11 @@ class Activity:
     #: Exhalation rate in m^3/h
     exhalation_rate: _VectorisedFloat
 
-    #: Pre-populated examples of activities.
+    #: Pre-populated examples of Activities.
     types: typing.ClassVar[typing.Dict[str, "Activity"]]
 
 
+# Example of Activities only used for the Expert app and tests.
 Activity.types = {
     'Seated': Activity(0.51, 0.51),
     'Standing': Activity(0.57, 0.57),
