@@ -11,24 +11,24 @@ include:
    file: acc_py_devtools/templates/gitlab-ci/python.yml
 
 variables:
-  project_name: cara
+  project_name: caimira
   PY_VERSION: "3.9"
 
 
 # ###################################################################################################
 # Test code
 
-# A full installation of CARA, tested with pytest.
+# A full installation of CAiMIRA, tested with pytest.
 test_install:
   extends: .acc_py_full_test
 
 
-# A development installation of CARA tested with pytest.
+# A development installation of CAiMIRA tested with pytest.
 test_dev:
   extends: .acc_py_dev_test
 
 
-# A development installation of CARA tested with pytest.
+# A development installation of CAiMIRA tested with pytest.
 test_dev-39:
   variables:
     PY_VERSION: "3.9"
@@ -55,33 +55,41 @@ test_dev-39:
   script:
     - cd ./app-config/openshift
     - oc login ${OC_SERVER} --token="${OC_TOKEN}"
-    - python ./config-fetch.py ${CARA_INSTANCE} --output-directory ./${CARA_INSTANCE}/actual
-    - python ./config-generate.py ${CARA_INSTANCE} --output-directory ./${CARA_INSTANCE}/expected
-    - python ./config-normalise.py ./${CARA_INSTANCE}/actual ./${CARA_INSTANCE}/actual-normed
-    - python ./config-normalise.py ./${CARA_INSTANCE}/expected ./${CARA_INSTANCE}/expected-normed
-    - diff -u ./${CARA_INSTANCE}/actual-normed/ ./${CARA_INSTANCE}/expected-normed/
+    - python ./config-fetch.py ${CAIMIRA_INSTANCE} --output-directory ./${CAIMIRA_INSTANCE}/actual
+    - python ./config-generate.py ${CAIMIRA_INSTANCE} --output-directory ./${CAIMIRA_INSTANCE}/expected
+    - python ./config-normalise.py ./${CAIMIRA_INSTANCE}/actual ./${CAIMIRA_INSTANCE}/actual-normed
+    - python ./config-normalise.py ./${CAIMIRA_INSTANCE}/expected ./${CAIMIRA_INSTANCE}/expected-normed
+    - diff -u ./${CAIMIRA_INSTANCE}/actual-normed/ ./${CAIMIRA_INSTANCE}/expected-normed/
   artifacts:
     paths:
-      - ./app-config/openshift/${CARA_INSTANCE}/actual
-      - ./app-config/openshift/${CARA_INSTANCE}/expected
+      - ./app-config/openshift/${CAIMIRA_INSTANCE}/actual
+      - ./app-config/openshift/${CAIMIRA_INSTANCE}/expected
 
 
 check_openshift_config_test:
   extends: .test_openshift_config
   variables:
-    CARA_INSTANCE: 'test-cara'
-    BRANCH: 'live/test-cara'
+    CAIMIRA_INSTANCE: 'caimira-test'
+    BRANCH: 'live/caimira-test'
     OC_SERVER: https://api.paas.okd.cern.ch
-    OC_TOKEN: "${OPENSHIFT_TEST_CONFIG_CHECKER_TOKEN}"
+    OC_TOKEN: "${OPENSHIFT_CAIMIRA_TEST_CONFIG_CHECKER_TOKEN}"
 
 
 check_openshift_config_prod:
   extends: .test_openshift_config
   variables:
-    CARA_INSTANCE: 'cara-prod'
+    CAIMIRA_INSTANCE: 'caimira-prod'
     BRANCH: 'master'
     OC_SERVER: https://api.paas.okd.cern.ch
-    OC_TOKEN: "${OPENSHIFT_PROD_CONFIG_CHECKER_TOKEN}"
+    OC_TOKEN: "${OPENSHIFT_CAIMIRA_PROD_CONFIG_CHECKER_TOKEN}"
+
+  
+oci_calculator:
+  extends: .image_builder
+  variables:
+    IMAGE_NAME: calculator
+    DOCKERFILE_DIRECTORY: app-config/caimira-public-docker-image
+    DOCKER_CONTEXT_DIRECTORY: ""
 
 
 # ###################################################################################################
@@ -91,12 +99,12 @@ check_openshift_config_prod:
   # Build and push images to the openshift instance, which automatically triggers an application re-deployment.
   stage: docker-build
   rules:
-    - if: '$CI_COMMIT_BRANCH == "live/test-cara"'
+    - if: '$CI_COMMIT_BRANCH == "live/caimira-test"'
       variables:
-        IMAGE_TAG: test-cara-latest
+        IMAGE_TAG: caimira-test-latest
     - if: '$CI_COMMIT_BRANCH == "master"'
       variables:
-        IMAGE_TAG: cara-prod-latest
+        IMAGE_TAG: caimira-prod-latest
   image:
     # Based on guidance at https://gitlab.cern.ch/gitlabci-examples/build_docker_image.
     name: gitlab-registry.cern.ch/ci-tools/docker-image-builder
@@ -116,21 +124,12 @@ auth-service-image_builder:
     DOCKER_CONTEXT_DIRECTORY: app-config/auth-service
 
 
-cara-webservice-image_builder:
+caimira-webservice-image_builder:
   extends:
     - .image_builder
   variables:
-    IMAGE_NAME: cara-webservice
-    DOCKERFILE_DIRECTORY: app-config/cara-webservice
-    DOCKER_CONTEXT_DIRECTORY: ""
-
-
-oci_calculator:
-  extends:
-    - .image_builder
-  variables:
-    IMAGE_NAME: calculator
-    DOCKERFILE_DIRECTORY: app-config/cara-public-docker-image
+    IMAGE_NAME: caimira-webservice
+    DOCKERFILE_DIRECTORY: app-config/caimira-webservice
     DOCKER_CONTEXT_DIRECTORY: ""
 
 
@@ -141,16 +140,16 @@ oci_calculator:
   stage: oc-tag
   image: gitlab-registry.cern.ch/paas-tools/openshift-client:latest
   rules:
-    - if: '$CI_COMMIT_BRANCH == "live/test-cara"'
+    - if: '$CI_COMMIT_BRANCH == "live/caimira-test"'
       variables:
-        OC_PROJECT: "test-cara"
-        OC_TOKEN: ${OPENSHIFT_TEST_DEPLOY_TOKEN}
-        IMAGE_TAG: test-cara-latest
+        OC_PROJECT: "caimira-test"
+        OC_TOKEN: ${OPENSHIFT_CAIMIRA_TEST_DEPLOY_TOKEN}
+        IMAGE_TAG: caimira-test-latest
     - if: '$CI_COMMIT_BRANCH == "master"'
       variables:
-        OC_PROJECT: "cara-prod"
-        OC_TOKEN: ${OPENSHIFT_PROD_DEPLOY_TOKEN}
-        IMAGE_TAG: cara-prod-latest
+        OC_PROJECT: "caimira-prod"
+        OC_TOKEN: ${OPENSHIFT_CAIMIRA_PROD_DEPLOY_TOKEN}
+        IMAGE_TAG: caimira-prod-latest
   script:
      - oc tag --source=docker ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest --token ${OC_TOKEN} --server=https://api.paas.okd.cern.ch -n ${OC_PROJECT}
 
@@ -160,11 +159,11 @@ link_auth-service_with_gitlab_registry:
   variables:
     IMAGE_NAME: auth-service
 
-link_cara-webservice_with_gitlab_registry:
+link_caimira-webservice_with_gitlab_registry:
   extends:
     - .link_docker_images_with_gitlab_registry
   variables:
-    IMAGE_NAME: cara-webservice
+    IMAGE_NAME: caimira-webservice
 
 link_calculator_with_gitlab_registry:
   extends:
@@ -174,18 +173,18 @@ link_calculator_with_gitlab_registry:
 
 
 # ###################################################################################################
-# Trigger build of CARA router on OpenShift
+# Trigger build of CAiMIRA router on OpenShift
 
-trigger_cara-router_build_on_openshift:
+trigger_caimira-router_build_on_openshift:
   stage: deploy
   rules:
-    - if: '$CI_COMMIT_BRANCH == "live/test-cara"'
+    - if: '$CI_COMMIT_BRANCH == "live/caimira-test"'
       variables:
-        OC_PROJECT: "test-cara"
-        BUILD_WEBHOOK_SECRET: ${OPENSHIFT_TEST_BUILD_WEBHOOK_SECRET}
+        OC_PROJECT: "caimira-test"
+        BUILD_WEBHOOK_SECRET: ${OPENSHIFT_CAIMIRA_TEST_BUILD_WEBHOOK_SECRET}
     - if: '$CI_COMMIT_BRANCH == "master"'
       variables:
-        OC_PROJECT: "cara-prod"
-        BUILD_WEBHOOK_SECRET: ${OPENSHIFT_PROD_BUILD_WEBHOOK_SECRET}
+        OC_PROJECT: "caimira-prod"
+        BUILD_WEBHOOK_SECRET: ${OPENSHIFT_CAIMIRA_PROD_BUILD_WEBHOOK_SECRET}
   script:
-     - curl -X POST -k https://api.paas.okd.cern.ch/apis/build.openshift.io/v1/namespaces/${OC_PROJECT}/buildconfigs/cara-router/webhooks/${BUILD_WEBHOOK_SECRET}/generic
+     - curl -X POST -k https://api.paas.okd.cern.ch/apis/build.openshift.io/v1/namespaces/${OC_PROJECT}/buildconfigs/caimira-router/webhooks/${BUILD_WEBHOOK_SECRET}/generic

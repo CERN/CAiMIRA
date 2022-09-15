@@ -1,0 +1,239 @@
+#body {
+    top: 10px;
+    left: 20px;
+    bottom: 20px;
+    right: 20px;
+    padding: 20px;
+    -webkit-print-color-adjust: exact; /* chrome & webkit browsers */
+    print-color-adjust: exact; /*firefox & IE */
+}
+
+h1 {
+    text-align: center;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 17px;
+    padding-bottom: 20px;
+}
+
+p.data_italic {
+    font-style: italic;
+}
+
+p.data_title {
+    font-weight: bold;
+}
+
+p.data_text {
+    padding-left: 30px;
+}
+
+p.data_subtext {
+    padding-left: 60px;
+    margin-left: -3em;
+}
+
+p.result_title {
+    font-weight: bold;
+    font-size: 20px;
+}
+
+p.image {
+    text-align: center;
+    font-size: 17px;
+}
+
+p.disclaimer {
+    font-size: 16px;
+}
+
+p.notes {
+    font-size: 13px;
+}
+
+#pdf_qrcode_aref {
+    margin-right: 1%;
+    width: 100pt;
+}
+
+.icon_button {
+    border: none;
+    background: none;
+}
+
+.icon_button:focus {
+    outline: 0 !important;
+}
+
+.nav-tabs .nav-item .nav-link.active {
+    font-weight: bold;
+}
+
+.nav-tabs .nav-item .nav-link {
+    color: black;
+}
+
+.tabs-div {
+    margin: 1%;
+    border: #DFDFDF 1px solid;
+    border-radius: 5px;
+}
+
+@media print {
+    #results,
+    #rules,
+    #data {
+        display: contents!important;
+    }
+    #link_reproduce_results {
+        display: none!important;
+    }
+    #pdf_qrcode_aref {
+        visibility: inherit!important;
+    }
+    .collapse {
+        display: block!important;
+    }
+    .tab-content {
+        border-top: none!important;
+    }
+    .nav-tabs {
+        display: none!important;
+    }
+    .tabs-div {
+        border: none!important;
+    }
+    .icon_button {
+        display: none!important;
+    }
+    .pi-image {
+        max-height: 9em;
+    }
+    .pi-box {
+        max-width: 260px!important;
+    }
+    .card {
+        page-break-inside: avoid!important;
+        break-inside: avoid!important;
+    }
+    #link-results {
+        display: none;
+    }
+    #disclaimer {
+        border: 2px solid black;
+        padding: 15px; 
+        page-break-inside: avoid;
+    }
+    #button_full_exposure, #button_hide_high_concentration {
+        display: none!important;
+    }
+    #long_range_cumulative_checkbox, #lr_cumulative_checkbox_label {
+        display: none!important;
+    }
+    #button_alternative_full_exposure, #button_alternative_hide_high_concentration {
+        display: none!important;
+    }
+    #export-csv {
+        display: none;
+    }
+}
+
+
+/* CSS for the animation */
+
+.intro-banner-vdo-play-btn {
+    height: 60px;
+    width: 60px;
+    position: relative;
+    text-align: center;
+    border-radius: 100px;
+    z-index: 1;
+    -webkit-print-color-adjust: exact!important;
+    print-color-adjust: exact!important;
+}
+
+.intro-banner-vdo-play-btn i {
+    line-height: 56px;
+    font-size: 30px
+}
+
+.intro-banner-vdo-play-btn .ripple {
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    z-index: -1;
+    left: 50%;
+    top: 50%;
+    opacity: 0;
+    margin: -80px 0 0 -80px;
+    border-radius: 100px;
+    -webkit-animation: ripple 1.8s infinite;
+    animation: ripple 1.8s infinite
+}
+
+@-webkit-keyframes ripple {
+    0% {
+        opacity: 1;
+        -webkit-transform: scale(0);
+        transform: scale(0)
+    }
+    100% {
+        opacity: 0;
+        -webkit-transform: scale(1);
+        transform: scale(1)
+    }
+}
+
+@keyframes ripple {
+    0% {
+        opacity: 1;
+        -webkit-transform: scale(0);
+        transform: scale(0)
+    }
+    100% {
+        opacity: 0;
+        -webkit-transform: scale(1);
+        transform: scale(1)
+    }
+}
+
+.intro-banner-vdo-play-btn .ripple:nth-child(2) {
+    animation-delay: .3s;
+    -webkit-animation-delay: .3s
+}
+
+.intro-banner-vdo-play-btn .ripple:nth-child(3) {
+    animation-delay: .6s;
+    -webkit-animation-delay: .6s
+}
+
+.split {
+    /* flex: 1; */
+    clear: both;
+    display: inline-flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+@media screen and (min-width: 40em) {
+    .split {
+        flex-direction: row;
+    }
+    .split>* {
+        flex-basis: 100%;
+    }
+    .paragraph-title {
+        text-align: left;
+    }
+    .split>*+* {
+        margin-left: 2em;
+    }
+    .bigButton {
+        width: 25%;
+    }
+    .logo {
+        float: left;
+    }
+}

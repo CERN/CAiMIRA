@@ -2,21 +2,21 @@
   kind: "Template"
   apiVersion: template.openshift.io/v1
   metadata:
-    name: "cara-application"
+    name: "caimira-application"
     creationTimestamp: null
     annotations:
-      description: "CARA build config OpenShift template."
-      tags: "cara-application"
+      description: "CAiMIRA build config OpenShift template."
+      tags: "caimira-application"
   labels:
-    template: "cara-application"
+    template: "caimira-application"
   objects:
     -
       kind: BuildConfig
       apiVersion: build.openshift.io/v1
       metadata:
-        name: cara-router
+        name: caimira-router
         labels:
-          template: "cara-application"
+          template: "caimira-application"
       spec:
         source:
           type: Git
@@ -24,15 +24,13 @@
             ref: ${GIT_BRANCH}
             uri: ${GIT_REPO}
           contextDir: app-config/nginx
-          sourceSecret:
-            name: sshdeploykey
         postCommit: {}
         resources: {}
         runPolicy: Serial
         output:
           to:
             kind: ImageStreamTag
-            name: 'cara-router:latest'
+            name: 'caimira-router:latest'
         strategy:
           sourceStrategy:
             from:
@@ -46,13 +44,13 @@
           - type: ConfigChange
           - generic:
               secretReference:
-                name: gitlab-cara-webhook-secret
+                name: gitlab-caimira-webhook-secret
             type: Generic
         nodeSelector: null
   parameters:
     - name: GIT_REPO
       description: The GIT repo URL
-      value: 'ssh://git@gitlab.cern.ch:7999/cara/cara.git'
+      value: 'https://gitlab.cern.ch/cara/cara.git'
     - name: GIT_BRANCH
-      description: The name of the GIT branch to use when building the app, e.g. `live/test-cara` in TEST, `master` in prod
+      description: The name of the GIT branch to use when building the app, e.g. `live/caimira-test` in TEST, `master` in prod
       required: true

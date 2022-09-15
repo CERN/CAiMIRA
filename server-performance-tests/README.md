@@ -11,7 +11,7 @@ In order to set it up for the first time, we followed the documentation at https
 
 To use, uncomment the desired method on ``lucust.py``` file, open the terminal on this folder and run the following command:
 
-``locust -f locust.py --host https://cara.web.cern.ch``
+``locust -f locust.py --host https://caimira.web.cern.ch``
 
 Then, open up a browser and point it to http://localhost:8089. 
 By default we pointed out the test to our own web server.

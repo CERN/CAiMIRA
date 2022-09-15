@@ -14,8 +14,8 @@ venv
 support
 
 # openshift config check folder
-app-config/openshift/test-cara
-app-config/openshift/cara-prod
+app-config/openshift/caimira-test
+app-config/openshift/caimira-prod
 
 # documentation build folder
-cara/docs/_build
+caimira/docs/_build

@@ -1,0 +1,212 @@
+{% extends "base/calculator.report.html.j2" %}
+
+{% set cern_level = 'green-1' %} <!-- green-1, yellow-2, orange-3, red-4 -->
+{% set orange_prob_lim = 2 %}
+{% set red_prob_lim = 10 %}
+
+{% if form.short_range_option == "short_range_yes" %} 
+  {% set scenario = alternative_scenarios.stats.values() | first %}
+  {% set long_range_prob_inf = scenario.probability_of_infection %}
+{% else %}
+  {% set long_range_prob_inf = prob_inf %}
+{% endif %}
+
+{% if ((long_range_prob_inf > red_prob_lim) or (expected_new_cases >= 1)) %} 
+  {% set long_range_scale_warning = 'red' %}
+  {% set long_range_warning_color= 'bg-danger' %}
+{% elif (orange_prob_lim <= long_range_prob_inf <= red_prob_lim) %}
+   {% set long_range_scale_warning = 'orange' %} 
+   {% set long_range_warning_color = 'bg-warning' %} 
+{% else %} 
+  {% set long_range_scale_warning = 'green' %} 
+  {% set long_range_warning_color = 'bg-success' %} 
+{% endif %}
+
+{% if ((prob_inf > red_prob_lim) or (expected_new_cases >= 1)) %} {% set scale_warning = 'red' %}
+{% elif (orange_prob_lim <= prob_inf <= red_prob_lim) %} {% set scale_warning = 'orange' %} 
+{% else %} {% set scale_warning = 'green' %} 
+{% endif %}
+
+{% block report_preamble_navtab %}  
+  <li class="nav-item">
+    <a class="nav-link" id="rules-tab" data-toggle="tab" href="#rules" role="tab" aria-controls="rules" aria-selected="false">Applicable Rules</a>
+  </li>
+{% endblock report_preamble_navtab %}
+
+{% block long_range_warning_animation %}
+  <div class="intro-banner-vdo-play-btn {{long_range_warning_color}} m-auto d-flex align-items-center justify-content-center">
+    <b>{{long_range_prob_inf | non_zero_percentage}}</b>
+    <i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
+    <span class="ripple {{long_range_warning_color}}"></span>
+    <span class="ripple {{long_range_warning_color}}"></span>
+    <span class="ripple {{long_range_warning_color}}"></span>
+  </div>
+{% endblock long_range_warning_animation %}
+
+{% block warning_animation %}
+  {% if scale_warning == 'red' %} {% set warning_color= 'bg-danger' %}
+  {% elif scale_warning == 'orange' %} {% set warning_color = 'bg-warning' %} 
+  {% elif scale_warning == 'green' %} {% set warning_color = 'bg-success' %} 
+  {% endif %}
+  <div class="intro-banner-vdo-play-btn {{warning_color}} m-auto d-flex align-items-center justify-content-center">
+    <b>{{prob_inf | non_zero_percentage}}</b>
+    <i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
+    <span class="ripple {{warning_color}}"></span>
+    <span class="ripple {{warning_color}}"></span>
+    <span class="ripple {{warning_color}}"></span>
+  </div>
+{% endblock warning_animation %}
+
+{% block report_summary %}
+  <div class="flex-row align-self-center">
+      <br>
+      {% if long_range_scale_warning == 'red' %}
+        <div class="alert alert-danger mb-0" role="alert">
+          <strong>Not Acceptable:</strong>
+      {% elif long_range_scale_warning == 'orange' %}
+        <div class="alert alert-warning mb-0" role="alert">
+          <strong>Attention:</strong>
+      {% elif long_range_scale_warning == 'green' %}
+        <div class="alert alert-success mb-0" role="alert">
+          <strong>Acceptable:</strong>
+      {% endif %}
+        Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally (i.e. without short-range interactions), the <b>probability of one exposed occupant getting infected is {{long_range_prob_inf | non_zero_percentage}}</b> and the <b>expected number of new cases is {{expected_new_cases | float_format}}</b>*.
+      </div>
+      {% if form.short_range_option == "short_range_yes" %} 
+        <br>
+        {% if scale_warning == 'red' %}
+          <div class="alert alert-danger mb-0" role="alert">
+            <strong>Not Acceptable:</strong>
+        {% elif scale_warning == 'orange' %}
+          <div class="alert alert-warning mb-0" role="alert">
+            <strong>Attention:</strong>
+        {% elif scale_warning == 'green' %}
+          <div class="alert alert-success mb-0" role="alert">
+            <strong>Acceptable:</strong>
+        {% endif %}
+        In this scenario, assuming <b>short-range interactions</b> occur, the <b>probability of one exposed occupant getting infected can go as high as {{prob_inf | non_zero_percentage}}</b>.
+        </div>
+      {% endif %}
+      {% if (prob_inf > 2) %}
+        <br>
+        {% if cern_level == "green-1" %}  
+          <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
+            <b>Note:</b> the current CERN COVID Scale is <b>Green – 1</b>. The public health and safety restrictions are reduced to a mininum. Align your risk assessment with the guidance and instructions provided by the HSE Unit.
+          </div>
+        {% elif cern_level == "yellow-2" %}
+          <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
+            <b>Note:</b> the current CERN COVID Scale is <b>Yellow - 2</b>. There is a reduced risk that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site. There may be around <b>6'500 daily on-site accesses</b> during this stage. See with your supervisor, DSO/LEXGLIMOS and space manager if this scenario is acceptable and if any additional measures can be applied (ALARA).
+          </div>
+        {% elif cern_level == "orange-3" %}
+          <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
+            <b>Warning</b>: the current CERN COVID Scale is <b>Orange - 3</b>. There is a medium risk that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site. There may be around <b>5'000 daily on-site accesses</b> during this stage. See with your supervisor, DSO/LEXGLIMOS and space manager if this scenario is acceptable and if any additional measures can be applied (ALARA).
+          </div>
+        {% elif cern_level == "red-4" %}
+          <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">
+            <b>Warning</b>: the current CERN COVID Scale is <b>Red - 4</b>. There is a strong risk that asymptomatic or pre-symptomatic infected individuals circulate within the CERN site. There may be around <b>4'000 daily on-site accesses</b> during this stage. Please reduce the value below the threshold of 2%. See with your supervisor, DSO/LEXGLIMOS and space manager if this scenario is acceptable and if any additional measures are required.
+          </div>
+        {% else %}
+          <p><b>Note:</b> The CERN COVID Level is not specified.</p>
+        {% endif %}
+      {% endif %}      
+      <br>         
+    </div>
+{% endblock report_summary %}
+
+{% block report_summary_footnote %}
+  <br>  
+  {% if scale_warning == 'red' %}
+    This exceeds the authorised risk threshold or number of expected new cases.
+    The risk level must be reduced before this activity can be undertaken.
+  {% elif scale_warning == 'orange' %}
+    This activity has an elevated level of risk, ALARA principles must be applied to minimise the level of risk before undertaking the activity.
+    See the footnotes for more details on the ALARA principles.
+  {% elif scale_warning == 'green' %}
+    This level of risk is within acceptable parameters, no further actions are required.
+  {% endif %}
+{% endblock report_summary_footnote %}
+
+{% block report_scenarios_summary_table %}
+        <table class="table w-auto" style="height: fit-content;">
+            <thead class="thead-light">
+                <tr>
+                    <th>Scenario</th>
+                    <th>P(i)</th>
+                    <th>Expected new cases</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
+                {%if (( scenario_stats.probability_of_infection  > red_prob_lim) or (scenario_stats.expected_new_cases >= 1)) %}
+                  <tr class="alert-danger">
+                {% elif (orange_prob_lim <= scenario_stats.probability_of_infection <= red_prob_lim) %}
+                  <tr class="alert-warning">
+                {% elif (scenario_stats.probability_of_infection < orange_prob_lim) %}
+                  <tr class="alert-success">
+                {% endif%}
+                    <td> {{ scenario_name }}</td>
+                    <td> {{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
+                    <td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+{% endblock report_scenarios_summary_table %}
+
+{% block report_preamble %}
+<div class="tab-pane" id="rules" role="tabpanel" aria-labelledby="rules-tab" style="padding: 1%">
+  <div class="card bg-light mb-3">
+    <div class="card-header"><strong>Applicable rules </strong> 
+      <button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseRules" role="button" aria-expanded="true" aria-controls="collapseRules">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="collapse show" id="collapseRules">
+      <div class="card-body">
+        <p class="card-text"> 
+          Please ensure that this scenario conforms to current COVID-related <a href="https://hse.cern/covid-19-information"> Health & Safety requirements</a>, under the applicable COVID Scale and measures in force at the time of the CAiMIRA assessment.</strong> <br>
+          The results of this simulation are colour coded according to the risk values authorized at CERN (approved in December 2020):
+        </p><br>
+        <div class="d-flex">
+          <div class="split">
+            <div class="d-flex flex-column col-xl-8 p-0">
+              <div class="alert alert-success" role="alert">Events with a <strong>P(i) less than 2%</strong> may go ahead without further mitigation measures.</div>
+              <div class="alert alert-warning" role="alert">Events with a <strong>P(i) between 2% and 10%</strong> shall be subject to ALARA principles (see footnote) to minimise the risk before proceeding.</div>
+              <div class="alert alert-danger mb-0" role="alert">Events with a <strong>P(i) exceeding 10% or a number of expected new cases that exceeds 1</strong> may not take place until additional measures are in place and a risk reduction has been performed.</div>
+            </div>
+            <div class="col-xl-3 align-self-center text-center"><img id="scale_warning" class="rounded" src="{{ calculator_prefix }}/static/images/warning_scale/{{ cern_level }}.png"></div>
+          </div>
+        </div>
+        <br>
+        <p class="data_text">
+            <strong> Footnotes for ALARA: </strong><br>
+            ALARA stands for As Low As Reasonably Achievable. It can be summarised based on 3 main points:
+            <ol>
+              <li>Justification - any exposure of persons has to be justified </li>
+              <li>Limitation - the personal doses have to be kept below the legal limits (in this case the CERN exposure limits)</li>
+              <li>Optimisation - the personal doses and collective doses have to be kept as low as reasonably achievable (ALARA).</li>
+            </ol>
+            For more information, please refer to <a href="https://cds.cern.ch/record/1533023/files/CERN-2013-001-p415.pdf"> this document from CERN HSE </a> and <a href="https://www.cdc.gov/nceh/radiation/safety.html#:~:text=ALARA%20stands%20for%20%E2%80%9Cas%20low,time%2C%20distance%2C%20and%20shielding."> this publication from the CDC.</a> 
+            <br>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock report_preamble %}
+
+{% block report_footer %}
+    {{ super() }}
+{% endblock report_footer %}
+
+{% block disclaimer %}
+    {{ super() }}
+    <p>
+        At CERN, CAiMIRA is intended for Members of Personnel with roles related to Supervision, Health & Safety or Space Management, in order to simulate the concerned workplaces on CERN sites.
+    </p>
+{% endblock disclaimer %}
+
+</body>
+</html>

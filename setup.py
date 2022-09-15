@@ -1,7 +1,7 @@
-# This module is part of CARA. Please see the repository at
+# This module is part of CAiMIRA. Please see the repository at
 # https://gitlab.cern.ch/cara/cara for details of the license and terms of use.
 """
-setup.py for CARA.
+setup.py for CAiMIRA.
 
 For reference see
 https://packaging.python.org/guides/distributing-packages-using-setuptools/
@@ -58,7 +58,7 @@ REQUIREMENTS: dict = {
 
 
 setup(
-    name='CARA',
+    name='CAiMIRA',
     version="1.0.0",
 
     maintainer='Andre Henriques',
@@ -66,7 +66,7 @@ setup(
     description='COVID Airborne Risk Assessment',
     long_description=LONG_DESCRIPTION,
     long_description_content_type='text/markdown',
-    url='cern.ch/cara',
+    url='cern.ch/caimira',
 
     packages=find_packages(),
     python_requires='~=3.9',
@@ -87,7 +87,7 @@ setup(
         # The 'all' extra is the union of all requirements.
         'all': [req for reqs in REQUIREMENTS.values() for req in reqs],
     },
-    package_data={'cara': [
+    package_data={'caimira': [
         'apps/*/*',
         'apps/*/*/*',
         'apps/*/*/*/*',
