@@ -34,3 +34,11 @@
       spec:
         lookupPolicy:
           local: False
+    -
+      kind: ImageStream
+      apiVersion: image.openshift.io/v1
+      metadata:
+        name: calculator
+      spec:
+        lookupPolicy:
+          local: False
