@@ -1,5 +1,5 @@
 cd Downloads
-git clone https://gitlab.cern.ch/cara/cara.git
+git clone https://gitlab.cern.ch/cara/caimira.git
 cd caimira
 if [[ `uname -m` == 'arm64' ]]; then
   pip3 install scipy --index-url=https://pypi.anaconda.org/scipy-wheels-nightly/simple

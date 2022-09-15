@@ -76,10 +76,10 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 ## Running CAiMIRA locally
 
 The easiest way to run a version of CAiMIRA Calculator is to use docker. A pre-built
-image of CAiMIRA is made available at https://gitlab.cern.ch/cara/cara/container_registry.
+image of CAiMIRA is made available at https://gitlab.cern.ch/cara/caimira/container_registry.
 In order to run CAiMIRA locally with docker, run the following:
 
-    $ docker run -it -p 8080:8080 gitlab-registry.cern.ch/cara/cara/calculator
+    $ docker run -it -p 8080:8080 gitlab-registry.cern.ch/cara/caimira/calculator
 
 This will start a local version of CAiMIRA, which can be visited at http://localhost:8080/.
 

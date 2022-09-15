@@ -1,5 +1,5 @@
 # This module is part of CAiMIRA. Please see the repository at
-# https://gitlab.cern.ch/cara/cara for details of the license and terms of use.
+# https://gitlab.cern.ch/cara/caimira for details of the license and terms of use.
 
 import asyncio
 import concurrent.futures
@@ -32,7 +32,7 @@ from .user import AuthenticatedUser, AnonymousUser
 # calculator version. If the calculator needs to make breaking changes (e.g. change
 # form attributes) then it can also increase its MAJOR version without needing to
 # increase the overall CAiMIRA version (found at ``caimira.__version__``).
-__version__ = "4.2"
+__version__ = "4.3"
 
 
 class BaseRequestHandler(RequestHandler):
