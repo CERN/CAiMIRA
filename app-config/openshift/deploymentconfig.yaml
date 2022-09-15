@@ -2,12 +2,12 @@
   kind: "Template"
   apiVersion: template.openshift.io/v1
   metadata:
-    name: "cara-application"
+    name: "caimira-application"
     annotations:
-      description: "CARA application OpenShift template."
-      tags: "cara-application"
+      description: "CAiMIRA application OpenShift template."
+      tags: "caimira-application"
   labels:
-    template: "cara-application"
+    template: "caimira-application"
   objects:
     -
       apiVersion: apps.openshift.io/v1
@@ -72,21 +72,21 @@
       apiVersion: apps.openshift.io/v1
       kind: DeploymentConfig
       metadata:
-        name: cara-app
-        labels: {app: cara-app}
+        name: caimira-app
+        labels: {app: caimira-app}
       spec:
         replicas: 1
         template:
           metadata:
             labels:
-              app: cara-app
+              app: caimira-app
           spec:
             containers:
-              - name: cara-webservice
+              - name: caimira-webservice
                 env:
                 - name: APP_NAME
-                  value: cara-voila
-                image: '${PROJECT_NAME}/cara-webservice'
+                  value: caimira-voila
+                image: '${PROJECT_NAME}/caimira-webservice'
                 ports:
                   - containerPort: 8080
                     protocol: TCP
@@ -113,33 +113,33 @@
           type: Rolling
         test: false
         selector:
-          app: cara-app
+          app: caimira-app
         triggers:
           - type: ConfigChange
           - type: ImageChange
             imageChangeParams:
               automatic: true
               containerNames:
-                - cara-webservice
+                - caimira-webservice
               from:
                 kind: ImageStreamTag
-                name: 'cara-webservice:latest'
+                name: 'caimira-webservice:latest'
                 namespace: ${PROJECT_NAME}
     -
       apiVersion: apps.openshift.io/v1
       kind: DeploymentConfig
       metadata:
-        name: cara-router
+        name: caimira-router
       spec:
         replicas: 1
         template:
           metadata:
             labels:
-              app: cara-router
+              app: caimira-router
           spec:
             containers:
-              - name: cara-router
-                image: '${PROJECT_NAME}/cara-router'
+              - name: caimira-router
+                image: '${PROJECT_NAME}/caimira-router'
                 ports:
                   - containerPort: 8080
                     protocol: TCP
@@ -166,35 +166,35 @@
           type: Rolling
         test: false
         selector:
-          app: cara-router
+          app: caimira-router
         triggers:
           - type: ImageChange
             imageChangeParams:
               automatic: true
               containerNames:
-                - cara-router
+                - caimira-router
               from:
                 kind: ImageStreamTag
-                name: 'cara-router:latest'
+                name: 'caimira-router:latest'
                 namespace: ${PROJECT_NAME}
           - type: ConfigChange
     -
       apiVersion: apps.openshift.io/v1
       kind: DeploymentConfig
       metadata:
-        name: cara-webservice
+        name: caimira-webservice
         labels:
-          image: cara-webservice
-          app: cara-webservice
+          image: caimira-webservice
+          app: caimira-webservice
       spec:
         replicas: 1
         template:
           metadata:
             labels:
-              app: cara-webservice
+              app: caimira-webservice
           spec:
             containers:
-              - name: cara-webservice
+              - name: caimira-webservice
                 env:
                 - name: COOKIE_SECRET
                   valueFrom:
@@ -204,12 +204,12 @@
                 - name: REPORT_PARALLELISM
                   value: '3'
                 - name: APP_NAME
-                  value: cara-webservice
-                - name: CARA_CALCULATOR_PREFIX
+                  value: caimira-webservice
+                - name: CAIMIRA_CALCULATOR_PREFIX
                   value: /calculator-cern
-                - name: CARA_THEME
-                  value: cara/apps/templates/cern
-                image: '${PROJECT_NAME}/cara-webservice'
+                - name: CAIMIRA_THEME
+                  value: caimira/apps/templates/cern
+                image: '${PROJECT_NAME}/caimira-webservice'
                 ports:
                   - containerPort: 8080
                     protocol: TCP
@@ -250,41 +250,41 @@
           type: Rolling
         test: false
         selector:
-          app: cara-webservice
+          app: caimira-webservice
         triggers:
           - type: ImageChange
             imageChangeParams:
               automatic: true
               containerNames:
-                - cara-webservice
+                - caimira-webservice
               from:
                 kind: ImageStreamTag
-                name: 'cara-webservice:latest'
+                name: 'caimira-webservice:latest'
                 namespace: ${PROJECT_NAME}
           - type: ConfigChange
     -
       apiVersion: apps.openshift.io/v1
       kind: DeploymentConfig
       metadata:
-        name: cara-calculator-open
+        name: caimira-calculator-open
         labels:
-          image: cara-webservice
-          app: cara-calculator-open
+          image: caimira-webservice
+          app: caimira-calculator-open
       spec:
         replicas: 1
         template:
           metadata:
             labels:
-              app: cara-calculator-open
+              app: caimira-calculator-open
           spec:
             containers:
-              - name: cara-calculator-open
+              - name: caimira-calculator-open
                 env:
                 - name: APP_NAME
-                  value: cara-webservice
-                - name: CARA_CALCULATOR_PREFIX
+                  value: caimira-webservice
+                - name: CAIMIRA_CALCULATOR_PREFIX
                   value: /calculator-open
-                image: '${PROJECT_NAME}/cara-webservice'
+                image: '${PROJECT_NAME}/caimira-webservice'
                 ports:
                   - containerPort: 8080
                     protocol: TCP
@@ -315,21 +315,21 @@
           type: Rolling
         test: false
         selector:
-          app: cara-calculator-open
+          app: caimira-calculator-open
         triggers:
           - type: ConfigChange
           - type: ImageChange
             imageChangeParams:
               automatic: true
               containerNames:
-                - cara-calculator-open
+                - caimira-calculator-open
               from:
                 kind: ImageStreamTag
-                name: 'cara-webservice:latest'
+                name: 'caimira-webservice:latest'
                 namespace: ${PROJECT_NAME}
           - type: ConfigChange
 
   parameters:
     - name: PROJECT_NAME
-      description: The name of this project, e.g. test-cara
+      description: The name of this project, e.g. caimira-test
       required: true

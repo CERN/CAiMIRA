@@ -86,7 +86,7 @@ This will start a local version of CAiMIRA, which can be visited at http://local
 
 ## Development guide
 
-CAiMIRA is also mirrored to Github if you wish to collaborate on development and can be found at: https://github.com/CERN/cara
+CAiMIRA is also mirrored to Github if you wish to collaborate on development and can be found at: https://github.com/CERN/caimira
 
 ### Installing CAiMIRA in editable mode
 
@@ -97,19 +97,19 @@ pip install -e .   # At the root of the repository
 ### Running the Calculator app in development mode
 
 ```
-python -m cara.apps.calculator
+python -m caimira.apps.calculator
 ```
 
 To run with the CERN theme:
 
 ```
-python -m cara.apps.calculator --theme=cara/apps/templates/cern
+python -m caimira.apps.calculator --theme=caimira/apps/templates/cern
 ```
 
 To run the calculator on a different URL path:
 
 ```
-python -m cara.apps.calculator --prefix=/mycalc
+python -m caimira.apps.calculator --prefix=/mycalc
 ```
 
 ### How to compile and read the documentation
@@ -120,15 +120,15 @@ In order to generate the documentation, CAiMIRA must be installed first with the
 pip install -e .[doc]
 ```
 
-To generate the HTML documentation page, the command `make html` should be executed in the `cara/docs` directory. 
-If any of the `.rst` files under the `cara/docs` folder is changed, this command should be executed again.
+To generate the HTML documentation page, the command `make html` should be executed in the `caimira/docs` directory. 
+If any of the `.rst` files under the `caimira/docs` folder is changed, this command should be executed again.
 
-Then, right click on `cara/docs/_build/html/index.html` and select `Open with` your preferred web browser.
+Then, right click on `caimira/docs/_build/html/index.html` and select `Open with` your preferred web browser.
 
 ### Running the CAiMIRA Expert-App app in development mode
 
 ```
-voila cara/apps/expert/cara.ipynb --port=8080
+voila caimira/apps/expert/caimira.ipynb --port=8080
 ```
 
 Then visit http://localhost:8080.
@@ -138,7 +138,7 @@ Then visit http://localhost:8080.
 
 ```
 pip install -e .[test]
-pytest ./cara
+pytest ./caimira
 ```
 
 ### Building the whole environment for local development
@@ -146,12 +146,12 @@ pytest ./cara
 **Simulate the docker build that takes place on openshift with:**
 
 ```
-s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./app-config/nginx/ centos/nginx-112-centos7 cara-nginx-app
-docker build . -f ./app-config/cara-webservice/Dockerfile -t cara-webservice
+s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./app-config/nginx/ centos/nginx-112-centos7 caimira-nginx-app
+docker build . -f ./app-config/caimira-webservice/Dockerfile -t caimira-webservice
 docker build ./app-config/auth-service -t auth-service
 ```
 
-Get the client secret from the CERN Application portal for the `cara-test` app. See [CERN-SSO-integration](#CERN-SSO-integration) for more info.
+Get the client secret from the CERN Application portal for the `caimira-test` app. See [CERN-SSO-integration](#CERN-SSO-integration) for more info.
 ```
 read CLIENT_SECRET
 ```
@@ -161,7 +161,7 @@ Define some env vars (copy/paste):
 export COOKIE_SECRET=$(openssl rand -hex 50)
 export OIDC_SERVER=https://auth.cern.ch/auth
 export OIDC_REALM=CERN
-export CLIENT_ID=cara-test
+export CLIENT_ID=caimira-test
 export CLIENT_SECRET
 ```
 
@@ -175,21 +175,21 @@ Then visit http://localhost:8080/.
 
 ### Setting up the application on openshift
 
-The https://cern.ch/cara application is running on CERN's OpenShift platform. In order to set it up for the first time, we followed the documentation at https://cern.service-now.com/service-portal?id=kb_article&n=KB0004498. In particular we:
+The https://cern.ch/caimira application is running on CERN's OpenShift platform. In order to set it up for the first time, we followed the documentation at https://cern.service-now.com/service-portal?id=kb_article&n=KB0004498. In particular we:
 
  * Added the OpenShift application deploy key to the GitLab repository
  * Created a Python 3.6 (the highest possible at the time of writing) application in OpenShift
  * Configured a generic webhook on OpenShift, and call that from the CI of the GitLab repository
 
-### Updating the test-cara.web.cern.ch instance
+### Updating the caimira-test.web.cern.ch instance
 
-We have a replica of https://cara.web.cern.ch running on http://test-cara.web.cern.ch. Its purpose is to simulate what will happen when
-a feature is merged. To push your changes to test-cara, simply push your branch to `live/test-cara` and the CI pipeline will trigger the
+We have a replica of https://caimira.web.cern.ch running on http://caimira-test.web.cern.ch. Its purpose is to simulate what will happen when
+a feature is merged. To push your changes to caimira-test, simply push your branch to `live/caimira-test` and the CI pipeline will trigger the
 deployment. To push to this branch, there is a good chance that you will need to force push - you should always force push with care and
 understanding why you are doing it. Syntactically, it will look something like (assuming that you have "upstream" as your remote name,
 but it may be origin if you haven't configured it differently):
 
-    git push --force upstream name-of-local-branch:live/test-cara
+    git push --force upstream name-of-local-branch:live/caimira-test
 
 
 ## OpenShift templates
@@ -205,7 +205,7 @@ $ oc login https://api.paas.okd.cern.ch
 Then, switch to the project that you want to update:
 
 ```console
-$ oc project cara-test
+$ oc project caimira-test
 ```
 
 Create a new service account in OpenShift to use GitLab container registry:
@@ -221,17 +221,17 @@ $ oc serviceaccounts get-token gitlabci-deployer
 <...test-token...>
 ```
 
-Add the token to GitLab to allow GitLab to access OpenShift and define/change image stream tags. Go to `Settings` -> `CI / CD` -> `Variables` -> click on `Expand` button and create the variable `OPENSHIFT_TEST_DEPLOY_TOKEN`: insert the token `<...test-token...>`.
+Add the token to GitLab to allow GitLab to access OpenShift and define/change image stream tags. Go to `Settings` -> `CI / CD` -> `Variables` -> click on `Expand` button and create the variable `OPENSHIFT_CAIMIRA_TEST_DEPLOY_TOKEN`: insert the token `<...test-token...>`.
 
 Then, create the webhook secret to be able to trigger automatic builds from GitLab.
 
-Create and store the secret. Copy the secret above and add it to the GitLab project under `CI /CD` -> `Variables` with the name `OPENSHIFT_TEST_WEBHOOK_SECRET`.
+Create and store the secret. Copy the secret above and add it to the GitLab project under `CI /CD` -> `Variables` with the name `OPENSHIFT_CAIMIRA_TEST_WEBHOOK_SECRET`.
 
 ```console
 $ WEBHOOKSECRET=$(openssl rand -hex 50)
 $ oc create secret generic \
   --from-literal="WebHookSecretKey=$WEBHOOKSECRET" \
-  gitlab-cara-webhook-secret
+  gitlab-caimira-webhook-secret
 ```
 
 For CI usage, we also suggest creating a service account:
@@ -256,8 +256,8 @@ $ cd app-config/openshift
 $ oc process -f configmap.yaml | oc create -f -
 $ oc process -f services.yaml | oc create -f -
 $ oc process -f imagestreams.yaml | oc create -f -
-$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/test-cara' | oc create -f -
-$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='cara-test'  | oc create -f -
+$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/caimira-test' | oc create -f -
+$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='caimira-test'  | oc create -f -
 ```
 
 ### CERN SSO integration
@@ -265,12 +265,12 @@ $ oc process -f deploymentconfig.yaml --param PROJECT_NAME='cara-test'  | oc cre
 The SSO integration uses OpenID credentials configured in [CERN Applications portal](https://application-portal.web.cern.ch/).
 How to configure the application:
 
-* Application Identifier: `cara-test`
-* Homepage: `https://test-cara.web.cern.ch`
-* Administrators: `cara-dev`
+* Application Identifier: `caimira-test`
+* Homepage: `https://caimira-test.web.cern.ch`
+* Administrators: `caimira-dev`
 * SSO Registration:
     * Protocol: `OpenID (OIDC)`
-    * Redirect URI: `https://test-cara.web.cern.ch/auth/authorize`
+    * Redirect URI: `https://caimira-test.web.cern.ch/auth/authorize`
     * Leave unchecked all the other checkboxes
 * Define new roles:
     * Name: `CERN Users`
@@ -282,12 +282,12 @@ How to configure the application:
         * Role Identifier: `admin`
         * Leave unchecked checkboxes
         * Minimum Level Of Assurance: `Any (no restrictions)`
-        * Assign role to groups: `cara-app-external-access` e-group
+        * Assign role to groups: `caimira-app-external-access` e-group
     * Name: `Allowed users`
         * Role Identifier: `allowed-users`
         * Check `This role is required to access my application`
         * Minimum Level Of Assurance:`Any (no restrictions)`
-        * Assign role to groups: `cern-accounts-primary` and `cara-app-external-access` e-groups
+        * Assign role to groups: `cern-accounts-primary` and `caimira-app-external-access` e-groups
 
 Copy the client id and client secret and use it below.
 
@@ -318,8 +318,8 @@ $ cd app-config/openshift
 $ oc process -f configmap.yaml | oc replace -f -
 $ oc process -f services.yaml | oc replace -f -
 $ oc process -f imagestreams.yaml | oc replace -f -
-$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/test-cara' | oc replace -f -
-$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='cara-test' | oc replace -f -
+$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/caimira-test' | oc replace -f -
+$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='caimira-test' | oc replace -f -
 ```
 
 Be aware that if you create/recreate the environment you must manually create a **route** in OpenShift, 

@@ -2,12 +2,12 @@
   kind: "Template"
   apiVersion: template.openshift.io/v1
   metadata:
-    name: "cara-configuration"
+    name: "caimira-configuration"
     annotations:
-      description: "CARA configuration OpenShift template."
-      tags: "cara-configuration"
+      description: "CAiMIRA configuration OpenShift template."
+      tags: "caimira-configuration"
   labels:
-    template: "cara-configuration"
+    template: "caimira-configuration"
   objects:
     -
       apiVersion: v1

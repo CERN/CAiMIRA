@@ -6,10 +6,10 @@ import typing
 
 
 def configure_parser(parser: argparse.ArgumentParser) -> None:
-    parser.description = "Fetch the openshift config for CARA"
+    parser.description = "Fetch the openshift config for CAiMIRA"
     parser.set_defaults(handler=handler)
     parser.add_argument(
-        "instance", choices=['cara-prod', 'test-cara'],
+        "instance", choices=['caimira-prod', 'caimira-test'],
         help="Pick the instance for which you want to fetch the config",
     )
     parser.add_argument(
@@ -53,10 +53,10 @@ def fetch_config(output_directory: pathlib.Path):
 
 def handler(args: argparse.ArgumentParser) -> None:
     login_server = 'https://api.paas.okd.cern.ch:443'
-    if args.instance == 'cara-prod':
-        project_name = 'cara-prod'
-    elif args.instance == 'test-cara':
-        project_name = 'test-cara'
+    if args.instance == 'caimira-prod':
+        project_name = 'caimira-prod'
+    elif args.instance == 'caimira-test':
+        project_name = 'caimira-test'
 
     actual_login_server = get_oc_server()
     if actual_login_server != login_server:

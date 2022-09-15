@@ -1,26 +1,26 @@
 version: "3.8"
 services:
-  cara-app:
-    image: cara-webservice
+  caimira-app:
+    image: caimira-webservice
     environment:
-      - APP_NAME=cara-voila
+      - APP_NAME=caimira-voila
     user: ${CURRENT_UID:?"Please run as follows 'CURRENT_UID=$(id -u):$(id -g) docker-compose up'"}
 
-  cara-webservice:
-    image: cara-webservice
+  caimira-webservice:
+    image: caimira-webservice
     environment:
       - COOKIE_SECRET
-      - APP_NAME=cara-webservice
-      - CARA_CALCULATOR_PREFIX=/calculator-cern
-      - CARA_THEME=cara/apps/templates/cern
+      - APP_NAME=caimira-webservice
+      - CAIMIRA_CALCULATOR_PREFIX=/calculator-cern
+      - CAIMIRA_THEME=caimira/apps/templates/cern
     user: ${CURRENT_UID}
 
-  cara-calculator-open:
-    image: cara-webservice
+  caimira-calculator-open:
+    image: caimira-webservice
     environment:
       - COOKIE_SECRET
-      - APP_NAME=cara-webservice
-      - CARA_CALCULATOR_PREFIX=/calculator-open
+      - APP_NAME=caimira-webservice
+      - CAIMIRA_CALCULATOR_PREFIX=/calculator-open
     user: ${CURRENT_UID}
 
   auth-service:
@@ -33,16 +33,16 @@ services:
       - CLIENT_SECRET
     user: ${CURRENT_UID}
 
-  cara-router:
-    image: cara-nginx-app
+  caimira-router:
+    image: caimira-nginx-app
     ports:
       - "8080:8080"
     depends_on:
-      cara-webservice:
+      caimira-webservice:
         condition: service_started
-      cara-calculator-open:
+      caimira-calculator-open:
         condition: service_started
-      cara-app:
+      caimira-app:
         condition: service_started
       auth-service:
         condition: service_started

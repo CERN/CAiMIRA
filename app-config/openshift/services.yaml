@@ -2,13 +2,13 @@
   kind: "Template"
   apiVersion: template.openshift.io/v1
   metadata:
-    name: "cara-services"
+    name: "caimira-services"
     creationTimestamp: null
     annotations:
-      description: "CARA services OpenShift template."
-      tags: "cara-services"
+      description: "CAiMIRA services OpenShift template."
+      tags: "caimira-services"
   labels:
-    template: "cara-services"
+    template: "caimira-services"
   objects:
     -
       apiVersion: v1
@@ -32,8 +32,8 @@
       kind: Service
       metadata:
         labels:
-          app: cara-app
-        name: cara-app
+          app: caimira-app
+        name: caimira-app
       spec:
         ports:
           - name: 8080-tcp
@@ -41,7 +41,7 @@
             protocol: TCP
             targetPort: 8080
         selector:
-          deploymentconfig: cara-app
+          deploymentconfig: caimira-app
         sessionAffinity: 'None'
         type: 'ClusterIP'
     -
@@ -49,8 +49,8 @@
       kind: Service
       metadata:
         labels:
-          app: cara-router
-        name: cara-router
+          app: caimira-router
+        name: caimira-router
       spec:
         ports:
           - name: 8080-tcp
@@ -58,7 +58,7 @@
             protocol: TCP
             targetPort: 8080
         selector:
-          deploymentconfig: cara-router
+          deploymentconfig: caimira-router
         sessionAffinity: 'None'
         type: 'ClusterIP'
     -
@@ -66,8 +66,8 @@
       kind: Service
       metadata:
         labels:
-          app: cara-webservice
-        name: cara-webservice
+          app: caimira-webservice
+        name: caimira-webservice
       spec:
         ports:
           - name: 8080-tcp
@@ -75,7 +75,7 @@
             protocol: TCP
             targetPort: 8080
         selector:
-          deploymentconfig: cara-webservice
+          deploymentconfig: caimira-webservice
         sessionAffinity: 'None'
         type: 'ClusterIP'
     -
@@ -83,8 +83,8 @@
       kind: Service
       metadata:
         labels:
-          app: cara-calculator-open
-        name: cara-calculator-open
+          app: caimira-calculator-open
+        name: caimira-calculator-open
       spec:
         ports:
           - name: 8080-tcp
@@ -92,6 +92,6 @@
             protocol: TCP
             targetPort: 8080
         selector:
-          deploymentconfig: cara-calculator-open
+          deploymentconfig: caimira-calculator-open
         sessionAffinity: 'None'
         type: 'ClusterIP'
