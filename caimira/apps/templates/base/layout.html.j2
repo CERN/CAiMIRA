@@ -42,9 +42,9 @@
               <a class="nav-link dropdown-toggle {{ "header-navbar nav-link active" if "calculator/" in active_page else "header-navbar nav-link" }}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 Apps
               </a>
-              <ul class="dropdown-menu dropwown-navbar-colors text-right" style="min-width: 12rem;" aria-labelledby="navbarDropdown">
+              <ul class="dropdown-menu dropwown-navbar-colors" style="min-width: 12rem;" aria-labelledby="navbarDropdown">
                 <li><a href="{{ calculator_prefix }}" class="{{ "header-navbar nav-link active" if "calculator/" == active_page else "header-navbar nav-link" }}">Calculator</a></li>
-                <li><a href="{{ calculator_prefix }}/user-guide" style="margin-left: 2rem" class="{{ "header-navbar nav-link active" if "user-guide" in active_page else "header-navbar nav-link" }}">User Guide</a></li>
+                <li><div class="d-flex"><span class="d-flex align-self-center submenu-division"></span><a href="{{ calculator_prefix }}/user-guide" class="{{ "header-navbar nav-link active" if "user-guide" in active_page else "header-navbar nav-link" }}">User Guide</a></div></li>
                 <li><a href="/expert-app" class="{{ "header-navbar nav-link active" if "/expert-app" == active_page else "header-navbar nav-link" }}">Expert app (beta)</a></li>
               </ul>
             </li>

@@ -179,6 +179,13 @@ body {
   height: 4em;
 }
 
+.submenu-division {
+  border-right: 3px white solid;
+  width: 25px; 
+  height: 30px;
+  margin-right: 10px;
+}
+
 /*===== FIXED BACKGROUND IMG =====*/
 
 .fixed-background {
@@ -324,6 +331,9 @@ footer img {
   }
   .h1-text {
     font-size: 1.5rem;
+  }
+  .mobile-sub-section {
+    width: 100%!important;
   }
 }
 
