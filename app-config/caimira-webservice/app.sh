@@ -13,6 +13,10 @@ if [[ "$APP_NAME" == "caimira-webservice" ]]; then
     if [ ! -z "$CAIMIRA_CALCULATOR_PREFIX" ]; then
         args+=("--prefix=${CAIMIRA_CALCULATOR_PREFIX}")
     fi
+    
+    export "ARVE_API_KEY"="$ARVE_API_KEY"
+    export "ARVE_CLIENT_ID"="$ARVE_CLIENT_ID"
+    export "ARVE_CLIENT_SECRET"="$ARVE_CLIENT_SECRET"
 
     echo "Starting the caimira webservice with: python -m caimira.apps.calculator ${args[@]}"
     python -m caimira.apps.calculator "${args[@]}"

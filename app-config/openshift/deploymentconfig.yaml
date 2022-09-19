@@ -209,6 +209,21 @@
                   value: /calculator-cern
                 - name: CAIMIRA_THEME
                   value: caimira/apps/templates/cern
+                - name: ARVE_CLIENT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      key: ARVE_CLIENT_ID
+                      name: arve-api
+                - name: ARVE_CLIENT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      key: ARVE_CLIENT_SECRET
+                      name: arve-api
+                - name: ARVE_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      key: ARVE_API_KEY
+                      name: arve-api
                 image: '${PROJECT_NAME}/caimira-webservice'
                 ports:
                   - containerPort: 8080
