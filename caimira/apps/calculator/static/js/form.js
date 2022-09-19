@@ -303,7 +303,7 @@ function show_sensors_data(url) {
         }
       },
       error: function() {
-        alert('One error occured.');
+        alert('Authentication Error - Something went wrong during the authentication process.');
       },
     });
   }
