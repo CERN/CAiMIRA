@@ -147,8 +147,6 @@ function require_air_supply(option) {
 function require_venting(option) {
   require_input_field("#windows_duration", option);
   require_input_field("#windows_frequency", option);
-  set_disabled_status("#windows_duration", !option);
-  set_disabled_status("#windows_frequency", !option);
 }
 
 function require_lunch(id, option) {
@@ -231,6 +229,20 @@ function on_ventilation_type_change() {
       removeInvalid("#"+getChildElement($(this)).find('input').not('input[type=radio]').attr('id'));
     }
   });
+}
+
+function on_window_opening_change() {
+  opening_regime = $('input[type=radio][name=window_opening_regime]')
+  opening_regime.each(function (index) {
+    if (this.checked) {
+      getChildElement($(this)).show();
+      require_fields(this);
+    }
+    else {
+      getChildElement($(this)).hide();
+      require_fields(this);
+    }
+  })
 }
 
 function on_hepa_option_change() {
@@ -493,7 +505,7 @@ function validate_form(form) {
   });
 
   //Validate window venting duration < venting frequency
-  if (!$("#windows_duration").hasClass("disabled")) {
+  if ($("#windows_open_periodically").prop('checked')) {
     var windowsDurationObj = document.getElementById("windows_duration");
     var windowsFrequencyObj = document.getElementById("windows_frequency");
     removeErrorFor(windowsFrequencyObj);
@@ -824,6 +836,12 @@ $(document).ready(function () {
   // Call the function now to handle forward/back button presses in the browser.
   on_ventilation_type_change();
 
+  // When the window_opening_regime changes we want to make its respective
+  // children show/hide.
+  $("input[type=radio][name=window_opening_regime]").change(on_window_opening_change);
+  // Call the function now to handle forward/back button presses in the browser.
+  on_window_opening_change();
+
   // When the hepa filtration option changes we want to make its respective
   // children show/hide.
   $("input[type=radio][name=hepa_option]").change(on_hepa_option_change);
@@ -839,7 +857,6 @@ $(document).ready(function () {
   // When the short_range_option changes we want to make its respective
   // children show/hide.
   $("input[type=radio][name=short_range_option]").change(on_short_range_option_change);
-
   // Call the function now to handle forward/back button presses in the browser.
   on_short_range_option_change();
 
