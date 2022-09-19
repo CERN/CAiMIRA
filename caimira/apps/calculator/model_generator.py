@@ -31,6 +31,7 @@ class FormData:
     activity_type: str
     air_changes: float
     air_supply: float
+    arve_sensors_option: bool
     ceiling_height: float
     exposed_coffee_break_option: str
     exposed_coffee_duration: int
@@ -77,6 +78,7 @@ class FormData:
     window_width: float
     windows_number: int
     window_opening_regime: str
+    sensor_in_use: str
     short_range_option: str
     short_range_interactions: list
 
@@ -86,6 +88,7 @@ class FormData:
         'activity_type': 'office',
         'air_changes': 0.,
         'air_supply': 0.,
+        'arve_sensors_option': False,
         'calculator_version': _NO_DEFAULT,
         'ceiling_height': 0.,
         'exposed_coffee_break_option': 'coffee_break_0',
@@ -109,7 +112,7 @@ class FormData:
         'infected_lunch_start': '12:30',
         'infected_people': _NO_DEFAULT,
         'infected_start': '08:30',
-        'inside_temp': 293.,
+        'inside_temp': _NO_DEFAULT,
         'location_latitude': _NO_DEFAULT,
         'location_longitude': _NO_DEFAULT,
         'location_name': _NO_DEFAULT,
@@ -132,6 +135,7 @@ class FormData:
         'windows_frequency': 60.,
         'windows_number': 0,
         'window_opening_regime': 'windows_open_permanently',
+        'sensor_in_use': '',
         'short_range_option': 'short_range_no',
         'short_range_interactions': '[]',
     }
@@ -287,14 +291,18 @@ class FormData:
             volume = self.room_volume
         else:
             volume = self.floor_area * self.ceiling_height
-        if self.humidity == '':
+
+        if self.arve_sensors_option == False:
             if self.room_heating_option:
                 humidity = 0.3
             else:
                 humidity = 0.5
+            inside_temp = 293.
         else:
             humidity = float(self.humidity)
-        room = models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (self.inside_temp,)), humidity=humidity)
+            inside_temp = self.inside_temp
+
+        room = models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (inside_temp,)), humidity=humidity)
 
         infected_population = self.infected_population()
         
@@ -734,7 +742,7 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'floor_area': '',
         'hepa_amount': '250',
         'hepa_option': '0',
-        'humidity': '',
+        'humidity': '0.5',
         'infected_coffee_break_option': 'coffee_break_4',
         'infected_coffee_duration': '10',
         'infected_dont_have_breaks_with_exposed': '1',
@@ -744,7 +752,7 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'infected_lunch_start': '12:30',
         'infected_people': '1',
         'infected_start': '09:00',
-        'inside_temp': 293.,
+        'inside_temp': '293.',
         'location_latitude': 46.20833,
         'location_longitude': 6.14275,
         'location_name': 'Geneva',

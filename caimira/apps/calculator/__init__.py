@@ -18,6 +18,7 @@ import zlib
 import jinja2
 import loky
 from tornado.web import Application, RequestHandler, StaticFileHandler
+from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 import tornado.log
 
 from . import markdown_tools
@@ -249,6 +250,51 @@ class ReadmeHandler(BaseRequestHandler):
         self.finish(readme)
 
 
+class ArveData(BaseRequestHandler):
+    async def get(self, hotel_id, floor_id):
+        client_id = self.settings["arve_client_id"]
+        client_secret = self.settings['arve_client_secret']
+        arve_api_key = self.settings['arve_api_key']
+
+        http_client = AsyncHTTPClient()
+
+        URL = 'https://arveapi.auth.eu-central-1.amazoncognito.com/oauth2/token'
+        headers = { "Content-Type": "application/x-www-form-urlencoded", 
+                    "Authorization": b"Basic " + base64.b64encode(f'{client_id}:{client_secret}'.encode())
+        }
+        
+        try:
+            response = await http_client.fetch(HTTPRequest(
+                url=URL,
+                method='POST',
+                headers=headers,
+                body="grant_type=client_credentials"
+            ),
+            raise_error=True)
+        except Exception as e:
+            print("Something went wrong: %s" % e)
+        
+        access_token = json.loads(response.body)['access_token']
+        
+        URL = f'https://api.arve.swiss/v1/{hotel_id}/{floor_id}'
+        headers = {
+              "x-api-key": arve_api_key,
+              "Authorization": f'Bearer {access_token}'
+        }
+        try:
+            response = await http_client.fetch(HTTPRequest(
+                url=URL,
+                method='GET',
+                headers=headers,
+            ),
+            raise_error=True)
+        except Exception as e:
+            print("Something went wrong: %s" % e)
+        
+        self.set_header("Content-Type", 'application/json')
+        return self.finish(response.body)
+
+
 def make_app(
         debug: bool = False,
         calculator_prefix: str = '/calculator',
@@ -266,6 +312,7 @@ def make_app(
         (calculator_prefix + r'/report-json', ConcentrationModelJsonResponse),
         (calculator_prefix + r'/baseline-model/result', StaticModel),
         (calculator_prefix + r'/user-guide', ReadmeHandler),
+        (calculator_prefix + r'/api/arve/v1/(.*)/(.*)', ArveData),
         (calculator_prefix + r'/static/(.*)', StaticFileHandler, {'path': calculator_static_dir}),
     ]
 
@@ -298,6 +345,9 @@ def make_app(
         # COOKIE_SECRET being undefined will result in no login information being
         # presented to the user.
         cookie_secret=os.environ.get('COOKIE_SECRET', '<undefined>'),
+        arve_client_id=os.environ.get('ARVE_CLIENT_ID', '<undefined>'),
+        arve_client_secret=os.environ.get('ARVE_CLIENT_SECRET', '<undefined>'),
+        arve_api_key=os.environ.get('ARVE_API_KEY', '<undefined>'),
 
         # Process parallelism controls. There is a balance between serving a single report
         # requests quickly or serving multiple requests concurrently.

@@ -307,6 +307,9 @@ There is one external API call to fetch required information related to the geog
 The documentation for this geocoding service is available at https://developers.arcgis.com/rest/geocode/api-reference/geocoding-suggest.htm . 
 Please note that there is no need for keys on this API call. It is **free-of-charge**.
 
+- **Humidity and Inside Temperature:**
+There is the possibility of using one external API call to fetch information related to a location specified in the UI. The data is related to the inside temperature and humidity taken from an indoor measurement device. Note that the API currently used from ARVE is only available for the `CERN theme` as the authorised sensors are installed at CERN." 
+
 ## Update configuration
 
 If you need to **update** existing configuration, then modify this repository and after having logged in, run:

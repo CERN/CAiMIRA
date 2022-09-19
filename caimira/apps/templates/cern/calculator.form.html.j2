@@ -4,4 +4,27 @@
   <div data-tooltip="The area you wish to study (choose one of the 2 options). Use GIS Portal or measure. Also indicate if a central (radiator-type) heating system is in use.">
       <span class="tooltip_text">?</span>
   </div>
+
+  <div class="split">
+    <div>Use data from ARVE sensors:</div>
+    <div>
+    <input class="ml-2" type="radio" id="arve_sensor_no" name="arve_sensors_option" value=0 checked="checked">
+      <label for="arve_sensor_no">No</label>
+    <input class="ml-2" type="radio" id="arve_sensor_yes" name="arve_sensors_option" value=1 data-enables="#DIVsensors_data">
+      <label for="arve_sensor_yes">Yes</label>
+    </div>
+  </div>
+  <div id="DIVsensors_data" style="display:none">
+    <div class="form-group row mb-0">
+      <div class="col-sm-4"><label class="col-form-label">Sensor:</label></div>
+      <div class="col-sm-6">
+        <select id="sensors" name="sensor_in_use" class="form-control">
+        </select>
+      </div>
+    </div>
+    <div>
+      <div><label>Temperature: </label><span class="ml-3 font-weight-bold" id="sensor_temperature"></span></div> 
+      <div><label>Relative Humidity: </label><span class="ml-3 font-weight-bold" id="sensor_humidity"></span></div>
+    </div>
+  </div>
 {% endblock room_data %}
