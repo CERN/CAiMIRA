@@ -195,16 +195,26 @@ function set_disabled_status(id, option) {
     $(id).removeClass("disabled");
 }
 
-function setMaxInfectedPeople() {
-  $("#training_limit_error").hide();
-  var max = $("#total_people").val()
+function validateMaxInfectedPeople() {
+  let infected_people = document.getElementById("infected_people");
+  removeErrorFor(infected_people);
+  $(infected_people).removeClass("red_border");
+  
+  let infected = infected_people.valueAsNumber;
+  let max = document.getElementById("total_people").valueAsNumber;
 
-  if ($("#activity_type").val() === "training") {
-    max = 1;
-    $("#training_limit_error").show();
+  if ($("#activity_type").val() === "training" && infected > 1) {
+    insertErrorFor(infected_people, "Conference/Training activities limited to 1 infected person.");
+    $(infected_people).addClass("red_border");
+    return false;
+  }
+  else if (infected >= max) {
+    insertErrorFor(infected_people, "Value is equal or higher than the total number of occupants.");
+    $(infected_people).addClass("red_border");
+    return false;
   }
 
-  $("#infected_people").attr("max", max);
+  return true;
 }
 
 function removeInvalid(id) {
@@ -496,6 +506,9 @@ function validate_form(form) {
         insertErrorFor(locationSelectObj, "Please select a location");
       }
   }
+
+  //Validate number of infected people
+  if (!validateMaxInfectedPeople()) submit = false;
 
   //Validate all non zero values
   $("input[required].non_zero").each(function() {
@@ -876,9 +889,11 @@ $(document).ready(function () {
 
   // Setup the maximum number of people at page load (to handle back/forward),
   // and update it when total people is changed.
-  setMaxInfectedPeople();
-  $("#total_people").change(setMaxInfectedPeople);
-  $("#activity_type").change(setMaxInfectedPeople);
+  validateMaxInfectedPeople();
+  $("#total_people").change(validateMaxInfectedPeople);
+  $("#activity_type").change(validateMaxInfectedPeople);
+  $("#total_people").change(validateMaxInfectedPeople);
+  $("#infected_people").change(validateMaxInfectedPeople);
 
   //Validate all non zero values
   $("input[required].non_zero").each(function() {validateValue(this)});
