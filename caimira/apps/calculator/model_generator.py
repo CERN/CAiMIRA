@@ -57,6 +57,10 @@ class FormData:
     location_name: str
     location_latitude: float
     location_longitude: float
+    geographic_population: int
+    geographic_cases: int
+    ascertainment_bias: str
+    p_recurrent_option: str
     mask_type: str
     mask_wearing_option: str
     mechanical_ventilation_type: str
@@ -116,6 +120,10 @@ class FormData:
         'location_latitude': _NO_DEFAULT,
         'location_longitude': _NO_DEFAULT,
         'location_name': _NO_DEFAULT,
+        'geographic_population': 0,
+        'geographic_cases': 0,
+        'ascertainment_bias': 'confidence_low',
+        'p_recurrent_option': 'p_recurrent_event',
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': 'not-applicable',
@@ -261,7 +269,9 @@ class FormData:
                              ('volume_type', VOLUME_TYPES),
                              ('window_opening_regime', WINDOWS_OPENING_REGIMES),
                              ('window_type', WINDOWS_TYPES),
-                             ('event_month', MONTH_NAMES)]
+                             ('event_month', MONTH_NAMES),
+                             ('ascertainment_bias', CONFIDENCE_LEVEL_OPTIONS),]
+
         for attr_name, valid_set in validation_tuples:
             if getattr(self, attr_name) not in valid_set:
                 raise ValueError(f"{getattr(self, attr_name)} is not a valid value for {attr_name}")
@@ -329,6 +339,11 @@ class FormData:
             ),
             short_range = tuple(short_range),
             exposed=self.exposed_population(),
+            geographical_data=mc.Cases(
+                geographic_population=self.geographic_population,
+                geographic_cases=self.geographic_cases,
+                ascertainment_bias=CONFIDENCE_LEVEL_OPTIONS[self.ascertainment_bias],
+            ), 
         )
 
     def build_model(self, sample_size=_DEFAULT_MC_SAMPLE_SIZE) -> models.ExposureModel:
@@ -759,6 +774,9 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'location_latitude': 46.20833,
         'location_longitude': 6.14275,
         'location_name': 'Geneva',
+        'geographic_population': 0,
+        'geographic_cases': 0,
+        'ascertainment_bias': 'confidence_low',
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': '',
@@ -794,9 +812,8 @@ VIRUS_TYPES = {'SARS_CoV_2', 'SARS_CoV_2_ALPHA', 'SARS_CoV_2_BETA','SARS_CoV_2_G
 VOLUME_TYPES = {'room_volume_explicit', 'room_volume_from_dimensions'}
 WINDOWS_OPENING_REGIMES = {'windows_open_permanently', 'windows_open_periodically', 'not-applicable'}
 WINDOWS_TYPES = {'window_sliding', 'window_hinged', 'not-applicable'}
-
 COFFEE_OPTIONS_INT = {'coffee_break_0': 0, 'coffee_break_1': 1, 'coffee_break_2': 2, 'coffee_break_4': 4}
-
+CONFIDENCE_LEVEL_OPTIONS = {'confidence_low': 10, 'confidence_medium': 5, 'confidence_high': 2}
 MONTH_NAMES = [
     'January', 'February', 'March', 'April', 'May', 'June', 'July',
     'August', 'September', 'October', 'November', 'December',

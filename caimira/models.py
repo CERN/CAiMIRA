@@ -37,6 +37,7 @@ import typing
 
 import numpy as np
 from scipy.interpolate import interp1d
+import scipy.stats as sct
 
 if not typing.TYPE_CHECKING:
     from memoization import cached
@@ -912,6 +913,33 @@ class InfectedPopulation(_PopulationWithVirus):
 
 
 @dataclass(frozen=True)
+class Cases:
+    """
+    The geographical data to calculate the probability of having at least 1
+    new infection in a specific event.
+    """
+    #: Geographic location population
+    geographic_population: int = 0
+
+    #: Geographic location new cases
+    geographic_cases: int = 0
+
+    #: Number of new cases confidence level
+    ascertainment_bias: int = 0
+
+    def probability_random_individual(self) -> _VectorisedFloat:
+        """Probability that a randomly selected individual in a focal population is infected."""
+        return self.geographic_cases*self.ascertainment_bias/self.geographic_population
+
+    def probability_meet_infected_person(self, event, x) -> _VectorisedFloat:
+        """
+        Probability to meet x infected persons in an event.
+        From https://doi.org/10.1038/s41562-020-01000-9.
+        """
+        return sct.binom.pmf(x, event, self.probability_random_individual())
+
+
+@dataclass(frozen=True)
 class ConcentrationModel:
     room: Room
     ventilation: _VentilationBase
@@ -1280,6 +1308,9 @@ class ExposureModel:
     #: The population of non-infected people to be used in the model.
     exposed: Population
 
+    #: Geographical data
+    geographical_data: Cases
+
     #: The number of times the exposure event is repeated (default 1).
     repeats: int = 1
 
@@ -1434,6 +1465,26 @@ class ExposureModel:
         # Probability of infection.        
         return (1 - np.exp(-((vD * (1 - self.exposed.host_immunity))/(infectious_dose * 
                 self.concentration_model.virus.transmissibility_factor)))) * 100
+
+    def total_probability_rule(self) -> _VectorisedFloat:
+        if (self.geographical_data.geographic_population != 0 and self.geographical_data.geographic_cases != 0): 
+            sum_probability = 0.0
+            # Create an equivalent exposure model but with i infected cases
+            total_people = self.concentration_model.infected.number + self.exposed.number
+            X = (total_people if total_people < 10 else 10) 
+            # The influence of a higher number of simultainious infected people (> 4 - 5) yields an almost negligible contirbution to the total probability. 
+            # To be on the safe side, a hard coded limit with a safety margin of 2x was set.
+            # Therefore we decided a hard limit of 10 infected people.
+            for x in range(1, X):
+                exposure_model = nested_replace(
+                    self, {'concentration_model.infected.number': x}
+                )
+                prob_exposed_occupant = exposure_model.infection_probability().mean() / 100
+                # By means of a Binomial Distribution
+                sum_probability += (prob_exposed_occupant)*self.geographical_data.probability_meet_infected_person(self.exposed.number, x)
+            return sum_probability * 100
+        else:
+            return 0
 
     def expected_new_cases(self) -> _VectorisedFloat:
         # Create an equivalent exposure model without short-range interactions, if any.
