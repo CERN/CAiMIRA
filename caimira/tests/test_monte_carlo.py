@@ -76,7 +76,8 @@ def baseline_mc_exposure_model(baseline_mc_concentration_model, baseline_mc_sr_m
             activity=baseline_mc_concentration_model.infected.activity,
             mask=baseline_mc_concentration_model.infected.mask,
             host_immunity=0.,
-        )
+        ),
+        geographical_data=caimira.models.Cases(),
     )
 
 

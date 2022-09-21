@@ -46,6 +46,7 @@ def baseline_exposure_model(baseline_concentration_model, baseline_sr_model):
             mask=baseline_concentration_model.infected.mask,
             host_immunity=0.,
         ),
+        geographical_data=models.Cases(),
     )
 
 

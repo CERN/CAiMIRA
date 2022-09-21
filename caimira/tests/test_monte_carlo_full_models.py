@@ -74,7 +74,8 @@ def shared_office_mc():
             activity=activity_distributions['Seated'],
             mask=models.Mask.types['No mask'],
             host_immunity=0.,
-        )
+        ),
+        geographical_data=models.Cases(),
     )
 
 
@@ -117,6 +118,7 @@ def classroom_mc():
             mask=models.Mask.types["No mask"],
             host_immunity=0.,
         ),
+        geographical_data=models.Cases(),
     )
 
 
@@ -151,6 +153,7 @@ def ski_cabin_mc():
             mask=models.Mask.types['No mask'],
             host_immunity=0.,
         ),
+        geographical_data=models.Cases(),
     )
 
 
@@ -190,7 +193,8 @@ def skagit_chorale_mc():
             activity=activity_distributions['Moderate activity'],
             mask=models.Mask.types['No mask'],
             host_immunity=0.,
-       ),
+        ),
+        geographical_data=models.Cases(),
     )
 
 
@@ -230,7 +234,8 @@ def bus_ride_mc():
             activity=activity_distributions['Seated'],
             mask=models.Mask.types['No mask'],
             host_immunity=0.,
-       ),
+        ),
+        geographical_data=models.Cases(),
     )
 
 
@@ -266,6 +271,7 @@ def gym_mc():
             mask=concentration_mc.infected.mask,
             host_immunity=0.,
         ),
+        geographical_data=models.Cases(),
     )
 
 
@@ -301,6 +307,7 @@ def waiting_room_mc():
             mask=concentration_mc.infected.mask,
             host_immunity=0.,
         ),
+        geographical_data=models.Cases(),
     )
 
 
@@ -380,6 +387,7 @@ def test_small_shared_office_Geneva(mask_type, month, expected_pi,
             mask=concentration_mc.infected.mask,
             host_immunity=0.,
         ),
+        geographical_data=models.Cases(),
     )
     exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
     npt.assert_allclose(exposure_model.infection_probability().mean(),
