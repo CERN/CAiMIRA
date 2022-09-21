@@ -87,6 +87,11 @@
         In this scenario, assuming <b>short-range interactions</b> occur, the <b>probability of one exposed occupant getting infected can go as high as {{prob_inf | non_zero_percentage}}</b>.
         </div>
       {% endif %}
+      
+      {% block specific_event_probability %}
+        {{ super() }}
+      {% endblock specific_event_probability %}
+
       {% if (prob_inf > 2) %}
         <br>
         {% if cern_level == "green-1" %}  

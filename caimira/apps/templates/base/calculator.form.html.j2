@@ -317,6 +317,36 @@
       <div class="col-sm-6"><input type="number" id="infected_people" class="form-control" name="infected_people" min=1 value=1 required></div>
     </div>
 
+    <input type="radio" id="p_recurrent_event" name="p_recurrent_option" value="p_recurrent_event" checked="checked">
+      <label for="p_recurrent_event">Recurrent exposure</label>
+    <input class="ml-2" type="radio" id="p_specific_event"  name="p_recurrent_option" value="p_specific_event" data-enables="#DIVp_specific_event">
+      <label for="p_specific_event">Specific event</label>
+    <div data-tooltip="Specific event occurring at a given time (e.g. meeting or conference). Indicate the population in a given location and the cumulative 7-day average of new reported cases. Specify the confidence level for these figures.">
+        <span class="tooltip_text">?</span>
+    </div>
+    
+    <div id="DIVp_specific_event" class="tabbed" style="display: none">
+      <div class="form-group row">
+        <div class="col-sm-4"><label class="col-form-label">Population:</label></div>
+        <div class="col-sm-6 pl-0 align-self-center"><input type="number" step="any" id="geographic_population" class="non_zero form-control" name="geographic_population" placeholder="Inhabitants (#)" min="0"></div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-4"><label class="col-form-label">New confirmed cases (weekly):</label></div>
+        <div class="col-sm-6 pl-0 align-self-center"><input type="number" step="any" id="geographic_cases" class="non_zero form-control" name="geographic_cases" placeholder="Cases (#7-day average sum)" min="0"></div>
+      </div>
+      <div class="form-group row">
+      <div class="col-sm-4"><label class="col-form-label">Confidence level:</label></div>
+      <div class="col-sm-6 pl-0 align-self-center">
+        <select id="ascertainment_bias" name="ascertainment_bias" class="form-control">
+          <option value="confidence_low">Low - surveillance only for sympotmatic patients</option>
+          <option value="confidence_medium">Medium - recommended population wide surveillance</option>
+          <option value="confidence_high">High - mandatory population wide surveillance</option>
+        </select>
+      </div>
+      </div>
+    </div>
+
+    <span id="training_limit_error" class="red_text" hidden>Conference/Training activities limited to 1 infected<br></span>
     <hr width="80%">
 
     <div class="form-group row">
