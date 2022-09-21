@@ -167,10 +167,20 @@ def test_ventilation_window_hepa(baseline_form: model_generator.FormData):
     assert ventilation == baseline_vent
 
 
-def test_infected_less_than_total_people(baseline_form: model_generator.FormData):
-    baseline_form.total_people = 10
-    baseline_form.infected_people = 11
-    with pytest.raises(ValueError, match='Number of infected people cannot be more than number of total people.'):
+@pytest.mark.parametrize(
+    ["activity", "total_people", "infected_people", "error"],
+    [
+        ['office', 10, 11, "Number of infected people cannot be more or equal than number of total people."],
+        ['office', 10, 10, "Number of infected people cannot be more or equal than number of total people."],
+        ['training', 10, 2, "Conference/Training activities are limited to 1 infected."],
+    ]
+)
+def test_infected_less_than_total_people(activity, total_people, infected_people, error,
+                                         baseline_form: model_generator.FormData):
+    baseline_form.activity_type = activity
+    baseline_form.total_people = total_people
+    baseline_form.infected_people = infected_people
+    with pytest.raises(ValueError, match=error):
         baseline_form.validate()
 
 
