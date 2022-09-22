@@ -312,7 +312,6 @@ function show_sensors_data(url) {
       url: `${$('#url_prefix').data().calculator_prefix}/api/arve/v1/${HOTEL_ID}/${FLOOR_ID}`,
       type: 'GET',
       success: function (result) {
-        if (result.length == 0) return; // If the ARVE credentials were not defined, we don't have a valid result.
         DATA_FROM_SENSORS = result;
         result.map(room => {
           if (room['Details']['Online'] == false) return; // If the sensor is offline, it should not be added to the list.
@@ -332,9 +331,10 @@ function show_sensors_data(url) {
           }));
         }
       },
-      error: function() {
-        alert('Authentication Error - Something went wrong during the authentication process.');
-      },
+      error: function(_, _, errorThrown) {
+        if (errorThrown != 'Unauthorized') alert(errorThrown);
+        else alert('Unauthorized - Something went wrong during the ARVE API authentication process.');
+      }
     });
   }
 };
