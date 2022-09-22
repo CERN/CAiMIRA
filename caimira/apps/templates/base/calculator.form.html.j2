@@ -368,55 +368,91 @@
           <label class="mb-0" for="vaccinated_yes">Yes</label>
       </div>
     </div>
-    
-    <div id="DIVvaccine_booster" style="display: none;" class="mt-3">
+
+    <div id="DIVvaccine_booster" class="mt-3">
+      <div class="form-group row">
+      <div class="col-sm-4"><label class="col-form-label">Primary vaccine:</label></div>
+      <div class="col-sm-6 align-self-center">
+        <select id="vaccine_type" name="vaccine_type" class="form-control form-control-sm">
+          <option value='Ad26.COV2.S_(Janssen)'>Ad26.COV2.S (Janssen)</option>
+          <option value='Any_mRNA_-_heterologous'>Any mRNA - heterologous</option>
+          <option value='AZD1222_(AstraZeneca)_and_any_mRNA_-_heterologous'>AZD1222 (AstraZeneca) and any mRNA - heterologous</option>
+          <option value='AZD1222_(AstraZeneca)_and_BNT162b2_(Pfizer)'>AZD1222 (AstraZeneca) and BNT162b2 (Pfizer)</option>
+          <option value='BBIBP-CorV_(Beijing_CNBG)'>BBIBP-CorV (Beijing CNBG)</option>
+          <option value='BNT162b2_(Pfizer)'>BNT162b2 (Pfizer)</option>
+          <option value='BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)'>BNT162b2 (Pfizer) and mRNA-1273 (Moderna)</option>
+          <option value='CoronaVac_(Sinovac)'>CoronaVac (Sinovac)</option>
+          <option value='CoronaVac_(Sinovac)_and_AZD1222_(AstraZeneca)'>CoronaVac (Sinovac) and AZD1222 (AstraZeneca)</option>
+          <option value='Covishield'>Covishield</option>
+          <option value='mRNA-1273_(Moderna)'>mRNA-1273 (Moderna)</option>
+          <option value='Sputnik_V_(Gamaleya)'>Sputnik V (Gamaleya)</option>
+          <option value='CoronaVac_(Sinovac)_and_BNT162b2_(Pfizer)'>CoronaVac (Sinovac) and BNT162b2 (Pfizer)</option>
+        </select>
+      </div>
+      </div>
+
       <div class="form-group row">
       <div class="d-flex flex-row col-sm-4"><div class="ml-4" style="border: 1px solid #2f4858"></div><p class="ml-2">With booster?</p></div>
       <div class="col-sm-6 ml-0">
-        <input type="radio" id="vaccinated_booster_no" name="vaccine_booster_option" value="0" data-enables="#DIVvaccine_booster_no" checked="checked">
+        <input type="radio" id="vaccinated_booster_no" name="vaccine_booster_option" value="0" checked="checked">
           <label class="mb-0" for="vaccinated_booster_no">No</label>
         <input class="ml-2" type="radio" id="vaccinated_booster_yes" name="vaccine_booster_option" value="1" data-enables="#DIVvaccine_booster_yes">
           <label class="mb-0" for="vaccinated_booster_yes">Yes</label>
       </div>
       </div>
       
-      <div id="DIVvaccine_booster_no" class="mt-3" style="display: none;">
-        <div class="form-group row">
-        <div class="col-sm-4"><label class="col-form-label">Primary vaccine:</label></div>
-        <div class="col-sm-6 align-self-center">
-          <select id="vaccine_type" name="vaccine_type" class="form-control form-control-sm">
-            <option value="janssen">Ad26.COV2.S (Janssen)</option>
-            <option value="any_mRNA">Any mRNA - heterologous</option>
-            <option value="astraZeneca">AZD1222 (AstraZeneca)</option>
-            <option value="astraZeneca_mRNA">AZD1222 (AstraZeneca) & any mRNA - heterologous</option>
-            <option value="astraZeneca_mRNA_pfizer">AZD1222 (AstraZeneca) & BNT162b2 (Pfizer)</option>
-            <option value="beijingCNBG">BBIBP-CorV (Beijing CNBG)</option>
-            <option value="pfizer">BNT162b2 (Pfizer)</option>
-            <option value="pfizer_moderna">BNT162b2 (Pfizer) & mRNA-1273 (Moderna)</option>
-            <option value="sinovac">CoronaVac (Sinovac)</option>
-            <option value="sinovac_astraZeneca">CoronaVac (Sinovac) & AZD1222 (AstraZeneca)</option>
-            <option value="covishield">Covishield</option>
-            <option value="moderna">mRNA-1273 (Moderna)</option>
-            <option value="gamaleya">Sputnik V (Gamaleya)</option>
-            <option value="sinovac_pfizer">CoronaVac (Sinovac) & BNT162b2 (Pfizer)</option>
-          </select>
-        </div>
-        </div>
-      </div>
-      <div id="DIVvaccine_booster_yes" class="mt-3" style="display: none;">
+      <div id="DIVvaccine_booster_yes" class="mt-3">
         <div class="form-group row">
         <div class="col-sm-4"><label class="col-form-label">Booster:</label></div>
         <div class="col-sm-6 align-self-center">
           <select id="vaccine_booster_type" name="vaccine_booster_type" class="form-control form-control-sm">
-            <option value="booster_janssen">Ad26.COV2.S (Janssen)</option>
-            <option value="booster_astraZeneca">AZD1222 (AstraZeneca)</option>
-            <option value="booster_pfizer">BNT162b2 (Pfizer)</option>
-            <option value="booster_pfizer_moderna">BNT162b2 (Pfizer) & mRNA-1273 (Moderna)</option>
-            <option value="booster_sinovac">CoronaVac (Sinovac)</option>
-            <option value="booster_moderna">mRNA-1273 (Moderna)</option>
-          </select>
+            <option value="AZD1222_(AstraZeneca)" data-primary-vaccine="AZD1222_(AstraZeneca)">AZD1222 (AstraZeneca)</option>
+            <option value="BNT162b2_(Pfizer)" data-primary-vaccine="AZD1222_(AstraZeneca)">BNT162b2 (Pfizer)</option>
+            <option value="BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)" data-primary-vaccine="AZD1222_(AstraZeneca)">BNT162b2 (Pfizer) and mRNA-1273 (Moderna)</option
+            ><option value="BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)" data-primary-vaccine="AZD1222_(AstraZeneca)">BNT162b2 (Pfizer) or mRNA-1273 (Moderna)</option>
+            <option value="Sinopharm" data-primary-vaccine="AZD1222_(AstraZeneca)">Sinopharm</option>
+            <option value="mRNA-1273_(Moderna)" data-primary-vaccine="AZD1222_(AstraZeneca)">mRNA-1273 (Moderna)</option>
+            <option value="Ad26.COV2.S_(Janssen)" data-primary-vaccine="Ad26.COV2.S_(Janssen)">Ad26.COV2.S (Janssen)</option>
+            <option value="BNT162b2_(Pfizer)" data-primary-vaccine="Ad26.COV2.S_(Janssen)">BNT162b2 (Pfizer)</option>
+            <option value="BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)" data-primary-vaccine="Ad26.COV2.S_(Janssen)">BNT162b2 (Pfizer) or mRNA-1273 (Moderna)</option>
+            <option value="Ad26.COV2.S_(Janssen)" data-primary-vaccine="BBIBP-CorV_(Beijing_CNBG)">Ad26.COV2.S (Janssen)</option>
+            <option value="BNT162b2_(Pfizer)" data-primary-vaccine="BBIBP-CorV_(Beijing CNBG)">BNT162b2 (Pfizer)</option>
+            <option value="Sinopharm" data-primary-vaccine="BBIBP-CorV_(Beijing_CNBG)">Sinopharm</option>
+            <option value="mRNA-1273_(Moderna)" data-primary-vaccine="BBIBP-CorV_(Beijing_CNBG)">mRNA-1273 (Moderna)</option>
+            <option value="AZD1222_(AstraZeneca)" data-primary-vaccine="BNT162b2_(Pfizer)">AZD1222 (AstraZeneca)</option>
+            <option value="Ad26.COV2.S_(Janssen)" data-primary-vaccine="BNT162b2_(Pfizer)">Ad26.COV2.S (Janssen)</option>
+            <option value="BNT162b2_(Pfizer)" data-primary-vaccine="BNT162b2_(Pfizer)">BNT162b2 (Pfizer)</option>
+            <option value="BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)" data-primary-vaccine="BNT162b2_(Pfizer)">BNT162b2 (Pfizer) or mRNA-1273 (Moderna)</option>
+            <option value="CoronaVac_(Sinovac)" data-primary-vaccine="BNT162b2_(Pfizer)">CoronaVac (Sinovac)</option>
+            <option value="Sinopharm" data-primary-vaccine="BNT162b2_(Pfizer)">Sinopharm</option>
+            <option value="mRNA-1273_(Moderna)" data-primary-vaccine="BNT162b2_(Pfizer)">mRNA-1273 (Moderna)</option>
+            <option value="BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)" data-primary-vaccine="BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)">BNT162b2 (Pfizer) and mRNA-1273 (Moderna)</option>
+            <option value="mRNA-1273_(Moderna)_(4th_dose)" data-primary-vaccine="BNT162b2_(Pfizer)_(2_doses)_+_mRNA-1273_(Moderna)_(3rd_dose)">mRNA-1273 (Moderna) (4th dose)</option>
+            <option value="BNT162b2_(Pfizer)_(4th_dose)" data-primary-vaccine="BNT162b2_(Pfizer)_(3_doses)">BNT162b2 (Pfizer) (4th dose)</option>
+            <option value="mRNA-1273_(Moderna)_(4th_dose)" data-primary-vaccine="BNT162b2_(Pfizer)_(3_doses)">mRNA-1273 (Moderna) (4th dose)</option>
+            <option value="BNT162b2_(Pfizer)" data-primary-vaccine="BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)">BNT162b2 (Pfizer)</option>
+            <option value="BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)" data-primary-vaccine="BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)">BNT162b2 (Pfizer) or mRNA-1273 (Moderna)</option>
+            <option value="mRNA-1273_(Moderna)" data-primary-vaccine="BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)">mRNA-1273 (Moderna)</option>
+            <option value="BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)_(4th_dose)" data-primary-vaccine="BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)_(3_doses)">BNT162b2 (Pfizer) or mRNA-1273 (Moderna) (4th dose)</option>
+            <option value="AZD1222_(AstraZeneca)" data-primary-vaccine="CoronaVac_(Sinovac)">AZD1222 (AstraZeneca)</option>
+            <option value="BNT162b2_(Pfizer)" data-primary-vaccine="CoronaVac_(Sinovac)">BNT162b2 (Pfizer)</option>
+            <option value="CoronaVac_(Sinovac)" data-primary-vaccine="CoronaVac_(Sinovac)">CoronaVac (Sinovac)</option>
+            <option value="Coronavac_(Sinovac)" data-primary-vaccine="CoronaVac_(Sinovac)">Coronavac (Sinovac)</option>
+            <option value="Ad26.COV2.S_(Janssen)" data-primary-vaccine="Sputnik_V_(Gamaleya)">Ad26.COV2.S (Janssen)</option>
+            <option value="BNT162b2_(Pfizer)" data-primary-vaccine="Sputnik_V_(Gamaleya)">BNT162b2 (Pfizer)</option>
+            <option value="Sinopharm" data-primary-vaccine="Sputnik_V_(Gamaleya)">Sinopharm</option>
+            <option value="mRNA-1273_(Moderna)" data-primary-vaccine="Sputnik_V_(Gamaleya)">mRNA-1273 (Moderna)</option>
+            <option value="Ad26.COV2.S_(Janssen)" data-primary-vaccine="mRNA-1273_(Moderna)">Ad26.COV2.S (Janssen)</option>
+            <option value="BNT162b2_(Pfizer)" data-primary-vaccine="mRNA-1273_(Moderna)">BNT162b2 (Pfizer)</option>
+            <option value="BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)" data-primary-vaccine="mRNA-1273_(Moderna)">BNT162b2 (Pfizer) or mRNA-1273 (Moderna)</option>
+            <option value="Sinopharm" data-primary-vaccine="mRNA-1273_(Moderna)">Sinopharm</option>
+            <option value="mRNA-1273_(Moderna)" data-primary-vaccine="mRNA-1273_(Moderna)">mRNA-1273 (Moderna)</option>
+            <option value="mRNA-1273_(Moderna)_(4th_dose)" data-primary-vaccine="mRNA-1273_(Moderna)_(3 doses)">mRNA-1273 (Moderna) (4th dose)</option>
+            <option value="Other">Other</option>
+          </select> 
         </div>
         </div>
+        <p id="booster_warning" class="red_text" style="display: none; max-width: 85%">Due to the lack of data, only the efficiency of the primary dose(s) is considered</p>
       </div>
     </div>
 

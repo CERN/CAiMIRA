@@ -554,20 +554,22 @@ class FormData:
         # minus the number of infected occupants.
         exposed_occupants = self.total_people - infected_occupants
 
-        if self.vaccine_option == False:
-            HI = 0.0
-        else:
-            if self.vaccine_booster_option == False:
-                HI = data.vaccine_host_immunity[self.vaccine_type]
+        if (self.vaccine_option):
+            if (self.vaccine_booster_option and self.vaccine_booster_type != 'Other'):
+                host_immunity = [vaccine['VE'] for vaccine in data.vaccine_booster_host_immunity if 
+                                    vaccine['primary series vaccine'] == self.vaccine_type and 
+                                    vaccine['booster vaccine'] == self.vaccine_booster_type][0]
             else:
-                HI = data.vaccine_booster_host_immunity[self.vaccine_booster_type]
+                host_immunity = data.vaccine_primary_host_immunity[self.vaccine_type]
+        else:
+            host_immunity = 0.
 
         exposed = mc.Population(
             number=exposed_occupants,
             presence=self.exposed_present_interval(),
             activity=activity,
             mask=self.mask(),
-            host_immunity=HI,
+            host_immunity=host_immunity,
         )
         return exposed
 
@@ -809,8 +811,8 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'total_people': '10',
         'vaccine_option': '',
         'vaccine_booster_option': '',
-        'vaccine_type': '', 
-        'vaccine_booster_type': '',
+        'vaccine_type': 'Ad26.COV2.S (Janssen)', 
+        'vaccine_booster_type': 'AZD1222 (AstraZeneca)',
         'ventilation_type': 'natural_ventilation',
         'virus_type': 'SARS_CoV_2',
         'volume_type': 'room_volume_explicit',
@@ -835,9 +837,6 @@ VIRUS_TYPES = {'SARS_CoV_2', 'SARS_CoV_2_ALPHA', 'SARS_CoV_2_BETA','SARS_CoV_2_G
 VOLUME_TYPES = {'room_volume_explicit', 'room_volume_from_dimensions'}
 WINDOWS_OPENING_REGIMES = {'windows_open_permanently', 'windows_open_periodically', 'not-applicable'}
 WINDOWS_TYPES = {'window_sliding', 'window_hinged', 'not-applicable'}
-VACCINE_OPTIONS = {'janssen', 'any_mRNA', 'astraZeneca', 'astraZeneca_mRNA', 'astraZeneca_mRNA_pfizer', 'beijingCNBG', 'pfizer', 
-                    'pfizer_moderna', 'sinovac', 'sinovac_astraZeneca', 'covishield', 'moderna', 'gamaleya', 'sinovac_pfizer'}
-VACCINE_BOOSTER_OPTIONS = {'booster_janssen', 'booster_astraZeneca', 'booster_pfizer', 'booster_pfizer_moderna', 'booster_sinovac', 'booster_moderna'}
 COFFEE_OPTIONS_INT = {'coffee_break_0': 0, 'coffee_break_1': 1, 'coffee_break_2': 2, 'coffee_break_4': 4}
 CONFIDENCE_LEVEL_OPTIONS = {'confidence_low': 10, 'confidence_medium': 5, 'confidence_high': 2}
 MONTH_NAMES = [
