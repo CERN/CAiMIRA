@@ -40,3 +40,32 @@ GenevaTemperatures = {
     month: GenevaTemperatures_hourly[month].refine(refine_factor=10)
     for month, temperatures in local_hourly_temperatures_celsius_per_hour.items()
 }
+
+
+# From data available in Results of COVID-19 Vaccine Effectiveness
+# Studies: An Ongoing Systematic Review - Updated September 8, 2022.
+# https://view-hub.org/resources
+vaccine_host_immunity = {
+            'janssen': 0.551277778,
+            'any_mRNA': 0.93875,
+            'astraZeneca': 0.55921875,
+            'astraZeneca_mRNA': 0.718571429,
+            'astraZeneca_mRNA_pfizer': 0.7865,
+            'beijingCNBG': 0.4325,
+            'pfizer': 0.62503012,
+            'pfizer_moderna': 0.567126761,
+            'sinovac': 0.286884615,
+            'sinovac_astraZeneca': 0.561333333,
+            'covishield': 0.98,
+            'moderna': 0.683255814,
+            'gamaleya': 0.696,
+            'sinovac_pfizer': 0.7965,
+        }
+vaccine_booster_host_immunity = {
+    'booster_janssen': 0.492666667,
+    'booster_astraZeneca': 0.672166667,
+    'booster_pfizer': 0.612971831,
+    'booster_pfizer_moderna': 0.645,
+    'booster_sinovac': 0.427857143,
+    'booster_moderna': 0.632442105,
+}
