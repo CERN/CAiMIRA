@@ -1,4 +1,5 @@
 stages:
+  - test
   - docker-build
   - oc-tag
   - deploy
@@ -18,20 +19,20 @@ variables:
 # Test code
 
 # A full installation of CARA, tested with pytest.
-test_install:
-  extends: .acc_py_full_test
+# test_install:
+#   extends: .acc_py_full_test
 
 
 # A development installation of CARA tested with pytest.
-test_dev:
-  extends: .acc_py_dev_test
+# test_dev:
+#   extends: .acc_py_dev_test
 
 
 # A development installation of CARA tested with pytest.
-test_dev-39:
-  variables:
-    PY_VERSION: "3.9"
-  extends: .acc_py_dev_test
+# test_dev-39:
+#   variables:
+#     PY_VERSION: "3.9"
+#   extends: .acc_py_dev_test
 
 
 # ###################################################################################################
