@@ -256,6 +256,10 @@ class ArveData(BaseRequestHandler):
         client_secret = self.settings['arve_client_secret']
         arve_api_key = self.settings['arve_api_key']
 
+        if (client_id == '<undefined>' or client_secret == '<undefined>' or arve_api_key == '<undefined>'):
+            # If the credentials are not defined, we skip the ARVE API connection
+            return self.finish('ARVE API credentials not defined.')
+
         http_client = AsyncHTTPClient()
 
         URL = 'https://arveapi.auth.eu-central-1.amazoncognito.com/oauth2/token'

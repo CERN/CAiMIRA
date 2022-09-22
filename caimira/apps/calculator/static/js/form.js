@@ -312,6 +312,7 @@ function show_sensors_data(url) {
       url: `${$('#url_prefix').data().calculator_prefix}/api/arve/v1/${HOTEL_ID}/${FLOOR_ID}`,
       type: 'GET',
       success: function (result) {
+        if (result.length == 0) return; // If the ARVE credentials were not defined, we don't have a valid result.
         DATA_FROM_SENSORS = result;
         result.map(room => {
           $("#sensors").append(`<option id=${room.RoomId} value=${room.RoomId}>Sensor ${room.RoomId}</option>`);
