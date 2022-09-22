@@ -293,7 +293,22 @@ function on_wearing_mask_change() {
   })
 }
 
-function on_vaccination_change() {
+function update_booster_warning() {
+  // Check if "Other" is selected
+  $("#vaccine_booster_type").find(":selected").val() == "Other" ? $("#booster_warning").show() : $("#booster_warning").hide();
+}
+
+function update_booster_dropdown(url) {
+  let primary_vaccine_option = $("#vaccine_type").find(":selected").val();
+  $($("#vaccine_booster_type > option").get().reverse()).each(function() {
+    if ($(this).attr('data-primary-vaccine') != primary_vaccine_option && $(this).val() != "Other") $(this).hide();
+    else $(this).show().prop('selected', true);
+  });
+  if (url.searchParams.has('vaccine_booster_type')) $("#vaccine_booster_type").val(url.searchParams.get('vaccine_booster_type'));
+  update_booster_warning();
+}
+
+function on_vaccination_change(url) {
   vaccination_option = $('input[type=radio][name=vaccine_option]');
   vaccination_option.each(function (index) {
     if (this.checked) {
@@ -304,7 +319,8 @@ function on_vaccination_change() {
       getChildElement($(this)).hide();
       require_fields(this);
     }
-  })
+  });
+  update_booster_dropdown(url);
 }
 
 function on_vaccination_booster_change() {
@@ -312,7 +328,7 @@ function on_vaccination_booster_change() {
   vaccination_booster_option.each(function (index) {
     if (this.checked) getChildElement($(this)).show();
     else getChildElement($(this)).hide();
-  })
+  });
 }
 
 function populate_temp_hum_values(data, index) {
@@ -791,6 +807,7 @@ window.onpagehide = function(){
 $(document).ready(function () {
   var url = new URL(decodeURIComponent(window.location.href));
   //Pre-fill form with known values
+
   url.searchParams.forEach((value, name) => {
     //If element exists
     if(document.getElementsByName(name).length > 0) {
@@ -900,9 +917,14 @@ $(document).ready(function () {
 
   // When the vaccinated_option_option changes we want to make its respective
   // children show/hide.
-  $("input[type=radio][name=vaccine_option]").change(on_vaccination_change);
+  $("input[type=radio][name=vaccine_option]").change(() => on_vaccination_change(url));
   // Call the function now to handle forward/back button presses in the browser.
-  on_vaccination_change();
+  on_vaccination_change(url);
+
+  // When the vaccine_type dropdown selected option changes we want to update
+  // the booster vaccine dropdown.
+  $("#vaccine_type").change(() => update_booster_dropdown(url));
+  $("#vaccine_booster_type").change(update_booster_warning);
 
   // When the vaccinated_booster_option changes we want to make its respective
   // children show/hide.

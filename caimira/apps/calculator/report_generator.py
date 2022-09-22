@@ -212,6 +212,10 @@ def readable_minutes(minutes: int) -> str:
     return time_str + unit
 
 
+def percentage(absolute: float) -> float:
+    return absolute * 100
+
+
 def non_zero_percentage(percentage: int) -> str:
     if percentage < 0.01:
         return "<0.01%"
@@ -375,6 +379,7 @@ class ReportGenerator:
         env.filters['minutes_to_time'] = minutes_to_time
         env.filters['float_format'] = "{0:.2f}".format
         env.filters['int_format'] = "{:0.0f}".format
+        env.filters['percentage'] = percentage
         env.filters['JSONify'] = json.dumps
         return env
 
