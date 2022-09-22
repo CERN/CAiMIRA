@@ -293,6 +293,28 @@ function on_wearing_mask_change() {
   })
 }
 
+function on_vaccination_change() {
+  vaccination_option = $('input[type=radio][name=vaccine_option]');
+  vaccination_option.each(function (index) {
+    if (this.checked) {
+      getChildElement($(this)).show();
+      require_fields(this);
+    }
+    else {
+      getChildElement($(this)).hide();
+      require_fields(this);
+    }
+  })
+}
+
+function on_vaccination_booster_change() {
+  vaccination_booster_option = $('input[type=radio][name=vaccine_booster_option]');
+  vaccination_booster_option.each(function (index) {
+    if (this.checked) getChildElement($(this)).show();
+    else getChildElement($(this)).hide();
+  })
+}
+
 function populate_temp_hum_values(data, index) {
   $("#sensor_temperature").text(Math.round(data[index].Details.T) + '°C');
   $("#sensor_humidity").text(Math.round(data[index].Details.RH) + '%');
@@ -875,6 +897,18 @@ $(document).ready(function () {
   $("input[type=radio][name=mask_wearing_option]").change(on_wearing_mask_change);
   // Call the function now to handle forward/back button presses in the browser.
   on_wearing_mask_change();
+
+  // When the vaccinated_option_option changes we want to make its respective
+  // children show/hide.
+  $("input[type=radio][name=vaccine_option]").change(on_vaccination_change);
+  // Call the function now to handle forward/back button presses in the browser.
+  on_vaccination_change();
+
+  // When the vaccinated_booster_option changes we want to make its respective
+  // children show/hide.
+  $("input[type=radio][name=vaccine_booster_option]").change(on_vaccination_booster_change);
+  // Call the function now to handle forward/back button presses in the browser.
+  on_vaccination_booster_change();
 
   // When the short_range_option changes we want to make its respective
   // children show/hide.
