@@ -68,6 +68,10 @@ class FormData:
     room_volume: float
     simulation_name: str
     total_people: int
+    vaccine_option: bool
+    vaccine_booster_option: bool
+    vaccine_type: str
+    vaccine_booster_type: str
     ventilation_type: str
     virus_type: str
     volume_type: str
@@ -125,6 +129,10 @@ class FormData:
         'room_volume': 0.,
         'simulation_name': _NO_DEFAULT,
         'total_people': _NO_DEFAULT,
+        'vaccine_option': False,
+        'vaccine_booster_option': False,
+        'vaccine_type': _NO_DEFAULT,
+        'vaccine_booster_type': _NO_DEFAULT,
         'ventilation_type': 'no_ventilation',
         'virus_type': 'SARS_CoV_2',
         'volume_type': _NO_DEFAULT,
@@ -261,7 +269,9 @@ class FormData:
                              ('volume_type', VOLUME_TYPES),
                              ('window_opening_regime', WINDOWS_OPENING_REGIMES),
                              ('window_type', WINDOWS_TYPES),
-                             ('event_month', MONTH_NAMES)]
+                             ('event_month', MONTH_NAMES),
+                             ('vaccine_type', VACCINE_OPTIONS),
+                             ('vaccine_booster_type', VACCINE_BOOSTER_OPTIONS),]
         for attr_name, valid_set in validation_tuples:
             if getattr(self, attr_name) not in valid_set:
                 raise ValueError(f"{getattr(self, attr_name)} is not a valid value for {attr_name}")
@@ -501,7 +511,7 @@ class FormData:
             mask=self.mask(),
             activity=activity,
             expiration=expiration,
-            host_immunity=0.,
+            host_immunity=0., #  Vaccination status does not affect the infected population (for now)
         )
         return infected
 
@@ -528,12 +538,20 @@ class FormData:
         # minus the number of infected occupants.
         exposed_occupants = self.total_people - infected_occupants
 
+        if self.vaccine_option == False:
+            HI = 0.0
+        else:
+            if self.vaccine_booster_option == False:
+                HI = data.vaccine_host_immunity[self.vaccine_type]
+            else:
+                HI = data.vaccine_booster_host_immunity[self.vaccine_booster_type]
+
         exposed = mc.Population(
             number=exposed_occupants,
             presence=self.exposed_present_interval(),
             activity=activity,
             mask=self.mask(),
-            host_immunity=0.,
+            host_immunity=HI,
         )
         return exposed
 
@@ -770,6 +788,10 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'room_volume': '75',
         'simulation_name': 'Test',
         'total_people': '10',
+        'vaccine_option': '',
+        'vaccine_booster_option': '',
+        'vaccine_type': '', 
+        'vaccine_booster_type': '',
         'ventilation_type': 'natural_ventilation',
         'virus_type': 'SARS_CoV_2',
         'volume_type': 'room_volume_explicit',
@@ -794,7 +816,9 @@ VIRUS_TYPES = {'SARS_CoV_2', 'SARS_CoV_2_ALPHA', 'SARS_CoV_2_BETA','SARS_CoV_2_G
 VOLUME_TYPES = {'room_volume_explicit', 'room_volume_from_dimensions'}
 WINDOWS_OPENING_REGIMES = {'windows_open_permanently', 'windows_open_periodically', 'not-applicable'}
 WINDOWS_TYPES = {'window_sliding', 'window_hinged', 'not-applicable'}
-
+VACCINE_OPTIONS = {'janssen', 'any_mRNA', 'astraZeneca', 'astraZeneca_mRNA', 'astraZeneca_mRNA_pfizer', 'beijingCNBG', 'pfizer', 
+                    'pfizer_moderna', 'sinovac', 'sinovac_astraZeneca', 'covishield', 'moderna', 'gamaleya', 'sinovac_pfizer'}
+VACCINE_BOOSTER_OPTIONS = {'booster_janssen', 'booster_astraZeneca', 'booster_pfizer', 'booster_pfizer_moderna', 'booster_sinovac', 'booster_moderna'}
 COFFEE_OPTIONS_INT = {'coffee_break_0': 0, 'coffee_break_1': 1, 'coffee_break_2': 2, 'coffee_break_4': 4}
 
 MONTH_NAMES = [
