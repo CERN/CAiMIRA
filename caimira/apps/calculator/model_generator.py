@@ -189,9 +189,12 @@ class FormData:
         return form_dict
 
     def validate(self):
+        # Validate number of infected people == 1 when activity is Conference/Training.
+        if self.activity_type == 'training' and self.infected_people > 1:
+                raise ValueError('Conference/Training activities are limited to 1 infected.')
         # Validate number of infected <= number of total people
-        if self.infected_people > self.total_people:
-            raise ValueError('Number of infected people cannot be more than number of total people.')
+        elif self.infected_people >= self.total_people:
+                raise ValueError('Number of infected people cannot be more or equal than number of total people.')
 
         # Validate time intervals selected by user
         time_intervals = [
