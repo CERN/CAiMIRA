@@ -1,5 +1,4 @@
 stages:
-  - test
   - docker-build
   - oc-tag
   - deploy
