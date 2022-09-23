@@ -41,7 +41,7 @@ Andre Henriques<sup>1</sup>, Luis Aleixo<sup>1</sup>, Marco Andreini<sup>1</sup>
 
 CAiMIRA – CERN Airborne Model for Indoor Risk Assessment tool
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6520432.svg)](https://doi.org/10.5281/zenodo.6520432)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6520431.svg)](https://doi.org/10.5281/zenodo.6520431)
 
 © Copyright 2020-2021 CERN. All rights not expressly granted are reserved.
 
