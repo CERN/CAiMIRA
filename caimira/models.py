@@ -1429,7 +1429,7 @@ class ExposureModel:
         delta_time = time - t_last_state_change
         fac = np.exp(-IVRR * delta_time)
 
-        return co2_conc_limit * (1 - fac) + (co2_conc_at_last_state_change * fac)
+        return co2_conc_limit * (1 - fac) + ((co2_conc_at_last_state_change - 440.44e-6) * fac) + 440.44e-6
 
     def CO2_concentration(self, time: float) -> _VectorisedFloat:
         # Correction due to the number of generated points.
