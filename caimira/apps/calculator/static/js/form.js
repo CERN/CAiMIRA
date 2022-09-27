@@ -301,10 +301,15 @@ function update_booster_warning() {
 function update_booster_dropdown(url) {
   let primary_vaccine_option = $("#vaccine_type").find(":selected").val();
   $($("#vaccine_booster_type > option").get().reverse()).each(function() {
-    if ($(this).attr('data-primary-vaccine') != primary_vaccine_option && $(this).val() != "Other") $(this).hide();
-    else $(this).show().prop('selected', true);
+    if ($(this).attr('data-primary-vaccine') != primary_vaccine_option && $(this).attr('data-primary-vaccine') != "Other") $(this).hide();
+    else {
+      $(this).show();
+      if (url.searchParams.has('vaccine_type')) {
+        if (url.searchParams.get('vaccine_type') != primary_vaccine_option) $(this).prop('selected', true); // Select first of the list if not from the URL
+      }
+      else $(this).prop('selected', true);
+    }
   });
-  if (url.searchParams.has('vaccine_booster_type')) $("#vaccine_booster_type").val(url.searchParams.get('vaccine_booster_type'));
   update_booster_warning();
 }
 
@@ -842,8 +847,8 @@ $(document).ready(function () {
         $("#sr_interactions").text(index - 1);
       }
 
-      else if (name == 'sensor_in_use') {
-        // TODO - Validate if sensor exists
+      else if (name == 'sensor_in_use' || name == 'vaccine_booster_type') {
+        // Validation after
       }
 
       //Ignore 0 (default) values from server side
@@ -853,6 +858,10 @@ $(document).ready(function () {
       }
     }
   });
+
+  let primary_vaccine = url.searchParams.has('vaccine_type') ? url.searchParams.get('vaccine_type') : null;
+  let booster_vaccine = url.searchParams.has('vaccine_booster_type') ? url.searchParams.get('vaccine_booster_type') : null;
+  $(`#vaccine_booster_type > option[data-primary-vaccine="${primary_vaccine}"][value="${booster_vaccine}"]`).attr('selected', true);
 
   // Handle default URL values if they are not explicitly defined.
   if (Array.from(url.searchParams).length > 0) {
