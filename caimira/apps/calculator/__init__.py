@@ -256,7 +256,7 @@ class ArveData(BaseRequestHandler):
         client_secret = self.settings['arve_client_secret']
         arve_api_key = self.settings['arve_api_key']
 
-        if (client_id == '<undefined>' or client_secret == '<undefined>' or arve_api_key == '<undefined>'):
+        if (client_id == None or client_secret == None or arve_api_key == None):
             # If the credentials are not defined, we skip the ARVE API connection
             return self.send_error(401)
             
@@ -349,9 +349,9 @@ def make_app(
         # COOKIE_SECRET being undefined will result in no login information being
         # presented to the user.
         cookie_secret=os.environ.get('COOKIE_SECRET', '<undefined>'),
-        arve_client_id=os.environ.get('ARVE_CLIENT_ID', '<undefined>'),
-        arve_client_secret=os.environ.get('ARVE_CLIENT_SECRET', '<undefined>'),
-        arve_api_key=os.environ.get('ARVE_API_KEY', '<undefined>'),
+        arve_client_id=os.environ.get('ARVE_CLIENT_ID', None),
+        arve_client_secret=os.environ.get('ARVE_CLIENT_SECRET', None),
+        arve_api_key=os.environ.get('ARVE_API_KEY', None),
 
         # Process parallelism controls. There is a balance between serving a single report
         # requests quickly or serving multiple requests concurrently.
