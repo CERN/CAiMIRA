@@ -1004,7 +1004,7 @@ class ConcentrationModel:
         return 1. / (IVRR * V)
 
     @method_cache
-    def _CO2_concentration_limit(self, time: float) -> _VectorisedFloat:
+    def _CO2_normed_concentration_limit(self, time: float) -> _VectorisedFloat:
         if not self.infected.person_present(time):
             return 0.
         V = self.room.volume
@@ -1416,20 +1416,22 @@ class ExposureModel:
         return self._CO2_concentration(time)
 
     def _CO2_concentration(self, time: float) -> _VectorisedFloat:
+        make_up_air_concentration = 440.44e-6 # carbon dioxide concentration in the make up air (m3/m3 person) - 440ppm
         if time <= self.concentration_model._first_presence_time():
-            return 440.44e-6 # carbon dioxide concentration in the make up air (m3/m3 person) - 440ppm
+            return make_up_air_concentration
         next_state_change_time = self.concentration_model._next_state_change(time)
         IVRR = self.concentration_model.air_exch_virus_removal_rate(next_state_change_time)
-        co2_conc_limit = (self.concentration_model._CO2_concentration_limit(next_state_change_time) *
-                            (self.concentration_model.infected.activity.exhalation_rate * (self.exposed.number + self.concentration_model.infected.number)))
-        
+        co2_conc_limit = (self.concentration_model._CO2_normed_concentration_limit(next_state_change_time) *
+                            ((self.exposed.number*self.exposed.activity.exhalation_rate*0.1 + 
+                            self.concentration_model.infected.number*self.concentration_model.infected.activity.exhalation_rate*0.1)))
+                                    
         t_last_state_change = self.concentration_model.last_state_change(time)
         co2_conc_at_last_state_change = self._CO2_concentration_cached(t_last_state_change) # CO2 contribution in the room at start
 
         delta_time = time - t_last_state_change
         fac = np.exp(-IVRR * delta_time)
 
-        return co2_conc_limit * (1 - fac) + ((co2_conc_at_last_state_change - 440.44e-6) * fac) + 440.44e-6
+        return co2_conc_limit * (1 - fac) + ((co2_conc_at_last_state_change - make_up_air_concentration) * fac) + make_up_air_concentration
 
     def CO2_concentration(self, time: float) -> _VectorisedFloat:
         # Correction due to the number of generated points.
