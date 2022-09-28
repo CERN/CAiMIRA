@@ -86,14 +86,6 @@ activity_distributions = {
 }
 
 
-co2_activity = {
-    'Sleep': mc.Activity(0.013, 0.013),
-    'Resting': mc.Activity(0.02, 0.02),
-    'Normal work': mc.Activity(LogNormal(0.08, 0.13), LogNormal(0.08, 0.13)),
-    'Hard work': mc.Activity(LogNormal(0.33, 0.38), LogNormal(0.33, 0.38)),
-}
-
-
 # From https://doi.org/10.1101/2021.10.14.21264988 and references therein
 symptomatic_vl_frequencies = LogCustomKernel(
     np.array((2.46032, 2.67431, 2.85434, 3.06155, 3.25856, 3.47256, 3.66957, 3.85979, 4.09927, 4.27081,
