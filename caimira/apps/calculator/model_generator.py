@@ -269,7 +269,9 @@ class FormData:
                              ('volume_type', VOLUME_TYPES),
                              ('window_opening_regime', WINDOWS_OPENING_REGIMES),
                              ('window_type', WINDOWS_TYPES),
-                             ('event_month', MONTH_NAMES),]
+                             ('event_month', MONTH_NAMES),
+                             ('vaccine_type', VACCINE_TYPE),
+                             ('vaccine_booster_type', VACCINE_BOOSTER_TYPE),]
         for attr_name, valid_set in validation_tuples:
             if getattr(self, attr_name) not in valid_set:
                 raise ValueError(f"{getattr(self, attr_name)} is not a valid value for {attr_name}")
@@ -790,8 +792,8 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'total_people': '10',
         'vaccine_option': '',
         'vaccine_booster_option': '',
-        'vaccine_type': 'Ad26.COV2.S (Janssen)', 
-        'vaccine_booster_type': 'AZD1222 (AstraZeneca)',
+        'vaccine_type': 'Ad26.COV2.S_(Janssen)', 
+        'vaccine_booster_type': 'AZD1222_(AstraZeneca)',
         'ventilation_type': 'natural_ventilation',
         'virus_type': 'SARS_CoV_2',
         'volume_type': 'room_volume_explicit',
@@ -817,12 +819,16 @@ VOLUME_TYPES = {'room_volume_explicit', 'room_volume_from_dimensions'}
 WINDOWS_OPENING_REGIMES = {'windows_open_permanently', 'windows_open_periodically', 'not-applicable'}
 WINDOWS_TYPES = {'window_sliding', 'window_hinged', 'not-applicable'}
 COFFEE_OPTIONS_INT = {'coffee_break_0': 0, 'coffee_break_1': 1, 'coffee_break_2': 2, 'coffee_break_4': 4}
-
 MONTH_NAMES = [
     'January', 'February', 'March', 'April', 'May', 'June', 'July',
     'August', 'September', 'October', 'November', 'December',
 ]
-
+VACCINE_TYPE = ['Ad26.COV2.S_(Janssen)', 'Any_mRNA_-_heterologous', 'AZD1222_(AstraZeneca)', 'AZD1222_(AstraZeneca)_and_any_mRNA_-_heterologous', 'AZD1222_(AstraZeneca)_and_BNT162b2_(Pfizer)',
+    'BBIBP-CorV_(Beijing_CNBG)', 'BNT162b2_(Pfizer)', 'BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)', 'CoronaVac_(Sinovac)', 'CoronaVac_(Sinovac)_and_AZD1222_(AstraZeneca)', 'Covishield',
+    'mRNA-1273_(Moderna)', 'Sputnik_V_(Gamaleya)', 'CoronaVac_(Sinovac)_and_BNT162b2_(Pfizer)']
+VACCINE_BOOSTER_TYPE = ['AZD1222_(AstraZeneca)', 'Ad26.COV2.S_(Janssen)', 'BNT162b2_(Pfizer)', 'BNT162b2_(Pfizer)_(4th_dose)', 'BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)',
+    'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)', 'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)_(4th_dose)', 'CoronaVac_(Sinovac)', 'Coronavac_(Sinovac)', 'Sinopharm',
+    'mRNA-1273_(Moderna)', 'mRNA-1273_(Moderna)_(4th_dose)', 'Other']
 
 def _hours2timestring(hours: float):
     # Convert times like 14.5 to strings, like "14:30"
