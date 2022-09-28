@@ -14,7 +14,9 @@
       <label for="arve_sensor_yes">Yes</label>
     </div>
   </div>
-  <div id="DIVsensors_data" style="display:none">
+  <p id="offline_sensors" class="red_text mb-2" style="display: none">All sensors are offline.</p>
+  <p id="arve_api_error_message" class="red_text mb-2" style="display:none; max-width: 85%;">Unauthorized - Something went wrong during the ARVE API authentication process.</p> 
+  <div id="DIVsensors_data" class="mb-1" style="display:none">
     <div class="form-group row mb-0">
       <div class="col-sm-4"><label class="col-form-label">Sensor:</label></div>
       <div class="col-sm-6">

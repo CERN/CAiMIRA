@@ -314,8 +314,15 @@ function show_sensors_data(url) {
       success: function (result) {
         DATA_FROM_SENSORS = result;
         result.map(room => {
+          if (room['Details']['Online'] == false) return; // If the sensor is offline, it should not be added to the list.
           $("#sensors").append(`<option id=${room.RoomId} value=${room.RoomId}>Sensor ${room.RoomId}</option>`);
         });
+        if ($('#sensors > option').length == 0) {
+          $('#offline_sensors').show();
+          $('#DIVsensors_data').hide();
+          $('#arve_sensor_yes').prop('disabled', true)
+          return; // All sensors are offline
+        }
         populate_temp_hum_values(result, 0);
         if (url.searchParams.has('sensor_in_use')) {
           $("#sensors").val(url.searchParams.get('sensor_in_use'));
@@ -324,9 +331,11 @@ function show_sensors_data(url) {
           }));
         }
       },
-      error: function() {
-        alert('Authentication Error - Something went wrong during the authentication process.');
-      },
+      error: function(_, _, errorThrown) {
+        $("#arve_api_error_message").val(errorThrown).show();
+        $('#DIVsensors_data').hide();
+        $('#arve_sensor_yes').prop('disabled', true)
+      }
     });
   }
 };
