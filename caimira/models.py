@@ -1197,7 +1197,7 @@ class ShortRangeModel:
         return self._normed_concentration(concentration_model, time)
 
     @method_cache
-    def extract_between_bounds(self, time1: float, time2: float) -> typing.Tuple[float,float]:
+    def extract_between_bounds(self, time1: float, time2: float) -> typing.Union[None, typing.Tuple[float,float]]:
         """
         Extract the bounds of the interval resulting from the
         intersection of [time1, time2] and the presence interval.
