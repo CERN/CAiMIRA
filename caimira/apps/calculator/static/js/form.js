@@ -332,8 +332,9 @@ function show_sensors_data(url) {
         }
       },
       error: function(_, _, errorThrown) {
-        if (errorThrown != 'Unauthorized') alert(errorThrown);
-        else alert('Unauthorized - Something went wrong during the ARVE API authentication process.');
+        $("#arve_api_error_message").val(errorThrown).show();
+        $('#DIVsensors_data').hide();
+        $('#arve_sensor_yes').prop('disabled', true)
       }
     });
   }
