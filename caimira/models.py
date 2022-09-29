@@ -1415,15 +1415,14 @@ class ExposureModel:
     def _CO2_concentration_cached(self, time: float) -> _VectorisedFloat:
         return self._CO2_concentration(time)
 
-    def _CO2_concentration(self, time: float) -> _VectorisedFloat:
-        make_up_air_concentration = 440.44e-6 # carbon dioxide concentration in the make up air (m3/m3 person) - 440ppm
+    def _CO2_concentration(self, time: float,  make_up_air_concentration: float = 440.44e-6, CO2_fraction: float = 0.042) -> _VectorisedFloat:
         if time <= self.concentration_model._first_presence_time():
-            return make_up_air_concentration
+            return make_up_air_concentration # carbon dioxide concentration in the make up air (m3/m3 person) - 440ppm
         next_state_change_time = self.concentration_model._next_state_change(time)
         IVRR = self.concentration_model.air_exch_virus_removal_rate(next_state_change_time)
         co2_conc_limit = (self.concentration_model._CO2_normed_concentration_limit(next_state_change_time) *
-                            ((self.exposed.number*self.exposed.activity.exhalation_rate*0.1 + 
-                            self.concentration_model.infected.number*self.concentration_model.infected.activity.exhalation_rate*0.1)))
+                            ((self.exposed.number*self.exposed.activity.exhalation_rate*CO2_fraction + 
+                            self.concentration_model.infected.number*self.concentration_model.infected.activity.exhalation_rate*CO2_fraction)))
                                     
         t_last_state_change = self.concentration_model.last_state_change(time)
         co2_conc_at_last_state_change = self._CO2_concentration_cached(t_last_state_change) # CO2 contribution in the room at start
