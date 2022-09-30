@@ -32,6 +32,7 @@ class FormData:
     air_changes: float
     air_supply: float
     arve_sensors_option: bool
+    aria_breaks: list
     ceiling_height: float
     exposed_coffee_break_option: str
     exposed_coffee_duration: int
@@ -97,6 +98,7 @@ class FormData:
         'air_changes': 0.,
         'air_supply': 0.,
         'arve_sensors_option': False,
+        'aria_breaks': '[]',
         'calculator_version': _NO_DEFAULT,
         'ceiling_height': 0.,
         'exposed_coffee_break_option': 'coffee_break_0',
@@ -642,6 +644,25 @@ class FormData:
         else:
             return self.exposed_coffee_break_times()
 
+    def generate_aria_break_times(self) -> models.BoundarySequence_t:
+        break_times = []
+        for n in self.aria_breaks:
+            # Input validations.
+            if type(n) is not dict:
+                raise TypeError('Each break should be a dictionary.')
+            dict_keys = list(n.keys())
+            if "start_time" not in n:
+                raise TypeError(f'Unable to fetch "start_time" key. Got "{dict_keys[0]}".')
+            if "finish_time" not in n:
+                raise TypeError(f'Unable to fetch "finish_time" key. Got "{dict_keys[1]}".')
+            for time in n.values():
+                if not datetime.datetime.strptime(time, '%H:%M'): return
+            # Parse break times.  
+            begin = time_string_to_minutes(n["start_time"])
+            end = time_string_to_minutes(n["finish_time"])
+            break_times.append((begin, end))
+        return tuple(break_times)
+
     def present_interval(
             self,
             start: int,
@@ -735,9 +756,13 @@ class FormData:
         return models.SpecificInterval(tuple(present_intervals))
 
     def infected_present_interval(self) -> models.Interval:
+        if len(self.aria_breaks) > 0: # It means the breaks were defined by ARIA interface
+            breaks = self.generate_aria_break_times()
+        else:
+            breaks = self.infected_lunch_break_times() + self.infected_coffee_break_times()
         return self.present_interval(
             self.infected_start, self.infected_finish,
-            breaks=self.infected_lunch_break_times() + self.infected_coffee_break_times(),
+            breaks=breaks,
         )
 
     def short_range_interval(self, interaction) -> models.SpecificInterval:
@@ -746,9 +771,13 @@ class FormData:
         return models.SpecificInterval(present_times=((start_time/60, (start_time + duration)/60),))
 
     def exposed_present_interval(self) -> models.Interval:
+        if len(self.aria_breaks) > 0: # It means the breaks were defined by ARIA interface
+            breaks = self.generate_aria_break_times()
+        else:
+            breaks = self.exposed_lunch_break_times() + self.exposed_coffee_break_times()
         return self.present_interval(
             self.exposed_start, self.exposed_finish,
-            breaks=self.exposed_lunch_break_times() + self.exposed_coffee_break_times(),
+            breaks=breaks,
         )
 
 
