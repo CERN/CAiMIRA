@@ -60,7 +60,7 @@ class FormData:
     geographic_population: int
     geographic_cases: int
     ascertainment_bias: str
-    p_recurrent_option: str
+    exposure_option: str
     mask_type: str
     mask_wearing_option: str
     mechanical_ventilation_type: str
@@ -123,7 +123,7 @@ class FormData:
         'geographic_population': 0,
         'geographic_cases': 0,
         'ascertainment_bias': 'confidence_low',
-        'p_recurrent_option': 'p_recurrent_event',
+        'exposure_option': 'p_deterministic_exposure',
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': 'not-applicable',

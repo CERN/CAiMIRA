@@ -303,7 +303,8 @@
 
     <!-- Event Options -->
     <b>Event data:</b>
-    <div data-tooltip="The total no. of occupants in the room and how many of them you assume are infected.">
+    <div data-tooltip="The total no. of occupants in the room. Probabilistic exposure occurring at a given time and location (e.g. meeting or conference), considering the incidence rate in the area. 
+      Indicate the population in a given location and the rolling 7-day average of new reported cases. Specify the confidence level of the data.">
         <span class="tooltip_text">?</span>
     </div><br>
 
@@ -312,20 +313,20 @@
       <div class="col-sm-6 align-self-center"><input type="number" id="total_people" class="form-control" name="total_people" placeholder="Number" min=1 required></div>
     </div>
 
-    <div class="form-group row">
-      <div class="col-sm-4" style="top: -2px"><label>Number of infected people: </label></div>
-      <div class="col-sm-6"><input type="number" id="infected_people" class="form-control" name="infected_people" min=1 value=1 required></div>
+    <div class="form-group mb-1">
+    <input type="radio" id="p_deterministic_exposure" name="exposure_option" value="p_deterministic_exposure" checked="checked">
+      <label for="p_deterministic_exposure">Deterministic exposure</label>
     </div>
-
-    <input type="radio" id="p_recurrent_event" name="p_recurrent_option" value="p_recurrent_event" checked="checked">
-      <label for="p_recurrent_event">Recurrent exposure</label>
-    <input class="ml-2" type="radio" id="p_specific_event"  name="p_recurrent_option" value="p_specific_event" data-enables="#DIVp_specific_event">
-      <label for="p_specific_event">Specific event</label>
-    <div data-tooltip="Specific event occurring at a given time (e.g. meeting or conference). Indicate the population in a given location and the cumulative 7-day average of new reported cases. Specify the confidence level for these figures.">
-        <span class="tooltip_text">?</span>
+    <div class="form-group">
+    <input type="radio" id="p_probabilistic_exposure"  name="exposure_option" value="p_probabilistic_exposure" data-enables="#DIVp_probabilistic_exposure">
+      <label for="p_probabilistic_exposure">Probabilistic exposure (incidence rate)</label>
     </div>
     
-    <div id="DIVp_specific_event" class="tabbed" style="display: none">
+    <div id="DIVp_probabilistic_exposure" class="tabbed" style="display: none">
+      <div class="form-group row">
+        <div class="col-sm-4"><label class="col-form-label">Number of infected people: </label></div>
+        <div class="col-sm-6 pl-0 align-self-center"><input type="number" id="infected_people" class="form-control" name="infected_people" min=1 value=1 required></div>
+      </div>
       <div class="form-group row">
         <div class="col-sm-4"><label class="col-form-label">Population:</label></div>
         <div class="col-sm-6 pl-0 align-self-center"><input type="number" step="any" id="geographic_population" class="non_zero form-control" name="geographic_population" placeholder="Inhabitants (#)" min="0"></div>

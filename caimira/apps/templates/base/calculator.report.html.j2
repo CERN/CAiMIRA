@@ -57,7 +57,7 @@
 			{% if form.short_range_option == "short_range_yes" %} 
 				{% set scenario = alternative_scenarios.stats.values() | first %}
 				{% set long_range_prob_inf = scenario.probability_of_infection %}
-				{% set long_range_prob_specific_event = scenario.prob_specific_event if form.p_recurrent_option == 'p_specific_event' %}
+				{% set long_range_prob_specific_event = scenario.prob_specific_event if form.exposure_option == 'p_probabilistic_exposure' %}
 			{% else %}
 				{% set long_range_prob_inf = prob_inf %}
 			{% endif %}
@@ -132,7 +132,7 @@
 													</div>
 												{% endif %}
 												{% block specific_event_probability %}
-													{% if form.p_recurrent_option == "p_specific_event" %}
+													{% if form.exposure_option == "p_probabilistic_exposure" %}
 														<br>
 														<div class="align-self-center alert alert-dark mb-0" role="alert">
 															The above {{ "result assumes" if form.short_range_option == "short_range_no" else "results assume" }} that <b>{{ form.infected_people }} 
@@ -442,7 +442,7 @@
 							<li><p class="data_text">Number of attendees and infected people: {{ form.total_people }} in attendance, of whom {{ form.infected_people }}
 							{{ "is" if form.infected_people == 1 else "are" }}
 							infected.</p></li>
-							{% if form.p_recurrent_option == "p_specific_event" %}
+							{% if form.exposure_option == "p_probabilistic_exposure" %}
 							{% if form.ascertainment_bias == "confidence_high" %}
 								{% set conf_level = "High - Mandatory population surveillance." %}
 							{% elif form.ascertainment_bias == "confidence_medium" %}

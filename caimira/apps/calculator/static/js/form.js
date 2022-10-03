@@ -61,10 +61,10 @@ function require_fields(obj) {
     case "hepa_no":
       require_hepa(false);
       break;
-    case "p_specific_event":
+    case "p_probabilistic_exposure":
       require_population(true);
       break;
-    case "p_recurrent_event":
+    case "p_deterministic_exposure":
       require_population(false);
       break;
     case "mask_on":
@@ -282,7 +282,7 @@ function on_hepa_option_change() {
 }
 
 function on_p_recurrent_change() {
-  p_recurrent = $('input[type=radio][name=p_recurrent_option]')
+  p_recurrent = $('input[type=radio][name=exposure_option]')
   p_recurrent.each(function (index) {
     if (this.checked) {
       getChildElement($(this)).show();
@@ -568,7 +568,7 @@ function validate_form(form) {
   }
 
   // Validate cases < population
-  if ($("#p_specific_event").prop('checked')) {
+  if ($("#p_probabilistic_exposure").prop('checked')) {
     var geographicPopulationObj = document.getElementById("geographic_population");
     var geographicCasesObj = document.getElementById("geographic_cases");
     removeErrorFor(geographicCasesObj);
@@ -911,9 +911,9 @@ $(document).ready(function () {
   // Call the function now to handle forward/back button presses in the browser.
   on_hepa_option_change();
 
-  // When the p_recurrent_option changes we want to make its respective
+  // When the exposure_option changes we want to make its respective
   // children show/hide.
-  $("input[type=radio][name=p_recurrent_option]").change(on_p_recurrent_change);
+  $("input[type=radio][name=exposure_option]").change(on_p_recurrent_change);
   // Call the function now to handle forward/back button presses in the browser.
   on_p_recurrent_change();
 

@@ -311,7 +311,7 @@ def comparison_report(
     else:
         statistics = {}
     
-    if (form.short_range_option == "short_range_yes" and form.p_recurrent_option == "p_specific_event"):
+    if (form.short_range_option == "short_range_yes" and form.exposure_option == "p_probabilistic_exposure"):
         specific_event = True
     else:
         specific_event = False
