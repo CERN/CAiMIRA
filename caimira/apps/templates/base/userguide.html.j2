@@ -115,12 +115,14 @@ First enter the number of occupants in the space, if you have a (small) variatio
 Within the number of people occupying the space, you should specify how many are infected.</p>
 <p>As an example, for a shared office with 4 people, where one person is infected, we enter 4 occupants and 1 infected person.</p><br/>
 <p>In case one would like to simulate an event happening at a given time and location, where the epidemiological situation is known, the tool allows for an estimation of the probability of on-site transmission, considering the chances that a given person in the event is infected.
-The user will need to select <b>Specific event</b>, input the number of inhabitants and the cumulative weekly (7-day average) value of new reported positive cases at the event location, as well as the confidence level of the inputs. The first two inputs need to the related, i.e. the values of reported new cases and the number of inhabitants shall correspond to the a same geographical location. For example:</p>
+The user will need to select <b>Specific event</b>, input the number of inhabitants and the the weekly (7-day rolling average) value of new reported laboratory - ⁠confirmed cases at the event location, as well as the confidence level of these inputs. 
+The 7-day rolling average consists in the average of the previous 3 days to subsequent 3 days, generally reported by the different public health authorities (e.g. in Switzerland <a href="https://www.covid19.admin.ch/en/epidemiologic/case/d/development?epiRelDev=abs">here</a>). 
+These two inputs need to the related, i.e. the values of reported new cases and the number of inhabitants shall correspond to the a same geographical location. For example:</p>
 <ul>
   <li>Population of Geneva, CH: 508 000 inhabitants</li>
-  <li>New reported cases in the canton of Geneva: 1000 (in one week - avg)</li>
+  <li>New reported cases in the canton of Geneva: 1000 (7-day rolling avg)</li>
 </ul>
-<p>The confidence level has the following options:</p>
+<p>The confidence level allows for an ascertainment bias to the data. The user can add the following options:</p>
 <ul>
   <li>High - mandatory population wide surveillance</li>
   <li>Medium - recommended population wide surveillance</li>
