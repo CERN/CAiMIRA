@@ -33,6 +33,7 @@ class FormData:
     air_supply: float
     arve_sensors_option: bool
     aria_breaks: list
+    aria_precise: dict
     ceiling_height: float
     exposed_coffee_break_option: str
     exposed_coffee_duration: int
@@ -99,6 +100,7 @@ class FormData:
         'air_supply': 0.,
         'arve_sensors_option': False,
         'aria_breaks': '[]',
+        'aria_precise': '{}',
         'calculator_version': _NO_DEFAULT,
         'ceiling_height': 0.,
         'exposed_coffee_break_option': 'coffee_break_0',
@@ -470,6 +472,41 @@ class FormData:
             mask = models.Mask.types['No mask']
         return mask
 
+    def generate_aria_activity_expiration(self) -> tuple[str, typing.Any]:
+        # Input validations.
+        if type(self.aria_precise) is not dict:
+            raise TypeError('The precise activities should be in a dictionary.')
+
+        if len(self.aria_precise) == 0: # If no precise activity was defined.
+            return tuple(result)
+
+        dict_keys = list(self.aria_precise.keys())
+        if "physical_activity" not in dict_keys:
+            raise TypeError(f'Unable to fetch "physical_activity" key. Got "{dict_keys[0]}".')
+        if "respiratory_activity" not in dict_keys:
+            raise TypeError(f'Unable to fetch "respiratory_activity" key. Got "{dict_keys[1]}".')
+            
+        result = []
+        for physical_activity in self.aria_precise['physical_activity']:
+            result.append(physical_activity['type'])
+
+        if type(self.aria_precise['respiratory_activity']) is not list:
+            raise TypeError('The respiratory activities should be in a list.')
+
+        respiratory_dict = {}
+        for respiratory_activity in self.aria_precise['respiratory_activity']:
+            if type(respiratory_activity) is not dict:
+                raise TypeError('Each respiratory activity should be defined in a dictionary.')
+            dict_keys = list(respiratory_activity.keys())
+            if "type" not in dict_keys:
+                raise TypeError(f'Unable to fetch "type" key. Got "{dict_keys[0]}".')
+            if "percentage" not in dict_keys:
+                raise TypeError(f'Unable to fetch "percentage" key. Got "{dict_keys[1]}".')
+            respiratory_dict[respiratory_activity['type']] = respiratory_activity['percentage']
+        
+        result.append(respiratory_dict)
+        return tuple(result)
+
     def infected_population(self) -> mc.InfectedPopulation:
         # Initializes the virus
         virus = virus_distributions[self.virus_type]
@@ -513,8 +550,34 @@ class FormData:
                 #Model 1/2 of time spent speaking in a workshop.
                 {'Speaking': 1, 'Breathing': 1}),
             'gym':('Heavy exercise', 'Breathing'),
+            # ARIA UI activity types
+            'household-day': (
+                'Seated',
+                {'Breathing': 5, 'Speaking': 5}
+            ),
+            'household-night': (
+                'Seated',
+                {'Breathing': 7, 'Speaking': 3}
+            ),
+            'primary-school': (
+                'Seated',
+                {'Breathing': 5, 'Speaking': 5}
+            ),
+            'secondary-school': (
+                'Seated',
+                {'Breathing': 7, 'Speaking': 3}
+            ),
+            'university': (
+                'Seated',
+                {'Breathing': 9, 'Speaking': 1}
+            ),
+            'restaurant': (
+                'Seated',
+                {'Breathing': 1, 'Speaking': 9}
+            ),
+            'precise': self.generate_aria_activity_expiration(),
         }
-
+        
         [activity_defn, expiration_defn] = scenario_activity_and_expiration[self.activity_type]
         activity = activity_distributions[activity_defn]
         expiration = build_expiration(expiration_defn)
@@ -546,6 +609,13 @@ class FormData:
             'workshop': 'Moderate activity',
             'lab':'Light activity',
             'gym':'Heavy exercise',
+            'household-day': 'Seated',
+            'household-night': 'Seated', 
+            'primary-school': 'Seated', 
+            'secondary-school': 'Seated', 
+            'university': 'Seated', 
+            'restaurant': 'Seated',
+            'precise': 'Seated',
         }
 
         activity_defn = scenario_activity[self.activity_type]
@@ -857,7 +927,10 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
     }
 
 
-ACTIVITY_TYPES = {'office', 'smallmeeting', 'largemeeting', 'training', 'training_attendee', 'callcentre', 'controlroom-day', 'controlroom-night', 'library', 'workshop', 'lab', 'gym'}
+ACTIVITY_TYPES = {
+    'office', 'smallmeeting', 'largemeeting', 'training', 'callcentre', 'controlroom-day', 'controlroom-night', 'library', 'workshop', 'lab', 'gym',
+    'household-day', 'household-night', 'primary-school', 'secondary-school', 'university', 'restaurant', 'precise',
+}
 MECHANICAL_VENTILATION_TYPES = {'mech_type_air_changes', 'mech_type_air_supply', 'not-applicable'}
 MASK_TYPES = {'Type I', 'FFP2', 'Cloth'}
 MASK_WEARING_OPTIONS = {'mask_on', 'mask_off'}
@@ -902,12 +975,20 @@ def time_minutes_to_string(time: int) -> str:
     return "{0:0=2d}".format(int(time/60)) + ":" + "{0:0=2d}".format(time%60)
 
 
-def string_to_list(l: str) -> list:
-    return list(ast.literal_eval(l.replace("&quot;", "\"")))
+def string_to_list(s: str) -> list:
+    return list(ast.literal_eval(s.replace("&quot;", "\"")))
 
 
-def list_to_string(s: list) -> str:
-    return json.dumps(s)
+def list_to_string(l: list) -> str:
+    return json.dumps(l)
+
+
+def string_to_dict(s: str) -> dict:
+    return dict(ast.literal_eval(s.replace("&quot;", "\"")))
+
+
+def dict_to_string(d: dict) -> str:
+    return json.dumps(d)
 
 
 def _safe_int_cast(value) -> int:
@@ -944,3 +1025,6 @@ for _field in dataclasses.fields(FormData):
     elif _field.type is list:
         _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = string_to_list
         _CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = list_to_string
+    elif _field.type is dict:
+        _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = string_to_dict
+        _CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = dict_to_string
