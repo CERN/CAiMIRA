@@ -472,13 +472,13 @@ class FormData:
             mask = models.Mask.types['No mask']
         return mask
 
-    def generate_aria_activity_expiration(self) -> tuple[str, typing.Any]:
+    def generate_aria_activity_expiration(self) -> typing.Tuple[typing.Any, ...]:
         # Input validations.
         if type(self.aria_precise) is not dict:
             raise TypeError('The precise activities should be in a dictionary.')
 
         if len(self.aria_precise) == 0: # If no precise activity was defined.
-            return tuple(result)
+            return ()
 
         dict_keys = list(self.aria_precise.keys())
         if "physical_activity" not in dict_keys:
@@ -726,7 +726,8 @@ class FormData:
             if "finish_time" not in n:
                 raise TypeError(f'Unable to fetch "finish_time" key. Got "{dict_keys[1]}".')
             for time in n.values():
-                if not datetime.datetime.strptime(time, '%H:%M'): return
+                if not datetime.datetime.strptime(time, '%H:%M'):
+                    raise TypeError(f'Wrong time format - "HH:MM". Got "{time}".')
             # Parse break times.  
             begin = time_string_to_minutes(n["start_time"])
             end = time_string_to_minutes(n["finish_time"])
