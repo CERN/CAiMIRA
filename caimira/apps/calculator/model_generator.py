@@ -114,7 +114,7 @@ class FormData:
         'infected_lunch_finish': '13:30',
         'infected_lunch_option': True,
         'infected_lunch_start': '12:30',
-        'infected_people': _NO_DEFAULT,
+        'infected_people': 1,
         'infected_start': '08:30',
         'inside_temp': _NO_DEFAULT,
         'location_latitude': _NO_DEFAULT,

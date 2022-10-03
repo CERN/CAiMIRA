@@ -66,7 +66,7 @@
   content: attr(data-tooltip);
   padding: 10px 18px;
   min-width: 50px;
-  max-width: 200px;
+  max-width: 220px;
   width: max-content;
   width: -moz-max-content;
   border-radius: 6px;

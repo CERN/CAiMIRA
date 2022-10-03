@@ -88,9 +88,9 @@
         </div>
       {% endif %}
       
-      {% block specific_event_probability %}
+      {% block probabilistic_exposure_probability %}
         {{ super() }}
-      {% endblock specific_event_probability %}
+      {% endblock probabilistic_exposure_probability %}
 
       {% if (prob_inf > 2) %}
         <br>

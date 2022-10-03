@@ -63,9 +63,11 @@ function require_fields(obj) {
       break;
     case "p_probabilistic_exposure":
       require_population(true);
+      require_infected(false);
       break;
     case "p_deterministic_exposure":
       require_population(false);
+      require_infected(true);
       break;
     case "mask_on":
       require_mask(true);
@@ -184,6 +186,10 @@ function require_population(option) {
   require_input_field("#ascertainment_bias", option);
 }
 
+function require_infected(option) {
+  require_input_field("#infected_people", option);
+}
+
 function require_mask(option) {
   $("#mask_type_1").prop('required', option);
   $("#mask_type_ffp2").prop('required', option);
@@ -281,7 +287,7 @@ function on_hepa_option_change() {
   })
 }
 
-function on_p_recurrent_change() {
+function on_exposure_change() {
   p_recurrent = $('input[type=radio][name=exposure_option]')
   p_recurrent.each(function (index) {
     if (this.checked) {
@@ -569,6 +575,8 @@ function validate_form(form) {
 
   // Validate cases < population
   if ($("#p_probabilistic_exposure").prop('checked')) {
+    // Set number of infected people as 1
+    $("#infected_people").val(1);
     var geographicPopulationObj = document.getElementById("geographic_population");
     var geographicCasesObj = document.getElementById("geographic_cases");
     removeErrorFor(geographicCasesObj);
@@ -913,9 +921,9 @@ $(document).ready(function () {
 
   // When the exposure_option changes we want to make its respective
   // children show/hide.
-  $("input[type=radio][name=exposure_option]").change(on_p_recurrent_change);
+  $("input[type=radio][name=exposure_option]").change(on_exposure_change);
   // Call the function now to handle forward/back button presses in the browser.
-  on_p_recurrent_change();
+  on_exposure_change();
 
   // When the mask_wearing_option changes we want to make its respective
   // children show/hide.

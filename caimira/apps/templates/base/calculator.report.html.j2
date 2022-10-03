@@ -57,7 +57,7 @@
 			{% if form.short_range_option == "short_range_yes" %} 
 				{% set scenario = alternative_scenarios.stats.values() | first %}
 				{% set long_range_prob_inf = scenario.probability_of_infection %}
-				{% set long_range_prob_specific_event = scenario.prob_specific_event if form.exposure_option == 'p_probabilistic_exposure' %}
+				{% set long_range_prob_probabilistic_exposure = scenario.prob_probabilistic_exposure if form.exposure_option == 'p_probabilistic_exposure' %}
 			{% else %}
 				{% set long_range_prob_inf = prob_inf %}
 			{% endif %}
@@ -131,7 +131,7 @@
 														In this scenario, assuming <b>short-range interactions</b> occur, the <b>probability of one exposed occupant getting infected can go as high as {{ prob_inf | non_zero_percentage }}</b>.
 													</div>
 												{% endif %}
-												{% block specific_event_probability %}
+												{% block probabilistic_exposure_probability %}
 													{% if form.exposure_option == "p_probabilistic_exposure" %}
 														<br>
 														<div class="align-self-center alert alert-dark mb-0" role="alert">
@@ -143,18 +143,15 @@
 															with {{ form.total_people }} occupants</b>, is
 															{% if form.short_range_option == 'short_range_yes' %}:
 																<ul>
-																	<li><b>{{ long_range_prob_specific_event | non_zero_percentage }}</b>, assuming all occupants are exposed equally (i.e. without short-range interactions).</li>
-																	<li><b>{{ prob_specific_event | non_zero_percentage }}</b>, assuming short-range interactions occur.</li>
+																	<li><b>{{ long_range_prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming all occupants are exposed equally (i.e. without short-range interactions).</li>
+																	<li><b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming short-range interactions occur.</li>
 																</ul>
 															{% else %}
-																<b>{{ prob_specific_event | non_zero_percentage }}</b>.
+																<b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>.
 															{% endif %}
-															{% if prob_specific_event > prob_inf %}
-																<p>The probability of infection is larger than above which signifies that the chosen number of infected occupants in the form was underestimated.</p>
-															{% endif %} 
 														</div>
 													{% endif %}
-												{% endblock %}
+												{% endblock probabilistic_exposure_probability %}
 											</div>
 											{% endblock report_summary %}
 										</div>

@@ -266,16 +266,16 @@ def test_prob_meet_infected_person(pop, cases, AB, exposed, infected, prob_meet_
 
 
 @pytest.mark.parametrize(
-    "population, cm, pop, cases, AB, specific_event_probability",[
+    "population, cm, pop, cases, AB, probabilistic_exposure_probability",[
         [populations[1], known_concentrations(lambda t: 36.),
         100000, 68, 5, 2.24124],
         [populations[0], known_concentrations(lambda t: 36.),
         100000, 68, 5, 1.875652],
     ])
-def test_specific_event_probability(population, cm,
-        pop, AB, cases, specific_event_probability):
+def test_probabilistic_exposure_probability(population, cm,
+        pop, AB, cases, probabilistic_exposure_probability):
     model = ExposureModel(cm, (), population, models.Cases(geographic_population=pop,
     geographic_cases=cases, ascertainment_bias=AB))
     np.testing.assert_allclose(
-        model.total_probability_rule(), specific_event_probability, rtol=0.05
+        model.total_probability_rule(), probabilistic_exposure_probability, rtol=0.05
     )

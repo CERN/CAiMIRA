@@ -131,7 +131,7 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
     ])
 
     prob = np.array(model.infection_probability()).mean()
-    prob_specific_event = np.array(model.total_probability_rule()).mean()
+    prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
     er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
     exposed_occupants = model.exposed.number
     expected_new_cases = np.array(model.expected_new_cases()).mean()
@@ -148,7 +148,7 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
         "cumulative_doses": list(cumulative_doses),
         "long_range_cumulative_doses": list(long_range_cumulative_doses),
         "prob_inf": prob,
-        "prob_specific_event": prob_specific_event,
+        "prob_probabilistic_exposure": prob_probabilistic_exposure,
         "emission_rate": er,
         "exposed_occupants": exposed_occupants,
         "expected_new_cases": expected_new_cases,
@@ -274,13 +274,13 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
     return scenarios
 
 
-def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[float], specific_event: bool):
+def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[float], probabilistic_exposure: bool):
     model = mc_model.build_model(size=_DEFAULT_MC_SAMPLE_SIZE)
-    if (specific_event):
+    if (probabilistic_exposure):
         # It means we have data to calculate the total_probability_rule
-        prob_specific_event = np.array(model.total_probability_rule()).mean()
+        prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
     else:
-        prob_specific_event = 0.
+        prob_probabilistic_exposure = 0.
 
     return {
         'probability_of_infection': np.mean(model.infection_probability()),
@@ -289,7 +289,7 @@ def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[fl
             np.mean(model.concentration(time))
             for time in sample_times
         ],
-        'prob_specific_event': prob_specific_event,
+        'prob_probabilistic_exposure': prob_probabilistic_exposure,
     }
 
 
@@ -312,16 +312,16 @@ def comparison_report(
         statistics = {}
     
     if (form.short_range_option == "short_range_yes" and form.exposure_option == "p_probabilistic_exposure"):
-        specific_event = True
+        probabilistic_exposure = True
     else:
-        specific_event = False
+        probabilistic_exposure = False
 
     with executor_factory() as executor:
         results = executor.map(
             scenario_statistics,
             scenarios.values(),
             [sample_times] * len(scenarios),
-            [specific_event] * len(scenarios),
+            [probabilistic_exposure] * len(scenarios),
             timeout=60,
         )
 

@@ -113,24 +113,23 @@ The recommended airflow rate for the HEPA filter should correspond to a total ai
 <p>Here we capture the information about the event being simulated.
 First enter the number of occupants in the space, if you have a (small) variation in the number of people, please input the average or consider using the expert tool.
 Within the number of people occupying the space, you should specify how many are infected.</p>
-<p>As an example, for a shared office with 4 people, where one person is infected, we enter 4 occupants and 1 infected person.</p><br/>
 <p>In case one would like to simulate an event happening at a given time and location, where the epidemiological situation is known, the tool allows for an estimation of the probability of on-site transmission, considering the chances that a given person in the event is infected.
-The user will need to select <b>Specific event</b>, input the number of inhabitants and the the weekly (7-day rolling average) value of new reported laboratory - ⁠confirmed cases at the event location, as well as the confidence level of these inputs. 
+The user will need to select <b>Probabilistic event</b>, input the number of inhabitants and the the weekly (7-day rolling average) value of new reported laboratory - ⁠confirmed cases at the event location, as well as the confidence level of these inputs. 
 The 7-day rolling average consists in the average of the previous 3 days to subsequent 3 days, generally reported by the different public health authorities (e.g. in Switzerland <a href="https://www.covid19.admin.ch/en/epidemiologic/case/d/development?epiRelDev=abs">here</a>). 
 These two inputs need to the related, i.e. the values of reported new cases and the number of inhabitants shall correspond to the a same geographical location. For example:</p>
 <ul>
   <li>Population of Geneva, CH: 508 000 inhabitants</li>
-  <li>New reported cases in the canton of Geneva: 1000 (7-day rolling avg)</li>
+  <li>New lab reported cases in the canton of Geneva: 1000 (7-day rolling avg)</li>
 </ul>
 <p>The confidence level allows for an ascertainment bias to the data. The user can add the following options:</p>
 <ul>
   <li>High - mandatory population wide surveillance</li>
-  <li>Medium - recommended population wide surveillance</li>
-  <li>Low - surveillance only for sympotmatic patients</li>
+  <li>Medium - recommended population-wide surveillance</li>
+  <li>Low - surveillance only for symptomatic patients</li>
 </ul>
 <p>Depending on the epidemiological situation in the choosen location, the public health surveillance can be more or less active. The confidence level will provide an ascertainment bias to the data collected by the user.</p>
-<p>The higher the incidence rate (i.e. new cases / population) the higher are the chances of having at least one infected occupant participating to the event.
-For general and recurrent layout simply select the <b>Recurrent exposure</b> option.</p>
+<p>The higher the incidence rate (i.e. new cases / population) the higher are the chances of having at least one infected occupant participating to the event.</p><br>
+<p>For general and recurrent layout simply select the <b>Deterministic exposure</b> option. As an example, for a shared office with 4 people, where one person is infected, we enter 4 occupants and 1 infected person.</p><br/>
 <br>
 <h4>Activity type</h4>
 <br>
