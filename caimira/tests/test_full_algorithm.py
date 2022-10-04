@@ -785,6 +785,7 @@ def test_concentration_with_shortrange(expo_sr_model,simple_expo_sr_model,time):
         )
 
 
+@retry(tries=10)
 def test_exposure_with_shortrange(expo_sr_model,simple_expo_sr_model):
     npt.assert_allclose(
         expo_sr_model.build_model(SAMPLE_SIZE).deposited_exposure().mean(),

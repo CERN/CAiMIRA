@@ -274,9 +274,9 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
     return scenarios
 
 
-def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[float], probabilistic_exposure: bool):
+def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[float], compute_prob_exposure: bool):
     model = mc_model.build_model(size=_DEFAULT_MC_SAMPLE_SIZE)
-    if (probabilistic_exposure):
+    if (compute_prob_exposure):
         # It means we have data to calculate the total_probability_rule
         prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
     else:
@@ -312,16 +312,16 @@ def comparison_report(
         statistics = {}
     
     if (form.short_range_option == "short_range_yes" and form.exposure_option == "p_probabilistic_exposure"):
-        probabilistic_exposure = True
+        compute_prob_exposure = True
     else:
-        probabilistic_exposure = False
+        compute_prob_exposure = False
 
     with executor_factory() as executor:
         results = executor.map(
             scenario_statistics,
             scenarios.values(),
             [sample_times] * len(scenarios),
-            [probabilistic_exposure] * len(scenarios),
+            [compute_prob_exposure] * len(scenarios),
             timeout=60,
         )
 

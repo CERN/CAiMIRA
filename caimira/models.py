@@ -1475,7 +1475,7 @@ class ExposureModel:
             # The influence of a higher number of simultainious infected people (> 4 - 5) yields an almost negligible contirbution to the total probability. 
             # To be on the safe side, a hard coded limit with a safety margin of 2x was set.
             # Therefore we decided a hard limit of 10 infected people.
-            for num_infected in range(1, max_num_infected):
+            for num_infected in range(1, max_num_infected + 1):
                 exposure_model = nested_replace(
                     self, {'concentration_model.infected.number': num_infected}
                 )
