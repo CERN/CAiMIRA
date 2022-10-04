@@ -916,7 +916,7 @@ class InfectedPopulation(_PopulationWithVirus):
 class Cases:
     """
     The geographical data to calculate the probability of having at least 1
-    new infection in a specific event.
+    new infection in a probabilistic exposure.
     """
     #: Geographic location population
     geographic_population: int = 0
@@ -931,12 +931,12 @@ class Cases:
         """Probability that a randomly selected individual in a focal population is infected."""
         return self.geographic_cases*self.ascertainment_bias/self.geographic_population
 
-    def probability_meet_infected_person(self, event, x) -> _VectorisedFloat:
+    def probability_meet_infected_person(self, event_population: int, n_infected: int) -> _VectorisedFloat:
         """
-        Probability to meet x infected persons in an event.
+        Probability to meet n_infected persons in an event.
         From https://doi.org/10.1038/s41562-020-01000-9.
         """
-        return sct.binom.pmf(x, event, self.probability_random_individual())
+        return sct.binom.pmf(n_infected, event_population, self.probability_random_individual())
 
 
 @dataclass(frozen=True)
@@ -1469,19 +1469,19 @@ class ExposureModel:
     def total_probability_rule(self) -> _VectorisedFloat:
         if (self.geographical_data.geographic_population != 0 and self.geographical_data.geographic_cases != 0): 
             sum_probability = 0.0
-            # Create an equivalent exposure model but with i infected cases
+            # Create an equivalent exposure model but changing the number of infected cases.
             total_people = self.concentration_model.infected.number + self.exposed.number
-            X = (total_people if total_people < 10 else 10) 
+            max_num_infected = (total_people if total_people < 10 else 10) 
             # The influence of a higher number of simultainious infected people (> 4 - 5) yields an almost negligible contirbution to the total probability. 
             # To be on the safe side, a hard coded limit with a safety margin of 2x was set.
             # Therefore we decided a hard limit of 10 infected people.
-            for x in range(1, X):
+            for num_infected in range(1, max_num_infected):
                 exposure_model = nested_replace(
-                    self, {'concentration_model.infected.number': x}
+                    self, {'concentration_model.infected.number': num_infected}
                 )
                 prob_exposed_occupant = exposure_model.infection_probability().mean() / 100
                 # By means of a Binomial Distribution
-                sum_probability += (prob_exposed_occupant)*self.geographical_data.probability_meet_infected_person(self.exposed.number, x)
+                sum_probability += (prob_exposed_occupant)*self.geographical_data.probability_meet_infected_person(self.exposed.number, num_infected)
             return sum_probability * 100
         else:
             return 0
