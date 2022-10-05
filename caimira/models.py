@@ -439,7 +439,7 @@ class Virus:
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
 
-    #: Number of incubation days
+    #: Number of days the infector is contagious
     infectiousness_days: int = 14
 
     def halflife(self, humidity: _VectorisedFloat, inside_temp: _VectorisedFloat) -> _VectorisedFloat:
@@ -1482,10 +1482,12 @@ class ExposureModel:
                 exposure_model = nested_replace(
                     self, {'concentration_model.infected.number': num_infected}
                 )
-                prob_exposed_occupant = exposure_model.infection_probability().mean() / 100
-                # By means of a Binomial Distribution
-                sum_probability += (prob_exposed_occupant * 
-                    self.geographical_data.probability_meet_infected_person(self.concentration_model.infected.virus, self.exposed.number, num_infected))
+                prob_ind = exposure_model.infection_probability().mean() / 100
+                exposed_ind = self.exposed.number
+                # By means of the total probability rule
+                prob_at_least_one_infected = 1 - (1 - prob_ind)**(exposed_ind-1)
+                sum_probability += (prob_at_least_one_infected * 
+                    self.geographical_data.probability_meet_infected_person(self.concentration_model.infected.virus, exposed_ind, num_infected))
             return sum_probability * 100
         else:
             return 0

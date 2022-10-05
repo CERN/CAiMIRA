@@ -276,9 +276,9 @@ def test_prob_meet_infected_person(pop, cases, AB, exposed, infected, prob_meet_
 @pytest.mark.parametrize(
     "population, cm, pop, cases, AB, probabilistic_exposure_probability",[
         [populations[1], known_concentrations(lambda t: 36.),
-        100000, 68, 5, 27.537276],
+        100000, 68, 5, 38.594805],
         [populations[0], known_concentrations(lambda t: 36.),
-        100000, 68, 5, 23.540145],
+        100000, 121, 2, 29.138216],
     ])
 def test_probabilistic_exposure_probability(population, cm,
         pop, AB, cases, probabilistic_exposure_probability):
