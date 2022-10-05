@@ -234,43 +234,51 @@ def test_infectious_dose_vectorisation(sr_model):
 
 
 @pytest.mark.parametrize(
-    "pop, cases, AB, prob_random_individual", [
-        [100_000, 67, 5, 0.00335],
-        [200_000, 121, 5, 0.003025],
-        [np.array([100_000, 200_000]), 67, 10, np.array([0.0067, 0.00335])],
-        [150_000, np.array([67, 121]), 2, np.array([0.00089333, 0.00161333])],
-        [np.array([100_000, 200_000]), np.array([67, 121]), 5, np.array([0.00335, 0.003025])]
+    "pop, cases, infectiousness_days, AB, prob_random_individual", [
+        [100_000, 68, 7, 5, 0.02345],
+        [200_000, 121, np.array([7, 14]), 5, np.array([0.021175, 0.042350])],
+        [np.array([100_000, 200_000]), 68, 14, 10, np.array([0.0952, 0.0476])],
+        [150_000, np.array([68, 121]), 14, 2, np.array([0.012693, 0.022587])],
+        [np.array([100_000, 200_000]), np.array([68, 121]), 7, 5, np.array([0.023450, 0.021175])]
     ]
 )
-def test_probability_random_individual(pop, cases, AB, prob_random_individual):
-    model = models.Cases(geographic_population=pop, geographic_cases=cases, 
+def test_probability_random_individual(pop, cases, infectiousness_days, AB, prob_random_individual):
+    cases = models.Cases(geographic_population=pop, geographic_cases=cases, 
                         ascertainment_bias=AB)
+    virus=models.SARSCoV2(
+        viral_load_in_sputum=1e9,
+        infectious_dose=50.,
+        viable_to_RNA_ratio = 0.5,
+        transmissibility_factor=1,
+        infectiousness_days=infectiousness_days,
+    )
     np.testing.assert_allclose(
-        model.probability_random_individual(), prob_random_individual, rtol=0.05
+        cases.probability_random_individual(virus), prob_random_individual, rtol=0.05
     )
 
 
 @pytest.mark.parametrize(
     "pop, cases, AB, exposed, infected, prob_meet_infected_person", [
-        [100_000, 67, 5, 10, 2, 0.00049],
-        [200_000, 121, 5, 10, 1, 0.02944],
-        [np.array([100_000, 200_000]), 67, 10, 15, 2, np.array([0.00432, 0.00113])],
-        [150_000, np.array([67, 121]), 2, np.array([10, 15]), np.array([1, 2]), np.array([0.00886, 0.00027])],
+        [100_000, 68, 5, 10, 1, 0.306889],
+        [200_000, 121, 5, 10, 1, 0.286890],
+        [np.array([100_000, 200_000]), 68, 10, 15, 2, np.array([0.259207, 0.126199])],
+        [150_000, np.array([68, 121]), 2, np.array([10, 15]), np.array([1, 2]), np.array([0.113147, 0.039803])],
     ]
 )
 def test_prob_meet_infected_person(pop, cases, AB, exposed, infected, prob_meet_infected_person):
-    model = models.Cases(geographic_population=pop, geographic_cases=cases, 
+    cases = models.Cases(geographic_population=pop, geographic_cases=cases, 
                         ascertainment_bias=AB)
-    np.testing.assert_allclose(model.probability_meet_infected_person(exposed, infected),
+    virus = models.Virus.types['SARS_CoV_2']
+    np.testing.assert_allclose(cases.probability_meet_infected_person(virus, exposed, infected),
                             prob_meet_infected_person, rtol=0.05)
 
 
 @pytest.mark.parametrize(
     "population, cm, pop, cases, AB, probabilistic_exposure_probability",[
         [populations[1], known_concentrations(lambda t: 36.),
-        100000, 68, 5, 2.24124],
+        100000, 68, 5, 27.537276],
         [populations[0], known_concentrations(lambda t: 36.),
-        100000, 68, 5, 1.875652],
+        100000, 68, 5, 23.540145],
     ])
 def test_probabilistic_exposure_probability(population, cm,
         pop, AB, cases, probabilistic_exposure_probability):

@@ -439,6 +439,9 @@ class Virus:
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
 
+    #: Number of incubation days
+    infectiousness_days: int = 14
+
     def halflife(self, humidity: _VectorisedFloat, inside_temp: _VectorisedFloat) -> _VectorisedFloat:
         # Biological decay (inactivation of the virus in air) - virus 
         # dependent and function of humidity
@@ -927,16 +930,16 @@ class Cases:
     #: Number of new cases confidence level
     ascertainment_bias: int = 0
 
-    def probability_random_individual(self) -> _VectorisedFloat:
+    def probability_random_individual(self, virus: Virus) -> _VectorisedFloat:
         """Probability that a randomly selected individual in a focal population is infected."""
-        return self.geographic_cases*self.ascertainment_bias/self.geographic_population
+        return self.geographic_cases*virus.infectiousness_days*self.ascertainment_bias/self.geographic_population
 
-    def probability_meet_infected_person(self, event_population: int, n_infected: int) -> _VectorisedFloat:
+    def probability_meet_infected_person(self, virus: Virus, event_population: int, n_infected: int) -> _VectorisedFloat:
         """
         Probability to meet n_infected persons in an event.
         From https://doi.org/10.1038/s41562-020-01000-9.
         """
-        return sct.binom.pmf(n_infected, event_population, self.probability_random_individual())
+        return sct.binom.pmf(n_infected, event_population, self.probability_random_individual(virus))
 
 
 @dataclass(frozen=True)
@@ -1481,7 +1484,8 @@ class ExposureModel:
                 )
                 prob_exposed_occupant = exposure_model.infection_probability().mean() / 100
                 # By means of a Binomial Distribution
-                sum_probability += (prob_exposed_occupant)*self.geographical_data.probability_meet_infected_person(self.exposed.number, num_infected)
+                sum_probability += (prob_exposed_occupant * 
+                    self.geographical_data.probability_meet_infected_person(self.concentration_model.infected.virus, self.exposed.number, num_infected))
             return sum_probability * 100
         else:
             return 0
