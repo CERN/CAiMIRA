@@ -48,21 +48,21 @@ GenevaTemperatures = {
 # Studies: An Ongoing Systematic Review - Updated September 8, 2022.
 # https://view-hub.org/resources
 vaccine_primary_host_immunity = {
-    'AZD1222_(AstraZeneca)': 0.56474,
+    'AZD1222_(AstraZeneca)': 0.589293,
     'AZD1222_(AstraZeneca)_and_BNT162b2_(Pfizer)': 0.7865,
-    'AZD1222_(AstraZeneca)_and_any_mRNA_-_heterologous': 0.752143,
+    'AZD1222_(AstraZeneca)_and_any_mRNA_-_heterologous': 0.81,
     'Ad26.COV2.S_(Janssen)': 0.551278,
     'Any_mRNA_-_heterologous': 0.93875,
     'BBIBP-CorV_(Beijing_CNBG)': 0.4325,
-    'BNT162b2_(Pfizer)': 0.628452,
-    'BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)': 0.569803,
-    'CoronaVac_(Sinovac)': 0.292923,
+    'BNT162b2_(Pfizer)': 0.660272,
+    'BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)': 0.586319,
+    'CoronaVac_(Sinovac)': 0.317333,
     'CoronaVac_(Sinovac)_and_AZD1222_(AstraZeneca)': 0.472,
     'CoronaVac_(Sinovac)_and_AZD1222_(AstraZeneca)_-_heterologous': 0.74,
     'CoronaVac_(Sinovac)_and_BNT162b2_(Pfizer)': 0.7965,
     'Covishield': 0.98,
     'Sputnik_V_(Gamaleya)': 0.696,
-    'mRNA-1273_(Moderna)': 0.690527,
+    'mRNA-1273_(Moderna)': 0.730148,
 }
 
 vaccine_booster_host_immunity = [
@@ -73,16 +73,15 @@ vaccine_booster_host_immunity = [
     {'primary series vaccine': 'Ad26.COV2.S_(Janssen)', 'booster vaccine': 'Ad26.COV2.S_(Janssen)', 'VE': 0.492667},
     {'primary series vaccine': 'Ad26.COV2.S_(Janssen)', 'booster vaccine': 'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)', 'VE': 0.79},
     {'primary series vaccine': 'BNT162b2_(Pfizer)', 'booster vaccine': 'AZD1222_(AstraZeneca)', 'VE': 0.801},
-    {'primary series vaccine': 'BNT162b2_(Pfizer)', 'booster vaccine': 'BNT162b2_(Pfizer)', 'VE': 0.599132},
+    {'primary series vaccine': 'BNT162b2_(Pfizer)', 'booster vaccine': 'BNT162b2_(Pfizer)', 'VE': 0.60712},
     {'primary series vaccine': 'BNT162b2_(Pfizer)', 'booster vaccine': 'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)', 'VE': 0.632633},
     {'primary series vaccine': 'BNT162b2_(Pfizer)', 'booster vaccine': 'mRNA-1273_(Moderna)', 'VE': 0.716786},
     {'primary series vaccine': 'BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)', 'booster vaccine': 'BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)', 'VE': 0.645},
     {'primary series vaccine': 'BNT162b2_(Pfizer)_(3_doses)', 'booster vaccine': 'BNT162b2_(Pfizer)_(4th_dose)', 'VE': 0.962},
     {'primary series vaccine': 'CoronaVac_(Sinovac)', 'booster vaccine': 'AZD1222_(AstraZeneca)', 'VE': 0.9405},
-    {'primary series vaccine': 'CoronaVac_(Sinovac)', 'booster vaccine': 'BNT162b2_(Pfizer)', 'VE': 0.649941},
-    {'primary series vaccine': 'CoronaVac_(Sinovac)', 'booster vaccine': 'CoronaVac_(Sinovac)', 'VE': 0.605429},
-    {'primary series vaccine': 'CoronaVac_(Sinovac)', 'booster vaccine': 'CoronaVac_(Sinovac)', 'VE': 0.289857},
+    {'primary series vaccine': 'CoronaVac_(Sinovac)', 'booster vaccine': 'BNT162b2_(Pfizer)', 'VE': 0.690563},
+    {'primary series vaccine': 'CoronaVac_(Sinovac)', 'booster vaccine': 'CoronaVac_(Sinovac)', 'VE': 0.52225},
     {'primary series vaccine': 'mRNA-1273_(Moderna)', 'booster vaccine': 'BNT162b2_(Pfizer)', 'VE': 0.842143},
     {'primary series vaccine': 'mRNA-1273_(Moderna)', 'booster vaccine': 'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)', 'VE': 0.632633},
-    {'primary series vaccine': 'mRNA-1273_(Moderna)', 'booster vaccine': 'mRNA-1273_(Moderna)', 'VE': 0.618512}
+    {'primary series vaccine': 'mRNA-1273_(Moderna)', 'booster vaccine': 'mRNA-1273_(Moderna)', 'VE': 0.633238}
 ]
