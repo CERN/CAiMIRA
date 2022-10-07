@@ -486,14 +486,14 @@ class FormData:
         if "respiratory_activity" not in dict_keys:
             raise TypeError(f'Unable to fetch "respiratory_activity" key. Got "{dict_keys[1]}".')
             
-        result = []
-        for physical_activity in self.aria_precise['physical_activity']:
-            result.append(physical_activity['type'])
+        if type(self.aria_precise['physical_activity']) is not str:
+            raise TypeError('The physical activities should be a single string.')
 
         if type(self.aria_precise['respiratory_activity']) is not list:
             raise TypeError('The respiratory activities should be in a list.')
 
         respiratory_dict = {}
+        total_percentage = 0
         for respiratory_activity in self.aria_precise['respiratory_activity']:
             if type(respiratory_activity) is not dict:
                 raise TypeError('Each respiratory activity should be defined in a dictionary.')
@@ -503,9 +503,12 @@ class FormData:
             if "percentage" not in dict_keys:
                 raise TypeError(f'Unable to fetch "percentage" key. Got "{dict_keys[1]}".')
             respiratory_dict[respiratory_activity['type']] = respiratory_activity['percentage']
+            total_percentage += respiratory_activity['percentage']
         
-        result.append(respiratory_dict)
-        return tuple(result)
+        if total_percentage != 100:
+            raise ValueError(f'The sum of all respiratory activities should be 100. Got {total_percentage}.')
+            
+        return (self.aria_precise['physical_activity'], respiratory_dict)
 
     def infected_population(self) -> mc.InfectedPopulation:
         # Initializes the virus
@@ -552,7 +555,7 @@ class FormData:
             'gym':('Heavy exercise', 'Breathing'),
             # ARIA UI activity types
             'household-day': (
-                'Seated',
+                'Light activity',
                 {'Breathing': 5, 'Speaking': 5}
             ),
             'household-night': (
@@ -560,11 +563,11 @@ class FormData:
                 {'Breathing': 7, 'Speaking': 3}
             ),
             'primary-school': (
-                'Seated',
+                'Light activity',
                 {'Breathing': 5, 'Speaking': 5}
             ),
             'secondary-school': (
-                'Seated',
+                'Light activity',
                 {'Breathing': 7, 'Speaking': 3}
             ),
             'university': (
@@ -579,6 +582,7 @@ class FormData:
         }
         
         [activity_defn, expiration_defn] = scenario_activity_and_expiration[self.activity_type]
+        print(scenario_activity_and_expiration[self.activity_type])
         activity = activity_distributions[activity_defn]
         expiration = build_expiration(expiration_defn)
 
@@ -609,10 +613,10 @@ class FormData:
             'workshop': 'Moderate activity',
             'lab':'Light activity',
             'gym':'Heavy exercise',
-            'household-day': 'Seated',
+            'household-day': 'Light activity',
             'household-night': 'Seated', 
-            'primary-school': 'Seated', 
-            'secondary-school': 'Seated', 
+            'primary-school': 'Light activity', 
+            'secondary-school': 'Light activity', 
             'university': 'Seated', 
             'restaurant': 'Seated',
             'precise': 'Seated',
