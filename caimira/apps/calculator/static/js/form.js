@@ -335,16 +335,16 @@ function update_booster_warning() {
 
 function update_booster_dropdown(url) {
   let primary_vaccine_option = $("#vaccine_type").find(":selected").val();
-  $($("#vaccine_booster_type > option").get().reverse()).each(function() {
-    if ($(this).attr('data-primary-vaccine') != primary_vaccine_option && $(this).attr('data-primary-vaccine') != "Other") $(this).hide();
-    else {
-      $(this).show();
-      if (url.searchParams.has('vaccine_type')) {
-        if (url.searchParams.get('vaccine_type') != primary_vaccine_option) $(this).prop('selected', true); // Select first of the list if not from the URL
-      }
-      else $(this).prop('selected', true);
-    }
+  $("#vaccine_booster_type option").remove();
+  vaccine_booster_host_immunity.forEach(booster => {
+    if (booster['primary series vaccine'] == primary_vaccine_option) 
+      $("#vaccine_booster_type").append(`<option data-primary-vaccine=${primary_vaccine_option} value=${booster['booster vaccine']}>${booster['booster vaccine'].replaceAll('_', ' ')}</option>`);
   });
+  $("#vaccine_booster_type").append(`<option value='Other'>Other</option>`);
+
+  let booster_vaccine = url.searchParams.has('vaccine_booster_type') ? url.searchParams.get('vaccine_booster_type') : null;
+  $(`#vaccine_booster_type > option[value="${booster_vaccine}"`).attr('selected', true);
+
   update_booster_warning();
 }
 
@@ -896,7 +896,7 @@ $(document).ready(function () {
         $("#sr_interactions").text(index - 1);
       }
 
-      else if (name == 'sensor_in_use' || name == 'vaccine_booster_type') {
+      else if (name == 'sensor_in_use' || name == 'vaccine_type' || name == 'vaccine_booster_type') {
         // Validation after
       }
 
@@ -908,11 +908,15 @@ $(document).ready(function () {
     }
   });
 
-  let primary_vaccine = url.searchParams.has('vaccine_type') ? url.searchParams.get('vaccine_type') : null;
-  let booster_vaccine = url.searchParams.has('vaccine_booster_type') ? url.searchParams.get('vaccine_booster_type') : null;
-  $(`#vaccine_booster_type > option[data-primary-vaccine="${primary_vaccine}"][value="${booster_vaccine}"]`).attr('selected', true);
-
   // Handle default URL values if they are not explicitly defined.
+
+  // Populate primary vaccine dropdown
+  $("#vaccine_type option").remove();
+  let primary_vaccine = url.searchParams.has('vaccine_type') ? url.searchParams.get('vaccine_type') : null;
+  vaccine_primary_host_immunity.forEach(vaccine => $("#vaccine_type").append(`<option value=${vaccine}>${vaccine.replaceAll('_', ' ')}</option>`));
+  $(`#vaccine_type > option[value="${primary_vaccine}"]`).attr('selected', true);
+
+  // Handle geographic location input
   if (Array.from(url.searchParams).length > 0) {
     if (!url.searchParams.has('location_name')) {
       $('[name="location_name"]').val('Geneva')
@@ -925,7 +929,6 @@ $(document).ready(function () {
       $('[name="location_longitude"]').val('6.14275')
     }
   }
-
 
   // When the document is ready, deal with the fact that we may be here
   // as a result of a forward/back browser action. If that is the case, update
@@ -1281,3 +1284,47 @@ function objectifyForm(formArray) {
     returnArray[formArray[i]['name']] = formArray[i]['value'];
   return returnArray;
 }
+
+// ------- VACCINATION DATA -------
+
+// From data available in Results of COVID-19 Vaccine Effectiveness
+// Studies: An Ongoing Systematic Review - Updated September 8, 2022.
+// https://view-hub.org/resources
+vaccine_primary_host_immunity = [
+  'AZD1222_(AstraZeneca)',
+  'AZD1222_(AstraZeneca)_and_BNT162b2_(Pfizer)',
+  'AZD1222_(AstraZeneca)_and_any_mRNA_-_heterologous',
+  'Ad26.COV2.S_(Janssen)',
+  'Any_mRNA_-_heterologous',
+  'BBIBP-CorV_(Beijing_CNBG)',
+  'BNT162b2_(Pfizer)',
+  'BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)',
+  'CoronaVac_(Sinovac)',
+  'CoronaVac_(Sinovac)_and_AZD1222_(AstraZeneca)',
+  'CoronaVac_(Sinovac)_and_AZD1222_(AstraZeneca)_-_heterologous',
+  'CoronaVac_(Sinovac)_and_BNT162b2_(Pfizer)',
+  'Covishield',
+  'Sputnik_V_(Gamaleya)',
+  'mRNA-1273_(Moderna)',
+]
+
+vaccine_booster_host_immunity = [
+  {'primary series vaccine': 'AZD1222_(AstraZeneca)', 'booster vaccine': 'AZD1222_(AstraZeneca),'},
+  {'primary series vaccine': 'AZD1222_(AstraZeneca)', 'booster vaccine': 'BNT162b2_(Pfizer)',},
+  {'primary series vaccine': 'AZD1222_(AstraZeneca)', 'booster vaccine': 'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)',},
+  {'primary series vaccine': 'AZD1222_(AstraZeneca)', 'booster vaccine': 'mRNA-1273_(Moderna)',},
+  {'primary series vaccine': 'Ad26.COV2.S_(Janssen)', 'booster vaccine': 'Ad26.COV2.S_(Janssen)',},
+  {'primary series vaccine': 'Ad26.COV2.S_(Janssen)', 'booster vaccine': 'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)',},
+  {'primary series vaccine': 'BNT162b2_(Pfizer)', 'booster vaccine': 'AZD1222_(AstraZeneca)',},
+  {'primary series vaccine': 'BNT162b2_(Pfizer)', 'booster vaccine': 'BNT162b2_(Pfizer)',},
+  {'primary series vaccine': 'BNT162b2_(Pfizer)', 'booster vaccine': 'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)',},
+  {'primary series vaccine': 'BNT162b2_(Pfizer)', 'booster vaccine': 'mRNA-1273_(Moderna)',},
+  {'primary series vaccine': 'BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)', 'booster vaccine': 'BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)',},
+  {'primary series vaccine': 'BNT162b2_(Pfizer)_(3_doses)', 'booster vaccine': 'BNT162b2_(Pfizer)_(4th_dose)',},
+  {'primary series vaccine': 'CoronaVac_(Sinovac)', 'booster vaccine': 'AZD1222_(AstraZeneca)',},
+  {'primary series vaccine': 'CoronaVac_(Sinovac)', 'booster vaccine': 'BNT162b2_(Pfizer)',},
+  {'primary series vaccine': 'CoronaVac_(Sinovac)', 'booster vaccine': 'CoronaVac_(Sinovac)',},
+  {'primary series vaccine': 'mRNA-1273_(Moderna)', 'booster vaccine': 'BNT162b2_(Pfizer)',},
+  {'primary series vaccine': 'mRNA-1273_(Moderna)', 'booster vaccine': 'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)',},
+  {'primary series vaccine': 'mRNA-1273_(Moderna)', 'booster vaccine': 'mRNA-1273_(Moderna)',}
+]
