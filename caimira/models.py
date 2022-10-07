@@ -934,7 +934,7 @@ class Cases:
         """Probability that a randomly selected individual in a focal population is infected."""
         return self.geographic_cases*virus.infectiousness_days*self.ascertainment_bias/self.geographic_population
 
-    def probability_meet_infected_person(self, virus: Virus, event_population: int, n_infected: int) -> _VectorisedFloat:
+    def probability_meet_infected_person(self, virus: Virus, n_infected: int, event_population: int) -> _VectorisedFloat:
         """
         Probability to meet n_infected persons in an event.
         From https://doi.org/10.1038/s41562-020-01000-9.
@@ -1483,11 +1483,12 @@ class ExposureModel:
                     self, {'concentration_model.infected.number': num_infected}
                 )
                 prob_ind = exposure_model.infection_probability().mean() / 100
-                exposed_ind = self.exposed.number
+                print(prob_ind)
+                n = total_people - num_infected
                 # By means of the total probability rule
-                prob_at_least_one_infected = 1 - (1 - prob_ind)**(exposed_ind-1)
+                prob_at_least_one_infected = 1 - (1 - prob_ind)**n
                 sum_probability += (prob_at_least_one_infected * 
-                    self.geographical_data.probability_meet_infected_person(self.concentration_model.infected.virus, exposed_ind, num_infected))
+                    self.geographical_data.probability_meet_infected_person(self.concentration_model.infected.virus, num_infected, total_people))
             return sum_probability * 100
         else:
             return 0

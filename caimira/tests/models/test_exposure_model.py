@@ -235,7 +235,7 @@ def test_infectious_dose_vectorisation(sr_model):
 
 @pytest.mark.parametrize(
     "pop, cases, infectiousness_days, AB, prob_random_individual", [
-        [100_000, 68, 7, 5, 0.02345],
+        [100_000, 68, 7, 5, 0.023800],
         [200_000, 121, np.array([7, 14]), 5, np.array([0.021175, 0.042350])],
         [np.array([100_000, 200_000]), 68, 14, 10, np.array([0.0952, 0.0476])],
         [150_000, np.array([68, 121]), 14, 2, np.array([0.012693, 0.022587])],
@@ -259,31 +259,37 @@ def test_probability_random_individual(pop, cases, infectiousness_days, AB, prob
 
 @pytest.mark.parametrize(
     "pop, cases, AB, exposed, infected, prob_meet_infected_person", [
-        [100_000, 68, 5, 10, 1, 0.306889],
-        [200_000, 121, 5, 10, 1, 0.286890],
-        [np.array([100_000, 200_000]), 68, 10, 15, 2, np.array([0.259207, 0.126199])],
-        [150_000, np.array([68, 121]), 2, np.array([10, 15]), np.array([1, 2]), np.array([0.113147, 0.039803])],
+        [100000, 68, 5, 10, 1, 0.321509274],
+        [100000, 121, 5, 20, 1, 0.302950694],
+        [100000, np.array([68, 121]), 5, np.array([10, 20]), 1, np.array([0.321509274, 0.302950694])],
     ]
 )
 def test_prob_meet_infected_person(pop, cases, AB, exposed, infected, prob_meet_infected_person):
     cases = models.Cases(geographic_population=pop, geographic_cases=cases, 
                         ascertainment_bias=AB)
     virus = models.Virus.types['SARS_CoV_2']
-    np.testing.assert_allclose(cases.probability_meet_infected_person(virus, exposed, infected),
+    np.testing.assert_allclose(cases.probability_meet_infected_person(virus, infected, exposed+infected),
                             prob_meet_infected_person, rtol=0.05)
 
 
 @pytest.mark.parametrize(
-    "population, cm, pop, cases, AB, probabilistic_exposure_probability",[
-        [populations[1], known_concentrations(lambda t: 36.),
-        100000, 68, 5, 38.594805],
-        [populations[0], known_concentrations(lambda t: 36.),
-        100000, 121, 2, 29.138216],
+    "exposed_population, cm, pop, cases, AB, probabilistic_exposure_probability",[
+        [10, known_concentrations(lambda t: 36.),
+        100000, 68, 5, 41.51920685],
+        [20, known_concentrations(lambda t: 72.),
+        100000, 68, 5, 64.09068488],
+        [30, known_concentrations(lambda t: 1.2),
+        100000, 68, 5, 55.93154502],
     ])
-def test_probabilistic_exposure_probability(population, cm,
+def test_probabilistic_exposure_probability(exposed_population, cm,
         pop, AB, cases, probabilistic_exposure_probability):
+
+    population = models.Population(
+        exposed_population, models.PeriodicInterval(120, 60), models.Mask.types['Type I'],
+        models.Activity.types['Standing'], host_immunity=0.,)
     model = ExposureModel(cm, (), population, models.Cases(geographic_population=pop,
-    geographic_cases=cases, ascertainment_bias=AB))
+        geographic_cases=cases, ascertainment_bias=AB),)
+
     np.testing.assert_allclose(
         model.total_probability_rule(), probabilistic_exposure_probability, rtol=0.05
     )
