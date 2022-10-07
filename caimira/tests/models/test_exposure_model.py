@@ -225,3 +225,26 @@ def test_infectious_dose_vectorisation(sr_model):
     inf_probability = model.infection_probability()
     assert isinstance(inf_probability, np.ndarray)
     assert inf_probability.shape == (3, )
+
+
+@pytest.mark.parametrize(
+    ["cm", "host_immunity", "expected_probability"],
+    [
+        [known_concentrations(lambda t: 36.), np.array([0.25, 0.5]), np.array([57.40415859, 41.03956914])],
+        [known_concentrations(lambda t: 36.), np.array([0., 1.]), np.array([67.95037626, 0.])],
+    ]
+)
+def test_host_immunity_vectorisation(cm, host_immunity, expected_probability):
+    population = models.Population(
+        10, halftime, models.Mask(np.array([0.3, 0.35])),
+        models.Activity.types['Standing'], host_immunity=host_immunity
+    )
+    model = ExposureModel(cm, (), population)
+    inf_probability = model.infection_probability()
+
+    np.testing.assert_almost_equal(
+        inf_probability, expected_probability, decimal=1
+    )
+
+    assert isinstance(inf_probability, np.ndarray)
+    assert inf_probability.shape == (2, )
