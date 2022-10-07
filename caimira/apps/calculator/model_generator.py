@@ -5,6 +5,7 @@ import logging
 import typing
 import ast
 import json 
+import re
 
 import numpy as np
 
@@ -311,6 +312,55 @@ class FormData:
             raise ValueError("mechanical_ventilation_type cannot be 'not-applicable' if "
                              "ventilation_type is 'mechanical_ventilation'")
 
+        # Validate ARIA inputs - breaks
+        if self.aria_breaks != []:
+            if type(self.aria_breaks) is not list:
+                raise TypeError(f'All breaks should be in a list. Got {type(self.aria_breaks)}.')
+            for input_break in self.aria_breaks:
+                # Input validations.
+                if type(input_break) is not dict:
+                    raise TypeError(f'Each break should be a dictionary. Got {type(input_break)}.')
+                dict_keys = list(input_break.keys())
+                if "start_time" not in input_break:
+                    raise TypeError(f'Unable to fetch "start_time" key. Got "{dict_keys[0]}".')
+                if "finish_time" not in input_break:
+                    raise TypeError(f'Unable to fetch "finish_time" key. Got "{dict_keys[1]}".')
+                for time in input_break.values():
+                    if not re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$").match(time):
+                        raise TypeError(f'Wrong time format - "HH:MM". Got "{time}".')
+
+        # Validate ARIA inputs - precise activity
+        if self.aria_precise != {}:
+            if type(self.aria_precise) is not dict:
+                raise TypeError('The precise activities should be in a dictionary.')
+
+            dict_keys = list(self.aria_precise.keys())
+            if "physical_activity" not in dict_keys:
+                raise TypeError(f'Unable to fetch "physical_activity" key. Got "{dict_keys[0]}".')
+            if "respiratory_activity" not in dict_keys:
+                raise TypeError(f'Unable to fetch "respiratory_activity" key. Got "{dict_keys[1]}".')
+                
+            if type(self.aria_precise['physical_activity']) is not str:
+                raise TypeError('The physical activities should be a single string.')
+
+            if type(self.aria_precise['respiratory_activity']) is not list:
+                raise TypeError('The respiratory activities should be in a list.')
+
+            total_percentage = 0
+            for respiratory_activity in self.aria_precise['respiratory_activity']:
+                if type(respiratory_activity) is not dict:
+                    raise TypeError('Each respiratory activity should be defined in a dictionary.')
+                dict_keys = list(respiratory_activity.keys())
+                if "type" not in dict_keys:
+                    raise TypeError(f'Unable to fetch "type" key. Got "{dict_keys[0]}".')
+                if "percentage" not in dict_keys:
+                    raise TypeError(f'Unable to fetch "percentage" key. Got "{dict_keys[1]}".')
+                total_percentage += respiratory_activity['percentage']
+                    
+            if total_percentage != 100:
+                raise ValueError(f'The sum of all respiratory activities should be 100. Got {total_percentage}.')
+        
+
     def build_mc_model(self) -> mc.ExposureModel:
         # Initializes room with volume either given directly or as product of area and height
         if self.volume_type == 'room_volume_explicit':
@@ -473,40 +523,9 @@ class FormData:
         return mask
 
     def generate_aria_activity_expiration(self) -> typing.Tuple[typing.Any, ...]:
-        # Input validations.
-        if type(self.aria_precise) is not dict:
-            raise TypeError('The precise activities should be in a dictionary.')
-
-        if len(self.aria_precise) == 0: # If no precise activity was defined.
-            return ()
-
-        dict_keys = list(self.aria_precise.keys())
-        if "physical_activity" not in dict_keys:
-            raise TypeError(f'Unable to fetch "physical_activity" key. Got "{dict_keys[0]}".')
-        if "respiratory_activity" not in dict_keys:
-            raise TypeError(f'Unable to fetch "respiratory_activity" key. Got "{dict_keys[1]}".')
-            
-        if type(self.aria_precise['physical_activity']) is not str:
-            raise TypeError('The physical activities should be a single string.')
-
-        if type(self.aria_precise['respiratory_activity']) is not list:
-            raise TypeError('The respiratory activities should be in a list.')
-
         respiratory_dict = {}
-        total_percentage = 0
         for respiratory_activity in self.aria_precise['respiratory_activity']:
-            if type(respiratory_activity) is not dict:
-                raise TypeError('Each respiratory activity should be defined in a dictionary.')
-            dict_keys = list(respiratory_activity.keys())
-            if "type" not in dict_keys:
-                raise TypeError(f'Unable to fetch "type" key. Got "{dict_keys[0]}".')
-            if "percentage" not in dict_keys:
-                raise TypeError(f'Unable to fetch "percentage" key. Got "{dict_keys[1]}".')
             respiratory_dict[respiratory_activity['type']] = respiratory_activity['percentage']
-            total_percentage += respiratory_activity['percentage']
-        
-        if total_percentage != 100:
-            raise ValueError(f'The sum of all respiratory activities should be 100. Got {total_percentage}.')
             
         return (self.aria_precise['physical_activity'], respiratory_dict)
 
@@ -582,7 +601,6 @@ class FormData:
         }
         
         [activity_defn, expiration_defn] = scenario_activity_and_expiration[self.activity_type]
-        print(scenario_activity_and_expiration[self.activity_type])
         activity = activity_distributions[activity_defn]
         expiration = build_expiration(expiration_defn)
 
@@ -721,17 +739,6 @@ class FormData:
     def generate_aria_break_times(self) -> models.BoundarySequence_t:
         break_times = []
         for n in self.aria_breaks:
-            # Input validations.
-            if type(n) is not dict:
-                raise TypeError('Each break should be a dictionary.')
-            dict_keys = list(n.keys())
-            if "start_time" not in n:
-                raise TypeError(f'Unable to fetch "start_time" key. Got "{dict_keys[0]}".')
-            if "finish_time" not in n:
-                raise TypeError(f'Unable to fetch "finish_time" key. Got "{dict_keys[1]}".')
-            for time in n.values():
-                if not datetime.datetime.strptime(time, '%H:%M'):
-                    raise TypeError(f'Wrong time format - "HH:MM". Got "{time}".')
             # Parse break times.  
             begin = time_string_to_minutes(n["start_time"])
             end = time_string_to_minutes(n["finish_time"])
