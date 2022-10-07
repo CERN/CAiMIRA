@@ -1483,7 +1483,6 @@ class ExposureModel:
                     self, {'concentration_model.infected.number': num_infected}
                 )
                 prob_ind = exposure_model.infection_probability().mean() / 100
-                print(prob_ind)
                 n = total_people - num_infected
                 # By means of the total probability rule
                 prob_at_least_one_infected = 1 - (1 - prob_ind)**n

@@ -144,7 +144,7 @@
 															{% if form.short_range_option == 'short_range_yes' %}:
 																<ul>
 																	<li><b>{{ long_range_prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming all occupants are exposed equally (i.e. without short-range interactions).</li>
-																	<li><b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming short-range interactions occur.</li>
+																	<li><b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming short-range interactions occur with the infector(s).</li>
 																</ul>
 															{% else %}
 																<b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>.
