@@ -278,7 +278,7 @@ def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[fl
     model = mc_model.build_model(size=_DEFAULT_MC_SAMPLE_SIZE)
     if (compute_prob_exposure):
         # It means we have data to calculate the total_probability_rule
-        prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
+        prob_probabilistic_exposure = model.total_probability_rule()
     else:
         prob_probabilistic_exposure = 0.
 

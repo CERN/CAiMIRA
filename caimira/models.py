@@ -440,7 +440,7 @@ class Virus:
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
 
     #: Number of days the infector is contagious
-    infectiousness_days: int = 14
+    infectiousness_days: int
 
     def halflife(self, humidity: _VectorisedFloat, inside_temp: _VectorisedFloat) -> _VectorisedFloat:
         # Biological decay (inactivation of the virus in air) - virus 
@@ -454,7 +454,9 @@ class Virus:
 
 @dataclass(frozen=True)
 class SARSCoV2(Virus):
-
+    #: Number of days the infector is contagious
+    infectiousness_days: int = 14
+    
     def halflife(self, humidity: _VectorisedFloat, inside_temp: _VectorisedFloat) -> _VectorisedFloat:
         """
         Half-life changes with humidity level. Here is implemented a simple
