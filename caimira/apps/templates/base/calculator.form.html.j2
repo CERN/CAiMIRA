@@ -303,7 +303,9 @@
 
     <!-- Event Options -->
     <b>Event data:</b>
-    <div data-tooltip="The total no. of occupants in the room and how many of them you assume are infected.">
+    <div id="event_data_tooltip" data-tooltip="The total no. of occupants in the room. 
+    Deterministic exposure: add no. occupants that are infected.
+    Probabilistic exposure: event at a given time & location (e.g. meeting or conference), considering the incidence rate in that area.">
         <span class="tooltip_text">?</span>
     </div><br>
 
@@ -312,11 +314,44 @@
       <div class="col-sm-6 align-self-center"><input type="number" id="total_people" class="form-control" name="total_people" placeholder="Number" min=1 required></div>
     </div>
 
-    <div class="form-group row">
-      <div class="col-sm-4" style="top: -2px"><label>Number of infected people: </label></div>
-      <div class="col-sm-6"><input type="number" id="infected_people" class="form-control" name="infected_people" min=1 value=1 required></div>
+    <div class="form-group mb-1">
+    <input type="radio" id="p_deterministic_exposure" name="exposure_option" value="p_deterministic_exposure" checked="checked" data-enables="#DIVp_deterministic_exposure">
+      <label for="p_deterministic_exposure">Deterministic exposure</label>
+    </div>
+    <div class="form-group">
+    <input type="radio" id="p_probabilistic_exposure"  name="exposure_option" value="p_probabilistic_exposure" data-enables="#DIVp_probabilistic_exposure">
+      <label for="p_probabilistic_exposure">Probabilistic exposure (incidence rate)</label>
     </div>
 
+    <div id="DIVp_deterministic_exposure" class="tabbed" style="display: none">
+      <div class="form-group row">
+        <div class="col-sm-4"><label class="col-form-label">Number of infected people: </label></div>
+        <div class="col-sm-6 pl-0 align-self-center"><input type="number" id="infected_people" class="form-control" name="infected_people" min=1 value=1></div>
+      </div>
+    </div>
+    
+    <div id="DIVp_probabilistic_exposure" class="tabbed" style="display: none">
+      <div class="form-group row">
+        <div class="col-sm-4"><label class="col-form-label">Population:</label></div>
+        <div class="col-sm-6 pl-0 align-self-center"><input type="number" step="any" id="geographic_population" class="non_zero form-control" name="geographic_population" placeholder="Inhabitants (#)" min="0"></div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-4"><label class="col-form-label">New confirmed cases (weekly):</label></div>
+        <div class="col-sm-6 pl-0 align-self-center"><input type="number" step="any" id="geographic_cases" class="non_zero form-control" name="geographic_cases" placeholder="Cases (#7-day rolling avg)" min="0"></div>
+      </div>
+      <div class="form-group row">
+      <div class="col-sm-4"><label class="col-form-label">Confidence level:</label></div>
+      <div class="col-sm-6 pl-0 align-self-center">
+        <select id="ascertainment_bias" name="ascertainment_bias" class="form-control">
+          <option value="confidence_low">Low - surveillance only for sympotmatic patients</option>
+          <option value="confidence_medium">Medium - recommended population wide surveillance</option>
+          <option value="confidence_high">High - mandatory population wide surveillance</option>
+        </select>
+      </div>
+      </div>
+    </div>
+
+    <span id="training_limit_error" class="red_text" hidden>Conference/Training activities limited to 1 infected<br></span>
     <hr width="80%">
 
     <div class="form-group row">
@@ -332,7 +367,8 @@
         <option value="library">Library</option>
         <option value="lab">Laboratory</option>
         <option value="workshop">Workshop</option>
-        <option value="training">Conference/Training</option>
+        <option value="training">Conference/Training (speaker infected)</option>
+        <option value="training_attendee">Conference/Training (attendee infected)</option>
         <option value="gym">Gym</option>
       </select>
     </div>
@@ -615,8 +651,9 @@
     <li>Library = all seated, no talking, just breathing,</li>
     <li>Laboratory = light physical activity, talking 50% of the time,</li>
     <li>Workshop = moderate physical activity, talking 50% of the time,</li>
-    <li>Conference/Training = speaker/trainer standing and talking, rest seated and talking quietly.
+    <li>Conference/Training (speaker infected) = speaker/trainer standing and talking, rest seated and talking quietly.
     Speaker/Trainer assumed infected (worst case scenario),</li>
+    <li>Conference/Training (attendee infected) = someone in the audience is infected, all are seated and breathing.</li>
     <li>Gym = heavy exercise, no talking, just breathing.</li>
   </ul>
   <b>Activity breaks:</b><br>

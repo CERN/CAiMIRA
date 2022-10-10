@@ -61,6 +61,14 @@ function require_fields(obj) {
     case "hepa_no":
       require_hepa(false);
       break;
+    case "p_probabilistic_exposure":
+      require_population(true);
+      require_infected(false);
+      break;
+    case "p_deterministic_exposure":
+      require_population(false);
+      require_infected(true);
+      break;
     case "mask_on":
       require_mask(true);
       break;
@@ -172,6 +180,16 @@ function require_lunch(id, option) {
   }
 }
 
+function require_population(option) {
+  require_input_field("#geographic_population", option);
+  require_input_field("#geographic_cases", option);
+  require_input_field("#ascertainment_bias", option);
+}
+
+function require_infected(option) {
+  require_input_field("#infected_people", option);
+}
+
 function require_mask(option) {
   $("#mask_type_1").prop('required', option);
   $("#mask_type_ffp2").prop('required', option);
@@ -265,6 +283,23 @@ function on_hepa_option_change() {
     else {
       getChildElement($(this)).hide();
       require_fields(this);
+    }
+  })
+}
+
+function on_exposure_change() {
+  p_recurrent = $('input[type=radio][name=exposure_option]')
+  p_recurrent.each(function (index) {
+    if (this.checked) {
+      getChildElement($(this)).show();
+      require_fields(this);
+    }
+    else {
+      getChildElement($(this)).hide();
+      unrequire_fields(this);
+
+      //Clear invalid inputs for this newly hidden child element
+      removeInvalid("#"+getChildElement($(this)).find('input').not('input[type=radio]').attr('id'));
     }
   })
 }
@@ -534,6 +569,20 @@ function validate_form(form) {
 
     if (parseInt(windowsDurationObj.value) >= parseInt(windowsFrequencyObj.value)) {
       insertErrorFor(windowsFrequencyObj, "Duration >= Frequency");
+      submit = false;
+    }
+  }
+
+  // Validate cases < population
+  if ($("#p_probabilistic_exposure").prop('checked')) {
+    // Set number of infected people as 1
+    $("#infected_people").val(1);
+    var geographicPopulationObj = document.getElementById("geographic_population");
+    var geographicCasesObj = document.getElementById("geographic_cases");
+    removeErrorFor(geographicCasesObj);
+
+    if (parseInt(geographicPopulationObj.value) < parseInt(geographicCasesObj.value)) {
+      insertErrorFor(geographicCasesObj, "Cases > Population");
       submit = false;
     }
   }
@@ -869,6 +918,12 @@ $(document).ready(function () {
   $("input[type=radio][name=hepa_option]").change(on_hepa_option_change);
   // Call the function now to handle forward/back button presses in the browser.
   on_hepa_option_change();
+
+  // When the exposure_option changes we want to make its respective
+  // children show/hide.
+  $("input[type=radio][name=exposure_option]").change(on_exposure_change);
+  // Call the function now to handle forward/back button presses in the browser.
+  on_exposure_change();
 
   // When the mask_wearing_option changes we want to make its respective
   // children show/hide.

@@ -91,7 +91,8 @@ def known_concentrations(func):
     ])
 def test_exposure_model_ndarray(population, cm,
                                 expected_exposure, expected_probability, sr_model):
-    model = ExposureModel(cm, sr_model, population)
+    geographical_data = models.Cases()
+    model = ExposureModel(cm, sr_model, population, geographical_data)
     np.testing.assert_almost_equal(
         model.deposited_exposure(), expected_exposure
     )
@@ -113,7 +114,8 @@ def test_exposure_model_ndarray(population, cm,
 def test_exposure_model_ndarray_and_float_mix(population, expected_deposited_exposure, sr_model):
     cm = known_concentrations(
         lambda t: 0. if np.floor(t) % 2 else np.array([1.2, 1.2]))
-    model = ExposureModel(cm, sr_model, population)
+    geographical_data = models.Cases()
+    model = ExposureModel(cm, sr_model, population, geographical_data)
 
     np.testing.assert_almost_equal(
         model.deposited_exposure(), expected_deposited_exposure
@@ -130,7 +132,8 @@ def test_exposure_model_ndarray_and_float_mix(population, expected_deposited_exp
     ])
 def test_exposure_model_vector(population, expected_deposited_exposure, sr_model):
     cm_array = known_concentrations(lambda t: np.array([1.2, 1.2]))
-    model_array = ExposureModel(cm_array, sr_model, population)
+    geographical_data = models.Cases()
+    model_array = ExposureModel(cm_array, sr_model, population, geographical_data)
     np.testing.assert_almost_equal(
         model_array.deposited_exposure(), np.array(expected_deposited_exposure)
     )
@@ -138,7 +141,8 @@ def test_exposure_model_vector(population, expected_deposited_exposure, sr_model
 
 def test_exposure_model_scalar(sr_model):
     cm_scalar = known_concentrations(lambda t: 1.2)
-    model_scalar = ExposureModel(cm_scalar, sr_model, populations[0])
+    geographical_data = models.Cases()
+    model_scalar = ExposureModel(cm_scalar, sr_model, populations[0], geographical_data)
     expected_deposited_exposure = 1.52436206
     np.testing.assert_almost_equal(
         model_scalar.deposited_exposure(), expected_deposited_exposure
@@ -194,7 +198,8 @@ def test_exposure_model_integral_accuracy(exposed_time_interval,
         10, presence_interval, models.Mask.types['Type I'],
         models.Activity.types['Standing'], 0.,
     )
-    model = ExposureModel(conc_model, sr_model, population)
+    geographical_data = models.Cases()
+    model = ExposureModel(conc_model, sr_model, population, geographical_data)
     np.testing.assert_allclose(model.deposited_exposure(), expected_deposited_exposure)
 
 
@@ -221,7 +226,71 @@ def test_infectious_dose_vectorisation(sr_model):
         10, presence_interval, models.Mask.types['Type I'],
         models.Activity.types['Standing'], 0.,
     )
-    model = ExposureModel(cm, sr_model, population)
+    geographical_data = models.Cases()
+    model = ExposureModel(cm, sr_model, population, geographical_data)
     inf_probability = model.infection_probability()
     assert isinstance(inf_probability, np.ndarray)
     assert inf_probability.shape == (3, )
+
+
+@pytest.mark.parametrize(
+    "pop, cases, infectiousness_days, AB, prob_random_individual", [
+        [100_000, 68, 7, 5, 0.023800],
+        [200_000, 121, np.array([7, 14]), 5, np.array([0.021175, 0.042350])],
+        [np.array([100_000, 200_000]), 68, 14, 10, np.array([0.0952, 0.0476])],
+        [150_000, np.array([68, 121]), 14, 2, np.array([0.012693, 0.022587])],
+        [np.array([100_000, 200_000]), np.array([68, 121]), 7, 5, np.array([0.023450, 0.021175])]
+    ]
+)
+def test_probability_random_individual(pop, cases, infectiousness_days, AB, prob_random_individual):
+    cases = models.Cases(geographic_population=pop, geographic_cases=cases, 
+                        ascertainment_bias=AB)
+    virus=models.SARSCoV2(
+        viral_load_in_sputum=1e9,
+        infectious_dose=50.,
+        viable_to_RNA_ratio = 0.5,
+        transmissibility_factor=1,
+        infectiousness_days=infectiousness_days,
+    )
+    np.testing.assert_allclose(
+        cases.probability_random_individual(virus), prob_random_individual, rtol=0.05
+    )
+
+
+@pytest.mark.parametrize(
+    "pop, cases, AB, exposed, infected, prob_meet_infected_person", [
+        [100000, 68, 5, 10, 1, 0.321509274],
+        [100000, 121, 5, 20, 1, 0.302950694],
+        [100000, np.array([68, 121]), 5, np.array([10, 20]), 1, np.array([0.321509274, 0.302950694])],
+    ]
+)
+def test_prob_meet_infected_person(pop, cases, AB, exposed, infected, prob_meet_infected_person):
+    cases = models.Cases(geographic_population=pop, geographic_cases=cases, 
+                        ascertainment_bias=AB)
+    virus = models.Virus.types['SARS_CoV_2']
+    np.testing.assert_allclose(cases.probability_meet_infected_person(virus, infected, exposed+infected),
+                            prob_meet_infected_person, rtol=0.05)
+
+
+@pytest.mark.parametrize(
+    "exposed_population, cm, pop, cases, AB, probabilistic_exposure_probability",[
+        [10, known_concentrations(lambda t: 36.),
+        100000, 68, 5, 41.50971131],
+        [10, known_concentrations(lambda t: 0.2),
+        100000, 68, 5, 2.185785075],
+        [20, known_concentrations(lambda t: 72.),
+        100000, 68, 5, 64.09068488],
+        [30, known_concentrations(lambda t: 1.2),
+        100000, 68, 5, 55.93154502],
+    ])
+def test_probabilistic_exposure_probability(exposed_population, cm,
+        pop, AB, cases, probabilistic_exposure_probability):
+
+    population = models.Population(
+        exposed_population, models.PeriodicInterval(120, 60), models.Mask.types['Type I'],
+        models.Activity.types['Standing'], host_immunity=0.,)
+    model = ExposureModel(cm, (), population, models.Cases(geographic_population=pop,
+        geographic_cases=cases, ascertainment_bias=AB),)
+    np.testing.assert_allclose(
+        model.total_probability_rule(), probabilistic_exposure_probability, rtol=0.05
+    )

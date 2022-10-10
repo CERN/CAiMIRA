@@ -57,6 +57,7 @@
 			{% if form.short_range_option == "short_range_yes" %} 
 				{% set scenario = alternative_scenarios.stats.values() | first %}
 				{% set long_range_prob_inf = scenario.probability_of_infection %}
+				{% set long_range_prob_probabilistic_exposure = scenario.prob_probabilistic_exposure if form.exposure_option == 'p_probabilistic_exposure' %}
 			{% else %}
 				{% set long_range_prob_inf = prob_inf %}
 			{% endif %}
@@ -120,19 +121,38 @@
 											{% endif %}
 										<div class="d-flex">
 											{% block report_summary %}
-												<br>
-												<div class="flex-row align-self-center">
+											<div class="flex-row align-self-center">
+												<div class="align-self-center alert alert-dark mb-0" role="alert">
+													Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally (i.e. without short-range interactions), the <b>probability of one exposed occupant getting infected is {{ long_range_prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>*.
+												</div>
+												{% if form.short_range_option == "short_range_yes" %}
 													<br>
 													<div class="align-self-center alert alert-dark mb-0" role="alert">
-														Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally (i.e. without short-range interactions), the <b>probability of one exposed occupant getting infected is {{ long_range_prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>*.
+														In this scenario, assuming <b>short-range interactions</b> occur, the <b>probability of one exposed occupant getting infected can go as high as {{ prob_inf | non_zero_percentage }}</b>.
 													</div>
-													{% if form.short_range_option == "short_range_yes" %}
+												{% endif %}
+												{% block probabilistic_exposure_probability %}
+													{% if form.exposure_option == "p_probabilistic_exposure" %}
 														<br>
 														<div class="align-self-center alert alert-dark mb-0" role="alert">
-															In this scenario, assuming <b>short-range interactions</b> occur, the <b>probability of one exposed occupant getting infected can go as high as {{ prob_inf | non_zero_percentage }}</b>.
+															The above {{ "result assumes" if form.short_range_option == "short_range_no" else "results assume" }} that <b>{{ form.infected_people }} 
+															{{ "occupant is infected" if form.infected_people == 1 else "occupants are infected" }}
+															</b> in the room. 
+															By taking into account the estimate of cases currently circulating in <b>{{ form.location_name }}</b>, 
+															the probability of on-site transmission, having at least 1 new infection in an <b>event 
+															with {{ form.total_people }} occupants</b>, is
+															{% if form.short_range_option == 'short_range_yes' %}:
+																<ul>
+																	<li><b>{{ long_range_prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming all occupants are exposed equally (i.e. without short-range interactions).</li>
+																	<li><b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming short-range interactions occur with the infector(s).</li>
+																</ul>
+															{% else %}
+																<b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>.
+															{% endif %}
 														</div>
 													{% endif %}
-												</div>
+												{% endblock probabilistic_exposure_probability %}
+											</div>
 											{% endblock report_summary %}
 										</div>
 									</div>
@@ -419,6 +439,18 @@
 							<li><p class="data_text">Number of attendees and infected people: {{ form.total_people }} in attendance, of whom {{ form.infected_people }}
 							{{ "is" if form.infected_people == 1 else "are" }}
 							infected.</p></li>
+							{% if form.exposure_option == "p_probabilistic_exposure" %}
+							{% if form.ascertainment_bias == "confidence_high" %}
+								{% set conf_level = "High - Mandatory population surveillance." %}
+							{% elif form.ascertainment_bias == "confidence_medium" %}
+								{% set conf_level = "Medium - Recommended population wide surveillance." %}
+							{% else %}
+								{% set conf_level = "Low - Surveillance only for sympotmatic patients." %}
+							{% endif %}
+							<li><p class="data_text">Population in {{ form.location_name }}: {{ form.geographic_population }}</p></li>
+							<li><p class="data_text">New reported cases in {{ form.location_name }} (7-day average): {{ form.geographic_cases }}</p></li>
+							<li><p class="data_text">Confidence level: {{ conf_level }} </p></li>
+							{% endif %}
 							<li><p class="data_text">
 							Activity type:
 							{% if form.activity_type == "office" %}
@@ -438,7 +470,9 @@
 							{% elif form.activity_type == "workshop" %}
 							Workshop = assembly workshop environment, all persons doing moderate physical activity, speaking 50% of the time.
 							{% elif form.activity_type == "training" %}
-							Conference/Training – one person (the speaker/trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the speaker/trainer is the infected person, for the worst case scenario.
+							Conference/Training (speaker infected) – one person (the speaker/trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the speaker/trainer is the infected person, for the worst case scenario.
+							{% elif form.activity_type == "training_attendee" %}
+							Conference/Training (attendee infected) – the infected person(s) are in the audience. All persons seated and breathing. 
 							{% elif form.activity_type == "lab" %}
 							Laboratory = Lab or technical environment, all persons doing light physical activity, speaking 50% of the time.
 							{% elif form.activity_type == "gym" %}

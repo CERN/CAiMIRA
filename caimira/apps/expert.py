@@ -847,6 +847,7 @@ baseline_model = models.ExposureModel(
         mask=models.Mask.types['No mask'],
         host_immunity=0.,
     ),
+    geographical_data=models.Cases(),
 )
 
 

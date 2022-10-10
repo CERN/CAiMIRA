@@ -276,6 +276,10 @@ footer img {
     display: inline!important;
   }
 
+  #event_data_tooltip:before{
+    max-width: 350px!important;
+  }
+
 }
 
 @media (max-width: 40em) {
