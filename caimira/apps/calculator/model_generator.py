@@ -523,6 +523,8 @@ class FormData:
         return mask
 
     def generate_aria_activity_expiration(self) -> typing.Tuple[typing.Any, ...]:
+        if self.aria_precise == {}: # It means the precise activity is not defined by ARIA interface.
+            return ()
         respiratory_dict = {}
         for respiratory_activity in self.aria_precise['respiratory_activity']:
             respiratory_dict[respiratory_activity['type']] = respiratory_activity['percentage']
