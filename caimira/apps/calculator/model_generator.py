@@ -744,6 +744,11 @@ class FormData:
             # Parse break times.  
             begin = time_string_to_minutes(n["start_time"])
             end = time_string_to_minutes(n["finish_time"])
+            for time in [begin, end]:
+                # In ARIA, the infected and exposed presence is the same.
+                if not getattr(self, 'infected_start') < time < getattr(self, 'infected_finish'):
+                    raise ValueError(f'All breaks should be within the simulation time. Got {time_minutes_to_string(time)}.')
+
             break_times.append((begin, end))
         return tuple(break_times)
 
@@ -840,7 +845,7 @@ class FormData:
         return models.SpecificInterval(tuple(present_intervals))
 
     def infected_present_interval(self) -> models.Interval:
-        if len(self.aria_breaks) > 0: # It means the breaks were defined by ARIA interface
+        if self.aria_breaks != []: # It means the breaks were defined by ARIA interface
             breaks = self.generate_aria_break_times()
         else:
             breaks = self.infected_lunch_break_times() + self.infected_coffee_break_times()
@@ -855,7 +860,7 @@ class FormData:
         return models.SpecificInterval(present_times=((start_time/60, (start_time + duration)/60),))
 
     def exposed_present_interval(self) -> models.Interval:
-        if len(self.aria_breaks) > 0: # It means the breaks were defined by ARIA interface
+        if self.aria_breaks != []: # It means the breaks were defined by ARIA interface
             breaks = self.generate_aria_break_times()
         else:
             breaks = self.exposed_lunch_break_times() + self.exposed_coffee_break_times()
