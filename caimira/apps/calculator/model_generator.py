@@ -807,7 +807,7 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
 
 ACTIVITY_TYPES = {'office', 'smallmeeting', 'largemeeting', 'training', 'training_attendee', 'callcentre', 'controlroom-day', 'controlroom-night', 'library', 'workshop', 'lab', 'gym'}
 MECHANICAL_VENTILATION_TYPES = {'mech_type_air_changes', 'mech_type_air_supply', 'not-applicable'}
-MASK_TYPES = {'Type I', 'FFP2'}
+MASK_TYPES = {'Type I', 'FFP2', 'Cloth'}
 MASK_WEARING_OPTIONS = {'mask_on', 'mask_off'}
 VENTILATION_TYPES = {'natural_ventilation', 'mechanical_ventilation', 'no_ventilation'}
 VIRUS_TYPES = {'SARS_CoV_2', 'SARS_CoV_2_ALPHA', 'SARS_CoV_2_BETA','SARS_CoV_2_GAMMA', 'SARS_CoV_2_DELTA', 'SARS_CoV_2_OMICRON'}

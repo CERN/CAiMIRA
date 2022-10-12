@@ -526,6 +526,9 @@ class Mask:
     #: Filtration efficiency of masks when inhaling.
     η_inhale: _VectorisedFloat
 
+    #: Filtration efficiency of masks when exhaling.
+    η_exhale: typing.Union[None, _VectorisedFloat] = None
+
     #: Global factor applied to filtration efficiency of masks when exhaling.
     factor_exhale: float = 1.
 
@@ -541,6 +544,10 @@ class Mask:
         the leakage through the sides.
         Diameter is in microns.
         """
+        if self.η_exhale is not None:
+            # When η_exhale is specified, return it directly
+            return self.η_exhale
+        
         d = np.array(diameter)
         intermediate_range1 = np.bitwise_and(0.5 <= d, d < 0.94614)
         intermediate_range2 = np.bitwise_and(0.94614 <= d, d < 3.)
@@ -569,6 +576,10 @@ Mask.types = {
     ),
     'FFP2': Mask(
         η_inhale=0.865,  # (94% penetration efficiency + 8% max inward leakage -> EN 149)
+    ),
+    'Cloth': Mask(  # https://doi.org/10.1080/02786826.2021.1890687
+        η_inhale=0.225,
+        η_exhale=0.35,
     ),
 }
 
