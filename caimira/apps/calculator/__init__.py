@@ -8,6 +8,8 @@ import base64
 import functools
 import html
 import json
+import pandas as pd
+from io import StringIO
 import os
 from pathlib import Path
 import traceback
@@ -298,6 +300,38 @@ class ArveData(BaseRequestHandler):
         self.set_header("Content-Type", 'application/json')
         return self.finish(response.body)
 
+    
+class CasesData(BaseRequestHandler):
+    async def get(self, country):
+        http_client = AsyncHTTPClient()
+        # First we need the country to fetch the data
+        URL = f'https://restcountries.com/v3.1/alpha/{country}?fields=name'
+        try:
+            response = await http_client.fetch(HTTPRequest(
+                url=URL,
+                method='GET',
+            ),
+            raise_error=True)
+        except Exception as e:
+            print("Something went wrong: %s" % e)
+
+        country_name = json.loads(response.body)['name']['common']
+        
+        # Get global incident rates
+        URL = 'https://covid19.who.int/WHO-COVID-19-global-table-data.csv'
+        try:
+            response = await http_client.fetch(HTTPRequest(
+                url=URL,
+                method='GET',
+            ),
+            raise_error=True)
+        except Exception as e:
+            print("Something went wrong: %s" % e)
+
+        df = pd.read_csv(StringIO(response.body.decode('utf-8')), index_col=False)
+        cases_past_7_days = df.loc[df['Name'] == country_name]['Cases - newly reported in last 7 days']
+        return self.finish(str(cases_past_7_days.values[0]))
+
 
 def make_app(
         debug: bool = False,
@@ -317,6 +351,7 @@ def make_app(
         (calculator_prefix + r'/baseline-model/result', StaticModel),
         (calculator_prefix + r'/user-guide', ReadmeHandler),
         (calculator_prefix + r'/api/arve/v1/(.*)/(.*)', ArveData),
+        (calculator_prefix + r'/cases/(.*)', CasesData),
         (calculator_prefix + r'/static/(.*)', StaticFileHandler, {'path': calculator_static_dir}),
     ]
 
