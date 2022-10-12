@@ -418,6 +418,19 @@ function show_sensors_data(url) {
   }
 };
 
+function geographic_cases(location_country_name) {
+  $.ajax({
+    url: `${$('#url_prefix').data().calculator_prefix}/cases/${location_country_name}`,
+    type: 'GET',
+    success: function (result) {
+      $('#geographic_cases').val(result);
+    },
+    error: function(_, _, errorThrown) {
+      console.log(errorThrown);
+    }
+  });
+}
+
 $("#sensors").change(function (el) {
   sensor_id = DATA_FROM_SENSORS.findIndex(function(sensor) {
     return sensor.RoomId == el.target.value
@@ -930,6 +943,9 @@ $(document).ready(function () {
     }
   }
 
+  // Update geographic_cases
+  geographic_cases('CHE');
+  
   // When the document is ready, deal with the fact that we may be here
   // as a result of a forward/back browser action. If that is the case, update
   // the visibility of some of our inputs.
@@ -1120,9 +1136,12 @@ $(document).ready(function () {
           success: function (locations) {
             // If there isn't precisely one result something is very wrong.
             geocoded_loc = locations.candidates[0];
+            
             $('input[name="location_name"]').val(selectedSuggestion.text);
             $('input[name="location_latitude"]').val(geocoded_loc.location.y.toPrecision(7));
             $('input[name="location_longitude"]').val(geocoded_loc.location.x.toPrecision(7));
+            // Update geographic_cases
+            geographic_cases(geocoded_loc.attributes['country']);
           }
         });
 
