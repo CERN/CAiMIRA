@@ -386,8 +386,13 @@
         <div class="col-sm-6 pl-0 align-self-center"><input type="number" step="any" id="geographic_population" class="non_zero form-control" name="geographic_population" placeholder="Inhabitants (#)" min="0"></div>
       </div>
       <div class="form-group row">
-        <div class="col-sm-4"><label class="col-form-label">New confirmed cases (weekly):</label></div>
-        <div class="col-sm-6 pl-0 align-self-center"><input type="number" step="any" id="geographic_cases" class="non_zero form-control" name="geographic_cases" placeholder="Cases (#7-day rolling avg)" min="0"></div>
+        <div class="col-sm-4"><label class="col-form-label pt-0">New confirmed cases (weekly):</label></div>
+        <div class="col-sm-6 pl-0 pt-1 align-self-center">
+          <input type="number" step="any" id="geographic_cases" class="non_zero form-control" name="geographic_cases" placeholder="Cases (#7-day rolling avg)" min="0">
+          <small class="form-text text-muted">
+            Source: World Health Organization.
+          </small>
+        </div>
       </div>
       <div class="form-group row">
       <div class="col-sm-4"><label class="col-form-label">Confidence level:</label></div>

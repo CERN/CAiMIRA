@@ -28,6 +28,7 @@ REQUIREMENTS: dict = {
         'memoization',
         'mistune',
         'numpy',
+        'pandas',
         'psutil',
         'python-dateutil',
         'retry',
