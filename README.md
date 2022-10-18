@@ -100,10 +100,10 @@ pip install -e .   # At the root of the repository
 python -m caimira.apps.calculator
 ```
 
-To run with the CERN theme:
+To run with a specific template theme created:
 
 ```
-python -m caimira.apps.calculator --theme=caimira/apps/templates/cern
+python -m caimira.apps.calculator --theme=caimira/apps/templates/{theme}
 ```
 
 To run the calculator on a different URL path:
