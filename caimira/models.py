@@ -1331,38 +1331,16 @@ class ExposureModel:
         The infection probability formula assumes that if the diameter
         is an array, then none of the ventilation parameters, room volume or virus
         decay constant, are arrays as well.
+
+        The IVRR is the unique term in the exponential of the concentration formula, therefore 
+        there is a check for the diameter-independent elements of the infectious_virus_removal_rate method.
         """ 
-        def verify_ventilation(vent: Ventilation):
-            # Check if any of the ventilation parameters is an array instance. 
-            # Note that most of the ventilation parameters are part of the WindowOpening class (inheritance).
-            if (isinstance(vent, WindowOpening) and (
-                    not all(np.isscalar(value) for value in vent.outside_temp.values) or
-                    not np.isscalar(vent.window_height) or
-                    not np.isscalar(vent.opening_length) or
-                    (isinstance(vent, HingedWindow) and not np.isscalar(vent.window_width)))):
-                        raise ValueError("Ventilation parameters and diameter cannot be arrays at the same time.")
-            # The q_air_mech parameter is only part of the HEPAFilter class, and
-            # the air_exch parameter is only part of the AirChange class.
-            if (isinstance(vent, HEPAFilter) and not np.isscalar(vent.q_air_mech) or
-                isinstance(vent, AirChange) and not np.isscalar(vent.air_exch)):
-                    raise ValueError("Ventilation rate and diameter cannot be arrays at the same time.")
-        
         infected_population = self.concentration_model.infected
-        if (isinstance(infected_population, InfectedPopulation)
-            and not np.isscalar(infected_population.expiration.diameter)):
-            # Verify if the ventilation is initialized as MultipleVentilation.
-            if isinstance(self.concentration_model.ventilation, MultipleVentilation):
-                for vent in self.concentration_model.ventilation.ventilations:
-                    verify_ventilation(vent)
-            else:
-                verify_ventilation(self.concentration_model.ventilation)
-            # Check if the room volume is an array instance.
-            if not np.isscalar(self.concentration_model.room.volume):
-                raise ValueError("Room volume and diameter cannot be arrays at the same time.")
-            # Virus decay constant depends on the room humidity and inside_temp parameters.
-            if (not all(np.isscalar(value) for value in self.concentration_model.room.inside_temp.values) or
-                not np.isscalar(self.concentration_model.room.humidity)):
-                    raise ValueError("Virus decay constant and diameter cannot be arrays at the same time.")
+        if isinstance(infected_population, InfectedPopulation) and not np.isscalar(infected_population.expiration.diameter) and not (
+            all(np.isscalar(self.concentration_model.virus.decay_constant(self.concentration_model.room.humidity, self.concentration_model.room.inside_temp.value(time)) + 
+                self.concentration_model.ventilation.air_exchange(self.concentration_model.room, time)) for time in self.concentration_model.state_change_times())):
+                    raise ValueError("If the diameter is an array, none of the ventilation parameters, room volume or virus decay constant can be arrays at the same time.")
+        
 
     def long_range_fraction_deposited(self) -> _VectorisedFloat:
         """
