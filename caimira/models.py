@@ -1335,11 +1335,15 @@ class ExposureModel:
         The IVRR is the unique term in the exponential of the concentration formula, therefore 
         there is a check for the diameter-independent elements of the infectious_virus_removal_rate method.
         """ 
-        infected_population = self.concentration_model.infected
-        if isinstance(infected_population, InfectedPopulation) and not np.isscalar(infected_population.expiration.diameter) and not (
-            all(np.isscalar(self.concentration_model.virus.decay_constant(self.concentration_model.room.humidity, self.concentration_model.room.inside_temp.value(time)) + 
-                self.concentration_model.ventilation.air_exchange(self.concentration_model.room, time)) for time in self.concentration_model.state_change_times())):
-                    raise ValueError("If the diameter is an array, none of the ventilation parameters, room volume or virus decay constant can be arrays at the same time.")
+        c_model = self.concentration_model
+        # Check if the diameter is vectorised.
+        if (isinstance(c_model.infected, InfectedPopulation) and not np.isscalar(c_model.infected.expiration.diameter) 
+            # Check if the diameter-independent elements of the infectious_virus_removal_rate method are vectorised.
+            and not (
+                all(np.isscalar(c_model.virus.decay_constant(c_model.room.humidity, c_model.room.inside_temp.value(time)) + 
+                c_model.ventilation.air_exchange(c_model.room, time)) for time in c_model.state_change_times()))):
+                    raise ValueError("If the diameter is an array, none of the ventilation parameters, "
+                                    "room volume or virus decay constant can be arrays at the same time.")
         
 
     def long_range_fraction_deposited(self) -> _VectorisedFloat:
