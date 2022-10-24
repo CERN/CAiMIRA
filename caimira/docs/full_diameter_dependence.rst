@@ -144,7 +144,7 @@ The initial concentration of virions at the mouth/nose, :math:`C_{0, \mathrm{SR}
 
 :math:`C_{0, \mathrm{SR}}(D) = N_p(D) \cdot V_p(D) \cdot \mathrm{vl_{in}} \cdot 10^{-6}`, 
 given by :meth:`caimira.models.Expiration.jet_origin_concentration`. It computes the same quantity as :meth:`caimira.models.Expiration.aerosols`, except for the mask inclusion. As previously mentioned, it is normalized by the **viral load**, which is a diameter-independent property. 
-Note, the :math:`10^{-6}` factor corresponds to the conversion from :math:`\mathrm{μm}^{3} \cdot \mathrm{cm}^{-3}` to :math:`\mathrm{mL} \cdot m^{3}`.
+Note, the :math:`10^{-6}` factor corresponds to the conversion from :math:`\mathrm{μm}^{3} \cdot \mathrm{cm}^{-3}` to :math:`\mathrm{mL} \cdot m^{-3}`.
 
 Note that similarly to the `long-range` approach, the MC integral over the diameters is not calculated at this stage.
 
