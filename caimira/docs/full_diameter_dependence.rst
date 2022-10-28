@@ -139,8 +139,24 @@ Very similar to what we did with the **emission rate**, we need to calculate the
 During a given exposure time, multiple short-range interactions can be defined in the model.
 In addition, for each individual interaction, the expiration type may be different.
 
-To calculate the short-range component, we first need to calculate what is the **concentration at the jet origin**, that depends on the diameter :math:`D`. 
-The initial concentration of virions at the mouth/nose, :math:`C_{0, \mathrm{SR}}(D)` is calculated as follows:
+To calculate the short-range component, we first need to calculate what is the **dilution factor**, that depends on the distance :math:`x` as a random variable, from a log normal distribution in :meth:`caimira.monte_carlo.data.short_range_distances`.
+This factor is calculated in a two-stage model, based in a transition point, defined as follows:
+
+:math:`\mathrm{xstar}=𝛽_{\mathrm{x1}} \cdot (\mathrm{BR} \cdot u_{0})^\frac{1}{4} \cdot (\mathrm{tstar} + t_{0})^\frac{1}{2} - x_{0}`,
+
+where :math:`\mathrm{BR}` is the expired flow rate during the expiration period, converted from :math:`m^{3} h^{-1}` to :math:`m^{3} s^{-1}`, :math:`u_{0}` is the expired jet speed (in :math:`m s^{-1}`) given by :math:`u_{0}=\frac{\mathrm{BR}}{A_{m}}`, being :math:`A_{m}` the area of the mouth assuming a perfect circle (average mouth diameter :math:`D` of `0.02m`).
+The time of the transition point :math:`\mathrm{tstar}` is defined as 2s. The distance of virtual origin :math:`x_{0}` given by :math:`x_{0}=\frac{D}{2𝛽_{\mathrm{r1}}}` (in m), and the time of virtual origin on puff-like stage is given by :math:`t_{0}=(\frac{x_{0}}{𝛽_{\mathrm{x1}}})^2 \cdot (\mathrm{BR} \cdot u_{0})^-\frac{1}{2}` (in s).
+Having the distance for the transition point, we can calculate the dilution factor at the transition point, defined as follows:
+
+:math:`\mathrm{Sxstar}=2𝛽_{\mathrm{r1}}\frac{(xstar + x_{0})}{D}`.
+
+The remaining dilution factors, either in the jet- or puff-like stages are calculated as follows:
+
+:math:`\mathrm{factors}(x)=\begin{cases}\hfil 2𝛽_{\mathrm{r1}}\frac{(x + x_{0})}{D} & \textrm{if } x < \mathrm{xstar},\\\hfil \mathrm{Sxstar} \cdot \biggl(1 + \frac{𝛽_{\mathrm{r2}}(x - xstar)}{𝛽_{\mathrm{r1}}(xstar + x_{0})}\biggl)^3 & \textrm{if } x > \mathrm{xstar}.\end{cases}`
+
+The variables :math:`𝛽_{\mathrm{r1}}`, :math:`𝛽_{\mathrm{r2}}` and :math:`𝛽_{\mathrm{x1}}` are defined as `0.18`, `0.2`, and `2.4` respectively. The dilution factor for each distance `x` is then stored in the :math:`\mathrm{factors}` array that is returned by the method.
+
+Having the dilution factors, the **initial concentration of virions at the mouth/nose**, :math:`C_{0, \mathrm{SR}}(D)`, is calculated as follows:
 
 :math:`C_{0, \mathrm{SR}}(D) = N_p(D) \cdot V_p(D) \cdot \mathrm{vl_{in}} \cdot 10^{-6}`, 
 given by :meth:`caimira.models.Expiration.jet_origin_concentration`. It computes the same quantity as :meth:`caimira.models.Expiration.aerosols`, except for the mask inclusion. As previously mentioned, it is normalized by the **viral load**, which is a diameter-independent property. 
@@ -155,7 +171,7 @@ The former operation is given in method :meth:`caimira.models.ShortRangeModel._l
 one solution would be to recompute the values a second time using :math:`D_{\mathrm{max}} = 100\mathrm{μm}`;
 or perform a approximation using linear interpolation, which is possible and more effective in terms of performance. We decided to adopt the interpolation solution.
 The set of points with a known value are given by the default expiration particle diameters for long-range, i.e. from 0 to 30 :math:`\mathrm{μm}`.
-The set of points we want the interpolated values are given by the short-range expiration particle diameters, i.e. from 0 to 100:math:`\mathrm{μm}`. 
+The set of points we want the interpolated values are given by the short-range expiration particle diameters, i.e. from 0 to 100 :math:`\mathrm{μm}`. 
 
 To summarize, in the code, :math:`C_{\mathrm{SR}}(t, D)` is computed as follows:
 
