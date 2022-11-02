@@ -1328,12 +1328,13 @@ class ExposureModel:
 
     def __post_init__(self):
         """
-        The infection probability formula assumes that if the diameter
-        is an array, then none of the ventilation parameters, room volume or virus
-        decay constant, are arrays as well.
-
-        The IVRR is the unique term in the exponential of the concentration formula, therefore 
-        there is a check for the diameter-independent elements of the infectious_virus_removal_rate method.
+        When diameters are sampled (given as an array),
+        the Monte-Carlo integration over the diameters
+        assumes that all the parameters within the IVRR,
+        apart from the settling velocity, are NOT arrays.
+        In other words, the air exchange rate from the
+        ventilation, and the virus decay constant, must
+        not be given as arrays.
         """ 
         c_model = self.concentration_model
         # Check if the diameter is vectorised.
@@ -1342,8 +1343,8 @@ class ExposureModel:
             and not (
                 all(np.isscalar(c_model.virus.decay_constant(c_model.room.humidity, c_model.room.inside_temp.value(time)) + 
                 c_model.ventilation.air_exchange(c_model.room, time)) for time in c_model.state_change_times()))):
-                    raise ValueError("If the diameter is an array, none of the ventilation parameters, "
-                                    "room volume or virus decay constant can be arrays at the same time.")
+                    raise ValueError("If the diameter is an array, none of the ventilation parameters "
+                                    "or virus decay constant can be arrays at the same time.")
         
 
     def long_range_fraction_deposited(self) -> _VectorisedFloat:
