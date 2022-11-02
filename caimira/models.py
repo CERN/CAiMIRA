@@ -1155,11 +1155,11 @@ class ShortRangeModel:
         The dilution factor for the respective expiratory activity type.
         '''
         # Average mouth diameter
-        D = 0.02
-        # The expired flow rate during the expiration period, converted from m3/h to m3/s
+        mouth_diameter = 0.02
+        # Convert Breathing rate from m3/h to m3/s
         BR = np.array(self.activity.exhalation_rate/3600.)
         # Area of the mouth assuming a perfect circle
-        Am = np.pi*(D**2)/4 
+        Am = np.pi*(mouth_diameter**2)/4 
         # Initial velocity from the division of the Breathing rate with the area
         u0 = np.array(BR/Am)
 
@@ -1168,20 +1168,22 @@ class ShortRangeModel:
         𝛽r2 = 0.2
         𝛽x1 = 2.4
 
+        # The expired flow rate during the expiration period, m^3/s
+        Q0 = u0 * np.pi/4*mouth_diameter**2 
         # Parameters in the jet-like stage
-        x0 = D/2/𝛽r1
+        x0 = mouth_diameter/2/𝛽r1
         # Time of virtual origin
-        t0 = (x0/𝛽x1)**2 * (BR*u0)**(-0.5)
+        t0 = (x0/𝛽x1)**2 * (Q0*u0)**(-0.5)
         # The transition point, m
-        xstar = np.array(𝛽x1*(BR*u0)**0.25*(tstar + t0)**0.5 - x0)
+        xstar = np.array(𝛽x1*(Q0*u0)**0.25*(tstar + t0)**0.5 - x0)
         # Dilution factor at the transition point xstar
-        Sxstar = np.array(2*𝛽r1*(xstar+x0)/D)
+        Sxstar = np.array(2*𝛽r1*(xstar+x0)/mouth_diameter)
 
         distances = np.array(self.distance)
 
         factors = np.empty(distances.shape, dtype=np.float64)
         factors[distances < xstar] = 2*𝛽r1*(distances[distances < xstar]
-                                        + x0)/D
+                                        + x0)/mouth_diameter
         factors[distances >= xstar] = Sxstar[distances >= xstar]*(1 +
             𝛽r2*(distances[distances >= xstar] -
             xstar[distances >= xstar])/𝛽r1/(xstar[distances >= xstar]
