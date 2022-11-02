@@ -142,19 +142,19 @@ In addition, for each individual interaction, the expiration type may be differe
 To calculate the short-range component, we first need to calculate what is the **dilution factor**, that depends on the distance :math:`x` as a random variable, from a log normal distribution in :meth:`caimira.monte_carlo.data.short_range_distances`.
 This factor is calculated in a two-stage model, based in a transition point, defined as follows:
 
-:math:`\mathrm{xstar}=𝛽_{\mathrm{x1}} \cdot (\mathrm{BR} \cdot u_{0})^\frac{1}{4} \cdot (\mathrm{tstar} + t_{0})^\frac{1}{2} - x_{0}`,
+:math:`\mathrm{xstar}=𝛽_{\mathrm{x1}} \cdot (φQ_{0} \cdot u_{0})^\frac{1}{4} \cdot (\mathrm{tstar} + t_{0})^\frac{1}{2} - x_{0}`,
 
-where :math:`\mathrm{BR}` is the expired flow rate during the expiration period, converted from :math:`m^{3} h^{-1}` to :math:`m^{3} s^{-1}`, :math:`u_{0}` is the expired jet speed (in :math:`m s^{-1}`) given by :math:`u_{0}=\frac{\mathrm{BR}}{A_{m}}`, being :math:`A_{m}` the area of the mouth assuming a perfect circle (average mouth diameter :math:`D` of `0.02m`).
-The time of the transition point :math:`\mathrm{tstar}` is defined as 2s. The distance of virtual origin :math:`x_{0}` given by :math:`x_{0}=\frac{D}{2𝛽_{\mathrm{r1}}}` (in m), and the time of virtual origin on puff-like stage is given by :math:`t_{0}=(\frac{x_{0}}{𝛽_{\mathrm{x1}}})^2 \cdot (\mathrm{BR} \cdot u_{0})^-\frac{1}{2}` (in s).
+where φ is a coefficient of 1, the :math:`Q_{0}` is the expired flow rate during the expiration period, converted from :math:`m^{3} h^{-1}` to :math:`m^{3} s^{-1}`, :math:`u_{0}` is the expired jet speed (in :math:`m s^{-1}`) given by :math:`u_{0}=\frac{Q_{0}}{A_{m}}`, :math:`A_{m}` being the area of the mouth assuming a perfect circle (average `mouth_diameter` of `0.02m`).
+The time of the transition point :math:`\mathrm{tstar}` is defined as 2s. The distance of the virtual origin of the puff-like stage is defined by :math:`x_{0}=\frac{\textrm{mouth_diameter}}{2𝛽_{\mathrm{r1}}}` (in m), and the corresponding time is given by :math:`t_{0}=(\frac{x_{0}}{𝛽_{\mathrm{x1}}})^2 \cdot (Q_{0} \cdot u_{0})^{-\frac{1}{2}}` (in s).
 Having the distance for the transition point, we can calculate the dilution factor at the transition point, defined as follows:
 
-:math:`\mathrm{Sxstar}=2𝛽_{\mathrm{r1}}\frac{(xstar + x_{0})}{D}`.
+:math:`\mathrm{Sxstar}=2𝛽_{\mathrm{r1}}\frac{(xstar + x_{0})}{\textrm{mouth_diameter}}`.
 
 The remaining dilution factors, either in the jet- or puff-like stages are calculated as follows:
 
-:math:`\mathrm{factors}(x)=\begin{cases}\hfil 2𝛽_{\mathrm{r1}}\frac{(x + x_{0})}{D} & \textrm{if } x < \mathrm{xstar},\\\hfil \mathrm{Sxstar} \cdot \biggl(1 + \frac{𝛽_{\mathrm{r2}}(x - xstar)}{𝛽_{\mathrm{r1}}(xstar + x_{0})}\biggl)^3 & \textrm{if } x > \mathrm{xstar}.\end{cases}`
+:math:`\mathrm{factors}(x)=\begin{cases}\hfil 2𝛽_{\mathrm{r1}}\frac{(x + x_{0})}{\textrm{mouth_diameter}} & \textrm{if } x < \mathrm{xstar},\\\hfil \mathrm{Sxstar} \cdot \biggl(1 + \frac{𝛽_{\mathrm{r2}}(x - xstar)}{𝛽_{\mathrm{r1}}(xstar + x_{0})}\biggl)^3 & \textrm{if } x > \mathrm{xstar}.\end{cases}`
 
-The variables :math:`𝛽_{\mathrm{r1}}`, :math:`𝛽_{\mathrm{r2}}` and :math:`𝛽_{\mathrm{x1}}` are defined as `0.18`, `0.2`, and `2.4` respectively. The dilution factor for each distance `x` is then stored in the :math:`\mathrm{factors}` array that is returned by the method.
+The parameters :math:`𝛽_{\mathrm{r1}}`, :math:`𝛽_{\mathrm{r2}}` and :math:`𝛽_{\mathrm{x1}}` are defined as `0.18`, `0.2`, and `2.4` respectively. The dilution factor for each distance `x` is then stored in the :math:`\mathrm{factors}` array that is returned by the method.
 
 Having the dilution factors, the **initial concentration of virions at the mouth/nose**, :math:`C_{0, \mathrm{SR}}(D)`, is calculated as follows:
 
