@@ -53,11 +53,11 @@ def test_short_range_model_ndarray(concentration_model, short_range_model):
 
 @pytest.mark.parametrize(
     "activity, expected_dilution", [
-        ["Seated", 176.04075727780327],
-        ["Standing", 157.12965288170005],
-        ["Light activity", 69.06672998536413],
-        ["Moderate activity", 47.165817446310115],
-        ["Heavy exercise", 23.759992220217875],
+        ["Seated", 85.73002264],
+        ["Standing", 76.19303543],
+        ["Light activity", 32.45103906],
+        ["Moderate activity", 21.79749405],
+        ["Heavy exercise", 16.372],
     ]
 )
 def test_dilution_factor(activity, expected_dilution):
@@ -67,7 +67,7 @@ def test_dilution_factor(activity, expected_dilution):
                                     distance=0.854).build_model(SAMPLE_SIZE)
     assert isinstance(model.dilution_factor(), np.ndarray)
     np.testing.assert_almost_equal(
-        model.dilution_factor(), expected_dilution, decimal=10
+        model.dilution_factor(), expected_dilution
     )
 
 
@@ -100,9 +100,9 @@ def test_extract_between_bounds(short_range_model, time1, time2,
 @pytest.mark.parametrize(
     "time, expected_short_range_concentration", [
         [8.5, 0.],
-        [10.5, 5.401601371244907],
-        [10.6, 5.401601371244907],
-        [11.0, 5.401601371244907],
+        [10.5, 11.266605],
+        [10.6, 11.266605],
+        [11.0, 11.266605],
         [12.0, 0.],
     ]
 )

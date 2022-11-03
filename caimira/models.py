@@ -1154,28 +1154,42 @@ class ShortRangeModel:
         '''
         The dilution factor for the respective expiratory activity type.
         '''
-        # Average mouth diameter
+        # Mouth opening diameter (m)
         mouth_diameter = 0.02
-        # Convert Breathing rate from m3/h to m3/s
-        BR = np.array(self.activity.exhalation_rate/3600.)
-        # Area of the mouth assuming a perfect circle
-        Am = np.pi*(mouth_diameter**2)/4 
-        # Initial velocity from the division of the Breathing rate with the area
-        u0 = np.array(BR/Am)
 
+        # Breathing rate, from m3/h to m3/s
+        BR = np.array(self.activity.exhalation_rate/3600.)
+
+        # Exhalation coefficient. Ratio between the duration of a breathing cycle and the duration of 
+        # the exhalation. 4 sec breathing cycle assumed.
+        exh_coef = 2
+
+        # Exhalation airflow
+        Q_exh = exh_coef * BR
+
+        # Area of the mouth assuming a perfect circle (m2)
+        Am = np.pi*(mouth_diameter**2)/4 
+
+        # Initial velocity of the exhalation airflow (m/s)
+        u0 = np.array(Q_exh/Am)
+
+        #: Duration of the expiration (s)
         tstar = 2.0
+        
+        #: Streamwise and radial penetration coefficients
         𝛽r1 = 0.18
         𝛽r2 = 0.2
         𝛽x1 = 2.4
 
-        # The expired flow rate during the expiration period, m^3/s
-        Q0 = u0 * np.pi/4*mouth_diameter**2 
         # Parameters in the jet-like stage
+        # Position of virtual origin
         x0 = mouth_diameter/2/𝛽r1
         # Time of virtual origin
-        t0 = (x0/𝛽x1)**2 * (Q0*u0)**(-0.5)
+        t0 = (np.sqrt(np.pi)*(mouth_diameter**3))/(8*(𝛽r1**2)*(𝛽x1**2)*Q_exh)
+        # Aux to test         
+        t0_test = (x0/𝛽x1)**2 * (Am*u0**2)**(-0.5)
         # The transition point, m
-        xstar = np.array(𝛽x1*(Q0*u0)**0.25*(tstar + t0)**0.5 - x0)
+        xstar = np.array(𝛽x1*(Q_exh*u0)**0.25*(tstar + t0)**0.5 - x0)
         # Dilution factor at the transition point xstar
         Sxstar = np.array(2*𝛽r1*(xstar+x0)/mouth_diameter)
 

@@ -196,6 +196,9 @@ class SimpleShortRangeModel:
     
     #: Breathing rate (m^3/h)
     breathing_rate: _VectorisedFloat = 0.51
+
+    #: Exhalation coefficient
+    exh_coef = 2
     
     #: Tuple with BLO factors
     BLO_factors: typing.Tuple[float, float, float] = (1,0,0)
@@ -207,16 +210,15 @@ class SimpleShortRangeModel:
     diameter_max: float = 100.
     
     #: Mouth opening diameter (m)
-    D: float = 0.02
+    mouth_diameter: float = 0.02
     
     #: Duration of the expiration (s)
     tstar: float = 2.
     
     #: Streamwise and radial penetration coefficients
-    Cr1: float = 0.18
-    Cx1: float = 2.4
-    Cr2: float = 0.2
-    Cx2: float = 2.2
+    𝛽r1: float = 0.18
+    𝛽r2: float = 0.2
+    𝛽x1: float = 2.4
     
     @method_cache
     def dilution_factor(self) -> _VectorisedFloat:
@@ -227,25 +229,24 @@ class SimpleShortRangeModel:
         x = np.array(self.distance)
         dilution = np.empty(x.shape, dtype=np.float64)
         # Expired flow rate during the expiration period, m^3/s
-        Q0 = np.array(self.breathing_rate/3600)
+        Q_exh = self.exh_coef * np.array(self.breathing_rate/3600)
         # The expired flow velocity at the noozle (mouth opening), m/s
-        u0 = np.array(Q0/(np.pi/4. * self.D**2))
+        u0 = np.array(Q_exh/(np.pi/4. * self.mouth_diameter**2))
         # Parameters in the jet-like stage
         # position of virtual origin
-        x01 = self.D/2/self.Cr1
+        x0 = self.mouth_diameter/2/self.𝛽r1
         # Time of virtual origin
-        t01 = (x01/self.Cx1)**2 * (Q0*u0)**(-0.5)
+        t0 = (x0/self.𝛽x1)**2 * (Q_exh*u0)**(-0.5)
         # Transition point (in m)
-        xstar = np.array(self.Cx1*(Q0*u0)**0.25*(self.tstar + t01)**0.5
-                         - x01)
+        xstar = np.array(self.𝛽x1*(Q_exh*u0)**0.25*(self.tstar + t0)**0.5 - x0)
         # Dilution factor at the transition point xstar
-        Sxstar = np.array(2.*self.Cr1*(xstar+x01)/self.D)
+        Sxstar = np.array(2.*self.𝛽r1*(xstar+x0)/self.mouth_diameter)
 
         # Calculate dilution factor at the short-range distance x
-        dilution[x <= xstar] = 2.*self.Cr1*(x[x <= xstar] + x01)/self.D
-        dilution[x > xstar] = Sxstar[x > xstar]*(1. + self.Cr2*(x[x > xstar]
+        dilution[x <= xstar] = 2.*self.𝛽r1*(x[x <= xstar] + x0)/self.mouth_diameter
+        dilution[x > xstar] = Sxstar[x > xstar]*(1. + self.𝛽r2*(x[x > xstar]
                                 - xstar[x > xstar])
-                                /self.Cr1/(xstar[x > xstar] + x01))**3
+                                /self.𝛽r1/(xstar[x > xstar] + x0))**3
 
         return dilution
 
