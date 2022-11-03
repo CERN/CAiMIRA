@@ -1155,39 +1155,39 @@ class ShortRangeModel:
         The dilution factor for the respective expiratory activity type.
         '''
         # Average mouth diameter
-        D = 0.02
+        mouth_diameter = 0.02
         # Convert Breathing rate from m3/h to m3/s
         BR = np.array(self.activity.exhalation_rate/3600.)
         # Area of the mouth assuming a perfect circle
-        Am = np.pi*(D**2)/4 
+        Am = np.pi*(mouth_diameter**2)/4 
         # Initial velocity from the division of the Breathing rate with the area
         u0 = np.array(BR/Am)
 
         tstar = 2.0
-        Cr1 = 0.18
-        Cr2 = 0.2
-        Cx1 = 2.4
+        𝛽r1 = 0.18
+        𝛽r2 = 0.2
+        𝛽x1 = 2.4
 
         # The expired flow rate during the expiration period, m^3/s
-        Q0 = u0 * np.pi/4*D**2 
+        Q0 = u0 * np.pi/4*mouth_diameter**2 
         # Parameters in the jet-like stage
-        x01 = D/2/Cr1
+        x0 = mouth_diameter/2/𝛽r1
         # Time of virtual origin
-        t01 = (x01/Cx1)**2 * (Q0*u0)**(-0.5)
+        t0 = (x0/𝛽x1)**2 * (Q0*u0)**(-0.5)
         # The transition point, m
-        xstar = np.array(Cx1*(Q0*u0)**0.25*(tstar + t01)**0.5 - x01)
+        xstar = np.array(𝛽x1*(Q0*u0)**0.25*(tstar + t0)**0.5 - x0)
         # Dilution factor at the transition point xstar
-        Sxstar = np.array(2*Cr1*(xstar+x01)/D)
+        Sxstar = np.array(2*𝛽r1*(xstar+x0)/mouth_diameter)
 
         distances = np.array(self.distance)
 
         factors = np.empty(distances.shape, dtype=np.float64)
-        factors[distances < xstar] = 2*Cr1*(distances[distances < xstar]
-                                        + x01)/D
+        factors[distances < xstar] = 2*𝛽r1*(distances[distances < xstar]
+                                        + x0)/mouth_diameter
         factors[distances >= xstar] = Sxstar[distances >= xstar]*(1 +
-            Cr2*(distances[distances >= xstar] -
-            xstar[distances >= xstar])/Cr1/(xstar[distances >= xstar]
-            + x01))**3
+            𝛽r2*(distances[distances >= xstar] -
+            xstar[distances >= xstar])/𝛽r1/(xstar[distances >= xstar]
+            + x0))**3
         return factors
 
     def _long_range_normed_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
