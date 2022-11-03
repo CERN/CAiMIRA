@@ -145,7 +145,7 @@ This factor is calculated in a two-stage expiratory jet model, with its transiti
 :math:`\mathrm{xstar}=𝛽_{\mathrm{x1}} (Q_{0} \cdot u_{0})^\frac{1}{4} \cdot (\mathrm{tstar} + t_{0})^\frac{1}{2} - x_{0}`,
 
 where the :math:`Q_{0}` is the expired flow rate during the expiration period, in :math:`m^{3} s^{-1}`, :math:`u_{0}` is the expired jet speed (in :math:`m s^{-1}`) given by :math:`u_{0}=\frac{Q_{0}}{A_{m}}`, :math:`A_{m}` being the area of the mouth assuming a perfect circle (average `mouth_diameter` of `0.02m`).
-The time of the transition point :math:`\mathrm{tstar}` is defined as `2s` and corresponds to the end of the exhalation period, i.e. when the jet is interrupted. The distance of the virtual origin of the puff-like stage is defined by :math:`x_{0}=\frac{\textrm{mouth_diameter}}{2𝛽_{\mathrm{r1}}}` (in m), and the corresponding time is given by :math:`t_{0}=(\frac{x_{0}}{𝛽_{\mathrm{x1}}})^2 \cdot (Q_{0} \cdot u_{0})^{-\frac{1}{2}}` (in s).
+The time of the transition point :math:`\mathrm{tstar}` is defined as `2s` and corresponds to the end of the exhalation period, i.e. when the jet is interrupted. The distance of the virtual origin of the puff-like stage is defined by :math:`x_{0}=\frac{\textrm{mouth_diameter}}{2𝛽_{\mathrm{r1}}}` (in m), and the corresponding time is given by :math:`t_{0} = \frac{\sqrt{\pi}D^3}{8𝛽_{\mathrm{r1}}^2𝛽_{\mathrm{x1}}^2Q_{0}}` (in s).
 Having the distance for the transition point, we can calculate the dilution factor at the transition point, defined as follows:
 
 :math:`\mathrm{Sxstar}=2𝛽_{\mathrm{r1}}\frac{(xstar + x_{0})}{\textrm{mouth_diameter}}`.
