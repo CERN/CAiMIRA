@@ -1310,10 +1310,6 @@ class ShortRangeModel:
 class ExposureModel:
     """
     Represents the exposure to a concentration of virions in the air.
-    NOTE: the infection probability formula assumes that if the diameter
-    is an array, then none of the ventilation parameters, room volume or virus
-    decay constant, are arrays as well.
-    TODO: implement a check this is the case, in __post_init__
     """
     #: The virus concentration model which this exposure model should consider.
     concentration_model: ConcentrationModel
@@ -1329,6 +1325,27 @@ class ExposureModel:
 
     #: The number of times the exposure event is repeated (default 1).
     repeats: int = 1
+
+    def __post_init__(self):
+        """
+        When diameters are sampled (given as an array),
+        the Monte-Carlo integration over the diameters
+        assumes that all the parameters within the IVRR,
+        apart from the settling velocity, are NOT arrays.
+        In other words, the air exchange rate from the
+        ventilation, and the virus decay constant, must
+        not be given as arrays.
+        """ 
+        c_model = self.concentration_model
+        # Check if the diameter is vectorised.
+        if (isinstance(c_model.infected, InfectedPopulation) and not np.isscalar(c_model.infected.expiration.diameter) 
+            # Check if the diameter-independent elements of the infectious_virus_removal_rate method are vectorised.
+            and not (
+                all(np.isscalar(c_model.virus.decay_constant(c_model.room.humidity, c_model.room.inside_temp.value(time)) + 
+                c_model.ventilation.air_exchange(c_model.room, time)) for time in c_model.state_change_times()))):
+                    raise ValueError("If the diameter is an array, none of the ventilation parameters "
+                                    "or virus decay constant can be arrays at the same time.")
+        
 
     def long_range_fraction_deposited(self) -> _VectorisedFloat:
         """
