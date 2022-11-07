@@ -209,10 +209,10 @@ class SimpleShortRangeModel:
     #: Maximum diameter for integration (short-range only) (microns)
     diameter_max: float = 100.
     
-    #: Mouth opening diameter (m)
+    #: Average mouth opening diameter (m)
     mouth_diameter: float = 0.02
     
-    #: Duration of the expiration (s)
+    #: Duration of the expiration period(s), assuming a 4s breath-cycle
     tstar: float = 2.
     
     #: Streamwise and radial penetration coefficients
@@ -228,7 +228,7 @@ class SimpleShortRangeModel:
         """
         x = np.array(self.distance)
         dilution = np.empty(x.shape, dtype=np.float64)
-        # Expired flow rate during the expiration period, m^3/s
+        # Exhalation airflow, as per Jia et al. (2022), m^3/s
         Q_exh = self.exh_coef * np.array(self.breathing_rate/3600)
         # The expired flow velocity at the noozle (mouth opening), m/s
         u0 = np.array(Q_exh/(np.pi/4. * self.mouth_diameter**2))

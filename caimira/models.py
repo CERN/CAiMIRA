@@ -1154,7 +1154,7 @@ class ShortRangeModel:
         '''
         The dilution factor for the respective expiratory activity type.
         '''
-        # Mouth opening diameter (m)
+        # Average mouth opening diameter (m)
         mouth_diameter = 0.02
 
         # Breathing rate, from m3/h to m3/s
@@ -1164,7 +1164,7 @@ class ShortRangeModel:
         # the exhalation. 4 sec breathing cycle assumed.
         exh_coef = 2
 
-        # Exhalation airflow
+        # Exhalation airflow, as per Jia et al. (2022)
         Q_exh = exh_coef * BR
 
         # Area of the mouth assuming a perfect circle (m2)
@@ -1173,10 +1173,10 @@ class ShortRangeModel:
         # Initial velocity of the exhalation airflow (m/s)
         u0 = np.array(Q_exh/Am)
 
-        #: Duration of the expiration (s)
+        # Duration of the expiration period(s), assuming a 4s breath-cycle
         tstar = 2.0
         
-        #: Streamwise and radial penetration coefficients
+        # Streamwise and radial penetration coefficients
         𝛽r1 = 0.18
         𝛽r2 = 0.2
         𝛽x1 = 2.4
@@ -1186,15 +1186,12 @@ class ShortRangeModel:
         x0 = mouth_diameter/2/𝛽r1
         # Time of virtual origin
         t0 = (np.sqrt(np.pi)*(mouth_diameter**3))/(8*(𝛽r1**2)*(𝛽x1**2)*Q_exh)
-        # Aux to test         
-        t0_test = (x0/𝛽x1)**2 * (Am*u0**2)**(-0.5)
         # The transition point, m
         xstar = np.array(𝛽x1*(Q_exh*u0)**0.25*(tstar + t0)**0.5 - x0)
         # Dilution factor at the transition point xstar
         Sxstar = np.array(2*𝛽r1*(xstar+x0)/mouth_diameter)
 
         distances = np.array(self.distance)
-
         factors = np.empty(distances.shape, dtype=np.float64)
         factors[distances < xstar] = 2*𝛽r1*(distances[distances < xstar]
                                         + x0)/mouth_diameter
