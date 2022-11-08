@@ -144,9 +144,12 @@ This factor is calculated in a two-stage expiratory jet model, with its transiti
 
 :math:`\mathrm{xstar}=𝛽_{\mathrm{x1}} (Q_{\mathrm{exh}} \cdot u_{0})^\frac{1}{4} \cdot (\mathrm{tstar} + t_{0})^\frac{1}{2} - x_{0}`,
 
-where :math:`Q_{\mathrm{exh}}=\textrm{exh_coef} \cdot \mathrm{BR}` is the expired flow rate during the expiration period, in :math:`m^{3} s^{-1}`, :math:`\textrm{exh_coef}` is the exhalation coefficient defined as `2`, and :math:`\mathrm{BR}` is the given exhalation rate.
+where :math:`Q_{\mathrm{exh}}=\textrm{exh_coef} \cdot \mathrm{BR}` is the expired flow rate during the expiration period, in :math:`m^{3} s^{-1}`, :math:`\textrm{exh_coef}` is the exhalation coefficient
+(dimensionless) and represents the ratio between the total period of a breathing cycle and the duration of the exhalation alone. 
+Assuming the duration of the inhalation part is equal to the exhalation and one starts immediately after the other, :math:`\textrm{exh_coef}` will always be equal to `2` no matter what is the breating cycle time. :math:`\mathrm{BR}` is the given exhalation rate.
 :math:`u_{0}` is the expired jet speed (in :math:`m s^{-1}`) given by :math:`u_{0}=\frac{Q_{0}}{A_{m}}`, :math:`A_{m}` being the area of the mouth assuming a perfect circle (average `mouth_diameter` of `0.02m`).
-The time of the transition point :math:`\mathrm{tstar}` is defined as `2s` and corresponds to the end of the exhalation period, i.e. when the jet is interrupted. The distance of the virtual origin of the puff-like stage is defined by :math:`x_{0}=\frac{\textrm{mouth_diameter}}{2𝛽_{\mathrm{r1}}}` (in m), and the corresponding time is given by :math:`t_{0} = \frac{\sqrt{\pi} \cdot \textrm{mouth_diameter}^3}{8𝛽_{\mathrm{r1}}^2𝛽_{\mathrm{x1}}^2Q_{exh}}` (in s).
+The time of the transition point :math:`\mathrm{tstar}` is defined as `2s` and corresponds to the end of the exhalation period, i.e. when the jet is interrupted. The distance of the virtual origin of the puff-like stage is defined by 
+:math:`x_{0}=\frac{\textrm{mouth_diameter}}{2𝛽_{\mathrm{r1}}}` (in m), and the corresponding time is given by :math:`t_{0} = \frac{\sqrt{\pi} \cdot \textrm{mouth_diameter}^3}{8𝛽_{\mathrm{r1}}^2𝛽_{\mathrm{x1}}^2Q_{exh}}` (in s).
 Having the distance for the transition point, we can calculate the dilution factor at the transition point, defined as follows:
 
 :math:`\mathrm{Sxstar}=2𝛽_{\mathrm{r1}}\frac{(xstar + x_{0})}{\textrm{mouth_diameter}}`.
