@@ -32,7 +32,7 @@ REQUIREMENTS: dict = {
         'python-dateutil',
         'retry',
         'scipy',
-        'sklearn',
+        'scikit-learn',
         'timezonefinder',
         'tornado',
         'types-retry',
