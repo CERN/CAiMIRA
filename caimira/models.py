@@ -1161,11 +1161,11 @@ class ShortRangeModel:
         BR = np.array(self.activity.exhalation_rate/3600.)
 
         # Exhalation coefficient. Ratio between the duration of a breathing cycle and the duration of 
-        # the exhalation. 4 sec breathing cycle assumed.
-        exh_coef = 2
+        # the exhalation.
+        φ = 2
 
         # Exhalation airflow, as per Jia et al. (2022)
-        Q_exh = exh_coef * BR
+        Q_exh = φ * BR
 
         # Area of the mouth assuming a perfect circle (m2)
         Am = np.pi*(mouth_diameter**2)/4 

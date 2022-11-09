@@ -198,7 +198,7 @@ class SimpleShortRangeModel:
     breathing_rate: _VectorisedFloat = 0.51
 
     #: Exhalation coefficient
-    exh_coef = 2
+    φ = 2
     
     #: Tuple with BLO factors
     BLO_factors: typing.Tuple[float, float, float] = (1,0,0)
@@ -229,7 +229,7 @@ class SimpleShortRangeModel:
         x = np.array(self.distance)
         dilution = np.empty(x.shape, dtype=np.float64)
         # Exhalation airflow, as per Jia et al. (2022), m^3/s
-        Q_exh = self.exh_coef * np.array(self.breathing_rate/3600)
+        Q_exh = self.φ * np.array(self.breathing_rate/3600)
         # The expired flow velocity at the noozle (mouth opening), m/s
         u0 = np.array(Q_exh/(np.pi/4. * self.mouth_diameter**2))
         # Parameters in the jet-like stage
