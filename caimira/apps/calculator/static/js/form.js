@@ -1309,7 +1309,7 @@ vaccine_primary_host_immunity = [
 ]
 
 vaccine_booster_host_immunity = [
-  {'primary series vaccine': 'AZD1222_(AstraZeneca)', 'booster vaccine': 'AZD1222_(AstraZeneca),'},
+  {'primary series vaccine': 'AZD1222_(AstraZeneca)', 'booster vaccine': 'AZD1222_(AstraZeneca)',},
   {'primary series vaccine': 'AZD1222_(AstraZeneca)', 'booster vaccine': 'BNT162b2_(Pfizer)',},
   {'primary series vaccine': 'AZD1222_(AstraZeneca)', 'booster vaccine': 'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)',},
   {'primary series vaccine': 'AZD1222_(AstraZeneca)', 'booster vaccine': 'mRNA-1273_(Moderna)',},
