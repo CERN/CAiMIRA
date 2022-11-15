@@ -11,28 +11,28 @@
    
 <div class="container container--padding">
   <div class="d-flex mb-3 justify-content-center" id="calculator_app_button">
-    <div><a href="{{ calculator_prefix }}" role="button" class="btn btn-outline-primary"><div class="d-flex d-row"><i class="icon-calculator"></i><span class="pl-1">Calculator</div></a></div>
+    <div><a href="{{ calculator_prefix }}" role="button" class="btn btn-outline-primary"><div class="d-flex d-row"><i class="icon-calculator"></i><span class="pl-1">{{_("Calculator")}}</div></a></div>
   </div>
   <div class="split">
     <div class="col-lg-8 col-md-7 pl-0">
-      <h2 class="paragraph-title">Introduction</h2><br>
+      <h2 class="paragraph-title">{{_("Introduction")}}</h2><br>
       <div>
           <p>
-          CAiMIRA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.
+          {{_("CAiMIRA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.
           It does this by simulating the airborne spread SARS-CoV-2 virus in a finite volume, assuming homogenous mixing for the long-range component and a two-stage jet model for short-range, and estimates the risk of COVID-19 airborne transmission therein.
-          Please see the <a href="/about">About</a> page for more details on the methodology, assumptions and limitations of CAiMIRA.
+          Please see the ")}}<a href="/about">{{_("About")}}</a> {{_("page for more details on the methodology, assumptions and limitations of CAiMIRA.")}}
           </p>
           <p>
-          The full CAiMIRA source code can be accessed freely under an Apache 2.0 open source license from our <a href="https://gitlab.cern.ch/caimira/caimira">code repository</a>.
-          It includes detailed instructions on how to run your own version of this tool.
+          {{_("The full CAiMIRA source code can be accessed freely under an Apache 2.0 open source license from our")}} <a href="https://gitlab.cern.ch/caimira/caimira">{{_("code repository")}}</a>.
+          {{_("It includes detailed instructions on how to run your own version of this tool.")}}
           </p>
           <br>
       </div>
       <div id="apps_section" class="d-none">
         <div class="d-flex flex-row" >
-          <div class="pr-3"><a href="{{ calculator_prefix }}" role="button" class="btn btn-lg btn-outline-primary"><div class="d-flex d-row"><i class="icon-calculator"></i><span class="pl-2">Calculator</div></a></div>
+          <div class="pr-3"><a href="{{ calculator_prefix }}" role="button" class="btn btn-lg btn-outline-primary"><div class="d-flex d-row"><i class="icon-calculator"></i><span class="pl-2">{{_("Calculator")}}</div></a></div>
           <br>
-          <div class="expert_app_button"><a href="/expert-app" role="button" class="btn btn-lg btn-outline-secondary"><div class="d-flex d-row"><i class="icon-expert"></i><span class="pl-2">Expert (beta)</div></a></div>
+          <div class="expert_app_button"><a href="/expert-app" role="button" class="btn btn-lg btn-outline-secondary"><div class="d-flex d-row"><i class="icon-expert"></i><span class="pl-2">{{_("Expert (beta)")}}</div></a></div>
         </div>
         <br>
       </div>
@@ -45,20 +45,20 @@
   <div class="d-flex justify-content-between">
   <div class="split">
     <div class="w-25 mobile-sub-section"><hr width="95%">
-      <div class="d-flex m-2 align-items-center"><i class="bi bi-window" style="font-size: 25px"></i><div><p class="paragraph-title ml-2">Applications</p></div></div>
-      <div class="m-2">CAiMIRA is composed of two applications, the <a href="{{ calculator_prefix }}">Calculator</a> and the <a href="/expert-app">Expert App</a>.</div>
+      <div class="d-flex m-2 align-items-center"><i class="bi bi-window" style="font-size: 25px"></i><div><p class="paragraph-title ml-2">{{_("Applications")}}</p></div></div>
+      <div class="m-2">{{_("CAiMIRA is composed of two applications, the")}} <a href="{{ calculator_prefix }}">{{_("Calculator")}}</a> {{_("and the")}} <a href="/expert-app">{{_("Expert App")}}</a>.</div>
     </div>
     <div class="w-25 mobile-sub-section"><hr width="95%">
-      <div class="d-flex m-2 align-items-center"><i class="bi bi-info-square-fill" style="font-size: 25px"></i><div><p class="paragraph-title ml-2">About</p></div></div>
-      <div class="m-2"><a href="/about">About</a> page for details on methodology, assumptions and limitations of CAiMIRA.</div>
+      <div class="d-flex m-2 align-items-center"><i class="bi bi-info-square-fill" style="font-size: 25px"></i><div><p class="paragraph-title ml-2">{{_("About")}}</p></div></div>
+      <div class="m-2"><a href="/about">{{_("About")}}</a> {{_("page for details on methodology, assumptions and limitations of CAiMIRA.")}}</div>
     </div>
     <div class="w-25 mobile-sub-section"><hr width="95%">
-      <div class="d-flex m-2 align-items-center"><i class="bi bi-journal-text" style="font-size: 25px"></i><div><p class="paragraph-title ml-2">Documentation</p></div></div>
-      <div class="m-2">Documentation for CAiMIRA, available <a href="https://caimira.readthedocs.io/">here</a>.<br></div>
+      <div class="d-flex m-2 align-items-center"><i class="bi bi-journal-text" style="font-size: 25px"></i><div><p class="paragraph-title ml-2">{{_("Documentation")}}</p></div></div>
+      <div class="m-2">{{_("Documentation for CAiMIRA, available")}} <a href="https://caimira.readthedocs.io/">{{_("here")}}</a>.<br></div>
     </div>
     <div class="w-25 mobile-sub-section"><hr width="95%">
-      <div class="d-flex m-2 align-items-center"><i class="bi bi-git" style="font-size: 25px"></i><div><p class="paragraph-title ml-2">Git</p></div></div>
-      <div class="m-2">Official CAiMIRA GitLab <a href="https://gitlab.cern.ch/caimira/caimira">repository</a>.<br></div>
+      <div class="d-flex m-2 align-items-center"><i class="bi bi-git" style="font-size: 25px"></i><div><p class="paragraph-title ml-2">{{_("Git")}}</p></div></div>
+      <div class="m-2">{{_("Official CAiMIRA GitLab")}} <a href="https://gitlab.cern.ch/caimira/caimira">{{_("repository")}}</a>.<br></div>
     </div>
   </div>
   </div>
@@ -69,15 +69,15 @@
 
   <br>
   <div>
-    <h2 class="paragraph-title">Reference & Citation</h2><br>
+    <h2 class="paragraph-title">{{_("Reference & Citation")}}</h2><br>
     <p>
-    <b>For use of the CAiMIRA model:</b><br>
+    <b>{{_("For use of the CAiMIRA model:")}}</b><br>
       <ul> 
         <li> Henriques A, Mounet N, Aleixo L, Elson P, Devine J, Azzopardi G, Andreini M, Rognlien M, Tarocco N, Tang J. (2022). 
-        Modelling airborne transmission of SARS-CoV-2 using CARA: risk assessment for enclosed spaces. 
+        Modelling airborne transmission of SARS-CoV-2 using CARA: risk assessment for enclosed spaces.
         <i>Interface Focus</i>  <b>12</b>: 20210076. <a href=https://doi.org/10.1098/rsfs.2021.0076>doi.org/10.1098/rsfs.2021.0076</a> </li>
-        <a href=https://royalsocietypublishing.org/action/showCitFormats?doi=10.1098%2Frsfs.2021.0076><i>Download citation</i></a><br>
-          <b><i>Short-range expiratory jet model from:</i></b> 
+        <a href=https://royalsocietypublishing.org/action/showCitFormats?doi=10.1098%2Frsfs.2021.0076><i>{{_("Download citation")}}</i></a><br>
+          <b><i>{{_("Short-range expiratory jet model from:")}}</i></b> 
           <ul>
               <li> Jia W, Wei J, Cheng P, Wang Q, Li Y. (2022).
               Exposure and respiratory infection risk via the short-range airborne route.
@@ -85,21 +85,21 @@
               </li>
           </ul>
       </ul>
-      <b>For use of the CAiMIRA web app:</b><br>
+      <b>{{_("For use of the CAiMIRA web app:")}}</b><br>
       <ul> 
-        <li>CAiMIRA – CERN Airborne Model for Indoor Risk Assessment tool</li>
+        <li>{{_("CAiMIRA – CERN Airborne Model for Indoor Risk Assessment tool")}}</li>
         <a href="https://doi.org/10.5281/zenodo.6520431"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.6520431.svg" alt="DOI"></a><br> 
-        © Copyright 2020-2021 CERN. All rights not expressly granted are reserved.<br>
-        Licensed under the Apache License, Version 2.0<br>
-        <a href=https://gitlab.cern.ch/caimira/caimira/-/blob/master/LICENSE><i>LICENSE</i></a>
+        {{_("© Copyright 2020-2021 CERN. All rights not expressly granted are reserved.")}}<br>
+        {{_("Licensed under the Apache License, Version 2.0")}}<br>
+        <a href=https://gitlab.cern.ch/caimira/caimira/-/blob/master/LICENSE><i>{{_("LICENSE")}}</i></a>
       </ul>
     </p>
   </div>
   
   <br>
-  <h3 class="acknowledgements">Acknowledgements</h3><br>
+  <h3 class="acknowledgements">{{_("Acknowledgements")}}</h3><br>
   <details>
-    <summary>Click to expand</summary>
+    <summary>{{_("Click to expand")}}</summary>
     <br>
     <em>{{ text_blocks['Acknowledgements'] }}</em>
   </details>

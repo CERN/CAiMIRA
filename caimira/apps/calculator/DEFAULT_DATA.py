@@ -26,7 +26,7 @@ _DEFAULTS = {
         'arve_sensors_option': False,
         'specific_breaks': '{}',
         'precise_activity': '{}',
-        'calculator_version': _NO_DEFAULT,
+        'calculator_version': __version__,
         'ceiling_height': 0.,
         'exposed_coffee_break_option': 'coffee_break_0',
         'exposed_coffee_duration': 5,
@@ -95,18 +95,18 @@ ACTIVITY_TYPES = typing.List[typing.Dict[str, typing.Any]] = [
     {'id': 'largemeeting', 'name': _('Large meeting (>=10 occ.)'), 'activity': 'Standing', 'expiration': {'Speaking': 1, 'Breathing': 2}}, # each infected person spends 1/3 of time speaking.
     {'id': 'callcentre', 'name': _('Call Centre'), 'activity': 'Seated', 'expiration': 'Speaking'},
     {'id': 'library', 'name': _('Library'), 'activity': 'Seated', 'expiration': 'Breathing'}, 
-    {'id': 'training', 'name': _('Conference/Training (speaker infected'), 'activity': 'Standing', 'expiration': 'Speaking'},
-    {'id': 'training_attendee', 'name': _('Conference/Training (attendee infected'), 'activity': 'Seated', 'expiration': 'Breathing'},
+    {'id': 'training', 'name': _('Conference/Training (speaker infected)'), 'activity': 'Standing', 'expiration': 'Speaking'},
+    {'id': 'training_attendee', 'name': _('Conference/Training (attendee infected)'), 'activity': 'Seated', 'expiration': 'Breathing'},
     {'id': 'lab', 'name': _('Laboratory'), 'activity': 'Light activity', 'expiration': {'Speaking': 1, 'Breathing': 1}}, #Model 1/2 of time spent speaking in a lab.
     {'id': 'workshop', 'name': _('Workshop'), 'activity': 'Moderate activity', 'expiration': {'Speaking': 1, 'Breathing': 1}}, #Model 1/2 of time spent speaking in a workshop.
     {'id': 'gym', 'name': _('Gym'), 'activity': 'Heavy exercise', 'expiration': 'Breathing'},
-    {'id': 'household-day', 'name': _('household-day'), 'activity': '', 'expiration': ''},
-    {'id': 'household-night', 'name': _('household_night'), 'activity': '', 'expiration': ''},
-    {'id': 'primary_school', 'name': _('primary_school'), 'activity': '', 'expiration': ''},
-    {'id': 'secundary_school', 'name': _('secundary_school'), 'activity': '', 'expiration': ''},
-    {'id': 'university', 'name': _('university'), 'activity': '', 'expiration': ''},
-    {'id': 'restaurant', 'name': _('restaurant'), 'activity': '', 'expiration': ''},
-    {'id': 'precise', 'name': _('precise'), 'activity': '', 'expiration': ''},]
+    {'id': 'household-day', 'name': _('household-day'), 'activity': 'Light activity', 'expiration': {'Breathing': 5, 'Speaking': 5}},
+    {'id': 'household-night', 'name': _('household_night'), 'activity': 'Seated', 'expiration': {'Breathing': 7, 'Speaking': 3}},
+    {'id': 'primary_school', 'name': _('primary_school'), 'activity': 'Light activity', 'expiration': {'Breathing': 5, 'Speaking': 5}},
+    {'id': 'secundary_school', 'name': _('secundary_school'), 'activity': 'Light activity', 'expiration': {'Breathing': 7, 'Speaking': 3}},
+    {'id': 'university', 'name': _('university'), 'activity': 'Seated', 'expiration': {'Breathing': 9, 'Speaking': 1}},
+    {'id': 'restaurant', 'name': _('restaurant'), 'activity': 'Seated', 'expiration': {'Breathing': 1, 'Speaking': 9}},
+    {'id': 'precise', 'name': _('precise'), 'activity': 'Seated', 'expiration': ''},] #self.generate_precise_activity_expiration() 
 
 # ------------------ Validation ----------------------
 
