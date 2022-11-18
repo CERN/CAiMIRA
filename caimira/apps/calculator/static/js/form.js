@@ -424,6 +424,7 @@ function geographic_cases(location_country_name) {
     type: 'GET',
     success: function (result) {
       $('#geographic_cases').val(result);
+      result != '' ? $('#source_geographic_cases').show() : $('#source_geographic_cases').hide();
     },
     error: function(_, _, errorThrown) {
       console.log(errorThrown);
