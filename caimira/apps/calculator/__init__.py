@@ -334,6 +334,8 @@ class CasesData(BaseRequestHandler):
         current_date = str(datetime.datetime.now()).split(' ')[0]
         eight_days_ago = str(datetime.datetime.now() - datetime.timedelta(days=7)).split(' ')[0]
         cases = cases.set_index(['Date_reported'])
+        # If any of the 'New_cases' is 0, it means the data is not updated.
+        if (cases.loc[eight_days_ago:current_date]['New_cases'] == 0).any(): return self.finish('')
         return self.finish(str(round(cases.loc[eight_days_ago:current_date]['New_cases'].mean())))
 
 
