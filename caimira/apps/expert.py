@@ -901,7 +901,7 @@ class CAIMIRAStateBuilder(state.StateBuilder):
 
 
 class ExpertApplication(Controller):
-    def __init__(self):
+    def __init__(self) -> None:
         self._debug_output = widgets.Output()
 
         #: A list of scenario name and ModelState instances. This is intended to be
