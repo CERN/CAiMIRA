@@ -53,7 +53,7 @@ class DataclassState(typing.Generic[Datamodel_T]):
         yield
         object.__setattr__(self, '_use_base_setattr', False)
 
-    def dcs_instance(self) -> Datamodel_T:
+    def dcs_instance(self) -> typing.Union[None, Datamodel_T]:
         """
         Return the instance that this state represents. The instance returned
         is immutable, so it is advised to call this method each time that

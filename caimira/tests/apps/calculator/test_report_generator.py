@@ -11,7 +11,7 @@ from caimira.apps.calculator.report_generator import ReportGenerator, readable_m
 import caimira.apps.calculator.report_generator as rep_gen
 
 
-def test_generate_report(baseline_form):
+def test_generate_report(baseline_form) -> None:
     # This is a simple test that confirms that given a model, we can actually
     # generate a report for it. Because this is what happens in the caimira
     # calculator, we confirm that the generation happens within a reasonable

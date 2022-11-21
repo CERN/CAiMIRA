@@ -92,7 +92,7 @@ class Missing404Handler(BaseRequestHandler):
 
 
 class ConcentrationModel(BaseRequestHandler):
-    async def post(self):
+    async def post(self) -> None:
         requested_model_config = {
             name: self.get_argument(name) for name in self.request.arguments
         }
@@ -137,7 +137,7 @@ class ConcentrationModelJsonResponse(BaseRequestHandler):
         """
         pass
 
-    async def post(self):
+    async def post(self) -> None:
         """
         Expects algorithm input in HTTP POST request body in JSON format.
         Returns report data (algorithm output) in HTTP POST response body in JSON format.
@@ -168,7 +168,7 @@ class ConcentrationModelJsonResponse(BaseRequestHandler):
 
 
 class StaticModel(BaseRequestHandler):
-    async def get(self):
+    async def get(self) -> None:
         form = model_generator.FormData.from_dict(model_generator.baseline_raw_form_data())
         base_url = self.request.protocol + "://" + self.request.host
         report_generator: ReportGenerator = self.settings['report_generator']
