@@ -50,7 +50,7 @@ CAiMIRA – CERN Airborne Model for Indoor Risk Assessment tool
 Henriques A, Mounet N, Aleixo L, Elson P, Devine J, Azzopardi G, Andreini M, Rognlien M, Tarocco N, Tang J. (2022). Modelling airborne transmission of SARS-CoV-2 using CARA: risk assessment for enclosed spaces. _Interface Focus 20210076_. https://doi.org/10.1098/rsfs.2021.0076
 
 Reference on the Short-range expiratory jet model from:
-Jia W, Wei J, Cheng P, Wang Q, Li Y. (2022). Exposure and respiratory infection risk via the short-range airborne route. _Building and Environment_ *219*: 109166. 
+Jia W, Wei J, Cheng P, Wang Q, Li Y. (2022). Exposure and respiratory infection risk via the short-range airborne route. _Building and Environment_ *219*: 109166.
 https://doi.org/10.1016/j.buildenv.2022.109166
 
 ## Applications
@@ -120,7 +120,7 @@ In order to generate the documentation, CAiMIRA must be installed first with the
 pip install -e .[doc]
 ```
 
-To generate the HTML documentation page, the command `make html` should be executed in the `caimira/docs` directory. 
+To generate the HTML documentation page, the command `make html` should be executed in the `caimira/docs` directory.
 If any of the `.rst` files under the `caimira/docs` folder is changed, this command should be executed again.
 
 Then, right click on `caimira/docs/_build/html/index.html` and select `Open with` your preferred web browser.
@@ -260,6 +260,14 @@ $ oc process -f buildconfig.yaml --param GIT_BRANCH='live/caimira-test' | oc cre
 $ oc process -f deploymentconfig.yaml --param PROJECT_NAME='caimira-test'  | oc create -f -
 ```
 
+Manually create the **route** to access the website, see `routes.example.yaml`.
+After having created the route, make sure that you extend the HTTP request timeout annotation: the
+report generation can take more time than the default 30 seconds.
+
+```
+$ oc annotate route caimira-route --overwrite haproxy.router.openshift.io/timeout=60s
+```
+
 ### CERN SSO integration
 
 The SSO integration uses OpenID credentials configured in [CERN Applications portal](https://application-portal.web.cern.ch/).
@@ -304,11 +312,11 @@ $ oc create secret generic \
 
 - **Geographical location:**
 There is one external API call to fetch required information related to the geographical location inserted by a user.
-The documentation for this geocoding service is available at https://developers.arcgis.com/rest/geocode/api-reference/geocoding-suggest.htm . 
+The documentation for this geocoding service is available at https://developers.arcgis.com/rest/geocode/api-reference/geocoding-suggest.htm .
 Please note that there is no need for keys on this API call. It is **free-of-charge**.
 
 - **Humidity and Inside Temperature:**
-There is the possibility of using one external API call to fetch information related to a location specified in the UI. The data is related to the inside temperature and humidity taken from an indoor measurement device. Note that the API currently used from ARVE is only available for the `CERN theme` as the authorised sensors are installed at CERN." 
+There is the possibility of using one external API call to fetch information related to a location specified in the UI. The data is related to the inside temperature and humidity taken from an indoor measurement device. Note that the API currently used from ARVE is only available for the `CERN theme` as the authorised sensors are installed at CERN."
 
 ## Update configuration
 
@@ -325,5 +333,5 @@ $ oc process -f buildconfig.yaml --param GIT_BRANCH='live/caimira-test' | oc rep
 $ oc process -f deploymentconfig.yaml --param PROJECT_NAME='caimira-test' | oc replace -f -
 ```
 
-Be aware that if you create/recreate the environment you must manually create a **route** in OpenShift, 
+Be aware that if you create/recreate the environment you must manually create a **route** in OpenShift,
 specifying the respective annotation to be exposed outside CERN.
