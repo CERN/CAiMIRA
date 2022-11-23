@@ -151,7 +151,7 @@ docker build . -f ./app-config/caimira-webservice/Dockerfile -t caimira-webservi
 docker build ./app-config/auth-service -t auth-service
 ```
 
-Get the client secret from the CERN Application portal for the `caimira-test` app. See [CERN-SSO-integration](#CERN-SSO-integration) for more info.
+Get the client secret from the CERN Application portal for the `caimira-test` app. See [CERN-SSO-integration](#cern-sso-integration) for more info.
 ```
 read CLIENT_SECRET
 ```
@@ -175,7 +175,7 @@ Then visit http://localhost:8080/.
 
 ### Setting up the application on openshift
 
-The https://cern.ch/caimira application is running on CERN's OpenShift platform. In order to set it up for the first time, we followed the documentation at https://cern.service-now.com/service-portal?id=kb_article&n=KB0004498. In particular we:
+The https://cern.ch/caimira application is running on CERN's OpenShift platform. In order to set it up for the first time, we followed the documentation at https://paas.docs.cern.ch/. In particular we:
 
  * Added the OpenShift application deploy key to the GitLab repository
  * Created a Python 3.6 (the highest possible at the time of writing) application in OpenShift
