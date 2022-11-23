@@ -1,0 +1,57 @@
+{
+    "creators": [
+        {
+            "affiliation": "CERN (European Organization for Nuclear Research), Geneva, Switzerland",
+            "name": "Andre Henriques",
+            "orcid": "0000-0003-1521-3423"
+        },
+        {
+            "affiliation": "CERN (European Organization for Nuclear Research), Geneva, Switzerland",
+            "name": "Nicolas Mounet",
+            "orcid": "0000-0002-1433-1017"
+        },
+        {
+            "affiliation": "CERN (European Organization for Nuclear Research), Geneva, Switzerland",
+            "name": "Luis Aleixo",
+            "orcid": "0000-0002-8829-6509"
+        },
+        {
+            "affiliation": "CERN (European Organization for Nuclear Research), Geneva, Switzerland",
+            "name": "Philip Elson",
+            "orcid": "0000-0001-6360-749X"
+        },
+        {
+            "affiliation": "CERN (European Organization for Nuclear Research), Geneva, Switzerland",
+            "name": "James Devine",
+            "orcid": "0000-0002-2019-1532"
+        },
+        {
+            "affiliation": "CERN (European Organization for Nuclear Research), Geneva, Switzerland",
+            "name": "Gabriella Azzopardi",
+            "orcid": "0000-0001-7257-7827"
+        },
+        {
+            "affiliation": "CERN (European Organization for Nuclear Research), Geneva, Switzerland",
+            "name": "Marco Andreini",
+            "orcid": "0000-0001-8474-4397"
+        },
+        {
+            "affiliation": "NTNU (Norwegian University of Science and Technology), Torgarden, Norway",
+            "name": "Markus Rognlien"
+        },
+        {
+            "affiliation": "CERN (European Organization for Nuclear Research), Geneva, Switzerland",
+            "name": "Nicola Tarocco",
+            "orcid": "0000-0002-2227-1229"
+        },
+        {
+            "affiliation": "Respiratory Sciences, University of Leicester, Leicester, UK",
+            "name": "Julian Tang",
+            "orcid": "0000-0002-4963-1028"
+        }
+    ],
+    "license": {
+        "id": "Apache-2.0"
+    },
+    "title": "CAiMIRA - CERN Airborne Model for Risk Assessment"
+}
