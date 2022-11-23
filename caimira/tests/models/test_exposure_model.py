@@ -297,13 +297,13 @@ def test_prob_meet_infected_person(pop, cases, AB, exposed, infected, prob_meet_
         [30, known_concentrations(lambda t: 1.2),
         100000, 68, 5, 55.93154502],
     ])
-def test_probabilistic_exposure_probability(exposed_population, cm,
+def test_probabilistic_exposure_probability(sr_model, exposed_population, cm,
         pop, AB, cases, probabilistic_exposure_probability):
 
     population = models.Population(
         exposed_population, models.PeriodicInterval(120, 60), models.Mask.types['Type I'],
         models.Activity.types['Standing'], host_immunity=0.,)
-    model = ExposureModel(cm, (), population, models.Cases(geographic_population=pop,
+    model = ExposureModel(cm, sr_model, population, models.Cases(geographic_population=pop,
         geographic_cases=cases, ascertainment_bias=AB),)
     np.testing.assert_allclose(
         model.total_probability_rule(), probabilistic_exposure_probability, rtol=0.05
@@ -391,3 +391,24 @@ def test_diameter_vectorisation_room(diameter_dependent_model, sr_model, cases_m
     with pytest.raises(ValueError, match=error_message):
         models.ExposureModel(concentration, sr_model, populations[0], cases_model)
         
+
+@pytest.mark.parametrize(
+    ["cm", "host_immunity", "expected_probability"],
+    [
+        [known_concentrations(lambda t: 36.), np.array([0.25, 0.5]), np.array([57.40415859, 41.03956914])],
+        [known_concentrations(lambda t: 36.), np.array([0., 1.]), np.array([67.95037626, 0.])],
+    ]
+)
+def test_host_immunity_vectorisation(sr_model, cases_model, cm, host_immunity, expected_probability):
+    population = models.Population(
+        10, halftime, models.Mask(np.array([0.3, 0.35])),
+        models.Activity.types['Standing'], host_immunity=host_immunity
+    )
+    model = ExposureModel(cm, sr_model, population, cases_model)
+    inf_probability = model.infection_probability()
+
+    np.testing.assert_almost_equal(
+        inf_probability, expected_probability, decimal=1
+    )
+    assert isinstance(inf_probability, np.ndarray)
+    assert inf_probability.shape == (2, )
