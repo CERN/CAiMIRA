@@ -375,6 +375,24 @@
 						</ul>
 					</div>
 				</div>
+				
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Vaccination data:</strong></div>
+					<div class="card-body">
+						{% if form.vaccine_option %}
+						<ul>
+							<li>Primary vaccine: {{ form.vaccine_type | replace("_", " ") }}
+							{% if form.vaccine_booster_option %}
+								<li>Booster vaccine: {{ form.vaccine_booster_type | replace("_", " ")}} </li>
+							{% endif %}
+							<li>Vaccine effectiveness: {{ model.exposed.host_immunity | percentage | non_zero_percentage }} </li>
+						</ul>
+						{% else %}
+						<p>No vaccination selected.</p>
+						{% endif %}
+					</div>
+				</div>
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Ventilation data:</strong></div>
