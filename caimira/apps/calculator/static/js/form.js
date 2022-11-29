@@ -946,6 +946,9 @@ $(document).ready(function () {
 
   // Update geographic_cases
   geographic_cases('CHE');
+
+  // Handle WHO source message if geographic_cases pre-defined value is modified by user
+  $('#geographic_cases').change(() => $('#source_geographic_cases').hide());
   
   // When the document is ready, deal with the fact that we may be here
   // as a result of a forward/back browser action. If that is the case, update
