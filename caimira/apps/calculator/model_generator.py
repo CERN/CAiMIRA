@@ -33,8 +33,8 @@ class FormData:
     air_changes: float
     air_supply: float
     arve_sensors_option: bool
-    aria_breaks: list
-    aria_precise: dict
+    specific_breaks: list
+    precise_activity: dict
     ceiling_height: float
     exposed_coffee_break_option: str
     exposed_coffee_duration: int
@@ -100,8 +100,8 @@ class FormData:
         'air_changes': 0.,
         'air_supply': 0.,
         'arve_sensors_option': False,
-        'aria_breaks': '[]',
-        'aria_precise': '{}',
+        'specific_breaks': '[]',
+        'precise_activity': '{}',
         'calculator_version': _NO_DEFAULT,
         'ceiling_height': 0.,
         'exposed_coffee_break_option': 'coffee_break_0',
@@ -312,11 +312,11 @@ class FormData:
             raise ValueError("mechanical_ventilation_type cannot be 'not-applicable' if "
                              "ventilation_type is 'mechanical_ventilation'")
 
-        # Validate ARIA inputs - breaks
-        if self.aria_breaks != []:
-            if type(self.aria_breaks) is not list:
-                raise TypeError(f'All breaks should be in a list. Got {type(self.aria_breaks)}.')
-            for input_break in self.aria_breaks:
+        # Validate specific inputs - breaks
+        if self.specific_breaks != []:
+            if type(self.specific_breaks) is not list:
+                raise TypeError(f'All breaks should be in a list. Got {type(self.specific_breaks)}.')
+            for input_break in self.specific_breaks:
                 # Input validations.
                 if type(input_break) is not dict:
                     raise TypeError(f'Each break should be a dictionary. Got {type(input_break)}.')
@@ -329,25 +329,25 @@ class FormData:
                     if not re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$").match(time):
                         raise TypeError(f'Wrong time format - "HH:MM". Got "{time}".')
 
-        # Validate ARIA inputs - precise activity
-        if self.aria_precise != {}:
-            if type(self.aria_precise) is not dict:
+        # Validate specific inputs - precise activity
+        if self.precise_activity != {}:
+            if type(self.precise_activity) is not dict:
                 raise TypeError('The precise activities should be in a dictionary.')
 
-            dict_keys = list(self.aria_precise.keys())
+            dict_keys = list(self.precise_activity.keys())
             if "physical_activity" not in dict_keys:
                 raise TypeError(f'Unable to fetch "physical_activity" key. Got "{dict_keys[0]}".')
             if "respiratory_activity" not in dict_keys:
                 raise TypeError(f'Unable to fetch "respiratory_activity" key. Got "{dict_keys[1]}".')
                 
-            if type(self.aria_precise['physical_activity']) is not str:
+            if type(self.precise_activity['physical_activity']) is not str:
                 raise TypeError('The physical activities should be a single string.')
 
-            if type(self.aria_precise['respiratory_activity']) is not list:
+            if type(self.precise_activity['respiratory_activity']) is not list:
                 raise TypeError('The respiratory activities should be in a list.')
 
             total_percentage = 0
-            for respiratory_activity in self.aria_precise['respiratory_activity']:
+            for respiratory_activity in self.precise_activity['respiratory_activity']:
                 if type(respiratory_activity) is not dict:
                     raise TypeError('Each respiratory activity should be defined in a dictionary.')
                 dict_keys = list(respiratory_activity.keys())
@@ -522,14 +522,14 @@ class FormData:
             mask = models.Mask.types['No mask']
         return mask
 
-    def generate_aria_activity_expiration(self) -> typing.Tuple[typing.Any, ...]:
-        if self.aria_precise == {}: # It means the precise activity is not defined by ARIA interface.
+    def generate_precise_activity_expiration(self) -> typing.Tuple[typing.Any, ...]:
+        if self.precise_activity == {}: # It means the precise activity is not defined by a specific input.
             return ()
         respiratory_dict = {}
-        for respiratory_activity in self.aria_precise['respiratory_activity']:
+        for respiratory_activity in self.precise_activity['respiratory_activity']:
             respiratory_dict[respiratory_activity['type']] = respiratory_activity['percentage']
             
-        return (self.aria_precise['physical_activity'], respiratory_dict)
+        return (self.precise_activity['physical_activity'], respiratory_dict)
 
     def infected_population(self) -> mc.InfectedPopulation:
         # Initializes the virus
@@ -574,7 +574,7 @@ class FormData:
                 #Model 1/2 of time spent speaking in a workshop.
                 {'Speaking': 1, 'Breathing': 1}),
             'gym':('Heavy exercise', 'Breathing'),
-            # ARIA UI activity types
+            # Other activity types
             'household-day': (
                 'Light activity',
                 {'Breathing': 5, 'Speaking': 5}
@@ -599,7 +599,7 @@ class FormData:
                 'Seated',
                 {'Breathing': 1, 'Speaking': 9}
             ),
-            'precise': self.generate_aria_activity_expiration(),
+            'precise': self.generate_precise_activity_expiration(),
         }
         
         [activity_defn, expiration_defn] = scenario_activity_and_expiration[self.activity_type]
@@ -738,14 +738,14 @@ class FormData:
         else:
             return self.exposed_coffee_break_times()
 
-    def generate_aria_break_times(self) -> models.BoundarySequence_t:
+    def generate_specific_break_times(self) -> models.BoundarySequence_t:
         break_times = []
-        for n in self.aria_breaks:
+        for n in self.specific_breaks:
             # Parse break times.  
             begin = time_string_to_minutes(n["start_time"])
             end = time_string_to_minutes(n["finish_time"])
             for time in [begin, end]:
-                # In ARIA, the infected and exposed presence is the same.
+                # For a specific break, the infected and exposed presence is the same.
                 if not getattr(self, 'infected_start') < time < getattr(self, 'infected_finish'):
                     raise ValueError(f'All breaks should be within the simulation time. Got {time_minutes_to_string(time)}.')
 
@@ -845,8 +845,8 @@ class FormData:
         return models.SpecificInterval(tuple(present_intervals))
 
     def infected_present_interval(self) -> models.Interval:
-        if self.aria_breaks != []: # It means the breaks were defined by ARIA interface
-            breaks = self.generate_aria_break_times()
+        if self.specific_breaks != []: # It means the breaks are specific and not predefined
+            breaks = self.generate_specific_break_times()
         else:
             breaks = self.infected_lunch_break_times() + self.infected_coffee_break_times()
         return self.present_interval(
@@ -860,8 +860,8 @@ class FormData:
         return models.SpecificInterval(present_times=((start_time/60, (start_time + duration)/60),))
 
     def exposed_present_interval(self) -> models.Interval:
-        if self.aria_breaks != []: # It means the breaks were defined by ARIA interface
-            breaks = self.generate_aria_break_times()
+        if self.specific_breaks != []: # It means the breaks are specific and not predefined
+            breaks = self.generate_specific_break_times()
         else:
             breaks = self.exposed_lunch_break_times() + self.exposed_coffee_break_times()
         return self.present_interval(
