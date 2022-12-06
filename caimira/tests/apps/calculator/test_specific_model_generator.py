@@ -16,8 +16,8 @@ from caimira.apps.calculator import model_generator
         [[{"start_time": "10:00", "finish_time": "11"}], 'Wrong time format - "HH:MM". Got "11".'],
     ]
 )
-def test_aria_break_data_structure(break_input, error, baseline_form: model_generator.FormData):
-    baseline_form.aria_breaks = break_input
+def test_specific_break_data_structure(break_input, error, baseline_form: model_generator.FormData):
+    baseline_form.specific_breaks = break_input
     with pytest.raises(TypeError, match=error):
         baseline_form.validate()
 
@@ -31,10 +31,10 @@ def test_aria_break_data_structure(break_input, error, baseline_form: model_gene
         [[{"start_time": "08:00", "finish_time": "11:00"}, {"start_time": "14:00", "finish_time": "15:00"}, ], "All breaks should be within the simulation time. Got 08:00."],
     ]
 )
-def test_aria_break_time(break_input, error, baseline_form: model_generator.FormData):
-    baseline_form.aria_breaks = break_input
+def test_specific_break_time(break_input, error, baseline_form: model_generator.FormData):
+    baseline_form.specific_breaks = break_input
     with pytest.raises(ValueError, match=error):
-        baseline_form.generate_aria_break_times()
+        baseline_form.generate_specific_break_times()
 
 
 @pytest.mark.parametrize(
@@ -50,8 +50,8 @@ def test_aria_break_time(break_input, error, baseline_form: model_generator.Form
         [{"physical_activity": "Light activity", "respiratory_activity": [{"type": "Breathing", "percentag": 50}, {"type": "Speaking", "percentage": 50}]}, 'Unable to fetch "percentage" key. Got "percentag".'],
     ]
 )
-def test_aria_precise_activity_structure(precise_activity_input, error, baseline_form: model_generator.FormData):
-    baseline_form.aria_precise = precise_activity_input
+def test_precise_activity_structure(precise_activity_input, error, baseline_form: model_generator.FormData):
+    baseline_form.precise_activity = precise_activity_input
     with pytest.raises(TypeError, match=error):
         baseline_form.validate()
 
@@ -65,7 +65,7 @@ def test_aria_precise_activity_structure(precise_activity_input, error, baseline
         [{"physical_activity": "Light activity", "respiratory_activity": [{"type": "Breathing", "percentage": 50}]}, 'The sum of all respiratory activities should be 100. Got 50.'],
     ]
 )
-def test_aria_sum_precise_activity(precise_activity_input, error, baseline_form: model_generator.FormData):
-    baseline_form.aria_precise = precise_activity_input
+def test_sum_precise_activity(precise_activity_input, error, baseline_form: model_generator.FormData):
+    baseline_form.precise_activity = precise_activity_input
     with pytest.raises(ValueError, match=error):
         baseline_form.validate()
