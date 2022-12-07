@@ -335,3 +335,38 @@ $ oc process -f deploymentconfig.yaml --param PROJECT_NAME='caimira-test' | oc r
 
 Be aware that if you create/recreate the environment you must manually create a **route** in OpenShift,
 specifying the respective annotation to be exposed outside CERN.
+
+### Interlationalization
+
+To enable the translation of the tool, when new sentences are added to any of the `.html` pages, two files - `.pot` and `.po` - must be generated.
+
+The current project contains an architecture ready for an English-French translation, so these files already exist and only need to be updated and compiled when new sentences are added. 
+In order to update the files containing the strings that should be translated, run the following commands in the `/caimira/apps` directory:
+
+```
+pybabel extract -F babel-mapping.ini -o locale/base.pot ./
+msgmerge --no-wrap --sort-by-file --output-file=locale/fr/LC_MESSAGES/messages.po locale/fr/LC_MESSAGES/messages.po locale/base.pot
+```
+
+Then, proceed with the translations on the newly generated `.po` file. When finished, create the `.mo` which is the compilation of the `.po` file by running the following command:
+
+```
+msgfmt locale/fr/LC_MESSAGES/messages.po --output-file=locale/fr/LC_MESSAGES/messages.mo
+```
+
+In order to add any other translation, a new folder structure should be created under the `locale` directory - see the `locale/fr` folder to have an idea on the structure and naming.
+
+For example, to generate a English-Portuguese translation of the tool, one should create a `pt/PT_MESSAGES` file structure under `locale`.
+Then, generate the `.po` file by running the following command:
+
+```
+msginit --input=locale/base.pot --output-file=locale/pt/PT_MESSAGES/messages.po --no-wrap --locale=$1
+```
+
+The last step is its compilation, by running the following command:
+
+```
+msgfmt locale/pt/PT_MESSAGES/messages.po --output-file=locale/pt/PT_MESSAGES/messages.mo
+```
+
+For additional information please refer to https://st4lk.github.io/en/blog/2015/01/31/tornado-internationalization-and-localization.html.
