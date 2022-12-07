@@ -18,6 +18,13 @@
 
 {% block main %}
 
+{% if DEBUG %}
+<form id="covid_calculator" name="covid_calculator" onsubmit="return debug_submit(this)" class="form-inline">
+{% else %}
+<form id="covid_calculator" name="covid_calculator" action="{{ calculator_prefix }}/report" onsubmit="return validate_form(this)" method="POST">
+{% endif %}
+{{ xsrf_form_html }}
+
 <span class="caimira_version">v{{ calculator_version }}</span>
 <span class="feedback">Please send feedback to <a href="mailto:CAiMIRA-dev@cern.ch">CAiMIRA-dev@cern.ch</a></span>
 <header class= "bg-light">
@@ -28,13 +35,6 @@
     </div>
   </div>
 </header>
-
-{% if DEBUG %}
-<form id="covid_calculator" name="covid_calculator" onsubmit="return debug_submit(this)" class="form-inline">
-{% else %}
-<form id="covid_calculator" name="covid_calculator" action="{{ calculator_prefix }}/report" onsubmit="return validate_form(this)" method="POST">
-{% endif %}
-{{ xsrf_form_html }}
 
 <input type="hidden" name="calculator_version" value="{{ calculator_version }}">
 
@@ -424,6 +424,8 @@
       </select>
     </div>
     </div>
+    
+    <input type="text" class="form-control d-none" name="precise_activity" value='{}'>
 
     <div style=" margin-right:2rem;">
       <div class="boxMargin pb-0">
@@ -529,6 +531,7 @@
       <div data-tooltip="Input breaks that, by default, are the same for infected/exposed person(s) unless specified otherwise.">
         <span class="tooltip_text">?</span>
       </div>
+      <input type="text" class="form-control d-none" name="specific_breaks" value='[]'>
     </span><br>
 
     <!-- Lunch Options -->
@@ -727,5 +730,8 @@
 </div>
 
 </form>
+
+{% block external_dependencies %}
+{% endblock external_dependencies %}
 
 {% endblock main %}
