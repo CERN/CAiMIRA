@@ -6,27 +6,27 @@
   </div>
 
   <div class="split">
-    <div>Use data from ARVE sensors:</div>
+    <div>{{_("Use data from ARVE sensors:")}}</div>
     <div>
     <input class="ml-2" type="radio" id="arve_sensor_no" name="arve_sensors_option" value=0 checked="checked">
-      <label for="arve_sensor_no">No</label>
+      <label for="arve_sensor_no">{{_("No")}}</label>
     <input class="ml-2" type="radio" id="arve_sensor_yes" name="arve_sensors_option" value=1 data-enables="#DIVsensors_data">
-      <label for="arve_sensor_yes">Yes</label>
+      <label for="arve_sensor_yes">{{_("Yes")}}</label>
     </div>
   </div>
-  <p id="offline_sensors" class="red_text mb-2" style="display: none">All sensors are offline.</p>
-  <p id="arve_api_error_message" class="red_text mb-2" style="display:none; max-width: 85%;">Unauthorized - Something went wrong during the ARVE API authentication process.</p> 
+  <p id="offline_sensors" class="red_text mb-2" style="display: none">{{_("All sensors are offline.")}}</p>
+  <p id="arve_api_error_message" class="red_text mb-2" style="display:none; max-width: 85%;">{{_("Unauthorized - Something went wrong during the ARVE API authentication process.")}}</p> 
   <div id="DIVsensors_data" class="mb-1" style="display:none">
     <div class="form-group row mb-0">
-      <div class="col-sm-4"><label class="col-form-label">Sensor:</label></div>
+      <div class="col-sm-4"><label class="col-form-label">{{_("Sensor:")}}</label></div>
       <div class="col-sm-6">
         <select id="sensors" name="sensor_in_use" class="form-control">
         </select>
       </div>
     </div>
     <div>
-      <div><label>Temperature: </label><span class="ml-3 font-weight-bold" id="sensor_temperature"></span></div> 
-      <div><label>Relative Humidity: </label><span class="ml-3 font-weight-bold" id="sensor_humidity"></span></div>
+      <div><label>{{_("Temperature:")}}</label><span class="ml-3 font-weight-bold" id="sensor_temperature"></span></div> 
+      <div><label>{{_("Relative Humidity:")}}</label><span class="ml-3 font-weight-bold" id="sensor_humidity"></span></div>
     </div>
   </div>
 {% endblock room_data %}

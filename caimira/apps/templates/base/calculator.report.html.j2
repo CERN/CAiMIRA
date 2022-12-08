@@ -469,7 +469,7 @@
 								{% set conf_level = "Low - Surveillance only for symptomatic patients." %}
 							{% endif %}
 							<li><p class="data_text">{{_("Population in")}} {{ form.location_name }}: {{ form.geographic_population }}</p></li>
-							<li><p class="data_text">{{_("New reported cases in")}} {{ form.location_name }} {{_("(7-day average)")}}: {{ form.geographic_cases }}</p></li>
+							<li><p class="data_text">{{_("New reported cases in")}} {{ form.location_name }} {{_("(7-day average):")}} {{ form.geographic_cases }}</p></li>
 							<li><p class="data_text">{{_("Confidence level:")}} {{ conf_level }} </p></li>
 							{% endif %}
 							<li><p class="data_text">

@@ -77,18 +77,18 @@
     </div>
 
     <div class="form-group row">
-      <div class="col-sm-4">Vaccinated? 💉</div>
+      <div class="col-sm-4">{{_("Vaccinated?")}} 💉</div>
       <div class="col-sm-6 ml-0">
         <input type="radio" id="vaccinated_no" name="vaccine_option" value="0" checked="checked">
-          <label class="mb-0" for="vaccinated_no">No</label>
+          <label class="mb-0" for="vaccinated_no">{{_("No")}}</label>
         <input class="ml-2" type="radio" id="vaccinated_yes" name="vaccine_option" value="1" data-enables="#DIVvaccine_booster">
-          <label class="mb-0" for="vaccinated_yes">Yes</label>
+          <label class="mb-0" for="vaccinated_yes">{{_("Yes")}}</label>
       </div>
     </div>
 
     <div id="DIVvaccine_booster" class="mt-3">
       <div class="form-group row">
-      <div class="col-sm-4"><label class="col-form-label">Primary vaccine:</label></div>
+      <div class="col-sm-4"><label class="col-form-label">{{_("Primary vaccine:")}}</label></div>
       <div class="col-sm-6 align-self-center">
         <select id="vaccine_type" name="vaccine_type" class="form-control form-control-sm">
           {# Updated with JS #}
@@ -97,25 +97,25 @@
       </div>
 
       <div class="form-group row">
-      <div class="d-flex flex-row col-sm-4"><div class="ml-4" style="border: 1px solid #2f4858"></div><p class="ml-2">With booster?</p></div>
+      <div class="d-flex flex-row col-sm-4"><div class="ml-4" style="border: 1px solid #2f4858"></div><p class="ml-2">{{_("With booster?")}}</p></div>
       <div class="col-sm-6 ml-0">
         <input type="radio" id="vaccinated_booster_no" name="vaccine_booster_option" value="0" checked="checked">
-          <label class="mb-0" for="vaccinated_booster_no">No</label>
+          <label class="mb-0" for="vaccinated_booster_no">{{_("No")}}</label>
         <input class="ml-2" type="radio" id="vaccinated_booster_yes" name="vaccine_booster_option" value="1" data-enables="#DIVvaccine_booster_yes">
-          <label class="mb-0" for="vaccinated_booster_yes">Yes</label>
+          <label class="mb-0" for="vaccinated_booster_yes">{{_("Yes")}}</label>
       </div>
       </div>
       
       <div id="DIVvaccine_booster_yes" class="mt-3">
         <div class="form-group row">
-        <div class="col-sm-4"><label class="col-form-label">Booster:</label></div>
+        <div class="col-sm-4"><label class="col-form-label">{{_("Booster:")}}</label></div>
         <div class="col-sm-6 align-self-center">
           <select id="vaccine_booster_type" name="vaccine_booster_type" class="form-control form-control-sm">
             {# Updated with JS #}
           </select> 
         </div>
         </div>
-        <p id="booster_warning" class="red_text" style="display: none; max-width: 85%">Due to the lack of data, only the efficiency of the primary dose(s) is considered</p>
+        <p id="booster_warning" class="red_text" style="display: none; max-width: 85%">{{_("Due to the lack of data, only the efficiency of the primary dose(s) is considered.")}}</p>
       </div>
     </div>
 
@@ -251,7 +251,7 @@
 
     <div id="DIVnatural_ventilation" style="display:none">
       <div class="form-group row tabbed">
-        <div class="col-md-5"><label class="col-form-label">{{_("Number of windows")}}:</label></div>
+        <div class="col-md-5"><label class="col-form-label">{{_("Number of windows:")}}</label></div>
         <div class="col-md-5"><input type="number" id="windows_number" class="non_zero form-control" name="windows_number" placeholder="{{_(PLACEHOLDERS.windows_number)}}" min="1"></div>
       </div>
       <div class="form-group row tabbed">
@@ -283,11 +283,11 @@
         
         <div id="DIVperiodic_opening">
           <div class="form-group row tabbed">     
-            <div class="col-md-5"><label for="window_duration" class="col-form-label ml-2">{{_("Duration (min)")}}:</label></div>
+            <div class="col-md-5"><label for="window_duration" class="col-form-label ml-2">{{_("Duration (min):")}}</label></div>
             <div class="col-md-5"><input type="number" step="any" id="windows_duration" class="non_zero form-control" name="windows_duration" value="10" min="1" data-has-radio="#windows_open_periodically"></div>
           </div>
           <div class="form-group row tabbed">
-            <div class="col-md-5"><label for="window_frequency" class="col-form-label ml-2">{{_("Frequency (min)")}}:</label></div>
+            <div class="col-md-5"><label for="window_frequency" class="col-form-label ml-2">{{_("Frequency (min):")}}</label></div>
             <div class="col-md-5"><input type="number" step="any" id="windows_frequency" class="non_zero form-control" name="windows_frequency" value="60" min="1" data-has-radio="#windows_open_periodically"></div>
           </div>
         </div>
@@ -341,7 +341,7 @@
       <div>
         <input type="radio" id="mask_type_cloth"  name="mask_type" value="Cloth" onclick="require_fields(this)">
           <label for="mask_type_cloth">
-            Cloth
+            {{_("Cloth")}}
             <img class="mask_icons" src="/static/images/masks/cloth.png">
           </label>
       </div>
