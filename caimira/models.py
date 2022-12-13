@@ -956,34 +956,38 @@ class Cases:
 
 
 @dataclass(frozen=True)
-class ConcentrationModel:
+class _ConcentrationModelBase:
     room: Room
     ventilation: _VentilationBase
-    infected: InfectedPopulation
-
-    #: evaporation factor: the particles' diameter is multiplied by this
-    # factor as soon as they are in the air (but AFTER going out of the,
-    # mask, if any).
-    evaporation_factor: float = 0.3
 
     @property
-    def virus(self):
-        return self.infected.virus
+    def population(self) -> Population:
+        """
+        Population in the room (the emitters of what we compute the
+        concentration of)
+        """
+        raise NotImplementedError("Subclass must implement")
 
-    def infectious_virus_removal_rate(self, time: float) -> _VectorisedFloat:
-        # Equilibrium velocity of particle motion toward the floor
-        vg = self.infected.particle.settling_velocity(self.evaporation_factor)
-        # Height of the emission source to the floor - i.e. mouth/nose (m)
-        h = 1.5
-        # Deposition rate (h^-1)
-        k = (vg * 3600) / h
-        return (
-            k + self.virus.decay_constant(self.room.humidity, self.room.inside_temp.value(time))
-            + self.ventilation.air_exchange(self.room, time)
-        )
+    def removal_rate(self, time: float) -> _VectorisedFloat:
+        """
+        Remove rate of the species considered, in h^-1
+        """
+        raise NotImplementedError("Subclass must implement")
 
-    def air_exch_virus_removal_rate(self, time: float) -> _VectorisedFloat:
-        return self.ventilation.air_exchange(self.room, time)
+    def atmosphere_concentration(self) -> _VectorisedFloat:
+        """
+        Background concentration in the atmosphere
+        (in the same unit as the concentration)
+        """
+        return 0.
+
+    def normalization_factor(self) -> _VectorisedFloat:
+        """
+        Normalization factor (in the same unit as the concentration).
+        This factor is applied to the normalized concentration only
+        at the very end.
+        """
+        raise NotImplementedError("Subclass must implement")
 
     @method_cache
     def _normed_concentration_limit(self, time: float) -> _VectorisedFloat:
@@ -991,36 +995,27 @@ class ConcentrationModel:
         Provides a constant that represents the theoretical asymptotic 
         value reached by the concentration when time goes to infinity,
         if all parameters were to stay time-independent.
-        This is normalized by the emission rate, the latter acting as a
+        This is normalized by the normalization factor, the latter acting as a
         multiplicative constant factor for the concentration model that
         can be put back in front of the concentration after the time
         dependence has been solved for.
         """
-        if not self.infected.person_present(time):
+        if not self.population.person_present(time):
             return 0.
         V = self.room.volume
-        IVRR = self.infectious_virus_removal_rate(time)
+        RR = self.removal_rate(time)
 
-        return 1. / (IVRR * V)
-
-    @method_cache
-    def _CO2_normed_concentration_limit(self, time: float) -> _VectorisedFloat:
-        if not self.infected.person_present(time):
-            return 0.
-        V = self.room.volume
-        IVRR = self.air_exch_virus_removal_rate(time)
-
-        return 1. / (IVRR * V)
+        return (1. / (RR * V) + self.atmosphere_concentration()/
+                self.normalization_factor())
 
     @method_cache
     def state_change_times(self) -> typing.List[float]:
         """
         All time dependent entities on this model must provide information about
         the times at which their state changes.
-
         """
         state_change_times = {0.}
-        state_change_times.update(self.infected.presence.transition_times())
+        state_change_times.update(self.population.presence.transition_times())
         state_change_times.update(self.ventilation.transition_times(self.room))
         return sorted(state_change_times)
 
@@ -1028,9 +1023,8 @@ class ConcentrationModel:
     def _first_presence_time(self) -> float:
         """
         First presence time. Before that, the concentration is zero.
-
         """
-        return self.infected.presence.boundaries()[0][0]
+        return self.population.presence.boundaries()[0][0]
 
     def last_state_change(self, time: float) -> float:
         """
@@ -1039,7 +1033,6 @@ class ConcentrationModel:
         Find the nearest time less than the given one. If there is a state
         change exactly at ``time`` the previous state change is returned
         (except at ``time == 0``).
-
         """
         times = self.state_change_times()
         t_index: int = np.searchsorted(times, time)  # type: ignore
@@ -1052,7 +1045,6 @@ class ConcentrationModel:
     def _next_state_change(self, time: float) -> float:
         """
         Find the nearest future state change.
-
         """
         for change_time in self.state_change_times():
             if change_time >= time:
@@ -1064,15 +1056,17 @@ class ConcentrationModel:
 
     @method_cache
     def _normed_concentration_cached(self, time: float) -> _VectorisedFloat:
-        # A cached version of the _normed_concentration method. Use this
-        # method if you expect that there may be multiple concentration
-        # calculations for the same time (e.g. at state change times).
+        """
+        A cached version of the _normed_concentration method. Use this
+        method if you expect that there may be multiple concentration
+        calculations for the same time (e.g. at state change times).
+        """
         return self._normed_concentration(time)
 
     def _normed_concentration(self, time: float) -> _VectorisedFloat:
         """
-        Virus long-range exposure concentration, as a function of time, and
-        normalized by the emission rate.
+        Concentration as a function of time, and normalized by
+        normalization_factor.
         The formulas used here assume that all parameters (ventilation,
         emission rate) are constant between two state changes - only
         the value of these parameters at the next state change, are used.
@@ -1083,33 +1077,34 @@ class ConcentrationModel:
         # The model always starts at t=0, but we avoid running concentration calculations
         # before the first presence as an optimisation.
         if time <= self._first_presence_time():
-            return 0.0
+            return self.atmosphere_concentration()
         next_state_change_time = self._next_state_change(time)
-        IVRR = self.infectious_virus_removal_rate(next_state_change_time)
+        RR = self.removal_rate(next_state_change_time)
         conc_limit = self._normed_concentration_limit(next_state_change_time)
 
         t_last_state_change = self.last_state_change(time)
         conc_at_last_state_change = self._normed_concentration_cached(t_last_state_change)
 
         delta_time = time - t_last_state_change
-        fac = np.exp(-IVRR * delta_time)
+        fac = np.exp(-RR * delta_time)
         return conc_limit * (1 - fac) + conc_at_last_state_change * fac
 
     def concentration(self, time: float) -> _VectorisedFloat:
         """
-        Virus long-range exposure concentration, as a function of time.
+        Total concentration as a function of time. The normalization
+        factor has been put back.
 
         Note that time is not vectorised. You can only pass a single float
         to this method.
         """
         return (self._normed_concentration_cached(time) * 
-                self.infected.emission_rate_when_present())
+                self.normalization_factor())
 
     @method_cache
     def normed_integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
         """
-        Get the integrated long-range concentration of viruses in the air  between the times start and stop,
-        normalized by the emission rate.
+        Get the integrated concentration between the times start and stop,
+        normalized by normalization_factor.
         """
         if stop <= self._first_presence_time():
             return 0.0
@@ -1127,11 +1122,11 @@ class ConcentrationModel:
 
             next_conc_state = self._next_state_change(stop)
             conc_limit = self._normed_concentration_limit(next_conc_state)
-            IVRR = self.infectious_virus_removal_rate(next_conc_state)
+            RR = self.removal_rate(next_conc_state)
             delta_time = stop - start
             total_normed_concentration += (
                 conc_limit * delta_time +
-                (conc_limit - conc_start) * (np.exp(-IVRR*delta_time)-1) / IVRR
+                (conc_limit - conc_start) * (np.exp(-RR*delta_time)-1) / RR
             )
         return total_normed_concentration
 
@@ -1140,7 +1135,85 @@ class ConcentrationModel:
         Get the integrated concentration of viruses in the air between the times start and stop.
         """
         return (self.normed_integrated_concentration(start, stop) *
-                self.infected.emission_rate_when_present())
+                self.normalization_factor())
+
+
+@dataclass(frozen=True)
+class ConcentrationModel(_ConcentrationModelBase):
+    """
+    Class used for the computation of the long-range virus concentration.
+    """
+
+    #: Infected population in the room, emitting virions
+    infected: InfectedPopulation
+
+    #: evaporation factor: the particles' diameter is multiplied by this
+    # factor as soon as they are in the air (but AFTER going out of the,
+    # mask, if any).
+    evaporation_factor: float = 0.3
+
+    @property
+    def population(self) -> InfectedPopulation:
+        return self.infected
+
+    @property
+    def virus(self) -> Virus:
+        return self.infected.virus
+
+    def normalization_factor(self) -> _VectorisedFloat:
+        # we normalize by the emission rate
+        return self.infected.emission_rate_when_present()
+
+    def removal_rate(self, time: float) -> _VectorisedFloat:
+        # Equilibrium velocity of particle motion toward the floor
+        vg = self.infected.particle.settling_velocity(self.evaporation_factor)
+        # Height of the emission source to the floor - i.e. mouth/nose (m)
+        h = 1.5
+        # Deposition rate (h^-1)
+        k = (vg * 3600) / h
+        return (
+            k + self.virus.decay_constant(self.room.humidity, self.room.inside_temp.value(time))
+            + self.ventilation.air_exchange(self.room, time)
+        )
+
+    def infectious_virus_removal_rate(self, time: float) -> _VectorisedFloat:
+        # defined for back-compatibility purposes
+        return self.removal_rate(time)
+
+
+@dataclass(frozen=True)
+class CO2ConcentrationModel(_ConcentrationModelBase):
+    """
+    Class used for the computation of the CO2 concentration.
+    """
+    #: Population in the room emitting CO2
+    CO2_emitters: Population
+
+    #: CO2 concentration in the atmosphere (in ppm)
+    CO2_atmosphere_concentration: float = 440.44
+
+    #: CO2 fraction in the exhaled air
+    CO2_fraction_exhaled: float = 0.042
+
+    @property
+    def population(self) -> Population:
+        return self.CO2_emitters
+
+    def removal_rate(self, time: float) -> _VectorisedFloat:
+        return self.ventilation.air_exchange(self.room, time)
+
+    def atmosphere_concentration(self) -> _VectorisedFloat:
+        """
+        Background CO2 concentration in the atmosphere (in ppm)
+        """
+        return self.CO2_atmosphere_concentration
+
+    def normalization_factor(self) -> _VectorisedFloat:
+        # normalization by the CO2 exhaled.
+        # CO2 concentration given in ppm, hence the 1e6 factor.
+        return (1e6*self.population.number
+                *self.population.activity.exhalation_rate
+                *self.CO2_fraction_exhaled)
 
 
 @dataclass(frozen=True)
@@ -1177,7 +1250,7 @@ class ShortRangeModel:
         φ = 2
 
         # Exhalation airflow, as per Jia et al. (2022)
-        Q_exh = φ * BR
+        Q_exh: _VectorisedFloat = φ * BR
 
         # Area of the mouth assuming a perfect circle (m2)
         Am = np.pi*(mouth_diameter**2)/4 
@@ -1361,14 +1434,13 @@ class ExposureModel:
         """ 
         c_model = self.concentration_model
         # Check if the diameter is vectorised.
-        if (isinstance(c_model.infected, InfectedPopulation) and not np.isscalar(c_model.infected.expiration.diameter) 
+        if (isinstance(c_model.infected, InfectedPopulation) and not np.isscalar(c_model.infected.expiration.diameter)
             # Check if the diameter-independent elements of the infectious_virus_removal_rate method are vectorised.
             and not (
                 all(np.isscalar(c_model.virus.decay_constant(c_model.room.humidity, c_model.room.inside_temp.value(time)) + 
                 c_model.ventilation.air_exchange(c_model.room, time)) for time in c_model.state_change_times()))):
                     raise ValueError("If the diameter is an array, none of the ventilation parameters "
                                     "or virus decay constant can be arrays at the same time.")
-        
 
     def long_range_fraction_deposited(self) -> _VectorisedFloat:
         """
@@ -1411,30 +1483,6 @@ class ExposureModel:
         for interaction in self.short_range:
             concentration += interaction.short_range_concentration(self.concentration_model, time)
         return concentration
-
-    def _CO2_concentration_cached(self, time: float) -> _VectorisedFloat:
-        return self._CO2_concentration(time)
-
-    def _CO2_concentration(self, time: float,  make_up_air_concentration: float = 440.44e-6, CO2_fraction: float = 0.042) -> _VectorisedFloat:
-        if time <= self.concentration_model._first_presence_time():
-            return make_up_air_concentration # carbon dioxide concentration in the make up air (m3/m3 person) - 440ppm
-        next_state_change_time = self.concentration_model._next_state_change(time)
-        IVRR = self.concentration_model.air_exch_virus_removal_rate(next_state_change_time)
-        co2_conc_limit = (self.concentration_model._CO2_normed_concentration_limit(next_state_change_time) *
-                            ((self.exposed.number*self.exposed.activity.exhalation_rate*CO2_fraction + 
-                            self.concentration_model.infected.number*self.concentration_model.infected.activity.exhalation_rate*CO2_fraction)))
-                                    
-        t_last_state_change = self.concentration_model.last_state_change(time)
-        co2_conc_at_last_state_change = self._CO2_concentration_cached(t_last_state_change) # CO2 contribution in the room at start
-
-        delta_time = time - t_last_state_change
-        fac = np.exp(-IVRR * delta_time)
-
-        return co2_conc_limit * (1 - fac) + ((co2_conc_at_last_state_change - make_up_air_concentration) * fac) + make_up_air_concentration
-
-    def CO2_concentration(self, time: float) -> _VectorisedFloat:
-        # Correction due to the number of generated points.
-        return self._CO2_concentration(time) * 1e6
 
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         deposited_exposure = 0.
