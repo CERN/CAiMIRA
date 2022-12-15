@@ -1,4 +1,4 @@
-git clone https://gitlab.cern.ch/cara/caimira.git
+git clone https://gitlab.cern.ch/caimira/caimira.git
 cd caimira
 pip install -e .
 echo "############################################"

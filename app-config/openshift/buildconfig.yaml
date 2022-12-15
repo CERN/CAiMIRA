@@ -50,7 +50,7 @@
   parameters:
     - name: GIT_REPO
       description: The GIT repo URL
-      value: 'https://gitlab.cern.ch/cara/caimira.git'
+      value: 'https://gitlab.cern.ch/caimira/caimira.git'
     - name: GIT_BRANCH
       description: The name of the GIT branch to use when building the app, e.g. `live/caimira-test` in TEST, `master` in prod
       required: true
