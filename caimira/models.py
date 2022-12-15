@@ -1001,7 +1001,7 @@ class _ConcentrationModelBase:
         dependence has been solved for.
         """
         if not self.population.person_present(time):
-            return 0.
+            return self.atmosphere_concentration()/self.normalization_factor()
         V = self.room.volume
         RR = self.removal_rate(time)
 
