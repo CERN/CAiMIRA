@@ -223,6 +223,8 @@ def non_zero_percentage(percentage: int) -> str:
         return "<0.01%"
     elif percentage < 1:
         return "{:0.2f}%".format(percentage)
+    elif np.isnan(percentage):
+        return "99.9%"
     else:
         return "{:0.1f}%".format(percentage)
 
