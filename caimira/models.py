@@ -1077,7 +1077,7 @@ class _ConcentrationModelBase:
         # The model always starts at t=0, but we avoid running concentration calculations
         # before the first presence as an optimisation.
         if time <= self._first_presence_time():
-            return self.atmosphere_concentration()
+            return self.atmosphere_concentration()/self.normalization_factor()
         next_state_change_time = self._next_state_change(time)
         RR = self.removal_rate(next_state_change_time)
         conc_limit = self._normed_concentration_limit(next_state_change_time)
