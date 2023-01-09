@@ -1107,7 +1107,7 @@ class _ConcentrationModelBase:
         normalized by normalization_factor.
         """
         if stop <= self._first_presence_time():
-            return 0.0
+            return (stop - start)*self.atmosphere_concentration()/self.normalization_factor()
         state_change_times = self.state_change_times()
         req_start, req_stop = start, stop
         total_normed_concentration = 0.
