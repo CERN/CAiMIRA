@@ -78,6 +78,8 @@ The estimate of the concentration of virus-laden particles in a given room is ba
 * **Box 2** - short-range exposure: also known as the *exhaled jet* concentration in close-proximity, corresponds to the exposure of airborne virions where the susceptible (exposed) host is distanced between 0.5 and 2 m from an infected host, considering the result of a two-stage exhaled jet model.
 
 Note that most of the methods used to calculate the concentration are defined in the superclass :meth:`caimira.models._ConcentrationModelBase`, while the specific methods for the long-range virus concentration are part of the subclass :meth:`caimira.models.ConcentrationModel`.
+The specific removal rate, atmospheric concentration and normalization factors will depend on what concentration is being calculated (e.g. viral concentration or CO2 concentration) and are respectively defined in :meth:`caimira.models._ConcentrationModelBase.removal_rate`, 
+:meth:`caimira.models._ConcentrationModelBase.atmosphere_concentration` and :meth:`caimira.models._ConcentrationModelBase.normalization_factor`. 
 
 Long-range approach
 *******************
@@ -306,14 +308,17 @@ If short-range interactions exist: the long-range component is added to the alre
 If the are no short-range interactions: the short-range component (`deposited_exposure`) is zero, hence the result is equal solely to the long-range component :math:`C_{\mathrm{LR}}`.
 
 
-:math:`\mathrm{CO}_{2}` Concentration
+CO\ :sub:`2` Concentration
 =====================================
 
-The estimate of the concentration of :math:`\mathrm{CO}_{2}` in a given room to indicate the air quality is given by the same equation of the virus concentration for the long-range approach, :math:`C_{\mathrm{LR}}(t, D)`, where :math:`C_0(D)` is the background :math:`\mathrm{CO}_{2}` concentration in the atmosphere (initially defined as `440.44 ppm`).
-Note that in order to calculate the :math:`\mathrm{CO}_{2}` concentration one should use the concentration method defined in the superclass - :meth:`caimira.models._ConcentrationModelBase.concentration` - for a dedicated :class:`caimira.models.CO2ConcentrationModel` scenario.
-A fraction of 4.2% of the exhalation rate of the defined activity was considered as the :math:`\mathrm{CO}_{2}` supplied to the room.
+The estimate of the concentration of CO\ :sub:`2` in a given room to indicate the air quality is given by the same approach as for the long-range virus concentration, 
+:math:`C_{\mathrm{LR}}(t, D)`, where :math:`C_0(D)` is considered to be the background (outdoor) CO\ :sub:`2` concentration (:meth:`caimira.models.CO2ConcentrationModel.CO2_atmosphere_concentration`).
 
-Since the :math:`\mathrm{CO}_{2}` concentration differs from the virus concentration, the specific removal rate, atmospheric concentration and normalization factors are respectively defined in :meth:`caimira.models.CO2ConcentrationModel.removal_rate`, :meth:`caimira.models.CO2ConcentrationModel.atmosphere_concentration` and :meth:`caimira.models.CO2ConcentrationModel.normalization_factor`. 
+Note that in order to calculate the CO\ :sub:`2` concentration one should use the concentration method defined in the superclass - :meth:`caimira.models._ConcentrationModelBase.concentration` - for a dedicated :class:`caimira.models.CO2ConcentrationModel` scenario.
+A fraction of 4.2% of the exhalation rate of the defined activity was considered as the  supplied to the room (:meth:`caimira.models.CO2ConcentrationModel.CO2_fraction_exhaled`).
+
+Since the CO\ :sub:`2` concentration differs from the virus concentration, the specific removal rate, atmospheric concentration and normalization factors are respectively defined in :meth:`caimira.models.CO2ConcentrationModel.removal_rate`, 
+:meth:`caimira.models.CO2ConcentrationModel.atmosphere_concentration` and :meth:`caimira.models.CO2ConcentrationModel.normalization_factor`. 
 
 .. _caimira-uml-diagram:
 
