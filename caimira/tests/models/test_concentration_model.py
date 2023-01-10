@@ -10,26 +10,30 @@ from caimira import models
 @dataclass(frozen=True)
 class KnownConcentrationModelBase(models._ConcentrationModelBase):
     """
-    A ConcentrationModel where the atmosphere_concentration method is
-    redefined with a value taken from a new parameter. Useful for testing.
+    A _ConcentrationModelBase where all the class methods are
+    redefined with a value taken from new parameters. Useful for testing.
 
     """
     known_population: models.Population
 
-    known_atmosphere_concentration: float = 0.0
+    known_removal_rate: float
+
+    known_atmosphere_concentration: float
+
+    known_normalization_factor: float
 
     @property
     def population(self) -> models.Population:
         return self.known_population
 
-    def removal_rate(self, time: float):
-        return 10.
+    def removal_rate(self, time: float) -> float:
+        return self.known_removal_rate
 
-    def atmosphere_concentration(self):
+    def atmosphere_concentration(self) -> float:
         return self.known_atmosphere_concentration
 
-    def normalization_factor(self):
-        return 1e2
+    def normalization_factor(self) -> float:
+        return self.known_normalization_factor
 
 
 @pytest.mark.parametrize(
@@ -99,6 +103,17 @@ def simple_conc_model():
     )
 
 
+@pytest.fixture
+def dummy_population(simple_conc_model) -> models.Population:
+    return models.Population(
+        number=10,
+        presence=simple_conc_model.infected.presence,
+        mask=models.Mask.types['Type I'],
+        activity=models.Activity.types['Seated'],
+        host_immunity=0.,
+    )
+
+
 @pytest.mark.parametrize(
     "time, expected_last_state_change", [
         [-15., 0.],  # Out of range goes to the first state.
@@ -164,31 +179,64 @@ def test_integrated_concentration(simple_conc_model):
     npt.assert_almost_equal(c1, c2 + c3, decimal=15)
 
 
-@pytest.mark.parametrize(
-    "known_atmosphere_concentration, expected_normed_integrated_concentration", [
-        [0.0, 0.0017333437605308818],
-        [240.0, 4.801733343835203],
-        [440.0, 8.801733343835203],
-        [600., 12.001733343835202],
-        [1000., 20.00173334429238],
+@pytest.mark.parametrize([
+    "known_atmosphere_concentration", 
+    "expected_normed_integrated_concentration"], 
+    [
+        [0.0, 0.00018533333708996207],
+        [240.0, 48.000185340695275],
+        [440.0, 88.00018534069527],
+        [600., 120.00018534069527],
+        [1000., 200.0001853407918],
     ]
 )
-def test_normed_integrated_concentration(
-    simple_conc_model: models.ConcentrationModel, 
+def test_normed_integrated_concentration_with_atmosphere_concentration(
+    simple_conc_model: models.ConcentrationModel,
+    dummy_population: models.Population,
     known_atmosphere_concentration: float, 
     expected_normed_integrated_concentration: float):
 
-    dummy_population = models.Population(
-        number=10,
-        presence=simple_conc_model.infected.presence,
-        mask=models.Mask.types['Type I'],
-        activity=models.Activity.types['Seated'],
-        host_immunity=0.,
-    )
+    known_conc_model = KnownConcentrationModelBase(
+        room = simple_conc_model.room, 
+        ventilation = simple_conc_model.ventilation, 
+        known_population = dummy_population,
+        known_removal_rate = 100.,
+        known_atmosphere_concentration = known_atmosphere_concentration,
+        known_normalization_factor = 10.)    
+    npt.assert_almost_equal(known_conc_model.normed_integrated_concentration(0, 2), expected_normed_integrated_concentration)
+
+
+@pytest.mark.parametrize([
+    "known_removal_rate",
+    "known_atmosphere_concentration", 
+    "known_normalization_factor",
+    "expected_normed_integrated_concentration"], 
+    [
+        [np.array([0.25, 10]), 0.0, 10., np.array([0.012161005755130391, 0.0017333437605308818])],
+        [100, np.array([0, 240.0]), 10., np.array([0.00018533333708996207, 48.000185340695275])],
+        [100, 440.0, np.array([10., 20.]), np.array([88.00018534069527, 44.000185340695275])],
+        [np.array([10, 100]), np.array([600., 800.]), 10., np.array([120.00173334473946, 160.0001853406953])],
+        [np.array([50, 100,]), np.array([1000.,1100.]), np.array([10., 20.]), np.array([200.00036800764332, 110.00018534069527])],
+    ]
+)
+def test_normed_integrated_concentration_vectorisation(
+    simple_conc_model: models.ConcentrationModel,
+    dummy_population: models.Population,
+    known_removal_rate: float,
+    known_atmosphere_concentration: float, 
+    known_normalization_factor: float,
+    expected_normed_integrated_concentration: float):
 
     known_conc_model = KnownConcentrationModelBase(
-        simple_conc_model.room, 
-        simple_conc_model.ventilation, 
-        dummy_population,
-        known_atmosphere_concentration)
-    npt.assert_almost_equal(known_conc_model.normed_integrated_concentration(0, 2), expected_normed_integrated_concentration)
+        room = simple_conc_model.room, 
+        ventilation = simple_conc_model.ventilation, 
+        known_population = dummy_population,
+        known_removal_rate = known_removal_rate,
+        known_atmosphere_concentration = known_atmosphere_concentration,
+        known_normalization_factor = known_normalization_factor)
+    
+    integrated_concentration = known_conc_model.normed_integrated_concentration(0, 2)
+
+    assert isinstance(integrated_concentration, np.ndarray)
+    assert integrated_concentration.shape == (2, )
+    npt.assert_almost_equal(integrated_concentration, expected_normed_integrated_concentration)
