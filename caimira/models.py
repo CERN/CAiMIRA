@@ -260,7 +260,7 @@ class MultipleVentilation(_VentilationBase):
         return np.array([
             ventilation.air_exchange(room, time)
             for ventilation in self.ventilations
-        ]).sum(axis=0)
+        ], dtype=object).sum(axis=0)
 
 
 @dataclass(frozen=True)
