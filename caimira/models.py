@@ -978,10 +978,11 @@ class _ConcentrationModelBase:
         """
         raise NotImplementedError("Subclass must implement")
 
-    def background_concentration(self) -> _VectorisedFloat:
+    def min_background_concentration(self) -> _VectorisedFloat:
         """
-        Background concentration in the scenario
-        (in the same unit as the concentration)
+        Minimum background concentration in the room for a given scenario
+        (in the same unit as the concentration). Its the value towards which 
+        the concentration will decay to.
         """
         return 0.
 
@@ -1005,11 +1006,11 @@ class _ConcentrationModelBase:
         dependence has been solved for.
         """
         if not self.population.person_present(time):
-            return self.background_concentration()/self.normalization_factor()
+            return self.min_background_concentration()/self.normalization_factor()
         V = self.room.volume
         RR = self.removal_rate(time)
 
-        return (1. / (RR * V) + self.background_concentration()/
+        return (1. / (RR * V) + self.min_background_concentration()/
                 self.normalization_factor())
 
     @method_cache
@@ -1081,7 +1082,7 @@ class _ConcentrationModelBase:
         # The model always starts at t=0, but we avoid running concentration calculations
         # before the first presence as an optimisation.
         if time <= self._first_presence_time():
-            return self.background_concentration()/self.normalization_factor()
+            return self.min_background_concentration()/self.normalization_factor()
         next_state_change_time = self._next_state_change(time)
         RR = self.removal_rate(next_state_change_time)
         conc_limit = self._normed_concentration_limit(next_state_change_time)
@@ -1111,7 +1112,7 @@ class _ConcentrationModelBase:
         normalized by normalization_factor.
         """
         if stop <= self._first_presence_time():
-            return (stop - start)*self.background_concentration()/self.normalization_factor()
+            return (stop - start)*self.min_background_concentration()/self.normalization_factor()
         state_change_times = self.state_change_times()
         req_start, req_stop = start, stop
         total_normed_concentration = 0.
@@ -1206,7 +1207,7 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
     def removal_rate(self, time: float) -> _VectorisedFloat:
         return self.ventilation.air_exchange(self.room, time)
 
-    def background_concentration(self) -> _VectorisedFloat:
+    def min_background_concentration(self) -> _VectorisedFloat:
         """
         Background CO2 concentration in the atmosphere (in ppm)
         """

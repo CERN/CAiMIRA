@@ -18,7 +18,7 @@ class KnownConcentrationModelBase(models._ConcentrationModelBase):
 
     known_removal_rate: float
 
-    known_background_concentration: float
+    known_min_background_concentration: float
 
     known_normalization_factor: float
 
@@ -29,8 +29,8 @@ class KnownConcentrationModelBase(models._ConcentrationModelBase):
     def removal_rate(self, time: float) -> float:
         return self.known_removal_rate
 
-    def background_concentration(self) -> float:
-        return self.known_background_concentration
+    def min_background_concentration(self) -> float:
+        return self.known_min_background_concentration
 
     def normalization_factor(self) -> float:
         return self.known_normalization_factor
@@ -180,7 +180,7 @@ def test_integrated_concentration(simple_conc_model):
 
 
 @pytest.mark.parametrize([
-    "known_background_concentration", 
+    "known_min_background_concentration", 
     "expected_normed_integrated_concentration"], 
     [
         [0.0, 0.00018533333708996207],
@@ -193,7 +193,7 @@ def test_integrated_concentration(simple_conc_model):
 def test_normed_integrated_concentration_with_background_concentration(
     simple_conc_model: models.ConcentrationModel,
     dummy_population: models.Population,
-    known_background_concentration: float, 
+    known_min_background_concentration: float, 
     expected_normed_integrated_concentration: float):
 
     known_conc_model = KnownConcentrationModelBase(
@@ -201,14 +201,14 @@ def test_normed_integrated_concentration_with_background_concentration(
         ventilation = simple_conc_model.ventilation, 
         known_population = dummy_population,
         known_removal_rate = 100.,
-        known_background_concentration = known_background_concentration,
+        known_min_background_concentration = known_min_background_concentration,
         known_normalization_factor = 10.)    
     npt.assert_almost_equal(known_conc_model.normed_integrated_concentration(0, 2), expected_normed_integrated_concentration)
 
 
 @pytest.mark.parametrize([
     "known_removal_rate",
-    "known_background_concentration", 
+    "known_min_background_concentration", 
     "known_normalization_factor",
     "expected_normed_integrated_concentration"], 
     [
@@ -223,7 +223,7 @@ def test_normed_integrated_concentration_vectorisation(
     simple_conc_model: models.ConcentrationModel,
     dummy_population: models.Population,
     known_removal_rate: float,
-    known_background_concentration: float, 
+    known_min_background_concentration: float, 
     known_normalization_factor: float,
     expected_normed_integrated_concentration: float):
 
@@ -232,7 +232,7 @@ def test_normed_integrated_concentration_vectorisation(
         ventilation = simple_conc_model.ventilation, 
         known_population = dummy_population,
         known_removal_rate = known_removal_rate,
-        known_background_concentration = known_background_concentration,
+        known_min_background_concentration = known_min_background_concentration,
         known_normalization_factor = known_normalization_factor)
     
     integrated_concentration = known_conc_model.normed_integrated_concentration(0, 2)
