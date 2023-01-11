@@ -78,8 +78,8 @@ The estimate of the concentration of virus-laden particles in a given room is ba
 * **Box 2** - short-range exposure: also known as the *exhaled jet* concentration in close-proximity, corresponds to the exposure of airborne virions where the susceptible (exposed) host is distanced between 0.5 and 2 m from an infected host, considering the result of a two-stage exhaled jet model.
 
 Note that most of the methods used to calculate the concentration are defined in the superclass :meth:`caimira.models._ConcentrationModelBase`, while the specific methods for the long-range virus concentration are part of the subclass :meth:`caimira.models.ConcentrationModel`.
-The specific removal rate, background concentration and normalization factors will depend on what concentration is being calculated (e.g. viral concentration or CO\ :sub:`2` concentration) and are respectively defined in :meth:`caimira.models._ConcentrationModelBase.removal_rate`, 
-:meth:`caimira.models._ConcentrationModelBase.background_concentration` and :meth:`caimira.models._ConcentrationModelBase.normalization_factor`. 
+The specific removal rate, minimum background concentration and normalization factors will depend on what concentration is being calculated (e.g. viral concentration or CO\ :sub:`2` concentration) and are respectively defined in :meth:`caimira.models._ConcentrationModelBase.removal_rate`, 
+:meth:`caimira.models._ConcentrationModelBase.min_background_concentration` and :meth:`caimira.models._ConcentrationModelBase.normalization_factor`. 
 
 Long-range approach
 *******************
@@ -318,7 +318,7 @@ Note that in order to calculate the CO\ :sub:`2` concentration one should use th
 A fraction of 4.2% of the exhalation rate of the defined activity was considered as the  supplied to the room (:meth:`caimira.models.CO2ConcentrationModel.CO2_fraction_exhaled`).
 
 Since the CO\ :sub:`2` concentration differs from the virus concentration, the specific removal rate, CO\ :sub:`2` atmospheric concentration and normalization factors are respectively defined in :meth:`caimira.models.CO2ConcentrationModel.removal_rate`, 
-:meth:`caimira.models.CO2ConcentrationModel.background_concentration` and :meth:`caimira.models.CO2ConcentrationModel.normalization_factor`. 
+:meth:`caimira.models.CO2ConcentrationModel.min_background_concentration` and :meth:`caimira.models.CO2ConcentrationModel.normalization_factor`. 
 
 .. _caimira-uml-diagram:
 
