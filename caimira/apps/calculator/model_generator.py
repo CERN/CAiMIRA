@@ -489,7 +489,7 @@ class FormData:
             # Conversation of N people is approximately 1/N% of the time speaking.
             expiration_defn = {'Speaking': 1, 'Breathing': self.total_people - 1}
         elif (self.activity_type == 'precise'):
-            expiration_defn = self.generate_precise_activity_expiration()
+            activity_defn, expiration_defn = self.generate_precise_activity_expiration()
         else:
             expiration_defn = ACTIVITY_TYPES[activity_index]['expiration']
             

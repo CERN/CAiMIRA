@@ -87,7 +87,7 @@ _DEFAULTS = {
 
 # ------------------ Activities ----------------------
 
-ACTIVITY_TYPES = typing.List[typing.Dict[str, typing.Any]] = [
+ACTIVITY_TYPES: typing.List[typing.Dict[str, typing.Any]] = [
     {'id': 'office', 'name': _('Office'), 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 2}}, # Mostly silent in the office, but 1/3rd of time speaking.
     {'id': 'controlroom-day', 'name': _('Control Room - Day shift'), 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 1}}, # Daytime control room shift, 50% speaking.
     {'id': 'controlroom-night', 'name': _('Control Room - Night shift'), 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 9}}, # Nightshift control room, 10% speaking.
@@ -100,13 +100,13 @@ ACTIVITY_TYPES = typing.List[typing.Dict[str, typing.Any]] = [
     {'id': 'lab', 'name': _('Laboratory'), 'activity': 'Light activity', 'expiration': {'Speaking': 1, 'Breathing': 1}}, #Model 1/2 of time spent speaking in a lab.
     {'id': 'workshop', 'name': _('Workshop'), 'activity': 'Moderate activity', 'expiration': {'Speaking': 1, 'Breathing': 1}}, #Model 1/2 of time spent speaking in a workshop.
     {'id': 'gym', 'name': _('Gym'), 'activity': 'Heavy exercise', 'expiration': 'Breathing'},
-    {'id': 'household-day', 'name': _('household-day'), 'activity': 'Light activity', 'expiration': {'Breathing': 5, 'Speaking': 5}},
-    {'id': 'household-night', 'name': _('household_night'), 'activity': 'Seated', 'expiration': {'Breathing': 7, 'Speaking': 3}},
-    {'id': 'primary_school', 'name': _('primary_school'), 'activity': 'Light activity', 'expiration': {'Breathing': 5, 'Speaking': 5}},
-    {'id': 'secundary_school', 'name': _('secundary_school'), 'activity': 'Light activity', 'expiration': {'Breathing': 7, 'Speaking': 3}},
-    {'id': 'university', 'name': _('university'), 'activity': 'Seated', 'expiration': {'Breathing': 9, 'Speaking': 1}},
-    {'id': 'restaurant', 'name': _('restaurant'), 'activity': 'Seated', 'expiration': {'Breathing': 1, 'Speaking': 9}},
-    {'id': 'precise', 'name': _('precise'), 'activity': 'Seated', 'expiration': ''},] #self.generate_precise_activity_expiration() 
+    {'id': 'household-day', 'name': _('Household (day)'), 'activity': 'Light activity', 'expiration': {'Breathing': 5, 'Speaking': 5}},
+    {'id': 'household-night', 'name': _('Household (night)'), 'activity': 'Seated', 'expiration': {'Breathing': 7, 'Speaking': 3}},
+    {'id': 'primary-school', 'name': _('Primary School'), 'activity': 'Light activity', 'expiration': {'Breathing': 5, 'Speaking': 5}},
+    {'id': 'secundary-school', 'name': _('Secundary School'), 'activity': 'Light activity', 'expiration': {'Breathing': 7, 'Speaking': 3}},
+    {'id': 'university', 'name': _('University'), 'activity': 'Seated', 'expiration': {'Breathing': 9, 'Speaking': 1}},
+    {'id': 'restaurant', 'name': _('Restaurant'), 'activity': 'Seated', 'expiration': {'Breathing': 1, 'Speaking': 9}},
+    {'id': 'precise', 'name': _('Precise'), 'activity': '', 'expiration': ''},] #self.generate_precise_activity_expiration() 
 
 # ------------------ Validation ----------------------
 

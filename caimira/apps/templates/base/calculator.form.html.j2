@@ -413,7 +413,7 @@
     <select id="activity_type" name="activity_type" class="form-control">
       {% set default_activity_type = ACTIVITY_TYPES | selectattr('id', 'equalto', default.activity_type) | first %}
       <option selected value="{{default_activity_type.id}}">{{_(default_activity_type.name)}}</option>
-      {% for activity in ACTIVITY_TYPES %}
+      {% for activity in ACTIVITY_TYPES[:12] %}
         {% if activity.id != default.activity_type %}
           <option value="{{activity.id}}">{{_(activity.name)}}</option>
         {% endif %}
