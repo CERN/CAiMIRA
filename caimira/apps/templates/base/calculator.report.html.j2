@@ -170,15 +170,22 @@
 								{% endif %}
 								<div id="concentration_plot" style="height: 400px"></div>
 								<script type="application/javascript">
-									let times = {{ times | JSONify }}
-									let concentrations_zoomed = {{ concentrations_zoomed | JSONify }}
-									let concentrations = {{ concentrations | JSONify }}
-									let cumulative_doses = {{ cumulative_doses | JSONify }}
-									let long_range_cumulative_doses = {{ long_range_cumulative_doses | JSONify }}
-									let exposed_presence_intervals = {{ exposed_presence_intervals | JSONify }}
-									let short_range_intervals = {{ short_range_intervals | JSONify }}
-									let short_range_expirations = {{ short_range_expirations | JSONify }}
-									draw_plot("concentration_plot")
+									let times = {{ times | JSONify }};
+									let concentrations_zoomed = {{ concentrations_zoomed | JSONify }};
+									let concentrations = {{ concentrations | JSONify }};
+									let cumulative_doses = {{ cumulative_doses | JSONify }};
+									let long_range_cumulative_doses = {{ long_range_cumulative_doses | JSONify }};
+									let exposed_presence_intervals = {{ exposed_presence_intervals | JSONify }};
+									let short_range_intervals = {{ short_range_intervals | JSONify }};
+									let short_range_expirations = {{ short_range_expirations | JSONify }};
+									draw_plot("concentration_plot");
+								</script>
+								<div id="prob_inf_hist" style="height: 400px"></div>
+								<script type="application/javascript">
+									let prob_dist = {{ prob_dist | JSONify }}
+									let prob_hist_count = {{ prob_hist_count | JSONify }};
+									let prob_hist_bins = {{ prob_hist_bins | JSONify }};
+									draw_histogram("prob_inf_hist");
 								</script>
               				</p>
 						</div>
