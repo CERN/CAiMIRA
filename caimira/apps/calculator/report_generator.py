@@ -130,7 +130,8 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
         for time1, time2 in zip(times[:-1], times[1:])
     ])
 
-    prob = np.array(model.infection_probability()).mean()
+    prob = np.array(model.infection_probability())
+    prob_dist_count, prob_dist_bins = np.histogram(prob, bins=100, density=True)
     prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
     er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
     exposed_occupants = model.exposed.number
@@ -147,7 +148,10 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
         "highest_const": highest_const,
         "cumulative_doses": list(cumulative_doses),
         "long_range_cumulative_doses": list(long_range_cumulative_doses),
-        "prob_inf": prob,
+        "prob_inf": prob.mean(),
+        "prob_dist": list(prob),
+        "prob_hist_count": list(prob_dist_count),
+        "prob_hist_bins": list(prob_dist_bins),
         "prob_probabilistic_exposure": prob_probabilistic_exposure,
         "emission_rate": er,
         "exposed_occupants": exposed_occupants,
