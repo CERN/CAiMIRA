@@ -8,6 +8,20 @@ from caimira.apps.calculator import model_generator
 @pytest.mark.parametrize(
     ["break_input", "error"],
     [
+        [["exposed_breaks", [], "infected_breaks", []], "The specific breaks should be in a dictionary."],
+        [{"eposed_breaks": [], "infected_breaks": []}, 'Unable to fetch "exposed_breaks" key. Got "eposed_breaks".'],
+        [{"exposed_breaks": [], "ifected_breaks": []}, 'Unable to fetch "infected_breaks" key. Got "ifected_breaks".'],
+    ]
+)
+def test_specific_break_structure(break_input, error, baseline_form: model_generator.FormData):
+    baseline_form.specific_breaks = break_input
+    with pytest.raises(TypeError, match=error):
+        baseline_form.validate()
+
+
+@pytest.mark.parametrize(
+    ["population_break_input", "error"],
+    [
         [{"start_time": "10:00", "finish_time": "11:00"}, "All breaks should be in a list. Got <class 'dict'>."],
         [[["start_time", "10:00", "finish_time", "11:00"]], "Each break should be a dictionary. Got <class 'list'>."],
         [[{"art_time": "10:00", "finish_time": "11:00"}], 'Unable to fetch "start_time" key. Got "art_time".'],
@@ -16,8 +30,8 @@ from caimira.apps.calculator import model_generator
         [[{"start_time": "10:00", "finish_time": "11"}], 'Wrong time format - "HH:MM". Got "11".'],
     ]
 )
-def test_specific_break_data_structure(break_input, error, baseline_form: model_generator.FormData):
-    baseline_form.specific_breaks = break_input
+def test_specific_population_break_data_structure(population_break_input, error, baseline_form: model_generator.FormData):
+    baseline_form.specific_breaks = {'exposed_breaks': population_break_input, 'infected_breaks': population_break_input}
     with pytest.raises(TypeError, match=error):
         baseline_form.validate()
 
@@ -32,9 +46,8 @@ def test_specific_break_data_structure(break_input, error, baseline_form: model_
     ]
 )
 def test_specific_break_time(break_input, error, baseline_form: model_generator.FormData):
-    baseline_form.specific_breaks = break_input
     with pytest.raises(ValueError, match=error):
-        baseline_form.generate_specific_break_times()
+        baseline_form.generate_specific_break_times(break_input)
 
 
 @pytest.mark.parametrize(
