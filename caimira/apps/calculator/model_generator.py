@@ -33,7 +33,7 @@ class FormData:
     air_changes: float
     air_supply: float
     arve_sensors_option: bool
-    specific_breaks: list
+    specific_breaks: dict
     precise_activity: dict
     ceiling_height: float
     exposed_coffee_break_option: str
@@ -100,7 +100,7 @@ class FormData:
         'air_changes': 0.,
         'air_supply': 0.,
         'arve_sensors_option': False,
-        'specific_breaks': '[]',
+        'specific_breaks': '{}',
         'precise_activity': '{}',
         'calculator_version': _NO_DEFAULT,
         'ceiling_height': 0.,
@@ -312,22 +312,33 @@ class FormData:
             raise ValueError("mechanical_ventilation_type cannot be 'not-applicable' if "
                              "ventilation_type is 'mechanical_ventilation'")
 
-        # Validate specific inputs - breaks
-        if self.specific_breaks != []:
-            if type(self.specific_breaks) is not list:
-                raise TypeError(f'All breaks should be in a list. Got {type(self.specific_breaks)}.')
-            for input_break in self.specific_breaks:
-                # Input validations.
-                if type(input_break) is not dict:
-                    raise TypeError(f'Each break should be a dictionary. Got {type(input_break)}.')
-                dict_keys = list(input_break.keys())
-                if "start_time" not in input_break:
-                    raise TypeError(f'Unable to fetch "start_time" key. Got "{dict_keys[0]}".')
-                if "finish_time" not in input_break:
-                    raise TypeError(f'Unable to fetch "finish_time" key. Got "{dict_keys[1]}".')
-                for time in input_break.values():
-                    if not re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$").match(time):
-                        raise TypeError(f'Wrong time format - "HH:MM". Got "{time}".')
+        # Validate specific inputs - breaks (exposed and infected)
+        if self.specific_breaks != {}:
+            if type(self.specific_breaks) is not dict:
+                raise TypeError('The specific breaks should be in a dictionary.')
+            
+            dict_keys = list(self.specific_breaks.keys())
+            if "exposed_breaks" not in dict_keys:
+                raise TypeError(f'Unable to fetch "exposed_breaks" key. Got "{dict_keys[0]}".')
+            if "infected_breaks" not in dict_keys:
+                raise TypeError(f'Unable to fetch "infected_breaks" key. Got "{dict_keys[1]}".')
+
+            for population_breaks in ['exposed_breaks', 'infected_breaks']:
+                if self.specific_breaks[population_breaks] != []:
+                    if type(self.specific_breaks[population_breaks]) is not list:
+                        raise TypeError(f'All breaks should be in a list. Got {type(self.specific_breaks[population_breaks])}.')
+                    for input_break in self.specific_breaks[population_breaks]:
+                        # Input validations.
+                        if type(input_break) is not dict:
+                            raise TypeError(f'Each break should be a dictionary. Got {type(input_break)}.')
+                        dict_keys = list(input_break.keys())
+                        if "start_time" not in input_break:
+                            raise TypeError(f'Unable to fetch "start_time" key. Got "{dict_keys[0]}".')
+                        if "finish_time" not in input_break:
+                            raise TypeError(f'Unable to fetch "finish_time" key. Got "{dict_keys[1]}".')
+                        for time in input_break.values():
+                            if not re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$").match(time):
+                                raise TypeError(f'Wrong time format - "HH:MM". Got "{time}".')
 
         # Validate specific inputs - precise activity
         if self.precise_activity != {}:
@@ -738,9 +749,9 @@ class FormData:
         else:
             return self.exposed_coffee_break_times()
 
-    def generate_specific_break_times(self) -> models.BoundarySequence_t:
+    def generate_specific_break_times(self, population_breaks) -> models.BoundarySequence_t:
         break_times = []
-        for n in self.specific_breaks:
+        for n in population_breaks:
             # Parse break times.  
             begin = time_string_to_minutes(n["start_time"])
             end = time_string_to_minutes(n["finish_time"])
@@ -845,8 +856,8 @@ class FormData:
         return models.SpecificInterval(tuple(present_intervals))
 
     def infected_present_interval(self) -> models.Interval:
-        if self.specific_breaks != []: # It means the breaks are specific and not predefined
-            breaks = self.generate_specific_break_times()
+        if self.specific_breaks != {}: # It means the breaks are specific and not predefined
+            breaks = self.generate_specific_break_times(self.specific_breaks['infected_breaks'])
         else:
             breaks = self.infected_lunch_break_times() + self.infected_coffee_break_times()
         return self.present_interval(
@@ -860,8 +871,8 @@ class FormData:
         return models.SpecificInterval(present_times=((start_time/60, (start_time + duration)/60),))
 
     def exposed_present_interval(self) -> models.Interval:
-        if self.specific_breaks != []: # It means the breaks are specific and not predefined
-            breaks = self.generate_specific_break_times()
+        if self.specific_breaks != {}: # It means the breaks are specific and not predefined
+            breaks = self.generate_specific_break_times(self.specific_breaks['exposed_breaks'])
         else:
             breaks = self.exposed_lunch_break_times() + self.exposed_coffee_break_times()
         return self.present_interval(
