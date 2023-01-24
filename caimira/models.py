@@ -1008,11 +1008,12 @@ class _ConcentrationModelBase:
         if not self.population.person_present(time):
             return self.min_background_concentration()/self.normalization_factor()
         V = self.room.volume
-        # RR = self.removal_rate(time) if self.removal_rate(time) != 0 else 0.25
         RR = self.removal_rate(time)
-
-        return (1. / (RR * V) + self.min_background_concentration()/
+        try:
+            return (1. / (RR * V) + self.min_background_concentration()/
                 self.normalization_factor())
+        except ZeroDivisionError:
+            return 0
 
     @method_cache
     def state_change_times(self) -> typing.List[float]:
@@ -1211,7 +1212,7 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         return self.CO2_emitters
 
     def removal_rate(self, time: float) -> _VectorisedFloat:
-        return self.ventilation.air_exchange(self.room, time) + 0.25
+        return self.ventilation.air_exchange(self.room, time)
 
     def min_background_concentration(self) -> _VectorisedFloat:
         """
