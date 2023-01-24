@@ -124,8 +124,8 @@ class ExposureModelResult(View):
         figure_legends = [mlines.Line2D([], [], color='#3530fe', markersize=15, label='CO₂ concentration'),
                    patches.Patch(edgecolor="#96cbff", facecolor='#96cbff', label='Presence of person(s)')]
         self.ax.legend(handles=figure_legends)
-        if 1500 < max(concentration):
-            self.ax.set_ylim(top=max(concentration)*1.1)
+        if 1500 < concentration_top:
+            self.ax.set_ylim(top=concentration_top*1.1)
         else:
             self.ax.set_ylim(top=1550)
         self.ax.hlines([800, 1500], xmin=min(model.CO2_emitters.presence.boundaries()[0])*0.95, xmax=max(model.CO2_emitters.presence.boundaries()[1])*1.05, colors=['limegreen', 'salmon'], linestyles='dashed') 
@@ -139,7 +139,7 @@ class CO2Application(Controller):
 
         #: A list of scenario name and ModelState instances. This is intended to be
         #: mutated. Any mutation should notify the appropriate Views for handling.
-        self._model_scenarios = []
+        self._model_scenarios: typing.List[ScenarioType] = []
         self._active_scenario = 0
         self.multi_model_view = MultiModelView(self)
         # self.comparison_view = ExposureComparissonResult()
