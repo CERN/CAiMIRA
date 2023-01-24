@@ -958,8 +958,8 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
 
 
 ACTIVITY_TYPES = {
-    'office', 'smallmeeting', 'largemeeting', 'training', 'callcentre', 'controlroom-day', 'controlroom-night', 'library', 'workshop', 'lab', 'gym',
-    'household-day', 'household-night', 'primary-school', 'secondary-school', 'university', 'restaurant', 'precise',
+    'office', 'smallmeeting', 'largemeeting', 'callcentre', 'controlroom-day', 'controlroom-night', 'library', 'lab', 'workshop', 'training', 
+    'training_attendee', 'gym', 'household-day', 'household-night', 'primary-school', 'secondary-school', 'university', 'restaurant', 'precise',
 }
 MECHANICAL_VENTILATION_TYPES = {'mech_type_air_changes', 'mech_type_air_supply', 'not-applicable'}
 MASK_TYPES = {'Type I', 'FFP2', 'Cloth'}
