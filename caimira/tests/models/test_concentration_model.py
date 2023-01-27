@@ -240,3 +240,31 @@ def test_normed_integrated_concentration_vectorisation(
     assert isinstance(integrated_concentration, np.ndarray)
     assert integrated_concentration.shape == (2, )
     npt.assert_almost_equal(integrated_concentration, expected_normed_integrated_concentration)
+
+
+@pytest.mark.parametrize([
+    "known_removal_rate",
+    "known_min_background_concentration", 
+    "expected_concentration"], 
+    [
+        [0., 240., 240.],
+        [0., np.array([240., 240.]), np.array([240., 240.])]
+    ]
+)
+def test_zero_ventilation_rate(
+    simple_conc_model: models.ConcentrationModel,
+    dummy_population: models.Population,
+    known_removal_rate: float,
+    known_min_background_concentration: float,
+    expected_concentration: float):
+
+    known_conc_model = KnownConcentrationModelBase(
+        room = simple_conc_model.room, 
+        ventilation = simple_conc_model.ventilation, 
+        known_population = dummy_population,
+        known_removal_rate = known_removal_rate,
+        known_normalization_factor=10.,
+        known_min_background_concentration = known_min_background_concentration)
+    
+    normed_concentration = known_conc_model.concentration(1)
+    npt.assert_almost_equal(normed_concentration, expected_concentration)
