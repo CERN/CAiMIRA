@@ -317,6 +317,8 @@ The estimate of the concentration of CO\ :sub:`2` in a given room to indicate th
 Note that in order to calculate the CO\ :sub:`2` concentration one should use the concentration method defined in the superclass - :meth:`caimira.models._ConcentrationModelBase.concentration` - for a dedicated :class:`caimira.models.CO2ConcentrationModel` scenario.
 A fraction of 4.2% of the exhalation rate of the defined activity was considered as the  supplied to the room (:meth:`caimira.models.CO2ConcentrationModel.CO2_fraction_exhaled`).
 
+Note still that nothing depends on the aerosol diameter :math:`D` in this case (no particles are involved) - hence in this class all parameters are constant w.r.t :math:`D`.
+
 Since the CO\ :sub:`2` concentration differs from the virus concentration, the specific removal rate, CO\ :sub:`2` atmospheric concentration and normalization factors are respectively defined in :meth:`caimira.models.CO2ConcentrationModel.removal_rate`, 
 :meth:`caimira.models.CO2ConcentrationModel.min_background_concentration` and :meth:`caimira.models.CO2ConcentrationModel.normalization_factor`. 
 

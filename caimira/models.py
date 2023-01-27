@@ -1085,7 +1085,12 @@ class _ConcentrationModelBase:
             return self.min_background_concentration()/self.normalization_factor()
         next_state_change_time = self._next_state_change(time)
         RR = self.removal_rate(next_state_change_time)
-        conc_limit = self._normed_concentration_limit(next_state_change_time)
+        # If RR is 0, conc_limit does not play a role but its computation 
+        # would raise an error -> we set it to zero.
+        try:
+            conc_limit = self._normed_concentration_limit(next_state_change_time)
+        except ZeroDivisionError:
+            conc_limit = 0.
 
         t_last_state_change = self.last_state_change(time)
         conc_at_last_state_change = self._normed_concentration_cached(t_last_state_change)
