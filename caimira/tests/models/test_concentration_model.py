@@ -179,6 +179,8 @@ def test_integrated_concentration(simple_conc_model):
     npt.assert_almost_equal(c1, c2 + c3, decimal=15)
 
 
+# The expected numbers were obtained via the quad integration of the 
+# normed_integrated_concentration method with 0 (start) and 2 (stop) as limits.
 @pytest.mark.parametrize([
     "known_min_background_concentration", 
     "expected_normed_integrated_concentration"], 
@@ -206,6 +208,8 @@ def test_normed_integrated_concentration_with_background_concentration(
     npt.assert_almost_equal(known_conc_model.normed_integrated_concentration(0, 2), expected_normed_integrated_concentration)
 
 
+# The expected numbers were obtained via the quad integration of the 
+# normed_integrated_concentration method with 0 (start) and 2 (stop) as limits.
 @pytest.mark.parametrize([
     "known_removal_rate",
     "known_min_background_concentration", 
