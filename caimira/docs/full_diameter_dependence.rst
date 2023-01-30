@@ -314,8 +314,8 @@ CO\ :sub:`2` Concentration
 The estimate of the concentration of CO\ :sub:`2` in a given room to indicate the air quality is given by the same approach as for the long-range virus concentration, 
 :math:`C_{\mathrm{LR}}(t, D)`, where :math:`C_0(D)` is considered to be the background (outdoor) CO\ :sub:`2` concentration (:meth:`caimira.models.CO2ConcentrationModel.CO2_atmosphere_concentration`).
 
-Note that in order to calculate the CO\ :sub:`2` concentration one should use the concentration method defined in the superclass - :meth:`caimira.models._ConcentrationModelBase.concentration` - for a dedicated :class:`caimira.models.CO2ConcentrationModel` scenario.
-A fraction of 4.2% of the exhalation rate of the defined activity was considered as the  supplied to the room (:meth:`caimira.models.CO2ConcentrationModel.CO2_fraction_exhaled`).
+In order to compute the CO\ :sub:`2` concentration one should then simply use the :meth:`caimira.models.CO2ConcentrationModel.concentration` method.
+A fraction of 4.2% of the exhalation rate of the defined activity was considered as supplied to the room (:meth:`caimira.models.CO2ConcentrationModel.CO2_fraction_exhaled`).
 
 Note still that nothing depends on the aerosol diameter :math:`D` in this case (no particles are involved) - hence in this class all parameters are constant w.r.t :math:`D`.
 
