@@ -69,13 +69,17 @@ In the code, for a given Expiration, we use different methods to perform the cal
 Note that the diameter-dependence is kept at this stage. Since other parameters downstream in code are also diameter-dependent, the Monte-Carlo integration over the aerosol sizes is computed at the level of the dose :math:`\mathrm{vD^{total}}`.
 In case one would like to have intermediate results for emission rate, perform the Monte-Carlo integration of :math:`E_{c, j}^{\mathrm{total}}` and compute :math:`\mathrm{vR^{total}} =\mathrm{vl_{in}} \cdot E_{c, j}^{\mathrm{total}} \cdot \mathrm{BR_k}`.
 
-Concentration - C(t, D)
-=======================
+Virus Concentration - C(t, D)
+=============================
 
 The estimate of the concentration of virus-laden particles in a given room is based on a two-box exposure model:
 
 * **Box 1** - long-range exposure: also known as the *background* concentration, corresponds to the exposure of airborne virions where the susceptible (exposed) host is more than 2 m away from the infected host(s), considering the result of a mass balance equation between the emission rate of the infected host(s) and the removal rates from the environmental/virological characteristics.
 * **Box 2** - short-range exposure: also known as the *exhaled jet* concentration in close-proximity, corresponds to the exposure of airborne virions where the susceptible (exposed) host is distanced between 0.5 and 2 m from an infected host, considering the result of a two-stage exhaled jet model.
+
+Note that most of the methods used to calculate the concentration are defined in the superclass :meth:`caimira.models._ConcentrationModelBase`, while the specific methods for the long-range virus concentration are part of the subclass :meth:`caimira.models.ConcentrationModel`.
+The specific removal rate, minimum background concentration and normalization factors will depend on what concentration is being calculated (e.g. viral concentration or CO\ :sub:`2` concentration) and are respectively defined in :meth:`caimira.models._ConcentrationModelBase.removal_rate`, 
+:meth:`caimira.models._ConcentrationModelBase.min_background_concentration` and :meth:`caimira.models._ConcentrationModelBase.normalization_factor`. 
 
 Long-range approach
 *******************
@@ -84,8 +88,8 @@ The long-range concentration of virus-laden aerosols of a given size :math:`D`, 
 
 :math:`C_{\mathrm{LR}}(t, D)=\frac{\mathrm{vR}(D) \cdot N_{\mathrm{inf}}}{\lambda_{\mathrm{vRR}}(D) \cdot V_r}-\left (\frac{\mathrm{vR}(D) \cdot N_{\mathrm{inf}}}{\lambda_{\mathrm{vRR}}(D) \cdot V_r}-C_0(D) \right )e^{-\lambda_{\mathrm{vRR}}(D)t}` ,
 
-and computed, as a function of the exposure time and particle diameter, in the :meth:`caimira.models.ConcentrationModel.concentration` method.
-The long-range concentration, integrated over the exposure time (in piecewise constant steps), :math:`C(D)`, is given by :meth:`caimira.models.ConcentrationModel.integrated_concentration`.
+and computed, as a function of the exposure time and particle diameter, in the :meth:`caimira.models._ConcentrationModelBase.concentration` method.
+The long-range concentration, integrated over the exposure time (in piecewise constant steps), :math:`C(D)`, is given by :meth:`caimira.models._ConcentrationModelBase.integrated_concentration`.
 
 In the :math:`C_{\mathrm{LR}}(t, D)` equation above, the **emission rate** - :math:`\mathrm{vR}(D)` - and the **viral removal rate** - :math:`\lambda_{\mathrm{vRR}}(D)`, :meth:`caimira.models.ConcentrationModel.infectious_virus_removal_rate` - are both diameter-dependent.
 One can show that the resulting concentration is always proportional to the emission rate :math:`\mathrm{vR}(D)`. Hence, for computational speed-up purposes
@@ -93,8 +97,8 @@ the code computes first a normalized version of the concentration, i.e. divided 
 
 To summarize, we can split the concentration in two different formulations:
 
-* Normalized concentration :meth:`caimira.models.ConcentrationModel._normed_concentration`: :math:`\mathrm{C_\mathrm{LR, normed}}(t, D)` that computes the concentration without including the emission rate.
-* Concentration :meth:`caimira.models.ConcentrationModel.concentration` : :math:`C_{\mathrm{LR}}(t, D) = \mathrm{C_\mathrm{LR, normed}}(t, D) \cdot \mathrm{vR}(D)`, where :math:`\mathrm{vR}(D)` is the result of the :meth:`caimira.models._PopulationWithVirus.emission_rate_when_present` method.
+* Normalized concentration :meth:`caimira.models._ConcentrationModelBase._normed_concentration`: :math:`\mathrm{C_\mathrm{LR, normed}}(t, D)` that computes the concentration without including the emission rate.
+* Concentration :meth:`caimira.models._ConcentrationModelBase.concentration` : :math:`C_{\mathrm{LR}}(t, D) = \mathrm{C_\mathrm{LR, normed}}(t, D) \cdot \mathrm{vR}(D)`, where :math:`\mathrm{vR}(D)` is the result of the :meth:`caimira.models._PopulationWithVirus.emission_rate_when_present` method.
 
 Note that in order to get the total concentration value in this stage, the final result should be averaged over the particle diameters (i.e. Monte-Carlo integration over diameters, see above).
 For the calculator app report, the total concentration (MC integral over the diameter) is performed only when generating the plot.
@@ -102,8 +106,8 @@ Otherwise, the diameter-dependence continues until we compute the inhaled dose i
 
 The following methods calculate the integrated concentration between two times. They are mostly used when calculating the **dose**:
 
-* :meth:`caimira.models.ConcentrationModel.normed_integrated_concentration`, :math:`\mathrm{C_\mathrm{normed}}(D)` that returns the integrated long-range concentration of viruses in the air, between any two times, normalized by the emission rate. Note that this method performs the integral between any two times of the previously mentioned :meth:`caimira.models.ConcentrationModel._normed_concentration` method.
-* :meth:`caimira.models.ConcentrationModel.integrated_concentration`, :math:`C(D)`, that returns the same result as the previous one, but multiplied by the emission rate.
+* :meth:`caimira.models._ConcentrationModelBase.normed_integrated_concentration`, :math:`\mathrm{C_\mathrm{normed}}(D)` that returns the integrated long-range concentration of viruses in the air, between any two times, normalized by the emission rate. Note that this method performs the integral between any two times of the previously mentioned :meth:`caimira.models._ConcentrationModelBase._normed_concentration` method.
+* :meth:`caimira.models._ConcentrationModelBase.integrated_concentration`, :math:`C(D)`, that returns the same result as the previous one, but multiplied by the emission rate.
 
 The integral over the exposure times is calculated directly in the class (integrated methods).
 
@@ -115,7 +119,7 @@ The short-range concentration is the result of a two-stage exhaled jet model dev
 :math:`C_{\mathrm{SR}}(t, D) = C_{\mathrm{LR}} (t, D) + \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100μm}(t, D))` ,
 
 where :math:`S(x)` is the dilution factor due to jet dynamics, as a function of the interpersonal distance :math:`x` and :math:`C_{0, \mathrm{SR}}(D)` corresponds to the initial concentration of virions at the mouth/nose outlet during exhalation.
-:math:`C_{\mathrm{LR}, 100μm}(t, D)` is the long-range concentration, calculated in :meth:`caimira.models.ConcentrationModel.concentration` method but **interpolated** to the diameter range used for close-proximity (from 0 to 100μm).
+:math:`C_{\mathrm{LR}, 100μm}(t, D)` is the long-range concentration, calculated in :meth:`caimira.models._ConcentrationModelBase.concentration` method but **interpolated** to the diameter range used for close-proximity (from 0 to 100μm).
 Note that :math:`C_{0, \mathrm{SR}}(D)` is constant over time, hence only dependent on the particle diameter distribution. 
 
 For code simplification, we split the :math:`C_{\mathrm{SR}}(t, D)` equation into two components:
@@ -182,9 +186,9 @@ To summarize, in the code, :math:`C_{\mathrm{SR}}(t, D)` is computed as follows:
 * calculate the `dilution_factor` - :math:`S({x})` - in the method :meth:`caimira.models.ShortRangeModel.dilution_factor`, with the distance :math:`x` as a random variable (log normal distribution in :meth:`caimira.monte_carlo.data.short_range_distances`)
 * compute :math:`\frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100\mathrm{μm}}(t, D))` in method :meth:`caimira.models.ShortRangeModel.normed_concentration`,
 * multiply by the diameter-independent parameter,  viral load, in method :meth:`caimira.models.ShortRangeModel.short_range_concentration`
-* complete the equation of :math:`C_{\mathrm{SR}}(t, D)` by adding the long-range concentration from the :meth:`caimira.models.ConcentrationModel.concentration` (all integrated over :math:`D`), returning the final short-range concentration value for a given time and expiration activity. This is done at the level of the Exposure Model (:meth:`caimira.models.ExposureModel.concentration`).
+* complete the equation of :math:`C_{\mathrm{SR}}(t, D)` by adding the long-range concentration from the :meth:`caimira.models._ConcentrationModelBase.concentration` (all integrated over :math:`D`), returning the final short-range concentration value for a given time and expiration activity. This is done at the level of the Exposure Model (:meth:`caimira.models.ExposureModel.concentration`).
 
-Note that :meth:`caimira.models.ShortRangeModel._normed_concentration` method is different from :meth:`caimira.models.ConcentrationModel._normed_concentration` and :meth:`caimira.models.ConcentrationModel.concentration` differs from :meth:`caimira.models.ExposureModel.concentration`.
+Note that :meth:`caimira.models.ShortRangeModel._normed_concentration` method is different from :meth:`caimira.models._ConcentrationModelBase._normed_concentration` and :meth:`caimira.models._ConcentrationModelBase.concentration` differs from :meth:`caimira.models.ExposureModel.concentration`.
 
 Unless one is computing the mean concentration values (e.g. for the plots in the report), the diameter-dependence is kept at this stage. Since other parameters downstream in the code are also diameter-dependent, the Monte-Carlo integration over the particle sizes is computed at the level of the dose :math:`\mathrm{vD^{total}}`.
 In case one would like to have intermediate results for the initial short-range concentration, this is done at the :class:`caimira.models.ExposureModel` class level.
@@ -217,7 +221,7 @@ Long-range approach
 *******************
 
 Regarding the concentration part of the long-range exposure (concentration integrated over time, :math:`\int_{t1}^{t2}C_{\mathrm{LR}}(t, D)\;\mathrm{d}t`), the respective method is :meth:`caimira.models.ExposureModel._long_range_normed_exposure_between_bounds`,
-which uses the long-range exposure (concentration) between two bounds (time1 and time2), normalized by the emission rate of the infected population, calculated from :meth:`caimira.models.ConcentrationModel.normed_integrated_concentration`.
+which uses the long-range exposure (concentration) between two bounds (time1 and time2), normalized by the emission rate of the infected population, calculated from :meth:`caimira.models._ConcentrationModelBase.normed_integrated_concentration`.
 The former method filters out the given bounds considering the breaks through the day (i.e. the time intervals during which there is no exposition to the virus) and retrieves the integrated long-range concentration of viruses in the air between any two times.
 
 After the calculations of the integrated concentration over the time, in order to calculate the final dose, we have to compute the remaining factors in the above equation.
@@ -303,6 +307,20 @@ The final operation in the :meth:`caimira.models.ExposureModel.deposited_exposur
 If short-range interactions exist: the long-range component is added to the already calculated short-range component (`deposited_exposure`), hence completing :math:`C_{\mathrm{SR}}`.
 If the are no short-range interactions: the short-range component (`deposited_exposure`) is zero, hence the result is equal solely to the long-range component :math:`C_{\mathrm{LR}}`.
 
+
+CO\ :sub:`2` Concentration
+=====================================
+
+The estimate of the concentration of CO\ :sub:`2` in a given room to indicate the air quality is given by the same approach as for the long-range virus concentration, 
+:math:`C_{\mathrm{LR}}(t, D)`, where :math:`C_0(D)` is considered to be the background (outdoor) CO\ :sub:`2` concentration (:meth:`caimira.models.CO2ConcentrationModel.CO2_atmosphere_concentration`).
+
+In order to compute the CO\ :sub:`2` concentration one should then simply use the :meth:`caimira.models.CO2ConcentrationModel.concentration` method.
+A fraction of 4.2% of the exhalation rate of the defined activity was considered as supplied to the room (:meth:`caimira.models.CO2ConcentrationModel.CO2_fraction_exhaled`).
+
+Note still that nothing depends on the aerosol diameter :math:`D` in this case (no particles are involved) - hence in this class all parameters are constant w.r.t :math:`D`.
+
+Since the CO\ :sub:`2` concentration differs from the virus concentration, the specific removal rate, CO\ :sub:`2` atmospheric concentration and normalization factors are respectively defined in :meth:`caimira.models.CO2ConcentrationModel.removal_rate`, 
+:meth:`caimira.models.CO2ConcentrationModel.min_background_concentration` and :meth:`caimira.models.CO2ConcentrationModel.normalization_factor`. 
 
 .. _caimira-uml-diagram:
 
