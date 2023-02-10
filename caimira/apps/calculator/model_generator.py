@@ -636,13 +636,13 @@ class FormData:
             'controlroom-day': 'Seated',
             'controlroom-night': 'Seated',
             'smallmeeting': 'Seated',
-            'largemeeting': 'Seated',
+            'largemeeting': 'Standing',
             'callcentre': 'Seated',
             'library': 'Seated',
-            'training': 'Seated',
+            'training': 'Standing',
             'training_attendee': 'Seated',
-            'workshop': 'Moderate activity',
             'lab':'Light activity',
+            'workshop': 'Moderate activity',
             'gym':'Heavy exercise',
             'household-day': 'Light activity',
             'household-night': 'Seated', 
@@ -650,7 +650,7 @@ class FormData:
             'secondary-school': 'Light activity', 
             'university': 'Seated', 
             'restaurant': 'Seated',
-            'precise': 'Seated',
+            'precise': self.precise_activity['physical_activity'] if self.activity_type == 'precise' else None,
         }
 
         activity_defn = scenario_activity[self.activity_type]
