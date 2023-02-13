@@ -26,6 +26,22 @@ def nested_replace(obj, new_values: typing.Dict[str, typing.Any]):
     return new_inst
 
 
+def nested_getattr(obj, name: str):
+    """Get an attribute on a dataclass, much like getattr,
+    except it supports nested attributes definitions. For example:
+
+    >>> nested_getattr(obj, 'attr1.sub_attr2.sub_sub_attr3')
+ 
+    """
+    if '.' in name:
+        # Recurse into the desired name and come out with a top-level
+        # dataclass which has been updated appropriately.
+        name, remainder = name.split('.', 1)
+        return nested_getattr(getattr(obj,name), remainder)
+    else:
+        return getattr(obj,name)
+
+
 def replace(obj, **changes):
     """
     A version of dataclasses.replace that handles ClassVar declarations.
