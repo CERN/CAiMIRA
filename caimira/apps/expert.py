@@ -251,8 +251,8 @@ class ExposureComparissonResult(View):
         self.update_plot(exp_models, updated_labels)
 
     def update_plot(self, exp_models: typing.Tuple[models.ExposureModel, ...], labels: typing.Tuple[str, ...]):
-        self.ax.lines.clear()
-        self.ax2.lines.clear()
+        [line.remove() for line in self.ax.lines]
+        [line.remove() for line in self.ax2.lines]
         start, finish = models_start_end(exp_models)
         colors=['blue', 'red', 'orange', 'yellow', 'pink', 'purple', 'green', 'brown', 'black' ]
         ts = np.linspace(start, finish, num=250)
