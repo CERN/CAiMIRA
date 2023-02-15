@@ -177,7 +177,6 @@ def generate_permalink(base_url, calculator_prefix, form: FormData):
 
 
 def uncertainties_plot(exposure_models):
-    from tqdm import tqdm
     fig = plt.figure(figsize=(7, 10))
     viral_loads = np.linspace(2, 10, 600)
 
@@ -188,7 +187,7 @@ def uncertainties_plot(exposure_models):
         lower_percentiles = []
         upper_percentiles = []
 
-        for vl in tqdm(viral_loads):
+        for vl in viral_loads:
             model_vl = dataclass_utils.replace(exposure_mc, 
                 concentration_model = models.ConcentrationModel(
                     room=concentration_model.room,
