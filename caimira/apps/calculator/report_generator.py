@@ -133,7 +133,13 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
         for time1, time2 in zip(times[:-1], times[1:])
     ])
 
-    prob = np.array(model.infection_probability())
+    CO2_model: models.CO2ConcentrationModel = form.build_CO2_model()
+    CO2_concentrations = [
+        np.array(CO2_model.concentration(float(time))).mean()
+        for time in times
+    ]
+    
+    prob = np.array(model.infection_probability()).mean()
     prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
     prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
     expected_new_cases = np.array(model.expected_new_cases()).mean()
@@ -158,6 +164,7 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
         "prob_probabilistic_exposure": prob_probabilistic_exposure,
         "expected_new_cases": expected_new_cases,
         "uncertainties_plot_src": uncertainties_plot_src,
+        "CO2_concentrations": CO2_concentrations,
     }
 
 
