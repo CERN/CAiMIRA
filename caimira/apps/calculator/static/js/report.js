@@ -542,26 +542,26 @@ function draw_plot(svg_id) {
     });
 }
 
-// Generate the alternative scenarios plot using d3 library.
-// 'alternative_scenarios' is a dictionary with all the alternative scenarios 
+// Generate a scenarios plot using d3 library.
+// 'list_of_scenarios' is a dictionary with all the scenarios 
 // 'times' is a list of times for all the scenarios
-// The method is prepared to consider short-range interactions if needed.
-function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_plot_svg_id) {
+function draw_generic_concentration_plot(
+        plot_svg_id,
+        y_axis_label,
+    ) {
+
+    list_of_scenarios = (plot_svg_id === 'CO2_concentration_graph') ? CO2_concentrations : alternative_scenarios
     // H:M format
     var time_format = d3.timeFormat('%H:%M');
     // D3 array of ten categorical colors represented as RGB hexadecimal strings.
     var colors = d3.schemeAccent;
 
-    // Used for controlling the short-range interactions 
-    let button_full_exposure = document.getElementById("button_alternative_full_exposure");
-    let button_hide_high_concentration = document.getElementById("button_alternative_hide_high_concentration");
-
     // Variable for the highest concentration for all the scenarios
     var highest_concentration = 0.
 
     var data_for_scenarios = {}
-    for (scenario in alternative_scenarios) {
-        scenario_concentrations = alternative_scenarios[scenario].concentrations;
+    for (scenario in list_of_scenarios) {
+        scenario_concentrations = list_of_scenarios[scenario].concentrations;
 
         highest_concentration = Math.max(highest_concentration, Math.max(...scenario_concentrations))
 
@@ -576,8 +576,8 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
     var first_scenario = Object.values(data_for_scenarios)[0]
 
     // Add main SVG element
-    var alternative_plot_div = document.getElementById(alternative_plot_svg_id);
-    var vis = d3.select(alternative_plot_div).append('svg');
+    var plot_div = document.getElementById(plot_svg_id);
+    var vis = d3.select(plot_div).append('svg');
 
     var xRange = d3.scaleTime().domain([first_scenario[0].hour, first_scenario[first_scenario.length - 1].hour]);
     var xTimeRange = d3.scaleLinear().domain([times[0], times[times.length - 1]]);
@@ -599,20 +599,21 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
 
     // Y axis declaration.
     var yAxisEl = vis.append('svg:g')
-         .attr('class', 'y axis');
+        .attr('class', 'y axis');
 
     // Y axis label.
     var yAxisLabelEl = vis.append('svg:text')
         .attr('class', 'y label')
         .attr('fill', 'black')
         .attr('text-anchor', 'middle')
-        .text('Mean concentration (virions/m³)');
+        .text(y_axis_label);
 
     // Legend bounding box.
     max_key_length = Math.max(...(Object.keys(data_for_scenarios).map(el => el.length)));
+
     var legendBBox = vis.append('rect')
-        .attr('width', 8.25 * max_key_length )
-        .attr('height', 25 * (Object.keys(data_for_scenarios).length))
+        .attr('width', 10 * max_key_length )
+        .attr('height', 30 * (Object.keys(data_for_scenarios).length))
         .attr('stroke', 'lightgrey')
         .attr('stroke-width', '2')
         .attr('rx', '5px')
@@ -687,11 +688,12 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
             .on('mousemove', mousemove);
     }
 
-    function update_alternative_concentration_plot(concentration_data) {
+    function update_concentration_plot(concentration_data) {
+        list_of_scenarios = (plot_svg_id === 'CO2_concentration_graph') ? CO2_concentrations : alternative_scenarios
         var highest_concentration = 0.
 
-        for (scenario in alternative_scenarios) {
-            scenario_concentrations = alternative_scenarios[scenario][concentration_data];
+        for (scenario in list_of_scenarios) {
+            scenario_concentrations = list_of_scenarios[scenario][concentration_data];
             highest_concentration = Math.max(highest_concentration, Math.max(...scenario_concentrations));
         }
 
@@ -711,9 +713,10 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
     var graph_height;
 
     function redraw() {
-        // Define width and height according to the screen size.
-        var div_width = document.getElementById(concentration_plot_svg_id).clientWidth;
-        var div_height = document.getElementById(concentration_plot_svg_id).clientHeight;
+        // Define width and height according to the screen size. Always use an already defined
+        var div_width = document.getElementById('concentration_plot').clientWidth;
+        var div_height = document.getElementById('concentration_plot').clientHeight;
+
         graph_width = div_width;
         graph_height = div_height
         if (div_width >= 1200) { // For screens with width > 900px legend can be on the graph's right side.
@@ -755,7 +758,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
             var scenario_index = Object.keys(data_for_scenarios).indexOf(scenario_name)
             // Legend on right side.
             var size = 20 * (scenario_index + 1);
-            if (document.getElementById(concentration_plot_svg_id).clientWidth >= 900) {
+            if (div_width >= 900) {
                 label_icons[scenario_name].attr('x', graph_width + legend_x_start)
                     .attr('y', margins.top + size);
                 label_text[scenario_name].attr('x', graph_width + legend_x_start + space_between_text_icon)
@@ -789,7 +792,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
             .attr('y', (graph_height + margins.left) * 0.90);
 
         // Legend on right side.
-        if (document.getElementById(concentration_plot_svg_id).clientWidth >= 900) {
+        if (div_width >= 900) {
             legendBBox.attr('x', graph_width * 1.02)
                 .attr('y', margins.top * 1.15);
             
@@ -805,21 +808,6 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
             toolBox[scenario_name].attr('width', graph_width - margins.right)
                 .attr('height', graph_height);
         }
-    }
-
-    if (button_full_exposure) {
-        button_full_exposure.addEventListener("click", () => {
-            update_alternative_concentration_plot('concentrations');
-            button_full_exposure.disabled = true;
-            button_hide_high_concentration.disabled = false;
-        });
-    }
-    if (button_hide_high_concentration) {
-            button_hide_high_concentration.addEventListener("click", () => {
-            update_alternative_concentration_plot('concentrations_zoomed');
-            button_full_exposure.disabled = false;
-            button_hide_high_concentration.disabled = true;
-        });
     }
 
     function mousemove() {
@@ -847,13 +835,12 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
 
     // Draw for the first time to initialize.
     redraw();
-    update_alternative_concentration_plot('concentrations');
+    update_concentration_plot('concentrations');
 
     // Redraw based on the new size whenever the browser window is resized.
     window.addEventListener("resize", e => {
         redraw();
-        if (button_full_exposure && button_full_exposure.disabled) update_alternative_concentration_plot('concentrations');
-        else update_alternative_concentration_plot('concentrations')
+        update_concentration_plot('concentrations');
     });
 }
 
@@ -1130,6 +1117,7 @@ function export_csv() {
                 var column_name = has_rename != '' ? has_rename : e.id;
                 if (e.id == "Time") checked_names.push(`${column_name} \u2028(h)`);
                 else if (e.id == "Concentration") checked_names.push(`${column_name} \u2028(virions m⁻³)`);
+                else if (e.id == "CO2_Concentration") checked_names.push(`${column_name} \u2028(ppm)`);
                 checked_items.push(e.id);
             }
         }
@@ -1143,6 +1131,7 @@ function export_csv() {
         checked_items.includes("Concentration") && this_row.push(concentrations[i]);
         checked_items.includes("Cumulative Dose") && this_row.push(cumulative_doses[i]);
         checked_items.includes("Long-Range Dose") && this_row.push(long_range_cumulative_doses[i]);
+        checked_items.includes("CO2_Concentration") && this_row.push(CO2_concentrations[Object.keys(CO2_concentrations)[0]].concentrations[i]);
         if (has_alternative_scenario) {
             Object.entries(alternative_scenarios).map((scenario) => {
                 if (scenario[0] != 'Current scenario') {

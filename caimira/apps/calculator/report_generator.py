@@ -134,11 +134,11 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
     ])
 
     CO2_model: models.CO2ConcentrationModel = form.build_CO2_model()
-    CO2_concentrations = [
+    CO2_concentrations = {'CO₂ concentrations': {'concentrations': [
         np.array(CO2_model.concentration(float(time))).mean()
         for time in times
-    ]
-    
+    ]}}
+
     prob = np.array(model.infection_probability()).mean()
     prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
     prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()

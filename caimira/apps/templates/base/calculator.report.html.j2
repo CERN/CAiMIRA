@@ -237,8 +237,11 @@
 							<div>
 								<div id="CO2_concentration_graph" style="height: 400px"></div>
 								<script type="application/javascript">
-									let CO2_concentrations = {{ CO2_concentrations | JSONify }}
-									draw_CO2_concentration_plot("CO2_concentration_graph");
+									var CO2_concentrations = {{ CO2_concentrations | JSONify }}
+									draw_generic_concentration_plot(
+											"CO2_concentration_graph",
+											"Mean concentration (ppm)",
+									);
 								</script>
 							</div>
 						</div>
@@ -257,16 +260,13 @@
 						<div class="collapse" id="collapseAlternativeScenarios">
 							<div class="card-body">
 								<div>
-									{% if form.short_range_option == "short_range_yes" %}
-										{% if 'Speaking' in form.short_range_interactions|string or 'Shouting' in form.short_range_interactions|string %}
-											<button class="btn btn-sm btn-primary" id="button_alternative_full_exposure" disabled>Show full exposure</button>
-											<button class="btn btn-sm btn-primary ml-0" id="button_alternative_hide_high_concentration">Hide high concentration</button>
-										{% endif %}
-									{% endif %}
 									<div id="alternative_scenario_plot" style="height: 400px"></div>
 									<script type="application/javascript">
-										let alternative_scenarios = {{ alternative_scenarios.stats | JSONify }};
-										draw_alternative_scenarios_plot("concentration_plot", "alternative_scenario_plot");
+										var alternative_scenarios = {{ alternative_scenarios.stats | JSONify }}
+										draw_generic_concentration_plot(
+											"alternative_scenario_plot",
+											"Mean concentration (virions/m³)",
+										);
 									</script>
 									<br>
 									{% block report_scenarios_summary_table %}
@@ -347,6 +347,15 @@
 										<div id="cumulative-dose-rename-div" class="align-items-center" style="display:none">
 											<label class="col-form-label" for="cumulative-dose-rename-div">Column name:</label>
 											<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Cumulative Dose__rename" placeholder="Cumulative Dose" value="Cumulative Dose">
+										</div>
+									</div>
+									</li>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input" name="checkedItems" id="CO2_Concentration" onclick="display_rename_column(this.checked, 'CO2-rename-div')">
+										<label class="form-check-label" for="CO2_Concentration">CO₂ Concentration</label>
+										<div id="CO2-rename-div" class="align-items-center" style="display:none">
+											<label class="col-form-label" for="CO2-rename-div">Column name:</label>
+											<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="CO2_Concentration__rename" placeholder="CO₂ Concentration" value="CO₂ Concentration">
 										</div>
 									</div>
 									{% if form.short_range_option == "short_range_no" %}
