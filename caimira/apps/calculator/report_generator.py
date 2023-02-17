@@ -134,7 +134,7 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
     ])
 
     CO2_model: models.CO2ConcentrationModel = form.build_CO2_model()
-    CO2_concentrations = {'CO₂ concentrations': {'concentrations': [
+    CO2_concentrations = {'CO₂': {'concentrations': [
         np.array(CO2_model.concentration(float(time))).mean()
         for time in times
     ]}}

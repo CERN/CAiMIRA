@@ -241,6 +241,18 @@
 									draw_generic_concentration_plot(
 											"CO2_concentration_graph",
 											"Mean concentration (ppm)",
+											h_lines = [
+												{'label': 'Acceptable level',
+												 'y': 800, 
+												 'color': 'forestgreen',
+												 'style': 'dashed'
+												},
+												{'label': 'Insufficient level',
+												 'y': 1500, 
+												 'color': 'firebrick',
+												 'style': 'dashed'
+												},
+											]
 									);
 								</script>
 							</div>
