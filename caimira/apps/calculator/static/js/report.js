@@ -555,7 +555,7 @@ function draw_generic_concentration_plot(
     // H:M format
     var time_format = d3.timeFormat('%H:%M');
     // D3 array of ten categorical colors represented as RGB hexadecimal strings.
-    var colors = d3.schemeAccent;
+    var colors = d3.schemeCategory10;
 
     // Variable for the highest concentration for all the scenarios
     var highest_concentration = 0.
