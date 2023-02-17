@@ -548,6 +548,7 @@ function draw_plot(svg_id) {
 function draw_generic_concentration_plot(
         plot_svg_id,
         y_axis_label,
+        h_lines,
     ) {
 
     list_of_scenarios = (plot_svg_id === 'CO2_concentration_graph') ? CO2_concentrations : alternative_scenarios
@@ -609,11 +610,13 @@ function draw_generic_concentration_plot(
         .text(y_axis_label);
 
     // Legend bounding box.
-    max_key_length = Math.max(...(Object.keys(data_for_scenarios).map(el => el.length)));
+    let h_lines_lenght = h_lines ? h_lines.length : 0
+    let h_line_max_key = h_lines ? Math.max(...(h_lines.map(el => el.label.length))) : 0
 
+    max_key_length = Math.max(Math.max(...(Object.keys(data_for_scenarios).map(el => el.length))), h_line_max_key);
     var legendBBox = vis.append('rect')
-        .attr('width', 10 * max_key_length )
-        .attr('height', 30 * (Object.keys(data_for_scenarios).length))
+        .attr('width', 9 * max_key_length )
+        .attr('height', 25 * ((Object.keys(data_for_scenarios).length) + h_lines_lenght))
         .attr('stroke', 'lightgrey')
         .attr('stroke-width', '2')
         .attr('rx', '5px')
@@ -650,7 +653,25 @@ function draw_generic_concentration_plot(
         label_text[scenario_name] = vis.append('text')
             .text(scenario_name)
             .style('font-size', '15px');
+    }
+    if (h_lines) {
+        var h_lines_draw = {}, h_line_label_icon = {}, h_line_label_text = {};
+        h_lines.map((line) => {
+            h_lines_draw[line.label] = draw_area.append('svg:line')
+                .attr('stroke', line.color)
+                .attr('stroke-width', 2)
+                .attr('stroke-dasharray', line.style == 'dashed' ? (5, 5) : 0)
 
+            // Legend for each of the horizontal lines
+
+            h_line_label_icon[line.label] = vis.append('line')
+                .style("stroke-dasharray", line.style == 'dashed' ? (5, 5) : 0)
+                .attr('stroke-width', '2')
+                .style("stroke", line.color);
+            h_line_label_text[line.label] = vis.append('text')
+                .text(line.label)
+                .style('font-size', '15px');
+        })
     }
 
     // Tooltip.
@@ -706,6 +727,16 @@ function draw_generic_concentration_plot(
                 .x(d => xTimeRange(d.time))
                 .y(d => yRange(d.concentration));
             draw_lines[scenario_name].transition().duration(1000).attr("d", lineFuncs[scenario_name](data));
+        }
+
+        if (h_lines) {
+            h_lines.map((line) => {
+                h_lines_draw[line.label]
+                    .attr("x1", xTimeRange(times[0])) 
+                    .attr("y1", yRange(line.y))
+                    .attr("x2", xTimeRange(times[times.length - 1]))
+                    .attr("y2", yRange(line.y));
+            })
         }
     }
 
@@ -767,13 +798,34 @@ function draw_generic_concentration_plot(
             // Legend on the bottom.
             else {
                 legend_x_start = 10;
-
                 label_icons[scenario_name].attr('x', legend_x_start)
                     .attr('y', graph_height + size);
                 label_text[scenario_name].attr('x', legend_x_start + space_between_text_icon)
                     .attr('y', graph_height + size  + text_height);
             }
-
+        }
+        if (h_lines) {
+            h_lines.map((line, index) => {
+                size = 20 * (scenario_index + index + 2); // account for previous legend elements
+                if (div_width >= 900) {
+                    h_line_label_icon[line.label].attr("x1", graph_width + legend_x_start)
+                        .attr("x2", graph_width + legend_x_start + 20)
+                        .attr("y1", margins.top + size)
+                        .attr("y2", margins.top + size);
+                    h_line_label_text[line.label].attr('x', graph_width + legend_x_start + space_between_text_icon)
+                        .attr('y', margins.top + size  + text_height);
+                }
+                // Legend on the bottom.
+                else {
+                    legend_x_start = 10;
+                    h_line_label_icon[line.label].attr("x1", legend_x_start)
+                        .attr("x2", legend_x_start + 20)
+                        .attr("y1", graph_height + size)
+                        .attr("y2", graph_height + size);
+                    h_line_label_text[line.label].attr('x', legend_x_start + space_between_text_icon)
+                        .attr('y', graph_height + size  + text_height);
+                }
+            })
         }
 
         // Axis.
