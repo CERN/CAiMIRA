@@ -186,7 +186,7 @@
 									let prob_dist = {{ prob_dist | JSONify }}
 									let prob_hist_count = {{ prob_hist_count | JSONify }};
 									let prob_hist_bins = {{ prob_hist_bins | JSONify }};
-									draw_histogram("prob_inf_hist");
+									draw_histogram("prob_inf_hist", {{ prob_inf }}, {{ prob_inf_sd }});
 								</script>
               				</p>
 						</div>

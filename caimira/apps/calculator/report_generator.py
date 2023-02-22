@@ -149,6 +149,7 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
         "cumulative_doses": list(cumulative_doses),
         "long_range_cumulative_doses": list(long_range_cumulative_doses),
         "prob_inf": prob.mean(),
+        "prob_inf_sd": np.std(prob),
         "prob_dist": list(prob),
         "prob_hist_count": list(prob_dist_count),
         "prob_hist_bins": list(prob_dist_bins),
