@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-01-12 10:46+0100\n"
+"POT-Creation-Date: 2023-02-22 09:27+0100\n"
 "PO-Revision-Date: 2022-06-16 09:53+0200\n"
 "Last-Translator: Luis Aleixo <luis.aleixo@cern.ch>\n"
 "Language-Team: French <traduc@traduc.org>\n"
@@ -1250,30 +1250,27 @@ msgstr "Petite réunion - scénario typique avec toutes les personnes sont assis
 
 #: templates/base/calculator.report.html.j2:482
 msgid "Large meeting – infected occupant(s) is standing and speaking 1/3rd of the time, while the other occupants are seated.\t"
-msgstr "Grande réunion (>= 10 occ.) = l'orateur est debout et parle 33 % du temps, les autres occupants sont assis.\t"
+msgstr "Grande réunion (>= 10 occ.) - l'orateur est debout et parle 33 % du temps, les autres occupants sont assis.\t"
 
 #: templates/base/calculator.report.html.j2:484
-msgid "Call Centre = typical office-like scenario with all persons seated, all speaking continuously."
-msgstr "Centre d'appels = scénario typique de type bureau avec toutes les personnes sont assises, toutes parlent continuellement."
+msgid "Call Centre - typical office-like scenario with all persons seated, all speaking continuously."
+msgstr "Centre d'appels - scénario typique de type bureau avec toutes les personnes sont assises, toutes parlent continuellement."
 
 #: templates/base/calculator.report.html.j2:486
-#, python-format
-msgid "Control Room (Day Shift) = specific control room scenario, all persons seated, all speaking 50% of the time."
-msgstr "Salle de contrôle (équipe de jour) = scénario de salle de contrôle spécifique, toutes les personnes sont assises, tous parlant 50% du temps."
+msgid "Control Room (Day Shift) - specific control room scenario, all persons seated, all speaking 50% of the time."
+msgstr "Salle de contrôle (équipe de jour) - scénario de salle de contrôle spécifique, toutes les personnes sont assises, tous parlant 50% du temps."
 
 #: templates/base/calculator.report.html.j2:488
-#, python-format
-msgid "Control Room (Night Shift) = specific control room scenario with all persons seated, all speaking for 10% of the time."
-msgstr "Salle de contrôle (équipe de nuit) = scénario spécifique de la salle de contrôle avec les personnes assises, toutes parlant pendant 10 % du temps."
+msgid "Control Room (Night Shift) - specific control room scenario with all persons seated, all speaking for 10% of the time."
+msgstr "Salle de contrôle (équipe de nuit) - scénario spécifique de la salle de contrôle avec les personnes assises, toutes parlant pendant 10 % du temps."
 
 #: templates/base/calculator.report.html.j2:490
-msgid "Library = Library scenario with all persons seated, breathing and not speaking."
-msgstr "Bibliothèque = Scénario de bibliothèque avec toutes les personnes sont assises, respirant et ne parlant pas."
+msgid "Library - Library scenario with all persons seated, breathing and not speaking."
+msgstr "Bibliothèque - Scénario de bibliothèque avec toutes les personnes sont assises, respirant et ne parlant pas."
 
 #: templates/base/calculator.report.html.j2:492
-#, python-format
-msgid "Workshop = assembly workshop environment, all persons doing moderate physical activity, speaking 50% of the time."
-msgstr "Atelier = environnement d'atelier de montage, toutes les personnes faisant une activité physique modérée, parlant 50% du temps."
+msgid "Workshop - assembly workshop environment, all persons doing moderate physical activity, speaking 50% of the time."
+msgstr "Atelier - environnement d'atelier de montage, toutes les personnes faisant une activité physique modérée, parlant 50% du temps."
 
 #: templates/base/calculator.report.html.j2:494
 msgid "Conference/Training (speaker infected) – one person (the speaker/trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the speaker/trainer is the infected person, for the worst case scenario."
@@ -1284,13 +1281,12 @@ msgid "Conference/Training (attendee infected) – the infected person(s) are in
 msgstr "Conférence/Formation (participant infecté) – la ou les personnes infectées sont dans le public. Toutes les personnes sont assises et respirant."
 
 #: templates/base/calculator.report.html.j2:498
-#, python-format
-msgid "Laboratory = Lab or technical environment, all persons doing light physical activity, speaking 50% of the time."
-msgstr "Laboratoire = Laboratoire ou environnement technique, toutes les personnes faisant dde l'activié physique légère, parlant 50% du temps."
+msgid "Laboratory - Lab or technical environment, all persons doing light physical activity, speaking 50% of the time."
+msgstr "Laboratoire - Laboratoire ou environnement technique, toutes les personnes faisant dde l'activié physique légère, parlant 50% du temps."
 
 #: templates/base/calculator.report.html.j2:500
-msgid "Gym = For comparison only, all persons doing heavy physical exercise, breathing and not speaking."
-msgstr "Salle de sport = À titre de comparaison uniquement, toutes les personnes faisant de l'exercice physique intense, respirer et ne pas parler."
+msgid "Gym - For comparison only, all persons doing heavy physical exercise, breathing and not speaking."
+msgstr "Salle de sport - À titre de comparaison uniquement, toutes les personnes faisant de l'exercice physique intense, respirer et ne pas parler."
 
 #: templates/base/calculator.report.html.j2:505
 msgid "Short-range interactions:"

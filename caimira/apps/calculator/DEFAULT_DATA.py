@@ -89,16 +89,16 @@ _DEFAULTS = {
 
 ACTIVITY_TYPES: typing.List[typing.Dict[str, typing.Any]] = [
     {'id': 'office', 'name': _('Office'), 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 2}}, # Mostly silent in the office, but 1/3rd of time speaking.
-    {'id': 'controlroom-day', 'name': _('Control Room - Day shift'), 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 1}}, # Daytime control room shift, 50% speaking.
-    {'id': 'controlroom-night', 'name': _('Control Room - Night shift'), 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 9}}, # Nightshift control room, 10% speaking.
     {'id': 'smallmeeting', 'name': _('Small meeting (<10 occ.)'), 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 2}}, #self.total_people - 1}}, # Conversation of N people is approximately 1/N% of the time speaking.
     {'id': 'largemeeting', 'name': _('Large meeting (>=10 occ.)'), 'activity': 'Standing', 'expiration': {'Speaking': 1, 'Breathing': 2}}, # each infected person spends 1/3 of time speaking.
     {'id': 'callcentre', 'name': _('Call Centre'), 'activity': 'Seated', 'expiration': 'Speaking'},
+    {'id': 'controlroom-day', 'name': _('Control Room - Day shift'), 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 1}}, # Daytime control room shift, 50% speaking.
+    {'id': 'controlroom-night', 'name': _('Control Room - Night shift'), 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 9}}, # Nightshift control room, 10% speaking.
     {'id': 'library', 'name': _('Library'), 'activity': 'Seated', 'expiration': 'Breathing'}, 
-    {'id': 'training', 'name': _('Conference/Training (speaker infected)'), 'activity': 'Standing', 'expiration': 'Speaking'},
-    {'id': 'training_attendee', 'name': _('Conference/Training (attendee infected)'), 'activity': 'Seated', 'expiration': 'Breathing'},
     {'id': 'lab', 'name': _('Laboratory'), 'activity': 'Light activity', 'expiration': {'Speaking': 1, 'Breathing': 1}}, #Model 1/2 of time spent speaking in a lab.
     {'id': 'workshop', 'name': _('Workshop'), 'activity': 'Moderate activity', 'expiration': {'Speaking': 1, 'Breathing': 1}}, #Model 1/2 of time spent speaking in a workshop.
+    {'id': 'training', 'name': _('Conference/Training (speaker infected)'), 'activity': 'Standing', 'expiration': 'Speaking'},
+    {'id': 'training_attendee', 'name': _('Conference/Training (attendee infected)'), 'activity': 'Seated', 'expiration': 'Breathing'},
     {'id': 'gym', 'name': _('Gym'), 'activity': 'Heavy exercise', 'expiration': 'Breathing'},
     {'id': 'household-day', 'name': _('Household (day)'), 'activity': 'Light activity', 'expiration': {'Breathing': 5, 'Speaking': 5}},
     {'id': 'household-night', 'name': _('Household (night)'), 'activity': 'Seated', 'expiration': {'Breathing': 7, 'Speaking': 3}},

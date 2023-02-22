@@ -8,14 +8,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-01-12 10:46+0100\n"
+"POT-Creation-Date: 2023-02-22 09:27+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.9.1\n"
+"Generated-By: Babel 2.11.0\n"
 
 #: calculator/DEFAULT_DATA.py:91 templates/base/userguide.html.j2:143
 msgid "Office"
@@ -1445,34 +1445,34 @@ msgstr ""
 
 #: templates/base/calculator.report.html.j2:484
 msgid ""
-"Call Centre = typical office-like scenario with all persons seated, all "
+"Call Centre - typical office-like scenario with all persons seated, all "
 "speaking continuously."
 msgstr ""
 
 #: templates/base/calculator.report.html.j2:486
 #, python-format
 msgid ""
-"Control Room (Day Shift) = specific control room scenario, all persons "
+"Control Room (Day Shift) - specific control room scenario, all persons "
 "seated, all speaking 50% of the time."
 msgstr ""
 
 #: templates/base/calculator.report.html.j2:488
 #, python-format
 msgid ""
-"Control Room (Night Shift) = specific control room scenario with all "
+"Control Room (Night Shift) - specific control room scenario with all "
 "persons seated, all speaking for 10% of the time."
 msgstr ""
 
 #: templates/base/calculator.report.html.j2:490
 msgid ""
-"Library = Library scenario with all persons seated, breathing and not "
+"Library - Library scenario with all persons seated, breathing and not "
 "speaking."
 msgstr ""
 
 #: templates/base/calculator.report.html.j2:492
 #, python-format
 msgid ""
-"Workshop = assembly workshop environment, all persons doing moderate "
+"Workshop - assembly workshop environment, all persons doing moderate "
 "physical activity, speaking 50% of the time."
 msgstr ""
 
@@ -1493,13 +1493,13 @@ msgstr ""
 #: templates/base/calculator.report.html.j2:498
 #, python-format
 msgid ""
-"Laboratory = Lab or technical environment, all persons doing light "
+"Laboratory - Lab or technical environment, all persons doing light "
 "physical activity, speaking 50% of the time."
 msgstr ""
 
 #: templates/base/calculator.report.html.j2:500
 msgid ""
-"Gym = For comparison only, all persons doing heavy physical exercise, "
+"Gym - For comparison only, all persons doing heavy physical exercise, "
 "breathing and not speaking."
 msgstr ""
 

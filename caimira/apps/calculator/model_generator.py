@@ -835,35 +835,6 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'short_range_interactions': '[]',
     }
 
-
-<<<<<<< HEAD
-ACTIVITY_TYPES = {
-    'office', 'smallmeeting', 'largemeeting', 'callcentre', 'controlroom-day', 'controlroom-night', 'library', 'lab', 'workshop', 'training', 
-    'training_attendee', 'gym', 'household-day', 'household-night', 'primary-school', 'secondary-school', 'university', 'restaurant', 'precise',
-}
-MECHANICAL_VENTILATION_TYPES = {'mech_type_air_changes', 'mech_type_air_supply', 'not-applicable'}
-MASK_TYPES = {'Type I', 'FFP2', 'Cloth'}
-MASK_WEARING_OPTIONS = {'mask_on', 'mask_off'}
-VENTILATION_TYPES = {'natural_ventilation', 'mechanical_ventilation', 'no_ventilation'}
-VIRUS_TYPES = {'SARS_CoV_2', 'SARS_CoV_2_ALPHA', 'SARS_CoV_2_BETA','SARS_CoV_2_GAMMA', 'SARS_CoV_2_DELTA', 'SARS_CoV_2_OMICRON'}
-VOLUME_TYPES = {'room_volume_explicit', 'room_volume_from_dimensions'}
-WINDOWS_OPENING_REGIMES = {'windows_open_permanently', 'windows_open_periodically', 'not-applicable'}
-WINDOWS_TYPES = {'window_sliding', 'window_hinged', 'not-applicable'}
-COFFEE_OPTIONS_INT = {'coffee_break_0': 0, 'coffee_break_1': 1, 'coffee_break_2': 2, 'coffee_break_4': 4}
-CONFIDENCE_LEVEL_OPTIONS = {'confidence_low': 10, 'confidence_medium': 5, 'confidence_high': 2}
-MONTH_NAMES = [
-    'January', 'February', 'March', 'April', 'May', 'June', 'July',
-    'August', 'September', 'October', 'November', 'December',
-]
-VACCINE_TYPE = ['Ad26.COV2.S_(Janssen)', 'Any_mRNA_-_heterologous', 'AZD1222_(AstraZeneca)', 'AZD1222_(AstraZeneca)_and_any_mRNA_-_heterologous', 'AZD1222_(AstraZeneca)_and_BNT162b2_(Pfizer)',
-    'BBIBP-CorV_(Beijing_CNBG)', 'BNT162b2_(Pfizer)', 'BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)', 'CoronaVac_(Sinovac)', 'CoronaVac_(Sinovac)_and_AZD1222_(AstraZeneca)', 'Covishield',
-    'mRNA-1273_(Moderna)', 'Sputnik_V_(Gamaleya)', 'CoronaVac_(Sinovac)_and_BNT162b2_(Pfizer)']
-VACCINE_BOOSTER_TYPE = ['AZD1222_(AstraZeneca)', 'Ad26.COV2.S_(Janssen)', 'BNT162b2_(Pfizer)', 'BNT162b2_(Pfizer)_(4th_dose)', 'BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)',
-    'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)', 'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)_(4th_dose)', 'CoronaVac_(Sinovac)', 'Coronavac_(Sinovac)', 'Sinopharm',
-    'mRNA-1273_(Moderna)', 'mRNA-1273_(Moderna)_(4th_dose)', 'Other']
-
-=======
->>>>>>> 51a0a8cc (started extraction of default data and form translation)
 def _hours2timestring(hours: float):
     # Convert times like 14.5 to strings, like "14:30"
     return f"{int(np.floor(hours)):02d}:{int(np.round((hours % 1) * 60)):02d}"
