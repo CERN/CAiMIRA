@@ -852,7 +852,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
     });
 }
 
-function draw_histogram(svg_id) {
+function draw_histogram(svg_id, prob, prob_sd) {
     // Add main SVG element
     var plot_div = document.getElementById(svg_id);
     var div_width = plot_div.clientWidth;
@@ -962,6 +962,25 @@ function draw_histogram(svg_id) {
         .y(function(d) { return y_right(d) })
     );
 
+    // Add the mean dashed line
+    vis.append("svg:line")
+        .attr("fill", "none")
+        .attr('stroke-width', 2)
+        .attr('stroke-dasharray', (5, 5))
+        .attr("x1", x(prob)) 
+        .attr("y1", y_right(1))
+        .attr("x2", x(prob))
+        .attr("y2", y_right(0))
+        .attr("stroke", "grey");
+
+    // Plot tile
+    vis.append("svg:text")
+        .attr("x", x(50))             
+        .attr("y", 0 + margins.top)
+        .attr("text-anchor", "middle")  
+        .style("font-size", "16px")  
+        .text(`P(I) -- Mean(SD) = ${prob.toFixed(2)}(${prob_sd.toFixed(2)}) `);
+
     // Legend for the plot elements
     const size = 15;
     var legend_x_start = 50;
@@ -993,11 +1012,26 @@ function draw_histogram(svg_id) {
         .style('font-size', '15px')
         .attr('x', graph_width + legend_x_start + space_between_text_icon)
         .attr('y', margins.top + 2 * size + text_height*2);
+    // Mean text
+    vis.append('line')
+        .attr('stroke', 'grey')
+        .attr('stroke-width', 2)
+        .attr('stroke-dasharray', (5, 5))
+        .attr("x1", graph_width + legend_x_start)
+        .attr("x2", graph_width + legend_x_start + 20)
+        .attr("y1", margins.top + 3.85 * size)
+        .attr("y2", margins.top + 3.85 * size);
+    // Mean line text
+    vis.append('text')
+        .text('Mean')
+        .style('font-size', '15px')
+        .attr('x', graph_width + legend_x_start + space_between_text_icon)
+        .attr('y', margins.top + 3 * size + text_height*3);      
 
     // Legend Bbox
     vis.append('rect')
         .attr('width', 120)
-        .attr('height', 50)
+        .attr('height', 65)
         .attr('stroke', 'lightgrey')
         .attr('stroke-width', '2')
         .attr('rx', '5px')
