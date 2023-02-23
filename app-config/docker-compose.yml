@@ -6,10 +6,10 @@ services:
       - APP_NAME=caimira-voila
     user: ${CURRENT_UID:?"Please run as follows 'CURRENT_UID=$(id -u):$(id -g) docker-compose up'"}
 
-  caimira-CO2-app:
+  caimira-co2-app:
     image: caimira-webservice
     environment:
-      - APP_NAME=caimira-CO2-voila
+      - APP_NAME=caimira-co2-voila
     user: ${CURRENT_UID:?"Please run as follows 'CURRENT_UID=$(id -u):$(id -g) docker-compose up'"}
 
   caimira-webservice:
@@ -52,7 +52,7 @@ services:
         condition: service_started
       caimira-app:
         condition: service_started
-      caimira-CO2-app:
+      caimira-co2-app:
         condition: service_started
       auth-service:
         condition: service_started
