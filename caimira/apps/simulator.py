@@ -122,7 +122,9 @@ class ExposureModelResult(View):
                         right = max(model.CO2_emitters.presence.boundaries()[1])*1.05)
    
         figure_legends = [mlines.Line2D([], [], color='#3530fe', markersize=15, label='CO₂ concentration'),
-                   patches.Patch(edgecolor="#96cbff", facecolor='#96cbff', label='Presence of person(s)')]
+                mlines.Line2D([], [], color='salmon', markersize=15, label='Insufficient level', linestyle='--'),
+                mlines.Line2D([], [], color='limegreen', markersize=15, label='Acceptable level', linestyle='--'),
+                patches.Patch(edgecolor="#96cbff", facecolor='#96cbff', label='Presence of person(s)')]
         self.ax.legend(handles=figure_legends)
         if 1500 < concentration_top:
             self.ax.set_ylim(top=concentration_top*1.1)
@@ -131,6 +133,61 @@ class ExposureModelResult(View):
         self.ax.hlines([800, 1500], xmin=min(model.CO2_emitters.presence.boundaries()[0])*0.95, xmax=max(model.CO2_emitters.presence.boundaries()[1])*1.05, colors=['limegreen', 'salmon'], linestyles='dashed') 
         self.figure.canvas.draw()
 
+
+class ExposureComparissonResult(View):
+    def __init__(self):
+        self.figure = matplotlib.figure.Figure(figsize=(9, 6))
+        ipympl_canvas(self.figure)
+        self.html_output = widgets.HTML()
+        self.ax = self.initialize_axes()
+
+    @property
+    def widget(self):
+        # Workaround to a bug with ipymlp, which doesn't work well with tabs
+        # unless the widget is wrapped in a container (it is seen on all tabs otherwise!).
+        return widgets.HBox([self.figure.canvas])
+
+    def initialize_axes(self) -> matplotlib.figure.Axes:
+        ax = self.figure.add_subplot(1, 1, 1)
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        
+        ax.set_xlabel('Time (hours)')
+        ax.set_ylabel('CO₂ concentration (ppm)')
+        ax.set_title('CO₂ Concentration')
+
+        return ax
+
+    def scenarios_updated(self, scenarios: typing.Sequence[ScenarioType], _):
+        updated_labels, updated_models = zip(*scenarios)
+        CO2_models = tuple(
+            model.dcs_instance() for model in updated_models
+        )
+        self.update_plot(CO2_models, updated_labels)
+
+    def update_plot(self, CO2_models: typing.Tuple[models.CO2ConcentrationModel, ...], labels: typing.Tuple[str, ...]):
+        [line.remove() for line in self.ax.lines]
+
+        start, finish = models_start_end(CO2_models)
+        colors=['blue', 'red', 'orange', 'yellow', 'pink', 'purple', 'green', 'brown', 'black' ]
+        ts = np.linspace(start, finish, num=250)
+        concentrations = [[conc_model.concentration(t) for t in ts] for conc_model in CO2_models]
+        for label, concentration, color in zip(labels, concentrations, colors):
+            self.ax.plot(ts, concentration, label=label, color=color)
+            
+        concentration_top = max([max(np.array(concentration)) for concentration in concentrations])
+        
+        self.ax.set_ylim(bottom=400., top=concentration_top*1.1)
+        self.ax.set_xlim(left = start*0.95, 
+                        right = finish*1.05)
+        if 1500 < concentration_top:
+            self.ax.set_ylim(top=concentration_top*1.1)
+        else:
+            self.ax.set_ylim(top=1550)
+        self.ax.hlines([800, 1500], xmin=start*0.95, xmax=finish*1.05, colors=['limegreen', 'salmon'], linestyles='dashed') 
+
+        self.ax.legend()
+        self.figure.canvas.draw()
 
 
 class CO2Application(Controller):
@@ -142,14 +199,16 @@ class CO2Application(Controller):
         self._model_scenarios: typing.List[ScenarioType] = []
         self._active_scenario = 0
         self.multi_model_view = MultiModelView(self)
-        # self.comparison_view = ExposureComparissonResult()
+        self.comparison_view = ExposureComparissonResult()
         self.current_scenario_figure = ExposureModelResult()
         self._results_tab = widgets.Tab(children=(
             self.current_scenario_figure.widget,
+            self.comparison_view.widget,
             # self._debug_output,
         ))
         # for i, title in enumerate(['Current scenario', 'Scenario comparison', "Debug"]):
         #     self._results_tab.set_title(i, title)
+        self._results_tab.titles = ['Current scenario', 'Scenario comparison', "Debug"]
         self.widget = widgets.HBox(
             children=(
                 self.multi_model_view.widget,
@@ -182,6 +241,18 @@ class CO2Application(Controller):
                 return index, name, model
         else:
             raise ValueError("Model not found")
+        
+    def rename_scenario(self, model_id, new_name):
+        index, _, model = self._find_model_id(model_id)
+        self._model_scenarios[index] = (new_name, model)
+        self.notify_scenarios_changed()
+
+    def remove_scenario(self, model_id):
+        index, _, model = self._find_model_id(model_id)
+        self._model_scenarios.pop(index)
+        if self._active_scenario >= index:
+            self._active_scenario = max(self._active_scenario - 1, 0)
+        self.notify_scenarios_changed()
 
     def set_active_scenario(self, model_id):
         index, _, model = self._find_model_id(model_id)
@@ -195,12 +266,14 @@ class CO2Application(Controller):
 
         """
         self.multi_model_view.scenarios_updated(self._model_scenarios, self._active_scenario)
+        self.comparison_view.scenarios_updated(self._model_scenarios, self._active_scenario)
 
     def notify_model_values_changed(self):
         """
         Occurs when *any* value in *any* of the scenarios has been modified.
         """
         self.current_scenario_figure.update(self._model_scenarios[self._active_scenario][1].dcs_instance())
+        self.comparison_view.scenarios_updated(self._model_scenarios, self._active_scenario)
 
 
 class ModelWidgets(View):
@@ -593,7 +666,7 @@ class MultiModelView(View):
                 self.add_tab(scenario_name, model)
             model_scenario_ids.append(id(model))
             tab_index = self._tab_model_ids.index(id(model))
-            self.widget.set_title(tab_index, scenario_name)
+        self.widget.titles = [scenario_name for (scenario_name, _) in model_scenarios]
 
         # Any remaining model_scenario_ids are no longer needed, so remove
         # their tabs.
@@ -662,3 +735,13 @@ class MultiModelView(View):
         buttons_w_delete = widgets.HBox(children=(duplicate_button, delete_button))
         buttons = duplicate_button if len(self._tab_model_ids) < 2 else buttons_w_delete
         return widgets.VBox(children=(buttons, rename_text_field))
+    
+
+def models_start_end(models: typing.Sequence[models.CO2ConcentrationModel]) -> typing.Tuple[float, float]:
+    """
+    Returns the earliest start and latest end time of a collection of v objects
+
+    """
+    emitters_start = min(model.CO2_emitters.presence.boundaries()[0][0] for model in models)
+    emitters_finish = min(model.CO2_emitters.presence.boundaries()[-1][1] for model in models)
+    return emitters_start, emitters_finish
