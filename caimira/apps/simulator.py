@@ -283,14 +283,14 @@ class ModelWidgets(View):
 
     def _build_widget(self, node):
         self.widget.children += (self._build_room(node.room),)
-        self.widget.children += (self._build_population(node.CO2_emitters),)
+        self.widget.children += (self._build_population(node.CO2_emitters, node.ventilation),)
         self.widget.children += (self._build_ventilation(node.ventilation),)
         
-    def _build_population(self, node):
+    def _build_population(self, node, ventilation_node):
         return collapsible([widgets.VBox([
             self._build_population_number(node),
             self._build_activity(node.activity),
-            self._build_population_presence(node.presence)
+            self._build_population_presence(node.presence, ventilation_node)
         ])], title="Population")
 
     def _build_room(self,node):
@@ -348,12 +348,13 @@ class ModelWidgets(View):
 
         return widgets.HBox([widgets.Label('Number of people in the room '), number], layout=widgets.Layout(justify_content='space-between'))
 
-    def _build_population_presence(self, node):
+    def _build_population_presence(self, node, ventilation_node):
         presence_start = widgets.FloatRangeSlider(value = node.present_times[0], min = 8., max=13., step=0.1)
         presence_finish = widgets.FloatRangeSlider(value = node.present_times[1], min = 13., max=18., step=0.1)
 
         def on_presence_start_change(change):
             node.present_times = (change['new'], presence_finish.value)
+            ventilation_node.active.start = node.present_times[0][0]
 
         def on_presence_finish_change(change):
             node.present_times = (presence_start.value, change['new'])
