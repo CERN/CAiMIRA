@@ -49,6 +49,23 @@
       kind: Service
       metadata:
         labels:
+          app: caimira-co2-app
+        name: caimira-co2-app
+      spec:
+        ports:
+          - name: 8080-tcp
+            port: 8080
+            protocol: TCP
+            targetPort: 8080
+        selector:
+          deploymentconfig: caimira-co2-app
+        sessionAffinity: 'None'
+        type: 'ClusterIP'
+    -
+      apiVersion: v1
+      kind: Service
+      metadata:
+        labels:
           app: caimira-router
         name: caimira-router
       spec:
