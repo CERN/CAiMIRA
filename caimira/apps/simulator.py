@@ -10,15 +10,10 @@ import matplotlib.lines as mlines
 import matplotlib.patches as patches
 from .expert import collapsible, ipympl_canvas, WidgetGroup, CAIMIRAStateBuilder
 
-# ventilation=models.MultipleVentilation(
-#             ventilations=[
-#                 models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=100),
-#             ],
-#     ),
 baseline_model = models.CO2ConcentrationModel(
     room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293.15,))),
     ventilation=models.SlidingWindow(
-        active=models.PeriodicInterval(period=120, duration=15),
+        active=models.PeriodicInterval(period=120, duration=15, start=8.),
         outside_temp=models.PiecewiseConstant((0., 24.), (283.15,)),
         window_height=1.6, opening_length=0.6,
     ),
@@ -496,8 +491,8 @@ class ModelWidgets(View):
         toggle_window(window_w.value)
 
         number_of_windows= widgets.IntText(value= 1, min= 0, max= 5, step=1)
-        period = widgets.IntSlider(value=node.active.period, min=0, max=240)
-        interval = widgets.IntSlider(value=node.active.duration, min=0, max=240)
+        frequency = widgets.IntSlider(value=node.active.period, min=0, max=120)
+        duration = widgets.IntSlider(value=node.active.duration, min=0, max=frequency.value-1)
         opening_length = widgets.FloatSlider(value=node.opening_length, min=0, max=3, step=0.1)
         window_height = widgets.FloatSlider(value=node.window_height, min=0, max=3, step=0.1)
 
@@ -506,8 +501,9 @@ class ModelWidgets(View):
         
         def on_period_change(change):
             node.active.period = change['new']
+            duration.max = change['new'] - 1
 
-        def on_interval_change(change):
+        def on_duration_change(change):
             node.active.duration = change['new']
 
         def on_opening_length_change(change):
@@ -518,8 +514,8 @@ class ModelWidgets(View):
 
         # TODO: Link the state back to the widget, not just the other way around.
         number_of_windows.observe(on_value_change, names=['value'])
-        period.observe(on_period_change, names=['value'])
-        interval.observe(on_interval_change, names=['value'])
+        frequency.observe(on_period_change, names=['value'])
+        duration.observe(on_duration_change, names=['value'])
         opening_length.observe(on_opening_length_change, names=['value'])
         window_height.observe(on_window_height_change, names=['value'])
 
@@ -558,12 +554,12 @@ class ModelWidgets(View):
                     window_height,
                 ),
                 (
-                    widgets.Label('Interval between openings (minutes)', layout=auto_width),
-                    period,
+                    widgets.Label('Frequency (minutes)', layout=auto_width),
+                    frequency,
                 ),
                 (
-                    widgets.Label('Duration of opening (minutes)', layout=auto_width),
-                    interval,
+                    widgets.Label('Duration (minutes)', layout=auto_width),
+                    duration,
                 ),
                 (
                     widgets.Label('Outside temperature scheme', layout=auto_width),
