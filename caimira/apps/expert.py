@@ -940,7 +940,8 @@ class ExpertApplication(Controller):
             self.comparison_view.widget,
             # self._debug_output,
         ))
-        self._results_tab.titles = ['Current scenario', 'Scenario comparison', "Debug"]
+        for i, title in enumerate(['Current scenario', 'Scenario comparison', "Debug"]):
+            self._results_tab.set_title(i, title)
         self.widget = widgets.HBox(
             children=(
                 self.multi_model_view.widget,
@@ -1036,7 +1037,7 @@ class MultiModelView(View):
                 self.add_tab(scenario_name, model)
             model_scenario_ids.append(id(model))
             tab_index = self._tab_model_ids.index(id(model))
-        self.widget.titles = [scenario_name for (scenario_name, _) in model_scenarios]
+            self.widget.set_title(tab_index, scenario_name)
 
         # Any remaining model_scenario_ids are no longer needed, so remove
         # their tabs.
