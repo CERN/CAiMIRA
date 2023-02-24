@@ -1214,7 +1214,7 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
     def removal_rate(self, time: float) -> _VectorisedFloat:
         # 0.25 is a minimal, always present source of ventilation, due
         # to the air infiltration from the outside.
-        return self.ventilation.air_exchange(self.room, time) + 0.25
+        return self.ventilation.air_exchange(self.room, time) + 1e-6
 
     def min_background_concentration(self) -> _VectorisedFloat:
         """

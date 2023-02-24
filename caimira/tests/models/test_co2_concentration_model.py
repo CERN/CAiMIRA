@@ -8,7 +8,7 @@ from caimira import models
 def simple_co2_conc_model():
     return models.CO2ConcentrationModel(
         room=models.Room(200, models.PiecewiseConstant((0., 24.), (293,))),
-        ventilation=models.AirChange(models.PeriodicInterval(period=120, duration=120), 0.),
+        ventilation=models.AirChange(models.PeriodicInterval(period=120, duration=120), 0.25-(1e-6)),
         CO2_emitters=models.Population(
             number=5,
             presence=models.SpecificInterval((([0., 4.], ))),
