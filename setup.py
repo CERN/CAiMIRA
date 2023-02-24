@@ -21,7 +21,7 @@ REQUIREMENTS: dict = {
         'dataclasses; python_version < "3.7"',
         'ipykernel',
         'ipympl',
-        'ipywidgets',
+        'ipywidgets < 8.0',
         'Jinja2',
         'loky',
         'matplotlib',
