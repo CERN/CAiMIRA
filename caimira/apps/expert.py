@@ -253,8 +253,9 @@ class ExposureComparissonResult(View):
         self.update_plot(exp_models, updated_labels)
 
     def update_plot(self, exp_models: typing.Tuple[models.ExposureModel, ...], labels: typing.Tuple[str, ...]):
-        [line.remove() for line in self.ax.lines]
-        [line.remove() for line in self.ax2.lines]
+        self.ax.lines = []
+        self.ax2.lines = []
+
         start, finish = models_start_end(exp_models)
         colors=['blue', 'red', 'orange', 'yellow', 'pink', 'purple', 'green', 'brown', 'black' ]
         ts = np.linspace(start, finish, num=250)
@@ -1105,7 +1106,9 @@ class MultiModelView(View):
         # last scenario, so this should be controlled in the remove_tab method.
         buttons_w_delete = widgets.HBox(children=(duplicate_button, delete_button))
         buttons = duplicate_button if len(self._tab_model_ids) < 2 else buttons_w_delete
-        return widgets.VBox(children=(buttons, rename_text_field))
+        # TODO put back the delete button.
+        # return widgets.VBox(children=(buttons, rename_text_field))
+        return widgets.VBox(children=(duplicate_button, rename_text_field))
 
 
 def models_start_end(models: typing.Sequence[models.ExposureModel]) -> typing.Tuple[float, float]:

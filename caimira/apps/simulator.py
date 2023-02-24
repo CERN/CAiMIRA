@@ -161,7 +161,7 @@ class ExposureComparissonResult(View):
         self.update_plot(CO2_models, updated_labels)
 
     def update_plot(self, CO2_models: typing.Tuple[models.CO2ConcentrationModel, ...], labels: typing.Tuple[str, ...]):
-        [line.remove() for line in self.ax.lines]
+        self.ax.lines = []
 
         start, finish = models_start_end(CO2_models)
         colors=['blue', 'red', 'orange', 'yellow', 'pink', 'purple', 'green', 'brown', 'black' ]
@@ -203,6 +203,7 @@ class CO2Application(Controller):
         ))
         for i, title in enumerate(['Current scenario', 'Scenario comparison', "Debug"]):
             self._results_tab.set_title(i, title)
+
         self.widget = widgets.HBox(
             children=(
                 self.multi_model_view.widget,
@@ -227,7 +228,6 @@ class CO2Application(Controller):
         self._active_scenario = len(self._model_scenarios) - 1
         model.dcs_observe(self.notify_model_values_changed)
         self.notify_scenarios_changed()
-        self.notify_model_values_changed()
 
     def _find_model_id(self, model_id):
         for index, (name, model) in enumerate(list(self._model_scenarios)):
@@ -730,7 +730,9 @@ class MultiModelView(View):
         # last scenario, so this should be controlled in the remove_tab method.
         buttons_w_delete = widgets.HBox(children=(duplicate_button, delete_button))
         buttons = duplicate_button if len(self._tab_model_ids) < 2 else buttons_w_delete
-        return widgets.VBox(children=(buttons, rename_text_field))
+        # TODO put back the delete button.
+        # return widgets.VBox(children=(buttons, rename_text_field))
+        return widgets.VBox(children=(duplicate_button, rename_text_field))
     
 
 def models_start_end(models: typing.Sequence[models.CO2ConcentrationModel]) -> typing.Tuple[float, float]:
