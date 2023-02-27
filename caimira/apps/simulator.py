@@ -10,15 +10,19 @@ import matplotlib.lines as mlines
 import matplotlib.patches as patches
 from .expert import collapsible, ipympl_canvas, WidgetGroup, CAIMIRAStateBuilder
 
+
+# ventilation=models.HVACMechanical(active=models.PeriodicInterval(period=120, duration=120), q_air_mech=500),
+
+
 baseline_model = models.CO2ConcentrationModel(
-    room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293.15,))),
+    room=models.Room(volume=120, humidity=0.5, inside_temp=models.PiecewiseConstant((0., 24.), (293.15,))),
     ventilation=models.SlidingWindow(
         active=models.PeriodicInterval(period=120, duration=15, start=8-(15/60)),
         outside_temp=models.PiecewiseConstant((0., 24.), (283.15,)),
         window_height=1.6, opening_length=0.6,
     ),
     CO2_emitters=models.Population(
-        number=2,
+        number=10,
         presence=models.SpecificInterval(((8., 12.), (13., 17.))),
         mask=models.Mask.types['No mask'],
         activity=models.Activity.types['Seated'],
