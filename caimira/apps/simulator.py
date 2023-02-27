@@ -112,7 +112,7 @@ class ExposureModelResult(View):
                     (model.CO2_emitters.presence.boundaries()[1][0] < ts) & (ts < model.CO2_emitters.presence.boundaries()[1][1])))
 
         concentration_top = max(np.array(concentration))
-        self.ax.set_ylim(bottom=400., top=concentration_top*1.1)
+        self.ax.set_ylim(bottom=model.CO2_atmosphere_concentration * 0.9, top=concentration_top*1.1)
         self.ax.set_xlim(left = min(model.CO2_emitters.presence.boundaries()[0])*0.95, 
                         right = max(model.CO2_emitters.presence.boundaries()[1])*1.05)
    
@@ -171,8 +171,9 @@ class ExposureComparissonResult(View):
             self.ax.plot(ts, concentration, label=label, color=color)
             
         concentration_top = max([max(np.array(concentration)) for concentration in concentrations])
+        concentration_min = min([model.CO2_atmosphere_concentration for model in CO2_models])
         
-        self.ax.set_ylim(bottom=400., top=concentration_top*1.1)
+        self.ax.set_ylim(bottom=concentration_min * 0.9, top=concentration_top*1.1)
         self.ax.set_xlim(left = start*0.95, 
                         right = finish*1.05)
         if 1500 < concentration_top:
@@ -285,7 +286,13 @@ class ModelWidgets(View):
     def _build_widget(self, node):
         self.widget.children += (self._build_room(node.room),)
         self.widget.children += (self._build_population(node.CO2_emitters, node.ventilation),)
+        self.widget.children += (self._build_atmospheric_concentration(node),)
         self.widget.children += (self._build_ventilation(node.ventilation, node.CO2_emitters),)
+
+    def _build_atmospheric_concentration(self, node):
+        return collapsible([widgets.VBox([
+            self._build_co2_concentration(node),
+        ])], title="Carbon Dioxide")
         
     def _build_population(self, node, ventilation_node):
         return collapsible([widgets.VBox([
@@ -293,6 +300,16 @@ class ModelWidgets(View):
             self._build_activity(node.activity),
             self._build_population_presence(node.presence, ventilation_node)
         ])], title="Population")
+    
+    def _build_co2_concentration(self, node):
+        concentration = widgets.IntSlider(value=node.CO2_atmosphere_concentration, min=300, max=1000, step=10)
+
+        def on_atmospheric_concentration_change(change):
+            node.CO2_atmosphere_concentration = change['new']
+        # TODO: Link the state back to the widget, not just the other way around.
+        concentration.observe(on_atmospheric_concentration_change, names=['value'])
+
+        return widgets.HBox([widgets.Label('Atmospheric Concentration (ppm) '), concentration], layout=widgets.Layout(justify_content='space-between'))
 
     def _build_room(self,node):
         room_volume = widgets.IntSlider(value=node.volume, min=5, max=200, step=5)
