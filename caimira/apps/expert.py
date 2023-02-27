@@ -253,9 +253,9 @@ class ExposureComparissonResult(View):
         self.update_plot(exp_models, updated_labels)
 
     def update_plot(self, exp_models: typing.Tuple[models.ExposureModel, ...], labels: typing.Tuple[str, ...]):
-        self.ax.lines = []
-        self.ax2.lines = []
-
+        [line.remove() for line in self.ax.lines]
+        [line.remove() for line in self.ax2.lines]
+ 
         start, finish = models_start_end(exp_models)
         colors=['blue', 'red', 'orange', 'yellow', 'pink', 'purple', 'green', 'brown', 'black' ]
         ts = np.linspace(start, finish, num=250)
@@ -276,7 +276,10 @@ class ExposureComparissonResult(View):
         cumulative_top = max([max(cumulative_dose) for cumulative_dose in cumulative_doses])
         self.ax2.set_ylim(bottom=0., top=cumulative_top)
 
-        self.ax.legend()
+        handles, labels = self.figure.gca().get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        self.ax.legend(by_label.values(), by_label.keys())
+        
         self.figure.canvas.draw()
 
 
@@ -943,6 +946,7 @@ class ExpertApplication(Controller):
         ))
         for i, title in enumerate(['Current scenario', 'Scenario comparison', "Debug"]):
             self._results_tab.set_title(i, title)
+
         self.widget = widgets.HBox(
             children=(
                 self.multi_model_view.widget,
@@ -1069,8 +1073,7 @@ class MultiModelView(View):
         self._tab_model_ids.pop(tab_index)
         self._tab_widgets.pop(tab_index)
         self._tab_model_views.pop(tab_index)
-        if self._active_tab_index >= tab_index:
-            self._active_tab_index = max(0, self._active_tab_index - 1)
+        
         self.update_tab_widget()
 
     def update_tab_widget(self):
@@ -1106,9 +1109,7 @@ class MultiModelView(View):
         # last scenario, so this should be controlled in the remove_tab method.
         buttons_w_delete = widgets.HBox(children=(duplicate_button, delete_button))
         buttons = duplicate_button if len(self._tab_model_ids) < 2 else buttons_w_delete
-        # TODO put back the delete button.
-        # return widgets.VBox(children=(buttons, rename_text_field))
-        return widgets.VBox(children=(duplicate_button, rename_text_field))
+        return widgets.VBox(children=(buttons, rename_text_field))
 
 
 def models_start_end(models: typing.Sequence[models.ExposureModel]) -> typing.Tuple[float, float]:
