@@ -13,7 +13,7 @@ from .expert import collapsible, ipympl_canvas, WidgetGroup, CAIMIRAStateBuilder
 baseline_model = models.CO2ConcentrationModel(
     room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293.15,))),
     ventilation=models.SlidingWindow(
-        active=models.PeriodicInterval(period=120, duration=15, start=8.),
+        active=models.PeriodicInterval(period=120, duration=15, start=8-(15/60)),
         outside_temp=models.PiecewiseConstant((0., 24.), (283.15,)),
         window_height=1.6, opening_length=0.6,
     ),
@@ -144,8 +144,7 @@ class ExposureComparissonResult(View):
 
     def initialize_axes(self) -> matplotlib.figure.Axes:
         ax = self.figure.add_subplot(1, 1, 1)
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
+        ax.spines[['right', 'top']].set_visible(False)
         
         ax.set_xlabel('Time (hours)')
         ax.set_ylabel('CO₂ concentration (ppm)')
@@ -161,11 +160,12 @@ class ExposureComparissonResult(View):
         self.update_plot(CO2_models, updated_labels)
 
     def update_plot(self, CO2_models: typing.Tuple[models.CO2ConcentrationModel, ...], labels: typing.Tuple[str, ...]):
-        self.ax.lines = []
+        self.ax.cla()
 
         start, finish = models_start_end(CO2_models)
         colors=['blue', 'red', 'orange', 'yellow', 'pink', 'purple', 'green', 'brown', 'black' ]
         ts = np.linspace(start, finish, num=250)
+
         concentrations = [[conc_model.concentration(t) for t in ts] for conc_model in CO2_models]
         for label, concentration, color in zip(labels, concentrations, colors):
             self.ax.plot(ts, concentration, label=label, color=color)
@@ -182,7 +182,8 @@ class ExposureComparissonResult(View):
         self.ax.hlines([800, 1500], xmin=start*0.95, xmax=finish*1.05, colors=['limegreen', 'salmon'], linestyles='dashed') 
 
         self.ax.legend()
-        self.figure.canvas.draw()
+        self.figure.canvas.draw_idle()
+        self.figure.canvas.flush_events()
 
 
 class CO2Application(Controller):
@@ -244,8 +245,9 @@ class CO2Application(Controller):
     def remove_scenario(self, model_id):
         index, _, model = self._find_model_id(model_id)
         self._model_scenarios.pop(index)
-        if self._active_scenario >= index:
-            self._active_scenario = max(self._active_scenario - 1, 0)
+        self.multi_model_view.remove_tab(index)
+        
+        model.dcs_observe(self.notify_model_values_changed)
         self.notify_scenarios_changed()
 
     def set_active_scenario(self, model_id):
@@ -266,8 +268,8 @@ class CO2Application(Controller):
         """
         Occurs when *any* value in *any* of the scenarios has been modified.
         """
-        self.current_scenario_figure.update(self._model_scenarios[self._active_scenario][1].dcs_instance())
         self.comparison_view.scenarios_updated(self._model_scenarios, self._active_scenario)
+        self.current_scenario_figure.update(self._model_scenarios[self._active_scenario][1].dcs_instance())
 
 
 class ModelWidgets(View):
@@ -283,7 +285,7 @@ class ModelWidgets(View):
     def _build_widget(self, node):
         self.widget.children += (self._build_room(node.room),)
         self.widget.children += (self._build_population(node.CO2_emitters, node.ventilation),)
-        self.widget.children += (self._build_ventilation(node.ventilation),)
+        self.widget.children += (self._build_ventilation(node.ventilation, node.CO2_emitters),)
         
     def _build_population(self, node, ventilation_node):
         return collapsible([widgets.VBox([
@@ -352,8 +354,8 @@ class ModelWidgets(View):
         presence_finish = widgets.FloatRangeSlider(value = node.present_times[1], min = 13., max=18., step=0.1)
 
         def on_presence_start_change(change):
+            ventilation_node.active.start = change['new'][0] - ventilation_node.active.duration / 60
             node.present_times = (change['new'], presence_finish.value)
-            ventilation_node.active.start = node.present_times[0][0]
 
         def on_presence_finish_change(change):
             node.present_times = (presence_start.value, change['new'])
@@ -372,9 +374,10 @@ class ModelWidgets(View):
                 state.DataclassStateNamed[models.Ventilation],
                 state.DataclassStateNamed[models.MultipleVentilation],
             ],
+            emitters_node: models.Population,
     ) -> widgets.Widget:
         ventilation_widgets = {
-            'Natural': self._build_window(node),
+            'Natural': self._build_window(node, emitters_node),
             'HVACMechanical': self._build_mechanical(node),
             'HEPAFilter': self._build_HEPA(node),
         }
@@ -460,7 +463,7 @@ class ModelWidgets(View):
     def _build_sliding_window(self, node):
         return widgets.HBox([]) 
 
-    def _build_window(self, node) -> WidgetGroup:
+    def _build_window(self, node, emitters_node) -> WidgetGroup:
         window_widgets = {
             'Natural': self._build_sliding_window(node._states['Natural']),
             'Hinged window': self._build_hinged_window(node._states['Hinged window']), 
@@ -504,6 +507,7 @@ class ModelWidgets(View):
             duration.max = change['new'] - 1
 
         def on_duration_change(change):
+            node.active.start = emitters_node.presence.present_times[0][0] - change['new'] / 60
             node.active.duration = change['new']
 
         def on_opening_length_change(change):
@@ -693,8 +697,7 @@ class MultiModelView(View):
         self._tab_model_ids.pop(tab_index)
         self._tab_widgets.pop(tab_index)
         self._tab_model_views.pop(tab_index)
-        if self._active_tab_index >= tab_index:
-            self._active_tab_index = max(0, self._active_tab_index - 1)
+        
         self.update_tab_widget()
 
     def update_tab_widget(self):
@@ -730,10 +733,8 @@ class MultiModelView(View):
         # last scenario, so this should be controlled in the remove_tab method.
         buttons_w_delete = widgets.HBox(children=(duplicate_button, delete_button))
         buttons = duplicate_button if len(self._tab_model_ids) < 2 else buttons_w_delete
-        # TODO put back the delete button.
-        # return widgets.VBox(children=(buttons, rename_text_field))
-        return widgets.VBox(children=(duplicate_button, rename_text_field))
-    
+        
+        return widgets.VBox(children=(buttons, rename_text_field))    
 
 def models_start_end(models: typing.Sequence[models.CO2ConcentrationModel]) -> typing.Tuple[float, float]:
     """
