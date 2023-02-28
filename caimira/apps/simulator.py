@@ -11,16 +11,9 @@ import matplotlib.patches as patches
 from .expert import collapsible, ipympl_canvas, WidgetGroup, CAIMIRAStateBuilder
 
 
-# ventilation=models.HVACMechanical(active=models.PeriodicInterval(period=120, duration=120), q_air_mech=500),
-
-
 baseline_model = models.CO2ConcentrationModel(
     room=models.Room(volume=120, humidity=0.5, inside_temp=models.PiecewiseConstant((0., 24.), (293.15,))),
-    ventilation=models.SlidingWindow(
-        active=models.PeriodicInterval(period=120, duration=15, start=8-(15/60)),
-        outside_temp=models.PiecewiseConstant((0., 24.), (283.15,)),
-        window_height=1.6, opening_length=0.6,
-    ),
+    ventilation=models.HVACMechanical(active=models.PeriodicInterval(period=120, duration=120), q_air_mech=500),
     CO2_emitters=models.Population(
         number=10,
         presence=models.SpecificInterval(((8., 12.), (13., 17.))),
@@ -221,7 +214,7 @@ class CO2Application(Controller):
     def build_new_model(self) -> state.DataclassInstanceState[models.CO2ConcentrationModel]:
         default_model = state.DataclassInstanceState(
             models.CO2ConcentrationModel,
-            state_builder=CAIMIRAStateBuilder(),
+            state_builder=CAIMIRACO2StateBuilder(),
         )
         default_model.dcs_update_from(baseline_model)
         return default_model
@@ -251,7 +244,8 @@ class CO2Application(Controller):
         index, _, model = self._find_model_id(model_id)
         self._model_scenarios.pop(index)
         self.multi_model_view.remove_tab(index)
-        
+        self._active_scenario = index - 1
+
         model.dcs_observe(self.notify_model_values_changed)
         self.notify_scenarios_changed()
 
@@ -310,7 +304,7 @@ class ModelWidgets(View):
 
         def on_atmospheric_concentration_change(change):
             node.CO2_atmosphere_concentration = change['new']
-        # TODO: Link the state back to the widget, not just the other way around.
+        
         concentration.observe(on_atmospheric_concentration_change, names=['value'])
 
         return widgets.HBox([widgets.Label('Atmospheric Concentration (ppm) '), concentration], layout=widgets.Layout(justify_content='space-between'))
@@ -365,7 +359,7 @@ class ModelWidgets(View):
 
         def on_population_number_change(change):
             node.number = change['new']
-        # TODO: Link the state back to the widget, not just the other way around.
+        
         number.observe(on_population_number_change, names=['value'])
 
         return widgets.HBox([widgets.Label('Number of people in the room '), number], layout=widgets.Layout(justify_content='space-between'))
@@ -398,12 +392,13 @@ class ModelWidgets(View):
             emitters_node: models.Population,
     ) -> widgets.Widget:
         ventilation_widgets = {
-            'Natural': self._build_window(node, emitters_node),
             'HVACMechanical': self._build_mechanical(node),
-            'HEPAFilter': self._build_HEPA(node),
+            'Sliding window': self._build_window(node, emitters_node),
+            'HEPAFilter': self._build_HEPA(node._states['HEPAFilter']),
+            'No ventilation': self._build_no_ventilation(node._states['No ventilation']),
         }
 
-        keys=[("Natural", "Natural"), ("Mechanical", "HVACMechanical"), ("No ventilation", "No ventilation"), ("HEPA Filter", "HEPAFilter")]
+        keys=[("Mechanical", "HVACMechanical"), ("Natural", "Sliding window"), ("No ventilation", "No ventilation"), ("HEPA Filter", "HEPAFilter")]
 
         for name, widget in ventilation_widgets.items():
             widget.layout.visible = False
@@ -416,12 +411,6 @@ class ModelWidgets(View):
             for name, widget in ventilation_widgets.items():
                     widget.layout.visible = False
                     widget.layout.display = 'none'
-
-            if value == 'No ventilation':
-                node.dcs_select(value)
-                node.air_exch = 0.25
-                
-                return
 
             node.dcs_select(value)
 
@@ -476,7 +465,6 @@ class ModelWidgets(View):
             def on_hinged_window_change(change):
                 node.window_width = change['new']
 
-            # TODO: Link the state back to the widget, not just the other way around.
             hinged_window.observe(on_hinged_window_change, names=['value'])
             
             return widgets.HBox([widgets.Label('Window width (meters) '), hinged_window], layout=widgets.Layout(justify_content='space-between', width='100%'))
@@ -486,7 +474,7 @@ class ModelWidgets(View):
 
     def _build_window(self, node, emitters_node) -> WidgetGroup:
         window_widgets = {
-            'Natural': self._build_sliding_window(node._states['Natural']),
+            'Sliding window': self._build_sliding_window(node._states['Sliding window']),
             'Hinged window': self._build_hinged_window(node._states['Hinged window']), 
         }
 
@@ -516,7 +504,7 @@ class ModelWidgets(View):
 
         number_of_windows= widgets.IntText(value= 1, min= 0, max= 5, step=1)
         frequency = widgets.IntSlider(value=node.active.period, min=0, max=120)
-        duration = widgets.IntSlider(value=node.active.duration, min=0, max=frequency.value-1)
+        duration = widgets.IntSlider(value=node.active.duration, min=0, max=frequency.value)
         opening_length = widgets.FloatSlider(value=node.opening_length, min=0, max=3, step=0.1)
         window_height = widgets.FloatSlider(value=node.window_height, min=0, max=3, step=0.1)
 
@@ -525,7 +513,7 @@ class ModelWidgets(View):
         
         def on_period_change(change):
             node.active.period = change['new']
-            duration.max = change['new'] - 1
+            duration.max = change['new']
 
         def on_duration_change(change):
             node.active.start = emitters_node.presence.present_times[0][0] - change['new'] / 60
@@ -537,7 +525,6 @@ class ModelWidgets(View):
         def on_window_height_change(change):
             node.window_height = change['new']
 
-        # TODO: Link the state back to the widget, not just the other way around.
         number_of_windows.observe(on_value_change, names=['value'])
         frequency.observe(on_period_change, names=['value'])
         duration.observe(on_duration_change, names=['value'])
@@ -602,7 +589,6 @@ class ModelWidgets(View):
         def on_q_air_mech_change(change):
             node.q_air_mech = change['new']
 
-        # TODO: Link the state back to the widget, not just the other way around.
         q_air_mech.observe(on_q_air_mech_change, names=['value'])
 
         return widgets.HBox([q_air_mech, widgets.Label('m³/h')])
@@ -613,14 +599,13 @@ class ModelWidgets(View):
         def on_air_exch_change(change):
             node.air_exch = change['new']
 
-        # TODO: Link the state back to the widget, not just the other way around.
         air_exch.observe(on_air_exch_change, names=['value'])
 
         return widgets.HBox([air_exch, widgets.Label('h⁻¹')])
 
     def _build_mechanical(self, node):
         mechanical_widgets = {
-            'HVACMechanical': self._build_q_air_mech(node._states['HVACMechanical']),
+            'HVACMechanical': self._build_q_air_mech(node),
             'AirChange': self._build_ach(node._states['AirChange']),
         }
 
@@ -661,6 +646,10 @@ class ModelWidgets(View):
 
         return widgets.HBox([widgets.Label('HEPA Filtration (m³/h) '),HEPA_w], layout=widgets.Layout(justify_content='space-between'))
 
+    def _build_no_ventilation(self, node):
+        return widgets.HBox([])
+
+    
 class MultiModelView(View):
     def __init__(self, controller: CO2Application):
         self._controller = controller
@@ -698,6 +687,7 @@ class MultiModelView(View):
         assert self._tab_model_ids == model_scenario_ids
 
         self.widget.selected_index = active_scenario_index
+            
 
     def add_tab(self, name, model):
         self._tab_model_views.append(ModelWidgets(model))
@@ -733,7 +723,7 @@ class MultiModelView(View):
         delete_button = widgets.Button(description='Delete Scenario', button_style='danger')
         rename_text_field = widgets.Text(description='Rename Scenario:', value=name,
                                          style={'description_width': 'auto'})
-        duplicate_button = widgets.Button(description='Duplicate Scenario', button_style='success')
+        duplicate_button = widgets.Button(description='Replicate Scenario', button_style='success')
         model_id = id(model)
 
         def on_delete_click(b):
@@ -750,12 +740,52 @@ class MultiModelView(View):
         delete_button.on_click(on_delete_click)
         duplicate_button.on_click(on_duplicate_click)
         rename_text_field.observe(on_rename_text_field, 'value')
-        # TODO: This should be dynamic - we don't want to be able to delete the
-        # last scenario, so this should be controlled in the remove_tab method.
+        
         buttons_w_delete = widgets.HBox(children=(duplicate_button, delete_button))
         buttons = duplicate_button if len(self._tab_model_ids) < 2 else buttons_w_delete
         
-        return widgets.VBox(children=(buttons, rename_text_field))    
+        return widgets.VBox(children=(buttons, rename_text_field))
+    
+
+class CAIMIRACO2StateBuilder(CAIMIRAStateBuilder):
+
+    def build_type__VentilationBase(self, _: dataclasses.Field):
+        s: state.DataclassStateNamed = state.DataclassStateNamed(
+            states={
+                'HVACMechanical': self.build_generic(models.HVACMechanical),
+                'Sliding window': self.build_generic(models.WindowOpening),
+                'No ventilation': self.build_generic(models.AirChange),
+                'AirChange': self.build_generic(models.AirChange),
+                'Hinged window': self.build_generic(models.WindowOpening),
+                'HEPAFilter': self.build_generic(models.HEPAFilter),
+            },
+            state_builder=self,
+        )
+        s._states['Sliding window'].dcs_update_from(
+            models.SlidingWindow(active=models.PeriodicInterval(period=120, duration=15, start=8-(15/60)),
+                outside_temp=models.PiecewiseConstant((0,24.), (283.15,)),
+                window_height=1.6, opening_length=0.6,
+                ),
+        )
+        #Initialise the "Hinged window" state
+        s._states['Hinged window'].dcs_update_from(
+            models.HingedWindow(active=models.PeriodicInterval(period=120, duration=15, start=8-(15/60)),
+                outside_temp=models.PiecewiseConstant((0,24.), (283.15,)),
+                window_height=1.6, opening_length=0.6,
+                window_width=10.
+            ),
+        )
+        s._states['AirChange'].dcs_update_from(
+            models.AirChange(models.PeriodicInterval(period=24*60, duration=24*60), 10.)
+        )
+        # Initialize the "No ventilation" state
+        s._states['No ventilation'].dcs_update_from(
+            models.AirChange(active=models.PeriodicInterval(period=60, duration=60), air_exch=0.) 
+        )
+        s._states['HEPAFilter'].dcs_update_from(
+            models.HEPAFilter(active=models.PeriodicInterval(period=60, duration=60), q_air_mech=500.)
+        )
+        return s
 
 def models_start_end(models: typing.Sequence[models.CO2ConcentrationModel]) -> typing.Tuple[float, float]:
     """

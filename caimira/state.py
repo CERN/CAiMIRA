@@ -228,8 +228,6 @@ class DataclassInstanceState(DataclassState[Datamodel_T]):
     def dcs_set_instance_type(self, instance_dataclass: typing.Type[Datamodel_T]):
         if not dataclasses.is_dataclass(instance_dataclass):
             raise TypeError("The given class is not a valid dataclass")
-        if not issubclass(instance_dataclass, self._base):
-            raise TypeError(f"The dataclass type provided ({instance_dataclass}) must be a subclass of the base ({self._base})")
         self._instance_type = instance_dataclass
 
         # TODO: It is possible to cut observer connections by clearing like this.
