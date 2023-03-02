@@ -36,6 +36,7 @@ class FormData:
     specific_breaks: dict
     precise_activity: dict
     ceiling_height: float
+    conditional_probability_plot: bool
     exposed_coffee_break_option: str
     exposed_coffee_duration: int
     exposed_finish: minutes_since_midnight
@@ -104,6 +105,7 @@ class FormData:
         'precise_activity': '{}',
         'calculator_version': _NO_DEFAULT,
         'ceiling_height': 0.,
+        'conditional_probability_plot': False,
         'exposed_coffee_break_option': 'coffee_break_0',
         'exposed_coffee_duration': 5,
         'exposed_finish': '17:30',
@@ -900,6 +902,7 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'air_changes': '',
         'air_supply': '',
         'ceiling_height': '',
+        'conditional_probability_plot': '0',
         'exposed_coffee_break_option': 'coffee_break_4',
         'exposed_coffee_duration': '10',
         'exposed_finish': '18:00',
