@@ -137,6 +137,7 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
     er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
     exposed_occupants = model.exposed.number
     expected_new_cases = np.array(model.expected_new_cases()).mean()
+    uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(model))) if form.conditional_probability_plot else None
 
     return {
         "model_repr": repr(model),
@@ -158,7 +159,7 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
         "emission_rate": er,
         "exposed_occupants": exposed_occupants,
         "expected_new_cases": expected_new_cases,
-        "uncertainties_plot_scr": img2base64(_figure2bytes(uncertainties_plot([model])))
+        "uncertainties_plot_src": uncertainties_plot_src,
     }
 
 

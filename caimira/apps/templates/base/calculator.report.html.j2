@@ -193,7 +193,9 @@
 					</div>
 				</div>
 
-				<img src= "{{ uncertainties_plot_scr }}" />
+				{% if form.conditional_probability_plot %}
+					<img src= "{{ uncertainties_plot_src }}" />
+				{% endif %}
 
 				{% if form.short_range_option == "short_range_no" %}
 					<div class="card bg-light mb-3">
