@@ -122,6 +122,9 @@ class ConcentrationModel(BaseRequestHandler):
             max_workers=self.settings['handler_worker_pool_size'],
             timeout=300,
         )
+        # Re-generate the report with the conditional probability of infection plot
+        if self.get_cookie('conditional_plot'): 
+            form.conditional_probability_plot = True if self.get_cookie('conditional_plot') == '1' else False
         report_task = executor.submit(
             report_generator.build_report, base_url, form,
             executor_factory=functools.partial(

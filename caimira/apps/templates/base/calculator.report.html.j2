@@ -15,7 +15,7 @@
 
 </head>
 
-<body id="body">
+<body id="body" onload="on_report_load({{ form.conditional_probability_plot | int }})">
 
 <!-- MODEL REPR - Available in the developer tools once the report is generated. Useful to re-create the model using an interpreter that has CAiMIRA installed:
 
@@ -74,128 +74,135 @@
 					</div>
 					<div class="collapse show" id="collapseResults">
 						<div class="card-body">
-							<p class="card-text">
-								<div class="align-self-center">
-									<div class="split">
+							<div class="align-self-center">
+								<div class="split">
+										<div class="card card-body align-self-center pi-box" style="text-align:center; max-width: 300px">
+											<h6 class="card-title">
+												<b>Probability of infection (%)</b><br>
+												{% if form.short_range_option == "short_range_yes" %}
+													Without <b>short-range interactions</b> 
+												{% endif %}
+											</h6>
+											<br>
+											<img src="{{ get_url('/static/images') }}/long_range_anim.png" class="align-middle mb-3 pi-image">
+											<div class="d-flex" style="min-height: 160px">
+												{% block long_range_warning_animation %}
+													<div class="intro-banner-vdo-play-btn animation-color m-auto d-flex align-items-center justify-content-center">
+														<b>{{long_range_prob_inf | non_zero_percentage}}</b>
+														<i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
+														<span class="ripple animation-color"></span>
+														<span class="ripple animation-color"></span>
+														<span class="ripple animation-color"></span>
+													</div>
+												{% endblock long_range_warning_animation %}
+											</div>
+										</div>
+										<br>
+										{% if form.short_range_option == "short_range_yes" %}
 											<div class="card card-body align-self-center pi-box" style="text-align:center; max-width: 300px">
 												<h6 class="card-title">
 													<b>Probability of infection (%)</b><br>
-													{% if form.short_range_option == "short_range_yes" %}
-														Without <b>short-range interactions</b> 
-													{% endif %}
+													With <b>short-range interactions</b>
 												</h6>
 												<br>
-												<img src="{{ get_url('/static/images') }}/long_range_anim.png" class="align-middle mb-3 pi-image">
+												<img src="{{ get_url('/static/images') }}/short_range_anim.png" class="align-middle mb-3 pi-image">
 												<div class="d-flex" style="min-height: 160px">
-													{% block long_range_warning_animation %}
+													{% block warning_animation %}
 														<div class="intro-banner-vdo-play-btn animation-color m-auto d-flex align-items-center justify-content-center">
-															<b>{{long_range_prob_inf | non_zero_percentage}}</b>
-															<i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
-															<span class="ripple animation-color"></span>
-															<span class="ripple animation-color"></span>
-															<span class="ripple animation-color"></span>
-														</div>
-													{% endblock long_range_warning_animation %}
+														<b>{{prob_inf | non_zero_percentage}}</b>
+														<i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
+														<span class="ripple animation-color"></span>
+														<span class="ripple animation-color"></span>
+														<span class="ripple animation-color"></span>
+													</div>
+													{% endblock warning_animation %}
 												</div>
 											</div>
-											<br>
+										{% endif %}
+									<div class="d-flex">
+										{% block report_summary %}
+										<div class="flex-row align-self-center">
+											<div class="align-self-center alert alert-dark mb-0" role="alert">
+												Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally (i.e. without short-range interactions), the <b>probability of one exposed occupant getting infected is {{ long_range_prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>*.
+											</div>
 											{% if form.short_range_option == "short_range_yes" %}
-												<div class="card card-body align-self-center pi-box" style="text-align:center; max-width: 300px">
-													<h6 class="card-title">
-														<b>Probability of infection (%)</b><br>
-														With <b>short-range interactions</b>
-													</h6>
-													<br>
-													<img src="{{ get_url('/static/images') }}/short_range_anim.png" class="align-middle mb-3 pi-image">
-													<div class="d-flex" style="min-height: 160px">
-														{% block warning_animation %}
-															<div class="intro-banner-vdo-play-btn animation-color m-auto d-flex align-items-center justify-content-center">
-															<b>{{prob_inf | non_zero_percentage}}</b>
-															<i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
-															<span class="ripple animation-color"></span>
-															<span class="ripple animation-color"></span>
-															<span class="ripple animation-color"></span>
-														</div>
-														{% endblock warning_animation %}
-													</div>
+												<br>
+												<div class="align-self-center alert alert-dark mb-0" role="alert">
+													In this scenario, assuming <b>short-range interactions</b> occur, the <b>probability of one exposed occupant getting infected can go as high as {{ prob_inf | non_zero_percentage }}</b>.
 												</div>
 											{% endif %}
-										<div class="d-flex">
-											{% block report_summary %}
-											<div class="flex-row align-self-center">
-												<div class="align-self-center alert alert-dark mb-0" role="alert">
-													Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally (i.e. without short-range interactions), the <b>probability of one exposed occupant getting infected is {{ long_range_prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>*.
-												</div>
-												{% if form.short_range_option == "short_range_yes" %}
+											{% block probabilistic_exposure_probability %}
+												{% if form.exposure_option == "p_probabilistic_exposure" %}
 													<br>
 													<div class="align-self-center alert alert-dark mb-0" role="alert">
-														In this scenario, assuming <b>short-range interactions</b> occur, the <b>probability of one exposed occupant getting infected can go as high as {{ prob_inf | non_zero_percentage }}</b>.
+														The above {{ "result assumes" if form.short_range_option == "short_range_no" else "results assume" }} that <b>{{ form.infected_people }} 
+														{{ "occupant is infected" if form.infected_people == 1 else "occupants are infected" }}
+														</b> in the room. 
+														By taking into account the estimate of cases currently circulating in <b>{{ form.location_name }}</b>, 
+														the probability of on-site transmission, having at least 1 new infection in an <b>event 
+														with {{ form.total_people }} occupants</b>, is
+														{% if form.short_range_option == 'short_range_yes' %}:
+															<ul>
+																<li><b>{{ long_range_prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming all occupants are exposed equally (i.e. without short-range interactions).</li>
+																<li><b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming short-range interactions occur with the infector(s).</li>
+															</ul>
+														{% else %}
+															<b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>.
+														{% endif %}
 													</div>
 												{% endif %}
-												{% block probabilistic_exposure_probability %}
-													{% if form.exposure_option == "p_probabilistic_exposure" %}
-														<br>
-														<div class="align-self-center alert alert-dark mb-0" role="alert">
-															The above {{ "result assumes" if form.short_range_option == "short_range_no" else "results assume" }} that <b>{{ form.infected_people }} 
-															{{ "occupant is infected" if form.infected_people == 1 else "occupants are infected" }}
-															</b> in the room. 
-															By taking into account the estimate of cases currently circulating in <b>{{ form.location_name }}</b>, 
-															the probability of on-site transmission, having at least 1 new infection in an <b>event 
-															with {{ form.total_people }} occupants</b>, is
-															{% if form.short_range_option == 'short_range_yes' %}:
-																<ul>
-																	<li><b>{{ long_range_prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming all occupants are exposed equally (i.e. without short-range interactions).</li>
-																	<li><b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming short-range interactions occur with the infector(s).</li>
-																</ul>
-															{% else %}
-																<b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>.
-															{% endif %}
-														</div>
-													{% endif %}
-												{% endblock probabilistic_exposure_probability %}
-											</div>
-											{% endblock report_summary %}
+											{% endblock probabilistic_exposure_probability %}
 										</div>
+										{% endblock report_summary %}
 									</div>
-									<br>
-									{% block report_summary_footnote %}
-									{% endblock report_summary_footnote %}
 								</div>
-								<br><p id="section1">* The results are based on the parameters and assumptions published in the CARA publication: <a href="https://doi.org/10.1098/rsfs.2021.0076"> doi.org/10.1098/rsfs.2021.0076</a>.</p><br>
-								{% if form.short_range_option == "short_range_yes" %}
-									{% if 'Speaking' in form.short_range_interactions|string or 'Shouting' in form.short_range_interactions|string %}
-										<button class="btn btn-sm btn-primary" id="button_full_exposure" disabled>Show full exposure</button>
-										<button class="btn btn-sm btn-primary ml-0" id="button_hide_high_concentration">Hide high concentration</button>
-									{% endif %}
-									<input type="checkbox" id="long_range_cumulative_checkbox"><label class="form-check-label ml-1" for="long_range_cumulative_checkbox" id="lr_cumulative_checkbox_label">Show doses from long-range exposure alone</label>
+								<br>
+								{% block report_summary_footnote %}
+								{% endblock report_summary_footnote %}
+							</div>
+							<br><p id="section1">* The results are based on the parameters and assumptions published in the CARA publication: <a href="https://doi.org/10.1098/rsfs.2021.0076"> doi.org/10.1098/rsfs.2021.0076</a>.</p><br>
+							{% if form.short_range_option == "short_range_yes" %}
+								{% if 'Speaking' in form.short_range_interactions|string or 'Shouting' in form.short_range_interactions|string %}
+									<button class="btn btn-sm btn-primary" id="button_full_exposure" disabled>Show full exposure</button>
+									<button class="btn btn-sm btn-primary ml-0" id="button_hide_high_concentration">Hide high concentration</button>
 								{% endif %}
-								<div id="concentration_plot" style="height: 400px"></div>
-								<script type="application/javascript">
-									let times = {{ times | JSONify }};
-									let concentrations_zoomed = {{ concentrations_zoomed | JSONify }};
-									let concentrations = {{ concentrations | JSONify }};
-									let cumulative_doses = {{ cumulative_doses | JSONify }};
-									let long_range_cumulative_doses = {{ long_range_cumulative_doses | JSONify }};
-									let exposed_presence_intervals = {{ exposed_presence_intervals | JSONify }};
-									let short_range_intervals = {{ short_range_intervals | JSONify }};
-									let short_range_expirations = {{ short_range_expirations | JSONify }};
-									draw_plot("concentration_plot");
-								</script>
-								<div id="prob_inf_hist" style="height: 400px"></div>
-								<script type="application/javascript">
-									let prob_dist = {{ prob_dist | JSONify }}
-									let prob_hist_count = {{ prob_hist_count | JSONify }};
-									let prob_hist_bins = {{ prob_hist_bins | JSONify }};
-									draw_histogram("prob_inf_hist", {{ prob_inf }}, {{ prob_inf_sd }});
-								</script>
-              				</p>
+								<input type="checkbox" id="long_range_cumulative_checkbox"><label class="form-check-label ml-1" for="long_range_cumulative_checkbox" id="lr_cumulative_checkbox_label">Show doses from long-range exposure alone</label>
+							{% endif %}
+							<div id="concentration_plot" style="height: 400px"></div>
+							<script type="application/javascript">
+								let times = {{ times | JSONify }};
+								let concentrations_zoomed = {{ concentrations_zoomed | JSONify }};
+								let concentrations = {{ concentrations | JSONify }};
+								let cumulative_doses = {{ cumulative_doses | JSONify }};
+								let long_range_cumulative_doses = {{ long_range_cumulative_doses | JSONify }};
+								let exposed_presence_intervals = {{ exposed_presence_intervals | JSONify }};
+								let short_range_intervals = {{ short_range_intervals | JSONify }};
+								let short_range_expirations = {{ short_range_expirations | JSONify }};
+								draw_plot("concentration_plot");
+							</script>
+							<div id="prob_inf_hist" style="height: 400px"></div>
+							<script type="application/javascript">
+								let prob_dist = {{ prob_dist | JSONify }}
+								let prob_hist_count = {{ prob_hist_count | JSONify }};
+								let prob_hist_bins = {{ prob_hist_bins | JSONify }};
+								draw_histogram("prob_inf_hist", {{ prob_inf }}, {{ prob_inf_sd }});
+							</script>
+							<br>
+
+							<div class="form-check">
+								<input type="checkbox" id="conditional_probability_plot" class="tabbed form-check-input" name="conditional_probability_plot" value="1" onClick="conditional_probability_plot(this.checked, {{ form.conditional_probability_plot | int }});">
+								<label id="label_conditional_probability_plot" for="conditional_probability_plot" class="form-check-label col-sm-12">Generate conditional probability of infection plot</label>
+							</div>
+							<br>
+							{% if form.conditional_probability_plot %}
+							<div id="conditional_probability_div">
+								<h5>Probability of infection for a given viral load:</h5>
+								<img src= "{{ uncertainties_plot_src }}" />
+							</div>
+							{% endif %}
 						</div>
 					</div>
 				</div>
-
-				{% if form.conditional_probability_plot %}
-					<img src= "{{ uncertainties_plot_src }}" />
-				{% endif %}
 
 				{% if form.short_range_option == "short_range_no" %}
 					<div class="card bg-light mb-3">
