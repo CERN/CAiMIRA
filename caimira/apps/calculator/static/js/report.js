@@ -1,3 +1,8 @@
+function on_report_load(conditional_probability_plot) {
+    // Check/uncheck uncertainties image generation
+    document.getElementById('conditional_probability_plot').checked = conditional_probability_plot
+}
+
 /* Generate the concentration plot using d3 library. */
 function draw_plot(svg_id) {
 
@@ -1067,6 +1072,20 @@ function display_rename_column(bool, id) {
     // Change the visibility of renaming section
     if (bool) document.getElementById(id).style.display = 'flex';
     else document.getElementById(id).style.display = 'none';
+}
+
+function conditional_probability_plot(value, is_generated) {
+    // If the image was previously generated, there is no need to reload the page.
+    if (value && is_generated == 1) {
+        document.getElementById('conditional_probability_div').style.display = 'block'
+    }
+    else if (value && is_generated == 0) {
+        document.getElementById('label_conditional_probability_plot').innerHTML = `<span id="loading_spinner" class="spinner-border spinner-border-sm mr-2 mt-0" role="status" aria-hidden="true"></span>Loading...`;
+        document.getElementById('conditional_probability_plot').setAttribute('disabled', true);
+        window.location.reload();
+    }
+    else document.getElementById('conditional_probability_div').style.display = "none";
+    document.cookie = `conditional_plot= ${+value}; path=/`;
 }
 
 function export_csv() {
