@@ -12,7 +12,7 @@ cd /opt/caimira/src/caimira
   --Voila.tornado_settings 'allow_origin=*' \
   >> /var/log/expert-app.log 2>&1 &
 
-/opt/caimira/app/bin/python -m voila /opt/caimira/src/caimira/apps/simulator/caimira.ipynb \
+/opt/caimira/app/bin/python -m voila /opt/caimira/src/caimira/apps/expert_co2/caimira.ipynb \
   --port=8083 --no-browser --base_url=/co2-voila-server/ \
   --Voila.tornado_settings 'allow_origin=*' \
   >> /var/log/co2-app.log 2>&1 &
