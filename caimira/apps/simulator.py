@@ -126,7 +126,7 @@ class ExposureModelResult(View):
         self.figure.canvas.draw()
 
 
-class ExposureComparissonResult(View):
+class ExposureComparisonResult(View):
     def __init__(self):
         self.figure = matplotlib.figure.Figure(figsize=(9, 6))
         ipympl_canvas(self.figure)
@@ -193,7 +193,7 @@ class CO2Application(Controller):
         self._model_scenarios: typing.List[ScenarioType] = []
         self._active_scenario = 0
         self.multi_model_view = MultiModelView(self)
-        self.comparison_view = ExposureComparissonResult()
+        self.comparison_view = ExposureComparisonResult()
         self.current_scenario_figure = ExposureModelResult()
         self._results_tab = widgets.Tab(children=(
             self.current_scenario_figure.widget,
@@ -394,11 +394,10 @@ class ModelWidgets(View):
         ventilation_widgets = {
             'HVACMechanical': self._build_mechanical(node),
             'Sliding window': self._build_window(node, emitters_node),
-            'HEPAFilter': self._build_HEPA(node._states['HEPAFilter']),
             'No ventilation': self._build_no_ventilation(node._states['No ventilation']),
         }
 
-        keys=[("Mechanical", "HVACMechanical"), ("Natural", "Sliding window"), ("No ventilation", "No ventilation"), ("HEPA Filter", "HEPAFilter")]
+        keys=[("Mechanical", "HVACMechanical"), ("Natural", "Sliding window"), ("No ventilation", "No ventilation")]
 
         for name, widget in ventilation_widgets.items():
             widget.layout.visible = False
@@ -632,20 +631,6 @@ class ModelWidgets(View):
 
         return widgets.VBox([mechanival_w, widgets.HBox(list(mechanical_widgets.values()))])
 
-    def _build_HEPA(
-        self,
-        node,
-    ) -> widgets.Widget:
-        
-        HEPA_w = widgets.FloatSlider(value=node.q_air_mech, min=10, max=500, step=5)
-
-        def on_value_change(change):
-            node.q_air_mech=change['new']
-
-        HEPA_w.observe(on_value_change,names= ['value'])
-
-        return widgets.HBox([widgets.Label('HEPA Filtration (m³/h) '),HEPA_w], layout=widgets.Layout(justify_content='space-between'))
-
     def _build_no_ventilation(self, node):
         return widgets.HBox([])
 
@@ -757,10 +742,10 @@ class CAIMIRACO2StateBuilder(CAIMIRAStateBuilder):
                 'No ventilation': self.build_generic(models.AirChange),
                 'AirChange': self.build_generic(models.AirChange),
                 'Hinged window': self.build_generic(models.WindowOpening),
-                'HEPAFilter': self.build_generic(models.HEPAFilter),
             },
             state_builder=self,
         )
+        #Initialise the "Sliding window" state
         s._states['Sliding window'].dcs_update_from(
             models.SlidingWindow(active=models.PeriodicInterval(period=120, duration=15, start=8-(15/60)),
                 outside_temp=models.PiecewiseConstant((0,24.), (283.15,)),
@@ -781,9 +766,6 @@ class CAIMIRACO2StateBuilder(CAIMIRAStateBuilder):
         # Initialize the "No ventilation" state
         s._states['No ventilation'].dcs_update_from(
             models.AirChange(active=models.PeriodicInterval(period=60, duration=60), air_exch=0.) 
-        )
-        s._states['HEPAFilter'].dcs_update_from(
-            models.HEPAFilter(active=models.PeriodicInterval(period=60, duration=60), q_air_mech=500.)
         )
         return s
 

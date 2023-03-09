@@ -214,7 +214,7 @@ class ExposureModelResult(View):
         self.html_output.value = '<br>\n'.join(lines)    
 
 
-class ExposureComparissonResult(View):
+class ExposureComparisonResult(View):
     def __init__(self):
         self.figure = matplotlib.figure.Figure(figsize=(9, 6))
         ipympl_canvas(self.figure)
@@ -937,7 +937,7 @@ class ExpertApplication(Controller):
         self._model_scenarios: typing.List[ScenarioType] = []
         self._active_scenario = 0
         self.multi_model_view = MultiModelView(self)
-        self.comparison_view = ExposureComparissonResult()
+        self.comparison_view = ExposureComparisonResult()
         self.current_scenario_figure = ExposureModelResult()
         self._results_tab = widgets.Tab(children=(
             self.current_scenario_figure.widget,
