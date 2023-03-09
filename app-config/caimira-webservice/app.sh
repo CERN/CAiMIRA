@@ -28,7 +28,7 @@ elif [[ "$APP_NAME" == "caimira-voila" ]]; then
     voila caimira/apps/expert/ --port=8080 --no-browser --base_url=/voila-server/ --tornado_settings 'allow_origin=*'
 elif [[ "$APP_NAME" == "caimira-co2-voila" ]]; then
     echo "Starting the CO2 voila service"
-    voila caimira/apps/simulator/ --port=8080 --no-browser --base_url=/co2-voila-server/ --tornado_settings 'allow_origin=*'
+    voila caimira/apps/expert_co2/ --port=8080 --no-browser --base_url=/co2-voila-server/ --tornado_settings 'allow_origin=*'
 else
     echo "No APP_NAME specified"
     exit 1
