@@ -1009,11 +1009,9 @@ class _ConcentrationModelBase:
             return self.min_background_concentration()/self.normalization_factor()
         V = self.room.volume
         RR = self.removal_rate(time)
-        try:
-            return (1. / (RR * V) + self.min_background_concentration()/
+        
+        return (1. / (RR * V) + self.min_background_concentration()/
                 self.normalization_factor())
-        except ZeroDivisionError:
-            return 0
 
     @method_cache
     def state_change_times(self) -> typing.List[float]:
@@ -1212,9 +1210,9 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         return self.CO2_emitters
 
     def removal_rate(self, time: float) -> _VectorisedFloat:
-        # 0.25 is a minimal, always present source of ventilation, due
-        # to the air infiltration from the outside.
-        return self.ventilation.air_exchange(self.room, time) + 1e-6
+        # Setting minimum air exchange rate to 1e-6 to avoid divisions by
+        # zero when computing the CO2 concentration.
+        return np.maximum(1e-6,self.ventilation.air_exchange(self.room, time))
 
     def min_background_concentration(self) -> _VectorisedFloat:
         """

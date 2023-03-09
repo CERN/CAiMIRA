@@ -190,6 +190,9 @@ def test_DCS_named():
     opt1_observer.assert_called_once_with()
     opt1_observer.reset_mock()
 
+    with pytest.raises(TypeError):
+        s.dcs_update_from(opt2)
+
     s.dcs_select('option 2')
     opt1_observer.assert_called_once_with()
     opt1_observer.reset_mock()
