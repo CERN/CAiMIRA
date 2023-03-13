@@ -211,18 +211,21 @@ class CO2Application(Controller):
         )
         self.add_scenario('Scenario 1')
 
-    def build_new_model(self) -> state.DataclassInstanceState[models.CO2ConcentrationModel]:
-        default_model = state.DataclassInstanceState(
+    def build_new_model(self, vent: str) -> state.DataclassInstanceState[models.CO2ConcentrationModel]:
+        new_model = state.DataclassInstanceState(
             models.CO2ConcentrationModel,
-            state_builder=CAIMIRACO2StateBuilder(),
+            state_builder=CAIMIRACO2StateBuilder(selected_ventilation=vent)
         )
-        default_model.dcs_update_from(baseline_model)
-        return default_model
+        return new_model
 
     def add_scenario(self, name, copy_from_model: typing.Optional[state.DataclassInstanceState] = None):
-        model = self.build_new_model()
         if copy_from_model is not None:
+            model = self.build_new_model(vent=copy_from_model.ventilation._selected)
             model.dcs_update_from(copy_from_model.dcs_instance())
+        else:
+            model = self.build_new_model(vent='HVACMechanical') # Default
+            model.dcs_update_from(baseline_model)
+            
         self._model_scenarios.append((name, model))
         self._active_scenario = len(self._model_scenarios) - 1
         model.dcs_observe(self.notify_model_values_changed)
@@ -604,7 +607,7 @@ class ModelWidgets(View):
 
     def _build_mechanical(self, node):
         mechanical_widgets = {
-            'HVACMechanical': self._build_q_air_mech(node),
+            'HVACMechanical': self._build_q_air_mech(node._states['HVACMechanical']),
             'AirChange': self._build_ach(node._states['AirChange']),
         }
 
@@ -733,6 +736,9 @@ class MultiModelView(View):
     
 
 class CAIMIRACO2StateBuilder(CAIMIRAStateBuilder):
+    
+    def __init__(self, selected_ventilation: str):
+        self.selected_ventilation = selected_ventilation
 
     def build_type__VentilationBase(self, _: dataclasses.Field):
         s: state.DataclassStateNamed = state.DataclassStateNamed(
@@ -743,8 +749,10 @@ class CAIMIRACO2StateBuilder(CAIMIRAStateBuilder):
                 'AirChange': self.build_generic(models.AirChange),
                 'Hinged window': self.build_generic(models.WindowOpening),
             },
+            base_type=self.selected_ventilation,
             state_builder=self,
         )
+        s._states['HVACMechanical'].dcs_update_from(baseline_model.ventilation)
         #Initialise the "Sliding window" state
         s._states['Sliding window'].dcs_update_from(
             models.SlidingWindow(active=models.PeriodicInterval(period=120, duration=15, start=8-(15/60)),
