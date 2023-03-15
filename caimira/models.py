@@ -971,10 +971,6 @@ class InfectedPopulation(_PopulationWithVirus):
         ER = (self.virus.viral_load_in_sputum *
               self.activity.exhalation_rate *
               10 ** 6)
-        
-        # if self.people_present(time) == 0:
-        #     return ER
-        # else:
         return ER * self.people_present(time)
 
     @property
