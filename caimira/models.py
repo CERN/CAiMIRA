@@ -847,6 +847,8 @@ class Population:
             if time and not self.person_present(time): 
                 if time <= self.number.transition_times[0]:
                     number = self.number.values[0]
+                elif time >= self.number.transition_times[-1]:
+                    number = self.number.values[-1]
                 else:
                     number = int(self.number.value(self._last_presence_state(time)))
             else:
@@ -904,7 +906,6 @@ class _PopulationWithVirus(Population):
         # itself a function of time. Any change in rate must be accompanied
         # with a declaration of state change time, as is the case for things
         # like Ventilation.
-
         return self.emission_rate_when_present(time)
 
     @property
@@ -1142,12 +1143,10 @@ class _ConcentrationModelBase:
         # The model always starts at t=0, but we avoid running concentration calculations
         # before the first presence as an optimisation.
         if time <= self._first_presence_time():
-            try:
-                return self.min_background_concentration()/self.normalization_factor(time)
-            except ZeroDivisionError:
-                return 0.
-            
+            return self.min_background_concentration()/self.normalization_factor(time)
+        
         next_state_change_time = self._next_state_change(time)
+
         RR = self.removal_rate(next_state_change_time)
         # If RR is 0, conc_limit does not play a role but its computation 
         # would raise an error -> we set it to zero.
@@ -1157,11 +1156,12 @@ class _ConcentrationModelBase:
             conc_limit = 0.
 
         t_last_state_change = self.last_state_change(time)
-        conc_at_last_state_change = self._normed_concentration_cached(t_last_state_change)
+        conc_at_last_state_change = self._normed_concentration_cached(t_last_state_change)*self.normalization_factor(t_last_state_change)
 
         delta_time = time - t_last_state_change
         fac = np.exp(-RR * delta_time)
-        return conc_limit * (1 - fac) + conc_at_last_state_change * fac
+
+        return conc_limit * (1 - fac) + conc_at_last_state_change/self.normalization_factor(time) * fac
 
     def concentration(self, time: float) -> _VectorisedFloat:
         """
