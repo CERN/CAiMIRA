@@ -155,7 +155,7 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
     }
 
 
-def generate_permalink(base_url, calculator_prefix, form: FormData):
+def generate_permalink(base_url, get_root_url,  get_root_calculator_url, form: FormData):
     form_dict = FormData.to_dict(form, strip_defaults=True)
 
     # Generate the calculator URL arguments that would be needed to re-create this
@@ -165,8 +165,8 @@ def generate_permalink(base_url, calculator_prefix, form: FormData):
     # Then zlib compress + base64 encode the string. To be inverted by the
     # /_c/ endpoint.
     compressed_args = base64.b64encode(zlib.compress(args.encode())).decode()
-    qr_url = f"{base_url}/_c/{compressed_args}"
-    url = f"{base_url}{calculator_prefix}?{args}"
+    qr_url = f"{base_url}{get_root_url()}/_c/{compressed_args}"
+    url = f"{base_url}{get_root_calculator_url()}?{args}"
 
     return {
         'link': url,
@@ -342,7 +342,8 @@ def comparison_report(
 @dataclasses.dataclass
 class ReportGenerator:
     jinja_loader: jinja2.BaseLoader
-    calculator_prefix: str
+    get_root_url: typing.Any
+    get_root_calculator_url: typing.Any
 
     def build_report(
             self,
@@ -377,8 +378,9 @@ class ReportGenerator:
         context['alternative_scenarios'] = comparison_report(
             form, report_data, alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
         )
-        context['permalink'] = generate_permalink(base_url, self.calculator_prefix, form)
-        context['calculator_prefix'] = self.calculator_prefix
+        context['permalink'] = generate_permalink(base_url, self.get_root_url, self.get_root_calculator_url, form)
+        context['get_url'] = self.get_root_url
+        context['get_calculator_url'] = self.get_root_calculator_url
 
         return context
 
@@ -387,7 +389,7 @@ class ReportGenerator:
             loader=self.jinja_loader,
             undefined=jinja2.StrictUndefined,
         )
-        env.globals['common_text'] = markdown_tools.extract_rendered_markdown_blocks(
+        env.globals["common_text"] = markdown_tools.extract_rendered_markdown_blocks(
             env.get_template('common_text.md.j2')
         )
         env.filters['non_zero_percentage'] = non_zero_percentage
@@ -401,4 +403,4 @@ class ReportGenerator:
 
     def render(self, context: dict) -> str:
         template = self._template_environment().get_template("calculator.report.html.j2")
-        return template.render(**context, text_blocks=template.globals['common_text'])
+        return template.render(**context, text_blocks=template.globals["common_text"])
