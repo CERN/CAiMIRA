@@ -205,6 +205,8 @@
                   value: '3'
                 - name: APP_NAME
                   value: caimira-webservice
+                - name: APPLICATION_ROOT
+                  value: /
                 - name: CAIMIRA_CALCULATOR_PREFIX
                   value: /calculator-cern
                 - name: CAIMIRA_THEME
@@ -297,6 +299,8 @@
                 env:
                 - name: APP_NAME
                   value: caimira-webservice
+                - name: APPLICATION_ROOT
+                  value: /
                 - name: CAIMIRA_CALCULATOR_PREFIX
                   value: /calculator-open
                 image: '${PROJECT_NAME}/caimira-webservice'
