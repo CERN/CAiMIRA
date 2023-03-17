@@ -6,12 +6,12 @@
 
   	<title>Report | CAiMIRA (CERN Airborne Model for Indoor Risk Assessment)</title>
 
-	<link rel="stylesheet" type="text/css" href="{{ calculator_prefix }}/static/css/report.css">
+	<link rel="stylesheet" type="text/css" href="{{ get_calculator_url() }}/static/css/report.css">
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-	<link rel="stylesheet" href="/static/css/style.css">
+	<link rel="stylesheet" href="{{ get_url() }}/static/css/style.css">
 	<link rel="icon" type="image/x-icon" href="static/icons/favicon.ico">
 	<script src="https://d3js.org/d3.v7.min.js"></script>
-	<script src="{{ calculator_prefix }}/static/js/report.js" type="application/javascript"></script>
+	<script src="{{ get_calculator_url() }}/static/js/report.js" type="application/javascript"></script>
 
 </head>
 
@@ -26,7 +26,7 @@
 {% block report_header %}
 
 	<div id="report-header-div" class="d-flex flex-row" style="margin: 1%">
-		<a href="/" class="align-self-center"><img id="report_logo" src="/static/images/caimira_logo.200x200.png" class="d-inline-block align-middle mr-3"></a>
+		<a href="/" class="align-self-center"><img id="report_logo" src="{{ get_url() }}/static/images/caimira_logo.200x200.png" class="d-inline-block align-middle mr-3"></a>
 		<div style="margin-right: -105px" class='align-self-center mr-auto'>
 			<h2 class="header_text mb-0"><a href="{{ permalink.shortened }}" style="color: #2f4858">REPORT - {{ form.simulation_name }}</a></h2>
 			<p class="mb-0" id="report_version"> Created {{ creation_date }} using CAiMIRA calculator version v{{ form.calculator_version }}</p>
@@ -85,7 +85,7 @@
 													{% endif %}
 												</h6>
 												<br>
-												<img src="/static/images/long_range_anim.png" class="align-middle mb-3 pi-image">
+												<img src="{{ get_url() }}/static/images/long_range_anim.png" class="align-middle mb-3 pi-image">
 												<div class="d-flex" style="min-height: 160px">
 													{% block long_range_warning_animation %}
 														<div class="intro-banner-vdo-play-btn animation-color m-auto d-flex align-items-center justify-content-center">
@@ -106,7 +106,7 @@
 														With <b>short-range interactions</b>
 													</h6>
 													<br>
-													<img src="/static/images/short_range_anim.png" class="align-middle mb-3 pi-image">
+													<img src="{{ get_url() }}/static/images/short_range_anim.png" class="align-middle mb-3 pi-image">
 													<div class="d-flex" style="min-height: 160px">
 														{% block warning_animation %}
 															<div class="intro-banner-vdo-play-btn animation-color m-auto d-flex align-items-center justify-content-center">
@@ -609,7 +609,7 @@
 	<br><br><br>
 	<div id="disclaimer" style="border: #dee2e6 1px solid; margin: 1%; padding: 20px" class="rounded">
 		{% block disclaimer %}
-			<p class="image"> <img align="middle" src="{{ calculator_prefix }}/static/images/disclaimer.jpg" width="40" height="40"><b>Disclaimer:</b><br><br></p>
+			<p class="image"> <img align="middle" src="{{ get_calculator_url() }}/static/images/disclaimer.jpg" width="40" height="40"><b>Disclaimer:</b><br><br></p>
 			{{ text_blocks['Disclaimer'] }}
 		{% endblock disclaimer %}
 	</div>
