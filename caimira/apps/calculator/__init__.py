@@ -73,7 +73,8 @@ class BaseRequestHandler(RequestHandler):
             print(traceback.format_exc())
         self.finish(template.render(
             user=self.current_user,
-            calculator_prefix=self.settings["calculator_prefix"],
+            get_url = template.globals['get_url'],
+            get_calculator_url = template.globals["get_calculator_url"],
             active_page='Error',
             contents=contents
         ))
@@ -87,7 +88,8 @@ class Missing404Handler(BaseRequestHandler):
             "page.html.j2")
         self.finish(template.render(
             user=self.current_user,
-            calculator_prefix=self.settings["calculator_prefix"],
+            get_url = template.globals['get_url'],
+            get_calculator_url = template.globals["get_calculator_url"],
             active_page='Error',
             contents='Unfortunately the page you were looking for does not exist.<br><br><br><br>'
         ))
@@ -193,8 +195,9 @@ class LandingPage(BaseRequestHandler):
             "index.html.j2")
         report = template.render(
             user=self.current_user,
-            calculator_prefix=self.settings["calculator_prefix"],
-            text_blocks=template_environment.globals['common_text'],
+            get_url = template_environment.globals['get_url'],
+            get_calculator_url = template_environment.globals['get_calculator_url'],
+            text_blocks=template_environment.globals["common_text"],
         )
         self.finish(report)
 
@@ -205,9 +208,10 @@ class AboutPage(BaseRequestHandler):
         template = template_environment.get_template("about.html.j2")
         report = template.render(
             user=self.current_user,
-            calculator_prefix=self.settings["calculator_prefix"],
+            get_url = template.globals['get_url'],
+            get_calculator_url = template.globals["get_calculator_url"],
             active_page="about",
-            text_blocks=template_environment.globals['common_text']
+            text_blocks=template_environment.globals["common_text"]
         )
         self.finish(report)
 
@@ -220,9 +224,10 @@ class CalculatorForm(BaseRequestHandler):
         report = template.render(
             user=self.current_user,
             xsrf_form_html=self.xsrf_form_html(),
-            calculator_prefix=self.settings["calculator_prefix"],
+            get_url = template.globals['get_url'],
+            get_calculator_url = template.globals["get_calculator_url"],
             calculator_version=__version__,
-            text_blocks=template_environment.globals['common_text'],
+            text_blocks=template_environment.globals["common_text"],
         )
         self.finish(report)
 
@@ -236,8 +241,9 @@ class CompressedCalculatorFormInputs(BaseRequestHandler):
         except Exception as err:  # noqa
             self.set_status(400)
             return self.finish("Invalid calculator data: it seems incomplete. Was there an error copying & pasting the URL?")
-        self.redirect(f'{self.settings["calculator_prefix"]}?{args}')
-
+        template_environment = self.settings["template_environment"]
+        self.redirect(f'{template_environment.globals["get_calculator_url"]()}?{args}')
+        
 
 class ReadmeHandler(BaseRequestHandler):
     def get(self):
@@ -246,8 +252,9 @@ class ReadmeHandler(BaseRequestHandler):
         readme = template.render(
             active_page="calculator/user-guide",
             user=self.current_user,
-            calculator_prefix=self.settings["calculator_prefix"],
-            text_blocks=template_environment.globals['common_text'],
+            get_url = template.globals['get_url'],
+            get_calculator_url = template.globals["get_calculator_url"],
+            text_blocks=template_environment.globals["common_text"],
         )
         self.finish(readme)
 
@@ -337,28 +344,39 @@ class CasesData(BaseRequestHandler):
         # If any of the 'New_cases' is 0, it means the data is not updated.
         if (cases.loc[eight_days_ago:current_date]['New_cases'] == 0).any(): return self.finish('')
         return self.finish(str(round(cases.loc[eight_days_ago:current_date]['New_cases'].mean())))
+    
 
+def get_url(app_root: str, relative_path: str = '/'):
+        return app_root.rstrip('/') + relative_path.rstrip('/')
+
+def get_calculator_url(app_root: str, calculator_prefix: str, relative_path: str = '/'):
+        return app_root.rstrip('/') + calculator_prefix + relative_path.rstrip('/')
 
 def make_app(
         debug: bool = False,
+        APPLICATION_ROOT: str = '/',
         calculator_prefix: str = '/calculator',
         theme_dir: typing.Optional[Path] = None,
 ) -> Application:
     static_dir = Path(__file__).absolute().parent.parent / 'static'
     calculator_static_dir = Path(__file__).absolute().parent / 'static'
+
+    get_root_url = functools.partial(get_url, APPLICATION_ROOT)
+    get_root_calculator_url = functools.partial(get_calculator_url, APPLICATION_ROOT, calculator_prefix)
+
     urls: typing.Any = [
-        (r'/?', LandingPage),
-        (r'/_c/(.*)', CompressedCalculatorFormInputs),
-        (r'/about', AboutPage),
-        (r'/static/(.*)', StaticFileHandler, {'path': static_dir}),
-        (calculator_prefix + r'/?', CalculatorForm),
-        (calculator_prefix + r'/report', ConcentrationModel),
-        (calculator_prefix + r'/report-json', ConcentrationModelJsonResponse),
-        (calculator_prefix + r'/baseline-model/result', StaticModel),
-        (calculator_prefix + r'/user-guide', ReadmeHandler),
-        (calculator_prefix + r'/api/arve/v1/(.*)/(.*)', ArveData),
-        (calculator_prefix + r'/cases/(.*)', CasesData),
-        (calculator_prefix + r'/static/(.*)', StaticFileHandler, {'path': calculator_static_dir}),
+        (get_root_url(r'/?'), LandingPage),
+        (get_root_url(r'/_c/(.*)'), CompressedCalculatorFormInputs),
+        (get_root_url(r'/about'), AboutPage),
+        (get_root_url(r'/static/(.*)'), StaticFileHandler, {'path': static_dir}),
+        (get_root_calculator_url(r'/?'), CalculatorForm),
+        (get_root_calculator_url(r'/report'), ConcentrationModel),
+        (get_root_calculator_url(r'/report-json'), ConcentrationModelJsonResponse),
+        (get_root_calculator_url(r'/baseline-model/result'), StaticModel),
+        (get_root_calculator_url(r'/user-guide'), ReadmeHandler),
+        (get_root_calculator_url(r'/api/arve/v1/(.*)/(.*)'), ArveData),
+        (get_root_calculator_url(r'/cases/(.*)'), CasesData),
+        (get_root_calculator_url(r'/static/(.*)'), StaticFileHandler, {'path': calculator_static_dir}),
     ]
 
     caimira_templates = Path(__file__).parent.parent / "templates"
@@ -372,9 +390,11 @@ def make_app(
         undefined=jinja2.StrictUndefined,  # fail when rendering any undefined template context variable
     )
 
-    template_environment.globals['common_text'] = markdown_tools.extract_rendered_markdown_blocks(
+    template_environment.globals["common_text"] = markdown_tools.extract_rendered_markdown_blocks(
         template_environment.get_template('common_text.md.j2')
     )
+    template_environment.globals['get_url']=get_root_url
+    template_environment.globals['get_calculator_url']=get_root_calculator_url
 
     if debug:
         tornado.log.enable_pretty_logging()
@@ -382,10 +402,11 @@ def make_app(
     return Application(
         urls,
         debug=debug,
-        calculator_prefix=calculator_prefix,
+        # calculator_prefix=calculator_prefix,
+        # APPLICATION_ROOT=APPLICATION_ROOT,
         template_environment=template_environment,
         default_handler_class=Missing404Handler,
-        report_generator=ReportGenerator(loader, calculator_prefix),
+        report_generator=ReportGenerator(loader, get_root_url, get_root_calculator_url),
         xsrf_cookies=True,
         # COOKIE_SECRET being undefined will result in no login information being
         # presented to the user.
