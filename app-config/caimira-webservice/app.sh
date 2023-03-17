@@ -6,12 +6,15 @@ if [[ "$APP_NAME" == "caimira-webservice" ]]; then
         args+=("--no-debug")
     fi
 
-    if [ ! -z "$CAIMIRA_THEME" ]; then
-        args+=("--theme=${CAIMIRA_THEME}")
+    if [ ! -z "$APPLICATION_ROOT" ]; then
+        args+=("--app_root=${APPLICATION_ROOT}")
     fi
 
     if [ ! -z "$CAIMIRA_CALCULATOR_PREFIX" ]; then
         args+=("--prefix=${CAIMIRA_CALCULATOR_PREFIX}")
+    fi
+    if [ ! -z "$CAIMIRA_THEME" ]; then
+        args+=("--theme=${CAIMIRA_THEME}")
     fi
     
     export "ARVE_API_KEY"="$ARVE_API_KEY"
