@@ -106,6 +106,12 @@ To run with a specific template theme created:
 python -m caimira.apps.calculator --theme=caimira/apps/templates/{theme}
 ```
 
+To run the entire app in a different `APPLICATION_ROOT` path:
+
+```
+python -m caimira.apps.calculator --app_root=/myroot
+```
+
 To run the calculator on a different URL path:
 
 ```
