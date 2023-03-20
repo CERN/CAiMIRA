@@ -10,6 +10,8 @@ import matplotlib.lines as mlines
 import matplotlib.patches as patches
 from matplotlib import pyplot as plt
 import numpy as np
+import datetime
+import pandas as pd
 
 from caimira import data, models, state    
 
@@ -646,21 +648,39 @@ class ModelWidgets(View):
         number.observe(on_exposed_number_change, names=['value'])
 
         return widgets.HBox([widgets.Label('Number of exposed people in the room '), number], layout=widgets.Layout(justify_content='space-between'))
-
+    
+    def generate_presence_widget(self, min, max, node):
+        options = list(pd.date_range(min, max, freq="1min").strftime('%H:%M'))
+        start_hour = float(node[0])
+        end_hour = float(node[1])
+        start_hour_datetime = datetime.time(hour = int(start_hour), minute=int(start_hour%1*60))
+        end_hour_datetime = datetime.time(hour = int(end_hour), minute=int(end_hour%1*60))
+        return widgets.SelectionRangeSlider(
+            options=options,
+            index=(options.index(str(start_hour_datetime)[:-3]), options.index(str(end_hour_datetime)[:-3]))
+        )
+        
     def _build_exposed_presence(self, node):
-        presence_start = widgets.FloatRangeSlider(value = node.present_times[0], min = 8., max=13., step=0.1)
-        presence_finish = widgets.FloatRangeSlider(value = node.present_times[1], min = 13., max=18., step=0.1)
+        presence_start = self.generate_presence_widget(min='08:00', max='13:00', node=node.present_times[0])
+        presence_finish = self.generate_presence_widget(min='13:00', max='18:00', node=node.present_times[1])
 
         def on_presence_start_change(change):
-            node.present_times = (change['new'], presence_finish.value)
+            new_value = tuple([int(time[:-3])+float(time[3:])/60 for time in change['new']])
+            node.present_times = (new_value, node.present_times[1])
 
         def on_presence_finish_change(change):
-            node.present_times = (presence_start.value, change['new'])
+            new_value = tuple([int(time[:-3])+float(time[3:])/60 for time in change['new']])
+            node.present_times = (node.present_times[0], new_value)
         
         presence_start.observe(on_presence_start_change, names=['value'])
         presence_finish.observe(on_presence_finish_change, names=['value'])
 
-        return widgets.HBox([widgets.Label('Exposed presence'),  presence_start, presence_finish], layout = widgets.Layout(justify_content='space-between'))
+        return widgets.VBox([
+            widgets.Label('Exposed presence:'), 
+            widgets.HBox([widgets.Label('Morning:', layout=widgets.Layout(width='15%')), presence_start]), 
+            widgets.HBox([widgets.Label('Afternoon:', layout=widgets.Layout(width='15%')), presence_finish])
+        ])
+
 
     def _build_infected_number(self, node):
         number = widgets.IntSlider(value=node.number, min=1, max=200, step=1)
@@ -698,22 +718,26 @@ class ModelWidgets(View):
         return widgets.HBox([widgets.Label("Viral load (copies/ml)"), viral_load_in_sputum], layout=widgets.Layout(justify_content='space-between'))
     
     def _build_infected_presence(self, node, ventilation_node):
-       
-        presence_start = widgets.FloatRangeSlider(value = node.present_times[0], min = 8., max=13., step=0.1)
-        presence_finish = widgets.FloatRangeSlider(value = node.present_times[1], min = 13., max=18., step=0.1)
+        presence_start = self.generate_presence_widget(min='08:00', max='13:00', node=node.present_times[0])
+        presence_finish = self.generate_presence_widget(min='13:00', max='18:00', node=node.present_times[1])
 
         def on_presence_start_change(change):
-            node.present_times = (change['new'], presence_finish.value)
-            
-            ventilation_node.start = change['new'][0]
+            new_value = tuple([int(time[:-3])+float(time[3:])/60 for time in change['new']])
+            ventilation_node.start = new_value[0]
+            node.present_times = (new_value, node.present_times[1])
 
         def on_presence_finish_change(change):
-            node.present_times = (presence_start.value, change['new'])
-
+            new_value = tuple([int(time[:-3])+float(time[3:])/60 for time in change['new']])
+            node.present_times = (node.present_times[0], new_value)
+        
         presence_start.observe(on_presence_start_change, names=['value'])
         presence_finish.observe(on_presence_finish_change, names=['value'])
 
-        return widgets.HBox([widgets.Label('Infected presence'),  presence_start, presence_finish], layout = widgets.Layout(justify_content='space-between'))
+        return widgets.VBox([
+            widgets.Label('Infected presence:'), 
+            widgets.HBox([widgets.Label('Morning:', layout=widgets.Layout(width='15%')), presence_start]), 
+            widgets.HBox([widgets.Label('Afternoon:', layout=widgets.Layout(width='15%')), presence_finish])
+        ])
 
     def _build_ventilation(
             self,
