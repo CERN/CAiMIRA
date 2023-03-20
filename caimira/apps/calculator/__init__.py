@@ -350,7 +350,7 @@ def get_url(app_root: str, relative_path: str = '/'):
         return app_root.rstrip('/') + relative_path.rstrip('/')
 
 def get_calculator_url(app_root: str, calculator_prefix: str, relative_path: str = '/'):
-        return app_root.rstrip('/') + calculator_prefix + relative_path.rstrip('/')
+        return app_root.rstrip('/') + calculator_prefix.rstrip('/') + relative_path.rstrip('/')
 
 def make_app(
         debug: bool = False,
