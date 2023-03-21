@@ -5,13 +5,13 @@
 
 {% block extra_headers %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" integrity="sha512-aOG0c6nPNzGk+5zjwyJaoRUgCdOrfSDhmMID2u4+OIslr0GjpLKo7Xm0Ao3xmpM4T8AmIouRkqwj1nrdVsLKEQ==" crossorigin="anonymous">
-    <link rel="stylesheet" href="{{ get_calculator_url() }}/static/css/form.css">
+    <link rel="stylesheet" href="{{ get_calculator_url('/static/css') }}/form.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"/>
 {% endblock extra_headers %}
 
 {% block body_scripts %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" integrity="sha512-uto9mlQzrs59VwILcLiRYeLKPPbS/bT71da/OEBYEwcdNUk8jYIy+D176RYoop1Da+f9mvkYrmj5MCLZWEtQuA==" crossorigin="anonymous"></script>
-    <script src="{{ get_calculator_url() }}/static/js/form.js"></script>
+    <script src="{{ get_calculator_url('/static/js') }}/form.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 {% endblock body_scripts %}
 
@@ -31,7 +31,7 @@
   <div class="container container--padding">
     <div class="d-flex header-height">
       <h1 class="align-self-center">Calculator</h1>
-      <img src="{{ get_url() }}/static/images/caimira_logo.200x200.png" class="logo_form align-self-center ml-3">
+      <img src="{{ get_url('/static/images') }}/caimira_logo.200x200.png" class="logo_form align-self-center ml-3">
     </div>
   </div>
 </header>
@@ -222,7 +222,7 @@
             If these conditions are not met, the air exchange might not be homogenous producing an artificially lower risk further away from the window.
             <br>
             <br>
-            <img src="{{ get_url() }}/static/images/nat_vent_dimensions.png" id="nat_vent_image">
+            <img src="{{ get_url('/static/images') }}/nat_vent_dimensions.png" id="nat_vent_image">
           </div>
         </div>
       </div>
@@ -327,14 +327,14 @@
           <input type="radio" id="mask_type_1" name="mask_type" value="Type I" checked="checked" onclick="require_fields(this)">
             <label for="mask_type_1">
               Surgical/Type I
-              <img class="mask_icons" src="{{ get_url() }}/static/images/masks/t1.png">
+              <img class="mask_icons" src="{{ get_url('/static/images/masks') }}/t1.png">
             </label>
         </div>
         <div>
           <input type="radio" id="mask_type_ffp2"  name="mask_type" value="FFP2" onclick="require_fields(this)">
             <label for="mask_type_ffp2">
               Respirator/FFP2
-              <img class="mask_icons" src="{{ get_url() }}/static/images/masks/ffp2.png">
+              <img class="mask_icons" src="{{ get_url('/static/images/masks') }}/ffp2.png">
             </label>
         </div>
       </div>
@@ -342,7 +342,7 @@
         <input type="radio" id="mask_type_cloth"  name="mask_type" value="Cloth" onclick="require_fields(this)">
           <label for="mask_type_cloth">
             Cloth
-            <img class="mask_icons" src="{{ get_url() }}/static/images/masks/cloth.png">
+            <img class="mask_icons" src="{{ get_url('/static/images/masks') }}/cloth.png">
           </label>
       </div>
     </div>
