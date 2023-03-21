@@ -103,7 +103,7 @@ class TestOpenApp(tornado.testing.AsyncHTTPTestCase):
 
 async def test_permalink_urls(http_server_client, baseline_form):
     base_url = 'proto://hostname/prefix'
-    permalink_data = generate_permalink(base_url, "/calculator", baseline_form)
+    permalink_data = generate_permalink(base_url, lambda: "", lambda: "/calculator", baseline_form)
     expected = f'{base_url}/calculator?exposed_coffee_break_option={baseline_form.exposed_coffee_break_option}&'
     assert permalink_data['link'].startswith(expected)
 
