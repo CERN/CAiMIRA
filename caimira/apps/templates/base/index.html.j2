@@ -4,14 +4,14 @@
 {% block main %}
 <header class= "bg-light">
   <div class="container container--padding">
-    <img src="/static/images/caimira_full_text.png" class="logo d-block m-auto" id="desktop_logo">
-    <img src="/static/images/caimira_full_logo.png" class="logo d-none m-auto" id="mobile_logo">
+    <img src="{{ get_url('/static/images') }}/caimira_full_text.png" class="logo d-block m-auto" id="desktop_logo">
+    <img src="{{ get_url('/static/images') }}/caimira_full_logo.png" class="logo d-none m-auto" id="mobile_logo">
   </div>
 </header>
    
 <div class="container container--padding">
   <div class="d-flex mb-3 justify-content-center" id="calculator_app_button">
-    <div><a href="{{ calculator_prefix }}" role="button" class="btn btn-outline-primary"><div class="d-flex d-row"><i class="icon-calculator"></i><span class="pl-1">Calculator</div></a></div>
+    <div><a href="{{ get_calculator_url() }}" role="button" class="btn btn-outline-primary"><div class="d-flex d-row"><i class="icon-calculator"></i><span class="pl-1">Calculator</div></a></div>
   </div>
   <div class="split">
     <div class="col-lg-8 col-md-7 pl-0">
@@ -20,7 +20,7 @@
           <p>
           CAiMIRA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.
           It does this by simulating the airborne spread SARS-CoV-2 virus in a finite volume, assuming homogenous mixing for the long-range component and a two-stage jet model for short-range, and estimates the risk of COVID-19 airborne transmission therein.
-          Please see the <a href="/about">About</a> page for more details on the methodology, assumptions and limitations of CAiMIRA.
+          Please see the <a href="{{ get_url('/about') }}">About</a> page for more details on the methodology, assumptions and limitations of CAiMIRA.
           </p>
           <p>
           The full CAiMIRA source code can be accessed freely under an Apache 2.0 open source license from our <a href="https://gitlab.cern.ch/caimira/caimira">code repository</a>.
@@ -30,7 +30,7 @@
       </div>
       <div id="apps_section" class="d-none">
         <div class="d-flex flex-row" >
-          <div class="pr-3"><a href="{{ calculator_prefix }}" role="button" class="btn btn-lg btn-outline-primary"><div class="d-flex d-row"><i class="icon-calculator"></i><span class="pl-2">Calculator</div></a></div>
+          <div class="pr-3"><a href="{{ get_calculator_url() }}" role="button" class="btn btn-lg btn-outline-primary"><div class="d-flex d-row"><i class="icon-calculator"></i><span class="pl-2">Calculator</div></a></div>
           <br>
           <div class="expert_app_button"><a href="/expert-app" role="button" class="btn btn-lg btn-outline-secondary"><div class="d-flex d-row"><i class="icon-expert"></i><span class="pl-2">Expert (beta)</div></a></div>
         </div>
@@ -38,7 +38,7 @@
       </div>
     </div>
     <div class="align-self-center">
-      <img src="static/images/CAiMIRA_1_Vs3_Colour.jpg" class="caimira_home_image">
+      <img src="{{ get_url('/static/images') }}/CAiMIRA_1_Vs3_Colour.jpg" class="caimira_home_image">
     </div>
   </div>
   
@@ -46,11 +46,11 @@
   <div class="split">
     <div class="w-25 mobile-sub-section"><hr width="95%">
       <div class="d-flex m-2 align-items-center"><i class="bi bi-window" style="font-size: 25px"></i><div><p class="paragraph-title ml-2">Applications</p></div></div>
-      <div class="m-2">CAiMIRA is composed of two applications, the <a href="{{ calculator_prefix }}">Calculator</a> and the <a href="/expert-app">Expert App</a>.</div>
+      <div class="m-2">CAiMIRA is composed of two applications, the <a href="{{ get_calculator_url() }}">Calculator</a> and the <a href="/expert-app">Expert App</a>.</div>
     </div>
     <div class="w-25 mobile-sub-section"><hr width="95%">
       <div class="d-flex m-2 align-items-center"><i class="bi bi-info-square-fill" style="font-size: 25px"></i><div><p class="paragraph-title ml-2">About</p></div></div>
-      <div class="m-2"><a href="/about">About</a> page for details on methodology, assumptions and limitations of CAiMIRA.</div>
+      <div class="m-2"><a href="{{ get_url('/about') }}">About</a> page for details on methodology, assumptions and limitations of CAiMIRA.</div>
     </div>
     <div class="w-25 mobile-sub-section"><hr width="95%">
       <div class="d-flex m-2 align-items-center"><i class="bi bi-journal-text" style="font-size: 25px"></i><div><p class="paragraph-title ml-2">Documentation</p></div></div>
