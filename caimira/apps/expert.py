@@ -657,12 +657,12 @@ class ModelWidgets(View):
         end_hour_datetime = datetime.time(hour = int(end_hour), minute=int(end_hour%1*60))
         return widgets.SelectionRangeSlider(
             options=options,
-            index=(options.index(str(start_hour_datetime)[:-3]), options.index(str(end_hour_datetime)[:-3]))
+            index=(options.index(str(start_hour_datetime)[:-3]), options.index(str(end_hour_datetime)[:-3])),
         )
         
     def _build_exposed_presence(self, node):
-        presence_start = self.generate_presence_widget(min='08:00', max='13:00', node=node.present_times[0])
-        presence_finish = self.generate_presence_widget(min='13:00', max='18:00', node=node.present_times[1])
+        presence_start = self.generate_presence_widget(min='00:00', max='13:00', node=node.present_times[0])
+        presence_finish = self.generate_presence_widget(min='13:00', max='23:59', node=node.present_times[1])
 
         def on_presence_start_change(change):
             new_value = tuple([int(time[:-3])+float(time[3:])/60 for time in change['new']])
@@ -718,8 +718,8 @@ class ModelWidgets(View):
         return widgets.HBox([widgets.Label("Viral load (copies/ml)"), viral_load_in_sputum], layout=widgets.Layout(justify_content='space-between'))
     
     def _build_infected_presence(self, node, ventilation_node):
-        presence_start = self.generate_presence_widget(min='08:00', max='13:00', node=node.present_times[0])
-        presence_finish = self.generate_presence_widget(min='13:00', max='18:00', node=node.present_times[1])
+        presence_start = self.generate_presence_widget(min='00:00', max='13:00', node=node.present_times[0])
+        presence_finish = self.generate_presence_widget(min='13:00', max='23:59', node=node.present_times[1])
 
         def on_presence_start_change(change):
             new_value = tuple([int(time[:-3])+float(time[3:])/60 for time in change['new']])
@@ -855,7 +855,7 @@ baseline_model = models.ExposureModel(
         infected=models.InfectedPopulation(
             number=1,
             virus=models.Virus.types['SARS_CoV_2'],
-            presence=models.SpecificInterval(((8., 12.), (13., 17.))),
+            presence=models.SpecificInterval(((8.5, 12.5), (13.5, 17.5))),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Seated'],
             expiration=models.Expiration.types['Speaking'],
@@ -866,7 +866,7 @@ baseline_model = models.ExposureModel(
     short_range=(),
     exposed=models.Population(
         number=10,
-        presence=models.SpecificInterval(((8., 12.), (13., 17.))),
+        presence=models.SpecificInterval(((8.5, 12.5), (13.5, 17.5))),
         activity=models.Activity.types['Seated'],
         mask=models.Mask.types['No mask'],
         host_immunity=0.,
