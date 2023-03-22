@@ -1082,10 +1082,10 @@ function conditional_probability_plot(value, is_generated) {
     else if (value && is_generated == 0) {
         document.getElementById('label_conditional_probability_plot').innerHTML = `<span id="loading_spinner" class="spinner-border spinner-border-sm mr-2 mt-0" role="status" aria-hidden="true"></span>Loading...`;
         document.getElementById('conditional_probability_plot').setAttribute('disabled', true);
+        document.cookie = `conditional_plot= 1; path=/`;
         window.location.reload();
     }
     else document.getElementById('conditional_probability_div').style.display = "none";
-    document.cookie = `conditional_plot= ${+value}; path=/`;
 }
 
 function export_csv() {
