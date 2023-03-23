@@ -37,7 +37,7 @@ REQUIREMENTS: dict = {
         'timezonefinder',
         'tornado',
         'types-retry',
-        'voila >=0.2.4',
+        'voila <= 0.2.16',
     ],
     'app': [],
     'test': [
