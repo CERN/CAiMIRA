@@ -883,6 +883,9 @@ class CAIMIRAStateBuilder(state.StateBuilder):
     # Note: The methods in this class must correspond to the *type* of the data classes.
     # For example, build_type__VentilationBase is called when dealing with ConcentrationModel
     # types as it has a ventilation: _VentilationBase field.
+    
+    def __init__(self, selected_ventilation: str):
+        self.selected_ventilation = selected_ventilation
 
     def build_type_Mask(self, _: dataclasses.Field):
         return state.DataclassStatePredefined(
@@ -901,6 +904,7 @@ class CAIMIRAStateBuilder(state.StateBuilder):
                 'HEPAFilter': self.build_generic(models.HEPAFilter),
 
             },
+            base_type=self.selected_ventilation,
             state_builder=self,
         )
         #Initialise the "Hinged window" state
@@ -955,10 +959,10 @@ class ExpertApplication(Controller):
         )
         self.add_scenario('Scenario 1')
 
-    def build_new_model(self) -> state.DataclassInstanceState[models.ExposureModel]:
+    def build_new_model(self, vent: str) -> state.DataclassInstanceState[models.ExposureModel]:
         default_model = state.DataclassInstanceState(
             models.ExposureModel,
-            state_builder=CAIMIRAStateBuilder(),
+            state_builder=CAIMIRAStateBuilder(selected_ventilation=vent),
         )
         default_model.dcs_update_from(baseline_model)
         # For the time-being, we have to initialise the select states. Careful
@@ -967,9 +971,13 @@ class ExpertApplication(Controller):
         return default_model
 
     def add_scenario(self, name, copy_from_model: typing.Optional[state.DataclassInstanceState] = None):
-        model = self.build_new_model()
         if copy_from_model is not None:
+            model = self.build_new_model(vent=copy_from_model.concentration_model.ventilation._selected)
             model.dcs_update_from(copy_from_model.dcs_instance())
+        else:
+            model = self.build_new_model(vent='Natural') # Default
+            model.dcs_update_from(baseline_model)
+
         self._model_scenarios.append((name, model))
         self._active_scenario = len(self._model_scenarios) - 1
         model.dcs_observe(self.notify_model_values_changed)
