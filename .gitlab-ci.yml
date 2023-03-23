@@ -124,12 +124,12 @@ auth-service-image_builder:
     DOCKER_CONTEXT_DIRECTORY: app-config/auth-service
 
 
-caimira-webservice-image_builder:
+calculator-app-image_builder:
   extends:
     - .image_builder
   variables:
-    IMAGE_NAME: caimira-webservice
-    DOCKERFILE_DIRECTORY: app-config/caimira-webservice
+    IMAGE_NAME: calculator-app
+    DOCKERFILE_DIRECTORY: app-config/calculator-app
     DOCKER_CONTEXT_DIRECTORY: ""
 
 
@@ -159,11 +159,11 @@ link_auth-service_with_gitlab_registry:
   variables:
     IMAGE_NAME: auth-service
 
-link_caimira-webservice_with_gitlab_registry:
+link_calculator-app_with_gitlab_registry:
   extends:
     - .link_docker_images_with_gitlab_registry
   variables:
-    IMAGE_NAME: caimira-webservice
+    IMAGE_NAME: calculator-app
 
 link_calculator_with_gitlab_registry:
   extends:

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ "$APP_NAME" == "caimira-webservice" ]]; then
+if [[ "$APP_NAME" == "calculator-app" ]]; then
     args=("$@")
     if [ "$DEBUG" != "true" ] && [[ ! "${args[@]}" =~ "--no-debug" ]]; then
         args+=("--no-debug")
