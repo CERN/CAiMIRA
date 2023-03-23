@@ -1,32 +1,32 @@
 version: "3.8"
 services:
-  caimira-app:
-    image: caimira-webservice
+  expert-app:
+    image: calculator-app
     environment:
       - APP_NAME=caimira-voila
     user: ${CURRENT_UID:?"Please run as follows 'CURRENT_UID=$(id -u):$(id -g) docker-compose up'"}
 
-  caimira-co2-app:
-    image: caimira-webservice
+  expert-co2-app:
+    image: calculator-app
     environment:
       - APP_NAME=caimira-co2-voila
     user: ${CURRENT_UID:?"Please run as follows 'CURRENT_UID=$(id -u):$(id -g) docker-compose up'"}
 
-  caimira-webservice:
-    image: caimira-webservice
+  calculator-app:
+    image: calculator-app
     environment:
       - COOKIE_SECRET
-      - APP_NAME=caimira-webservice
+      - APP_NAME=calculator-app
       - APPLICATION_ROOT=/
       - CAIMIRA_CALCULATOR_PREFIX=/calculator-cern
       - CAIMIRA_THEME=caimira/apps/templates/cern
     user: ${CURRENT_UID}
 
-  caimira-calculator-open:
-    image: caimira-webservice
+  calculator-open-app:
+    image: calculator-app
     environment:
       - COOKIE_SECRET
-      - APP_NAME=caimira-webservice
+      - APP_NAME=calculator-app
       - APPLICATION_ROOT=/
       - CAIMIRA_CALCULATOR_PREFIX=/calculator-open
     user: ${CURRENT_UID}
@@ -46,13 +46,13 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      caimira-webservice:
+      calculator-app:
         condition: service_started
-      caimira-calculator-open:
+      calculator-open-app:
         condition: service_started
-      caimira-app:
+      expert-app:
         condition: service_started
-      caimira-co2-app:
+      expert-co2-app:
         condition: service_started
       auth-service:
         condition: service_started
