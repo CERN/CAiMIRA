@@ -72,21 +72,21 @@
       apiVersion: apps.openshift.io/v1
       kind: DeploymentConfig
       metadata:
-        name: caimira-app
-        labels: {app: caimira-app}
+        name: expert-app
+        labels: {app: expert-app}
       spec:
         replicas: 1
         template:
           metadata:
             labels:
-              app: caimira-app
+              app: expert-app
           spec:
             containers:
-              - name: caimira-webservice
+              - name: calculator-app
                 env:
                 - name: APP_NAME
                   value: caimira-voila
-                image: '${PROJECT_NAME}/caimira-webservice'
+                image: '${PROJECT_NAME}/calculator-app'
                 ports:
                   - containerPort: 8080
                     protocol: TCP
@@ -113,17 +113,74 @@
           type: Rolling
         test: false
         selector:
-          app: caimira-app
+          app: expert-app
         triggers:
           - type: ConfigChange
           - type: ImageChange
             imageChangeParams:
               automatic: true
               containerNames:
-                - caimira-webservice
+                - calculator-app
               from:
                 kind: ImageStreamTag
-                name: 'caimira-webservice:latest'
+                name: 'calculator-app:latest'
+                namespace: ${PROJECT_NAME}
+    -
+      apiVersion: apps.openshift.io/v1
+      kind: DeploymentConfig
+      metadata:
+        name: expert-co2-app
+        labels: {app: expert-co2-app}
+      spec:
+        replicas: 1
+        template:
+          metadata:
+            labels:
+              app: expert-co2-app
+          spec:
+            containers:
+              - name: calculator-app
+                env:
+                - name: APP_NAME
+                  value: caimira-co2-voila
+                image: '${PROJECT_NAME}/calculator-app'
+                ports:
+                  - containerPort: 8080
+                    protocol: TCP
+                imagePullPolicy: Always
+                resources:
+                  limits: { cpu: '1', memory: 1Gi }
+                  requests: { cpu: 1m, memory: 512Mi }
+                terminationMessagePath: /dev/termination-log
+                terminationMessagePolicy: File
+            dnsPolicy: ClusterFirst
+            restartPolicy: Always
+            schedulerName: default-scheduler
+            securityContext: { }
+            terminationGracePeriodSeconds: 30
+        strategy:
+          activeDeadlineSeconds: 21600
+          resources: { }
+          rollingParams:
+            intervalSeconds: 1
+            maxSurge: 25%
+            maxUnavailable: 25%
+            timeoutSeconds: 600
+            updatePeriodSeconds: 1
+          type: Rolling
+        test: false
+        selector:
+          app: expert-co2-app
+        triggers:
+          - type: ConfigChange
+          - type: ImageChange
+            imageChangeParams:
+              automatic: true
+              containerNames:
+                - calculator-app
+              from:
+                kind: ImageStreamTag
+                name: 'calculator-app:latest'
                 namespace: ${PROJECT_NAME}
     -
       apiVersion: apps.openshift.io/v1
@@ -182,19 +239,19 @@
       apiVersion: apps.openshift.io/v1
       kind: DeploymentConfig
       metadata:
-        name: caimira-webservice
+        name: calculator-app
         labels:
-          image: caimira-webservice
-          app: caimira-webservice
+          image: calculator-app
+          app: calculator-app
       spec:
         replicas: 1
         template:
           metadata:
             labels:
-              app: caimira-webservice
+              app: calculator-app
           spec:
             containers:
-              - name: caimira-webservice
+              - name: calculator-app
                 env:
                 - name: COOKIE_SECRET
                   valueFrom:
@@ -204,7 +261,7 @@
                 - name: REPORT_PARALLELISM
                   value: '3'
                 - name: APP_NAME
-                  value: caimira-webservice
+                  value: calculator-app
                 - name: APPLICATION_ROOT
                   value: /
                 - name: CAIMIRA_CALCULATOR_PREFIX
@@ -226,7 +283,7 @@
                     secretKeyRef:
                       key: ARVE_API_KEY
                       name: arve-api
-                image: '${PROJECT_NAME}/caimira-webservice'
+                image: '${PROJECT_NAME}/calculator-app'
                 ports:
                   - containerPort: 8080
                     protocol: TCP
@@ -267,43 +324,43 @@
           type: Rolling
         test: false
         selector:
-          app: caimira-webservice
+          app: calculator-app
         triggers:
           - type: ImageChange
             imageChangeParams:
               automatic: true
               containerNames:
-                - caimira-webservice
+                - calculator-app
               from:
                 kind: ImageStreamTag
-                name: 'caimira-webservice:latest'
+                name: 'calculator-app:latest'
                 namespace: ${PROJECT_NAME}
           - type: ConfigChange
     -
       apiVersion: apps.openshift.io/v1
       kind: DeploymentConfig
       metadata:
-        name: caimira-calculator-open
+        name: calculator-open-app
         labels:
-          image: caimira-webservice
-          app: caimira-calculator-open
+          image: calculator-app
+          app: calculator-open-app
       spec:
         replicas: 1
         template:
           metadata:
             labels:
-              app: caimira-calculator-open
+              app: calculator-open-app
           spec:
             containers:
-              - name: caimira-calculator-open
+              - name: calculator-open-app
                 env:
                 - name: APP_NAME
-                  value: caimira-webservice
+                  value: calculator-app
                 - name: APPLICATION_ROOT
                   value: /
                 - name: CAIMIRA_CALCULATOR_PREFIX
                   value: /calculator-open
-                image: '${PROJECT_NAME}/caimira-webservice'
+                image: '${PROJECT_NAME}/calculator-app'
                 ports:
                   - containerPort: 8080
                     protocol: TCP
@@ -334,17 +391,17 @@
           type: Rolling
         test: false
         selector:
-          app: caimira-calculator-open
+          app: calculator-open-app
         triggers:
           - type: ConfigChange
           - type: ImageChange
             imageChangeParams:
               automatic: true
               containerNames:
-                - caimira-calculator-open
+                - calculator-open-app
               from:
                 kind: ImageStreamTag
-                name: 'caimira-webservice:latest'
+                name: 'calculator-app:latest'
                 namespace: ${PROJECT_NAME}
           - type: ConfigChange
 

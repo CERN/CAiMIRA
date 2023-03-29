@@ -319,18 +319,18 @@ class DataclassStateNamed(DataclassState[Datamodel_T]):
     """
     def __init__(self,
                  states: typing.Dict[str, DataclassState[Datamodel_T]],
+                 base_type: str,
                  **kwargs
                  ):
         # TODO: This is effectively a container type. We shouldn't use the standard constructor for this.
-        enabled = list(states.keys())[0]
-        t = states[enabled]
+
         super().__init__(**kwargs)
 
         with self._object_setattr():
             self._states = states.copy()
             self._selected: str = None  # type: ignore
-        # Pick the first choice until we know otherwise.
-        self.dcs_select(enabled)
+
+        self.dcs_select(base_type)
 
     def __getattr__(self, name):
         try:

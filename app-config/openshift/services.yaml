@@ -32,8 +32,8 @@
       kind: Service
       metadata:
         labels:
-          app: caimira-app
-        name: caimira-app
+          app: expert-app
+        name: expert-app
       spec:
         ports:
           - name: 8080-tcp
@@ -41,7 +41,24 @@
             protocol: TCP
             targetPort: 8080
         selector:
-          deploymentconfig: caimira-app
+          deploymentconfig: expert-app
+        sessionAffinity: 'None'
+        type: 'ClusterIP'
+    -
+      apiVersion: v1
+      kind: Service
+      metadata:
+        labels:
+          app: expert-co2-app
+        name: expert-co2-app
+      spec:
+        ports:
+          - name: 8080-tcp
+            port: 8080
+            protocol: TCP
+            targetPort: 8080
+        selector:
+          deploymentconfig: expert-co2-app
         sessionAffinity: 'None'
         type: 'ClusterIP'
     -
@@ -66,8 +83,8 @@
       kind: Service
       metadata:
         labels:
-          app: caimira-webservice
-        name: caimira-webservice
+          app: calculator-app
+        name: calculator-app
       spec:
         ports:
           - name: 8080-tcp
@@ -75,7 +92,7 @@
             protocol: TCP
             targetPort: 8080
         selector:
-          deploymentconfig: caimira-webservice
+          deploymentconfig: calculator-app
         sessionAffinity: 'None'
         type: 'ClusterIP'
     -
@@ -83,8 +100,8 @@
       kind: Service
       metadata:
         labels:
-          app: caimira-calculator-open
-        name: caimira-calculator-open
+          app: calculator-open-app
+        name: calculator-open-app
       spec:
         ports:
           - name: 8080-tcp
@@ -92,6 +109,6 @@
             protocol: TCP
             targetPort: 8080
         selector:
-          deploymentconfig: caimira-calculator-open
+          deploymentconfig: calculator-open-app
         sessionAffinity: 'None'
         type: 'ClusterIP'

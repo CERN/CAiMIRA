@@ -214,7 +214,7 @@ class ExposureModelResult(View):
         self.html_output.value = '<br>\n'.join(lines)    
 
 
-class ExposureComparissonResult(View):
+class ExposureComparisonResult(View):
     def __init__(self):
         self.figure = matplotlib.figure.Figure(figsize=(9, 6))
         ipympl_canvas(self.figure)
@@ -255,6 +255,7 @@ class ExposureComparissonResult(View):
     def update_plot(self, exp_models: typing.Tuple[models.ExposureModel, ...], labels: typing.Tuple[str, ...]):
         [line.remove() for line in self.ax.lines]
         [line.remove() for line in self.ax2.lines]
+ 
         start, finish = models_start_end(exp_models)
         colors=['blue', 'red', 'orange', 'yellow', 'pink', 'purple', 'green', 'brown', 'black' ]
         ts = np.linspace(start, finish, num=250)
@@ -275,7 +276,10 @@ class ExposureComparissonResult(View):
         cumulative_top = max([max(cumulative_dose) for cumulative_dose in cumulative_doses])
         self.ax2.set_ylim(bottom=0., top=cumulative_top)
 
-        self.ax.legend()
+        handles, labels = self.figure.gca().get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        self.ax.legend(by_label.values(), by_label.keys())
+        
         self.figure.canvas.draw()
 
 
@@ -879,6 +883,9 @@ class CAIMIRAStateBuilder(state.StateBuilder):
     # Note: The methods in this class must correspond to the *type* of the data classes.
     # For example, build_type__VentilationBase is called when dealing with ConcentrationModel
     # types as it has a ventilation: _VentilationBase field.
+    
+    def __init__(self, selected_ventilation: str):
+        self.selected_ventilation = selected_ventilation
 
     def build_type_Mask(self, _: dataclasses.Field):
         return state.DataclassStatePredefined(
@@ -897,6 +904,7 @@ class CAIMIRAStateBuilder(state.StateBuilder):
                 'HEPAFilter': self.build_generic(models.HEPAFilter),
 
             },
+            base_type=self.selected_ventilation,
             state_builder=self,
         )
         #Initialise the "Hinged window" state
@@ -933,14 +941,16 @@ class ExpertApplication(Controller):
         self._model_scenarios: typing.List[ScenarioType] = []
         self._active_scenario = 0
         self.multi_model_view = MultiModelView(self)
-        self.comparison_view = ExposureComparissonResult()
+        self.comparison_view = ExposureComparisonResult()
         self.current_scenario_figure = ExposureModelResult()
         self._results_tab = widgets.Tab(children=(
             self.current_scenario_figure.widget,
             self.comparison_view.widget,
             # self._debug_output,
         ))
-        self._results_tab.titles = ['Current scenario', 'Scenario comparison', "Debug"]
+        for i, title in enumerate(['Current scenario', 'Scenario comparison', "Debug"]):
+            self._results_tab.set_title(i, title)
+
         self.widget = widgets.HBox(
             children=(
                 self.multi_model_view.widget,
@@ -949,10 +959,10 @@ class ExpertApplication(Controller):
         )
         self.add_scenario('Scenario 1')
 
-    def build_new_model(self) -> state.DataclassInstanceState[models.ExposureModel]:
+    def build_new_model(self, vent: str) -> state.DataclassInstanceState[models.ExposureModel]:
         default_model = state.DataclassInstanceState(
             models.ExposureModel,
-            state_builder=CAIMIRAStateBuilder(),
+            state_builder=CAIMIRAStateBuilder(selected_ventilation=vent),
         )
         default_model.dcs_update_from(baseline_model)
         # For the time-being, we have to initialise the select states. Careful
@@ -961,9 +971,13 @@ class ExpertApplication(Controller):
         return default_model
 
     def add_scenario(self, name, copy_from_model: typing.Optional[state.DataclassInstanceState] = None):
-        model = self.build_new_model()
         if copy_from_model is not None:
+            model = self.build_new_model(vent=copy_from_model.concentration_model.ventilation._selected)
             model.dcs_update_from(copy_from_model.dcs_instance())
+        else:
+            model = self.build_new_model(vent='Natural') # Default
+            model.dcs_update_from(baseline_model)
+
         self._model_scenarios.append((name, model))
         self._active_scenario = len(self._model_scenarios) - 1
         model.dcs_observe(self.notify_model_values_changed)
@@ -1036,7 +1050,7 @@ class MultiModelView(View):
                 self.add_tab(scenario_name, model)
             model_scenario_ids.append(id(model))
             tab_index = self._tab_model_ids.index(id(model))
-        self.widget.titles = [scenario_name for (scenario_name, _) in model_scenarios]
+            self.widget.set_title(tab_index, scenario_name)
 
         # Any remaining model_scenario_ids are no longer needed, so remove
         # their tabs.
@@ -1067,8 +1081,7 @@ class MultiModelView(View):
         self._tab_model_ids.pop(tab_index)
         self._tab_widgets.pop(tab_index)
         self._tab_model_views.pop(tab_index)
-        if self._active_tab_index >= tab_index:
-            self._active_tab_index = max(0, self._active_tab_index - 1)
+        
         self.update_tab_widget()
 
     def update_tab_widget(self):

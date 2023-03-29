@@ -153,7 +153,7 @@ pytest ./caimira
 
 ```
 s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./app-config/nginx/ centos/nginx-112-centos7 caimira-nginx-app
-docker build . -f ./app-config/caimira-webservice/Dockerfile -t caimira-webservice
+docker build . -f ./app-config/calculator-app/Dockerfile -t calculator-app
 docker build ./app-config/auth-service -t auth-service
 ```
 
