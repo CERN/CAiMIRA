@@ -96,3 +96,83 @@ def test_concentration_model_dynamic_population(full_exposure_model: models.Expo
         }
     )
     assert full_exposure_model.concentration(time) == dynamic_model.concentration(time)
+
+
+@pytest.mark.parametrize(
+    "time, number_of_infected",
+    [
+        [8., 1],
+        [10., 2],
+        [12., 3],
+        [13., 4],
+        [15., 5],
+    ])
+def test_sum_of_models(full_exposure_model: models.ExposureModel,
+                        baseline_infected_population_number: models.InfectedPopulation,
+                        time: float,
+                        number_of_infected: int):
+    
+    
+    static_multiple_exposure_model: models.ExposureModel = dc_utils.nested_replace(
+        full_exposure_model,
+        {
+            'concentration_model.infected.number': number_of_infected,
+        }
+    )
+
+    dynamic_single_exposure_model: models.ExposureModel = dc_utils.nested_replace(
+        full_exposure_model,
+        {
+            'concentration_model.infected': baseline_infected_population_number,
+        }
+    )
+
+    npt.assert_almost_equal(static_multiple_exposure_model.concentration(time), dynamic_single_exposure_model.concentration(time) * number_of_infected)
+
+
+def test_dynamic_dose(full_exposure_model):
+
+    dynamic_infected: models.ExposureModel = dc_utils.nested_replace(
+        full_exposure_model,
+        {
+            'concentration_model.infected': models.InfectedPopulation(
+                number=models.IntPiecewiseContant(
+                    (8, 10, 12, 13, 17), (1, 2, 0, 3)),
+                presence=None,
+                mask=models.Mask.types['No mask'],
+                activity=models.Activity.types['Seated'],
+                virus=models.Virus.types['SARS_CoV_2'],
+                expiration=models.Expiration.types['Breathing'],
+                host_immunity=0.,
+            ),
+        }
+    )
+
+    single_infected: models.ExposureModel = dc_utils.nested_replace(
+        full_exposure_model,
+        {
+            'concentration_model.infected.number': 1,
+            'concentration_model.infected.presence': models.SpecificInterval(((8, 10), )),
+        }
+    )
+
+    two_infected: models.ExposureModel = dc_utils.nested_replace(
+        full_exposure_model,
+        {
+            'concentration_model.infected.number': 2,
+            'concentration_model.infected.presence': models.SpecificInterval(((10, 12), )),
+        }
+    )
+
+    three_infected: models.ExposureModel = dc_utils.nested_replace(
+        full_exposure_model,
+        {
+            'concentration_model.infected.number': 3,
+            'concentration_model.infected.presence': models.SpecificInterval(((13, 17), )),
+        }
+    )
+
+    dynamic_exposure = dynamic_infected.deposited_exposure()
+    static_exposure = np.sum([model.deposited_exposure() for model in (single_infected, two_infected, three_infected)])
+
+    npt.assert_almost_equal(dynamic_exposure, static_exposure)
