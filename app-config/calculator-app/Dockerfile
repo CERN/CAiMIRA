@@ -3,7 +3,7 @@ FROM registry.cern.ch/docker.io/condaforge/mambaforge as conda
 RUN mamba create --yes -p /opt/app python=3.9
 COPY . /opt/app-source
 RUN cd /opt/app-source && conda run -p /opt/app python -m pip install -r ./requirements.txt .[app]
-COPY app-config/caimira-webservice/app.sh /opt/app/bin/caimira-app.sh
+COPY app-config/calculator-app/app.sh /opt/app/bin/calculator-app.sh
 RUN cd /opt/app \
  && find -name '*.a' -delete \
  && rm -rf /opt/app/conda-meta \
@@ -32,5 +32,5 @@ WORKDIR /scratch
 RUN CAIMIRA_INIT_FILE=$(/opt/app/bin/python -c "import caimira; print(caimira.__file__)") \
  && ln -s $(dirname ${CAIMIRA_INIT_FILE}) /scratch/caimira
 CMD [ \
-  "caimira-app.sh" \
+  "calculator-app.sh" \
 ]

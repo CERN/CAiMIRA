@@ -1009,7 +1009,7 @@ class _ConcentrationModelBase:
             return self.min_background_concentration()/self.normalization_factor()
         V = self.room.volume
         RR = self.removal_rate(time)
-
+        
         return (1. / (RR * V) + self.min_background_concentration()/
                 self.normalization_factor())
 
@@ -1210,7 +1210,9 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         return self.CO2_emitters
 
     def removal_rate(self, time: float) -> _VectorisedFloat:
-        return self.ventilation.air_exchange(self.room, time)
+        # Setting minimum air exchange rate to 1e-6 to avoid divisions by
+        # zero when computing the CO2 concentration.
+        return np.maximum(1e-6,self.ventilation.air_exchange(self.room, time))
 
     def min_background_concentration(self) -> _VectorisedFloat:
         """

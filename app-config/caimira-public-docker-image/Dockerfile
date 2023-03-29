@@ -15,6 +15,7 @@ COPY ./app-config/caimira-public-docker-image/run_caimira.sh /opt/caimira/start.
 # In the best case this will be a no-op.
 RUN cd /opt/caimira/src/ && /opt/caimira/app/bin/pip install -r /opt/caimira/src/requirements.txt
 RUN /opt/caimira/app/bin/jupyter trust /opt/caimira/src/caimira/apps/expert/*.ipynb
+RUN /opt/caimira/app/bin/jupyter trust /opt/caimira/src/caimira/apps/expert_co2/*.ipynb
 COPY ./app-config/caimira-public-docker-image/nginx.conf /opt/caimira/nginx.conf
 
 EXPOSE 8080

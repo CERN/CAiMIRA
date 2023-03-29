@@ -167,11 +167,14 @@ def test_DCS_predefined():
 def test_DCS_named():
     opt1 = DCSimpleSubclass('a', 1, 3.14)
     opt2 = DCAnother(4.2)
-    s = state.DataclassStateNamed({
+    s = state.DataclassStateNamed(
+        states={
         # Entirely different types possible.
         'option 1': state.DataclassInstanceState(DCSimple),
         'option 2': state.DataclassInstanceState(DCAnother),
-    })
+        },
+        base_type='option 1'    
+    )
     assert s._selected == 'option 1'
 
     with pytest.raises(ValueError):
