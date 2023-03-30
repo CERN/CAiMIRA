@@ -132,7 +132,7 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
     ])
 
     prob = np.array(model.infection_probability())
-    prob_dist_count, prob_dist_bins = np.histogram(prob, bins=100, density=True)
+    prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
     prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
     er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
     exposed_occupants = model.exposed.number
@@ -234,7 +234,7 @@ def uncertainties_plot(exposure_model: models.ExposureModel):
     axs[1, 0].set_xticklabels(['$10^{' + str(i) + '}$' for i in range(2, 13, 2)])
     axs[1, 0].set_xlim(2, 10)
     axs[1, 0].set_xlabel('Viral load\n(RNA copies)', fontsize=12)
-    axs[0, 0].set_ylabel('Probability of infection\nfor a given viral load', fontsize=12)
+    axs[0, 0].set_ylabel('Conditional Probability\nof Infection', fontsize=12)
  
     axs[0, 0].text(9.5, -0.01, '$(i)$')
     axs[1, 0].text(9.5, axs[1, 0].get_ylim()[1] * 0.8, '$(ii)$')

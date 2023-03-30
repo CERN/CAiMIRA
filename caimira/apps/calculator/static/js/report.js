@@ -980,7 +980,7 @@ function draw_histogram(svg_id, prob, prob_sd) {
 
     // Plot tile
     vis.append("svg:text")
-        .attr("x", x(50))             
+        .attr("x", x(0.5))             
         .attr("y", 0 + margins.top)
         .attr("text-anchor", "middle")  
         .style("font-size", "16px")  
