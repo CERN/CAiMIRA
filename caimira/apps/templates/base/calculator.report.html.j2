@@ -207,11 +207,16 @@
 
 								<div class="form-check">
 									<input type="checkbox" id="conditional_probability_plot" class="tabbed form-check-input" name="conditional_probability_plot" value="1" onClick="conditional_probability_plot(this.checked, {{ form.conditional_probability_plot | int }});">
-									<label id="label_conditional_probability_plot" for="conditional_probability_plot" class="form-check-label col-sm-12">Generate conditional probability of infection plot</label>
+									<label id="label_conditional_probability_plot" for="conditional_probability_plot" class="form-check-label col-sm-12">Generate full uncertainty data (as function of the viral load)</label>
 								</div>
 								{% if form.conditional_probability_plot %}
 								<div id="conditional_probability_div">
 									<img src= "{{ uncertainties_plot_src }}" />
+									<div class="ml-5">
+										<p>(i) &nbsp;&nbsp;Predictive probability of infection for a given value of the viral load</p>
+										<p>(ii) &nbsp;Histogram of the viral load data</p> 
+										<p>(iii) Histogram of the conditional probability of infection (result of total predictive probability in the middle)</p>
+									</div>
 								</div>
 								{% endif %}
 							</div>
