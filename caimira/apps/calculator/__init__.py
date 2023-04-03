@@ -35,7 +35,7 @@ from .user import AuthenticatedUser, AnonymousUser
 # calculator version. If the calculator needs to make breaking changes (e.g. change
 # form attributes) then it can also increase its MAJOR version without needing to
 # increase the overall CAiMIRA version (found at ``caimira.__version__``).
-__version__ = "4.7"
+__version__ = "4.8"
 
 
 class BaseRequestHandler(RequestHandler):
@@ -122,6 +122,10 @@ class ConcentrationModel(BaseRequestHandler):
             max_workers=self.settings['handler_worker_pool_size'],
             timeout=300,
         )
+        # Re-generate the report with the conditional probability of infection plot
+        if self.get_cookie('conditional_plot'): 
+            form.conditional_probability_plot = True if self.get_cookie('conditional_plot') == '1' else False
+            self.clear_cookie('conditional_plot') # Clears cookie after changing the form value.
         report_task = executor.submit(
             report_generator.build_report, base_url, form,
             executor_factory=functools.partial(

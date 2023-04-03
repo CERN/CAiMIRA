@@ -1,3 +1,8 @@
+function on_report_load(conditional_probability_plot) {
+    // Check/uncheck uncertainties image generation
+    document.getElementById('conditional_probability_plot').checked = conditional_probability_plot
+}
+
 /* Generate the concentration plot using d3 library. */
 function draw_plot(svg_id) {
 
@@ -537,7 +542,6 @@ function draw_plot(svg_id) {
     });
 }
 
-
 // Generate the alternative scenarios plot using d3 library.
 // 'alternative_scenarios' is a dictionary with all the alternative scenarios 
 // 'times' is a list of times for all the scenarios
@@ -853,6 +857,196 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
     });
 }
 
+function draw_histogram(svg_id, prob, prob_sd) {
+    // Add main SVG element
+    var plot_div = document.getElementById(svg_id);
+    var div_width = plot_div.clientWidth;
+    var div_height = plot_div.clientHeight;
+    var vis = d3.select(plot_div).append('svg');
+    
+    // set the dimensions and margins of the graph
+    if (div_width > 900) {
+        div_width = 900;
+        var margins = { top: 30, right: 20, bottom: 50, left: 60 };
+        var graph_width = div_width * (2/3);
+        const svg_margins = {'margin-left': '0rem'};
+        Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
+    }
+
+    vis.attr("width", div_width).attr('height', div_height);
+
+    let hist_count = prob_hist_count;
+    let hist_bins = prob_hist_bins;
+
+    // X axis: scale and draw:
+    var x = d3.scaleLinear()
+        .domain([0, d3.max(hist_bins)])
+        .range([margins.left, graph_width - margins.right]);
+    vis.append("svg:g")
+        .attr("transform", "translate(0," + (graph_height - margins.bottom) + ")")
+        .call(d3.axisBottom(x));
+    
+    // X axis label.
+    vis.append('text')
+        .attr('class', 'x label')
+        .attr('fill', 'black')
+        .attr('text-anchor', 'middle')
+        .text('Probability of Infection')
+        .attr('x', (graph_width + margins.right) / 2)
+        .attr('y', graph_height * 0.97);
+
+    // set the parameters for the histogram
+    var histogram = d3.histogram()
+        .value(d => d)
+        .domain(x.domain())  // then the domain of the graphic
+        .thresholds(x.ticks(100)); // then the numbers of bins
+    
+    // And apply this function to data to get the bins  
+    var bins = histogram(prob_dist);
+
+    // Y left axis: scale and draw:
+    var y_left = d3.scaleLinear()
+        .range([graph_height - margins.bottom, margins.top]);
+        y_left.domain([0, d3.max(hist_count)]);   // d3.hist has to be called before the Y axis obviously
+    vis.append("svg:g")
+        .attr('transform', 'translate(' + margins.left + ',0)')
+        .call(d3.axisLeft(y_left));
+
+    // Y left axis label.
+    vis.append('svg:text')
+        .attr('class', 'y label')
+        .attr('fill', 'black')
+        .attr('text-anchor', 'middle')
+        .text('Density')
+        .attr('x', (graph_height * 0.9 + margins.bottom) / 2)
+        .attr('y', (graph_height + margins.left) * 0.9)
+        .attr('transform', 'rotate(-90, 0,' + graph_height + ')');
+
+    // append the bar rectangles to the svg element
+    vis.selectAll("rect")
+        .data(bins.slice(0, -1))
+        .enter()
+        .append("rect")
+            .attr("x", 1)
+            .attr("transform", function(d, i) { 
+                return "translate(" + x(d.x0) + "," + y_left(hist_count[i]) + ")"; })
+            .attr("width", function(d) { return x(d.x1) - x(d.x0) -1 ; })
+            .attr("height", function(d, i) { return graph_height - y_left(hist_count[i]) - margins.bottom; })
+            .attr('fill', '#1f77b4');
+            
+    // Y right axis: scale and draw:
+    var y_right = d3.scaleLinear()
+        .range([graph_height - margins.bottom, margins.top]);
+        y_right.domain([0, 1]);
+    vis.append("svg:g")
+        .attr('transform', 'translate(' + (graph_width - margins.right) + ',0)')
+        .call(d3.axisRight(y_right));
+
+    // Y right axis label.
+    vis.append('svg:text')
+        .attr('class', 'y label')
+        .attr('fill', 'black')
+        .attr('text-anchor', 'middle')
+        .text('Cumulative Density Function (CDF)')
+        .attr('transform', 'rotate(-90, 0,' + graph_height + ')')
+        .attr('x', (graph_height + margins.bottom * 0.55) / 2)
+        .attr('y', graph_width + 430);
+    
+    // CDF Calculation
+    let count_sum = hist_count.reduce((partialSum, a) => partialSum + a, 0);
+    let pdf = hist_count.map((el, i) => el/count_sum);
+    let cdf = pdf.map((sum => value => sum += value)(0));
+    // Add the CDF line
+    vis.append("svg:path")
+        .datum(cdf)
+        .attr("fill", "none")
+        .attr("stroke", "lightblue")
+        .attr("stroke-width", 1.5)
+        .attr("d", d3.line()
+        .x(function(d, i) { return x(hist_bins[i]) })
+        .y(function(d) { return y_right(d) })
+    );
+
+    // Add the mean dashed line
+    vis.append("svg:line")
+        .attr("fill", "none")
+        .attr('stroke-width', 2)
+        .attr('stroke-dasharray', (5, 5))
+        .attr("x1", x(prob)) 
+        .attr("y1", y_right(1))
+        .attr("x2", x(prob))
+        .attr("y2", y_right(0))
+        .attr("stroke", "grey");
+
+    // Plot tile
+    vis.append("svg:text")
+        .attr("x", x(0.5))             
+        .attr("y", 0 + margins.top)
+        .attr("text-anchor", "middle")  
+        .style("font-size", "16px")  
+        .text(`P(I) -- Mean(SD) = ${prob.toFixed(2)}(${prob_sd.toFixed(2)}) `);
+
+    // Legend for the plot elements
+    const size = 15;
+    var legend_x_start = 50;
+    const space_between_text_icon = 30;
+    const text_height = 6;  
+    // CDF line icon
+    vis.append('rect')
+        .attr('width', 20)
+        .attr('height', 3)
+        .style('fill', 'lightblue')
+        .attr('x', graph_width + legend_x_start)
+        .attr('y', margins.top + size);
+    // CDF line text
+    vis.append('text')
+        .text('CDF')
+        .style('font-size', '15px')
+        .attr('x', graph_width + legend_x_start + space_between_text_icon)
+        .attr('y', margins.top + size + text_height);      
+    //  Hist icon
+    vis.append('rect')
+        .attr('width', 20)
+        .attr('height', 15)
+        .attr('fill', '#1f77b4')
+        .attr('x', graph_width + legend_x_start)
+        .attr('y', margins.top + (2 * size));
+    //  Hist text
+    vis.append('text')
+        .text('Histogram')
+        .style('font-size', '15px')
+        .attr('x', graph_width + legend_x_start + space_between_text_icon)
+        .attr('y', margins.top + 2 * size + text_height*2);
+    // Mean text
+    vis.append('line')
+        .attr('stroke', 'grey')
+        .attr('stroke-width', 2)
+        .attr('stroke-dasharray', (5, 5))
+        .attr("x1", graph_width + legend_x_start)
+        .attr("x2", graph_width + legend_x_start + 20)
+        .attr("y1", margins.top + 3.85 * size)
+        .attr("y2", margins.top + 3.85 * size);
+    // Mean line text
+    vis.append('text')
+        .text('Mean')
+        .style('font-size', '15px')
+        .attr('x', graph_width + legend_x_start + space_between_text_icon)
+        .attr('y', margins.top + 3 * size + text_height*3);      
+
+    // Legend Bbox
+    vis.append('rect')
+        .attr('width', 120)
+        .attr('height', 65)
+        .attr('stroke', 'lightgrey')
+        .attr('stroke-width', '2')
+        .attr('rx', '5px')
+        .attr('ry', '5px')
+        .attr('stroke-linejoin', 'round')
+        .attr('fill', 'none')
+        .attr('x', graph_width * 1.07)
+        .attr('y', margins.top * 1.1);
+}
+
 function copy_clipboard(shareable_link) {
 
     $("#mobile_link").attr('title', 'Copied!')
@@ -878,6 +1072,20 @@ function display_rename_column(bool, id) {
     // Change the visibility of renaming section
     if (bool) document.getElementById(id).style.display = 'flex';
     else document.getElementById(id).style.display = 'none';
+}
+
+function conditional_probability_plot(value, is_generated) {
+    // If the image was previously generated, there is no need to reload the page.
+    if (value && is_generated == 1) {
+        document.getElementById('conditional_probability_div').style.display = 'block'
+    }
+    else if (value && is_generated == 0) {
+        document.getElementById('label_conditional_probability_plot').innerHTML = `<span id="loading_spinner" class="spinner-border spinner-border-sm mr-2 mt-0" role="status" aria-hidden="true"></span>Loading...`;
+        document.getElementById('conditional_probability_plot').setAttribute('disabled', true);
+        document.cookie = `conditional_plot= 1; path=/`;
+        window.location.reload();
+    }
+    else document.getElementById('conditional_probability_div').style.display = "none";
 }
 
 function export_csv() {
