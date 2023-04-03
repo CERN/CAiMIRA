@@ -10,6 +10,7 @@ import zlib
 
 import jinja2
 import numpy as np
+import matplotlib.pyplot as plt
 
 from caimira import models
 from caimira.apps.calculator import markdown_tools
@@ -130,11 +131,13 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
         for time1, time2 in zip(times[:-1], times[1:])
     ])
 
-    prob = np.array(model.infection_probability()).mean()
+    prob = np.array(model.infection_probability())
+    prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
     prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
     er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
     exposed_occupants = model.exposed.number
     expected_new_cases = np.array(model.expected_new_cases()).mean()
+    uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(model))) if form.conditional_probability_plot else None
 
     return {
         "model_repr": repr(model),
@@ -147,11 +150,16 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
         "highest_const": highest_const,
         "cumulative_doses": list(cumulative_doses),
         "long_range_cumulative_doses": list(long_range_cumulative_doses),
-        "prob_inf": prob,
+        "prob_inf": prob.mean(),
+        "prob_inf_sd": np.std(prob),
+        "prob_dist": list(prob),
+        "prob_hist_count": list(prob_dist_count),
+        "prob_hist_bins": list(prob_dist_bins),
         "prob_probabilistic_exposure": prob_probabilistic_exposure,
         "emission_rate": er,
         "exposed_occupants": exposed_occupants,
         "expected_new_cases": expected_new_cases,
+        "uncertainties_plot_src": uncertainties_plot_src,
     }
 
 
@@ -174,10 +182,79 @@ def generate_permalink(base_url, get_root_url,  get_root_calculator_url, form: F
     }
 
 
+def uncertainties_plot(exposure_model: models.ExposureModel):
+    fig = plt.figure(figsize=(4, 7), dpi=110)
+
+    viral_loads = np.linspace(2, 10, 600)
+    pi_means, lower_percentiles, upper_percentiles = [], [], []
+    for vl in viral_loads:
+        model_vl = dataclass_utils.nested_replace(
+            exposure_model, {
+                'concentration_model.infected.virus.viral_load_in_sputum' : 10**vl,
+            }
+        )
+        pi = model_vl.infection_probability()/100
+
+        pi_means.append(np.mean(pi))
+        lower_percentiles.append(np.quantile(pi, 0.05))
+        upper_percentiles.append(np.quantile(pi, 0.95))
+
+    histogram_data = exposure_model.infection_probability() / 100
+
+    fig, axs = plt.subplots(2, 3, 
+        gridspec_kw={'width_ratios': [5, 0.5] + [1],
+            'height_ratios': [3, 1], 'wspace': 0},
+        sharey='row', 
+        sharex='col')
+
+    for y, x in [(0, 1)] + [(1, i + 1) for i in range(2)]:
+        axs[y, x].axis('off')
+
+    axs[0, 1].set_visible(False)
+
+    axs[0, 0].plot(viral_loads, pi_means, label='Predictive total probability')
+    axs[0, 0].fill_between(viral_loads, lower_percentiles, upper_percentiles, alpha=0.1, label='5ᵗʰ and 95ᵗʰ percentile')
+
+    axs[0, 2].hist(histogram_data, bins=30, orientation='horizontal')
+    axs[0, 2].set_xticks([])
+    axs[0, 2].set_xticklabels([])
+    axs[0, 2].set_facecolor("lightgrey")
+
+    highest_bar = axs[0, 2].get_xlim()[1]
+    axs[0, 2].set_xlim(0, highest_bar)
+
+    axs[0, 2].text(highest_bar * 0.5, 0.5,
+                        rf"$\bf{np.round(np.mean(histogram_data) * 100, 1)}$%", ha='center', va='center')
+    axs[1, 0].hist(np.log10(exposure_model.concentration_model.infected.virus.viral_load_in_sputum),
+                    bins=150, range=(2, 10), color='grey')
+    axs[1, 0].set_facecolor("lightgrey")
+    axs[1, 0].set_yticks([])
+    axs[1, 0].set_yticklabels([])
+    axs[1, 0].set_xticks([i for i in range(2, 13, 2)])
+    axs[1, 0].set_xticklabels(['$10^{' + str(i) + '}$' for i in range(2, 13, 2)])
+    axs[1, 0].set_xlim(2, 10)
+    axs[1, 0].set_xlabel('Viral load\n(RNA copies)', fontsize=12)
+    axs[0, 0].set_ylabel('Conditional Probability\nof Infection', fontsize=12)
+ 
+    axs[0, 0].text(9.5, -0.01, '$(i)$')
+    axs[1, 0].text(9.5, axs[1, 0].get_ylim()[1] * 0.8, '$(ii)$')
+    axs[0, 2].set_title('$(iii)$', fontsize=10)
+
+    axs[0, 0].legend()
+    return fig
+    
+
 def _img2bytes(figure):
     # Draw the image
     img_data = io.BytesIO()
     figure.save(img_data, format='png', bbox_inches="tight")
+    return img_data
+
+
+def _figure2bytes(figure):
+    # Draw the image
+    img_data = io.BytesIO()
+    figure.savefig(img_data, format='png', bbox_inches="tight", transparent=True, dpi=110)
     return img_data
 
 
