@@ -209,6 +209,7 @@ function draw_plot(svg_id) {
     // Tooltip.
     var focus = {}, tooltip_rect = {}, tooltip_time = {}, tooltip_concentration = {}, toolBox = {};
     for (const [concentration, data] of Object.entries(tooltip_data_for_graphs)) {
+        let data_length = String(Math.floor(Math.max(...data.map(el => el.concentration !== undefined ? el.concentration : 0)))).length;
 
         focus[concentration] = vis.append('svg:g')
             .style('display', 'none');
@@ -219,7 +220,7 @@ function draw_plot(svg_id) {
         tooltip_rect[concentration] = focus[concentration].append('rect')
             .attr('fill', 'white')
             .attr('stroke', '#000')
-            .attr('width', 85)
+            .attr('width', 65 + data_length * 8)
             .attr('height', 50)
             .attr('y', -22)
             .attr('rx', 4)
@@ -495,9 +496,9 @@ function draw_plot(svg_id) {
                 tooltip_concentration[scenario].attr('x', 18);
             }
             else {
-                tooltip_rect[scenario].attr('x', -90)
-                tooltip_time[scenario].attr('x', -82)
-                tooltip_concentration[scenario].attr('x', -82)
+                tooltip_rect[scenario].attr('x', -10 - tooltip_rect[scenario].attr('width'))
+                tooltip_time[scenario].attr('x', -2 - tooltip_rect[scenario].attr('width'))
+                tooltip_concentration[scenario].attr('x', -2 - tooltip_rect[scenario].attr('width'))
             }
         }
         // Concentration line
@@ -671,7 +672,7 @@ function draw_generic_concentration_plot(
     // Tooltip.
     var focus = {}, tooltip_rect = {}, tooltip_time = {}, tooltip_concentration = {}, toolBox = {};
     for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
-
+        let data_length = String(Math.floor(Math.max(...data.map(el => el.concentration !== undefined ? el.concentration : 0)))).length;
         focus[scenario_name] = vis.append('svg:g')
             .style('display', 'none');
 
@@ -681,7 +682,7 @@ function draw_generic_concentration_plot(
         tooltip_rect[scenario_name] = focus[scenario_name].append('rect')
             .attr('fill', 'white')
             .attr('stroke', '#000')
-            .attr('width', 80)
+            .attr('width', 65 + data_length * 8)
             .attr('height', 50)
             .attr('y', -22)
             .attr('rx', 4)
@@ -864,9 +865,9 @@ function draw_generic_concentration_plot(
                 tooltip_concentration[scenario_name].attr('x', 18);
             }
             else {
-                tooltip_rect[scenario_name].attr('x', -90)
-                tooltip_time[scenario_name].attr('x', -82)
-                tooltip_concentration[scenario_name].attr('x', -82)
+                tooltip_rect[scenario_name].attr('x', -10 - tooltip_rect[scenario_name].attr('width'))
+                tooltip_time[scenario_name].attr('x', - tooltip_rect[scenario_name].attr('width'))
+                tooltip_concentration[scenario_name].attr('x', - tooltip_rect[scenario_name].attr('width'))
             }
             var x0 = xRange.invert(d3.pointer(event, this)[0]),
                 i = bisecHour(data, x0, 1),
