@@ -4,6 +4,7 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 from dataclasses import dataclass
+import typing
 
 from caimira import models
 
@@ -32,7 +33,7 @@ class KnownConcentrationModelBase(models._ConcentrationModelBase):
     def min_background_concentration(self) -> float:
         return self.known_min_background_concentration
 
-    def normalization_factor(self) -> float:
+    def normalization_factor(self, time: typing.Optional[float] = None) -> float:
         return self.known_normalization_factor
 
 

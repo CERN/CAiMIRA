@@ -148,8 +148,12 @@ class ExposureModelResult(View):
 
     def update_plot(self, model: models.ExposureModel):
         resolution = 600
-        ts = np.linspace(sorted(model.concentration_model.infected.presence.transition_times())[0],
-                         sorted(model.concentration_model.infected.presence.transition_times())[-1], resolution)
+        if isinstance(model.concentration_model.infected.number, int) and isinstance(model.concentration_model.infected.presence, models.Interval):
+            infected_presence = model.concentration_model.infected.presence
+        elif isinstance(model.concentration_model.infected.number, models.IntPiecewiseContant):
+            infected_presence = model.concentration_model.infected.number.interval()
+        ts = np.linspace(sorted(infected_presence.transition_times())[0],
+                         sorted(infected_presence.transition_times())[-1], resolution)
         concentration = [model.concentration(t) for t in ts]
         
         cumulative_doses = np.cumsum([
@@ -164,16 +168,21 @@ class ExposureModelResult(View):
             self.ax.ignore_existing_data_limits = False
             self.concentration_line.set_data(ts, concentration)
         
+        if isinstance(model.exposed.number, int) and isinstance(model.exposed.presence, models.Interval):
+            exposed_presence = model.exposed.presence
+        elif isinstance(model.exposed.number, models.IntPiecewiseContant):
+            exposed_presence = model.exposed.number.interval()
+
         if self.concentration_area is None:
             self.concentration_area = self.ax.fill_between(x = ts, y1=0, y2=concentration, color="#96cbff",
-                where = ((model.exposed.presence.boundaries()[0][0] < ts) & (ts < model.exposed.presence.boundaries()[0][1]) | 
-                    (model.exposed.presence.boundaries()[1][0] < ts) & (ts < model.exposed.presence.boundaries()[1][1])))
+                where = ((exposed_presence.boundaries()[0][0] < ts) & (ts < exposed_presence.boundaries()[0][1]) | 
+                    (exposed_presence.boundaries()[1][0] < ts) & (ts < exposed_presence.boundaries()[1][1])))
                    
         else:
             self.concentration_area.remove()         
             self.concentration_area = self.ax.fill_between(x = ts, y1=0, y2=concentration, color="#96cbff",
-                where = ((model.exposed.presence.boundaries()[0][0] < ts) & (ts < model.exposed.presence.boundaries()[0][1]) | 
-                    (model.exposed.presence.boundaries()[1][0] < ts) & (ts < model.exposed.presence.boundaries()[1][1])))
+                where = ((exposed_presence.boundaries()[0][0] < ts) & (ts < exposed_presence.boundaries()[0][1]) | 
+                    (exposed_presence.boundaries()[1][0] < ts) & (ts < exposed_presence.boundaries()[1][1])))
 
         if self.cumulative_line is None:
             [self.cumulative_line] = self.ax2.plot(ts[:-1], cumulative_doses, color='#0000c8', linestyle='dotted')
@@ -187,8 +196,8 @@ class ExposureModelResult(View):
         cumulative_top = max(cumulative_doses)
         self.ax2.set_ylim(bottom=0., top=cumulative_top)
 
-        self.ax.set_xlim(left = min(min(model.concentration_model.infected.presence.boundaries()[0]), min(model.exposed.presence.boundaries()[0])), 
-                        right = max(max(model.concentration_model.infected.presence.boundaries()[1]), max(model.exposed.presence.boundaries()[1])))
+        self.ax.set_xlim(left = min(min(infected_presence.boundaries()[0]), min(exposed_presence.boundaries()[0])), 
+                        right = max(max(infected_presence.boundaries()[1]), max(exposed_presence.boundaries()[1])))
    
         figure_legends = [mlines.Line2D([], [], color='#3530fe', markersize=15, label='Mean concentration'),
                    mlines.Line2D([], [], color='#0000c8', markersize=15, ls="dotted", label='Cumulative dose'),
@@ -649,21 +658,10 @@ class ModelWidgets(View):
         number.observe(on_exposed_number_change, names=['value'])
 
         return widgets.HBox([widgets.Label('Number of exposed people in the room '), number], layout=widgets.Layout(justify_content='space-between'))
-    
-    def generate_presence_widget(self, min, max, node):
-        options = list(pd.date_range(min, max, freq="1min").strftime('%H:%M'))
-        start_hour = float(node[0])
-        end_hour = float(node[1])
-        start_hour_datetime = datetime.time(hour = int(start_hour), minute=int(start_hour%1*60))
-        end_hour_datetime = datetime.time(hour = int(end_hour), minute=int(end_hour%1*60))
-        return widgets.SelectionRangeSlider(
-            options=options,
-            index=(options.index(str(start_hour_datetime)[:-3]), options.index(str(end_hour_datetime)[:-3])),
-        )
         
     def _build_exposed_presence(self, node):
-        presence_start = self.generate_presence_widget(min='00:00', max='13:00', node=node.present_times[0])
-        presence_finish = self.generate_presence_widget(min='13:00', max='23:59', node=node.present_times[1])
+        presence_start = generate_presence_widget(min='00:00', max='13:00', node=node.present_times[0])
+        presence_finish = generate_presence_widget(min='13:00', max='23:59', node=node.present_times[1])
 
         def on_presence_start_change(change):
             new_value = tuple([int(time[:-3])+float(time[3:])/60 for time in change['new']])
@@ -719,8 +717,8 @@ class ModelWidgets(View):
         return widgets.HBox([widgets.Label("Viral load (copies/ml)"), viral_load_in_sputum], layout=widgets.Layout(justify_content='space-between'))
     
     def _build_infected_presence(self, node, ventilation_node):
-        presence_start = self.generate_presence_widget(min='00:00', max='13:00', node=node.present_times[0])
-        presence_finish = self.generate_presence_widget(min='13:00', max='23:59', node=node.present_times[1])
+        presence_start = generate_presence_widget(min='00:00', max='13:00', node=node.present_times[0])
+        presence_finish = generate_presence_widget(min='13:00', max='23:59', node=node.present_times[1])
 
         def on_presence_start_change(change):
             new_value = tuple([int(time[:-3])+float(time[3:])/60 for time in change['new']])
@@ -1119,6 +1117,18 @@ def models_start_end(models: typing.Sequence[models.ExposureModel]) -> typing.Tu
     Returns the earliest start and latest end time of a collection of ConcentrationModel objects
 
     """
-    infected_start = min(model.concentration_model.infected.presence.boundaries()[0][0] for model in models)
-    infected_finish = min(model.concentration_model.infected.presence.boundaries()[-1][1] for model in models)
+    infected_start = min(model.concentration_model.infected.presence.boundaries()[0][0] for model in models) # type: ignore
+    infected_finish = min(model.concentration_model.infected.presence.boundaries()[-1][1] for model in models) # type: ignore
     return infected_start, infected_finish
+
+
+def generate_presence_widget(min, max, node):
+        options = list(pd.date_range(min, max, freq="1min").strftime('%H:%M'))
+        start_hour = float(node[0])
+        end_hour = float(node[1])
+        start_hour_datetime = datetime.time(hour = int(start_hour), minute=int(start_hour%1*60))
+        end_hour_datetime = datetime.time(hour = int(end_hour), minute=int(end_hour%1*60))
+        return widgets.SelectionRangeSlider(
+            options=options,
+            index=(options.index(str(start_hour_datetime)[:-3]), options.index(str(end_hour_datetime)[:-3])),
+        )
