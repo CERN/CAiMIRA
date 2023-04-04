@@ -139,7 +139,7 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
         for time in times
     ]}}
 
-    prob = np.array(model.infection_probability()).mean()
+    prob = np.array(model.infection_probability())
     prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
     prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
     expected_new_cases = np.array(model.expected_new_cases()).mean()
