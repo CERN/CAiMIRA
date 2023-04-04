@@ -20,10 +20,18 @@ from ... import dataclass_utils
 
 
 def model_start_end(model: models.ExposureModel):
-    t_start = min(model.exposed.presence.boundaries()[0][0],
-                  model.concentration_model.infected.presence.boundaries()[0][0])
-    t_end = max(model.exposed.presence.boundaries()[-1][1],
-                model.concentration_model.infected.presence.boundaries()[-1][1])
+    if (isinstance(model.exposed.number, int) and isinstance(model.exposed.presence, models.Interval)
+        and isinstance(model.concentration_model.infected.number, int) and isinstance(model.concentration_model.infected.presence, models.Interval)):
+            t_start = min(model.exposed.presence.boundaries()[0][0],
+                        model.concentration_model.infected.presence.boundaries()[0][0])
+            t_end = max(model.exposed.presence.boundaries()[-1][1],
+                        model.concentration_model.infected.presence.boundaries()[-1][1])
+    elif (isinstance(model.exposed.number, models.IntPiecewiseContant)
+        and isinstance(model.concentration_model.infected.number, models.IntPiecewiseContant)):
+            t_start = min(model.exposed.number.interval().boundaries()[0][0],
+                        model.concentration_model.infected.number.interval().boundaries()[0][0])
+            t_end = max(model.exposed.number.interval().boundaries()[-1][1],
+                        model.concentration_model.infected.number.interval().boundaries()[-1][1])
     return t_start, t_end
 
 
@@ -141,11 +149,15 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
     exposed_occupants = model.exposed.number
     expected_new_cases = np.array(model.expected_new_cases()).mean()
     uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(model))) if form.conditional_probability_plot else None
+    if isinstance(model.exposed.number, int) and isinstance(model.exposed.presence, models.Interval):
+        exposed_presence_intervals = [list(interval) for interval in model.exposed.presence.boundaries()]
+    elif isinstance(model.exposed.number, models.IntPiecewiseContant):
+        exposed_presence_intervals = [list(interval) for interval in model.exposed.number.interval().boundaries()]
 
     return {
         "model_repr": repr(model),
         "times": list(times),
-        "exposed_presence_intervals": [list(interval) for interval in model.exposed.presence.boundaries()],
+        "exposed_presence_intervals": exposed_presence_intervals,
         "short_range_intervals": short_range_intervals,
         "short_range_expirations": short_range_expirations,
         "concentrations": concentrations,

@@ -8,7 +8,7 @@ import matplotlib
 import matplotlib.figure
 import matplotlib.lines as mlines
 import matplotlib.patches as patches
-from .expert import collapsible, ipympl_canvas, WidgetGroup, CAIMIRAStateBuilder
+from .expert import generate_presence_widget, collapsible, ipympl_canvas, WidgetGroup, CAIMIRAStateBuilder
 
 
 baseline_model = models.CO2ConcentrationModel(
@@ -368,20 +368,26 @@ class ModelWidgets(View):
         return widgets.HBox([widgets.Label('Number of people in the room '), number], layout=widgets.Layout(justify_content='space-between'))
 
     def _build_population_presence(self, node, ventilation_node):
-        presence_start = widgets.FloatRangeSlider(value = node.present_times[0], min = 8., max=13., step=0.1)
-        presence_finish = widgets.FloatRangeSlider(value = node.present_times[1], min = 13., max=18., step=0.1)
+        presence_start = generate_presence_widget(min='00:00', max='13:00', node=node.present_times[0])
+        presence_finish = generate_presence_widget(min='13:00', max='23:59', node=node.present_times[1])
 
         def on_presence_start_change(change):
-            ventilation_node.active.start = change['new'][0] - ventilation_node.active.duration / 60
-            node.present_times = (change['new'], presence_finish.value)
+            new_value = tuple([int(time[:-3])+float(time[3:])/60 for time in change['new']])
+            ventilation_node.active.start = new_value[0] - ventilation_node.active.duration / 60
+            node.present_times = (new_value, node.present_times[1])
 
         def on_presence_finish_change(change):
-            node.present_times = (presence_start.value, change['new'])
+            new_value = tuple([int(time[:-3])+float(time[3:])/60 for time in change['new']])
+            node.present_times = (node.present_times[0], new_value)
         
         presence_start.observe(on_presence_start_change, names=['value'])
         presence_finish.observe(on_presence_finish_change, names=['value'])
 
-        return widgets.HBox([widgets.Label('Population presence'),  presence_start, presence_finish], layout = widgets.Layout(justify_content='space-between'))
+        return widgets.VBox([
+            widgets.Label('Exposed presence:'), 
+            widgets.HBox([widgets.Label('Morning:', layout=widgets.Layout(width='15%')), presence_start]), 
+            widgets.HBox([widgets.Label('Afternoon:', layout=widgets.Layout(width='15%')), presence_finish])
+        ])
 
     def present(self):
         return self.widget
