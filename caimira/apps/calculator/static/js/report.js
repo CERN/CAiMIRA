@@ -308,18 +308,17 @@ function draw_plot(svg_id) {
         var div_height = plot_div.clientHeight;
         graph_width = div_width;
         graph_height = div_height
+        var margins = { top: 30, right: 20, bottom: 50, left: 60 };
         if (div_width >= 900) { // For screens with width > 900px legend can be on the graph's right side.
-            var margins = { top: 30, right: 20, bottom: 50, left: 60 };
             div_width = 900;
             graph_width = div_width * (2/3);
             const svg_margins = {'margin-left': '0rem'};
             Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
         }
         else {
-            var margins = { top: 30, right: 20, bottom: 50, left: 40 };
             div_width = div_width * 1.1
             graph_width = div_width * .9;
-            graph_height = div_height * 0.65; // On mobile screen sizes we want the legend to be on the bottom of the graph.
+            graph_height = div_height * .75; // On mobile screen sizes we want the legend to be on the bottom of the graph.
             const svg_margins = {'margin-left': '-1rem'};
             Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
         };
@@ -353,23 +352,19 @@ function draw_plot(svg_id) {
             .attr('y', graph_height * 0.97);
         
         yAxisEl.attr('transform', 'translate(' + margins.left + ',0)');
-        yAxisLabelEl.attr('x', (graph_height * 0.9 + margins.bottom) / 2)
+        yAxisLabelEl.attr('x', (graph_height + margins.bottom * .55) / 2)
             .attr('y', (graph_height + margins.left) * 0.9)
             .attr('transform', 'rotate(-90, 0,' + graph_height + ')');
 
         yAxisCumEl.attr('transform', 'translate(' + (graph_width - margins.right) + ',0)').call(yCumulativeAxis);
         yAxisCumLabelEl.attr('transform', 'rotate(-90, 0,' + graph_height + ')')
-            .attr('x', (graph_height + margins.bottom) / 2);
+            .attr('x', (graph_height + margins.bottom) / 2.1);
 
         if (plot_div.clientWidth >= 900) {
-            yAxisCumLabelEl.attr('transform', 'rotate(-90, 0,' + graph_height + ')')
-                .attr('x', (graph_height + margins.bottom) / 2)
-                .attr('y', 1.71 * graph_width);
+            yAxisCumLabelEl.attr('y', graph_width * 1.7);
         }
         else {
-            yAxisCumLabelEl.attr('transform', 'rotate(-90, 0,' + graph_height + ')')
-                .attr('x', (graph_height + margins.bottom * 0.55) / 2)
-                .attr('y', graph_width + 290);
+            yAxisCumLabelEl.attr('y', graph_width + 325);
         }
 
         const size = 20;
@@ -415,8 +410,7 @@ function draw_plot(svg_id) {
         }
         // Legend on the bottom.
         else {
-            legend_x_start = 10;
-
+            legend_x_start = margins.left + 10;
             legendLineIcon.attr('x', legend_x_start)
                 .attr('y', graph_height + size);
             legendLineText.attr('x', legend_x_start + space_between_text_icon)
@@ -449,7 +443,7 @@ function draw_plot(svg_id) {
                     .attr('y', graph_height + (4 + sr_unique_activities.length) * size + text_height);
             }
 
-            legendBBox.attr('x', 1)
+            legendBBox.attr('x', margins.left)
                 .attr('y', graph_height + 6);
         }
 
@@ -745,23 +739,22 @@ function draw_generic_concentration_plot(
 
     function redraw() {
         // Define width and height according to the screen size. Always use an already defined
-        var div_width = document.getElementById('concentration_plot').clientWidth;
+        var window_width = document.getElementById('concentration_plot').clientWidth;
+        var div_width = window_width;
         var div_height = document.getElementById('concentration_plot').clientHeight;
-
         graph_width = div_width;
-        graph_height = div_height
-        if (div_width >= 1200) { // For screens with width > 900px legend can be on the graph's right side.
-            var margins = { top: 30, right: 20, bottom: 50, left: 60 };
-            div_width = 1200;
-            graph_width = 600;
+        graph_height = div_height;
+        var margins = { top: 30, right: 20, bottom: 50, left: 60 };
+        if (window_width >= 900) { // For screens with width > 900px legend can be on the graph's right side.
+            div_width = 900;
+            graph_width = div_width * (2/3);
             const svg_margins = {'margin-left': '0rem'};
             Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
         }
         else {
-            var margins = { top: 30, right: 20, bottom: 50, left: 40 };
             div_width = div_width * 1.1
-            graph_width = div_width * .95;
-            graph_height = div_height * 0.65; // On mobile screen sizes we want the legend to be on the bottom of the graph.
+            graph_width = div_width * .9;
+            graph_height = div_height * .75; // On mobile screen sizes we want the legend to be on the bottom of the graph.
             const svg_margins = {'margin-left': '-1rem'};
             Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
         };
@@ -782,52 +775,6 @@ function draw_generic_concentration_plot(
         xTimeRange.range([margins.left, graph_width - margins.right]);
         yRange.range([graph_height - margins.bottom, margins.top]);
 
-        var legend_x_start = 25;
-        const space_between_text_icon = 30;
-        const text_height = 6;
-        for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
-            var scenario_index = Object.keys(data_for_scenarios).indexOf(scenario_name)
-            // Legend on right side.
-            var size = 20 * (scenario_index + 1);
-            if (div_width >= 900) {
-                label_icons[scenario_name].attr('x', graph_width + legend_x_start)
-                    .attr('y', margins.top + size);
-                label_text[scenario_name].attr('x', graph_width + legend_x_start + space_between_text_icon)
-                    .attr('y', margins.top + size  + text_height);
-            }
-            // Legend on the bottom.
-            else {
-                legend_x_start = 10;
-                label_icons[scenario_name].attr('x', legend_x_start)
-                    .attr('y', graph_height + size);
-                label_text[scenario_name].attr('x', legend_x_start + space_between_text_icon)
-                    .attr('y', graph_height + size  + text_height);
-            }
-        }
-        if (h_lines) {
-            h_lines.map((line, index) => {
-                size = 20 * (scenario_index + index + 2); // account for previous legend elements
-                if (div_width >= 900) {
-                    h_line_label_icon[line.label].attr("x1", graph_width + legend_x_start)
-                        .attr("x2", graph_width + legend_x_start + 20)
-                        .attr("y1", margins.top + size)
-                        .attr("y2", margins.top + size);
-                    h_line_label_text[line.label].attr('x', graph_width + legend_x_start + space_between_text_icon)
-                        .attr('y', margins.top + size  + text_height);
-                }
-                // Legend on the bottom.
-                else {
-                    legend_x_start = 10;
-                    h_line_label_icon[line.label].attr("x1", legend_x_start)
-                        .attr("x2", legend_x_start + 20)
-                        .attr("y1", graph_height + size)
-                        .attr("y2", graph_height + size);
-                    h_line_label_text[line.label].attr('x', legend_x_start + space_between_text_icon)
-                        .attr('y', graph_height + size  + text_height);
-                }
-            })
-        }
-
         // Axis.
         var xAxis = d3.axisBottom(xRange).tickFormat(d => time_format(d));
         yAxis.scale(yRange);
@@ -839,19 +786,66 @@ function draw_generic_concentration_plot(
 
         yAxisEl.attr('transform', 'translate(' + margins.left + ',0)')
             .call(yAxis);
-        yAxisLabelEl.attr('transform', 'rotate(-90, 0,' + graph_height + ')')
-            .attr('x', (graph_height * 0.9 + margins.bottom) / 2)
-            .attr('y', (graph_height + margins.left) * 0.90);
+        yAxisLabelEl.attr('x', (graph_height + margins.bottom * .55) / 2)
+            .attr('y', (graph_height + margins.left) * 0.9)
+            .attr('transform', 'rotate(-90, 0,' + graph_height + ')');
+
+        // Legend items
+        var legend_x_start = 25;
+        const space_between_text_icon = 30;
+        const text_height = 6;
+        for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
+            var scenario_index = Object.keys(data_for_scenarios).indexOf(scenario_name)
+            // Legend on right side.
+            var size = 20 * (scenario_index + 1);
+            if (window_width >= 900) {
+                label_icons[scenario_name].attr('x', graph_width + legend_x_start)
+                    .attr('y', margins.top + size);
+                label_text[scenario_name].attr('x', graph_width + legend_x_start + space_between_text_icon)
+                    .attr('y', margins.top + size  + text_height);
+            }
+            // Legend on the bottom.
+            else {
+                legend_x_start = margins.left + 10;
+                label_icons[scenario_name].attr('x', legend_x_start)
+                    .attr('y', graph_height + size);
+                label_text[scenario_name].attr('x', legend_x_start + space_between_text_icon)
+                    .attr('y', graph_height + size  + text_height);
+            }
+        }
+        if (h_lines) {
+            h_lines.map((line, index) => {
+                size = 21 * (scenario_index + index + 2); // account for previous legend elements
+                if (window_width >= 900) {
+                    h_line_label_icon[line.label].attr("x1", graph_width + legend_x_start)
+                        .attr("x2", graph_width + legend_x_start + 20)
+                        .attr("y1", margins.top + size)
+                        .attr("y2", margins.top + size);
+                    h_line_label_text[line.label].attr('x', graph_width + legend_x_start + space_between_text_icon)
+                        .attr('y', margins.top + size  + text_height);
+                }
+                // Legend on the bottom.
+                else {
+                    legend_x_start = margins.left + 10;
+                    h_line_label_icon[line.label].attr("x1", legend_x_start)
+                        .attr("x2", legend_x_start + 20)
+                        .attr("y1", graph_height + size)
+                        .attr("y2", graph_height + size);
+                    h_line_label_text[line.label].attr('x', legend_x_start + space_between_text_icon)
+                        .attr('y', graph_height + size  + text_height);
+                }
+            })
+        }
 
         // Legend on right side.
-        if (div_width >= 900) {
+        if (window_width >= 900) {
             legendBBox.attr('x', graph_width * 1.02)
                 .attr('y', margins.top * 1.15);
             
         }
         // Legend on the bottom.
         else {
-            legendBBox.attr('x', 1)
+            legendBBox.attr('x', margins.left)
                 .attr('y', graph_height * 1.02)
         }
 
