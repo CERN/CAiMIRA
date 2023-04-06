@@ -33,7 +33,7 @@ class KnownConcentrationModelBase(models._ConcentrationModelBase):
     def min_background_concentration(self) -> float:
         return self.known_min_background_concentration
 
-    def normalization_factor(self, time: typing.Optional[float] = None) -> float:
+    def normalization_factor(self) -> float:
         return self.known_normalization_factor
 
 
@@ -107,7 +107,7 @@ def simple_conc_model():
 @pytest.fixture
 def dummy_population(simple_conc_model) -> models.Population:
     return models.Population(
-        number=10,
+        number=1,
         presence=simple_conc_model.infected.presence,
         mask=models.Mask.types['Type I'],
         activity=models.Activity.types['Seated'],
@@ -268,7 +268,7 @@ def test_zero_ventilation_rate(
         ventilation = simple_conc_model.ventilation, 
         known_population = dummy_population,
         known_removal_rate = known_removal_rate,
-        known_normalization_factor=10.,
+        known_normalization_factor=1.,
         known_min_background_concentration = known_min_background_concentration)
     
     normed_concentration = known_conc_model.concentration(1)

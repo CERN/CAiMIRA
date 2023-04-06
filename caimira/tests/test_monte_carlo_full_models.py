@@ -313,19 +313,19 @@ def waiting_room_mc():
 
 @retry(tries=10)
 @pytest.mark.parametrize(
-    "mc_model, expected_pi, expected_new_cases, expected_dose, expected_ER",
+    "mc_model, expected_pi, expected_new_cases, expected_dose, expected_ER_per_person",
     [
         ["shared_office_mc", 5.38, 0.16, 3.350, 1056],
         ["classroom_mc",     8.21, 1.56, 11.356, 7416],
         ["ski_cabin_mc",     12.92, 0.39, 21.796, 10231],
         ["skagit_chorale_mc",61.01, 36.53, 84.730, 190422],
         ["bus_ride_mc",      10.59, 7.06, 6.650, 5419],
-        ["gym_mc",           0.52, 0.14, 0.249, 1450],
+        ["gym_mc",           0.52, 0.14, 0.249, 1450/2.], # there are two infected in this case
         ["waiting_room_mc",  1.53, 0.21, 0.844, 929],
     ]
 )
 def test_report_models(mc_model, expected_pi, expected_new_cases,
-                       expected_dose, expected_ER, request):
+                       expected_dose, expected_ER_per_person, request):
     mc_model = request.getfixturevalue(mc_model)
     exposure_model = mc_model.build_model(size=SAMPLE_SIZE)
     npt.assert_allclose(exposure_model.infection_probability().mean(),
@@ -335,8 +335,8 @@ def test_report_models(mc_model, expected_pi, expected_new_cases,
     npt.assert_allclose(exposure_model.deposited_exposure().mean(),
                         expected_dose, rtol=TOLERANCE)
     npt.assert_allclose(
-        exposure_model.concentration_model.infected.emission_rate_when_present().mean(),
-        expected_ER, rtol=TOLERANCE)
+        exposure_model.concentration_model.infected.emission_rate_per_person_when_present().mean(),
+        expected_ER_per_person, rtol=TOLERANCE)
 
 
 @retry(tries=10)
@@ -397,5 +397,5 @@ def test_small_shared_office_Geneva(mask_type, month, expected_pi,
     npt.assert_allclose(exposure_model.deposited_exposure().mean(),
                         expected_dose, rtol=TOLERANCE)
     npt.assert_allclose(
-        exposure_model.concentration_model.infected.emission_rate_when_present().mean(),
+        exposure_model.concentration_model.infected.emission_rate_per_person_when_present().mean(),
         expected_ER, rtol=TOLERANCE)
