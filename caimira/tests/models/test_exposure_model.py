@@ -24,7 +24,7 @@ class KnownNormedconcentration(models.ConcentrationModel):
         return 1.e50
 
     def _normed_concentration_limit(self, time: float) -> models._VectorisedFloat:
-        return self.normed_concentration_function(time)
+        return self.normed_concentration_function(time) * self.infected.number
 
     def state_change_times(self):
         return [0., 24.]
@@ -33,7 +33,7 @@ class KnownNormedconcentration(models.ConcentrationModel):
         return 24.
 
     def _normed_concentration(self, time: float) -> models._VectorisedFloat:  # noqa
-        return self.normed_concentration_function(time)
+        return self.normed_concentration_function(time) * self.infected.number
 
 
 halftime = models.PeriodicInterval(120, 60)
@@ -67,7 +67,8 @@ def known_concentrations(func):
         expiration=models.Expiration.types['Speaking'],
         host_immunity=0.,
     )
-    normed_func = lambda x: func(x) / dummy_infected_population.emission_rate_when_present()
+    normed_func = lambda x: (func(x) /
+        dummy_infected_population.emission_rate_per_person_when_present())
     return KnownNormedconcentration(dummy_room, dummy_ventilation,
                                 dummy_infected_population, 0.3, normed_func)
 

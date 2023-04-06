@@ -209,7 +209,7 @@ class ExposureModelResult(View):
     def update_textual_result(self, model: models.ExposureModel):
         lines = []
         P = np.array(model.infection_probability()).mean()
-        lines.append(f'Emission rate (virus/hr): {np.round(model.concentration_model.infected.emission_rate_when_present(),0)}')
+        lines.append(f'Emission rate per infected person (virus/hr): {np.round(model.concentration_model.infected.emission_rate_per_person_when_present(),0)}')
         lines.append(f'Probability of infection: {np.round(P, 0)}%')
 
         lines.append(f'Number of exposed: {model.exposed.number}')

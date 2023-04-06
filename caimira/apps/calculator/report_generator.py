@@ -145,7 +145,7 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
     prob = np.array(model.infection_probability())
     prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
     prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
-    er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
+    er = np.array(model.concentration_model.infected.emission_rate_per_person_when_present()).mean()
     exposed_occupants = model.exposed.number
     expected_new_cases = np.array(model.expected_new_cases()).mean()
     uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(model))) if form.conditional_probability_plot else None
@@ -166,12 +166,12 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
         "cumulative_doses": list(cumulative_doses),
         "long_range_cumulative_doses": list(long_range_cumulative_doses),
         "prob_inf": prob.mean(),
-        "prob_inf_sd": np.std(prob),
+        "prob_inf_sd": prob.std(),
         "prob_dist": list(prob),
         "prob_hist_count": list(prob_dist_count),
         "prob_hist_bins": list(prob_dist_bins),
         "prob_probabilistic_exposure": prob_probabilistic_exposure,
-        "emission_rate": er,
+        "emission_rate_per_person": er,
         "exposed_occupants": exposed_occupants,
         "expected_new_cases": expected_new_cases,
         "uncertainties_plot_src": uncertainties_plot_src,
