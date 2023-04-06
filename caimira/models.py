@@ -818,7 +818,7 @@ class Population:
                 raise TypeError(f'The presence argument must be an "Interval". Got {type(self.presence)}')
         else:
             if self.presence is not None:
-                raise TypeError(f'The presence argument must be None for a IntPiecewiseConstant number.')
+                raise TypeError(f'The presence argument must be None for a IntPiecewiseConstant number')
 
     def person_present(self, time: float):
         # Allow back-compatibility
@@ -1656,11 +1656,13 @@ class ExposureModel:
                 self.concentration_model.virus.transmissibility_factor)))) * 100
 
     def total_probability_rule(self) -> _VectorisedFloat:
-        if (self.geographical_data.geographic_population != 0 and self.geographical_data.geographic_cases != 0): 
-            sum_probability = 0.0
-            if not isinstance(self.concentration_model.infected.number, int):
+        if (isinstance(self.concentration_model.infected.number, IntPiecewiseContant) or 
+                isinstance(self.exposed.number, IntPiecewiseContant)):
                 raise NotImplementedError("Cannot compute total probability "
                         "(including incidence rate) with dynamic occupancy")
+        
+        if (self.geographical_data.geographic_population != 0 and self.geographical_data.geographic_cases != 0): 
+            sum_probability = 0.0
 
             # Create an equivalent exposure model but changing the number of infected cases.
             total_people = self.concentration_model.infected.number + self.exposed.number
