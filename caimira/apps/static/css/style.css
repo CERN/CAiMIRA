@@ -15,10 +15,13 @@ p {
 }
 
 /*-- Body Reset --*/
-body {
+html, body {
   /* overflow-x: hidden */
   font-family: 'Montserrat', sans-serif;
   color: rgb(47, 72, 88);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 /*============= TOP BAR HEADER =============*/
@@ -184,6 +187,17 @@ body {
   width: 25px; 
   height: 30px;
   margin-right: 10px;
+}
+
+.btn-caimira-color{
+  color: rgb(42, 52, 66);
+  border-color: rgb(42, 52, 66);
+}
+
+.btn-caimira-color:hover{
+  color: white;
+  background-color: rgb(42, 52, 66);
+  
 }
 
 /*===== FIXED BACKGROUND IMG =====*/
