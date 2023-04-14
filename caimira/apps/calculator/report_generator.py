@@ -83,7 +83,7 @@ def non_temp_transition_times(model: models.ExposureModel):
 def interesting_times(model: models.ExposureModel, approx_n_pts: typing.Optional[int] = None) -> typing.List[float]:
     """
     Pick approximately ``approx_n_pts`` time points which are interesting for the
-    given model. If not provided by argument, ``approx_n_pts`` is set to be 25 times 
+    given model. If not provided by argument, ``approx_n_pts`` is set to be 15 times 
     the number of hours of the simulation.
 
     Initially the times are seeded by important state change times (excluding
@@ -93,7 +93,7 @@ def interesting_times(model: models.ExposureModel, approx_n_pts: typing.Optional
     """
     times = non_temp_transition_times(model)
     sim_duration = max(times) - min(times)
-    if not approx_n_pts: approx_n_pts = sim_duration * 25
+    if not approx_n_pts: approx_n_pts = sim_duration * 15
 
     # Expand the times list to ensure that we have a maximum gap size between
     # the key times.
