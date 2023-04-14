@@ -57,16 +57,9 @@ class BaseRequestHandler(RequestHandler):
 
     def write_error(self, status_code: int, **kwargs) -> None:
         template = self.settings["template_environment"].get_template(
-            "page.html.j2")
+            "error.html.j2")
 
         error_id = uuid.uuid4()
-        contents = (
-            f'Unfortunately an error occurred when processing your request. '
-            f'Please let us know about this issue with as much detail as possible at '
-            f'<a href="mailto:CAiMIRA-dev@cern.ch">CAiMIRA-dev@cern.ch</a>, reporting status '
-            f'code {status_code}, the error id of "{error_id}" and the time of the '
-            f'request ({datetime.datetime.utcnow()}).<br><br><br><br>'
-        )
         # Print the error to the log (and not to the browser!)
         if "exc_info" in kwargs:
             print(f"ERROR UUID {error_id}")
@@ -76,7 +69,9 @@ class BaseRequestHandler(RequestHandler):
             get_url = template.globals['get_url'],
             get_calculator_url = template.globals["get_calculator_url"],
             active_page='Error',
-            contents=contents
+            error_id=error_id,
+            status_code=status_code,
+            datetime=datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
         ))
 
 
@@ -85,13 +80,13 @@ class Missing404Handler(BaseRequestHandler):
         await super().prepare()
         self.set_status(404)
         template = self.settings["template_environment"].get_template(
-            "page.html.j2")
+            "error.html.j2")
         self.finish(template.render(
             user=self.current_user,
             get_url = template.globals['get_url'],
             get_calculator_url = template.globals["get_calculator_url"],
             active_page='Error',
-            contents='Unfortunately the page you were looking for does not exist.<br><br><br><br>'
+            status_code=404,
         ))
 
 
