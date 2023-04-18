@@ -43,7 +43,7 @@ REQUIREMENTS: dict = {
     'test': [
         'pytest',
         'pytest-mypy != v0.10.1',
-        'mypy < 1.1.1',
+        'mypy',
         'pytest-tornasync',
         'numpy-stubs @ git+https://github.com/numpy/numpy-stubs.git',
         'types-dataclasses',
