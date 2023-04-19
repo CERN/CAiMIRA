@@ -593,10 +593,10 @@ class ModelWidgets(View):
             widget.layout.visible = True
             widget.layout.display = 'flex'
 
-        mechanival_w.observe(lambda event: toggle_mechanical(event['new']), 'value')
-        toggle_mechanical(mechanival_w.value)
+        mechanical_w.observe(lambda event: toggle_mechanical(event['new']), 'value')
+        toggle_mechanical(mechanical_w.value)
 
-        return widgets.VBox([mechanival_w, widgets.HBox(list(mechanical_widgets.values()))])
+        return widgets.VBox([mechanical_w, widgets.HBox(list(mechanical_widgets.values()))])
 
     def _build_month(self, node) -> WidgetGroup:
 
