@@ -614,7 +614,7 @@ class ModelWidgets(View):
         for name, widget in mechanical_widgets.items():
             widget.layout.visible = False
 
-        mechanival_w = widgets.RadioButtons(
+        mechanical_w = widgets.RadioButtons(
             options=list(zip(['Air supply flow rate (m³/h)', 'Air changes per hour (h⁻¹)'], mechanical_widgets.keys())),
             button_style='info',
         )
@@ -629,10 +629,10 @@ class ModelWidgets(View):
             widget.layout.visible = True
             widget.layout.display = 'flex'
 
-        mechanival_w.observe(lambda event: toggle_mechanical(event['new']), 'value')
-        toggle_mechanical(mechanival_w.value)
+        mechanical_w.observe(lambda event: toggle_mechanical(event['new']), 'value')
+        toggle_mechanical(mechanical_w.value)
 
-        return widgets.VBox([mechanival_w, widgets.HBox(list(mechanical_widgets.values()))])
+        return widgets.VBox([mechanical_w, widgets.HBox(list(mechanical_widgets.values()))])
 
     def _build_no_ventilation(self, node):
         return widgets.HBox([])
