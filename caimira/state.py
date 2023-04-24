@@ -137,7 +137,7 @@ class DataclassInstanceState(DataclassState[Datamodel_T]):
             self._base = dataclass
             #: The actual instance type that this state represents (i.e. may be a
             #: subclass of _base).
-            self._instance_type: typing.Type[Datamodel_T] = dataclass
+            self._instance_type: typing.Type[dataclass_instance] = dataclass
 
             #: The instance of dataclass which this state represents. Undefined until
             #: sufficient data is provided.
@@ -169,7 +169,7 @@ class DataclassInstanceState(DataclassState[Datamodel_T]):
             self._held_events.clear()
             self._fire_observers()
 
-    def dcs_update_from(self, data: Datamodel_T):
+    def dcs_update_from(self, data: dataclass_instance):
         with self.dcs_state_transaction():
             self.dcs_set_instance_type(data.__class__)
             for field in dataclasses.fields(data):
@@ -225,7 +225,7 @@ class DataclassInstanceState(DataclassState[Datamodel_T]):
         else:
             raise AttributeError(f"No attribute {attr_name} on a {self._instance_type.__name__}")
 
-    def dcs_set_instance_type(self, instance_dataclass: typing.Type[Datamodel_T]):
+    def dcs_set_instance_type(self, instance_dataclass: typing.Type[dataclass_instance]):
         if not dataclasses.is_dataclass(instance_dataclass):
             raise TypeError("The given class is not a valid dataclass")
         if not issubclass(instance_dataclass, self._base):

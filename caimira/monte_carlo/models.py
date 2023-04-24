@@ -8,7 +8,7 @@ import caimira.models
 from .sampleable import SampleableDistribution, _VectorisedFloatOrSampleable
 
 _ModelType = typing.TypeVar('_ModelType')
-
+dataclass_instance = typing.Any
 
 class MCModelBase(typing.Generic[_ModelType]):
     """
@@ -19,7 +19,7 @@ class MCModelBase(typing.Generic[_ModelType]):
     ``caimira.models` model instance on demand.
 
     """
-    _base_cls: typing.Type[_ModelType]
+    _base_cls: typing.Type[dataclass_instance]
 
     @classmethod
     def _to_vectorized_form(cls, item, size):
@@ -44,10 +44,10 @@ class MCModelBase(typing.Generic[_ModelType]):
         for field in dataclasses.fields(self._base_cls):
             attr = getattr(self, field.name)
             kwargs[field.name] = self._to_vectorized_form(attr, size)
-        return self._base_cls(**kwargs)  # type: ignore
+        return self._base_cls(**kwargs)
 
 
-def _build_mc_model(model: _ModelType) -> typing.Type[MCModelBase[_ModelType]]:
+def _build_mc_model(model: dataclass_instance) -> typing.Type[MCModelBase[_ModelType]]:
     """
     Generate a new MCModelBase subclass for the given caimira.models model.
 
