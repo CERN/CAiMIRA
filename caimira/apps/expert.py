@@ -148,10 +148,7 @@ class ExposureModelResult(View):
 
     def update_plot(self, model: models.ExposureModel):
         resolution = 600
-        if isinstance(model.concentration_model.infected.number, int) and isinstance(model.concentration_model.infected.presence, models.Interval):
-            infected_presence = model.concentration_model.infected.presence
-        elif isinstance(model.concentration_model.infected.number, models.IntPiecewiseContant):
-            infected_presence = model.concentration_model.infected.number.interval()
+        infected_presence = model.concentration_model.infected.presence_interval()
         ts = np.linspace(sorted(infected_presence.transition_times())[0],
                          sorted(infected_presence.transition_times())[-1], resolution)
         concentration = [model.concentration(t) for t in ts]
@@ -168,10 +165,7 @@ class ExposureModelResult(View):
             self.ax.ignore_existing_data_limits = False
             self.concentration_line.set_data(ts, concentration)
         
-        if isinstance(model.exposed.number, int) and isinstance(model.exposed.presence, models.Interval):
-            exposed_presence = model.exposed.presence
-        elif isinstance(model.exposed.number, models.IntPiecewiseContant):
-            exposed_presence = model.exposed.number.interval()
+        exposed_presence = model.exposed.presence_interval()
 
         if self.concentration_area is None:
             self.concentration_area = self.ax.fill_between(x = ts, y1=0, y2=concentration, color="#96cbff",
@@ -1117,8 +1111,8 @@ def models_start_end(models: typing.Sequence[models.ExposureModel]) -> typing.Tu
     Returns the earliest start and latest end time of a collection of ConcentrationModel objects
 
     """
-    infected_start = min(model.concentration_model.infected.presence.boundaries()[0][0] for model in models) # type: ignore
-    infected_finish = min(model.concentration_model.infected.presence.boundaries()[-1][1] for model in models) # type: ignore
+    infected_start = min(model.concentration_model.infected.presence_interval().boundaries()[0][0] for model in models)
+    infected_finish = min(model.concentration_model.infected.presence_interval().boundaries()[-1][1] for model in models)
     return infected_start, infected_finish
 
 

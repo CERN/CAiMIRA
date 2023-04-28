@@ -39,7 +39,7 @@ def full_exposure_model():
 @pytest.fixture
 def baseline_infected_population_number():
     return models.InfectedPopulation(
-        number=models.IntPiecewiseContant(
+        number=models.IntPiecewiseConstant(
             (8, 12, 13, 17), (1, 0, 1)),
         presence=None,
         mask=models.Mask.types['No mask'],
@@ -50,6 +50,12 @@ def baseline_infected_population_number():
     )
 
 
+@pytest.fixture
+def dynamic_single_exposure_model(full_exposure_model, baseline_infected_population_number):
+    return dc_utils.nested_replace(full_exposure_model,
+        {'concentration_model.infected': baseline_infected_population_number, })
+
+
 @pytest.mark.parametrize(
     "time",
     [4., 8., 10., 12., 13., 14., 16., 20., 24.],
@@ -58,13 +64,7 @@ def test_population_number(full_exposure_model: models.ExposureModel,
                            baseline_infected_population_number: models.InfectedPopulation, time: float):
 
     int_population_number: models.InfectedPopulation = full_exposure_model.concentration_model.infected
-    assert isinstance(int_population_number.number, int)
-    assert isinstance(int_population_number.presence, models.Interval)
-
     piecewise_population_number: models.InfectedPopulation = baseline_infected_population_number
-    assert isinstance(piecewise_population_number.number,
-                      models.IntPiecewiseContant)
-    assert piecewise_population_number.presence is None
 
     with pytest.raises(
         TypeError,
@@ -91,29 +91,16 @@ def test_population_number(full_exposure_model: models.ExposureModel,
     [4., 8., 10., 12., 13., 14., 16., 20., 24.],
 )
 def test_concentration_model_dynamic_population(full_exposure_model: models.ExposureModel,
-                                                baseline_infected_population_number: models.InfectedPopulation,
+                                                dynamic_single_exposure_model: models.ExposureModel,
                                                 time: float):
 
-    dynamic_model: models.ExposureModel = dc_utils.nested_replace(
-        full_exposure_model,
-        {
-            'concentration_model.infected': baseline_infected_population_number,
-        }
-    )
-    assert full_exposure_model.concentration(time) == dynamic_model.concentration(time)
+    assert full_exposure_model.concentration(time) == dynamic_single_exposure_model.concentration(time)
 
 
-@pytest.mark.parametrize(
-    "time, number_of_infected",
-    [
-        [8., 1],
-        [10., 2],
-        [12., 3],
-        [13., 4],
-        [15., 5],
-    ])
+@pytest.mark.parametrize("number_of_infected",[1, 2, 3, 4, 5])
+@pytest.mark.parametrize("time",[9., 12.5, 16.])
 def test_linearity_with_number_of_infected(full_exposure_model: models.ExposureModel,
-                        baseline_infected_population_number: models.InfectedPopulation,
+                        dynamic_single_exposure_model: models.ExposureModel,
                         time: float,
                         number_of_infected: int):
     
@@ -122,13 +109,6 @@ def test_linearity_with_number_of_infected(full_exposure_model: models.ExposureM
         full_exposure_model,
         {
             'concentration_model.infected.number': number_of_infected,
-        }
-    )
-
-    dynamic_single_exposure_model: models.ExposureModel = dc_utils.nested_replace(
-        full_exposure_model,
-        {
-            'concentration_model.infected': baseline_infected_population_number,
         }
     )
 
@@ -145,7 +125,7 @@ def test_dynamic_dose(full_exposure_model, time):
         full_exposure_model,
         {
             'concentration_model.infected': models.InfectedPopulation(
-                number=models.IntPiecewiseContant(
+                number=models.IntPiecewiseConstant(
                     (8, 10, 12, 13, 17), (1, 2, 0, 3)),
                 presence=None,
                 mask=models.Mask.types['No mask'],
@@ -184,23 +164,17 @@ def test_dynamic_dose(full_exposure_model, time):
     dynamic_concentration = dynamic_infected.concentration(time)
     dynamic_exposure = dynamic_infected.deposited_exposure()
 
-    static_concentration, static_exposure = [], []
-    for model in (single_infected, two_infected, three_infected):
-        static_concentration.append(model.concentration(time))
-        static_exposure.append(model.deposited_exposure())
+    static_concentration, static_exposure = zip(*[(model.concentration(time), model.deposited_exposure()) 
+                                              for model in (single_infected, two_infected, three_infected)])
 
-    npt.assert_almost_equal(dynamic_concentration, np.sum(np.array(static_concentration)))
-    npt.assert_almost_equal(dynamic_exposure, np.sum(np.array(static_exposure)))
+    npt.assert_almost_equal(dynamic_concentration, np.sum(static_concentration))
+    npt.assert_almost_equal(dynamic_exposure, np.sum(static_exposure))
 
 
-def test_dynamic_total_probability_rule(full_exposure_model: models.ExposureModel,
-                           baseline_infected_population_number: models.InfectedPopulation):
-   
-    model = dc_utils.nested_replace(full_exposure_model,
-                {'concentration_model.infected': baseline_infected_population_number })
+def test_dynamic_total_probability_rule(dynamic_single_exposure_model: models.ExposureModel):
     with pytest.raises(
         NotImplementedError,
         match=re.escape("Cannot compute total probability "
                         "(including incidence rate) with dynamic occupancy")
     ):
-        model.total_probability_rule()
+        dynamic_single_exposure_model.total_probability_rule()
