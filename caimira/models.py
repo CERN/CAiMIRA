@@ -187,7 +187,7 @@ class PiecewiseConstant:
 
 
 @dataclass(frozen=True)
-class IntPiecewiseContant(PiecewiseConstant):
+class IntPiecewiseConstant(PiecewiseConstant):
 
     #: values of the function between transitions
     values: typing.Tuple[int, ...]
@@ -796,10 +796,10 @@ class Population:
 
     """
     #: How many in the population.
-    number: typing.Union[int, IntPiecewiseContant]
+    number: typing.Union[int, IntPiecewiseConstant]
 
     #: The times in which the people are in the room.
-    presence: Interval
+    presence: typing.Union[None, Interval]
 
     #: The kind of mask being worn by the people.
     mask: Mask
@@ -819,19 +819,24 @@ class Population:
         else:
             if self.presence is not None:
                 raise TypeError(f'The presence argument must be None for a IntPiecewiseConstant number')
+            
+    def presence_interval(self):
+        if isinstance(self.presence, Interval): 
+            return self.presence
+        elif isinstance(self.number, IntPiecewiseConstant): 
+            return self.number.interval()
 
     def person_present(self, time: float):
         # Allow back-compatibility
         if isinstance(self.number, int) and isinstance(self.presence, Interval):
             return self.presence.triggered(time)
-        elif isinstance(self.number, IntPiecewiseContant):
+        elif isinstance(self.number, IntPiecewiseConstant):
             return self.number.value(time) != 0
 
     def people_present(self, time: float):
         # Allow back-compatibility
         if isinstance(self.number, int):
             return self.number * self.person_present(time)
-
         else:
             return int(self.number.value(time))
 
@@ -1040,9 +1045,6 @@ class _ConcentrationModelBase:
         can be put back in front of the concentration after the time
         dependence has been solved for.
         """
-        #if not self.population.person_present(time):
-        #    return self.min_background_concentration()/self.normalization_factor()
-
         V = self.room.volume
         RR = self.removal_rate(time)
         
@@ -1056,11 +1058,9 @@ class _ConcentrationModelBase:
         the times at which their state changes.
         """
         state_change_times = {0.}
-        if isinstance(self.population.number, int) and isinstance(self.population.presence, Interval):
-            state_change_times.update(self.population.presence.transition_times())
-        elif isinstance(self.population.number, IntPiecewiseContant):
-            state_change_times.update(self.population.number.interval().transition_times())
+        state_change_times.update(self.population.presence_interval().transition_times())
         state_change_times.update(self.ventilation.transition_times(self.room))
+        
         return sorted(state_change_times)
 
     @method_cache
@@ -1068,12 +1068,8 @@ class _ConcentrationModelBase:
         """
         First presence time. Before that, the concentration is zero.
         """
-        if isinstance(self.population.number, int) and isinstance(self.population.presence, Interval):
-            first_presence = self.population.presence.boundaries()[0][0]
-        elif isinstance(self.population.number, IntPiecewiseContant):
-            first_presence = self.population.number.interval().boundaries()[0][0]
-        return first_presence            
-
+        return self.population.presence_interval().boundaries()[0][0]       
+        
     def last_state_change(self, time: float) -> float:
         """
         Find the most recent/previous state change.
@@ -1517,7 +1513,7 @@ class ExposureModel:
         by the emission rate of the infected population
         """
         exposure = 0.
-        for start, stop in self.exposed.presence.boundaries():
+        for start, stop in self.exposed.presence_interval().boundaries():
             if stop < time1:
                 continue
             elif start > time2:
@@ -1639,7 +1635,7 @@ class ExposureModel:
         The number of virus per m^3 deposited on the respiratory tract.
         """
         deposited_exposure: _VectorisedFloat = 0.0
-        for start, stop in self.exposed.presence.boundaries():
+        for start, stop in self.exposed.presence_interval().boundaries():
             deposited_exposure += self.deposited_exposure_between_bounds(start, stop)
 
         return deposited_exposure * self.repeats
@@ -1656,8 +1652,8 @@ class ExposureModel:
                 self.concentration_model.virus.transmissibility_factor)))) * 100
 
     def total_probability_rule(self) -> _VectorisedFloat:
-        if (isinstance(self.concentration_model.infected.number, IntPiecewiseContant) or 
-                isinstance(self.exposed.number, IntPiecewiseContant)):
+        if (isinstance(self.concentration_model.infected.number, IntPiecewiseConstant) or 
+                isinstance(self.exposed.number, IntPiecewiseConstant)):
                 raise NotImplementedError("Cannot compute total probability "
                         "(including incidence rate) with dynamic occupancy")
         
