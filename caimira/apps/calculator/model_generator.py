@@ -305,6 +305,36 @@ class FormData:
             if total_percentage != 100:
                 raise ValueError(f'The sum of all respiratory activities should be 100. Got {total_percentage}.')
     
+    def merge_intervals(self, exposed_interval, infected_interval):
+        stack = sorted(exposed_interval + infected_interval, reverse=True)
+        while len(stack) > 1:
+            first = stack.pop()
+            second = stack.pop()
+            if first == second: # identical intervals can be merged
+                yield first
+            elif first[1] <= second[0]: # no overlapping, yield first interval, put back second
+                yield first
+                stack.append(second)
+            elif first[0] == second[0]: # overlap at start, yield shorter, put back rest of longer
+                if first[1] > second[1]:
+                    first, second = second, first
+                yield first
+                stack.append((first[1], second[1]))
+            elif first[1] < second[1]:  # partial overlap, yield first two parts, put back rest
+                yield first[0], second[0]
+                yield second[0], first[1]
+                stack.append((first[1], second[1]))
+            else: # first[1] >= second[1] # total envelopment
+                yield first[0], second[0]
+                yield second
+                if first[1] != second[1]:
+                    stack.append((second[1], first[1]))
+
+        yield from stack # there may or may not be one element left over
+
+    def merge_total_people(self):
+        return self.total_people
+
     def initialize_room(self) -> models.Room:
         # Initializes room with volume either given directly or as product of area and height
         if self.volume_type == 'room_volume_explicit':
@@ -360,13 +390,31 @@ class FormData:
         return self.build_mc_model().build_model(size=sample_size)
 
     def build_CO2_model(self, sample_size=DEFAULT_MC_SAMPLE_SIZE) -> models.CO2ConcentrationModel:
+        infected_interval = self.infected_present_interval()
+        exposed_interval = self.exposed_present_interval()
+        total_merged_presence = list(self.merge_intervals(
+            infected_interval.present_times, # type: ignore 
+            exposed_interval.present_times, # type: ignore
+        ))
+
+        if isinstance(self.infected_people, int): # TODO when exposed occupants feature is implemented
+            total_people = self.total_people
+            total_presence = models.SpecificInterval(tuple(total_merged_presence))
+        else:
+            total_people = models.IntPiecewiseConstant(
+                transition_times=models.SpecificInterval(tuple(total_merged_presence)), 
+                values=((self.total_people) * len(total_merged_presence))
+            )
+            total_presence = None
+        
         population = mc.Population(
-            number=self.total_people,
-            presence=self.infected_present_interval(),
+            number=total_people,
+            presence=total_presence,
             mask=models.Mask.types[self.mask_type],
             activity=activity_distributions[ACTIVITIES[ACTIVITY_TYPES.index(self.activity_type)]['activity']],
             host_immunity=0.,
         )
+        
         # Builds a CO2 concentration model based on model inputs
         return mc.CO2ConcentrationModel(
             room=self.initialize_room(),
