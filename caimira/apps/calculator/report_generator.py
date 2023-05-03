@@ -20,10 +20,10 @@ from ... import dataclass_utils
 
 
 def model_start_end(model: models.ExposureModel):
-    t_start = min(model.exposed.presence.boundaries()[0][0],
-                  model.concentration_model.infected.presence.boundaries()[0][0])
-    t_end = max(model.exposed.presence.boundaries()[-1][1],
-                model.concentration_model.infected.presence.boundaries()[-1][1])
+    t_start = min(model.exposed.presence_interval().boundaries()[0][0],
+                  model.concentration_model.infected.presence_interval().boundaries()[0][0])
+    t_end = max(model.exposed.presence_interval().boundaries()[-1][1],
+                model.concentration_model.infected.presence_interval().boundaries()[-1][1])
     return t_start, t_end
 
 
@@ -137,15 +137,16 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
     prob = np.array(model.infection_probability())
     prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
     prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
-    er = np.array(model.concentration_model.infected.emission_rate_when_present()).mean()
+    er = np.array(model.concentration_model.infected.emission_rate_per_person_when_present()).mean()
     exposed_occupants = model.exposed.number
     expected_new_cases = np.array(model.expected_new_cases()).mean()
     uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(model))) if form.conditional_probability_plot else None
+    exposed_presence_intervals = [list(interval) for interval in model.exposed.presence_interval().boundaries()]
 
     return {
         "model_repr": repr(model),
         "times": list(times),
-        "exposed_presence_intervals": [list(interval) for interval in model.exposed.presence.boundaries()],
+        "exposed_presence_intervals": exposed_presence_intervals,
         "short_range_intervals": short_range_intervals,
         "short_range_expirations": short_range_expirations,
         "concentrations": concentrations,
@@ -154,12 +155,12 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
         "cumulative_doses": list(cumulative_doses),
         "long_range_cumulative_doses": list(long_range_cumulative_doses),
         "prob_inf": prob.mean(),
-        "prob_inf_sd": np.std(prob),
+        "prob_inf_sd": prob.std(),
         "prob_dist": list(prob),
         "prob_hist_count": list(prob_dist_count),
         "prob_hist_bins": list(prob_dist_bins),
         "prob_probabilistic_exposure": prob_probabilistic_exposure,
-        "emission_rate": er,
+        "emission_rate_per_person": er,
         "exposed_occupants": exposed_occupants,
         "expected_new_cases": expected_new_cases,
         "uncertainties_plot_src": uncertainties_plot_src,
