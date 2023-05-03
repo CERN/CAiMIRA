@@ -187,6 +187,23 @@ class PiecewiseConstant:
 
 
 @dataclass(frozen=True)
+class IntPiecewiseConstant(PiecewiseConstant):
+
+    #: values of the function between transitions
+    values: typing.Tuple[int, ...]
+
+    def value(self, time) -> _VectorisedFloat:
+        if time <= self.transition_times[0] or time > self.transition_times[-1]:
+            return 0
+
+        for t1, t2, value in zip(self.transition_times[:-1],
+                                 self.transition_times[1:], self.values):
+            if t1 < time <= t2:
+                break
+        return value
+
+
+@dataclass(frozen=True)
 class Room:
     #: The total volume of the room
     volume: _VectorisedFloat
@@ -779,10 +796,10 @@ class Population:
 
     """
     #: How many in the population.
-    number: int
+    number: typing.Union[int, IntPiecewiseConstant]
 
     #: The times in which the people are in the room.
-    presence: Interval
+    presence: typing.Union[None, Interval]
 
     #: The kind of mask being worn by the people.
     mask: Mask
@@ -795,8 +812,33 @@ class Population:
     # which might render inactive some RNA copies (virions).
     host_immunity: float
 
-    def person_present(self, time):
-        return self.presence.triggered(time)
+    def __post_init__(self):
+        if isinstance(self.number, int):
+            if not isinstance(self.presence, Interval):
+                raise TypeError(f'The presence argument must be an "Interval". Got {type(self.presence)}')
+        else:
+            if self.presence is not None:
+                raise TypeError(f'The presence argument must be None for a IntPiecewiseConstant number')
+            
+    def presence_interval(self):
+        if isinstance(self.presence, Interval): 
+            return self.presence
+        elif isinstance(self.number, IntPiecewiseConstant): 
+            return self.number.interval()
+
+    def person_present(self, time: float):
+        # Allow back-compatibility
+        if isinstance(self.number, int) and isinstance(self.presence, Interval):
+            return self.presence.triggered(time)
+        elif isinstance(self.number, IntPiecewiseConstant):
+            return self.number.value(time) != 0
+
+    def people_present(self, time: float):
+        # Allow back-compatibility
+        if isinstance(self.number, int):
+            return self.number * self.person_present(time)
+        else:
+            return int(self.number.value(time))
 
 
 @dataclass(frozen=True)
@@ -818,22 +860,22 @@ class _PopulationWithVirus(Population):
         """
         raise NotImplementedError("Subclass must implement")
 
-    def emission_rate_per_aerosol_when_present(self) -> _VectorisedFloat:
+    def emission_rate_per_aerosol_per_person_when_present(self) -> _VectorisedFloat:
         """
         The emission rate of virions in the expired air per mL of respiratory fluid, 
-        if the infected population is present, in (virion.cm^3)/(mL.h).
+        per person, if the infected population is present, in (virion.cm^3)/(mL.h).
         This method includes only the diameter-independent variables within the emission rate.
         It should not be a function of time.
         """
         raise NotImplementedError("Subclass must implement")
 
     @method_cache
-    def emission_rate_when_present(self) -> _VectorisedFloat:
+    def emission_rate_per_person_when_present(self) -> _VectorisedFloat:
         """
-        The emission rate if the infected population is present
+        The emission rate if the infected population is present, per person
         (in virions / h).
         """
-        return (self.emission_rate_per_aerosol_when_present() *
+        return (self.emission_rate_per_aerosol_per_person_when_present() *
                 self.aerosols())
 
     def emission_rate(self, time) -> _VectorisedFloat:
@@ -850,8 +892,7 @@ class _PopulationWithVirus(Population):
         # itself a function of time. Any change in rate must be accompanied
         # with a declaration of state change time, as is the case for things
         # like Ventilation.
-
-        return self.emission_rate_when_present()
+        return self.emission_rate_per_person_when_present() * self.people_present(time)
 
     @property
     def particle(self) -> Particle:
@@ -875,14 +916,14 @@ class EmittingPopulation(_PopulationWithVirus):
         return 1.
 
     @method_cache
-    def emission_rate_per_aerosol_when_present(self) -> _VectorisedFloat:
+    def emission_rate_per_aerosol_per_person_when_present(self) -> _VectorisedFloat:
         """
         The emission rate of virions in the expired air per mL of respiratory fluid, 
-        if the infected population is present, in (virion.cm^3)/(mL.h).
+        per person, if the infected population is present, in (virion.cm^3)/(mL.h).
         This method includes only the diameter-independent variables within the emission rate.
         It should not be a function of time.
         """
-        return self.known_individual_emission_rate * self.number
+        return self.known_individual_emission_rate
 
 
 @dataclass(frozen=True)
@@ -904,7 +945,7 @@ class InfectedPopulation(_PopulationWithVirus):
         return self.expiration.aerosols(self.mask)
 
     @method_cache
-    def emission_rate_per_aerosol_when_present(self) -> _VectorisedFloat:
+    def emission_rate_per_aerosol_per_person_when_present(self) -> _VectorisedFloat:
         """
         The emission rate of virions in the expired air per mL of respiratory fluid, 
         if the infected population is present, in (virion.cm^3)/(mL.h).
@@ -917,8 +958,7 @@ class InfectedPopulation(_PopulationWithVirus):
         ER = (self.virus.viral_load_in_sputum *
               self.activity.exhalation_rate *
               10 ** 6)
-
-        return ER * self.number
+        return ER
 
     @property
     def particle(self) -> Particle:
@@ -1005,13 +1045,11 @@ class _ConcentrationModelBase:
         can be put back in front of the concentration after the time
         dependence has been solved for.
         """
-        if not self.population.person_present(time):
-            return self.min_background_concentration()/self.normalization_factor()
         V = self.room.volume
         RR = self.removal_rate(time)
         
-        return (1. / (RR * V) + self.min_background_concentration()/
-                self.normalization_factor())
+        return (self.population.people_present(time) / (RR * V) +
+                self.min_background_concentration()/self.normalization_factor())
 
     @method_cache
     def state_change_times(self) -> typing.List[float]:
@@ -1020,8 +1058,9 @@ class _ConcentrationModelBase:
         the times at which their state changes.
         """
         state_change_times = {0.}
-        state_change_times.update(self.population.presence.transition_times())
+        state_change_times.update(self.population.presence_interval().transition_times())
         state_change_times.update(self.ventilation.transition_times(self.room))
+        
         return sorted(state_change_times)
 
     @method_cache
@@ -1029,8 +1068,8 @@ class _ConcentrationModelBase:
         """
         First presence time. Before that, the concentration is zero.
         """
-        return self.population.presence.boundaries()[0][0]
-
+        return self.population.presence_interval().boundaries()[0][0]       
+        
     def last_state_change(self, time: float) -> float:
         """
         Find the most recent/previous state change.
@@ -1083,7 +1122,9 @@ class _ConcentrationModelBase:
         # before the first presence as an optimisation.
         if time <= self._first_presence_time():
             return self.min_background_concentration()/self.normalization_factor()
+        
         next_state_change_time = self._next_state_change(time)
+
         RR = self.removal_rate(next_state_change_time)
         # If RR is 0, conc_limit does not play a role but its computation 
         # would raise an error -> we set it to zero.
@@ -1097,6 +1138,7 @@ class _ConcentrationModelBase:
 
         delta_time = time - t_last_state_change
         fac = np.exp(-RR * delta_time)
+
         return conc_limit * (1 - fac) + conc_at_last_state_change * fac
 
     def concentration(self, time: float) -> _VectorisedFloat:
@@ -1172,7 +1214,7 @@ class ConcentrationModel(_ConcentrationModelBase):
 
     def normalization_factor(self) -> _VectorisedFloat:
         # we normalize by the emission rate
-        return self.infected.emission_rate_when_present()
+        return self.infected.emission_rate_per_person_when_present()
 
     def removal_rate(self, time: float) -> _VectorisedFloat:
         # Equilibrium velocity of particle motion toward the floor
@@ -1221,10 +1263,9 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         return self.CO2_atmosphere_concentration
 
     def normalization_factor(self) -> _VectorisedFloat:
-        # normalization by the CO2 exhaled.
+        # normalization by the CO2 exhaled per person.
         # CO2 concentration given in ppm, hence the 1e6 factor.
-        return (1e6*self.population.number
-                *self.population.activity.exhalation_rate
+        return (1e6*self.population.activity.exhalation_rate
                 *self.CO2_fraction_exhaled)
 
 
@@ -1451,8 +1492,11 @@ class ExposureModel:
             and not (
                 all(np.isscalar(c_model.virus.decay_constant(c_model.room.humidity, c_model.room.inside_temp.value(time)) + 
                 c_model.ventilation.air_exchange(c_model.room, time)) for time in c_model.state_change_times()))):
-                    raise ValueError("If the diameter is an array, none of the ventilation parameters "
-                                    "or virus decay constant can be arrays at the same time.")
+            raise ValueError("If the diameter is an array, none of the ventilation parameters "
+                             "or virus decay constant can be arrays at the same time.")
+        if not isinstance(self.exposed.number, int):
+            raise NotImplementedError("Cannot use dynamic occupancy for"
+                                      " the exposed population")
 
     def long_range_fraction_deposited(self) -> _VectorisedFloat:
         """
@@ -1469,7 +1513,7 @@ class ExposureModel:
         by the emission rate of the infected population
         """
         exposure = 0.
-        for start, stop in self.exposed.presence.boundaries():
+        for start, stop in self.exposed.presence_interval().boundaries():
             if stop < time1:
                 continue
             elif start > time2:
@@ -1499,7 +1543,8 @@ class ExposureModel:
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         deposited_exposure = 0.
 
-        emission_rate_per_aerosol = self.concentration_model.infected.emission_rate_per_aerosol_when_present()
+        emission_rate_per_aerosol_per_person = \
+            self.concentration_model.infected.emission_rate_per_aerosol_per_person_when_present()
         aerosols = self.concentration_model.infected.aerosols()
         f_inf = self.concentration_model.infected.fraction_of_infectious_virus()
         fdep = self.long_range_fraction_deposited()
@@ -1519,10 +1564,11 @@ class ExposureModel:
             # one should not take any mean at this stage.
             dep_exposure_integrated = self._long_range_normed_exposure_between_bounds(time1, time2)*aerosols*fdep
 
-        # Then we multiply by the diameter-independent quantity emission_rate_per_aerosol,
+        # Then we multiply by the diameter-independent quantity emission_rate_per_aerosol_per_person,
         # and parameters of the vD equation (i.e. BR_k and n_in).
-        deposited_exposure += (dep_exposure_integrated * emission_rate_per_aerosol * 
-                self.exposed.activity.inhalation_rate * 
+        deposited_exposure += (dep_exposure_integrated *
+                emission_rate_per_aerosol_per_person *
+                self.exposed.activity.inhalation_rate *
                 (1 - self.exposed.mask.inhale_efficiency()))
 
         # In the end we multiply the final results by the fraction of infectious virus of the vD equation.
@@ -1589,8 +1635,7 @@ class ExposureModel:
         The number of virus per m^3 deposited on the respiratory tract.
         """
         deposited_exposure: _VectorisedFloat = 0.0
-
-        for start, stop in self.exposed.presence.boundaries():
+        for start, stop in self.exposed.presence_interval().boundaries():
             deposited_exposure += self.deposited_exposure_between_bounds(start, stop)
 
         return deposited_exposure * self.repeats
@@ -1607,11 +1652,17 @@ class ExposureModel:
                 self.concentration_model.virus.transmissibility_factor)))) * 100
 
     def total_probability_rule(self) -> _VectorisedFloat:
+        if (isinstance(self.concentration_model.infected.number, IntPiecewiseConstant) or 
+                isinstance(self.exposed.number, IntPiecewiseConstant)):
+                raise NotImplementedError("Cannot compute total probability "
+                        "(including incidence rate) with dynamic occupancy")
+        
         if (self.geographical_data.geographic_population != 0 and self.geographical_data.geographic_cases != 0): 
             sum_probability = 0.0
+
             # Create an equivalent exposure model but changing the number of infected cases.
             total_people = self.concentration_model.infected.number + self.exposed.number
-            max_num_infected = (total_people if total_people < 10 else 10) 
+            max_num_infected = (total_people if total_people < 10 else 10)
             # The influence of a higher number of simultainious infected people (> 4 - 5) yields an almost negligible contirbution to the total probability. 
             # To be on the safe side, a hard coded limit with a safety margin of 2x was set.
             # Therefore we decided a hard limit of 10 infected people.
