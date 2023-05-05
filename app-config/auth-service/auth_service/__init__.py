@@ -57,7 +57,7 @@ class Authentication(BaseHandler, OIDCClientMixin):
         async with self.get_oidc_client() as oidc_cli:
             redirect_uri = f'{self.request.protocol}://{self.request.host}/auth/authorize'
             LOG.info(f'Redirecting to the authorization url. Will return to {redirect_uri}')
-            return self.redirect(oidc_cli.authorization_url(redirect_uri=redirect_uri))
+            return self.redirect(oidc_cli.authorization_url(redirect_uri=redirect_uri, scope="openid"))
 
 
 class Authorization(BaseHandler, OIDCClientMixin):
