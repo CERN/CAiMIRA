@@ -284,7 +284,7 @@
                       key: ARVE_API_KEY
                       name: arve-api
                 - name: EXTRA_PAGES
-                  value: [{"url":"/about","filename":"about","is_root":True},{"url":"/user-guide","filename":"userguide","is_root":False}]
+                  value: '[{"url":"/about","filename":"about","is_root":True},{"url":"/user-guide","filename":"userguide","is_root":False}]'
                 image: '${PROJECT_NAME}/calculator-app'
                 ports:
                   - containerPort: 8080
