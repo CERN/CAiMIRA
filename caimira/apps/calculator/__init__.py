@@ -16,6 +16,7 @@ import traceback
 import typing
 import uuid
 import zlib
+import ast
 
 import jinja2
 import loky
@@ -201,20 +202,6 @@ class LandingPage(BaseRequestHandler):
         self.finish(report)
 
 
-class AboutPage(BaseRequestHandler):
-    def get(self):
-        template_environment = self.settings["template_environment"]
-        template = template_environment.get_template("about.html.j2")
-        report = template.render(
-            user=self.current_user,
-            get_url = template.globals['get_url'],
-            get_calculator_url = template.globals["get_calculator_url"],
-            active_page="about",
-            text_blocks=template_environment.globals["common_text"]
-        )
-        self.finish(report)
-
-
 class CalculatorForm(BaseRequestHandler):
     def get(self):
         template_environment = self.settings["template_environment"]
@@ -242,20 +229,6 @@ class CompressedCalculatorFormInputs(BaseRequestHandler):
             return self.finish("Invalid calculator data: it seems incomplete. Was there an error copying & pasting the URL?")
         template_environment = self.settings["template_environment"]
         self.redirect(f'{template_environment.globals["get_calculator_url"]()}?{args}')
-        
-
-class ReadmeHandler(BaseRequestHandler):
-    def get(self):
-        template_environment = self.settings["template_environment"]
-        template = template_environment.get_template("userguide.html.j2")
-        readme = template.render(
-            active_page="calculator/user-guide",
-            user=self.current_user,
-            get_url = template.globals['get_url'],
-            get_calculator_url = template.globals["get_calculator_url"],
-            text_blocks=template_environment.globals["common_text"],
-        )
-        self.finish(readme)
 
 
 class ArveData(BaseRequestHandler):
@@ -345,6 +318,25 @@ class CasesData(BaseRequestHandler):
         return self.finish(str(round(cases.loc[eight_days_ago:current_date]['New_cases'].mean())))
     
 
+class GenericExtraPage(BaseRequestHandler):
+
+    def initialize(self, active_page: str, filename: str):
+        self.active_page = active_page
+        # The endpoint that will be used as template name
+        self.filename = filename
+
+    def get(self):
+        template_environment = self.settings["template_environment"]
+        template = template_environment.get_template(f"{self.filename}.html.j2")
+        self.finish(template.render(
+            user=self.current_user,
+            get_url = template.globals['get_url'],
+            get_calculator_url = template.globals["get_calculator_url"],
+            active_page=self.active_page,
+            text_blocks=template_environment.globals["common_text"]
+        ))
+
+
 def get_url(app_root: str, relative_path: str = '/'):
         return app_root.rstrip('/') + relative_path.rstrip('/')
 
@@ -363,20 +355,35 @@ def make_app(
     get_root_url = functools.partial(get_url, APPLICATION_ROOT)
     get_root_calculator_url = functools.partial(get_calculator_url, APPLICATION_ROOT, calculator_prefix)
 
-    urls: typing.Any = [
+    urls: typing.List = [
         (get_root_url(r'/?'), LandingPage),
         (get_root_url(r'/_c/(.*)'), CompressedCalculatorFormInputs),
-        (get_root_url(r'/about'), AboutPage),
         (get_root_url(r'/static/(.*)'), StaticFileHandler, {'path': static_dir}),
         (get_root_calculator_url(r'/?'), CalculatorForm),
         (get_root_calculator_url(r'/report'), ConcentrationModel),
         (get_root_calculator_url(r'/report-json'), ConcentrationModelJsonResponse),
         (get_root_calculator_url(r'/baseline-model/result'), StaticModel),
-        (get_root_calculator_url(r'/user-guide'), ReadmeHandler),
         (get_root_calculator_url(r'/api/arve/v1/(.*)/(.*)'), ArveData),
         (get_root_calculator_url(r'/cases/(.*)'), CasesData),
         (get_root_calculator_url(r'/static/(.*)'), StaticFileHandler, {'path': calculator_static_dir}),
     ]
+
+    # Any extra generic page must be declared in the env. variable "EXTRA_PAGES"
+    extra_pages=os.environ.get('EXTRA_PAGES', None)
+    try:
+        for extra in ast.literal_eval(extra_pages): # type: ignore
+            if extra['is_root']:
+                urls.append((get_root_url(r'%s' % extra['url']), 
+                             GenericExtraPage, {
+                                 'active_page': extra['url'].strip('/'),
+                                 'filename': extra['filename'], }))
+            else:
+                urls.append((get_root_calculator_url(r'%s' % extra['url']), 
+                             GenericExtraPage, {
+                                 'active_page': 'calculator/' + extra['url'].strip('/'),
+                                 'filename': extra['filename'], }))
+    except (SyntaxError, ValueError):
+        pass
 
     caimira_templates = Path(__file__).parent.parent / "templates"
     calculator_templates = Path(__file__).parent / "templates"
@@ -401,8 +408,6 @@ def make_app(
     return Application(
         urls,
         debug=debug,
-        # calculator_prefix=calculator_prefix,
-        # APPLICATION_ROOT=APPLICATION_ROOT,
         template_environment=template_environment,
         default_handler_class=Missing404Handler,
         report_generator=ReportGenerator(loader, get_root_url, get_root_calculator_url),
