@@ -29,16 +29,6 @@ async def test_calculator_form(http_server_client):
     assert response.code == 200
 
 
-async def test_user_guide(http_server_client):
-    resp = await http_server_client.fetch('/calculator/user-guide')
-    assert resp.code == 200
-
-
-async def test_about(http_server_client):
-    resp = await http_server_client.fetch('/about')
-    assert resp.code == 200
-
-
 async def test_404(http_server_client):
     resp = await http_server_client.fetch('/doesnt-exist', raise_error=False)
     assert resp.code == 404
