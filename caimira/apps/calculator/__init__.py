@@ -374,6 +374,7 @@ def make_app(
 
     # Any extra generic page must be declared in the env. variable "EXTRA_PAGES"
     extra_pages: typing.Union[str, typing.List] = os.environ.get('EXTRA_PAGES', [])
+    pages: typing.List = []
     try:
         pages = ast.literal_eval(extra_pages) # type: ignore
     except (SyntaxError, ValueError):
