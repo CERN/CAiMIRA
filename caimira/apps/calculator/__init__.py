@@ -1,6 +1,8 @@
 # This module is part of CAiMIRA. Please see the repository at
 # https://gitlab.cern.ch/caimira/caimira for details of the license and terms of use.
 
+import ast
+import logging
 import asyncio
 import concurrent.futures
 import datetime
@@ -16,7 +18,7 @@ import traceback
 import typing
 import uuid
 import zlib
-import ast
+
 
 import jinja2
 import loky
@@ -37,6 +39,8 @@ from .user import AuthenticatedUser, AnonymousUser
 # form attributes) then it can also increase its MAJOR version without needing to
 # increase the overall CAiMIRA version (found at ``caimira.__version__``).
 __version__ = "4.9"
+
+LOG = logging.getLogger(__name__)
 
 
 class BaseRequestHandler(RequestHandler):
@@ -327,7 +331,7 @@ class GenericExtraPage(BaseRequestHandler):
 
     def get(self):
         template_environment = self.settings["template_environment"]
-        template = template_environment.get_template(f"{self.filename}.html.j2")
+        template = template_environment.get_template(self.filename)
         self.finish(template.render(
             user=self.current_user,
             get_url = template.globals['get_url'],
@@ -369,21 +373,18 @@ def make_app(
     ]
 
     # Any extra generic page must be declared in the env. variable "EXTRA_PAGES"
-    extra_pages=os.environ.get('EXTRA_PAGES', None)
+    extra_pages: typing.Union[str, typing.List] = os.environ.get('EXTRA_PAGES', [])
     try:
-        for extra in ast.literal_eval(extra_pages): # type: ignore
-            if extra['is_root']:
-                urls.append((get_root_url(r'%s' % extra['url']), 
-                             GenericExtraPage, {
-                                 'active_page': extra['url'].strip('/'),
-                                 'filename': extra['filename'], }))
-            else:
-                urls.append((get_root_calculator_url(r'%s' % extra['url']), 
-                             GenericExtraPage, {
-                                 'active_page': 'calculator/' + extra['url'].strip('/'),
-                                 'filename': extra['filename'], }))
+        pages = ast.literal_eval(extra_pages) # type: ignore
     except (SyntaxError, ValueError):
+        LOG.warning('Warning: There was a problem with the extra pages. Is the "EXTRA_PAGES" environment variable correctly defined?')
         pass
+
+    for extra in pages:
+        urls.append((get_root_url(r'%s' % extra['url_path']), 
+                        GenericExtraPage, {
+                            'active_page': extra['url_path'].strip('/'),
+                            'filename': extra['filename'], }))
 
     caimira_templates = Path(__file__).parent.parent / "templates"
     calculator_templates = Path(__file__).parent / "templates"
