@@ -144,8 +144,8 @@ class TestCERNGenericPage(tornado.testing.AsyncHTTPTestCase):
         cern_theme = Path(caimira.apps.calculator.__file__).parent.parent / 'themes' / 'cern'
         app = caimira.apps.calculator.make_app(theme_dir=cern_theme)
         pages = [
-            (r'/calculator/user-guide', caimira.apps.calculator.GenericExtraPage, {'active_page': 'userguide', 'filename': 'userguide'}),
-            (r'/about', caimira.apps.calculator.GenericExtraPage, {'active_page': 'about', 'filename': 'about'}),
+            (r'/calculator/user-guide', caimira.apps.calculator.GenericExtraPage, {'active_page': 'calculator/user-guide', 'filename': 'userguide.html.j2'}),
+            (r'/about', caimira.apps.calculator.GenericExtraPage, {'active_page': 'about', 'filename': 'about.html.j2'}),
         ]
 
         return tornado.web.Application(pages, **app.settings)
