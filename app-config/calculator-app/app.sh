@@ -21,6 +21,8 @@ if [[ "$APP_NAME" == "calculator-app" ]]; then
     export "ARVE_CLIENT_ID"="$ARVE_CLIENT_ID"
     export "ARVE_CLIENT_SECRET"="$ARVE_CLIENT_SECRET"
 
+    export "EXTRA_PAGES"="$EXTRA_PAGES"
+
     echo "Starting the caimira webservice with: python -m caimira.apps.calculator ${args[@]}"
     python -m caimira.apps.calculator "${args[@]}"
 elif [[ "$APP_NAME" == "caimira-voila" ]]; then
