@@ -359,18 +359,31 @@ def make_app(
     get_root_url = functools.partial(get_url, APPLICATION_ROOT)
     get_root_calculator_url = functools.partial(get_calculator_url, APPLICATION_ROOT, calculator_prefix)
 
-    urls: typing.List = [
+    base_urls: typing.List = [
         (get_root_url(r'/?'), LandingPage),
-        (get_root_url(r'/_c/(.*)'), CompressedCalculatorFormInputs),
-        (get_root_url(r'/static/(.*)'), StaticFileHandler, {'path': static_dir}),
         (get_root_calculator_url(r'/?'), CalculatorForm),
         (get_root_calculator_url(r'/report'), ConcentrationModel),
+        (get_root_calculator_url(r'/static/(.*)'), StaticFileHandler, {'path': calculator_static_dir}),
+    ] 
+
+    urls: typing.List = base_urls + [
+        (get_root_url(r'/_c/(.*)'), CompressedCalculatorFormInputs),
+        (get_root_url(r'/static/(.*)'), StaticFileHandler, {'path': static_dir}),
         (get_root_calculator_url(r'/report-json'), ConcentrationModelJsonResponse),
         (get_root_calculator_url(r'/baseline-model/result'), StaticModel),
         (get_root_calculator_url(r'/api/arve/v1/(.*)/(.*)'), ArveData),
         (get_root_calculator_url(r'/cases/(.*)'), CasesData),
-        (get_root_calculator_url(r'/static/(.*)'), StaticFileHandler, {'path': calculator_static_dir}),
+        # Generic Pages
+        (get_root_url(r'/about'), GenericExtraPage, {
+            'active_page': 'about',
+            'filename': 'about.html.j2'}),
+        (get_root_calculator_url(r'/user-guide'), GenericExtraPage, {
+            'active_page': 'calculator/user-guide', 
+            'filename': 'userguide.html.j2'}),
     ]
+    
+    interface: str = os.environ.get('CAIMIRA_THEME', '<undefined>')
+    if interface != '<undefined>' and (interface != '<undefined>' or 'cern' not in interface): urls = list(filter(lambda i: i in base_urls, urls))
 
     # Any extra generic page must be declared in the env. variable "EXTRA_PAGES"
     extra_pages: typing.Union[str, typing.List] = os.environ.get('EXTRA_PAGES', [])
@@ -378,7 +391,7 @@ def make_app(
     try:
         pages = ast.literal_eval(extra_pages) # type: ignore
     except (SyntaxError, ValueError):
-        LOG.warning('Warning: There was a problem with the extra pages. Is the "EXTRA_PAGES" environment variable correctly defined?')
+        LOG.warning('Warning: There was a problem with the extra pages. Is the "EXTRA_PAGES" environment variable defined?')
         pass
 
     for extra in pages:
