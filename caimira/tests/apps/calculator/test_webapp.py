@@ -29,16 +29,6 @@ async def test_calculator_form(http_server_client):
     assert response.code == 200
 
 
-async def test_user_guide(http_server_client):
-    resp = await http_server_client.fetch('/calculator/user-guide')
-    assert resp.code == 200
-
-
-async def test_about(http_server_client):
-    resp = await http_server_client.fetch('/about')
-    assert resp.code == 200
-
-
 async def test_404(http_server_client):
     resp = await http_server_client.fetch('/doesnt-exist', raise_error=False)
     assert resp.code == 404
@@ -147,3 +137,29 @@ class TestError500(tornado.testing.AsyncHTTPTestCase):
         response = self.fetch('/')
         assert response.code == 500
         assert 'Unfortunately an error occurred when processing your request' in response.body.decode()
+
+
+class TestCERNGenericPage(tornado.testing.AsyncHTTPTestCase):
+    def get_app(self):
+        cern_theme = Path(caimira.apps.calculator.__file__).parent.parent / 'themes' / 'cern'
+        app = caimira.apps.calculator.make_app(theme_dir=cern_theme)
+        pages = [
+            (r'/calculator/user-guide', caimira.apps.calculator.GenericExtraPage, {'active_page': 'calculator/user-guide', 'filename': 'userguide.html.j2'}),
+            (r'/about', caimira.apps.calculator.GenericExtraPage, {'active_page': 'about', 'filename': 'about.html.j2'}),
+        ]
+
+        return tornado.web.Application(pages, **app.settings)
+    
+    @tornado.testing.gen_test(timeout=_TIMEOUT)
+    def test_user_guide(self):
+        response = yield self.http_client.fetch(self.get_url('/calculator/user-guide'))
+        self.assertEqual(response.code, 200)
+
+    @tornado.testing.gen_test(timeout=_TIMEOUT)
+    def test_about(self):
+        response = yield self.http_client.fetch(self.get_url('/about'))
+        self.assertEqual(response.code, 200)
+
+    def test_calculator_404(self):
+        response = self.fetch('/calculator')
+        assert response.code == 404
