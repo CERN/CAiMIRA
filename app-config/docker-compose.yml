@@ -20,7 +20,6 @@ services:
       - APPLICATION_ROOT=/
       - CAIMIRA_CALCULATOR_PREFIX=/calculator-cern
       - CAIMIRA_THEME=caimira/apps/templates/cern
-      - EXTRA_PAGES=[{"url_path":"/about","filename":"about.html.j2"},{"url_path":"/calculator-cern/user-guide","filename":"userguide.html.j2"}]
     user: ${CURRENT_UID}
 
   calculator-open-app:
@@ -30,7 +29,6 @@ services:
       - APP_NAME=calculator-app
       - APPLICATION_ROOT=/
       - CAIMIRA_CALCULATOR_PREFIX=/calculator-open
-      - EXTRA_PAGES=[{"url_path":"/about","filename":"about.html.j2"},{"url_path":"/calculator-open/user-guide","filename":"userguide.html.j2"}]
     user: ${CURRENT_UID}
 
   auth-service:
