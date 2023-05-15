@@ -383,7 +383,7 @@ def make_app(
     ]
     
     interface: str = os.environ.get('CAIMIRA_THEME', '<undefined>')
-    if interface != '<undefined>' and (interface != '<undefined>' or 'cern' not in interface): urls = list(filter(lambda i: i in base_urls, urls))
+    if interface != '<undefined>' and (interface != '<undefined>' and 'cern' not in interface): urls = list(filter(lambda i: i in base_urls, urls))
 
     # Any extra generic page must be declared in the env. variable "EXTRA_PAGES"
     extra_pages: typing.Union[str, typing.List] = os.environ.get('EXTRA_PAGES', [])
