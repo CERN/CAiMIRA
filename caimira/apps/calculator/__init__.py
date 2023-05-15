@@ -363,12 +363,12 @@ def make_app(
         (get_root_url(r'/?'), LandingPage),
         (get_root_calculator_url(r'/?'), CalculatorForm),
         (get_root_calculator_url(r'/report'), ConcentrationModel),
+        (get_root_url(r'/static/(.*)'), StaticFileHandler, {'path': static_dir}),
         (get_root_calculator_url(r'/static/(.*)'), StaticFileHandler, {'path': calculator_static_dir}),
     ] 
 
     urls: typing.List = base_urls + [
         (get_root_url(r'/_c/(.*)'), CompressedCalculatorFormInputs),
-        (get_root_url(r'/static/(.*)'), StaticFileHandler, {'path': static_dir}),
         (get_root_calculator_url(r'/report-json'), ConcentrationModelJsonResponse),
         (get_root_calculator_url(r'/baseline-model/result'), StaticModel),
         (get_root_calculator_url(r'/api/arve/v1/(.*)/(.*)'), ArveData),
@@ -383,7 +383,7 @@ def make_app(
     ]
     
     interface: str = os.environ.get('CAIMIRA_THEME', '<undefined>')
-    if interface != '<undefined>' and (interface != '<undefined>' or 'cern' not in interface): urls = list(filter(lambda i: i in base_urls, urls))
+    if interface != '<undefined>' and (interface != '<undefined>' and 'cern' not in interface): urls = list(filter(lambda i: i in base_urls, urls))
 
     # Any extra generic page must be declared in the env. variable "EXTRA_PAGES"
     extra_pages: typing.Union[str, typing.List] = os.environ.get('EXTRA_PAGES', [])
