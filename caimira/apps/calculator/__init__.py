@@ -363,12 +363,12 @@ def make_app(
         (get_root_url(r'/?'), LandingPage),
         (get_root_calculator_url(r'/?'), CalculatorForm),
         (get_root_calculator_url(r'/report'), ConcentrationModel),
+        (get_root_url(r'/static/(.*)'), StaticFileHandler, {'path': static_dir}),
         (get_root_calculator_url(r'/static/(.*)'), StaticFileHandler, {'path': calculator_static_dir}),
     ] 
 
     urls: typing.List = base_urls + [
         (get_root_url(r'/_c/(.*)'), CompressedCalculatorFormInputs),
-        (get_root_url(r'/static/(.*)'), StaticFileHandler, {'path': static_dir}),
         (get_root_calculator_url(r'/report-json'), ConcentrationModelJsonResponse),
         (get_root_calculator_url(r'/baseline-model/result'), StaticModel),
         (get_root_calculator_url(r'/api/arve/v1/(.*)/(.*)'), ArveData),
