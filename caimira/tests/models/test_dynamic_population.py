@@ -27,7 +27,7 @@ def full_exposure_model():
         short_range=(),
         exposed=models.Population(
             number=10,
-            presence=models.SpecificInterval(((8, 12), (13, 17), )), 
+            presence=models.SpecificInterval(((8, 12), (13, 17), )),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Seated'],
             host_immunity=0.
@@ -51,35 +51,9 @@ def baseline_infected_population_number():
 
 
 @pytest.fixture
-def baseline_exposed_population_number():
-    return models.Population(
-        number=models.IntPiecewiseConstant(
-            (8, 12, 13, 17), (10, 0, 10)),
-        presence=None,
-        mask=models.Mask.types['No mask'],
-        activity=models.Activity.types['Seated'],
-        host_immunity=0.,
-    )
-
-
-@pytest.fixture
-def dynamic_infected_single_exposure_model(full_exposure_model, baseline_infected_population_number):
+def dynamic_single_exposure_model(full_exposure_model, baseline_infected_population_number):
     return dc_utils.nested_replace(full_exposure_model,
         {'concentration_model.infected': baseline_infected_population_number, })
-
-
-@pytest.fixture
-def dynamic_exposed_single_exposure_model(full_exposure_model, baseline_exposed_population_number):
-    return dc_utils.nested_replace(full_exposure_model,
-        {'exposed': baseline_exposed_population_number, })
-
-
-@pytest.fixture
-def dynamic_population_exposure_model(full_exposure_model, baseline_infected_population_number ,baseline_exposed_population_number):
-    return dc_utils.nested_replace(full_exposure_model, {
-            'concentration_model.infected': baseline_infected_population_number, 
-            'exposed': baseline_exposed_population_number,
-    })
 
 
 @pytest.mark.parametrize(
@@ -117,16 +91,16 @@ def test_population_number(full_exposure_model: models.ExposureModel,
     [4., 8., 10., 12., 13., 14., 16., 20., 24.],
 )
 def test_concentration_model_dynamic_population(full_exposure_model: models.ExposureModel,
-                                                dynamic_infected_single_exposure_model: models.ExposureModel,
+                                                dynamic_single_exposure_model: models.ExposureModel,
                                                 time: float):
 
-    assert full_exposure_model.concentration(time) == dynamic_infected_single_exposure_model.concentration(time)
+    assert full_exposure_model.concentration(time) == dynamic_single_exposure_model.concentration(time)
 
 
 @pytest.mark.parametrize("number_of_infected",[1, 2, 3, 4, 5])
 @pytest.mark.parametrize("time",[9., 12.5, 16.])
 def test_linearity_with_number_of_infected(full_exposure_model: models.ExposureModel,
-                        dynamic_infected_single_exposure_model: models.ExposureModel,
+                        dynamic_single_exposure_model: models.ExposureModel,
                         time: float,
                         number_of_infected: int):
     
@@ -138,8 +112,8 @@ def test_linearity_with_number_of_infected(full_exposure_model: models.ExposureM
         }
     )
 
-    npt.assert_almost_equal(static_multiple_exposure_model.concentration(time), dynamic_infected_single_exposure_model.concentration(time) * number_of_infected)
-    npt.assert_almost_equal(static_multiple_exposure_model.deposited_exposure(), dynamic_infected_single_exposure_model.deposited_exposure() * number_of_infected)
+    npt.assert_almost_equal(static_multiple_exposure_model.concentration(time), dynamic_single_exposure_model.concentration(time) * number_of_infected)
+    npt.assert_almost_equal(static_multiple_exposure_model.deposited_exposure(), dynamic_single_exposure_model.deposited_exposure() * number_of_infected)
 
 
 @pytest.mark.parametrize(

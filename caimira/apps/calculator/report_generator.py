@@ -150,6 +150,11 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
                                     zip(('viral_loads', 'pi_means', 'lower_percentiles', 'upper_percentiles'), 
                                         manufacture_conditional_probability_data(model, prob))}
 
+    CO2_times = list(form.CO2_data['times']) if form.CO2_data_option else []
+    CO2_values = list(form.CO2_data['CO2']) if form.CO2_data_option else []
+    ex, airs = model.CO2_profile.CO2_fit_params()
+    co2_plot = img2base64(_figure2bytes(CO2_plot(CO2_times, CO2_values))) if form.CO2_data_option else None
+
     return {
         "model_repr": repr(model),
         "times": list(times),
