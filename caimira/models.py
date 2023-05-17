@@ -38,6 +38,7 @@ import typing
 import numpy as np
 from scipy.interpolate import interp1d
 import scipy.stats as sct
+from scipy.optimize import minimize
 
 if not typing.TYPE_CHECKING:
     from memoization import cached
@@ -438,6 +439,18 @@ class AirChange(Ventilation):
             return 0.
         # Reminder, no dependence on time in the resulting calculation.
         return self.air_exch
+
+
+@dataclass(frozen=True)
+class CustomVentilation(_VentilationBase):
+    # The ventilation value for a given time
+    ventilation_value: PiecewiseConstant
+
+    def transition_times(self, room: Room) -> typing.Set[float]:
+        return self.ventilation_value.transition_times
+    
+    def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
+        return self.ventilation_value.value(time)
 
 
 @dataclass(frozen=True)
@@ -1473,6 +1486,63 @@ class ShortRangeModel:
 
 
 @dataclass(frozen=True)
+class CO2Data:
+    # TODO - docstring
+    room_volume: float
+    number: typing.Union[int, IntPiecewiseConstant]
+    presence: typing.Optional[Interval]
+    ventilation_transition_times: typing.Tuple[float, ...]
+    times: typing.Sequence[float]
+    CO2_concentrations: typing.Sequence[float]
+
+    def CO2_concentrations_from_params(self,
+                                exhalation_rate: float,
+                                ventilation_values: typing.Tuple[float, ...]) -> typing.List[float]:
+
+        CO2_concentrations = CO2ConcentrationModel(
+            room=Room(volume=self.room_volume),
+            ventilation=CustomVentilation(PiecewiseConstant(
+                self.ventilation_transition_times, ventilation_values)),
+            CO2_emitters=Population(
+                number=self.number,
+                presence=self.presence,
+                mask=Mask.types['No mask'],
+                activity=Activity(
+                    exhalation_rate=exhalation_rate, inhalation_rate=exhalation_rate),
+                host_immunity=0.
+            )
+        )
+
+        return [CO2_concentrations.concentration(time) for time in self.times]
+
+    def CO2_fit_params(self):
+        if len(self.times) != len(self.CO2_concentrations):
+            raise ValueError('times and CO2_concentrations must have same length.')
+
+        if len(self.times) < 2:
+            raise ValueError(
+                'times and CO2_concentrations must contain at last two elements')
+
+        def fun(x):
+            exhalation_rate = x[0]
+            ventilation_values = tuple(x[1:])
+            the_concentrations = self.CO2_concentrations_from_params(
+                exhalation_rate=exhalation_rate,
+                ventilation_values=ventilation_values
+            )
+            return np.sqrt(np.sum((np.array(self.CO2_concentrations) - np.array(the_concentrations))**2))
+
+        # The goal is to minimize the difference between the two different curves (known concentrations vs. predicted concentrations)
+        res_dict = minimize(fun=fun, x0=np.ones(len(self.ventilation_transition_times)), method='powell', bounds=[
+                            (0, None) for _ in range(len(self.ventilation_transition_times))], options={'xtol': 1e-3})
+
+        exhalation_rate = res_dict['x'][0]
+        ventilation_values = res_dict['x'][1:]
+
+        return exhalation_rate, ventilation_values
+
+
+@dataclass(frozen=True)
 class ExposureModel:
     """
     Represents the exposure to a concentration of virions in the air.
@@ -1488,6 +1558,9 @@ class ExposureModel:
 
     #: Geographical data
     geographical_data: Cases
+
+    #: CO2 data
+    CO2_profile: CO2Data = ()
 
     #: The number of times the exposure event is repeated (default 1).
     repeats: int = config.exposure_model['repeats'] # type: ignore
