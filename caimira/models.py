@@ -1696,6 +1696,7 @@ class ExposureModel:
 
             state_change_times = self.population_state_change_times()
             for interval in zip(state_change_times[:-1], state_change_times[1:]):
+                sum_probability = 0.0
                 exposed_present = self.exposed.people_present(interval[1])
                 infected_present = self.concentration_model.infected.people_present(interval[1])
 
@@ -1731,10 +1732,11 @@ class ExposureModel:
                     n = total_people - num_infected
                     # By means of the total probability rule
                     prob_at_least_one_infected = 1 - (1 - prob_ind)**n
-                    total_probability_rule.append(prob_at_least_one_infected * 
+                    sum_probability += (prob_at_least_one_infected * 
                         self.geographical_data.probability_meet_infected_person(
                             self.concentration_model.infected.virus, 
                             num_infected, total_people))
+                total_probability_rule.append(sum_probability)
 
             if (isinstance(self.exposed.number, IntPiecewiseConstant) or 
                 isinstance(self.concentration_model.infected.number, IntPiecewiseConstant)):
