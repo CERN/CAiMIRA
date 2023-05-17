@@ -325,11 +325,8 @@ class FormData:
             humidity = float(self.humidity)
             inside_temp = self.inside_temp
 
-        return models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (inside_temp,)), humidity=humidity)
-
-    def build_mc_model(self) -> mc.ExposureModel:
-        room = self.initialize_room()        
-
+        room = models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (inside_temp,)), humidity=humidity)
+        ventilation: models._VentilationBase = self.ventilation()
         infected_population = self.infected_population()
         
         short_range = []
@@ -342,11 +339,10 @@ class FormData:
                     distance=short_range_distances,
                 ))
 
-        # Initializes and returns a model with the attributes defined above
         return mc.ExposureModel(
             concentration_model=mc.ConcentrationModel(
                 room=room,
-                ventilation=self.ventilation(),
+                ventilation=ventilation,
                 infected=infected_population,
                 evaporation_factor=0.3,
             ),
@@ -357,6 +353,14 @@ class FormData:
                 geographic_cases=self.geographic_cases,
                 ascertainment_bias=CONFIDENCE_LEVEL_OPTIONS[self.ascertainment_bias],
             ), 
+            CO2_profile=models.CO2Data(
+                room_volume=self.room_volume,
+                number=self.total_people,
+                presence=self.population_present_interval(),
+                ventilation_transition_times=tuple(ventilation.transition_times(room=room)),
+                times=self.CO2_data['times'],
+                CO2_concentrations=self.CO2_data['CO2']
+            ) if self.CO2_data_option else (),
         )
 
     def build_model(self, sample_size=DEFAULT_MC_SAMPLE_SIZE) -> models.ExposureModel:
@@ -754,6 +758,12 @@ class FormData:
             self.infected_start, self.infected_finish,
             breaks=breaks,
         )
+    
+    def population_present_interval(self) -> models.Interval:
+        state_change_times = set(self.infected_present_interval().transition_times())
+        state_change_times.update(self.exposed_present_interval().transition_times())
+        all_state_changes = sorted(state_change_times)
+        return models.SpecificInterval(tuple(zip(all_state_changes[:-1], all_state_changes[1:])))
 
     def short_range_interval(self, interaction) -> models.SpecificInterval:
         start_time = time_string_to_minutes(interaction['start_time'])
