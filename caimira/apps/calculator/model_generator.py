@@ -37,6 +37,8 @@ class FormData:
     ceiling_height: float
     conditional_probability_plot: bool
     conditional_probability_viral_loads: bool
+    CO2_data: dict
+    CO2_data_option: bool
     exposed_coffee_break_option: str
     exposed_coffee_duration: int
     exposed_finish: minutes_since_midnight

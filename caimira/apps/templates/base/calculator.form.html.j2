@@ -185,127 +185,145 @@
     <hr width="80%">
 
     <!-- Ventilation Options -->
+    
     <b>Ventilation data:</b>
     <div data-tooltip="The available means of venting / filtration of indoor spaces.">
         <span class="tooltip_text">?</span>
     </div>
     
-    <br>
+    <div class="split mt-3">
+    <div>Use CO₂ concentration values:</div>
+      <div>
+        <input class="ml-2" type="radio" id="CO2_data_no" name="CO2_data_option" value=0 checked="checked">
+          <label for="CO2_data_no">No</label>
+        <input class="ml-2" type="radio" id="CO2_data_yes" name="CO2_data_option" value=1 data-enables="#DIVCO2_data">
+          <label for="CO2_data_yes">Yes</label>
+      </div>
+    </div>
 
-    <div class='sub_title'>Ventilation type:</div>
+    <div id="DIVCO2_data" class='form-group row' style="display:none">
+      <div class="col-sm-3"><label class="col-form-label col-form-label-sm">CO2 Data:</label><br></div>
+      <input type="text" name="CO2_data" class="form-control form-control-sm col-sm-6" placeholder='{"times": [...], "concentrations": [...]}' >
+    </div>
+
+    <hr width="80%">
     
-    <div class="split">
-    <div>
-    <input type="radio" id="no_ventilation" name="ventilation_type" value="no_ventilation" checked>
-      <label for="no_ventilation">No ventilation</label>
-    <input class="ml-2" type="radio" id="mechanical_ventilation" name="ventilation_type" value="mechanical_ventilation" data-enables="#DIVmechanical_ventilation">
-      <label for="mechanical_ventilation">Mechanical</label>
-    </div>
-    <div>
-    <input type="radio" id="natural_ventilation" name="ventilation_type" value="natural_ventilation" data-enables="#DIVnatural_ventilation" data-toggle="modal" data-target="#warning_modal">
-      <label for="natural_ventilation">Natural</label><br>
-    </div>
-    </div>
+    <div id="ventilation_data">
+      <div class='sub_title'>Ventilation type:</div>
+      
+      <div class="split">
+      <div>
+      <input type="radio" id="no_ventilation" name="ventilation_type" value="no_ventilation" checked>
+        <label for="no_ventilation">No ventilation</label>
+      <input class="ml-2" type="radio" id="mechanical_ventilation" name="ventilation_type" value="mechanical_ventilation" data-enables="#DIVmechanical_ventilation">
+        <label for="mechanical_ventilation">Mechanical</label>
+      </div>
+      <div>
+      <input type="radio" id="natural_ventilation" name="ventilation_type" value="natural_ventilation" data-enables="#DIVnatural_ventilation" data-toggle="modal" data-target="#warning_modal">
+        <label for="natural_ventilation">Natural</label><br>
+      </div>
+      </div>
 
-    <!-- Modal -->
-    <div class="modal fade" id="warning_modal" tabindex="-1" role="dialog" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h4 class="modal-title">Natural Ventilation</h4>
-            <button type="button" class="close align-self-center" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            Single-sided ventilation is assumed in the model and is typically effective for room depths up to a depth 2.5 x the ceiling height. 
-            If these conditions are not met, the air exchange might not be homogenous producing an artificially lower risk further away from the window.
-            <br>
-            <br>
-            <img src="{{ get_url('/static/images') }}/nat_vent_dimensions.png" id="nat_vent_image">
+      <!-- Modal -->
+      <div class="modal fade" id="warning_modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title">Natural Ventilation</h4>
+              <button type="button" class="close align-self-center" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              Single-sided ventilation is assumed in the model and is typically effective for room depths up to a depth 2.5 x the ceiling height. 
+              If these conditions are not met, the air exchange might not be homogenous producing an artificially lower risk further away from the window.
+              <br>
+              <br>
+              <img src="{{ get_url('/static/images') }}/nat_vent_dimensions.png" id="nat_vent_image">
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div id="DIVmechanical_ventilation" class="tabbed" style="display:none">
-        <div class="split">
-          <div style="min-width: 55%">
-            <input type="radio" id="mech_type_air_supply" name="mechanical_ventilation_type" value="mech_type_air_supply" class="center_radio" onclick="require_fields(this)" tabindex="-1">
-            <label for="mech_type_air_supply" class="col-form-label ml-2">Air supply flow rate (m³ / hour)</label>
+      <div id="DIVmechanical_ventilation" class="tabbed" style="display:none">
+          <div class="split">
+            <div style="min-width: 55%">
+              <input type="radio" id="mech_type_air_supply" name="mechanical_ventilation_type" value="mech_type_air_supply" class="center_radio" onclick="require_fields(this)" tabindex="-1">
+              <label for="mech_type_air_supply" class="col-form-label ml-2">Air supply flow rate (m³ / hour)</label>
+            </div>
+            <div>
+              <input type="number" step="any" id="air_supply" class="non_zero form-control" name="air_supply" min="0" placeholder="Flow rate" data-has-radio="#mech_type_air_supply"><br>
+            </div>
           </div>
-          <div>
-            <input type="number" step="any" id="air_supply" class="non_zero form-control" name="air_supply" min="0" placeholder="Flow rate" data-has-radio="#mech_type_air_supply"><br>
+          <div class="split">
+            <div style="min-width: 55%">
+              <input type="radio" id="mech_type_air_changes" name="mechanical_ventilation_type" value="mech_type_air_changes" class="center_radio" onclick="require_fields(this)" tabindex="-1">
+              <label for="mech_type_air_changes" class="col-form-label ml-2">Air changes per hour (h⁻¹)</label>
+            </div>
+            <div>
+              <input type="number" step="any" id="air_changes" class="non_zero form-control" name="air_changes" min="0" placeholder="Air exchange" data-has-radio="#mech_type_air_changes"><br>
+            </div>
           </div>
-        </div>
-        <div class="split">
-          <div style="min-width: 55%">
-            <input type="radio" id="mech_type_air_changes" name="mechanical_ventilation_type" value="mech_type_air_changes" class="center_radio" onclick="require_fields(this)" tabindex="-1">
-            <label for="mech_type_air_changes" class="col-form-label ml-2">Air changes per hour (h⁻¹)</label>
-          </div>
-          <div>
-            <input type="number" step="any" id="air_changes" class="non_zero form-control" name="air_changes" min="0" placeholder="Air exchange" data-has-radio="#mech_type_air_changes"><br>
-          </div>
-        </div>
-    </div>
+      </div>
 
-    <div id="DIVnatural_ventilation" style="display:none">
-      <div class="form-group row tabbed">
-        <div class="col-md-5"><label class="col-form-label">Number of windows:</label></div>
-        <div class="col-md-5"><input type="number" id="windows_number" class="non_zero form-control" name="windows_number" placeholder="Number" min="1"></div>
-      </div>
-      <div class="form-group row tabbed">
-        <div class="col-md-5"><label class="col-form-label">Height of window (m): </label></div>
-        <div class="col-md-5"><input type="number" step="any" id="window_height" class="non_zero form-control" name="window_height" placeholder="Height" min="0"></div>
-      </div>
-        <div class='sub_title'>Window type:</div>
-        <input class="ml-2" type="radio" id="window_sliding" name="window_type" value="window_sliding" onclick="require_fields(this)" checked="checked">
-          <label for="window_sliding">Sliding / Side-Hung</label>
-        <input class="ml-2" type="radio" id="window_hinged" name="window_type" value="window_hinged" onclick="require_fields(this)">
-          <label for="window_hinged">Top- or Bottom-Hung</label><br>
+      <div id="DIVnatural_ventilation" style="display:none">
         <div class="form-group row tabbed">
-          <div class="col-md-5"><label class="col-form-label">Width of window (m): </label></div>
-          <div class="col-md-5"><input type="number" step="any" id="window_width" class="non_zero disabled form-control" name="window_width" placeholder="Width" min="0" data-has-radio="#window_hinged"></div>
+          <div class="col-md-5"><label class="col-form-label">Number of windows:</label></div>
+          <div class="col-md-5"><input type="number" id="windows_number" class="non_zero form-control" name="windows_number" placeholder="Number" min="1"></div>
         </div>
         <div class="form-group row tabbed">
-          <div class="col-md-5"><label class="col-form-label">Opening distance (m): </label></div>
-          <div class="col-md-5"><input type="number" step="any" id="opening_distance" class="non_zero form-control" name="opening_distance" placeholder="Opening distance" min="0"></div>
+          <div class="col-md-5"><label class="col-form-label">Height of window (m): </label></div>
+          <div class="col-md-5"><input type="number" step="any" id="window_height" class="non_zero form-control" name="window_height" placeholder="Height" min="0"></div>
         </div>
-        <div class='sub_title'>Window open:
-          <div data-tooltip="Permanently or periodically - e.g. open the window for 10 minutes (duration) every 60 minutes (frequency).">
-              <span class="tooltip_text">?</span>
-          </div>
-        </div>
-        <input class="ml-2" type="radio" id="windows_open_permanently" name="window_opening_regime" value="windows_open_permanently" onclick="require_fields(this)" checked="checked"></span>
-          <label for="windows_open_permanently" class="col-form-label ml-2">Permanently</label>
-        <input class="ml-2" type="radio" id="windows_open_periodically" name="window_opening_regime" value="windows_open_periodically" onclick="require_fields(this)" data-enables="#DIVperiodic_opening"></span>
-          <label for="windows_open_periodically" class="col-form-label ml-2 mr-2">Periodically</label>
-        
-        <div id="DIVperiodic_opening">
-          <div class="form-group row tabbed">     
-            <div class="col-md-5"><label for="window_duration" class="col-form-label ml-2">Duration (min):</label></div>
-            <div class="col-md-5"><input type="number" step="any" id="windows_duration" class="non_zero form-control" name="windows_duration" value="10" min="1" data-has-radio="#windows_open_periodically"></div>
+          <div class='sub_title'>Window type:</div>
+          <input class="ml-2" type="radio" id="window_sliding" name="window_type" value="window_sliding" onclick="require_fields(this)" checked="checked">
+            <label for="window_sliding">Sliding / Side-Hung</label>
+          <input class="ml-2" type="radio" id="window_hinged" name="window_type" value="window_hinged" onclick="require_fields(this)">
+            <label for="window_hinged">Top- or Bottom-Hung</label><br>
+          <div class="form-group row tabbed">
+            <div class="col-md-5"><label class="col-form-label">Width of window (m): </label></div>
+            <div class="col-md-5"><input type="number" step="any" id="window_width" class="non_zero disabled form-control" name="window_width" placeholder="Width" min="0" data-has-radio="#window_hinged"></div>
           </div>
           <div class="form-group row tabbed">
-            <div class="col-md-5"><label for="window_frequency" class="col-form-label ml-2">Frequency (min):</label></div>
-            <div class="col-md-5"><input type="number" step="any" id="windows_frequency" class="non_zero form-control" name="windows_frequency" value="60" min="1" data-has-radio="#windows_open_periodically"></div>
+            <div class="col-md-5"><label class="col-form-label">Opening distance (m): </label></div>
+            <div class="col-md-5"><input type="number" step="any" id="opening_distance" class="non_zero form-control" name="opening_distance" placeholder="Opening distance" min="0"></div>
           </div>
-        </div>
+          <div class='sub_title'>Window open:
+            <div data-tooltip="Permanently or periodically - e.g. open the window for 10 minutes (duration) every 60 minutes (frequency).">
+                <span class="tooltip_text">?</span>
+            </div>
+          </div>
+          <input class="ml-2" type="radio" id="windows_open_permanently" name="window_opening_regime" value="windows_open_permanently" onclick="require_fields(this)" checked="checked"></span>
+            <label for="windows_open_permanently" class="col-form-label ml-2">Permanently</label>
+          <input class="ml-2" type="radio" id="windows_open_periodically" name="window_opening_regime" value="windows_open_periodically" onclick="require_fields(this)" data-enables="#DIVperiodic_opening"></span>
+            <label for="windows_open_periodically" class="col-form-label ml-2 mr-2">Periodically</label>
+          
+          <div id="DIVperiodic_opening">
+            <div class="form-group row tabbed">     
+              <div class="col-md-5"><label for="window_duration" class="col-form-label ml-2">Duration (min):</label></div>
+              <div class="col-md-5"><input type="number" step="any" id="windows_duration" class="non_zero form-control" name="windows_duration" value="10" min="1" data-has-radio="#windows_open_periodically"></div>
+            </div>
+            <div class="form-group row tabbed">
+              <div class="col-md-5"><label for="window_frequency" class="col-form-label ml-2">Frequency (min):</label></div>
+              <div class="col-md-5"><input type="number" step="any" id="windows_frequency" class="non_zero form-control" name="windows_frequency" value="60" min="1" data-has-radio="#windows_open_periodically"></div>
+            </div>
+          </div>
 
+      </div>
+      <br/>
+      <div class='sub_title'>HEPA filtration:</div>
+        <div>
+          <input type="radio" id="hepa_yes" name="hepa_option" value=1 onclick="require_fields(this)" data-enables="#DIVhepa_amount">
+            <label for="hepa_yes" class="col-form-label ml-2">Yes</label>
+          <input class="ml-2" type="radio" id="hepa_no" name="hepa_option" value=0 onclick="require_fields(this)" checked="checked">
+            <label for="hepa_no" class="col-form-label ml-2">No</label>
+        </div>
+        <div class="form-group row tabbed" id="DIVhepa_amount">
+          <div class="col-md-5"><label for="hepa_amount" class="col-form-label">Flow rate (m³ / hour):</label></div>
+          <div class="col-md-5"><input type="number" step="any" id="hepa_amount" class="non_zero form-control" name="hepa_amount" placeholder="Flow rate" min="0" data-has-radio="#hepa_yes"></div>
+        </div>
+      <hr width="80%">
     </div>
-    <br/>
-    <div class='sub_title'>HEPA filtration:</div>
-      <div>
-        <input type="radio" id="hepa_yes" name="hepa_option" value=1 onclick="require_fields(this)" data-enables="#DIVhepa_amount">
-          <label for="hepa_yes" class="col-form-label ml-2">Yes</label>
-        <input class="ml-2" type="radio" id="hepa_no" name="hepa_option" value=0 onclick="require_fields(this)" checked="checked">
-          <label for="hepa_no" class="col-form-label ml-2">No</label>
-      </div>
-      <div class="form-group row tabbed" id="DIVhepa_amount">
-        <div class="col-md-5"><label for="hepa_amount" class="col-form-label">Flow rate (m³ / hour):</label></div>
-        <div class="col-md-5"><input type="number" step="any" id="hepa_amount" class="non_zero form-control" name="hepa_amount" placeholder="Flow rate" min="0" data-has-radio="#hepa_yes"></div>
-      </div>
-    <hr width="80%">
 
     <b>Face masks:</b>
     <div data-tooltip="Masks worn at workstations or removed when a 2m physical distance is respected and proper venting is ensured.">
