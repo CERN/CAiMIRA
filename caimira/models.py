@@ -1704,16 +1704,15 @@ class ExposureModel:
         else:
             return 0
 
-
-    def dynamic_total_probability_rule(self):
+    def dynamic_total_probability_rule(self) -> _VectorisedFloat:
         if (self.geographical_data.geographic_population != 0 and self.geographical_data.geographic_cases != 0): 
-            total_probability_rule = []
-
-            state_change_times = self.population_state_change_times()
-            for interval in zip(state_change_times[:-1], state_change_times[1:]):
+            total_probability_rule_list = []
+            population_change_times = self.population_state_change_times()
+            for start, stop in zip(population_change_times[:-1], population_change_times[1:]):
+                
                 sum_probability = 0.0
-                exposed_present = self.exposed.people_present(interval[1])
-                infected_present = self.concentration_model.infected.people_present(interval[1])
+                exposed_present = self.exposed.people_present(stop)
+                infected_present = self.concentration_model.infected.people_present(stop)
 
                 # Create an equivalent exposure model but changing the number of infected cases.
                 total_people = exposed_present + infected_present
@@ -1723,41 +1722,22 @@ class ExposureModel:
                 # Therefore we decided a hard limit of 10 infected people.
                 for num_infected in range(1, max_num_infected + 1):
                     exposure_model = nested_replace(
-                        self, {
-                            'concentration_model.infected': InfectedPopulation(
-                                number=num_infected,
-                                presence=SpecificInterval(present_times = (interval, )),
-                                mask=self.concentration_model.infected.mask,
-                                activity=self.concentration_model.infected.activity,
-                                host_immunity=self.concentration_model.infected.host_immunity,
-                                virus=self.concentration_model.infected.virus,
-                                expiration=self.concentration_model.infected.expiration,
-                            ),
-                            'exposed': Population(
-                                number=exposed_present,
-                                presence=SpecificInterval(present_times=(interval,)),
-                                mask=self.exposed.mask,
-                                activity=self.exposed.activity,
-                                host_immunity=self.exposed.host_immunity,
-                            ),
+                        self, {'concentration_model.infected.number': 
+                               IntPiecewiseConstant((start, stop), (num_infected,)),
                         }
                     )
-
                     prob_ind = exposure_model.infection_probability().mean() / 100
+
                     n = total_people - num_infected
                     # By means of the total probability rule
                     prob_at_least_one_infected = 1 - (1 - prob_ind)**n
                     sum_probability += (prob_at_least_one_infected * 
-                        self.geographical_data.probability_meet_infected_person(
-                            self.concentration_model.infected.virus, 
-                            num_infected, total_people))
-                total_probability_rule.append(sum_probability)
-
-            if (isinstance(self.exposed.number, IntPiecewiseConstant) or 
-                isinstance(self.concentration_model.infected.number, IntPiecewiseConstant)):
-                return (1 - np.prod([(1 - prob) for prob in total_probability_rule])) * 100
+                        self.geographical_data.probability_meet_infected_person(self.concentration_model.infected.virus, num_infected, total_people))
+                total_probability_rule_list.append(sum_probability)
+            return (1 - np.prod([(1 - prob) for prob in total_probability_rule_list], axis = 0)) * 100            
         else:
             return 0
+    
 
     def expected_new_cases(self) -> _VectorisedFloat:
         # Create an equivalent exposure model without short-range interactions, if any.
