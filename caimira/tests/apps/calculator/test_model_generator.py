@@ -540,7 +540,7 @@ def test_default_types():
             # Handle typing.NewType definitions.
             field_type = field_type.__supertype__
 
-        if value is model_generator._NO_DEFAULT:
+        if value is model_generator.NO_DEFAULT:
             continue
 
         if field in model_generator._CAST_RULES_FORM_ARG_TO_NATIVE:
