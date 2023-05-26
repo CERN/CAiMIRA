@@ -1637,29 +1637,44 @@ class ExposureModel:
         deposited_exposure += self.long_range_deposited_exposure_between_bounds(time1, time2)
 
         return deposited_exposure
-
+    
     def deposited_exposure(self) -> _VectorisedFloat:
         """
         The number of virus per m^3 deposited on the respiratory tract.
         """
         deposited_exposure: _VectorisedFloat = 0.0
         for start, stop in self.exposed.presence_interval().boundaries():
-            deposited_exposure += self.deposited_exposure_between_bounds(start, stop)
-
+            deposited_exposure += (self.deposited_exposure_between_bounds(start, stop))
+        
         return deposited_exposure * self.repeats
+    
+    def deposited_exposure_list(self):
+        """
+        The number of virus per m^3 deposited on the respiratory tract.
+        """
+        population_change_times = self.population_state_change_times()
 
-    @method_cache
-    def infection_probability(self) -> _VectorisedFloat:
+        deposited_exposure = []
+        for start, stop in zip(population_change_times[:-1], population_change_times[1:]):
+            deposited_exposure.append(self.deposited_exposure_between_bounds(start, stop))
+        
+        return deposited_exposure * self.repeats
+    
+    def infection_probability_list(self):
         # Viral dose (vD)
-        vD = self.deposited_exposure()
+        vD_list = self.deposited_exposure_list()
 
         # oneoverln2 multiplied by ID_50 corresponds to ID_63.
         infectious_dose = oneoverln2 * self.concentration_model.virus.infectious_dose
 
-        # Probability of infection.        
-        return (1 - np.exp(-((vD * (1 - self.exposed.host_immunity))/(infectious_dose * 
-                self.concentration_model.virus.transmissibility_factor)))) * 100
-
+        # Probability of infection.
+        return [(1 - np.exp(-((vD * (1 - self.exposed.host_immunity))/(infectious_dose * 
+                self.concentration_model.virus.transmissibility_factor)))) for vD in vD_list]
+    
+    @method_cache
+    def infection_probability(self) -> _VectorisedFloat:
+        return (1 - np.prod([1 - prob for prob in self.infection_probability_list()], axis = 0)) * 100 
+    
     def total_probability_rule(self) -> _VectorisedFloat:
         if (isinstance(self.concentration_model.infected.number, IntPiecewiseConstant) or 
                 isinstance(self.exposed.number, IntPiecewiseConstant)):
