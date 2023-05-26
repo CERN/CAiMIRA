@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from caimira import models
 from caimira.apps.calculator import markdown_tools
 from ... import monte_carlo as mc
-from .model_generator import FormData, _DEFAULT_MC_SAMPLE_SIZE
+from .model_generator import FormData, DEFAULT_MC_SAMPLE_SIZE
 from ... import dataclass_utils
 
 
@@ -123,7 +123,6 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
         for time in times
     ]  
     lower_concentrations = concentrations_with_sr_breathing(form, model, times, short_range_intervals)
-    highest_const = max(concentrations)
     
     cumulative_doses = np.cumsum([
         np.array(model.deposited_exposure_between_bounds(float(time1), float(time2))).mean()
@@ -137,8 +136,6 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
     prob = np.array(model.infection_probability())
     prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
     prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
-    er = np.array(model.concentration_model.infected.emission_rate_per_person_when_present()).mean()
-    exposed_occupants = model.exposed.number
     expected_new_cases = np.array(model.expected_new_cases()).mean()
     uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(model))) if form.conditional_probability_plot else None
     exposed_presence_intervals = [list(interval) for interval in model.exposed.presence_interval().boundaries()]
@@ -151,7 +148,6 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
         "short_range_expirations": short_range_expirations,
         "concentrations": concentrations,
         "concentrations_zoomed": lower_concentrations,
-        "highest_const": highest_const,
         "cumulative_doses": list(cumulative_doses),
         "long_range_cumulative_doses": list(long_range_cumulative_doses),
         "prob_inf": prob.mean(),
@@ -160,8 +156,6 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
         "prob_hist_count": list(prob_dist_count),
         "prob_hist_bins": list(prob_dist_bins),
         "prob_probabilistic_exposure": prob_probabilistic_exposure,
-        "emission_rate_per_person": er,
-        "exposed_occupants": exposed_occupants,
         "expected_new_cases": expected_new_cases,
         "uncertainties_plot_src": uncertainties_plot_src,
     }
@@ -362,7 +356,7 @@ def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.Exp
 
 
 def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[float], compute_prob_exposure: bool):
-    model = mc_model.build_model(size=_DEFAULT_MC_SAMPLE_SIZE)
+    model = mc_model.build_model(size=DEFAULT_MC_SAMPLE_SIZE)
     if (compute_prob_exposure):
         # It means we have data to calculate the total_probability_rule
         prob_probabilistic_exposure = model.total_probability_rule()
