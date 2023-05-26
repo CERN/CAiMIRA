@@ -79,33 +79,55 @@ DEFAULTS = {
 # ------------------ Activities ----------------------
 
 ACTIVITIES: typing.List[typing.Dict[str, typing.Any]] = [
-    {'name': 'office', 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 2}}, # Mostly silent in the office, but 1/3rd of time speaking.
-    {'name': 'smallmeeting', 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': None}},
-    {'name': 'largemeeting', 'activity': 'Standing', 'expiration': {'Speaking': 1, 'Breathing': 2}}, # Each infected person spends 1/3 of time speaking.
+    # Mostly silent in the office, but 1/3rd of time speaking.
+    {'name': 'office', 'activity': 'Seated',
+        'expiration': {'Speaking': 1, 'Breathing': 2}},
+    {'name': 'smallmeeting', 'activity': 'Seated',
+        'expiration': {'Speaking': 1, 'Breathing': None}},
+    # Each infected person spends 1/3 of time speaking.
+    {'name': 'largemeeting', 'activity': 'Standing',
+        'expiration': {'Speaking': 1, 'Breathing': 2}},
     {'name': 'callcentre', 'activity': 'Seated', 'expiration': 'Speaking'},
-    {'name': 'controlroom-day', 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 1}}, # Daytime control room shift, 50% speaking.
-    {'name': 'controlroom-night', 'activity': 'Seated', 'expiration': {'Speaking': 1, 'Breathing': 9}}, # Nightshift control room, 10% speaking.
+    # Daytime control room shift, 50% speaking.
+    {'name': 'controlroom-day', 'activity': 'Seated',
+        'expiration': {'Speaking': 1, 'Breathing': 1}},
+    # Nightshift control room, 10% speaking.
+    {'name': 'controlroom-night', 'activity': 'Seated',
+        'expiration': {'Speaking': 1, 'Breathing': 9}},
     {'name': 'library', 'activity': 'Seated', 'expiration': 'Breathing'},
-    {'name': 'lab', 'activity': 'Light activity', 'expiration': {'Speaking': 1, 'Breathing': 1}}, # Model 1/2 of time spent speaking in a lab.
-    {'name': 'workshop', 'activity': 'Moderate activity', 'expiration': {'Speaking': 1, 'Breathing': 1}}, # Model 1/2 of time spent speaking in a workshop.
+    # Model 1/2 of time spent speaking in a lab.
+    {'name': 'lab', 'activity': 'Light activity',
+        'expiration': {'Speaking': 1, 'Breathing': 1}},
+    # Model 1/2 of time spent speaking in a workshop.
+    {'name': 'workshop', 'activity': 'Moderate activity',
+        'expiration': {'Speaking': 1, 'Breathing': 1}},
     {'name': 'training', 'activity': 'Standing', 'expiration': 'Speaking'},
     {'name': 'training_attendee', 'activity': 'Seated', 'expiration': 'Breathing'},
     {'name': 'gym', 'activity': 'Heavy exercise', 'expiration': 'Breathing'},
-    {'name': 'household-day', 'activity': 'Light activity', 'expiration': {'Breathing': 5, 'Speaking': 5}},
-    {'name': 'household-night', 'activity': 'Seated', 'expiration': {'Breathing': 7, 'Speaking': 3}},
-    {'name': 'primary-school', 'activity': 'Light activity', 'expiration': {'Breathing': 5, 'Speaking': 5}},
-    {'name': 'secondary-school', 'activity': 'Light activity', 'expiration': {'Breathing': 7, 'Speaking': 3}},
-    {'name': 'university', 'activity': 'Seated', 'expiration': {'Breathing': 9, 'Speaking': 1}},
-    {'name': 'restaurant', 'activity': 'Seated', 'expiration': {'Breathing': 1, 'Speaking': 9}},
+    {'name': 'household-day', 'activity': 'Light activity',
+        'expiration': {'Breathing': 5, 'Speaking': 5}},
+    {'name': 'household-night', 'activity': 'Seated',
+        'expiration': {'Breathing': 7, 'Speaking': 3}},
+    {'name': 'primary-school', 'activity': 'Light activity',
+        'expiration': {'Breathing': 5, 'Speaking': 5}},
+    {'name': 'secondary-school', 'activity': 'Light activity',
+        'expiration': {'Breathing': 7, 'Speaking': 3}},
+    {'name': 'university', 'activity': 'Seated',
+        'expiration': {'Breathing': 9, 'Speaking': 1}},
+    {'name': 'restaurant', 'activity': 'Seated',
+        'expiration': {'Breathing': 1, 'Speaking': 9}},
     {'name': 'precise', 'activity': None, 'expiration': None},
 ]
 
 # ------------------ Validation ----------------------
 
-ACTIVITY_TYPES = [ activity['name'] for activity in ACTIVITIES ]
-COFFEE_OPTIONS_INT = {'coffee_break_0': 0, 'coffee_break_1': 1, 'coffee_break_2': 2, 'coffee_break_4': 4}
-CONFIDENCE_LEVEL_OPTIONS = {'confidence_low': 10, 'confidence_medium': 5, 'confidence_high': 2}
-MECHANICAL_VENTILATION_TYPES = {'mech_type_air_changes', 'mech_type_air_supply', 'not-applicable'}
+ACTIVITY_TYPES = [activity['name'] for activity in ACTIVITIES]
+COFFEE_OPTIONS_INT = {'coffee_break_0': 0, 'coffee_break_1': 1,
+                      'coffee_break_2': 2, 'coffee_break_4': 4}
+CONFIDENCE_LEVEL_OPTIONS = {'confidence_low': 10,
+                            'confidence_medium': 5, 'confidence_high': 2}
+MECHANICAL_VENTILATION_TYPES = {
+    'mech_type_air_changes', 'mech_type_air_supply', 'not-applicable'}
 MASK_TYPES = {'Type I', 'FFP2', 'Cloth'}
 MASK_WEARING_OPTIONS = {'mask_on', 'mask_off'}
 MONTH_NAMES = [
@@ -113,13 +135,16 @@ MONTH_NAMES = [
     'August', 'September', 'October', 'November', 'December',
 ]
 VACCINE_BOOSTER_TYPE = ['AZD1222_(AstraZeneca)', 'Ad26.COV2.S_(Janssen)', 'BNT162b2_(Pfizer)', 'BNT162b2_(Pfizer)_(4th_dose)', 'BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)',
-    'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)', 'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)_(4th_dose)', 'CoronaVac_(Sinovac)', 'Coronavac_(Sinovac)', 'Sinopharm',
-    'mRNA-1273_(Moderna)', 'mRNA-1273_(Moderna)_(4th_dose)', 'Other']
+                        'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)', 'BNT162b2_(Pfizer)_or_mRNA-1273_(Moderna)_(4th_dose)', 'CoronaVac_(Sinovac)', 'Coronavac_(Sinovac)', 'Sinopharm',
+                        'mRNA-1273_(Moderna)', 'mRNA-1273_(Moderna)_(4th_dose)', 'Other']
 VACCINE_TYPE = ['Ad26.COV2.S_(Janssen)', 'Any_mRNA_-_heterologous', 'AZD1222_(AstraZeneca)', 'AZD1222_(AstraZeneca)_and_any_mRNA_-_heterologous', 'AZD1222_(AstraZeneca)_and_BNT162b2_(Pfizer)',
-    'BBIBP-CorV_(Beijing_CNBG)', 'BNT162b2_(Pfizer)', 'BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)', 'CoronaVac_(Sinovac)', 'CoronaVac_(Sinovac)_and_AZD1222_(AstraZeneca)', 'Covishield',
-    'mRNA-1273_(Moderna)', 'Sputnik_V_(Gamaleya)', 'CoronaVac_(Sinovac)_and_BNT162b2_(Pfizer)']
-VENTILATION_TYPES = {'natural_ventilation', 'mechanical_ventilation', 'no_ventilation'}
-VIRUS_TYPES = {'SARS_CoV_2', 'SARS_CoV_2_ALPHA', 'SARS_CoV_2_BETA','SARS_CoV_2_GAMMA', 'SARS_CoV_2_DELTA', 'SARS_CoV_2_OMICRON'}
+                'BBIBP-CorV_(Beijing_CNBG)', 'BNT162b2_(Pfizer)', 'BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)', 'CoronaVac_(Sinovac)', 'CoronaVac_(Sinovac)_and_AZD1222_(AstraZeneca)', 'Covishield',
+                'mRNA-1273_(Moderna)', 'Sputnik_V_(Gamaleya)', 'CoronaVac_(Sinovac)_and_BNT162b2_(Pfizer)']
+VENTILATION_TYPES = {'natural_ventilation',
+                     'mechanical_ventilation', 'no_ventilation'}
+VIRUS_TYPES = {'SARS_CoV_2', 'SARS_CoV_2_ALPHA', 'SARS_CoV_2_BETA',
+               'SARS_CoV_2_GAMMA', 'SARS_CoV_2_DELTA', 'SARS_CoV_2_OMICRON'}
 VOLUME_TYPES = {'room_volume_explicit', 'room_volume_from_dimensions'}
-WINDOWS_OPENING_REGIMES = {'windows_open_permanently', 'windows_open_periodically', 'not-applicable'}
+WINDOWS_OPENING_REGIMES = {'windows_open_permanently',
+                           'windows_open_periodically', 'not-applicable'}
 WINDOWS_TYPES = {'window_sliding', 'window_hinged', 'not-applicable'}
