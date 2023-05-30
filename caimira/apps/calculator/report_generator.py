@@ -139,6 +139,7 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
     expected_new_cases = np.array(model.expected_new_cases()).mean()
     uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(model))) if form.conditional_probability_plot else None
     exposed_presence_intervals = [list(interval) for interval in model.exposed.presence_interval().boundaries()]
+    manufacture_viral_load_scenarios(model)
 
     return {
         "model_repr": repr(model),
@@ -302,6 +303,18 @@ def non_zero_percentage(percentage: int) -> str:
         return "99.9%"
     else:
         return "{:0.1f}%".format(percentage)
+    
+
+def manufacture_viral_load_scenarios(model: mc.ExposureModel) -> typing.Dict[str, mc.ExposureModel]:
+    viral_load = model.concentration_model.infected.virus.viral_load_in_sputum
+    viral_load_values = [np.quantile(viral_load, percentil) for percentil in (0.05, 0.5, 0.95)]
+    scenarios = {}
+    for vl in viral_load_values:
+        specific_vl_scenario = dataclass_utils.nested_replace(model, 
+            {'concentration_model.infected.virus.viral_load_in_sputum': vl}
+        )
+        scenarios[str(round(np.log10(vl), 1))] = specific_vl_scenario
+    return scenarios
 
 
 def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.ExposureModel]:
@@ -371,6 +384,32 @@ def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[fl
             for time in sample_times
         ],
         'prob_probabilistic_exposure': prob_probabilistic_exposure,
+    }
+
+
+def comparison_report_viral_load(
+        report_data: typing.Dict[str, typing.Any],
+        scenarios: typing.Dict[str, mc.ExposureModel],
+):  
+    statistics = {
+        # 'Current scenario' : {
+        #     'probability_of_infection': report_data['prob_inf'],
+        #     'expected_new_cases': report_data['expected_new_cases'],
+        # }
+    }
+
+    results = []
+    for mc_model in scenarios.values():
+        results.append({
+            'probability_of_infection': np.mean(mc_model.infection_probability()),
+            'expected_new_cases': np.mean(mc_model.expected_new_cases()),
+        })
+
+    for (name, model), model_stats in zip(scenarios.items(), results):
+        statistics[name] = model_stats
+
+    return {
+        'stats': statistics,
     }
 
 
@@ -449,7 +488,11 @@ class ReportGenerator:
         scenario_sample_times = interesting_times(model)
         report_data = calculate_report_data(form, model)
         context.update(report_data)
+        alternative_viral_loads = manufacture_viral_load_scenarios(model)
         alternative_scenarios = manufacture_alternative_scenarios(form)
+        context['alternative_viral_load'] = comparison_report_viral_load(
+            report_data, alternative_viral_loads
+        )
         context['alternative_scenarios'] = comparison_report(
             form, report_data, alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
         )
