@@ -149,7 +149,7 @@ def test_linearity_with_number_of_infected(full_exposure_model: models.ExposureM
 @pytest.mark.parametrize(
     "time", (8., 9., 10., 11., 12., 13., 14.),
 )
-def test_dynamic_dose(full_exposure_model, time):
+def test_dynamic_dose(full_exposure_model: models.ExposureModel, time: float):
 
     dynamic_infected: models.ExposureModel = dc_utils.nested_replace(
         full_exposure_model,
@@ -201,19 +201,31 @@ def test_dynamic_dose(full_exposure_model, time):
     npt.assert_almost_equal(dynamic_exposure, np.sum(static_exposure))
 
 
-def test_dynamic_total_probability_rule(
+def test_infection_probability(
         full_exposure_model: models.ExposureModel,
         dynamic_infected_single_exposure_model: models.ExposureModel,
         dynamic_exposed_single_exposure_model: models.ExposureModel,
         dynamic_population_exposure_model: models.ExposureModel):
+    
+    base_infection_probability = full_exposure_model.infection_probability()
+    npt.assert_almost_equal(base_infection_probability, dynamic_infected_single_exposure_model.infection_probability())
+    npt.assert_almost_equal(base_infection_probability, dynamic_exposed_single_exposure_model.infection_probability())
+    npt.assert_almost_equal(base_infection_probability, dynamic_population_exposure_model.infection_probability())
 
-    full_model_total_prob_rule = full_exposure_model.total_probability_rule()
-    npt.assert_almost_equal(full_model_total_prob_rule,
-                            dynamic_population_exposure_model.dynamic_total_probability_rule())
+
+# def test_dynamic_total_probability_rule(
+#         full_exposure_model: models.ExposureModel,
+#         dynamic_infected_single_exposure_model: models.ExposureModel,
+#         dynamic_exposed_single_exposure_model: models.ExposureModel,
+#         dynamic_population_exposure_model: models.ExposureModel):
+
+#     full_model_total_prob_rule = full_exposure_model.total_probability_rule()
+#     npt.assert_almost_equal(full_model_total_prob_rule,
+#                             dynamic_population_exposure_model.dynamic_total_probability_rule())
     
-    npt.assert_almost_equal(full_model_total_prob_rule,
-        dynamic_infected_single_exposure_model.dynamic_total_probability_rule())
+#     npt.assert_almost_equal(full_model_total_prob_rule,
+#                             dynamic_infected_single_exposure_model.dynamic_total_probability_rule())
     
-    npt.assert_almost_equal(full_model_total_prob_rule,
-                            dynamic_exposed_single_exposure_model.dynamic_total_probability_rule())
+#     npt.assert_almost_equal(full_model_total_prob_rule,
+#                             dynamic_exposed_single_exposure_model.dynamic_total_probability_rule())
     

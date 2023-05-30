@@ -1638,17 +1638,7 @@ class ExposureModel:
 
         return deposited_exposure
     
-    def deposited_exposure(self) -> _VectorisedFloat:
-        """
-        The number of virus per m^3 deposited on the respiratory tract.
-        """
-        deposited_exposure: _VectorisedFloat = 0.0
-        for start, stop in self.exposed.presence_interval().boundaries():
-            deposited_exposure += (self.deposited_exposure_between_bounds(start, stop))
-        
-        return deposited_exposure * self.repeats
-    
-    def deposited_exposure_list(self):
+    def _deposited_exposure_list(self):
         """
         The number of virus per m^3 deposited on the respiratory tract.
         """
@@ -1658,11 +1648,17 @@ class ExposureModel:
         for start, stop in zip(population_change_times[:-1], population_change_times[1:]):
             deposited_exposure.append(self.deposited_exposure_between_bounds(start, stop))
         
-        return deposited_exposure * self.repeats
+        return deposited_exposure
+    
+    def deposited_exposure(self) -> _VectorisedFloat:
+        """
+        The number of virus per m^3 deposited on the respiratory tract.
+        """
+        return np.sum(self._deposited_exposure_list(), axis=0) * self.repeats
     
     def infection_probability_list(self):
         # Viral dose (vD)
-        vD_list = self.deposited_exposure_list()
+        vD_list = self._deposited_exposure_list()
 
         # oneoverln2 multiplied by ID_50 corresponds to ID_63.
         infectious_dose = oneoverln2 * self.concentration_model.virus.infectious_dose
@@ -1709,7 +1705,6 @@ class ExposureModel:
             total_probability_rule_list = []
             population_change_times = self.population_state_change_times()
             for start, stop in zip(population_change_times[:-1], population_change_times[1:]):
-                
                 sum_probability = 0.0
                 exposed_present = self.exposed.people_present(stop)
                 infected_present = self.concentration_model.infected.people_present(stop)
