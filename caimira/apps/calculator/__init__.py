@@ -126,6 +126,7 @@ class ConcentrationModel(BaseRequestHandler):
         if self.get_cookie('conditional_plot'): 
             form.conditional_probability_plot = True if self.get_cookie('conditional_plot') == '1' else False
             self.clear_cookie('conditional_plot') # Clears cookie after changing the form value.
+        
         report_task = executor.submit(
             report_generator.build_report, base_url, form,
             executor_factory=functools.partial(

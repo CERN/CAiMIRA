@@ -167,15 +167,15 @@
 										<tr>
 											<th>Scenario</th>
 											<th>P(I)</th>
-											<th>Expected new cases</th>
+											{# <th>Expected new cases</th> #}
 										</tr>
 									</thead>
 									<tbody>
-									{% for scenario_name, scenario_stats in alternative_viral_load.stats.items() %}
+									{% for scenario_name, scenario_stats in alternative_viral_load.items() %}
 										<tr>
 											<td> Viral load: 10<sup>{{ scenario_name }}</sup></td>
-											<td> {{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
-											<td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>
+											<td> {{ scenario_stats | non_zero_percentage }}</td>
+											{# <td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td> #}
 										</tr>
 									{% endfor %}
 									</tbody>
