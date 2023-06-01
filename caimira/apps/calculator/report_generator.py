@@ -307,7 +307,7 @@ def non_zero_percentage(percentage: int) -> str:
 def manufacture_viral_load_scenarios(model: mc.ExposureModel) -> typing.Dict[str, mc.ExposureModel]:
     viral_load = model.concentration_model.infected.virus.viral_load_in_sputum
     scenarios = {}
-    for percentil in (0.01, 0.05, 0.5, 0.95, 0.99):
+    for percentil in (0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99):
         vl = np.quantile(viral_load, percentil)
         specific_vl_scenario = dataclass_utils.nested_replace(model, 
             {'concentration_model.infected.virus.viral_load_in_sputum': vl}
