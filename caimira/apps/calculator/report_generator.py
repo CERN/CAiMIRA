@@ -302,6 +302,18 @@ def non_zero_percentage(percentage: int) -> str:
         return "99.9%"
     else:
         return "{:0.1f}%".format(percentage)
+    
+
+def manufacture_viral_load_scenarios(model: mc.ExposureModel) -> typing.Dict[str, mc.ExposureModel]:
+    viral_load = model.concentration_model.infected.virus.viral_load_in_sputum
+    scenarios = {}
+    for percentil in (0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99):
+        vl = np.quantile(viral_load, percentil)
+        specific_vl_scenario = dataclass_utils.nested_replace(model, 
+            {'concentration_model.infected.virus.viral_load_in_sputum': vl}
+        )
+        scenarios[round(np.log10(vl))] = np.mean(specific_vl_scenario.infection_probability())
+    return scenarios
 
 
 def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.ExposureModel]:
@@ -449,7 +461,9 @@ class ReportGenerator:
         scenario_sample_times = interesting_times(model)
         report_data = calculate_report_data(form, model)
         context.update(report_data)
+
         alternative_scenarios = manufacture_alternative_scenarios(form)
+        context['alternative_viral_load'] = manufacture_viral_load_scenarios(model) if form.conditional_probability_viral_loads else None
         context['alternative_scenarios'] = comparison_report(
             form, report_data, alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
         )

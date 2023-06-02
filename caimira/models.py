@@ -1640,6 +1640,7 @@ class ExposureModel:
 
         return deposited_exposure * self.repeats
 
+    @method_cache
     def infection_probability(self) -> _VectorisedFloat:
         # Viral dose (vD)
         vD = self.deposited_exposure()
