@@ -89,8 +89,8 @@ class TestOpenApp(tornado.testing.AsyncHTTPTestCase):
     def test_calculator_404(self):
         response = self.fetch('/calculator')
         assert response.code == 404
-        
-        
+
+
 async def test_permalink_urls(http_server_client, baseline_form):
     base_url = 'proto://hostname/prefix'
     permalink_data = generate_permalink(base_url, lambda: "", lambda: "/calculator", baseline_form)
