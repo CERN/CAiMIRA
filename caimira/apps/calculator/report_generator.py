@@ -463,7 +463,7 @@ class ReportGenerator:
         context.update(report_data)
 
         alternative_scenarios = manufacture_alternative_scenarios(form)
-        context['alternative_viral_load'] = manufacture_viral_load_scenarios(model)
+        context['alternative_viral_load'] = manufacture_viral_load_scenarios(model) if form.conditional_probability_viral_loads else None
         context['alternative_scenarios'] = comparison_report(
             form, report_data, alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
         )
