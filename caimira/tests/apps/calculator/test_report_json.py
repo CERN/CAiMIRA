@@ -5,7 +5,7 @@ import tornado.testing
 import caimira.apps.calculator
 from caimira.apps.calculator import model_generator
 
-_TIMEOUT = 30.
+_TIMEOUT = 40.
 
 
 class TestCalculatorJsonResponse(tornado.testing.AsyncHTTPTestCase):

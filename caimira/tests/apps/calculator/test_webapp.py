@@ -7,7 +7,7 @@ from retry import retry
 import caimira.apps.calculator
 from caimira.apps.calculator.report_generator import generate_permalink
 
-_TIMEOUT = 30.
+_TIMEOUT = 20.
 
 
 @pytest.fixture
@@ -63,7 +63,7 @@ class TestBasicApp(tornado.testing.AsyncHTTPTestCase):
         assert 'expected number of new cases is' in response.body.decode()
 
 
-@retry(tries=20)
+@retry(tries=10)
 class TestCernApp(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         cern_theme = Path(caimira.apps.calculator.__file__).parent.parent / 'themes' / 'cern'
@@ -76,6 +76,21 @@ class TestCernApp(tornado.testing.AsyncHTTPTestCase):
         assert 'expected number of new cases is' in response.body.decode()
 
 
+retry(tries=10)
+class TestOpenApp(tornado.testing.AsyncHTTPTestCase):
+    def get_app(self):
+        return caimira.apps.calculator.make_app(calculator_prefix="/mycalc")
+
+    @tornado.testing.gen_test(timeout=_TIMEOUT)
+    def test_report(self):
+        response = yield self.http_client.fetch(self.get_url('/mycalc/baseline-model/result'))
+        self.assertEqual(response.code, 200)
+
+    def test_calculator_404(self):
+        response = self.fetch('/calculator')
+        assert response.code == 404
+        
+        
 async def test_permalink_urls(http_server_client, baseline_form):
     base_url = 'proto://hostname/prefix'
     permalink_data = generate_permalink(base_url, lambda: "", lambda: "/calculator", baseline_form)
