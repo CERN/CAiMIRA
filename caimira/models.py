@@ -1656,7 +1656,7 @@ class ExposureModel:
         """
         return np.sum(self._deposited_exposure_list(), axis=0) * self.repeats
     
-    def infection_probability_list(self):
+    def _infection_probability_list(self):
         # Viral dose (vD)
         vD_list = self._deposited_exposure_list()
 
@@ -1669,7 +1669,7 @@ class ExposureModel:
     
     @method_cache
     def infection_probability(self) -> _VectorisedFloat:
-        return (1 - np.prod([1 - prob for prob in self.infection_probability_list()], axis = 0)) * 100 
+        return (1 - np.prod([1 - prob for prob in self._infection_probability_list()], axis = 0)) * 100 
     
     def total_probability_rule(self) -> _VectorisedFloat:
         if (isinstance(self.concentration_model.infected.number, IntPiecewiseConstant) or 
