@@ -39,6 +39,7 @@ class FormData:
     conditional_probability_viral_loads: bool
     CO2_data: dict
     CO2_data_option: bool
+    CO2_fitting_result: dict
     exposed_coffee_break_option: str
     exposed_coffee_duration: int
     exposed_finish: minutes_since_midnight
@@ -352,15 +353,7 @@ class FormData:
                 geographic_population=self.geographic_population,
                 geographic_cases=self.geographic_cases,
                 ascertainment_bias=CONFIDENCE_LEVEL_OPTIONS[self.ascertainment_bias],
-            ), 
-            CO2_profile=models.CO2Data(
-                room_volume=self.room_volume,
-                number=self.total_people,
-                presence=self.population_present_interval(),
-                ventilation_transition_times=tuple(ventilation.transition_times(room=room)),
-                times=self.CO2_data['times'],
-                CO2_concentrations=self.CO2_data['CO2']
-            ) if self.CO2_data_option else (),
+            )
         )
 
     def build_model(self, sample_size=DEFAULT_MC_SAMPLE_SIZE) -> models.ExposureModel:
@@ -528,7 +521,11 @@ class FormData:
         elif (self.activity_type == 'precise'):
             activity_defn, expiration_defn = self.generate_precise_activity_expiration()            
 
-        activity = activity_distributions[activity_defn]
+        if self.CO2_data_option: 
+            activity = mc.Activity(self.CO2_fitting_result['exhalation_rate'], self.CO2_fitting_result['exhalation_rate'])
+        else: 
+            activity = activity_distributions[activity_defn]
+            
         expiration = build_expiration(expiration_defn)
 
         infected_occupants = self.infected_people
