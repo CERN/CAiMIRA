@@ -178,12 +178,12 @@ class CO2FormData:
         break_times = []
         for n in population_breaks:
             # Parse break times.  
-            begin = time_string_to_minutes(n["start_time"])
-            end = time_string_to_minutes(n["finish_time"])
+            begin = model_generator.time_string_to_minutes(n["start_time"])
+            end = model_generator.time_string_to_minutes(n["finish_time"])
             for time in [begin, end]:
                 # For a specific break, the infected and exposed presence is the same.
                 if not getattr(self, 'infected_start') < time < getattr(self, 'infected_finish'):
-                    raise ValueError(f'All breaks should be within the simulation time. Got {time_minutes_to_string(time)}.')
+                    raise ValueError(f'All breaks should be within the simulation time. Got {model_generator.time_minutes_to_string(time)}.')
 
             break_times.append((begin, end))
         return tuple(break_times)

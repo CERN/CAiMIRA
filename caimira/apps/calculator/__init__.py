@@ -371,7 +371,7 @@ class CO2Data(BaseRequestHandler):
         report_task = executor.submit(
             co2_model_generator.CO2FormData.build_model, form,
         )
-        report: str = await asyncio.wrap_future(report_task)
+        report = await asyncio.wrap_future(report_task)
         self.finish(dict(report.CO2_fit_params()))
      
 
