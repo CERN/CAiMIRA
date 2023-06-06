@@ -1089,7 +1089,6 @@ class _ConcentrationModelBase:
         state_change_times = {0.}
         state_change_times.update(self.population.presence_interval().transition_times())
         state_change_times.update(self.ventilation.transition_times(self.room))
-        
         return sorted(state_change_times)
 
     @method_cache
@@ -1498,7 +1497,6 @@ class CO2Data:
     def CO2_concentrations_from_params(self,
                                 exhalation_rate: float,
                                 ventilation_values: typing.Tuple[float, ...]) -> typing.List[float]:
-
         CO2_concentrations = CO2ConcentrationModel(
             room=Room(volume=self.room_volume),
             ventilation=CustomVentilation(PiecewiseConstant(
@@ -1515,7 +1513,7 @@ class CO2Data:
 
         return [CO2_concentrations.concentration(time) for time in self.times]
 
-    def CO2_fit_params(self):
+    def CO2_fit_params(self) -> typing.Dict[_VectorisedFloat, _VectorisedFloat]:
         if len(self.times) != len(self.CO2_concentrations):
             raise ValueError('times and CO2_concentrations must have same length.')
 
@@ -1539,7 +1537,7 @@ class CO2Data:
         exhalation_rate = res_dict['x'][0]
         ventilation_values = res_dict['x'][1:]
 
-        return exhalation_rate, ventilation_values
+        return {"exhalation_rate": exhalation_rate, "ventilation_values": list(ventilation_values)}
 
 
 @dataclass(frozen=True)
@@ -1558,9 +1556,6 @@ class ExposureModel:
 
     #: Geographical data
     geographical_data: Cases
-
-    #: CO2 data
-    CO2_profile: CO2Data = ()
 
     #: The number of times the exposure event is repeated (default 1).
     repeats: int = config.exposure_model['repeats'] # type: ignore
