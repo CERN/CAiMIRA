@@ -447,7 +447,7 @@ class CustomVentilation(_VentilationBase):
     ventilation_value: PiecewiseConstant
 
     def transition_times(self, room: Room) -> typing.Set[float]:
-        return self.ventilation_value.transition_times
+        return set(self.ventilation_value.transition_times)
     
     def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
         return self.ventilation_value.value(time)
@@ -1496,7 +1496,7 @@ class CO2Data:
 
     def CO2_concentrations_from_params(self,
                                 exhalation_rate: float,
-                                ventilation_values: typing.Tuple[float, ...]) -> typing.List[float]:
+                                ventilation_values: typing.Tuple[float, ...]) -> typing.List[_VectorisedFloat]:
         CO2_concentrations = CO2ConcentrationModel(
             room=Room(volume=self.room_volume),
             ventilation=CustomVentilation(PiecewiseConstant(
@@ -1510,10 +1510,9 @@ class CO2Data:
                 host_immunity=0.
             )
         )
-
         return [CO2_concentrations.concentration(time) for time in self.times]
 
-    def CO2_fit_params(self) -> typing.Dict[_VectorisedFloat, _VectorisedFloat]:
+    def CO2_fit_params(self):
         if len(self.times) != len(self.CO2_concentrations):
             raise ValueError('times and CO2_concentrations must have same length.')
 
