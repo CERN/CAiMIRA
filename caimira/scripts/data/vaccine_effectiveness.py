@@ -3,12 +3,12 @@ from tabulate import tabulate
 
 '''
 Script file to generate the vaccine effectiveness values.
-To generate the primary vaccine effectiveness values, uncoment lines 16-21.
-To generate the booster effectiveness values, uncoment lines 26-56.
+To generate the primary vaccine effectiveness values, uncomment lines 16-21.
+To generate the booster effectiveness values, uncomment lines 26-56.
 '''
 
 # Data from 08 Sep. 2022
-file_loc = "./WeeklySummary_COVID19_VE_Studies_08Sep2022_adapted.xlsx"
+file_loc = "https://caimira-resources.web.cern.ch/WeeklySummary_COVID19_VE_Studies_08Sep2022_adapted.xlsx"
 
 
 # ------- PRIMARY VACCINATION ------ #
@@ -43,7 +43,7 @@ file_loc = "./WeeklySummary_COVID19_VE_Studies_08Sep2022_adapted.xlsx"
 #     new_rows_with_or.at[index, 'primary series vaccine'] = row['primary series vaccine'].split(' or ')[1]
 #     rows_to_add.loc[len(rows_indexes)+index] = new_rows_with_or.loc[index]
 
-# # merge the dataframe without the '  or  ' with the new dataframe that has the rows divided in two 
+# # merge the dataframe without the '  or  ' with the new dataframe that has the rows divided in two
 # final_df = pd.concat([df_without_or, rows_to_add]).reset_index().drop(columns=['index'])
 
 # # calculate the VE value
