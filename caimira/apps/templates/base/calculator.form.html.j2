@@ -12,6 +12,7 @@
 {% block body_scripts %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" integrity="sha512-uto9mlQzrs59VwILcLiRYeLKPPbS/bT71da/OEBYEwcdNUk8jYIy+D176RYoop1Da+f9mvkYrmj5MCLZWEtQuA==" crossorigin="anonymous"></script>
     <script src="{{ get_calculator_url('/static/js') }}/form.js"></script>
+    <script src="{{ get_calculator_url('/static/js') }}/co2_form.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 {% endblock body_scripts %}
 
@@ -190,23 +191,6 @@
     <div data-tooltip="The available means of venting / filtration of indoor spaces.">
         <span class="tooltip_text">?</span>
     </div>
-    
-    <div class="split mt-3">
-    <div>Use CO₂ concentration values:</div>
-      <div>
-        <input class="ml-2" type="radio" id="CO2_data_no" name="CO2_data_option" value=0 checked="checked">
-          <label for="CO2_data_no">No</label>
-        <input class="ml-2" type="radio" id="CO2_data_yes" name="CO2_data_option" value=1 data-enables="#DIVCO2_data">
-          <label for="CO2_data_yes">Yes</label>
-      </div>
-    </div>
-
-    <div id="DIVCO2_data" class='form-group row' style="display:none">
-      <div class="col-sm-3"><label class="col-form-label col-form-label-sm">CO2 Data:</label><br></div>
-      <input type="text" name="CO2_data" class="form-control form-control-sm col-sm-6" placeholder='{"times": [...], "concentrations": [...]}' >
-    </div>
-
-    <hr width="80%">
     
     <div id="ventilation_data">
       <div class='sub_title'>Ventilation type:</div>
@@ -676,11 +660,62 @@
     </div>
 
     <br style="clear:both;">
-    <i>Coffee breaks are spread evenly throughout the day.</i><br>
+    <i>Coffee breaks are spread evenly throughout the day.</i>
     <br><br>
+
+    <div class="split">
+      <strong>Use CO₂ concentration values:</strong>
+        <div>
+          <input class="ml-2" type="radio" id="CO2_data_no" name="CO2_data_option" value=0 checked="checked">
+            <label for="CO2_data_no">No</label>
+          <input class="ml-2" type="radio" id="CO2_data_yes" name="CO2_data_option" value=1 data-target="#DIVCO2_data" data-toggle="modal">
+            <label for="CO2_data_yes">Yes</label>
+        </div>
+    </div>
+
+    <!-- CO2 Modal -->
+    <div class="modal fade" id="DIVCO2_data" tabindex="-1" role="dialog" aria-labelledby="CO2_values_title" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document" overflow: visible>
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="CO2_values_title">CO₂ Fitting Algorithm</h5>
+            <button type="button" class="close close_btn_frm_field" data-dismiss="modal" onclick="dismiss_co2_dialog()">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">    
+
+            <h5>Upload an excel file to display in HTML Table</h5><br>
+            <!-- Input element to upload an excel file -->
+            <input type="file" id="file_upload" />
+            <button type="button" class="btn btn-primary btn-sm" onclick="upload_file()">Upload</button>  
+            <br>
+            <br>
+            <!-- table to display the excel data -->
+            <table id="display_excel_data" border="1" style="width: 70%; margin-left: auto; margin-right: auto"></table>
+            <input id="formatted_data" type="text" name="CO2_data" class="form-control form-control-sm d-none" placeholder='{"times": [...], "concentrations": [...]}' ><br>
+            <div id="CO2_input_data_div" style="display: none">
+              <p>The following data will be considered:</p><br>
+              <p id="CO2_input_data"></p>
+            </div>
+            <input type="text" class="form-control d-none" name="CO2_fitting_result" id="CO2_fitting_result">
+            <div id="DIV_CO2_fitting_result" style="display: none">
+              <img id="CO2_data_plot"/>
+              <div>Exhalation rate: <p id="exhalation_rate_fit"></p> </div>
+              {# <div>Air exchange: <p id="ventilation_rate_fit"></p></div> #}
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary dismiss_btn_frm_field" data-dismiss="modal" onclick="clear_fitting_algorithm()">Clear all</button>
+            <button type="button" id="generate_fitting_data" class="btn btn-primary close_btn_frm_field" onclick="submit_fitting_algorithm('{{ get_calculator_url() }}/co2-fit')">Fit data</button>
+            <button type="button" style="display: none" id="save_and_dismiss_dialog" class="btn btn-primary close_btn_frm_field" data-dismiss="modal">Save and close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  
   </div> 
   </div>
-  
 </section>
 
 <div class="center">
