@@ -18,6 +18,7 @@ import traceback
 import typing
 import uuid
 import zlib
+import matplotlib.pyplot as plt
 
 import jinja2
 import loky
@@ -372,7 +373,15 @@ class CO2Data(BaseRequestHandler):
             co2_model_generator.CO2FormData.build_model, form,
         )
         report = await asyncio.wrap_future(report_task)
-        self.finish(dict(report.CO2_fit_params()))
+
+        def generate_image():
+            fig = plt.figure(figsize=(4, 4), dpi=110)
+            plt.plot(form.CO2_data['times'], form.CO2_data['CO2'])
+            return fig
+        
+        result = dict(report.CO2_fit_params())
+        result['CO2_plot'] = img2base64(_figure2bytes(generate_image()))
+        self.finish(result)
      
 
 def get_url(app_root: str, relative_path: str = '/'):
