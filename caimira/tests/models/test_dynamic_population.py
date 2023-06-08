@@ -32,11 +32,7 @@ def full_exposure_model():
             activity=models.Activity.types['Seated'],
             host_immunity=0.
         ),
-        geographical_data=models.Cases(
-            geographic_population=50_000,
-            geographic_cases=52,
-            ascertainment_bias=1,
-        ),
+        geographical_data=(),
     )
 
 
@@ -213,19 +209,35 @@ def test_infection_probability(
     npt.assert_almost_equal(base_infection_probability, dynamic_population_exposure_model.infection_probability())
 
 
-# def test_dynamic_total_probability_rule(
-#         full_exposure_model: models.ExposureModel,
-#         dynamic_infected_single_exposure_model: models.ExposureModel,
-#         dynamic_exposed_single_exposure_model: models.ExposureModel,
-#         dynamic_population_exposure_model: models.ExposureModel):
+def test_dynamic_total_probability_rule(
+        dynamic_infected_single_exposure_model: models.ExposureModel,
+        dynamic_exposed_single_exposure_model: models.ExposureModel,
+        dynamic_population_exposure_model: models.ExposureModel):
 
-#     full_model_total_prob_rule = full_exposure_model.total_probability_rule()
-#     npt.assert_almost_equal(full_model_total_prob_rule,
-#                             dynamic_population_exposure_model.dynamic_total_probability_rule())
+    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute total probability "
+                                                            "(including incidence rate) with dynamic occupancy")):
+        dynamic_infected_single_exposure_model.total_probability_rule()
+        dynamic_exposed_single_exposure_model.total_probability_rule()
+        dynamic_population_exposure_model.total_probability_rule()
     
-#     npt.assert_almost_equal(full_model_total_prob_rule,
-#                             dynamic_infected_single_exposure_model.dynamic_total_probability_rule())
+def test_dynamic_expected_new_cases(
+        dynamic_infected_single_exposure_model: models.ExposureModel,
+        dynamic_exposed_single_exposure_model: models.ExposureModel,
+        dynamic_population_exposure_model: models.ExposureModel):
     
-#     npt.assert_almost_equal(full_model_total_prob_rule,
-#                             dynamic_exposed_single_exposure_model.dynamic_total_probability_rule())
+    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute expected new cases "
+                                                            "with dynamic occupancy")):
+        dynamic_infected_single_exposure_model.expected_new_cases()
+        dynamic_exposed_single_exposure_model.expected_new_cases()
+        dynamic_population_exposure_model.expected_new_cases()
+
+def test_dynamic_reproduction_number(
+        dynamic_infected_single_exposure_model: models.ExposureModel,
+        dynamic_exposed_single_exposure_model: models.ExposureModel,
+        dynamic_population_exposure_model: models.ExposureModel):
     
+    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute reproduction number "
+                                                            "with dynamic occupancy")):
+        dynamic_infected_single_exposure_model.reproduction_number()
+        dynamic_exposed_single_exposure_model.reproduction_number()
+        dynamic_population_exposure_model.reproduction_number()
