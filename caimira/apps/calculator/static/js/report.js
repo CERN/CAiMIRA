@@ -972,9 +972,9 @@ function draw_histogram(svg_id, prob, prob_sd) {
         .attr("fill", "none")
         .attr('stroke-width', 2)
         .attr('stroke-dasharray', (5, 5))
-        .attr("x1", x(prob)) 
+        .attr("x1", x(prob/100)) 
         .attr("y1", y_right(1))
-        .attr("x2", x(prob))
+        .attr("x2", x(prob/100))
         .attr("y2", y_right(0))
         .attr("stroke", "grey");
 
