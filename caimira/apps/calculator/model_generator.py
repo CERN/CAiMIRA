@@ -390,26 +390,19 @@ class FormData:
         return self.build_mc_model().build_model(size=sample_size)
 
     def build_CO2_model(self, sample_size=DEFAULT_MC_SAMPLE_SIZE) -> models.CO2ConcentrationModel:
-        infected_interval = self.infected_present_interval()
-        exposed_interval = self.exposed_present_interval()
-        total_merged_presence = list(self.merge_intervals(
-            infected_interval.present_times, # type: ignore 
-            exposed_interval.present_times, # type: ignore
-        ))
+        infected_population: models.InfectedPopulation = self.infected_population().build_model(sample_size)
+        exposed_population: models.Population = self.exposed_population().build_model(sample_size)
 
-        if isinstance(self.infected_people, int): # TODO when exposed occupants feature is implemented
-            total_people = self.total_people
-            total_presence = models.SpecificInterval(tuple(total_merged_presence))
-        else:
-            total_people = models.IntPiecewiseConstant(
-                transition_times=models.SpecificInterval(tuple(total_merged_presence)), 
-                values=((self.total_people) * len(total_merged_presence))
-            )
-            total_presence = None
+        state_change_times = set(infected_population.presence_interval().transition_times())
+        state_change_times.update(exposed_population.presence_interval().transition_times())
+        transition_times = sorted(state_change_times)
+
+        total_people = [infected_population.people_present(stop) + exposed_population.people_present(stop) 
+                        for _, stop in zip(transition_times[:-1], transition_times[1:])]
         
         population = mc.Population(
-            number=total_people,
-            presence=total_presence,
+            number=models.IntPiecewiseConstant(transition_times=tuple(transition_times), values=tuple(total_people)),
+            presence=None,
             mask=models.Mask.types[self.mask_type],
             activity=activity_distributions[ACTIVITIES[ACTIVITY_TYPES.index(self.activity_type)]['activity']],
             host_immunity=0.,
