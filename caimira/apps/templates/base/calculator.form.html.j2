@@ -685,8 +685,11 @@
             </button>
           </div>
           <div class="modal-body">    
-
-            <h5>Upload an excel file to display in HTML Table</h5><br>
+            <div class="d-flex d-row justify-content-between">
+              <h5 style="margin-top: auto; margin-bottom: auto">Upload an excel file to display in HTML Table</h5>
+              <button type="button" class="btn btn-primary btn-sm" onclick="downloadTemplate()">Download template</button>
+            </div>
+            <br>
             <!-- Input element to upload an excel file -->
             <input type="file" id="file_upload" />
             <button type="button" class="btn btn-primary btn-sm" onclick="upload_file()">Upload</button>  
@@ -703,7 +706,7 @@
             <div id="DIV_CO2_fitting_result" style="display: none">
               <img id="CO2_data_plot"/>
               <div>Exhalation rate: <p id="exhalation_rate_fit"></p> </div>
-              {# <div>Air exchange: <p id="ventilation_rate_fit"></p></div> #}
+              <div>Air exchange: <p id="ventilation_rate_fit"></p></div>
             </div>
           </div>
           <div class="modal-footer">

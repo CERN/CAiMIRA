@@ -19,8 +19,10 @@ const CO2_data = [
 	'infected_start',
 	'room_volume',
 	'total_people',
+	'ventilation_type',
 	'windows_duration',
 	'windows_frequency',
+	'window_opening_regime',
 ]
 
 // Method to upload a valid excel file
@@ -48,7 +50,6 @@ function excelFileToJSON(file) {
 		reader.onload = function (e) {
 			var data = e.target.result;
 			var workbook = XLSX.read(data, { type: "binary" });
-			var result = {};
 			var firstSheetName = workbook.SheetNames[0];
 			//reading only first sheet data
 			var jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName]);
@@ -67,23 +68,42 @@ function displayJsonToHtmlTable(jsonData) {
 	let structure = { times: [], CO2: [] };
 	if (jsonData.length > 0) {
 		var htmlData = "<tr><th>Time</th><th>CO2 Value</th></tr>";
-		for (var i = 0; i < jsonData.length; i++) {
+		let jsonLength = jsonData.length;
+		for (var i = 0; i < jsonLength; i++) {
 			var row = jsonData[i];
-			htmlData +=
-				"<tr><td>" +
-				Math.round(row["Times"] * 10) / 10 +
-				"</td><td>" +
-				Math.round(row["CO2"] * 10) / 10 +
-				"</td></tr>";
+			if (i < 5) {
+				htmlData +=
+					"<tr><td>" +
+					Math.round(row["Times"] * 10) / 10 +
+					"</td><td>" +
+					Math.round(row["CO2"] * 10) / 10 +
+					"</td></tr>";
+			}
 			structure["times"].push(row["Times"]);
 			structure["CO2"].push(row["CO2"]);
 		}
+
+		if (jsonLength >= 5) htmlData += "<tr><td> ... </td><td> ... </td></tr>";
 		table.innerHTML = htmlData;
 		console.log(structure);
 		format.value = JSON.stringify(structure);
 	} else {
 		table.innerHTML = "There is no data in Excel";
 	}
+}
+
+function downloadTemplate() {
+	let final_export = [["Times", "CO2"], [8.5, 440.44]];
+	// Prepare the CSV file.
+    let csvContent = "data:text/csv;charset=utf8," 
+        + final_export.map(e => e.join(",")).join("\n");
+    var encodedUri = encodeURI(csvContent);
+    // Set a name for the file.
+    var link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "CO2_template.XLSX");
+    document.body.appendChild(link);
+    link.click();
 }
 
 function insertErrorFor(referenceNode, text) {
@@ -131,7 +151,7 @@ function submit_fitting_algorithm(url) {
 				$("#DIV_CO2_fitting_result").show();
 				$("#CO2_fitting_result").val(JSON.stringify(json_response));
 				$("#exhalation_rate_fit").html(String(json_response['exhalation_rate']));
-				// $("#ventilation_rate_fit").html(json_response['ventilation_values']);
+				$("#ventilation_rate_fit").html(json_response['ventilation_values']);
 				$("#CO2_data_plot").attr("src", json_response['CO2_plot']);
 				$("#generate_fitting_data").html('Fit data');
 				$("#save_and_dismiss_dialog").show();
