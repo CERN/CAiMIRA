@@ -37,8 +37,10 @@ class CO2FormData:
     infected_start: minutes_since_midnight
     room_volume: float
     total_people: int
+    ventilation_type: str
     windows_duration: float
     windows_frequency: float
+    window_opening_regime: str
 
     #: The default values for undefined fields. Note that the defaults here
     #: and the defaults in the html form must not be contradictory.
@@ -63,8 +65,10 @@ class CO2FormData:
         'infected_start': '08:30',
         'room_volume': _NO_DEFAULT,
         'total_people': _NO_DEFAULT,
+        'ventilation_type': 'no_ventilation',
         'windows_duration': 10.,
         'windows_frequency': 60.,
+        'window_opening_regime': 'windows_open_permanently', 
     }
 
     @classmethod
@@ -307,5 +311,8 @@ class CO2FormData:
         )
 
     def ventilation_transition_times(self) -> typing.Tuple[float, ...]:
-        return tuple(sorted(set(models.PeriodicInterval(self.windows_frequency, 
-                                       self.windows_duration, min(self.infected_start, self.exposed_start)/60).transition_times())))
+        if self.ventilation_type == 'natural_ventilation' and self.window_opening_regime == 'windows_open_periodically':
+            return tuple(sorted(set(models.PeriodicInterval(self.windows_frequency, 
+                    self.windows_duration, min(self.infected_start, self.exposed_start)/60).transition_times())))
+        else:
+            return (min(self.infected_start/60, self.exposed_start/60), max(self.infected_finish/60, self.exposed_finish/60)) # all day long
