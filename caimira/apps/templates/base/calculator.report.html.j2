@@ -224,6 +224,42 @@
 					</div>
 				</div>
 
+				<div class="card bg-light mb-3">
+					<div class="card-header"><strong>Predictive CO₂ Concentration Profile</strong>
+						<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseCO₂Profile" role="button" aria-expanded="false" aria-controls="collapseCO₂Profile">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
+								<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
+							</svg>
+						</button>
+					</div>	
+					<div class="collapse" id="collapseCO₂Profile">
+						<div class="card-body">
+							<div>
+								<div id="CO2_concentration_graph" style="height: 400px"></div>
+								<script type="application/javascript">
+									var CO2_concentrations = {{ CO2_concentrations | JSONify }}
+									draw_generic_concentration_plot(
+											"CO2_concentration_graph",
+											"Mean concentration (ppm)",
+											h_lines = [
+												{'label': 'Acceptable level',
+												 'y': 800, 
+												 'color': 'forestgreen',
+												 'style': 'dashed'
+												},
+												{'label': 'Insufficient level',
+												 'y': 1500, 
+												 'color': 'firebrick',
+												 'style': 'dashed'
+												},
+											]
+									);
+								</script>
+							</div>
+						</div>
+					</div>
+				</div>
+
 				{% if form.short_range_option == "short_range_no" %}
 					<div class="card bg-light mb-3">
 						<div class="card-header"><strong>Alternative scenarios</strong>
@@ -236,16 +272,13 @@
 						<div class="collapse" id="collapseAlternativeScenarios">
 							<div class="card-body">
 								<div>
-									{% if form.short_range_option == "short_range_yes" %}
-										{% if 'Speaking' in form.short_range_interactions|string or 'Shouting' in form.short_range_interactions|string %}
-											<button class="btn btn-sm btn-primary" id="button_alternative_full_exposure" disabled>Show full exposure</button>
-											<button class="btn btn-sm btn-primary ml-0" id="button_alternative_hide_high_concentration">Hide high concentration</button>
-										{% endif %}
-									{% endif %}
 									<div id="alternative_scenario_plot" style="height: 400px"></div>
 									<script type="application/javascript">
-										let alternative_scenarios = {{ alternative_scenarios.stats | JSONify }};
-										draw_alternative_scenarios_plot("concentration_plot", "alternative_scenario_plot");
+										var alternative_scenarios = {{ alternative_scenarios.stats | JSONify }}
+										draw_generic_concentration_plot(
+											"alternative_scenario_plot",
+											"Mean concentration (virions/m³)",
+										);
 									</script>
 									<br>
 									{% block report_scenarios_summary_table %}
@@ -283,6 +316,7 @@
 						</div>
 					</div>
 				{% endif %}
+
 			{% endblock report_results %}
 
 			<!-- Export Data Concentration Modal -->
@@ -325,6 +359,15 @@
 										<div id="cumulative-dose-rename-div" class="align-items-center" style="display:none">
 											<label class="col-form-label" for="cumulative-dose-rename-div">Column name:</label>
 											<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Cumulative Dose__rename" placeholder="Cumulative Dose" value="Cumulative Dose">
+										</div>
+									</div>
+									</li>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input" name="checkedItems" id="CO2_Concentration" onclick="display_rename_column(this.checked, 'CO2-rename-div')">
+										<label class="form-check-label" for="CO2_Concentration">CO₂ Concentration</label>
+										<div id="CO2-rename-div" class="align-items-center" style="display:none">
+											<label class="col-form-label" for="CO2-rename-div">Column name:</label>
+											<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="CO2_Concentration__rename" placeholder="CO₂ Concentration" value="CO₂ Concentration">
 										</div>
 									</div>
 									{% if form.short_range_option == "short_range_no" %}
