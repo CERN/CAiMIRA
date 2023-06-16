@@ -304,9 +304,8 @@ class FormData:
                     
             if total_percentage != 100:
                 raise ValueError(f'The sum of all respiratory activities should be 100. Got {total_percentage}.')
-        
 
-    def build_mc_model(self) -> mc.ExposureModel:
+    def initialize_room(self) -> models.Room:
         # Initializes room with volume either given directly or as product of area and height
         if self.volume_type == 'room_volume_explicit':
             volume = self.room_volume
@@ -323,7 +322,10 @@ class FormData:
             humidity = float(self.humidity)
             inside_temp = self.inside_temp
 
-        room = models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (inside_temp,)), humidity=humidity)
+        return models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (inside_temp,)), humidity=humidity)
+
+    def build_mc_model(self) -> mc.ExposureModel:
+        room = self.initialize_room()        
 
         infected_population = self.infected_population()
         
@@ -356,6 +358,32 @@ class FormData:
 
     def build_model(self, sample_size=DEFAULT_MC_SAMPLE_SIZE) -> models.ExposureModel:
         return self.build_mc_model().build_model(size=sample_size)
+
+    def build_CO2_model(self, sample_size=DEFAULT_MC_SAMPLE_SIZE) -> models.CO2ConcentrationModel:
+        infected_population: models.InfectedPopulation = self.infected_population().build_model(sample_size)
+        exposed_population: models.Population = self.exposed_population().build_model(sample_size)
+
+        state_change_times = set(infected_population.presence_interval().transition_times())
+        state_change_times.update(exposed_population.presence_interval().transition_times())
+        transition_times = sorted(state_change_times)
+
+        total_people = [infected_population.people_present(stop) + exposed_population.people_present(stop) 
+                        for _, stop in zip(transition_times[:-1], transition_times[1:])]
+        
+        population = mc.Population(
+            number=models.IntPiecewiseConstant(transition_times=tuple(transition_times), values=tuple(total_people)),
+            presence=None,
+            mask=models.Mask.types[self.mask_type],
+            activity=activity_distributions[ACTIVITIES[ACTIVITY_TYPES.index(self.activity_type)]['activity']],
+            host_immunity=0.,
+        )
+        
+        # Builds a CO2 concentration model based on model inputs
+        return mc.CO2ConcentrationModel(
+            room=self.initialize_room(),
+            ventilation=self.ventilation(),
+            CO2_emitters=population,
+        ).build_model(size=sample_size)
 
     def tz_name_and_utc_offset(self) -> typing.Tuple[str, float]:
         """

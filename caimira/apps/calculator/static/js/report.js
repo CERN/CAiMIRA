@@ -209,6 +209,7 @@ function draw_plot(svg_id) {
     // Tooltip.
     var focus = {}, tooltip_rect = {}, tooltip_time = {}, tooltip_concentration = {}, toolBox = {};
     for (const [concentration, data] of Object.entries(tooltip_data_for_graphs)) {
+        let data_length = String(Math.floor(Math.max(...data.map(el => el.concentration !== undefined ? el.concentration : 0)))).length;
 
         focus[concentration] = vis.append('svg:g')
             .style('display', 'none');
@@ -219,7 +220,7 @@ function draw_plot(svg_id) {
         tooltip_rect[concentration] = focus[concentration].append('rect')
             .attr('fill', 'white')
             .attr('stroke', '#000')
-            .attr('width', 85)
+            .attr('width', 65 + data_length * 8)
             .attr('height', 50)
             .attr('y', -22)
             .attr('rx', 4)
@@ -308,18 +309,17 @@ function draw_plot(svg_id) {
         var div_height = plot_div.clientHeight;
         graph_width = div_width;
         graph_height = div_height
+        var margins = { top: 30, right: 20, bottom: 50, left: 60 };
         if (div_width >= 900) { // For screens with width > 900px legend can be on the graph's right side.
-            var margins = { top: 30, right: 20, bottom: 50, left: 60 };
             div_width = 900;
             graph_width = div_width * (2/3);
             const svg_margins = {'margin-left': '0rem'};
             Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
         }
         else {
-            var margins = { top: 30, right: 20, bottom: 50, left: 40 };
             div_width = div_width * 1.1
             graph_width = div_width * .9;
-            graph_height = div_height * 0.65; // On mobile screen sizes we want the legend to be on the bottom of the graph.
+            graph_height = div_height * .75; // On mobile screen sizes we want the legend to be on the bottom of the graph.
             const svg_margins = {'margin-left': '-1rem'};
             Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
         };
@@ -353,23 +353,19 @@ function draw_plot(svg_id) {
             .attr('y', graph_height * 0.97);
         
         yAxisEl.attr('transform', 'translate(' + margins.left + ',0)');
-        yAxisLabelEl.attr('x', (graph_height * 0.9 + margins.bottom) / 2)
+        yAxisLabelEl.attr('x', (graph_height + margins.bottom * .55) / 2)
             .attr('y', (graph_height + margins.left) * 0.9)
             .attr('transform', 'rotate(-90, 0,' + graph_height + ')');
 
         yAxisCumEl.attr('transform', 'translate(' + (graph_width - margins.right) + ',0)').call(yCumulativeAxis);
         yAxisCumLabelEl.attr('transform', 'rotate(-90, 0,' + graph_height + ')')
-            .attr('x', (graph_height + margins.bottom) / 2);
+            .attr('x', (graph_height + margins.bottom) / 2.1);
 
         if (plot_div.clientWidth >= 900) {
-            yAxisCumLabelEl.attr('transform', 'rotate(-90, 0,' + graph_height + ')')
-                .attr('x', (graph_height + margins.bottom) / 2)
-                .attr('y', 1.71 * graph_width);
+            yAxisCumLabelEl.attr('y', graph_width * 1.7);
         }
         else {
-            yAxisCumLabelEl.attr('transform', 'rotate(-90, 0,' + graph_height + ')')
-                .attr('x', (graph_height + margins.bottom * 0.55) / 2)
-                .attr('y', graph_width + 290);
+            yAxisCumLabelEl.attr('y', graph_width + 325);
         }
 
         const size = 20;
@@ -415,8 +411,7 @@ function draw_plot(svg_id) {
         }
         // Legend on the bottom.
         else {
-            legend_x_start = 10;
-
+            legend_x_start = margins.left + 10;
             legendLineIcon.attr('x', legend_x_start)
                 .attr('y', graph_height + size);
             legendLineText.attr('x', legend_x_start + space_between_text_icon)
@@ -449,7 +444,7 @@ function draw_plot(svg_id) {
                     .attr('y', graph_height + (4 + sr_unique_activities.length) * size + text_height);
             }
 
-            legendBBox.attr('x', 1)
+            legendBBox.attr('x', margins.left)
                 .attr('y', graph_height + 6);
         }
 
@@ -501,9 +496,9 @@ function draw_plot(svg_id) {
                 tooltip_concentration[scenario].attr('x', 18);
             }
             else {
-                tooltip_rect[scenario].attr('x', -90)
-                tooltip_time[scenario].attr('x', -82)
-                tooltip_concentration[scenario].attr('x', -82)
+                tooltip_rect[scenario].attr('x', -10 - tooltip_rect[scenario].attr('width'))
+                tooltip_time[scenario].attr('x', -2 - tooltip_rect[scenario].attr('width'))
+                tooltip_concentration[scenario].attr('x', -2 - tooltip_rect[scenario].attr('width'))
             }
         }
         // Concentration line
@@ -542,26 +537,27 @@ function draw_plot(svg_id) {
     });
 }
 
-// Generate the alternative scenarios plot using d3 library.
-// 'alternative_scenarios' is a dictionary with all the alternative scenarios 
+// Generate a scenarios plot using d3 library.
+// 'list_of_scenarios' is a dictionary with all the scenarios 
 // 'times' is a list of times for all the scenarios
-// The method is prepared to consider short-range interactions if needed.
-function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_plot_svg_id) {
+function draw_generic_concentration_plot(
+        plot_svg_id,
+        y_axis_label,
+        h_lines,
+    ) {
+
+    list_of_scenarios = (plot_svg_id === 'CO2_concentration_graph') ? CO2_concentrations : alternative_scenarios
     // H:M format
     var time_format = d3.timeFormat('%H:%M');
     // D3 array of ten categorical colors represented as RGB hexadecimal strings.
-    var colors = d3.schemeAccent;
-
-    // Used for controlling the short-range interactions 
-    let button_full_exposure = document.getElementById("button_alternative_full_exposure");
-    let button_hide_high_concentration = document.getElementById("button_alternative_hide_high_concentration");
+    var colors = d3.schemeCategory10;
 
     // Variable for the highest concentration for all the scenarios
     var highest_concentration = 0.
 
     var data_for_scenarios = {}
-    for (scenario in alternative_scenarios) {
-        scenario_concentrations = alternative_scenarios[scenario].concentrations;
+    for (scenario in list_of_scenarios) {
+        scenario_concentrations = list_of_scenarios[scenario].concentrations;
 
         highest_concentration = Math.max(highest_concentration, Math.max(...scenario_concentrations))
 
@@ -576,8 +572,8 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
     var first_scenario = Object.values(data_for_scenarios)[0]
 
     // Add main SVG element
-    var alternative_plot_div = document.getElementById(alternative_plot_svg_id);
-    var vis = d3.select(alternative_plot_div).append('svg');
+    var plot_div = document.getElementById(plot_svg_id);
+    var vis = d3.select(plot_div).append('svg');
 
     var xRange = d3.scaleTime().domain([first_scenario[0].hour, first_scenario[first_scenario.length - 1].hour]);
     var xTimeRange = d3.scaleLinear().domain([times[0], times[times.length - 1]]);
@@ -599,20 +595,23 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
 
     // Y axis declaration.
     var yAxisEl = vis.append('svg:g')
-         .attr('class', 'y axis');
+        .attr('class', 'y axis');
 
     // Y axis label.
     var yAxisLabelEl = vis.append('svg:text')
         .attr('class', 'y label')
         .attr('fill', 'black')
         .attr('text-anchor', 'middle')
-        .text('Mean concentration (virions/m³)');
+        .text(y_axis_label);
 
     // Legend bounding box.
-    max_key_length = Math.max(...(Object.keys(data_for_scenarios).map(el => el.length)));
+    let h_lines_lenght = h_lines ? h_lines.length : 0
+    let h_line_max_key = h_lines ? Math.max(...(h_lines.map(el => el.label.length))) : 0
+
+    max_key_length = Math.max(Math.max(...(Object.keys(data_for_scenarios).map(el => el.length))), h_line_max_key);
     var legendBBox = vis.append('rect')
-        .attr('width', 8.25 * max_key_length )
-        .attr('height', 25 * (Object.keys(data_for_scenarios).length))
+        .attr('width', 9 * max_key_length )
+        .attr('height', 25 * ((Object.keys(data_for_scenarios).length) + h_lines_lenght))
         .attr('stroke', 'lightgrey')
         .attr('stroke-width', '2')
         .attr('rx', '5px')
@@ -649,13 +648,31 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
         label_text[scenario_name] = vis.append('text')
             .text(scenario_name)
             .style('font-size', '15px');
+    }
+    if (h_lines) {
+        var h_lines_draw = {}, h_line_label_icon = {}, h_line_label_text = {};
+        h_lines.map((line) => {
+            h_lines_draw[line.label] = draw_area.append('svg:line')
+                .attr('stroke', line.color)
+                .attr('stroke-width', 2)
+                .attr('stroke-dasharray', line.style == 'dashed' ? (5, 5) : 0)
 
+            // Legend for each of the horizontal lines
+
+            h_line_label_icon[line.label] = vis.append('line')
+                .style("stroke-dasharray", line.style == 'dashed' ? (5, 5) : 0)
+                .attr('stroke-width', '2')
+                .style("stroke", line.color);
+            h_line_label_text[line.label] = vis.append('text')
+                .text(line.label)
+                .style('font-size', '15px');
+        })
     }
 
     // Tooltip.
     var focus = {}, tooltip_rect = {}, tooltip_time = {}, tooltip_concentration = {}, toolBox = {};
     for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
-
+        let data_length = String(Math.floor(Math.max(...data.map(el => el.concentration !== undefined ? el.concentration : 0)))).length;
         focus[scenario_name] = vis.append('svg:g')
             .style('display', 'none');
 
@@ -665,7 +682,7 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
         tooltip_rect[scenario_name] = focus[scenario_name].append('rect')
             .attr('fill', 'white')
             .attr('stroke', '#000')
-            .attr('width', 80)
+            .attr('width', 65 + data_length * 8)
             .attr('height', 50)
             .attr('y', -22)
             .attr('rx', 4)
@@ -687,11 +704,12 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
             .on('mousemove', mousemove);
     }
 
-    function update_alternative_concentration_plot(concentration_data) {
+    function update_concentration_plot(concentration_data) {
+        list_of_scenarios = (plot_svg_id === 'CO2_concentration_graph') ? CO2_concentrations : alternative_scenarios
         var highest_concentration = 0.
 
-        for (scenario in alternative_scenarios) {
-            scenario_concentrations = alternative_scenarios[scenario][concentration_data];
+        for (scenario in list_of_scenarios) {
+            scenario_concentrations = list_of_scenarios[scenario][concentration_data];
             highest_concentration = Math.max(highest_concentration, Math.max(...scenario_concentrations));
         }
 
@@ -705,29 +723,39 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
                 .y(d => yRange(d.concentration));
             draw_lines[scenario_name].transition().duration(1000).attr("d", lineFuncs[scenario_name](data));
         }
+
+        if (h_lines) {
+            h_lines.map((line) => {
+                h_lines_draw[line.label]
+                    .attr("x1", xTimeRange(times[0])) 
+                    .attr("y1", yRange(line.y))
+                    .attr("x2", xTimeRange(times[times.length - 1]))
+                    .attr("y2", yRange(line.y));
+            })
+        }
     }
 
     var graph_width;
     var graph_height;
 
     function redraw() {
-        // Define width and height according to the screen size.
-        var div_width = document.getElementById(concentration_plot_svg_id).clientWidth;
-        var div_height = document.getElementById(concentration_plot_svg_id).clientHeight;
+        // Define width and height according to the screen size. Always use an already defined
+        var window_width = document.getElementById('concentration_plot').clientWidth;
+        var div_width = window_width;
+        var div_height = document.getElementById('concentration_plot').clientHeight;
         graph_width = div_width;
-        graph_height = div_height
-        if (div_width >= 1200) { // For screens with width > 900px legend can be on the graph's right side.
-            var margins = { top: 30, right: 20, bottom: 50, left: 60 };
-            div_width = 1200;
-            graph_width = 600;
+        graph_height = div_height;
+        var margins = { top: 30, right: 20, bottom: 50, left: 60 };
+        if (window_width >= 900) { // For screens with width > 900px legend can be on the graph's right side.
+            div_width = 900;
+            graph_width = div_width * (2/3);
             const svg_margins = {'margin-left': '0rem'};
             Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
         }
         else {
-            var margins = { top: 30, right: 20, bottom: 50, left: 40 };
             div_width = div_width * 1.1
-            graph_width = div_width * .95;
-            graph_height = div_height * 0.65; // On mobile screen sizes we want the legend to be on the bottom of the graph.
+            graph_width = div_width * .9;
+            graph_height = div_height * .75; // On mobile screen sizes we want the legend to be on the bottom of the graph.
             const svg_margins = {'margin-left': '-1rem'};
             Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
         };
@@ -748,31 +776,6 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
         xTimeRange.range([margins.left, graph_width - margins.right]);
         yRange.range([graph_height - margins.bottom, margins.top]);
 
-        var legend_x_start = 25;
-        const space_between_text_icon = 30;
-        const text_height = 6;
-        for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
-            var scenario_index = Object.keys(data_for_scenarios).indexOf(scenario_name)
-            // Legend on right side.
-            var size = 20 * (scenario_index + 1);
-            if (document.getElementById(concentration_plot_svg_id).clientWidth >= 900) {
-                label_icons[scenario_name].attr('x', graph_width + legend_x_start)
-                    .attr('y', margins.top + size);
-                label_text[scenario_name].attr('x', graph_width + legend_x_start + space_between_text_icon)
-                    .attr('y', margins.top + size  + text_height);
-            }
-            // Legend on the bottom.
-            else {
-                legend_x_start = 10;
-
-                label_icons[scenario_name].attr('x', legend_x_start)
-                    .attr('y', graph_height + size);
-                label_text[scenario_name].attr('x', legend_x_start + space_between_text_icon)
-                    .attr('y', graph_height + size  + text_height);
-            }
-
-        }
-
         // Axis.
         var xAxis = d3.axisBottom(xRange).tickFormat(d => time_format(d));
         yAxis.scale(yRange);
@@ -784,19 +787,66 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
 
         yAxisEl.attr('transform', 'translate(' + margins.left + ',0)')
             .call(yAxis);
-        yAxisLabelEl.attr('transform', 'rotate(-90, 0,' + graph_height + ')')
-            .attr('x', (graph_height * 0.9 + margins.bottom) / 2)
-            .attr('y', (graph_height + margins.left) * 0.90);
+        yAxisLabelEl.attr('x', (graph_height + margins.bottom * .55) / 2)
+            .attr('y', (graph_height + margins.left) * 0.9)
+            .attr('transform', 'rotate(-90, 0,' + graph_height + ')');
+
+        // Legend items
+        var legend_x_start = 25;
+        const space_between_text_icon = 30;
+        const text_height = 6;
+        for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
+            var scenario_index = Object.keys(data_for_scenarios).indexOf(scenario_name)
+            // Legend on right side.
+            var size = 20 * (scenario_index + 1);
+            if (window_width >= 900) {
+                label_icons[scenario_name].attr('x', graph_width + legend_x_start)
+                    .attr('y', margins.top + size);
+                label_text[scenario_name].attr('x', graph_width + legend_x_start + space_between_text_icon)
+                    .attr('y', margins.top + size  + text_height);
+            }
+            // Legend on the bottom.
+            else {
+                legend_x_start = margins.left + 10;
+                label_icons[scenario_name].attr('x', legend_x_start)
+                    .attr('y', graph_height + size);
+                label_text[scenario_name].attr('x', legend_x_start + space_between_text_icon)
+                    .attr('y', graph_height + size  + text_height);
+            }
+        }
+        if (h_lines) {
+            h_lines.map((line, index) => {
+                size = 21 * (scenario_index + index + 2); // account for previous legend elements
+                if (window_width >= 900) {
+                    h_line_label_icon[line.label].attr("x1", graph_width + legend_x_start)
+                        .attr("x2", graph_width + legend_x_start + 20)
+                        .attr("y1", margins.top + size)
+                        .attr("y2", margins.top + size);
+                    h_line_label_text[line.label].attr('x', graph_width + legend_x_start + space_between_text_icon)
+                        .attr('y', margins.top + size  + text_height);
+                }
+                // Legend on the bottom.
+                else {
+                    legend_x_start = margins.left + 10;
+                    h_line_label_icon[line.label].attr("x1", legend_x_start)
+                        .attr("x2", legend_x_start + 20)
+                        .attr("y1", graph_height + size)
+                        .attr("y2", graph_height + size);
+                    h_line_label_text[line.label].attr('x', legend_x_start + space_between_text_icon)
+                        .attr('y', graph_height + size  + text_height);
+                }
+            })
+        }
 
         // Legend on right side.
-        if (document.getElementById(concentration_plot_svg_id).clientWidth >= 900) {
+        if (window_width >= 900) {
             legendBBox.attr('x', graph_width * 1.02)
                 .attr('y', margins.top * 1.15);
             
         }
         // Legend on the bottom.
         else {
-            legendBBox.attr('x', 1)
+            legendBBox.attr('x', margins.left)
                 .attr('y', graph_height * 1.02)
         }
 
@@ -807,21 +857,6 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
         }
     }
 
-    if (button_full_exposure) {
-        button_full_exposure.addEventListener("click", () => {
-            update_alternative_concentration_plot('concentrations');
-            button_full_exposure.disabled = true;
-            button_hide_high_concentration.disabled = false;
-        });
-    }
-    if (button_hide_high_concentration) {
-            button_hide_high_concentration.addEventListener("click", () => {
-            update_alternative_concentration_plot('concentrations_zoomed');
-            button_full_exposure.disabled = false;
-            button_hide_high_concentration.disabled = true;
-        });
-    }
-
     function mousemove() {
         for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {
             if (d3.pointer(event)[0] < graph_width / 2) {
@@ -830,9 +865,9 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
                 tooltip_concentration[scenario_name].attr('x', 18);
             }
             else {
-                tooltip_rect[scenario_name].attr('x', -90)
-                tooltip_time[scenario_name].attr('x', -82)
-                tooltip_concentration[scenario_name].attr('x', -82)
+                tooltip_rect[scenario_name].attr('x', -10 - tooltip_rect[scenario_name].attr('width'))
+                tooltip_time[scenario_name].attr('x', - tooltip_rect[scenario_name].attr('width'))
+                tooltip_concentration[scenario_name].attr('x', - tooltip_rect[scenario_name].attr('width'))
             }
             var x0 = xRange.invert(d3.pointer(event, this)[0]),
                 i = bisecHour(data, x0, 1),
@@ -847,13 +882,12 @@ function draw_alternative_scenarios_plot(concentration_plot_svg_id, alternative_
 
     // Draw for the first time to initialize.
     redraw();
-    update_alternative_concentration_plot('concentrations');
+    update_concentration_plot('concentrations');
 
     // Redraw based on the new size whenever the browser window is resized.
     window.addEventListener("resize", e => {
         redraw();
-        if (button_full_exposure && button_full_exposure.disabled) update_alternative_concentration_plot('concentrations');
-        else update_alternative_concentration_plot('concentrations')
+        update_concentration_plot('concentrations');
     });
 }
 
@@ -1130,6 +1164,7 @@ function export_csv() {
                 var column_name = has_rename != '' ? has_rename : e.id;
                 if (e.id == "Time") checked_names.push(`${column_name} \u2028(h)`);
                 else if (e.id == "Concentration") checked_names.push(`${column_name} \u2028(virions m⁻³)`);
+                else if (e.id == "CO2_Concentration") checked_names.push(`${column_name} \u2028(ppm)`);
                 checked_items.push(e.id);
             }
         }
@@ -1143,6 +1178,7 @@ function export_csv() {
         checked_items.includes("Concentration") && this_row.push(concentrations[i]);
         checked_items.includes("Cumulative Dose") && this_row.push(cumulative_doses[i]);
         checked_items.includes("Long-Range Dose") && this_row.push(long_range_cumulative_doses[i]);
+        checked_items.includes("CO2_Concentration") && this_row.push(CO2_concentrations[Object.keys(CO2_concentrations)[0]].concentrations[i]);
         if (has_alternative_scenario) {
             Object.entries(alternative_scenarios).map((scenario) => {
                 if (scenario[0] != 'Current scenario') {
