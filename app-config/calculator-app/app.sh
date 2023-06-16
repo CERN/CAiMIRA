@@ -23,6 +23,9 @@ if [[ "$APP_NAME" == "calculator-app" ]]; then
 
     export "EXTRA_PAGES"="$EXTRA_PAGES"
 
+    export "DATA_SERVICE_CLIENT_EMAIL"="$DATA_SERVICE_CLIENT_EMAIL"
+    export "DATA_SERVICE_CLIENT_PASSWORD"="$DATA_SERVICE_CLIENT_PASSWORD"
+
     echo "Starting the caimira webservice with: python -m caimira.apps.calculator ${args[@]}"
     python -m caimira.apps.calculator "${args[@]}"
 elif [[ "$APP_NAME" == "caimira-voila" ]]; then
