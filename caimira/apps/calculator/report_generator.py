@@ -143,7 +143,7 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
     prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
     prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
     expected_new_cases = np.array(model.expected_new_cases()).mean()
-    uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(model))) if form.conditional_probability_plot else None
+    uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(model, prob))) if form.conditional_probability_plot else None
     exposed_presence_intervals = [list(interval) for interval in model.exposed.presence_interval().boundaries()]
 
     return {
@@ -188,24 +188,20 @@ def generate_permalink(base_url, get_root_url,  get_root_calculator_url, form: F
     }
 
 
-def uncertainties_plot(exposure_model: models.ExposureModel):
+def uncertainties_plot(exposure_model: models.ExposureModel, prob: typing.Union[float, np.ndarray]):
     fig = plt.figure(figsize=(4, 7), dpi=110)
 
-    viral_loads = np.linspace(2, 10, 600)
+    infection_probability = prob / 100
+    vl = np.log10(exposure_model.concentration_model.infected.virus.viral_load_in_sputum)
+    
+    min_vl, max_vl, step = 2, 10, 8/100.
+    viral_loads = np.arange(min_vl, max_vl, step)
     pi_means, lower_percentiles, upper_percentiles = [], [], []
-    for vl in viral_loads:
-        model_vl = dataclass_utils.nested_replace(
-            exposure_model, {
-                'concentration_model.infected.virus.viral_load_in_sputum' : 10**vl,
-            }
-        )
-        pi = model_vl.infection_probability()/100
-
-        pi_means.append(np.mean(pi))
-        lower_percentiles.append(np.quantile(pi, 0.05))
-        upper_percentiles.append(np.quantile(pi, 0.95))
-
-    histogram_data = exposure_model.infection_probability() / 100
+    for vl_log_min in viral_loads:
+        specific_prob = infection_probability[np.where((vl_log_min-vl)*(vl_log_min+step-vl)<0)[0]]
+        pi_means.append(specific_prob.mean())
+        lower_percentiles.append(np.quantile(specific_prob, 0.05))
+        upper_percentiles.append(np.quantile(specific_prob, 0.95))
 
     fig, axs = plt.subplots(2, 3, 
         gridspec_kw={'width_ratios': [5, 0.5] + [1],
@@ -221,7 +217,7 @@ def uncertainties_plot(exposure_model: models.ExposureModel):
     axs[0, 0].plot(viral_loads, pi_means, label='Predictive total probability')
     axs[0, 0].fill_between(viral_loads, lower_percentiles, upper_percentiles, alpha=0.1, label='5ᵗʰ and 95ᵗʰ percentile')
 
-    axs[0, 2].hist(histogram_data, bins=30, orientation='horizontal')
+    axs[0, 2].hist(infection_probability, bins=30, orientation='horizontal')
     axs[0, 2].set_xticks([])
     axs[0, 2].set_xticklabels([])
     axs[0, 2].set_facecolor("lightgrey")
@@ -230,7 +226,7 @@ def uncertainties_plot(exposure_model: models.ExposureModel):
     axs[0, 2].set_xlim(0, highest_bar)
 
     axs[0, 2].text(highest_bar * 0.5, 0.5,
-                        rf"$\bf{np.round(np.mean(histogram_data) * 100, 1)}$%", ha='center', va='center')
+                        rf"$\bf{np.round(np.mean(infection_probability) * 100, 1)}$%", ha='center', va='center')
     axs[1, 0].hist(np.log10(exposure_model.concentration_model.infected.virus.viral_load_in_sputum),
                     bins=150, range=(2, 10), color='grey')
     axs[1, 0].set_facecolor("lightgrey")
