@@ -197,8 +197,8 @@ def uncertainties_plot(exposure_model: models.ExposureModel, prob: typing.Union[
     min_vl, max_vl, step = 2, 10, 8/100.
     viral_loads = np.arange(min_vl, max_vl, step)
     pi_means, lower_percentiles, upper_percentiles = [], [], []
-    for vl_log_min in viral_loads:
-        specific_prob = infection_probability[np.where((vl_log_min-vl)*(vl_log_min+step-vl)<0)[0]]
+    for vl_log in viral_loads:
+        specific_prob = infection_probability[np.where((vl_log-vl)*(vl_log+step-vl)<0)[0]] #type: ignore
         pi_means.append(specific_prob.mean())
         lower_percentiles.append(np.quantile(specific_prob, 0.05))
         upper_percentiles.append(np.quantile(specific_prob, 0.95))
