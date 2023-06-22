@@ -19,6 +19,7 @@ import typing
 import uuid
 import zlib
 import matplotlib.pyplot as plt
+import numpy as np
 
 import jinja2
 import loky
@@ -374,13 +375,20 @@ class CO2Data(BaseRequestHandler):
         )
         report = await asyncio.wrap_future(report_task)
 
-        def generate_image():
-            fig = plt.figure(figsize=(4, 4), dpi=110)
+        def generate_image(transition_times: tuple, ventilation_values: tuple):
+            fig = plt.figure(figsize=(7, 4), dpi=110)
             plt.plot(form.CO2_data['times'], form.CO2_data['CO2'])
+            for index, time in enumerate(transition_times[:-1]):
+                print(time)
+                plt.axvline(x = time, color = 'grey', linewidth=0.5, linestyle='--')
+                y_location = (form.CO2_data['CO2'][min(range(len(form.CO2_data['times'])), key=lambda i: abs(form.CO2_data['times'][i]-time))])
+                plt.text(x = time + 0.04, y = y_location, s=round(ventilation_values[index], 2))
+            plt.xlabel('Time of day')
+            plt.ylabel('Concentration (ppm)')
             return fig
         
         result = dict(report.CO2_fit_params())
-        result['CO2_plot'] = img2base64(_figure2bytes(generate_image()))
+        result['CO2_plot'] = img2base64(_figure2bytes(generate_image(report.ventilation_transition_times, result['ventilation_values'])))
         self.finish(result)
      
 
