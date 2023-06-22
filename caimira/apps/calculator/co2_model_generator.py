@@ -100,13 +100,17 @@ class CO2FormData:
         return instance
 
     def build_model(self) -> models.CO2Data:
+        population_presence=self.population_present_interval()
+        last_time_present = population_presence.boundaries()[-1][-1]
+        last_present_time_index = next((index for index, time in enumerate(self.CO2_data['times']) 
+                                        if time > last_time_present), len(self.CO2_data['times']))
         return models.CO2Data(
                 room_volume=self.room_volume,
                 number=self.total_people,
-                presence=self.population_present_interval(),
-                ventilation_transition_times=self.ventilation_transition_times(),
-                times=self.CO2_data['times'],
-                CO2_concentrations=self.CO2_data['CO2']
+                presence=population_presence,
+                ventilation_transition_times=self.ventilation_transition_times(last_time_present),
+                times=self.CO2_data['times'][:last_present_time_index],
+                CO2_concentrations=self.CO2_data['CO2'][:last_present_time_index],
             ) 
 
     def _compute_breaks_in_interval(self, start, finish, n_breaks, duration) -> models.BoundarySequence_t:
@@ -310,9 +314,10 @@ class CO2FormData:
             breaks=breaks,
         )
 
-    def ventilation_transition_times(self) -> typing.Tuple[float, ...]:
+    def ventilation_transition_times(self, last_present_time) -> typing.Tuple[float, ...]:
         if self.ventilation_type == 'natural_ventilation' and self.window_opening_regime == 'windows_open_periodically':
-            return tuple(sorted(set(models.PeriodicInterval(self.windows_frequency, 
-                    self.windows_duration, min(self.infected_start, self.exposed_start)/60).transition_times())))
+            transition_times = sorted(models.PeriodicInterval(self.windows_frequency, 
+                    self.windows_duration, min(self.infected_start, self.exposed_start)/60).transition_times())
+            return tuple(filter(lambda x: x < last_present_time, transition_times))
         else:
-            return (min(self.infected_start/60, self.exposed_start/60), max(self.infected_finish/60, self.exposed_finish/60)) # all day long
+            return tuple((min(self.infected_start, self.exposed_start)/60, max(self.infected_finish, self.exposed_finish)/60), ) # all day long
