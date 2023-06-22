@@ -197,16 +197,18 @@
       <div class='sub_title'>Ventilation type:</div>
       
       <div class="split">
-      <div>
-      <input type="radio" id="no_ventilation" name="ventilation_type" value="no_ventilation" checked>
-        <label for="no_ventilation">No ventilation</label>
-      <input class="ml-2" type="radio" id="mechanical_ventilation" name="ventilation_type" value="mechanical_ventilation" data-enables="#DIVmechanical_ventilation">
-        <label for="mechanical_ventilation">Mechanical</label>
-      </div>
-      <div>
-      <input type="radio" id="natural_ventilation" name="ventilation_type" value="natural_ventilation" data-enables="#DIVnatural_ventilation" data-toggle="modal" data-target="#warning_modal">
-        <label for="natural_ventilation">Natural</label><br>
-      </div>
+        <div>
+        <input type="radio" id="no_ventilation" name="ventilation_type" value="no_ventilation" checked>
+          <label for="no_ventilation">No ventilation</label>
+        <input class="ml-2" type="radio" id="mechanical_ventilation" name="ventilation_type" value="mechanical_ventilation" data-enables="#DIVmechanical_ventilation">
+          <label for="mechanical_ventilation">Mechanical</label>
+        </div>
+        <div>
+        <input type="radio" id="natural_ventilation" name="ventilation_type" value="natural_ventilation" data-enables="#DIVnatural_ventilation" data-toggle="modal" data-target="#warning_modal">
+          <label for="natural_ventilation">Natural</label>
+        <input class="ml-2" type="radio" id="from_fitting" name="ventilation_type" value="from_fitting" data-enables="#DIVfrom_fitting">
+          <label for="from_fitting">Fitting</label>
+        </div>
       </div>
 
       <!-- Modal -->
@@ -296,6 +298,9 @@
             </div>
           </div>
 
+      </div>
+      <br/>
+      <div id="DIVfrom_fitting" style="display:none">
       </div>
       <br/>
       <div class='sub_title'>HEPA filtration:</div>
