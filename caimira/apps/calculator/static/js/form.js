@@ -521,8 +521,8 @@ function on_CO2_data_option_change() {
   CO2_data_options = $('input[type=radio][name=CO2_data_option]');
   CO2_data_options.each(function (index){
     if (this.checked) {
-      // if (this.id == 'CO2_data_yes') ventilation_from_fitting(true);
-      // else if (this.id == 'CO2_data_no') ventilation_from_fitting(false);
+      if (this.id == 'CO2_data_yes') ventilation_from_fitting(true);
+      else if (this.id == 'CO2_data_no') ventilation_from_fitting(false);
       getChildElement($(this)).show();
       require_fields(this);
     } 
@@ -712,6 +712,8 @@ function validate_form(form) {
       `<span id="loading_spinner" class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Loading...`
     );
   }
+
+  if ($("#CO2_fitting_result").val() == "") $("#CO2_data_no").click();
 
   return submit;
 }

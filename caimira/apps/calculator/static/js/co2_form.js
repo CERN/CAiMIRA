@@ -147,11 +147,10 @@ function submit_fitting_algorithm(url) {
 		})
 			.then((response) => response.json())
 			.then((json_response) => {
-				console.log(json_response)
 				$("#DIV_CO2_fitting_result").show();
 				$("#CO2_fitting_result").val(JSON.stringify(json_response));
-				$("#exhalation_rate_fit").html(String(json_response['exhalation_rate']));
-				$("#ventilation_rate_fit").html(json_response['ventilation_values']);
+				$("#exhalation_rate_fit").html('Exhalation rate: ' + String(json_response['exhalation_rate'].toFixed(2)) + ' m³/h');
+				// $("#ventilation_rate_fit").html(json_response['ventilation_values']);
 				$("#CO2_data_plot").attr("src", json_response['CO2_plot']);
 				$("#generate_fitting_data").html('Fit data');
 				$("#save_and_dismiss_dialog").show();
