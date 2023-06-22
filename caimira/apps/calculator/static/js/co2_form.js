@@ -74,9 +74,9 @@ function displayJsonToHtmlTable(jsonData) {
 			if (i < 5) {
 				htmlData +=
 					"<tr><td>" +
-					Math.round(row["Times"] * 10) / 10 +
+					row["Times"].toFixed(2) +
 					"</td><td>" +
-					Math.round(row["CO2"] * 10) / 10 +
+					row["CO2"].toFixed(2) +
 					"</td></tr>";
 			}
 			structure["times"].push(row["Times"]);
@@ -85,8 +85,8 @@ function displayJsonToHtmlTable(jsonData) {
 
 		if (jsonLength >= 5) htmlData += "<tr><td> ... </td><td> ... </td></tr>";
 		table.innerHTML = htmlData;
-		console.log(structure);
 		format.value = JSON.stringify(structure);
+		$('#generate_fitting_data').prop("disabled", false);
 	} else {
 		table.innerHTML = "There is no data in Excel";
 	}
@@ -160,6 +160,7 @@ function submit_fitting_algorithm(url) {
 }
 
 function clear_fitting_algorithm() {
+	$('#generate_fitting_data').prop("disabled", true);
 	$("#display_excel_data tbody").remove();
 	$('#CO2_fitting_result').val('');
 	$('#formatted_data').val('');
