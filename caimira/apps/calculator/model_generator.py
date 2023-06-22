@@ -326,7 +326,10 @@ class FormData:
             humidity = float(self.humidity)
             inside_temp = self.inside_temp
 
-        room = models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (inside_temp,)), humidity=humidity)
+        return models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (inside_temp,)), humidity=humidity)
+
+    def build_mc_model(self) -> mc.ExposureModel:
+        room = self.initialize_room()        
         ventilation: models._VentilationBase = self.ventilation()
         infected_population = self.infected_population()
         
@@ -353,7 +356,7 @@ class FormData:
                 geographic_population=self.geographic_population,
                 geographic_cases=self.geographic_cases,
                 ascertainment_bias=CONFIDENCE_LEVEL_OPTIONS[self.ascertainment_bias],
-            )
+            ),
         )
 
     def build_model(self, sample_size=DEFAULT_MC_SAMPLE_SIZE) -> models.ExposureModel:
@@ -436,24 +439,10 @@ class FormData:
 
     def ventilation(self) -> models._VentilationBase:
         always_on = models.PeriodicInterval(period=120, duration=120)
-        periodic_interval = models.PeriodicInterval(self.windows_frequency, self.windows_duration, min(self.infected_start, self.exposed_start)/60)
-
-        if self.CO2_data_option:
-            ventilations = []   
-            if self.ventilation_type == 'natural_ventilation' and self.window_opening_regime == 'windows_open_periodically':                
-                for index, time in enumerate(sorted(list(periodic_interval.transition_times()))[:-1]):
-                    if index < len(self.CO2_fitting_result['ventilation_values']):
-                        ventilations.append(models.AirChange(active=models.SpecificInterval(present_times=((time, time + self.windows_duration/60), )), 
-                                                             air_exch=self.CO2_fitting_result['ventilation_values'][index]))
-                    else: break
-            else:
-                ventilations.append(models.AirChange(active=always_on, air_exch=self.CO2_fitting_result['ventilation_values'][0]))
-            return models.MultipleVentilation(tuple(ventilations))
-        
         # Initializes a ventilation instance as a window if 'natural_ventilation' is selected, or as a HEPA-filter otherwise
         if self.ventilation_type == 'natural_ventilation':
             if self.window_opening_regime == 'windows_open_periodically':
-                window_interval = periodic_interval
+                window_interval = models.PeriodicInterval(self.windows_frequency, self.windows_duration, min(self.infected_start, self.exposed_start)/60)
             else:
                 window_interval = always_on
 
@@ -535,11 +524,7 @@ class FormData:
         elif (self.activity_type == 'precise'):
             activity_defn, expiration_defn = self.generate_precise_activity_expiration()            
 
-        if self.CO2_data_option:
-            activity = mc.Activity(self.CO2_fitting_result['exhalation_rate'], self.CO2_fitting_result['exhalation_rate'])
-        else: 
-            activity = activity_distributions[activity_defn]
-            
+        activity = activity_distributions[activity_defn]
         expiration = build_expiration(expiration_defn)
 
         infected_occupants = self.infected_people
