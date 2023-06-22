@@ -269,44 +269,46 @@
             <div class="col-md-5"><label class="col-form-label">Width of window (m): </label></div>
             <div class="col-md-5"><input type="number" step="any" id="window_width" class="non_zero disabled form-control" name="window_width" placeholder="Width" min="0" data-has-radio="#window_hinged"></div>
           </div>
-          <div class="form-group row tabbed">
+          <div class="form-group row tabbed" id="DIVopening_distance">
             <div class="col-md-5"><label class="col-form-label">Opening distance (m): </label></div>
             <div class="col-md-5"><input type="number" step="any" id="opening_distance" class="non_zero form-control" name="opening_distance" placeholder="Opening distance" min="0"></div>
           </div>
-          <div class='sub_title'>Window open:
-            <div data-tooltip="Permanently or periodically - e.g. open the window for 10 minutes (duration) every 60 minutes (frequency).">
-                <span class="tooltip_text">?</span>
+          <div id="window_opening_regime">
+            <div class='sub_title'>Window open:
+              <div data-tooltip="Permanently or periodically - e.g. open the window for 10 minutes (duration) every 60 minutes (frequency).">
+                  <span class="tooltip_text">?</span>
+              </div>
             </div>
-          </div>
-          <input class="ml-2" type="radio" id="windows_open_permanently" name="window_opening_regime" value="windows_open_permanently" onclick="require_fields(this)" checked="checked"></span>
-            <label for="windows_open_permanently" class="col-form-label ml-2">Permanently</label>
-          <input class="ml-2" type="radio" id="windows_open_periodically" name="window_opening_regime" value="windows_open_periodically" onclick="require_fields(this)" data-enables="#DIVperiodic_opening"></span>
-            <label for="windows_open_periodically" class="col-form-label ml-2 mr-2">Periodically</label>
-          
-          <div id="DIVperiodic_opening">
-            <div class="form-group row tabbed">     
-              <div class="col-md-5"><label for="window_duration" class="col-form-label ml-2">Duration (min):</label></div>
-              <div class="col-md-5"><input type="number" step="any" id="windows_duration" class="non_zero form-control" name="windows_duration" value="10" min="1" data-has-radio="#windows_open_periodically"></div>
-            </div>
-            <div class="form-group row tabbed">
-              <div class="col-md-5"><label for="window_frequency" class="col-form-label ml-2">Frequency (min):</label></div>
-              <div class="col-md-5"><input type="number" step="any" id="windows_frequency" class="non_zero form-control" name="windows_frequency" value="60" min="1" data-has-radio="#windows_open_periodically"></div>
+            <input class="ml-2" type="radio" id="windows_open_permanently" name="window_opening_regime" value="windows_open_permanently" onclick="require_fields(this)" checked="checked"></span>
+              <label for="windows_open_permanently" class="col-form-label ml-2">Permanently</label>
+            <input class="ml-2" type="radio" id="windows_open_periodically" name="window_opening_regime" value="windows_open_periodically" onclick="require_fields(this)" data-enables="#DIVperiodic_opening"></span>
+              <label for="windows_open_periodically" class="col-form-label ml-2 mr-2">Periodically</label>
+            
+            <div id="DIVperiodic_opening">
+              <div class="form-group row tabbed">     
+                <div class="col-md-5"><label for="window_duration" class="col-form-label ml-2">Duration (min):</label></div>
+                <div class="col-md-5"><input type="number" step="any" id="windows_duration" class="non_zero form-control" name="windows_duration" value="10" min="1" data-has-radio="#windows_open_periodically"></div>
+              </div>
+              <div class="form-group row tabbed">
+                <div class="col-md-5"><label for="window_frequency" class="col-form-label ml-2">Frequency (min):</label></div>
+                <div class="col-md-5"><input type="number" step="any" id="windows_frequency" class="non_zero form-control" name="windows_frequency" value="60" min="1" data-has-radio="#windows_open_periodically"></div>
+              </div>
             </div>
           </div>
 
       </div>
       <br/>
       <div class='sub_title'>HEPA filtration:</div>
-        <div>
-          <input type="radio" id="hepa_yes" name="hepa_option" value=1 onclick="require_fields(this)" data-enables="#DIVhepa_amount">
-            <label for="hepa_yes" class="col-form-label ml-2">Yes</label>
-          <input class="ml-2" type="radio" id="hepa_no" name="hepa_option" value=0 onclick="require_fields(this)" checked="checked">
-            <label for="hepa_no" class="col-form-label ml-2">No</label>
-        </div>
-        <div class="form-group row tabbed" id="DIVhepa_amount">
-          <div class="col-md-5"><label for="hepa_amount" class="col-form-label">Flow rate (m³ / hour):</label></div>
-          <div class="col-md-5"><input type="number" step="any" id="hepa_amount" class="non_zero form-control" name="hepa_amount" placeholder="Flow rate" min="0" data-has-radio="#hepa_yes"></div>
-        </div>
+      <div>
+        <input type="radio" id="hepa_yes" name="hepa_option" value=1 onclick="require_fields(this)" data-enables="#DIVhepa_amount">
+          <label for="hepa_yes" class="col-form-label ml-2">Yes</label>
+        <input class="ml-2" type="radio" id="hepa_no" name="hepa_option" value=0 onclick="require_fields(this)" checked="checked">
+          <label for="hepa_no" class="col-form-label ml-2">No</label>
+      </div>
+      <div class="form-group row tabbed" id="DIVhepa_amount">
+        <div class="col-md-5"><label for="hepa_amount" class="col-form-label">Flow rate (m³ / hour):</label></div>
+        <div class="col-md-5"><input type="number" step="any" id="hepa_amount" class="non_zero form-control" name="hepa_amount" placeholder="Flow rate" min="0" data-has-radio="#hepa_yes"></div>
+      </div>
       <hr width="80%">
     </div>
 
@@ -675,7 +677,7 @@
     </div>
 
     <!-- CO2 Modal -->
-    <div class="modal fade" id="DIVCO2_data" tabindex="-1" role="dialog" aria-labelledby="CO2_values_title" aria-hidden="true">
+    <div class="modal fade" id="DIVCO2_data" tabindex="-1" role="dialog" aria-labelledby="CO2_values_title" aria-hidden="true" data-backdrop="static">
       <div class="modal-dialog modal-lg" role="document" overflow: visible>
         <div class="modal-content">
           <div class="modal-header">
@@ -711,7 +713,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary dismiss_btn_frm_field" data-dismiss="modal" onclick="clear_fitting_algorithm()">Clear all</button>
-            <button type="button" id="generate_fitting_data" class="btn btn-primary close_btn_frm_field" onclick="submit_fitting_algorithm('{{ get_calculator_url() }}/co2-fit')">Fit data</button>
+            <button type="button" id="generate_fitting_data" class="btn btn-primary close_btn_frm_field" onclick="submit_fitting_algorithm('{{ get_calculator_url() }}/co2-fit')" disabled>Fit data</button>
             <button type="button" style="display: none" id="save_and_dismiss_dialog" class="btn btn-primary close_btn_frm_field" data-dismiss="modal">Save and close</button>
           </div>
         </div>

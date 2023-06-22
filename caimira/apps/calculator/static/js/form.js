@@ -493,10 +493,36 @@ function on_coffee_break_option_change() {
   }
 }
 
+function ventilation_from_fitting(condition) {
+  let CO2_data_options = $('input[type=radio][name=ventilation_type]');
+  let hepa_options = $('input[type=radio][name=hepa_option]');
+  if (condition) {
+    $('input[type=radio][id=no_ventilation]').click();
+    CO2_data_options.each(function (index){
+      $(this).prop("disabled", true);
+    });
+    hepa_options.each(function (index){
+      $(this).prop("disabled", true);
+    });
+    $('#DIVhepa_amount').after($('#window_opening_regime'));
+  }
+  else {
+    CO2_data_options.each(function (index){
+      $(this).prop("disabled", false);
+    });
+    hepa_options.each(function (index){
+      $(this).prop("disabled", false);
+    });
+    $('#DIVopening_distance').after($('#window_opening_regime'));
+  }
+}
+
 function on_CO2_data_option_change() {
   CO2_data_options = $('input[type=radio][name=CO2_data_option]');
   CO2_data_options.each(function (index){
     if (this.checked) {
+      // if (this.id == 'CO2_data_yes') ventilation_from_fitting(true);
+      // else if (this.id == 'CO2_data_no') ventilation_from_fitting(false);
       getChildElement($(this)).show();
       require_fields(this);
     } 
