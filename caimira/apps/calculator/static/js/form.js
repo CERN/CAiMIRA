@@ -244,6 +244,9 @@ function removeInvalid(id) {
 }
 
 function on_ventilation_type_change() {
+  if ($('input[type=radio][id=from_fitting').is(':checked')) $('#DIVfrom_fitting').after($('#window_opening_regime'));
+  else $('#DIVopening_distance').after($('#window_opening_regime'));
+
   ventilation_types = $('input[type=radio][name=ventilation_type]');
   ventilation_types.each(function (index) {
     if (this.checked) {
@@ -494,25 +497,12 @@ function on_coffee_break_option_change() {
 }
 
 function ventilation_from_fitting(condition) {
-  let CO2_data_options = $('input[type=radio][name=ventilation_type]');
-  let hepa_options = $('input[type=radio][name=hepa_option]');
   if (condition) {
-    $('input[type=radio][id=no_ventilation]').click();
-    CO2_data_options.each(function (index){
-      $(this).prop("disabled", true);
-    });
-    hepa_options.each(function (index){
-      $(this).prop("disabled", true);
-    });
-    $('#DIVhepa_amount').after($('#window_opening_regime'));
+    $('input[type=radio][id=from_fitting]').click();
+    $('#DIVfrom_fitting').after($('#window_opening_regime'));
   }
   else {
-    CO2_data_options.each(function (index){
-      $(this).prop("disabled", false);
-    });
-    hepa_options.each(function (index){
-      $(this).prop("disabled", false);
-    });
+    $('input[type=radio][id=no_ventilation]').click();
     $('#DIVopening_distance').after($('#window_opening_regime'));
   }
 }

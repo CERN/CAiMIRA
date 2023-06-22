@@ -315,7 +315,7 @@ class CO2FormData:
         )
 
     def ventilation_transition_times(self, last_present_time) -> typing.Tuple[float, ...]:
-        if self.ventilation_type == 'natural_ventilation' and self.window_opening_regime == 'windows_open_periodically':
+        if self.ventilation_type == 'from_fitting' and self.window_opening_regime == 'windows_open_periodically':
             transition_times = sorted(models.PeriodicInterval(self.windows_frequency, 
                     self.windows_duration, min(self.infected_start, self.exposed_start)/60).transition_times())
             return tuple(filter(lambda x: x < last_present_time, transition_times))
