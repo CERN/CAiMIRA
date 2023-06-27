@@ -92,18 +92,14 @@ function displayJsonToHtmlTable(jsonData) {
 	}
 }
 
-function downloadTemplate() {
-	let final_export = [["Times", "CO2"], [8.5, 440.44]];
-	// Prepare the CSV file.
-    let csvContent = "data:text/csv;charset=utf8," 
-        + final_export.map(e => e.join(",")).join("\n");
-    var encodedUri = encodeURI(csvContent);
-    // Set a name for the file.
-    var link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "CO2_template.XLSX");
-    document.body.appendChild(link);
-    link.click();
+function downloadTemplate(uri = 'https://caimira-resources.web.cern.ch/CO2_template.xlsx', filename = 'CO2_template.xlsx') {
+	var link = document.createElement("a");
+	link.download = filename;
+	link.href = uri;
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
+	delete link;
 }
 
 function insertErrorFor(referenceNode, text) {
