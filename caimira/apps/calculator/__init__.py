@@ -379,7 +379,6 @@ class CO2Data(BaseRequestHandler):
             fig = plt.figure(figsize=(7, 4), dpi=110)
             plt.plot(form.CO2_data['times'], form.CO2_data['CO2'])
             for index, time in enumerate(transition_times[:-1]):
-                print(time)
                 plt.axvline(x = time, color = 'grey', linewidth=0.5, linestyle='--')
                 y_location = (form.CO2_data['CO2'][min(range(len(form.CO2_data['times'])), key=lambda i: abs(form.CO2_data['times'][i]-time))])
                 plt.text(x = time + 0.04, y = y_location, s=round(ventilation_values[index], 2))

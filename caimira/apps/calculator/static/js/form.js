@@ -946,6 +946,12 @@ $(document).ready(function () {
         // Validation after
       }
 
+
+      // Read CO2 Fitting Algorithms result
+      else if (name == 'CO2_fitting_result' || name == 'CO2_data') {
+        // Validation after
+      }
+
       //Ignore 0 (default) values from server side
       else if (!(elemObj.classList.contains("non_zero") || elemObj.classList.contains("remove_zero")) || (value != "0.0" && value != "0")) {
         elemObj.value = value;
@@ -955,6 +961,18 @@ $(document).ready(function () {
   });
 
   // Handle default URL values if they are not explicitly defined.
+
+  // Populate CO2 Fitting Algorithm Dialog
+  let CO2_data = url.searchParams.has('CO2_data') ? url.searchParams.get('CO2_data') : null;
+  if (CO2_data) {
+    let CO2_inputs = JSON.parse(CO2_data);
+    let input_for_table = [];
+    for (let i = 0; i < CO2_inputs['times'].length; i++) {
+      input_for_table.push({'Times': CO2_inputs['times'][i], 'CO2': CO2_inputs['CO2'][i]});
+    };
+    displayJsonToHtmlTable(input_for_table);
+    submit_fitting_algorithm(`${$('#url_prefix').data().calculator_prefix}/co2-fit`);
+  }
 
   // Populate primary vaccine dropdown
   $("#vaccine_type option").remove();
