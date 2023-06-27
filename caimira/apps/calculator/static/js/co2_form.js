@@ -1,3 +1,4 @@
+// JS file to handle manipulation on CO2 Fitting Algorithm Dialog.
 const CO2_data = [
 	'CO2_data',
 	'specific_breaks',
@@ -92,6 +93,7 @@ function displayJsonToHtmlTable(jsonData) {
 	}
 }
 
+// Method to download Excel template available on CERNBox
 function downloadTemplate(uri = 'https://caimira-resources.web.cern.ch/CO2_template.xlsx', filename = 'CO2_template.xlsx') {
 	var link = document.createElement("a");
 	link.download = filename;
@@ -114,13 +116,24 @@ function validate() {
 	$('span.' + "error_text").remove();
 	let submit = true;
 	for (var i = 0; i < CO2_data.length; i++) {
-		let element = $(`[name=${CO2_data[i]}]`);
-		if (element[0].value === '') {
-			insertErrorFor($('#CO2_input_data_div'), `'${element[0].name}' must be defined.`); // raise error for total number and room volume.
+		let element = $(`[name=${CO2_data[i]}]`)[0];
+		if (element.value === '') {
+			insertErrorFor($('#CO2_input_data_div'), `'${element.name}' must be defined.`); // raise error for total number and room volume.
 			submit = false;
 		};
 	}
 	return submit;
+}
+
+function display_fitting_data(json_response) {
+	$("#DIV_CO2_fitting_result").show();
+	$("#CO2_data_plot").attr("src", json_response['CO2_plot']);
+	delete json_response['CO2_plot'];
+	$("#CO2_fitting_result").val(JSON.stringify(json_response));
+	$("#exhalation_rate_fit").html('Exhalation rate: ' + String(json_response['exhalation_rate'].toFixed(2)) + ' m³/h');
+	// $("#ventilation_rate_fit").html(json_response['ventilation_values']);
+	$("#generate_fitting_data").html('Fit data');
+	$("#save_and_dismiss_dialog").show();
 }
 
 function submit_fitting_algorithm(url) {
@@ -143,13 +156,7 @@ function submit_fitting_algorithm(url) {
 		})
 			.then((response) => response.json())
 			.then((json_response) => {
-				$("#DIV_CO2_fitting_result").show();
-				$("#CO2_fitting_result").val(JSON.stringify(json_response));
-				$("#exhalation_rate_fit").html('Exhalation rate: ' + String(json_response['exhalation_rate'].toFixed(2)) + ' m³/h');
-				// $("#ventilation_rate_fit").html(json_response['ventilation_values']);
-				$("#CO2_data_plot").attr("src", json_response['CO2_plot']);
-				$("#generate_fitting_data").html('Fit data');
-				$("#save_and_dismiss_dialog").show();
+				display_fitting_data(json_response);
 			});
 	}
 }
