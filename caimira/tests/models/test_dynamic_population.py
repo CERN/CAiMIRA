@@ -217,7 +217,11 @@ def test_dynamic_total_probability_rule(
     with pytest.raises(NotImplementedError, match=re.escape("Cannot compute total probability "
                                                             "(including incidence rate) with dynamic occupancy")):
         dynamic_infected_single_exposure_model.total_probability_rule()
+    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute total probability "
+                                                            "(including incidence rate) with dynamic occupancy")):
         dynamic_exposed_single_exposure_model.total_probability_rule()
+    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute total probability "
+                                                            "(including incidence rate) with dynamic occupancy")):
         dynamic_population_exposure_model.total_probability_rule()
     
 def test_dynamic_expected_new_cases(
@@ -228,7 +232,11 @@ def test_dynamic_expected_new_cases(
     with pytest.raises(NotImplementedError, match=re.escape("Cannot compute expected new cases "
                                                             "with dynamic occupancy")):
         dynamic_infected_single_exposure_model.expected_new_cases()
+    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute expected new cases "
+                                                        "with dynamic occupancy")):
         dynamic_exposed_single_exposure_model.expected_new_cases()
+    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute expected new cases "
+                                                            "with dynamic occupancy")):
         dynamic_population_exposure_model.expected_new_cases()
 
 def test_dynamic_reproduction_number(
@@ -239,5 +247,9 @@ def test_dynamic_reproduction_number(
     with pytest.raises(NotImplementedError, match=re.escape("Cannot compute reproduction number "
                                                             "with dynamic occupancy")):
         dynamic_infected_single_exposure_model.reproduction_number()
+    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute reproduction number "
+                                                            "with dynamic occupancy")):
         dynamic_exposed_single_exposure_model.reproduction_number()
+    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute reproduction number "
+                                                            "with dynamic occupancy")):
         dynamic_population_exposure_model.reproduction_number()
