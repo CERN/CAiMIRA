@@ -1705,14 +1705,8 @@ class ExposureModel:
             isinstance(self.exposed.number, IntPiecewiseConstant)):
             raise NotImplementedError("Cannot compute expected new cases "
                     "with dynamic occupancy")
-        # Create an equivalent exposure model without short-range interactions, if any.
-        if (len(self.short_range) == 0): 
-            exposure_model = nested_replace(self, {'short_range': ()})
-            prob = exposure_model.infection_probability()
-        else:
-            prob = self.infection_probability()
             
-        return prob * self.exposed.number / 100
+        return self.infection_probability() * self.exposed.number / 100
 
     def reproduction_number(self) -> _VectorisedFloat:
         """
