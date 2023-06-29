@@ -1578,10 +1578,7 @@ class ExposureModel:
                 c_model.ventilation.air_exchange(c_model.room, time)) for time in c_model.state_change_times()))):
             raise ValueError("If the diameter is an array, none of the ventilation parameters "
                              "or virus decay constant can be arrays at the same time.")
-        if not isinstance(self.exposed.number, int):
-            raise NotImplementedError("Cannot use dynamic occupancy for"
-                                      " the exposed population")
-
+        
     @method_cache
     def population_state_change_times(self) -> typing.List[float]:
         """
