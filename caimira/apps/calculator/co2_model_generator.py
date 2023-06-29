@@ -46,7 +46,7 @@ class CO2FormData:
     #: and the defaults in the html form must not be contradictory.
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = {
         'CO2_data': '{}',
-        'specific_breaks': '{}', # CHECK INTEGRATION WITH WHO
+        'specific_breaks': '{}',
         'exposed_coffee_break_option': 'coffee_break_0',
         'exposed_coffee_duration': 5,
         'exposed_finish': '17:30',
@@ -89,8 +89,8 @@ class CO2FormData:
                 form_data[key] = default_value
 
         for key, value in form_data.items():
-            if key in model_generator._CAST_RULES_FORM_ARG_TO_NATIVE:
-                form_data[key] = model_generator._CAST_RULES_FORM_ARG_TO_NATIVE[key](value)
+            if key in _CAST_RULES_FORM_ARG_TO_NATIVE:
+                form_data[key] = _CAST_RULES_FORM_ARG_TO_NATIVE[key](value)
 
             if key not in cls._DEFAULTS:
                 raise ValueError(f'Invalid argument "{html.escape(key)}" given')
@@ -318,6 +318,33 @@ class CO2FormData:
         if self.ventilation_type == 'from_fitting' and self.window_opening_regime == 'windows_open_periodically':
             transition_times = sorted(models.PeriodicInterval(self.windows_frequency, 
                     self.windows_duration, min(self.infected_start, self.exposed_start)/60).transition_times())
-            return tuple(filter(lambda x: x < last_present_time, transition_times))
+            return tuple(filter(lambda x: x <= last_present_time, transition_times))
         else:
             return tuple((min(self.infected_start, self.exposed_start)/60, max(self.infected_finish, self.exposed_finish)/60), ) # all day long
+
+#: Mapping of field name to a callable which can convert values from form
+#: input (URL encoded arguments / string) into the correct type.
+_CAST_RULES_FORM_ARG_TO_NATIVE: typing.Dict[str, typing.Callable] = {}
+
+#: Mapping of field name to callable which can convert native type to values
+#: that can be encoded to URL arguments.
+_CAST_RULES_NATIVE_TO_FORM_ARG: typing.Dict[str, typing.Callable] = {}
+
+
+for _field in dataclasses.fields(CO2FormData):
+    if _field.type is minutes_since_midnight:
+        _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = model_generator.time_string_to_minutes
+        _CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = model_generator.time_minutes_to_string
+    elif _field.type is int:
+        _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = model_generator._safe_int_cast
+    elif _field.type is float:
+        _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = float
+    elif _field.type is bool:
+        _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = lambda v: v == '1'
+        _CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = int
+    elif _field.type is list:
+        _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = model_generator.string_to_list
+        _CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = model_generator.list_to_string
+    elif _field.type is dict:
+        _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = model_generator.string_to_dict
+        _CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = model_generator.dict_to_string

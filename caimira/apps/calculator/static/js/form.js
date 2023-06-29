@@ -505,7 +505,12 @@ function ventilation_from_fitting(condition_from_fitting) {
   else {
     // Select the URL ventilation option, if any (from back-navigation)
     var url = new URL(decodeURIComponent(window.location.href));
-    let ventilation_from_url = url.searchParams.has('ventilation_type') ? url.searchParams.get('ventilation_type') : "no_ventilation";
+    let ventilation_from_url;
+    if (url.searchParams.has('ventilation_type')) {
+      ventilation_from_url = url.searchParams.get('ventilation_type');
+      if (ventilation_from_url == 'from_fitting') ventilation_from_url = 'no_ventilation';
+    }
+    else ventilation_from_url = 'no_ventilation';
     $(`input[type=radio][id=${ventilation_from_url}]`).prop('checked',true);
     $('#DIVopening_distance').after($('#window_opening_regime'));
   }
@@ -968,16 +973,8 @@ $(document).ready(function () {
   // Handle default URL values if they are not explicitly defined.
 
   // Populate CO2 Fitting Algorithm Dialog
-  let CO2_data = url.searchParams.has('CO2_data') ? url.searchParams.get('CO2_data') : null;
-  if (CO2_data) {
-    let CO2_inputs = JSON.parse(CO2_data);
-    let input_for_table = [];
-    for (let i = 0; i < CO2_inputs['times'].length; i++) {
-      input_for_table.push({'Times': CO2_inputs['times'][i], 'CO2': CO2_inputs['CO2'][i]});
-    };
-    displayJsonToHtmlTable(input_for_table);
-    submit_fitting_algorithm(`${$('#url_prefix').data().calculator_prefix}/co2-fit`);
-  }
+  let CO2_data = url.searchParams.has('CO2_fitting_result') ? url.searchParams.get('CO2_fitting_result') : null;
+  if (CO2_data) display_fitting_data(JSON.parse(CO2_data));
 
   // Populate primary vaccine dropdown
   $("#vaccine_type option").remove();

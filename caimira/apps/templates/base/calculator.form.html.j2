@@ -702,7 +702,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="CO2_values_title">CO₂ Fitting Algorithm</h5>
-            <button type="button" class="close close_btn_frm_field" data-dismiss="modal" onclick="dismiss_co2_dialog()">
+            <button type="button" class="close close_btn_frm_field" data-dismiss="modal" onclick="clear_fitting_algorithm()">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
@@ -719,7 +719,7 @@
             <br>
             <!-- table to display the excel data -->
             <table id="display_excel_data" border="1" style="width: 70%; margin-left: auto; margin-right: auto"></table>
-            <input id="formatted_data" type="text" name="CO2_data" class="form-control form-control-sm d-none" placeholder='{"times": [...], "concentrations": [...]}' ><br>
+            <input id="formatted_data" type="text" name="CO2_data" form="not-submitted" class="form-control d-none" placeholder='{"times": [...], "concentrations": [...]}' ><br>
             <div id="CO2_input_data_div" style="display: none">
               {# <p>The following data will be considered:</p><br>
               <p id="CO2_input_data"></p> #}
@@ -729,7 +729,9 @@
               <h5 style="margin-top: auto; margin-bottom: auto">Fitting result</h5>
               <img id="CO2_data_plot" style="margin-top: 2%"/>
               <p id="exhalation_rate_fit"></p>
-              <p id="ventilation_rate_fit">Ventilation values in the plot (ACH)</p>
+              <p>Ventilation values (ACH):</p><br>
+              <!-- table to display the ventilation result data -->
+              <table id="ventilation_rate_fit" border="1" style="width: 70%; margin-left: auto; margin-right: auto"></table>
             </div>
           </div>
           <div class="modal-footer">
