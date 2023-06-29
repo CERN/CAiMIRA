@@ -354,7 +354,6 @@ class CO2Data(BaseRequestHandler):
     
     async def post(self) -> None:
         requested_model_config = tornado.escape.json_decode(self.request.body)
-        
         try:
             form = co2_model_generator.CO2FormData.from_dict(requested_model_config)
         except Exception as err:
@@ -375,7 +374,7 @@ class CO2Data(BaseRequestHandler):
         )
         report = await asyncio.wrap_future(report_task)
 
-        def generate_image(transition_times: tuple, ventilation_values: tuple):
+        def generate_ventilation_plot(transition_times: tuple, ventilation_values: tuple):
             fig = plt.figure(figsize=(7, 4), dpi=110)
             plt.plot(form.CO2_data['times'], form.CO2_data['CO2'])
             for index, time in enumerate(transition_times[:-1]):
@@ -387,7 +386,8 @@ class CO2Data(BaseRequestHandler):
             return fig
         
         result = dict(report.CO2_fit_params())
-        result['CO2_plot'] = img2base64(_figure2bytes(generate_image(report.ventilation_transition_times, result['ventilation_values'])))
+        result['transition_times'] = report.ventilation_transition_times
+        result['CO2_plot'] = img2base64(_figure2bytes(generate_ventilation_plot(report.ventilation_transition_times, result['ventilation_values'])))
         self.finish(result)
      
 
