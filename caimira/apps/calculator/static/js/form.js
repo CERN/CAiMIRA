@@ -244,9 +244,6 @@ function removeInvalid(id) {
 }
 
 function on_ventilation_type_change() {
-  if ($('input[type=radio][id=from_fitting').is(':checked')) $('#DIVfrom_fitting').after($('#window_opening_regime'));
-  else $('#DIVopening_distance').after($('#window_opening_regime'));
-
   ventilation_types = $('input[type=radio][name=ventilation_type]');
   ventilation_types.each(function (index) {
     if (this.checked) {
@@ -496,15 +493,23 @@ function on_coffee_break_option_change() {
   }
 }
 
-function ventilation_from_fitting(condition) {
-  if (condition) {
-    $('input[type=radio][id=from_fitting]').click();
+function ventilation_from_fitting(condition_from_fitting) {
+  $('input[type=radio][id=no_ventilation]').prop("disabled", condition_from_fitting);
+  $('input[type=radio][id=mechanical_ventilation]').prop("disabled", condition_from_fitting);
+  $('input[type=radio][id=natural_ventilation]').prop("disabled", condition_from_fitting);
+  $('input[type=radio][id=from_fitting]').prop("disabled", !condition_from_fitting);
+  if (condition_from_fitting) {
+    $('input[type=radio][id=from_fitting]').prop('checked',true);
     $('#DIVfrom_fitting').after($('#window_opening_regime'));
   }
   else {
-    $('input[type=radio][id=no_ventilation]').click();
+    // Select the URL ventilation option, if any (from back-navigation)
+    var url = new URL(decodeURIComponent(window.location.href));
+    let ventilation_from_url = url.searchParams.has('ventilation_type') ? url.searchParams.get('ventilation_type') : "no_ventilation";
+    $(`input[type=radio][id=${ventilation_from_url}]`).prop('checked',true);
     $('#DIVopening_distance').after($('#window_opening_regime'));
   }
+  on_ventilation_type_change();
 }
 
 function on_CO2_data_option_change() {
