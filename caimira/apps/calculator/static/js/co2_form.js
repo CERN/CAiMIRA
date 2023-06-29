@@ -170,6 +170,7 @@ function clear_fitting_algorithm() {
 	$('#DIV_CO2_fitting_result').hide();
 	$('#CO2_input_data_div').hide();
 	$('#CO2_data_no').click();
+	ventilation_from_fitting(false);
 }
 
 function dismiss_co2_dialog() {
