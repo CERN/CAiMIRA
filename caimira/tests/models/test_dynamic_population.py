@@ -32,7 +32,11 @@ def full_exposure_model():
             activity=models.Activity.types['Seated'],
             host_immunity=0.
         ),
-        geographical_data=(),
+        geographical_data=models.Cases(
+            geographic_population=100000,
+            geographic_cases=68,
+            ascertainment_bias=5,
+        ),
     )
 
 
@@ -210,19 +214,15 @@ def test_infection_probability(
 
 
 def test_dynamic_total_probability_rule(
+        full_exposure_model: models.ExposureModel,
         dynamic_infected_single_exposure_model: models.ExposureModel,
         dynamic_exposed_single_exposure_model: models.ExposureModel,
         dynamic_population_exposure_model: models.ExposureModel):
 
-    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute total probability "
-                                                            "(including incidence rate) with dynamic occupancy")):
-        dynamic_infected_single_exposure_model.total_probability_rule()
-    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute total probability "
-                                                            "(including incidence rate) with dynamic occupancy")):
-        dynamic_exposed_single_exposure_model.total_probability_rule()
-    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute total probability "
-                                                            "(including incidence rate) with dynamic occupancy")):
-        dynamic_population_exposure_model.total_probability_rule()
+    assert full_exposure_model.total_probability_rule() == dynamic_population_exposure_model.total_probability_rule()
+    assert full_exposure_model.total_probability_rule() == dynamic_infected_single_exposure_model.total_probability_rule()
+    assert full_exposure_model.total_probability_rule() == dynamic_exposed_single_exposure_model.total_probability_rule()
+    
     
 def test_dynamic_expected_new_cases(
         dynamic_infected_single_exposure_model: models.ExposureModel,
@@ -238,6 +238,7 @@ def test_dynamic_expected_new_cases(
     with pytest.raises(NotImplementedError, match=re.escape("Cannot compute expected new cases "
                                                             "with dynamic occupancy")):
         dynamic_population_exposure_model.expected_new_cases()
+
 
 def test_dynamic_reproduction_number(
         dynamic_infected_single_exposure_model: models.ExposureModel,

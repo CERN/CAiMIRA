@@ -1670,25 +1670,31 @@ class ExposureModel:
     @method_cache
     def infection_probability(self) -> _VectorisedFloat:
         return (1 - np.prod([1 - prob for prob in self._infection_probability_list()], axis = 0)) * 100 
-    
-    def total_probability_rule(self) -> _VectorisedFloat:
-        if (isinstance(self.concentration_model.infected.number, IntPiecewiseConstant) or 
-                isinstance(self.exposed.number, IntPiecewiseConstant)):
-                raise NotImplementedError("Cannot compute total probability "
-                        "(including incidence rate) with dynamic occupancy")
         
-        if (self.geographical_data.geographic_population != 0 and self.geographical_data.geographic_cases != 0): 
+    def _total_probability_rule_list(self):
+        dynamic_sum_probability = []
+        population_change_times = self.population_state_change_times()
+        for start, stop in zip(population_change_times[:-1], population_change_times[1:]):
             sum_probability = 0.0
-
             # Create an equivalent exposure model but changing the number of infected cases.
-            total_people = self.concentration_model.infected.number + self.exposed.number
+            total_people = self.concentration_model.infected.people_present(stop) + self.exposed.people_present(stop)
             max_num_infected = (total_people if total_people < 10 else 10)
-            # The influence of a higher number of simultainious infected people (> 4 - 5) yields an almost negligible contirbution to the total probability. 
+            # The influence of a higher number of simultainious infected people (> 4 - 5) yields an almost negligible contribution to the total probability. 
             # To be on the safe side, a hard coded limit with a safety margin of 2x was set.
             # Therefore we decided a hard limit of 10 infected people.
             for num_infected in range(1, max_num_infected + 1):
                 exposure_model = nested_replace(
-                    self, {'concentration_model.infected.number': num_infected}
+                    self, {
+                        'concentration_model.infected': InfectedPopulation(
+                            number=num_infected,
+                            presence=SpecificInterval(((start, stop),)),
+                            mask=self.concentration_model.infected.mask,
+                            activity=self.concentration_model.infected.activity,
+                            host_immunity=self.concentration_model.infected.host_immunity,
+                            virus=self.concentration_model.infected.virus,
+                            expiration=self.concentration_model.infected.expiration,
+                        ),
+                    },
                 )
                 prob_ind = exposure_model.infection_probability().mean() / 100
                 n = total_people - num_infected
@@ -1696,7 +1702,13 @@ class ExposureModel:
                 prob_at_least_one_infected = 1 - (1 - prob_ind)**n
                 sum_probability += (prob_at_least_one_infected * 
                     self.geographical_data.probability_meet_infected_person(self.concentration_model.infected.virus, num_infected, total_people))
-            return sum_probability * 100
+            dynamic_sum_probability.append(sum_probability)
+        return dynamic_sum_probability
+
+    @method_cache
+    def total_probability_rule(self) -> _VectorisedFloat:
+        if (self.geographical_data.geographic_population != 0 and self.geographical_data.geographic_cases != 0): 
+            return (1 - np.prod([1 - prob for prob in self._total_probability_rule_list()], axis = 0)) * 100
         else:
             return 0
 
