@@ -247,6 +247,8 @@ function on_ventilation_type_change() {
   ventilation_types = $('input[type=radio][name=ventilation_type]');
   ventilation_types.each(function (index) {
     if (this.checked) {
+      
+      if ($(this).val() != 'from_fitting') $('#button_fit_data').attr('data-previous-vent', $(this).val())
       getChildElement($(this)).show();
       require_fields(this);
     } else {
@@ -498,20 +500,14 @@ function ventilation_from_fitting(condition_from_fitting) {
   $('input[type=radio][id=mechanical_ventilation]').prop("disabled", condition_from_fitting);
   $('input[type=radio][id=natural_ventilation]').prop("disabled", condition_from_fitting);
   $('input[type=radio][id=from_fitting]').prop("disabled", !condition_from_fitting);
+  
   if (condition_from_fitting) {
     $('input[type=radio][id=from_fitting]').prop('checked',true);
     $('#DIVfrom_fitting').after($('#window_opening_regime'));
   }
   else {
-    // Select the URL ventilation option, if any (from back-navigation)
-    var url = new URL(decodeURIComponent(window.location.href));
-    let ventilation_from_url;
-    if (url.searchParams.has('ventilation_type')) {
-      ventilation_from_url = url.searchParams.get('ventilation_type');
-      if (ventilation_from_url == 'from_fitting') ventilation_from_url = 'no_ventilation';
-    }
-    else ventilation_from_url = 'no_ventilation';
-    $(`input[type=radio][id=${ventilation_from_url}]`).prop('checked',true);
+    let selected_ventilation = $("#button_fit_data").attr('data-previous-vent');
+    $(`input[type=radio][id=${selected_ventilation}]`).prop('checked',true);
     $('#DIVopening_distance').after($('#window_opening_regime'));
   }
   on_ventilation_type_change();
