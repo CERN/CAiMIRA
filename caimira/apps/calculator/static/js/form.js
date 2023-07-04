@@ -500,7 +500,6 @@ function ventilation_from_fitting(condition_from_fitting) {
   $('input[type=radio][id=mechanical_ventilation]').prop("disabled", condition_from_fitting);
   $('input[type=radio][id=natural_ventilation]').prop("disabled", condition_from_fitting);
   $('input[type=radio][id=from_fitting]').prop("disabled", !condition_from_fitting);
-  
   if (condition_from_fitting) {
     $('input[type=radio][id=from_fitting]').prop('checked',true);
     $('#DIVfrom_fitting').after($('#window_opening_regime'));

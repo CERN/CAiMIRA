@@ -125,6 +125,12 @@ function validate() {
 	return submit;
 }
 
+function display_transition_times_hour_format(start, stop) {
+	var minutes_start = start % 1 * 60;
+	var minutes_stop = stop % 1 * 60;
+	return Math.floor(start) + ':' + minutes_start.toPrecision(2) + ' - ' + Math.floor(stop) + ':' + minutes_stop.toPrecision(2);
+}
+
 function display_fitting_data(json_response) {
 	$("#DIV_CO2_fitting_result").show();
 	$("#CO2_data_plot").attr("src", json_response['CO2_plot']);
@@ -132,11 +138,10 @@ function display_fitting_data(json_response) {
 	delete json_response['CO2_plot']; 
 	$("#CO2_fitting_result").val(JSON.stringify(json_response));
 	$("#exhalation_rate_fit").html('Exhalation rate: ' + String(json_response['exhalation_rate'].toFixed(2)) + ' m³/h');
-	let ventilation_table = "<tr><th>Time</th><th>Ventilation value (ACH)</th></tr>";
+	let ventilation_table = "<tr><th>Time (HH:MM)</th><th>ACH value (h⁻¹)</th></tr>";
 	json_response['ventilation_values'].map((val, index) => {
-		console.log(json_response['transition_times'])
-		let transition_times = `${(json_response['transition_times'][index]).toFixed(2)} - ${(json_response['transition_times'][index + 1]).toFixed(2)}`
-		ventilation_table += `<tr><td>${transition_times}</td><td>${val}</td></tr>`;
+		let transition_times = display_transition_times_hour_format(json_response['transition_times'][index], json_response['transition_times'][index + 1]);
+		ventilation_table += `<tr><td>${transition_times}</td><td>${val.toPrecision(2)}</td></tr>`;
 	});
 	$("#ventilation_rate_fit").html(ventilation_table);
 	$("#generate_fitting_data").html('Fit data');
