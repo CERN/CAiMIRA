@@ -319,6 +319,12 @@ def readable_minutes(minutes: int) -> str:
     return time_str + unit
 
 
+def hour_format(hour: float) -> str:
+    hours = int(hour)
+    minutes = int(hour % 1 * 60)
+
+    return f"{hours}:{minutes}"
+
 def percentage(absolute: float) -> float:
     return absolute * 100
 
@@ -514,6 +520,7 @@ class ReportGenerator:
         env.filters['non_zero_percentage'] = non_zero_percentage
         env.filters['readable_minutes'] = readable_minutes
         env.filters['minutes_to_time'] = minutes_to_time
+        env.filters['hour_format'] = hour_format
         env.filters['float_format'] = "{0:.2f}".format
         env.filters['int_format'] = "{:0.0f}".format
         env.filters['percentage'] = percentage
