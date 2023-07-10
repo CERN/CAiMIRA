@@ -36,8 +36,8 @@ function upload_file() {
 		alert("Please choose any file...");
 		return;
 	}
-	var filename = files[0].name;
-	var extension = filename.substring(filename.lastIndexOf(".")).toUpperCase();
+	const filename = files[0].name;
+	const extension = filename.substring(filename.lastIndexOf(".")).toUpperCase();
 	if (extension == ".XLS" || extension == ".XLSX") {
 		//Here calling another method to read excel file into json
 		excelFileToJSON(files[0]);
@@ -92,7 +92,7 @@ function displayJsonToHtmlTable(jsonData) {
 		format.value = JSON.stringify(structure);
 		$('#generate_fitting_data').prop("disabled", false);
 	} else {
-		table.innerHTML = "There is no data in Excel";
+		table.innerHTML = "There is no data in the spreadsheet file";
 	}
 }
 
