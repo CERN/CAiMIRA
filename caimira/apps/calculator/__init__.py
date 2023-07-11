@@ -19,7 +19,6 @@ import typing
 import uuid
 import zlib
 
-
 import jinja2
 import loky
 from tornado.web import Application, RequestHandler, StaticFileHandler
@@ -29,6 +28,7 @@ import tornado.log
 from . import markdown_tools
 from . import model_generator
 from .report_generator import ReportGenerator, calculate_report_data
+from .data_service import DataService
 from .user import AuthenticatedUser, AnonymousUser
 
 # The calculator version is based on a combination of the model version and the
@@ -41,12 +41,10 @@ from .user import AuthenticatedUser, AnonymousUser
 __version__ = "4.11"
 
 LOG = logging.getLogger(__name__)
-
+    
 
 class BaseRequestHandler(RequestHandler):
-    # Host URL for the CAiMIRA Data Service API
-    host: str = 'https://caimira-data-api.app.cern.ch'
-
+    
     async def prepare(self):
         """Called at the beginning of a request before  `get`/`post`/etc."""
 
@@ -62,47 +60,6 @@ class BaseRequestHandler(RequestHandler):
             )
         else:
             self.current_user = AnonymousUser()
-
-    async def data_service_connection(self):
-        client_email = self.settings["data_service_client_email"]
-        client_password = self.settings['data_service_client_password']
-
-        if (client_email == None or client_password == None):
-            # If the credentials are not defined, we skip the API Integration
-            return self.send_error(401)
-            
-        http_client = AsyncHTTPClient()
-        headers = {'Content-type': 'application/json'}
-        json_body = { "email": f"{client_email}", "password": f"{client_password}"}
-
-        try:
-            response = await http_client.fetch(HTTPRequest(
-                url=self.host + '/login',
-                method='POST',
-                headers=headers,
-                body=json.dumps(json_body),
-            ),
-            raise_error=True)
-        except Exception as e:
-            print("Something went wrong: %s" % e)
-        
-        return json.loads(response.body)['access_token']
-    
-    async def data_service_fetcher(self, access_token: str):
-        http_client = AsyncHTTPClient()
-        headers = {'Authorization': f'Bearer {access_token}'}
-
-        try:
-            response = await http_client.fetch(HTTPRequest(
-                url=self.host + '/data',
-                method='GET',
-                headers=headers,
-            ),
-            raise_error=True)
-        except Exception as e:
-            print("Something went wrong: %s" % e)
-
-        return json.loads(response.body)
 
     def write_error(self, status_code: int, **kwargs) -> None:
         template = self.settings["template_environment"].get_template(
@@ -148,14 +105,15 @@ class ConcentrationModel(BaseRequestHandler):
             from pprint import pprint
             pprint(requested_model_config)
             start = datetime.datetime.now()
-
+        
         # Data Service API Integration
         try:
-            access_token = await self.data_service_connection()
-            service_data = await self.data_service_fetcher(access_token)
+            data_service: DataService = self.settings["data_service"]
+            access_token = await data_service.login()
+            service_data = await data_service.fetch(access_token)
         except Exception as e:
             print("Something went wrong with the data service: %s" % e)
-        
+
         try:
             form = model_generator.FormData.from_dict(requested_model_config)
         except Exception as err:
@@ -468,6 +426,11 @@ def make_app(
     )
     template_environment.globals['get_url']=get_root_url
     template_environment.globals['get_calculator_url']=get_root_calculator_url
+    
+    data_service_credentials = {
+        'data_service_client_email': os.environ.get('DATA_SERVICE_CLIENT_EMAIL', None),
+        'data_service_client_password': os.environ.get('DATA_SERVICE_CLIENT_PASSWORD', None),
+    }
 
     if debug:
         tornado.log.enable_pretty_logging()
@@ -486,9 +449,8 @@ def make_app(
         arve_client_secret=os.environ.get('ARVE_CLIENT_SECRET', None),
         arve_api_key=os.environ.get('ARVE_API_KEY', None),
 
-        # Data Service API Credentials
-        data_service_client_email = os.environ.get('DATA_SERVICE_CLIENT_EMAIL', '<undefined>'),
-        data_service_client_password = os.environ.get('DATA_SERVICE_CLIENT_PASSWORD', '<undefined>'),
+        # Data Service Integration
+        data_service = DataService(data_service_credentials), 
 
         # Process parallelism controls. There is a balance between serving a single report
         # requests quickly or serving multiple requests concurrently.
