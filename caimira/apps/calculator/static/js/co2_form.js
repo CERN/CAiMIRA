@@ -28,7 +28,7 @@ const CO2_data_form = [
 
 // Method to upload a valid excel file
 function upload_file() {
-	clear_fitting_algorithm();
+	clear_fitting_result_component();
 	$("#generate_fitting_data").show();
 	$("#save_and_dismiss_dialog").hide();
 	var files = document.getElementById("file_upload").files;
@@ -177,7 +177,7 @@ function submit_fitting_algorithm(url) {
 	}
 }
 
-function clear_fitting_algorithm() {
+function clear_fitting_result_component() {
 	$('#generate_fitting_data').prop("disabled", true);
 	$("#display_excel_data tbody").remove();
 	$('#CO2_fitting_result').val('');
@@ -185,5 +185,10 @@ function clear_fitting_algorithm() {
 	$('span.' + "error_text").remove();
 	$('#DIV_CO2_fitting_result').hide();
 	$('#CO2_input_data_div').hide();
+}
+
+function clear_fitting_algorithm() {
+	clear_fitting_result_component();
+	$('#CO2_data_no').click(); 
 	ventilation_from_fitting(false);
 }

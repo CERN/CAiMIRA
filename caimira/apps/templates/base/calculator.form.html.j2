@@ -732,7 +732,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary dismiss_btn_frm_field" data-dismiss="modal" onclick="clear_fitting_algorithm(); $('#CO2_data_no').click();">Discard</button>
+            <button type="button" class="btn btn-secondary dismiss_btn_frm_field" data-dismiss="modal" onclick="clear_fitting_algorithm()">Discard</button>
             <button type="button" id="generate_fitting_data" class="btn btn-primary close_btn_frm_field" onclick="submit_fitting_algorithm('{{ get_calculator_url() }}/co2-fit')" disabled>Fit data</button>
             <button type="button" style="display: none" id="save_and_dismiss_dialog" class="btn btn-primary close_btn_frm_field" data-dismiss="modal">Use fit data</button>
           </div>
