@@ -165,7 +165,7 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
         "expected_new_cases": expected_new_cases,
         "uncertainties_plot_src": uncertainties_plot_src,
         "CO2_concentrations": CO2_concentrations,
-        "vl_dist": list(model.concentration_model.virus.viral_load_in_sputum),
+        "vl_dist": list(np.log10(model.concentration_model.virus.viral_load_in_sputum)),
     }
 
 
