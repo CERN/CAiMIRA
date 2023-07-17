@@ -38,7 +38,7 @@ from .user import AuthenticatedUser, AnonymousUser
 # calculator version. If the calculator needs to make breaking changes (e.g. change
 # form attributes) then it can also increase its MAJOR version without needing to
 # increase the overall CAiMIRA version (found at ``caimira.__version__``).
-__version__ = "4.11"
+__version__ = "4.12"
 
 LOG = logging.getLogger(__name__)
     
@@ -107,13 +107,15 @@ class ConcentrationModel(BaseRequestHandler):
             start = datetime.datetime.now()
         
         # Data Service API Integration
+        data_service: DataService = self.settings["data_service"]
         try:
-            data_service: DataService = self.settings["data_service"]
             access_token = await data_service.login()
             service_data = await data_service.fetch(access_token)
-        except Exception as e:
-            print("Something went wrong with the data service: %s" % e)
-
+        except Exception as err:
+            error_message = f"Something went wrong with the data service: {str(err)}"
+            LOG.error(error_message, exc_info=True)
+            self.send_error(500, reason=error_message)
+            
         try:
             form = model_generator.FormData.from_dict(requested_model_config)
         except Exception as err:
