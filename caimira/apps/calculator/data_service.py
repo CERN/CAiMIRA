@@ -2,14 +2,13 @@ import dataclasses
 import json
 import logging
 
-from tornado.web import RequestHandler
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 
 LOG = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass
-class DataService(RequestHandler):
+class DataService():
     '''
     Responsible for establishing a connection to a 
     database through a REST API by handling authentication 
@@ -27,24 +26,20 @@ class DataService(RequestHandler):
         client_password = self.credentials['data_service_client_password']
 
         if (client_email == None or client_password == None):
-            # If the credentials are not defined, an error is thrown.
-            return self.send_error(500)
+            # If the credentials are not defined, an exception is raised.
+            raise Exception("DataService credentials not set")
             
         http_client = AsyncHTTPClient()
         headers = {'Content-type': 'application/json'}
         json_body = { "email": f"{client_email}", "password": f"{client_password}"}
 
-        try:
-            response = await http_client.fetch(HTTPRequest(
-                url=self.host + '/login',
-                method='POST',
-                headers=headers,
-                body=json.dumps(json_body),
-            ),
-            raise_error=True)
-        except Exception as err:
-            LOG.error("Something went wrong: %s" % err)
-            self.send_error(500)
+        response = await http_client.fetch(HTTPRequest(
+            url=self.host + '/login',
+            method='POST',
+            headers=headers,
+            body=json.dumps(json_body),
+        ),
+        raise_error=True)
 
         return json.loads(response.body)['access_token']
     
@@ -52,14 +47,12 @@ class DataService(RequestHandler):
         http_client = AsyncHTTPClient()
         headers = {'Authorization': f'Bearer {access_token}'}
 
-        try:
-            response = await http_client.fetch(HTTPRequest(
-                url=self.host + '/data',
-                method='GET',
-                headers=headers,
-            ),
-            raise_error=True)
-        except Exception as e:
-            print("Something went wrong: %s" % e)
+        response = await http_client.fetch(HTTPRequest(
+            url=self.host + '/data',
+            method='GET',
+            headers=headers,
+        ),
+        raise_error=True)
 
         return json.loads(response.body)
+    
