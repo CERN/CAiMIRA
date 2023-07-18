@@ -19,7 +19,6 @@ import typing
 import uuid
 import zlib
 
-
 import jinja2
 import loky
 from tornado.web import Application, RequestHandler, StaticFileHandler
@@ -29,6 +28,7 @@ import tornado.log
 from . import markdown_tools
 from . import model_generator
 from .report_generator import ReportGenerator, calculate_report_data
+from .data_service import DataService
 from .user import AuthenticatedUser, AnonymousUser
 
 # The calculator version is based on a combination of the model version and the
@@ -38,12 +38,13 @@ from .user import AuthenticatedUser, AnonymousUser
 # calculator version. If the calculator needs to make breaking changes (e.g. change
 # form attributes) then it can also increase its MAJOR version without needing to
 # increase the overall CAiMIRA version (found at ``caimira.__version__``).
-__version__ = "4.11"
+__version__ = "4.12"
 
 LOG = logging.getLogger(__name__)
-
+    
 
 class BaseRequestHandler(RequestHandler):
+    
     async def prepare(self):
         """Called at the beginning of a request before  `get`/`post`/etc."""
 
@@ -104,7 +105,17 @@ class ConcentrationModel(BaseRequestHandler):
             from pprint import pprint
             pprint(requested_model_config)
             start = datetime.datetime.now()
-
+        
+        # Data Service API Integration
+        data_service: DataService = self.settings["data_service"]
+        try:
+            access_token = await data_service.login()
+            service_data = await data_service.fetch(access_token)
+        except Exception as err:
+            error_message = f"Something went wrong with the data service: {str(err)}"
+            LOG.error(error_message, exc_info=True)
+            self.send_error(500, reason=error_message)
+            
         try:
             form = model_generator.FormData.from_dict(requested_model_config)
         except Exception as err:
@@ -417,6 +428,11 @@ def make_app(
     )
     template_environment.globals['get_url']=get_root_url
     template_environment.globals['get_calculator_url']=get_root_calculator_url
+    
+    data_service_credentials = {
+        'data_service_client_email': os.environ.get('DATA_SERVICE_CLIENT_EMAIL', None),
+        'data_service_client_password': os.environ.get('DATA_SERVICE_CLIENT_PASSWORD', None),
+    }
 
     if debug:
         tornado.log.enable_pretty_logging()
@@ -434,6 +450,9 @@ def make_app(
         arve_client_id=os.environ.get('ARVE_CLIENT_ID', None),
         arve_client_secret=os.environ.get('ARVE_CLIENT_SECRET', None),
         arve_api_key=os.environ.get('ARVE_API_KEY', None),
+
+        # Data Service Integration
+        data_service = DataService(data_service_credentials), 
 
         # Process parallelism controls. There is a balance between serving a single report
         # requests quickly or serving multiple requests concurrently.
