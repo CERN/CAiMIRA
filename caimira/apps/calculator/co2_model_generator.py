@@ -4,7 +4,10 @@ import logging
 import typing
 
 from caimira import models
+from caimira import data
 from . import model_generator
+import caimira.monte_carlo as mc
+from caimira.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions, short_range_distances
 
 minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
 
@@ -18,7 +21,6 @@ _NO_DEFAULT = object()
 @dataclasses.dataclass
 class CO2FormData:
     CO2_data: dict
-    specific_breaks: dict
     exposed_coffee_break_option: str
     exposed_coffee_duration: int
     exposed_finish: minutes_since_midnight
@@ -26,6 +28,8 @@ class CO2FormData:
     exposed_lunch_option: bool
     exposed_lunch_start: minutes_since_midnight
     exposed_start: minutes_since_midnight
+    fitting_ventilation_states: list
+    fitting_ventilation_type: str
     infected_coffee_break_option: str               #Used if infected_dont_have_breaks_with_exposed
     infected_coffee_duration: int                   #Used if infected_dont_have_breaks_with_exposed
     infected_dont_have_breaks_with_exposed: bool
@@ -38,15 +42,11 @@ class CO2FormData:
     room_volume: float
     total_people: int
     ventilation_type: str
-    windows_duration: float
-    windows_frequency: float
-    window_opening_regime: str
 
     #: The default values for undefined fields. Note that the defaults here
     #: and the defaults in the html form must not be contradictory.
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = {
         'CO2_data': '{}',
-        'specific_breaks': '{}',
         'exposed_coffee_break_option': 'coffee_break_0',
         'exposed_coffee_duration': 5,
         'exposed_finish': '17:30',
@@ -54,6 +54,8 @@ class CO2FormData:
         'exposed_lunch_option': True,
         'exposed_lunch_start': '12:30',
         'exposed_start': '08:30',
+        'fitting_ventilation_states': '[]',
+        'fitting_ventilation_type': 'fitting_natural_ventilation',
         'infected_coffee_break_option': 'coffee_break_0',
         'infected_coffee_duration': 5,
         'infected_dont_have_breaks_with_exposed': False,
@@ -66,9 +68,6 @@ class CO2FormData:
         'room_volume': _NO_DEFAULT,
         'total_people': _NO_DEFAULT,
         'ventilation_type': 'no_ventilation',
-        'windows_duration': 10.,
-        'windows_frequency': 60.,
-        'window_opening_regime': 'windows_open_permanently', 
     }
 
     @classmethod
@@ -100,18 +99,47 @@ class CO2FormData:
         return instance
 
     def build_model(self) -> models.CO2Data:
-        population_presence=self.population_present_interval()
-        last_time_present = population_presence.boundaries()[-1][-1]
-        last_present_time_index = next((index for index, time in enumerate(self.CO2_data['times']) 
-                                        if time > last_time_present), len(self.CO2_data['times']))
+        infected_population: models.Population = self.infected_population()
+        exposed_population: models.Population = self.exposed_population()
+        all_state_changes=self.population_present_interval()
+
+        total_people = [infected_population.people_present(stop) + exposed_population.people_present(stop) 
+                        for _, stop in zip(all_state_changes[:-1], all_state_changes[1:])]        
         return models.CO2Data(
                 room_volume=self.room_volume,
-                number=self.total_people,
-                presence=population_presence,
-                ventilation_transition_times=self.ventilation_transition_times(last_time_present),
-                times=self.CO2_data['times'][:last_present_time_index],
-                CO2_concentrations=self.CO2_data['CO2'][:last_present_time_index],
+                number=models.IntPiecewiseConstant(transition_times=tuple(all_state_changes), values=tuple(total_people)),
+                presence=None,
+                ventilation_transition_times=self.ventilation_transition_times(),
+                times=self.CO2_data['times'],
+                CO2_concentrations=self.CO2_data['CO2'],
             ) 
+    
+    def exposed_population(self) -> models.Population:
+        infected_occupants = self.infected_people
+        # The number of exposed occupants is the total number of occupants
+        # minus the number of infected occupants.
+        exposed_occupants = self.total_people - infected_occupants
+
+        exposed = models.Population(
+            number=exposed_occupants,
+            presence=self.exposed_present_interval(),
+            activity=models.Activity.types['Seated'],
+            mask=models.Mask.types['No mask'],
+            host_immunity=0.,
+        )
+        return exposed
+    
+    def infected_population(self) -> models.Population:
+        infected_occupants = self.infected_people
+
+        infected = models.Population(
+            number=infected_occupants,
+            presence=self.infected_present_interval(),
+            activity=models.Activity.types['Seated'],
+            mask=models.Mask.types['No mask'],
+            host_immunity=0.,
+        )
+        return infected
 
     def _compute_breaks_in_interval(self, start, finish, n_breaks, duration) -> models.BoundarySequence_t:
         break_delay = ((finish - start) - (n_breaks * duration)) // (n_breaks+1)
@@ -287,40 +315,32 @@ class CO2FormData:
             LOG.debug("trailing interval")
             present_intervals.append((current_time / 60, finish / 60))
         return models.SpecificInterval(tuple(present_intervals))
-
-    def infected_present_interval(self) -> models.Interval:
-        if self.specific_breaks != {}: # It means the breaks are specific and not predefined
-            breaks = self.generate_specific_break_times(self.specific_breaks['infected_breaks'])
-        else:
-            breaks = self.infected_lunch_break_times() + self.infected_coffee_break_times()
-        return self.present_interval(
-            self.infected_start, self.infected_finish,
-            breaks=breaks,
-        )
     
-    def population_present_interval(self) -> models.Interval:
+    def population_present_interval(self) -> typing.List[float]:
         state_change_times = set(self.infected_present_interval().transition_times())
         state_change_times.update(self.exposed_present_interval().transition_times())
-        all_state_changes = sorted(state_change_times)
-        return models.SpecificInterval(tuple(zip(all_state_changes[:-1], all_state_changes[1:])))
+        return sorted(state_change_times)
 
     def exposed_present_interval(self) -> models.Interval:
-        if self.specific_breaks != {}: # It means the breaks are specific and not predefined
-            breaks = self.generate_specific_break_times(self.specific_breaks['exposed_breaks'])
-        else:
-            breaks = self.exposed_lunch_break_times() + self.exposed_coffee_break_times()
+        breaks = self.exposed_lunch_break_times() + self.exposed_coffee_break_times()
         return self.present_interval(
             self.exposed_start, self.exposed_finish,
             breaks=breaks,
         )
+    
+    def infected_present_interval(self) -> models.Interval:
+        breaks = self.infected_lunch_break_times() + self.infected_coffee_break_times()
+        return self.present_interval(
+            self.infected_start, self.infected_finish,
+            breaks=breaks,
+        )
 
-    def ventilation_transition_times(self, last_present_time) -> typing.Tuple[float, ...]:
-        if self.ventilation_type == 'from_fitting' and self.window_opening_regime == 'windows_open_periodically':
-            transition_times = sorted(models.PeriodicInterval(self.windows_frequency, 
-                    self.windows_duration, min(self.infected_start, self.exposed_start)/60).transition_times())
-            return tuple(filter(lambda x: x <= last_present_time, transition_times))
+    def ventilation_transition_times(self) -> typing.Tuple[float, ...]:
+        # Check what type of ventilation is considered for the fitting
+        if self.fitting_ventilation_type == 'fitting_natural_ventilation':
+            return tuple(self.fitting_ventilation_states)
         else:
-            return tuple((min(self.infected_start, self.exposed_start)/60, max(self.infected_finish, self.exposed_finish)/60), ) # all day long
+            return tuple((self.CO2_data['times'][0], self.CO2_data['times'][-1]))            
 
 #: Mapping of field name to a callable which can convert values from form
 #: input (URL encoded arguments / string) into the correct type.

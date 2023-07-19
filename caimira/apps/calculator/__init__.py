@@ -351,8 +351,20 @@ class CO2Data(BaseRequestHandler):
         Thus, XSRF cookies are disabled by overriding base class implementation of this method with a pass statement.
         """
         pass
+
+    def generate_ventilation_plot(self, CO2Data, transition_times = None, ventilation_values = None):
+            fig = plt.figure(figsize=(7, 4), dpi=110)
+            plt.plot(CO2Data['times'], CO2Data['CO2'])
+            if (transition_times and ventilation_values):
+                for index, time in enumerate(transition_times[:-1]):
+                    plt.axvline(x = time, color = 'grey', linewidth=0.5, linestyle='--')
+                    y_location = (CO2Data['CO2'][min(range(len(CO2Data['times'])), key=lambda i: abs(CO2Data['times'][i]-time))])
+                    plt.text(x = time + 0.04, y = y_location, s=round(ventilation_values[index], 2))
+            plt.xlabel('Time of day')
+            plt.ylabel('Concentration (ppm)')
+            return img2base64(_figure2bytes(fig))
     
-    async def post(self) -> None:
+    async def post(self, endpoint: str) -> None:
         requested_model_config = tornado.escape.json_decode(self.request.body)
         try:
             form = co2_model_generator.CO2FormData.from_dict(requested_model_config)
@@ -365,31 +377,24 @@ class CO2Data(BaseRequestHandler):
             self.finish(json.dumps(response_json))
             return
 
-        executor = loky.get_reusable_executor(
-            max_workers=self.settings['handler_worker_pool_size'],
-            timeout=300,
-        )
-        report_task = executor.submit(
-            co2_model_generator.CO2FormData.build_model, form,
-        )
-        report = await asyncio.wrap_future(report_task)
-
-        def generate_ventilation_plot(transition_times: tuple, ventilation_values: tuple):
-            fig = plt.figure(figsize=(7, 4), dpi=110)
-            plt.plot(form.CO2_data['times'], form.CO2_data['CO2'])
-            for index, time in enumerate(transition_times[:-1]):
-                plt.axvline(x = time, color = 'grey', linewidth=0.5, linestyle='--')
-                y_location = (form.CO2_data['CO2'][min(range(len(form.CO2_data['times'])), key=lambda i: abs(form.CO2_data['times'][i]-time))])
-                plt.text(x = time + 0.04, y = y_location, s=round(ventilation_values[index], 2))
-            plt.xlabel('Time of day')
-            plt.ylabel('Concentration (ppm)')
-            return fig
+        if endpoint == 'plot':
+            self.finish({'CO2_plot': self.generate_ventilation_plot(form.CO2_data)})
+        else:
+            executor = loky.get_reusable_executor(
+                max_workers=self.settings['handler_worker_pool_size'],
+                timeout=300,
+            )
+            report_task = executor.submit(
+                co2_model_generator.CO2FormData.build_model, form,
+            )
+            report = await asyncio.wrap_future(report_task)
         
-        result = dict(report.CO2_fit_params())
-        result['transition_times'] = report.ventilation_transition_times
-        result['CO2_plot'] = img2base64(_figure2bytes(generate_ventilation_plot(report.ventilation_transition_times, result['ventilation_values'])))
-        self.finish(result)
-     
+            result = dict(report.CO2_fit_params())
+            result['fitting_ventilation_type'] = 'fitting_natural_ventilation'
+            result['transition_times'] = report.ventilation_transition_times
+            result['CO2_plot'] = self.generate_ventilation_plot(form.CO2_data, report.ventilation_transition_times, result['ventilation_values'])
+            self.finish(result)
+        
 
 def get_url(app_root: str, relative_path: str = '/'):
         return app_root.rstrip('/') + relative_path.rstrip('/')
@@ -412,7 +417,7 @@ def make_app(
     base_urls: typing.List = [
         (get_root_url(r'/?'), LandingPage),
         (get_root_calculator_url(r'/?'), CalculatorForm),
-        (get_root_calculator_url(r'/co2-fit/'), CO2Data),
+        (get_root_calculator_url(r'/co2-fit/(.*)'), CO2Data),
         (get_root_calculator_url(r'/report'), ConcentrationModel),
         (get_root_url(r'/static/(.*)'), StaticFileHandler, {'path': static_dir}),
         (get_root_calculator_url(r'/static/(.*)'), StaticFileHandler, {'path': calculator_static_dir}),
