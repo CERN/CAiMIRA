@@ -247,8 +247,6 @@ function on_ventilation_type_change() {
   ventilation_types = $('input[type=radio][name=ventilation_type]');
   ventilation_types.each(function (index) {
     if (this.checked) {
-      
-      if ($(this).val() != 'from_fitting') $('#button_fit_data').attr('data-previous-vent', $(this).val())
       getChildElement($(this)).show();
       require_fields(this);
     } else {
@@ -495,32 +493,13 @@ function on_coffee_break_option_change() {
   }
 }
 
-function ventilation_from_fitting(condition_from_fitting) {
-  $('input[type=radio][id=no_ventilation]').prop("disabled", condition_from_fitting);
-  $('input[type=radio][id=mechanical_ventilation]').prop("disabled", condition_from_fitting);
-  $('input[type=radio][id=natural_ventilation]').prop("disabled", condition_from_fitting);
-  $('input[type=radio][id=from_fitting]').prop("disabled", !condition_from_fitting);
-  if (condition_from_fitting) {
-    $('input[type=radio][id=from_fitting]').prop('checked',true);
-    $('#DIVfrom_fitting').after($('#window_opening_regime'));
-  }
-  else {
-    let selected_ventilation = $("#button_fit_data").attr('data-previous-vent');
-    $(`input[type=radio][id=${selected_ventilation}]`).prop('checked',true);
-    $('#DIVopening_distance').after($('#window_opening_regime'));
-  }
-  on_ventilation_type_change();
-}
-
-function on_CO2_data_option_change() {
-  CO2_data_options = $('input[type=radio][name=CO2_data_option]');
-  CO2_data_options.each(function (index){
+function on_CO2_fitting_ventilation_change() {
+  ventilation_options = $('input[type=radio][name=fitting_ventilation_type]');
+  ventilation_options.each(function (index) {
     if (this.checked) {
-      if (this.id == 'CO2_data_yes') ventilation_from_fitting(true);
-      else if (this.id == 'CO2_data_no') ventilation_from_fitting(false);
       getChildElement($(this)).show();
       require_fields(this);
-    } 
+    }
     else {
       getChildElement($(this)).hide();
       require_fields(this);
@@ -698,6 +677,13 @@ function validate_form(form) {
   if (short_range_interactions.length == 0) {
     $("input[type=radio][id=short_range_no]").prop("checked", true);
     on_short_range_option_change();
+  }
+
+  // Check if fitting is selected
+  if ($('input[type=radio][id=from_fitting]').prop('checked')  ) {
+    if ($('#CO2_fitting_result').val() == '')
+    $("input[type=radio][id=no_ventilation]").prop("checked", true);
+    on_ventilation_type_change();
   }
 
   if (submit) {
@@ -969,7 +955,7 @@ $(document).ready(function () {
 
   // Populate CO2 Fitting Algorithm Dialog
   let CO2_data = url.searchParams.has('CO2_fitting_result') ? url.searchParams.get('CO2_fitting_result') : null;
-  if (CO2_data) display_fitting_data(JSON.parse(CO2_data));
+  if (CO2_data) displayFittingData(JSON.parse(CO2_data));
 
   // Populate primary vaccine dropdown
   $("#vaccine_type option").remove();
@@ -1086,11 +1072,11 @@ $(document).ready(function () {
   // Call the function now to handle forward/back button presses in the browser.
   on_coffee_break_option_change();
 
-  // When the CO2_data_option changes we want to make its respective
+  // When the ventilation on the fitting changes we want to make its respective
   // children show/hide.
-  $("input[type=radio][name=CO2_data_option]").change(on_CO2_data_option_change);
+  $("input[type=radio][name=fitting_ventilation_type]").change(on_CO2_fitting_ventilation_change);
   // Call the function now to handle forward/back button presses in the browser.
-  on_CO2_data_option_change();
+  on_CO2_fitting_ventilation_change();
 
   // Setup the maximum number of people at page load (to handle back/forward),
   // and update it when total people is changed.
