@@ -283,6 +283,18 @@
                     secretKeyRef:
                       key: ARVE_API_KEY
                       name: arve-api
+                - name: DATA_SERVICE_ENABLED
+                  value: 'False'
+                - name: DATA_SERVICE_CLIENT_EMAIL
+                  valueFrom:
+                    secretKeyRef:
+                      key: DATA_SERVICE_CLIENT_EMAIL
+                      name: data-service-api
+                - name: DATA_SERVICE_CLIENT_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      key: DATA_SERVICE_CLIENT_PASSWORD
+                      name: data-service-api
                 image: '${PROJECT_NAME}/calculator-app'
                 ports:
                   - containerPort: 8080
@@ -360,6 +372,8 @@
                   value: /
                 - name: CAIMIRA_CALCULATOR_PREFIX
                   value: /calculator-open
+                - name: DATA_SERVICE_ENABLED
+                  value: 'False'
                 image: '${PROJECT_NAME}/calculator-app'
                 ports:
                   - containerPort: 8080
