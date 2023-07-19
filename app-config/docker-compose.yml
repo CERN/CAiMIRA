@@ -20,6 +20,7 @@ services:
       - APPLICATION_ROOT=/
       - CAIMIRA_CALCULATOR_PREFIX=/calculator-cern
       - CAIMIRA_THEME=caimira/apps/templates/cern
+      - DATA_SERVICE_ENABLED=False
     user: ${CURRENT_UID}
 
   calculator-open-app:
@@ -29,6 +30,7 @@ services:
       - APP_NAME=calculator-app
       - APPLICATION_ROOT=/
       - CAIMIRA_CALCULATOR_PREFIX=/calculator-open
+      - DATA_SERVICE_ENABLED=False
     user: ${CURRENT_UID}
 
   auth-service:

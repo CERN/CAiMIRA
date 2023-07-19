@@ -168,7 +168,6 @@ export COOKIE_SECRET=$(openssl rand -hex 50)
 export OIDC_SERVER=https://auth.cern.ch/auth
 export OIDC_REALM=CERN
 export CLIENT_ID=caimira-test
-export CLIENT_SECRET
 ```
 
 Run docker-compose:
@@ -323,6 +322,38 @@ Please note that there is no need for keys on this API call. It is **free-of-cha
 
 - **Humidity and Inside Temperature:**
 There is the possibility of using one external API call to fetch information related to a location specified in the UI. The data is related to the inside temperature and humidity taken from an indoor measurement device. Note that the API currently used from ARVE is only available for the `CERN theme` as the authorised sensors are installed at CERN."
+
+- **ARVE:**
+
+The ARVE Swiss Air Quality System provides trusted air data for commercial buildings in real-time and analyzes it with the help of AI and machine learning algorithms to create actionable insights.
+
+Create secret:
+
+```console
+$ read ARVE_CLIENT_ID
+$ read ARVE_CLIENT_SECRET
+$ read ARVE_API_KEY
+$ oc create secret generic \
+  --from-literal="ARVE_CLIENT_ID=$ARVE_CLIENT_ID" \
+  --from-literal="ARVE_CLIENT_SECRET=$ARVE_CLIENT_SECRET" \
+  --from-literal="ARVE_API_KEY=$ARVE_API_KEY" \
+  arve-api
+```
+
+- **CERN Data Service:**
+
+The CERN data service collects data from various sources and expose them via a REST API endpoint.
+
+Create secret:
+
+```console
+$ read DATA_SERVICE_CLIENT_EMAIL
+$ read DATA_SERVICE_CLIENT_PASSWORD
+$ oc create secret generic \
+  --from-literal="DATA_SERVICE_CLIENT_EMAIL=$DATA_SERVICE_CLIENT_EMAIL" \
+  --from-literal="DATA_SERVICE_CLIENT_PASSWORD=$DATA_SERVICE_CLIENT_PASSWORD" \
+  data-service-api
+```
 
 ## Update configuration
 

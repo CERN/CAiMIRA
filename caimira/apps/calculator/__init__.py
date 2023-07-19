@@ -107,15 +107,16 @@ class ConcentrationModel(BaseRequestHandler):
             start = datetime.datetime.now()
         
         # Data Service API Integration
+        fetched_service_data = None
         data_service: DataService = self.settings["data_service"]
-        try:
-            access_token = await data_service.login()
-            service_data = await data_service.fetch(access_token)
-        except Exception as err:
-            error_message = f"Something went wrong with the data service: {str(err)}"
-            LOG.error(error_message, exc_info=True)
-            self.send_error(500, reason=error_message)
-            
+        if self.settings["data_service"]:
+            try:
+                fetched_service_data = await data_service.fetch()
+            except Exception as err:
+                error_message = f"Something went wrong with the data service: {str(err)}"
+                LOG.error(error_message, exc_info=True)
+                self.send_error(500, reason=error_message)
+                
         try:
             form = model_generator.FormData.from_dict(requested_model_config)
         except Exception as err:
@@ -134,7 +135,7 @@ class ConcentrationModel(BaseRequestHandler):
             timeout=300,
         )
         # Re-generate the report with the conditional probability of infection plot
-        if self.get_cookie('conditional_plot'): 
+        if self.get_cookie('conditional_plot'):
             form.conditional_probability_plot = True if self.get_cookie('conditional_plot') == '1' else False
             self.clear_cookie('conditional_plot') # Clears cookie after changing the form value.
         
@@ -260,7 +261,7 @@ class ArveData(BaseRequestHandler):
         http_client = AsyncHTTPClient()
 
         URL = 'https://arveapi.auth.eu-central-1.amazoncognito.com/oauth2/token'
-        headers = { "Content-Type": "application/x-www-form-urlencoded", 
+        headers = { "Content-Type": "application/x-www-form-urlencoded",
                     "Authorization": b"Basic " + base64.b64encode(f'{client_id}:{client_secret}'.encode())
         }
         
@@ -390,7 +391,7 @@ def make_app(
             'active_page': 'about',
             'filename': 'about.html.j2'}),
         (get_root_calculator_url(r'/user-guide'), GenericExtraPage, {
-            'active_page': 'calculator/user-guide', 
+            'active_page': 'calculator/user-guide',
             'filename': 'userguide.html.j2'}),
     ]
     
@@ -407,7 +408,7 @@ def make_app(
         pass
 
     for extra in pages:
-        urls.append((get_root_url(r'%s' % extra['url_path']), 
+        urls.append((get_root_url(r'%s' % extra['url_path']),
                         GenericExtraPage, {
                             'active_page': extra['url_path'].strip('/'),
                             'filename': extra['filename'], }))
@@ -433,6 +434,9 @@ def make_app(
         'data_service_client_email': os.environ.get('DATA_SERVICE_CLIENT_EMAIL', None),
         'data_service_client_password': os.environ.get('DATA_SERVICE_CLIENT_PASSWORD', None),
     }
+    data_service = None
+    if bool(os.environ.get('DATA_SERVICE_ENABLED', False)):
+        data_service = DataService(data_service_credentials)
 
     if debug:
         tornado.log.enable_pretty_logging()
@@ -452,7 +456,7 @@ def make_app(
         arve_api_key=os.environ.get('ARVE_API_KEY', None),
 
         # Data Service Integration
-        data_service = DataService(data_service_credentials), 
+        data_service=data_service,
 
         # Process parallelism controls. There is a balance between serving a single report
         # requests quickly or serving multiple requests concurrently.
