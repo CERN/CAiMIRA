@@ -1527,11 +1527,12 @@ class CO2Data:
                 exhalation_rate=exhalation_rate,
                 ventilation_values=ventilation_values
             )
-            return np.sqrt(np.sum((np.array(self.CO2_concentrations) - np.array(the_concentrations))**2))
-
+            return np.sqrt(np.sum((np.array(self.CO2_concentrations) - 
+                                   np.array(the_concentrations))**2))
         # The goal is to minimize the difference between the two different curves (known concentrations vs. predicted concentrations)
-        res_dict = minimize(fun=fun, x0=np.ones(len(self.ventilation_transition_times)), method='powell', bounds=[
-                            (0, None) for _ in range(len(self.ventilation_transition_times))], options={'xtol': 1e-3})
+        res_dict = minimize(fun=fun, x0=np.ones(len(self.ventilation_transition_times)), method='powell',
+                            bounds=[(0, None) for _ in range(len(self.ventilation_transition_times))], 
+                            options={'xtol': 1e-3})
 
         exhalation_rate = res_dict['x'][0]
         ventilation_values = res_dict['x'][1:]
