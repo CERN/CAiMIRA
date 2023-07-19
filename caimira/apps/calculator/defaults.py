@@ -22,7 +22,6 @@ DEFAULTS = {
     'ceiling_height': 0.,
     'conditional_probability_plot': False,
     'conditional_probability_viral_loads': False,
-    'CO2_data_option': False,
     'CO2_fitting_result': '{}',
     'exposed_coffee_break_option': 'coffee_break_0',
     'exposed_coffee_duration': 5,
