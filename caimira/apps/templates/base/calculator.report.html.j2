@@ -595,7 +595,7 @@
 							{% elif form.activity_type == "gym" %}
 							Gym - For comparison only, all persons doing heavy physical exercise, breathing and not speaking.
 							{% endif %}
-							{% if form.CO2_data_option %}
+							{% if form.ventilation_type == "from_fitting" %}
 							<p style="margin-left: 30px">Exhalation rate from fitting algorithm - {{form.CO2_fitting_result['exhalation_rate'] | round(2, 'floor')}} m³/h</p>
 							{% endif %}
 							</p></li>
