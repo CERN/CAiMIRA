@@ -29,7 +29,7 @@ import tornado.log
 
 from . import markdown_tools
 from . import model_generator, co2_model_generator
-from .report_generator import ReportGenerator, calculate_report_data
+from .report_generator import ReportGenerator, calculate_report_data, img2base64, _figure2bytes
 from .user import AuthenticatedUser, AnonymousUser
 
 # The calculator version is based on a combination of the model version and the
@@ -39,7 +39,7 @@ from .user import AuthenticatedUser, AnonymousUser
 # calculator version. If the calculator needs to make breaking changes (e.g. change
 # form attributes) then it can also increase its MAJOR version without needing to
 # increase the overall CAiMIRA version (found at ``caimira.__version__``).
-__version__ = "4.13.0"
+__version__ = "4.14.0"
 
 LOG = logging.getLogger(__name__)
     
@@ -390,7 +390,7 @@ class CO2Data(BaseRequestHandler):
             report = await asyncio.wrap_future(report_task)
         
             result = dict(report.CO2_fit_params())
-            result['fitting_ventilation_type'] = 'fitting_natural_ventilation'
+            result['fitting_ventilation_type'] = form.fitting_ventilation_type
             result['transition_times'] = report.ventilation_transition_times
             result['CO2_plot'] = self.generate_ventilation_plot(form.CO2_data, report.ventilation_transition_times, result['ventilation_values'])
             self.finish(result)
