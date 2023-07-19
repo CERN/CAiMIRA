@@ -27,7 +27,7 @@ class DataServiceTests(unittest.TestCase):
         mock_http_client.return_value.fetch = mock_fetch
 
         # Call the login method
-        access_token = await self.data_service.login()
+        access_token = await self.data_service._login()
 
         # Assert that the access token is returned correctly
         self.assertEqual(access_token, "dummy_token")
@@ -60,8 +60,8 @@ class DataServiceTests(unittest.TestCase):
         mock_http_client.return_value.fetch = mock_fetch
 
         # Call the fetch method with a mock access token
-        access_token = "dummy_token"
-        data = await self.data_service.fetch(access_token)
+        self.data_service._access_token = "dummy_token"
+        data = await self.data_service.fetch()
 
         # Assert that the data is returned correctly
         self.assertEqual(data, {"data": "dummy_data"})
@@ -80,8 +80,8 @@ class DataServiceTests(unittest.TestCase):
         mock_http_client.return_value.fetch = mock_fetch
 
         # Call the fetch method with a mock access token
-        access_token = "dummy_token"
-        data = await self.data_service.fetch(access_token)
+        self.data_service._access_token = "dummy_token"
+        data = await self.data_service.fetch()
 
         # Assert that the fetch method returns None in case of an error
         self.assertIsNone(data)
