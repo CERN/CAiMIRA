@@ -88,7 +88,7 @@ const CO2_data_form = [
   }
   
   function insertErrorFor(referenceNode, text) {
-	const element = $('<span></span>').addClass('error_text red_text').html('&nbsp;&nbsp;' + text);
+	const element = $('<span></span>').addClass('error_text text-danger').html('&nbsp;&nbsp;' + text);
 	$(referenceNode).before(element);
   }
   
