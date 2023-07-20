@@ -28,9 +28,11 @@ const CO2_data_form = [
 	clearFittingResultComponent();
 	const files = document.getElementById("file_upload").files;
 	if (files.length === 0) {
-	  alert("Please choose any file...");
+		$("#upload-error").show();
 	  return;
-	}
+	} else {
+		$("#upload-error").hide();
+	};
 	const file = files[0];
 	const extension = file.name.substring(file.name.lastIndexOf(".")).toUpperCase();
 	extension === ".XLS" || extension === ".XLSX"
@@ -120,6 +122,7 @@ const CO2_data_form = [
 	}
 	if (submit) {
 	  $($(obj).data('target')).modal('show');
+	  $("#upload-error").hide();
 	}
 	return submit;
   }  
@@ -242,6 +245,7 @@ function submitFittingAlgorithm(url) {
 	$('#fitting_ventilation_states').val('');
 	$('span.error_text').remove();
 	$('#DIVCO2_fitting_result, #CO2_input_data_div').hide();
+	$('#DIVCO2_fitting_to_submit').hide();
 	$('#CO2_data_plot').attr('src', '');
   
 	// Update the ventilation scheme components
