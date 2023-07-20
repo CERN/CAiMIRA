@@ -297,7 +297,6 @@
               </div>
             </div>
           </div>
-
       </div>
       <br/>
       
@@ -331,7 +330,7 @@
               <!-- Input element to upload an excel file -->
               <input type="file" id="file_upload" />
               <button type="button" class="btn btn-primary btn-sm" onclick="uploadFile('{{ get_calculator_url() }}/co2-fit/plot');">Upload</button>  
-              <br>
+              <div id="upload-error" class="mb-0 mt-2 alert alert-danger" style="display: none" role="alert">Please choose any file...</div>
               <br>
               <!-- table to display the excel data -->
               <table id="display_excel_data" border="1" style="width: 70%; margin-left: auto; margin-right: auto"></table>
