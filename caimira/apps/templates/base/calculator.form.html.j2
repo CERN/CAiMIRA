@@ -310,7 +310,7 @@
           </ul>
         </div>
         <div class="align-self-center text-center">
-          <button id="button_fit_data" type="button" class="btn btn-primary" style="width: 60%" data-target="#DIVCO2_data_dialog" data-keyboard="false" data-backdrop="static" onclick="validateFormInputs(this)">Fitting Algorithm</button>
+          <button id="button_fit_data" type="button" class="btn btn-primary w-50" data-target="#DIVCO2_data_dialog" data-keyboard="false" data-backdrop="static" onclick="validateFormInputs(this)">Fitting Algorithm</button>
         </div>
       </div>
 
@@ -323,7 +323,7 @@
             </div>
             <div class="modal-body">    
               <div class="d-flex d-row justify-content-between">
-                <h5 style="margin-top: auto; margin-bottom: auto">Upload an Excel file to preview in HTML Table</h5>
+                <h5 class="mt-auto mb-auto">Upload an Excel file to preview in HTML Table</h5>
                 <button type="button" class="btn btn-primary btn-sm" onclick="downloadTemplate()">Download template</button>
               </div>
               <br>
@@ -355,11 +355,11 @@
               </div>
 
               <div id="DIVCO2_fitting_result" style="display: none">
-                <h5 style="margin-top: auto; margin-bottom: auto">Fitting result</h5><br>
+                <h5 class="mt-auto mb-auto">Fitting result</h5><br>
                 <p id="exhalation_rate_fit"></p>
                 <p>Ventilation values (ACH):</p><br>
                 <!-- table to display the ventilation result data -->
-                <table id="ventilation_rate_fit" border="1" style="width: 70%; margin-left: auto; margin-right: auto"></table>
+                <table id="ventilation_rate_fit" class="w-75 mr-auto ml-auto" border="1"></table>
               </div>
             </div>
             <div class="modal-footer">

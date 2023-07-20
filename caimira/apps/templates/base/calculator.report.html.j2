@@ -531,7 +531,7 @@
 							<li><p class="data_text">From Fitting:
 							{% if form.ventilation_type == "from_fitting" %}
 							Yes
-							<table border="1" style="width: 20%; margin-left: 30px; margin-top: 20px">
+							<table class="w-25 mt-3 ml-4" border="1">
 								<tr><th> Time (HH:MM)</th><th>ACH value (h⁻¹)</th></tr>
 								{% for ventilation in form.CO2_fitting_result['ventilation_values'] %}
 									{% set transition_time = form.CO2_fitting_result['transition_times'] %}
@@ -596,7 +596,7 @@
 							Gym - For comparison only, all persons doing heavy physical exercise, breathing and not speaking.
 							{% endif %}
 							{% if form.ventilation_type == "from_fitting" %}
-							<p style="margin-left: 30px">Exhalation rate from fitting algorithm - {{form.CO2_fitting_result['exhalation_rate'] | round(2, 'floor')}} m³/h</p>
+							<p class="ml-5">Exhalation rate from fitting algorithm - {{form.CO2_fitting_result['exhalation_rate'] | round(2, 'floor')}} m³/h</p>
 							{% endif %}
 							</p></li>
 							{% if form.short_range_option == "short_range_yes" %}
