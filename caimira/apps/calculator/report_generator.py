@@ -188,20 +188,31 @@ def generate_permalink(base_url, get_root_url,  get_root_calculator_url, form: F
     }
 
 
-def uncertainties_plot(exposure_model: models.ExposureModel, prob: typing.Union[float, np.ndarray]):
-    fig = plt.figure(figsize=(4, 7), dpi=110)
-
-    infection_probability = prob / 100
-    vl = np.log10(exposure_model.concentration_model.infected.virus.viral_load_in_sputum)
+def conditional_prob_inf_given_vl_dist(infection_probability: models._VectorisedFloat, 
+                                       viral_loads: models._VectorisedFloat, specific_vl: float, step: models._VectorisedFloat):
+    pi_means = []
+    lower_percentiles = []
+    upper_percentiles = []
     
-    min_vl, max_vl, step = 2, 10, 8/100.
-    viral_loads = np.arange(min_vl, max_vl, step)
-    pi_means, lower_percentiles, upper_percentiles = [], [], []
     for vl_log in viral_loads:
-        specific_prob = infection_probability[np.where((vl_log-vl)*(vl_log+step-vl)<0)[0]] #type: ignore
+        specific_prob = infection_probability[np.where((vl_log-specific_vl)*(vl_log+step-specific_vl)<0)[0]] #type: ignore
         pi_means.append(specific_prob.mean())
         lower_percentiles.append(np.quantile(specific_prob, 0.05))
         upper_percentiles.append(np.quantile(specific_prob, 0.95))
+    
+    return pi_means, lower_percentiles, upper_percentiles
+
+
+def uncertainties_plot(exposure_model: models.ExposureModel, prob: models._VectorisedFloat):
+    fig = plt.figure(figsize=(4, 7), dpi=110)
+    
+    infection_probability = prob / 100
+    specific_vl = np.log10(exposure_model.concentration_model.infected.virus.viral_load_in_sputum)
+
+    min_vl, max_vl, step = 2, 10, 8/100.
+    viral_loads = np.arange(min_vl, max_vl, step)
+    pi_means, lower_percentiles, upper_percentiles = conditional_prob_inf_given_vl_dist(infection_probability, 
+                                                                                        viral_loads, specific_vl, step)
 
     fig, axs = plt.subplots(2, 3, 
         gridspec_kw={'width_ratios': [5, 0.5] + [1],
