@@ -26,7 +26,7 @@ const CO2_data_form = [
   // Method to upload a valid excel file
   function uploadFile(endpoint) {
 	clearFittingResultComponent();
-	const files = document.getElementById("file_upload").files;
+	const files = $("#file_upload")[0].files;
 	if (files.length === 0) {
 		$("#upload-error").show();
 	  return;
@@ -37,7 +37,7 @@ const CO2_data_form = [
 	const extension = file.name.substring(file.name.lastIndexOf(".")).toUpperCase();
 	extension === ".XLS" || extension === ".XLSX"
 	  ? excelFileToJSON(endpoint, file)
-	  : alert("Please select a valid excel file.");
+	  : $('#upload-file-extention-error').show();
   }
   
   // Method to read excel file and convert it into JSON
@@ -59,36 +59,21 @@ const CO2_data_form = [
   
   // Method to display the data in HTML Table
   function displayJsonToHtmlTable(endpoint, jsonData) {
-	const table = document.getElementById("display_excel_data");
-	const format = document.getElementById("CO2_data");
+	// const table = $("#display_excel_data");
+	const format = $("#CO2_data");
 	const structure = { times: [], CO2: [] };
 	if (jsonData.length > 0) {
-	  let htmlData = "<tr><th>Time</th><th>CO2 Value</th></tr>";
-	  const jsonLength = jsonData.length;
-	  for (let i = 0; i < jsonLength; i++) {
+	  for (let i = 0; i < jsonData.length; i++) {
 		const row = jsonData[i];
-		if (i < 5) {
-		  htmlData += `
-			<tr>
-			  <td>${row["Times"].toFixed(2)}</td>
-			  <td>${row["CO2"].toFixed(2)}</td>
-			</tr>`;
-		}
 		structure.times.push(row["Times"]);
 		structure.CO2.push(row["CO2"]);
 	  }
-  
-	  if (jsonLength >= 5) {
-		htmlData += "<tr><td> ... </td><td> ... </td></tr>";
-	  }
-	  format.value = JSON.stringify(structure);
+	  format.val(JSON.stringify(structure));
 	  $('#generate_fitting_data').prop("disabled", false);
 	  $('#fitting_ventilation_states').prop('disabled', false);
 	  $('[name=fitting_ventilation_type]').prop('disabled', false);
 	  plotCO2Data(endpoint);
-	} else {
-	  table.innerHTML = "There is no data in the spreadsheet file";
-	}
+	}; 
   }
   
   // Method to download Excel template available on CERNBox
@@ -103,15 +88,12 @@ const CO2_data_form = [
   }
   
   function insertErrorFor(referenceNode, text) {
-	const element = document.createElement("span");
-	element.setAttribute("class", "error_text");
-	element.classList.add("red_text");
-	element.innerHTML = "&nbsp;&nbsp;" + text;
+	const element = $('<span></span>').addClass('error_text red_text').html('&nbsp;&nbsp;' + text);
 	$(referenceNode).before(element);
   }
   
   function validateFormInputs(obj) {
-	$('span.' + "error_text").remove();
+	$('span.error_text').remove();
 	let submit = true;
 	for (let i = 0; i < CO2_data_form.length; i++) {
 	  const element = $(`[name=${CO2_data_form[i]}]`)[0];
@@ -123,6 +105,7 @@ const CO2_data_form = [
 	if (submit) {
 	  $($(obj).data('target')).modal('show');
 	  $("#upload-error").hide();
+	  $('#upload-file-extention-error').hide();
 	}
 	return submit;
   }  
@@ -165,7 +148,7 @@ function displayTransitionTimesHourFormat(start, stop) {
 function displayFittingData(json_response) {
 	$("#DIVCO2_fitting_result").show();
 	$("#CO2_data_plot").attr("src", json_response['CO2_plot']);
-	// Not needed for the form submit
+	// Not needed for the form submission
 	delete json_response['CO2_plot']; 
 	$("#CO2_fitting_result").val(JSON.stringify(json_response));
 	$("#exhalation_rate_fit").html('Exhalation rate: ' + String(json_response['exhalation_rate'].toFixed(2)) + ' m³/h');
@@ -260,4 +243,3 @@ function submitFittingAlgorithm(url) {
 	clearFittingResultComponent();
 	$('#CO2_data_no').click();
   }
-  
