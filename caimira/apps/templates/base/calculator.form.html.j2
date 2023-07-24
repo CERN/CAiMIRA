@@ -330,8 +330,7 @@
               <!-- Input element to upload an excel file -->
               <input type="file" id="file_upload" />
               <button type="button" class="btn btn-primary btn-sm" onclick="uploadFile('{{ get_calculator_url() }}/co2-fit/plot');">Upload</button>  
-              <div id="upload-error" class="mb-0 mt-2 alert alert-danger" style="display: none" role="alert">Please choose any file...</div>
-              <div id="upload-file-extention-error" class="mb-0 mt-2 alert alert-danger" style="display: none" role="alert">Please select a valid excel file.</div>
+              <div id="upload-error" class="mb-0 mt-2 alert alert-danger" style="display: none" role="alert"></div>
               <br>
               <!-- Formatted excel data -->
               <input id="CO2_data" type="text" name="CO2_data" form="not-submitted" class="form-control d-none" placeholder='{"times": [...], "concentrations": [...]}' value="{}"><br>
