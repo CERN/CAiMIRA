@@ -70,6 +70,7 @@ function uploadFile(endpoint) {
       }
     }
 
+    const data = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
     // Check if there is any data below the header row
     if (data.length <= 1) {
       $("#upload-error")
@@ -81,7 +82,6 @@ function uploadFile(endpoint) {
     }
 
     // Validate data in the columns
-    const data = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
     const timesColumnIndex = 0;
     const CO2ColumnIndex = 1;
     for (let i = 1; i < data.length; i++) {

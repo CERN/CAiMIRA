@@ -1485,8 +1485,12 @@ class ShortRangeModel:
 
 
 @dataclass(frozen=True)
-class CO2Data:
-    # TODO - docstring
+class CO2DataModel:
+    '''
+    The CO2DataModel class models CO2 data based on room volume, ventilation transition times, and people presence.
+    It uses optimization techniques to fit the model's parameters and estimate the exhalation rate and ventilation
+    values that best match the measured CO2 concentrations.
+    '''
     room_volume: float
     number: typing.Union[int, IntPiecewiseConstant]
     presence: typing.Optional[Interval]
