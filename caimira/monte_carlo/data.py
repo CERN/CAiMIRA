@@ -7,6 +7,7 @@ from scipy.stats import weibull_min
 
 import caimira.monte_carlo as mc
 from caimira.monte_carlo.sampleable import LogCustom, LogNormal,LogCustomKernel,CustomKernel,Uniform, Custom
+from caimira.apps.calculator import model_generator
 
 sqrt2pi = np.sqrt(2.*np.pi)
 sqrt2 = np.sqrt(2.)
@@ -102,17 +103,6 @@ symptomatic_vl_frequencies = LogCustomKernel(
 )
 
 
-# Weibull distribution with a shape factor of 3.47 and a scale factor of 7.01.
-# From https://elifesciences.org/articles/65774 and first line of the figure in
-# https://iiif.elifesciences.org/lax:65774%2Felife-65774-fig4-figsupp3-v2.tif/full/1500,/0/default.jpg
-viral_load = np.linspace(weibull_min.ppf(0.01, c=3.47, scale=7.01),
-                weibull_min.ppf(0.99, c=3.47, scale=7.01), 30)
-frequencies_pdf = weibull_min.pdf(viral_load, c=3.47, scale=7.01)
-covid_overal_vl_data = LogCustom(bounds=(2, 10), 
-                        function=lambda d: np.interp(d, viral_load, frequencies_pdf, left=0., right=0.), 
-                        max_function=0.2)
-
-
 # Derived from data in doi.org/10.1016/j.ijid.2020.09.025 and
 # https://iosh.com/media/8432/aerosol-infection-risk-hospital-patient-care-full-report.pdf (page 60)
 viable_to_RNA_ratio_distribution = Uniform(0.01, 0.6)
@@ -120,47 +110,6 @@ viable_to_RNA_ratio_distribution = Uniform(0.01, 0.6)
 
 # From discussion with virologists
 infectious_dose_distribution = Uniform(10., 100.)
-
-
-# From https://doi.org/10.1101/2021.10.14.21264988 and refererences therein
-virus_distributions = {
-    'SARS_CoV_2': mc.SARSCoV2(
-                viral_load_in_sputum=covid_overal_vl_data,
-                infectious_dose=infectious_dose_distribution,
-                viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                transmissibility_factor=1.,
-                ),
-    'SARS_CoV_2_ALPHA': mc.SARSCoV2(
-                viral_load_in_sputum=covid_overal_vl_data,
-                infectious_dose=infectious_dose_distribution,
-                viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                transmissibility_factor=0.78,
-                ),
-    'SARS_CoV_2_BETA': mc.SARSCoV2(
-                viral_load_in_sputum=covid_overal_vl_data,
-                infectious_dose=infectious_dose_distribution,
-                viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                transmissibility_factor=0.8,
-                ),
-    'SARS_CoV_2_GAMMA': mc.SARSCoV2(
-                viral_load_in_sputum=covid_overal_vl_data,
-                infectious_dose=infectious_dose_distribution,
-                viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                transmissibility_factor=0.72,
-                ),
-    'SARS_CoV_2_DELTA': mc.SARSCoV2(
-                viral_load_in_sputum=covid_overal_vl_data,
-                infectious_dose=infectious_dose_distribution,
-                viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                transmissibility_factor=0.51,
-                ),
-    'SARS_CoV_2_OMICRON': mc.SARSCoV2(
-                viral_load_in_sputum=covid_overal_vl_data,
-                infectious_dose=infectious_dose_distribution,
-                viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                transmissibility_factor=0.2,
-                ),            
-}
 
 
 # From:
@@ -224,3 +173,65 @@ frequencies = np.array((0.0598036,0.0946154,0.1299152,0.1064905,0.1099066,0.0998
 short_range_distances = Custom(bounds=(0.5,2.), 
                             function=lambda x: np.interp(x,distances,frequencies,left=0.,right=0.),
                             max_function=0.13)
+
+# @dataclass(frozen=True)
+class DataGenerator:
+    
+    def __init__(self, fetched_service_data: dict):
+        # Process the fetched_service_data and extract the relevant parameters
+        for key, value in fetched_service_data.items():
+            setattr(self, key, value)
+        
+    def generate_viral_load_distribution(self):
+        # Weibull distribution with a shape factor of 3.47 and a scale factor of 7.01.
+        # From https://elifesciences.org/articles/65774 and first line of the figure in
+        # https://iiif.elifesciences.org/lax:65774%2Felife-65774-fig4-figsupp3-v2.tif/full/1500,/0/default.jpg
+        viral_load = np.linspace(weibull_min.ppf(self.start, c=self.shape_factor, scale=self.scale_factor),
+                        weibull_min.ppf(self.stop, c=self.shape_factor, scale=self.scale_factor), self.num)
+        frequencies_pdf = weibull_min.pdf(viral_load, c=self.shape_factor, scale=self.scale_factor)
+        return LogCustom(bounds=(2, 10),
+                         function=lambda d: np.interp(d, viral_load, frequencies_pdf, left=0., right=0.),
+                         max_function=0.2)
+    
+    def generate_data_from_parameters(self):        
+        # From https://doi.org/10.1101/2021.10.14.21264988 and refererences therein
+        virus_distributions = {
+            'SARS_CoV_2': mc.SARSCoV2(
+                        viral_load_in_sputum=self.generate_viral_load_distribution(),
+                        infectious_dose=infectious_dose_distribution,
+                        viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
+                        transmissibility_factor=1.,
+                        ),
+            'SARS_CoV_2_ALPHA': mc.SARSCoV2(
+                        viral_load_in_sputum=self.generate_viral_load_distribution(),
+                        infectious_dose=infectious_dose_distribution,
+                        viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
+                        transmissibility_factor=0.78,
+                        ),
+            'SARS_CoV_2_BETA': mc.SARSCoV2(
+                        viral_load_in_sputum=self.generate_viral_load_distribution(),
+                        infectious_dose=infectious_dose_distribution,
+                        viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
+                        transmissibility_factor=0.8,
+                        ),
+            'SARS_CoV_2_GAMMA': mc.SARSCoV2(
+                        viral_load_in_sputum=self.generate_viral_load_distribution(),
+                        infectious_dose=infectious_dose_distribution,
+                        viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
+                        transmissibility_factor=0.72,
+                        ),
+            'SARS_CoV_2_DELTA': mc.SARSCoV2(
+                        viral_load_in_sputum=self.generate_viral_load_distribution(),
+                        infectious_dose=infectious_dose_distribution,
+                        viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
+                        transmissibility_factor=0.51,
+                        ),
+            'SARS_CoV_2_OMICRON': mc.SARSCoV2(
+                        viral_load_in_sputum=self.generate_viral_load_distribution(),
+                        infectious_dose=infectious_dose_distribution,
+                        viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
+                        transmissibility_factor=0.2,
+                        ),            
+        }
+        return model_generator.ServiceData(self.evaporation_factor, virus_distributions)
+    

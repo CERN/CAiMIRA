@@ -30,6 +30,7 @@ from . import model_generator
 from .report_generator import ReportGenerator, calculate_report_data
 from .data_service import DataService
 from .user import AuthenticatedUser, AnonymousUser
+from ...monte_carlo.data import DataGenerator
 
 # The calculator version is based on a combination of the model version and the
 # semantic version of the calculator itself. The version uses the terms
@@ -118,7 +119,10 @@ class ConcentrationModel(BaseRequestHandler):
                 self.send_error(500, reason=error_message)
                 
         try:
+            fetched_service_data = {'num': 30, 'shape_factor': 3.47, 'scale_factor': 7.01, 'start': 0.01, 'stop': 0.99, 'evaporation_factor': 0.3} # As an example
+            requested_model_config['_SERVICE_DATA'] = DataGenerator(fetched_service_data).generate_data_from_parameters()
             form = model_generator.FormData.from_dict(requested_model_config)
+        
         except Exception as err:
             if self.settings.get("debug", False):
                 import traceback

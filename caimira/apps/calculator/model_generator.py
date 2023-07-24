@@ -14,7 +14,7 @@ from caimira import data
 import caimira.data.weather
 import caimira.monte_carlo as mc
 from .. import calculator
-from caimira.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions, short_range_distances
+from caimira.monte_carlo.data import activity_distributions, mask_distributions, short_range_distances
 from caimira.monte_carlo.data import expiration_distribution, expiration_BLO_factors, expiration_distributions, short_range_expiration_distributions
 from .defaults import (NO_DEFAULT, DEFAULT_MC_SAMPLE_SIZE, DEFAULTS, ACTIVITIES, ACTIVITY_TYPES, COFFEE_OPTIONS_INT, CONFIDENCE_LEVEL_OPTIONS, 
                        MECHANICAL_VENTILATION_TYPES, MASK_TYPES, MASK_WEARING_OPTIONS, MONTH_NAMES, VACCINE_BOOSTER_TYPE, VACCINE_TYPE, 
@@ -23,6 +23,12 @@ from .defaults import (NO_DEFAULT, DEFAULT_MC_SAMPLE_SIZE, DEFAULTS, ACTIVITIES,
 LOG = logging.getLogger(__name__)
 
 minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
+
+
+@dataclasses.dataclass
+class ServiceData:
+    evaporation_factor: float
+    virus_distributions: dict
 
 
 @dataclasses.dataclass
@@ -94,6 +100,7 @@ class FormData:
     short_range_interactions: list
 
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = DEFAULTS
+    _SERVICE_DATA: ServiceData
 
     @classmethod
     def from_dict(cls, form_data: typing.Dict) -> "FormData":
@@ -113,10 +120,13 @@ class FormData:
                 form_data[key] = default_value
 
         for key, value in form_data.items():
-            if key in _CAST_RULES_FORM_ARG_TO_NATIVE:
+            if key == '_SERVICE_DATA':
+                form_data[key] = value
+            
+            if key in _CAST_RULES_FORM_ARG_TO_NATIVE and key != '_SERVICE_DATA':
                 form_data[key] = _CAST_RULES_FORM_ARG_TO_NATIVE[key](value)
 
-            if key not in cls._DEFAULTS:
+            if key not in cls._DEFAULTS and key != '_SERVICE_DATA':
                 raise ValueError(f'Invalid argument "{html.escape(key)}" given')
 
         instance = cls(**form_data)
@@ -131,7 +141,7 @@ class FormData:
         }
 
         for attr, value in form_dict.items():
-            if attr in _CAST_RULES_NATIVE_TO_FORM_ARG:
+            if attr in _CAST_RULES_NATIVE_TO_FORM_ARG and attr != '_SERVICE_DATA':
                 form_dict[attr] = _CAST_RULES_NATIVE_TO_FORM_ARG[attr](value)
 
         if strip_defaults:
@@ -345,7 +355,7 @@ class FormData:
                 room=room,
                 ventilation=self.ventilation(),
                 infected=infected_population,
-                evaporation_factor=0.3,
+                evaporation_factor=self._SERVICE_DATA.evaporation_factor,
             ),
             short_range = tuple(short_range),
             exposed=self.exposed_population(),
@@ -504,7 +514,7 @@ class FormData:
 
     def infected_population(self) -> mc.InfectedPopulation:
         # Initializes the virus
-        virus = virus_distributions[self.virus_type]
+        virus = self._SERVICE_DATA.virus_distributions[self.virus_type]
 
         activity_index = ACTIVITY_TYPES.index(self.activity_type)
         activity_defn = ACTIVITIES[activity_index]['activity']
