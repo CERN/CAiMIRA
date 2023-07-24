@@ -176,11 +176,21 @@ short_range_distances = Custom(bounds=(0.5,2.),
 
 # @dataclass(frozen=True)
 class DataGenerator:
-    
-    def __init__(self, fetched_service_data: dict):
+    # Models specific
+    evaporation_factor: float = 0.3
+
+    # Virus specific
+    num: int = 30
+    shape_factor: float = 3.47
+    scale_factor: float = 7.01
+    start: float = 0.01
+    stop: float = 0.99
+
+    def __init__(self, fetched_service_data: typing.Optional[dict] = None):
         # Process the fetched_service_data and extract the relevant parameters
-        for key, value in fetched_service_data.items():
-            setattr(self, key, value)
+        if fetched_service_data:
+            for key, value in fetched_service_data.items():
+                if value: setattr(self, key, value)
         
     def generate_viral_load_distribution(self):
         # Weibull distribution with a shape factor of 3.47 and a scale factor of 7.01.

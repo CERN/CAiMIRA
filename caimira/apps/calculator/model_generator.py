@@ -14,7 +14,7 @@ from caimira import data
 import caimira.data.weather
 import caimira.monte_carlo as mc
 from .. import calculator
-from caimira.monte_carlo.data import activity_distributions, mask_distributions, short_range_distances
+from caimira.monte_carlo.data import activity_distributions, mask_distributions, short_range_distances, DataGenerator
 from caimira.monte_carlo.data import expiration_distribution, expiration_BLO_factors, expiration_distributions, short_range_expiration_distributions
 from .defaults import (NO_DEFAULT, DEFAULT_MC_SAMPLE_SIZE, DEFAULTS, ACTIVITIES, ACTIVITY_TYPES, COFFEE_OPTIONS_INT, CONFIDENCE_LEVEL_OPTIONS, 
                        MECHANICAL_VENTILATION_TYPES, MASK_TYPES, MASK_WEARING_OPTIONS, MONTH_NAMES, VACCINE_BOOSTER_TYPE, VACCINE_TYPE, 
@@ -868,6 +868,7 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'window_opening_regime': 'windows_open_permanently',
         'short_range_option': 'short_range_no',
         'short_range_interactions': '[]',
+        '_SERVICE_DATA': DataGenerator().generate_data_from_parameters(),
     }
 
 

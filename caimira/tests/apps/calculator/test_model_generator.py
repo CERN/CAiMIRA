@@ -10,7 +10,7 @@ from caimira.apps.calculator import model_generator
 from caimira.apps.calculator.model_generator import _hours2timestring
 from caimira.apps.calculator.model_generator import minutes_since_midnight
 from caimira import models
-from caimira.monte_carlo.data import expiration_distributions
+from caimira.monte_carlo.data import expiration_distributions, DataGenerator
 
 
 def test_model_from_dict(baseline_form_data):
@@ -550,8 +550,8 @@ def test_default_types():
             raise TypeError(f'{field} has type {field_type}, got {type(value)}')
 
     for field in fields.values():
-        assert field.name in model_generator.FormData._DEFAULTS, f"No default set for field name {field.name}"
-
+        if field.name != '_SERVICE_DATA':
+            assert field.name in model_generator.FormData._DEFAULTS, f"No default set for field name {field.name}"
 
 def test_form_to_dict(baseline_form):
     full = baseline_form.to_dict(baseline_form)

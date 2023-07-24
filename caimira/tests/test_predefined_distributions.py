@@ -2,7 +2,7 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from caimira.monte_carlo.data import activity_distributions, virus_distributions
+from caimira.monte_carlo.data import activity_distributions, DataGenerator
 
 
 # Mean & std deviations from https://doi.org/10.1101/2021.10.14.21264988 (Table 3)
@@ -39,6 +39,6 @@ def test_activity_distributions(distribution, mean, std):
     ]
 )
 def test_viral_load_logdistribution(distribution, mean, std):
-    virus = virus_distributions[distribution].build_model(size=1000000)
+    virus = DataGenerator().generate_data_from_parameters().virus_distributions[distribution].build_model(size=1000000)
     npt.assert_allclose(np.log10(virus.viral_load_in_sputum).mean(), mean, atol=0.01)
     npt.assert_allclose(np.log10(virus.viral_load_in_sputum).std(), std, atol=0.01)

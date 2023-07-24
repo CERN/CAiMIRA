@@ -119,7 +119,6 @@ class ConcentrationModel(BaseRequestHandler):
                 self.send_error(500, reason=error_message)
                 
         try:
-            fetched_service_data = {'num': 30, 'shape_factor': 3.47, 'scale_factor': 7.01, 'start': 0.01, 'stop': 0.99, 'evaporation_factor': 0.3} # As an example
             requested_model_config['_SERVICE_DATA'] = DataGenerator(fetched_service_data).generate_data_from_parameters()
             form = model_generator.FormData.from_dict(requested_model_config)
         

@@ -15,7 +15,7 @@ from caimira.models import _VectorisedFloat,Interval,SpecificInterval
 from caimira.monte_carlo.sampleable import LogNormal
 from caimira.monte_carlo.data import (expiration_distributions,
         expiration_BLO_factors,short_range_expiration_distributions,
-        short_range_distances,virus_distributions,activity_distributions)
+        short_range_distances,activity_distributions, DataGenerator)
 
 SAMPLE_SIZE = 1_000_000
 TOLERANCE = 0.04
@@ -484,6 +484,7 @@ def c_model() -> mc.ConcentrationModel:
 
 @pytest.fixture
 def c_model_distr() -> mc.ConcentrationModel:
+    virus_distributions = DataGenerator().generate_data_from_parameters().virus_distributions
     return mc.ConcentrationModel(
         room=models.Room(volume=50, humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(
@@ -613,6 +614,7 @@ def expo_sr_model_distr(c_model_distr) -> mc.ExposureModel:
 
 @pytest.fixture
 def simple_expo_sr_model_distr() -> SimpleExposureModel:
+    virus_distributions = DataGenerator().generate_data_from_parameters().virus_distributions
     return SimpleExposureModel(
         infected_presence = presence,
         viral_load        = virus_distributions['SARS_CoV_2_DELTA'
@@ -715,6 +717,7 @@ def test_longrange_exposure(c_model):
     "time", [11., 12.5, 17.]
 )
 def test_longrange_concentration_with_distributions(c_model_distr,time):
+    virus_distributions = DataGenerator().generate_data_from_parameters().virus_distributions
     simple_expo_model = SimpleConcentrationModel(
         infected_presence = presence,
         viral_load        = virus_distributions['SARS_CoV_2_DELTA'
@@ -732,6 +735,7 @@ def test_longrange_concentration_with_distributions(c_model_distr,time):
 
 
 def test_longrange_exposure_with_distributions(c_model_distr):
+    virus_distributions = DataGenerator().generate_data_from_parameters().virus_distributions
     simple_expo_model = SimpleExposureModel(
         infected_presence = presence,
         viral_load        = virus_distributions['SARS_CoV_2_DELTA'
