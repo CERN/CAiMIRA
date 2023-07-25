@@ -14,12 +14,10 @@ from .expert import generate_presence_widget, collapsible, ipympl_canvas, Widget
 baseline_model = models.CO2ConcentrationModel(
     room=models.Room(volume=120, humidity=0.5, inside_temp=models.PiecewiseConstant((0., 24.), (293.15,))),
     ventilation=models.HVACMechanical(active=models.PeriodicInterval(period=120, duration=120), q_air_mech=500),
-    CO2_emitters=models.Population(
+    CO2_emitters=models.SimplePopulation(
         number=10,
         presence=models.SpecificInterval(((8., 12.), (13., 17.))),
-        mask=models.Mask.types['No mask'],
         activity=models.Activity.types['Seated'],
-        host_immunity=0.,
     ),
     CO2_atmosphere_concentration=440.44,
     CO2_fraction_exhaled=0.042,
