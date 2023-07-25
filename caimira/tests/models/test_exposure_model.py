@@ -40,18 +40,18 @@ halftime = models.PeriodicInterval(120, 60)
 populations = [
     # A simple scalar population.
     models.Population(
-        10, halftime, models.Mask.types['Type I'],
-        models.Activity.types['Standing'], host_immunity=0.,
+        10, halftime, models.Activity.types['Standing'], 
+        models.Mask.types['Type I'], host_immunity=0.,
     ),
     # A population with some array component for η_inhale.
     models.Population(
-        10, halftime, models.Mask(np.array([0.3, 0.35])),
-        models.Activity.types['Standing'], host_immunity=0.
+        10, halftime, models.Activity.types['Standing'], 
+        models.Mask(np.array([0.3, 0.35])), host_immunity=0.
     ),
     # A population with some array component for inhalation_rate.
     models.Population(
-        10, halftime, models.Mask.types['Type I'],
-        models.Activity(np.array([0.51, 0.57]), 0.57), host_immunity=0.
+        10, halftime, models.Activity(np.array([0.51, 0.57]), 0.57), 
+        models.Mask.types['Type I'], host_immunity=0.
     ),
 ]
 
@@ -212,8 +212,8 @@ def test_exposure_model_integral_accuracy(exposed_time_interval,
                                           expected_deposited_exposure, conc_model, sr_model, cases_model):
     presence_interval = models.SpecificInterval((exposed_time_interval,))
     population = models.Population(
-        10, presence_interval, models.Mask.types['Type I'],
-        models.Activity.types['Standing'], 0.,
+        10, presence_interval, models.Activity.types['Standing'],
+        models.Mask.types['Type I'], 0.,
     )
     model = ExposureModel(conc_model, sr_model, population, cases_model)
     np.testing.assert_allclose(model.deposited_exposure(), expected_deposited_exposure)
@@ -239,8 +239,8 @@ def test_infectious_dose_vectorisation(sr_model, cases_model):
 
     presence_interval = models.SpecificInterval(((0., 1.),))
     population = models.Population(
-        10, presence_interval, models.Mask.types['Type I'],
-        models.Activity.types['Standing'], 0.,
+        10, presence_interval, models.Activity.types['Standing'],
+        models.Mask.types['Type I'], 0.,
     )
     model = ExposureModel(cm, sr_model, population, cases_model)
     inf_probability = model.infection_probability()
@@ -302,8 +302,8 @@ def test_probabilistic_exposure_probability(sr_model, exposed_population, cm,
         pop, AB, cases, probabilistic_exposure_probability):
 
     population = models.Population(
-        exposed_population, models.PeriodicInterval(120, 60), models.Mask.types['Type I'],
-        models.Activity.types['Standing'], host_immunity=0.,)
+        exposed_population, models.PeriodicInterval(120, 60), models.Activity.types['Standing'], 
+        models.Mask.types['Type I'], host_immunity=0.,)
     model = ExposureModel(cm, sr_model, population, models.Cases(geographic_population=pop,
         geographic_cases=cases, ascertainment_bias=AB),)
     np.testing.assert_allclose(
@@ -402,8 +402,8 @@ def test_diameter_vectorisation_room(diameter_dependent_model, sr_model, cases_m
 )
 def test_host_immunity_vectorisation(sr_model, cases_model, cm, host_immunity, expected_probability):
     population = models.Population(
-        10, halftime, models.Mask(np.array([0.3, 0.35])),
-        models.Activity.types['Standing'], host_immunity=host_immunity
+        10, halftime, models.Activity.types['Standing'], 
+        models.Mask(np.array([0.3, 0.35])), host_immunity=host_immunity
     )
     model = ExposureModel(cm, sr_model, population, cases_model)
     inf_probability = model.infection_probability()
