@@ -1132,23 +1132,21 @@ class _ConcentrationModelBase:
             return self.min_background_concentration()/self.normalization_factor()
         
         next_state_change_time = self._next_state_change(time)
-
         RR = self.removal_rate(next_state_change_time)
-        # If RR is 0, conc_limit does not play a role but its computation 
-        # would raise an error -> we set it to zero.
-        try:
-            conc_limit = self._normed_concentration_limit(next_state_change_time)
-        except ZeroDivisionError:
-            conc_limit = 0.
 
         t_last_state_change = self.last_state_change(time)
         conc_at_last_state_change = self._normed_concentration_cached(t_last_state_change)
-
         delta_time = time - t_last_state_change
+
         fac = np.exp(-RR * delta_time)
 
-        return conc_limit * (1 - fac) + conc_at_last_state_change * fac
+        if isinstance(RR, float) and RR == 0:
+            curr_conc_state = delta_time * self.population.people_present(time) / self.room.volume
+        else:
+            curr_conc_state = self._normed_concentration_limit(next_state_change_time) * (1 - fac)
 
+        return curr_conc_state + conc_at_last_state_change * fac
+    
     def concentration(self, time: float) -> _VectorisedFloat:
         """
         Total concentration as a function of time. The normalization
@@ -1260,9 +1258,7 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         return self.CO2_emitters
 
     def removal_rate(self, time: float) -> _VectorisedFloat:
-        # Setting minimum air exchange rate to 1e-6 to avoid divisions by
-        # zero when computing the CO2 concentration.
-        return np.maximum(1e-6,self.ventilation.air_exchange(self.room, time))
+        return self.ventilation.air_exchange(self.room, time)
 
     def min_background_concentration(self) -> _VectorisedFloat:
         """
