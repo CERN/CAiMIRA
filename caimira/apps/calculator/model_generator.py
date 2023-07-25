@@ -98,9 +98,10 @@ class FormData:
     sensor_in_use: str
     short_range_option: str
     short_range_interactions: list
+    fetched_service_data: dict
 
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = DEFAULTS
-    _SERVICE_DATA: ServiceData
+    _SERVICE_DATA: ServiceData = DataGenerator().generate_data_from_parameters()
 
     @classmethod
     def from_dict(cls, form_data: typing.Dict) -> "FormData":
@@ -120,15 +121,15 @@ class FormData:
                 form_data[key] = default_value
 
         for key, value in form_data.items():
-            if key == '_SERVICE_DATA':
-                form_data[key] = value
-            
-            if key in _CAST_RULES_FORM_ARG_TO_NATIVE and key != '_SERVICE_DATA':
+            if key in _CAST_RULES_FORM_ARG_TO_NATIVE:
                 form_data[key] = _CAST_RULES_FORM_ARG_TO_NATIVE[key](value)
 
-            if key not in cls._DEFAULTS and key != '_SERVICE_DATA':
+            if key not in cls._DEFAULTS:
                 raise ValueError(f'Invalid argument "{html.escape(key)}" given')
 
+        # Populate Service Data with data that comes from the form data
+        cls._SERVICE_DATA = DataGenerator(form_data['fetched_service_data']).generate_data_from_parameters()
+        
         instance = cls(**form_data)
         instance.validate()
         return instance
@@ -868,7 +869,7 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'window_opening_regime': 'windows_open_permanently',
         'short_range_option': 'short_range_no',
         'short_range_interactions': '[]',
-        '_SERVICE_DATA': DataGenerator().generate_data_from_parameters(),
+        'fetched_service_data': '{}',
     }
 
 
