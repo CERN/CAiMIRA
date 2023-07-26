@@ -117,10 +117,10 @@ class ConcentrationModel(BaseRequestHandler):
                 error_message = f"Something went wrong with the data service: {str(err)}"
                 LOG.error(error_message, exc_info=True)
                 self.send_error(500, reason=error_message)
-                
         try:
-            fetched_service_data = {'num': 30, 'shape_factor': 3.47, 'scale_factor': 7.01, 'start': 0.01, 'stop': 0.99, 'evaporation_factor': 0.3} # As an example
-            requested_model_config['fetched_service_data'] = json.dumps(fetched_service_data)
+            # As an example
+            fetched_service_data = {'data': {'foo': 'bar', 'viral_load': {'num': 40, 'scale_factor': 7.01, 'shape_factor': 3.47, 'start': 0.01, 'stop': 0.99}}, 'version': 1}
+            requested_model_config['fetched_service_data'] = json.dumps(fetched_service_data['data'])
             form = model_generator.FormData.from_dict(requested_model_config)
         
         except Exception as err:

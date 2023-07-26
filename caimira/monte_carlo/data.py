@@ -178,13 +178,14 @@ short_range_distances = Custom(bounds=(0.5,2.),
 class DataGenerator:
     # Models specific
     evaporation_factor: float = 0.3
-
-    # Virus specific
-    num: int = 30
-    shape_factor: float = 3.47
-    scale_factor: float = 7.01
-    start: float = 0.01
-    stop: float = 0.99
+    viral_load: dict = {
+        # Viral load specific
+        'num': 30,
+        'shape_factor': 3.47,
+        'scale_factor': 7.01,
+        'start': 0.01,
+        'stop': 0.99,
+    }
 
     def __init__(self, fetched_service_data: typing.Optional[dict] = None):
         # Process the fetched_service_data and extract the relevant parameters
@@ -196,9 +197,9 @@ class DataGenerator:
         # Weibull distribution with a shape factor of 3.47 and a scale factor of 7.01.
         # From https://elifesciences.org/articles/65774 and first line of the figure in
         # https://iiif.elifesciences.org/lax:65774%2Felife-65774-fig4-figsupp3-v2.tif/full/1500,/0/default.jpg
-        viral_load = np.linspace(weibull_min.ppf(self.start, c=self.shape_factor, scale=self.scale_factor),
-                        weibull_min.ppf(self.stop, c=self.shape_factor, scale=self.scale_factor), self.num)
-        frequencies_pdf = weibull_min.pdf(viral_load, c=self.shape_factor, scale=self.scale_factor)
+        viral_load = np.linspace(weibull_min.ppf(self.viral_load['start'], c=self.viral_load['shape_factor'], scale=self.viral_load['scale_factor']),
+                        weibull_min.ppf(self.viral_load['stop'], c=self.viral_load['shape_factor'], scale=self.viral_load['scale_factor']), self.viral_load['num'])
+        frequencies_pdf = weibull_min.pdf(viral_load, c=self.viral_load['shape_factor'], scale=self.viral_load['scale_factor'])
         return LogCustom(bounds=(2, 10),
                          function=lambda d: np.interp(d, viral_load, frequencies_pdf, left=0., right=0.),
                          max_function=0.2)
