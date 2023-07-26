@@ -194,7 +194,37 @@ function validateCO2Form() {
       // validate input format
       try {
         const parsedValue = JSON.parse(element.value);
-        if (!Array.isArray(parsedValue)) {
+        if (Array.isArray(parsedValue)) {
+          if (parsedValue.length <= 1) {
+            insertErrorFor(
+              $("#DIVCO2_fitting_result"),
+              `'${element.name}' must have more than one element.<br />`
+            );
+            submit = false;
+          }
+          else {
+            const infected_finish = $(`[name=infected_finish]`)[0].value;
+            const exposed_finish = $(`[name=exposed_finish]`)[0].value;
+
+            const [hours_infected, minutes_infected] = infected_finish.split(":").map(Number);
+            const elapsed_time_infected =  hours_infected * 60 + minutes_infected;
+
+            const [hours_exposed, minutes_exposed] = exposed_finish.split(":").map(Number);
+            const elapsed_time_exposed =  hours_exposed * 60 + minutes_exposed;
+            
+            const max_presence_time = Math.max(elapsed_time_infected, elapsed_time_exposed);
+            const max_transition_time = parsedValue[parsedValue.length - 1] * 60;
+
+            if (max_transition_time < max_presence_time) {
+              insertErrorFor(
+                $("#DIVCO2_fitting_result"),
+                `The last transition time (${parsedValue[parsedValue.length - 1]}) should be after the last presence time (${max_presence_time / 60}).<br />`
+              );
+              submit = false;
+            }
+          }
+        }
+        else {
           insertErrorFor(
             $("#DIVCO2_fitting_result"),
             `'${element.name}' must be a list.</br>`
@@ -325,11 +355,15 @@ function submitFittingAlgorithm(url) {
       .then((response) => response.json())
       .then((json_response) => {
         displayFittingData(json_response);
+        // Hide the suggestion transition lines warning
+        $("#suggestion_lines_txt").hide();
       });
   }
 }
 
 function clearFittingResultComponent() {
+  // Add the warning suggestion line
+  $("#suggestion_lines_txt").show();
   // Remove all the previously generated fitting elements
   $("#generate_fitting_data").prop("disabled", true);
   $("#CO2_fitting_result").val("");

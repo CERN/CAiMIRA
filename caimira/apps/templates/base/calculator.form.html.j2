@@ -200,13 +200,13 @@
         <div>
         <input type="radio" id="no_ventilation" name="ventilation_type" value="no_ventilation" checked>
           <label for="no_ventilation">No ventilation</label>
-        <input class="ml-2" type="radio" id="mechanical_ventilation" name="ventilation_type" value="mechanical_ventilation" data-enables="#DIVmechanical_ventilation">
+        <input class="ml-3" type="radio" id="mechanical_ventilation" name="ventilation_type" value="mechanical_ventilation" data-enables="#DIVmechanical_ventilation">
           <label for="mechanical_ventilation">Mechanical</label>
         </div>
-        <div>
+        <div class="ml-0">
         <input type="radio" id="natural_ventilation" name="ventilation_type" value="natural_ventilation" data-enables="#DIVnatural_ventilation" data-toggle="modal" data-target="#warning_modal">
           <label for="natural_ventilation">Natural</label>
-        <input class="ml-2" type="radio" id="from_fitting" name="ventilation_type" value="from_fitting" data-enables="#DIVfrom_fitting">
+        <input class="ml-3" type="radio" id="from_fitting" name="ventilation_type" value="from_fitting" data-enables="#DIVfrom_fitting">
           <label for="from_fitting">Fitting</label>
         </div>
       </div>
@@ -339,6 +339,7 @@
               
               <div id="DIVCO2_fitting_to_submit" style="display: none">
                 <img id="CO2_data_plot"/><br>
+                <p id="suggestion_lines_txt" class="text-danger mb-3 text-center">The dashed lines are suggestions for the ventilation transition times (Pelt algorithm).</p>
                 <strong>Ventilation scheme:</strong>
                 <div>
                   <input class="ml-2" type="radio" id="fitting_natural_ventilation" name="fitting_ventilation_type" value='fitting_natural_ventilation' checked="checked" data-enables="#DIVfitting_natural_ventilation" form="not-submitted" >

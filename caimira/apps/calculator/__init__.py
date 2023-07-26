@@ -20,6 +20,7 @@ import uuid
 import zlib
 import matplotlib.pyplot as plt
 import numpy as np
+import ruptures as rpt
 
 import jinja2
 import loky
@@ -352,14 +353,46 @@ class CO2Data(BaseRequestHandler):
         """
         pass
 
-    def generate_ventilation_plot(self, CO2Data, transition_times = None, ventilation_values = None):
+    def find_change_points_with_pelt(self, CO2_data: dict):
+        """
+        Perform change point detection using Pelt algorithm from ruptures library with pen=15.
+        Returns a list of tuples containing (index, X-axis value) for the detected significant changes.
+        """
+
+        times = CO2_data['times']
+        CO2_values = CO2_data['CO2']
+
+        if len(times) != len(CO2_values):
+            raise ValueError("times and CO2 values must have the same length.")
+
+        # Convert the input lists to numpy arrays for use with the ruptures library
+        times_np = np.array(times)
+        CO2_np = np.array(CO2_values)
+
+        # Define the model for change point detection (Radial Basis Function kernel)
+        model = "rbf"
+
+        # Fit the Pelt algorithm to the data with the specified model
+        algo = rpt.Pelt(model=model).fit(CO2_np)
+
+        # Predict change points using the Pelt algorithm with a penalty value of 15
+        result = algo.predict(pen=15)
+
+        return [times_np[idx] for idx in result[:-1]]
+
+    def generate_ventilation_plot(self, CO2_data: dict, transition_times: typing.Optional[list] = None, ventilation_values: typing.Optional[list] = None):
+            times = CO2_data['times']
+            CO2_data = CO2_data['CO2']
+
             fig = plt.figure(figsize=(7, 4), dpi=110)
-            plt.plot(CO2Data['times'], CO2Data['CO2'])
-            if (transition_times and ventilation_values):
-                for index, time in enumerate(transition_times[:-1]):
+            plt.plot(times, CO2_data)
+
+            if (transition_times):
+                for index, time in enumerate(transition_times):
                     plt.axvline(x = time, color = 'grey', linewidth=0.5, linestyle='--')
-                    y_location = (CO2Data['CO2'][min(range(len(CO2Data['times'])), key=lambda i: abs(CO2Data['times'][i]-time))])
-                    plt.text(x = time + 0.04, y = y_location, s=round(ventilation_values[index], 2))
+                    if ventilation_values:
+                        y_location = (CO2_data[min(range(len(times)), key=lambda i: abs(times[i]-time))])
+                        plt.text(x = time + 0.04, y = y_location, s="{:.2g}".format(ventilation_values[index]))
             plt.xlabel('Time of day')
             plt.ylabel('Concentration (ppm)')
             return img2base64(_figure2bytes(fig))
@@ -377,8 +410,8 @@ class CO2Data(BaseRequestHandler):
             self.finish(json.dumps(response_json))
             return
 
-        if endpoint == 'plot':
-            self.finish({'CO2_plot': self.generate_ventilation_plot(form.CO2_data)})
+        if endpoint.rstrip('/') == 'plot':
+            self.finish({'CO2_plot': self.generate_ventilation_plot(form.CO2_data, self.find_change_points_with_pelt(form.CO2_data))})
         else:
             executor = loky.get_reusable_executor(
                 max_workers=self.settings['handler_worker_pool_size'],
@@ -392,7 +425,7 @@ class CO2Data(BaseRequestHandler):
             result = dict(report.CO2_fit_params())
             result['fitting_ventilation_type'] = form.fitting_ventilation_type
             result['transition_times'] = report.ventilation_transition_times
-            result['CO2_plot'] = self.generate_ventilation_plot(form.CO2_data, report.ventilation_transition_times, result['ventilation_values'])
+            result['CO2_plot'] = self.generate_ventilation_plot(form.CO2_data, report.ventilation_transition_times[:-1], result['ventilation_values'])
             self.finish(result)
         
 
