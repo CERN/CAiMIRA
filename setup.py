@@ -32,6 +32,7 @@ REQUIREMENTS: dict = {
         'psutil',
         'python-dateutil',
         'retry',
+        'ruptures',
         'scipy',
         'scikit-learn',
         'timezonefinder',
