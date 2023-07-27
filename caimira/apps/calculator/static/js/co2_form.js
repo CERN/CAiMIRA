@@ -162,11 +162,11 @@ function validateFormInputs(obj) {
   $("span.error_text").remove();
   let submit = true;
   for (let i = 0; i < CO2_data_form.length; i++) {
-    const element = $(`[name=${CO2_data_form[i]}]`)[0];
-    if (element.name !== "fitting_ventilation_states" && element.value === "") {
+    const element = $(`[name=${CO2_data_form[i]}]`).first();
+    if (element.attr('name') !== "fitting_ventilation_states" && element.val() === "") {
       insertErrorFor(
         $("#DIVCO2_data_dialog"),
-        `'${element.name}' must be defined.<br />`
+        `'${element.attr('name')}' must be defined.<br />`
       );
       submit = false;
     }
@@ -185,26 +185,26 @@ function validateCO2Form() {
 
   // Check if natural ventilation is selected
   if (
-    $('input[name="fitting_ventilation_type"]:checked')[0].value ==
+    $('input[name="fitting_ventilation_type"]:checked').first().val() ==
     "fitting_natural_ventilation"
   ) {
     // Validate ventilation scheme
-    const element = $("[name=fitting_ventilation_states")[0];
-    if (element.value !== "") {
+    const element = $("[name=fitting_ventilation_states").first();
+    if (element.val() !== "") {
       // validate input format
       try {
-        const parsedValue = JSON.parse(element.value);
+        const parsedValue = JSON.parse(element.val());
         if (Array.isArray(parsedValue)) {
           if (parsedValue.length <= 1) {
             insertErrorFor(
               $("#DIVCO2_fitting_result"),
-              `'${element.name}' must have more than one element.<br />`
+              `'${element.attr('name')}' must have more than one element.<br />`
             );
             submit = false;
           }
           else {
-            const infected_finish = $(`[name=infected_finish]`)[0].value;
-            const exposed_finish = $(`[name=exposed_finish]`)[0].value;
+            const infected_finish = $(`[name=infected_finish]`).first().val();
+            const exposed_finish = $(`[name=exposed_finish]`).first().val();
 
             const [hours_infected, minutes_infected] = infected_finish.split(":").map(Number);
             const elapsed_time_infected =  hours_infected * 60 + minutes_infected;
@@ -227,21 +227,21 @@ function validateCO2Form() {
         else {
           insertErrorFor(
             $("#DIVCO2_fitting_result"),
-            `'${element.name}' must be a list.</br>`
+            `'${element.attr('name')}' must be a list.</br>`
           );
           submit = false;
         }
       } catch {
         insertErrorFor(
           $("#DIVCO2_fitting_result"),
-          `'${element.name}' must be a list of numbers.</br>`
+          `'${element.attr('name')}' must be a list of numbers.</br>`
         );
         submit = false;
       }
     } else {
       insertErrorFor(
         $("#DIVCO2_fitting_result"),
-        `'${element.name}' must be defined.</br>`
+        `'${element.attr('name')}' must be defined.</br>`
       );
       submit = false;
     }
@@ -296,17 +296,17 @@ function displayFittingData(json_response) {
 function formatCO2DataForm(CO2_data_form) {
   let CO2_mapping = {};
   CO2_data_form.map((el) => {
-    let element = $(`[name=${el}]`);
+    let element = $(`[name=${el}]`).first();
     // Validate checkboxes
-    if (element[0].type == "checkbox") {
-      CO2_mapping[element[0].name] = String(+element[0].checked);
+    if (element.prop('type') == "checkbox") {
+      CO2_mapping[element.attr('name')] = String(+element.prop('checked'));
     }
     // Validate radio buttons
-    else if (element[0].type == "radio")
-      CO2_mapping[element[0].name] = $(
-        `[name=${element[0].name}]:checked`
-      )[0].value;
-    else CO2_mapping[element[0].name] = element[0].value;
+    else if (element.prop('type') == "radio")
+      CO2_mapping[element.attr('name')] = $(
+        `[name=${element.attr('name')}]:checked`
+      ).first().val();
+    else CO2_mapping[element.attr('name')] = element.val();
   });
   return CO2_mapping;
 }
