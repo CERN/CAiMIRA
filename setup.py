@@ -33,6 +33,7 @@ REQUIREMENTS: dict = {
         'pyjwt',
         'python-dateutil',
         'retry',
+        'ruptures',
         'scipy',
         'scikit-learn',
         'timezonefinder',
