@@ -370,12 +370,10 @@ class FormData:
         total_people = [infected_population.people_present(stop) + exposed_population.people_present(stop) 
                         for _, stop in zip(transition_times[:-1], transition_times[1:])]
         
-        population = mc.Population(
+        population = mc.SimplePopulation(
             number=models.IntPiecewiseConstant(transition_times=tuple(transition_times), values=tuple(total_people)),
             presence=None,
-            mask=models.Mask.types[self.mask_type],
             activity=activity_distributions[ACTIVITIES[ACTIVITY_TYPES.index(self.activity_type)]['activity']],
-            host_immunity=0.,
         )
         
         # Builds a CO2 concentration model based on model inputs
