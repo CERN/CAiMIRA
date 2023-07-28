@@ -5,7 +5,8 @@ from retry import retry
 
 import caimira.monte_carlo as mc
 from caimira import models,data
-from caimira.monte_carlo.data import activity_distributions, expiration_distributions, infectious_dose_distribution, viable_to_RNA_ratio_distribution, DataGenerator
+from caimira.monte_carlo.data import activity_distributions, expiration_distributions, infectious_dose_distribution, viable_to_RNA_ratio_distribution
+from caimira.monte_carlo.data import DataGenerator
 from caimira.apps.calculator.model_generator import build_expiration
 
 SAMPLE_SIZE = 500_000
@@ -33,8 +34,8 @@ TorontoTemperatures = {
     for month, temperatures in toronto_hourly_temperatures_celsius_per_hour.items()
 }
 
-virus_distributions = DataGenerator().generate_data_from_parameters().virus_distributions
-
+_sd = DataGenerator().generate_data_from_parameters()
+virus_distributions = _sd.get_virus_distributions()
 
 # References values for infection_probability and expected new cases
 # in the following tests, were obtained from the feature/mc branch

@@ -75,7 +75,6 @@ DEFAULTS = {
     'sensor_in_use': '',
     'short_range_option': 'short_range_no',
     'short_range_interactions': '[]',
-    'fetched_service_data': '{}'
 }
 
 # ------------------ Activities ----------------------

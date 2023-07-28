@@ -119,9 +119,8 @@ class ConcentrationModel(BaseRequestHandler):
                 self.send_error(500, reason=error_message)
         try:
             # As an example
-            fetched_service_data = {'data': {'foo': 'bar', 'viral_load': {'num': 40, 'scale_factor': 7.01, 'shape_factor': 3.47, 'start': 0.01, 'stop': 0.99}}, 'version': 1}
-            requested_model_config['fetched_service_data'] = json.dumps(fetched_service_data['data'])
-            form = model_generator.FormData.from_dict(requested_model_config)
+            # fetched_service_data = {'evaporation_factor': 0.9, 'foo': 'bar', 'viral_load': {'num': 40, 'scale_factor': 7.01, 'shape_factor': 3.47, 'start': 0.01, 'stop': 0.99}}
+            form = model_generator.FormData.from_dict(requested_model_config, fetched_service_data)
         
         except Exception as err:
             if self.settings.get("debug", False):

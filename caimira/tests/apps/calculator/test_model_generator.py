@@ -10,7 +10,7 @@ from caimira.apps.calculator import model_generator
 from caimira.apps.calculator.model_generator import _hours2timestring
 from caimira.apps.calculator.model_generator import minutes_since_midnight
 from caimira import models
-from caimira.monte_carlo.data import expiration_distributions, DataGenerator
+from caimira.monte_carlo.data import expiration_distributions
 
 
 def test_model_from_dict(baseline_form_data):

@@ -27,10 +27,19 @@ minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
 
 @dataclasses.dataclass
 class ServiceData:
-    evaporation_factor: float
-    virus_distributions: dict
+    _evaporation_factor: float
+    _virus_distributions: dict
 
+    def get_evaporation_factor(self) -> float:
+        return self._evaporation_factor
+    
+    def get_virus_distribution(self, virus_type: str) -> float:
+        return self._virus_distributions[virus_type]
 
+    def get_virus_distributions(self) -> dict:
+        return self._virus_distributions
+    
+        
 @dataclasses.dataclass
 class FormData:
     activity_type: str
@@ -98,13 +107,12 @@ class FormData:
     sensor_in_use: str
     short_range_option: str
     short_range_interactions: list
-    fetched_service_data: dict
 
+    _SERVICE_DATA: ServiceData
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = DEFAULTS
-    _SERVICE_DATA: ServiceData = DataGenerator().generate_data_from_parameters()
 
     @classmethod
-    def from_dict(cls, form_data: typing.Dict) -> "FormData":
+    def from_dict(cls, form_data: typing.Dict, service_data: typing.Optional[dict] = None) -> "FormData":
         # Take a copy of the form data so that we can mutate it.
         form_data = form_data.copy()
         form_data.pop('_xsrf', None)
@@ -127,10 +135,10 @@ class FormData:
             if key not in cls._DEFAULTS:
                 raise ValueError(f'Invalid argument "{html.escape(key)}" given')
 
-        # Populate Service Data with data that comes from the form data
-        cls._SERVICE_DATA = DataGenerator(form_data['fetched_service_data']).generate_data_from_parameters()
-        
-        instance = cls(**form_data)
+        # Populate Service Data with data that comes from the database
+        _sd = DataGenerator(service_data).generate_data_from_parameters()
+
+        instance = cls(**form_data, _SERVICE_DATA=_sd)
         instance.validate()
         return instance
 
@@ -142,7 +150,7 @@ class FormData:
         }
 
         for attr, value in form_dict.items():
-            if attr in _CAST_RULES_NATIVE_TO_FORM_ARG and attr != '_SERVICE_DATA':
+            if attr in _CAST_RULES_NATIVE_TO_FORM_ARG:
                 form_dict[attr] = _CAST_RULES_NATIVE_TO_FORM_ARG[attr](value)
 
         if strip_defaults:
@@ -356,7 +364,7 @@ class FormData:
                 room=room,
                 ventilation=self.ventilation(),
                 infected=infected_population,
-                evaporation_factor=self._SERVICE_DATA.evaporation_factor,
+                evaporation_factor=self._SERVICE_DATA.get_evaporation_factor(),
             ),
             short_range = tuple(short_range),
             exposed=self.exposed_population(),
@@ -515,7 +523,7 @@ class FormData:
 
     def infected_population(self) -> mc.InfectedPopulation:
         # Initializes the virus
-        virus = self._SERVICE_DATA.virus_distributions[self.virus_type]
+        virus = self._SERVICE_DATA.get_virus_distribution(self.virus_type)
 
         activity_index = ACTIVITY_TYPES.index(self.activity_type)
         activity_defn = ACTIVITIES[activity_index]['activity']
@@ -869,7 +877,6 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'window_opening_regime': 'windows_open_permanently',
         'short_range_option': 'short_range_no',
         'short_range_interactions': '[]',
-        'fetched_service_data': '{}',
     }
 
 

@@ -70,5 +70,5 @@ class DataService():
         ),
         raise_error=True)
 
-        return json.loads(response.body)
+        return json.loads(response.body)['data']
     
