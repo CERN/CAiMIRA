@@ -789,7 +789,7 @@ Activity.types = {
 
 
 @dataclass(frozen=True)
-class Population:
+class SimplePopulation:
     """
     Represents a group of people all with exactly the same behaviour and
     situation.
@@ -801,16 +801,8 @@ class Population:
     #: The times in which the people are in the room.
     presence: typing.Union[None, Interval]
 
-    #: The kind of mask being worn by the people.
-    mask: Mask
-
     #: The physical activity being carried out by the people.
     activity: Activity
-
-    #: The ratio of virions that are inactivated by the person's immunity.
-    # This parameter considers the potential antibodies in the person, 
-    # which might render inactive some RNA copies (virions).
-    host_immunity: float
 
     def __post_init__(self):
         if isinstance(self.number, int):
@@ -839,6 +831,22 @@ class Population:
             return self.number * self.person_present(time)
         else:
             return int(self.number.value(time))
+
+
+@dataclass(frozen=True)
+class Population(SimplePopulation):
+    """
+    Represents a group of people all with exactly the same behaviour and
+    situation, considering the usage of mask and a certain host immunity.
+
+    """
+    #: The kind of mask being worn by the people.
+    mask: Mask
+
+    #: The ratio of virions that are inactivated by the person's immunity.
+    # This parameter considers the potential antibodies in the person, 
+    # which might render inactive some RNA copies (virions).
+    host_immunity: float
 
 
 @dataclass(frozen=True)
@@ -1005,7 +1013,7 @@ class _ConcentrationModelBase:
     ventilation: _VentilationBase
 
     @property
-    def population(self) -> Population:
+    def population(self) -> SimplePopulation:
         """
         Population in the room (the emitters of what we compute the
         concentration of)
@@ -1239,7 +1247,7 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
     Class used for the computation of the CO2 concentration.
     """
     #: Population in the room emitting CO2
-    CO2_emitters: Population
+    CO2_emitters: SimplePopulation
 
     #: CO2 concentration in the atmosphere (in ppm)
     CO2_atmosphere_concentration: float = 440.44
@@ -1248,7 +1256,7 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
     CO2_fraction_exhaled: float = 0.042
 
     @property
-    def population(self) -> Population:
+    def population(self) -> SimplePopulation:
         return self.CO2_emitters
 
     def removal_rate(self, time: float) -> _VectorisedFloat:

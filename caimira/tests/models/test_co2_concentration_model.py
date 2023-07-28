@@ -9,12 +9,10 @@ def simple_co2_conc_model():
     return models.CO2ConcentrationModel(
         room=models.Room(200, models.PiecewiseConstant((0., 24.), (293,))),
         ventilation=models.AirChange(models.PeriodicInterval(period=120, duration=120), 0.25),
-        CO2_emitters=models.Population(
+        CO2_emitters=models.SimplePopulation(
             number=5,
             presence=models.SpecificInterval((([0., 4.], ))),
-            mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Seated'],
-            host_immunity=0.,
         ),
     )
 
