@@ -40,18 +40,18 @@ halftime = models.PeriodicInterval(120, 60)
 populations = [
     # A simple scalar population.
     models.Population(
-        10, halftime, models.Activity.types['Standing'], 
-        models.Mask.types['Type I'], host_immunity=0.,
+        10, halftime, activity=models.Activity.types['Standing'],
+        mask=models.Mask.types['Type I'], host_immunity=0.,
     ),
     # A population with some array component for η_inhale.
     models.Population(
-        10, halftime, models.Activity.types['Standing'], 
-        models.Mask(np.array([0.3, 0.35])), host_immunity=0.
+        10, halftime, activity=models.Activity.types['Standing'],
+        mask=models.Mask(np.array([0.3, 0.35])), host_immunity=0.
     ),
     # A population with some array component for inhalation_rate.
     models.Population(
-        10, halftime, models.Activity(np.array([0.51, 0.57]), 0.57), 
-        models.Mask.types['Type I'], host_immunity=0.
+        10, halftime, activity=models.Activity(np.array([0.51, 0.57]), 0.57),
+        mask=models.Mask.types['Type I'], host_immunity=0.
     ),
 ]
 
