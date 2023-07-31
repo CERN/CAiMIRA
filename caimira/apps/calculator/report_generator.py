@@ -189,7 +189,7 @@ def generate_permalink(base_url, get_root_url,  get_root_calculator_url, form: F
 
 
 def conditional_prob_inf_given_vl_dist(infection_probability: models._VectorisedFloat, 
-                                       viral_loads: models._VectorisedFloat, specific_vl: float, step: models._VectorisedFloat):
+                                       viral_loads: np.ndarray, specific_vl: float, step: models._VectorisedFloat):
     pi_means = []
     lower_percentiles = []
     upper_percentiles = []
