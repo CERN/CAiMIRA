@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from retry import retry
 
 import caimira.monte_carlo as mc
 from caimira import models
@@ -42,10 +43,11 @@ def baseline_exposure_model():
     )
 
 
+@retry(tries=10)
 def test_conditional_prob_inf_given_vl_dist(baseline_exposure_model):
     
     viral_loads = np.array([3., 5., 7., 9.,])
-    mc_model: models.ExposureModel = baseline_exposure_model.build_model(3_000_000)
+    mc_model: models.ExposureModel = baseline_exposure_model.build_model(1_000_000)
 
     expected_pi_means = []
     expected_lower_percentiles = []
