@@ -145,6 +145,9 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
     expected_new_cases = np.array(model.expected_new_cases()).mean()
     uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(model, prob))) if form.conditional_probability_plot else None
     exposed_presence_intervals = [list(interval) for interval in model.exposed.presence_interval().boundaries()]
+    conditional_probability_data = {key: value for key, value in 
+                                    zip(('viral_loads', 'pi_means', 'lower_percentiles', 'upper_percentiles'), 
+                                        manufacture_conditional_probability_data(model, prob))}
 
     return {
         "model_repr": repr(model),
@@ -166,6 +169,7 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
         "uncertainties_plot_src": uncertainties_plot_src,
         "CO2_concentrations": CO2_concentrations,
         "vl_dist": list(np.log10(model.concentration_model.virus.viral_load_in_sputum)),
+        "conditional_probability_data": conditional_probability_data,
     }
 
 
@@ -203,16 +207,23 @@ def conditional_prob_inf_given_vl_dist(infection_probability: models._Vectorised
     return pi_means, lower_percentiles, upper_percentiles
 
 
+def manufacture_conditional_probability_data(exposure_model: models.ExposureModel, 
+                                             infection_probability: models._VectorisedFloat):
+    
+    min_vl, max_vl, step = 2, 10, 8/100
+    viral_loads = np.arange(min_vl, max_vl, step)   
+    specific_vl = np.log10(exposure_model.concentration_model.virus.viral_load_in_sputum)
+    pi_means, lower_percentiles, upper_percentiles = conditional_prob_inf_given_vl_dist(infection_probability, viral_loads, 
+                                                                                        specific_vl, step)
+    
+    return list(viral_loads), list(pi_means), list(lower_percentiles), list(upper_percentiles)
+
+
 def uncertainties_plot(exposure_model: models.ExposureModel, prob: models._VectorisedFloat):
     fig = plt.figure(figsize=(4, 7), dpi=110)
     
     infection_probability = prob / 100
-    specific_vl = np.log10(exposure_model.concentration_model.infected.virus.viral_load_in_sputum)
-
-    min_vl, max_vl, step = 2, 10, 8/100.
-    viral_loads = np.arange(min_vl, max_vl, step)
-    pi_means, lower_percentiles, upper_percentiles = conditional_prob_inf_given_vl_dist(infection_probability, 
-                                                                                        viral_loads, specific_vl, step)
+    viral_loads, pi_means, lower_percentiles, upper_percentiles = manufacture_conditional_probability_data(exposure_model, infection_probability)
 
     fig, axs = plt.subplots(2, 3, 
         gridspec_kw={'width_ratios': [5, 0.5] + [1],
