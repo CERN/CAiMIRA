@@ -683,6 +683,7 @@ function validate_form(form) {
   if ($('input[type=radio][id=from_fitting]').prop('checked')) {
     if ($('#CO2_fitting_result').val() == '')
       $("input[type=radio][id=no_ventilation]").prop("checked", true);
+      $("span.error_text").remove();
     on_ventilation_type_change();
   }
 
