@@ -359,14 +359,13 @@ class CO2Data(BaseRequestHandler):
         Returns a list of tuples containing (index, X-axis value) for the detected significant changes.
         """
 
-        times = CO2_data['times']
-        CO2_values = CO2_data['CO2']
+        times: list = CO2_data['times']
+        CO2_values: list = CO2_data['CO2']
 
         if len(times) != len(CO2_values):
             raise ValueError("times and CO2 values must have the same length.")
 
-        # Convert the input lists to numpy arrays for use with the ruptures library
-        times_np = np.array(times)
+        # Convert the input list to a numpy array for use with the ruptures library
         CO2_np = np.array(CO2_values)
 
         # Define the model for change point detection (Radial Basis Function kernel)
@@ -378,7 +377,14 @@ class CO2Data(BaseRequestHandler):
         # Predict change points using the Pelt algorithm with a penalty value of 15
         result = algo.predict(pen=15)
 
-        return [times_np[idx] for idx in result[:-1]]
+        # Find local minima and maxima
+        segments = np.split(np.arange(len(CO2_values)), result)
+        merged_segments = [np.hstack((segments[i], segments[i + 1])) for i in range(len(segments) - 1)]
+        result_set = set()
+        for segment in merged_segments[:-2]:
+            result_set.add(times[CO2_values.index(min(CO2_np[segment]))])
+            result_set.add(times[CO2_values.index(max(CO2_np[segment]))])
+        return list(result_set)
 
     def generate_ventilation_plot(self, CO2_data: dict, transition_times: typing.Optional[list] = None, ventilation_values: typing.Optional[list] = None):
             times = CO2_data['times']
@@ -411,7 +417,9 @@ class CO2Data(BaseRequestHandler):
             return
 
         if endpoint.rstrip('/') == 'plot':
-            self.finish({'CO2_plot': self.generate_ventilation_plot(form.CO2_data, self.find_change_points_with_pelt(form.CO2_data))})
+            transition_times = self.find_change_points_with_pelt(form.CO2_data)
+            self.finish({'CO2_plot': self.generate_ventilation_plot(form.CO2_data, transition_times),
+                        'transition_times': [round(el, 2) for el in transition_times]})
         else:
             executor = loky.get_reusable_executor(
                 max_workers=self.settings['handler_worker_pool_size'],

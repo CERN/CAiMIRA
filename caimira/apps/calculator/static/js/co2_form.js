@@ -215,10 +215,10 @@ function validateCO2Form() {
             const max_presence_time = Math.max(elapsed_time_infected, elapsed_time_exposed);
             const max_transition_time = parsedValue[parsedValue.length - 1] * 60;
 
-            if (max_transition_time < max_presence_time) {
+            if (max_transition_time > max_presence_time) {
               insertErrorFor(
                 $("#DIVCO2_fitting_result"),
-                `The last transition time (${parsedValue[parsedValue.length - 1]}) should be after the last presence time (${max_presence_time / 60}).<br />`
+                `The last transition time (${parsedValue[parsedValue.length - 1]}) should be before the last presence time (${max_presence_time / 60}).<br />`
               );
               submit = false;
             }
@@ -297,6 +297,7 @@ function formatCO2DataForm(CO2_data_form) {
   let CO2_mapping = {};
   CO2_data_form.map((el) => {
     let element = $(`[name=${el}]`).first();
+
     // Validate checkboxes
     if (element.prop('type') == "checkbox") {
       CO2_mapping[element.attr('name')] = String(+element.prop('checked'));
@@ -306,7 +307,9 @@ function formatCO2DataForm(CO2_data_form) {
       CO2_mapping[element.attr('name')] = $(
         `[name=${element.attr('name')}]:checked`
       ).first().val();
-    else CO2_mapping[element.attr('name')] = element.val();
+    else {
+      CO2_mapping[element.attr('name')] = element.val();
+    }
   });
   return CO2_mapping;
 }
@@ -320,9 +323,10 @@ function plotCO2Data(url) {
     }).then((response) =>
       response
         .json()
-        .then((json_response) =>
+        .then((json_response) => {
           $("#CO2_data_plot").attr("src", json_response["CO2_plot"])
-        )
+          $("#fitting_ventilation_states").val(`[${json_response["transition_times"]}]`)
+        })
         .then($("#DIVCO2_fitting_to_submit").show())
         .catch((error) => console.log(error))
     );
