@@ -190,7 +190,9 @@ class CO2FormData(model_generator.FormData):
     def ventilation_transition_times(self) -> typing.Tuple[float, ...]:
         # Check what type of ventilation is considered for the fitting
         if self.fitting_ventilation_type == 'fitting_natural_ventilation':
-            return tuple(self.fitting_ventilation_states)
+            vent_states = self.fitting_ventilation_states
+            vent_states.append(self.CO2_data['times'][-1])
+            return tuple(vent_states)
         else:
             return tuple((self.CO2_data['times'][0], self.CO2_data['times'][-1]))            
 
