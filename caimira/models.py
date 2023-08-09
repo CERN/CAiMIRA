@@ -1540,8 +1540,8 @@ class CO2DataModel:
 
         exhalation_rate = res_dict['x'][0]
         ventilation_values = res_dict['x'][1:]
-
-        return {"exhalation_rate": exhalation_rate, "ventilation_values": list(ventilation_values)}
+        predictive_CO2 = self.CO2_concentrations_from_params(exhalation_rate=exhalation_rate, ventilation_values=ventilation_values)
+        return {"exhalation_rate": exhalation_rate, "ventilation_values": list(ventilation_values), 'predictive_CO2': list(predictive_CO2)}
 
 
 @dataclass(frozen=True)
