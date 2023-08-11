@@ -388,31 +388,21 @@ class CO2Data(BaseRequestHandler):
 
     def generate_ventilation_plot(self, CO2_data: dict, 
                                   transition_times: typing.Optional[list] = None, 
-                                  ventilation_values: typing.Optional[list] = None,
                                   predictive_CO2: typing.Optional[list] = None):
             times = CO2_data['times']
             CO2_data = CO2_data['CO2']
-
-            def time_to_hour(time: float) -> str:
-                minutes = int(np.floor((time % 1) * 60))
-                minutes_to_display = f'0{minutes}' if minutes < 10 else minutes
-                return f'{int(np.floor(time))}:{minutes_to_display}'
 
             fig = plt.figure(figsize=(7, 4), dpi=110)
             plt.plot(times, CO2_data, label='Input CO₂')
 
             if (transition_times):
-                for index, time in enumerate(transition_times):
+                for time in transition_times:
                     plt.axvline(x = time, color = 'grey', linewidth=0.5, linestyle='--')
-                    plt.text(x = time + 0.04, y = max(predictive_CO2) if predictive_CO2 else max(CO2_data), s=time_to_hour(time))
-                    if ventilation_values:
-                        y_location = (CO2_data[min(range(len(times)), key=lambda i: abs(times[i]-time))])
-                        plt.text(x = time + 0.04, y = y_location, s="{:.2g}".format(ventilation_values[index]))
             if (predictive_CO2):
                 plt.plot(times, predictive_CO2, label='Predictive CO₂')
             plt.xlabel('Time of day')
             plt.ylabel('Concentration (ppm)')
-            plt.legend(loc='lower right')
+            plt.legend()
             return img2base64(_figure2bytes(fig))
     
     async def post(self, endpoint: str) -> None:
@@ -430,7 +420,7 @@ class CO2Data(BaseRequestHandler):
 
         if endpoint.rstrip('/') == 'plot':
             transition_times = self.find_change_points_with_pelt(form.CO2_data)
-            self.finish({'CO2_plot': self.generate_ventilation_plot(form.CO2_data, transition_times),
+            self.finish({'CO2_plot': self.generate_ventilation_plot(CO2_data=form.CO2_data, transition_times=transition_times),
                         'transition_times': [round(el, 2) for el in transition_times]})
         else:
             executor = loky.get_reusable_executor(
@@ -447,10 +437,9 @@ class CO2Data(BaseRequestHandler):
 
             result['fitting_ventilation_type'] = form.fitting_ventilation_type
             result['transition_times'] = ventilation_transition_times
-            result['CO2_plot'] = self.generate_ventilation_plot(form.CO2_data, 
-                                                                ventilation_transition_times[:-1], 
-                                                                result['ventilation_values'],
-                                                                result['predictive_CO2'])
+            result['CO2_plot'] = self.generate_ventilation_plot(CO2_data=form.CO2_data, 
+                                                                transition_times=ventilation_transition_times[:-1], 
+                                                                predictive_CO2=result['predictive_CO2'])
             self.finish(result)
         
 
