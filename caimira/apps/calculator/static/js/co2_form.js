@@ -269,6 +269,7 @@ function displayFittingData(json_response) {
   $("#CO2_data_plot").attr("src", json_response["CO2_plot"]);
   // Not needed for the form submission
   delete json_response["CO2_plot"];
+  delete json_response["predictive_CO2"];
   $("#CO2_fitting_result").val(JSON.stringify(json_response));
   $("#exhalation_rate_fit").html(
     "Exhalation rate: " +
