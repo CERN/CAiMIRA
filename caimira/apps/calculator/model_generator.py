@@ -144,14 +144,11 @@ class FormData:
                 if default is not NO_DEFAULT and value in [default, 'not-applicable']:
                     form_dict.pop(attr)
         return form_dict
-
-    def validate(self):
-        # Validate number of infected people == 1 when activity is Conference/Training.
-        if self.activity_type == 'training' and self.infected_people > 1:
-                raise ValueError('Conference/Training activities are limited to 1 infected.')
+    
+    def validate_population_parameters(self):
         # Validate number of infected <= number of total people
-        elif self.infected_people >= self.total_people:
-                raise ValueError('Number of infected people cannot be more or equal than number of total people.')
+        if self.infected_people >= self.total_people:
+            raise ValueError('Number of infected people cannot be more or equal than number of total people.')
 
         # Validate time intervals selected by user
         time_intervals = [
@@ -191,7 +188,7 @@ class FormData:
         def get_activity_mins(population):
             return getattr(self, f'{population}_finish') - getattr(self, f'{population}_start')
 
-        populations = ['exposed', 'infected'] if self.infected_dont_have_breaks_with_exposed else ['exposed'] 
+        populations = ['exposed', 'infected'] if self.infected_dont_have_breaks_with_exposed else ['exposed']
         for population in populations:
             # Validate lunch time within the activity times.
             if (getattr(self, f'{population}_lunch_option') and
@@ -206,10 +203,17 @@ class FormData:
                 raise ValueError(
                     f"Length of breaks >= Length of {population} presence."
                 )
+            
+            for attr_name, valid_set in [('exposed_coffee_break_option', COFFEE_OPTIONS_INT), 
+                                         ('infected_coffee_break_option', COFFEE_OPTIONS_INT)]:
+                if getattr(self, attr_name) not in valid_set:
+                    raise ValueError(f"{getattr(self, attr_name)} is not a valid value for {attr_name}")
 
-        validation_tuples = [('activity_type', ACTIVITY_TYPES), 
-                             ('exposed_coffee_break_option', COFFEE_OPTIONS_INT), 
-                             ('infected_coffee_break_option', COFFEE_OPTIONS_INT),   
+    def validate(self):
+        # Validate population parameters
+        self.validate_population_parameters()
+
+        validation_tuples = [('activity_type', ACTIVITY_TYPES),
                              ('mechanical_ventilation_type', MECHANICAL_VENTILATION_TYPES),
                              ('mask_type', MASK_TYPES),
                              ('mask_wearing_option', MASK_WEARING_OPTIONS),
@@ -222,10 +226,16 @@ class FormData:
                              ('ascertainment_bias', CONFIDENCE_LEVEL_OPTIONS),
                              ('vaccine_type', VACCINE_TYPE),
                              ('vaccine_booster_type', VACCINE_BOOSTER_TYPE),]
+        
         for attr_name, valid_set in validation_tuples:
             if getattr(self, attr_name) not in valid_set:
                 raise ValueError(f"{getattr(self, attr_name)} is not a valid value for {attr_name}")
+            
+        # Validate number of infected people == 1 when activity is Conference/Training.
+        if self.activity_type == 'training' and self.infected_people > 1:
+            raise ValueError('Conference/Training activities are limited to 1 infected.')
 
+        # Validate ventilation parameters
         if self.ventilation_type == 'natural_ventilation':
             if self.window_type == 'not-applicable':
                 raise ValueError(
