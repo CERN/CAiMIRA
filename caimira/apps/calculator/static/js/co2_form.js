@@ -28,7 +28,9 @@ function uploadFile(endpoint) {
   clearFittingResultComponent();
   const files = $("#file_upload")[0].files;
   if (files.length === 0) {
-    $("#upload-error").show();
+    $("#upload-error")
+      .text('Please choose a file.')
+      .show();
     return;
   }
   const file = files[0];
