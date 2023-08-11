@@ -24,13 +24,13 @@ class CO2FormData(model_generator.FormData):
     exposed_start: model_generator.minutes_since_midnight
     fitting_ventilation_states: list
     fitting_ventilation_type: str
-    infected_coffee_break_option: str               #Used if infected_dont_have_breaks_with_exposed
-    infected_coffee_duration: int                   #Used if infected_dont_have_breaks_with_exposed
+    infected_coffee_break_option: str
+    infected_coffee_duration: int
     infected_dont_have_breaks_with_exposed: bool
     infected_finish: model_generator.minutes_since_midnight
-    infected_lunch_finish: model_generator.minutes_since_midnight   #Used if infected_dont_have_breaks_with_exposed
-    infected_lunch_option: bool                     #Used if infected_dont_have_breaks_with_exposed
-    infected_lunch_start: model_generator.minutes_since_midnight    #Used if infected_dont_have_breaks_with_exposed
+    infected_lunch_finish: model_generator.minutes_since_midnight
+    infected_lunch_option: bool
+    infected_lunch_start: model_generator.minutes_since_midnight
     infected_people: int
     infected_start: model_generator.minutes_since_midnight
     room_volume: float
@@ -98,73 +98,22 @@ class CO2FormData(model_generator.FormData):
                 raise ValueError(f'Invalid argument "{html.escape(key)}" given')
 
         instance = self(**form_data)
-        instance.validate()
+        instance.validate_population_parameters()
         return instance
     
-    def validate(self):
-        # Validate number of infected <= number of total people
-        if self.infected_people >= self.total_people:
-                raise ValueError('Number of infected people cannot be more or equal than number of total people.')
+    def population_present_changes(self) -> typing.List[float]:
+        state_change_times = set(self.infected_present_interval().transition_times())
+        state_change_times.update(self.exposed_present_interval().transition_times())
+        return sorted(state_change_times)
 
-        # Validate time intervals selected by user
-        time_intervals = [
-            ['exposed_start', 'exposed_finish'],
-            ['infected_start', 'infected_finish'],
-        ]
-        if self.exposed_lunch_option:
-            time_intervals.append(['exposed_lunch_start', 'exposed_lunch_finish'])
-        if self.infected_dont_have_breaks_with_exposed and self.infected_lunch_option:
-            time_intervals.append(['infected_lunch_start', 'infected_lunch_finish'])
-
-        for start_name, end_name in time_intervals:
-            start = getattr(self, start_name)
-            end = getattr(self, end_name)
-            if start > end:
-                raise ValueError(
-                    f"{start_name} must be less than {end_name}. Got {start} and {end}.")
-
-        def validate_lunch(start, finish):
-            lunch_start = getattr(self, f'{population}_lunch_start')
-            lunch_finish = getattr(self, f'{population}_lunch_finish')
-            return (start <= lunch_start <= finish and 
-                start <= lunch_finish <= finish)
-
-        def get_lunch_mins(population):
-            lunch_mins = 0
-            if getattr(self, f'{population}_lunch_option'):
-                lunch_mins = getattr(self, f'{population}_lunch_finish') - getattr(self, f'{population}_lunch_start')
-            return lunch_mins
-        
-        def get_coffee_mins(population):
-            coffee_mins = 0
-            if getattr(self, f'{population}_coffee_break_option') != 'coffee_break_0':
-                coffee_mins = COFFEE_OPTIONS_INT[getattr(self, f'{population}_coffee_break_option')] * getattr(self, f'{population}_coffee_duration')
-            return coffee_mins
-
-        def get_activity_mins(population):
-            return getattr(self, f'{population}_finish') - getattr(self, f'{population}_start')
-
-        populations = ['exposed', 'infected'] if self.infected_dont_have_breaks_with_exposed else ['exposed'] 
-        for population in populations:
-            # Validate lunch time within the activity times.
-            if (getattr(self, f'{population}_lunch_option') and
-                not validate_lunch(getattr(self, f'{population}_start'), getattr(self, f'{population}_finish'))
-            ):
-                raise ValueError(
-                    f"{population} lunch break must be within presence times."
-                )
-            
-            # Length of breaks < length of activity
-            if (get_lunch_mins(population) + get_coffee_mins(population)) >= get_activity_mins(population):
-                raise ValueError(
-                    f"Length of breaks >= Length of {population} presence."
-                )
-
-        validation_tuples = [('exposed_coffee_break_option', COFFEE_OPTIONS_INT), 
-                             ('infected_coffee_break_option', COFFEE_OPTIONS_INT),]
-        for attr_name, valid_set in validation_tuples:
-            if getattr(self, attr_name) not in valid_set:
-                raise ValueError(f"{getattr(self, attr_name)} is not a valid value for {attr_name}")
+    def ventilation_transition_times(self) -> typing.Tuple[float, ...]:
+        # Check what type of ventilation is considered for the fitting
+        if self.fitting_ventilation_type == 'fitting_natural_ventilation':
+            vent_states = self.fitting_ventilation_states
+            vent_states.append(self.CO2_data['times'][-1])
+            return tuple(vent_states)
+        else:
+            return tuple((self.CO2_data['times'][0], self.CO2_data['times'][-1]))
 
     def build_model(self, size=DEFAULT_MC_SAMPLE_SIZE) -> models.CO2DataModel: # type: ignore
         infected_population: models.Population = self.infected_population().build_model(size)
@@ -180,21 +129,7 @@ class CO2FormData(model_generator.FormData):
                 ventilation_transition_times=self.ventilation_transition_times(),
                 times=self.CO2_data['times'],
                 CO2_concentrations=self.CO2_data['CO2'],
-            ) 
-    
-    def population_present_changes(self) -> typing.List[float]:
-        state_change_times = set(self.infected_present_interval().transition_times())
-        state_change_times.update(self.exposed_present_interval().transition_times())
-        return sorted(state_change_times)
-
-    def ventilation_transition_times(self) -> typing.Tuple[float, ...]:
-        # Check what type of ventilation is considered for the fitting
-        if self.fitting_ventilation_type == 'fitting_natural_ventilation':
-            vent_states = self.fitting_ventilation_states
-            vent_states.append(self.CO2_data['times'][-1])
-            return tuple(vent_states)
-        else:
-            return tuple((self.CO2_data['times'][0], self.CO2_data['times'][-1]))            
+            )          
 
 
 for _field in dataclasses.fields(CO2FormData):

@@ -320,10 +320,11 @@ def readable_minutes(minutes: int) -> str:
 
 
 def hour_format(hour: float) -> str:
+    # Convert float hour to HH:MM format
     hours = int(hour)
     minutes = int(hour % 1 * 60)
-
     return f"{hours}:{minutes if minutes != 0 else '00'}"
+
 
 def percentage(absolute: float) -> float:
     return absolute * 100

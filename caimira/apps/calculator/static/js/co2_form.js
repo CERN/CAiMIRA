@@ -1,3 +1,4 @@
+// Input data for CO2 fitting algorithm 
 const CO2_data_form = [
   "CO2_data",
   "exposed_coffee_break_option",
@@ -104,7 +105,7 @@ function uploadFile(endpoint) {
       }
     }
 
-    // Call function to convert Excel file to JSON and further processing
+    // Convert Excel file to JSON and further processing
     try {
       generateJSONStructure(endpoint, data);
       // If all validations pass, process the file here or display a success message
