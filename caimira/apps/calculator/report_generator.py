@@ -199,7 +199,7 @@ def conditional_prob_inf_given_vl_dist(infection_probability: models._Vectorised
     upper_percentiles = []
     
     for vl_log in viral_loads:
-        specific_prob = infection_probability[np.where((vl_log-specific_vl)*(vl_log+step-specific_vl)<0)[0]] #type: ignore
+        specific_prob = infection_probability[np.where((vl_log-step/2-specific_vl)*(vl_log+step/2-specific_vl)<0)[0]] #type: ignore
         pi_means.append(specific_prob.mean())
         lower_percentiles.append(np.quantile(specific_prob, 0.05))
         upper_percentiles.append(np.quantile(specific_prob, 0.95))
