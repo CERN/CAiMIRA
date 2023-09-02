@@ -47,7 +47,7 @@ def baseline_exposure_model():
 def test_conditional_prob_inf_given_vl_dist(baseline_exposure_model):
     
     viral_loads = np.array([3., 5., 7., 9.,])
-    mc_model: models.ExposureModel = baseline_exposure_model.build_model(1_000_000)
+    mc_model: models.ExposureModel = baseline_exposure_model.build_model(2_000_000)
 
     expected_pi_means = []
     expected_lower_percentiles = []
