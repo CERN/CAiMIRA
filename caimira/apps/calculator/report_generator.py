@@ -143,8 +143,11 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
     prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
     prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
     expected_new_cases = np.array(model.expected_new_cases()).mean()
-    uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(model))) if form.conditional_probability_plot else None
+    uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(model, prob))) if form.conditional_probability_plot else None
     exposed_presence_intervals = [list(interval) for interval in model.exposed.presence_interval().boundaries()]
+    conditional_probability_data = {key: value for key, value in 
+                                    zip(('viral_loads', 'pi_means', 'lower_percentiles', 'upper_percentiles'), 
+                                        manufacture_conditional_probability_data(model, prob))}
 
     return {
         "model_repr": repr(model),
@@ -166,6 +169,7 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
         "uncertainties_plot_src": uncertainties_plot_src,
         "CO2_concentrations": CO2_concentrations,
         "vl_dist": list(np.log10(model.concentration_model.virus.viral_load_in_sputum)),
+        "conditional_probability_data": conditional_probability_data,
     }
 
 
@@ -188,24 +192,38 @@ def generate_permalink(base_url, get_root_url,  get_root_calculator_url, form: F
     }
 
 
-def uncertainties_plot(exposure_model: models.ExposureModel):
+def conditional_prob_inf_given_vl_dist(infection_probability: models._VectorisedFloat, 
+                                       viral_loads: np.ndarray, specific_vl: float, step: models._VectorisedFloat):
+    pi_means = []
+    lower_percentiles = []
+    upper_percentiles = []
+    
+    for vl_log in viral_loads:
+        specific_prob = infection_probability[np.where((vl_log-step/2-specific_vl)*(vl_log+step/2-specific_vl)<0)[0]] #type: ignore
+        pi_means.append(specific_prob.mean())
+        lower_percentiles.append(np.quantile(specific_prob, 0.05))
+        upper_percentiles.append(np.quantile(specific_prob, 0.95))
+    
+    return pi_means, lower_percentiles, upper_percentiles
+
+
+def manufacture_conditional_probability_data(exposure_model: models.ExposureModel, 
+                                             infection_probability: models._VectorisedFloat):
+    
+    min_vl, max_vl, step = 2, 10, 8/100
+    viral_loads = np.arange(min_vl, max_vl, step)   
+    specific_vl = np.log10(exposure_model.concentration_model.virus.viral_load_in_sputum)
+    pi_means, lower_percentiles, upper_percentiles = conditional_prob_inf_given_vl_dist(infection_probability, viral_loads, 
+                                                                                        specific_vl, step)
+    
+    return list(viral_loads), list(pi_means), list(lower_percentiles), list(upper_percentiles)
+
+
+def uncertainties_plot(exposure_model: models.ExposureModel, prob: models._VectorisedFloat):
     fig = plt.figure(figsize=(4, 7), dpi=110)
-
-    viral_loads = np.linspace(2, 10, 600)
-    pi_means, lower_percentiles, upper_percentiles = [], [], []
-    for vl in viral_loads:
-        model_vl = dataclass_utils.nested_replace(
-            exposure_model, {
-                'concentration_model.infected.virus.viral_load_in_sputum' : 10**vl,
-            }
-        )
-        pi = model_vl.infection_probability()/100
-
-        pi_means.append(np.mean(pi))
-        lower_percentiles.append(np.quantile(pi, 0.05))
-        upper_percentiles.append(np.quantile(pi, 0.95))
-
-    histogram_data = exposure_model.infection_probability() / 100
+    
+    infection_probability = prob / 100
+    viral_loads, pi_means, lower_percentiles, upper_percentiles = manufacture_conditional_probability_data(exposure_model, infection_probability)
 
     fig, axs = plt.subplots(2, 3, 
         gridspec_kw={'width_ratios': [5, 0.5] + [1],
@@ -221,7 +239,7 @@ def uncertainties_plot(exposure_model: models.ExposureModel):
     axs[0, 0].plot(viral_loads, pi_means, label='Predictive total probability')
     axs[0, 0].fill_between(viral_loads, lower_percentiles, upper_percentiles, alpha=0.1, label='5ᵗʰ and 95ᵗʰ percentile')
 
-    axs[0, 2].hist(histogram_data, bins=30, orientation='horizontal')
+    axs[0, 2].hist(infection_probability, bins=30, orientation='horizontal')
     axs[0, 2].set_xticks([])
     axs[0, 2].set_xticklabels([])
     axs[0, 2].set_facecolor("lightgrey")
@@ -230,7 +248,7 @@ def uncertainties_plot(exposure_model: models.ExposureModel):
     axs[0, 2].set_xlim(0, highest_bar)
 
     axs[0, 2].text(highest_bar * 0.5, 0.5,
-                        rf"$\bf{np.round(np.mean(histogram_data) * 100, 1)}$%", ha='center', va='center')
+                        rf"$\bf{np.round(np.mean(infection_probability) * 100, 1)}$%", ha='center', va='center')
     axs[1, 0].hist(np.log10(exposure_model.concentration_model.infected.virus.viral_load_in_sputum),
                     bins=150, range=(2, 10), color='grey')
     axs[1, 0].set_facecolor("lightgrey")
@@ -310,9 +328,9 @@ def non_zero_percentage(percentage: int) -> str:
         return "99.9%"
     else:
         return "{:0.1f}%".format(percentage)
-    
 
-def manufacture_viral_load_scenarios(model: mc.ExposureModel) -> typing.Dict[str, mc.ExposureModel]:
+
+def manufacture_viral_load_scenarios_percentiles(model: mc.ExposureModel) -> typing.Dict[str, mc.ExposureModel]:
     viral_load = model.concentration_model.infected.virus.viral_load_in_sputum
     scenarios = {}
     for percentil in (0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99):
@@ -320,7 +338,7 @@ def manufacture_viral_load_scenarios(model: mc.ExposureModel) -> typing.Dict[str
         specific_vl_scenario = dataclass_utils.nested_replace(model, 
             {'concentration_model.infected.virus.viral_load_in_sputum': vl}
         )
-        scenarios[round(np.log10(vl))] = np.mean(specific_vl_scenario.infection_probability())
+        scenarios[vl] = np.mean(specific_vl_scenario.infection_probability())
     return scenarios
 
 
@@ -471,7 +489,7 @@ class ReportGenerator:
         context.update(report_data)
 
         alternative_scenarios = manufacture_alternative_scenarios(form)
-        context['alternative_viral_load'] = manufacture_viral_load_scenarios(model) if form.conditional_probability_viral_loads else None
+        context['alternative_viral_load'] = manufacture_viral_load_scenarios_percentiles(model) if form.conditional_probability_viral_loads else None
         context['alternative_scenarios'] = comparison_report(
             form, report_data, alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
         )
