@@ -338,7 +338,7 @@ def manufacture_viral_load_scenarios_percentiles(model: mc.ExposureModel) -> typ
         specific_vl_scenario = dataclass_utils.nested_replace(model, 
             {'concentration_model.infected.virus.viral_load_in_sputum': vl}
         )
-        scenarios[vl] = np.mean(specific_vl_scenario.infection_probability())
+        scenarios[str(vl)] = np.mean(specific_vl_scenario.infection_probability())
     return scenarios
 
 
