@@ -435,7 +435,8 @@ def make_app(
         'data_service_client_password': os.environ.get('DATA_SERVICE_CLIENT_PASSWORD', None),
     }
     data_service = None
-    if bool(os.environ.get('DATA_SERVICE_ENABLED', False)):
+    data_service_enabled = os.environ.get('DATA_SERVICE_ENABLED', 'False').lower() == 'true'
+    if data_service_enabled:
         data_service = DataService(data_service_credentials)
 
     if debug:
