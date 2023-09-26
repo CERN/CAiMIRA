@@ -141,21 +141,20 @@ function generateJSONStructure(endpoint, jsonData) {
 }
 
 function insertErrorFor(referenceNode, text) {
-  const element = $("<span></span>")
-    .addClass("error_text text-danger")
-    .html("&nbsp;&nbsp;" + text);
-  $(referenceNode).before(element);
+  $(`<span class='error_text text-danger'>${text}</span>`).insertAfter(referenceNode)
 }
 
 function validateFormInputs(obj) {
-  $("span.error_text").remove();
+  $("#ventilation_data").find("span.error_text").remove(); // Remove all error spans
+  
   let submit = true;
+  const $referenceNode = $("#DIVCO2_data_dialog");
   for (let i = 0; i < CO2_data_form.length; i++) {
-    const element = $(`[name=${CO2_data_form[i]}]`).first();
-    if (element.attr('name') !== "fitting_ventilation_states" && element.val() === "") {
+    const $requiredElement = $(`[name=${CO2_data_form[i]}]`).first();
+    if ($requiredElement.attr('name') !== "fitting_ventilation_states" && $requiredElement.val() === "") {
       insertErrorFor(
-        $("#DIVCO2_data_dialog"),
-        `'${element.attr('name')}' must be defined.<br />`
+        $referenceNode,
+        `'${$requiredElement.attr('name')}' must be defined.<br />`
       );
       submit = false;
     }
@@ -172,22 +171,24 @@ function validateCO2Form() {
   let submit = true;
   if (validateFormInputs($("#button_fit_data"))) submit = true;
 
+  const $fittingToSubmit = $('#DIVCO2_fitting_to_submit');
   // Check if natural ventilation is selected
   if (
-    $('input[name="fitting_ventilation_type"]:checked').first().val() ==
+    $fittingToSubmit.find('input[name="fitting_ventilation_type"]:checked').val() ==
     "fitting_natural_ventilation"
   ) {
     // Validate ventilation scheme
-    const element = $("[name=fitting_ventilation_states").first();
-    if (element.val() !== "") {
+    const $ventilationStates = $fittingToSubmit.find("input[name=fitting_ventilation_states]");
+    const $referenceNode = $("#DIVCO2_fitting_result");
+    if ($ventilationStates.val() !== "") {
       // validate input format
       try {
-        const parsedValue = JSON.parse(element.val());
+        const parsedValue = JSON.parse($ventilationStates.val());
         if (Array.isArray(parsedValue)) {
           if (parsedValue.length <= 1) {
             insertErrorFor(
-              $("#DIVCO2_fitting_result"),
-              `'${element.attr('name')}' must have more than one element.<br />`
+              $referenceNode,
+              `'${$ventilationStates.attr('name')}' must have more than one $ventilationStates.<br />`
             );
             submit = false;
           }
@@ -206,7 +207,7 @@ function validateCO2Form() {
 
             if (max_transition_time > max_presence_time) {
               insertErrorFor(
-                $("#DIVCO2_fitting_result"),
+                $referenceNode,
                 `The last transition time (${parsedValue[parsedValue.length - 1]}) should be before the last presence time (${max_presence_time / 60}).<br />`
               );
               submit = false;
@@ -215,22 +216,22 @@ function validateCO2Form() {
         }
         else {
           insertErrorFor(
-            $("#DIVCO2_fitting_result"),
-            `'${element.attr('name')}' must be a list.</br>`
+            $referenceNode,
+            `'${$ventilationStates.attr('name')}' must be a list.</br>`
           );
           submit = false;
         }
       } catch {
         insertErrorFor(
-          $("#DIVCO2_fitting_result"),
-          `'${element.attr('name')}' must be a list of numbers.</br>`
+          $referenceNode,
+          `'${$ventilationStates.attr('name')}' must be a list of numbers.</br>`
         );
         submit = false;
       }
     } else {
       insertErrorFor(
-        $("#DIVCO2_fitting_result"),
-        `'${element.attr('name')}' must be defined.</br>`
+        $referenceNode,
+        `'${$ventilationStates.attr('name')}' must be defined.</br>`
       );
       submit = false;
     }
@@ -356,27 +357,28 @@ function submitFittingAlgorithm(url) {
 }
 
 function clearFittingResultComponent() {
+  const $referenceNode = $("#DIVCO2_data_dialog");
   // Add the warning suggestion line
-  $("#suggestion_lines_txt").show();
+  $referenceNode.find("#suggestion_lines_txt").show();
   // Remove all the previously generated fitting elements
-  $("#generate_fitting_data").prop("disabled", true);
-  $("#CO2_fitting_result").val("");
-  $("#CO2_data").val("{}");
-  $("#fitting_ventilation_states").val("");
-  $("span.error_text").remove();
-  $("#DIVCO2_fitting_result, #CO2_input_data_div").hide();
-  $("#DIVCO2_fitting_to_submit").hide();
-  $("#CO2_data_plot").attr("src", "");
+  $referenceNode.find("#generate_fitting_data").prop("disabled", true);
+  $referenceNode.find("#CO2_fitting_result").val("");
+  $referenceNode.find("#CO2_data").val("{}");
+  $referenceNode.find("#fitting_ventilation_states").val("");
+  $referenceNode.find("span.error_text").remove();
+  $referenceNode.find("#DIVCO2_fitting_result, #CO2_input_data_div").hide();
+  $referenceNode.find("#DIVCO2_fitting_to_submit").hide();
+  $referenceNode.find("#CO2_data_plot").attr("src", "");
 
   // Update the ventilation scheme components
-  $("#fitting_ventilation_states, [name=fitting_ventilation_type]").prop(
+  $referenceNode.find("#fitting_ventilation_states, [name=fitting_ventilation_type]").prop(
     "disabled",
     false
   );
 
   // Update the bottom right buttons
-  $("#generate_fitting_data").show();
-  $("#save_and_dismiss_dialog").hide();
+  $referenceNode.find("#generate_fitting_data").show();
+  $referenceNode.find("#save_and_dismiss_dialog").hide();
 }
 
 function disableFittingAlgorithm() {
