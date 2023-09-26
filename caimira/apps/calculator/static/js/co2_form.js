@@ -140,20 +140,6 @@ function generateJSONStructure(endpoint, jsonData) {
   }
 }
 
-// Method to download Excel template available on CERNBox
-function downloadTemplate(
-  uri = "https://caimira-resources.web.cern.ch/CO2_template.xlsx",
-  filename = "CO2_template.xlsx"
-) {
-  const link = document.createElement("a");
-  link.download = filename;
-  link.href = uri;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  delete link;
-}
-
 function insertErrorFor(referenceNode, text) {
   const element = $("<span></span>")
     .addClass("error_text text-danger")
