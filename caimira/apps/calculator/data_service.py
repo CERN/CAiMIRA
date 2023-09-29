@@ -29,6 +29,25 @@ class DataService():
         # decode access_token
         # check validity
         return False
+    
+    async def fetch_post_request(self, url: str, json_body: str):
+        http_client = AsyncHTTPClient()        
+        return await http_client.fetch(HTTPRequest(
+            url=url,
+            method='POST',
+            headers={'Content-type': 'application/json'},
+            body=json.dumps(json_body),
+        ),
+        raise_error=True)
+
+    async def fetch_get_request(self, url: str, headers: dict):
+        http_client = AsyncHTTPClient()
+        return await http_client.fetch(HTTPRequest(
+            url=url,
+            method='GET',
+            headers=headers,
+        ),
+        raise_error=True)
 
     async def _login(self):
         if self._is_valid(self._access_token):
@@ -42,17 +61,8 @@ class DataService():
             # If the credentials are not defined, an exception is raised.
             raise Exception("DataService credentials not set")
             
-        http_client = AsyncHTTPClient()
-        headers = {'Content-type': 'application/json'}
         json_body = { "email": f"{client_email}", "password": f"{client_password}"}
-
-        response = await http_client.fetch(HTTPRequest(
-            url=self.host + '/login',
-            method='POST',
-            headers=headers,
-            body=json.dumps(json_body),
-        ),
-        raise_error=True)
+        response = await self.fetch_post_request(url=self.host + '/login', json_body=json.dumps(json_body))
 
         self._access_token = json.loads(response.body)['access_token']
         return self._access_token
@@ -60,15 +70,9 @@ class DataService():
     async def fetch(self):
         access_token = await self._login()
 
-        http_client = AsyncHTTPClient()
         headers = {'Authorization': f'Bearer {access_token}'}
-
-        response = await http_client.fetch(HTTPRequest(
-            url=self.host + '/data',
-            method='GET',
-            headers=headers,
-        ),
-        raise_error=True)
+        url = self.host + '/data'
+        response = await self.fetch_get_request(url=url, headers=headers)
 
         return json.loads(response.body)
     
