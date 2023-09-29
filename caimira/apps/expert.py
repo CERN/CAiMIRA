@@ -126,7 +126,7 @@ class ExposureModelResult(View):
             self.figure.canvas,
         ])
 
-    def initialize_axes(self) -> matplotlib.figure.Axes:
+    def initialize_axes(self) -> typing.Tuple[matplotlib.axes.Axes, matplotlib.axes.Axes]:
         ax = self.figure.add_subplot(1, 1, 1)
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
@@ -230,7 +230,7 @@ class ExposureComparisonResult(View):
         # unless the widget is wrapped in a container (it is seen on all tabs otherwise!).
         return widgets.HBox([self.figure.canvas])
 
-    def initialize_axes(self) -> matplotlib.figure.Axes:
+    def initialize_axes(self) -> typing.Tuple[matplotlib.axes.Axes, matplotlib.axes.Axes]:
         ax = self.figure.add_subplot(1, 1, 1)
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
