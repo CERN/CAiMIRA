@@ -389,17 +389,17 @@ class CO2Data(BaseRequestHandler):
     def generate_ventilation_plot(self, CO2_data: dict, 
                                   transition_times: typing.Optional[list] = None, 
                                   predictive_CO2: typing.Optional[list] = None):
-            times = CO2_data['times']
-            CO2_data = CO2_data['CO2']
+            times_values = CO2_data['times']
+            CO2_values = CO2_data['CO2']
 
             fig = plt.figure(figsize=(7, 4), dpi=110)
-            plt.plot(times, CO2_data, label='Input CO₂')
+            plt.plot(times_values, CO2_values, label='Input CO₂')
 
             if (transition_times):
                 for time in transition_times:
                     plt.axvline(x = time, color = 'grey', linewidth=0.5, linestyle='--')
             if (predictive_CO2):
-                plt.plot(times, predictive_CO2, label='Predictive CO₂')
+                plt.plot(times_values, predictive_CO2, label='Predictive CO₂')
             plt.xlabel('Time of day')
             plt.ylabel('Concentration (ppm)')
             plt.legend()
