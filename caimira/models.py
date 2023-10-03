@@ -1061,7 +1061,7 @@ class _ConcentrationModelBase:
             invRR[RR == 0.] = np.nan
             invRR[RR != 0.] = 1. / RR[RR != 0.]
         else:
-            invRR = np.nan if RR == 0. else 1. / RR
+            invRR = np.nan if RR == 0. else 1. / RR # type: ignore
 
         return (self.population.people_present(time) * invRR / V +
                 self.min_background_concentration()/self.normalization_factor())
