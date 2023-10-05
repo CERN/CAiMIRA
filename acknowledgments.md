@@ -610,7 +610,7 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 - Endpoint: `https://www.covid19.admin.ch/en/epidemiologic/case/d/development?epiRelDev=abs`
 
-### Disclaimer
+### License information
 
 The list of open-source dependencies provided here includes licenses for both direct dependencies and dependencies of dependencies. This comprehensive list covers a wide range of licenses, each with its own terms and conditions. Below is a summary of the most frequently encountered licenses along with their descriptions and usage:
 
