@@ -1055,8 +1055,15 @@ class _ConcentrationModelBase:
         """
         V = self.room.volume
         RR = self.removal_rate(time)
-        
-        return (self.population.people_present(time) / (RR * V) +
+
+        if isinstance(RR, np.ndarray):
+            invRR = np.empty(RR.shape, dtype=np.float64)
+            invRR[RR == 0.] = np.nan
+            invRR[RR != 0.] = 1. / RR[RR != 0.]
+        else:
+            invRR = np.nan if RR == 0. else 1. / RR # type: ignore
+
+        return (self.population.people_present(time) * invRR / V +
                 self.min_background_concentration()/self.normalization_factor())
 
     @method_cache
@@ -1132,23 +1139,26 @@ class _ConcentrationModelBase:
             return self.min_background_concentration()/self.normalization_factor()
         
         next_state_change_time = self._next_state_change(time)
-
         RR = self.removal_rate(next_state_change_time)
-        # If RR is 0, conc_limit does not play a role but its computation 
-        # would raise an error -> we set it to zero.
-        try:
-            conc_limit = self._normed_concentration_limit(next_state_change_time)
-        except ZeroDivisionError:
-            conc_limit = 0.
 
         t_last_state_change = self.last_state_change(time)
         conc_at_last_state_change = self._normed_concentration_cached(t_last_state_change)
-
         delta_time = time - t_last_state_change
+
         fac = np.exp(-RR * delta_time)
+        if isinstance(RR, np.ndarray):
+            curr_conc_state = np.empty(RR.shape, dtype=np.float64)
+            curr_conc_state[RR == 0.] = delta_time * self.population.people_present(time) / (
+                self.room.volume[RR == 0.] if isinstance(self.room.volume,np.ndarray) else self.room.volume)
+            curr_conc_state[RR != 0.] = self._normed_concentration_limit(next_state_change_time)[RR != 0.] * (1 - fac[RR != 0.])
+        else:
+            if RR == 0.:
+                curr_conc_state = delta_time * self.population.people_present(time) / self.room.volume
+            else:
+                curr_conc_state = self._normed_concentration_limit(next_state_change_time) * (1 - fac)
 
-        return conc_limit * (1 - fac) + conc_at_last_state_change * fac
-
+        return curr_conc_state + conc_at_last_state_change * fac
+    
     def concentration(self, time: float) -> _VectorisedFloat:
         """
         Total concentration as a function of time. The normalization
@@ -1260,9 +1270,7 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         return self.CO2_emitters
 
     def removal_rate(self, time: float) -> _VectorisedFloat:
-        # Setting minimum air exchange rate to 1e-6 to avoid divisions by
-        # zero when computing the CO2 concentration.
-        return np.maximum(1e-6,self.ventilation.air_exchange(self.room, time))
+        return self.ventilation.air_exchange(self.room, time)
 
     def min_background_concentration(self) -> _VectorisedFloat:
         """
