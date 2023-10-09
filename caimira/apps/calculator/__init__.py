@@ -30,6 +30,7 @@ from . import model_generator
 from .report_generator import ReportGenerator, calculate_report_data
 from .data_service import DataService
 from .user import AuthenticatedUser, AnonymousUser
+from caimira.cache.global_store import GlobalStore
 
 # The calculator version is based on a combination of the model version and the
 # semantic version of the calculator itself. The version uses the terms
@@ -41,7 +42,6 @@ from .user import AuthenticatedUser, AnonymousUser
 __version__ = "4.12.1"
 
 LOG = logging.getLogger(__name__)
-    
 
 class BaseRequestHandler(RequestHandler):
     
@@ -111,7 +111,10 @@ class ConcentrationModel(BaseRequestHandler):
         data_service: DataService = self.settings["data_service"]
         if self.settings["data_service"]:
             try:
+                global_store = await GlobalStore(data_service).get_data('/data')
+                # print(global_store)
                 fetched_service_data = await data_service.fetch()
+
             except Exception as err:
                 error_message = f"Something went wrong with the data service: {str(err)}"
                 LOG.error(error_message, exc_info=True)
@@ -366,6 +369,7 @@ def make_app(
         calculator_prefix: str = '/calculator',
         theme_dir: typing.Optional[Path] = None,
 ) -> Application:
+
     static_dir = Path(__file__).absolute().parent.parent / 'static'
     calculator_static_dir = Path(__file__).absolute().parent / 'static'
 
@@ -429,15 +433,23 @@ def make_app(
     )
     template_environment.globals['get_url']=get_root_url
     template_environment.globals['get_calculator_url']=get_root_calculator_url
-    
+
     data_service_credentials = {
         'data_service_client_email': os.environ.get('DATA_SERVICE_CLIENT_EMAIL', None),
         'data_service_client_password': os.environ.get('DATA_SERVICE_CLIENT_PASSWORD', None),
     }
+
+    # async def initiate_caching_mechanism(data_service):
+    #     cache_manager = GlobalStore(data_service)
+    #     # Initialize first time
+    #     data = await cache_manager.fetch_data_from_api('/data')
+    #     return data
+
     data_service = None
     data_service_enabled = os.environ.get('DATA_SERVICE_ENABLED', 'False').lower() == 'true'
     if data_service_enabled:
         data_service = DataService(data_service_credentials)
+        # await initiate_caching_mechanism(data_service)
 
     if debug:
         tornado.log.enable_pretty_logging()
