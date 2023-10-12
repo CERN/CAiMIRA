@@ -83,14 +83,6 @@ check_openshift_config_prod:
     OC_SERVER: https://api.paas.okd.cern.ch
     OC_TOKEN: "${OPENSHIFT_CAIMIRA_PROD_CONFIG_CHECKER_TOKEN}"
 
-  
-oci_calculator:
-  extends: .image_builder
-  variables:
-    IMAGE_NAME: calculator
-    DOCKERFILE_DIRECTORY: app-config/caimira-public-docker-image
-    DOCKER_CONTEXT_DIRECTORY: ""
-
 
 # ###################################################################################################
 # Build docker images
@@ -107,13 +99,18 @@ oci_calculator:
         IMAGE_TAG: caimira-prod-latest
   image:
     # Based on guidance at https://gitlab.cern.ch/gitlabci-examples/build_docker_image.
-    name: gitlab-registry.cern.ch/ci-tools/docker-image-builder
+    # The kaniko debug image is recommended because it has a shell, and a shell is required for an image to be used with GitLab CI/CD.
+    name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
+    # Prepare Kaniko configuration file
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - echo "Building ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:latest Docker image..."
+    # Build and push the image from the Dockerfile
     - /kaniko/executor --context ${CI_PROJECT_DIR}/${DOCKER_CONTEXT_DIRECTORY} --dockerfile ${CI_PROJECT_DIR}/${DOCKERFILE_DIRECTORY}/Dockerfile --destination ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG}
-
+    # Print the full registry path of the pushed image
+    - echo "Image pushed successfully to ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG}"
+    
 
 auth-service-image_builder:
   extends:
@@ -130,6 +127,14 @@ calculator-app-image_builder:
   variables:
     IMAGE_NAME: calculator-app
     DOCKERFILE_DIRECTORY: app-config/calculator-app
+    DOCKER_CONTEXT_DIRECTORY: ""
+
+
+oci_calculator:
+  extends: .image_builder
+  variables:
+    IMAGE_NAME: calculator
+    DOCKERFILE_DIRECTORY: app-config/caimira-public-docker-image
     DOCKER_CONTEXT_DIRECTORY: ""
 
 
