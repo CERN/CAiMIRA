@@ -60,7 +60,7 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 #### certifi 2023.7.22
 
-- License: [Mozilla Public License 2.0](https://pypi.org/project/certifi/)
+- License: [MP License 2.0](https://pypi.org/project/certifi/)
 
 #### cffi 1.16.0
 
@@ -96,7 +96,7 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 #### defusedxml 0.7.1
 
-- License: [Python Software Foundation License (PSFL)](https://pypi.org/project/defusedxml/)
+- License: [PSF License](https://pypi.org/project/defusedxml/)
 
 #### exceptiongroup 1.1.3
 
@@ -112,7 +112,7 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 #### filelock 3.12.4
 
-- License: [No License](https://pypi.org/project/filelock/)
+- License: [Unlicense](https://pypi.org/project/filelock/)
 
 #### fonttools 4.43.0
 
@@ -120,7 +120,7 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 #### fqdn 1.5.1
 
-- License: [Mozilla Public License 2.0](https://pypi.org/project/fqdn/)
+- License: [MP License 2.0](https://pypi.org/project/fqdn/)
 
 #### h3 3.7.6
 
@@ -248,7 +248,7 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 #### matplotlib 3.8.0
 
-- License: [Python Software Foundation License (PSF)](https://pypi.org/project/matplotlib/)
+- License: [PSF License](https://pypi.org/project/matplotlib/)
 
 #### matplotlib-inline 0.1.6
 
@@ -308,7 +308,7 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 #### packaging 23.2
 
-- License: [Apache License 2.0 or BSD License (BSD-2-Clause)](https://pypi.org/project/packaging/)
+- License: [Apache License 2.0](https://pypi.org/project/packaging/)
 
 #### pandas 2.1.1
 
@@ -332,7 +332,7 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 #### Pillow 10.0.1
 
-- License: [PIL License](https://pypi.org/project/Pillow/)
+- License: [HPND License](https://pypi.org/project/Pillow/)
 
 #### platformdirs 3.10.0
 
@@ -356,7 +356,7 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 #### ptyprocess 0.7.0
 
-- License: [ISC License (ISCL)](https://pypi.org/project/ptyprocess/)
+- License: [ISC License](https://pypi.org/project/ptyprocess/)
 
 #### pure-eval 0.2.2
 
@@ -392,7 +392,7 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 #### python-dateutil 2.8.2
 
-- License: [Apache License 2.0 or BSD License](https://pypi.org/project/python-dateutil/)
+- License: [Apache License 2.0](https://pypi.org/project/python-dateutil/)
 
 #### python-json-logger 2.0.7
 
@@ -452,7 +452,7 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 #### sniffio 1.3.0
 
-- License: [Apache Software License, MIT License (MIT OR Apache-2.0)](https://pypi.org/project/sniffio/)
+- License: [Apache License 2.0](https://pypi.org/project/sniffio/)
 
 #### soupsieve 2.5
 
@@ -504,7 +504,7 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 #### typing-extensions 4.8.0
 
-- License: [Python Software Foundation License](https://pypi.org/project/typing-extensions/)
+- License: [PSF License](https://pypi.org/project/typing-extensions/)
 
 #### tzdata 2023.3
 
@@ -520,7 +520,7 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 #### voila 0.5.4
 
-- License: [BSD License (BSD)](https://pypi.org/project/voila/)
+- License: [BSD License (BSD-3-Clause)](https://pypi.org/project/voila/)
 
 #### wcwidth 0.2.8
 
@@ -532,7 +532,7 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 #### webencodings 0.5.1
 
-- License: [BSD License (BSD)](https://pypi.org/project/webencodings/)
+- License: [BSD License](https://pypi.org/project/webencodings/)
 
 #### websocket-client 1.6.3
 
@@ -544,7 +544,7 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 #### widgetsnbextension 3.6.6
 
-- License: [BSD License (BSD 3-Clause)](https://pypi.org/project/widgetsnbextension/)
+- License: [BSD License (BSD-3-Clause)](https://pypi.org/project/widgetsnbextension/)
 
 #### zipp 3.17.0
 
@@ -582,7 +582,7 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 #### Rest Countries
 
-- Endpoint: `https://restcountries.com/v3.1/alpha/{country}?fields=name`
+- License: [MP License 2.0](https://gitlab.com/restcountries/restcountries/-/blob/master/LICENSE?ref_type=heads)
 
 #### WHO COVID-19 Global Data
 
@@ -595,7 +595,6 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 #### View Hub Resources
 
 - Endpoint: `https://view-hub.org/resources`
-- Description: International Vaccine Access Center (IVAC), Johns Hopkins Bloomberg School of Public Health. VIEW-hub. www.view-hub.org. Accessed: 02/10/2023.
 
 #### CERN Web Analytics
 
@@ -603,8 +602,8 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 #### Zenodo Badge
 
-- Endpoint: `https://zenodo.org/badge/DOI/10.5281/zenodo.6520431.svg` - [GPL-2.0 License](https://github.com/zenodo/zenodo)
-- Description: Zenodo badge 
+- Endpoint: `https://zenodo.org/badge/DOI/10.5281/zenodo.6520431.svg`
+- Description: Zenodo itself does not impose any specific license on the content that is deposited. Instead, it allows the depositor to choose the license for their content. This means that the permissiveness of the Zenodo badge (with the DOI) depends entirely on the license chosen by the person depositing the content.
 
 #### Swiss COVID-19 Data
 
@@ -616,16 +615,21 @@ The list of open-source dependencies provided here includes licenses for both di
 
 1. **MIT License**
    - Description: The MIT License is a permissive free software license originating at the Massachusetts Institute of Technology (MIT). It is a short and simple license that allows developers to use, modify, and distribute the software for both commercial and non-commercial purposes.
-   - Usage: This license is widely used for a variety of open-source projects and provides a flexible framework for collaboration.
 
 2. **Apache License, Version 2.0**
    - Description: The Apache License, Version 2.0 is a widely used open-source software license that allows users to use the software for any purpose, to distribute it, to modify it, and to distribute modified versions of the software under the terms of the license.
-   - Usage: This license is commonly used for projects under the Apache Software Foundation and provides a clear legal framework for collaborative development.
 
-3. **BSD License (Berkeley Software Distribution License)**
+3. **Berkeley Software Distribution License (BSDL)**
    - Description: The BSD License is a family of permissive free software licenses that allow users to do anything they want with the source code, as long as they include the original copyright and license notice in any copy of the code or substantial portion of it.
-   - Usage: This license is often used for software that emphasizes code reusability and sharing in the open-source community.
 
-4. **Mozilla Public License (MPL)**
+4. **Mozilla Public License 2.0 (MPL)**
    - Description: The Mozilla Public License is a free and open-source software license developed and maintained by the Mozilla Foundation. It is a copyleft license, which means that derived works can only be distributed under the same license terms.
-   - Usage: This license is commonly used for projects associated with the Mozilla community and ensures that contributions remain open and accessible.
+
+5. **Python Software Foundation Licene (PSFL)**
+   - Description: The Python Software Foundation License (PSFL) is a BSD-style, permissive software license which is compatible with the GNU General Public License (GPL).[1] Its primary use is for distribution of the Python project software and its documentation. Since the license is permissive, it allows proprietization of the derivations.
+
+6. **Internet Systems Consourtium License (ISCL)**
+   - Description: The ISC license is a permissive free software license published by the Internet Software Consortium, now called Internet Systems Consortium (ISC). It is functionally equivalent to the simplified BSD and MIT licenses.
+
+7. **Historical Permission Notice and Disclaimer License (HPND)**
+   - Description: The Historical Permission Notice and Disclaimer (HPND) is an open source license, approved by the Open Source Initiative (OSI) and verified as GPL-compatible by the Free Software Foundation. The license can be almost functionally identical to the new, 3-clause BSD License (if the option for the no-promotion clause is exercised), or the MIT License (if the option for the no-promotion clause is not exercised).
