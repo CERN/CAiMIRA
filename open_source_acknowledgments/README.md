@@ -611,7 +611,7 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 ### License Pie Chart
 
-![License Distribution](license_distribution.png)
+![License Distribution](open_source_acknowledgments/licence_distribution.png)
 
 ### License information
 
