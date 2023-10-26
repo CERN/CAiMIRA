@@ -49,6 +49,7 @@ else:
 from .utils import method_cache
 
 from .dataclass_utils import nested_replace
+from caimira.store.configuration import config
 
 oneoverln2 = 1 / np.log(2)
 # Define types for items supporting vectorisation. In the future this may be replaced
@@ -347,7 +348,7 @@ class SlidingWindow(WindowOpening):
         Average measured value of discharge coefficient for sliding or
         side-hung windows.
         """
-        return 0.6
+        return config.ventilation['natural']['discharge_factor']['sliding']
 
 
 @dataclass(frozen=True)
@@ -860,7 +861,7 @@ class _PopulationWithVirus(Population):
         The fraction of infectious virus.
 
         """
-        return 1.
+        return config.population_with_virus['fraction_of_infectious_virus']
 
     def aerosols(self):
         """
@@ -1032,7 +1033,7 @@ class _ConcentrationModelBase:
         (in the same unit as the concentration). Its the value towards which 
         the concentration will decay to.
         """
-        return 0.
+        return config.concentration_model['min_background_concentration']
 
     def normalization_factor(self) -> _VectorisedFloat:
         """
@@ -1220,7 +1221,7 @@ class ConcentrationModel(_ConcentrationModelBase):
     #: evaporation factor: the particles' diameter is multiplied by this
     # factor as soon as they are in the air (but AFTER going out of the,
     # mask, if any).
-    evaporation_factor: float = 0.3
+    evaporation_factor: float = config.particle['evaporation_factor']
 
     @property
     def population(self) -> InfectedPopulation:
@@ -1260,10 +1261,10 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
     CO2_emitters: SimplePopulation
 
     #: CO2 concentration in the atmosphere (in ppm)
-    CO2_atmosphere_concentration: float = 440.44
+    CO2_atmosphere_concentration: float = config.concentration_model['CO2_concentration_model']['CO2_atmosphere_concentration']
 
     #: CO2 fraction in the exhaled air
-    CO2_fraction_exhaled: float = 0.042
+    CO2_fraction_exhaled: float = config.concentration_model['CO2_concentration_model']['CO2_fraction_exhaled']
 
     @property
     def population(self) -> SimplePopulation:
@@ -1309,14 +1310,14 @@ class ShortRangeModel:
         The dilution factor for the respective expiratory activity type.
         '''
         # Average mouth opening diameter (m)
-        mouth_diameter = 0.02
+        mouth_diameter: float = config.short_range_model['dilution_factor']['mouth_diameter']
 
         # Breathing rate, from m3/h to m3/s
         BR = np.array(self.activity.exhalation_rate/3600.)
 
         # Exhalation coefficient. Ratio between the duration of a breathing cycle and the duration of 
         # the exhalation.
-        φ = 2
+        φ: float = config.short_range_model['dilution_factor']['exhalation_coefficient']
 
         # Exhalation airflow, as per Jia et al. (2022)
         Q_exh: _VectorisedFloat = φ * BR
@@ -1328,12 +1329,12 @@ class ShortRangeModel:
         u0 = np.array(Q_exh/Am)
 
         # Duration of the expiration period(s), assuming a 4s breath-cycle
-        tstar = 2.0
+        tstar: float = config.short_range_model['dilution_factor']['tstar']
         
         # Streamwise and radial penetration coefficients
-        𝛽r1 = 0.18
-        𝛽r2 = 0.2
-        𝛽x1 = 2.4
+        𝛽r1: float = config.short_range_model['dilution_factor']['penetration_coefficients']['𝛽r1']
+        𝛽r2: float = config.short_range_model['dilution_factor']['penetration_coefficients']['𝛽r2']
+        𝛽x1: float = config.short_range_model['dilution_factor']['penetration_coefficients']['𝛽x1']
 
         # Parameters in the jet-like stage
         # Position of virtual origin
@@ -1489,7 +1490,7 @@ class ExposureModel:
     geographical_data: Cases
 
     #: The number of times the exposure event is repeated (default 1).
-    repeats: int = 1
+    repeats: int = config.exposure_model['repeats']
 
     def __post_init__(self):
         """
