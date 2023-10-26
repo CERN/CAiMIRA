@@ -19,6 +19,7 @@ from caimira.monte_carlo.data import expiration_distribution, expiration_BLO_fac
 from .defaults import (NO_DEFAULT, DEFAULT_MC_SAMPLE_SIZE, DEFAULTS, ACTIVITIES, ACTIVITY_TYPES, COFFEE_OPTIONS_INT, CONFIDENCE_LEVEL_OPTIONS, 
                        MECHANICAL_VENTILATION_TYPES, MASK_TYPES, MASK_WEARING_OPTIONS, MONTH_NAMES, VACCINE_BOOSTER_TYPE, VACCINE_TYPE, 
                        VENTILATION_TYPES, VIRUS_TYPES, VOLUME_TYPES, WINDOWS_OPENING_REGIMES, WINDOWS_TYPES)
+from caimira.store.configuration import config
 
 LOG = logging.getLogger(__name__)
 
@@ -314,10 +315,10 @@ class FormData:
 
         if self.arve_sensors_option == False:
             if self.room_heating_option:
-                humidity = 0.3
+                humidity = config.room['defaults']['humidity_with_heating']
             else:
-                humidity = 0.5
-            inside_temp = 293.
+                humidity = config.room['defaults']['humidity_without_heating']
+            inside_temp = config.room['defaults']['inside_temp']
         else:
             humidity = float(self.humidity)
             inside_temp = self.inside_temp
@@ -373,7 +374,7 @@ class FormData:
         if (self.activity_type == 'precise'):
             activity_defn, _ = self.generate_precise_activity_expiration()
         else:
-            activity_defn = ACTIVITIES[ACTIVITY_TYPES.index(self.activity_type)]['activity']
+            activity_defn = activity_defn = ACTIVITIES[self.activity_type]['activity']
 
         population = mc.SimplePopulation(
             number=models.IntPiecewiseConstant(transition_times=tuple(transition_times), values=tuple(total_people)),
@@ -476,7 +477,8 @@ class FormData:
         # This is a minimal, always present source of ventilation, due
         # to the air infiltration from the outside.
         # See CERN-OPEN-2021-004, p. 12.
-        infiltration_ventilation = models.AirChange(active=always_on, air_exch=0.25)
+        residual_vent: float = config.ventilation['infiltration_ventilation'] # type: ignore
+        infiltration_ventilation = models.AirChange(active=always_on, air_exch=residual_vent)
         if self.hepa_option:
             hepa = models.HEPAFilter(active=always_on, q_air_mech=self.hepa_amount)
             return models.MultipleVentilation((ventilation, hepa, infiltration_ventilation))
@@ -511,9 +513,8 @@ class FormData:
         # Initializes the virus
         virus = virus_distributions[self.virus_type]
 
-        activity_index = ACTIVITY_TYPES.index(self.activity_type)
-        activity_defn = ACTIVITIES[activity_index]['activity']
-        expiration_defn = ACTIVITIES[activity_index]['expiration']
+        activity_defn = ACTIVITIES[self.activity_type]['activity']
+        expiration_defn = ACTIVITIES[self.activity_type]['expiration']
 
         if (self.activity_type == 'smallmeeting'):
             # Conversation of N people is approximately 1/N% of the time speaking.
@@ -538,29 +539,9 @@ class FormData:
         return infected
 
     def exposed_population(self) -> mc.Population:
-        scenario_activity = {
-            'office': 'Seated',
-            'controlroom-day': 'Seated',
-            'controlroom-night': 'Seated',
-            'smallmeeting': 'Seated',
-            'largemeeting': 'Standing',
-            'callcentre': 'Seated',
-            'library': 'Seated',
-            'training': 'Standing',
-            'training_attendee': 'Seated',
-            'lab':'Light activity',
-            'workshop': 'Moderate activity',
-            'gym':'Heavy exercise',
-            'household-day': 'Light activity',
-            'household-night': 'Seated', 
-            'primary-school': 'Light activity', 
-            'secondary-school': 'Light activity', 
-            'university': 'Seated', 
-            'restaurant': 'Seated',
-            'precise': self.precise_activity['physical_activity'] if self.activity_type == 'precise' else None,
-        }
-
-        activity_defn = scenario_activity[self.activity_type]
+        activity_defn = (self.precise_activity['physical_activity'] 
+                         if self.activity_type == 'precise' 
+                         else str(config.population_scenario_activity[self.activity_type]['activity']))
         activity = activity_distributions[activity_defn]
 
         infected_occupants = self.infected_people
