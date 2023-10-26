@@ -1,6 +1,9 @@
 import os
+import logging
 
 from caimira.store.data_service import DataService
+
+LOG = logging.getLogger(__name__)
 
 
 class GlobalStore:
@@ -8,7 +11,7 @@ class GlobalStore:
     Singleton pattern - ensure that there's only one instance of
     GlobalStore throughout the application
     '''
-    
+
     _instance = None
 
     def __new__(self):
@@ -28,10 +31,12 @@ class GlobalStore:
         data_service_enabled = os.environ.get(
             'DATA_SERVICE_ENABLED', 'False').lower() == 'true'
         if data_service_enabled:
-            data_service = DataService(data_service_credentials)
-            self._instance = await data_service.fetch()
-        else:
-            print('Data service not enabled.')
+            try:
+                data_service = DataService(data_service_credentials)
+                self._instance = await data_service.fetch()
+            except Exception as err:
+                error_message = f"Something went wrong with the data service: {str(err)}"
+                LOG.error(error_message, exc_info=True)
 
     @classmethod
     def get_data(self):

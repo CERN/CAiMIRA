@@ -28,7 +28,6 @@ import tornado.log
 from . import markdown_tools
 from . import model_generator
 from .report_generator import ReportGenerator, calculate_report_data
-from .data_service import DataService
 from .user import AuthenticatedUser, AnonymousUser
 
 # The calculator version is based on a combination of the model version and the
@@ -105,17 +104,6 @@ class ConcentrationModel(BaseRequestHandler):
             from pprint import pprint
             pprint(requested_model_config)
             start = datetime.datetime.now()
-        
-        # Data Service API Integration
-        fetched_service_data = None
-        data_service: DataService = self.settings["data_service"]
-        if self.settings["data_service"]:
-            try:
-                fetched_service_data = await data_service.fetch()
-            except Exception as err:
-                error_message = f"Something went wrong with the data service: {str(err)}"
-                LOG.error(error_message, exc_info=True)
-                self.send_error(500, reason=error_message)
                 
         try:
             form = model_generator.FormData.from_dict(requested_model_config)
@@ -429,15 +417,6 @@ def make_app(
     )
     template_environment.globals['get_url']=get_root_url
     template_environment.globals['get_calculator_url']=get_root_calculator_url
-    
-    data_service_credentials = {
-        'data_service_client_email': os.environ.get('DATA_SERVICE_CLIENT_EMAIL', None),
-        'data_service_client_password': os.environ.get('DATA_SERVICE_CLIENT_PASSWORD', None),
-    }
-    data_service = None
-    data_service_enabled = os.environ.get('DATA_SERVICE_ENABLED', 'False').lower() == 'true'
-    if data_service_enabled:
-        data_service = DataService(data_service_credentials)
 
     if debug:
         tornado.log.enable_pretty_logging()
@@ -455,9 +434,6 @@ def make_app(
         arve_client_id=os.environ.get('ARVE_CLIENT_ID', None),
         arve_client_secret=os.environ.get('ARVE_CLIENT_SECRET', None),
         arve_api_key=os.environ.get('ARVE_API_KEY', None),
-
-        # Data Service Integration
-        data_service=data_service,
 
         # Process parallelism controls. There is a balance between serving a single report
         # requests quickly or serving multiple requests concurrently.
