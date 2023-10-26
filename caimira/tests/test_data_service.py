@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 from tornado.httpclient import HTTPError
 
-from caimira.apps.calculator.data_service import DataService
+from caimira.store.data_service import DataService
 
 @dataclass
 class MockResponse:

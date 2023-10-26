@@ -41,10 +41,11 @@ class DataService():
         if (client_email == None or client_password == None):
             # If the credentials are not defined, an exception is raised.
             raise Exception("DataService credentials not set")
-            
+
         http_client = AsyncHTTPClient()
         headers = {'Content-type': 'application/json'}
-        json_body = { "email": f"{client_email}", "password": f"{client_password}"}
+        json_body = {"email": f"{client_email}",
+                     "password": f"{client_password}"}
 
         response = await http_client.fetch(HTTPRequest(
             url=self.host + '/login',
@@ -52,7 +53,7 @@ class DataService():
             headers=headers,
             body=json.dumps(json_body),
         ),
-        raise_error=True)
+            raise_error=True)
 
         self._access_token = json.loads(response.body)['access_token']
         return self._access_token
@@ -68,7 +69,6 @@ class DataService():
             method='GET',
             headers=headers,
         ),
-        raise_error=True)
+            raise_error=True)
 
         return json.loads(response.body)
-    
