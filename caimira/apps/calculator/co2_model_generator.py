@@ -34,12 +34,12 @@ class CO2FormData(model_generator.FormData):
     infected_people: int
     infected_start: model_generator.minutes_since_midnight
     room_volume: float
+    specific_breaks: dict
     total_people: int
 
     #: The default values for undefined fields. Note that the defaults here
     #: and the defaults in the html form must not be contradictory.
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = {
-        'activity_type': 'office',
         'CO2_data': '{}',
         'exposed_coffee_break_option': 'coffee_break_0',
         'exposed_coffee_duration': 5,
@@ -48,7 +48,6 @@ class CO2FormData(model_generator.FormData):
         'exposed_lunch_option': True,
         'exposed_lunch_start': '12:30',
         'exposed_start': '08:30',
-        'mask_wearing_option': False,
         'fitting_ventilation_states': '[]',
         'fitting_ventilation_type': 'fitting_natural_ventilation',
         'infected_coffee_break_option': 'coffee_break_0',
@@ -63,9 +62,6 @@ class CO2FormData(model_generator.FormData):
         'room_volume': NO_DEFAULT,
         'specific_breaks': '{}',
         'total_people': NO_DEFAULT,
-        'vaccine_option': False,
-        'ventilation_type': 'from_fitting',
-        'virus_type': 'SARS_CoV_2',
     }
 
     def __init__(self, **kwargs):    

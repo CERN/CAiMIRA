@@ -20,8 +20,8 @@ const CO2_data_form = [
   "infected_people",
   "infected_start",
   "room_volume",
+  "specific_breaks",
   "total_people",
-  "ventilation_type",
 ];
 
 // Method to upload a valid excel file
