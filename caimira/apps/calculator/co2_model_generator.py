@@ -97,9 +97,9 @@ class CO2FormData(model_generator.FormData):
         instance.validate_population_parameters()
         return instance
     
-    def population_present_changes(self) -> typing.List[float]:
-        state_change_times = set(self.infected_present_interval().transition_times())
-        state_change_times.update(self.exposed_present_interval().transition_times())
+    def population_present_changes(self, infected_presence: models.Interval, exposed_presence: models.Interval) -> typing.List[float]:
+        state_change_times = set(infected_presence.transition_times())
+        state_change_times.update(exposed_presence.transition_times())
         return sorted(state_change_times)
 
     def ventilation_transition_times(self) -> typing.Tuple[float, ...]:
@@ -112,12 +112,25 @@ class CO2FormData(model_generator.FormData):
             return tuple((self.CO2_data['times'][0], self.CO2_data['times'][-1]))
 
     def build_model(self, size=DEFAULT_MC_SAMPLE_SIZE) -> models.CO2DataModel: # type: ignore
-        infected_population: models.Population = self.infected_population().build_model(size)
-        exposed_population: models.Population = self.exposed_population().build_model(size)
-        all_state_changes=self.population_present_changes()
+        # Build a simple infected and exposed population for the case when presence
+        # intervals and number of people are dynamic. Activity type is not needed.
+        infected_presence = self.infected_present_interval()        
+        infected_population = models.SimplePopulation(
+            number=self.infected_people,
+            presence=infected_presence,
+            activity=None, # type: ignore
+        )
+        exposed_presence = self.exposed_present_interval()
+        exposed_population=models.SimplePopulation(
+            number=self.total_people - self.infected_people,
+            presence=exposed_presence,
+            activity=None, # type: ignore
+        )
 
-        total_people = [infected_population.people_present(stop) + exposed_population.people_present(stop) 
-                        for _, stop in zip(all_state_changes[:-1], all_state_changes[1:])]        
+        all_state_changes=self.population_present_changes(infected_presence, exposed_presence)
+        total_people = [infected_population.people_present(stop) + exposed_population.people_present(stop)
+                        for _, stop in zip(all_state_changes[:-1], all_state_changes[1:])]
+      
         return models.CO2DataModel(
                 room_volume=self.room_volume,
                 number=models.IntPiecewiseConstant(transition_times=tuple(all_state_changes), values=tuple(total_people)),
