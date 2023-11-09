@@ -1,74 +1,95 @@
-import dataclasses
-import json
 import logging
+import os
 import typing
 
-from tornado.httpclient import AsyncHTTPClient, HTTPRequest
+import requests
 
-LOG = logging.getLogger(__name__)
+from .configuration import config
+
+logger = logging.getLogger(__name__)
 
 
-@dataclasses.dataclass
-class DataService():
-    '''
-    Responsible for establishing a connection to a
-    database through a REST API by handling authentication
-    and fetching data. It utilizes the Tornado web framework
-    for asynchronous HTTP requests.
-    '''
-    # Credentials used for authentication
-    credentials: dict
-
-    # Host URL for the CAiMIRA Data Service API
-    host: str = 'https://caimira-data-api.app.cern.ch'
+class DataService:
+    """Responsible for fetching data from the data service endpoint."""
 
     # Cached access token
     _access_token: typing.Optional[str] = None
+
+    def __init__(
+        self,
+        credentials: typing.Dict[str, str],
+        host: str = "https://caimira-data-api.app.cern.ch",
+    ):
+        self._credentials = credentials
+        self._host = host
 
     def _is_valid(self, access_token):
         # decode access_token
         # check validity
         return False
 
-    async def _login(self):
+    def _login(self):
         if self._is_valid(self._access_token):
             return self._access_token
 
         # invalid access_token, fetch it again
-        client_email = self.credentials["data_service_client_email"]
-        client_password = self.credentials['data_service_client_password']
+        client_email = self._credentials["email"]
+        client_password = self._credentials["password"]
 
-        if (client_email == None or client_password == None):
+        if client_email == None or client_password == None:
             # If the credentials are not defined, an exception is raised.
             raise Exception("DataService credentials not set")
 
-        http_client = AsyncHTTPClient()
-        headers = {'Content-type': 'application/json'}
-        json_body = {"email": f"{client_email}",
-                     "password": f"{client_password}"}
+        url = f"{self._host}/login"
+        headers = {"Content-Type": "application/json"}
+        json_body = dict(email=client_email, password=client_password)
 
-        response = await http_client.fetch(HTTPRequest(
-            url=self.host + '/login',
-            method='POST',
-            headers=headers,
-            body=json.dumps(json_body),
-        ),
-            raise_error=True)
+        try:
+            response = requests.post(url, json=json_body, headers=headers)
+            response.raise_for_status()
+            if response.status_code == 200:
+                self._access_token = response.json()["access_token"]
+                return self._access_token
+            else:
+                logger.error(
+                    f"Unexpected error on login. Response status code: {response.status_code}, body: f{response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            logger.exception(e)
 
-        self._access_token = json.loads(response.body)['access_token']
-        return self._access_token
+    def fetch(self):
+        access_token = self._login()
 
-    async def fetch(self):
-        access_token = await self._login()
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
+        url = f"{self._host}/data"
 
-        http_client = AsyncHTTPClient()
-        headers = {'Authorization': f'Bearer {access_token}'}
+        try:
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            if response.status_code == 200:
+                return response.json()
+            else:
+                logger.error(
+                    f"Unexpected error when fetching data. Response status code: {response.status_code}, body: f{response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            logger.exception(e)
 
-        response = await http_client.fetch(HTTPRequest(
-            url=self.host + '/data',
-            method='GET',
-            headers=headers,
-        ),
-            raise_error=True)
 
-        return json.loads(response.body)
+def update_configuration():
+    data_service_enabled = os.environ.get("DATA_SERVICE_ENABLED", "False")
+    is_enabled = data_service_enabled.lower() == "true"
+    if is_enabled:
+        credentials = {
+            "email": os.environ.get("DATA_SERVICE_CLIENT_EMAIL", None),
+            "password": os.environ.get("DATA_SERVICE_CLIENT_PASSWORD", None),
+        }
+        data_service = DataService(credentials)
+        data = data_service.fetch()
+        if data:
+            config.update(data["data"])
+        else:
+            logger.error("Could not fetch fresh data from the data service.")
