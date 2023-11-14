@@ -1505,13 +1505,11 @@ class CO2DataModel:
             room=Room(volume=self.room_volume),
             ventilation=CustomVentilation(PiecewiseConstant(
                 self.ventilation_transition_times, ventilation_values)),
-            CO2_emitters=Population(
+            CO2_emitters=SimplePopulation(
                 number=self.number,
                 presence=self.presence,
-                mask=Mask.types['No mask'],
                 activity=Activity(
                     exhalation_rate=exhalation_rate, inhalation_rate=exhalation_rate),
-                host_immunity=0.
             )
         )
         return [CO2_concentrations.concentration(time) for time in self.times]
