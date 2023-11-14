@@ -2,10 +2,14 @@ import dataclasses
 import html
 import logging
 import typing
+import numpy as np
+import ruptures as rpt
+import matplotlib.pyplot as plt
 
 from caimira import models
 from . import model_generator
-from .defaults import DEFAULT_MC_SAMPLE_SIZE, NO_DEFAULT, COFFEE_OPTIONS_INT
+from .defaults import DEFAULT_MC_SAMPLE_SIZE, NO_DEFAULT
+from .report_generator import img2base64, _figure2bytes
 
 minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
 
@@ -96,6 +100,60 @@ class CO2FormData(model_generator.FormData):
         instance = self(**form_data)
         instance.validate_population_parameters()
         return instance
+
+    @classmethod
+    def find_change_points_with_pelt(self, CO2_data: dict):
+        """
+        Perform change point detection using Pelt algorithm from ruptures library with pen=15.
+        Returns a list of tuples containing (index, X-axis value) for the detected significant changes.
+        """
+
+        times: list = CO2_data['times']
+        CO2_values: list = CO2_data['CO2']
+
+        if len(times) != len(CO2_values):
+            raise ValueError("times and CO2 values must have the same length.")
+
+        # Convert the input list to a numpy array for use with the ruptures library
+        CO2_np = np.array(CO2_values)
+
+        # Define the model for change point detection (Radial Basis Function kernel)
+        model = "rbf"
+
+        # Fit the Pelt algorithm to the data with the specified model
+        algo = rpt.Pelt(model=model).fit(CO2_np)
+
+        # Predict change points using the Pelt algorithm with a penalty value of 15
+        result = algo.predict(pen=15)
+
+        # Find local minima and maxima
+        segments = np.split(np.arange(len(CO2_values)), result)
+        merged_segments = [np.hstack((segments[i], segments[i + 1])) for i in range(len(segments) - 1)]
+        result_set = set()
+        for segment in merged_segments[:-2]:
+            result_set.add(times[CO2_values.index(min(CO2_np[segment]))])
+            result_set.add(times[CO2_values.index(max(CO2_np[segment]))])
+        return list(result_set)
+    
+    @classmethod
+    def generate_ventilation_plot(self, CO2_data: dict, 
+                                  transition_times: typing.Optional[list] = None, 
+                                  predictive_CO2: typing.Optional[list] = None):
+            times_values = CO2_data['times']
+            CO2_values = CO2_data['CO2']
+
+            fig = plt.figure(figsize=(7, 4), dpi=110)
+            plt.plot(times_values, CO2_values, label='Input CO₂')
+
+            if (transition_times):
+                for time in transition_times:
+                    plt.axvline(x = time, color = 'grey', linewidth=0.5, linestyle='--')
+            if (predictive_CO2):
+                plt.plot(times_values, predictive_CO2, label='Predictive CO₂')
+            plt.xlabel('Time of day')
+            plt.ylabel('Concentration (ppm)')
+            plt.legend()
+            return img2base64(_figure2bytes(fig))
     
     def population_present_changes(self, infected_presence: models.Interval, exposed_presence: models.Interval) -> typing.List[float]:
         state_change_times = set(infected_presence.transition_times())
