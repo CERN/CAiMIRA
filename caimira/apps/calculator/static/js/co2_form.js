@@ -64,6 +64,7 @@ function uploadFile(endpoint) {
       const cellValue = worksheet[headerCoordinates[header]]?.v;
       if (
         !cellValue ||
+        $.type(cellValue) !== "string" ||
         cellValue.trim().toLowerCase() !== header.toLowerCase()
       ) {
         $("#upload-error")

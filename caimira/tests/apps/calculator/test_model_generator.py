@@ -171,8 +171,8 @@ def test_ventilation_window_hepa(baseline_form: model_generator.FormData):
 @pytest.mark.parametrize(
     ["activity", "total_people", "infected_people", "error"],
     [
-        ['office', 10, 11, "Number of infected people cannot be more or equal than number of total people."],
-        ['office', 10, 10, "Number of infected people cannot be more or equal than number of total people."],
+        ['office', 10, 11, "Number of infected people cannot be greater or equal to the number of total people"],
+        ['office', 10, 10, "Number of infected people cannot be greater or equal to the number of total people"],
         ['training', 10, 2, "Conference/Training activities are limited to 1 infected."],
     ]
 )
