@@ -148,7 +148,7 @@ class FormData:
     def validate_population_parameters(self):
         # Validate number of infected <= number of total people
         if self.infected_people >= self.total_people:
-            raise ValueError('Number of infected people cannot be more or equal than number of total people.')
+            raise ValueError('Number of infected people cannot be greater or equal to the number of total people.')
 
         # Validate time intervals selected by user
         time_intervals = [
