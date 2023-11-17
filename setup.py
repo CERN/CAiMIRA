@@ -48,6 +48,7 @@ REQUIREMENTS: dict = {
         'numpy-stubs @ git+https://github.com/numpy/numpy-stubs.git',
         'types-dataclasses',
         'types-python-dateutil',
+        'types-requests',
     ],
     'dev': [
         'jupyterlab',
