@@ -106,7 +106,7 @@ class ConcentrationModel(BaseRequestHandler):
             start = datetime.datetime.now()
                 
         try:
-            form = model_generator.FormData.from_dict(requested_model_config)
+            form = model_generator.VirusFormData.from_dict(requested_model_config)
         except Exception as err:
             if self.settings.get("debug", False):
                 import traceback
@@ -157,7 +157,7 @@ class ConcentrationModelJsonResponse(BaseRequestHandler):
             pprint(requested_model_config)
 
         try:
-            form = model_generator.FormData.from_dict(requested_model_config)
+            form = model_generator.VirusFormData.from_dict(requested_model_config)
         except Exception as err:
             if self.settings.get("debug", False):
                 import traceback
@@ -178,7 +178,7 @@ class ConcentrationModelJsonResponse(BaseRequestHandler):
 
 class StaticModel(BaseRequestHandler):
     async def get(self) -> None:
-        form = model_generator.FormData.from_dict(model_generator.baseline_raw_form_data())
+        form = model_generator.VirusFormData.from_dict(model_generator.baseline_raw_form_data())
         base_url = self.request.protocol + "://" + self.request.host
         report_generator: ReportGenerator = self.settings['report_generator']
         executor = loky.get_reusable_executor(max_workers=self.settings['handler_worker_pool_size'])

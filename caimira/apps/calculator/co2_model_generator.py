@@ -1,13 +1,13 @@
 import dataclasses
-import html
 import logging
 import typing
 import numpy as np
 import ruptures as rpt
 import matplotlib.pyplot as plt
+import re
 
 from caimira import models
-from . import model_generator
+from .form_data import FormData, cast_class_fields
 from .defaults import DEFAULT_MC_SAMPLE_SIZE, NO_DEFAULT
 from .report_generator import img2base64, _figure2bytes
 
@@ -17,29 +17,10 @@ LOG = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass
-class CO2FormData(model_generator.FormData):
+class CO2FormData(FormData):
     CO2_data: dict
-    exposed_coffee_break_option: str
-    exposed_coffee_duration: int
-    exposed_finish: model_generator.minutes_since_midnight
-    exposed_lunch_finish: model_generator.minutes_since_midnight
-    exposed_lunch_option: bool
-    exposed_lunch_start: model_generator.minutes_since_midnight
-    exposed_start: model_generator.minutes_since_midnight
     fitting_ventilation_states: list
     fitting_ventilation_type: str
-    infected_coffee_break_option: str
-    infected_coffee_duration: int
-    infected_dont_have_breaks_with_exposed: bool
-    infected_finish: model_generator.minutes_since_midnight
-    infected_lunch_finish: model_generator.minutes_since_midnight
-    infected_lunch_option: bool
-    infected_lunch_start: model_generator.minutes_since_midnight
-    infected_people: int
-    infected_start: model_generator.minutes_since_midnight
-    room_volume: float
-    specific_breaks: dict
-    total_people: int
 
     #: The default values for undefined fields. Note that the defaults here
     #: and the defaults in the html form must not be contradictory.
@@ -73,33 +54,37 @@ class CO2FormData(model_generator.FormData):
         for key, value in self._DEFAULTS.items():
             setattr(self, key, kwargs.get(key, value))
 
-    @classmethod
-    def from_dict(self, form_data: typing.Dict) -> "CO2FormData":
-        # Take a copy of the form data so that we can mutate it.
-        form_data = form_data.copy()
-        form_data.pop('_xsrf', None)
+    def validate(self):
+        # Validate population parameters
+        self.validate_population_parameters()
 
-        # Don't let arbitrary unescaped HTML through the net.
-        for key, value in form_data.items():
-            if isinstance(value, str):
-                form_data[key] = html.escape(value)
+        # Validate specific inputs - breaks (exposed and infected)
+        if self.specific_breaks != {}:
+            if type(self.specific_breaks) is not dict:
+                raise TypeError('The specific breaks should be in a dictionary.')
+            
+            dict_keys = list(self.specific_breaks.keys())
+            if "exposed_breaks" not in dict_keys:
+                raise TypeError(f'Unable to fetch "exposed_breaks" key. Got "{dict_keys[0]}".')
+            if "infected_breaks" not in dict_keys:
+                raise TypeError(f'Unable to fetch "infected_breaks" key. Got "{dict_keys[1]}".')
 
-        for key, default_value in self._DEFAULTS.items():
-            if form_data.get(key, '') == '':
-                if default_value is NO_DEFAULT:
-                    raise ValueError(f"{key} must be specified")
-                form_data[key] = default_value
-
-        for key, value in form_data.items():
-            if key in model_generator._CAST_RULES_FORM_ARG_TO_NATIVE:
-                form_data[key] = model_generator._CAST_RULES_FORM_ARG_TO_NATIVE[key](value)
-
-            if key not in self._DEFAULTS:
-                raise ValueError(f'Invalid argument "{html.escape(key)}" given')
-
-        instance = self(**form_data)
-        instance.validate_population_parameters()
-        return instance
+            for population_breaks in ['exposed_breaks', 'infected_breaks']:
+                if self.specific_breaks[population_breaks] != []:
+                    if type(self.specific_breaks[population_breaks]) is not list:
+                        raise TypeError(f'All breaks should be in a list. Got {type(self.specific_breaks[population_breaks])}.')
+                    for input_break in self.specific_breaks[population_breaks]:
+                        # Input validations.
+                        if type(input_break) is not dict:
+                            raise TypeError(f'Each break should be a dictionary. Got {type(input_break)}.')
+                        dict_keys = list(input_break.keys())
+                        if "start_time" not in input_break:
+                            raise TypeError(f'Unable to fetch "start_time" key. Got "{dict_keys[0]}".')
+                        if "finish_time" not in input_break:
+                            raise TypeError(f'Unable to fetch "finish_time" key. Got "{dict_keys[1]}".')
+                        for time in input_break.values():
+                            if not re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$").match(time):
+                                raise TypeError(f'Wrong time format - "HH:MM". Got "{time}".')
 
     @classmethod
     def find_change_points_with_pelt(self, CO2_data: dict):
@@ -196,23 +181,6 @@ class CO2FormData(model_generator.FormData):
                 ventilation_transition_times=self.ventilation_transition_times(),
                 times=self.CO2_data['times'],
                 CO2_concentrations=self.CO2_data['CO2'],
-            )          
-
-
-for _field in dataclasses.fields(CO2FormData):
-    if _field.type is minutes_since_midnight:
-        model_generator._CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = model_generator.time_string_to_minutes
-        model_generator._CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = model_generator.time_minutes_to_string
-    elif _field.type is int:
-        model_generator._CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = model_generator._safe_int_cast
-    elif _field.type is float:
-        model_generator._CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = float
-    elif _field.type is bool:
-        model_generator._CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = lambda v: v == '1'
-        model_generator._CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = int
-    elif _field.type is list:
-        model_generator._CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = model_generator.string_to_list
-        model_generator._CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = model_generator.list_to_string
-    elif _field.type is dict:
-        model_generator._CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = model_generator.string_to_dict
-        model_generator._CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = model_generator.dict_to_string
+            )
+    
+cast_class_fields(CO2FormData)
