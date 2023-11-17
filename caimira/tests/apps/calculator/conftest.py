@@ -10,4 +10,4 @@ def baseline_form_data():
 
 @pytest.fixture
 def baseline_form(baseline_form_data):
-    return model_generator.FormData.from_dict(baseline_form_data)
+    return model_generator.VirusFormData.from_dict(baseline_form_data)
