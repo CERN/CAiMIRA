@@ -438,7 +438,7 @@ class Configuration:
             "activity": "Seated",
             "expiration": {"Breathing": 1, "Speaking": 9},
         },
-        "precise": {"activity": None, "expiration": None},
+        "precise": {"activity": '', "expiration": {}},
     }
 
     def update(self, data):
