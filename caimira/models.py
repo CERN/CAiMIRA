@@ -348,7 +348,7 @@ class SlidingWindow(WindowOpening):
         Average measured value of discharge coefficient for sliding or
         side-hung windows.
         """
-        return config.ventilation['natural']['discharge_factor']['sliding']
+        return config.ventilation['natural']['discharge_factor']['sliding'] # type: ignore
 
 
 @dataclass(frozen=True)
@@ -861,7 +861,7 @@ class _PopulationWithVirus(Population):
         The fraction of infectious virus.
 
         """
-        return config.population_with_virus['fraction_of_infectious_virus']
+        return config.population_with_virus['fraction_of_infectious_virus'] # type: ignore
 
     def aerosols(self):
         """
@@ -1033,7 +1033,7 @@ class _ConcentrationModelBase:
         (in the same unit as the concentration). Its the value towards which 
         the concentration will decay to.
         """
-        return config.concentration_model['min_background_concentration']
+        return config.concentration_model['min_background_concentration'] # type: ignore
 
     def normalization_factor(self) -> _VectorisedFloat:
         """
@@ -1221,7 +1221,7 @@ class ConcentrationModel(_ConcentrationModelBase):
     #: evaporation factor: the particles' diameter is multiplied by this
     # factor as soon as they are in the air (but AFTER going out of the,
     # mask, if any).
-    evaporation_factor: float = config.particle['evaporation_factor']
+    evaporation_factor: float = config.particle['evaporation_factor'] # type: ignore
 
     @property
     def population(self) -> InfectedPopulation:
@@ -1261,10 +1261,10 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
     CO2_emitters: SimplePopulation
 
     #: CO2 concentration in the atmosphere (in ppm)
-    CO2_atmosphere_concentration: float = config.concentration_model['CO2_concentration_model']['CO2_atmosphere_concentration']
+    CO2_atmosphere_concentration: float = config.concentration_model['CO2_concentration_model']['CO2_atmosphere_concentration'] # type: ignore
 
     #: CO2 fraction in the exhaled air
-    CO2_fraction_exhaled: float = config.concentration_model['CO2_concentration_model']['CO2_fraction_exhaled']
+    CO2_fraction_exhaled: float = config.concentration_model['CO2_concentration_model']['CO2_fraction_exhaled'] # type: ignore
 
     @property
     def population(self) -> SimplePopulation:
@@ -1310,14 +1310,14 @@ class ShortRangeModel:
         The dilution factor for the respective expiratory activity type.
         '''
         # Average mouth opening diameter (m)
-        mouth_diameter: float = config.short_range_model['dilution_factor']['mouth_diameter']
+        mouth_diameter: float = config.short_range_model['dilution_factor']['mouth_diameter'] # type: ignore
 
         # Breathing rate, from m3/h to m3/s
         BR = np.array(self.activity.exhalation_rate/3600.)
 
         # Exhalation coefficient. Ratio between the duration of a breathing cycle and the duration of 
         # the exhalation.
-        φ: float = config.short_range_model['dilution_factor']['exhalation_coefficient']
+        φ: float = config.short_range_model['dilution_factor']['exhalation_coefficient'] # type: ignore
 
         # Exhalation airflow, as per Jia et al. (2022)
         Q_exh: _VectorisedFloat = φ * BR
@@ -1329,12 +1329,12 @@ class ShortRangeModel:
         u0 = np.array(Q_exh/Am)
 
         # Duration of the expiration period(s), assuming a 4s breath-cycle
-        tstar: float = config.short_range_model['dilution_factor']['tstar']
+        tstar: float = config.short_range_model['dilution_factor']['tstar'] # type: ignore
         
         # Streamwise and radial penetration coefficients
-        𝛽r1: float = config.short_range_model['dilution_factor']['penetration_coefficients']['𝛽r1']
-        𝛽r2: float = config.short_range_model['dilution_factor']['penetration_coefficients']['𝛽r2']
-        𝛽x1: float = config.short_range_model['dilution_factor']['penetration_coefficients']['𝛽x1']
+        𝛽r1: float = config.short_range_model['dilution_factor']['penetration_coefficients']['𝛽r1'] # type: ignore
+        𝛽r2: float = config.short_range_model['dilution_factor']['penetration_coefficients']['𝛽r2'] # type: ignore
+        𝛽x1: float = config.short_range_model['dilution_factor']['penetration_coefficients']['𝛽x1'] # type: ignore
 
         # Parameters in the jet-like stage
         # Position of virtual origin
@@ -1490,7 +1490,7 @@ class ExposureModel:
     geographical_data: Cases
 
     #: The number of times the exposure event is repeated (default 1).
-    repeats: int = config.exposure_model['repeats']
+    repeats: int = config.exposure_model['repeats'] # type: ignore
 
     def __post_init__(self):
         """
