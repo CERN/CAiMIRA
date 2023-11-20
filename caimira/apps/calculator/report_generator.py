@@ -17,6 +17,7 @@ from caimira.apps.calculator import markdown_tools
 from ... import monte_carlo as mc
 from .model_generator import FormData, DEFAULT_MC_SAMPLE_SIZE
 from ... import dataclass_utils
+from caimira.store.configuration import config
 
 
 def model_start_end(model: models.ExposureModel):
@@ -201,8 +202,8 @@ def conditional_prob_inf_given_vl_dist(infection_probability: models._Vectorised
     for vl_log in viral_loads:
         specific_prob = infection_probability[np.where((vl_log-step/2-specific_vl)*(vl_log+step/2-specific_vl)<0)[0]] #type: ignore
         pi_means.append(specific_prob.mean())
-        lower_percentiles.append(np.quantile(specific_prob, 0.05))
-        upper_percentiles.append(np.quantile(specific_prob, 0.95))
+        lower_percentiles.append(np.quantile(specific_prob, config.conditional_prob_inf_given_viral_load['lower_percentile']))
+        upper_percentiles.append(np.quantile(specific_prob, config.conditional_prob_inf_given_viral_load['upper_percentile']))
     
     return pi_means, lower_percentiles, upper_percentiles
 
@@ -210,7 +211,9 @@ def conditional_prob_inf_given_vl_dist(infection_probability: models._Vectorised
 def manufacture_conditional_probability_data(exposure_model: models.ExposureModel, 
                                              infection_probability: models._VectorisedFloat):
     
-    min_vl, max_vl, step = 2, 10, 8/100
+    min_vl = config.conditional_prob_inf_given_viral_load['min_vl']
+    max_vl = config.conditional_prob_inf_given_viral_load['max_vl']
+    step = (max_vl - min_vl)/100
     viral_loads = np.arange(min_vl, max_vl, step)   
     specific_vl = np.log10(exposure_model.concentration_model.virus.viral_load_in_sputum)
     pi_means, lower_percentiles, upper_percentiles = conditional_prob_inf_given_vl_dist(infection_probability, viral_loads, 
