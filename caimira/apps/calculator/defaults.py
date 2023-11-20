@@ -1,11 +1,13 @@
 import typing
 
+from caimira.store.configuration import config
+
 # ------------------ Default form values ----------------------
 
 # Used to declare when an attribute of a class must have a value provided, and
 # there should be no default value used.
 NO_DEFAULT = object()
-DEFAULT_MC_SAMPLE_SIZE = 250_000
+DEFAULT_MC_SAMPLE_SIZE = config.monte_carlo_sample_size
 
 #: The default values for undefined fields. Note that the defaults here
 #: and the defaults in the html form must not be contradictory.
@@ -79,57 +81,17 @@ DEFAULTS = {
 
 # ------------------ Activities ----------------------
 
-ACTIVITIES: typing.List[typing.Dict[str, typing.Any]] = [
-    # Mostly silent in the office, but 1/3rd of time speaking.
-    {'name': 'office', 'activity': 'Seated',
-        'expiration': {'Speaking': 1, 'Breathing': 2}},
-    {'name': 'smallmeeting', 'activity': 'Seated',
-        'expiration': {'Speaking': 1, 'Breathing': None}},
-    # Each infected person spends 1/3 of time speaking.
-    {'name': 'largemeeting', 'activity': 'Standing',
-        'expiration': {'Speaking': 1, 'Breathing': 2}},
-    {'name': 'callcentre', 'activity': 'Seated', 'expiration': 'Speaking'},
-    # Daytime control room shift, 50% speaking.
-    {'name': 'controlroom-day', 'activity': 'Seated',
-        'expiration': {'Speaking': 1, 'Breathing': 1}},
-    # Nightshift control room, 10% speaking.
-    {'name': 'controlroom-night', 'activity': 'Seated',
-        'expiration': {'Speaking': 1, 'Breathing': 9}},
-    {'name': 'library', 'activity': 'Seated', 'expiration': 'Breathing'},
-    # Model 1/2 of time spent speaking in a lab.
-    {'name': 'lab', 'activity': 'Light activity',
-        'expiration': {'Speaking': 1, 'Breathing': 1}},
-    # Model 1/2 of time spent speaking in a workshop.
-    {'name': 'workshop', 'activity': 'Moderate activity',
-        'expiration': {'Speaking': 1, 'Breathing': 1}},
-    {'name': 'training', 'activity': 'Standing', 'expiration': 'Speaking'},
-    {'name': 'training_attendee', 'activity': 'Seated', 'expiration': 'Breathing'},
-    {'name': 'gym', 'activity': 'Heavy exercise', 'expiration': 'Breathing'},
-    {'name': 'household-day', 'activity': 'Light activity',
-        'expiration': {'Breathing': 5, 'Speaking': 5}},
-    {'name': 'household-night', 'activity': 'Seated',
-        'expiration': {'Breathing': 7, 'Speaking': 3}},
-    {'name': 'primary-school', 'activity': 'Light activity',
-        'expiration': {'Breathing': 5, 'Speaking': 5}},
-    {'name': 'secondary-school', 'activity': 'Light activity',
-        'expiration': {'Breathing': 7, 'Speaking': 3}},
-    {'name': 'university', 'activity': 'Seated',
-        'expiration': {'Breathing': 9, 'Speaking': 1}},
-    {'name': 'restaurant', 'activity': 'Seated',
-        'expiration': {'Breathing': 1, 'Speaking': 9}},
-    {'name': 'precise', 'activity': None, 'expiration': None},
-]
+ACTIVITIES: typing.Dict[str, typing.Dict] = config.population_scenario_activity
 
 # ------------------ Validation ----------------------
-
-ACTIVITY_TYPES = [activity['name'] for activity in ACTIVITIES]
+ACTIVITY_TYPES: typing.List[str] = list(ACTIVITIES.keys())
 COFFEE_OPTIONS_INT = {'coffee_break_0': 0, 'coffee_break_1': 1,
                       'coffee_break_2': 2, 'coffee_break_4': 4}
 CONFIDENCE_LEVEL_OPTIONS = {'confidence_low': 10,
                             'confidence_medium': 5, 'confidence_high': 2}
 MECHANICAL_VENTILATION_TYPES = {
     'mech_type_air_changes', 'mech_type_air_supply', 'not-applicable'}
-MASK_TYPES = {'Type I', 'FFP2', 'Cloth'}
+MASK_TYPES: typing.List[str] = list(config.mask_distributions.keys())
 MASK_WEARING_OPTIONS = {'mask_on', 'mask_off'}
 MONTH_NAMES = [
     'January', 'February', 'March', 'April', 'May', 'June', 'July',
@@ -143,8 +105,7 @@ VACCINE_TYPE = ['Ad26.COV2.S_(Janssen)', 'Any_mRNA_-_heterologous', 'AZD1222_(As
                 'mRNA-1273_(Moderna)', 'Sputnik_V_(Gamaleya)', 'CoronaVac_(Sinovac)_and_BNT162b2_(Pfizer)']
 VENTILATION_TYPES = {'natural_ventilation',
                      'mechanical_ventilation', 'no_ventilation'}
-VIRUS_TYPES = {'SARS_CoV_2', 'SARS_CoV_2_ALPHA', 'SARS_CoV_2_BETA',
-               'SARS_CoV_2_GAMMA', 'SARS_CoV_2_DELTA', 'SARS_CoV_2_OMICRON'}
+VIRUS_TYPES: typing.List[str] = list(config.virus_distributions)
 VOLUME_TYPES = {'room_volume_explicit', 'room_volume_from_dimensions'}
 WINDOWS_OPENING_REGIMES = {'windows_open_permanently',
                            'windows_open_periodically', 'not-applicable'}

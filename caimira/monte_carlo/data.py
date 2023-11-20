@@ -6,10 +6,113 @@ from scipy import special as sp
 from scipy.stats import weibull_min
 
 import caimira.monte_carlo as mc
-from caimira.monte_carlo.sampleable import LogCustom, LogNormal,LogCustomKernel,CustomKernel,Uniform, Custom
+from caimira.monte_carlo.sampleable import LogCustom, LogNormal, Normal, LogCustomKernel, CustomKernel, Uniform, Custom
+from caimira.store.configuration import config
 
 sqrt2pi = np.sqrt(2.*np.pi)
 sqrt2 = np.sqrt(2.)
+
+
+def custom_distribution_lookup(dict: dict, key_part: str) -> typing.Any:
+    """
+    Look up a custom distribution based on a partial key.
+
+    Args:
+        dict (dict): The root to search.
+        key_part (str): The distribution key to match.
+
+    Returns:
+        str: The associated distribution.
+    """
+    try:
+        for key, value in dict.items():
+            if (key_part in key):
+                return value['associated_distribution']
+    except KeyError:
+        return f"Key '{key_part}' not found."
+
+
+def evaluate_reference(reference_variable: str) -> typing.Any:
+    """
+    Evaluate a reference variable.
+
+    Args:
+        reference_variable (str): The variable to evaluate.
+
+    Returns:
+        Any: The evaluated value or an error message if the variable is not defined.
+
+    """
+    try:
+        return eval(reference_variable)
+    except NameError:
+        return f"Variable '{reference_variable}' is not defined."
+
+
+def evaluate_custom_distribution(dist: str, params: typing.Dict) -> typing.Any:
+    """
+    Evaluate a custom distribution.
+
+    Args:
+        dist (str): The type of distribution.
+        params (Dict): The parameters for the distribution.
+
+    Returns:
+        Any: The generated distribution.
+
+    Raises:
+        ValueError: If the distribution type is not recognized.
+
+    """
+    if dist == 'Numpy Linear Space (linspace)':
+        return np.linspace(params['start'], params['stop'], params['num'])
+    elif dist == 'Numpy Normal Distribution (random.normal)':
+        return Normal(params['mean_gaussian'], params['standard_deviation_gaussian'])
+    elif dist == 'Numpy Log-normal Distribution (random.lognormal)':
+        return LogNormal(params['mean_gaussian'], params['standard_deviation_gaussian'])
+    elif dist == 'Numpy Uniform Distribution (random.uniform)':
+        return Uniform(params['low'], params['high'])
+    else:
+        raise ValueError('Bad request - distribution not found.')
+
+
+def param_evaluation(root: typing.Dict, param: typing.Union[str, typing.Any]) -> typing.Any:
+    """
+    Evaluate a parameter from a nested dictionary.
+
+    Args:
+        root (dict): The root dictionary.
+        param (Union[str, Any]): The parameter to evaluate.
+
+    Returns:
+        Any: The evaluated value.
+
+    Raises:
+        TypeError: If the type of the parameter is not defined.
+
+    """
+    value = root.get(param)
+
+    if isinstance(value, str):
+        if value.startswith('Ref:'):
+            reference_variable = value.split(' - ')[1].strip()
+            return evaluate_reference(reference_variable)
+        elif value == 'Custom':
+            custom_distribution: typing.Dict = custom_distribution_lookup(
+                root, 'custom distribution')
+            for d, p in custom_distribution.items():
+                return evaluate_custom_distribution(d, p)
+
+    elif isinstance(value, dict):
+        dist: str = root[param]['associated_distribution']
+        params: typing.Dict = root[param]['parameters']
+        return evaluate_custom_distribution(dist, params)
+
+    elif isinstance(value, float) or isinstance(value, int):
+        return value
+
+    else:
+        raise TypeError('Bad request - type not allowed.')
 
 
 @dataclass(frozen=True)
@@ -34,25 +137,37 @@ class BLOmodel:
 
     #: cn (cm^-3) for resp. the B, L and O modes. Corresponds to the
     # total concentration of aerosols for each mode.
-    cn: typing.Tuple[float, float, float] = (0.06, 0.2, 0.0010008)
+    cn: typing.Tuple[float, float, float] = (
+        config.BLOmodel['cn']['B'],
+        config.BLOmodel['cn']['L'],
+        config.BLOmodel['cn']['O']
+    )
 
     # Mean of the underlying normal distributions (represents the log of a
     # diameter in microns), for resp. the B, L and O modes.
-    mu: typing.Tuple[float, float, float] = (0.989541, 1.38629, 4.97673)
+    mu: typing.Tuple[float, float, float] = (
+        config.BLOmodel['mu']['B'],
+        config.BLOmodel['mu']['L'],
+        config.BLOmodel['mu']['O']
+    )
 
     # Std deviation of the underlying normal distribution, for resp.
     # the B, L and O modes.
-    sigma: typing.Tuple[float, float, float] = (0.262364, 0.506818, 0.585005)
+    sigma: typing.Tuple[float, float, float] = (
+        config.BLOmodel['sigma']['B'],
+        config.BLOmodel['sigma']['L'],
+        config.BLOmodel['sigma']['O']
+    )
 
     def distribution(self, d):
         """
         Returns the raw value of the probability distribution for a
         given diameter d (microns).
         """
-        return sum( (1 / d) * (A * cn / (sqrt2pi * sigma)) *
-                    np.exp(-(np.log(d) - mu) ** 2 / (2 * sigma ** 2))
-                    for A,cn,mu,sigma in zip(self.BLO_factors, self.cn,
-                                             self.mu, self.sigma) )
+        return sum((1 / d) * (A * cn / (sqrt2pi * sigma)) *
+                   np.exp(-(np.log(d) - mu) ** 2 / (2 * sigma ** 2))
+                   for A, cn, mu, sigma in zip(self.BLO_factors, self.cn,
+                                               self.mu, self.sigma))
 
     def integrate(self, dmin, dmax):
         """ 
@@ -60,7 +175,7 @@ class BLOmodel:
         probability distribution.
         """
         result = 0.
-        for A,cn,mu,sigma in zip(self.BLO_factors, self.cn, self.mu, self.sigma):
+        for A, cn, mu, sigma in zip(self.BLO_factors, self.cn, self.mu, self.sigma):
             ymin = (np.log(dmin)-mu)/(sqrt2*sigma)
             ymax = (np.log(dmax)-mu)/(sqrt2*sigma)
             result += A * cn * (sp.erf(ymax)-sp.erf(ymin)) / 2.
@@ -69,35 +184,55 @@ class BLOmodel:
 
 # From https://doi.org/10.1101/2021.10.14.21264988 and references therein
 activity_distributions = {
-    'Seated': mc.Activity(LogNormal(-0.6872121723362303, 0.10498338229297108),
-                          LogNormal(-0.6872121723362303, 0.10498338229297108)),
+    'Seated': mc.Activity(
+        inhalation_rate=param_evaluation(
+            config.activity_distributions['Seated'], 'inhalation_rate'),
+        exhalation_rate=param_evaluation(
+            config.activity_distributions['Seated'], 'exhalation_rate'),
+    ),
 
-    'Standing': mc.Activity(LogNormal(-0.5742377578494785, 0.09373162411398223),
-                            LogNormal(-0.5742377578494785, 0.09373162411398223)),
+    'Standing': mc.Activity(
+        inhalation_rate=param_evaluation(
+            config.activity_distributions['Standing'], 'inhalation_rate'),
+        exhalation_rate=param_evaluation(
+            config.activity_distributions['Standing'], 'exhalation_rate'),
+    ),
 
-    'Light activity': mc.Activity(LogNormal(0.21380242785625422,0.09435378091059601),
-                                  LogNormal(0.21380242785625422,0.09435378091059601)),
+    'Light activity': mc.Activity(
+        inhalation_rate=param_evaluation(
+            config.activity_distributions['Light activity'], 'inhalation_rate'),
+        exhalation_rate=param_evaluation(
+            config.activity_distributions['Light activity'], 'exhalation_rate'),
+    ),
 
-    'Moderate activity': mc.Activity(LogNormal(0.551771330362601, 0.1894616357138137),
-                                     LogNormal(0.551771330362601, 0.1894616357138137)),
+    'Moderate activity': mc.Activity(
+        inhalation_rate=param_evaluation(
+            config.activity_distributions['Moderate activity'], 'inhalation_rate'),
+        exhalation_rate=param_evaluation(
+            config.activity_distributions['Moderate activity'], 'exhalation_rate'),
+    ),
 
-    'Heavy exercise': mc.Activity(LogNormal(1.1644665696723049, 0.21744554768657565),
-                                  LogNormal(1.1644665696723049, 0.21744554768657565)),
+    'Heavy exercise': mc.Activity(
+        inhalation_rate=param_evaluation(
+            config.activity_distributions['Heavy exercise'], 'inhalation_rate'),
+        exhalation_rate=param_evaluation(
+            config.activity_distributions['Heavy exercise'], 'exhalation_rate'),
+    ),
 }
 
 
 # From https://doi.org/10.1101/2021.10.14.21264988 and references therein
 symptomatic_vl_frequencies = LogCustomKernel(
     np.array((2.46032, 2.67431, 2.85434, 3.06155, 3.25856, 3.47256, 3.66957, 3.85979, 4.09927, 4.27081,
-     4.47631, 4.66653, 4.87204, 5.10302, 5.27456, 5.46478, 5.6533, 5.88428, 6.07281, 6.30549,
-     6.48552, 6.64856, 6.85407, 7.10373, 7.30075, 7.47229, 7.66081, 7.85782, 8.05653, 8.27053,
-     8.48453, 8.65607, 8.90573, 9.06878, 9.27429, 9.473, 9.66152, 9.87552)),
+              4.47631, 4.66653, 4.87204, 5.10302, 5.27456, 5.46478, 5.6533, 5.88428, 6.07281, 6.30549,
+              6.48552, 6.64856, 6.85407, 7.10373, 7.30075, 7.47229, 7.66081, 7.85782, 8.05653, 8.27053,
+              8.48453, 8.65607, 8.90573, 9.06878, 9.27429, 9.473, 9.66152, 9.87552)),
     np.array((0.001206885, 0.007851618, 0.008078144, 0.01502491, 0.013258014, 0.018528495, 0.020053765,
-     0.021896167, 0.022047184, 0.018604005, 0.01547796, 0.018075445, 0.021503523, 0.022349217,
-     0.025097721, 0.032875078, 0.030594727, 0.032573045, 0.034717482, 0.034792991,
-     0.033267721, 0.042887485, 0.036846816, 0.03876473, 0.045016819, 0.040063473, 0.04883754,
-     0.043944602, 0.048142864, 0.041588741, 0.048762031, 0.027921732, 0.033871788,
-     0.022122693, 0.016927718, 0.008833228, 0.00478598, 0.002807662)),
+              0.021896167, 0.022047184, 0.018604005, 0.01547796, 0.018075445, 0.021503523, 0.022349217,
+              0.025097721, 0.032875078, 0.030594727, 0.032573045, 0.034717482, 0.034792991,
+              0.033267721, 0.042887485, 0.036846816, 0.03876473, 0.045016819, 0.040063473, 0.04883754,
+              0.043944602, 0.048142864, 0.041588741, 0.048762031, 0.027921732, 0.033871788,
+              0.022122693, 0.016927718, 0.008833228, 0.00478598, 0.002807662)),
     kernel_bandwidth=0.1
 )
 
@@ -105,61 +240,103 @@ symptomatic_vl_frequencies = LogCustomKernel(
 # Weibull distribution with a shape factor of 3.47 and a scale factor of 7.01.
 # From https://elifesciences.org/articles/65774 and first line of the figure in
 # https://iiif.elifesciences.org/lax:65774%2Felife-65774-fig4-figsupp3-v2.tif/full/1500,/0/default.jpg
-viral_load = np.linspace(weibull_min.ppf(0.01, c=3.47, scale=7.01),
-                weibull_min.ppf(0.99, c=3.47, scale=7.01), 30)
-frequencies_pdf = weibull_min.pdf(viral_load, c=3.47, scale=7.01)
-covid_overal_vl_data = LogCustom(bounds=(2, 10), 
-                        function=lambda d: np.interp(d, viral_load, frequencies_pdf, left=0., right=0.), 
-                        max_function=0.2)
+viral_load = np.linspace(
+    weibull_min.ppf(
+        config.covid_overal_vl_data['start'],
+        c=config.covid_overal_vl_data['shape_factor'],
+        scale=config.covid_overal_vl_data['scale_factor']
+    ),
+    weibull_min.ppf(
+        config.covid_overal_vl_data['stop'],
+        c=config.covid_overal_vl_data['shape_factor'],
+        scale=config.covid_overal_vl_data['scale_factor']
+    ),
+    int(config.covid_overal_vl_data['num'])
+)
+frequencies_pdf = weibull_min.pdf(
+    viral_load,
+    c=config.covid_overal_vl_data['shape_factor'],
+    scale=config.covid_overal_vl_data['scale_factor']
+)
+covid_overal_vl_data = LogCustom(bounds=(config.covid_overal_vl_data['min_bound'], config.covid_overal_vl_data['max_bound']),
+                                 function=lambda d: np.interp(d, viral_load, frequencies_pdf, config.covid_overal_vl_data[
+                                                              'interpolation_fp_left'], config.covid_overal_vl_data['interpolation_fp_right']),
+                                 max_function=config.covid_overal_vl_data['max_function'])
 
 
 # Derived from data in doi.org/10.1016/j.ijid.2020.09.025 and
 # https://iosh.com/media/8432/aerosol-infection-risk-hospital-patient-care-full-report.pdf (page 60)
-viable_to_RNA_ratio_distribution = Uniform(0.01, 0.6)
+viable_to_RNA_ratio_distribution = Uniform(
+    config.viable_to_RNA_ratio_distribution['low'], config.viable_to_RNA_ratio_distribution['high'])
 
 
 # From discussion with virologists
-infectious_dose_distribution = Uniform(10., 100.)
+infectious_dose_distribution = Uniform(
+    config.infectious_dose_distribution['low'], config.infectious_dose_distribution['high'])
 
 
 # From https://doi.org/10.1101/2021.10.14.21264988 and refererences therein
 virus_distributions = {
     'SARS_CoV_2': mc.SARSCoV2(
-                viral_load_in_sputum=covid_overal_vl_data,
-                infectious_dose=infectious_dose_distribution,
-                viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                transmissibility_factor=1.,
-                ),
+        viral_load_in_sputum=param_evaluation(
+            config.virus_distributions['SARS_CoV_2'], 'viral_load_in_sputum'),
+        infectious_dose=param_evaluation(
+            config.virus_distributions['SARS_CoV_2'], 'infectious_dose'),
+        viable_to_RNA_ratio=param_evaluation(
+            config.virus_distributions['SARS_CoV_2'], 'viable_to_RNA_ratio'),
+        transmissibility_factor=param_evaluation(
+            config.virus_distributions['SARS_CoV_2'], 'transmissibility_factor'),
+    ),
     'SARS_CoV_2_ALPHA': mc.SARSCoV2(
-                viral_load_in_sputum=covid_overal_vl_data,
-                infectious_dose=infectious_dose_distribution,
-                viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                transmissibility_factor=0.78,
-                ),
+        viral_load_in_sputum=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_ALPHA'], 'viral_load_in_sputum'),
+        infectious_dose=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_ALPHA'], 'infectious_dose'),
+        viable_to_RNA_ratio=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_ALPHA'], 'viable_to_RNA_ratio'),
+        transmissibility_factor=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_ALPHA'], 'transmissibility_factor'),
+    ),
     'SARS_CoV_2_BETA': mc.SARSCoV2(
-                viral_load_in_sputum=covid_overal_vl_data,
-                infectious_dose=infectious_dose_distribution,
-                viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                transmissibility_factor=0.8,
-                ),
+        viral_load_in_sputum=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_BETA'], 'viral_load_in_sputum'),
+        infectious_dose=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_BETA'], 'infectious_dose'),
+        viable_to_RNA_ratio=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_BETA'], 'viable_to_RNA_ratio'),
+        transmissibility_factor=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_BETA'], 'transmissibility_factor'),
+    ),
     'SARS_CoV_2_GAMMA': mc.SARSCoV2(
-                viral_load_in_sputum=covid_overal_vl_data,
-                infectious_dose=infectious_dose_distribution,
-                viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                transmissibility_factor=0.72,
-                ),
+        viral_load_in_sputum=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_GAMMA'], 'viral_load_in_sputum'),
+        infectious_dose=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_GAMMA'], 'infectious_dose'),
+        viable_to_RNA_ratio=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_GAMMA'], 'viable_to_RNA_ratio'),
+        transmissibility_factor=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_GAMMA'], 'transmissibility_factor'),
+    ),
     'SARS_CoV_2_DELTA': mc.SARSCoV2(
-                viral_load_in_sputum=covid_overal_vl_data,
-                infectious_dose=infectious_dose_distribution,
-                viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                transmissibility_factor=0.51,
-                ),
+        viral_load_in_sputum=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_DELTA'], 'viral_load_in_sputum'),
+        infectious_dose=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_DELTA'], 'infectious_dose'),
+        viable_to_RNA_ratio=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_DELTA'], 'viable_to_RNA_ratio'),
+        transmissibility_factor=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_DELTA'], 'transmissibility_factor'),
+    ),
     'SARS_CoV_2_OMICRON': mc.SARSCoV2(
-                viral_load_in_sputum=covid_overal_vl_data,
-                infectious_dose=infectious_dose_distribution,
-                viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
-                transmissibility_factor=0.2,
-                ),            
+        viral_load_in_sputum=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_OMICRON'], 'viral_load_in_sputum'),
+        infectious_dose=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_OMICRON'], 'infectious_dose'),
+        viable_to_RNA_ratio=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_OMICRON'], 'viable_to_RNA_ratio'),
+        transmissibility_factor=param_evaluation(
+            config.virus_distributions['SARS_CoV_2_OMICRON'], 'transmissibility_factor'),
+    ),
 }
 
 
@@ -169,14 +346,33 @@ virus_distributions = {
 # https://doi.org/10.4209/aaqr.2020.08.0531
 # https://doi.org/10.1080/02786826.2021.1890687
 mask_distributions = {
-    'Type I': mc.Mask(η_inhale=Uniform(0.25, 0.80)),
-    'FFP2': mc.Mask(η_inhale=Uniform(0.83, 0.91)),
-    'Cloth': mc.Mask(η_inhale=Uniform(0.05, 0.40), η_exhale=Uniform(0.20, 0.50)),
+    'Type I': mc.Mask(
+        η_inhale=param_evaluation(
+            config.mask_distributions['Type I'], 'η_inhale'),
+        η_exhale=param_evaluation(
+            config.mask_distributions['Type I'], 'η_exhale')
+        if config.mask_distributions['Type I']['Known filtration efficiency of masks when exhaling?'] == 'Yes' else None,
+    ),
+    'FFP2': mc.Mask(
+        η_inhale=param_evaluation(
+            config.mask_distributions['FFP2'], 'η_inhale'),
+        η_exhale=param_evaluation(
+            config.mask_distributions['FFP2'], 'η_exhale')
+        if config.mask_distributions['FFP2']['Known filtration efficiency of masks when exhaling?'] == 'Yes' else None,
+    ),
+    'Cloth': mc.Mask(
+        η_inhale=param_evaluation(
+            config.mask_distributions['Cloth'], 'η_inhale'),
+        η_exhale=param_evaluation(
+            config.mask_distributions['Cloth'], 'η_exhale')
+        if config.mask_distributions['Cloth']['Known filtration efficiency of masks when exhaling?'] == 'Yes' else None,
+    ),
 }
 
 
 def expiration_distribution(
         BLO_factors,
+        d_min=0.1,
         d_max=30.,
 ) -> mc.Expiration:
     """
@@ -187,40 +383,67 @@ def expiration_distribution(
     an historical choice based on previous implementations of the model
     (it limits the influence of the O-mode).
     """
-    dscan = np.linspace(0.1, d_max, 3000)
+    dscan = np.linspace(d_min, d_max, 3000)
     return mc.Expiration(
         CustomKernel(
             dscan,
             BLOmodel(BLO_factors).distribution(dscan),
             kernel_bandwidth=0.1,
         ),
-        cn=BLOmodel(BLO_factors).integrate(0.1, d_max),
+        cn=BLOmodel(BLO_factors).integrate(d_min, d_max),
     )
 
 
 expiration_BLO_factors = {
-    'Breathing': (1., 0., 0.),
-    'Speaking':   (1., 1., 1.),
-    'Singing':   (1., 5., 5.),
-    'Shouting':  (1., 5., 5.),
+    'Breathing': (
+        param_evaluation(config.expiration_BLO_factors['Breathing'], 'B'),
+        param_evaluation(config.expiration_BLO_factors['Breathing'], 'L'),
+        param_evaluation(config.expiration_BLO_factors['Breathing'], 'O')
+    ),
+    'Speaking': (
+        param_evaluation(config.expiration_BLO_factors['Speaking'], 'B'),
+        param_evaluation(config.expiration_BLO_factors['Speaking'], 'L'),
+        param_evaluation(config.expiration_BLO_factors['Speaking'], 'O')
+    ),
+    'Singing': (
+        param_evaluation(config.expiration_BLO_factors['Singing'], 'B'),
+        param_evaluation(config.expiration_BLO_factors['Singing'], 'L'),
+        param_evaluation(config.expiration_BLO_factors['Singing'], 'O')
+    ),
+    'Shouting': (
+        param_evaluation(config.expiration_BLO_factors['Shouting'], 'B'),
+        param_evaluation(config.expiration_BLO_factors['Shouting'], 'L'),
+        param_evaluation(config.expiration_BLO_factors['Shouting'], 'O')
+    ),
 }
 
 
 expiration_distributions = {
-    exp_type: expiration_distribution(BLO_factors)
+    exp_type: expiration_distribution(BLO_factors,
+                                      d_min=param_evaluation(
+                                          config.long_range_expiration_distributions, 'minimum_diameter'),
+                                      d_max=param_evaluation(config.long_range_expiration_distributions, 'maximum_diameter'))
     for exp_type, BLO_factors in expiration_BLO_factors.items()
 }
 
 
 short_range_expiration_distributions = {
-    exp_type: expiration_distribution(BLO_factors, d_max=100)
+    exp_type: expiration_distribution(
+        BLO_factors,
+        d_min=param_evaluation(
+            config.short_range_expiration_distributions, 'minimum_diameter'),
+        d_max=param_evaluation(config.short_range_expiration_distributions, 'maximum_diameter'))
     for exp_type, BLO_factors in expiration_BLO_factors.items()
 }
 
 
 # Derived from Fig 8 a) "stand-stand" in https://www.mdpi.com/1660-4601/17/4/1445/htm
-distances = np.array((0.5,0.6,0.7,0.8,0.9,1,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2))
-frequencies = np.array((0.0598036,0.0946154,0.1299152,0.1064905,0.1099066,0.0998209, 0.0845298,0.0479286,0.0406084,0.039795,0.0205997,0.0152316,0.0118155,0.0118155,0.018485,0.0205997))
-short_range_distances = Custom(bounds=(0.5,2.), 
-                            function=lambda x: np.interp(x,distances,frequencies,left=0.,right=0.),
-                            max_function=0.13)
+distances = np.array((0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2,
+                     1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2))
+frequencies = np.array((0.0598036, 0.0946154, 0.1299152, 0.1064905, 0.1099066, 0.0998209, 0.0845298,
+                       0.0479286, 0.0406084, 0.039795, 0.0205997, 0.0152316, 0.0118155, 0.0118155, 0.018485, 0.0205997))
+short_range_distances = Custom(bounds=(param_evaluation(config.short_range_distances, 'minimum_distance'),
+                                       param_evaluation(config.short_range_distances, 'maximum_distance')),
+                               function=lambda x: np.interp(
+                                   x, distances, frequencies, left=0., right=0.),
+                               max_function=0.13)
