@@ -22,6 +22,7 @@ DEFAULTS = {
     'ceiling_height': 0.,
     'conditional_probability_plot': False,
     'conditional_probability_viral_loads': False,
+    'CO2_fitting_result': '{}',
     'exposed_coffee_break_option': 'coffee_break_0',
     'exposed_coffee_duration': 5,
     'exposed_finish': '17:30',
@@ -103,8 +104,8 @@ VACCINE_BOOSTER_TYPE = ['AZD1222_(AstraZeneca)', 'Ad26.COV2.S_(Janssen)', 'BNT16
 VACCINE_TYPE = ['Ad26.COV2.S_(Janssen)', 'Any_mRNA_-_heterologous', 'AZD1222_(AstraZeneca)', 'AZD1222_(AstraZeneca)_and_any_mRNA_-_heterologous', 'AZD1222_(AstraZeneca)_and_BNT162b2_(Pfizer)',
                 'BBIBP-CorV_(Beijing_CNBG)', 'BNT162b2_(Pfizer)', 'BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)', 'CoronaVac_(Sinovac)', 'CoronaVac_(Sinovac)_and_AZD1222_(AstraZeneca)', 'Covishield',
                 'mRNA-1273_(Moderna)', 'Sputnik_V_(Gamaleya)', 'CoronaVac_(Sinovac)_and_BNT162b2_(Pfizer)']
-VENTILATION_TYPES = {'natural_ventilation',
-                     'mechanical_ventilation', 'no_ventilation'}
+VENTILATION_TYPES = {'natural_ventilation', 'mechanical_ventilation', 
+                     'no_ventilation', 'from_fitting'}
 VIRUS_TYPES: typing.List[str] = list(config.virus_distributions)
 VOLUME_TYPES = {'room_volume_explicit', 'room_volume_from_dimensions'}
 WINDOWS_OPENING_REGIMES = {'windows_open_permanently',

@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from caimira import models
 from caimira.apps.calculator import markdown_tools
 from ... import monte_carlo as mc
-from .model_generator import FormData, DEFAULT_MC_SAMPLE_SIZE
+from .model_generator import VirusFormData, DEFAULT_MC_SAMPLE_SIZE
 from ... import dataclass_utils
 from caimira.store.configuration import config
 
@@ -102,7 +102,7 @@ def interesting_times(model: models.ExposureModel, approx_n_pts: typing.Optional
     return nice_times
 
 
-def concentrations_with_sr_breathing(form: FormData, model: models.ExposureModel, times: typing.List[float], short_range_intervals: typing.List) -> typing.List[float]:
+def concentrations_with_sr_breathing(form: VirusFormData, model: models.ExposureModel, times: typing.List[float], short_range_intervals: typing.List) -> typing.List[float]:
     lower_concentrations = []
     for time in times:
         for index, (start, stop) in enumerate(short_range_intervals):
@@ -114,7 +114,7 @@ def concentrations_with_sr_breathing(form: FormData, model: models.ExposureModel
     return lower_concentrations
 
 
-def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing.Dict[str, typing.Any]:
+def calculate_report_data(form: VirusFormData, model: models.ExposureModel) -> typing.Dict[str, typing.Any]:
     times = interesting_times(model)
     short_range_intervals = [interaction.presence.boundaries()[0] for interaction in model.short_range]
     short_range_expirations = [interaction['expiration'] for interaction in form.short_range_interactions] if form.short_range_option == "short_range_yes" else []
@@ -150,6 +150,7 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
                                     zip(('viral_loads', 'pi_means', 'lower_percentiles', 'upper_percentiles'), 
                                         manufacture_conditional_probability_data(model, prob))}
 
+
     return {
         "model_repr": repr(model),
         "times": list(times),
@@ -174,8 +175,8 @@ def calculate_report_data(form: FormData, model: models.ExposureModel) -> typing
     }
 
 
-def generate_permalink(base_url, get_root_url,  get_root_calculator_url, form: FormData):
-    form_dict = FormData.to_dict(form, strip_defaults=True)
+def generate_permalink(base_url, get_root_url,  get_root_calculator_url, form: VirusFormData):
+    form_dict = VirusFormData.to_dict(form, strip_defaults=True)
 
     # Generate the calculator URL arguments that would be needed to re-create this
     # form.
@@ -318,6 +319,13 @@ def readable_minutes(minutes: int) -> str:
     return time_str + unit
 
 
+def hour_format(hour: float) -> str:
+    # Convert float hour to HH:MM format
+    hours = int(hour)
+    minutes = int(hour % 1 * 60)
+    return f"{hours}:{minutes if minutes != 0 else '00'}"
+
+
 def percentage(absolute: float) -> float:
     return absolute * 100
 
@@ -345,7 +353,7 @@ def manufacture_viral_load_scenarios_percentiles(model: mc.ExposureModel) -> typ
     return scenarios
 
 
-def manufacture_alternative_scenarios(form: FormData) -> typing.Dict[str, mc.ExposureModel]:
+def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, mc.ExposureModel]:
     scenarios = {}
     if (form.short_range_option == "short_range_no"):
         # Two special option cases - HEPA and/or FFP2 masks.
@@ -416,7 +424,7 @@ def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[fl
 
 
 def comparison_report(
-        form: FormData,
+        form: VirusFormData,
         report_data: typing.Dict[str, typing.Any],
         scenarios: typing.Dict[str, mc.ExposureModel],
         sample_times: typing.List[float],
@@ -464,7 +472,7 @@ class ReportGenerator:
     def build_report(
             self,
             base_url: str,
-            form: FormData,
+            form: VirusFormData,
             executor_factory: typing.Callable[[], concurrent.futures.Executor],
     ) -> str:
         model = form.build_model()
@@ -475,7 +483,7 @@ class ReportGenerator:
             self,
             base_url: str,
             model: models.ExposureModel,
-            form: FormData,
+            form: VirusFormData,
             executor_factory: typing.Callable[[], concurrent.futures.Executor],
     ) -> dict:
         now = datetime.utcnow().astimezone()
@@ -513,6 +521,7 @@ class ReportGenerator:
         env.filters['non_zero_percentage'] = non_zero_percentage
         env.filters['readable_minutes'] = readable_minutes
         env.filters['minutes_to_time'] = minutes_to_time
+        env.filters['hour_format'] = hour_format
         env.filters['float_format'] = "{0:.2f}".format
         env.filters['int_format'] = "{:0.0f}".format
         env.filters['percentage'] = percentage
