@@ -528,6 +528,23 @@
 								<li><p class="data_text">HEPA amount: {{ form.hepa_amount }} m³ / hour</p></li>
 							</ul>
 							{% endif %}
+							<li><p class="data_text">From Fitting:
+							{% if form.ventilation_type == "from_fitting" %}
+							Yes
+							<table class="w-25 mt-3 ml-4" border="1">
+								<tr><th> Time (HH:MM)</th><th>ACH value (h⁻¹)</th></tr>
+								{% for ventilation in form.CO2_fitting_result['ventilation_values'] %}
+									{% set transition_time = form.CO2_fitting_result['transition_times'] %}
+									<tr>
+										<td>{{ transition_time[loop.index - 1] | hour_format }} - {{ transition_time[loop.index] | hour_format }}</td>
+										<td>{{ ventilation | float_format }} </td>
+									</tr>
+								{% endfor %} 
+								</table>
+							{% else %}
+							No </p></li>
+							{% endif %}
+							</p></li>
 						</ul>
 					</div>
 				</div>
@@ -577,6 +594,9 @@
 							Laboratory - Lab or technical environment, all persons doing light physical activity, speaking 50% of the time.
 							{% elif form.activity_type == "gym" %}
 							Gym - For comparison only, all persons doing heavy physical exercise, breathing and not speaking.
+							{% endif %}
+							{% if form.ventilation_type == "from_fitting" %}
+							<p class="ml-5">Exhalation rate from fitting algorithm - {{form.CO2_fitting_result['exhalation_rate'] | round(2, 'floor')}} m³/h</p>
 							{% endif %}
 							</p></li>
 							{% if form.short_range_option == "short_range_yes" %}

@@ -26,7 +26,7 @@ from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 import tornado.log
 
 from . import markdown_tools
-from . import model_generator
+from . import model_generator, co2_model_generator
 from .report_generator import ReportGenerator, calculate_report_data
 from .user import AuthenticatedUser, AnonymousUser
 
@@ -37,7 +37,7 @@ from .user import AuthenticatedUser, AnonymousUser
 # calculator version. If the calculator needs to make breaking changes (e.g. change
 # form attributes) then it can also increase its MAJOR version without needing to
 # increase the overall CAiMIRA version (found at ``caimira.__version__``).
-__version__ = "4.13.0"
+__version__ = "4.14.0"
 
 LOG = logging.getLogger(__name__)
     
@@ -106,7 +106,7 @@ class ConcentrationModel(BaseRequestHandler):
             start = datetime.datetime.now()
                 
         try:
-            form = model_generator.FormData.from_dict(requested_model_config)
+            form = model_generator.VirusFormData.from_dict(requested_model_config)
         except Exception as err:
             if self.settings.get("debug", False):
                 import traceback
@@ -157,7 +157,7 @@ class ConcentrationModelJsonResponse(BaseRequestHandler):
             pprint(requested_model_config)
 
         try:
-            form = model_generator.FormData.from_dict(requested_model_config)
+            form = model_generator.VirusFormData.from_dict(requested_model_config)
         except Exception as err:
             if self.settings.get("debug", False):
                 import traceback
@@ -178,7 +178,7 @@ class ConcentrationModelJsonResponse(BaseRequestHandler):
 
 class StaticModel(BaseRequestHandler):
     async def get(self) -> None:
-        form = model_generator.FormData.from_dict(model_generator.baseline_raw_form_data())
+        form = model_generator.VirusFormData.from_dict(model_generator.baseline_raw_form_data())
         base_url = self.request.protocol + "://" + self.request.host
         report_generator: ReportGenerator = self.settings['report_generator']
         executor = loky.get_reusable_executor(max_workers=self.settings['handler_worker_pool_size'])
@@ -340,7 +340,53 @@ class GenericExtraPage(BaseRequestHandler):
             active_page=self.active_page,
             text_blocks=template_environment.globals["common_text"]
         ))
+        
 
+class CO2ModelResponse(BaseRequestHandler):
+    def check_xsrf_cookie(self):
+        """
+        This request handler implements a stateless API that returns report data in JSON format.
+        Thus, XSRF cookies are disabled by overriding base class implementation of this method with a pass statement.
+        """
+        pass
+    
+    async def post(self, endpoint: str) -> None:
+        requested_model_config = tornado.escape.json_decode(self.request.body)
+        try:
+            form = co2_model_generator.CO2FormData.from_dict(requested_model_config)
+        except Exception as err:
+            if self.settings.get("debug", False):
+                import traceback
+                print(traceback.format_exc())
+            response_json = {'code': 400, 'error': f'Your request was invalid {html.escape(str(err))}'}
+            self.set_status(400)
+            self.finish(json.dumps(response_json))
+            return
+
+        if endpoint.rstrip('/') == 'plot':
+            transition_times = co2_model_generator.CO2FormData.find_change_points_with_pelt(form.CO2_data)
+            self.finish({'CO2_plot': co2_model_generator.CO2FormData.generate_ventilation_plot(form.CO2_data, transition_times),
+                        'transition_times': [round(el, 2) for el in transition_times]})
+        else:
+            executor = loky.get_reusable_executor(
+                max_workers=self.settings['handler_worker_pool_size'],
+                timeout=300,
+            )
+            report_task = executor.submit(
+                co2_model_generator.CO2FormData.build_model, form,
+            )
+            report = await asyncio.wrap_future(report_task)
+        
+            result = dict(report.CO2_fit_params())
+            ventilation_transition_times = report.ventilation_transition_times
+
+            result['fitting_ventilation_type'] = form.fitting_ventilation_type
+            result['transition_times'] = ventilation_transition_times
+            result['CO2_plot'] = co2_model_generator.CO2FormData.generate_ventilation_plot(CO2_data=form.CO2_data, 
+                                                                transition_times=ventilation_transition_times[:-1], 
+                                                                predictive_CO2=result['predictive_CO2'])
+            self.finish(result)
+        
 
 def get_url(app_root: str, relative_path: str = '/'):
         return app_root.rstrip('/') + relative_path.rstrip('/')
@@ -363,6 +409,7 @@ def make_app(
     base_urls: typing.List = [
         (get_root_url(r'/?'), LandingPage),
         (get_root_calculator_url(r'/?'), CalculatorForm),
+        (get_root_calculator_url(r'/co2-fit/(.*)'), CO2ModelResponse),
         (get_root_calculator_url(r'/report'), ConcentrationModel),
         (get_root_url(r'/static/(.*)'), StaticFileHandler, {'path': static_dir}),
         (get_root_calculator_url(r'/static/(.*)'), StaticFileHandler, {'path': calculator_static_dir}),

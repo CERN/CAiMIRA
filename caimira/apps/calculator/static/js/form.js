@@ -493,6 +493,20 @@ function on_coffee_break_option_change() {
   }
 }
 
+function on_CO2_fitting_ventilation_change() {
+  ventilation_options = $('input[type=radio][name=fitting_ventilation_type]');
+  ventilation_options.each(function (index) {
+    if (this.checked) {
+      getChildElement($(this)).show();
+      require_fields(this);
+    }
+    else {
+      getChildElement($(this)).hide();
+      require_fields(this);
+    }
+  })
+}
+
 /* -------UI------- */
 
 function show_disclaimer() {
@@ -665,6 +679,14 @@ function validate_form(form) {
     on_short_range_option_change();
   }
 
+  // Check if fitting is selected
+  if ($('input[type=radio][id=from_fitting]').prop('checked')) {
+    if ($('#CO2_fitting_result').val() == '')
+      $("input[type=radio][id=no_ventilation]").prop("checked", true);
+      $("span.error_text").remove();
+    on_ventilation_type_change();
+  }
+
   if (submit) {
     $("#generate_report").prop("disabled", true);
     //Add spinner to button
@@ -672,6 +694,8 @@ function validate_form(form) {
       `<span id="loading_spinner" class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Loading...`
     );
   }
+
+  if ($("#CO2_fitting_result").val() == "") $("#CO2_data_no").click();
 
   return submit;
 }
@@ -914,6 +938,12 @@ $(document).ready(function () {
         // Validation after
       }
 
+
+      // Read CO2 Fitting Algorithms result
+      else if (name == 'CO2_fitting_result' || name == 'CO2_data') {
+        // Validation after
+      }
+
       //Ignore 0 (default) values from server side
       else if (!(elemObj.classList.contains("non_zero") || elemObj.classList.contains("remove_zero")) || (value != "0.0" && value != "0")) {
         elemObj.value = value;
@@ -923,6 +953,10 @@ $(document).ready(function () {
   });
 
   // Handle default URL values if they are not explicitly defined.
+
+  // Populate CO2 Fitting Algorithm Dialog
+  let CO2_data = url.searchParams.has('CO2_fitting_result') ? url.searchParams.get('CO2_fitting_result') : null;
+  if (CO2_data) displayFittingData(JSON.parse(CO2_data));
 
   // Populate primary vaccine dropdown
   $("#vaccine_type option").remove();
@@ -1038,6 +1072,12 @@ $(document).ready(function () {
   $("input[type=radio][name=infected_coffee_break_option]").change(on_coffee_break_option_change);
   // Call the function now to handle forward/back button presses in the browser.
   on_coffee_break_option_change();
+
+  // When the ventilation on the fitting changes we want to make its respective
+  // children show/hide.
+  $("input[type=radio][name=fitting_ventilation_type]").change(on_CO2_fitting_ventilation_change);
+  // Call the function now to handle forward/back button presses in the browser.
+  on_CO2_fitting_ventilation_change();
 
   // Setup the maximum number of people at page load (to handle back/forward),
   // and update it when total people is changed.
