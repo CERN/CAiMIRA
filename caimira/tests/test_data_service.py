@@ -1,5 +1,8 @@
+import time
 import unittest
 from unittest.mock import Mock, patch
+
+import jwt
 
 from caimira.store.data_service import DataService
 
@@ -9,6 +12,24 @@ class DataServiceTests(unittest.TestCase):
         # Set up any necessary test data or configurations
         self.credentials = {"email": "test@example.com", "password": "password123"}
         self.data_service = DataService(self.credentials)
+
+    def test_jwt_expiration(self):
+        is_valid = self.data_service._is_valid(None)
+        self.assertFalse(is_valid)
+
+        now = time.time()
+
+        encoded = jwt.encode({"exp": now - 10}, "very secret", algorithm="HS256")
+        is_valid = self.data_service._is_valid(encoded)
+        self.assertFalse(is_valid)
+
+        encoded = jwt.encode({"exp": now}, "very secret", algorithm="HS256")
+        is_valid = self.data_service._is_valid(encoded)
+        self.assertFalse(is_valid)
+
+        encoded = jwt.encode({"exp": now + 10}, "very secret", algorithm="HS256")
+        is_valid = self.data_service._is_valid(encoded)
+        self.assertTrue(is_valid)
 
     @patch("requests.post")
     def test_login_successful(self, mock_post):

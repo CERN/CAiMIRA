@@ -1,7 +1,9 @@
 import logging
 import os
 import typing
+from datetime import datetime, timedelta, timezone
 
+import jwt
 import requests
 
 from .configuration import config
@@ -24,12 +26,26 @@ class DataService:
         self._host = host
 
     def _is_valid(self, access_token):
-        # decode access_token
-        # check validity
+        try:
+            decoded = jwt.decode(
+                access_token, algorithms=["HS256"], options={"verify_signature": False}
+            )
+            expiration_timestamp = decoded["exp"]
+            expiration = datetime.utcfromtimestamp(expiration_timestamp).replace(
+                tzinfo=timezone.utc
+            )
+            now = datetime.now(timezone.utc)
+            return now < expiration - timedelta(
+                seconds=5
+            )  #  5 seconds time delta to avoid timing issues
+        except jwt.ExpiredSignatureError:
+            logger.warning("JWT token expired.")
+        except jwt.InvalidTokenError:
+            logger.warning("JWT token invalid.")
         return False
 
     def _login(self):
-        if self._is_valid(self._access_token):
+        if self._access_token and self._is_valid(self._access_token):
             return self._access_token
 
         # invalid access_token, fetch it again
