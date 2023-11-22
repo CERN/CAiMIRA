@@ -323,12 +323,18 @@
             </div>
             <div class="modal-body">    
               <div class="d-flex d-row justify-content-between">
-                <h5 class="mt-auto mb-auto">Upload an Excel file to preview in HTML Table</h5>
+                <h5 class="mt-auto mb-auto">Upload an Excel file:</h5>
                 <a class="btn btn-primary btn-sm" href="https://caimira-resources.web.cern.ch/CO2_template.xlsx">Download template</a>
+              </div>
+              <div class="d-flex">
+                <p>You may use the provided template and fill in the values.</p>
+                <div data-tooltip="File must have 2 columns, with headers 'Times' and 'CO2'.">
+                  <span class="tooltip_text">?</span>
+                </div>
               </div>
               <br>
               <!-- Input element to upload an excel file -->
-              <input type="file" id="file_upload" />
+              <input type="file" id="file_upload" accept=".xlsx, .xls"/>
               <button type="button" class="btn btn-primary btn-sm" onclick="uploadFile('{{ get_calculator_url() }}/co2-fit/plot');">Upload</button>  
               <div id="upload-error" class="mb-0 mt-2 alert alert-danger" style="display: none" role="alert"></div>
               <br>
@@ -339,8 +345,9 @@
               
               <div id="DIVCO2_fitting_to_submit" style="display: none">
                 <img id="CO2_data_plot"/><br>
-                <p id="suggestion_lines_txt" class="text-danger text-center">The dashed lines are suggestions for the ventilation transition times</p>
-                <p id="suggestion_lines_txt" class="text-danger mb-3 text-center">(generated from the input data using the Pelt algorithm).</p>
+                <p id="suggestion_lines_txt" class="text-danger text-center">
+                  The dashed lines are suggestions for the ventilation transition times<br>
+                  (generated from the input data using the Pelt algorithm).</p>
                 <strong>Ventilation scheme:</strong>
                 <div>
                   <input class="ml-2" type="radio" id="fitting_natural_ventilation" name="fitting_ventilation_type" value='fitting_natural_ventilation' checked="checked" data-enables="#DIVfitting_natural_ventilation" form="not-submitted" >
