@@ -1,4 +1,5 @@
 import argparse
+import logging
 from pathlib import Path
 
 from tornado.ioloop import IOLoop
@@ -37,13 +38,18 @@ def configure_parser(parser) -> argparse.ArgumentParser:
 def main():
     parser = configure_parser(argparse.ArgumentParser())
     args = parser.parse_args()
+
+    debug = args.no_debug
+    logging.getLogger().setLevel(logging.DEBUG if debug else logging.WARNING)
+
     theme_dir = args.theme
     if theme_dir is not None:
         theme_dir = Path(theme_dir).absolute()
         assert theme_dir.exists()
-    app = make_app(debug=args.no_debug, APPLICATION_ROOT=args.app_root, calculator_prefix=args.prefix, theme_dir=theme_dir)
+
+    app = make_app(debug=debug, APPLICATION_ROOT=args.app_root, calculator_prefix=args.prefix, theme_dir=theme_dir)
     app.listen(args.port)
-    IOLoop.instance().start()
+    IOLoop.current().start()
 
 
 if __name__ == '__main__':
