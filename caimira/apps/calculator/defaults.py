@@ -1,13 +1,10 @@
 import typing
 
-from caimira.store.configuration import config
-
 # ------------------ Default form values ----------------------
 
 # Used to declare when an attribute of a class must have a value provided, and
 # there should be no default value used.
 NO_DEFAULT = object()
-DEFAULT_MC_SAMPLE_SIZE = config.monte_carlo_sample_size
 
 #: The default values for undefined fields. Note that the defaults here
 #: and the defaults in the html form must not be contradictory.
@@ -82,17 +79,13 @@ DEFAULTS = {
 
 # ------------------ Activities ----------------------
 
-ACTIVITIES: typing.Dict[str, typing.Dict] = config.population_scenario_activity
-
 # ------------------ Validation ----------------------
-ACTIVITY_TYPES: typing.List[str] = list(ACTIVITIES.keys())
 COFFEE_OPTIONS_INT = {'coffee_break_0': 0, 'coffee_break_1': 1,
                       'coffee_break_2': 2, 'coffee_break_4': 4}
 CONFIDENCE_LEVEL_OPTIONS = {'confidence_low': 10,
                             'confidence_medium': 5, 'confidence_high': 2}
 MECHANICAL_VENTILATION_TYPES = {
     'mech_type_air_changes', 'mech_type_air_supply', 'not-applicable'}
-MASK_TYPES: typing.List[str] = list(config.mask_distributions.keys())
 MASK_WEARING_OPTIONS = {'mask_on', 'mask_off'}
 MONTH_NAMES = [
     'January', 'February', 'March', 'April', 'May', 'June', 'July',
@@ -104,9 +97,8 @@ VACCINE_BOOSTER_TYPE = ['AZD1222_(AstraZeneca)', 'Ad26.COV2.S_(Janssen)', 'BNT16
 VACCINE_TYPE = ['Ad26.COV2.S_(Janssen)', 'Any_mRNA_-_heterologous', 'AZD1222_(AstraZeneca)', 'AZD1222_(AstraZeneca)_and_any_mRNA_-_heterologous', 'AZD1222_(AstraZeneca)_and_BNT162b2_(Pfizer)',
                 'BBIBP-CorV_(Beijing_CNBG)', 'BNT162b2_(Pfizer)', 'BNT162b2_(Pfizer)_and_mRNA-1273_(Moderna)', 'CoronaVac_(Sinovac)', 'CoronaVac_(Sinovac)_and_AZD1222_(AstraZeneca)', 'Covishield',
                 'mRNA-1273_(Moderna)', 'Sputnik_V_(Gamaleya)', 'CoronaVac_(Sinovac)_and_BNT162b2_(Pfizer)']
-VENTILATION_TYPES = {'natural_ventilation', 'mechanical_ventilation', 
+VENTILATION_TYPES = {'natural_ventilation', 'mechanical_ventilation',
                      'no_ventilation', 'from_fitting'}
-VIRUS_TYPES: typing.List[str] = list(config.virus_distributions)
 VOLUME_TYPES = {'room_volume_explicit', 'room_volume_from_dimensions'}
 WINDOWS_OPENING_REGIMES = {'windows_open_permanently',
                            'windows_open_periodically', 'not-applicable'}

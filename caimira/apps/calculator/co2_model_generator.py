@@ -2,13 +2,14 @@ import dataclasses
 import logging
 import typing
 import numpy as np
+from caimira.store.data_registry import DataRegistry
 import ruptures as rpt
 import matplotlib.pyplot as plt
 import re
 
 from caimira import models
 from .form_data import FormData, cast_class_fields
-from .defaults import DEFAULT_MC_SAMPLE_SIZE, NO_DEFAULT
+from .defaults import NO_DEFAULT
 from .report_generator import img2base64, _figure2bytes
 
 minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
@@ -49,7 +50,7 @@ class CO2FormData(FormData):
         'total_people': NO_DEFAULT,
     }
 
-    def __init__(self, **kwargs):    
+    def __init__(self, **kwargs):
         # Set default values defined in CO2FormData
         for key, value in self._DEFAULTS.items():
             setattr(self, key, kwargs.get(key, value))
@@ -62,7 +63,7 @@ class CO2FormData(FormData):
         if self.specific_breaks != {}:
             if type(self.specific_breaks) is not dict:
                 raise TypeError('The specific breaks should be in a dictionary.')
-            
+
             dict_keys = list(self.specific_breaks.keys())
             if "exposed_breaks" not in dict_keys:
                 raise TypeError(f'Unable to fetch "exposed_breaks" key. Got "{dict_keys[0]}".')
@@ -119,10 +120,10 @@ class CO2FormData(FormData):
             result_set.add(times[CO2_values.index(min(CO2_np[segment]))])
             result_set.add(times[CO2_values.index(max(CO2_np[segment]))])
         return list(result_set)
-    
+
     @classmethod
-    def generate_ventilation_plot(self, CO2_data: dict, 
-                                  transition_times: typing.Optional[list] = None, 
+    def generate_ventilation_plot(self, CO2_data: dict,
+                                  transition_times: typing.Optional[list] = None,
                                   predictive_CO2: typing.Optional[list] = None):
             times_values = CO2_data['times']
             CO2_values = CO2_data['CO2']
@@ -139,7 +140,7 @@ class CO2FormData(FormData):
             plt.ylabel('Concentration (ppm)')
             plt.legend()
             return img2base64(_figure2bytes(fig))
-    
+
     def population_present_changes(self, infected_presence: models.Interval, exposed_presence: models.Interval) -> typing.List[float]:
         state_change_times = set(infected_presence.transition_times())
         state_change_times.update(exposed_presence.transition_times())
@@ -154,10 +155,11 @@ class CO2FormData(FormData):
         else:
             return tuple((self.CO2_data['times'][0], self.CO2_data['times'][-1]))
 
-    def build_model(self, size=DEFAULT_MC_SAMPLE_SIZE) -> models.CO2DataModel: # type: ignore
+    def build_model(self, size=None) -> models.CO2DataModel: # type: ignore
+        size = size or self.data_registry.monte_carlo_sample_size
         # Build a simple infected and exposed population for the case when presence
         # intervals and number of people are dynamic. Activity type is not needed.
-        infected_presence = self.infected_present_interval()        
+        infected_presence = self.infected_present_interval()
         infected_population = models.SimplePopulation(
             number=self.infected_people,
             presence=infected_presence,
@@ -173,7 +175,7 @@ class CO2FormData(FormData):
         all_state_changes=self.population_present_changes(infected_presence, exposed_presence)
         total_people = [infected_population.people_present(stop) + exposed_population.people_present(stop)
                         for _, stop in zip(all_state_changes[:-1], all_state_changes[1:])]
-      
+
         return models.CO2DataModel(
                 room_volume=self.room_volume,
                 number=models.IntPiecewiseConstant(transition_times=tuple(all_state_changes), values=tuple(total_people)),
@@ -182,5 +184,5 @@ class CO2FormData(FormData):
                 times=self.CO2_data['times'],
                 CO2_concentrations=self.CO2_data['CO2'],
             )
-    
+
 cast_class_fields(CO2FormData)
