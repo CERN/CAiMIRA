@@ -45,7 +45,7 @@ class KnownConcentrationModelBase(models._ConcentrationModelBase):
         {'viral_load_in_sputum': np.array([5e8, 1e9])},
     ]
 )
-def test_concentration_model_vectorisation(override_params):
+def test_concentration_model_vectorisation(override_params, data_registry):
     defaults = {
         'volume': 75,
         'humidity': 0.5,
@@ -56,9 +56,11 @@ def test_concentration_model_vectorisation(override_params):
 
     always = models.PeriodicInterval(240, 240)  # TODO: This should be a thing on an interval.
     c_model = models.ConcentrationModel(
+        data_registry,
         models.Room(defaults['volume'], models.PiecewiseConstant((0., 24.), (293,)), defaults['humidity']),
         models.AirChange(always, defaults['air_change']),
         models.InfectedPopulation(
+            data_registry=data_registry,
             number=1,
             presence=always,
             mask=models.Mask(
@@ -86,12 +88,14 @@ def test_concentration_model_vectorisation(override_params):
 
 
 @pytest.fixture
-def simple_conc_model():
+def simple_conc_model(data_registry):
     interesting_times = models.SpecificInterval(([0.5, 1.], [1.1, 2], [2., 3.]), )
     return models.ConcentrationModel(
+        data_registry=data_registry,
         room = models.Room(75, models.PiecewiseConstant((0., 24.), (293,))),
         ventilation = models.AirChange(interesting_times, 100),
         infected = models.InfectedPopulation(
+            data_registry=data_registry,
             number=1,
             presence=interesting_times,
             mask=models.Mask.types['Type I'],
@@ -180,11 +184,11 @@ def test_integrated_concentration(simple_conc_model):
     npt.assert_almost_equal(c1, c2 + c3, decimal=15)
 
 
-# The expected numbers were obtained via the quad integration of the 
+# The expected numbers were obtained via the quad integration of the
 # normed_integrated_concentration method with 0 (start) and 2 (stop) as limits.
 @pytest.mark.parametrize([
-    "known_min_background_concentration", 
-    "expected_normed_integrated_concentration"], 
+    "known_min_background_concentration",
+    "expected_normed_integrated_concentration"],
     [
         [0.0, 0.00018533333708996207],
         [240.0, 48.000185340695275],
@@ -196,26 +200,26 @@ def test_integrated_concentration(simple_conc_model):
 def test_normed_integrated_concentration_with_background_concentration(
     simple_conc_model: models.ConcentrationModel,
     dummy_population: models.Population,
-    known_min_background_concentration: float, 
+    known_min_background_concentration: float,
     expected_normed_integrated_concentration: float):
 
     known_conc_model = KnownConcentrationModelBase(
-        room = simple_conc_model.room, 
-        ventilation = simple_conc_model.ventilation, 
+        room = simple_conc_model.room,
+        ventilation = simple_conc_model.ventilation,
         known_population = dummy_population,
         known_removal_rate = 100.,
         known_min_background_concentration = known_min_background_concentration,
-        known_normalization_factor = 10.)    
+        known_normalization_factor = 10.)
     npt.assert_almost_equal(known_conc_model.normed_integrated_concentration(0, 2), expected_normed_integrated_concentration)
 
 
-# The expected numbers were obtained via the quad integration of the 
+# The expected numbers were obtained via the quad integration of the
 # normed_integrated_concentration method with 0 (start) and 2 (stop) as limits.
 @pytest.mark.parametrize([
     "known_removal_rate",
-    "known_min_background_concentration", 
+    "known_min_background_concentration",
     "known_normalization_factor",
-    "expected_normed_integrated_concentration"], 
+    "expected_normed_integrated_concentration"],
     [
         [np.array([0.25, 10]), 0.0, 10., np.array([0.012161005755130391, 0.0017333437605308818])],
         [100, np.array([0, 240.0]), 10., np.array([0.00018533333708996207, 48.000185340695275])],
@@ -228,18 +232,18 @@ def test_normed_integrated_concentration_vectorisation(
     simple_conc_model: models.ConcentrationModel,
     dummy_population: models.Population,
     known_removal_rate: float,
-    known_min_background_concentration: float, 
+    known_min_background_concentration: float,
     known_normalization_factor: float,
     expected_normed_integrated_concentration: float):
 
     known_conc_model = KnownConcentrationModelBase(
-        room = simple_conc_model.room, 
-        ventilation = simple_conc_model.ventilation, 
+        room = simple_conc_model.room,
+        ventilation = simple_conc_model.ventilation,
         known_population = dummy_population,
         known_removal_rate = known_removal_rate,
         known_min_background_concentration = known_min_background_concentration,
         known_normalization_factor = known_normalization_factor)
-    
+
     integrated_concentration = known_conc_model.normed_integrated_concentration(0, 2)
 
     assert isinstance(integrated_concentration, np.ndarray)
@@ -249,8 +253,8 @@ def test_normed_integrated_concentration_vectorisation(
 
 @pytest.mark.parametrize([
     "known_removal_rate",
-    "known_min_background_concentration", 
-    "expected_concentration"], 
+    "known_min_background_concentration",
+    "expected_concentration"],
     [
         [0., 240., 240. + 0.5/75],
         [0.0001, 240.0, 240. + 0.5/75],
@@ -267,13 +271,12 @@ def test_zero_ventilation_rate(
     expected_concentration: float):
 
     known_conc_model = KnownConcentrationModelBase(
-        room = simple_conc_model.room, 
-        ventilation = simple_conc_model.ventilation, 
+        room = simple_conc_model.room,
+        ventilation = simple_conc_model.ventilation,
         known_population = dummy_population,
         known_removal_rate = known_removal_rate,
         known_normalization_factor=1.,
         known_min_background_concentration = known_min_background_concentration)
-    
+
     normed_concentration = known_conc_model.concentration(1)
     assert normed_concentration == pytest.approx(expected_concentration, abs=1e-6)
-    

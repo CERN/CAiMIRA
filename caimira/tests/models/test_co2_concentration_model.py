@@ -5,8 +5,9 @@ from caimira import models
 
 
 @pytest.fixture
-def simple_co2_conc_model():
+def simple_co2_conc_model(data_registry):
     return models.CO2ConcentrationModel(
+        data_registry=data_registry,
         room=models.Room(200, models.PiecewiseConstant((0., 24.), (293,))),
         ventilation=models.AirChange(models.PeriodicInterval(period=120, duration=120), 0.25),
         CO2_emitters=models.SimplePopulation(

@@ -1,5 +1,7 @@
-class Configuration:
-    """Configuration singleton to cache data values."""
+class DataRegistry:
+    """Registry to hold data values."""
+
+    version = None
 
     BLOmodel = {
         "cn": {
@@ -441,11 +443,10 @@ class Configuration:
         "precise": {"activity": "", "expiration": {}},
     }
 
-    def update(self, data):
+    def update(self, data, version=None):
         """Update local cache with data provided as argument."""
         for attr_name, value in data.items():
             setattr(self, attr_name, value)
 
-
-# module-level variable as a form of singleton
-config = Configuration()
+        if version:
+            self.version = version
