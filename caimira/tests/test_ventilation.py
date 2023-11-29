@@ -8,8 +8,9 @@ from caimira import models
 
 
 @pytest.fixture
-def baseline_slidingwindow():
+def baseline_slidingwindow(data_registry):
     return models.SlidingWindow(
+            data_registry=data_registry,
             active=models.SpecificInterval(((0, 4), (5, 9))),
             outside_temp=models.PiecewiseConstant((0, 24), (283,)),
             window_height=1.6, opening_length=0.6,

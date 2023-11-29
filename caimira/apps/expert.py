@@ -13,7 +13,8 @@ import numpy as np
 import datetime
 import pandas as pd
 
-from caimira import data, models, state    
+from caimira import data, models, state
+from caimira.store.data_registry import DataRegistry
 
 
 def collapsible(widgets_to_collapse: typing.List, title: str, start_collapsed=False):
@@ -134,12 +135,12 @@ class ExposureModelResult(View):
         ax.set_ylabel('Mean concentration ($IRP/m^{3}$)')
         ax.set_title('Concentration and Cumulative\ndose of Infectious Respiratory Particles')
 
-        ax2 = ax.twinx() 
+        ax2 = ax.twinx()
         ax2.spines['left'].set_visible(False)
         ax2.spines['top'].set_visible(False)
         ax2.set_ylabel('Mean cumulative dose (IRP)')
         ax2.spines['right'].set_linestyle((0,(1,4)))
-        
+
         return ax, ax2
 
     def update(self, model: models.ExposureModel):
@@ -152,7 +153,7 @@ class ExposureModelResult(View):
         ts = np.linspace(sorted(infected_presence.transition_times())[0],
                          sorted(infected_presence.transition_times())[-1], resolution)
         concentration = [model.concentration(t) for t in ts]
-        
+
         cumulative_doses = np.cumsum([
             np.array(model.deposited_exposure_between_bounds(float(time1), float(time2))).mean()
             for time1, time2 in zip(ts[:-1], ts[1:])
@@ -164,23 +165,23 @@ class ExposureModelResult(View):
         else:
             self.ax.ignore_existing_data_limits = False
             self.concentration_line.set_data(ts, concentration)
-        
+
         exposed_presence = model.exposed.presence_interval()
 
         if self.concentration_area is None:
             self.concentration_area = self.ax.fill_between(x = ts, y1=0, y2=concentration, color="#96cbff",
-                where = ((exposed_presence.boundaries()[0][0] < ts) & (ts < exposed_presence.boundaries()[0][1]) | 
+                where = ((exposed_presence.boundaries()[0][0] < ts) & (ts < exposed_presence.boundaries()[0][1]) |
                     (exposed_presence.boundaries()[1][0] < ts) & (ts < exposed_presence.boundaries()[1][1])))
-                   
+
         else:
-            self.concentration_area.remove()         
+            self.concentration_area.remove()
             self.concentration_area = self.ax.fill_between(x = ts, y1=0, y2=concentration, color="#96cbff",
-                where = ((exposed_presence.boundaries()[0][0] < ts) & (ts < exposed_presence.boundaries()[0][1]) | 
+                where = ((exposed_presence.boundaries()[0][0] < ts) & (ts < exposed_presence.boundaries()[0][1]) |
                     (exposed_presence.boundaries()[1][0] < ts) & (ts < exposed_presence.boundaries()[1][1])))
 
         if self.cumulative_line is None:
             [self.cumulative_line] = self.ax2.plot(ts[:-1], cumulative_doses, color='#0000c8', linestyle='dotted')
-            
+
         else:
             self.ax2.ignore_existing_data_limits = False
             self.cumulative_line.set_data(ts[:-1], cumulative_doses)
@@ -190,9 +191,9 @@ class ExposureModelResult(View):
         cumulative_top = max(cumulative_doses)
         self.ax2.set_ylim(bottom=0., top=cumulative_top)
 
-        self.ax.set_xlim(left = min(min(infected_presence.boundaries()[0]), min(exposed_presence.boundaries()[0])), 
+        self.ax.set_xlim(left = min(min(infected_presence.boundaries()[0]), min(exposed_presence.boundaries()[0])),
                         right = max(max(infected_presence.boundaries()[1]), max(exposed_presence.boundaries()[1])))
-   
+
         figure_legends = [mlines.Line2D([], [], color='#3530fe', markersize=15, label='Mean concentration'),
                    mlines.Line2D([], [], color='#0000c8', markersize=15, ls="dotted", label='Cumulative dose'),
                    patches.Patch(edgecolor="#96cbff", facecolor='#96cbff', label='Presence of exposed person(s)')]
@@ -214,7 +215,7 @@ class ExposureModelResult(View):
         R0 = np.round(np.array(model.reproduction_number()).mean(), 1)
         lines.append(f'Reproduction number (R0): {R0}')
 
-        self.html_output.value = '<br>\n'.join(lines)    
+        self.html_output.value = '<br>\n'.join(lines)
 
 
 class ExposureComparisonResult(View):
@@ -234,7 +235,7 @@ class ExposureComparisonResult(View):
         ax = self.figure.add_subplot(1, 1, 1)
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
-        
+
         ax.set_xlabel('Time (hours)')
         ax.set_ylabel('Mean concentration ($IRP/m^{3}$)')
         ax.set_title('Concentration and Cumulative\ndose of Infectious Respiratory Particles')
@@ -258,22 +259,22 @@ class ExposureComparisonResult(View):
     def update_plot(self, exp_models: typing.Tuple[models.ExposureModel, ...], labels: typing.Tuple[str, ...]):
         [line.remove() for line in self.ax.lines]
         [line.remove() for line in self.ax2.lines]
- 
+
         start, finish = models_start_end(exp_models)
         colors=['blue', 'red', 'orange', 'yellow', 'pink', 'purple', 'green', 'brown', 'black' ]
         ts = np.linspace(start, finish, num=250)
         concentrations = [[conc_model.concentration_model.concentration(t) for t in ts] for conc_model in exp_models]
         for label, concentration, color in zip(labels, concentrations, colors):
             self.ax.plot(ts, concentration, label=label, color=color)
-            
+
         cumulative_doses = [np.cumsum([
             np.array(conc_model.deposited_exposure_between_bounds(float(time1), float(time2))).mean()
             for time1, time2 in zip(ts[:-1], ts[1:])
         ]) for conc_model in exp_models]
-        
+
         for label, cumulative_dose, color in zip(labels, cumulative_doses, colors):
             self.ax2.plot(ts[:-1], cumulative_dose, label=label, color=color, linestyle="dotted")
-            
+
         concentration_top = max([max(np.array(concentration)) for concentration in concentrations])
         self.ax.set_ylim(bottom=0., top=concentration_top)
         cumulative_top = max([max(cumulative_dose) for cumulative_dose in cumulative_doses])
@@ -282,7 +283,7 @@ class ExposureComparisonResult(View):
         handles, labels = self.figure.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         self.ax.legend(by_label.values(), by_label.keys())
-        
+
         self.figure.canvas.draw()
 
 
@@ -301,7 +302,7 @@ class ModelWidgets(View):
         self.widget.children += (self._build_ventilation(node.concentration_model.ventilation),)
         self.widget.children += (self._build_infected(node.concentration_model.infected, node.concentration_model.ventilation),)
         self.widget.children += (self._build_exposed(node),)
-        
+
     def _build_exposed(self, node):
         return collapsible([widgets.VBox([
             self._build_exposed_number(node.exposed),
@@ -329,7 +330,7 @@ class ModelWidgets(View):
 
         # TODO: Link the state back to the widget, not just the other way around.
         room_volume.observe(on_volume_change, names=['value'])
-    
+
         return widgets.HBox([widgets.Label('Room volume (m³)'), room_volume], layout=widgets.Layout(justify_content='space-between'))
 
 
@@ -339,15 +340,15 @@ class ModelWidgets(View):
         displayed_volume=widgets.Label('75')
 
         def on_room_surface_change(change):
-            node.volume = change['new']*room_ceiling_height.value 
+            node.volume = change['new']*room_ceiling_height.value
             displayed_volume.value=str(node.volume)
 
         def on_room_ceiling_height_change(change):
-            node.volume = change['new']*room_surface.value 
+            node.volume = change['new']*room_surface.value
             displayed_volume.value=str(node.volume)
 
         room_surface.observe(on_room_surface_change, names=['value'])
-        room_ceiling_height.observe(on_room_ceiling_height_change, names=['value'])        
+        room_ceiling_height.observe(on_room_ceiling_height_change, names=['value'])
 
         return widgets.VBox([widgets.HBox([widgets.Label('Room surface area (m²) '), room_surface],
         layout=widgets.Layout(justify_content='space-between', width='100%')),
@@ -436,16 +437,16 @@ class ModelWidgets(View):
 
             # TODO: Link the state back to the widget, not just the other way around.
             hinged_window.observe(on_hinged_window_change, names=['value'])
-            
+
             return widgets.HBox([widgets.Label('Window width (meters) '), hinged_window], layout=widgets.Layout(justify_content='space-between', width='100%'))
 
     def _build_sliding_window(self, node):
-        return widgets.HBox([]) 
+        return widgets.HBox([])
 
     def _build_window(self, node) -> WidgetGroup:
         window_widgets = {
             'Natural': self._build_sliding_window(node._states['Natural']),
-            'Hinged window': self._build_hinged_window(node._states['Hinged window']), 
+            'Hinged window': self._build_hinged_window(node._states['Hinged window']),
         }
 
         for name, widget in window_widgets.items():
@@ -479,7 +480,7 @@ class ModelWidgets(View):
 
         def on_value_change(change):
             node.number_of_windows = change['new']
-        
+
         def on_period_change(change):
             node.active.period = change['new']
 
@@ -488,7 +489,7 @@ class ModelWidgets(View):
 
         def on_opening_length_change(change):
             node.opening_length = change['new']
-        
+
         def on_window_height_change(change):
             node.window_height = change['new']
 
@@ -522,9 +523,9 @@ class ModelWidgets(View):
         result = WidgetGroup(
             (
                 (
-                   widgets.Label('Number of windows ', layout=auto_width), 
+                   widgets.Label('Number of windows ', layout=auto_width),
                    number_of_windows,
-                ),                
+                ),
                 (
                     widgets.Label('Opening distance (meters)', layout=auto_width),
                     opening_length,
@@ -621,7 +622,7 @@ class ModelWidgets(View):
             if activity == activity_:
                 break
         activity = widgets.Dropdown(options=list(models.Activity.types.keys()), value=name)
-        
+
         def on_activity_change(change):
             act = models.Activity.types[change['new']]
             node.dcs_update_from(act)
@@ -652,7 +653,7 @@ class ModelWidgets(View):
         number.observe(on_exposed_number_change, names=['value'])
 
         return widgets.HBox([widgets.Label('Number of exposed people in the room '), number], layout=widgets.Layout(justify_content='space-between'))
-        
+
     def _build_exposed_presence(self, node):
         presence_start = generate_presence_widget(min='00:00', max='13:00', node=node.present_times[0])
         presence_finish = generate_presence_widget(min='13:00', max='23:59', node=node.present_times[1])
@@ -664,13 +665,13 @@ class ModelWidgets(View):
         def on_presence_finish_change(change):
             new_value = tuple([int(time[:-3])+float(time[3:])/60 for time in change['new']])
             node.present_times = (node.present_times[0], new_value)
-        
+
         presence_start.observe(on_presence_start_change, names=['value'])
         presence_finish.observe(on_presence_finish_change, names=['value'])
 
         return widgets.VBox([
-            widgets.Label('Exposed presence:'), 
-            widgets.HBox([widgets.Label('Morning:', layout=widgets.Layout(width='15%')), presence_start]), 
+            widgets.Label('Exposed presence:'),
+            widgets.HBox([widgets.Label('Morning:', layout=widgets.Layout(width='15%')), presence_start]),
             widgets.HBox([widgets.Label('Afternoon:', layout=widgets.Layout(width='15%')), presence_finish])
         ])
 
@@ -695,9 +696,9 @@ class ModelWidgets(View):
         def on_expiration_change(change):
             expiration = models.Expiration.types[change['new']]
             node.dcs_update_from(expiration)
-            
+
         expiration_choice.observe(on_expiration_change, names=['value'])
-        
+
         return widgets.HBox([widgets.Label("Expiration"), expiration_choice], layout=widgets.Layout(justify_content='space-between'))
 
     def _build_viral_load(self, node):
@@ -707,9 +708,9 @@ class ModelWidgets(View):
             node.viral_load_in_sputum = float(viral_load_in_sputum.value)
 
         viral_load_in_sputum.observe(on_viral_load_change, names=['value'])
-        
+
         return widgets.HBox([widgets.Label("Viral load (copies/ml)"), viral_load_in_sputum], layout=widgets.Layout(justify_content='space-between'))
-    
+
     def _build_infected_presence(self, node, ventilation_node):
         presence_start = generate_presence_widget(min='00:00', max='13:00', node=node.present_times[0])
         presence_finish = generate_presence_widget(min='13:00', max='23:59', node=node.present_times[1])
@@ -722,13 +723,13 @@ class ModelWidgets(View):
         def on_presence_finish_change(change):
             new_value = tuple([int(time[:-3])+float(time[3:])/60 for time in change['new']])
             node.present_times = (node.present_times[0], new_value)
-        
+
         presence_start.observe(on_presence_start_change, names=['value'])
         presence_finish.observe(on_presence_finish_change, names=['value'])
 
         return widgets.VBox([
-            widgets.Label('Infected presence:'), 
-            widgets.HBox([widgets.Label('Morning:', layout=widgets.Layout(width='15%')), presence_start]), 
+            widgets.Label('Infected presence:'),
+            widgets.HBox([widgets.Label('Morning:', layout=widgets.Layout(width='15%')), presence_start]),
             widgets.HBox([widgets.Label('Afternoon:', layout=widgets.Layout(width='15%')), presence_finish])
         ])
 
@@ -767,7 +768,7 @@ class ModelWidgets(View):
 
         ventilation_w.observe(lambda event: toggle_ventilation(event['new']), 'value')
         toggle_ventilation(ventilation_w.value)
-        
+
         w = collapsible(
             ([widgets.HBox([widgets.Label('Ventilation type'), ventilation_w], layout=widgets.Layout(justify_content='space-between'))])
             + list(ventilation_widgets.values()),
@@ -779,7 +780,7 @@ class ModelWidgets(View):
         self,
         node,
     ) -> widgets.Widget:
-        
+
         HEPA_w = widgets.FloatSlider(value=node.q_air_mech, min=10, max=500, step=5)
 
         def on_value_change(change):
@@ -807,17 +808,17 @@ class ModelWidgets(View):
             node.dcs_update_from(virus)
             transmissibility_factor.value = virus.transmissibility_factor
             infectious_dose.value = virus.infectious_dose
-            
+
         def on_transmissibility_change(change):
-            virus = models.SARSCoV2(viral_load_in_sputum=node.dcs_instance().viral_load_in_sputum, infectious_dose=infectious_dose.value, 
+            virus = models.SARSCoV2(viral_load_in_sputum=node.dcs_instance().viral_load_in_sputum, infectious_dose=infectious_dose.value,
                                     viable_to_RNA_ratio=0.5, transmissibility_factor=change['new'])
             node.dcs_update_from(virus)
             if (transmissibility_factor.value != models.Virus.types[virus_choice.value].transmissibility_factor):
                 virus_choice.options = list(models.Virus.types.keys()) + ["Custom"]
                 virus_choice.value = "Custom"
-        
+
         def on_infectious_dose_change(change):
-            virus = models.SARSCoV2(viral_load_in_sputum=node.dcs_instance().viral_load_in_sputum, infectious_dose=change['new'], 
+            virus = models.SARSCoV2(viral_load_in_sputum=node.dcs_instance().viral_load_in_sputum, infectious_dose=change['new'],
                                     viable_to_RNA_ratio=0.5, transmissibility_factor=transmissibility_factor.value)
             node.dcs_update_from(virus)
             if (infectious_dose.value != models.Virus.types[virus_choice.value].infectious_dose):
@@ -830,50 +831,54 @@ class ModelWidgets(View):
 
         space_between=widgets.Layout(justify_content='space-between')
         return widgets.VBox([
-            widgets.HBox([widgets.Label("Virus"), virus_choice], layout=space_between), 
-            widgets.HBox([widgets.Label("Tansmissibility factor "), transmissibility_factor], layout=space_between), 
+            widgets.HBox([widgets.Label("Virus"), virus_choice], layout=space_between),
+            widgets.HBox([widgets.Label("Tansmissibility factor "), transmissibility_factor], layout=space_between),
             widgets.HBox([widgets.Label("Infectious dose "), infectious_dose], layout=space_between)])
 
     def present(self):
         return self.widget
 
-baseline_model = models.ExposureModel(
-    concentration_model=models.ConcentrationModel(
-        room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293.15,))),
-        ventilation=models.SlidingWindow(
-            active=models.PeriodicInterval(period=120, duration=15),
-            outside_temp=models.PiecewiseConstant((0., 24.), (283.15,)),
-            window_height=1.6, opening_length=0.6,
+def baseline_model(data_registry: DataRegistry):
+    return models.ExposureModel(
+        concentration_model=models.ConcentrationModel(
+            data_registry=data_registry,
+            room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293.15,))),
+            ventilation=models.SlidingWindow(
+                active=models.PeriodicInterval(period=120, duration=15),
+                outside_temp=models.PiecewiseConstant((0., 24.), (283.15,)),
+                window_height=1.6, opening_length=0.6,
+            ),
+            infected=models.InfectedPopulation(
+                data_registry=data_registry,
+                number=1,
+                virus=models.Virus.types['SARS_CoV_2'],
+                presence=models.SpecificInterval(((8.5, 12.5), (13.5, 17.5))),
+                mask=models.Mask.types['No mask'],
+                activity=models.Activity.types['Seated'],
+                expiration=models.Expiration.types['Speaking'],
+                host_immunity=0.,
+            ),
+            evaporation_factor=0.3,
         ),
-        infected=models.InfectedPopulation(
-            number=1,
-            virus=models.Virus.types['SARS_CoV_2'],
+        short_range=(),
+        exposed=models.Population(
+            number=10,
             presence=models.SpecificInterval(((8.5, 12.5), (13.5, 17.5))),
-            mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Seated'],
-            expiration=models.Expiration.types['Speaking'],
+            mask=models.Mask.types['No mask'],
             host_immunity=0.,
         ),
-        evaporation_factor=0.3,
-    ),
-    short_range=(),
-    exposed=models.Population(
-        number=10,
-        presence=models.SpecificInterval(((8.5, 12.5), (13.5, 17.5))),
-        activity=models.Activity.types['Seated'],
-        mask=models.Mask.types['No mask'],
-        host_immunity=0.,
-    ),
-    geographical_data=models.Cases(),
-)
+        geographical_data=models.Cases(),
+    )
 
 
 class CAIMIRAStateBuilder(state.StateBuilder):
     # Note: The methods in this class must correspond to the *type* of the data classes.
     # For example, build_type__VentilationBase is called when dealing with ConcentrationModel
     # types as it has a ventilation: _VentilationBase field.
-    
-    def __init__(self, selected_ventilation: str):
+
+    def __init__(self, data_registry: DataRegistry, selected_ventilation: str):
+        self.data_registry = data_registry
         self.selected_ventilation = selected_ventilation
 
     def build_type_Mask(self, _: dataclasses.Field):
@@ -923,6 +928,7 @@ class CAIMIRAStateBuilder(state.StateBuilder):
 
 class ExpertApplication(Controller):
     def __init__(self) -> None:
+        self._data_registry = DataRegistry()
         #: A list of scenario name and ModelState instances. This is intended to be
         #: mutated. Any mutation should notify the appropriate Views for handling.
         self._model_scenarios: typing.List[ScenarioType] = []
@@ -948,9 +954,9 @@ class ExpertApplication(Controller):
     def build_new_model(self, vent: str) -> state.DataclassInstanceState[models.ExposureModel]:
         default_model = state.DataclassInstanceState(
             models.ExposureModel,
-            state_builder=CAIMIRAStateBuilder(selected_ventilation=vent),
+            state_builder=CAIMIRAStateBuilder(data_registry=self._data_registry, selected_ventilation=vent),
         )
-        default_model.dcs_update_from(baseline_model)
+        default_model.dcs_update_from((baseline_model(self._data_registry)))
         # For the time-being, we have to initialise the select states. Careful
         # as values might not correspond to what the baseline model says.
         default_model.concentration_model.infected.mask.dcs_select('No mask')
@@ -962,7 +968,7 @@ class ExpertApplication(Controller):
             model.dcs_update_from(copy_from_model.dcs_instance())
         else:
             model = self.build_new_model(vent='Natural') # Default
-            model.dcs_update_from(baseline_model)
+            model.dcs_update_from(baseline_model(self._data_registry))
 
         self._model_scenarios.append((name, model))
         self._active_scenario = len(self._model_scenarios) - 1
@@ -1067,7 +1073,7 @@ class MultiModelView(View):
         self._tab_model_ids.pop(tab_index)
         self._tab_widgets.pop(tab_index)
         self._tab_model_views.pop(tab_index)
-        
+
         self.update_tab_widget()
 
     def update_tab_widget(self):
