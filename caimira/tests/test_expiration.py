@@ -52,8 +52,8 @@ def test_multiple():
         [(1.,5.,5.), 1.06701e-10],
     ],
 )
-def test_expiration_aerosols(BLO_weights, expected_aerosols):
+def test_expiration_aerosols(data_registry, BLO_weights, expected_aerosols):
     mask = models.Mask.types['No mask']
-    e = expiration_distribution(BLO_weights)
+    e = expiration_distribution(data_registry, BLO_weights)
     npt.assert_allclose(e.build_model(100000).aerosols(mask).mean(),
                         expected_aerosols, rtol=1e-2)

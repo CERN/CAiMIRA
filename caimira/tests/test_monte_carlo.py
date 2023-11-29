@@ -37,16 +37,19 @@ def test_type_annotations():
 
 
 @pytest.fixture
-def baseline_mc_concentration_model() -> caimira.monte_carlo.ConcentrationModel:
+def baseline_mc_concentration_model(data_registry) -> caimira.monte_carlo.ConcentrationModel:
     mc_model = caimira.monte_carlo.ConcentrationModel(
-        room=caimira.monte_carlo.Room(volume=caimira.monte_carlo.sampleable.Normal(75, 20), 
+        data_registry=data_registry,
+        room=caimira.monte_carlo.Room(volume=caimira.monte_carlo.sampleable.Normal(75, 20),
                         inside_temp=caimira.models.PiecewiseConstant((0., 24.), (293,))),
         ventilation=caimira.monte_carlo.SlidingWindow(
+            data_registry=data_registry,
             active=caimira.models.PeriodicInterval(period=120, duration=120),
             outside_temp=caimira.models.PiecewiseConstant((0., 24.), (283,)),
             window_height=1.6, opening_length=0.6,
         ),
         infected=caimira.models.InfectedPopulation(
+            data_registry=data_registry,
             number=1,
             virus=caimira.models.Virus.types['SARS_CoV_2'],
             presence=caimira.models.SpecificInterval(((0., 4.), (5., 8.))),

@@ -9,6 +9,7 @@ from caimira import models
 from caimira.models import ExposureModel
 from caimira.dataclass_utils import replace
 from caimira.monte_carlo.data import expiration_distributions
+from caimira.store.data_registry import DataRegistry
 
 @dataclass(frozen=True)
 class KnownNormedconcentration(models.ConcentrationModel):
@@ -55,10 +56,11 @@ populations = [
     ),
 ]
 
-def known_concentrations(func):
+def known_concentrations(func, data_registry=DataRegistry()):
     dummy_room = models.Room(50, 0.5)
     dummy_ventilation = models._VentilationBase()
     dummy_infected_population = models.InfectedPopulation(
+        data_registry=data_registry,
         number=1,
         presence=halftime,
         mask=models.Mask.types['Type I'],
@@ -147,15 +149,17 @@ def test_exposure_model_scalar(sr_model, cases_model):
 
 
 @pytest.fixture
-def conc_model():
+def conc_model(data_registry):
     interesting_times = models.SpecificInterval(
         ([0., 1.], [1.01, 1.02], [12., 24.]),
     )
     always = models.SpecificInterval(((0., 24.), ))
     return models.ConcentrationModel(
+        data_registry,
         models.Room(25, models.PiecewiseConstant((0., 24.), (293,))),
         models.AirChange(always, 5),
         models.EmittingPopulation(
+            data_registry=data_registry,
             number=1,
             presence=interesting_times,
             mask=models.Mask.types['No mask'],
@@ -171,10 +175,11 @@ def conc_model():
 
 
 @pytest.fixture
-def diameter_dependent_model(conc_model) -> models.InfectedPopulation:
+def diameter_dependent_model(conc_model, data_registry) -> models.InfectedPopulation:
     # Generate a diameter dependent model
     return replace(conc_model,
         infected = models.InfectedPopulation(
+            data_registry=data_registry,
             number=1,
             presence=halftime,
             virus=models.Virus.types['SARS_CoV_2_DELTA'],
@@ -193,7 +198,7 @@ def sr_model():
 @pytest.fixture
 def cases_model():
     return ()
-    
+
 
 # Expected deposited exposure were computed with a trapezoidal integration, using
 # a mesh of 10'000 pts per exposed presence interval.
@@ -219,8 +224,9 @@ def test_exposure_model_integral_accuracy(exposed_time_interval,
     np.testing.assert_allclose(model.deposited_exposure(), expected_deposited_exposure)
 
 
-def test_infectious_dose_vectorisation(sr_model, cases_model):
+def test_infectious_dose_vectorisation(sr_model, cases_model, data_registry):
     infected_population = models.InfectedPopulation(
+        data_registry=data_registry,
         number=1,
         presence=halftime,
         mask=models.Mask.types['Type I'],
@@ -258,7 +264,7 @@ def test_infectious_dose_vectorisation(sr_model, cases_model):
     ]
 )
 def test_probability_random_individual(pop, cases, infectiousness_days, AB, prob_random_individual):
-    cases = models.Cases(geographic_population=pop, geographic_cases=cases, 
+    cases = models.Cases(geographic_population=pop, geographic_cases=cases,
                         ascertainment_bias=AB)
     virus=models.SARSCoV2(
         viral_load_in_sputum=1e9,
@@ -280,7 +286,7 @@ def test_probability_random_individual(pop, cases, infectiousness_days, AB, prob
     ]
 )
 def test_prob_meet_infected_person(pop, cases, AB, exposed, infected, prob_meet_infected_person):
-    cases = models.Cases(geographic_population=pop, geographic_cases=cases, 
+    cases = models.Cases(geographic_population=pop, geographic_cases=cases,
                         ascertainment_bias=AB)
     virus = models.Virus.types['SARS_CoV_2']
     np.testing.assert_allclose(cases.probability_meet_infected_person(virus, infected, exposed+infected),
@@ -302,7 +308,7 @@ def test_probabilistic_exposure_probability(sr_model, exposed_population, cm,
         pop, AB, cases, probabilistic_exposure_probability):
 
     population = models.Population(
-        exposed_population, models.PeriodicInterval(120, 60), models.Activity.types['Standing'], 
+        exposed_population, models.PeriodicInterval(120, 60), models.Activity.types['Standing'],
         models.Mask.types['Type I'], host_immunity=0.,)
     model = ExposureModel(cm, sr_model, population, models.Cases(geographic_population=pop,
         geographic_cases=cases, ascertainment_bias=AB),)
@@ -314,32 +320,35 @@ def test_probabilistic_exposure_probability(sr_model, exposed_population, cm,
 @pytest.mark.parametrize(
     "volume, outside_temp, window_height, opening_length", [
         [np.array([50, 100]), models.PiecewiseConstant((0., 24.), (293.,)), 1., 1.,], # Verify (room) volume vectorisation.
-        [50, models.PiecewiseConstant((0., 12, 24.), 
+        [50, models.PiecewiseConstant((0., 12, 24.),
             (np.array([293., 300.]), np.array([305., 310.]),)), 1., 1.,], # Verify (ventilation) outside_temp vectorisation.
-        [50, models.PiecewiseConstant((0., 24.), (293.,)), 
+        [50, models.PiecewiseConstant((0., 24.), (293.,)),
             np.array([1., 0.5]), 1.], # Verify (ventilation) window_height vectorisation.
         [50, models.PiecewiseConstant((0., 24.), (293.,)),
             1., np.array([1., 0.5])], # Verify (ventilation) opening_length vectorisation.
     ]
 )
-def test_diameter_vectorisation_window_opening(diameter_dependent_model, sr_model, volume, outside_temp, 
+def test_diameter_vectorisation_window_opening(data_registry, diameter_dependent_model, sr_model, volume, outside_temp,
                                                 window_height, opening_length, cases_model):
-    concentration = replace(diameter_dependent_model, 
+    concentration = replace(diameter_dependent_model,
         room = models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0., 24.), (293.,)), humidity=0.3),
-        ventilation=models.SlidingWindow(active=models.PeriodicInterval(period=120, duration=120), 
-                                    outside_temp=outside_temp,
-                                    window_height=window_height,
-                                    opening_length=opening_length),
+        ventilation=models.SlidingWindow(
+            data_registry=data_registry,
+            active=models.PeriodicInterval(period=120, duration=120),
+            outside_temp=outside_temp,
+            window_height=window_height,
+            opening_length=opening_length
+        ),
     )
     with pytest.raises(ValueError, match="If the diameter is an array, none of the ventilation parameters "
                                         "or virus decay constant can be arrays at the same time."):
         models.ExposureModel(concentration, sr_model, populations[0], cases_model)
-    
+
 
 def test_diameter_vectorisation_hinged_window(diameter_dependent_model, sr_model, cases_model):
     # Verify (ventilation) window_width vectorisation.
-    concentration = replace(diameter_dependent_model, 
-        ventilation = models.HingedWindow(active=models.PeriodicInterval(period=120, duration=120), 
+    concentration = replace(diameter_dependent_model,
+        ventilation = models.HingedWindow(active=models.PeriodicInterval(period=120, duration=120),
                                     outside_temp=models.PiecewiseConstant((0., 24.), (293.,)),
                                     window_height=1.,
                                     opening_length=1.,
@@ -352,8 +361,8 @@ def test_diameter_vectorisation_hinged_window(diameter_dependent_model, sr_model
 
 def test_diameter_vectorisation_HEPA_filter(diameter_dependent_model, sr_model, cases_model):
     # Verify (ventilation) q_air_mech vectorisation.
-    concentration = replace(diameter_dependent_model, 
-        ventilation = models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120), 
+    concentration = replace(diameter_dependent_model,
+        ventilation = models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120),
                                         q_air_mech=np.array([0.5, 1.]))
     )
     with pytest.raises(ValueError, match="If the diameter is an array, none of the ventilation parameters "
@@ -363,8 +372,8 @@ def test_diameter_vectorisation_HEPA_filter(diameter_dependent_model, sr_model, 
 
 def test_diameter_vectorisation_air_change(diameter_dependent_model, sr_model, cases_model):
     # Verify (ventilation) air_exch vectorisation.
-    concentration = replace(diameter_dependent_model, 
-        ventilation = models.AirChange(active=models.PeriodicInterval(period=120, duration=120), 
+    concentration = replace(diameter_dependent_model,
+        ventilation = models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
                                         air_exch=np.array([0.5, 1.]))
     )
     with pytest.raises(ValueError, match="If the diameter is an array, none of the ventilation parameters "
@@ -377,21 +386,21 @@ def test_diameter_vectorisation_air_change(diameter_dependent_model, sr_model, c
         [np.array([50, 100]), models.PiecewiseConstant((0., 24.), (293.,)), 0.3,
         "If the diameter is an array, none of the ventilation parameters or virus decay constant "
         "can be arrays at the same time."], # Verify room volume vectorisation
-        [50, models.PiecewiseConstant((0., 12, 24.), (np.array([293., 300.]), np.array([305., 310.]))), 0.3, 
+        [50, models.PiecewiseConstant((0., 12, 24.), (np.array([293., 300.]), np.array([305., 310.]))), 0.3,
         "If the diameter is an array, none of the ventilation parameters or virus decay constant "
         "can be arrays at the same time."], # Verify room inside_temp vectorisation
-        [50, models.PiecewiseConstant((0., 24.), (293.,)), np.array([0.3, 0.5]), 
+        [50, models.PiecewiseConstant((0., 24.), (293.,)), np.array([0.3, 0.5]),
         "If the diameter is an array, none of the ventilation parameters or virus decay constant "
         "can be arrays at the same time."], # Verify room humidity vectorisation
     ]
 )
 def test_diameter_vectorisation_room(diameter_dependent_model, sr_model, cases_model, volume, inside_temp, humidity, error_message):
-    concentration = replace(diameter_dependent_model, 
+    concentration = replace(diameter_dependent_model,
         room = models.Room(volume=volume, inside_temp=inside_temp, humidity=humidity),
-        ventilation = models.HVACMechanical(active=models.SpecificInterval(((0., 24.), )), q_air_mech=100.)) 
+        ventilation = models.HVACMechanical(active=models.SpecificInterval(((0., 24.), )), q_air_mech=100.))
     with pytest.raises(ValueError, match=error_message):
         models.ExposureModel(concentration, sr_model, populations[0], cases_model)
-        
+
 
 @pytest.mark.parametrize(
     ["cm", "host_immunity", "expected_probability"],
@@ -402,7 +411,7 @@ def test_diameter_vectorisation_room(diameter_dependent_model, sr_model, cases_m
 )
 def test_host_immunity_vectorisation(sr_model, cases_model, cm, host_immunity, expected_probability):
     population = models.Population(
-        10, halftime, models.Activity.types['Standing'], 
+        10, halftime, models.Activity.types['Standing'],
         models.Mask(np.array([0.3, 0.35])), host_immunity=host_immunity
     )
     model = ExposureModel(cm, sr_model, population, cases_model)

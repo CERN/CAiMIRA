@@ -29,7 +29,7 @@
 		<a href="{{ get_url() }}" class="align-self-center"><img id="report_logo" src="{{ get_url('/static/images') }}/caimira_logo.200x200.png" class="d-inline-block align-middle mr-3"></a>
 		<div style="margin-right: -105px" class='align-self-center mr-auto'>
 			<h2 class="header_text mb-0"><a href="{{ permalink.shortened }}" style="color: #2f4858">REPORT - {{ form.simulation_name }}</a></h2>
-			<p class="mb-0" id="report_version"> Created {{ creation_date }} using CAiMIRA calculator version v{{ form.calculator_version }}</p>
+			<p class="mb-0" id="report_version"> Created {{ creation_date }} using CAiMIRA calculator version v{{ form.calculator_version }}. Data version {{ data_registry_version or '`default`' }}.</p>
 		</div>
 		<!-- Export CVS Concentration Button and Print Report Button -->
 		<button type="button" class="btn btn-outline-dark align-self-center"  id="export-csv" data-toggle="modal" data-target="#modalCSV">Export Data</button>
@@ -52,17 +52,17 @@
 	</ul>
 
 	<div class="tab-content" style="border-top: #dee2e6 1px solid; margin-top: -1px" >
-	
+
 		<div class="tab-pane show active" id="results" role="tabpanel" aria-labelledby="results-tab" style="padding: 1%">
-			
-			{% if form.short_range_option == "short_range_yes" %} 
+
+			{% if form.short_range_option == "short_range_yes" %}
 				{% set scenario = alternative_scenarios.stats.values() | first %}
 				{% set long_range_prob_inf = scenario.probability_of_infection %}
 				{% set long_range_prob_probabilistic_exposure = scenario.prob_probabilistic_exposure if form.exposure_option == 'p_probabilistic_exposure' %}
 			{% else %}
 				{% set long_range_prob_inf = prob_inf %}
 			{% endif %}
-			
+
 			{% block report_results %}
 				<div class="card bg-light mb-3" id="results-div">
   					<div class="card-header"><strong>Results </strong>
@@ -81,7 +81,7 @@
 												<h6 class="card-title">
 													<b>Probability of infection (%)</b><br>
 													{% if form.short_range_option == "short_range_yes" %}
-														Without <b>short-range interactions</b> 
+														Without <b>short-range interactions</b>
 													{% endif %}
 												</h6>
 												<br>
@@ -136,11 +136,11 @@
 													{% if form.exposure_option == "p_probabilistic_exposure" %}
 														<br>
 														<div class="align-self-center alert alert-dark mb-0" role="alert">
-															The above {{ "result assumes" if form.short_range_option == "short_range_no" else "results assume" }} that <b>{{ form.infected_people }} 
+															The above {{ "result assumes" if form.short_range_option == "short_range_no" else "results assume" }} that <b>{{ form.infected_people }}
 															{{ "occupant is infected" if form.infected_people == 1 else "occupants are infected" }}
-															</b> in the room. 
-															By taking into account the estimate of cases currently circulating in <b>{{ form.location_name }}</b>, 
-															the probability of on-site transmission, having at least 1 new infection in an <b>event 
+															</b> in the room.
+															By taking into account the estimate of cases currently circulating in <b>{{ form.location_name }}</b>,
+															the probability of on-site transmission, having at least 1 new infection in an <b>event
 															with {{ form.total_people }} occupants</b>, is
 															{% if form.short_range_option == 'short_range_yes' %}:
 																<ul>
@@ -214,7 +214,7 @@
 									<img src= "{{ uncertainties_plot_src }}" />
 									<div class="ml-5">
 										<p>(i) &nbsp;&nbsp;Predictive probability of infection for a given value of the viral load</p>
-										<p>(ii) &nbsp;Histogram of the viral load data</p> 
+										<p>(ii) &nbsp;Histogram of the viral load data</p>
 										<p>(iii) Histogram of the conditional probability of infection (result of total predictive probability in the middle)</p>
 									</div>
 								</div>
@@ -231,7 +231,7 @@
 								<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
 							</svg>
 						</button>
-					</div>	
+					</div>
 					<div class="collapse" id="collapseCO₂Profile">
 						<div class="card-body">
 							<div>
@@ -243,12 +243,12 @@
 											"Mean concentration (ppm)",
 											h_lines = [
 												{'label': 'Acceptable level',
-												 'y': 800, 
+												 'y': 800,
 												 'color': 'forestgreen',
 												 'style': 'dashed'
 												},
 												{'label': 'Insufficient level',
-												 'y': 1500, 
+												 'y': 1500,
 												 'color': 'firebrick',
 												 'style': 'dashed'
 												},
@@ -268,7 +268,7 @@
 									<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
 								</svg>
 							</button>
-						</div>	
+						</div>
 						<div class="collapse" id="collapseAlternativeScenarios">
 							<div class="card-body">
 								<div>
@@ -340,7 +340,7 @@
 								</div>
 							</div>
 							{# If short-range interactions are set, we don't display Alternative Scenarios, and there is no need to arrange items in a list #}
-							{% if form.short_range_option == "short_range_no" %} 
+							{% if form.short_range_option == "short_range_no" %}
 							<ul style="padding-left: inherit">
 								<li>
 									Current Scenario
@@ -371,7 +371,7 @@
 										</div>
 									</div>
 									{% if form.short_range_option == "short_range_no" %}
-										</li>	
+										</li>
 										<li>
 											Alternative Scenarios
 											<div class="form-check">
@@ -382,7 +382,7 @@
 										</li>
 									{% endif %}
 							</ul>
-							
+
 						</div>
 						<div class="modal-footer">
 							<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -394,7 +394,7 @@
 
 			{% block report_footer %}
 				<div class="card bg-light mb-3" id="link-results">
-					<div class="card-header"><strong>Link to reproduce results </strong> 
+					<div class="card-header"><strong>Link to reproduce results </strong>
 					<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseQRcode" role="button" aria-expanded="true" aria-controls="collapseQRcode">
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
 						<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
@@ -403,7 +403,7 @@
 					</div>
 					<div class="collapse show" id="collapseQRcode">
 						<div class="card-body">
-							<div class="text-center"><button id="mobile_link" class="btn btn-primary btn-sm d-none" data-toggle="tooltip" data-placement="top" title="Copy to clipboard" onclick="copy_clipboard('{{ permalink.link }}');">Click to copy a shareable link</button></div>					
+							<div class="text-center"><button id="mobile_link" class="btn btn-primary btn-sm d-none" data-toggle="tooltip" data-placement="top" title="Copy to clipboard" onclick="copy_clipboard('{{ permalink.link }}');">Click to copy a shareable link</button></div>
 							<div id="link_reproduce_results" class="split">
 								<div><a href="{{ permalink.link }}" style="float: left;"><div id="qrcode"></div></a></div>
 								<div class="align-self-center"><span style="float: left; vertical-align: middle; display: inline-block;">
@@ -411,7 +411,7 @@
 								Click the QR code to regenerate the report and get a shareable link.<br>Alternatively, scan to regenerate the report.<br>
 								</p>
 								</span></div>
-							</div>	
+							</div>
 						</div>
 					</div>
 				</div>
@@ -457,7 +457,7 @@
 						</ul>
 					</div>
 				</div>
-				
+
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Vaccination data:</strong></div>
@@ -575,7 +575,7 @@
 							{% elif form.activity_type == "smallmeeting" %}
 							Small meeting – typical scenario with all persons seated, one person speaking at a time.
 							{% elif form.activity_type == "largemeeting" %}
-							Large meeting – infected occupant(s) is standing and speaking 1/3rd of the time, while the other occupants are seated.							
+							Large meeting – infected occupant(s) is standing and speaking 1/3rd of the time, while the other occupants are seated.
 							{% elif form.activity_type == "callcentre" %}
 							Call Centre - typical office-like scenario with all persons seated, all speaking continuously.
 							{% elif form.activity_type == "controlroom-day" %}
@@ -589,7 +589,7 @@
 							{% elif form.activity_type == "training" %}
 							Conference/Training (speaker infected) – one person (the speaker/trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the speaker/trainer is the infected person, for the worst case scenario.
 							{% elif form.activity_type == "training_attendee" %}
-							Conference/Training (attendee infected) – the infected person(s) are in the audience. All persons seated and breathing. 
+							Conference/Training (attendee infected) – the infected person(s) are in the audience. All persons seated and breathing.
 							{% elif form.activity_type == "lab" %}
 							Laboratory - Lab or technical environment, all persons doing light physical activity, speaking 50% of the time.
 							{% elif form.activity_type == "gym" %}
@@ -657,7 +657,7 @@
 						</ul>
 						{% if form.infected_dont_have_breaks_with_exposed %}
 						<p style="padding-left:15px;"> Infected occupant(s):</p>
-						
+
 						<ul>
 							<li><p class="data_text">Lunch break:
 							{% if form.infected_lunch_option%}
@@ -689,7 +689,7 @@
 				<br>
 				<div class="card">
 					<div class="card-header"><strong>Mask wearing:</strong></div>
-					<div class="card-body">	
+					<div class="card-body">
 						<ul>
 							<li><p class="data_text">Masks worn at workstations? {{ 'Yes' if form.mask_wearing_option == "mask_on" else 'No' }} </p></li>
 							{% if form.mask_wearing_option == "mask_on" %}
@@ -699,10 +699,10 @@
 					</div>
 				</div>
 				<br>
-			{% endblock simulation_overview %}	
+			{% endblock simulation_overview %}
 		</div>
 		{% block report_preamble %}
-		{% endblock report_preamble %}	
+		{% endblock report_preamble %}
 	</div>
 </div>
 
