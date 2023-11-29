@@ -14,10 +14,10 @@ import matplotlib.pyplot as plt
 
 from caimira import models
 from caimira.apps.calculator import markdown_tools
+from caimira.store.data_registry import DataRegistry
 from ... import monte_carlo as mc
-from .model_generator import VirusFormData, DEFAULT_MC_SAMPLE_SIZE
+from .model_generator import VirusFormData
 from ... import dataclass_utils
-from caimira.store.configuration import config
 
 
 def model_start_end(model: models.ExposureModel):
@@ -84,7 +84,7 @@ def non_temp_transition_times(model: models.ExposureModel):
 def interesting_times(model: models.ExposureModel, approx_n_pts: typing.Optional[int] = None) -> typing.List[float]:
     """
     Pick approximately ``approx_n_pts`` time points which are interesting for the
-    given model. If not provided by argument, ``approx_n_pts`` is set to be 15 times 
+    given model. If not provided by argument, ``approx_n_pts`` is set to be 15 times
     the number of hours of the simulation.
 
     Initially the times are seeded by important state change times (excluding
@@ -118,13 +118,13 @@ def calculate_report_data(form: VirusFormData, model: models.ExposureModel) -> t
     times = interesting_times(model)
     short_range_intervals = [interaction.presence.boundaries()[0] for interaction in model.short_range]
     short_range_expirations = [interaction['expiration'] for interaction in form.short_range_interactions] if form.short_range_option == "short_range_yes" else []
-    
+
     concentrations = [
         np.array(model.concentration(float(time))).mean()
         for time in times
-    ]  
+    ]
     lower_concentrations = concentrations_with_sr_breathing(form, model, times, short_range_intervals)
-    
+
     cumulative_doses = np.cumsum([
         np.array(model.deposited_exposure_between_bounds(float(time1), float(time2))).mean()
         for time1, time2 in zip(times[:-1], times[1:])
@@ -146,8 +146,8 @@ def calculate_report_data(form: VirusFormData, model: models.ExposureModel) -> t
     expected_new_cases = np.array(model.expected_new_cases()).mean()
     uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(model, prob))) if form.conditional_probability_plot else None
     exposed_presence_intervals = [list(interval) for interval in model.exposed.presence_interval().boundaries()]
-    conditional_probability_data = {key: value for key, value in 
-                                    zip(('viral_loads', 'pi_means', 'lower_percentiles', 'upper_percentiles'), 
+    conditional_probability_data = {key: value for key, value in
+                                    zip(('viral_loads', 'pi_means', 'lower_percentiles', 'upper_percentiles'),
                                         manufacture_conditional_probability_data(model, prob))}
 
 
@@ -194,45 +194,54 @@ def generate_permalink(base_url, get_root_url,  get_root_calculator_url, form: V
     }
 
 
-def conditional_prob_inf_given_vl_dist(infection_probability: models._VectorisedFloat, 
-                                       viral_loads: np.ndarray, specific_vl: float, step: models._VectorisedFloat):
+def conditional_prob_inf_given_vl_dist(
+        data_registry: DataRegistry,
+        infection_probability: models._VectorisedFloat,
+        viral_loads: np.ndarray,
+        specific_vl: float,
+        step: models._VectorisedFloat
+    ):
+
     pi_means = []
     lower_percentiles = []
     upper_percentiles = []
-    
+
     for vl_log in viral_loads:
         specific_prob = infection_probability[np.where((vl_log-step/2-specific_vl)*(vl_log+step/2-specific_vl)<0)[0]] #type: ignore
         pi_means.append(specific_prob.mean())
-        lower_percentiles.append(np.quantile(specific_prob, config.conditional_prob_inf_given_viral_load['lower_percentile']))
-        upper_percentiles.append(np.quantile(specific_prob, config.conditional_prob_inf_given_viral_load['upper_percentile']))
-    
+        lower_percentiles.append(np.quantile(specific_prob, data_registry.conditional_prob_inf_given_viral_load['lower_percentile']))
+        upper_percentiles.append(np.quantile(specific_prob, data_registry.conditional_prob_inf_given_viral_load['upper_percentile']))
+
     return pi_means, lower_percentiles, upper_percentiles
 
 
-def manufacture_conditional_probability_data(exposure_model: models.ExposureModel, 
-                                             infection_probability: models._VectorisedFloat):
-    
-    min_vl = config.conditional_prob_inf_given_viral_load['min_vl']
-    max_vl = config.conditional_prob_inf_given_viral_load['max_vl']
+def manufacture_conditional_probability_data(
+    data_registry: DataRegistry,
+    exposure_model: models.ExposureModel,
+    infection_probability: models._VectorisedFloat
+):
+
+    min_vl = data_registry.conditional_prob_inf_given_viral_load['min_vl']
+    max_vl = data_registry.conditional_prob_inf_given_viral_load['max_vl']
     step = (max_vl - min_vl)/100
-    viral_loads = np.arange(min_vl, max_vl, step)   
+    viral_loads = np.arange(min_vl, max_vl, step)
     specific_vl = np.log10(exposure_model.concentration_model.virus.viral_load_in_sputum)
-    pi_means, lower_percentiles, upper_percentiles = conditional_prob_inf_given_vl_dist(infection_probability, viral_loads, 
+    pi_means, lower_percentiles, upper_percentiles = conditional_prob_inf_given_vl_dist(infection_probability, viral_loads,
                                                                                         specific_vl, step)
-    
+
     return list(viral_loads), list(pi_means), list(lower_percentiles), list(upper_percentiles)
 
 
 def uncertainties_plot(exposure_model: models.ExposureModel, prob: models._VectorisedFloat):
     fig = plt.figure(figsize=(4, 7), dpi=110)
-    
+
     infection_probability = prob / 100
     viral_loads, pi_means, lower_percentiles, upper_percentiles = manufacture_conditional_probability_data(exposure_model, infection_probability)
 
-    fig, axs = plt.subplots(2, 3, 
+    fig, axs = plt.subplots(2, 3,
         gridspec_kw={'width_ratios': [5, 0.5] + [1],
             'height_ratios': [3, 1], 'wspace': 0},
-        sharey='row', 
+        sharey='row',
         sharex='col')
 
     for y, x in [(0, 1)] + [(1, i + 1) for i in range(2)]:
@@ -263,14 +272,14 @@ def uncertainties_plot(exposure_model: models.ExposureModel, prob: models._Vecto
     axs[1, 0].set_xlim(2, 10)
     axs[1, 0].set_xlabel('Viral load\n(RNA copies)', fontsize=12)
     axs[0, 0].set_ylabel('Conditional Probability\nof Infection', fontsize=12)
- 
+
     axs[0, 0].text(9.5, -0.01, '$(i)$')
     axs[1, 0].text(9.5, axs[1, 0].get_ylim()[1] * 0.8, '$(ii)$')
     axs[0, 2].set_title('$(iii)$', fontsize=10)
 
     axs[0, 0].legend()
     return fig
-    
+
 
 def _img2bytes(figure):
     # Draw the image
@@ -346,7 +355,7 @@ def manufacture_viral_load_scenarios_percentiles(model: mc.ExposureModel) -> typ
     scenarios = {}
     for percentil in (0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99):
         vl = np.quantile(viral_load, percentil)
-        specific_vl_scenario = dataclass_utils.nested_replace(model, 
+        specific_vl_scenario = dataclass_utils.nested_replace(model,
             {'concentration_model.infected.virus.viral_load_in_sputum': vl}
         )
         scenarios[str(vl)] = np.mean(specific_vl_scenario.infection_probability())
@@ -396,7 +405,7 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
             scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_mc_model()
         if not (form.mask_wearing_option == 'mask_off' and form.ventilation_type == 'no_ventilation'):
             scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_mc_model()
-    
+
     else:
         no_short_range_alternative = dataclass_utils.replace(form, short_range_interactions=[])
         scenarios['Base scenario without short-range interactions'] = no_short_range_alternative.build_mc_model()
@@ -404,8 +413,13 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
     return scenarios
 
 
-def scenario_statistics(mc_model: mc.ExposureModel, sample_times: typing.List[float], compute_prob_exposure: bool):
-    model = mc_model.build_model(size=DEFAULT_MC_SAMPLE_SIZE)
+def scenario_statistics(
+    data_registry: DataRegistry,
+    mc_model: mc.ExposureModel,
+    sample_times: typing.List[float],
+    compute_prob_exposure: bool
+):
+    model = mc_model.build_model(size=data_registry.monte_carlo_sample_size)
     if (compute_prob_exposure):
         # It means we have data to calculate the total_probability_rule
         prob_probabilistic_exposure = model.total_probability_rule()
@@ -440,7 +454,7 @@ def comparison_report(
         }
     else:
         statistics = {}
-    
+
     if (form.short_range_option == "short_range_yes" and form.exposure_option == "p_probabilistic_exposure"):
         compute_prob_exposure = True
     else:
@@ -493,6 +507,7 @@ class ReportGenerator:
             'model': model,
             'form': form,
             'creation_date': time,
+            'data_registry_version': model.data_registry.version,
         }
 
         scenario_sample_times = interesting_times(model)

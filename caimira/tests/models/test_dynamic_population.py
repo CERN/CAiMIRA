@@ -8,13 +8,15 @@ from caimira import models
 import caimira.dataclass_utils as dc_utils
 
 @pytest.fixture
-def full_exposure_model():
+def full_exposure_model(data_registry):
     return models.ExposureModel(
         concentration_model=models.ConcentrationModel(
+            data_registry=data_registry,
             room=models.Room(volume=100),
             ventilation=models.AirChange(
                 active=models.PeriodicInterval(120, 120), air_exch=0.25),
             infected=models.InfectedPopulation(
+                data_registry=data_registry,
                 number=1,
                 presence=models.SpecificInterval(((8, 12), (13, 17), )),
                 mask=models.Mask.types['No mask'],
@@ -27,7 +29,7 @@ def full_exposure_model():
         short_range=(),
         exposed=models.Population(
             number=10,
-            presence=models.SpecificInterval(((8, 12), (13, 17), )), 
+            presence=models.SpecificInterval(((8, 12), (13, 17), )),
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Seated'],
             host_immunity=0.
@@ -37,8 +39,9 @@ def full_exposure_model():
 
 
 @pytest.fixture
-def baseline_infected_population_number():
+def baseline_infected_population_number(data_registry):
     return models.InfectedPopulation(
+        data_registry=data_registry,
         number=models.IntPiecewiseConstant(
             (8, 12, 13, 17), (1, 0, 1)),
         presence=None,
@@ -77,7 +80,7 @@ def dynamic_exposed_single_exposure_model(full_exposure_model, baseline_exposed_
 @pytest.fixture
 def dynamic_population_exposure_model(full_exposure_model, baseline_infected_population_number ,baseline_exposed_population_number):
     return dc_utils.nested_replace(full_exposure_model, {
-            'concentration_model.infected': baseline_infected_population_number, 
+            'concentration_model.infected': baseline_infected_population_number,
             'exposed': baseline_exposed_population_number,
     })
 
@@ -107,7 +110,7 @@ def test_population_number(full_exposure_model: models.ExposureModel,
         dc_utils.nested_replace(
             piecewise_population_number, {'presence': models.SpecificInterval(((8, 12), ))}
         )
-    
+
     assert int_population_number.person_present(time) == piecewise_population_number.person_present(time)
     assert int_population_number.people_present(time) == piecewise_population_number.people_present(time)
 
@@ -129,8 +132,8 @@ def test_linearity_with_number_of_infected(full_exposure_model: models.ExposureM
                         dynamic_infected_single_exposure_model: models.ExposureModel,
                         time: float,
                         number_of_infected: int):
-    
-    
+
+
     static_multiple_exposure_model: models.ExposureModel = dc_utils.nested_replace(
         full_exposure_model,
         {
@@ -190,7 +193,7 @@ def test_dynamic_dose(full_exposure_model: models.ExposureModel, time: float):
     dynamic_concentration = dynamic_infected.concentration(time)
     dynamic_exposure = dynamic_infected.deposited_exposure()
 
-    static_concentration, static_exposure = zip(*[(model.concentration(time), model.deposited_exposure()) 
+    static_concentration, static_exposure = zip(*[(model.concentration(time), model.deposited_exposure())
                                               for model in (single_infected, two_infected, three_infected)])
 
     npt.assert_almost_equal(dynamic_concentration, np.sum(static_concentration))
@@ -202,7 +205,7 @@ def test_infection_probability(
         dynamic_infected_single_exposure_model: models.ExposureModel,
         dynamic_exposed_single_exposure_model: models.ExposureModel,
         dynamic_population_exposure_model: models.ExposureModel):
-    
+
     base_infection_probability = full_exposure_model.infection_probability()
     npt.assert_almost_equal(base_infection_probability, dynamic_infected_single_exposure_model.infection_probability())
     npt.assert_almost_equal(base_infection_probability, dynamic_exposed_single_exposure_model.infection_probability())
@@ -223,12 +226,12 @@ def test_dynamic_total_probability_rule(
     with pytest.raises(NotImplementedError, match=re.escape("Cannot compute total probability "
                                                             "(including incidence rate) with dynamic occupancy")):
         dynamic_population_exposure_model.total_probability_rule()
-    
+
 def test_dynamic_expected_new_cases(
         dynamic_infected_single_exposure_model: models.ExposureModel,
         dynamic_exposed_single_exposure_model: models.ExposureModel,
         dynamic_population_exposure_model: models.ExposureModel):
-    
+
     with pytest.raises(NotImplementedError, match=re.escape("Cannot compute expected new cases "
                                                             "with dynamic occupancy")):
         dynamic_infected_single_exposure_model.expected_new_cases()
@@ -243,7 +246,7 @@ def test_dynamic_reproduction_number(
         dynamic_infected_single_exposure_model: models.ExposureModel,
         dynamic_exposed_single_exposure_model: models.ExposureModel,
         dynamic_population_exposure_model: models.ExposureModel):
-    
+
     with pytest.raises(NotImplementedError, match=re.escape("Cannot compute reproduction number "
                                                             "with dynamic occupancy")):
         dynamic_infected_single_exposure_model.reproduction_number()
