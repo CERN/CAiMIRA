@@ -59,7 +59,7 @@ function draw_plot(svg_id) {
         .attr('class', 'y label')
         .attr('fill', 'black')
         .attr('text-anchor', 'middle')
-        .text('Mean concentration (virions/m³)');
+        .text('Mean concentration (IRP/m³)');
 
     // Y cumulative concentration axis declaration.
     var yAxisCumEl = vis.append('svg:g')
@@ -71,7 +71,7 @@ function draw_plot(svg_id) {
         .attr('class', 'y label')
         .attr('fill', 'black')
         .attr('text-anchor', 'middle')
-        .text('Mean cumulative dose (infectious virus)');
+        .text('Mean cumulative dose (IRP)');
 
     // Legend for the plot elements - line and area.
     
@@ -82,8 +82,7 @@ function draw_plot(svg_id) {
         .style('fill', '#1f77b4');
     // Concentration line text
     var legendLineText = vis.append('text')
-        .text('Mean concentration')
-        .style('font-size', '15px');
+        .text('Mean concentration (Infectious Respiratory Particles)')
 
     // Cumulative dose line icon
     var legendCumulativeIcon = vis.append('line')
@@ -92,8 +91,7 @@ function draw_plot(svg_id) {
         .style("stroke", '#1f77b4');
     // Cumulative dose line text
     var legendCumutiveText = vis.append('text')
-        .text('Cumulative dose')
-        .style('font-size', '15px');
+        .text('Cumulative dose (Infectious Respiratory Particles)')
 
     //  Area line icon
     var legendAreaIcon = vis.append('rect')
@@ -104,7 +102,6 @@ function draw_plot(svg_id) {
     //  Area line text
     var legendAreaText = vis.append('text')
         .text('Presence of exposed person(s)')
-        .style('font-size', '15px');
 
     sr_unique_activities = [...new Set(short_range_expirations)]
     if (show_sr_legend) {
@@ -142,7 +139,7 @@ function draw_plot(svg_id) {
     if (show_sr_legend) legendBBox_height = 68 + 20 * sr_unique_activities.length;
     else legendBBox_height = 68;
     var legendBBox = vis.append('rect')
-        .attr('width', 255)
+        .attr('width', 420)
         .attr('height', legendBBox_height)
         .attr('stroke', 'lightgrey')
         .attr('stroke-width', '2')
@@ -310,9 +307,9 @@ function draw_plot(svg_id) {
         graph_width = div_width;
         graph_height = div_height
         var margins = { top: 30, right: 20, bottom: 50, left: 60 };
-        if (div_width >= 900) { // For screens with width > 900px legend can be on the graph's right side.
-            div_width = 900;
-            graph_width = div_width * (2/3);
+        if (div_width >= 1100) { // For screens with width > 1100px legend can be on the graph's right side.
+            div_width = 1100;
+            graph_width = 600;
             const svg_margins = {'margin-left': '0rem'};
             Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
         }
@@ -361,7 +358,7 @@ function draw_plot(svg_id) {
         yAxisCumLabelEl.attr('transform', 'rotate(-90, 0,' + graph_height + ')')
             .attr('x', (graph_height + margins.bottom) / 2.1);
 
-        if (plot_div.clientWidth >= 900) {
+        if (plot_div.clientWidth >= 1100) {
             yAxisCumLabelEl.attr('y', graph_width * 1.7);
         }
         else {
@@ -373,7 +370,7 @@ function draw_plot(svg_id) {
         const space_between_text_icon = 30;
         const text_height = 6;
         // Legend on right side.
-        if (plot_div.clientWidth >= 900) {
+        if (plot_div.clientWidth >= 1100) {
             legendLineIcon.attr('x', graph_width + legend_x_start)
                 .attr('y', margins.top + size);
             legendLineText.attr('x', graph_width + legend_x_start + space_between_text_icon)
@@ -746,9 +743,9 @@ function draw_generic_concentration_plot(
         graph_width = div_width;
         graph_height = div_height;
         var margins = { top: 30, right: 20, bottom: 50, left: 60 };
-        if (window_width >= 900) { // For screens with width > 900px legend can be on the graph's right side.
-            div_width = 900;
-            graph_width = div_width * (2/3);
+        if (window_width >= 1100) { // For screens with width > 1100px legend can be on the graph's right side.
+            div_width = 1100;
+            graph_width = 600;
             const svg_margins = {'margin-left': '0rem'};
             Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
         }
@@ -799,7 +796,7 @@ function draw_generic_concentration_plot(
             var scenario_index = Object.keys(data_for_scenarios).indexOf(scenario_name)
             // Legend on right side.
             var size = 20 * (scenario_index + 1);
-            if (window_width >= 900) {
+            if (window_width >= 1100) {
                 label_icons[scenario_name].attr('x', graph_width + legend_x_start)
                     .attr('y', margins.top + size);
                 label_text[scenario_name].attr('x', graph_width + legend_x_start + space_between_text_icon)
@@ -817,7 +814,7 @@ function draw_generic_concentration_plot(
         if (h_lines) {
             h_lines.map((line, index) => {
                 size = 21 * (scenario_index + index + 2); // account for previous legend elements
-                if (window_width >= 900) {
+                if (window_width >= 1100) {
                     h_line_label_icon[line.label].attr("x1", graph_width + legend_x_start)
                         .attr("x2", graph_width + legend_x_start + 20)
                         .attr("y1", margins.top + size)
@@ -839,7 +836,7 @@ function draw_generic_concentration_plot(
         }
 
         // Legend on right side.
-        if (window_width >= 900) {
+        if (window_width >= 1100) {
             legendBBox.attr('x', graph_width * 1.02)
                 .attr('y', margins.top * 1.15);
             
@@ -899,10 +896,10 @@ function draw_histogram(svg_id, prob, prob_sd) {
     var vis = d3.select(plot_div).append('svg');
     
     // set the dimensions and margins of the graph
-    if (div_width > 900) {
-        div_width = 900;
+    if (div_width > 1100) {
+        div_width = 1100;
         var margins = { top: 30, right: 20, bottom: 50, left: 60 };
-        var graph_width = div_width * (2/3);
+        var graph_width = 600;
         const svg_margins = {'margin-left': '0rem'};
         Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
     }
