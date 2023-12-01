@@ -20,7 +20,7 @@ REQUIREMENTS: dict = {
     'core': [
         'dataclasses; python_version < "3.7"',
         'ipykernel',
-        'ipympl',
+        'ipympl >= 0.9.0',
         'ipywidgets < 8.0',
         'Jinja2',
         'loky',
@@ -44,8 +44,8 @@ REQUIREMENTS: dict = {
     'app': [],
     'test': [
         'pytest',
-        'pytest-mypy',
-        'mypy',
+        'pytest-mypy >= 0.10.3',
+        'mypy >= 1.0.0',
         'pytest-tornasync',
         'numpy-stubs @ git+https://github.com/numpy/numpy-stubs.git',
         'types-dataclasses',
