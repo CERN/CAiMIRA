@@ -979,6 +979,7 @@ class InfectedPopulation(_PopulationWithVirus):
 
         ER = (self.virus.viral_load_in_sputum *
               self.activity.exhalation_rate *
+              self.fraction_of_infectious_virus() *
               10 ** 6)
         return ER
 
@@ -1641,7 +1642,6 @@ class ExposureModel:
         emission_rate_per_aerosol_per_person = \
             self.concentration_model.infected.emission_rate_per_aerosol_per_person_when_present()
         aerosols = self.concentration_model.infected.aerosols()
-        f_inf = self.concentration_model.infected.fraction_of_infectious_virus()
         fdep = self.long_range_fraction_deposited()
 
         diameter = self.concentration_model.infected.particle.diameter
@@ -1667,7 +1667,7 @@ class ExposureModel:
                 (1 - self.exposed.mask.inhale_efficiency()))
 
         # In the end we multiply the final results by the fraction of infectious virus of the vD equation.
-        return deposited_exposure * f_inf
+        return deposited_exposure
 
     def deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         """
@@ -1716,9 +1716,8 @@ class ExposureModel:
 
         # Then we multiply by diameter-independent quantities: viral load
         # and fraction of infected virions
-        f_inf = self.concentration_model.infected.fraction_of_infectious_virus()
-        deposited_exposure *= (f_inf
-                * self.concentration_model.virus.viral_load_in_sputum
+        deposited_exposure *= (
+                self.concentration_model.virus.viral_load_in_sputum
                 * (1 - self.exposed.mask.inhale_efficiency()))
         # Long-range concentration
         deposited_exposure += self.long_range_deposited_exposure_between_bounds(time1, time2)
