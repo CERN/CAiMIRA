@@ -56,6 +56,12 @@ class SimpleConcentrationModel:
     #: Number of infected people
     num_infected: int = 1
 
+    #: Fraction of infected viruses
+    finf: _VectorisedFloat = 0.5
+
+    #: Host immunity factor (0. for not immune)
+    HI: _VectorisedFloat = 0.
+
     #: Relative humidity RH
     humidity: float = 0.3
 
@@ -176,7 +182,7 @@ class SimpleConcentrationModel:
         return ( ( (0 if not self.infected_presence.triggered(t)
                     else self.f(lambda_rate,0))
                   + result * np.exp(-lambda_rate*(t-ti)) )
-                * self.num_infected/self.room_volume)
+                * self.num_infected * self.finf * (1. - self.HI) / self.room_volume)
 
 
 @dataclass(frozen=True)
@@ -295,12 +301,6 @@ class SimpleExposureModel(SimpleConcentrationModel):
     interaction intervals are within presence intervals of the infected.
     """
 
-    #: Fraction of infected viruses
-    finf: _VectorisedFloat = 0.5
-
-    #: Host immunity factor (0. for not immune)
-    HI: _VectorisedFloat = 0.
-
     #: Infectious dose (ID50)
     ID50: _VectorisedFloat = 50.
 
@@ -410,7 +410,7 @@ class SimpleExposureModel(SimpleConcentrationModel):
                     else self.f_with_fdep(lambda_rate,0,evaporation)*(t2-t1))
                   + (primitive(t2) * np.exp(-lambda_rate*(t2-ti)) -
                      primitive(t1) * np.exp(-lambda_rate*(t1-ti)) ) )
-                * self.num_infected/self.room_volume)
+                * self.num_infected * self.finf * (1. - self.HI) / self.room_volume)
 
     @method_cache
     def integrated_shortrange_concentration(self) -> _VectorisedFloat:
@@ -448,7 +448,7 @@ class SimpleExposureModel(SimpleConcentrationModel):
 
         result += self.integrated_shortrange_concentration()
 
-        return result * self.finf * (1. - self.HI)
+        return result
 
     def probability_infection(self):
         """
@@ -528,6 +528,8 @@ def simple_c_model() -> SimpleConcentrationModel:
         room_volume       = 50.,
         lambda_ventilation= 1.,
         BLO_factors       = expiration_BLO_factors['Breathing'],
+        finf              = models.Virus.types['SARS_CoV_2_DELTA'].viable_to_RNA_ratio,
+        HI                = 0.,
     )
 
 
@@ -724,6 +726,9 @@ def test_longrange_concentration_with_distributions(c_model_distr,time):
         room_volume       = 50.,
         lambda_ventilation= 1.,
         BLO_factors       = expiration_BLO_factors['Breathing'],
+        finf              = virus_distributions['SARS_CoV_2_DELTA'
+                        ].build_model(SAMPLE_SIZE).viable_to_RNA_ratio,
+        HI                = 0.,
     )
     npt.assert_allclose(
         c_model_distr.build_model(SAMPLE_SIZE).concentration(time).mean(),
