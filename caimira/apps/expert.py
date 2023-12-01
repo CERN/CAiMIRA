@@ -131,13 +131,13 @@ class ExposureModelResult(View):
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
         ax.set_xlabel('Time (hours)')
-        ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
-        ax.set_title('Concentration of virions \nand Cumulative dose')
+        ax.set_ylabel('Mean concentration ($IRP/m^{3}$)')
+        ax.set_title('Concentration and Cumulative\ndose of Infectious Respiratory Particles')
 
         ax2 = ax.twinx() 
         ax2.spines['left'].set_visible(False)
         ax2.spines['top'].set_visible(False)
-        ax2.set_ylabel('Mean cumulative dose (infectious virus)')
+        ax2.set_ylabel('Mean cumulative dose (IRP)')
         ax2.spines['right'].set_linestyle((0,(1,4)))
         
         return ax, ax2
@@ -193,8 +193,8 @@ class ExposureModelResult(View):
         self.ax.set_xlim(left = min(min(infected_presence.boundaries()[0]), min(exposed_presence.boundaries()[0])), 
                         right = max(max(infected_presence.boundaries()[1]), max(exposed_presence.boundaries()[1])))
    
-        figure_legends = [mlines.Line2D([], [], color='#3530fe', markersize=15, label='Mean concentration'),
-                   mlines.Line2D([], [], color='#0000c8', markersize=15, ls="dotted", label='Cumulative dose'),
+        figure_legends = [mlines.Line2D([], [], color='#3530fe', markersize=15, label='Mean concentration (Infectious Respiratory Particles)'),
+                   mlines.Line2D([], [], color='#0000c8', markersize=15, ls="dotted", label='Cumulative dose (Infectious Respiratory Particles)'),
                    patches.Patch(edgecolor="#96cbff", facecolor='#96cbff', label='Presence of exposed person(s)')]
         self.ax.legend(handles=figure_legends)
 
@@ -236,15 +236,15 @@ class ExposureComparisonResult(View):
         ax.spines['top'].set_visible(False)
         
         ax.set_xlabel('Time (hours)')
-        ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
-        ax.set_title('Concentration of virions \nand Cumulative dose')
+        ax.set_ylabel('Mean concentration ($IRP/m^{3}$)')
+        ax.set_title('Concentration and Cumulative\ndose of Infectious Respiratory Particles')
         
         ax2 = ax.twinx()
         ax2.spines['left'].set_visible(False)
         ax2.spines['top'].set_visible(False)
         ax2.spines['right'].set_linestyle((0,(1,4)))
 
-        ax2.set_ylabel('Mean cumulative dose (infectious virus)')
+        ax2.set_ylabel('Mean cumulative dose (IRP)')
 
         return ax, ax2
 
