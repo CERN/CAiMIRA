@@ -1,3 +1,6 @@
+from caimira.enums import ViralLoads, InfectiousDoses, ViableToRNARatios
+
+
 class DataRegistry:
     """Registry to hold data values."""
 
@@ -207,51 +210,51 @@ class DataRegistry:
     }
     virus_distributions = {
         "SARS_CoV_2": {
-            "viral_load_in_sputum": "Ref: Viral load - covid_overal_vl_data",
-            "infectious_dose": "Ref: Infectious dose - infectious_dose_distribution",
-            "viable_to_RNA_ratio": "Ref: Viable to RNA ratio - viable_to_RNA_ratio_distribution",
+            "viral_load_in_sputum": ViralLoads.COVID_OVERALL,
+            "infectious_dose": InfectiousDoses.DISTRIBUTION,
+            "viable_to_RNA_ratio": ViableToRNARatios.DISTRIBUTION,
             "transmissibility_factor": 1,
             "infectiousness_days": 14,
         },
         "SARS_CoV_2_ALPHA": {
-            "viral_load_in_sputum": "Ref: Viral load - covid_overal_vl_data",
-            "infectious_dose": "Ref: Infectious dose - infectious_dose_distribution",
-            "viable_to_RNA_ratio": "Ref: Viable to RNA ratio - viable_to_RNA_ratio_distribution",
+            "viral_load_in_sputum": ViralLoads.COVID_OVERALL,
+            "infectious_dose": InfectiousDoses.DISTRIBUTION,
+            "viable_to_RNA_ratio": ViableToRNARatios.DISTRIBUTION,
             "transmissibility_factor": 0.78,
             "infectiousness_days": 14,
         },
         "SARS_CoV_2_BETA": {
-            "viral_load_in_sputum": "Ref: Viral load - covid_overal_vl_data",
-            "infectious_dose": "Ref: Infectious dose - infectious_dose_distribution",
-            "viable_to_RNA_ratio": "Ref: Viable to RNA ratio - viable_to_RNA_ratio_distribution",
+            "viral_load_in_sputum": ViralLoads.COVID_OVERALL,
+            "infectious_dose": InfectiousDoses.DISTRIBUTION,
+            "viable_to_RNA_ratio": ViableToRNARatios.DISTRIBUTION,
             "transmissibility_factor": 0.8,
             "infectiousness_days": 14,
         },
         "SARS_CoV_2_GAMMA": {
-            "viral_load_in_sputum": "Ref: Viral load - covid_overal_vl_data",
-            "infectious_dose": "Ref: Infectious dose - infectious_dose_distribution",
-            "viable_to_RNA_ratio": "Ref: Viable to RNA ratio - viable_to_RNA_ratio_distribution",
+            "viral_load_in_sputum": ViralLoads.COVID_OVERALL,
+            "infectious_dose": InfectiousDoses.DISTRIBUTION,
+            "viable_to_RNA_ratio": ViableToRNARatios.DISTRIBUTION,
             "transmissibility_factor": 0.72,
             "infectiousness_days": 14,
         },
         "SARS_CoV_2_DELTA": {
-            "viral_load_in_sputum": "Ref: Viral load - covid_overal_vl_data",
-            "infectious_dose": "Ref: Infectious dose - infectious_dose_distribution",
-            "viable_to_RNA_ratio": "Ref: Viable to RNA ratio - viable_to_RNA_ratio_distribution",
+            "viral_load_in_sputum": ViralLoads.COVID_OVERALL,
+            "infectious_dose": InfectiousDoses.DISTRIBUTION,
+            "viable_to_RNA_ratio": ViableToRNARatios.DISTRIBUTION,
             "transmissibility_factor": 0.51,
             "infectiousness_days": 14,
         },
         "SARS_CoV_2_OMICRON": {
-            "viral_load_in_sputum": "Ref: Viral load - covid_overal_vl_data",
-            "infectious_dose": "Ref: Infectious dose - infectious_dose_distribution",
-            "viable_to_RNA_ratio": "Ref: Viable to RNA ratio - viable_to_RNA_ratio_distribution",
+            "viral_load_in_sputum": ViralLoads.COVID_OVERALL,
+            "infectious_dose": InfectiousDoses.DISTRIBUTION,
+            "viable_to_RNA_ratio": ViableToRNARatios.DISTRIBUTION,
             "transmissibility_factor": 0.2,
             "infectiousness_days": 14,
         },
         "SARS_CoV_2_Other": {
-            "viral_load_in_sputum": "Ref: Viral load - covid_overal_vl_data",
-            "infectious_dose": "Ref: Infectious dose - infectious_dose_distribution",
-            "viable_to_RNA_ratio": "Ref: Viable to RNA ratio - viable_to_RNA_ratio_distribution",
+            "viral_load_in_sputum": ViralLoads.COVID_OVERALL,
+            "infectious_dose": InfectiousDoses.DISTRIBUTION,
+            "viable_to_RNA_ratio": ViableToRNARatios.DISTRIBUTION,
             "transmissibility_factor": 0.1,
             "infectiousness_days": 14,
         },
