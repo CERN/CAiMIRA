@@ -18,14 +18,14 @@ class DataService:
 
     def __init__(
         self,
-        credentials: typing.Dict[str, str],
+        credentials: typing.Dict[str, typing.Optional[str]],
         host: str,
     ):
         self._credentials = credentials
         self._host = host
 
     @classmethod
-    def create(cls, credentials: typing.Dict[str, str], host: str = "https://caimira-data-api.app.cern.ch"):
+    def create(cls, credentials: typing.Dict[str, typing.Optional[str]], host: str = "https://caimira-data-api.app.cern.ch"):
         """Factory."""
         return cls(credentials, host)
 

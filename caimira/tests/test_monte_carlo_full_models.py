@@ -69,6 +69,7 @@ def shared_office_mc(data_registry):
         evaporation_factor=0.3,
     )
     return mc.ExposureModel(
+        data_registry=data_registry,
         concentration_model=concentration_mc,
         short_range=(),
         exposed=mc.Population(
@@ -115,6 +116,7 @@ def classroom_mc(data_registry):
         evaporation_factor=0.3,
     )
     return mc.ExposureModel(
+        data_registry=data_registry,
         concentration_model=concentration_mc,
         short_range=(),
         exposed=mc.Population(
@@ -152,6 +154,7 @@ def ski_cabin_mc(data_registry):
         evaporation_factor=0.3,
     )
     return mc.ExposureModel(
+        data_registry=data_registry,
         concentration_model=concentration_mc,
         short_range=(),
         exposed=mc.Population(
@@ -195,6 +198,7 @@ def skagit_chorale_mc(data_registry):
         evaporation_factor=0.3,
     )
     return mc.ExposureModel(
+        data_registry=data_registry,
         concentration_model=concentration_mc,
         short_range=(),
         exposed=mc.Population(
@@ -238,6 +242,7 @@ def bus_ride_mc(data_registry):
         evaporation_factor=0.3,
     )
     return mc.ExposureModel(
+        data_registry=data_registry,
         concentration_model=concentration_mc,
         short_range=(),
         exposed=mc.Population(
@@ -270,12 +275,13 @@ def gym_mc(data_registry):
             presence=mc.SpecificInterval(((0., 1.),)),
             mask=models.Mask.types["No mask"],
             activity=activity_distributions(data_registry)['Heavy exercise'],
-            expiration=expiration_distributions['Breathing'],
+            expiration=expiration_distributions(data_registry)['Breathing'],
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
     )
     return mc.ExposureModel(
+        data_registry=data_registry,
         concentration_model=concentration_mc,
         short_range=(),
         exposed=mc.Population(
@@ -314,6 +320,7 @@ def waiting_room_mc(data_registry):
         evaporation_factor=0.3,
     )
     return mc.ExposureModel(
+        data_registry=data_registry,
         concentration_model=concentration_mc,
         short_range=(),
         exposed=mc.Population(

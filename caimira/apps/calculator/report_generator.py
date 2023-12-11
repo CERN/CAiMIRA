@@ -216,17 +216,17 @@ def conditional_prob_inf_given_vl_dist(
 
 
 def manufacture_conditional_probability_data(
-    data_registry: DataRegistry,
     exposure_model: models.ExposureModel,
     infection_probability: models._VectorisedFloat
 ):
-
+    data_registry: DataRegistry = exposure_model.data_registry
+    
     min_vl = data_registry.conditional_prob_inf_given_viral_load['min_vl']
     max_vl = data_registry.conditional_prob_inf_given_viral_load['max_vl']
     step = (max_vl - min_vl)/100
     viral_loads = np.arange(min_vl, max_vl, step)
     specific_vl = np.log10(exposure_model.concentration_model.virus.viral_load_in_sputum)
-    pi_means, lower_percentiles, upper_percentiles = conditional_prob_inf_given_vl_dist(infection_probability, viral_loads,
+    pi_means, lower_percentiles, upper_percentiles = conditional_prob_inf_given_vl_dist(data_registry, infection_probability, viral_loads,
                                                                                         specific_vl, step)
 
     return list(viral_loads), list(pi_means), list(lower_percentiles), list(upper_percentiles)
@@ -414,12 +414,11 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
 
 
 def scenario_statistics(
-    data_registry: DataRegistry,
     mc_model: mc.ExposureModel,
     sample_times: typing.List[float],
     compute_prob_exposure: bool
 ):
-    model = mc_model.build_model(size=data_registry.monte_carlo_sample_size)
+    model = mc_model.build_model(size=mc_model.data_registry.monte_carlo_sample_size)
     if (compute_prob_exposure):
         # It means we have data to calculate the total_probability_rule
         prob_probabilistic_exposure = model.total_probability_rule()
