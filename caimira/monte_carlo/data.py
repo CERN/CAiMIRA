@@ -291,7 +291,7 @@ def covid_overal_vl_data(data_registry):
         function=lambda d: np.interp(
             d,
             viral_load(data_registry),
-            frequencies_pdf,
+            frequencies_pdf(data_registry),
             data_registry.covid_overal_vl_data['interpolation_fp_left'],
             data_registry.covid_overal_vl_data['interpolation_fp_right']
         ),
@@ -441,22 +441,24 @@ def expiration_BLO_factors(data_registry):
 def expiration_distributions(data_registry):
     return {
         exp_type: expiration_distribution(
-            BLO_factors,
+            data_registry=data_registry,
+            BLO_factors=BLO_factors,
             d_min=param_evaluation(data_registry.long_range_expiration_distributions, 'minimum_diameter'),
             d_max=param_evaluation(data_registry.long_range_expiration_distributions, 'maximum_diameter')
         )
-        for exp_type, BLO_factors in expiration_BLO_factors.items()
+        for exp_type, BLO_factors in expiration_BLO_factors(data_registry).items()
     }
 
 
 def short_range_expiration_distributions(data_registry):
     return {
         exp_type: expiration_distribution(
-            BLO_factors,
+            data_registry=data_registry,
+            BLO_factors=BLO_factors,
             d_min=param_evaluation(data_registry.short_range_expiration_distributions, 'minimum_diameter'),
             d_max=param_evaluation(data_registry.short_range_expiration_distributions, 'maximum_diameter')
         )
-        for exp_type, BLO_factors in expiration_BLO_factors.items()
+        for exp_type, BLO_factors in expiration_BLO_factors(data_registry).items()
     }
 
 

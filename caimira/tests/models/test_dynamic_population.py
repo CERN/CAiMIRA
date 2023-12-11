@@ -10,6 +10,7 @@ import caimira.dataclass_utils as dc_utils
 @pytest.fixture
 def full_exposure_model(data_registry):
     return models.ExposureModel(
+        data_registry=data_registry,
         concentration_model=models.ConcentrationModel(
             data_registry=data_registry,
             room=models.Room(volume=100),
@@ -25,6 +26,7 @@ def full_exposure_model(data_registry):
                 virus=models.Virus.types['SARS_CoV_2'],
                 host_immunity=0.
             ),
+            evaporation_factor=0.3,
         ),
         short_range=(),
         exposed=models.Population(
@@ -148,12 +150,13 @@ def test_linearity_with_number_of_infected(full_exposure_model: models.ExposureM
 @pytest.mark.parametrize(
     "time", (8., 9., 10., 11., 12., 13., 14.),
 )
-def test_dynamic_dose(full_exposure_model: models.ExposureModel, time: float):
+def test_dynamic_dose(data_registry, full_exposure_model: models.ExposureModel, time: float):
 
     dynamic_infected: models.ExposureModel = dc_utils.nested_replace(
         full_exposure_model,
         {
             'concentration_model.infected': models.InfectedPopulation(
+                data_registry=data_registry,
                 number=models.IntPiecewiseConstant(
                     (8, 10, 12, 13, 17), (1, 2, 0, 3)),
                 presence=None,

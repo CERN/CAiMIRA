@@ -4,9 +4,9 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 from dataclasses import dataclass
-import typing
 
 from caimira import models
+from caimira.store.data_registry import DataRegistry
 
 @dataclass(frozen=True)
 class KnownConcentrationModelBase(models._ConcentrationModelBase):
@@ -198,12 +198,14 @@ def test_integrated_concentration(simple_conc_model):
     ]
 )
 def test_normed_integrated_concentration_with_background_concentration(
+    data_registry: DataRegistry,
     simple_conc_model: models.ConcentrationModel,
     dummy_population: models.Population,
     known_min_background_concentration: float,
     expected_normed_integrated_concentration: float):
 
     known_conc_model = KnownConcentrationModelBase(
+        data_registry,
         room = simple_conc_model.room,
         ventilation = simple_conc_model.ventilation,
         known_population = dummy_population,
@@ -229,6 +231,7 @@ def test_normed_integrated_concentration_with_background_concentration(
     ]
 )
 def test_normed_integrated_concentration_vectorisation(
+    data_registry: DataRegistry,
     simple_conc_model: models.ConcentrationModel,
     dummy_population: models.Population,
     known_removal_rate: float,
@@ -237,6 +240,7 @@ def test_normed_integrated_concentration_vectorisation(
     expected_normed_integrated_concentration: float):
 
     known_conc_model = KnownConcentrationModelBase(
+        data_registry = data_registry,
         room = simple_conc_model.room,
         ventilation = simple_conc_model.ventilation,
         known_population = dummy_population,
@@ -264,6 +268,7 @@ def test_normed_integrated_concentration_vectorisation(
     ]
 )
 def test_zero_ventilation_rate(
+    data_registry: DataRegistry,
     simple_conc_model: models.ConcentrationModel,
     dummy_population: models.Population,
     known_removal_rate: float,
@@ -271,6 +276,7 @@ def test_zero_ventilation_rate(
     expected_concentration: float):
 
     known_conc_model = KnownConcentrationModelBase(
+        data_registry = data_registry,
         room = simple_conc_model.room,
         ventilation = simple_conc_model.ventilation,
         known_population = dummy_population,
