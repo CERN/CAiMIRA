@@ -187,7 +187,7 @@ def test_infected_less_than_total_people(activity, total_people, infected_people
     baseline_form.total_people = total_people
     baseline_form.infected_people = infected_people
     with pytest.raises(ValueError, match=error):
-        baseline_form.validate(data_registry)
+        baseline_form.validate()
 
 
 def present_times(interval: models.Interval) -> models.BoundarySequence_t:
@@ -275,7 +275,7 @@ def test_exposed_present_lunch_end_before_beginning(baseline_form: model_generat
     baseline_form.exposed_lunch_start = minutes_since_midnight(14 * 60)
     baseline_form.exposed_lunch_finish = minutes_since_midnight(13 * 60)
     with pytest.raises(ValueError):
-        baseline_form.validate(data_registry)
+        baseline_form.validate()
 
 
 @pytest.mark.parametrize(
@@ -291,7 +291,7 @@ def test_exposed_presence_lunch_break(baseline_form: model_generator.VirusFormDa
     baseline_form.exposed_lunch_start = minutes_since_midnight(exposed_lunch_start * 60)
     baseline_form.exposed_lunch_finish = minutes_since_midnight(exposed_lunch_finish * 60)
     with pytest.raises(ValueError, match='exposed lunch break must be within presence times.'):
-        baseline_form.validate(data_registry)
+        baseline_form.validate()
 
 
 @pytest.mark.parametrize(
@@ -307,7 +307,7 @@ def test_infected_presence_lunch_break(baseline_form: model_generator.VirusFormD
     baseline_form.infected_lunch_start = minutes_since_midnight(infected_lunch_start * 60)
     baseline_form.infected_lunch_finish = minutes_since_midnight(infected_lunch_finish * 60)
     with pytest.raises(ValueError, match='infected lunch break must be within presence times.'):
-        baseline_form.validate(data_registry)
+        baseline_form.validate()
 
 
 def test_exposed_breaks_length(baseline_form: model_generator.VirusFormData, data_registry: DataRegistry):
@@ -317,7 +317,7 @@ def test_exposed_breaks_length(baseline_form: model_generator.VirusFormData, dat
     baseline_form.exposed_finish = minutes_since_midnight(11 * 60)
     baseline_form.exposed_lunch_option = False
     with pytest.raises(ValueError, match='Length of breaks >= Length of exposed presence.'):
-        baseline_form.validate(data_registry)
+        baseline_form.validate()
 
 
 def test_infected_breaks_length(baseline_form: model_generator.VirusFormData, data_registry: DataRegistry):
@@ -328,7 +328,7 @@ def test_infected_breaks_length(baseline_form: model_generator.VirusFormData, da
     baseline_form.infected_coffee_break_option = 'coffee_break_4'
     baseline_form.infected_coffee_duration = 30
     with pytest.raises(ValueError, match='Length of breaks >= Length of infected presence.'):
-        baseline_form.validate(data_registry)
+        baseline_form.validate()
 
 
 @pytest.fixture
@@ -440,7 +440,7 @@ def test_valid_no_lunch(baseline_form: model_generator.VirusFormData, data_regis
     baseline_form.exposed_lunch_option = False
     baseline_form.exposed_lunch_start = minutes_since_midnight(0)
     baseline_form.exposed_lunch_finish = minutes_since_midnight(0)
-    assert baseline_form.validate(data_registry) is None
+    assert baseline_form.validate() is None
 
 
 def test_no_breaks(baseline_form: model_generator.VirusFormData):
@@ -516,7 +516,7 @@ def test_natural_ventilation_window_opening_periodically(baseline_form: model_ge
     baseline_form.windows_duration = 20
     baseline_form.windows_frequency = 10
     with pytest.raises(ValueError, match='Duration cannot be bigger than frequency.'):
-        baseline_form.validate(data_registry)
+        baseline_form.validate()
 
 
 def test_key_validation_mech_ventilation_type_na(baseline_form_data, data_registry):
