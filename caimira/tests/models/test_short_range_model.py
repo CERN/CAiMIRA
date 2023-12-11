@@ -38,10 +38,10 @@ def concentration_model(data_registry) -> mc_models.ConcentrationModel:
 @pytest.fixture
 def short_range_model(data_registry):
     return mc_models.ShortRangeModel(data_registry=data_registry,
-                                     expiration=short_range_expiration_distributions['Breathing'],
+                                     expiration=short_range_expiration_distributions(data_registry)['Breathing'],
                                      activity=activity_distributions(data_registry)['Seated'],
                                      presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
-                                     distance=short_range_distances)
+                                     distance=short_range_distances(data_registry))
 
 
 def test_short_range_model_ndarray(concentration_model, short_range_model):
@@ -66,7 +66,7 @@ def test_short_range_model_ndarray(concentration_model, short_range_model):
 def test_dilution_factor(data_registry, activity, expected_dilution):
     model = mc_models.ShortRangeModel(
         data_registry=data_registry,
-        expiration=short_range_expiration_distributions['Breathing'],
+        expiration=short_range_expiration_distributions(data_registry)['Breathing'],
         activity=models.Activity.types[activity],
         presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
         distance=0.854
@@ -135,17 +135,18 @@ def test_short_range_exposure_with_ndarray_mask(data_registry):
             virus=models.Virus.types['SARS_CoV_2_DELTA'],
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Seated'],
-            expiration=expiration_distributions['Breathing'],
+            expiration=expiration_distributions(data_registry)['Breathing'],
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
     )
     sr_model = mc_models.ShortRangeModel(data_registry=data_registry,
-                                         expiration=short_range_expiration_distributions['Shouting'],
+                                         expiration=short_range_expiration_distributions(data_registry)['Shouting'],
                                          activity=models.Activity.types['Heavy exercise'],
                                          presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
                                          distance=0.854)
     e_model = mc_models.ExposureModel(
+        data_registry = data_registry,
         concentration_model = c_model,
         short_range = (sr_model,),
         exposed = mc_models.Population(
