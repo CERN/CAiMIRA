@@ -103,8 +103,8 @@ class ConcentrationModel(BaseRequestHandler):
     async def post(self) -> None:
         debug = self.settings.get("debug", False)
 
-        data_registry = self.settings.get("data_registry")
-        data_service = self.settings.get("data_service")
+        data_registry: DataRegistry = self.settings["data_registry"]
+        data_service: typing.Optional[DataService] = self.settings.get("data_service", None)
         if data_service:
             data_service.update_registry(data_registry)
 
@@ -159,10 +159,10 @@ class ConcentrationModelJsonResponse(BaseRequestHandler):
         """
         debug = self.settings.get("debug", False)
 
-        data_registry = self.settings.get("data_registry")
-        data_service = self.settings.get("data_service")
+        data_registry: DataRegistry = self.settings["data_registry"]
+        data_service: typing.Optional[DataService] = self.settings.get("data_service", None)
         if data_service:
-            data_service.update_configuration(data_registry)
+            data_service.update_registry(data_registry)
 
         requested_model_config = json.loads(self.request.body)
         LOG.debug(pformat(requested_model_config))
@@ -190,10 +190,10 @@ class StaticModel(BaseRequestHandler):
     async def get(self) -> None:
         debug = self.settings.get("debug", False)
 
-        data_registry = self.settings.get("data_registry")
-        data_service = self.settings.get("data_service")
+        data_registry: DataRegistry = self.settings["data_registry"]
+        data_service: typing.Optional[DataService] = self.settings.get("data_service", None)
         if data_service:
-            data_service.update_configuration(data_registry)
+            data_service.update_registry(data_registry)
 
         form = model_generator.VirusFormData.from_dict(model_generator.baseline_raw_form_data(), data_registry)
         base_url = self.request.protocol + "://" + self.request.host
@@ -368,10 +368,10 @@ class CO2ModelResponse(BaseRequestHandler):
         pass
 
     async def post(self, endpoint: str) -> None:
-        data_registry = self.settings.get("data_registry")
-        data_service = self.settings.get("data_service")
+        data_registry: DataRegistry = self.settings["data_registry"]
+        data_service: typing.Optional[DataService] = self.settings.get("data_service", None)
         if data_service:
-            data_service.update_configuration(data_registry)
+            data_service.update_registry(data_registry)
 
         requested_model_config = tornado.escape.json_decode(self.request.body)
         try:
