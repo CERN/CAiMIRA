@@ -193,8 +193,8 @@ class ExposureModelResult(View):
         self.ax.set_xlim(left = min(min(infected_presence.boundaries()[0]), min(exposed_presence.boundaries()[0])), 
                         right = max(max(infected_presence.boundaries()[1]), max(exposed_presence.boundaries()[1])))
    
-        figure_legends = [mlines.Line2D([], [], color='#3530fe', markersize=15, label='Mean concentration (Infectious Respiratory Particles)'),
-                   mlines.Line2D([], [], color='#0000c8', markersize=15, ls="dotted", label='Cumulative dose (Infectious Respiratory Particles)'),
+        figure_legends = [mlines.Line2D([], [], color='#3530fe', markersize=15, label='Mean concentration'),
+                   mlines.Line2D([], [], color='#0000c8', markersize=15, ls="dotted", label='Cumulative dose'),
                    patches.Patch(edgecolor="#96cbff", facecolor='#96cbff', label='Presence of exposed person(s)')]
         self.ax.legend(handles=figure_legends)
 
