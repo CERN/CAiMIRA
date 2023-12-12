@@ -39,7 +39,7 @@ def test_activity_distributions(data_registry, distribution, mean, std):
         ['SARS_CoV_2_GAMMA', 6.22, 1.80],
     ]
 )
-def test_viral_load_logdistribution(distribution, mean, std):
+def test_viral_load_logdistribution(data_registry, distribution, mean, std):
     virus = virus_distributions(data_registry)[distribution].build_model(size=1000000)
     npt.assert_allclose(np.log10(virus.viral_load_in_sputum).mean(), mean, atol=0.01)
     npt.assert_allclose(np.log10(virus.viral_load_in_sputum).std(), std, atol=0.01)
