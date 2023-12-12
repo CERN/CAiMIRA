@@ -389,7 +389,7 @@ def expiration_distribution(
         BLO_factors,
         d_min=0.1,
         d_max=30.,
-) -> mc.Expiration:
+):
     """
     Returns an Expiration with an aerosol diameter distribution, defined
     by the BLO factors (a length-3 tuple).

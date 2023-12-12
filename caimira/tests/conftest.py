@@ -60,7 +60,7 @@ def baseline_exposure_model(data_registry, baseline_concentration_model, baselin
 
 
 @pytest.fixture
-def exposure_model_w_outside_temp_changes(baseline_exposure_model: models.ExposureModel):
+def exposure_model_w_outside_temp_changes(data_registry, baseline_exposure_model: models.ExposureModel):
     exp_model = caimira.dataclass_utils.nested_replace(
         baseline_exposure_model, {
             'concentration_model.ventilation': models.SlidingWindow(

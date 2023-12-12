@@ -69,8 +69,9 @@ def baseline_mc_sr_model() -> caimira.monte_carlo.ShortRangeModel:
 
 
 @pytest.fixture
-def baseline_mc_exposure_model(baseline_mc_concentration_model, baseline_mc_sr_model) -> caimira.monte_carlo.ExposureModel:
+def baseline_mc_exposure_model(data_registry, baseline_mc_concentration_model, baseline_mc_sr_model) -> caimira.monte_carlo.ExposureModel:
     return caimira.monte_carlo.ExposureModel(
+        data_registry,
         baseline_mc_concentration_model,
         baseline_mc_sr_model,
         exposed=caimira.models.Population(

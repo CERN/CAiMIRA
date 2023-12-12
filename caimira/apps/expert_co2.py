@@ -22,8 +22,6 @@ def baseline_model(data_registry: DataRegistry):
             presence=models.SpecificInterval(((8., 12.), (13., 17.))),
             activity=models.Activity.types['Seated'],
         ),
-        CO2_atmosphere_concentration=440.44,
-        CO2_fraction_exhaled=0.042,
     )
 
 
