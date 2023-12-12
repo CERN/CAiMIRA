@@ -35,14 +35,14 @@ def test_model_from_dict_invalid(baseline_form_data, data_registry):
         ["Cloth"],
     ]
 )
-def test_blend_expiration(mask_type):
+def test_blend_expiration(data_registry, mask_type):
     SAMPLE_SIZE = 250000
     TOLERANCE = 0.02
     blend = {'Breathing': 2, 'Speaking': 1}
-    r = model_generator.build_expiration(blend).build_model(SAMPLE_SIZE)
+    r = model_generator.build_expiration(data_registry, blend).build_model(SAMPLE_SIZE)
     mask = models.Mask.types[mask_type]
-    expected = (expiration_distributions['Breathing'].build_model(SAMPLE_SIZE).aerosols(mask).mean()*2/3. +
-                expiration_distributions['Speaking'].build_model(SAMPLE_SIZE).aerosols(mask).mean()/3.)
+    expected = (expiration_distributions(data_registry)['Breathing'].build_model(SAMPLE_SIZE).aerosols(mask).mean()*2/3. +
+                expiration_distributions(data_registry)['Speaking'].build_model(SAMPLE_SIZE).aerosols(mask).mean()/3.)
     npt.assert_allclose(r.aerosols(mask).mean(), expected, rtol=TOLERANCE)
 
 
@@ -555,6 +555,8 @@ def test_default_types():
             raise TypeError(f'{field} has type {field_type}, got {type(value)}')
 
     for field in fields.values():
+        if field.name == "data_registry":
+            continue  # Skip the assertion for the "data_registry" field
         assert field.name in model_generator.VirusFormData._DEFAULTS, f"No default set for field name {field.name}"
 
 
