@@ -186,8 +186,8 @@ def skagit_chorale_mc(data_registry):
                 presence=models.SpecificInterval(((0, 2.5), )),
                 virus=mc.SARSCoV2(
                     viral_load_in_sputum=10**9,
-                    infectious_dose=infectious_dose_distribution,
-                    viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
+                    infectious_dose=infectious_dose_distribution(data_registry),
+                    viable_to_RNA_ratio=viable_to_RNA_ratio_distribution(data_registry),
                     transmissibility_factor=1.,
                 ),
                 mask=models.Mask.types['No mask'],
@@ -230,8 +230,8 @@ def bus_ride_mc(data_registry):
                 presence=models.SpecificInterval(((0, 1.67), )),
                 virus=mc.SARSCoV2(
                     viral_load_in_sputum=5*10**8,
-                    infectious_dose=infectious_dose_distribution,
-                    viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
+                    infectious_dose=infectious_dose_distribution(data_registry),
+                    viable_to_RNA_ratio=viable_to_RNA_ratio_distribution(data_registry),
                     transmissibility_factor=1.,
                 ),
                 mask=models.Mask.types['No mask'],
@@ -411,6 +411,7 @@ def test_small_shared_office_Geneva(data_registry, mask_type, month, expected_pi
         evaporation_factor=0.3,
     )
     exposure_mc = mc.ExposureModel(
+        data_registry=data_registry,
         concentration_model=concentration_mc,
         short_range=(),
         exposed=mc.Population(
