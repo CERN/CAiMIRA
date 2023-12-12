@@ -212,10 +212,10 @@ class VirusFormData(FormData):
             for interaction in self.short_range_interactions:
                 short_range.append(mc.ShortRangeModel(
                     data_registry=self.data_registry,
-                    expiration=short_range_expiration_distributions[interaction['expiration']],
+                    expiration=short_range_expiration_distributions(self.data_registry)[interaction['expiration']],
                     activity=infected_population.activity,
                     presence=self.short_range_interval(interaction),
-                    distance=short_range_distances,
+                    distance=short_range_distances(self.data_registry),
                 ))
 
         return mc.ExposureModel(
@@ -473,7 +473,7 @@ class VirusFormData(FormData):
 
 def build_expiration(data_registry, expiration_definition) -> mc._ExpirationBase:
     if isinstance(expiration_definition, str):
-        return expiration_distributions[expiration_definition]
+        return expiration_distributions(data_registry)[expiration_definition]
     elif isinstance(expiration_definition, dict):
         total_weight = sum(expiration_definition.values())
         BLO_factors = np.sum([

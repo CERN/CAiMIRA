@@ -2,7 +2,6 @@ import dataclasses
 import logging
 import typing
 import numpy as np
-from caimira.store.data_registry import DataRegistry
 import ruptures as rpt
 import matplotlib.pyplot as plt
 import re
@@ -177,6 +176,7 @@ class CO2FormData(FormData):
                         for _, stop in zip(all_state_changes[:-1], all_state_changes[1:])]
 
         return models.CO2DataModel(
+                data_registry=self.data_registry,
                 room_volume=self.room_volume,
                 number=models.IntPiecewiseConstant(transition_times=tuple(all_state_changes), values=tuple(total_people)),
                 presence=None,

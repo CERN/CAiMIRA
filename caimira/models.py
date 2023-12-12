@@ -344,7 +344,7 @@ class SlidingWindow(WindowOpening):
     Sliding window, or side-hung window (with the hinge perpendicular to
     the horizontal plane).
     """
-    data_registry: DataRegistry = None
+    data_registry: DataRegistry = DataRegistry()
 
     @property
     def discharge_coefficient(self) -> _VectorisedFloat:
@@ -1506,6 +1506,7 @@ class CO2DataModel:
     It uses optimization techniques to fit the model's parameters and estimate the exhalation rate and ventilation
     values that best match the measured CO2 concentrations.
     '''
+    data_registry: DataRegistry
     room_volume: float
     number: typing.Union[int, IntPiecewiseConstant]
     presence: typing.Optional[Interval]
@@ -1517,6 +1518,7 @@ class CO2DataModel:
                                 exhalation_rate: float,
                                 ventilation_values: typing.Tuple[float, ...]) -> typing.List[_VectorisedFloat]:
         CO2_concentrations = CO2ConcentrationModel(
+            data_registry=self.data_registry,
             room=Room(volume=self.room_volume),
             ventilation=CustomVentilation(PiecewiseConstant(
                 self.ventilation_transition_times, ventilation_values)),
