@@ -124,6 +124,8 @@ To run the calculator on a different URL path:
 python -m caimira.apps.calculator --prefix=/mycalc
 ```
 
+Each of these commands will start a local version of CAiMIRA, which can be visited at http://localhost:8080/.
+
 ### How to compile and read the documentation
 
 In order to generate the documentation, CAiMIRA must be installed first with the `doc` dependencies:
