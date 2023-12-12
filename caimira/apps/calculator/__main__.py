@@ -35,12 +35,23 @@ def configure_parser(parser) -> argparse.ArgumentParser:
     return parser
 
 
+def _init_logging(debug=False):
+    # Set the logging level for urllib3 and requests to WARNING
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("requests").setLevel(logging.WARNING)
+
+    # set app root log level
+    logger = logging.getLogger()
+    root_log_level = logging.DEBUG if debug else logging.WARNING
+    logger.setLevel(root_log_level)
+
+
 def main():
     parser = configure_parser(argparse.ArgumentParser())
     args = parser.parse_args()
 
     debug = args.no_debug
-    logging.getLogger().setLevel(logging.DEBUG if debug else logging.WARNING)
+    _init_logging(debug)
 
     theme_dir = args.theme
     if theme_dir is not None:

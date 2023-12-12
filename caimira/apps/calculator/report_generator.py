@@ -220,7 +220,7 @@ def manufacture_conditional_probability_data(
     infection_probability: models._VectorisedFloat
 ):
     data_registry: DataRegistry = exposure_model.data_registry
-    
+
     min_vl = data_registry.conditional_prob_inf_given_viral_load['min_vl']
     max_vl = data_registry.conditional_prob_inf_given_viral_load['max_vl']
     step = (max_vl - min_vl)/100
@@ -502,11 +502,12 @@ class ReportGenerator:
         now = datetime.utcnow().astimezone()
         time = now.strftime("%Y-%m-%d %H:%M:%S UTC")
 
+        data_registry_version = f"v{model.data_registry.version}" if model.data_registry.version else None
         context = {
             'model': model,
             'form': form,
             'creation_date': time,
-            'data_registry_version': model.data_registry.version,
+            'data_registry_version': data_registry_version,
         }
 
         scenario_sample_times = interesting_times(model)
