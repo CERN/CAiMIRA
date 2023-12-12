@@ -840,6 +840,7 @@ class ModelWidgets(View):
 
 def baseline_model(data_registry: DataRegistry):
     return models.ExposureModel(
+        data_registry=data_registry,
         concentration_model=models.ConcentrationModel(
             data_registry=data_registry,
             room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293.15,))),
