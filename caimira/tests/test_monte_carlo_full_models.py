@@ -311,17 +311,22 @@ def waiting_room_mc():
     )
 
 
+# In the following tests all the initial expected values for emission
+# rate were multiplied by the average of the distribution of fraction
+# of infected viruses (0.305, for a uniform distribution from 0.01 to 0.6)
+# following the change of convention that this ratio should be
+# applied at the emission level.
 @retry(tries=10)
 @pytest.mark.parametrize(
     "mc_model, expected_pi, expected_new_cases, expected_dose, expected_ER_per_person",
     [
-        ["shared_office_mc", 5.38, 0.16, 3.350, 1056],
-        ["classroom_mc",     8.21, 1.56, 11.356, 7416],
-        ["ski_cabin_mc",     12.92, 0.39, 21.796, 10231],
-        ["skagit_chorale_mc",61.01, 36.53, 84.730, 190422],
-        ["bus_ride_mc",      10.59, 7.06, 6.650, 5419],
-        ["gym_mc",           0.52, 0.14, 0.249, 1450/2.], # there are two infected in this case
-        ["waiting_room_mc",  1.53, 0.21, 0.844, 929],
+        ["shared_office_mc", 5.38, 0.16, 3.350, 1056*0.305],
+        ["classroom_mc",     8.21, 1.56, 11.356, 7416*0.305],
+        ["ski_cabin_mc",     12.92, 0.39, 21.796, 10231*0.305],
+        ["skagit_chorale_mc",61.01, 36.53, 84.730, 190422*0.305],
+        ["bus_ride_mc",      10.59, 7.06, 6.650, 5419*0.305],
+        ["gym_mc",           0.52, 0.14, 0.249, 1450*0.305/2.], # there are two infected in this case
+        ["waiting_room_mc",  1.53, 0.21, 0.844, 929*0.305],
     ]
 )
 def test_report_models(mc_model, expected_pi, expected_new_cases,
@@ -343,12 +348,12 @@ def test_report_models(mc_model, expected_pi, expected_new_cases,
 @pytest.mark.parametrize(
     "mask_type, month, expected_pi, expected_dose, expected_ER",
     [
-        ["No mask", "Jul", 7.689, 10.050, 1034.435],
-        ["Type I",  "Jul", 1.663, 0.938, 193.52],
-        ["FFP2",    "Jul", 0.523, 0.253, 193.52],
-        ["Type I",  "Feb", 0.659, 0.325, 193.52],
-        ["Cloth",   "Feb", 2.653, 1.741, 673.10],
-        ["Cloth",   "Jul", 5.322, 5.064, 673.10],
+        ["No mask", "Jul", 7.689, 10.050, 1034.435*0.305],
+        ["Type I",  "Jul", 1.663, 0.938, 193.52*0.305],
+        ["FFP2",    "Jul", 0.523, 0.253, 193.52*0.305],
+        ["Type I",  "Feb", 0.659, 0.325, 193.52*0.305],
+        ["Cloth",   "Feb", 2.653, 1.741, 673.10*0.305],
+        ["Cloth",   "Jul", 5.322, 5.064, 673.10*0.305],
     ],
 )
 def test_small_shared_office_Geneva(mask_type, month, expected_pi,
