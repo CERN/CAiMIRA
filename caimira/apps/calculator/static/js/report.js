@@ -887,178 +887,108 @@ function draw_generic_concentration_plot(
 function draw_histogram(svg_id, prob, prob_sd) {
     // Add main SVG element
     var plot_div = document.getElementById(svg_id);
-    var div_width = plot_div.clientWidth;
-    var div_height = plot_div.clientHeight;
     var vis = d3.select(plot_div).append('svg');
-    
-    // set the dimensions and margins of the graph
-    if (div_width > 1000) {
-        div_width = 1000;
-        var margins = { top: 30, right: 20, bottom: 50, left: 60 };
-        var graph_width = 600;
-        const svg_margins = {'margin-left': '0rem'};
-        Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
-    }
-
-    vis.attr("width", div_width).attr('height', div_height);
 
     let hist_count = prob_hist_count;
     let hist_bins = prob_hist_bins;
 
-    // X axis: scale and draw:
-    var x = d3.scaleLinear()
-        .domain([0, d3.max(hist_bins)])
-        .range([margins.left, graph_width - margins.right]);
-    vis.append("svg:g")
-        .attr("transform", "translate(0," + (graph_height - margins.bottom) + ")")
-        .call(d3.axisBottom(x));
+    // X axis:
+    var xRange = d3.scaleLinear()
+        .domain([0, d3.max(hist_bins)]);
+    var xEl = vis.append("svg:g")
     
     // X axis label.
-    vis.append('text')
+    var xLabel = vis.append('text')
         .attr('class', 'x label')
         .attr('fill', 'black')
         .attr('text-anchor', 'middle')
-        .text('Probability of Infection')
-        .attr('x', (graph_width + margins.right) / 2)
-        .attr('y', graph_height * 0.97);
+        .text('Probability of Infection');
 
     // set the parameters for the histogram
     var histogram = d3.histogram()
         .value(d => d)
-        .domain(x.domain())  // then the domain of the graphic
-        .thresholds(x.ticks(100)); // then the numbers of bins
+        .domain(xRange.domain())  // then the domain of the graphic
+        .thresholds(xRange.ticks(100)); // then the numbers of bins
     
     // And apply this function to data to get the bins  
     var bins = histogram(prob_dist);
 
     // Y left axis: scale and draw:
-    var y_left = d3.scaleLinear()
-        .range([graph_height - margins.bottom, margins.top]);
-        y_left.domain([0, d3.max(hist_count)]);   // d3.hist has to be called before the Y axis obviously
-    vis.append("svg:g")
-        .attr('transform', 'translate(' + margins.left + ',0)')
-        .call(d3.axisLeft(y_left));
+    var yRangeLeft = d3.scaleLinear().domain([0, d3.max(hist_count)]);   // d3.hist has to be called before the Y axis obviously
+    var yElLeft = vis.append("svg:g").attr('class', 'y axis');
 
     // Y left axis label.
-    vis.append('svg:text')
+    var yLabelLeft = vis.append('svg:text')
         .attr('class', 'y label')
         .attr('fill', 'black')
         .attr('text-anchor', 'middle')
-        .text('Density')
-        .attr('x', (graph_height * 0.9 + margins.bottom) / 2)
-        .attr('y', (graph_height + margins.left) * 0.9)
-        .attr('transform', 'rotate(-90, 0,' + graph_height + ')');
+        .text('Density');
 
     // append the bar rectangles to the svg element
-    vis.selectAll("rect")
+    var histRect = vis.selectAll("rect")
         .data(bins.slice(0, -1))
         .enter()
         .append("rect")
             .attr("x", 1)
-            .attr("transform", function(d, i) { 
-                return "translate(" + x(d.x0) + "," + y_left(hist_count[i]) + ")"; })
-            .attr("width", function(d) { return x(d.x1) - x(d.x0) -1 ; })
-            .attr("height", function(d, i) { return graph_height - y_left(hist_count[i]) - margins.bottom; })
             .attr('fill', '#1f77b4');
             
     // Y right axis: scale and draw:
-    var y_right = d3.scaleLinear()
-        .range([graph_height - margins.bottom, margins.top]);
-        y_right.domain([0, 1]);
-    vis.append("svg:g")
-        .attr('transform', 'translate(' + (graph_width - margins.right) + ',0)')
-        .call(d3.axisRight(y_right));
+    var yRangeRight = d3.scaleLinear().domain([0, 1]);
+    var yElRight = vis.append("svg:g").attr('class', 'y axis');
 
     // Y right axis label.
-    vis.append('svg:text')
+    var yLabelRight = vis.append('svg:text')
         .attr('class', 'y label')
         .attr('fill', 'black')
         .attr('text-anchor', 'middle')
-        .text('Cumulative Density Function (CDF)')
-        .attr('transform', 'rotate(-90, 0,' + graph_height + ')')
-        .attr('x', (graph_height + margins.bottom * 0.55) / 2)
-        .attr('y', graph_width + 430);
+        .text('Cumulative Density Function (CDF)');
     
     // CDF Calculation
     let count_sum = hist_count.reduce((partialSum, a) => partialSum + a, 0);
     let pdf = hist_count.map((el, i) => el/count_sum);
     let cdf = pdf.map((sum => value => sum += value)(0));
     // Add the CDF line
-    vis.append("svg:path")
+    var cdfLine = vis.append("svg:path")
         .datum(cdf)
         .attr("fill", "none")
         .attr("stroke", "lightblue")
-        .attr("stroke-width", 1.5)
-        .attr("d", d3.line()
-        .x(function(d, i) { return x(hist_bins[i]) })
-        .y(function(d) { return y_right(d) })
-    );
+        .attr("stroke-width", 1.5);
 
     // Add the mean dashed line
-    vis.append("svg:line")
+    var meanLine = vis.append("svg:line")
         .attr("fill", "none")
         .attr('stroke-width', 2)
         .attr('stroke-dasharray', (5, 5))
-        .attr("x1", x(prob/100)) 
-        .attr("y1", y_right(1))
-        .attr("x2", x(prob/100))
-        .attr("y2", y_right(0))
         .attr("stroke", "grey");
 
     // Plot tile
-    vis.append("svg:text")
-        .attr("x", x(0.5))             
-        .attr("y", 0 + margins.top)
+    var plotTitle = vis.append("svg:text")
         .attr("text-anchor", "middle")  
-        .style("font-size", "16px")  
         .text(`P(I) -- Mean(SD) = ${prob.toFixed(2)}(${prob_sd.toFixed(2)}) `);
 
-    // Legend for the plot elements
-    const size = 15;
-    var legend_x_start = 50;
-    const space_between_text_icon = 30;
-    const text_height = 6;  
     // CDF line icon
-    vis.append('rect')
+    var cdfLineIcon = vis.append('rect')
         .attr('width', 20)
         .attr('height', 3)
         .style('fill', 'lightblue')
-        .attr('x', graph_width + legend_x_start)
-        .attr('y', margins.top + size);
     // CDF line text
-    vis.append('text')
-        .text('CDF')
-        .attr('x', graph_width + legend_x_start + space_between_text_icon)
-        .attr('y', margins.top + size + text_height);      
+    var cdfLineText = vis.append('text').text('CDF')      
     //  Hist icon
-    vis.append('rect')
+    var histIcon = vis.append('rect')
         .attr('width', 20)
         .attr('height', 15)
-        .attr('fill', '#1f77b4')
-        .attr('x', graph_width + legend_x_start)
-        .attr('y', margins.top + (2 * size));
+        .attr('fill', '#1f77b4');
     //  Hist text
-    vis.append('text')
-        .text('Histogram')
-        .attr('x', graph_width + legend_x_start + space_between_text_icon)
-        .attr('y', margins.top + 2 * size + text_height*2);
+    var histText = vis.append('text').text('Histogram');
     // Mean text
-    vis.append('line')
+    var meanText = vis.append('line')
         .attr('stroke', 'grey')
         .attr('stroke-width', 2)
-        .attr('stroke-dasharray', (5, 5))
-        .attr("x1", graph_width + legend_x_start)
-        .attr("x2", graph_width + legend_x_start + 20)
-        .attr("y1", margins.top + 3.85 * size)
-        .attr("y2", margins.top + 3.85 * size);
-    // Mean line text
-    vis.append('text')
-        .text('Mean')
-        .attr('x', graph_width + legend_x_start + space_between_text_icon)
-        .attr('y', margins.top + 3 * size + text_height*3);      
+        .attr('stroke-dasharray', (5, 5));
+    var meanLineText = vis.append('text').text('Mean');      
 
     // Legend Bbox
-    vis.append('rect')
+    var legendBBox = vis.append('rect')
         .attr('width', 120)
         .attr('height', 65)
         .attr('stroke', 'lightgrey')
@@ -1066,9 +996,145 @@ function draw_histogram(svg_id, prob, prob_sd) {
         .attr('rx', '5px')
         .attr('ry', '5px')
         .attr('stroke-linejoin', 'round')
-        .attr('fill', 'none')
-        .attr('x', graph_width * 1.07)
-        .attr('y', margins.top * 1.1);
+        .attr('fill', 'none');
+
+    function redraw() {
+        // Define width and height according to the screen size.
+        var div_width = plot_div.clientWidth;
+        var div_height = plot_div.clientHeight;
+        graph_width = div_width;
+        graph_height = div_height
+        var margins = { top: 30, right: 20, bottom: 50, left: 60 };
+        if (div_width >= 1000) { // For screens with width > 1000px legend can be on the graph's right side.
+            div_width = 1000;
+            graph_width = 600;
+            const svg_margins = {'margin-left': '0rem'};
+            Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
+        }
+        else {
+            div_width = div_width * 1.1
+            graph_width = div_width * .9;
+            graph_height = div_height * .75; // On mobile screen sizes we want the legend to be on the bottom of the graph.
+            const svg_margins = {'margin-left': '-1rem'};
+            Object.entries(svg_margins).forEach(([prop,val]) => vis.style(prop,val));
+        };
+
+        // Use the extracted size to set the size of the SVG element.
+        vis.attr("width", div_width)
+            .attr('height', div_height);
+
+        // Axis definitions
+        xRange.range([margins.left, graph_width - margins.right]);
+        xEl.attr("transform", "translate(0," + (graph_height - margins.bottom) + ")").call(d3.axisBottom(xRange));
+        xLabel.attr('x', (graph_width + margins.right) / 2).attr('y', graph_height * 0.97);
+        
+        yRangeLeft.range([graph_height - margins.bottom, margins.top]);
+        yElLeft.attr('transform', 'translate(' + margins.left + ',0)').call(d3.axisLeft(yRangeLeft));
+        yLabelLeft.attr('x', (graph_height * 0.9 + margins.bottom) / 2)
+            .attr('y', (graph_height + margins.left) * 0.9)
+            .attr('transform', 'rotate(-90, 0,' + graph_height + ')');
+        
+        yRangeRight.range([graph_height - margins.bottom, margins.top]);
+        yElRight.attr('transform', 'translate(' + (graph_width - margins.right) + ',0)').call(d3.axisRight(yRangeRight));
+        yLabelRight.attr('transform', 'rotate(-90, 0,' + graph_height + ')')
+            .attr('x', (graph_height + margins.bottom) / 2.1);
+        
+        if (plot_div.clientWidth >= 1000) yLabelRight.attr('y', graph_width * 1.7);
+        else yLabelRight.attr('y', graph_width + 325);
+
+        // Histogram rectangles
+        histRect.each(function (d, i) {
+            var currentRect = d3.select(this);
+            var x0 = xRange(d.x0);
+            var x1 = xRange(d.x1);
+            var yValue = yRangeLeft(hist_count[i]);
+            currentRect
+                .attr("transform", "translate(" + x0 + "," + yValue + ")")
+                .attr("width", x1 - x0 - 1)
+                .attr("height", graph_height - yValue - margins.bottom);
+        });
+
+        // CDF line
+        cdfLine.attr("d", d3.line()
+            .x(function(d, i) { return xRange(hist_bins[i]); })
+            .y(function(d) { return yRangeRight(d); }
+        ));
+
+        // Mean dashed line
+        meanLine.attr("x1", xRange(prob/100))
+            .attr("y1", yRangeRight(1))
+            .attr("x2", xRange(prob/100))
+            .attr("y2", yRangeRight(0));
+
+        // Plot title
+        plotTitle.attr("x", xRange(0.5))
+            .attr("y", 0 + margins.top);
+        
+        // Legend for the plot elements
+        const size = 15;
+        var legend_x_start = 50;
+        const space_between_text_icon = 30;
+        const text_height = 6;
+        if (plot_div.clientWidth >= 1000) {
+            // CDF line icon
+            cdfLineIcon.attr('x', graph_width + legend_x_start)
+                .attr('y', margins.top + size);
+            // CDF line text
+            cdfLineText.attr('x', graph_width + legend_x_start + space_between_text_icon)
+                .attr('y', margins.top + size + text_height);
+            // Hist icon
+            histIcon.attr('x', graph_width + legend_x_start)
+                .attr('y', margins.top + (2 * size));
+            // Hist text
+            histText.attr('x', graph_width + legend_x_start + space_between_text_icon)
+                .attr('y', margins.top + 2 * size + text_height*2);
+            // Mean text
+            meanText.attr("x1", graph_width + legend_x_start)
+                .attr("x2", graph_width + legend_x_start + 20)
+                .attr("y1", margins.top + 3.85 * size)
+                .attr("y2", margins.top + 3.85 * size);
+            // Mean line text
+            meanLineText.attr('x', graph_width + legend_x_start + space_between_text_icon)
+                .attr('y', margins.top + 3 * size + text_height*3);
+            // Legend BBox
+            legendBBox.attr('x', graph_width * 1.07)
+                .attr('y', margins.top * 1.1);
+        }
+        else {
+            legend_x_start = margins.left + 10;
+            // CDF line icon
+            cdfLineIcon.attr('x', legend_x_start)
+                .attr('y', graph_height + size);
+            // CDF line text
+            cdfLineText.attr('x', legend_x_start + space_between_text_icon)
+                .attr('y', graph_height + size + text_height);
+            // Hist icon
+            histIcon.attr('x', legend_x_start)
+                .attr('y', graph_height + (2 * size));
+            // Hist text
+            histText.attr('x', legend_x_start + space_between_text_icon)
+                .attr('y', graph_height + 2 * size + text_height*2);
+            // Mean text
+            meanText.attr("x1", legend_x_start)
+                .attr("x2", legend_x_start + 20)
+                .attr("y1", graph_height + 3.85 * size)
+                .attr("y2", graph_height + 3.85 * size);
+            // Mean line text
+            meanLineText.attr('x', legend_x_start + space_between_text_icon)
+                .attr('y', graph_height + 3 * size + text_height*3);
+            // Legend BBox
+            legendBBox.attr('x', margins.left)
+                .attr('y', graph_height + 4);
+        }
+    }
+
+    // Draw for the first time to initialize.
+    redraw();
+
+    // Redraw based on the new size whenever the browser window is resized.
+    window.addEventListener("resize", e => {
+        redraw();
+    });
 }
 
 function copy_clipboard(shareable_link) {
