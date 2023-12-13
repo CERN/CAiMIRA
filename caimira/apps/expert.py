@@ -131,13 +131,13 @@ class ExposureModelResult(View):
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
         ax.set_xlabel('Time (hours)')
-        ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
-        ax.set_title('Concentration of virions \nand Cumulative dose')
+        ax.set_ylabel('Mean concentration ($IRP/m^{3}$)')
+        ax.set_title('Concentration and Cumulative\ndose of Infectious Respiratory Particles')
 
         ax2 = ax.twinx() 
         ax2.spines['left'].set_visible(False)
         ax2.spines['top'].set_visible(False)
-        ax2.set_ylabel('Mean cumulative dose (infectious virus)')
+        ax2.set_ylabel('Mean cumulative dose (IRP)')
         ax2.spines['right'].set_linestyle((0,(1,4)))
         
         return ax, ax2
@@ -236,15 +236,15 @@ class ExposureComparisonResult(View):
         ax.spines['top'].set_visible(False)
         
         ax.set_xlabel('Time (hours)')
-        ax.set_ylabel('Mean concentration ($virions/m^{3}$)')
-        ax.set_title('Concentration of virions \nand Cumulative dose')
+        ax.set_ylabel('Mean concentration ($IRP/m^{3}$)')
+        ax.set_title('Concentration and Cumulative\ndose of Infectious Respiratory Particles')
         
         ax2 = ax.twinx()
         ax2.spines['left'].set_visible(False)
         ax2.spines['top'].set_visible(False)
         ax2.spines['right'].set_linestyle((0,(1,4)))
 
-        ax2.set_ylabel('Mean cumulative dose (infectious virus)')
+        ax2.set_ylabel('Mean cumulative dose (IRP)')
 
         return ax, ax2
 

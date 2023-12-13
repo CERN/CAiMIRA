@@ -75,19 +75,19 @@ def known_concentrations(func):
 
 @pytest.mark.parametrize(
     "population, cm, expected_exposure, expected_probability", [
-        [populations[1], known_concentrations(lambda t: 36.),
+        [populations[1], known_concentrations(lambda t: 18.),
          np.array([64.02320633, 59.45012016]), np.array([67.9503762594, 65.2366759251])],
 
-        [populations[2], known_concentrations(lambda t: 36.),
+        [populations[2], known_concentrations(lambda t: 18.),
          np.array([40.91708675, 45.73086166]), np.array([51.6749232285, 55.6374622042])],
 
-        [populations[0], known_concentrations(lambda t: np.array([36., 72.])),
+        [populations[0], known_concentrations(lambda t: np.array([18., 36.])),
          np.array([45.73086166, 91.46172332]), np.array([55.6374622042, 80.3196524031])],
 
-        [populations[1], known_concentrations(lambda t: np.array([36., 72.])),
+        [populations[1], known_concentrations(lambda t: np.array([18., 36.])),
          np.array([64.02320633, 118.90024032]), np.array([67.9503762594, 87.9151129926])],
 
-        [populations[2], known_concentrations(lambda t: np.array([36., 72.])),
+        [populations[2], known_concentrations(lambda t: np.array([18., 36.])),
          np.array([40.91708675, 91.46172332]), np.array([51.6749232285, 80.3196524031])],
     ])
 def test_exposure_model_ndarray(population, cm,
@@ -113,7 +113,7 @@ def test_exposure_model_ndarray(population, cm,
     ])
 def test_exposure_model_ndarray_and_float_mix(population, expected_deposited_exposure, sr_model, cases_model):
     cm = known_concentrations(
-        lambda t: 0. if np.floor(t) % 2 else np.array([1.2, 1.2]))
+        lambda t: 0. if np.floor(t) % 2 else np.array([0.6, 0.6]))
     model = ExposureModel(cm, sr_model, population, cases_model)
 
     np.testing.assert_almost_equal(
@@ -130,7 +130,7 @@ def test_exposure_model_ndarray_and_float_mix(population, expected_deposited_exp
         [populations[2], np.array([1.36390289, 1.52436206])],
     ])
 def test_exposure_model_vector(population, expected_deposited_exposure, sr_model, cases_model):
-    cm_array = known_concentrations(lambda t: np.array([1.2, 1.2]))
+    cm_array = known_concentrations(lambda t: np.array([0.6, 0.6]))
     model_array = ExposureModel(cm_array, sr_model, population, cases_model)
     np.testing.assert_almost_equal(
         model_array.deposited_exposure(), np.array(expected_deposited_exposure)
@@ -138,7 +138,7 @@ def test_exposure_model_vector(population, expected_deposited_exposure, sr_model
 
 
 def test_exposure_model_scalar(sr_model, cases_model):
-    cm_scalar = known_concentrations(lambda t: 1.2)
+    cm_scalar = known_concentrations(lambda t: 0.6)
     model_scalar = ExposureModel(cm_scalar, sr_model, populations[0], cases_model)
     expected_deposited_exposure = 1.52436206
     np.testing.assert_almost_equal(
@@ -234,7 +234,7 @@ def test_infectious_dose_vectorisation(sr_model, cases_model):
         expiration=models.Expiration.types['Speaking'],
         host_immunity=0.,
     )
-    cm = known_concentrations(lambda t: 1.2)
+    cm = known_concentrations(lambda t: 0.6)
     cm = replace(cm, infected=infected_population)
 
     presence_interval = models.SpecificInterval(((0., 1.),))
@@ -289,13 +289,13 @@ def test_prob_meet_infected_person(pop, cases, AB, exposed, infected, prob_meet_
 
 @pytest.mark.parametrize(
     "exposed_population, cm, pop, cases, AB, probabilistic_exposure_probability",[
-        [10, known_concentrations(lambda t: 36.),
+        [10, known_concentrations(lambda t: 18.),
         100000, 68, 5, 41.50971131],
-        [10, known_concentrations(lambda t: 0.2),
+        [10, known_concentrations(lambda t: 0.1),
         100000, 68, 5, 2.185785075],
-        [20, known_concentrations(lambda t: 72.),
+        [20, known_concentrations(lambda t: 36.),
         100000, 68, 5, 64.09068488],
-        [30, known_concentrations(lambda t: 1.2),
+        [30, known_concentrations(lambda t: 0.6),
         100000, 68, 5, 55.93154502],
     ])
 def test_probabilistic_exposure_probability(sr_model, exposed_population, cm,
@@ -396,8 +396,8 @@ def test_diameter_vectorisation_room(diameter_dependent_model, sr_model, cases_m
 @pytest.mark.parametrize(
     ["cm", "host_immunity", "expected_probability"],
     [
-        [known_concentrations(lambda t: 36.), np.array([0.25, 0.5]), np.array([57.40415859, 41.03956914])],
-        [known_concentrations(lambda t: 36.), np.array([0., 1.]), np.array([67.95037626, 0.])],
+        [known_concentrations(lambda t: 18.), np.array([0.25, 0.5]), np.array([57.40415859, 41.03956914])],
+        [known_concentrations(lambda t: 18.), np.array([0., 1.]), np.array([67.95037626, 0.])],
     ]
 )
 def test_host_immunity_vectorisation(sr_model, cases_model, cm, host_immunity, expected_probability):
