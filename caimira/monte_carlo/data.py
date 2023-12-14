@@ -15,13 +15,6 @@ from caimira.store.data_registry import DataRegistry
 
 
 def evaluate_vl(value, data_registry: DataRegistry):
-    # FIXME: temp fix until data service values is updated
-    # remove old Ref value
-    if "covid_overal_vl_data" in value:
-        value = ViralLoads.COVID_OVERALL.value
-    elif "symptomatic_vl_frequencies" in value:
-        value = ViralLoads.SYMPTOMATIC_FREQUENCIES.value
-
     if value == ViralLoads.COVID_OVERALL.value:
         return covid_overal_vl_data(data_registry)
     elif value == ViralLoads.SYMPTOMATIC_FREQUENCIES.value:
@@ -31,11 +24,6 @@ def evaluate_vl(value, data_registry: DataRegistry):
 
 
 def evaluate_infectd(value, data_registry: DataRegistry):
-    # FIXME: temp fix until data service values is updated
-    # remove old Ref value
-    if "infectious_dose_distribution" in value:
-        value = InfectiousDoses.DISTRIBUTION.value
-
     if value == InfectiousDoses.DISTRIBUTION.value:
         return infectious_dose_distribution(data_registry)
     else:
@@ -43,11 +31,6 @@ def evaluate_infectd(value, data_registry: DataRegistry):
 
 
 def evaluate_vtrr(value, data_registry: DataRegistry):
-    # FIXME: temp fix until data service values is updated
-    # remove old Ref value
-    if "viable_to_RNA_ratio_distribution" in value:
-        value = ViableToRNARatios.DISTRIBUTION.value
-
     if value == ViableToRNARatios.DISTRIBUTION.value:
         return viable_to_RNA_ratio_distribution(data_registry)
     else:
