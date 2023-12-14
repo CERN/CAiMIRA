@@ -227,15 +227,15 @@ class FormData:
         else:
             return self.exposed_coffee_break_times()
 
-    def generate_specific_break_times(self, population_breaks) -> models.BoundarySequence_t:
+    def generate_specific_break_times(self, breaks_dict: dict, target: str) -> models.BoundarySequence_t:
         break_times = []
-        for n in population_breaks:
+        for n in breaks_dict[f'{target}_breaks']:
             # Parse break times.  
             begin = time_string_to_minutes(n["start_time"])
             end = time_string_to_minutes(n["finish_time"])
             for time in [begin, end]:
                 # For a specific break, the infected and exposed presence is the same.
-                if not getattr(self, 'infected_start') < time < getattr(self, 'infected_finish'):
+                if not getattr(self, f'{target}_start') < time < getattr(self, f'{target}_finish'):
                     raise ValueError(f'All breaks should be within the simulation time. Got {time_minutes_to_string(time)}.')
 
             break_times.append((begin, end))
@@ -335,7 +335,7 @@ class FormData:
 
     def infected_present_interval(self) -> models.Interval:
         if self.specific_breaks != {}: # It means the breaks are specific and not predefined
-            breaks = self.generate_specific_break_times(self.specific_breaks['infected_breaks'])
+            breaks = self.generate_specific_break_times(breaks_dict=self.specific_breaks, target='exposed')
         else:
             breaks = self.infected_lunch_break_times() + self.infected_coffee_break_times()
         return self.present_interval(
@@ -351,7 +351,7 @@ class FormData:
 
     def exposed_present_interval(self) -> models.Interval:
         if self.specific_breaks != {}: # It means the breaks are specific and not predefined
-            breaks = self.generate_specific_break_times(self.specific_breaks['exposed_breaks'])
+            breaks = self.generate_specific_break_times(breaks_dict=self.specific_breaks, target='exposed')
         else:
             breaks = self.exposed_lunch_break_times() + self.exposed_coffee_break_times()
         return self.present_interval(
