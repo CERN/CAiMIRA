@@ -39,15 +39,16 @@ def test_specific_population_break_data_structure(population_break_input, error,
 @pytest.mark.parametrize(
     ["break_input", "error"],
     [
-        [[{"start_time": "07:00", "finish_time": "11:00"}, ], "All breaks should be within the simulation time. Got 07:00."],
-        [[{"start_time": "17:00", "finish_time": "18:00"}, ], "All breaks should be within the simulation time. Got 18:00."],
-        [[{"start_time": "10:00", "finish_time": "11:00"}, {"start_time": "17:00", "finish_time": "20:00"}, ], "All breaks should be within the simulation time. Got 20:00."],
-        [[{"start_time": "08:00", "finish_time": "11:00"}, {"start_time": "14:00", "finish_time": "15:00"}, ], "All breaks should be within the simulation time. Got 08:00."],
+        [{'exposed_breaks': [{"start_time": "07:00", "finish_time": "11:00"}, ], 'infected_breaks': []}, "All breaks should be within the simulation time. Got 07:00."],
+        [{'exposed_breaks': [], 'infected_breaks': [{"start_time": "17:00", "finish_time": "18:00"}, ]}, "All breaks should be within the simulation time. Got 18:00."],
+        [{'exposed_breaks': [{"start_time": "10:00", "finish_time": "11:00"}, {"start_time": "17:00", "finish_time": "20:00"}, ], 'infected_breaks': []}, "All breaks should be within the simulation time. Got 20:00."],
+        [{'exposed_breaks': [], 'infected_breaks': [{"start_time": "08:00", "finish_time": "11:00"}, {"start_time": "14:00", "finish_time": "15:00"}, ]}, "All breaks should be within the simulation time. Got 08:00."],
     ]
 )
 def test_specific_break_time(break_input, error, baseline_form: model_generator.VirusFormData):
     with pytest.raises(ValueError, match=error):
-        baseline_form.generate_specific_break_times(break_input)
+        baseline_form.generate_specific_break_times(breaks_dict=break_input, target='exposed')
+        baseline_form.generate_specific_break_times(breaks_dict=break_input, target='infected')
 
 
 @pytest.mark.parametrize(
