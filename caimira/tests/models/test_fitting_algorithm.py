@@ -16,8 +16,9 @@ from caimira import models
         ['Standing', [8, 17], [2.45]],
     ]
 )
-def test_fitting_algorithm(activity_type, ventilation_active, air_exch):
+def test_fitting_algorithm(data_registry, activity_type, ventilation_active, air_exch):
     conc_model = models.CO2ConcentrationModel(
+        data_registry = data_registry,
         room=models.Room(
             volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293,))),
         ventilation=models.CustomVentilation(models.PiecewiseConstant(
@@ -38,6 +39,7 @@ def test_fitting_algorithm(activity_type, ventilation_active, air_exch):
 
     # Generate CO2DataModel
     data_model = models.CO2DataModel(
+        data_registry=data_registry,
         room_volume=75,
         number=models.IntPiecewiseConstant(transition_times=tuple(
             [8, 12, 13, 17]), values=tuple([2, 1, 2])),

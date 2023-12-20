@@ -14,12 +14,11 @@ from .. import calculator
 from .form_data import FormData, cast_class_fields, time_string_to_minutes
 from caimira.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions, short_range_distances
 from caimira.monte_carlo.data import expiration_distribution, expiration_BLO_factors, expiration_distributions, short_range_expiration_distributions
-from .defaults import (DEFAULT_MC_SAMPLE_SIZE, DEFAULTS, ACTIVITIES, ACTIVITY_TYPES, CONFIDENCE_LEVEL_OPTIONS, 
-                       MECHANICAL_VENTILATION_TYPES, MASK_TYPES, MASK_WEARING_OPTIONS, MONTH_NAMES, VACCINE_BOOSTER_TYPE, VACCINE_TYPE, 
-                       VENTILATION_TYPES, VIRUS_TYPES, VOLUME_TYPES, WINDOWS_OPENING_REGIMES, WINDOWS_TYPES)
-from caimira.store.configuration import config
+from .defaults import (DEFAULTS, CONFIDENCE_LEVEL_OPTIONS,
+                       MECHANICAL_VENTILATION_TYPES, MASK_WEARING_OPTIONS, MONTH_NAMES, VACCINE_BOOSTER_TYPE, VACCINE_TYPE,
+                       VENTILATION_TYPES, VOLUME_TYPES, WINDOWS_OPENING_REGIMES, WINDOWS_TYPES)
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger("MODEL")
 
 minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
 
@@ -75,17 +74,17 @@ class VirusFormData(FormData):
     short_range_interactions: list
 
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = DEFAULTS
-    
+
     def validate(self):
         # Validate population parameters
         self.validate_population_parameters()
 
-        validation_tuples = [('activity_type', ACTIVITY_TYPES),
+        validation_tuples = [('activity_type', self.data_registry.population_scenario_activity.keys()),
                              ('mechanical_ventilation_type', MECHANICAL_VENTILATION_TYPES),
-                             ('mask_type', MASK_TYPES),
+                             ('mask_type', list(mask_distributions(self.data_registry).keys())),
                              ('mask_wearing_option', MASK_WEARING_OPTIONS),
                              ('ventilation_type', VENTILATION_TYPES),
-                             ('virus_type', VIRUS_TYPES),
+                             ('virus_type', list(virus_distributions(self.data_registry).keys())),
                              ('volume_type', VOLUME_TYPES),
                              ('window_opening_regime', WINDOWS_OPENING_REGIMES),
                              ('window_type', WINDOWS_TYPES),
@@ -93,11 +92,11 @@ class VirusFormData(FormData):
                              ('ascertainment_bias', CONFIDENCE_LEVEL_OPTIONS),
                              ('vaccine_type', VACCINE_TYPE),
                              ('vaccine_booster_type', VACCINE_BOOSTER_TYPE),]
-        
+
         for attr_name, valid_set in validation_tuples:
             if getattr(self, attr_name) not in valid_set:
                 raise ValueError(f"{getattr(self, attr_name)} is not a valid value for {attr_name}")
-            
+
         # Validate number of infected people == 1 when activity is Conference/Training.
         if self.activity_type == 'training' and self.infected_people > 1:
             raise ValueError('Conference/Training activities are limited to 1 infected.')
@@ -129,7 +128,7 @@ class VirusFormData(FormData):
         if self.specific_breaks != {}:
             if type(self.specific_breaks) is not dict:
                 raise TypeError('The specific breaks should be in a dictionary.')
-            
+
             dict_keys = list(self.specific_breaks.keys())
             if "exposed_breaks" not in dict_keys:
                 raise TypeError(f'Unable to fetch "exposed_breaks" key. Got "{dict_keys[0]}".')
@@ -163,7 +162,7 @@ class VirusFormData(FormData):
                 raise TypeError(f'Unable to fetch "physical_activity" key. Got "{dict_keys[0]}".')
             if "respiratory_activity" not in dict_keys:
                 raise TypeError(f'Unable to fetch "respiratory_activity" key. Got "{dict_keys[1]}".')
-                
+
             if type(self.precise_activity['physical_activity']) is not str:
                 raise TypeError('The physical activities should be a single string.')
 
@@ -180,7 +179,7 @@ class VirusFormData(FormData):
                 if "percentage" not in dict_keys:
                     raise TypeError(f'Unable to fetch "percentage" key. Got "{dict_keys[1]}".')
                 total_percentage += respiratory_activity['percentage']
-                    
+
             if total_percentage != 100:
                 raise ValueError(f'The sum of all respiratory activities should be 100. Got {total_percentage}.')
 
@@ -193,10 +192,10 @@ class VirusFormData(FormData):
 
         if self.arve_sensors_option == False:
             if self.room_heating_option:
-                humidity = config.room['defaults']['humidity_with_heating']
+                humidity = self.data_registry.room['defaults']['humidity_with_heating']
             else:
-                humidity = config.room['defaults']['humidity_without_heating']
-            inside_temp = config.room['defaults']['inside_temp']
+                humidity = self.data_registry.room['defaults']['humidity_without_heating']
+            inside_temp = self.data_registry.room['defaults']['inside_temp']
         else:
             humidity = float(self.humidity)
             inside_temp = self.inside_temp
@@ -204,22 +203,25 @@ class VirusFormData(FormData):
         return models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (inside_temp,)), humidity=humidity)
 
     def build_mc_model(self) -> mc.ExposureModel:
-        room = self.initialize_room()        
+        room = self.initialize_room()
         ventilation: models._VentilationBase = self.ventilation()
         infected_population = self.infected_population()
-        
+
         short_range = []
         if self.short_range_option == "short_range_yes":
             for interaction in self.short_range_interactions:
                 short_range.append(mc.ShortRangeModel(
-                    expiration=short_range_expiration_distributions[interaction['expiration']],
+                    data_registry=self.data_registry,
+                    expiration=short_range_expiration_distributions(self.data_registry)[interaction['expiration']],
                     activity=infected_population.activity,
                     presence=self.short_range_interval(interaction),
-                    distance=short_range_distances,
+                    distance=short_range_distances(self.data_registry),
                 ))
 
         return mc.ExposureModel(
+            data_registry=self.data_registry,
             concentration_model=mc.ConcentrationModel(
+                data_registry=self.data_registry,
                 room=room,
                 ventilation=ventilation,
                 infected=infected_population,
@@ -234,10 +236,12 @@ class VirusFormData(FormData):
             ),
         )
 
-    def build_model(self, sample_size=DEFAULT_MC_SAMPLE_SIZE) -> models.ExposureModel:
+    def build_model(self, sample_size=None) -> models.ExposureModel:
+        sample_size = sample_size or self.data_registry.monte_carlo_sample_size
         return self.build_mc_model().build_model(size=sample_size)
 
-    def build_CO2_model(self, sample_size=DEFAULT_MC_SAMPLE_SIZE) -> models.CO2ConcentrationModel:
+    def build_CO2_model(self, sample_size=None) -> models.CO2ConcentrationModel:
+        sample_size = sample_size or self.data_registry.monte_carlo_sample_size
         infected_population: models.InfectedPopulation = self.infected_population().build_model(sample_size)
         exposed_population: models.Population = self.exposed_population().build_model(sample_size)
 
@@ -245,22 +249,23 @@ class VirusFormData(FormData):
         state_change_times.update(exposed_population.presence_interval().transition_times())
         transition_times = sorted(state_change_times)
 
-        total_people = [infected_population.people_present(stop) + exposed_population.people_present(stop) 
+        total_people = [infected_population.people_present(stop) + exposed_population.people_present(stop)
                         for _, stop in zip(transition_times[:-1], transition_times[1:])]
-        
+
         if (self.activity_type == 'precise'):
             activity_defn, _ = self.generate_precise_activity_expiration()
         else:
-            activity_defn = activity_defn = ACTIVITIES[self.activity_type]['activity']
+            activity_defn = self.data_registry.population_scenario_activity[self.activity_type]['activity']
 
         population = mc.SimplePopulation(
             number=models.IntPiecewiseConstant(transition_times=tuple(transition_times), values=tuple(total_people)),
             presence=None,
-            activity=activity_distributions[activity_defn],
+            activity=activity_distributions(self.data_registry)[activity_defn],
         )
-        
+
         # Builds a CO2 concentration model based on model inputs
         return mc.CO2ConcentrationModel(
+            data_registry=self.data_registry,
             room=self.initialize_room(),
             ventilation=self.ventilation(),
             CO2_emitters=population,
@@ -314,14 +319,14 @@ class VirusFormData(FormData):
 
     def ventilation(self) -> models._VentilationBase:
         always_on = models.PeriodicInterval(period=120, duration=120)
-        periodic_interval = models.PeriodicInterval(self.windows_frequency, self.windows_duration, 
+        periodic_interval = models.PeriodicInterval(self.windows_frequency, self.windows_duration,
                                                     min(self.infected_start, self.exposed_start)/60)
         if self.ventilation_type == 'from_fitting':
             ventilations = []
             if self.CO2_fitting_result['fitting_ventilation_type'] == 'fitting_natural_ventilation':
                 transition_times = self.CO2_fitting_result['transition_times']
                 for index, (start, stop) in enumerate(zip(transition_times[:-1], transition_times[1:])):
-                    ventilations.append(models.AirChange(active=models.SpecificInterval(present_times=((start, stop), )), 
+                    ventilations.append(models.AirChange(active=models.SpecificInterval(present_times=((start, stop), )),
                                                          air_exch=self.CO2_fitting_result['ventilation_values'][index]))
             else:
                 ventilations.append(models.AirChange(active=always_on, air_exch=self.CO2_fitting_result['ventilation_values'][0]))
@@ -339,6 +344,7 @@ class VirusFormData(FormData):
             ventilation: models.Ventilation
             if self.window_type == 'window_sliding':
                 ventilation = models.SlidingWindow(
+                    data_registry=self.data_registry,
                     active=window_interval,
                     outside_temp=outside_temp,
                     window_height=self.window_height,
@@ -367,7 +373,7 @@ class VirusFormData(FormData):
         # This is a minimal, always present source of ventilation, due
         # to the air infiltration from the outside.
         # See CERN-OPEN-2021-004, p. 12.
-        residual_vent: float = config.ventilation['infiltration_ventilation'] # type: ignore
+        residual_vent: float = self.data_registry.ventilation['infiltration_ventilation'] # type: ignore
         infiltration_ventilation = models.AirChange(active=always_on, air_exch=residual_vent)
         if self.hepa_option:
             hepa = models.HEPAFilter(active=always_on, q_air_mech=self.hepa_amount)
@@ -385,7 +391,7 @@ class VirusFormData(FormData):
         # Initializes the mask type if mask wearing is "continuous", otherwise instantiates the mask attribute as
         # the "No mask"-mask
         if self.mask_wearing_option == 'mask_on':
-            mask = mask_distributions[self.mask_type]
+            mask = mask_distributions(self.data_registry)[self.mask_type]
         else:
             mask = models.Mask.types['No mask']
         return mask
@@ -396,28 +402,29 @@ class VirusFormData(FormData):
         respiratory_dict = {}
         for respiratory_activity in self.precise_activity['respiratory_activity']:
             respiratory_dict[respiratory_activity['type']] = respiratory_activity['percentage']
-            
+
         return (self.precise_activity['physical_activity'], respiratory_dict)
 
     def infected_population(self) -> mc.InfectedPopulation:
         # Initializes the virus
-        virus = virus_distributions[self.virus_type]
+        virus = virus_distributions(self.data_registry)[self.virus_type]
 
-        activity_defn = ACTIVITIES[self.activity_type]['activity']
-        expiration_defn = ACTIVITIES[self.activity_type]['expiration']
+        activity_defn = self.data_registry.population_scenario_activity[self.activity_type]['activity']
+        expiration_defn = self.data_registry.population_scenario_activity[self.activity_type]['expiration']
 
         if (self.activity_type == 'smallmeeting'):
             # Conversation of N people is approximately 1/N% of the time speaking.
             expiration_defn = {'Speaking': 1, 'Breathing': self.total_people - 1}
         elif (self.activity_type == 'precise'):
-            activity_defn, expiration_defn = self.generate_precise_activity_expiration()            
+            activity_defn, expiration_defn = self.generate_precise_activity_expiration()
 
-        activity = activity_distributions[activity_defn]
-        expiration = build_expiration(expiration_defn)
+        activity = activity_distributions(self.data_registry)[activity_defn]
+        expiration = build_expiration(self.data_registry, expiration_defn)
 
         infected_occupants = self.infected_people
 
         infected = mc.InfectedPopulation(
+            data_registry=self.data_registry,
             number=infected_occupants,
             virus=virus,
             presence=self.infected_present_interval(),
@@ -429,10 +436,10 @@ class VirusFormData(FormData):
         return infected
 
     def exposed_population(self) -> mc.Population:
-        activity_defn = (self.precise_activity['physical_activity'] 
-                         if self.activity_type == 'precise' 
-                         else str(config.population_scenario_activity[self.activity_type]['activity']))
-        activity = activity_distributions[activity_defn]
+        activity_defn = (self.precise_activity['physical_activity']
+                         if self.activity_type == 'precise'
+                         else str(self.data_registry.population_scenario_activity[self.activity_type]['activity']))
+        activity = activity_distributions(self.data_registry)[activity_defn]
 
         infected_occupants = self.infected_people
         # The number of exposed occupants is the total number of occupants
@@ -441,8 +448,8 @@ class VirusFormData(FormData):
 
         if (self.vaccine_option):
             if (self.vaccine_booster_option and self.vaccine_booster_type != 'Other'):
-                host_immunity = [vaccine['VE'] for vaccine in data.vaccine_booster_host_immunity if 
-                                    vaccine['primary series vaccine'] == self.vaccine_type and 
+                host_immunity = [vaccine['VE'] for vaccine in data.vaccine_booster_host_immunity if
+                                    vaccine['primary series vaccine'] == self.vaccine_type and
                                     vaccine['booster vaccine'] == self.vaccine_booster_type][0]
             else:
                 host_immunity = data.vaccine_primary_host_immunity[self.vaccine_type]
@@ -464,16 +471,16 @@ class VirusFormData(FormData):
         return models.SpecificInterval(present_times=((start_time/60, (start_time + duration)/60),))
 
 
-def build_expiration(expiration_definition) -> mc._ExpirationBase:
+def build_expiration(data_registry, expiration_definition) -> mc._ExpirationBase:
     if isinstance(expiration_definition, str):
-        return expiration_distributions[expiration_definition]
+        return expiration_distributions(data_registry)[expiration_definition]
     elif isinstance(expiration_definition, dict):
         total_weight = sum(expiration_definition.values())
         BLO_factors = np.sum([
-            np.array(expiration_BLO_factors[exp_type]) * weight/total_weight
+            np.array(expiration_BLO_factors(data_registry)[exp_type]) * weight/total_weight
             for exp_type, weight in expiration_definition.items()
             ], axis=0)
-        return expiration_distribution(BLO_factors=tuple(BLO_factors))
+        return expiration_distribution(data_registry=data_registry, BLO_factors=tuple(BLO_factors))
 
 
 def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
@@ -525,7 +532,7 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'total_people': '10',
         'vaccine_option': '0',
         'vaccine_booster_option': '0',
-        'vaccine_type': 'Ad26.COV2.S_(Janssen)', 
+        'vaccine_type': 'Ad26.COV2.S_(Janssen)',
         'vaccine_booster_type': 'AZD1222_(AstraZeneca)',
         'ventilation_type': 'natural_ventilation',
         'virus_type': 'SARS_CoV_2',

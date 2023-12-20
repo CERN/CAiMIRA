@@ -1,14 +1,13 @@
 import logging
-import os
 import typing
 from datetime import datetime, timedelta, timezone
 
 import jwt
 import requests
 
-from .configuration import config
+from caimira.store.data_registry import DataRegistry
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("DATA")
 
 
 class DataService:
@@ -19,13 +18,19 @@ class DataService:
 
     def __init__(
         self,
-        credentials: typing.Dict[str, str],
-        host: str = "https://caimira-data-api.app.cern.ch",
+        credentials: typing.Dict[str, typing.Optional[str]],
+        host: str,
     ):
         self._credentials = credentials
         self._host = host
 
+    @classmethod
+    def create(cls, credentials: typing.Dict[str, typing.Optional[str]], host: str = "https://caimira-data-api.app.cern.ch"):
+        """Factory."""
+        return cls(credentials, host)
+
     def _is_valid(self, access_token):
+        """Return True if the expiration token is still valid."""
         try:
             decoded = jwt.decode(
                 access_token, algorithms=["HS256"], options={"verify_signature": False}
@@ -35,9 +40,13 @@ class DataService:
                 tzinfo=timezone.utc
             )
             now = datetime.now(timezone.utc)
-            return now < expiration - timedelta(
+            is_valid = now < expiration - timedelta(
                 seconds=5
             )  #  5 seconds time delta to avoid timing issues
+
+            logger.debug(f"Access token expiration: {expiration_timestamp}. Is valid? {is_valid}")
+
+            return is_valid
         except jwt.ExpiredSignatureError:
             logger.warning("JWT token expired.")
         except jwt.InvalidTokenError:
@@ -45,6 +54,8 @@ class DataService:
         return False
 
     def _login(self):
+        logger.debug(f"Access token: {self._access_token}")
+
         if self._access_token and self._is_valid(self._access_token):
             return self._access_token
 
@@ -65,6 +76,7 @@ class DataService:
             response.raise_for_status()
             if response.status_code == 200:
                 self._access_token = response.json()["access_token"]
+                logger.debug(f"Obtained new access token: {self._access_token}")
                 return self._access_token
             else:
                 logger.error(
@@ -73,7 +85,7 @@ class DataService:
         except requests.exceptions.RequestException as e:
             logger.exception(e)
 
-    def fetch(self):
+    def _fetch(self):
         access_token = self._login()
 
         headers = {
@@ -86,7 +98,9 @@ class DataService:
             response = requests.get(url, headers=headers)
             response.raise_for_status()
             if response.status_code == 200:
-                return response.json()
+                json_body = response.json()
+                logger.debug(f"Data service call: {url}. Response: {json_body}")
+                return json_body
             else:
                 logger.error(
                     f"Unexpected error when fetching data. Response status code: {response.status_code}, body: f{response.text}"
@@ -95,17 +109,9 @@ class DataService:
             logger.exception(e)
 
 
-def update_configuration():
-    data_service_enabled = os.environ.get("DATA_SERVICE_ENABLED", "False")
-    is_enabled = data_service_enabled.lower() == "true"
-    if is_enabled:
-        credentials = {
-            "email": os.environ.get("DATA_SERVICE_CLIENT_EMAIL", None),
-            "password": os.environ.get("DATA_SERVICE_CLIENT_PASSWORD", None),
-        }
-        data_service = DataService(credentials)
-        data = data_service.fetch()
+    def update_registry(self, registry: DataRegistry):
+        data = self._fetch()
         if data:
-            config.update(data["data"])
+            registry.update(data["data"], version=data["version"])
         else:
             logger.error("Could not fetch fresh data from the data service.")

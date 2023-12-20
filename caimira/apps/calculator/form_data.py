@@ -1,5 +1,4 @@
 import dataclasses
-import datetime
 import html
 import logging
 import typing
@@ -9,7 +8,8 @@ import json
 import numpy as np
 
 from caimira import models
-from .defaults import DEFAULTS, NO_DEFAULT, COFFEE_OPTIONS_INT, DEFAULT_MC_SAMPLE_SIZE
+from caimira.store.data_registry import DataRegistry
+from .defaults import DEFAULTS, NO_DEFAULT, COFFEE_OPTIONS_INT
 
 LOG = logging.getLogger(__name__)
 
@@ -38,10 +38,12 @@ class FormData:
     room_volume: float
     total_people: int
 
+    data_registry: DataRegistry
+
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = DEFAULTS
 
     @classmethod
-    def from_dict(cls, form_data: typing.Dict):
+    def from_dict(cls, form_data: typing.Dict, data_registry: DataRegistry):
         # Take a copy of the form data so that we can mutate it.
         form_data = form_data.copy()
         form_data.pop('_xsrf', None)
@@ -64,7 +66,7 @@ class FormData:
             if key not in cls._DEFAULTS:
                 raise ValueError(f'Invalid argument "{html.escape(key)}" given')
 
-        instance = cls(**form_data)
+        instance = cls(**form_data, data_registry=data_registry)
         instance.validate()
         return instance
 
@@ -87,7 +89,7 @@ class FormData:
                 if default is not NO_DEFAULT and value in [default, 'not-applicable']:
                     form_dict.pop(attr)
         return form_dict
-    
+
     def validate_population_parameters(self):
         # Validate number of infected <= number of total people
         if self.infected_people >= self.total_people:
@@ -113,7 +115,7 @@ class FormData:
         def validate_lunch(start, finish):
             lunch_start = getattr(self, f'{population}_lunch_start')
             lunch_finish = getattr(self, f'{population}_lunch_finish')
-            return (start <= lunch_start <= finish and 
+            return (start <= lunch_start <= finish and
                 start <= lunch_finish <= finish)
 
         def get_lunch_mins(population):
@@ -121,7 +123,7 @@ class FormData:
             if getattr(self, f'{population}_lunch_option'):
                 lunch_mins = getattr(self, f'{population}_lunch_finish') - getattr(self, f'{population}_lunch_start')
             return lunch_mins
-        
+
         def get_coffee_mins(population):
             coffee_mins = 0
             if getattr(self, f'{population}_coffee_break_option') != 'coffee_break_0':
@@ -146,8 +148,8 @@ class FormData:
                 raise ValueError(
                     f"Length of breaks >= Length of {population} presence."
                 )
-            
-            for attr_name, valid_set in [('exposed_coffee_break_option', COFFEE_OPTIONS_INT), 
+
+            for attr_name, valid_set in [('exposed_coffee_break_option', COFFEE_OPTIONS_INT),
                                          ('infected_coffee_break_option', COFFEE_OPTIONS_INT)]:
                 if getattr(self, attr_name) not in valid_set:
                     raise ValueError(f"{getattr(self, attr_name)} is not a valid value for {attr_name}")
@@ -155,7 +157,7 @@ class FormData:
     def validate(self):
         raise NotImplementedError("Subclass must implement")
 
-    def build_model(self, sample_size=DEFAULT_MC_SAMPLE_SIZE):
+    def build_model(self, sample_size=None):
         raise NotImplementedError("Subclass must implement")
 
     def _compute_breaks_in_interval(self, start, finish, n_breaks, duration) -> models.BoundarySequence_t:
@@ -342,7 +344,7 @@ class FormData:
             self.infected_start, self.infected_finish,
             breaks=breaks,
         )
-    
+
     def population_present_interval(self) -> models.Interval:
         state_change_times = set(self.infected_present_interval().transition_times())
         state_change_times.update(self.exposed_present_interval().transition_times())

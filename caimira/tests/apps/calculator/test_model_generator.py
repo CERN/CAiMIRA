@@ -4,7 +4,7 @@ import typing
 import numpy as np
 import numpy.testing as npt
 import pytest
-from retry import retry 
+from retry import retry
 
 from caimira.apps.calculator import model_generator
 from caimira.apps.calculator.form_data import (_hours2timestring, minutes_since_midnight,
@@ -12,17 +12,18 @@ from caimira.apps.calculator.form_data import (_hours2timestring, minutes_since_
 from caimira import models
 from caimira.monte_carlo.data import expiration_distributions
 from caimira.apps.calculator.defaults import NO_DEFAULT
+from caimira.store.data_registry import DataRegistry
 
 
-def test_model_from_dict(baseline_form_data):
-    form = model_generator.VirusFormData.from_dict(baseline_form_data)
+def test_model_from_dict(baseline_form_data, data_registry):
+    form = model_generator.VirusFormData.from_dict(baseline_form_data, data_registry)
     assert isinstance(form.build_model(), models.ExposureModel)
 
 
-def test_model_from_dict_invalid(baseline_form_data):
+def test_model_from_dict_invalid(baseline_form_data, data_registry):
     baseline_form_data['invalid_item'] = 'foobar'
     with pytest.raises(ValueError, match='Invalid argument "invalid_item" given'):
-        model_generator.VirusFormData.from_dict(baseline_form_data)
+        model_generator.VirusFormData.from_dict(baseline_form_data, data_registry)
 
 
 @retry(tries=10)
@@ -34,18 +35,18 @@ def test_model_from_dict_invalid(baseline_form_data):
         ["Cloth"],
     ]
 )
-def test_blend_expiration(mask_type):
+def test_blend_expiration(data_registry, mask_type):
     SAMPLE_SIZE = 250000
     TOLERANCE = 0.02
     blend = {'Breathing': 2, 'Speaking': 1}
-    r = model_generator.build_expiration(blend).build_model(SAMPLE_SIZE)
+    r = model_generator.build_expiration(data_registry, blend).build_model(SAMPLE_SIZE)
     mask = models.Mask.types[mask_type]
-    expected = (expiration_distributions['Breathing'].build_model(SAMPLE_SIZE).aerosols(mask).mean()*2/3. +
-                expiration_distributions['Speaking'].build_model(SAMPLE_SIZE).aerosols(mask).mean()/3.)
+    expected = (expiration_distributions(data_registry)['Breathing'].build_model(SAMPLE_SIZE).aerosols(mask).mean()*2/3. +
+                expiration_distributions(data_registry)['Speaking'].build_model(SAMPLE_SIZE).aerosols(mask).mean()/3.)
     npt.assert_allclose(r.aerosols(mask).mean(), expected, rtol=TOLERANCE)
 
 
-def test_ventilation_slidingwindow(baseline_form: model_generator.VirusFormData):
+def test_ventilation_slidingwindow(data_registry: DataRegistry, baseline_form: model_generator.VirusFormData):
     baseline_form.ventilation_type = 'natural_ventilation'
     baseline_form.windows_duration = 10
     baseline_form.windows_frequency = 120
@@ -61,6 +62,7 @@ def test_ventilation_slidingwindow(baseline_form: model_generator.VirusFormData)
     assert isinstance(baseline_window, models.SlidingWindow)
 
     window = models.SlidingWindow(
+        data_registry=data_registry,
         active=models.PeriodicInterval(period=120, duration=10, start=9),
         outside_temp=baseline_window.outside_temp,
         window_height=1.6, opening_length=0.6,
@@ -135,7 +137,7 @@ def test_ventilation_airchanges(baseline_form: model_generator.VirusFormData):
                                np.array([baseline_form.ventilation().air_exchange(room, t) for t in ts]))
 
 
-def test_ventilation_window_hepa(baseline_form: model_generator.VirusFormData):
+def test_ventilation_window_hepa(data_registry: DataRegistry, baseline_form: model_generator.VirusFormData):
     baseline_form.ventilation_type = 'natural_ventilation'
     baseline_form.windows_duration = 10
     baseline_form.windows_frequency = 120
@@ -152,6 +154,7 @@ def test_ventilation_window_hepa(baseline_form: model_generator.VirusFormData):
 
     # Now build the equivalent ventilation instance directly, and compare.
     window = models.SlidingWindow(
+        data_registry=data_registry,
         active=models.PeriodicInterval(period=120, duration=10, start=9),
         outside_temp=baseline_window.outside_temp,
         window_height=1.6, opening_length=0.6,
@@ -178,7 +181,8 @@ def test_ventilation_window_hepa(baseline_form: model_generator.VirusFormData):
     ]
 )
 def test_infected_less_than_total_people(activity, total_people, infected_people, error,
-                                         baseline_form: model_generator.VirusFormData):
+                                         baseline_form: model_generator.VirusFormData,
+                                         data_registry: DataRegistry):
     baseline_form.activity_type = activity
     baseline_form.total_people = total_people
     baseline_form.infected_people = infected_people
@@ -266,7 +270,7 @@ def test_exposed_present_intervals_ending_with_lunch(baseline_form: model_genera
     assert present_times(baseline_form.exposed_present_interval()) == correct
 
 
-def test_exposed_present_lunch_end_before_beginning(baseline_form: model_generator.VirusFormData):
+def test_exposed_present_lunch_end_before_beginning(baseline_form: model_generator.VirusFormData, data_registry: DataRegistry):
     baseline_form.exposed_coffee_break_option = 'coffee_break_0'
     baseline_form.exposed_lunch_start = minutes_since_midnight(14 * 60)
     baseline_form.exposed_lunch_finish = minutes_since_midnight(13 * 60)
@@ -283,7 +287,7 @@ def test_exposed_present_lunch_end_before_beginning(baseline_form: model_generat
         [9, 20], # lunch_finish after the presence finishing
     ],
 )
-def test_exposed_presence_lunch_break(baseline_form: model_generator.VirusFormData, exposed_lunch_start, exposed_lunch_finish):
+def test_exposed_presence_lunch_break(baseline_form: model_generator.VirusFormData, data_registry: DataRegistry, exposed_lunch_start, exposed_lunch_finish):
     baseline_form.exposed_lunch_start = minutes_since_midnight(exposed_lunch_start * 60)
     baseline_form.exposed_lunch_finish = minutes_since_midnight(exposed_lunch_finish * 60)
     with pytest.raises(ValueError, match='exposed lunch break must be within presence times.'):
@@ -299,14 +303,14 @@ def test_exposed_presence_lunch_break(baseline_form: model_generator.VirusFormDa
         [9, 20], # lunch_finish after the presence finishing
     ],
 )
-def test_infected_presence_lunch_break(baseline_form: model_generator.VirusFormData, infected_lunch_start, infected_lunch_finish):
+def test_infected_presence_lunch_break(baseline_form: model_generator.VirusFormData, data_registry: DataRegistry, infected_lunch_start, infected_lunch_finish):
     baseline_form.infected_lunch_start = minutes_since_midnight(infected_lunch_start * 60)
     baseline_form.infected_lunch_finish = minutes_since_midnight(infected_lunch_finish * 60)
     with pytest.raises(ValueError, match='infected lunch break must be within presence times.'):
         baseline_form.validate()
 
 
-def test_exposed_breaks_length(baseline_form: model_generator.VirusFormData):
+def test_exposed_breaks_length(baseline_form: model_generator.VirusFormData, data_registry: DataRegistry):
     baseline_form.exposed_coffee_break_option = 'coffee_break_4'
     baseline_form.exposed_coffee_duration = 30
     baseline_form.exposed_start = minutes_since_midnight(10 * 60)
@@ -316,7 +320,7 @@ def test_exposed_breaks_length(baseline_form: model_generator.VirusFormData):
         baseline_form.validate()
 
 
-def test_infected_breaks_length(baseline_form: model_generator.VirusFormData):
+def test_infected_breaks_length(baseline_form: model_generator.VirusFormData, data_registry: DataRegistry):
     baseline_form.infected_start = minutes_since_midnight(9 * 60)
     baseline_form.infected_finish = minutes_since_midnight(12 * 60)
     baseline_form.infected_lunch_start = minutes_since_midnight(10 * 60)
@@ -431,7 +435,7 @@ def test_present_only_during_second_break(breaks_every_25_mins_for_20_mins):
     assert_boundaries(interval, [])
 
 
-def test_valid_no_lunch(baseline_form: model_generator.VirusFormData):
+def test_valid_no_lunch(baseline_form: model_generator.VirusFormData, data_registry: DataRegistry):
     # Check that it is valid to have a 0 length lunch if no lunch is selected.
     baseline_form.exposed_lunch_option = False
     baseline_form.exposed_lunch_start = minutes_since_midnight(0)
@@ -487,27 +491,27 @@ def test_coffee_breaks(baseline_form: model_generator.VirusFormData):
     np.testing.assert_allclose(present_times(baseline_form.exposed_present_interval()), correct, rtol=1e-14)
 
 
-def test_key_validation(baseline_form_data):
+def test_key_validation(baseline_form_data, data_registry):
     baseline_form_data['activity_type'] = 'invalid key'
     with pytest.raises(ValueError):
-        model_generator.VirusFormData.from_dict(baseline_form_data)
+        model_generator.VirusFormData.from_dict(baseline_form_data, data_registry)
 
 
-def test_key_validation_natural_ventilation_window_type_na(baseline_form_data):
+def test_key_validation_natural_ventilation_window_type_na(baseline_form_data, data_registry):
     baseline_form_data['ventilation_type'] = 'natural_ventilation'
     baseline_form_data['window_type'] = 'not-applicable'
     with pytest.raises(ValueError, match='window_type cannot be \'not-applicable\''):
-        model_generator.VirusFormData.from_dict(baseline_form_data)
+        model_generator.VirusFormData.from_dict(baseline_form_data, data_registry)
 
 
-def test_key_validation_natural_ventilation_window_opening_regime_na(baseline_form_data):
+def test_key_validation_natural_ventilation_window_opening_regime_na(baseline_form_data, data_registry):
     baseline_form_data['ventilation_type'] = 'natural_ventilation'
     baseline_form_data['window_opening_regime'] = 'not-applicable'
     with pytest.raises(ValueError, match='window_opening_regime cannot be \'not-applicable\''):
-        model_generator.VirusFormData.from_dict(baseline_form_data)
+        model_generator.VirusFormData.from_dict(baseline_form_data, data_registry)
 
 
-def test_natural_ventilation_window_opening_periodically(baseline_form: model_generator.VirusFormData):
+def test_natural_ventilation_window_opening_periodically(baseline_form: model_generator.VirusFormData, data_registry: DataRegistry):
     baseline_form.window_opening_regime = 'windows_open_periodically'
     baseline_form.windows_duration = 20
     baseline_form.windows_frequency = 10
@@ -515,17 +519,17 @@ def test_natural_ventilation_window_opening_periodically(baseline_form: model_ge
         baseline_form.validate()
 
 
-def test_key_validation_mech_ventilation_type_na(baseline_form_data):
+def test_key_validation_mech_ventilation_type_na(baseline_form_data, data_registry):
     baseline_form_data['ventilation_type'] = 'mechanical_ventilation'
     baseline_form_data['mechanical_ventilation_type'] = 'not-applicable'
     with pytest.raises(ValueError, match='mechanical_ventilation_type cannot be \'not-applicable\''):
-        model_generator.VirusFormData.from_dict(baseline_form_data)
+        model_generator.VirusFormData.from_dict(baseline_form_data, data_registry)
 
 
-def test_key_validation_event_month(baseline_form_data):
+def test_key_validation_event_month(baseline_form_data, data_registry):
     baseline_form_data['event_month'] = 'invalid month'
     with pytest.raises(ValueError, match='invalid month is not a valid value for event_month'):
-        model_generator.VirusFormData.from_dict(baseline_form_data)
+        model_generator.VirusFormData.from_dict(baseline_form_data, data_registry)
 
 
 def test_default_types():
@@ -551,6 +555,8 @@ def test_default_types():
             raise TypeError(f'{field} has type {field_type}, got {type(value)}')
 
     for field in fields.values():
+        if field.name == "data_registry":
+            continue  # Skip the assertion for the "data_registry" field
         assert field.name in model_generator.VirusFormData._DEFAULTS, f"No default set for field name {field.name}"
 
 
@@ -574,11 +580,11 @@ def test_form_to_dict(baseline_form):
         [-176.433333, -44.033333, 'August', '+1245', 12.75],  # Chatham Islands
     ]
 )
-def test_form_timezone(baseline_form_data, longitude, latitude, month, expected_tz_name, expected_offset):
+def test_form_timezone(baseline_form_data, data_registry, longitude, latitude, month, expected_tz_name, expected_offset):
     baseline_form_data['location_latitude'] = latitude
     baseline_form_data['location_longitude'] = longitude
     baseline_form_data['event_month'] = month
-    form = model_generator.VirusFormData.from_dict(baseline_form_data)
+    form = model_generator.VirusFormData.from_dict(baseline_form_data, data_registry)
     name, offset = form.tz_name_and_utc_offset()
     assert name == expected_tz_name
     assert offset == expected_offset
