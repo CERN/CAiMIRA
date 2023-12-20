@@ -4,6 +4,7 @@ import typing
 import numpy as np
 
 from caimira import data, models, state
+from caimira.store.data_registry import DataRegistry
 import matplotlib
 import matplotlib.figure
 import matplotlib.lines as mlines
@@ -11,17 +12,17 @@ import matplotlib.patches as patches
 from .expert import generate_presence_widget, collapsible, ipympl_canvas, WidgetGroup, CAIMIRAStateBuilder
 
 
-baseline_model = models.CO2ConcentrationModel(
-    room=models.Room(volume=120, humidity=0.5, inside_temp=models.PiecewiseConstant((0., 24.), (293.15,))),
-    ventilation=models.HVACMechanical(active=models.PeriodicInterval(period=120, duration=120), q_air_mech=500),
-    CO2_emitters=models.SimplePopulation(
-        number=10,
-        presence=models.SpecificInterval(((8., 12.), (13., 17.))),
-        activity=models.Activity.types['Seated'],
-    ),
-    CO2_atmosphere_concentration=440.44,
-    CO2_fraction_exhaled=0.042,
-)
+def baseline_model(data_registry: DataRegistry):
+    return models.CO2ConcentrationModel(
+        data_registry=data_registry,
+        room=models.Room(volume=120, humidity=0.5, inside_temp=models.PiecewiseConstant((0., 24.), (293.15,))),
+        ventilation=models.HVACMechanical(active=models.PeriodicInterval(period=120, duration=120), q_air_mech=500),
+        CO2_emitters=models.SimplePopulation(
+            number=10,
+            presence=models.SpecificInterval(((8., 12.), (13., 17.))),
+            activity=models.Activity.types['Seated'],
+        ),
+    )
 
 
 class Controller:
@@ -94,23 +95,23 @@ class ExposureModelResult(View):
         else:
             self.ax.ignore_existing_data_limits = False
             self.concentration_line.set_data(ts, concentration)
-        
+
         if self.concentration_area is None:
             self.concentration_area = self.ax.fill_between(x = ts, y1=0, y2=concentration, color="#96cbff",
-                where = ((model.CO2_emitters.presence_interval().boundaries()[0][0] < ts) & (ts < model.CO2_emitters.presence_interval().boundaries()[0][1]) | 
+                where = ((model.CO2_emitters.presence_interval().boundaries()[0][0] < ts) & (ts < model.CO2_emitters.presence_interval().boundaries()[0][1]) |
                     (model.CO2_emitters.presence_interval().boundaries()[1][0] < ts) & (ts < model.CO2_emitters.presence_interval().boundaries()[1][1])))
-                   
+
         else:
-            self.concentration_area.remove()         
+            self.concentration_area.remove()
             self.concentration_area = self.ax.fill_between(x = ts, y1=0, y2=concentration, color="#96cbff",
-                where = ((model.CO2_emitters.presence_interval().boundaries()[0][0] < ts) & (ts < model.CO2_emitters.presence_interval().boundaries()[0][1]) | 
+                where = ((model.CO2_emitters.presence_interval().boundaries()[0][0] < ts) & (ts < model.CO2_emitters.presence_interval().boundaries()[0][1]) |
                     (model.CO2_emitters.presence_interval().boundaries()[1][0] < ts) & (ts < model.CO2_emitters.presence_interval().boundaries()[1][1])))
 
         concentration_top = max(np.array(concentration))
         self.ax.set_ylim(bottom=model.CO2_atmosphere_concentration * 0.9, top=concentration_top*1.1)
-        self.ax.set_xlim(left = min(model.CO2_emitters.presence_interval().boundaries()[0])*0.95, 
+        self.ax.set_xlim(left = min(model.CO2_emitters.presence_interval().boundaries()[0])*0.95,
                         right = max(model.CO2_emitters.presence_interval().boundaries()[1])*1.05)
-   
+
         figure_legends = [mlines.Line2D([], [], color='#3530fe', markersize=15, label='CO₂ concentration'),
                 mlines.Line2D([], [], color='salmon', markersize=15, label='Insufficient level', linestyle='--'),
                 mlines.Line2D([], [], color='limegreen', markersize=15, label='Acceptable level', linestyle='--'),
@@ -120,10 +121,10 @@ class ExposureModelResult(View):
             self.ax.set_ylim(top=concentration_top*1.1)
         else:
             self.ax.set_ylim(top=1550)
-        self.ax.hlines([800, 1500], xmin=min(model.CO2_emitters.presence_interval().boundaries()[0])*0.95, 
-                                    xmax=max(model.CO2_emitters.presence_interval().boundaries()[1])*1.05, 
-                                    colors=['limegreen', 'salmon'], 
-                                    linestyles='dashed') 
+        self.ax.hlines([800, 1500], xmin=min(model.CO2_emitters.presence_interval().boundaries()[0])*0.95,
+                                    xmax=max(model.CO2_emitters.presence_interval().boundaries()[1])*1.05,
+                                    colors=['limegreen', 'salmon'],
+                                    linestyles='dashed')
         self.figure.canvas.draw()
 
 
@@ -143,7 +144,7 @@ class ExposureComparisonResult(View):
     def initialize_axes(self) -> matplotlib.axes.Axes:
         ax = self.figure.add_subplot(1, 1, 1)
         ax.spines[['right', 'top']].set_visible(False)
-        
+
         ax.set_xlabel('Time (hours)')
         ax.set_ylabel('CO₂ concentration (ppm)')
         ax.set_title('CO₂ Concentration')
@@ -167,18 +168,18 @@ class ExposureComparisonResult(View):
         concentrations = [[conc_model.concentration(t) for t in ts] for conc_model in CO2_models]
         for label, concentration, color in zip(labels, concentrations, colors):
             self.ax.plot(ts, concentration, label=label, color=color)
-            
+
         concentration_top = max([max(np.array(concentration)) for concentration in concentrations])
         concentration_min = min([model.CO2_atmosphere_concentration for model in CO2_models])
-        
+
         self.ax.set_ylim(bottom=concentration_min * 0.9, top=concentration_top*1.1)
-        self.ax.set_xlim(left = start*0.95, 
+        self.ax.set_xlim(left = start*0.95,
                         right = finish*1.05)
         if 1500 < concentration_top:
             self.ax.set_ylim(top=concentration_top*1.1)
         else:
             self.ax.set_ylim(top=1550)
-        self.ax.hlines([800, 1500], xmin=start*0.95, xmax=finish*1.05, colors=['limegreen', 'salmon'], linestyles='dashed') 
+        self.ax.hlines([800, 1500], xmin=start*0.95, xmax=finish*1.05, colors=['limegreen', 'salmon'], linestyles='dashed')
 
         self.ax.legend()
         self.figure.canvas.draw_idle()
@@ -187,6 +188,7 @@ class ExposureComparisonResult(View):
 
 class CO2Application(Controller):
     def __init__(self) -> None:
+        self._data_registry = DataRegistry()
         # self._debug_output = widgets.Output()
 
         #: A list of scenario name and ModelState instances. This is intended to be
@@ -215,7 +217,7 @@ class CO2Application(Controller):
     def build_new_model(self, vent: str) -> state.DataclassInstanceState[models.CO2ConcentrationModel]:
         new_model = state.DataclassInstanceState(
             models.CO2ConcentrationModel,
-            state_builder=CAIMIRACO2StateBuilder(selected_ventilation=vent)
+            state_builder=CAIMIRACO2StateBuilder(data_registry=self._data_registry, selected_ventilation=vent)
         )
         return new_model
 
@@ -225,8 +227,8 @@ class CO2Application(Controller):
             model.dcs_update_from(copy_from_model.dcs_instance())
         else:
             model = self.build_new_model(vent='HVACMechanical') # Default
-            model.dcs_update_from(baseline_model)
-            
+            model.dcs_update_from(baseline_model(self._data_registry))
+
         self._model_scenarios.append((name, model))
         self._active_scenario = len(self._model_scenarios) - 1
         model.dcs_observe(self.notify_model_values_changed)
@@ -238,7 +240,7 @@ class CO2Application(Controller):
                 return index, name, model
         else:
             raise ValueError("Model not found")
-        
+
     def rename_scenario(self, model_id, new_name):
         index, _, model = self._find_model_id(model_id)
         self._model_scenarios[index] = (new_name, model)
@@ -295,20 +297,20 @@ class ModelWidgets(View):
         return collapsible([widgets.VBox([
             self._build_co2_concentration(node),
         ])], title="Carbon Dioxide")
-        
+
     def _build_population(self, node, ventilation_node):
         return collapsible([widgets.VBox([
             self._build_population_number(node),
             self._build_activity(node.activity),
             self._build_population_presence(node.presence, ventilation_node)
         ])], title="Population")
-    
+
     def _build_co2_concentration(self, node):
         concentration = widgets.IntSlider(value=node.CO2_atmosphere_concentration, min=300, max=1000, step=10)
 
         def on_atmospheric_concentration_change(change):
             node.CO2_atmosphere_concentration = change['new']
-        
+
         concentration.observe(on_atmospheric_concentration_change, names=['value'])
 
         return widgets.HBox([widgets.Label('Atmospheric Concentration (ppm) '), concentration], layout=widgets.Layout(justify_content='space-between'))
@@ -319,7 +321,7 @@ class ModelWidgets(View):
         inside_temp = widgets.IntSlider(value=node.inside_temp.values[0]-273.15, min=15., max=25.)
 
         def on_volume_change(change):
-            node.volume = change['new'] 
+            node.volume = change['new']
 
         def on_humidity_change(change):
             node.humidity = change['new']/100
@@ -350,7 +352,7 @@ class ModelWidgets(View):
             if activity == activity_:
                 break
         activity = widgets.Dropdown(options=list(models.Activity.types.keys()), value=name)
-        
+
         def on_activity_change(change):
             act = models.Activity.types[change['new']]
             node.dcs_update_from(act)
@@ -363,7 +365,7 @@ class ModelWidgets(View):
 
         def on_population_number_change(change):
             node.number = change['new']
-        
+
         number.observe(on_population_number_change, names=['value'])
 
         return widgets.HBox([widgets.Label('Number of people in the room '), number], layout=widgets.Layout(justify_content='space-between'))
@@ -380,13 +382,13 @@ class ModelWidgets(View):
         def on_presence_finish_change(change):
             new_value = tuple([int(time[:-3])+float(time[3:])/60 for time in change['new']])
             node.present_times = (node.present_times[0], new_value)
-        
+
         presence_start.observe(on_presence_start_change, names=['value'])
         presence_finish.observe(on_presence_finish_change, names=['value'])
 
         return widgets.VBox([
-            widgets.Label('Exposed presence:'), 
-            widgets.HBox([widgets.Label('Morning:', layout=widgets.Layout(width='15%')), presence_start]), 
+            widgets.Label('Exposed presence:'),
+            widgets.HBox([widgets.Label('Morning:', layout=widgets.Layout(width='15%')), presence_start]),
             widgets.HBox([widgets.Label('Afternoon:', layout=widgets.Layout(width='15%')), presence_finish])
         ])
 
@@ -429,7 +431,7 @@ class ModelWidgets(View):
 
         ventilation_w.observe(lambda event: toggle_ventilation(event['new']), 'value')
         toggle_ventilation(ventilation_w.value)
-        
+
         w = collapsible(
             ([widgets.HBox([widgets.Label('Ventilation type'), ventilation_w], layout=widgets.Layout(justify_content='space-between'))])
             + list(ventilation_widgets.values()),
@@ -475,16 +477,16 @@ class ModelWidgets(View):
                 node.window_width = change['new']
 
             hinged_window.observe(on_hinged_window_change, names=['value'])
-            
+
             return widgets.HBox([widgets.Label('Window width (meters) '), hinged_window], layout=widgets.Layout(justify_content='space-between', width='100%'))
 
     def _build_sliding_window(self, node):
-        return widgets.HBox([]) 
+        return widgets.HBox([])
 
     def _build_window(self, node, emitters_node) -> WidgetGroup:
         window_widgets = {
             'Sliding window': self._build_sliding_window(node._states['Sliding window']),
-            'Hinged window': self._build_hinged_window(node._states['Hinged window']), 
+            'Hinged window': self._build_hinged_window(node._states['Hinged window']),
         }
 
         for name, widget in window_widgets.items():
@@ -519,7 +521,7 @@ class ModelWidgets(View):
 
         def on_value_change(change):
             node.number_of_windows = change['new']
-        
+
         def on_period_change(change):
             node.active.period = change['new']
             duration.max = change['new']
@@ -530,7 +532,7 @@ class ModelWidgets(View):
 
         def on_opening_length_change(change):
             node.opening_length = change['new']
-        
+
         def on_window_height_change(change):
             node.window_height = change['new']
 
@@ -563,9 +565,9 @@ class ModelWidgets(View):
         result = WidgetGroup(
             (
                 (
-                   widgets.Label('Number of windows ', layout=auto_width), 
+                   widgets.Label('Number of windows ', layout=auto_width),
                    number_of_windows,
-                ),                
+                ),
                 (
                     widgets.Label('Opening distance (meters)', layout=auto_width),
                     opening_length,
@@ -644,7 +646,7 @@ class ModelWidgets(View):
     def _build_no_ventilation(self, node):
         return widgets.HBox([])
 
-    
+
 class MultiModelView(View):
     def __init__(self, controller: CO2Application):
         self._controller = controller
@@ -682,7 +684,7 @@ class MultiModelView(View):
         assert self._tab_model_ids == model_scenario_ids
 
         self.widget.selected_index = active_scenario_index
-            
+
 
     def add_tab(self, name, model):
         self._tab_model_views.append(ModelWidgets(model))
@@ -703,7 +705,7 @@ class MultiModelView(View):
         self._tab_model_ids.pop(tab_index)
         self._tab_widgets.pop(tab_index)
         self._tab_model_views.pop(tab_index)
-        
+
         self.update_tab_widget()
 
     def update_tab_widget(self):
@@ -735,16 +737,17 @@ class MultiModelView(View):
         delete_button.on_click(on_delete_click)
         duplicate_button.on_click(on_duplicate_click)
         rename_text_field.observe(on_rename_text_field, 'value')
-        
+
         buttons_w_delete = widgets.HBox(children=(duplicate_button, delete_button))
         buttons = duplicate_button if len(self._tab_model_ids) < 2 else buttons_w_delete
-        
+
         return widgets.VBox(children=(buttons, rename_text_field))
-    
+
 
 class CAIMIRACO2StateBuilder(CAIMIRAStateBuilder):
-    
-    def __init__(self, selected_ventilation: str):
+
+    def __init__(self, data_registry: DataRegistry, selected_ventilation: str):
+        self._data_registry = data_registry
         self.selected_ventilation = selected_ventilation
 
     def build_type__VentilationBase(self, _: dataclasses.Field):
@@ -759,10 +762,12 @@ class CAIMIRACO2StateBuilder(CAIMIRAStateBuilder):
             base_type=self.selected_ventilation,
             state_builder=self,
         )
-        s._states['HVACMechanical'].dcs_update_from(baseline_model.ventilation)
+        s._states['HVACMechanical'].dcs_update_from(baseline_model(self._data_registry).ventilation)
         #Initialise the "Sliding window" state
         s._states['Sliding window'].dcs_update_from(
-            models.SlidingWindow(active=models.PeriodicInterval(period=120, duration=15, start=8-(15/60)),
+            models.SlidingWindow(
+                data_registry=self._data_registry,
+                active=models.PeriodicInterval(period=120, duration=15, start=8-(15/60)),
                 outside_temp=models.PiecewiseConstant((0,24.), (283.15,)),
                 window_height=1.6, opening_length=0.6,
                 ),
@@ -780,7 +785,7 @@ class CAIMIRACO2StateBuilder(CAIMIRAStateBuilder):
         )
         # Initialize the "No ventilation" state
         s._states['No ventilation'].dcs_update_from(
-            models.AirChange(active=models.PeriodicInterval(period=60, duration=60), air_exch=0.) 
+            models.AirChange(active=models.PeriodicInterval(period=60, duration=60), air_exch=0.)
         )
         return s
 

@@ -4,16 +4,24 @@ import caimira.dataclass_utils
 
 import pytest
 
+from caimira.store.data_registry import DataRegistry
+
 
 @pytest.fixture
-def baseline_concentration_model():
+def data_registry():
+    return DataRegistry()
+
+@pytest.fixture
+def baseline_concentration_model(data_registry):
     model = models.ConcentrationModel(
+        data_registry=data_registry,
         room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293,))),
         ventilation=models.AirChange(
             active=models.SpecificInterval(((0., 24.), )),
             air_exch=30.,
         ),
         infected=models.EmittingPopulation(
+            data_registry=data_registry,
             number=1,
             virus=models.Virus.types['SARS_CoV_2'],
             presence=models.SpecificInterval(((0., 4.), (5., 8.))),
@@ -35,10 +43,11 @@ def baseline_sr_model():
 
 
 @pytest.fixture
-def baseline_exposure_model(baseline_concentration_model, baseline_sr_model):
+def baseline_exposure_model(data_registry, baseline_concentration_model, baseline_sr_model):
     return models.ExposureModel(
-        baseline_concentration_model,
-        baseline_sr_model,
+        data_registry=data_registry,
+        concentration_model=baseline_concentration_model,
+        short_range=baseline_sr_model,
         exposed=models.Population(
             number=1000,
             presence=baseline_concentration_model.infected.presence,
@@ -51,10 +60,11 @@ def baseline_exposure_model(baseline_concentration_model, baseline_sr_model):
 
 
 @pytest.fixture
-def exposure_model_w_outside_temp_changes(baseline_exposure_model: models.ExposureModel):
+def exposure_model_w_outside_temp_changes(data_registry, baseline_exposure_model: models.ExposureModel):
     exp_model = caimira.dataclass_utils.nested_replace(
         baseline_exposure_model, {
             'concentration_model.ventilation': models.SlidingWindow(
+                data_registry=data_registry,
                 active=models.PeriodicInterval(2.2 * 60, 1.8 * 60),
                 outside_temp=caimira.data.GenevaTemperatures['Jan'],
                 window_height=1.6,

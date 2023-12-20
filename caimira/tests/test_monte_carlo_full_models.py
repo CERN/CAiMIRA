@@ -37,15 +37,17 @@ TorontoTemperatures = {
 # References values for infection_probability and expected new cases
 # in the following tests, were obtained from the feature/mc branch
 @pytest.fixture
-def shared_office_mc():
+def shared_office_mc(data_registry):
     """
     Corresponds to the 1st line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988
     """
     concentration_mc = mc.ConcentrationModel(
+        data_registry=data_registry,
         room=models.Room(volume=50, inside_temp=models.PiecewiseConstant((0., 24.), (298,)), humidity=0.5),
         ventilation=models.MultipleVentilation(
             ventilations=(
                 models.SlidingWindow(
+                    data_registry=data_registry,
                     active=models.PeriodicInterval(period=120, duration=120),
                     outside_temp=data.GenevaTemperatures['Jun'],
                     window_height=1.6,
@@ -55,23 +57,25 @@ def shared_office_mc():
             )
         ),
         infected=mc.InfectedPopulation(
+            data_registry=data_registry,
             number=1,
             presence=mc.SpecificInterval(present_times=((0, 3.5), (4.5, 9))),
-            virus=virus_distributions['SARS_CoV_2_DELTA'],
+            virus=virus_distributions(data_registry)['SARS_CoV_2_DELTA'],
             mask=models.Mask.types['No mask'],
-            activity=activity_distributions['Seated'],
-            expiration=build_expiration({'Speaking': 0.33, 'Breathing': 0.67}),
+            activity=activity_distributions(data_registry)['Seated'],
+            expiration=build_expiration(data_registry, {'Speaking': 0.33, 'Breathing': 0.67}),
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
     )
     return mc.ExposureModel(
+        data_registry=data_registry,
         concentration_model=concentration_mc,
         short_range=(),
         exposed=mc.Population(
             number=3,
             presence=mc.SpecificInterval(present_times=((0, 3.5), (4.5, 9))),
-            activity=activity_distributions['Seated'],
+            activity=activity_distributions(data_registry)['Seated'],
             mask=models.Mask.types['No mask'],
             host_immunity=0.,
         ),
@@ -80,15 +84,17 @@ def shared_office_mc():
 
 
 @pytest.fixture
-def classroom_mc():
+def classroom_mc(data_registry):
     """
     Corresponds to the 2nd line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988
     """
     concentration_mc = mc.ConcentrationModel(
+        data_registry=data_registry,
         room=models.Room(volume=160, inside_temp=models.PiecewiseConstant((0., 24.), (293,)), humidity=0.3),
         ventilation=models.MultipleVentilation(
             ventilations=(
                 models.SlidingWindow(
+                    data_registry=data_registry,
                     active=models.PeriodicInterval(period=120, duration=120),
                     outside_temp=TorontoTemperatures['Dec'],
                     window_height=1.6,
@@ -98,23 +104,25 @@ def classroom_mc():
             )
         ),
         infected=mc.InfectedPopulation(
+            data_registry=data_registry,
             number=1,
             presence=models.SpecificInterval(((0, 2), (2.5, 4), (5, 7), (7.5, 9))),
-            virus=virus_distributions['SARS_CoV_2_ALPHA'],
+            virus=virus_distributions(data_registry)['SARS_CoV_2_ALPHA'],
             mask=models.Mask.types["No mask"],
-            activity=activity_distributions['Light activity'],
-            expiration=build_expiration('Speaking'),
+            activity=activity_distributions(data_registry)['Light activity'],
+            expiration=build_expiration(data_registry, 'Speaking'),
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
     )
     return mc.ExposureModel(
+        data_registry=data_registry,
         concentration_model=concentration_mc,
         short_range=(),
         exposed=mc.Population(
             number=19,
             presence=models.SpecificInterval(((0, 2), (2.5, 4), (5, 7), (7.5, 9))),
-            activity=activity_distributions['Seated'],
+            activity=activity_distributions(data_registry)['Seated'],
             mask=models.Mask.types["No mask"],
             host_immunity=0.,
         ),
@@ -123,33 +131,36 @@ def classroom_mc():
 
 
 @pytest.fixture
-def ski_cabin_mc():
+def ski_cabin_mc(data_registry):
     """
     Corresponds to the 3rd line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988
     """
     concentration_mc = mc.ConcentrationModel(
+        data_registry=data_registry,
         room=models.Room(volume=10, humidity=0.3),
         ventilation=models.MultipleVentilation(
             (models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=0.0),
             models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=0.25))),
         infected=mc.InfectedPopulation(
+            data_registry=data_registry,
             number=1,
             presence=models.SpecificInterval(((0, 20/60),)),
-            virus=virus_distributions['SARS_CoV_2_DELTA'],
+            virus=virus_distributions(data_registry)['SARS_CoV_2_DELTA'],
             mask=models.Mask.types['No mask'],
-            activity=activity_distributions['Moderate activity'],
-            expiration=build_expiration('Speaking'),
+            activity=activity_distributions(data_registry)['Moderate activity'],
+            expiration=build_expiration(data_registry, 'Speaking'),
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
     )
     return mc.ExposureModel(
+        data_registry=data_registry,
         concentration_model=concentration_mc,
         short_range=(),
         exposed=mc.Population(
             number=3,
             presence=models.SpecificInterval(((0, 20/60),)),
-            activity=activity_distributions['Moderate activity'],
+            activity=activity_distributions(data_registry)['Moderate activity'],
             mask=models.Mask.types['No mask'],
             host_immunity=0.,
         ),
@@ -158,39 +169,42 @@ def ski_cabin_mc():
 
 
 @pytest.fixture
-def skagit_chorale_mc():
+def skagit_chorale_mc(data_registry):
     """
-    Corresponds to the 4th line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988, 
-    assuming viral is 10**9 instead of a LogCustomKernel distribution. 
+    Corresponds to the 4th line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988,
+    assuming viral is 10**9 instead of a LogCustomKernel distribution.
     """
     concentration_mc = mc.ConcentrationModel(
+        data_registry=data_registry,
         room=models.Room(volume=810, humidity=0.5),
             ventilation=models.AirChange(
                 active=models.PeriodicInterval(period=120, duration=120),
                 air_exch=0.7),
             infected=mc.InfectedPopulation(
+                data_registry=data_registry,
                 number=1,
                 presence=models.SpecificInterval(((0, 2.5), )),
                 virus=mc.SARSCoV2(
                     viral_load_in_sputum=10**9,
-                    infectious_dose=infectious_dose_distribution,
-                    viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
+                    infectious_dose=infectious_dose_distribution(data_registry),
+                    viable_to_RNA_ratio=viable_to_RNA_ratio_distribution(data_registry),
                     transmissibility_factor=1.,
                 ),
                 mask=models.Mask.types['No mask'],
-                activity=activity_distributions['Moderate activity'],
-                expiration=build_expiration('Shouting'),
+                activity=activity_distributions(data_registry)['Moderate activity'],
+                expiration=build_expiration(data_registry, 'Shouting'),
                 host_immunity=0.,
             ),
         evaporation_factor=0.3,
     )
     return mc.ExposureModel(
+        data_registry=data_registry,
         concentration_model=concentration_mc,
         short_range=(),
         exposed=mc.Population(
             number=60,
             presence=models.SpecificInterval(((0, 2.5), )),
-            activity=activity_distributions['Moderate activity'],
+            activity=activity_distributions(data_registry)['Moderate activity'],
             mask=models.Mask.types['No mask'],
             host_immunity=0.,
         ),
@@ -199,39 +213,42 @@ def skagit_chorale_mc():
 
 
 @pytest.fixture
-def bus_ride_mc():
+def bus_ride_mc(data_registry):
     """
-    Corresponds to the 5th line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988, 
-    assuming viral is 5*10**8 instead of a LogCustomKernel distribution. 
+    Corresponds to the 5th line of Table 4 in https://doi.org/10.1101/2021.10.14.21264988,
+    assuming viral is 5*10**8 instead of a LogCustomKernel distribution.
     """
     concentration_mc = mc.ConcentrationModel(
+        data_registry=data_registry,
         room=models.Room(volume=45, humidity=0.5),
             ventilation=models.AirChange(
                 active=models.PeriodicInterval(period=120, duration=120),
                 air_exch=1.25),
             infected=mc.InfectedPopulation(
+                data_registry=data_registry,
                 number=1,
                 presence=models.SpecificInterval(((0, 1.67), )),
                 virus=mc.SARSCoV2(
                     viral_load_in_sputum=5*10**8,
-                    infectious_dose=infectious_dose_distribution,
-                    viable_to_RNA_ratio=viable_to_RNA_ratio_distribution,
+                    infectious_dose=infectious_dose_distribution(data_registry),
+                    viable_to_RNA_ratio=viable_to_RNA_ratio_distribution(data_registry),
                     transmissibility_factor=1.,
                 ),
                 mask=models.Mask.types['No mask'],
-                activity=activity_distributions['Seated'],
-                expiration=build_expiration('Speaking'),
+                activity=activity_distributions(data_registry)['Seated'],
+                expiration=build_expiration(data_registry, 'Speaking'),
                 host_immunity=0.,
             ),
         evaporation_factor=0.3,
     )
     return mc.ExposureModel(
+        data_registry=data_registry,
         concentration_model=concentration_mc,
         short_range=(),
         exposed=mc.Population(
             number=67,
             presence=models.SpecificInterval(((0, 1.67), )),
-            activity=activity_distributions['Seated'],
+            activity=activity_distributions(data_registry)['Seated'],
             mask=models.Mask.types['No mask'],
             host_immunity=0.,
         ),
@@ -240,28 +257,31 @@ def bus_ride_mc():
 
 
 @pytest.fixture
-def gym_mc():
+def gym_mc(data_registry):
     """
     Gym model for testing
     """
     concentration_mc = mc.ConcentrationModel(
+        data_registry=data_registry,
         room=models.Room(volume=300, humidity=0.5),
         ventilation=models.AirChange(
             active=models.SpecificInterval(((0., 24.),)),
             air_exch=6,
         ),
         infected=mc.InfectedPopulation(
+            data_registry=data_registry,
             number=2,
-            virus=virus_distributions['SARS_CoV_2_ALPHA'],
+            virus=virus_distributions(data_registry)['SARS_CoV_2_ALPHA'],
             presence=mc.SpecificInterval(((0., 1.),)),
             mask=models.Mask.types["No mask"],
-            activity=activity_distributions['Heavy exercise'],
-            expiration=expiration_distributions['Breathing'],
+            activity=activity_distributions(data_registry)['Heavy exercise'],
+            expiration=expiration_distributions(data_registry)['Breathing'],
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
     )
     return mc.ExposureModel(
+        data_registry=data_registry,
         concentration_model=concentration_mc,
         short_range=(),
         exposed=mc.Population(
@@ -276,28 +296,31 @@ def gym_mc():
 
 
 @pytest.fixture
-def waiting_room_mc():
+def waiting_room_mc(data_registry):
     """
     Waiting room model for testing
     """
     concentration_mc = mc.ConcentrationModel(
+        data_registry=data_registry,
         room=models.Room(volume=100, humidity=0.5),
         ventilation=models.AirChange(
             active=models.SpecificInterval(((0., 24.),)),
             air_exch=0.25,
         ),
         infected=mc.InfectedPopulation(
+            data_registry=data_registry,
             number=1,
-            virus=virus_distributions['SARS_CoV_2_ALPHA'],
+            virus=virus_distributions(data_registry)['SARS_CoV_2_ALPHA'],
             presence=mc.SpecificInterval(((0., 2.),)),
             mask=models.Mask.types["No mask"],
-            activity=activity_distributions['Seated'],
-            expiration=build_expiration({'Speaking': 0.3, 'Breathing': 0.7}),
+            activity=activity_distributions(data_registry)['Seated'],
+            expiration=build_expiration(data_registry, {'Speaking': 0.3, 'Breathing': 0.7}),
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
     )
     return mc.ExposureModel(
+        data_registry=data_registry,
         concentration_model=concentration_mc,
         short_range=(),
         exposed=mc.Population(
@@ -356,13 +379,15 @@ def test_report_models(mc_model, expected_pi, expected_new_cases,
         ["Cloth",   "Jul", 5.322, 5.064, 673.10*0.305],
     ],
 )
-def test_small_shared_office_Geneva(mask_type, month, expected_pi,
+def test_small_shared_office_Geneva(data_registry, mask_type, month, expected_pi,
                                     expected_dose, expected_ER):
     concentration_mc = mc.ConcentrationModel(
+        data_registry=data_registry,
         room=models.Room(volume=33, inside_temp=models.PiecewiseConstant((0., 24.), (293,)), humidity=0.5),
         ventilation=models.MultipleVentilation(
             (
                 models.SlidingWindow(
+                    data_registry=data_registry,
                     active=models.SpecificInterval(((0., 24.),)),
                     outside_temp=data.GenevaTemperatures[month],
                     window_height=1.5, opening_length=0.2,
@@ -374,23 +399,25 @@ def test_small_shared_office_Geneva(mask_type, month, expected_pi,
             ),
         ),
         infected=mc.InfectedPopulation(
+            data_registry=data_registry,
             number=1,
-            virus=virus_distributions['SARS_CoV_2_ALPHA'],
+            virus=virus_distributions(data_registry)['SARS_CoV_2_ALPHA'],
             presence=mc.SpecificInterval(((9., 10+2/3), (10+5/6, 12.5), (13.5, 15+2/3), (15+5/6, 18.))),
             mask=models.Mask.types[mask_type],
-            activity=activity_distributions['Seated'],
-            expiration=build_expiration({'Speaking': 0.33, 'Breathing': 0.67}),
+            activity=activity_distributions(data_registry)['Seated'],
+            expiration=build_expiration(data_registry, {'Speaking': 0.33, 'Breathing': 0.67}),
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
     )
     exposure_mc = mc.ExposureModel(
+        data_registry=data_registry,
         concentration_model=concentration_mc,
         short_range=(),
         exposed=mc.Population(
             number=1,
             presence=concentration_mc.infected.presence,
-            activity=activity_distributions['Seated'],
+            activity=activity_distributions(data_registry)['Seated'],
             mask=concentration_mc.infected.mask,
             host_immunity=0.,
         ),

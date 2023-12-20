@@ -11,7 +11,7 @@ class DataServiceTests(unittest.TestCase):
     def setUp(self):
         # Set up any necessary test data or configurations
         self.credentials = {"email": "test@example.com", "password": "password123"}
-        self.data_service = DataService(self.credentials)
+        self.data_service = DataService.create(self.credentials, host="https://dataservice.example.com")
 
     def test_jwt_expiration(self):
         is_valid = self.data_service._is_valid(None)
@@ -47,7 +47,7 @@ class DataServiceTests(unittest.TestCase):
 
         # Verify that the fetch method was called with the expected arguments
         mock_post.assert_called_once_with(
-            "https://caimira-data-api.app.cern.ch/login",
+            "https://dataservice.example.com/login",
             json=dict(email="test@example.com", password="password123"),
             headers={"Content-Type": "application/json"},
         )
@@ -73,14 +73,14 @@ class DataServiceTests(unittest.TestCase):
         mock_get.return_value.json.return_value = {"data": "dummy_data"}
         # Call the fetch method with a mock access token
         mock_login.return_value = "dummy_token"
-        data = self.data_service.fetch()
+        data = self.data_service._fetch()
 
         # Assert that the data is returned correctly
         self.assertEqual(data, {"data": "dummy_data"})
 
         # Verify that the fetch method was called with the expected arguments
         mock_get.assert_called_once_with(
-            "https://caimira-data-api.app.cern.ch/data",
+            "https://dataservice.example.com/data",
             headers={
                 "Authorization": "Bearer dummy_token",
                 "Content-Type": "application/json",
@@ -96,7 +96,7 @@ class DataServiceTests(unittest.TestCase):
 
         # Call the fetch method with a mock access token
         mock_login.return_value = "dummy_token"
-        data = self.data_service.fetch()
+        data = self.data_service._fetch()
 
         # Assert that the fetch method returns None in case of an error
         self.assertIsNone(data)
