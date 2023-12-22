@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import re
 
 from caimira import models
+from caimira.store.data_registry import DataRegistry
 from .form_data import FormData, cast_class_fields
 from .defaults import NO_DEFAULT
 from .report_generator import img2base64, _figure2bytes
@@ -53,6 +54,9 @@ class CO2FormData(FormData):
         # Set default values defined in CO2FormData
         for key, value in self._DEFAULTS.items():
             setattr(self, key, kwargs.get(key, value))
+
+        # Initialize the Data Registry
+        self.data_registry = DataRegistry()
 
     def validate(self):
         # Validate population parameters
