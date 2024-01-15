@@ -58,7 +58,12 @@ def main():
         theme_dir = Path(theme_dir).absolute()
         assert theme_dir.exists()
 
-    app = make_app(debug=debug, APPLICATION_ROOT=args.app_root, calculator_prefix=args.prefix, theme_dir=theme_dir)
+    app = make_app(
+        debug=debug,
+        APPLICATION_ROOT=args.app_root,
+        calculator_prefix=args.prefix,
+        theme_dir=theme_dir
+    )
     app.listen(args.port)
     IOLoop.current().start()
 

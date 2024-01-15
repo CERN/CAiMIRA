@@ -25,6 +25,7 @@ import loky
 from tornado.web import Application, RequestHandler, StaticFileHandler
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 import tornado.log
+from caimira.profiler import CaimiraProfiler, Profilers
 from caimira.store.data_registry import DataRegistry
 
 from caimira.store.data_service import DataService
@@ -43,7 +44,53 @@ from .user import AuthenticatedUser, AnonymousUser
 # increase the overall CAiMIRA version (found at ``caimira.__version__``).
 __version__ = "4.14.3"
 
-LOG = logging.getLogger("APP")
+LOG = logging.getLogger("Calculator")
+
+
+class ProfilerPage(RequestHandler):
+    """Render the profiler page.
+
+    This class does not inherit from BaseRequestHandler to avoid profiling the
+    profiler page itself.
+    """
+    def get(self) -> None:
+        profiler = CaimiraProfiler()
+
+        template_environment = self.settings["template_environment"]
+        template = template_environment.get_template("profiler.html.j2")
+        report = template.render(
+            user=AnonymousUser(),
+            active_page="Profiler",
+            xsrf_form_html=self.xsrf_form_html(),
+            is_active=profiler.is_active,
+            sessions=profiler.sessions,
+        )
+        self.finish(report)
+
+    def post(self) -> None:
+        profiler = CaimiraProfiler()
+
+        if self.get_argument("start", None) is not None:
+            name = self.get_argument("name", None)
+            profiler_type = Profilers.from_str(self.get_argument("profiler_type", ""))
+            profiler.start_session(name, profiler_type)
+        elif self.get_argument("stop", None) is not None:
+            profiler.stop_session()
+        elif self.get_argument("clear", None) is not None:
+            profiler.clear_sessions()
+
+        self.redirect(CaimiraProfiler.ROOT_URL)
+
+
+class ProfilerReport(RequestHandler):
+    """Render the profiler HTML report."""
+    def get(self, report_id) -> None:
+        profiler = CaimiraProfiler()
+        _, report_html = profiler.get_report(report_id)
+        if report_html:
+            self.finish(report_html)
+        else:
+            self.send_error(404)
 
 
 class BaseRequestHandler(RequestHandler):
@@ -63,6 +110,22 @@ class BaseRequestHandler(RequestHandler):
             )
         else:
             self.current_user = AnonymousUser()
+
+        profiler = CaimiraProfiler()
+        if profiler.is_active and not self.request.path.startswith(CaimiraProfiler.ROOT_URL):
+            self._request_profiler = profiler.start_profiler()
+
+    def on_finish(self) -> None:
+        """Called at the end of the request."""
+        profiler = CaimiraProfiler()
+        if profiler.is_active and self._request_profiler:
+            profiler.stop_profiler(
+                profiler=self._request_profiler,
+                uri=self.request.uri or "",
+                path=self.request.path,
+                query=self.request.query,
+                method=self.request.method,
+            )
 
     def write_error(self, status_code: int, **kwargs) -> None:
         template = self.settings["template_environment"].get_template(
@@ -199,6 +262,7 @@ class StaticModel(BaseRequestHandler):
         base_url = self.request.protocol + "://" + self.request.host
         report_generator: ReportGenerator = self.settings['report_generator']
         executor = loky.get_reusable_executor(max_workers=self.settings['handler_worker_pool_size'])
+
         report_task = executor.submit(
             report_generator.build_report, base_url, form,
             executor_factory=functools.partial(
@@ -451,6 +515,13 @@ def make_app(
             'active_page': 'calculator/user-guide',
             'filename': 'userguide.html.j2'}),
     ]
+
+    profiler = os.environ.get('CAIMIRA_PROFILER_ENABLED', 0)
+    if debug or profiler:
+        urls += [
+            (get_root_url(CaimiraProfiler.ROOT_URL), ProfilerPage),
+            (get_root_url(r'{root_url}/(.*)'.format(root_url=CaimiraProfiler.ROOT_URL)), ProfilerReport),
+        ]
 
     interface: str = os.environ.get('CAIMIRA_THEME', '<undefined>')
     if interface != '<undefined>' and (interface != '<undefined>' and 'cern' not in interface): urls = list(filter(lambda i: i in base_urls, urls))

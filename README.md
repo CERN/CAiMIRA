@@ -55,7 +55,7 @@ https://doi.org/10.1016/j.buildenv.2022.109166
 
 ***Open Source Acknowledgments***
 
-For a detailed list of the open-source dependencies used in this project along with their respective licenses, please refer to [License Information](open-source-licences/README.md). This includes both the core dependencies specified in the project's requirements and their transitive dependencies. 
+For a detailed list of the open-source dependencies used in this project along with their respective licenses, please refer to [License Information](open-source-licences/README.md). This includes both the core dependencies specified in the project's requirements and their transitive dependencies.
 
 The information also features a distribution diagram of licenses and a brief description of each of them.
 
@@ -147,13 +147,24 @@ voila caimira/apps/expert/caimira.ipynb --port=8080
 
 Then visit http://localhost:8080.
 
-
 ### Running the tests
 
 ```
 pip install -e .[test]
 pytest ./caimira
 ```
+
+### Running the profiler
+
+The profiler is enabled in one of the following cases:
+- the calculator app is running in `debug` mode
+- the environment variable `CAIMIRA_PROFILER_ENABLED` is set to 1
+
+When visiting http://localhost:8080/profiler, you can start a new session and choose between [PyInstrument](https://github.com/joerick/pyinstrument) or [cProfile](https://docs.python.org/3/library/profile.html#module-cProfile). The app includes two different profilers, mainly because they can give different information.
+
+Keep the profiler page open. Then, in another window, navigate to any page in CAiMIRA, for example generate a new report. Refresh the profiler page, and click on the `Report` link to see the profiler output.
+
+The sessions are stored in a local file in the `/tmp` folder. To share it across multiple web nodes, a shared storage should be added to all web nodes. The folder can be customized via the environment variable `CAIMIRA_PROFILER_CACHE_DIR`.
 
 ### Building the whole environment for local development
 
