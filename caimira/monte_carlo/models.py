@@ -81,6 +81,10 @@ def _build_mc_model(model: dataclass_instance) -> typing.Type[MCModelBase[_Model
             elif new_field.type == typing.Union[caimira.models.Interval, None]:
                 I = getattr(sys.modules[__name__], "Interval")
                 field_type = typing.Union[None, caimira.models.Interval, I]
+            
+            elif new_field.type == typing.Union[caimira.models.Activity, caimira.models.ActivityPiecewiseConstant]:
+                APC = getattr(sys.modules[__name__], "ActivityPiecewiseConstant")
+                field_type = typing.Union[caimira.models.Activity, caimira.models.ActivityPiecewiseConstant, APC]
 
             else:
                 # Check that we don't need to do anything with this type.

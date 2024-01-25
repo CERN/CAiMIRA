@@ -806,6 +806,13 @@ Activity.types = {
 
 
 @dataclass(frozen=True)
+class ActivityPiecewiseConstant(PiecewiseConstant):
+
+    #: values of the function between transitions
+    values: typing.Tuple[Activity, ...]
+
+
+@dataclass(frozen=True)
 class SimplePopulation:
     """
     Represents a group of people all with exactly the same behaviour and
@@ -819,7 +826,7 @@ class SimplePopulation:
     presence: typing.Union[None, Interval]
 
     #: The physical activity being carried out by the people.
-    activity: Activity
+    activity: typing.Union[Activity, ActivityPiecewiseConstant]
 
     def __post_init__(self):
         if isinstance(self.number, int):
@@ -828,6 +835,11 @@ class SimplePopulation:
         else:
             if self.presence is not None:
                 raise TypeError(f'The presence argument must be None for a IntPiecewiseConstant number')
+            
+        if isinstance(self.activity, Activity):
+            if not isinstance(self.presence, Interval):
+                raise TypeError(f'The presence argument must be an "Interval". Got {type(self.presence)}')
+
 
     def presence_interval(self):
         if isinstance(self.presence, Interval):
@@ -1054,7 +1066,7 @@ class _ConcentrationModelBase:
         """
         return self.data_registry.concentration_model['virus_concentration_model']['min_background_concentration'] # type: ignore
 
-    def normalization_factor(self) -> _VectorisedFloat:
+    def normalization_factor(self, time: typing.Optional[float] = None) -> _VectorisedFloat:
         """
         Normalization factor (in the same unit as the concentration).
         This factor is applied to the normalized concentration only
@@ -1084,7 +1096,7 @@ class _ConcentrationModelBase:
             invRR = np.nan if RR == 0. else 1. / RR # type: ignore
 
         return (self.population.people_present(time) * invRR / V +
-                self.min_background_concentration()/self.normalization_factor())
+                self.min_background_concentration()/self.normalization_factor(time))
 
     @method_cache
     def state_change_times(self) -> typing.List[float]:
@@ -1155,7 +1167,7 @@ class _ConcentrationModelBase:
         # The model always starts at t=0, but we avoid running concentration calculations
         # before the first presence as an optimisation.
         if time <= self._first_presence_time():
-            return self.min_background_concentration()/self.normalization_factor()
+            return self.min_background_concentration()/self.normalization_factor(time)
 
         next_state_change_time = self._next_state_change(time)
         RR = self.removal_rate(next_state_change_time)
@@ -1187,7 +1199,7 @@ class _ConcentrationModelBase:
         to this method.
         """
         return (self._normed_concentration_cached(time) *
-                self.normalization_factor())
+                self.normalization_factor(time))
 
     @method_cache
     def normed_integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
@@ -1252,7 +1264,7 @@ class ConcentrationModel(_ConcentrationModelBase):
     def virus(self) -> Virus:
         return self.infected.virus
 
-    def normalization_factor(self) -> _VectorisedFloat:
+    def normalization_factor(self, time: typing.Optional[int] = None) -> _VectorisedFloat:
         # we normalize by the emission rate
         return self.infected.emission_rate_per_person_when_present()
 
@@ -1304,10 +1316,16 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         """
         return self.CO2_atmosphere_concentration
 
-    def normalization_factor(self) -> _VectorisedFloat:
+    def normalization_factor(self, time: typing.Optional[int] = None) -> _VectorisedFloat:
         # normalization by the CO2 exhaled per person.
         # CO2 concentration given in ppm, hence the 1e6 factor.
-        return (1e6*self.population.activity.exhalation_rate
+        if isinstance(self.population.activity, ActivityPiecewiseConstant):
+            activity: Activity = self.population.activity.value(time)
+            exhalation_rate = activity.exhalation_rate
+        else:
+            exhalation_rate = self.population.activity.exhalation_rate
+
+        return (1e6*exhalation_rate
                 *self.CO2_fraction_exhaled)
 
 
