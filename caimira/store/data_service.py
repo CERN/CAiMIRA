@@ -20,7 +20,7 @@ class DataService:
         self._host = host
 
     @classmethod
-    def create(cls, host: str = "https://caimira-data-api-qa.app.cern.ch"): # UPDATE QA TO PROD ONCE ALL IS WORKING
+    def create(cls, host: str = "https://caimira-data-api.app.cern.ch"):
         """Factory."""
         return cls(host)
 
