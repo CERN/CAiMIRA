@@ -443,7 +443,7 @@ class DataRegistry:
             "activity": "Seated",
             "expiration": {"Breathing": 1, "Speaking": 9},
         },
-        "precise": {},
+        "precise": {"activity": "", "expiration": {}},
     }
 
     def update(self, data, version=None):
