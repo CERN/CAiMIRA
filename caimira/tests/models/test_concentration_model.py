@@ -33,7 +33,7 @@ class KnownConcentrationModelBase(models._ConcentrationModelBase):
     def min_background_concentration(self) -> float:
         return self.known_min_background_concentration
 
-    def normalization_factor(self) -> float:
+    def normalization_factor(self, time = None) -> float:
         return self.known_normalization_factor
 
 

@@ -806,10 +806,36 @@ Activity.types = {
 
 
 @dataclass(frozen=True)
-class ActivityPiecewiseConstant(PiecewiseConstant):
+class ActivityPiecewiseConstant:
+
+    # transition_times and values have the same length.
+
+    #: transition times at which the function changes value (hours).
+    transition_times: typing.Tuple[float, ...]
 
     #: values of the function between transitions
     values: typing.Tuple[Activity, ...]
+
+    def __post_init__(self):
+        if len(self.transition_times) != len(self.values)+1:
+            raise ValueError("transition_times must contain one more element than values")
+        if tuple(sorted(set(self.transition_times))) != self.transition_times:
+            raise ValueError("transition_times must not contain duplicated elements and must be sorted")
+        shapes = [np.array(v).shape for v in self.values]
+        if not all(shapes[0] == shape for shape in shapes):
+            raise ValueError("All values must have the same shape")
+
+    def value(self, time) -> Activity:
+        if time <= self.transition_times[0]:
+            return self.values[0]
+        elif time > self.transition_times[-1]:
+            return self.values[-1]
+
+        for t1, t2, value in zip(self.transition_times[:-1],
+                                 self.transition_times[1:], self.values):
+            if t1 < time <= t2:
+                break
+        return value
 
 
 @dataclass(frozen=True)
@@ -835,11 +861,6 @@ class SimplePopulation:
         else:
             if self.presence is not None:
                 raise TypeError(f'The presence argument must be None for a IntPiecewiseConstant number')
-            
-        if isinstance(self.activity, Activity):
-            if not isinstance(self.presence, Interval):
-                raise TypeError(f'The presence argument must be an "Interval". Got {type(self.presence)}')
-
 
     def presence_interval(self):
         if isinstance(self.presence, Interval):
@@ -993,6 +1014,9 @@ class InfectedPopulation(_PopulationWithVirus):
         """
         # Note on units: exhalation rate is in m^3/h -> 1e6 conversion factor
         # Returns the emission rate times the number of infected hosts in the room
+        if not isinstance(self.activity, Activity):
+            raise NotImplementedError('Cannot compute with dynamic activities.')
+        
         ER = (self.virus.viral_load_in_sputum *
               self.activity.exhalation_rate *
               self.fraction_of_infectious_virus() *
@@ -1264,7 +1288,7 @@ class ConcentrationModel(_ConcentrationModelBase):
     def virus(self) -> Virus:
         return self.infected.virus
 
-    def normalization_factor(self, time: typing.Optional[int] = None) -> _VectorisedFloat:
+    def normalization_factor(self, time: typing.Optional[float] = None) -> _VectorisedFloat:
         # we normalize by the emission rate
         return self.infected.emission_rate_per_person_when_present()
 
@@ -1316,7 +1340,7 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         """
         return self.CO2_atmosphere_concentration
 
-    def normalization_factor(self, time: typing.Optional[int] = None) -> _VectorisedFloat:
+    def normalization_factor(self, time: typing.Optional[float] = None) -> _VectorisedFloat:
         # normalization by the CO2 exhaled per person.
         # CO2 concentration given in ppm, hence the 1e6 factor.
         if isinstance(self.population.activity, ActivityPiecewiseConstant):
@@ -1504,6 +1528,9 @@ class ShortRangeModel:
         TODO: make sure any potential extrapolation has a
         negligible effect.
         """
+        if not isinstance(self.activity, Activity):
+            raise NotImplementedError('Cannot compute with dynamic activities.')
+        
         start, stop = self.extract_between_bounds(time1, time2)
         if stop<=start:
             return 0.
@@ -1511,7 +1538,7 @@ class ShortRangeModel:
         normed_int_concentration = (
             concentration_model.integrated_concentration(start, stop)
                 /concentration_model.virus.viral_load_in_sputum
-                /concentration_model.infected.activity.exhalation_rate
+                /self.activity.exhalation_rate
                 )
         normed_int_concentration_interpolated = np.interp(
                 np.array(self.expiration.particle.diameter),
@@ -1706,6 +1733,9 @@ class ExposureModel:
 
         # Then we multiply by the diameter-independent quantity emission_rate_per_aerosol_per_person,
         # and parameters of the vD equation (i.e. BR_k and n_in).
+        if not isinstance(self.exposed.activity, Activity):
+            raise NotImplementedError('Cannot compute with dynamic activities.')
+        
         deposited_exposure += (dep_exposure_integrated *
                 emission_rate_per_aerosol_per_person *
                 self.exposed.activity.inhalation_rate *
@@ -1724,6 +1754,10 @@ class ExposureModel:
         Then, the deposited exposure given the long-range interactions is added to the
         initial deposited exposure.
         """
+        if (not isinstance(self.exposed.activity, Activity) or 
+            not isinstance(self.concentration_model.infected.activity, Activity)):
+            raise NotImplementedError('Cannot compute with dynamic activities.')
+        
         deposited_exposure: _VectorisedFloat = 0.
         for interaction in self.short_range:
             start, stop = interaction.extract_between_bounds(time1, time2)
