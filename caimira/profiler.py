@@ -9,7 +9,7 @@ import typing
 from datetime import datetime
 from enum import Enum
 from functools import wraps
-from pstats import f8, func_std_string
+from pstats import f8, func_std_string # type: ignore
 
 from pyinstrument import Profiler as PyInstrumentProfiler
 
@@ -134,12 +134,12 @@ class Profiler:
 
 
 class CaimiraProfiler:
+    _cache_dirpath: str
+    _cache_filepath: str
     CACHE_DIR: str = os.environ.get("CAIMIRA_PROFILER_CACHE_DIR", "/tmp")
     ROOT_URL: str = "/profiler"
-    _cache_dirpath: str = None
-    _cache_filepath: str = None
 
-    def __init__(self, cache_dir: typing.Optional[str] = None):
+    def __init__(self):
         _cache_dir = os.path.join(self.CACHE_DIR, "caimira-profiler")
         self._cache_dirpath = _cache_dir
         self._cache_filepath = os.path.join(_cache_dir, "active")
@@ -209,7 +209,7 @@ class CaimiraProfiler:
     def start_session(
         self,
         name: typing.Optional[str] = None,
-        profiler_type: typing.Optional[Profilers] = Profilers.PYINSTRUMENT,
+        profiler_type: Profilers = Profilers.PYINSTRUMENT,
     ):
         """Start a new session, assigning the given name."""
         now = datetime.utcnow().isoformat()
