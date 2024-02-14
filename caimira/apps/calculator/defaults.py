@@ -1,5 +1,3 @@
-import typing
-
 # ------------------ Default form values ----------------------
 
 # Used to declare when an attribute of a class must have a value provided, and

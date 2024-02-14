@@ -411,7 +411,6 @@ class VirusFormData(FormData):
 
         activity_defn = self.data_registry.population_scenario_activity[self.activity_type]['activity']
         expiration_defn = self.data_registry.population_scenario_activity[self.activity_type]['expiration']
-
         if (self.activity_type == 'smallmeeting'):
             # Conversation of N people is approximately 1/N% of the time speaking.
             expiration_defn = {'Speaking': 1, 'Breathing': self.total_people - 1}
