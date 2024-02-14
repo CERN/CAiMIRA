@@ -494,12 +494,7 @@ def make_app(
     data_service = None
     data_service_enabled = os.environ.get("DATA_SERVICE_ENABLED", "False")
     is_enabled = data_service_enabled.lower() == "true"
-    if is_enabled:
-        credentials = {
-            "email": os.environ.get("DATA_SERVICE_CLIENT_EMAIL", None),
-            "password": os.environ.get("DATA_SERVICE_CLIENT_PASSWORD", None),
-        }
-        data_service = DataService.create(credentials)
+    if is_enabled: data_service = DataService.create()
 
     return Application(
         urls,

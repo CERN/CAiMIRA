@@ -60,23 +60,6 @@ def custom_distribution_lookup(dict: dict, key_part: str) -> typing.Any:
         return f"Key '{key_part}' not found."
 
 
-def evaluate_reference(reference_variable: str) -> typing.Any:
-    """
-    Evaluate a reference variable.
-
-    Args:
-        reference_variable (str): The variable to evaluate.
-
-    Returns:
-        Any: The evaluated value or an error message if the variable is not defined.
-
-    """
-    try:
-        return eval(reference_variable)
-    except NameError:
-        return f"Variable '{reference_variable}' is not defined."
-
-
 def evaluate_custom_distribution(dist: str, params: typing.Dict) -> typing.Any:
     """
     Evaluate a custom distribution.
@@ -92,13 +75,13 @@ def evaluate_custom_distribution(dist: str, params: typing.Dict) -> typing.Any:
         ValueError: If the distribution type is not recognized.
 
     """
-    if dist == 'Numpy Linear Space (linspace)':
+    if dist == 'Linear Space':
         return np.linspace(params['start'], params['stop'], params['num'])
-    elif dist == 'Numpy Normal Distribution (random.normal)':
-        return Normal(params['mean_gaussian'], params['standard_deviation_gaussian'])
-    elif dist == 'Numpy Log-normal Distribution (random.lognormal)':
-        return LogNormal(params['mean_gaussian'], params['standard_deviation_gaussian'])
-    elif dist == 'Numpy Uniform Distribution (random.uniform)':
+    elif dist == 'Normal':
+        return Normal(params['normal_mean_gaussian'], params['normal_standard_deviation_gaussian'])
+    elif dist == 'Log-normal':
+        return LogNormal(params['lognormal_mean_gaussian'], params['lognormal_standard_deviation_gaussian'])
+    elif dist == 'Uniform':
         return Uniform(params['low'], params['high'])
     else:
         raise ValueError('Bad request - distribution not found.')

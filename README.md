@@ -352,16 +352,7 @@ $ oc create secret generic \
 
 The CERN data service collects data from various sources and expose them via a REST API endpoint.
 
-Create secret:
-
-```console
-$ read DATA_SERVICE_CLIENT_EMAIL
-$ read DATA_SERVICE_CLIENT_PASSWORD
-$ oc create secret generic \
-  --from-literal="DATA_SERVICE_CLIENT_EMAIL=$DATA_SERVICE_CLIENT_EMAIL" \
-  --from-literal="DATA_SERVICE_CLIENT_PASSWORD=$DATA_SERVICE_CLIENT_PASSWORD" \
-  data-service-api
-```
+To enable the service set the environment variable `DATA_SERVICE_ENABLED` as `True`.
 
 ## Update configuration
 
