@@ -148,9 +148,9 @@ def calculate_report_data(form: VirusFormData, model: models.ExposureModel) -> t
     expected_new_cases = np.array(model.expected_new_cases()).mean()
     uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(model, prob))) if form.conditional_probability_plot else None
     exposed_presence_intervals = [list(interval) for interval in model.exposed.presence_interval().boundaries()]
-    conditional_probability_data = {key: value for key, value in
-                                    zip(('viral_loads', 'pi_means', 'lower_percentiles', 'upper_percentiles'),
-                                        manufacture_conditional_probability_data(model, prob))}
+    # conditional_probability_data = {key: value for key, value in
+    #                                 zip(('viral_loads', 'pi_means', 'lower_percentiles', 'upper_percentiles'),
+    #                                     manufacture_conditional_probability_data(model, prob))}
 
 
     return {
@@ -173,7 +173,7 @@ def calculate_report_data(form: VirusFormData, model: models.ExposureModel) -> t
         "uncertainties_plot_src": uncertainties_plot_src,
         "CO2_concentrations": CO2_concentrations,
         "vl_dist": list(np.log10(model.concentration_model.virus.viral_load_in_sputum)),
-        "conditional_probability_data": conditional_probability_data,
+        # "conditional_probability_data": conditional_probability_data,
     }
 
 
