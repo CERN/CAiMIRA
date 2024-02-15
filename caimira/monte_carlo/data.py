@@ -326,7 +326,7 @@ def virus_distributions(data_registry):
             transmissibility_factor=vd['SARS_CoV_2_DELTA']['transmissibility_factor'],
         ),
         'SARS_CoV_2_OMICRON': mc.SARSCoV2(
-            viral_load_in_sputum=np.array([10**7]*250_000),
+            viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_OMICRON'], 'viral_load_in_sputum', data_registry),
             infectious_dose=evaluate_infectd(vd['SARS_CoV_2_OMICRON'], 'infectious_dose', data_registry),
             viable_to_RNA_ratio=evaluate_vtrr(vd['SARS_CoV_2_OMICRON'], 'viable_to_RNA_ratio', data_registry),
             transmissibility_factor=vd['SARS_CoV_2_OMICRON']['transmissibility_factor'],
