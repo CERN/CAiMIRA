@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 
 from caimira import models
 from caimira.apps.calculator import markdown_tools
+from caimira.profiler import profile
 from caimira.store.data_registry import DataRegistry
 from ... import monte_carlo as mc
 from .model_generator import VirusFormData
@@ -114,6 +115,7 @@ def concentrations_with_sr_breathing(form: VirusFormData, model: models.Exposure
     return lower_concentrations
 
 
+@profile
 def calculate_report_data(form: VirusFormData, model: models.ExposureModel) -> typing.Dict[str, typing.Any]:
     times = interesting_times(model)
     short_range_intervals = [interaction.presence.boundaries()[0] for interaction in model.short_range]

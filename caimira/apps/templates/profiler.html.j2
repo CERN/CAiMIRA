@@ -1,0 +1,62 @@
+{% extends "layout.html.j2" %}
+
+{% block main %}
+<div class="container mt-5 mb-5">
+    <form method="POST">
+
+        <h1>Profiler</h1>
+        {% if is_active %}
+            <div class="form-group mt-3">
+                The profiler is running.
+            </div>
+            <button type="submit" class="btn btn-primary" name="stop">Stop current session</button>
+        {% else %}
+            The profiler is not running.
+            <div class="form-group mt-3">
+                <input type="text" class="form-control" name="name" placeholder="Enter a name for the new session">
+
+                <label class="mt-3">Choose the profiler:</label>
+
+                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-secondary active">
+                        <input type="radio" name="profiler_type" id="pyinstrument" value="pyinstrument" autocomplete="off" checked> PyInstrument
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="radio" name="profiler_type" id="cprofiler" value="cprofiler" autocomplete="off"> CProfiler
+                    </label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3" name="start">Start new session</button>
+        {% endif %}
+
+        {{ xsrf_form_html }}
+
+        <h3 class="mt-5">Sessions</h3>
+        {% if sessions %}
+            <ol>
+            {% for name, reports in sessions.items() %}
+                <li>Name: {{ name }}</li>
+                <ul>
+                    {% if reports %}
+                        {% for report in reports %}
+                            <li>{{ report["ts"] }} - {{ report["method"] }} {{ report["uri"] }} - <a href="/profiler/{{ report["report_id"] }}" target="_blank">Report</a></li>
+                        {% endfor %}
+                    {% else %}
+                    <i>No reports yet!</i>
+                    {% endif %}
+                </ul>
+            {% endfor %}
+            </ol>
+
+            {% if not is_active %}
+            <div class="mt-3">
+                <button type="submit" class="btn btn-danger btn-sm" name="clear">Clear all sessions</button>
+            </div>
+            {% endif %}
+
+        {% else %}
+        <i>No sessions yet!</i>
+        {% endif %}
+    </form>
+</div>
+{% endblock main %}

@@ -374,6 +374,10 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 - License: [BSD License (BSD-2-Clause)](https://pypi.org/project/Pygments/)
 
+#### pyinstrument 4.6.1
+
+- License: [BSD License (BSD-3-Clause)](https://pypi.org/project/pyinstrument/)
+
 #### pyparsing 3.1.1
 
 - License: [MIT License](https://pypi.org/project/pyparsing/)
