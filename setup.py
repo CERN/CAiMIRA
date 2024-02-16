@@ -30,6 +30,7 @@ REQUIREMENTS: dict = {
         'numpy',
         'pandas',
         'psutil',
+        'pyinstrument',
         'pyjwt',
         'python-dateutil',
         'retry',
