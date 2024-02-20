@@ -251,13 +251,6 @@ class DataRegistry:
             "transmissibility_factor": 0.2,
             "infectiousness_days": 14,
         },
-        "SARS_CoV_2_Other": {
-            "viral_load_in_sputum": ViralLoads.COVID_OVERALL.value,
-            "infectious_dose": InfectiousDoses.DISTRIBUTION.value,
-            "viable_to_RNA_ratio": ViableToRNARatios.DISTRIBUTION.value,
-            "transmissibility_factor": 0.1,
-            "infectiousness_days": 14,
-        },
     }
     mask_distributions = {
         "Type I": {

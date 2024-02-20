@@ -205,11 +205,13 @@
 									draw_histogram("prob_inf_hist", {{ prob_inf }}, {{ prob_inf_sd }});
 								</script>
 								<br>
-
-								{# <div class="form-check">
+								
+								{% if model.data_registry.virus_distributions[form.virus_type]['viral_load_in_sputum'] == 'Ref: Viral load - covid_overal_vl_data' %}
+								<div class="form-check">
 									<input type="checkbox" id="conditional_probability_plot" class="tabbed form-check-input" name="conditional_probability_plot" value="1" onClick="conditional_probability_plot(this.checked, {{ form.conditional_probability_plot | int }});">
 									<label id="label_conditional_probability_plot" for="conditional_probability_plot" class="form-check-label col-sm-12">Generate full uncertainty data (as function of the viral load)</label>
-								</div> #}
+								</div>
+								{% endif %}
 								{% if form.conditional_probability_plot %}
 								<div id="conditional_probability_div">
 									<img src= "{{ uncertainties_plot_src }}" />
