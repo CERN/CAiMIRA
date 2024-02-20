@@ -19,11 +19,15 @@ variables:
 
 # A full installation of CAiMIRA, tested with pytest.
 test_install:
+  variables:
+    TIMEOUT_S: "25"
   extends: .acc_py_full_test
 
 
 # A development installation of CAiMIRA tested with pytest.
 test_dev:
+  variables:
+    TIMEOUT_S: "25"
   extends: .acc_py_dev_test
 
 
@@ -31,6 +35,7 @@ test_dev:
 test_dev-39:
   variables:
     PY_VERSION: "3.9"
+    TIMEOUT_S: "25"
   extends: .acc_py_dev_test
 
 
