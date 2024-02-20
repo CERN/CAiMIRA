@@ -149,7 +149,7 @@ def calculate_report_data(form: VirusFormData, model: models.ExposureModel) -> t
     exposed_presence_intervals = [list(interval) for interval in model.exposed.presence_interval().boundaries()]
 
     if (model.data_registry.virus_distributions[form.virus_type]['viral_load_in_sputum'] == ViralLoads.COVID_OVERALL.value 
-        and form.conditional_probability_plot): # Only generate this data if covid_overal_vl_data is selected.
+        and form.conditional_probability_plot): # Only generate this data if covid_overall_vl_data is selected.
 
         viral_load_in_sputum: models._VectorisedFloat = model.concentration_model.infected.virus.viral_load_in_sputum
         viral_loads, pi_means, lower_percentiles, upper_percentiles = manufacture_conditional_probability_data(model, prob)
@@ -164,7 +164,7 @@ def calculate_report_data(form: VirusFormData, model: models.ExposureModel) -> t
     else:
         uncertainties_plot_src = None
         conditional_probability_data = None
-        vl_dist = np.log10(model.concentration_model.virus.viral_load_in_sputum)
+        vl_dist = list(np.log10(model.concentration_model.virus.viral_load_in_sputum))
 
     return {
         "model_repr": repr(model),
