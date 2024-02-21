@@ -20,7 +20,7 @@ def evaluate_vl(root: typing.Dict, value: str, data_registry: DataRegistry):
     elif root[value] == ViralLoads.SYMPTOMATIC_FREQUENCIES.value:
         return symptomatic_vl_frequencies
     elif root[value] == "Custom":
-        return param_evaluation(root, 'Viral load custom distribution')
+        return param_evaluation(root, 'Viral load custom')
     else:
         raise ValueError(f"Invalid ViralLoads value {value}")
 
@@ -29,7 +29,7 @@ def evaluate_infectd(root: typing.Dict, value: str, data_registry: DataRegistry)
     if root[value] == InfectiousDoses.DISTRIBUTION.value:
         return infectious_dose_distribution(data_registry)
     elif root[value] == "Custom":
-        return param_evaluation(root, 'Infectious dose custom distribution')
+        return param_evaluation(root, 'Infectious dose custom')
     else:
         raise ValueError(f"Invalid InfectiousDoses value {value}")
 
@@ -38,7 +38,7 @@ def evaluate_vtrr(root: typing.Dict, value: str, data_registry: DataRegistry):
     if root[value] == ViableToRNARatios.DISTRIBUTION.value:
         return viable_to_RNA_ratio_distribution(data_registry)
     elif root[value] == "Custom":
-        return param_evaluation(root, 'Viable to RNA ratio custom distribution')
+        return param_evaluation(root, 'Viable to RNA ratio custom')
     else:
         raise ValueError(f"Invalid ViableToRNARatios value {value}")
 
@@ -61,7 +61,7 @@ def custom_distribution_lookup(dict: dict, key_part: str) -> typing.Any:
     try:
         for key, value in dict.items():
             if (key_part in key):
-                return value['associated_distribution']
+                return value['associated_value']
     except KeyError:
         return f"Key '{key_part}' not found."
 
@@ -81,8 +81,8 @@ def evaluate_custom_distribution(dist: str, params: typing.Dict) -> typing.Any:
         ValueError: If the distribution type is not recognized.
 
     """
-    if dist == 'Linear Space':
-        return np.linspace(params['start'], params['stop'], params['num'])
+    if dist == 'Constant':
+        return params
     elif dist == 'Normal':
         return Normal(params['normal_mean_gaussian'], params['normal_standard_deviation_gaussian'])
     elif dist == 'Log-normal':
@@ -111,7 +111,7 @@ def param_evaluation(root: typing.Dict, param: typing.Union[str, typing.Any]) ->
     value = root.get(param)
 
     if isinstance(value, dict):
-        dist: str = root[param]['associated_distribution']
+        dist: str = root[param]['associated_value']
         params: typing.Dict = root[param]['parameters']
         return evaluate_custom_distribution(dist, params)
 

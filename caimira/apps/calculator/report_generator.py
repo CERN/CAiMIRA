@@ -164,7 +164,9 @@ def calculate_report_data(form: VirusFormData, model: models.ExposureModel) -> t
     else:
         uncertainties_plot_src = None
         conditional_probability_data = None
-        vl_dist = list(np.log10(model.concentration_model.virus.viral_load_in_sputum))
+        vl = model.concentration_model.virus.viral_load_in_sputum
+        if isinstance(vl, np.ndarray): vl_dist = list(np.log10(model.concentration_model.virus.viral_load_in_sputum))
+        else: vl_dist = np.log10(model.concentration_model.virus.viral_load_in_sputum)
 
     return {
         "model_repr": repr(model),

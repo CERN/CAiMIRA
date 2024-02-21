@@ -26,14 +26,14 @@ class DataRegistry:
     activity_distributions = {
         "Seated": {
             "inhalation_rate": {
-                "associated_distribution": "Log-normal",
+                "associated_value": "Log-normal",
                 "parameters": {
                     "lognormal_mean_gaussian": -0.6872121723362303,
                     "lognormal_standard_deviation_gaussian": 0.10498338229297108,
                 },
             },
             "exhalation_rate": {
-                "associated_distribution": "Log-normal",
+                "associated_value": "Log-normal",
                 "parameters": {
                     "lognormal_mean_gaussian": -0.6872121723362303,
                     "lognormal_standard_deviation_gaussian": 0.10498338229297108,
@@ -42,14 +42,14 @@ class DataRegistry:
         },
         "Standing": {
             "inhalation_rate": {
-                "associated_distribution": "Log-normal",
+                "associated_value": "Log-normal",
                 "parameters": {
                     "lognormal_mean_gaussian": -0.5742377578494785,
                     "lognormal_standard_deviation_gaussian": 0.09373162411398223,
                 },
             },
             "exhalation_rate": {
-                "associated_distribution": "Log-normal",
+                "associated_value": "Log-normal",
                 "parameters": {
                     "lognormal_mean_gaussian": -0.5742377578494785,
                     "lognormal_standard_deviation_gaussian": 0.09373162411398223,
@@ -58,14 +58,14 @@ class DataRegistry:
         },
         "Light activity": {
             "inhalation_rate": {
-                "associated_distribution": "Log-normal",
+                "associated_value": "Log-normal",
                 "parameters": {
                     "lognormal_mean_gaussian": 0.21380242785625422,
                     "lognormal_standard_deviation_gaussian": 0.09435378091059601,
                 },
             },
             "exhalation_rate": {
-                "associated_distribution": "Log-normal",
+                "associated_value": "Log-normal",
                 "parameters": {
                     "lognormal_mean_gaussian": 0.21380242785625422,
                     "lognormal_standard_deviation_gaussian": 0.09435378091059601,
@@ -74,14 +74,14 @@ class DataRegistry:
         },
         "Moderate activity": {
             "inhalation_rate": {
-                "associated_distribution": "Log-normal",
+                "associated_value": "Log-normal",
                 "parameters": {
                     "lognormal_mean_gaussian": 0.551771330362601,
                     "lognormal_standard_deviation_gaussian": 0.1894616357138137,
                 },
             },
             "exhalation_rate": {
-                "associated_distribution": "Log-normal",
+                "associated_value": "Log-normal",
                 "parameters": {
                     "lognormal_mean_gaussian": 0.551771330362601,
                     "lognormal_standard_deviation_gaussian": 0.1894616357138137,
@@ -90,14 +90,14 @@ class DataRegistry:
         },
         "Heavy exercise": {
             "inhalation_rate": {
-                "associated_distribution": "Log-normal",
+                "associated_value": "Log-normal",
                 "parameters": {
                     "lognormal_mean_gaussian": 1.1644665696723049,
                     "lognormal_standard_deviation_gaussian": 0.21744554768657565,
                 },
             },
             "exhalation_rate": {
-                "associated_distribution": "Log-normal",
+                "associated_value": "Log-normal",
                 "parameters": {
                     "lognormal_mean_gaussian": 1.1644665696723049,
                     "lognormal_standard_deviation_gaussian": 0.21744554768657565,
@@ -255,7 +255,7 @@ class DataRegistry:
     mask_distributions = {
         "Type I": {
             "η_inhale": {
-                "associated_distribution": "Uniform",
+                "associated_value": "Uniform",
                 "parameters": {
                     "low": 0.25,
                     "high": 0.80,
@@ -266,7 +266,7 @@ class DataRegistry:
         },
         "FFP2": {
             "η_inhale": {
-                "associated_distribution": "Uniform",
+                "associated_value": "Uniform",
                 "parameters": {
                     "low": 0.83,
                     "high": 0.91,
@@ -277,7 +277,7 @@ class DataRegistry:
         },
         "Cloth": {
             "η_inhale": {
-                "associated_distribution": "Uniform",
+                "associated_value": "Uniform",
                 "parameters": {
                     "low": 0.05,
                     "high": 0.40,
@@ -285,7 +285,7 @@ class DataRegistry:
             },
             "Known filtration efficiency of masks when exhaling?": "Yes",
             "η_exhale": {
-                "associated_distribution": "Uniform",
+                "associated_value": "Uniform",
                 "parameters": {
                     "low": 0.20,
                     "high": 0.50,
