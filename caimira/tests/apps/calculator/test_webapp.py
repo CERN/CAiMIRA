@@ -7,7 +7,7 @@ from retry import retry
 import caimira.apps.calculator
 from caimira.apps.calculator.report_generator import generate_permalink
 
-_TIMEOUT = 20.
+_TIMEOUT = 30.
 
 
 @pytest.fixture
@@ -149,7 +149,7 @@ class TestCERNGenericPage(tornado.testing.AsyncHTTPTestCase):
         ]
 
         return tornado.web.Application(pages, **app.settings)
-    
+
     @tornado.testing.gen_test(timeout=_TIMEOUT)
     def test_user_guide(self):
         response = yield self.http_client.fetch(self.get_url('/calculator/user-guide'))

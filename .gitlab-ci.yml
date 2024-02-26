@@ -110,7 +110,7 @@ check_openshift_config_prod:
     - /kaniko/executor --context ${CI_PROJECT_DIR}/${DOCKER_CONTEXT_DIRECTORY} --dockerfile ${CI_PROJECT_DIR}/${DOCKERFILE_DIRECTORY}/Dockerfile --destination ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG}
     # Print the full registry path of the pushed image
     - echo "Image pushed successfully to ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG}"
-    
+
 
 auth-service-image_builder:
   extends:

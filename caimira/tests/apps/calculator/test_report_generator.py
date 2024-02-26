@@ -11,12 +11,12 @@ from caimira.apps.calculator.report_generator import ReportGenerator, readable_m
 import caimira.apps.calculator.report_generator as rep_gen
 
 
-def test_generate_report(baseline_form) -> None:
+def test_generate_report(baseline_form, report_timelimit) -> None:
     # This is a simple test that confirms that given a model, we can actually
     # generate a report for it. Because this is what happens in the caimira
     # calculator, we confirm that the generation happens within a reasonable
     # time threshold.
-    time_limit: float = 20.0  # seconds
+    time_limit: float = report_timelimit
 
     start = time.perf_counter()
 
@@ -25,6 +25,8 @@ def test_generate_report(baseline_form) -> None:
         concurrent.futures.ThreadPoolExecutor, 1,
     ))
     end = time.perf_counter()
+    total = end-start
+    print(f"Time limit: {time_limit} | Time taken: {end} - {start} = {total} < {time_limit}")
     assert report != ""
     assert end - start < time_limit
 
