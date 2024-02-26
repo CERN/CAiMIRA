@@ -72,3 +72,13 @@ def exposure_model_w_outside_temp_changes(data_registry, baseline_exposure_model
             )
         })
     return exp_model
+
+
+def pytest_addoption(parser):
+    """Get the time limit to generate a report during tests from the CLI."""
+    parser.addoption("--report-timelimit", action="store", default=20.0, type=float)
+
+
+@pytest.fixture
+def report_timelimit(request):
+    return float(request.config.getoption("--report-timelimit"))

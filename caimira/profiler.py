@@ -195,6 +195,10 @@ class CaimiraProfiler:
     @property
     def is_active(self):
         """Return True if a session is active."""
+        enabled = os.environ.get('CAIMIRA_PROFILER_ENABLED', 0)
+        if not enabled:
+            return False
+
         if not os.path.exists(self._cache_filepath):
             return False
 
