@@ -516,8 +516,8 @@ def make_app(
             'filename': 'userguide.html.j2'}),
     ]
 
-    profiler = os.environ.get('CAIMIRA_PROFILER_ENABLED', 0)
-    if debug or profiler:
+    profiler_enabled = os.environ.get('CAIMIRA_PROFILER_ENABLED', 0)
+    if profiler_enabled:
         urls += [
             (get_root_url(CaimiraProfiler.ROOT_URL), ProfilerPage),
             (get_root_url(r'{root_url}/(.*)'.format(root_url=CaimiraProfiler.ROOT_URL)), ProfilerReport),
