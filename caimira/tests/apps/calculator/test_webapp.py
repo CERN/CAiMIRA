@@ -1,13 +1,13 @@
+import os
 from pathlib import Path
 
 import pytest
 import tornado.testing
-from retry import retry
 
 import caimira.apps.calculator
 from caimira.apps.calculator.report_generator import generate_permalink
 
-_TIMEOUT = 20.
+_TIMEOUT = float(os.environ.get("CAIMIRA_TESTS_CALCULATOR_TIMEOUT", 10.))
 
 
 @pytest.fixture
@@ -34,7 +34,6 @@ async def test_404(http_server_client):
     assert resp.code == 404
 
 
-@retry(tries=10)
 class TestBasicApp(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return caimira.apps.calculator.make_app()
@@ -63,7 +62,6 @@ class TestBasicApp(tornado.testing.AsyncHTTPTestCase):
         assert 'expected number of new cases is' in response.body.decode()
 
 
-@retry(tries=10)
 class TestCernApp(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         cern_theme = Path(caimira.apps.calculator.__file__).parent.parent / 'themes' / 'cern'
@@ -76,7 +74,6 @@ class TestCernApp(tornado.testing.AsyncHTTPTestCase):
         assert 'expected number of new cases is' in response.body.decode()
 
 
-retry(tries=10)
 class TestOpenApp(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return caimira.apps.calculator.make_app(calculator_prefix="/mycalc")
@@ -149,7 +146,7 @@ class TestCERNGenericPage(tornado.testing.AsyncHTTPTestCase):
         ]
 
         return tornado.web.Application(pages, **app.settings)
-    
+
     @tornado.testing.gen_test(timeout=_TIMEOUT)
     def test_user_guide(self):
         response = yield self.http_client.fetch(self.get_url('/calculator/user-guide'))
