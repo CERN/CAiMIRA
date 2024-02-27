@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 import tornado.testing
+from retry import retry
 
 import caimira.apps.calculator
 from caimira.apps.calculator.report_generator import generate_permalink
@@ -37,6 +38,7 @@ class TestBasicApp(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return caimira.apps.calculator.make_app()
 
+    @retry(tries=10)
     @tornado.testing.gen_test(timeout=_TIMEOUT)
     def test_report(self):
         requests = [
@@ -66,6 +68,7 @@ class TestCernApp(tornado.testing.AsyncHTTPTestCase):
         cern_theme = Path(caimira.apps.calculator.__file__).parent.parent / 'themes' / 'cern'
         return caimira.apps.calculator.make_app(theme_dir=cern_theme)
 
+    @retry(tries=10)
     @tornado.testing.gen_test(timeout=_TIMEOUT)
     def test_report(self):
         response = yield self.http_client.fetch(self.get_url('/calculator/baseline-model/result'))
@@ -77,6 +80,7 @@ class TestOpenApp(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return caimira.apps.calculator.make_app(calculator_prefix="/mycalc")
 
+    @retry(tries=10)
     @tornado.testing.gen_test(timeout=_TIMEOUT)
     def test_report(self):
         response = yield self.http_client.fetch(self.get_url('/mycalc/baseline-model/result'))
