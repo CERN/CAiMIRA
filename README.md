@@ -156,9 +156,7 @@ pytest ./caimira
 
 ### Running the profiler
 
-The profiler is enabled in one of the following cases:
-- the calculator app is running in `debug` mode
-- the environment variable `CAIMIRA_PROFILER_ENABLED` is set to 1
+The profiler is enabled when the environment variable `CAIMIRA_PROFILER_ENABLED` is set to 1.
 
 When visiting http://localhost:8080/profiler, you can start a new session and choose between [PyInstrument](https://github.com/joerick/pyinstrument) or [cProfile](https://docs.python.org/3/library/profile.html#module-cProfile). The app includes two different profilers, mainly because they can give different information.
 
