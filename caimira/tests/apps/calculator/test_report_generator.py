@@ -1,8 +1,8 @@
 import concurrent.futures
 from functools import partial
+import os
 import time
 
-import numpy.testing
 import numpy as np
 import pytest
 
@@ -16,7 +16,7 @@ def test_generate_report(baseline_form) -> None:
     # generate a report for it. Because this is what happens in the caimira
     # calculator, we confirm that the generation happens within a reasonable
     # time threshold.
-    time_limit: float = 20.0  # seconds
+    time_limit: float = float(os.environ.get("CAIMIRA_TESTS_CALCULATOR_TIMEOUT", 10.))
 
     start = time.perf_counter()
 
@@ -25,6 +25,8 @@ def test_generate_report(baseline_form) -> None:
         concurrent.futures.ThreadPoolExecutor, 1,
     ))
     end = time.perf_counter()
+    total = end-start
+    print(f"Time limit: {time_limit} | Time taken: {end} - {start} = {total} < {time_limit}")
     assert report != ""
     assert end - start < time_limit
 
