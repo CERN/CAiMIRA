@@ -284,7 +284,9 @@
                       key: ARVE_API_KEY
                       name: arve-api
                 - name: DATA_SERVICE_ENABLED
-                  value: 'True'
+                  value: '1'
+                - name: CAIMIRA_PROFILER_ENABLED
+                  value: '1'
                 image: '${PROJECT_NAME}/calculator-app'
                 ports:
                   - containerPort: 8080
@@ -363,7 +365,9 @@
                 - name: CAIMIRA_CALCULATOR_PREFIX
                   value: /calculator-open
                 - name: DATA_SERVICE_ENABLED
-                  value: 'True'
+                  value: '1'
+                - name: CAIMIRA_PROFILER_ENABLED
+                  value: '1'
                 image: '${PROJECT_NAME}/calculator-app'
                 ports:
                   - containerPort: 8080
