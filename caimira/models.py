@@ -879,7 +879,7 @@ class _PopulationWithVirus(Population):
         The fraction of infectious virus.
 
         """
-        return self.data_registry.population_with_virus['fraction_of_infectious_virus'] # type: ignore
+        return 1
 
     def aerosols(self):
         """
@@ -1052,7 +1052,7 @@ class _ConcentrationModelBase:
         (in the same unit as the concentration). Its the value towards which
         the concentration will decay to.
         """
-        return self.data_registry.concentration_model['min_background_concentration'] # type: ignore
+        return self.data_registry.concentration_model['virus_concentration_model']['min_background_concentration'] # type: ignore
 
     def normalization_factor(self) -> _VectorisedFloat:
         """
@@ -1242,7 +1242,7 @@ class ConcentrationModel(_ConcentrationModelBase):
 
     def __post_init__(self):
         if self.evaporation_factor is None:
-            self.evaporation_factor = self.data_registry.particle['evaporation_factor']
+            self.evaporation_factor = self.data_registry.expiration_particle['particle']['evaporation_factor']
 
     @property
     def population(self) -> InfectedPopulation:
@@ -1335,7 +1335,7 @@ class ShortRangeModel:
         '''
         The dilution factor for the respective expiratory activity type.
         '''
-        _dilution_factor = self.data_registry.short_range_model['dilution_factor']
+        _dilution_factor = self.data_registry.short_range_model['dilution_factor'] 
         # Average mouth opening diameter (m)
         mouth_diameter: float = _dilution_factor['mouth_diameter'] # type: ignore
 
@@ -1359,7 +1359,7 @@ class ShortRangeModel:
         tstar: float = _dilution_factor['tstar'] # type: ignore
 
         # Streamwise and radial penetration coefficients
-        _df_pc = _dilution_factor['penetration_coefficients']
+        _df_pc = _dilution_factor['penetration_coefficients'] # type: ignore
         𝛽r1: float = _df_pc['𝛽r1'] # type: ignore
         𝛽r2: float = _df_pc['𝛽r2'] # type: ignore
         𝛽x1: float = _df_pc['𝛽x1'] # type: ignore
@@ -1585,7 +1585,7 @@ class ExposureModel:
     #: The number of times the exposure event is repeated (default 1).
     @property
     def repeats(self) -> int:
-        return self.data_registry.exposure_model['repeats'] # type: ignore
+        return 1
 
     def __post_init__(self):
         """

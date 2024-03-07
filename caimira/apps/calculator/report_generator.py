@@ -233,8 +233,8 @@ def conditional_prob_inf_given_vl_dist(
     for vl_log in viral_loads:
         specific_prob = infection_probability[np.where((vl_log-step/2-specific_vl)*(vl_log+step/2-specific_vl)<0)[0]] #type: ignore
         pi_means.append(specific_prob.mean())
-        lower_percentiles.append(np.quantile(specific_prob, data_registry.conditional_prob_inf_given_viral_load['lower_percentile']))
-        upper_percentiles.append(np.quantile(specific_prob, data_registry.conditional_prob_inf_given_viral_load['upper_percentile']))
+        lower_percentiles.append(np.quantile(specific_prob, 0.05))
+        upper_percentiles.append(np.quantile(specific_prob, 0.95))
 
     return pi_means, lower_percentiles, upper_percentiles
 
@@ -245,8 +245,8 @@ def manufacture_conditional_probability_data(
 ):
     data_registry: DataRegistry = exposure_model.data_registry
 
-    min_vl = data_registry.conditional_prob_inf_given_viral_load['min_vl']
-    max_vl = data_registry.conditional_prob_inf_given_viral_load['max_vl']
+    min_vl = 2
+    max_vl = 10
     step = (max_vl - min_vl)/100
     viral_loads = np.arange(min_vl, max_vl, step)
     specific_vl = np.log10(exposure_model.concentration_model.virus.viral_load_in_sputum)
@@ -442,7 +442,7 @@ def scenario_statistics(
     sample_times: typing.List[float],
     compute_prob_exposure: bool
 ):
-    model = mc_model.build_model(size=mc_model.data_registry.monte_carlo_sample_size)
+    model = mc_model.build_model(size=mc_model.data_registry.monte_carlo['sample_size'])
     if (compute_prob_exposure):
         # It means we have data to calculate the total_probability_rule
         prob_probabilistic_exposure = model.total_probability_rule()
