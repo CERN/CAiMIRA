@@ -41,50 +41,50 @@ sqrt2pi = np.sqrt(2.*np.pi)
 sqrt2 = np.sqrt(2.)
 
 
-def custom_distribution_lookup(dict: dict, key_part: str) -> typing.Any:
+def custom_value_type_lookup(dict: dict, key_part: str) -> typing.Any:
     """
-    Look up a custom distribution based on a partial key.
+    Look up a custom value type based on a partial key.
 
     Args:
         dict (dict): The root to search.
-        key_part (str): The distribution key to match.
+        key_part (str): The value type key to match.
 
     Returns:
-        str: The associated distribution.
+        str: The associated value.
     """
     try:
         for key, value in dict.items():
             if (key_part in key):
-                return value['associated_distribution']
+                return value['associated_value']
     except KeyError:
         return f"Key '{key_part}' not found."
 
 
-def evaluate_custom_distribution(dist: str, params: typing.Dict) -> typing.Any:
+def evaluate_custom_value_type(dist: str, params: typing.Dict) -> typing.Any:
     """
-    Evaluate a custom distribution.
+    Evaluate a custom value type.
 
     Args:
-        dist (str): The type of distribution.
-        params (Dict): The parameters for the distribution.
+        dist (str): The type of value.
+        params (Dict): The parameters for the value type.
 
     Returns:
-        Any: The generated distribution.
+        Any: The generated value.
 
     Raises:
-        ValueError: If the distribution type is not recognized.
+        ValueError: If the value type is not recognized.
 
     """
-    if dist == 'Linear Space':
-        return np.linspace(params['start'], params['stop'], params['num'])
-    elif dist == 'Normal':
+    if dist == 'Constant':
+        return params
+    elif dist == 'Normal distribution':
         return Normal(params['normal_mean_gaussian'], params['normal_standard_deviation_gaussian'])
-    elif dist == 'Log-normal':
+    elif dist == 'Log-normal distribution':
         return LogNormal(params['lognormal_mean_gaussian'], params['lognormal_standard_deviation_gaussian'])
-    elif dist == 'Uniform':
+    elif dist == 'Uniform distribution':
         return Uniform(params['low'], params['high'])
     else:
-        raise ValueError('Bad request - distribution not found.')
+        raise ValueError('Bad request - value type not found.')
 
 
 def param_evaluation(root: typing.Dict, param: typing.Union[str, typing.Any]) -> typing.Any:
@@ -106,15 +106,15 @@ def param_evaluation(root: typing.Dict, param: typing.Union[str, typing.Any]) ->
 
     if isinstance(value, str):
         if value == 'Custom':
-            custom_distribution: typing.Dict = custom_distribution_lookup(
+            custom_value_type: typing.Dict = custom_value_type_lookup(
                 root, 'custom distribution')
-            for d, p in custom_distribution.items():
-                return evaluate_custom_distribution(d, p)
+            for d, p in custom_value_type.items():
+                return evaluate_custom_value_type(d, p)
 
     elif isinstance(value, dict):
-        dist: str = root[param]['associated_distribution']
+        dist: str = root[param]['associated_value']
         params: typing.Dict = root[param]['parameters']
-        return evaluate_custom_distribution(dist, params)
+        return evaluate_custom_value_type(dist, params)
 
     elif isinstance(value, float) or isinstance(value, int):
         return value
@@ -347,21 +347,21 @@ def mask_distributions(data_registry):
                 data_registry.mask_distributions['Type I'], 'η_inhale'),
             η_exhale=param_evaluation(
                 data_registry.mask_distributions['Type I'], 'η_exhale')
-            if data_registry.mask_distributions['Type I']['Known filtration efficiency of masks when exhaling?'] == 'Yes' else None,
+            if data_registry.mask_distributions['Type I'].get('η_exhale') is not None else None
         ),
         'FFP2': mc.Mask(
             η_inhale=param_evaluation(
                 data_registry.mask_distributions['FFP2'], 'η_inhale'),
             η_exhale=param_evaluation(
                 data_registry.mask_distributions['FFP2'], 'η_exhale')
-            if data_registry.mask_distributions['FFP2']['Known filtration efficiency of masks when exhaling?'] == 'Yes' else None,
+            if data_registry.mask_distributions['FFP2'].get('η_exhale') is not None else None
         ),
         'Cloth': mc.Mask(
             η_inhale=param_evaluation(
                 data_registry.mask_distributions['Cloth'], 'η_inhale'),
             η_exhale=param_evaluation(
                 data_registry.mask_distributions['Cloth'], 'η_exhale')
-            if data_registry.mask_distributions['Cloth']['Known filtration efficiency of masks when exhaling?'] == 'Yes' else None,
+            if data_registry.mask_distributions['Cloth'].get('η_exhale') is not None else None
         ),
     }
 
