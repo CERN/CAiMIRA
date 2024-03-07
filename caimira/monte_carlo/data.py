@@ -148,21 +148,21 @@ class BLOmodel:
     # total concentration of aerosols for each mode.
     @property
     def cn(self) -> typing.Tuple[float, float, float]:
-        _cn = self.data_registry.BLOmodel['cn']
+        _cn = self.data_registry.expiration_particle['BLOmodel']['cn'] # type: ignore
         return (_cn['B'],_cn['L'],_cn['O'])
 
     # Mean of the underlying normal distributions (represents the log of a
     # diameter in microns), for resp. the B, L and O modes.
     @property
     def mu(self) -> typing.Tuple[float, float, float]:
-        _mu = self.data_registry.BLOmodel['mu']
+        _mu = self.data_registry.expiration_particle['BLOmodel']['mu'] # type: ignore
         return (_mu['B'], _mu['L'], _mu['O'])
 
     # Std deviation of the underlying normal distribution, for resp.
     # the B, L and O modes.
     @property
     def sigma(self) -> typing.Tuple[float, float, float]:
-        _sigma = self.data_registry.BLOmodel['sigma']
+        _sigma = self.data_registry.expiration_particle['BLOmodel']['sigma'] # type: ignore
         return (_sigma['B'],_sigma['L'],_sigma['O'])
 
     def distribution(self, d):
@@ -250,51 +250,51 @@ symptomatic_vl_frequencies = LogCustomKernel(
 def viral_load(data_registry):
     return np.linspace(
         weibull_min.ppf(
-            data_registry.covid_overal_vl_data['start'],
-            c=data_registry.covid_overal_vl_data['shape_factor'],
-            scale=data_registry.covid_overal_vl_data['scale_factor']
+            data_registry.virological_data['covid_overal_vl_data']['start'],
+            c=data_registry.virological_data['covid_overal_vl_data']['shape_factor'],
+            scale=data_registry.virological_data['covid_overal_vl_data']['scale_factor']
         ),
         weibull_min.ppf(
-            data_registry.covid_overal_vl_data['stop'],
-            c=data_registry.covid_overal_vl_data['shape_factor'],
-            scale=data_registry.covid_overal_vl_data['scale_factor']
+            data_registry.virological_data['covid_overal_vl_data']['stop'],
+            c=data_registry.virological_data['covid_overal_vl_data']['shape_factor'],
+            scale=data_registry.virological_data['covid_overal_vl_data']['scale_factor']
         ),
-        int(data_registry.covid_overal_vl_data['num'])
+        int(data_registry.virological_data['covid_overal_vl_data']['num'])
 )
 def frequencies_pdf(data_registry):
     return weibull_min.pdf(
         viral_load(data_registry),
-        c=data_registry.covid_overal_vl_data['shape_factor'],
-        scale=data_registry.covid_overal_vl_data['scale_factor']
+        c=data_registry.virological_data['covid_overal_vl_data']['shape_factor'],
+        scale=data_registry.virological_data['covid_overal_vl_data']['scale_factor']
     )
 def covid_overal_vl_data(data_registry):
     return LogCustom(
-        bounds=(data_registry.covid_overal_vl_data['min_bound'], data_registry.covid_overal_vl_data['max_bound']),
+        bounds=(data_registry.virological_data['covid_overal_vl_data']['min_bound'], data_registry.virological_data['covid_overal_vl_data']['max_bound']),
         function=lambda d: np.interp(
             d,
             viral_load(data_registry),
             frequencies_pdf(data_registry),
-            data_registry.covid_overal_vl_data['interpolation_fp_left'],
-            data_registry.covid_overal_vl_data['interpolation_fp_right']
+            data_registry.virological_data['covid_overal_vl_data']['interpolation_fp_left'],
+            data_registry.virological_data['covid_overal_vl_data']['interpolation_fp_right']
         ),
-        max_function=data_registry.covid_overal_vl_data['max_function']
+        max_function=data_registry.virological_data['covid_overal_vl_data']['max_function']
     )
 
 
 # Derived from data in doi.org/10.1016/j.ijid.2020.09.025 and
 # https://iosh.com/media/8432/aerosol-infection-risk-hospital-patient-care-full-report.pdf (page 60)
 def viable_to_RNA_ratio_distribution(data_registry):
-    return Uniform(data_registry.viable_to_RNA_ratio_distribution['low'], data_registry.viable_to_RNA_ratio_distribution['high'])
+    return Uniform(data_registry.virological_data['viable_to_RNA_ratio_distribution']['low'], data_registry.virological_data['viable_to_RNA_ratio_distribution']['high'])
 
 
 # From discussion with virologists
 def infectious_dose_distribution(data_registry):
-    return Uniform(data_registry.infectious_dose_distribution['low'], data_registry.infectious_dose_distribution['high'])
+    return Uniform(data_registry.virological_data['infectious_dose_distribution']['low'], data_registry.virological_data['infectious_dose_distribution']['high'])
 
 
 # From https://doi.org/10.1101/2021.10.14.21264988 and references therein
 def virus_distributions(data_registry):
-    vd = data_registry.virus_distributions
+    vd = data_registry.virological_data['virus_distributions']
     return {
         'SARS_CoV_2': mc.SARSCoV2(
             viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2']['viral_load_in_sputum'], data_registry),
@@ -392,10 +392,10 @@ def expiration_distribution(
 
 
 def expiration_BLO_factors(data_registry):
-    breathing = data_registry.expiration_BLO_factors['Breathing']
-    speaking = data_registry.expiration_BLO_factors['Speaking']
-    singing = data_registry.expiration_BLO_factors['Singing']
-    shouting = data_registry.expiration_BLO_factors['Shouting']
+    breathing = data_registry.expiration_particle['expiration_BLO_factors']['Breathing']
+    speaking = data_registry.expiration_particle['expiration_BLO_factors']['Speaking']
+    singing = data_registry.expiration_particle['expiration_BLO_factors']['Singing']
+    shouting = data_registry.expiration_particle['expiration_BLO_factors']['Shouting']
     return {
         'Breathing': (
             param_evaluation(breathing, 'B'),
@@ -425,8 +425,8 @@ def expiration_distributions(data_registry):
         exp_type: expiration_distribution(
             data_registry=data_registry,
             BLO_factors=BLO_factors,
-            d_min=param_evaluation(data_registry.long_range_expiration_distributions, 'minimum_diameter'),
-            d_max=param_evaluation(data_registry.long_range_expiration_distributions, 'maximum_diameter')
+            d_min=param_evaluation(data_registry.expiration_particle['long_range_expiration_distributions'], 'minimum_diameter'),
+            d_max=param_evaluation(data_registry.expiration_particle['long_range_expiration_distributions'], 'maximum_diameter')
         )
         for exp_type, BLO_factors in expiration_BLO_factors(data_registry).items()
     }
@@ -437,8 +437,8 @@ def short_range_expiration_distributions(data_registry):
         exp_type: expiration_distribution(
             data_registry=data_registry,
             BLO_factors=BLO_factors,
-            d_min=param_evaluation(data_registry.short_range_expiration_distributions, 'minimum_diameter'),
-            d_max=param_evaluation(data_registry.short_range_expiration_distributions, 'maximum_diameter')
+            d_min=param_evaluation(data_registry.expiration_particle['short_range_expiration_distributions'], 'minimum_diameter'),
+            d_max=param_evaluation(data_registry.expiration_particle['short_range_expiration_distributions'], 'maximum_diameter')
         )
         for exp_type, BLO_factors in expiration_BLO_factors(data_registry).items()
     }
@@ -452,8 +452,8 @@ frequencies = np.array((0.0598036, 0.0946154, 0.1299152, 0.1064905, 0.1099066, 0
 def short_range_distances(data_registry):
     return Custom(
         bounds=(
-            param_evaluation(data_registry.short_range_distances, 'minimum_distance'),
-            param_evaluation(data_registry.short_range_distances, 'maximum_distance')
+            param_evaluation(data_registry.short_range_model['conversational_distance'], 'minimum_distance'),
+            param_evaluation(data_registry.short_range_model['conversational_distance'], 'maximum_distance')
         ),
         function=lambda x: np.interp(x, distances, frequencies, left=0., right=0.),
         max_function=0.13

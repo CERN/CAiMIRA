@@ -159,7 +159,7 @@ class CO2FormData(FormData):
             return tuple((self.CO2_data['times'][0], self.CO2_data['times'][-1]))
 
     def build_model(self, size=None) -> models.CO2DataModel: # type: ignore
-        size = size or self.data_registry.monte_carlo_sample_size
+        size = size or self.data_registry.monte_carlo['sample_size']
         # Build a simple infected and exposed population for the case when presence
         # intervals and number of people are dynamic. Activity type is not needed.
         infected_presence = self.infected_present_interval()
