@@ -229,19 +229,12 @@ def activity_distributions(data_registry):
 
 
 # From https://doi.org/10.1101/2021.10.14.21264988 and references therein
-symptomatic_vl_frequencies = LogCustomKernel(
-    np.array((2.46032, 2.67431, 2.85434, 3.06155, 3.25856, 3.47256, 3.66957, 3.85979, 4.09927, 4.27081,
-              4.47631, 4.66653, 4.87204, 5.10302, 5.27456, 5.46478, 5.6533, 5.88428, 6.07281, 6.30549,
-              6.48552, 6.64856, 6.85407, 7.10373, 7.30075, 7.47229, 7.66081, 7.85782, 8.05653, 8.27053,
-              8.48453, 8.65607, 8.90573, 9.06878, 9.27429, 9.473, 9.66152, 9.87552)),
-    np.array((0.001206885, 0.007851618, 0.008078144, 0.01502491, 0.013258014, 0.018528495, 0.020053765,
-              0.021896167, 0.022047184, 0.018604005, 0.01547796, 0.018075445, 0.021503523, 0.022349217,
-              0.025097721, 0.032875078, 0.030594727, 0.032573045, 0.034717482, 0.034792991,
-              0.033267721, 0.042887485, 0.036846816, 0.03876473, 0.045016819, 0.040063473, 0.04883754,
-              0.043944602, 0.048142864, 0.041588741, 0.048762031, 0.027921732, 0.033871788,
-              0.022122693, 0.016927718, 0.008833228, 0.00478598, 0.002807662)),
-    kernel_bandwidth=0.1
-)
+def symptomatic_vl_frequencies(data_registry):
+    return LogCustomKernel(
+        np.array(data_registry.virological_data['symptomatic_vl_frequencies']['log_variable']),
+        np.array(data_registry.virological_data['symptomatic_vl_frequencies']['frequencies']),
+        kernel_bandwidth=data_registry.virological_data['symptomatic_vl_frequencies']['kernel_bandwidth']
+    )
 
 
 # Weibull distribution with a shape factor of 3.47 and a scale factor of 7.01.
