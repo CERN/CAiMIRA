@@ -361,7 +361,7 @@ $ oc create secret generic \
 
 The CERN data service collects data from various sources and expose them via a REST API endpoint.
 
-To enable the service set the environment variable `DATA_SERVICE_ENABLED` as `True`.
+The service is enabled when the environment variable `DATA_SERVICE_ENABLED` is set to 1.
 
 ## Update configuration
 
