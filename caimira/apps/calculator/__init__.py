@@ -573,7 +573,7 @@ def make_app(
 
     data_registry = DataRegistry()
     data_service = None
-    data_service_enabled = os.environ.get('DATA_SERVICE_ENABLED', 0)
+    data_service_enabled = int(os.environ.get('DATA_SERVICE_ENABLED', 0))
     if data_service_enabled: data_service = DataService.create()
 
     return Application(
