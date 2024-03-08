@@ -19,6 +19,7 @@ from caimira.store.data_registry import DataRegistry
 from ... import monte_carlo as mc
 from .model_generator import VirusFormData
 from ... import dataclass_utils
+from caimira.enums import ViralLoads
 
 
 def model_start_end(model: models.ExposureModel):
@@ -168,12 +169,27 @@ def calculate_report_data(form: VirusFormData, model: models.ExposureModel, exec
     prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
     prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
     expected_new_cases = np.array(model.expected_new_cases()).mean()
-    uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(model, prob))) if form.conditional_probability_plot else None
     exposed_presence_intervals = [list(interval) for interval in model.exposed.presence_interval().boundaries()]
-    conditional_probability_data = {key: value for key, value in
-                                    zip(('viral_loads', 'pi_means', 'lower_percentiles', 'upper_percentiles'),
-                                        manufacture_conditional_probability_data(model, prob))}
 
+    if (model.data_registry.virological_data['virus_distributions'][form.virus_type]['viral_load_in_sputum'] == ViralLoads.COVID_OVERALL.value # type: ignore
+        and form.conditional_probability_plot): # Only generate this data if covid_overall_vl_data is selected.
+
+        viral_load_in_sputum: models._VectorisedFloat = model.concentration_model.infected.virus.viral_load_in_sputum
+        viral_loads, pi_means, lower_percentiles, upper_percentiles = manufacture_conditional_probability_data(model, prob)
+        
+        uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(prob, viral_load_in_sputum, viral_loads, 
+                                                                             pi_means, lower_percentiles, upper_percentiles)))
+        conditional_probability_data = {key: value for key, value in
+                                    zip(('viral_loads', 'pi_means', 'lower_percentiles', 'upper_percentiles'),
+                                    (viral_loads, pi_means, lower_percentiles, upper_percentiles))}
+        vl_dist = list(np.log10(viral_load_in_sputum))
+        
+    else:
+        uncertainties_plot_src = None
+        conditional_probability_data = None
+        vl = model.concentration_model.virus.viral_load_in_sputum
+        if isinstance(vl, np.ndarray): vl_dist = list(np.log10(model.concentration_model.virus.viral_load_in_sputum))
+        else: vl_dist = np.log10(model.concentration_model.virus.viral_load_in_sputum)
 
     return {
         "model_repr": repr(model),
@@ -194,7 +210,7 @@ def calculate_report_data(form: VirusFormData, model: models.ExposureModel, exec
         "expected_new_cases": expected_new_cases,
         "uncertainties_plot_src": uncertainties_plot_src,
         "CO2_concentrations": CO2_concentrations,
-        "vl_dist": list(np.log10(model.concentration_model.virus.viral_load_in_sputum)),
+        "vl_dist": vl_dist,
         "conditional_probability_data": conditional_probability_data,
     }
 
@@ -256,11 +272,12 @@ def manufacture_conditional_probability_data(
     return list(viral_loads), list(pi_means), list(lower_percentiles), list(upper_percentiles)
 
 
-def uncertainties_plot(exposure_model: models.ExposureModel, prob: models._VectorisedFloat):
-    fig = plt.figure(figsize=(4, 7), dpi=110)
-
-    infection_probability = prob / 100
-    viral_loads, pi_means, lower_percentiles, upper_percentiles = manufacture_conditional_probability_data(exposure_model, infection_probability)
+def uncertainties_plot(infection_probability: models._VectorisedFloat,
+                       viral_load_in_sputum: models._VectorisedFloat,
+                       viral_loads: models._VectorisedFloat,
+                       pi_means: models._VectorisedFloat,
+                       lower_percentiles: models._VectorisedFloat,
+                       upper_percentiles: models._VectorisedFloat):
 
     fig, axs = plt.subplots(2, 3,
         gridspec_kw={'width_ratios': [5, 0.5] + [1],
@@ -273,8 +290,8 @@ def uncertainties_plot(exposure_model: models.ExposureModel, prob: models._Vecto
 
     axs[0, 1].set_visible(False)
 
-    axs[0, 0].plot(viral_loads, pi_means, label='Predictive total probability')
-    axs[0, 0].fill_between(viral_loads, lower_percentiles, upper_percentiles, alpha=0.1, label='5ᵗʰ and 95ᵗʰ percentile')
+    axs[0, 0].plot(viral_loads, np.array(pi_means)/100, label='Predictive total probability')
+    axs[0, 0].fill_between(viral_loads, np.array(lower_percentiles)/100, np.array(upper_percentiles)/100, alpha=0.1, label='5ᵗʰ and 95ᵗʰ percentile')
 
     axs[0, 2].hist(infection_probability, bins=30, orientation='horizontal')
     axs[0, 2].set_xticks([])
@@ -285,8 +302,8 @@ def uncertainties_plot(exposure_model: models.ExposureModel, prob: models._Vecto
     axs[0, 2].set_xlim(0, highest_bar)
 
     axs[0, 2].text(highest_bar * 0.5, 0.5,
-                        rf"$\bf{np.round(np.mean(infection_probability) * 100, 1)}$%", ha='center', va='center')
-    axs[1, 0].hist(np.log10(exposure_model.concentration_model.infected.virus.viral_load_in_sputum),
+                        rf"$\bf{np.round(np.mean(infection_probability), 1)}$%", ha='center', va='center')
+    axs[1, 0].hist(np.log10(viral_load_in_sputum),
                     bins=150, range=(2, 10), color='grey')
     axs[1, 0].set_facecolor("lightgrey")
     axs[1, 0].set_yticks([])
