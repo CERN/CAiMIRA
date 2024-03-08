@@ -516,7 +516,7 @@ def make_app(
             'filename': 'userguide.html.j2'}),
     ]
 
-    profiler_enabled = os.environ.get('CAIMIRA_PROFILER_ENABLED', 0)
+    profiler_enabled = int(os.environ.get('CAIMIRA_PROFILER_ENABLED', 0))
     if profiler_enabled:
         urls += [
             (get_root_url(CaimiraProfiler.ROOT_URL), ProfilerPage),
