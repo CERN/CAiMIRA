@@ -14,25 +14,31 @@ from caimira.monte_carlo.sampleable import LogCustom, LogNormal, Normal, LogCust
 from caimira.store.data_registry import DataRegistry
 
 
-def evaluate_vl(value, data_registry: DataRegistry):
-    if value == ViralLoads.COVID_OVERALL.value:
+def evaluate_vl(root: typing.Dict, value: str, data_registry: DataRegistry):
+    if root[value] == ViralLoads.COVID_OVERALL.value:
         return covid_overal_vl_data(data_registry)
-    elif value == ViralLoads.SYMPTOMATIC_FREQUENCIES.value:
+    elif root[value] == ViralLoads.SYMPTOMATIC_FREQUENCIES.value:
         return symptomatic_vl_frequencies
+    elif root[value] == 'Custom':
+        return param_evaluation(root, 'Viral load custom')
     else:
         raise ValueError(f"Invalid ViralLoads value {value}")
 
 
-def evaluate_infectd(value, data_registry: DataRegistry):
-    if value == InfectiousDoses.DISTRIBUTION.value:
+def evaluate_infectd(root: typing.Dict, value: str, data_registry: DataRegistry):
+    if root[value] == InfectiousDoses.DISTRIBUTION.value:
         return infectious_dose_distribution(data_registry)
+    elif root[value] == "Custom":
+        return param_evaluation(root, 'Infectious dose custom')
     else:
         raise ValueError(f"Invalid InfectiousDoses value {value}")
 
 
-def evaluate_vtrr(value, data_registry: DataRegistry):
-    if value == ViableToRNARatios.DISTRIBUTION.value:
+def evaluate_vtrr(root: typing.Dict, value: str, data_registry: DataRegistry):
+    if root[value] == ViableToRNARatios.DISTRIBUTION.value:
         return viable_to_RNA_ratio_distribution(data_registry)
+    elif root[value] == "Custom":
+        return param_evaluation(root, 'Viable to RNA ratio custom')
     else:
         raise ValueError(f"Invalid ViableToRNARatios value {value}")
 
@@ -60,7 +66,7 @@ def custom_value_type_lookup(dict: dict, key_part: str) -> typing.Any:
         return f"Key '{key_part}' not found."
 
 
-def evaluate_custom_value_type(dist: str, params: typing.Dict) -> typing.Any:
+def evaluate_custom_value_type(value_type: str, params: typing.Dict) -> typing.Any:
     """
     Evaluate a custom value type.
 
@@ -75,13 +81,13 @@ def evaluate_custom_value_type(dist: str, params: typing.Dict) -> typing.Any:
         ValueError: If the value type is not recognized.
 
     """
-    if dist == 'Constant':
+    if value_type == 'Constant value':
         return params
-    elif dist == 'Normal distribution':
+    elif value_type == 'Normal distribution':
         return Normal(params['normal_mean_gaussian'], params['normal_standard_deviation_gaussian'])
-    elif dist == 'Log-normal distribution':
+    elif value_type == 'Log-normal distribution':
         return LogNormal(params['lognormal_mean_gaussian'], params['lognormal_standard_deviation_gaussian'])
-    elif dist == 'Uniform distribution':
+    elif value_type == 'Uniform distribution':
         return Uniform(params['low'], params['high'])
     else:
         raise ValueError('Bad request - value type not found.')
@@ -104,17 +110,10 @@ def param_evaluation(root: typing.Dict, param: typing.Union[str, typing.Any]) ->
     """
     value = root.get(param)
 
-    if isinstance(value, str):
-        if value == 'Custom':
-            custom_value_type: typing.Dict = custom_value_type_lookup(
-                root, 'custom distribution')
-            for d, p in custom_value_type.items():
-                return evaluate_custom_value_type(d, p)
-
-    elif isinstance(value, dict):
-        dist: str = root[param]['associated_value']
+    if isinstance(value, dict):
+        value_type: str = root[param]['associated_value']
         params: typing.Dict = root[param]['parameters']
-        return evaluate_custom_value_type(dist, params)
+        return evaluate_custom_value_type(value_type, params)
 
     elif isinstance(value, float) or isinstance(value, int):
         return value
@@ -290,39 +289,39 @@ def virus_distributions(data_registry):
     vd = data_registry.virological_data['virus_distributions']
     return {
         'SARS_CoV_2': mc.SARSCoV2(
-            viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2']['viral_load_in_sputum'], data_registry),
-            infectious_dose=evaluate_infectd(vd['SARS_CoV_2']['infectious_dose'], data_registry),
-            viable_to_RNA_ratio=evaluate_vtrr(vd['SARS_CoV_2']['viable_to_RNA_ratio'], data_registry),
+            viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2'], 'viral_load_in_sputum', data_registry),
+            infectious_dose=evaluate_infectd(vd['SARS_CoV_2'], 'infectious_dose', data_registry),
+            viable_to_RNA_ratio=evaluate_vtrr(vd['SARS_CoV_2'], 'viable_to_RNA_ratio', data_registry),
             transmissibility_factor=vd['SARS_CoV_2']['transmissibility_factor'],
         ),
         'SARS_CoV_2_ALPHA': mc.SARSCoV2(
-            viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_ALPHA']['viral_load_in_sputum'], data_registry),
-            infectious_dose=evaluate_infectd(vd['SARS_CoV_2_ALPHA']['infectious_dose'], data_registry),
-            viable_to_RNA_ratio=evaluate_vtrr(vd['SARS_CoV_2_ALPHA']['viable_to_RNA_ratio'], data_registry),
+            viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_ALPHA'], 'viral_load_in_sputum', data_registry),
+            infectious_dose=evaluate_infectd(vd['SARS_CoV_2_ALPHA'], 'infectious_dose', data_registry),
+            viable_to_RNA_ratio=evaluate_vtrr(vd['SARS_CoV_2_ALPHA'], 'viable_to_RNA_ratio', data_registry),
             transmissibility_factor=vd['SARS_CoV_2_ALPHA']['transmissibility_factor'],
         ),
         'SARS_CoV_2_BETA': mc.SARSCoV2(
-            viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_BETA']['viral_load_in_sputum'], data_registry),
-            infectious_dose=evaluate_infectd(vd['SARS_CoV_2_BETA']['infectious_dose'], data_registry),
-            viable_to_RNA_ratio=evaluate_vtrr(vd['SARS_CoV_2_BETA']['viable_to_RNA_ratio'], data_registry),
+            viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_BETA'], 'viral_load_in_sputum', data_registry),
+            infectious_dose=evaluate_infectd(vd['SARS_CoV_2_BETA'], 'infectious_dose', data_registry),
+            viable_to_RNA_ratio=evaluate_vtrr(vd['SARS_CoV_2_BETA'], 'viable_to_RNA_ratio', data_registry),
             transmissibility_factor=vd['SARS_CoV_2_BETA']['transmissibility_factor'],
         ),
         'SARS_CoV_2_GAMMA': mc.SARSCoV2(
-            viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_GAMMA']['viral_load_in_sputum'], data_registry),
-            infectious_dose=evaluate_infectd(vd['SARS_CoV_2_GAMMA']['infectious_dose'], data_registry),
-            viable_to_RNA_ratio=evaluate_vtrr(vd['SARS_CoV_2_GAMMA']['viable_to_RNA_ratio'], data_registry),
+            viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_GAMMA'], 'viral_load_in_sputum', data_registry),
+            infectious_dose=evaluate_infectd(vd['SARS_CoV_2_GAMMA'], 'infectious_dose', data_registry),
+            viable_to_RNA_ratio=evaluate_vtrr(vd['SARS_CoV_2_GAMMA'], 'viable_to_RNA_ratio', data_registry),
             transmissibility_factor=vd['SARS_CoV_2_GAMMA']['transmissibility_factor'],
         ),
         'SARS_CoV_2_DELTA': mc.SARSCoV2(
-            viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_DELTA']['viral_load_in_sputum'], data_registry),
-            infectious_dose=evaluate_infectd(vd['SARS_CoV_2_DELTA']['infectious_dose'], data_registry),
-            viable_to_RNA_ratio=evaluate_vtrr(vd['SARS_CoV_2_DELTA']['viable_to_RNA_ratio'], data_registry),
+            viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_DELTA'], 'viral_load_in_sputum', data_registry),
+            infectious_dose=evaluate_infectd(vd['SARS_CoV_2_DELTA'], 'infectious_dose', data_registry),
+            viable_to_RNA_ratio=evaluate_vtrr(vd['SARS_CoV_2_DELTA'], 'viable_to_RNA_ratio', data_registry),
             transmissibility_factor=vd['SARS_CoV_2_DELTA']['transmissibility_factor'],
         ),
         'SARS_CoV_2_OMICRON': mc.SARSCoV2(
-            viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_OMICRON']['viral_load_in_sputum'], data_registry),
-            infectious_dose=evaluate_infectd(vd['SARS_CoV_2_OMICRON']['infectious_dose'], data_registry),
-            viable_to_RNA_ratio=evaluate_vtrr(vd['SARS_CoV_2_OMICRON']['viable_to_RNA_ratio'], data_registry),
+            viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_OMICRON'], 'viral_load_in_sputum', data_registry),
+            infectious_dose=evaluate_infectd(vd['SARS_CoV_2_OMICRON'], 'infectious_dose', data_registry),
+            viable_to_RNA_ratio=evaluate_vtrr(vd['SARS_CoV_2_OMICRON'], 'viable_to_RNA_ratio', data_registry),
             transmissibility_factor=vd['SARS_CoV_2_OMICRON']['transmissibility_factor'],
         ),
     }
