@@ -41,7 +41,7 @@ class TestBasicApp(tornado.testing.AsyncHTTPTestCase):
     @tornado.testing.gen_test(timeout=_TIMEOUT)
     def test_report(self):
         requests = [
-            self.http_client.fetch(self.get_url('/calculator/baseline-model/result')),
+            self.http_client.fetch(self.get_url('/calculator/baseline-model/result'), request_timeout=_TIMEOUT),
             # At the same time, request a non-report page (to check whether the report is blocking).
             self.http_client.fetch(self.get_url('/calculator/')),
         ]
@@ -69,7 +69,7 @@ class TestCernApp(tornado.testing.AsyncHTTPTestCase):
 
     @tornado.testing.gen_test(timeout=_TIMEOUT)
     def test_report(self):
-        response = yield self.http_client.fetch(self.get_url('/calculator/baseline-model/result'))
+        response = yield self.http_client.fetch(self.get_url('/calculator/baseline-model/result'), request_timeout=_TIMEOUT)
         self.assertEqual(response.code, 200)
         assert 'expected number of new cases is' in response.body.decode()
 
@@ -80,7 +80,7 @@ class TestOpenApp(tornado.testing.AsyncHTTPTestCase):
 
     @tornado.testing.gen_test(timeout=_TIMEOUT)
     def test_report(self):
-        response = yield self.http_client.fetch(self.get_url('/mycalc/baseline-model/result'))
+        response = yield self.http_client.fetch(self.get_url('/mycalc/baseline-model/result'), request_timeout=_TIMEOUT)
         self.assertEqual(response.code, 200)
 
     def test_calculator_404(self):

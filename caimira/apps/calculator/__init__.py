@@ -563,9 +563,8 @@ def make_app(
 
     data_registry = DataRegistry()
     data_service = None
-    data_service_enabled = os.environ.get("DATA_SERVICE_ENABLED", "False")
-    is_enabled = data_service_enabled.lower() == "true"
-    if is_enabled: data_service = DataService.create()
+    data_service_enabled = os.environ.get('DATA_SERVICE_ENABLED', 0)
+    if data_service_enabled: data_service = DataService.create()
 
     return Application(
         urls,
