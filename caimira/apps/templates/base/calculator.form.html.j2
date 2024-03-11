@@ -506,18 +506,12 @@
     <div class="col-sm-4"><label class="col-form-label">Activity type:</label></div>
     <div class="col-sm-6">
       <select id="activity_type" name="activity_type" class="form-control">
-        <option value="office">Office</option>
-        <option value="smallmeeting">Small meeting (<10 occ.)</option>
-        <option value="largemeeting">Large meeting (>=10 occ.)</option>
-        <option value="callcentre">Call Centre</option>
-        <option value="controlroom-day">Control Room - Day shift</option>
-        <option value="controlroom-night">Control Room - Night shift</option>
-        <option value="library">Library</option>
-        <option value="lab">Laboratory</option>
-        <option value="workshop">Workshop</option>
-        <option value="training">Conference/Training (speaker infected)</option>
-        <option value="training_attendee">Conference/Training (attendee infected)</option>
-        <option value="gym">Gym</option>
+        {% for activity_type_key, activity_type_value in data_registry.population_scenario_activity.items() %}
+          {% if activity_type_key not in ["precise", "household-day", "household-night", "primary-school", 
+                                          "secondary-school", "university", "restaurant"] %}
+              <option value="{{ activity_type_key }}">{{ activity_type_value['placeholder'] }}</option>
+          {% endif %}
+      {% endfor %}
       </select>
     </div>
     </div>

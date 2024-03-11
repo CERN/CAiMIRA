@@ -389,62 +389,83 @@ class DataRegistry:
     }
     monte_carlo_sample_size = 250000
     population_scenario_activity = {
-        "office": {"activity": "Seated", "expiration": {"Speaking": 1, "Breathing": 2}},
+        "office": {"placeholder": "Office", "activity": "Seated", "expiration": {"Speaking": 1, "Breathing": 2}},
         "smallmeeting": {
+            "placeholder": "Small meeting (<10 occ.)",
             "activity": "Seated",
             "expiration": {"Speaking": 1},
         },
         "largemeeting": {
+            "placeholder": "Large meeting (>= 10 occ.)",
             "activity": "Standing",
             "expiration": {"Speaking": 1, "Breathing": 2},
         },
-        "callcenter": {"activity": "Seated", "expiration": {"Speaking": 1}},
+        "callcenter": {"placeholder": "Call Center", "activity": "Seated", "expiration": {"Speaking": 1}},
         "controlroom-day": {
+            "placeholder": "Control Room - Day shift",
             "activity": "Seated",
             "expiration": {"Speaking": 1, "Breathing": 1},
         },
         "controlroom-night": {
+            "placeholder": "Control Room - Night shift",
             "activity": "Seated",
             "expiration": {"Speaking": 1, "Breathing": 9},
         },
-        "library": {"activity": "Seated", "expiration": {"Breathing": 1}},
+        "library": {"placeholder": "Library", "activity": "Seated", "expiration": {"Breathing": 1}},
         "lab": {
+            "placeholder": "Lab",
             "activity": "Light activity",
             "expiration": {"Speaking": 1, "Breathing": 1},
         },
         "workshop": {
+            "placeholder": "Workshop",
             "activity": "Moderate activity",
             "expiration": {"Speaking": 1, "Breathing": 1},
         },
-        "training": {"activity": "Standing", "expiration": {"Speaking": 1}},
-        "training_attendee": {"activity": "Seated", "expiration": {"Breathing": 1}},
-        "gym": {"activity": "Heavy exercise", "expiration": {"Breathing": 1}},
+        "training": {"placeholder": "Conference/Training (speaker infected)", "activity": "Standing", "expiration": {"Speaking": 1}},
+        "training_attendee": {"placeholder": "Conference/Training (attendee infected)", "activity": "Seated", "expiration": {"Breathing": 1}},
+        "gym": {"placeholder": "Gym", "activity": "Heavy exercise", "expiration": {"Breathing": 1}},
         "household-day": {
+            "placeholder": "Household (day time)",
             "activity": "Light activity",
             "expiration": {"Breathing": 5, "Speaking": 5},
         },
         "household-night": {
+            "placeholder": "Household (evening and night time)",
             "activity": "Seated",
             "expiration": {"Breathing": 7, "Speaking": 3},
         },
         "primary-school": {
+            "placeholder": "Primary school",
             "activity": "Light activity",
             "expiration": {"Breathing": 5, "Speaking": 5},
         },
         "secondary-school": {
+            "placeholder": "Primary school",
             "activity": "Light activity",
             "expiration": {"Breathing": 7, "Speaking": 3},
         },
         "university": {
+            "placeholder": "University",
             "activity": "Seated",
             "expiration": {"Breathing": 9, "Speaking": 1},
         },
         "restaurant": {
+            "placeholder": "Restaurant",
             "activity": "Seated",
             "expiration": {"Breathing": 1, "Speaking": 9},
         },
-        "precise": {"activity": "", "expiration": {}},
+        "precise": {"placeholder": "Precise", "activity": "", "expiration": {}},
     }
+
+    def to_dict(self):
+        # Filter out methods, special attributes, and non-serializable objects
+        data_dict = {
+            key: value
+            for key, value in self.__class__.__dict__.items()
+            if not key.startswith("__") and not callable(value) and not isinstance(value, (type, classmethod, staticmethod))
+        }
+        return data_dict
 
     def update(self, data, version=None):
         """Update local cache with data provided as argument."""
