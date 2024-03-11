@@ -294,6 +294,11 @@ class LandingPage(BaseRequestHandler):
 
 class CalculatorForm(BaseRequestHandler):
     def get(self):
+        data_registry: DataRegistry = self.settings["data_registry"]
+        data_service: typing.Optional[DataService] = self.settings.get("data_service", None)
+        if data_service:
+            data_service.update_registry(data_registry)
+
         template_environment = self.settings["template_environment"]
         template = template_environment.get_template(
             "calculator.form.html.j2")
@@ -304,6 +309,7 @@ class CalculatorForm(BaseRequestHandler):
             get_calculator_url = template.globals["get_calculator_url"],
             calculator_version=__version__,
             text_blocks=template_environment.globals["common_text"],
+            data_registry=data_registry.to_dict(),
         )
         self.finish(report)
 
