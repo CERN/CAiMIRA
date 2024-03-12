@@ -808,8 +808,6 @@ Activity.types = {
 @dataclass(frozen=True)
 class ActivityPiecewiseConstant:
 
-    # transition_times and values have the same length.
-
     #: transition times at which the function changes value (hours).
     transition_times: typing.Tuple[float, ...]
 
