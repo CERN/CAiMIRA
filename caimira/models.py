@@ -918,7 +918,7 @@ class _PopulationWithVirus(Population):
         """
         raise NotImplementedError("Subclass must implement")
 
-    def emission_rate_per_aerosol_per_person_when_present(self) -> _VectorisedFloat:
+    def emission_rate_per_aerosol_per_person_when_present(self, time: typing.Optional[float] = None) -> _VectorisedFloat:
         """
         The emission rate of virions in the expired air per mL of respiratory fluid,
         per person, if the infected population is present, in (virion.cm^3)/(mL.h).
@@ -928,12 +928,12 @@ class _PopulationWithVirus(Population):
         raise NotImplementedError("Subclass must implement")
 
     @method_cache
-    def emission_rate_per_person_when_present(self) -> _VectorisedFloat:
+    def emission_rate_per_person_when_present(self, time: typing.Optional[float] = None) -> _VectorisedFloat:
         """
         The emission rate if the infected population is present, per person
         (in virions / h).
         """
-        return (self.emission_rate_per_aerosol_per_person_when_present() *
+        return (self.emission_rate_per_aerosol_per_person_when_present(time) *
                 self.aerosols())
 
     def emission_rate(self, time) -> _VectorisedFloat:
@@ -974,7 +974,7 @@ class EmittingPopulation(_PopulationWithVirus):
         return 1.
 
     @method_cache
-    def emission_rate_per_aerosol_per_person_when_present(self) -> _VectorisedFloat:
+    def emission_rate_per_aerosol_per_person_when_present(self, time: typing.Optional[float] = None) -> _VectorisedFloat:
         """
         The emission rate of virions in the expired air per mL of respiratory fluid,
         per person, if the infected population is present, in (virion.cm^3)/(mL.h).
@@ -1003,7 +1003,7 @@ class InfectedPopulation(_PopulationWithVirus):
         return self.expiration.aerosols(self.mask)
 
     @method_cache
-    def emission_rate_per_aerosol_per_person_when_present(self) -> _VectorisedFloat:
+    def emission_rate_per_aerosol_per_person_when_present(self, time: typing.Optional[float] = None) -> _VectorisedFloat:
         """
         The emission rate of virions in the expired air per mL of respiratory fluid,
         if the infected population is present, in (virion.cm^3)/(mL.h).
@@ -1012,11 +1012,16 @@ class InfectedPopulation(_PopulationWithVirus):
         """
         # Note on units: exhalation rate is in m^3/h -> 1e6 conversion factor
         # Returns the emission rate times the number of infected hosts in the room
-        if not isinstance(self.activity, Activity):
-            raise NotImplementedError('Cannot compute with dynamic activities.')
-        
+        if isinstance(self.activity, ActivityPiecewiseConstant):
+            if not time:
+                raise NotImplementedError('Cannot compute with dynamic activities.')
+            activity: Activity = self.activity.value(time)
+            exhalation_rate = activity.exhalation_rate
+        else: 
+            exhalation_rate = self.activity.exhalation_rate
+
         ER = (self.virus.viral_load_in_sputum *
-              self.activity.exhalation_rate *
+              exhalation_rate *
               self.fraction_of_infectious_virus() *
               10 ** 6)
         return ER
@@ -1288,7 +1293,7 @@ class ConcentrationModel(_ConcentrationModelBase):
 
     def normalization_factor(self, time: typing.Optional[float] = None) -> _VectorisedFloat:
         # we normalize by the emission rate
-        return self.infected.emission_rate_per_person_when_present()
+        return self.infected.emission_rate_per_person_when_present(time)
 
     def removal_rate(self, time: float) -> _VectorisedFloat:
         # Equilibrium velocity of particle motion toward the floor
