@@ -1355,8 +1355,11 @@ class ShortRangeModel:
         # Initial velocity of the exhalation airflow (m/s)
         u0 = np.array(Q_exh/Am)
 
-        # Duration of the expiration period(s), assuming a 4s breath-cycle
-        tstar: float = _dilution_factor['tstar'] # type: ignore
+        # Duration of one breathing cycle
+        breathing_cicle: float = _dilution_factor['breathing_cycle'] # type: ignore
+
+        # Duration of the expiration period(s)
+        tstar: float = breathing_cicle / 2
 
         # Streamwise and radial penetration coefficients
         _df_pc = _dilution_factor['penetration_coefficients'] # type: ignore

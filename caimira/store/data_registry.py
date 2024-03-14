@@ -363,7 +363,7 @@ class DataRegistry:
         "dilution_factor": {
             "mouth_diameter": 0.02,
             "exhalation_coefficient": 2,
-            "tstar": 2,
+            "breathing_cycle": 4,
             "penetration_coefficients": {
                 "𝛽r1": 0.18,
                 "𝛽r2": 0.2,
