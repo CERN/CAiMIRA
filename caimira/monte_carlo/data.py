@@ -7,7 +7,7 @@ import numpy as np
 from scipy import special as sp
 from scipy.stats import weibull_min
 
-from caimira.enums import ViralLoads, InfectiousDoses, ViableToRNARatios
+from caimira.enums import ViralLoads
 
 import caimira.monte_carlo.models as mc
 from caimira.monte_carlo.sampleable import LogCustom, LogNormal, Normal, LogCustomKernel, CustomKernel, Uniform, Custom
@@ -23,24 +23,6 @@ def evaluate_vl(root: typing.Dict, value: str, data_registry: DataRegistry):
         return param_evaluation(root, 'Viral load custom')
     else:
         raise ValueError(f"Invalid ViralLoads value {value}")
-
-
-def evaluate_infectd(root: typing.Dict, value: str, data_registry: DataRegistry):
-    if root[value] == InfectiousDoses.DISTRIBUTION.value:
-        return infectious_dose_distribution(data_registry)
-    elif root[value] == "Custom":
-        return param_evaluation(root, 'Infectious dose custom')
-    else:
-        raise ValueError(f"Invalid InfectiousDoses value {value}")
-
-
-def evaluate_vtrr(root: typing.Dict, value: str, data_registry: DataRegistry):
-    if root[value] == ViableToRNARatios.DISTRIBUTION.value:
-        return viable_to_RNA_ratio_distribution(data_registry)
-    elif root[value] == "Custom":
-        return param_evaluation(root, 'Viable to RNA ratio custom')
-    else:
-        raise ValueError(f"Invalid ViableToRNARatios value {value}")
 
 
 sqrt2pi = np.sqrt(2.*np.pi)
@@ -275,13 +257,13 @@ def covid_overal_vl_data(data_registry):
 
 # Derived from data in doi.org/10.1016/j.ijid.2020.09.025 and
 # https://iosh.com/media/8432/aerosol-infection-risk-hospital-patient-care-full-report.pdf (page 60)
-def viable_to_RNA_ratio_distribution(data_registry):
-    return Uniform(data_registry.virological_data['viable_to_RNA_ratio_distribution']['low'], data_registry.virological_data['viable_to_RNA_ratio_distribution']['high'])
+def viable_to_RNA_ratio_distribution():
+    return Uniform(0.01, 0.6)
 
 
 # From discussion with virologists
-def infectious_dose_distribution(data_registry):
-    return Uniform(data_registry.virological_data['infectious_dose_distribution']['low'], data_registry.virological_data['infectious_dose_distribution']['high'])
+def infectious_dose_distribution():
+    return Uniform(10., 100.)
 
 
 # From https://doi.org/10.1101/2021.10.14.21264988 and references therein
@@ -290,38 +272,38 @@ def virus_distributions(data_registry):
     return {
         'SARS_CoV_2': mc.SARSCoV2(
             viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2'], 'viral_load_in_sputum', data_registry),
-            infectious_dose=evaluate_infectd(vd['SARS_CoV_2'], 'infectious_dose', data_registry),
-            viable_to_RNA_ratio=evaluate_vtrr(vd['SARS_CoV_2'], 'viable_to_RNA_ratio', data_registry),
+            infectious_dose=param_evaluation(vd['SARS_CoV_2'], 'infectious_dose'),
+            viable_to_RNA_ratio=param_evaluation(vd['SARS_CoV_2'], 'viable_to_RNA_ratio'),
             transmissibility_factor=vd['SARS_CoV_2']['transmissibility_factor'],
         ),
         'SARS_CoV_2_ALPHA': mc.SARSCoV2(
             viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_ALPHA'], 'viral_load_in_sputum', data_registry),
-            infectious_dose=evaluate_infectd(vd['SARS_CoV_2_ALPHA'], 'infectious_dose', data_registry),
-            viable_to_RNA_ratio=evaluate_vtrr(vd['SARS_CoV_2_ALPHA'], 'viable_to_RNA_ratio', data_registry),
+            infectious_dose=param_evaluation(vd['SARS_CoV_2_ALPHA'], 'infectious_dose'),
+            viable_to_RNA_ratio=param_evaluation(vd['SARS_CoV_2_ALPHA'], 'viable_to_RNA_ratio'),
             transmissibility_factor=vd['SARS_CoV_2_ALPHA']['transmissibility_factor'],
         ),
         'SARS_CoV_2_BETA': mc.SARSCoV2(
             viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_BETA'], 'viral_load_in_sputum', data_registry),
-            infectious_dose=evaluate_infectd(vd['SARS_CoV_2_BETA'], 'infectious_dose', data_registry),
-            viable_to_RNA_ratio=evaluate_vtrr(vd['SARS_CoV_2_BETA'], 'viable_to_RNA_ratio', data_registry),
+            infectious_dose=param_evaluation(vd['SARS_CoV_2_BETA'], 'infectious_dose'),
+            viable_to_RNA_ratio=param_evaluation(vd['SARS_CoV_2_BETA'], 'viable_to_RNA_ratio'),
             transmissibility_factor=vd['SARS_CoV_2_BETA']['transmissibility_factor'],
         ),
         'SARS_CoV_2_GAMMA': mc.SARSCoV2(
             viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_GAMMA'], 'viral_load_in_sputum', data_registry),
-            infectious_dose=evaluate_infectd(vd['SARS_CoV_2_GAMMA'], 'infectious_dose', data_registry),
-            viable_to_RNA_ratio=evaluate_vtrr(vd['SARS_CoV_2_GAMMA'], 'viable_to_RNA_ratio', data_registry),
+            infectious_dose=param_evaluation(vd['SARS_CoV_2_GAMMA'], 'infectious_dose'),
+            viable_to_RNA_ratio=param_evaluation(vd['SARS_CoV_2_GAMMA'], 'viable_to_RNA_ratio'),
             transmissibility_factor=vd['SARS_CoV_2_GAMMA']['transmissibility_factor'],
         ),
         'SARS_CoV_2_DELTA': mc.SARSCoV2(
             viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_DELTA'], 'viral_load_in_sputum', data_registry),
-            infectious_dose=evaluate_infectd(vd['SARS_CoV_2_DELTA'], 'infectious_dose', data_registry),
-            viable_to_RNA_ratio=evaluate_vtrr(vd['SARS_CoV_2_DELTA'], 'viable_to_RNA_ratio', data_registry),
+            infectious_dose=param_evaluation(vd['SARS_CoV_2_DELTA'], 'infectious_dose'),
+            viable_to_RNA_ratio=param_evaluation(vd['SARS_CoV_2_DELTA'], 'viable_to_RNA_ratio'),
             transmissibility_factor=vd['SARS_CoV_2_DELTA']['transmissibility_factor'],
         ),
         'SARS_CoV_2_OMICRON': mc.SARSCoV2(
             viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_OMICRON'], 'viral_load_in_sputum', data_registry),
-            infectious_dose=evaluate_infectd(vd['SARS_CoV_2_OMICRON'], 'infectious_dose', data_registry),
-            viable_to_RNA_ratio=evaluate_vtrr(vd['SARS_CoV_2_OMICRON'], 'viable_to_RNA_ratio', data_registry),
+            infectious_dose=param_evaluation(vd['SARS_CoV_2_OMICRON'], 'infectious_dose'),
+            viable_to_RNA_ratio=param_evaluation(vd['SARS_CoV_2_OMICRON'], 'viable_to_RNA_ratio'),
             transmissibility_factor=vd['SARS_CoV_2_OMICRON']['transmissibility_factor'],
         ),
     }
