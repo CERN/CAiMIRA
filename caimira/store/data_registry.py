@@ -1,4 +1,4 @@
-from caimira.enums import ViralLoads, InfectiousDoses, ViableToRNARatios
+from caimira.enums import ViralLoads
 
 
 class DataRegistry:
@@ -210,54 +210,82 @@ class DataRegistry:
             "interpolation_fp_right": 0,
             "max_function": 0.2,
         },
-        "viable_to_RNA_ratio_distribution": {
-            "low": 0.01,
-            "high": 0.6,
-        },
-        "infectious_dose_distribution": {
-            "low": 10,
-            "high": 100,
-        },
         "virus_distributions": {
             "SARS_CoV_2": {
                 "viral_load_in_sputum": ViralLoads.COVID_OVERALL.value,
-                "infectious_dose": InfectiousDoses.DISTRIBUTION.value,
-                "viable_to_RNA_ratio": ViableToRNARatios.DISTRIBUTION.value,
+                "infectious_dose": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                },
+                "viable_to_RNA_ratio": {
+                    'associated_value': 'Uniform distribution',
+                    'parameters': {'low': 0.01, 'high': 0.6},
+                },
                 "transmissibility_factor": 1,
                 "infectiousness_days": 14,
             },
             "SARS_CoV_2_ALPHA": {
                 "viral_load_in_sputum": ViralLoads.COVID_OVERALL.value,
-                "infectious_dose": InfectiousDoses.DISTRIBUTION.value,
-                "viable_to_RNA_ratio": ViableToRNARatios.DISTRIBUTION.value,
+                "infectious_dose": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                },
+                "viable_to_RNA_ratio": {
+                    'associated_value': 'Uniform distribution',
+                    'parameters': {'low': 0.01, 'high': 0.6},
+                },
                 "transmissibility_factor": 0.78,
                 "infectiousness_days": 14,
             },
             "SARS_CoV_2_BETA": {
                 "viral_load_in_sputum": ViralLoads.COVID_OVERALL.value,
-                "infectious_dose": InfectiousDoses.DISTRIBUTION.value,
-                "viable_to_RNA_ratio": ViableToRNARatios.DISTRIBUTION.value,
+                "infectious_dose": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                },
+                "viable_to_RNA_ratio": {
+                    'associated_value': 'Uniform distribution',
+                    'parameters': {'low': 0.01, 'high': 0.6},
+                },
                 "transmissibility_factor": 0.8,
                 "infectiousness_days": 14,
             },
             "SARS_CoV_2_GAMMA": {
                 "viral_load_in_sputum": ViralLoads.COVID_OVERALL.value,
-                "infectious_dose": InfectiousDoses.DISTRIBUTION.value,
-                "viable_to_RNA_ratio": ViableToRNARatios.DISTRIBUTION.value,
+                "infectious_dose": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                },
+                "viable_to_RNA_ratio": {
+                    'associated_value': 'Uniform distribution',
+                    'parameters': {'low': 0.01, 'high': 0.6},
+                },
                 "transmissibility_factor": 0.72,
                 "infectiousness_days": 14,
             },
             "SARS_CoV_2_DELTA": {
                 "viral_load_in_sputum": ViralLoads.COVID_OVERALL.value,
-                "infectious_dose": InfectiousDoses.DISTRIBUTION.value,
-                "viable_to_RNA_ratio": ViableToRNARatios.DISTRIBUTION.value,
+                "infectious_dose": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                },
+                "viable_to_RNA_ratio": {
+                    'associated_value': 'Uniform distribution',
+                    'parameters': {'low': 0.01, 'high': 0.6},
+                },
                 "transmissibility_factor": 0.51,
                 "infectiousness_days": 14,
             },
             "SARS_CoV_2_OMICRON": {
                 "viral_load_in_sputum": ViralLoads.COVID_OVERALL.value,
-                "infectious_dose": InfectiousDoses.DISTRIBUTION.value,
-                "viable_to_RNA_ratio": ViableToRNARatios.DISTRIBUTION.value,
+                "infectious_dose": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                },
+                "viable_to_RNA_ratio": {
+                    'associated_value': 'Uniform distribution',
+                    'parameters': {'low': 0.01, 'high': 0.6},
+                },
                 "transmissibility_factor": 0.2,
                 "infectiousness_days": 14,
             },
