@@ -244,7 +244,11 @@ class ConcentrationModelJsonResponse(BaseRequestHandler):
             timeout=300,
         )
         model = form.build_model()
-        report_data_task = executor.submit(calculate_report_data, form, model)
+        report_data_task = executor.submit(calculate_report_data, form, model,
+                                           executor_factory=functools.partial(
+                                               concurrent.futures.ThreadPoolExecutor,
+                                               self.settings['report_generation_parallelism'],
+                                           ),)
         report_data: dict = await asyncio.wrap_future(report_data_task)
         await self.finish(report_data)
 
