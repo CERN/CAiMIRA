@@ -42,7 +42,7 @@ from .user import AuthenticatedUser, AnonymousUser
 # calculator version. If the calculator needs to make breaking changes (e.g. change
 # form attributes) then it can also increase its MAJOR version without needing to
 # increase the overall CAiMIRA version (found at ``caimira.__version__``).
-__version__ = "4.15.0"
+__version__ = "4.15.1"
 
 LOG = logging.getLogger("Calculator")
 
@@ -294,6 +294,11 @@ class LandingPage(BaseRequestHandler):
 
 class CalculatorForm(BaseRequestHandler):
     def get(self):
+        data_registry: DataRegistry = self.settings["data_registry"]
+        data_service: typing.Optional[DataService] = self.settings.get("data_service", None)
+        if data_service:
+            data_service.update_registry(data_registry)
+
         template_environment = self.settings["template_environment"]
         template = template_environment.get_template(
             "calculator.form.html.j2")
@@ -304,6 +309,7 @@ class CalculatorForm(BaseRequestHandler):
             get_calculator_url = template.globals["get_calculator_url"],
             calculator_version=__version__,
             text_blocks=template_environment.globals["common_text"],
+            data_registry=data_registry.to_dict(),
         )
         self.finish(report)
 
