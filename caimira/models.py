@@ -1812,6 +1812,12 @@ class ExposureModel:
             isinstance(self.exposed.number, IntPiecewiseConstant)):
             raise NotImplementedError("Cannot compute expected new cases "
                     "with dynamic occupancy")
+        
+        """
+        The expect_new_cases should always take the long-range infection_probability and multiply by the occupants exposed to long-range.
+        """
+        if self.short_range != ():
+            return nested_replace(self, {'short_range': ()}).infection_probability() * self.exposed.number / 100
 
         return self.infection_probability() * self.exposed.number / 100
 
