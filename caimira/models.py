@@ -923,7 +923,6 @@ class _PopulationWithVirus(Population):
         The emission rate of virions in the expired air per mL of respiratory fluid,
         per person, if the infected population is present, in (virion.cm^3)/(mL.h).
         This method includes only the diameter-independent variables within the emission rate.
-        It should not be a function of time.
         """
         raise NotImplementedError("Subclass must implement")
 
@@ -979,7 +978,6 @@ class EmittingPopulation(_PopulationWithVirus):
         The emission rate of virions in the expired air per mL of respiratory fluid,
         per person, if the infected population is present, in (virion.cm^3)/(mL.h).
         This method includes only the diameter-independent variables within the emission rate.
-        It should not be a function of time.
         """
         return self.known_individual_emission_rate
 
@@ -1008,13 +1006,10 @@ class InfectedPopulation(_PopulationWithVirus):
         The emission rate of virions in the expired air per mL of respiratory fluid,
         if the infected population is present, in (virion.cm^3)/(mL.h).
         This method includes only the diameter-independent variables within the emission rate.
-        It should not be a function of time.
         """
         # Note on units: exhalation rate is in m^3/h -> 1e6 conversion factor
         # Returns the emission rate times the number of infected hosts in the room
         if isinstance(self.activity, ActivityPiecewiseConstant):
-            if not time:
-                raise NotImplementedError('Cannot compute with dynamic activities.')
             activity: Activity = self.activity.value(time)
             exhalation_rate = activity.exhalation_rate
         else: 
