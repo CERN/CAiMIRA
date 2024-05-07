@@ -54,20 +54,21 @@
 	<div class="tab-content" style="border-top: #dee2e6 1px solid; margin-top: -1px" >
 
 		<div class="tab-pane show active" id="results" role="tabpanel" aria-labelledby="results-tab" style="padding: 1%">
+			{% set long_range_prob_inf = prob_inf %}
+			{% set long_range_expected_cases = expected_new_cases %}
+			{% set total_expected_new_cases = expected_new_cases %}
 
+			{# Update values if short range option is "short_range_yes" #}
 			{% if form.short_range_option == "short_range_yes" %}
-				{# Probability of infection values #}
 				{% set scenario = alternative_scenarios.stats.values() | first %}
-				{% set long_range_prob_inf = scenario.probability_of_infection %}
-				{% set long_range_prob_probabilistic_exposure = scenario.prob_probabilistic_exposure if form.exposure_option == 'p_probabilistic_exposure' %}
-				{# Expected new case values #}
-				{% set long_range_expected_cases = scenario.expected_new_cases %}
-				{% set total_expected_new_cases = scenario.expected_new_cases + expected_new_cases %}
-			{% else %}
 				{# Probability of infection values #}
-				{% set long_range_prob_inf = prob_inf %}
+				{% set long_range_prob_inf = scenario.probability_of_infection %}
+				{% set long_range_expected_cases = scenario.expected_new_cases %}
 				{# Expected new case values #}
-				{% set total_expected_new_cases = expected_new_cases %}
+				{% set total_expected_new_cases = scenario.expected_new_cases + expected_new_cases %}
+				{% if form.exposure_option == 'p_probabilistic_exposure' %}
+					{% set long_range_prob_probabilistic_exposure = scenario.prob_probabilistic_exposure %}
+				{% endif %}
 			{% endif %}
 
 			{% block report_results %}
