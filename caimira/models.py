@@ -1819,16 +1819,11 @@ class ExposureModel:
         """
         The expect_new_cases should always take the long-range infection_probability and multiply by the occupants exposed to long-range.
         """
-        prob_inf: _VectorisedFloat = self.infection_probability()
-        if self.short_range != ():
-            # If short-range interaction are defined, the total expected number of new cases
-            # has to take into account both the long- and short-range probability of infection.
-            long_range_model = nested_replace(self, {'short_range': (),})
-            long_range_prob = long_range_model.infection_probability()
-            short_range_total_people = self.short_range[0].total_people
-            return (prob_inf * short_range_total_people + long_range_prob * self.exposed.number) / 100
+        # If short-range interaction are defined, the total exposed people
+        # is only those of the short-range interactions.
+        exposed = self.short_range[0].total_people if self.short_range != () else self.exposed.number
 
-        return prob_inf * self.exposed.number / 100
+        return self.infection_probability() * exposed / 100
 
     def reproduction_number(self) -> _VectorisedFloat:
         """
