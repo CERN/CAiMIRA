@@ -72,6 +72,7 @@ class VirusFormData(FormData):
     sensor_in_use: str
     short_range_option: str
     short_range_interactions: list
+    short_range_total_people: int
 
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = DEFAULTS
 
@@ -182,6 +183,13 @@ class VirusFormData(FormData):
 
             if total_percentage != 100:
                 raise ValueError(f'The sum of all respiratory activities should be 100. Got {total_percentage}.')
+            
+        # Validate number of people with short-range interactions
+        max_people_for_sr = self.total_people - self.infected_people
+        if self.short_range_total_people > max_people_for_sr:
+            raise ValueError(
+                f'The total number of people having short-range interactions ({self.short_range_total_people}) should be lower than the exposed population ({max_people_for_sr}).'
+            )
 
     def initialize_room(self) -> models.Room:
         # Initializes room with volume either given directly or as product of area and height
@@ -206,7 +214,6 @@ class VirusFormData(FormData):
         room = self.initialize_room()
         ventilation: models._VentilationBase = self.ventilation()
         infected_population = self.infected_population()
-
         short_range = []
         if self.short_range_option == "short_range_yes":
             for interaction in self.short_range_interactions:
@@ -216,6 +223,7 @@ class VirusFormData(FormData):
                     activity=infected_population.activity,
                     presence=self.short_range_interval(interaction),
                     distance=short_range_distances(self.data_registry),
+                    total_people=self.short_range_total_people,
                 ))
 
         return mc.ExposureModel(
