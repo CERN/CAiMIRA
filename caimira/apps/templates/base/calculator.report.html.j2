@@ -604,6 +604,9 @@
 							<li><p class="data_text">
 							Short-range interactions: {{ form.short_range_interactions|length }}
 							</p></li>
+							<li><p class="data_text">
+							Total number of people having short-range interactions: {{ form.short_range_total_people }}
+							</p></li>
 							<ul>
 							{% for interaction in form.short_range_interactions %}
 								<li>Expiratory activity {{ loop.index if form.short_range_interactions|length > 1 }}: {{ "Shouting/Singing" if interaction.expiration == "Shouting" else interaction.expiration }} </li>
