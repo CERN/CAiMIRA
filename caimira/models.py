@@ -1331,6 +1331,9 @@ class ShortRangeModel:
     #: Interpersonal distances
     distance: _VectorisedFloat
 
+    #: Total people with short-range interactions
+    total_people: int = 1
+
     def dilution_factor(self) -> _VectorisedFloat:
         '''
         The dilution factor for the respective expiratory activity type.
@@ -1816,10 +1819,16 @@ class ExposureModel:
         """
         The expect_new_cases should always take the long-range infection_probability and multiply by the occupants exposed to long-range.
         """
+        prob_inf: _VectorisedFloat = self.infection_probability()
         if self.short_range != ():
-            return nested_replace(self, {'short_range': ()}).infection_probability() * self.exposed.number / 100
+            # If short-range interaction are defined, the total expected number of new cases
+            # has to take into account both the long- and short-range probability of infection.
+            long_range_model = nested_replace(self, {'short_range': (),})
+            long_range_prob = long_range_model.infection_probability()
+            short_range_total_people = self.short_range[0].total_people
+            return (prob_inf * short_range_total_people + long_range_prob * self.exposed.number) / 100
 
-        return self.infection_probability() * self.exposed.number / 100
+        return prob_inf * self.exposed.number / 100
 
     def reproduction_number(self) -> _VectorisedFloat:
         """
