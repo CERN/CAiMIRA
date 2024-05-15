@@ -1331,9 +1331,6 @@ class ShortRangeModel:
     #: Interpersonal distances
     distance: _VectorisedFloat
 
-    #: Total people with short-range interactions
-    total_people: int = 1
-
     def dilution_factor(self) -> _VectorisedFloat:
         '''
         The dilution factor for the respective expiratory activity type.
@@ -1582,6 +1579,9 @@ class ExposureModel:
     #: Geographical data
     geographical_data: Cases
 
+    #: Total people with short-range interactions
+    exposed_to_short_range: int = 1
+
     #: The number of times the exposure event is repeated (default 1).
     @property
     def repeats(self) -> int:
@@ -1821,7 +1821,7 @@ class ExposureModel:
         """
         # If short-range interaction are defined, the total exposed people
         # is only those of the short-range interactions.
-        exposed = self.short_range[0].total_people if self.short_range != () else self.exposed.number
+        exposed = self.exposed_to_short_range if self.short_range != () else self.exposed.number
 
         return self.infection_probability() * exposed / 100
 
