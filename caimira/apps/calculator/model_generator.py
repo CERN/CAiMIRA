@@ -223,7 +223,6 @@ class VirusFormData(FormData):
                     activity=infected_population.activity,
                     presence=self.short_range_interval(interaction),
                     distance=short_range_distances(self.data_registry),
-                    total_people=self.short_range_total_people,
                 ))
 
         return mc.ExposureModel(
@@ -242,6 +241,7 @@ class VirusFormData(FormData):
                 geographic_cases=self.geographic_cases,
                 ascertainment_bias=CONFIDENCE_LEVEL_OPTIONS[self.ascertainment_bias],
             ),
+            exposed_to_short_range=self.short_range_total_people,
         )
 
     def build_model(self, sample_size=None) -> models.ExposureModel:
