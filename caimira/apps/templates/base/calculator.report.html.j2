@@ -56,16 +56,15 @@
 		<div class="tab-pane show active" id="results" role="tabpanel" aria-labelledby="results-tab" style="padding: 1%">
 			{% set long_range_prob_inf = prob_inf %}
 			{% set long_range_expected_cases = expected_new_cases %}
-			{% set total_expected_new_cases = expected_new_cases %}
 
 			{# Update values if short range option is "short_range_yes" #}
 			{% if form.short_range_option == "short_range_yes" %}
 				{% set scenario = alternative_scenarios.stats.values() | first %}
 				{# Probability of infection values #}
 				{% set long_range_prob_inf = scenario.probability_of_infection %}
-				{% set long_range_expected_cases = scenario.expected_new_cases %}
 				{# Expected new case values #}
-				{% set total_expected_new_cases = scenario.expected_new_cases + expected_new_cases %}
+				{% set long_range_expected_cases = scenario.expected_new_cases %}
+				
 				{% if form.exposure_option == 'p_probabilistic_exposure' %}
 					{% set long_range_prob_probabilistic_exposure = scenario.prob_probabilistic_exposure %}
 				{% endif %}
@@ -134,12 +133,12 @@
 											{% block report_summary %}
 											<div class="flex-row align-self-center">
 												<div class="align-self-center alert alert-dark mb-0" role="alert">
-													Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally (i.e. without short-range interactions), the <b>probability of one exposed occupant getting infected is {{ long_range_prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ total_expected_new_cases | float_format }}</b>*.
+													Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally (i.e. without short-range interactions), the <b>probability of one exposed occupant getting infected is {{ long_range_prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ long_range_expected_cases | float_format }}</b>*.
 												</div>
 												{% if form.short_range_option == "short_range_yes" %}
 													<br>
 													<div class="align-self-center alert alert-dark mb-0" role="alert">
-														In this scenario, assuming <b>short-range interactions</b> occur, the <b>probability of one exposed occupant getting infected can go as high as {{ prob_inf | non_zero_percentage }}</b>.
+														In this scenario, assuming <b>short-range interactions</b> occur, the <b>probability of one exposed occupant getting infected can go as high as {{ prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>.
 													</div>
 												{% endif %}
 												{% block probabilistic_exposure_probability %}

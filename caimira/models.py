@@ -1817,13 +1817,17 @@ class ExposureModel:
                     "with dynamic occupancy")
         
         """
-        The expect_new_cases should always take the long-range infection_probability and multiply by the occupants exposed to long-range.
+        The expected_new_cases has two different use case scenarios:
+            1) Long-range only: take the infection_probability and multiply by the occupants exposed to long-range. 
+            2) Short- and long-range: take the infection_probability of long-range multiplied by the occupants exposed to long-range only, added
+               to the infection_probability of short- and long-range multiplied by the occupants exposed to short-range only.
         """
-        # If short-range interaction are defined, the total exposed people
-        # is only those of the short-range interactions.
-        exposed = self.exposed_to_short_range if self.short_range != () else self.exposed.number
 
-        return self.infection_probability() * exposed / 100
+        if self.short_range != ():
+            new_cases_long_range = nested_replace(self, {'short_range': (),}).infection_probability() * (self.exposed.number - self.exposed_to_short_range)
+            return (new_cases_long_range + (self.infection_probability() * self.exposed_to_short_range)) / 100
+
+        return self.infection_probability() * self.exposed.number / 100
 
     def reproduction_number(self) -> _VectorisedFloat:
         """
