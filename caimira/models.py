@@ -1817,10 +1817,10 @@ class ExposureModel:
                     "with dynamic occupancy")
         
         """
-        The expected_new_cases has two different use case scenarios:
-            1) Long-range only: take the infection_probability and multiply by the occupants exposed to long-range. 
-            2) Short- and long-range: take the infection_probability of long-range multiplied by the occupants exposed to long-range only, added
-               to the infection_probability of short- and long-range multiplied by the occupants exposed to short-range only.
+        The expected_new_cases may provide one or two different outputs:
+            1) Long-range exposure: take the infection_probability and multiply by the occupants exposed to long-range. 
+            2) Short- and long-range exposure: take the infection_probability of long-range multiplied by the occupants exposed to long-range only, 
+               plus the infection_probability of short- and long-range multiplied by the occupants exposed to short-range only.
         """
 
         if self.short_range != ():
