@@ -1268,7 +1268,7 @@ $(document).ready(function () {
     let activity = validate_sr_parameter('#sr_expiration_no_' + String(index)[0], "Required input.");
     let start = validate_sr_parameter('#sr_start_no_' + String(index)[0], "Required input.");
     let duration = validate_sr_parameter('#sr_duration_no_' + String(index)[0], "Required input.");
-    let total_people = validate_sr_people('#short_range_total_people');
+    let total_people = validate_sr_people('#short_range_occupants');
     if (activity && start && duration && total_people) {
       if (validate_sr_time('#sr_start_no_' + String(index)) && validate_sr_time('#sr_duration_no_' + String(index))) {
         document.getElementById('sr_expiration_no_' + String(index)).disabled = true;

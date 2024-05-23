@@ -73,7 +73,7 @@ DEFAULTS = {
     'sensor_in_use': '',
     'short_range_option': 'short_range_no',
     'short_range_interactions': '[]',
-    'short_range_total_people': 1,
+    'short_range_occupants': 1,
 }
 
 # ------------------ Activities ----------------------
