@@ -1580,7 +1580,7 @@ class ExposureModel:
     geographical_data: Cases
 
     #: Total people with short-range interactions
-    exposed_to_short_range: int = 1
+    exposed_to_short_range: int = 0
 
     #: The number of times the exposure event is repeated (default 1).
     @property
