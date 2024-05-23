@@ -84,7 +84,7 @@
           <div class="alert alert-success mb-0" role="alert">
             <strong>Acceptable:</strong>
         {% endif %}
-        In this scenario, assuming <b>short-range interactions</b> occur, the <b>probability of one exposed occupant getting infected can go as high as {{prob_inf | non_zero_percentage}}</b> and the <b>expected number of new cases is {{ expected_new_cases | float_format }}</b>.
+        In this scenario, the <b>probability the occupant(s) exposed to short-range interactions get infected can go as high as {{ prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases increases to {{ expected_new_cases | float_format }}</b>.
         </div>
       {% endif %}
       
