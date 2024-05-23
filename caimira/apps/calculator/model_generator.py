@@ -185,10 +185,10 @@ class VirusFormData(FormData):
                 raise ValueError(f'The sum of all respiratory activities should be 100. Got {total_percentage}.')
             
         # Validate number of people with short-range interactions
-        max_people_for_sr = self.total_people - self.infected_people
-        if self.short_range_occupants > max_people_for_sr:
+        max_occupants_for_sr = self.total_people - self.infected_people
+        if self.short_range_occupants > max_occupants_for_sr:
             raise ValueError(
-                f'The total number of people having short-range interactions ({self.short_range_occupants}) should be lower than the exposed population ({max_people_for_sr}).'
+                f'The total number of occupants having short-range interactions ({self.short_range_occupants}) should be lower than the exposed population ({max_occupants_for_sr}).'
             )
 
     def initialize_room(self) -> models.Room:
