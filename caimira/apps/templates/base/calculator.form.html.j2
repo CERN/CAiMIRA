@@ -590,6 +590,16 @@
             <div class="col-md-12 p-0 form-group" id="dialog_sr"></div>
             <div class="text-center"><button type="button" class="add_node_btn_frm_field btn btn-primary btn-sm">Add row</button></div>
             <input type="text" class="form-control d-none" name="short_range_interactions">
+            <br />
+            <div class="form-group row">
+              <div class="col-sm-4">
+                <label class="col-form-label col-form-label-sm">Total people with short-range interactions:</label>
+              </div>
+              <div class="col-sm-2">
+                <input type="number" id="short_range_occupants" name="short_range_occupants" class="form-control form-control-sm" min="0" value="1" tabindex="-1" onchange="validate_sr_people(this)" required>
+              </div>
+              <div class="col-sm-6"></div>
+            </div>
           </div>
 
           <div class="modal-footer">
