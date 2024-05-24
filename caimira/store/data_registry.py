@@ -441,7 +441,7 @@ class DataRegistry:
             "expiration": {"Breathing": 5, "Speaking": 5},
         },
         "secondary-school": {
-            "placeholder": "Primary school",
+            "placeholder": "Secondary school",
             "activity": "Light activity",
             "expiration": {"Breathing": 7, "Speaking": 3},
         },
