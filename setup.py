@@ -44,7 +44,7 @@ REQUIREMENTS: dict = {
     ],
     'app': [],
     'test': [
-        'pytest',
+        'pytest < 8.2',
         'pytest-mypy >= 0.10.3',
         'mypy >= 1.0.0',
         'pytest-tornasync',
