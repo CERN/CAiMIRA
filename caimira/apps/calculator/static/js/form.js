@@ -869,8 +869,24 @@ function validate_sr_parameter(obj, error_message) {
   if ($(obj).val() == "" || $(obj).val() == null) {
     if (!$(obj).hasClass("red_border") && !$(obj).prop("disabled")) {
       var parameter = document.getElementById($(obj).attr('id'));
-      insertErrorFor(parameter, error_message)
+      insertErrorFor(parameter, error_message);
       $(parameter).addClass("red_border");
+    }
+    return false;
+  } else {
+    removeErrorFor($(obj));
+    $(obj).removeClass("red_border");
+    return true;
+  }
+}
+
+function validate_sr_people(obj) {
+  let sr_total_people = document.getElementById($(obj).attr('id'));
+  let max = document.getElementById("total_people").valueAsNumber - document.getElementById("infected_people").valueAsNumber;
+  if ($(obj).val() == "" || $(obj).val() == null || sr_total_people.valueAsNumber > max) {
+    if (!$(obj).hasClass("red_border")) {
+      insertErrorFor(sr_total_people, "Value must be less or equal than the number of exposed people.");
+      $(sr_total_people).addClass("red_border");
     }
     return false;
   } else {
@@ -1084,7 +1100,6 @@ $(document).ready(function () {
   validateMaxInfectedPeople();
   $("#total_people").change(validateMaxInfectedPeople);
   $("#activity_type").change(validateMaxInfectedPeople);
-  $("#total_people").change(validateMaxInfectedPeople);
   $("#infected_people").change(validateMaxInfectedPeople);
 
   //Validate all non zero values
@@ -1253,7 +1268,8 @@ $(document).ready(function () {
     let activity = validate_sr_parameter('#sr_expiration_no_' + String(index)[0], "Required input.");
     let start = validate_sr_parameter('#sr_start_no_' + String(index)[0], "Required input.");
     let duration = validate_sr_parameter('#sr_duration_no_' + String(index)[0], "Required input.");
-    if (activity && start && duration) {
+    let total_people = validate_sr_people('#short_range_occupants');
+    if (activity && start && duration && total_people) {
       if (validate_sr_time('#sr_start_no_' + String(index)) && validate_sr_time('#sr_duration_no_' + String(index))) {
         document.getElementById('sr_expiration_no_' + String(index)).disabled = true;
         document.getElementById('sr_start_no_' + String(index)).disabled = true;

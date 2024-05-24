@@ -1579,6 +1579,9 @@ class ExposureModel:
     #: Geographical data
     geographical_data: Cases
 
+    #: Total people with short-range interactions
+    exposed_to_short_range: int = 0
+
     #: The number of times the exposure event is repeated (default 1).
     @property
     def repeats(self) -> int:
@@ -1814,10 +1817,15 @@ class ExposureModel:
                     "with dynamic occupancy")
         
         """
-        The expect_new_cases should always take the long-range infection_probability and multiply by the occupants exposed to long-range.
+        The expected_new_cases may provide one or two different outputs:
+            1) Long-range exposure: take the infection_probability and multiply by the occupants exposed to long-range. 
+            2) Short- and long-range exposure: take the infection_probability of long-range multiplied by the occupants exposed to long-range only, 
+               plus the infection_probability of short- and long-range multiplied by the occupants exposed to short-range only.
         """
+
         if self.short_range != ():
-            return nested_replace(self, {'short_range': ()}).infection_probability() * self.exposed.number / 100
+            new_cases_long_range = nested_replace(self, {'short_range': (),}).infection_probability() * (self.exposed.number - self.exposed_to_short_range)
+            return (new_cases_long_range + (self.infection_probability() * self.exposed_to_short_range)) / 100
 
         return self.infection_probability() * self.exposed.number / 100
 
