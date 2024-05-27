@@ -19,3 +19,6 @@ app-config/openshift/caimira-prod
 
 # documentation build folder
 caimira/docs/_build
+
+# Git LFS files
+caimira/scripts/data/WeeklySummary_COVID19_VE_Studies_08Sep2022_adapted.xlsx
