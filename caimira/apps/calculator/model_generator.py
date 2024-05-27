@@ -200,10 +200,10 @@ class VirusFormData(FormData):
 
         if self.arve_sensors_option == False:
             if self.room_heating_option:
-                humidity = self.data_registry.room['defaults']['humidity_with_heating']
+                humidity = self.data_registry.room['humidity_with_heating']
             else:
-                humidity = self.data_registry.room['defaults']['humidity_without_heating']
-            inside_temp = self.data_registry.room['defaults']['inside_temp']
+                humidity = self.data_registry.room['humidity_without_heating']
+            inside_temp = self.data_registry.room['inside_temp']
         else:
             humidity = float(self.humidity)
             inside_temp = self.inside_temp
@@ -245,11 +245,11 @@ class VirusFormData(FormData):
         )
 
     def build_model(self, sample_size=None) -> models.ExposureModel:
-        sample_size = sample_size or self.data_registry.monte_carlo_sample_size
+        sample_size = sample_size or self.data_registry.monte_carlo['sample_size']
         return self.build_mc_model().build_model(size=sample_size)
 
     def build_CO2_model(self, sample_size=None) -> models.CO2ConcentrationModel:
-        sample_size = sample_size or self.data_registry.monte_carlo_sample_size
+        sample_size = sample_size or self.data_registry.monte_carlo['sample_size']
         infected_population: models.InfectedPopulation = self.infected_population().build_model(sample_size)
         exposed_population: models.Population = self.exposed_population().build_model(sample_size)
 

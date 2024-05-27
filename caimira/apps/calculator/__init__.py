@@ -42,7 +42,7 @@ from .user import AuthenticatedUser, AnonymousUser
 # calculator version. If the calculator needs to make breaking changes (e.g. change
 # form attributes) then it can also increase its MAJOR version without needing to
 # increase the overall CAiMIRA version (found at ``caimira.__version__``).
-__version__ = "4.15.2"
+__version__ = "4.15.3"
 
 LOG = logging.getLogger("Calculator")
 
@@ -573,7 +573,11 @@ def make_app(
 
     data_registry = DataRegistry()
     data_service = None
-    data_service_enabled = os.environ.get('DATA_SERVICE_ENABLED', 0)
+    try:
+        data_service_enabled = int(os.environ.get('DATA_SERVICE_ENABLED', 0))
+    except ValueError:
+        data_service_enabled = None
+        
     if data_service_enabled: data_service = DataService.create()
 
     return Application(
