@@ -18,7 +18,7 @@ def evaluate_vl(root: typing.Dict, value: str, data_registry: DataRegistry):
     if root[value] == ViralLoads.COVID_OVERALL.value:
         return covid_overal_vl_data(data_registry)
     elif root[value] == ViralLoads.SYMPTOMATIC_FREQUENCIES.value:
-        return symptomatic_vl_frequencies
+        return symptomatic_vl_frequencies(data_registry)
     elif root[value] == 'Custom':
         return param_evaluation(root, 'Viral load custom')
     else:
@@ -66,11 +66,26 @@ def evaluate_custom_value_type(value_type: str, params: typing.Dict) -> typing.A
     if value_type == 'Constant value':
         return params
     elif value_type == 'Normal distribution':
-        return Normal(params['normal_mean_gaussian'], params['normal_standard_deviation_gaussian'])
+        return Normal(
+            mean=params['normal_mean_gaussian'], 
+            standard_deviation=params['normal_standard_deviation_gaussian']
+        )
     elif value_type == 'Log-normal distribution':
-        return LogNormal(params['lognormal_mean_gaussian'], params['lognormal_standard_deviation_gaussian'])
+        return LogNormal(
+            mean_gaussian=params['lognormal_mean_gaussian'], 
+            standard_deviation_gaussian=params['lognormal_standard_deviation_gaussian']
+        )
     elif value_type == 'Uniform distribution':
-        return Uniform(params['low'], params['high'])
+        return Uniform(
+            low=params['low'], 
+            high=params['high']
+        )
+    elif value_type == 'Log Custom Kernel distribution':
+        return LogCustomKernel(
+            log_variable=np.array(params['log_variable']), 
+            frequencies=np.array(params['frequencies']), 
+            kernel_bandwidth=params['kernel_bandwidth']
+        )
     else:
         raise ValueError('Bad request - value type not found.')
 
@@ -211,11 +226,7 @@ def activity_distributions(data_registry):
 
 # From https://doi.org/10.1101/2021.10.14.21264988 and references therein
 def symptomatic_vl_frequencies(data_registry):
-    return LogCustomKernel(
-        np.array(data_registry.virological_data['symptomatic_vl_frequencies']['log_variable']),
-        np.array(data_registry.virological_data['symptomatic_vl_frequencies']['frequencies']),
-        kernel_bandwidth=data_registry.virological_data['symptomatic_vl_frequencies']['kernel_bandwidth']
-    )
+    return param_evaluation(data_registry.virological_data, 'symptomatic_vl_frequencies')
 
 
 # Weibull distribution with a shape factor of 3.47 and a scale factor of 7.01.
@@ -224,34 +235,34 @@ def symptomatic_vl_frequencies(data_registry):
 def viral_load(data_registry):
     return np.linspace(
         weibull_min.ppf(
-            data_registry.virological_data['covid_overal_vl_data']['start'],
-            c=data_registry.virological_data['covid_overal_vl_data']['shape_factor'],
-            scale=data_registry.virological_data['covid_overal_vl_data']['scale_factor']
+            data_registry.virological_data['covid_overal_vl_data']['parameters']['start'],
+            c=data_registry.virological_data['covid_overal_vl_data']['parameters']['shape_factor'],
+            scale=data_registry.virological_data['covid_overal_vl_data']['parameters']['scale_factor']
         ),
         weibull_min.ppf(
-            data_registry.virological_data['covid_overal_vl_data']['stop'],
-            c=data_registry.virological_data['covid_overal_vl_data']['shape_factor'],
-            scale=data_registry.virological_data['covid_overal_vl_data']['scale_factor']
+            data_registry.virological_data['covid_overal_vl_data']['parameters']['stop'],
+            c=data_registry.virological_data['covid_overal_vl_data']['parameters']['shape_factor'],
+            scale=data_registry.virological_data['covid_overal_vl_data']['parameters']['scale_factor']
         ),
-        int(data_registry.virological_data['covid_overal_vl_data']['num'])
+        int(data_registry.virological_data['covid_overal_vl_data']['parameters']['num'])
 )
 def frequencies_pdf(data_registry):
     return weibull_min.pdf(
         viral_load(data_registry),
-        c=data_registry.virological_data['covid_overal_vl_data']['shape_factor'],
-        scale=data_registry.virological_data['covid_overal_vl_data']['scale_factor']
+        c=data_registry.virological_data['covid_overal_vl_data']['parameters']['shape_factor'],
+        scale=data_registry.virological_data['covid_overal_vl_data']['parameters']['scale_factor']
     )
 def covid_overal_vl_data(data_registry):
     return LogCustom(
-        bounds=(data_registry.virological_data['covid_overal_vl_data']['min_bound'], data_registry.virological_data['covid_overal_vl_data']['max_bound']),
+        bounds=(data_registry.virological_data['covid_overal_vl_data']['parameters']['min_bound'], data_registry.virological_data['covid_overal_vl_data']['parameters']['max_bound']),
         function=lambda d: np.interp(
             d,
             viral_load(data_registry),
             frequencies_pdf(data_registry),
-            data_registry.virological_data['covid_overal_vl_data']['interpolation_fp_left'],
-            data_registry.virological_data['covid_overal_vl_data']['interpolation_fp_right']
+            data_registry.virological_data['covid_overal_vl_data']['parameters']['interpolation_fp_left'],
+            data_registry.virological_data['covid_overal_vl_data']['parameters']['interpolation_fp_right']
         ),
-        max_function=data_registry.virological_data['covid_overal_vl_data']['max_function']
+        max_function=data_registry.virological_data['covid_overal_vl_data']['parameters']['max_function']
     )
 
 
@@ -274,37 +285,43 @@ def virus_distributions(data_registry):
             viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2'], 'viral_load_in_sputum', data_registry),
             infectious_dose=param_evaluation(vd['SARS_CoV_2'], 'infectious_dose'),
             viable_to_RNA_ratio=param_evaluation(vd['SARS_CoV_2'], 'viable_to_RNA_ratio'),
-            transmissibility_factor=vd['SARS_CoV_2']['transmissibility_factor'],
+            transmissibility_factor=vd['SARS_CoV_2']['transmissibility_factor']['value'],
+            infectiousness_days=vd['SARS_CoV_2']['infectiousness_days']['value'],
         ),
         'SARS_CoV_2_ALPHA': mc.SARSCoV2(
             viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_ALPHA'], 'viral_load_in_sputum', data_registry),
             infectious_dose=param_evaluation(vd['SARS_CoV_2_ALPHA'], 'infectious_dose'),
             viable_to_RNA_ratio=param_evaluation(vd['SARS_CoV_2_ALPHA'], 'viable_to_RNA_ratio'),
-            transmissibility_factor=vd['SARS_CoV_2_ALPHA']['transmissibility_factor'],
+            transmissibility_factor=vd['SARS_CoV_2_ALPHA']['transmissibility_factor']['value'],
+            infectiousness_days=vd['SARS_CoV_2_ALPHA']['infectiousness_days']['value'],
         ),
         'SARS_CoV_2_BETA': mc.SARSCoV2(
             viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_BETA'], 'viral_load_in_sputum', data_registry),
             infectious_dose=param_evaluation(vd['SARS_CoV_2_BETA'], 'infectious_dose'),
             viable_to_RNA_ratio=param_evaluation(vd['SARS_CoV_2_BETA'], 'viable_to_RNA_ratio'),
-            transmissibility_factor=vd['SARS_CoV_2_BETA']['transmissibility_factor'],
+            transmissibility_factor=vd['SARS_CoV_2_BETA']['transmissibility_factor']['value'],
+            infectiousness_days=vd['SARS_CoV_2_BETA']['infectiousness_days']['value'],
         ),
         'SARS_CoV_2_GAMMA': mc.SARSCoV2(
             viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_GAMMA'], 'viral_load_in_sputum', data_registry),
             infectious_dose=param_evaluation(vd['SARS_CoV_2_GAMMA'], 'infectious_dose'),
             viable_to_RNA_ratio=param_evaluation(vd['SARS_CoV_2_GAMMA'], 'viable_to_RNA_ratio'),
-            transmissibility_factor=vd['SARS_CoV_2_GAMMA']['transmissibility_factor'],
+            transmissibility_factor=vd['SARS_CoV_2_GAMMA']['transmissibility_factor']['value'],
+            infectiousness_days=vd['SARS_CoV_2_GAMMA']['infectiousness_days']['value'],
         ),
         'SARS_CoV_2_DELTA': mc.SARSCoV2(
             viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_DELTA'], 'viral_load_in_sputum', data_registry),
             infectious_dose=param_evaluation(vd['SARS_CoV_2_DELTA'], 'infectious_dose'),
             viable_to_RNA_ratio=param_evaluation(vd['SARS_CoV_2_DELTA'], 'viable_to_RNA_ratio'),
-            transmissibility_factor=vd['SARS_CoV_2_DELTA']['transmissibility_factor'],
+            transmissibility_factor=vd['SARS_CoV_2_DELTA']['transmissibility_factor']['value'],
+            infectiousness_days=vd['SARS_CoV_2_DELTA']['infectiousness_days']['value'],
         ),
         'SARS_CoV_2_OMICRON': mc.SARSCoV2(
             viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_OMICRON'], 'viral_load_in_sputum', data_registry),
             infectious_dose=param_evaluation(vd['SARS_CoV_2_OMICRON'], 'infectious_dose'),
             viable_to_RNA_ratio=param_evaluation(vd['SARS_CoV_2_OMICRON'], 'viable_to_RNA_ratio'),
-            transmissibility_factor=vd['SARS_CoV_2_OMICRON']['transmissibility_factor'],
+            transmissibility_factor=vd['SARS_CoV_2_OMICRON']['transmissibility_factor']['value'],
+            infectiousness_days=vd['SARS_CoV_2_OMICRON']['infectiousness_days']['value'],
         ),
     }
 
@@ -321,21 +338,24 @@ def mask_distributions(data_registry):
                 data_registry.mask_distributions['Type I'], 'η_inhale'),
             η_exhale=param_evaluation(
                 data_registry.mask_distributions['Type I'], 'η_exhale')
-            if data_registry.mask_distributions['Type I'].get('η_exhale') is not None else None
+            if data_registry.mask_distributions['Type I'].get('η_exhale') is not None else None,
+            factor_exhale=data_registry.mask_distributions['Type I']['factor_exhale']['value']
         ),
         'FFP2': mc.Mask(
             η_inhale=param_evaluation(
                 data_registry.mask_distributions['FFP2'], 'η_inhale'),
             η_exhale=param_evaluation(
                 data_registry.mask_distributions['FFP2'], 'η_exhale')
-            if data_registry.mask_distributions['FFP2'].get('η_exhale') is not None else None
+            if data_registry.mask_distributions['FFP2'].get('η_exhale') is not None else None,
+            factor_exhale=data_registry.mask_distributions['FFP2']['factor_exhale']['value']
         ),
         'Cloth': mc.Mask(
             η_inhale=param_evaluation(
                 data_registry.mask_distributions['Cloth'], 'η_inhale'),
             η_exhale=param_evaluation(
                 data_registry.mask_distributions['Cloth'], 'η_exhale')
-            if data_registry.mask_distributions['Cloth'].get('η_exhale') is not None else None
+            if data_registry.mask_distributions['Cloth'].get('η_exhale') is not None else None,
+            factor_exhale=data_registry.mask_distributions['Cloth']['factor_exhale']['value']
         ),
     }
 
@@ -399,8 +419,8 @@ def expiration_distributions(data_registry):
         exp_type: expiration_distribution(
             data_registry=data_registry,
             BLO_factors=BLO_factors,
-            d_min=param_evaluation(data_registry.expiration_particle['long_range_expiration_distributions'], 'minimum_diameter'),
-            d_max=param_evaluation(data_registry.expiration_particle['long_range_expiration_distributions'], 'maximum_diameter')
+            d_min=param_evaluation(data_registry.expiration_particle['long_range_particle_diameter'], 'minimum_diameter'),
+            d_max=param_evaluation(data_registry.expiration_particle['long_range_particle_diameter'], 'maximum_diameter')
         )
         for exp_type, BLO_factors in expiration_BLO_factors(data_registry).items()
     }
@@ -411,8 +431,8 @@ def short_range_expiration_distributions(data_registry):
         exp_type: expiration_distribution(
             data_registry=data_registry,
             BLO_factors=BLO_factors,
-            d_min=param_evaluation(data_registry.expiration_particle['short_range_expiration_distributions'], 'minimum_diameter'),
-            d_max=param_evaluation(data_registry.expiration_particle['short_range_expiration_distributions'], 'maximum_diameter')
+            d_min=param_evaluation(data_registry.expiration_particle['short_range_particle_diameter'], 'minimum_diameter'),
+            d_max=param_evaluation(data_registry.expiration_particle['short_range_particle_diameter'], 'maximum_diameter')
         )
         for exp_type, BLO_factors in expiration_BLO_factors(data_registry).items()
     }
