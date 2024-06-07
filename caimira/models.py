@@ -1428,7 +1428,8 @@ class ShortRangeModel:
         Virus short-range exposure concentration, as a function of time.
         """
         return (self._normed_concentration(concentration_model, time) *
-            concentration_model.virus.viral_load_in_sputum)
+            concentration_model.virus.viral_load_in_sputum * 
+            concentration_model.virus.viable_to_RNA_ratio)
 
     @method_cache
     def _normed_short_range_concentration_cached(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
@@ -1693,7 +1694,6 @@ class ExposureModel:
                 self.exposed.activity.inhalation_rate *
                 (1 - self.exposed.mask.inhale_efficiency()))
 
-        # In the end we multiply the final results by the fraction of infectious virus of the vD equation.
         return deposited_exposure
 
     def deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
@@ -1744,8 +1744,9 @@ class ExposureModel:
         # Then we multiply by diameter-independent quantities: viral load
         # and fraction of infected virions
         deposited_exposure *= (
-                self.concentration_model.virus.viral_load_in_sputum
-                * (1 - self.exposed.mask.inhale_efficiency()))
+                self.concentration_model.virus.viral_load_in_sputum *
+                self.concentration_model.virus.viable_to_RNA_ratio *
+                (1 - self.exposed.mask.inhale_efficiency()))
         # Long-range concentration
         deposited_exposure += self.long_range_deposited_exposure_between_bounds(time1, time2)
 

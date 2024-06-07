@@ -106,9 +106,9 @@ def test_extract_between_bounds(short_range_model, time1, time2,
 @pytest.mark.parametrize(
     "time, expected_short_range_concentration", [
         [8.5, 0.],
-        [10.5, 11.266605],
-        [10.6, 11.266605],
-        [11.0, 11.266605],
+        [10.5, 5.6333025],
+        [10.6, 5.6333025],
+        [11.0, 5.6333025],
         [12.0, 0.],
     ]
 )
