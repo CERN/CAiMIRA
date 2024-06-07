@@ -263,6 +263,7 @@ class SimpleShortRangeModel:
         we perform the integral of Np(d)*V(d) over diameter analytically
         """
         vl = conc_model.viral_load
+        viable_to_RNA = conc_model.viable_to_RNA
         dmin = self.diameter_min
         dmax = self.diameter_max
         result = 0.
@@ -273,7 +274,7 @@ class SimpleShortRangeModel:
             ymax = (np.log(dmax)-mu)/(sqrt2*sigma)-3.*sigma/sqrt2
             result += ( (cn * famp * d0**3)/2. * np.exp(9*sigma**2/2.) *
                         (erf(ymax) - erf(ymin)) )
-        return vl * 1e-6 * result * np.pi/6.
+        return vl * viable_to_RNA * 1e-6 * result * np.pi/6.
 
     def concentration(self, conc_model: SimpleConcentrationModel, time: float) -> _VectorisedFloat:
         """
@@ -430,7 +431,7 @@ class SimpleExposureModel(SimpleConcentrationModel):
             res = (quad(integrand,
                         sr_model.diameter_min,sr_model.diameter_max,
                         epsabs=0.,limit=500)[0]
-                   * self.viral_load * 1e-6 * (t2-t1) )
+                   * self.viral_load * self.viable_to_RNA * 1e-6 * (t2-t1) )
             result += sr_model.breathing_rate * (
                         res-self.integrated_longrange_concentration(t1,t2,evaporation)
                         )/sr_model.dilution_factor()
