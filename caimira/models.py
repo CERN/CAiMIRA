@@ -1441,10 +1441,11 @@ class ShortRangeModel:
     def _long_range_normed_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
         """
         Virus long-range exposure concentration normalized by the
-        virus viral load, as function of time.
+        virus viral load and fraction of infectious virus, as function of time.
         """
-        return (concentration_model.concentration(time) /
-                concentration_model.virus.viral_load_in_sputum)
+        return (concentration_model.concentration(time) / (
+                concentration_model.virus.viral_load_in_sputum *
+                concentration_model.infected.fraction_of_infectious_virus()))
 
     def _normed_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
         """
