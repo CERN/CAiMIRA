@@ -1014,13 +1014,14 @@ $(document).ready(function () {
   //Check all radio buttons previously selected
   $("input[type=radio]:checked").each(function() {require_fields(this)});
 
+  // TEMPORARILY DISABLED
   // On CERN theme, when the arve_sensors_option changes we want to make its respective
   // children show/hide.
-  if ($("input[type=radio][name=arve_sensors_option]").length > 0) {
-    $("input[type=radio][name=arve_sensors_option]").change(on_use_sensors_data_change);
-    // Call the function now to handle forward/back button presses in the browser.
-    on_use_sensors_data_change(url);
-  }
+  // if ($("input[type=radio][name=arve_sensors_option]").length > 0) {
+  //   $("input[type=radio][name=arve_sensors_option]").change(on_use_sensors_data_change);
+  //   // Call the function now to handle forward/back button presses in the browser.
+  //   on_use_sensors_data_change(url);
+  // }
 
   // When the ventilation_type changes we want to make its respective
   // children show/hide.
