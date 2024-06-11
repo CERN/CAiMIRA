@@ -293,6 +293,10 @@ function on_exposure_change() {
     if (this.checked) {
       getChildElement($(this)).show();
       require_fields(this);
+      if (this.id == "p_probabilistic_exposure") {
+        // Update geographic_cases
+        geographic_cases($('[name="location_name"]')[0].value.split(', ')[1]);
+      };
     }
     else {
       getChildElement($(this)).hide();
@@ -423,8 +427,10 @@ function geographic_cases(location_country_name) {
     url: `${$('#url_prefix').data().calculator_prefix}/cases/${location_country_name}`,
     type: 'GET',
     success: function (result) {
-      $('#geographic_cases').val(result);
-      result != '' ? $('#source_geographic_cases').show() : $('#source_geographic_cases').hide();
+      if (result != 'Country not found') {
+        $('#geographic_cases').val(result);
+        result != 'Country not found' ? $('#source_geographic_cases').show() : $('#source_geographic_cases').hide();
+      }
     },
     error: function(_, _, errorThrown) {
       console.log(errorThrown);
@@ -983,8 +989,8 @@ $(document).ready(function () {
   // Handle geographic location input
   if (Array.from(url.searchParams).length > 0) {
     if (!url.searchParams.has('location_name')) {
-      $('[name="location_name"]').val('Geneva')
-      $('[name="location_select"]').val('Geneva')
+      $('[name="location_name"]').val('Geneva, CHE')
+      $('[name="location_select"]').val('Geneva, CHE')
     }
     if (!url.searchParams.has('location_latitude')) {
       $('[name="location_latitude"]').val('46.20833')
@@ -993,10 +999,6 @@ $(document).ready(function () {
       $('[name="location_longitude"]').val('6.14275')
     }
   }
-
-  // Update geographic_cases
-  geographic_cases('CHE');
-
   // Handle WHO source message if geographic_cases pre-defined value is modified by user
   $('#geographic_cases').change(() => $('#source_geographic_cases').hide());
   
@@ -1200,8 +1202,6 @@ $(document).ready(function () {
             $('input[name="location_name"]').val(selectedSuggestion.text);
             $('input[name="location_latitude"]').val(geocoded_loc.location.y.toPrecision(7));
             $('input[name="location_longitude"]').val(geocoded_loc.location.x.toPrecision(7));
-            // Update geographic_cases
-            geographic_cases(geocoded_loc.attributes['country']);
           }
         });
 
