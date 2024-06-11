@@ -378,40 +378,48 @@ class ArveData(BaseRequestHandler):
 
 class CasesData(BaseRequestHandler):
     async def get(self, country):
-        http_client = AsyncHTTPClient()
-        # First we need the country to fetch the data
-        URL = f'https://restcountries.com/v3.1/alpha/{country}?fields=name'
+        http_client = tornado.httpclient.AsyncHTTPClient()
         try:
-            response = await http_client.fetch(HTTPRequest(
-                url=URL,
-                method='GET',
-            ),
-            raise_error=True)
+            country_name = await self.get_country_name(country, http_client)
+            if not country_name:
+                return self.finish('Country not found')
+
+            cases_data = await self.get_cases_data(country_name, http_client)
+            if not cases_data:
+                return self.finish('Data not available')
+
+            return self.finish(str(round(cases_data)))
         except Exception as e:
             print("Something went wrong: %s" % e)
+            return self.finish('Internal Server Error', status_code=500)
 
-        country_name = json.loads(response.body)['name']['common']
-
-        # Get global incident rates
-        URL = 'https://covid19.who.int/WHO-COVID-19-global-data.csv'
+    async def get_country_name(self, country_code, http_client):
+        url = f'https://restcountries.com/v3.1/alpha/{country_code}?fields=name'
         try:
-            response = await http_client.fetch(HTTPRequest(
-                url=URL,
-                method='GET',
-            ),
-            raise_error=True)
+            response = await http_client.fetch(url)
+            if response.code != 200:
+                return None
+            data = json.loads(response.body)
+            return data['name']['common'] if 'name' in data else None
         except Exception as e:
             print("Something went wrong: %s" % e)
+            return None
 
-        df = pd.read_csv(StringIO(response.body.decode('utf-8')), index_col=False)
-        cases = df.loc[df['Country'] == country_name]
-        # 7-day rolling average
-        current_date = str(datetime.datetime.now()).split(' ')[0]
-        eight_days_ago = str(datetime.datetime.now() - datetime.timedelta(days=7)).split(' ')[0]
-        cases = cases.set_index(['Date_reported'])
-        # If any of the 'New_cases' is 0, it means the data is not updated.
-        if (cases.loc[eight_days_ago:current_date]['New_cases'] == 0).any(): return self.finish('')
-        return self.finish(str(round(cases.loc[eight_days_ago:current_date]['New_cases'].mean())))
+    async def get_cases_data(self, country_name, http_client):
+        url = 'https://covid19.who.int/WHO-COVID-19-global-data.csv'
+        try:
+            response = await http_client.fetch(url)
+            if response.code != 200:
+                return None
+            data = response.body.decode('utf-8')
+            df = pd.read_csv(StringIO(data))
+            cases = df[df['Country'] == country_name]
+            if cases.empty:
+                return None
+            return cases['New_cases'].mean()
+        except Exception as e:
+            print("Something went wrong: %s" % e)
+            return None
 
 
 class GenericExtraPage(BaseRequestHandler):
