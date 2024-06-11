@@ -74,7 +74,7 @@ function uploadFile(endpoint) {
       }
     }
 
-    const data = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
+    const data = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: true });
     // Check if there is any data below the header row
     if (data.length <= 1) {
       $("#upload-error")
