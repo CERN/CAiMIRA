@@ -541,7 +541,7 @@ function draw_generic_concentration_plot(
         h_lines,
     ) {
 
-    list_of_scenarios = (plot_svg_id === 'CO2_concentration_graph') ? CO2_concentrations : alternative_scenarios
+    list_of_scenarios = (plot_svg_id === 'CO2_concentration_graph') ? {'CO₂ concentration': {'concentrations': CO2_concentrations}} : alternative_scenarios
     // H:M format
     var time_format = d3.timeFormat('%H:%M');
     // D3 array of ten categorical colors represented as RGB hexadecimal strings.
@@ -698,7 +698,7 @@ function draw_generic_concentration_plot(
     }
 
     function update_concentration_plot(concentration_data) {
-        list_of_scenarios = (plot_svg_id === 'CO2_concentration_graph') ? CO2_concentrations : alternative_scenarios
+        list_of_scenarios = (plot_svg_id === 'CO2_concentration_graph') ? {'CO₂ concentration': {'concentrations': CO2_concentrations}} : alternative_scenarios
         var highest_concentration = 0.
 
         for (scenario in list_of_scenarios) {
