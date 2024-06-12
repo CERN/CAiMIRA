@@ -72,7 +72,7 @@ def test_conditional_prob_inf_given_vl_dist(data_registry, baseline_exposure_mod
     specific_vl = np.log10(mc_model.concentration_model.infected.virus.viral_load_in_sputum)
     step = 8/100
     actual_pi_means, actual_lower_percentiles, actual_upper_percentiles = (
-        report_generator.conditional_prob_inf_given_vl_dist(data_registry, infection_probability, viral_loads, specific_vl, step)
+        report_generator.conditional_prob_inf_given_vl_dist(infection_probability, viral_loads, specific_vl, step)
     )
 
     assert np.allclose(actual_pi_means, expected_pi_means, atol=0.002)
