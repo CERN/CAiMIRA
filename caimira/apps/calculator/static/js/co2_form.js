@@ -312,6 +312,11 @@ function plotCO2Data(url) {
     fetch(url, {
       method: "POST",
       body: JSON.stringify(CO2_mapping),
+      headers: {
+        "Content-Type": "application/json",
+        "X-XSRFToken": document.getElementsByName('_xsrf')[0].value
+      },
+      credentials: "include",
     }).then((response) =>
       response
         .json()
@@ -347,6 +352,11 @@ function submitFittingAlgorithm(url) {
     fetch(url, {
       method: "POST",
       body: JSON.stringify(CO2_mapping),
+      headers: {
+        "Content-Type": "application/json",
+        "X-XSRFToken": document.getElementsByName('_xsrf')[0].value
+      },
+      credentials: "include",
     })
       .then((response) => response.json())
       .then((json_response) => {
