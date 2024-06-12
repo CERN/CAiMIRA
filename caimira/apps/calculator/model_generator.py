@@ -31,7 +31,6 @@ class VirusFormData(FormData):
     arve_sensors_option: bool
     precise_activity: dict
     ceiling_height: float
-    conditional_probability_plot: bool
     conditional_probability_viral_loads: bool
     CO2_fitting_result: dict
     floor_area: float
@@ -497,7 +496,6 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'air_changes': '',
         'air_supply': '',
         'ceiling_height': '',
-        'conditional_probability_plot': '0',
         'conditional_probability_viral_loads': '0',
         'exposed_coffee_break_option': 'coffee_break_4',
         'exposed_coffee_duration': '10',
