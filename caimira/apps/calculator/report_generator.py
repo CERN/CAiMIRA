@@ -293,8 +293,8 @@ def uncertainties_plot(infection_probability: models._VectorisedFloat,
 
     axs[0, 1].set_visible(False)
 
-    axs[0, 0].plot(viral_loads, np.array(pi_means)/100, label='Predictive total probability')
-    axs[0, 0].fill_between(viral_loads, np.array(lower_percentiles)/100, np.array(upper_percentiles)/100, alpha=0.1, label='5ᵗʰ and 95ᵗʰ percentile')
+    axs[0, 0].plot(viral_loads, np.array(pi_means), label='Predictive total probability')
+    axs[0, 0].fill_between(viral_loads, np.array(lower_percentiles), np.array(upper_percentiles), alpha=0.1, label='5ᵗʰ and 95ᵗʰ percentile')
 
     axs[0, 2].hist(infection_probability, bins=30, orientation='horizontal')
     axs[0, 2].set_xticks([])
@@ -304,8 +304,8 @@ def uncertainties_plot(infection_probability: models._VectorisedFloat,
     highest_bar = axs[0, 2].get_xlim()[1]
     axs[0, 2].set_xlim(0, highest_bar)
 
-    axs[0, 2].text(highest_bar * 0.5, 0.5,
-                        rf"$\bf{np.round(np.mean(infection_probability), 1)}$%", ha='center', va='center')
+    axs[0, 2].text(highest_bar * 0.5, 50,
+                        "$P(I)=$\n" + rf"$\bf{np.round(np.mean(infection_probability), 1)}$%", ha='center', va='center')
     axs[1, 0].hist(np.log10(viral_load_in_sputum),
                     bins=150, range=(2, 10), color='grey')
     axs[1, 0].set_facecolor("lightgrey")
