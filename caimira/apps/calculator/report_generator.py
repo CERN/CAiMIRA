@@ -234,7 +234,7 @@ def conditional_prob_inf_given_vl_dist(
     upper_percentiles = []
 
     for vl_log in viral_loads:
-        # Viral load corresponding to a certain viral load value in the distribution
+        # Probability of infection corresponding to a certain viral load value in the distribution
         specific_prob = infection_probability[np.where((vl_log-step/2-specific_vl)*(vl_log+step/2-specific_vl)<0)[0]] #type: ignore
         
         pi_means.append(specific_prob.mean())
@@ -246,7 +246,7 @@ def conditional_prob_inf_given_vl_dist(
 
 def manufacture_conditional_probability_data(
     exposure_model: models.ExposureModel,
-    infection_probability: models._VectorisedFloat,
+    infection_probability: models._VectorisedFloat
 ):
     min_vl = 2
     max_vl = 10

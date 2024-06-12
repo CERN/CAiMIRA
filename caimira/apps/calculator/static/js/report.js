@@ -1,6 +1,6 @@
-function on_report_load(conditional_probability_plot) {
+function on_report_load(conditional_probability_viral_loads) {
     // Check/uncheck uncertainties image generation
-    document.getElementById('conditional_probability_plot').checked = conditional_probability_plot
+    document.getElementById('conditional_probability_viral_loads').checked = conditional_probability_viral_loads
 }
 
 /* Generate the concentration plot using d3 library. */
@@ -1164,14 +1164,14 @@ function display_rename_column(bool, id) {
     else document.getElementById(id).style.display = 'none';
 }
 
-function conditional_probability_plot(value, is_generated) {
+function conditional_probability_viral_loads(value, is_generated) {
     // If the image was previously generated, there is no need to reload the page.
     if (value && is_generated == 1) {
         document.getElementById('conditional_probability_div').style.display = 'block'
     }
     else if (value && is_generated == 0) {
-        document.getElementById('label_conditional_probability_plot').innerHTML = `<span id="loading_spinner" class="spinner-border spinner-border-sm mr-2 mt-0" role="status" aria-hidden="true"></span>Loading...`;
-        document.getElementById('conditional_probability_plot').setAttribute('disabled', true);
+        document.getElementById('label_conditional_probability_viral_loads').innerHTML = `<span id="loading_spinner" class="spinner-border spinner-border-sm mr-2 mt-0" role="status" aria-hidden="true"></span>Loading...`;
+        document.getElementById('conditional_probability_viral_loads').setAttribute('disabled', true);
         document.cookie = `conditional_plot= 1; path=/`;
         window.location.reload();
     }

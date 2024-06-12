@@ -193,7 +193,7 @@ class ConcentrationModel(BaseRequestHandler):
         )
         # Re-generate the report with the conditional probability of infection plot
         if self.get_cookie('conditional_plot'):
-            form.conditional_probability_plot = True if self.get_cookie('conditional_plot') == '1' else False
+            form.conditional_probability_viral_loads = True if self.get_cookie('conditional_plot') == '1' else False
             self.clear_cookie('conditional_plot') # Clears cookie after changing the form value.
 
         report_task = executor.submit(
