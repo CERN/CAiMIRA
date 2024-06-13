@@ -241,7 +241,7 @@ def conditional_prob_inf_given_vl_dist(
         lower_percentiles.append(np.quantile(specific_prob, 0.05))
         upper_percentiles.append(np.quantile(specific_prob, 0.95))
 
-    return np.array(pi_means), np.array(lower_percentiles), np.array(upper_percentiles)
+    return pi_means, lower_percentiles, upper_percentiles
 
 
 def manufacture_conditional_probability_data(
@@ -255,25 +255,25 @@ def manufacture_conditional_probability_data(
     specific_vl = np.log10(exposure_model.concentration_model.virus.viral_load_in_sputum)
     pi_means, lower_percentiles, upper_percentiles = conditional_prob_inf_given_vl_dist(infection_probability, viral_loads,
                                                                                         specific_vl, step)
-    log10_vl_in_sputum : models._VectorisedFloat = np.log10(exposure_model.concentration_model.infected.virus.viral_load_in_sputum)
+    log10_vl_in_sputum = np.log10(exposure_model.concentration_model.infected.virus.viral_load_in_sputum)
     
     return {
-        'viral_loads': viral_loads, 
-        'pi_means': pi_means, 
-        'lower_percentiles': lower_percentiles,
-        'upper_percentiles': upper_percentiles,
-        'log10_vl_in_sputum': log10_vl_in_sputum,
+        'viral_loads': list(viral_loads), 
+        'pi_means': list(pi_means), 
+        'lower_percentiles': list(lower_percentiles),
+        'upper_percentiles': list(upper_percentiles),
+        'log10_vl_in_sputum': list(log10_vl_in_sputum),
     }
 
 
 def uncertainties_plot(infection_probability: models._VectorisedFloat,
                        conditional_probability_data: dict):
 
-    viral_loads: models._VectorisedFloat = conditional_probability_data['viral_loads']
-    pi_means: models._VectorisedFloat = conditional_probability_data['pi_means']
-    lower_percentiles: models._VectorisedFloat = conditional_probability_data['lower_percentiles']
-    upper_percentiles: models._VectorisedFloat = conditional_probability_data['upper_percentiles']
-    log10_vl_in_sputum: models._VectorisedFloat = conditional_probability_data['log10_vl_in_sputum']
+    viral_loads: list = conditional_probability_data['viral_loads']
+    pi_means: list = conditional_probability_data['pi_means']
+    lower_percentiles: list = conditional_probability_data['lower_percentiles']
+    upper_percentiles: list = conditional_probability_data['upper_percentiles']
+    log10_vl_in_sputum: list = conditional_probability_data['log10_vl_in_sputum']
     
     fig, axes = plt.subplots(2, 3,
         gridspec_kw={'width_ratios': [5, 0.5] + [1],
