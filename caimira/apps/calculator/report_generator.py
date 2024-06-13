@@ -176,10 +176,10 @@ def calculate_report_data(form: VirusFormData, model: models.ExposureModel, exec
     if (form.conditional_probability_viral_loads and 
         model.data_registry.virological_data['virus_distributions'][form.virus_type]['viral_load_in_sputum'] == ViralLoads.COVID_OVERALL.value): # type: ignore
             # Generate all the required data for the conditional probability plot
-            conditional_prob_data = manufacture_conditional_probability_data(model, prob)
+            conditional_probability_data = manufacture_conditional_probability_data(model, prob)
             # Generate the matplotlib image based on the received data
-            uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(prob, conditional_prob_data)))
-            
+            uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(prob, conditional_probability_data)))
+
     return {
         "model_repr": repr(model),
         "times": list(times),
@@ -267,13 +267,13 @@ def manufacture_conditional_probability_data(
 
 
 def uncertainties_plot(infection_probability: models._VectorisedFloat,
-                       conditional_prob_data: dict):
+                       conditional_probability_data: dict):
 
-    viral_loads: models._VectorisedFloat = conditional_prob_data['viral_loads']
-    pi_means: models._VectorisedFloat = conditional_prob_data['pi_means']
-    lower_percentiles: models._VectorisedFloat = conditional_prob_data['lower_percentiles']
-    upper_percentiles: models._VectorisedFloat = conditional_prob_data['upper_percentiles']
-    log10_vl_in_sputum: models._VectorisedFloat = conditional_prob_data['log10_vl_in_sputum']
+    viral_loads: models._VectorisedFloat = conditional_probability_data['viral_loads']
+    pi_means: models._VectorisedFloat = conditional_probability_data['pi_means']
+    lower_percentiles: models._VectorisedFloat = conditional_probability_data['lower_percentiles']
+    upper_percentiles: models._VectorisedFloat = conditional_probability_data['upper_percentiles']
+    log10_vl_in_sputum: models._VectorisedFloat = conditional_probability_data['log10_vl_in_sputum']
     
     fig, axes = plt.subplots(2, 3,
         gridspec_kw={'width_ratios': [5, 0.5] + [1],
