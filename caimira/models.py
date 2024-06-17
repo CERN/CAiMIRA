@@ -692,13 +692,6 @@ class _ExpirationBase:
         """
         raise NotImplementedError("Subclass must implement")
 
-    def aerosols_without_mask(self):
-        """
-        Total volume of aerosols expired per volume of exhaled air 
-        without considering the mask (mL.m^-3).
-        """
-        raise NotImplementedError("Subclass must implement")
-
 
 @dataclass(frozen=True)
 class Expiration(_ExpirationBase):
@@ -735,18 +728,6 @@ class Expiration(_ExpirationBase):
         # Final result converted from microns^3/cm3 to mL/cm^3
         return self.cn * (volume(self.diameter) *
                 (1 - mask.exhale_efficiency(self.diameter))) * 1e-12
-
-    @cached()
-    def aerosols_without_mask(self):
-        """
-        Total volume of aerosols expired per volume of exhaled air 
-        without considering the mask. Result is in mL.m^-3.
-        """
-        def volume(d):
-            return (np.pi * d**3) / 6.
-
-        # Final result converted from microns^3/cm3 to mL/m3
-        return self.cn * volume(self.diameter) * 1e-6
 
 
 @dataclass(frozen=True)
@@ -891,13 +872,6 @@ class _PopulationWithVirus(Population):
     def aerosols(self):
         """
         Total volume of aerosols expired per volume of exhaled air (mL/cm^3).
-        """
-        raise NotImplementedError("Subclass must implement")
-    
-    def aerosols_without_mask(self):
-        """
-        Total volume of aerosols expired per volume of exhaled air 
-        without considering the mask (mL.m^-3).
         """
         raise NotImplementedError("Subclass must implement")
 
@@ -1402,16 +1376,15 @@ class ShortRangeModel:
         return factors
     
     def _normed_jet_origin_concentration(self) -> _VectorisedFloat:
-        return self.expiration.aerosols_without_mask()
+        # The short range origin concentration does not consider the mask contribution.
+        return self.expiration.aerosols(mask=Mask.types['No mask'])
 
     def _long_range_normed_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
         """
         Virus long-range exposure concentration normalized by the
         virus viral load and fraction of infectious virus, as function of time.
         """
-        return (concentration_model.concentration(time) / (
-                concentration_model.virus.viral_load_in_sputum *
-                concentration_model.infected.fraction_of_infectious_virus()))
+        return (concentration_model.concentration(time) / self.normalization_factor(concentration_model.infected))
 
     def _normed_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
         """
@@ -1425,9 +1398,9 @@ class ShortRangeModel:
         # Verifies if the given time falls within a short-range interaction
         if start <= time <= stop:
             dilution = self.dilution_factor()
-            # Jet origin concentration normalized by the viral load and f_inf
+            # Jet origin concentration normalized by the emission rate (except the BR)
             normed_jet_origin_concentration = self._normed_jet_origin_concentration()
-            # Long-range concentration normalized by the virus viral load and f_inf
+            # Long-range concentration normalized by the emission rate (except the BR)
             long_range_normed_concentration = self._long_range_normed_concentration(concentration_model, time)
 
             # The long-range concentration values are then approximated using interpolation:
@@ -1443,10 +1416,8 @@ class ShortRangeModel:
         return 0.
     
     def normalization_factor(self, infected: InfectedPopulation) -> _VectorisedFloat:
-        # The normalization factor does not consider the BR contribution, and therefore the conversion factor.
-        return infected.emission_rate_per_aerosol_per_person_when_present() / (
-                infected.activity.exhalation_rate * 10 ** 6
-            )
+        # The normalization factor does not consider the BR contribution
+        return infected.emission_rate_per_aerosol_per_person_when_present() / infected.activity.exhalation_rate
     
     def jet_origin_concentration(self, infected: InfectedPopulation) -> _VectorisedFloat:
         return self._normed_jet_origin_concentration() * self.normalization_factor(infected)
@@ -1491,16 +1462,16 @@ class ShortRangeModel:
             return start, stop
 
     def _normed_jet_exposure_between_bounds(self,
-                    concentration_model: ConcentrationModel,
                     time1: float, time2: float):
         """
         Get the part of the integrated short-range concentration of
         viruses in the air, between the times start and stop, coming
-        from the jet concentration, normalized by the viral load, and
-        without dilution.
+        from the jet concentration, normalized by the viral load and
+        f_inf, and without dilution.
         """
         start, stop = self.extract_between_bounds(time1, time2)
-        jet_origin = self.expiration.aerosols_without_mask()
+        # Note the conversion factor mL/cm^3 -> mL/m3
+        jet_origin = self.expiration.aerosols(mask=Mask.types['No mask']) * 10**6
         return jet_origin * (stop - start)
 
     def _normed_interpolated_longrange_exposure_between_bounds(
@@ -1508,8 +1479,8 @@ class ShortRangeModel:
                     time1: float, time2: float):
         """
         Get the part of the integrated short-range concentration due
-        to the background concentration, normalized by the viral load
-        and the breathing rate, and without dilution.
+        to the background concentration, normalized by the viral load,
+        f_inf, and the breathing rate, and without dilution.
         One needs to interpolate the integrated long-range concentration
         for the particle diameters defined here.
         TODO: make sure any potential extrapolation has a
@@ -1522,6 +1493,7 @@ class ShortRangeModel:
         normed_int_concentration = (
             concentration_model.integrated_concentration(start, stop)
                 /concentration_model.virus.viral_load_in_sputum
+                /concentration_model.infected.fraction_of_infectious_virus()
                 /concentration_model.infected.activity.exhalation_rate
                 )
         normed_int_concentration_interpolated = np.interp(
@@ -1737,8 +1709,7 @@ class ExposureModel:
         deposited_exposure: _VectorisedFloat = 0.
         for interaction in self.short_range:
             start, stop = interaction.extract_between_bounds(time1, time2)
-            short_range_jet_exposure = interaction._normed_jet_exposure_between_bounds(
-                                        self.concentration_model, start, stop)
+            short_range_jet_exposure = interaction._normed_jet_exposure_between_bounds(start, stop)
             short_range_lr_exposure = interaction._normed_interpolated_longrange_exposure_between_bounds(
                                         self.concentration_model, start, stop)
             dilution = interaction.dilution_factor()
@@ -1772,8 +1743,8 @@ class ExposureModel:
         # Then we multiply by the emission rate without the BR contribution (and conversion factor),
         # and parameters of the vD equation (i.e. n_in).
         deposited_exposure *= (
-            (self.concentration_model.infected.emission_rate_per_aerosol_per_person_when_present() / 
-             (self.concentration_model.infected.activity.exhalation_rate * 10 ** 6)) *                 
+            (self.concentration_model.infected.emission_rate_per_aerosol_per_person_when_present() / (
+             self.concentration_model.infected.activity.exhalation_rate * 10**6)) *                 
             (1 - self.exposed.mask.inhale_efficiency()))
         # Long-range concentration
         deposited_exposure += self.long_range_deposited_exposure_between_bounds(time1, time2)

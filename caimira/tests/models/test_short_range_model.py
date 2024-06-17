@@ -49,7 +49,7 @@ def test_short_range_model_ndarray(concentration_model, short_range_model):
     model = short_range_model.build_model(SAMPLE_SIZE)
     assert isinstance(model._normed_concentration(concentration_model, 10.75), np.ndarray)
     assert isinstance(model.short_range_concentration(concentration_model, 10.75), np.ndarray)
-    assert isinstance(model._normed_jet_exposure_between_bounds(concentration_model, 10.75, 10.85), np.ndarray)
+    assert isinstance(model._normed_jet_exposure_between_bounds(10.75, 10.85), np.ndarray)
     assert isinstance(model._normed_interpolated_longrange_exposure_between_bounds(concentration_model, 10.75, 10.85), np.ndarray)
     assert isinstance(model.short_range_concentration(concentration_model, 14.0), float)
 
