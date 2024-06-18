@@ -2,6 +2,7 @@ import dataclasses
 import ipywidgets as widgets
 import typing
 import numpy as np
+import logging
 
 from caimira import data, models, state
 from caimira.store.data_registry import DataRegistry
@@ -10,6 +11,8 @@ import matplotlib.figure
 import matplotlib.lines as mlines
 import matplotlib.patches as patches
 from .expert import generate_presence_widget, collapsible, ipympl_canvas, WidgetGroup, CAIMIRAStateBuilder
+
+LOG = logging.getLogger(__name__)
 
 
 def baseline_model(data_registry: DataRegistry):
@@ -188,6 +191,10 @@ class ExposureComparisonResult(View):
 
 class CO2Application(Controller):
     def __init__(self) -> None:
+        LOG.warning(
+            "CO2Application is deprecated and will no longer be maintained. It remains in the codebase for legacy purposes."
+        )
+
         self._data_registry = DataRegistry()
         # self._debug_output = widgets.Output()
 

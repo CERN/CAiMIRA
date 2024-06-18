@@ -12,9 +12,12 @@ from matplotlib import pyplot as plt
 import numpy as np
 import datetime
 import pandas as pd
+import logging
 
 from caimira import data, models, state
 from caimira.store.data_registry import DataRegistry
+
+LOG = logging.getLogger(__name__)
 
 
 def collapsible(widgets_to_collapse: typing.List, title: str, start_collapsed=False):
@@ -929,6 +932,10 @@ class CAIMIRAStateBuilder(state.StateBuilder):
 
 class ExpertApplication(Controller):
     def __init__(self) -> None:
+        LOG.warning(
+            "ExpertApplication is deprecated and will no longer be maintained. It remains in the codebase for legacy purposes."
+        )
+
         self._data_registry = DataRegistry()
         #: A list of scenario name and ModelState instances. This is intended to be
         #: mutated. Any mutation should notify the appropriate Views for handling.
