@@ -66,7 +66,7 @@ The information also features a distribution diagram of licenses and a brief des
 A risk assessment tool which simulates the airborne spread of the SARS-CoV-2 virus for space managers.
 
 
-### CAiMIRA Expert App
+### CAiMIRA Expert App and CO₂ App
 
 A tool to interact with various parameters of the CAiMIRA model.
 
@@ -139,10 +139,23 @@ If any of the `.rst` files under the `caimira/docs` folder is changed, this comm
 
 Then, right click on `caimira/docs/_build/html/index.html` and select `Open with` your preferred web browser.
 
-### Running the CAiMIRA Expert-App app in development mode
+### Running the CAiMIRA Expert-App or CO2-App apps in development mode
+
+#### Disclaimer
+
+The `ExpertApplication` and `CO2Application` are no longer actively maintained but will remain in the codebase for legacy purposes.
+Please note that the functionality of these applications might be compromised due to deprecation issues.
+
+Run `ExpertApplication`:
 
 ```
 voila caimira/apps/expert/caimira.ipynb --port=8080
+```
+
+Run `CO2Application`:
+
+```
+voila caimira/apps/expert_co2/caimira.ipynb --port=8080
 ```
 
 Then visit http://localhost:8080.
