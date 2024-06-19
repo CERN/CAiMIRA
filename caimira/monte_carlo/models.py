@@ -101,7 +101,7 @@ def _build_mc_model(model: dataclass_instance) -> typing.Type[MCModelBase[_Model
     bases = []
     # Update the inheritance/based to use the new MC classes, rather than the caimira.models ones.
     for model_base in model.__bases__:  # type: ignore
-        if model_base is object:
+        if model_base is object or model_base is typing.Generic:
             bases.append(MCModelBase)
         else:
             mc_model = getattr(sys.modules[__name__], model_base.__name__)

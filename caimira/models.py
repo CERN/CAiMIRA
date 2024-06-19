@@ -64,6 +64,9 @@ Time_t = typing.TypeVar('Time_t', float, int)
 BoundaryPair_t = typing.Tuple[Time_t, Time_t]
 BoundarySequence_t = typing.Union[typing.Tuple[BoundaryPair_t, ...], typing.Tuple]
 
+# Generic type for piecewise methods
+Piecewise_T = typing.TypeVar("Piecewise_T")
+
 
 @dataclass(frozen=True)
 class Interval:
@@ -131,7 +134,7 @@ class PeriodicInterval(Interval):
 
 
 @dataclass(frozen=True)
-class PiecewiseConstant:
+class _GenericPiecewiseConstant(typing.Generic[Piecewise_T]):
 
     # TODO: Implement rather a periodic version (24-hour period), where
     # transition_times and values have the same length.
@@ -140,7 +143,7 @@ class PiecewiseConstant:
     transition_times: typing.Tuple[float, ...]
 
     #: values of the function between transitions
-    values: typing.Tuple[_VectorisedFloat, ...]
+    values: typing.Tuple[Piecewise_T, ...]
 
     def __post_init__(self):
         if len(self.transition_times) != len(self.values)+1:
@@ -151,7 +154,7 @@ class PiecewiseConstant:
         if not all(shapes[0] == shape for shape in shapes):
             raise ValueError("All values must have the same shape")
 
-    def value(self, time) -> _VectorisedFloat:
+    def value(self, time) -> Piecewise_T:
         if time <= self.transition_times[0]:
             return self.values[0]
         elif time > self.transition_times[-1]:
@@ -171,8 +174,8 @@ class PiecewiseConstant:
             if value:
                 present_times.append((t1, t2))
         return SpecificInterval(present_times=tuple(present_times))
-
-    def refine(self, refine_factor=10) -> "PiecewiseConstant":
+    
+    def refine(self, refine_factor=10) -> "_GenericPiecewiseConstant[Piecewise_T]":
         # Build a new PiecewiseConstant object with a refined mesh,
         # using a linear interpolation in-between the initial mesh points
         refined_times = np.linspace(self.transition_times[0], self.transition_times[-1],
@@ -181,7 +184,7 @@ class PiecewiseConstant:
             self.transition_times,
             np.concatenate([self.values, self.values[-1:]], axis=0),
             axis=0)
-        return PiecewiseConstant(
+        return type(self)(
             # NOTE: It is important that the time type is float, not np.float, in
             # order to allow hashability (for caching).
             tuple(float(time) for time in refined_times),
@@ -190,12 +193,29 @@ class PiecewiseConstant:
 
 
 @dataclass(frozen=True)
-class IntPiecewiseConstant(PiecewiseConstant):
-
-    #: values of the function between transitions
-    values: typing.Tuple[int, ...]
+class PiecewiseConstant(_GenericPiecewiseConstant[_VectorisedFloat]):
+    
+    #: vectorised values of the function between transitions
+    values: typing.Tuple[_VectorisedFloat, ...]
 
     def value(self, time) -> _VectorisedFloat:
+        return super().value(time)
+    
+    def refine(self, refine_factor=10) -> "PiecewiseConstant":
+        refined_instante = super().refine(refine_factor)
+        return PiecewiseConstant(
+            transition_times=refined_instante.transition_times,
+            values=refined_instante.values
+        )
+
+
+@dataclass(frozen=True)
+class IntPiecewiseConstant(_GenericPiecewiseConstant[int]):
+
+    #: int values of the function between transitions
+    values: typing.Tuple[int, ...]
+
+    def value(self, time) -> int:
         if time <= self.transition_times[0] or time > self.transition_times[-1]:
             return 0
 
@@ -204,6 +224,13 @@ class IntPiecewiseConstant(PiecewiseConstant):
             if t1 < time <= t2:
                 break
         return value
+    
+    def refine(self, refine_factor=10) -> "IntPiecewiseConstant":
+        refined_instante = super().refine(refine_factor)
+        return IntPiecewiseConstant(
+            transition_times=refined_instante.transition_times,
+            values=refined_instante.values
+        )
 
 
 @dataclass(frozen=True)
@@ -806,34 +833,20 @@ Activity.types = {
 
 
 @dataclass(frozen=True)
-class ActivityPiecewiseConstant:
+class ActivityPiecewiseConstant(_GenericPiecewiseConstant[Activity]):
 
-    #: transition times at which the function changes value (hours).
-    transition_times: typing.Tuple[float, ...]
-
-    #: values of the function between transitions
+    #: activity values of the function between transitions
     values: typing.Tuple[Activity, ...]
 
-    def __post_init__(self):
-        if len(self.transition_times) != len(self.values)+1:
-            raise ValueError("transition_times must contain one more element than values")
-        if tuple(sorted(set(self.transition_times))) != self.transition_times:
-            raise ValueError("transition_times must not contain duplicated elements and must be sorted")
-        shapes = [np.array(v).shape for v in self.values]
-        if not all(shapes[0] == shape for shape in shapes):
-            raise ValueError("All values must have the same shape")
-
     def value(self, time) -> Activity:
-        if time <= self.transition_times[0]:
-            return self.values[0]
-        elif time > self.transition_times[-1]:
-            return self.values[-1]
-
-        for t1, t2, value in zip(self.transition_times[:-1],
-                                 self.transition_times[1:], self.values):
-            if t1 < time <= t2:
-                break
-        return value
+        return super().value(time)
+    
+    def refine(self, refine_factor=10) -> "ActivityPiecewiseConstant":
+        refined_instante = super().refine(refine_factor)
+        return ActivityPiecewiseConstant(
+            transition_times=refined_instante.transition_times,
+            values=refined_instante.values
+        )
 
 
 @dataclass(frozen=True)
