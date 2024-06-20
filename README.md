@@ -109,19 +109,19 @@ python -m caimira.apps.calculator
 To run with a specific template theme created:
 
 ```
-python -m caimira.apps.calculator --theme=caimira/apps/templates/{theme}
+python -m ui.apps.calculator --theme=ui/apps/templates/{theme}
 ```
 
 To run the entire app in a different `APPLICATION_ROOT` path:
 
 ```
-python -m caimira.apps.calculator --app_root=/myroot
+python -m ui.apps.calculator --app_root=/myroot
 ```
 
 To run the calculator on a different URL path:
 
 ```
-python -m caimira.apps.calculator --prefix=/mycalc
+python -m ui.apps.calculator --prefix=/mycalc
 ```
 
 Each of these commands will start a local version of CAiMIRA, which can be visited at http://localhost:8080/.
@@ -142,7 +142,7 @@ Then, right click on `caimira/docs/_build/html/index.html` and select `Open with
 ### Running the CAiMIRA Expert-App app in development mode
 
 ```
-voila caimira/apps/expert/caimira.ipynb --port=8080
+voila ui/apps/expert_apps/expert/caimira.ipynb --port=8080
 ```
 
 Then visit http://localhost:8080.

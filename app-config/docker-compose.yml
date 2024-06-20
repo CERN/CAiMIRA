@@ -19,7 +19,7 @@ services:
       - APP_NAME=calculator-app
       - APPLICATION_ROOT=/
       - CAIMIRA_CALCULATOR_PREFIX=/calculator-cern
-      - CAIMIRA_THEME=caimira/apps/templates/cern
+      - CAIMIRA_THEME=ui/apps/templates/cern
       - DATA_SERVICE_ENABLED=0
       - CAIMIRA_PROFILER_ENABLED=0
     user: ${CURRENT_UID}

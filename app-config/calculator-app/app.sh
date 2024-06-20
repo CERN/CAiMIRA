@@ -26,14 +26,14 @@ if [[ "$APP_NAME" == "calculator-app" ]]; then
     export "DATA_SERVICE_ENABLED"="${DATA_SERVICE_ENABLED:=0}"
     export "CAIMIRA_PROFILER_ENABLED"="${CAIMIRA_PROFILER_ENABLED:=0}"
 
-    echo "Starting the caimira webservice with: python -m caimira.apps.calculator ${args[@]}"
-    python -m caimira.apps.calculator "${args[@]}"
+    echo "Starting the caimira webservice with: python -m ui.apps.calculator ${args[@]}"
+    python -m ui.apps.calculator "${args[@]}"
 elif [[ "$APP_NAME" == "caimira-voila" ]]; then
     echo "Starting the voila service"
-    voila caimira/apps/expert/ --port=8080 --no-browser --base_url=/voila-server/ --tornado_settings 'allow_origin=*'
+    voila ui/apps/expert_apps/expert --port=8080 --no-browser --base_url=/voila-server/ --tornado_settings 'allow_origin=*'
 elif [[ "$APP_NAME" == "caimira-co2-voila" ]]; then
     echo "Starting the CO2 voila service"
-    voila caimira/apps/expert_co2/ --port=8080 --no-browser --base_url=/co2-voila-server/ --tornado_settings 'allow_origin=*'
+    voila ui/apps/expert_apps/expert_co2/ --port=8080 --no-browser --base_url=/co2-voila-server/ --tornado_settings 'allow_origin=*'
 else
     echo "No APP_NAME specified"
     exit 1
