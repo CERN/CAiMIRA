@@ -55,7 +55,7 @@ class SimpleConcentrationModel:
     #: Number of infected people
     num_infected: int = 1
 
-    #: Fraction of infected viruses (viable to RNA ratio)
+    #: Viable to RNA ratio
     viable_to_RNA: _VectorisedFloat = 0.5
 
     #: Host immunity factor (0. for not immune)
@@ -96,6 +96,12 @@ class SimpleConcentrationModel:
 
         return (self.lambda_ventilation
                 + ln2/(np.where(hl_calc <= 0, 6.43, np.minimum(6.43, hl_calc))))
+
+    def fraction_of_infectious_virus(self) -> _VectorisedFloat:
+        """
+        The fraction of infectious virus.
+        """
+        return self.viable_to_RNA * (1 - self.HI)
 
     @method_cache
     def deposition_removal_coefficient(self) -> float:
@@ -181,8 +187,8 @@ class SimpleConcentrationModel:
         return ( ( (0 if not self.infected_presence.triggered(t)
                     else self.f(lambda_rate,0))
                   + result * np.exp(-lambda_rate*(t-ti)) )
-                * self.num_infected * self.viable_to_RNA
-                * (1. - self.HI) / self.room_volume)
+                * self.num_infected * self.fraction_of_infectious_virus()
+                / self.room_volume)
 
 
 @dataclass(frozen=True)
@@ -411,8 +417,8 @@ class SimpleExposureModel(SimpleConcentrationModel):
                     else self.f_with_fdep(lambda_rate,0,evaporation)*(t2-t1))
                   + (primitive(t2) * np.exp(-lambda_rate*(t2-ti)) -
                      primitive(t1) * np.exp(-lambda_rate*(t1-ti)) ) )
-                * self.num_infected * self.viable_to_RNA
-                * (1. - self.HI) / self.room_volume)
+                * self.num_infected * self.fraction_of_infectious_virus()
+                / self.room_volume)
 
     @method_cache
     def integrated_shortrange_concentration(self) -> _VectorisedFloat:
@@ -431,7 +437,7 @@ class SimpleExposureModel(SimpleConcentrationModel):
             res = (quad(integrand,
                         sr_model.diameter_min,sr_model.diameter_max,
                         epsabs=0.,limit=500)[0]
-                   * self.viral_load * self.viable_to_RNA * 1e-6 * (t2-t1) )
+                   * self.viral_load * self.fraction_of_infectious_virus() * 1e-6 * (t2-t1) )
             result += sr_model.breathing_rate * (
                         res-self.integrated_longrange_concentration(t1,t2,evaporation)
                         )/sr_model.dilution_factor()
