@@ -1379,8 +1379,9 @@ class ShortRangeModel:
     
     def _normed_jet_origin_concentration(self) -> _VectorisedFloat:
         '''
-        The initial emission concentration at the source origin (mouth/nose)
-        normalized by the viral load and f_inf factors. Results in mL.cm^3.
+        The initial jet concentration at the source origin (mouth/nose)
+        normalized by the diameter-independent variables (viral load and f_inf). 
+        Results in mL.cm^3.
         '''
         # The short range origin concentration does not consider the mask contribution.
         return self.expiration.aerosols(mask=Mask.types['No mask'])
@@ -1432,7 +1433,8 @@ class ShortRangeModel:
     
     def jet_origin_concentration(self, infected: InfectedPopulation) -> _VectorisedFloat:
         """
-        The initial emission concentration at the source origin (mouth/nose).
+        The initial jet concentration at the source origin (mouth/nose).
+        Returns the full result with the diameter dependent and independent varibles, in virions/m^3.
         """
         return self._normed_jet_origin_concentration() * self.normalization_factor(infected)
     
