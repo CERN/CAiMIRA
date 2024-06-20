@@ -964,15 +964,17 @@ class InfectedPopulation(_PopulationWithVirus):
         """
         The emission rate of virions in the expired air per mL of respiratory fluid,
         if the infected population is present, in (virion.cm^3)/(mL.h).
-        This method includes only the diameter-independent variables within the emission rate.
+        This method returns only the diameter-independent variables within the emission rate.
         It should not be a function of time.
         """
-        # Note on units: exhalation rate is in m^3/h -> 1e6 conversion factor
-        # Returns the emission rate times the number of infected hosts in the room
+        # Conversion factor explanation:
+        # The exhalation rate is in m^3/h, therefore the 1e6 conversion factor
+        # is to convert m^3/h into cm^3/h to return (virions.cm^3)/(mL.h),
+        # so that we can then multiply by aerosols (mL/cm^3).
         ER = (self.virus.viral_load_in_sputum *
               self.activity.exhalation_rate *
               self.fraction_of_infectious_virus() *
-              10 ** 6)
+              10**6)
         return ER
 
     @property
@@ -1376,6 +1378,10 @@ class ShortRangeModel:
         return factors
     
     def _normed_jet_origin_concentration(self) -> _VectorisedFloat:
+        '''
+        The initial emission concentration at the source origin (mouth/nose)
+        normalized by the viral load and f_inf factors. Results in mL.cm^3.
+        '''
         # The short range origin concentration does not consider the mask contribution.
         return self.expiration.aerosols(mask=Mask.types['No mask'])
 
@@ -1416,10 +1422,18 @@ class ShortRangeModel:
         return 0.
     
     def normalization_factor(self, infected: InfectedPopulation) -> _VectorisedFloat:
-        # The normalization factor does not consider the BR contribution
+        """
+        The normalization factor applied to the short-range results. It refers
+        to the emission rate per aerosol without accounting for the exhalation rate.
+        Result in virions/mL.
+        """
+        # Re-use the emission rate method divided by the BR contribution. 
         return infected.emission_rate_per_aerosol_per_person_when_present() / infected.activity.exhalation_rate
     
     def jet_origin_concentration(self, infected: InfectedPopulation) -> _VectorisedFloat:
+        """
+        The initial emission concentration at the source origin (mouth/nose).
+        """
         return self._normed_jet_origin_concentration() * self.normalization_factor(infected)
     
     def short_range_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
@@ -1490,6 +1504,9 @@ class ShortRangeModel:
         if stop<=start:
             return 0.
 
+        # Note that the emission_rate_per_aerosol_per_person_when_present method
+        # is not used here due to the influence that the conversion factor (10**6)
+        # could have in the interpolation.
         normed_int_concentration = (
             concentration_model.integrated_concentration(start, stop)
                 /concentration_model.virus.viral_load_in_sputum
