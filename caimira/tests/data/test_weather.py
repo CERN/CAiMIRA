@@ -5,7 +5,7 @@ import numpy as np
 import numpy.testing
 import pytest
 
-import caimira.data.weather as wx
+import caimira.calculator.models.data.weather as wx
 
 
 def test_nearest_wx_station():

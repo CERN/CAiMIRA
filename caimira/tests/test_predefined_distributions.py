@@ -2,8 +2,7 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from caimira.monte_carlo.data import activity_distributions, virus_distributions
-from caimira.store import data_registry
+from caimira.calculator.models.monte_carlo.data import activity_distributions, virus_distributions
 
 
 # Mean & std deviations from https://doi.org/10.1101/2021.10.14.21264988 (Table 3)

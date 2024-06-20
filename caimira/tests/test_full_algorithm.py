@@ -8,11 +8,11 @@ import numpy.testing as npt
 import pytest
 from retry import retry
 
-import caimira.monte_carlo as mc
-from caimira import models
-from caimira.utils import method_cache
-from caimira.models import _VectorisedFloat,Interval,SpecificInterval
-from caimira.monte_carlo.data import (expiration_distributions,
+import caimira.calculator.models.monte_carlo as mc
+from caimira.calculator.models import models
+from caimira.calculator.models.utils import method_cache
+from caimira.calculator.models.models import _VectorisedFloat,Interval,SpecificInterval
+from caimira.calculator.models.monte_carlo.data import (expiration_distributions,
         expiration_BLO_factors,short_range_expiration_distributions,
         short_range_distances,virus_distributions,activity_distributions)
 

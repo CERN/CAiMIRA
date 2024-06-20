@@ -2,8 +2,8 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-import caimira.models as models
-import caimira.data as data
+import caimira.calculator.models.models as models
+import caimira.calculator.models.data as data
 
 
 def test_no_mask_superspeading_emission_rate(baseline_concentration_model):

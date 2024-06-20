@@ -4,8 +4,8 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from caimira import models
-import caimira.dataclass_utils as dc_utils
+from caimira.calculator.models import models
+from caimira.calculator.models import dataclass_utils as dc_utils
 
 @pytest.fixture
 def full_exposure_model(data_registry):

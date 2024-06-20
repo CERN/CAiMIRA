@@ -5,8 +5,8 @@ import numpy.testing as npt
 import pytest
 from retry import retry
 
-from caimira import models
-from caimira.monte_carlo.data import expiration_distribution
+from caimira.calculator.models import models
+from caimira.calculator.models.monte_carlo.data import expiration_distribution
 
 
 def test_multiple_wrong_weight_size():

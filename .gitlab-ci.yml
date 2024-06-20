@@ -15,24 +15,55 @@ variables:
 
 
 # ###################################################################################################
-# Test code
+# Test code - CAiMIRA (model) and CERN CAiMIRA (CERN's UI)
 
-# A full installation of CAiMIRA, tested with pytest.
+  # A full installation of CAiMIRA, tested with pytest.
 test_install:
   extends: .acc_py_full_test
+  variables:
+    project_root: ./caimira
+    project_name: caimira
 
 
 # A development installation of CAiMIRA tested with pytest.
 test_dev:
   extends: .acc_py_dev_test
+  variables:
+    project_root: ./caimira
+    project_name: caimira
 
 
 # A development installation of CAiMIRA tested with pytest.
 test_dev-39:
   variables:
     PY_VERSION: "3.9"
+    project_root: ./caimira
+    project_name: caimira
   extends: .acc_py_dev_test
 
+# A full installation of CERN CAiMIRA, tested with pytest.
+test_install_cern_caimira:
+  extends: .acc_py_full_test
+  variables:
+    project_root: ./_cern_caimira
+    project_name: cern_caimira
+
+
+# A development installation of CERN CAiMIRA tested with pytest.
+test_dev_cern_caimira:
+  extends: .acc_py_dev_test
+  variables:
+    project_root: ./_cern_caimira
+    project_name: cern_caimira
+
+
+# A development installation of CERN CAiMIRA tested with pytest.
+test_dev-39_cern_caimira:
+  variables:
+    PY_VERSION: "3.9"
+    project_root: ./_cern_caimira
+    project_name: cern_caimira
+  extends: .acc_py_dev_test
 
 # ###################################################################################################
 # Test OpenShift config
