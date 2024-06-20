@@ -1,7 +1,7 @@
 import numpy.testing as npt
 import pytest
 
-from caimira import models
+from caimira.calculator.models import models
 
 
 @pytest.fixture

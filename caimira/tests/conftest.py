@@ -1,11 +1,9 @@
-from caimira import models
-import caimira.data
-import caimira.dataclass_utils
-
 import pytest
 
-from caimira.store.data_registry import DataRegistry
-
+from caimira.calculator.models import models
+import caimira.calculator.models.data
+import caimira.calculator.models.dataclass_utils
+from caimira.calculator.store.data_registry import DataRegistry
 
 @pytest.fixture
 def data_registry():
@@ -61,12 +59,12 @@ def baseline_exposure_model(data_registry, baseline_concentration_model, baselin
 
 @pytest.fixture
 def exposure_model_w_outside_temp_changes(data_registry, baseline_exposure_model: models.ExposureModel):
-    exp_model = caimira.dataclass_utils.nested_replace(
+    exp_model = caimira.calculator.models.dataclass_utils.nested_replace(
         baseline_exposure_model, {
             'concentration_model.ventilation': models.SlidingWindow(
                 data_registry=data_registry,
                 active=models.PeriodicInterval(2.2 * 60, 1.8 * 60),
-                outside_temp=caimira.data.GenevaTemperatures['Jan'],
+                outside_temp=caimira.calculator.models.data.GenevaTemperatures['Jan'],
                 window_height=1.6,
                 opening_length=0.6,
             )

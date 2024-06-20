@@ -3,7 +3,7 @@ import numpy.testing as npt
 import pytest
 from retry import retry
 
-from caimira.monte_carlo import sampleable
+from caimira.calculator.models.monte_carlo import sampleable
 
 
 @retry(tries=10)

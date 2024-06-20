@@ -2,8 +2,8 @@ from typing import Type
 import numpy as np
 import pytest
 
-from caimira.apps.calculator import model_generator
-from caimira.store.data_registry import DataRegistry
+from caimira.calculator.validators.virus import virus_validator
+from caimira.calculator.store.data_registry import DataRegistry
 
 
 @pytest.mark.parametrize(
@@ -14,7 +14,7 @@ from caimira.store.data_registry import DataRegistry
         [{"exposed_breaks": [], "ifected_breaks": []}, 'Unable to fetch "infected_breaks" key. Got "ifected_breaks".'],
     ]
 )
-def test_specific_break_structure(break_input, error, baseline_form: model_generator.VirusFormData, data_registry: DataRegistry):
+def test_specific_break_structure(break_input, error, baseline_form: virus_validator.VirusFormData, data_registry: DataRegistry):
     baseline_form.specific_breaks = break_input
     with pytest.raises(TypeError, match=error):
         baseline_form.validate()
@@ -31,7 +31,7 @@ def test_specific_break_structure(break_input, error, baseline_form: model_gener
         [[{"start_time": "10:00", "finish_time": "11"}], 'Wrong time format - "HH:MM". Got "11".'],
     ]
 )
-def test_specific_population_break_data_structure(population_break_input, error, baseline_form: model_generator.VirusFormData, data_registry: DataRegistry):
+def test_specific_population_break_data_structure(population_break_input, error, baseline_form: virus_validator.VirusFormData, data_registry: DataRegistry):
     baseline_form.specific_breaks = {'exposed_breaks': population_break_input, 'infected_breaks': population_break_input}
     with pytest.raises(TypeError, match=error):
         baseline_form.validate()
@@ -46,7 +46,7 @@ def test_specific_population_break_data_structure(population_break_input, error,
         [{'exposed_breaks': [], 'infected_breaks': [{"start_time": "08:00", "finish_time": "11:00"}, {"start_time": "14:00", "finish_time": "15:00"}, ]}, "All breaks should be within the simulation time. Got 08:00."],
     ]
 )
-def test_specific_break_time(break_input, error, baseline_form: model_generator.VirusFormData):
+def test_specific_break_time(break_input, error, baseline_form: virus_validator.VirusFormData):
     with pytest.raises(ValueError, match=error):
         baseline_form.generate_specific_break_times(breaks_dict=break_input, target='exposed')
         baseline_form.generate_specific_break_times(breaks_dict=break_input, target='infected')
@@ -65,7 +65,7 @@ def test_specific_break_time(break_input, error, baseline_form: model_generator.
         [{"physical_activity": "Light activity", "respiratory_activity": [{"type": "Breathing", "percentag": 50}, {"type": "Speaking", "percentage": 50}]}, 'Unable to fetch "percentage" key. Got "percentag".'],
     ]
 )
-def test_precise_activity_structure(precise_activity_input, error, baseline_form: model_generator.VirusFormData, data_registry: DataRegistry):
+def test_precise_activity_structure(precise_activity_input, error, baseline_form: virus_validator.VirusFormData, data_registry: DataRegistry):
     baseline_form.precise_activity = precise_activity_input
     with pytest.raises(TypeError, match=error):
         baseline_form.validate()
@@ -80,7 +80,7 @@ def test_precise_activity_structure(precise_activity_input, error, baseline_form
         [{"physical_activity": "Light activity", "respiratory_activity": [{"type": "Breathing", "percentage": 50}]}, 'The sum of all respiratory activities should be 100. Got 50.'],
     ]
 )
-def test_sum_precise_activity(precise_activity_input, error, baseline_form: model_generator.VirusFormData):
+def test_sum_precise_activity(precise_activity_input, error, baseline_form: virus_validator.VirusFormData):
     baseline_form.precise_activity = precise_activity_input
     with pytest.raises(ValueError, match=error):
         baseline_form.validate()

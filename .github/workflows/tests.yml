@@ -24,6 +24,7 @@ jobs:
     env:
       PROJECT_ROOT: ./
       PROJECT_NAME: caimira
+      CAIMIRA_TESTS_CALCULATOR_TIMEOUT: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v2

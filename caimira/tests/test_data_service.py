@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock, patch
 
-from caimira.store.data_service import DataService
+from caimira.calculator.store.data_service import DataService
 
 
 class DataServiceTests(unittest.TestCase):

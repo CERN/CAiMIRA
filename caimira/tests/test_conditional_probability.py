@@ -2,11 +2,11 @@ import numpy as np
 import pytest
 from retry import retry
 
-import caimira.monte_carlo as mc
-from caimira import models
-from caimira.dataclass_utils import nested_replace
-from caimira.apps.calculator import report_generator
-from caimira.monte_carlo.data import activity_distributions, virus_distributions, expiration_distributions
+import caimira.calculator.models.monte_carlo as mc
+from caimira.calculator.models import models
+from caimira.calculator.models.dataclass_utils import nested_replace
+from caimira.calculator.report import report_generator
+from caimira.calculator.models.monte_carlo.data import activity_distributions, virus_distributions, expiration_distributions
 
 
 @pytest.fixture

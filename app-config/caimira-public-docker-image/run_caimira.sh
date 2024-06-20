@@ -7,4 +7,4 @@ nginx -c /opt/caimira/nginx.conf
 
 cd /opt/caimira/src/caimira
 # Run the calculator in the foreground.
-/opt/caimira/app/bin/python -m caimira.apps.calculator --port 8081 --no-debug
+/opt/caimira/app/bin/python -m ui.apps.calculator --port 8081 --no-debug

@@ -26,8 +26,8 @@ if [[ "$APP_NAME" == "calculator-app" ]]; then
     export "DATA_SERVICE_ENABLED"="${DATA_SERVICE_ENABLED:=0}"
     export "CAIMIRA_PROFILER_ENABLED"="${CAIMIRA_PROFILER_ENABLED:=0}"
 
-    echo "Starting the caimira webservice with: python -m caimira.apps.calculator ${args[@]}"
-    python -m caimira.apps.calculator "${args[@]}"
+    echo "Starting the caimira webservice with: python -m ui.apps.calculator ${args[@]}"
+    python -m ui.apps.calculator "${args[@]}"
 
 else
     echo "No APP_NAME specified"

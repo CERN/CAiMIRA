@@ -5,11 +5,11 @@ import numpy.testing
 import pytest
 from dataclasses import dataclass
 
-from caimira import models
-from caimira.models import ExposureModel
-from caimira.dataclass_utils import replace
-from caimira.monte_carlo.data import expiration_distributions
-from caimira.store.data_registry import DataRegistry
+from caimira.calculator.models import models
+from caimira.calculator.models.models import ExposureModel
+from caimira.calculator.models.dataclass_utils import replace
+from caimira.calculator.models.monte_carlo.data import expiration_distributions
+from caimira.calculator.store.data_registry import DataRegistry
 
 @dataclass(frozen=True)
 class KnownNormedconcentration(models.ConcentrationModel):
