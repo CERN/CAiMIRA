@@ -434,13 +434,6 @@ class GenericExtraPage(BaseRequestHandler):
 
 
 class CO2ModelResponse(BaseRequestHandler):
-    def check_xsrf_cookie(self):
-        """
-        This request handler implements a stateless API that returns report data in JSON format.
-        Thus, XSRF cookies are disabled by overriding base class implementation of this method with a pass statement.
-        """
-        pass
-
     async def post(self, endpoint: str) -> None:
         data_registry: DataRegistry = self.settings["data_registry"]
         data_service: typing.Optional[DataService] = self.settings.get("data_service", None)
