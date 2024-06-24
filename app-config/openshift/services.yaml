@@ -32,40 +32,6 @@
       kind: Service
       metadata:
         labels:
-          app: expert-app
-        name: expert-app
-      spec:
-        ports:
-          - name: 8080-tcp
-            port: 8080
-            protocol: TCP
-            targetPort: 8080
-        selector:
-          deploymentconfig: expert-app
-        sessionAffinity: 'None'
-        type: 'ClusterIP'
-    -
-      apiVersion: v1
-      kind: Service
-      metadata:
-        labels:
-          app: expert-co2-app
-        name: expert-co2-app
-      spec:
-        ports:
-          - name: 8080-tcp
-            port: 8080
-            protocol: TCP
-            targetPort: 8080
-        selector:
-          deploymentconfig: expert-co2-app
-        sessionAffinity: 'None'
-        type: 'ClusterIP'
-    -
-      apiVersion: v1
-      kind: Service
-      metadata:
-        labels:
           app: caimira-router
         name: caimira-router
       spec:

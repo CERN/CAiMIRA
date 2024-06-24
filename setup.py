@@ -40,7 +40,6 @@ REQUIREMENTS: dict = {
         'timezonefinder',
         'tornado',
         'types-retry',
-        'voila',
     ],
     'app': [],
     'test': [
@@ -54,7 +53,6 @@ REQUIREMENTS: dict = {
         'types-requests',
     ],
     'dev': [
-        'jupyterlab',
     ],
     'doc': [
         'sphinx',

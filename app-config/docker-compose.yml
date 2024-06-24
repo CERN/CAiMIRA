@@ -1,16 +1,5 @@
 version: "3.8"
 services:
-  expert-app:
-    image: calculator-app
-    environment:
-      - APP_NAME=caimira-voila
-    user: ${CURRENT_UID:?"Please run as follows 'CURRENT_UID=$(id -u):$(id -g) docker-compose up'"}
-
-  expert-co2-app:
-    image: calculator-app
-    environment:
-      - APP_NAME=caimira-co2-voila
-    user: ${CURRENT_UID:?"Please run as follows 'CURRENT_UID=$(id -u):$(id -g) docker-compose up'"}
 
   calculator-app:
     image: calculator-app
@@ -53,10 +42,6 @@ services:
       calculator-app:
         condition: service_started
       calculator-open-app:
-        condition: service_started
-      expert-app:
-        condition: service_started
-      expert-co2-app:
         condition: service_started
       auth-service:
         condition: service_started
