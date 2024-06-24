@@ -146,19 +146,11 @@ Then, right click on `caimira/docs/_build/html/index.html` and select `Open with
 The `ExpertApplication` and `CO2Application` are no longer actively maintained but will remain in the codebase for legacy purposes.
 Please note that the functionality of these applications might be compromised due to deprecation issues.
 
-Run `ExpertApplication`:
+##### Running the Applications
 
-```
-voila caimira/apps/expert/caimira.ipynb --port=8080
-```
+These applications only work within Jupyter notebooks. Attempting to run them outside of a Jupyter environment may result in errors or degraded functionality.
 
-Run `CO2Application`:
-
-```
-voila caimira/apps/expert_co2/caimira.ipynb --port=8080
-```
-
-Then visit http://localhost:8080.
+<!-- TODO: ADD EXPLANATION ON HOW TO RUN WITH JUPYTER -->
 
 ### Running the tests
 
