@@ -1,0 +1,18 @@
+{% extends "base/layout.html.j2" %}
+
+{% block main %}
+
+<div class="container container--padding" style="word-wrap:break-word";> 
+
+<h1 class="paragraph-title">CAiMIRA Expert Apps were deprecated in version 5.16.0</h1><br>
+
+With the latest feature implementations in the core CAiMIRA engine, the <b>ExpertApplication</b> and <b>CO2Application</b> apps are no longer actively maintained.
+For legacy purposes, the source code is still available in the <a href="https://gitlab.cern.ch/caimira/caimira/">GitLab</a> repository.
+<br><br>
+For any query, please let us know by sending an email to <a href="mailto:CAiMIRA-dev@cern.ch">CAiMIRA-dev@cern.ch</a>.
+<br><br>
+<div class="pr-3"><a href="{{ get_calculator_url() }}" role="button" class="btn btn-lg btn-outline-primary"><div class="d-flex d-row"><i class="icon-calculator"></i><span class="pl-2">Calculator</div></a></div>
+
+</div>
+
+{% endblock main %}
