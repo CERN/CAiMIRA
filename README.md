@@ -146,11 +146,25 @@ Then, right click on `caimira/docs/_build/html/index.html` and select `Open with
 The `ExpertApplication` and `CO2Application` are no longer actively maintained but will remain in the codebase for legacy purposes.
 Please note that the functionality of these applications might be compromised due to deprecation issues.
 
-##### Running the Applications
+#### Running the Applications
 
 These applications only work within Jupyter notebooks. Attempting to run them outside of a Jupyter environment may result in errors or degraded functionality.
 
-<!-- TODO: ADD EXPLANATION ON HOW TO RUN WITH JUPYTER -->
+##### Prerequisites
+
+Make sure you have the needed dependencies intalled:
+
+```
+pip install notebook jupyterlab
+```
+
+Running with Visual Studio Code (VSCode):
+
+1. Ensure you have the following extensions installed in VSCode: `Jupyter` and `Python`.
+
+2. Open VSCode and navigate to the directory containing the notebook.
+
+3. Open the notebook (e.g. `caimira/apps/expert/caimira.ipynb`) and run the cells by clicking the `run` button next to each cell.
 
 ### Running the tests
 
