@@ -404,7 +404,10 @@ class CO2ModelResponse(BaseRequestHandler):
 
         requested_model_config = tornado.escape.json_decode(self.request.body)
         try:
-            form = co2_model_generator.CO2FormData.from_dict(requested_model_config, data_registry)
+            form: co2_model_generator.CO2FormData = co2_model_generator.CO2FormData.from_dict(
+                requested_model_config, 
+                data_registry
+            )
         except Exception as err:
             if self.settings.get("debug", False):
                 import traceback
@@ -415,26 +418,28 @@ class CO2ModelResponse(BaseRequestHandler):
             return
 
         if endpoint.rstrip('/') == 'plot':
-            transition_times = co2_model_generator.CO2FormData.find_change_points_with_pelt(form.CO2_data)
-            self.finish({'CO2_plot': co2_model_generator.CO2FormData.generate_ventilation_plot(form.CO2_data, transition_times),
-                        'transition_times': [round(el, 2) for el in transition_times]})
+            transition_times: list = form.find_change_points_with_pelt()
+            self.finish({
+                'CO2_plot': form.generate_ventilation_plot(transition_times),
+                'transition_times': [round(el, 2) for el in transition_times]
+            })
         else:
             executor = loky.get_reusable_executor(
                 max_workers=self.settings['handler_worker_pool_size'],
                 timeout=300,
             )
-            report_task = executor.submit(
-                co2_model_generator.CO2FormData.build_model, form,
-            )
+            report_task = executor.submit(form.build_model)
             report = await asyncio.wrap_future(report_task)
-
-            result = dict(report.CO2_fit_params())
+            # Ventilation times after user manipulation from the suggested Pelt algorithm times.
             ventilation_transition_times = report.ventilation_transition_times
 
-            result['fitting_ventilation_type'] = form.fitting_ventilation_type
+            # The result of the following method is a dict with the results of the fitting
+            # algorithm, namely the breathing rate and ACH values. It also returns the
+            # predictive CO2 result based on the fitting results.
+            result: typing.Dict = dict(report.CO2_fit_params())
+            # Add the transition times and CO2 plot to the results.
             result['transition_times'] = ventilation_transition_times
-            result['CO2_plot'] = co2_model_generator.CO2FormData.generate_ventilation_plot(CO2_data=form.CO2_data,
-                                                                transition_times=ventilation_transition_times[:-1],
+            result['CO2_plot'] = form.generate_ventilation_plot(transition_times=ventilation_transition_times[:-1], 
                                                                 predictive_CO2=result['predictive_CO2'])
             self.finish(result)
 

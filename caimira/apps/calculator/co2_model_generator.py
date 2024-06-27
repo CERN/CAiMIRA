@@ -99,15 +99,14 @@ class CO2FormData(FormData):
                             if not re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$").match(time):
                                 raise TypeError(f'Wrong time format - "HH:MM". Got "{time}".')
 
-    @classmethod
-    def find_change_points_with_pelt(self, CO2_data: dict):
+    def find_change_points_with_pelt(self) -> list:
         """
         Perform change point detection using Pelt algorithm from ruptures library with pen=15.
+        Incorporate existing state change candidates and adjust the result accordingly.
         Returns a list of tuples containing (index, X-axis value) for the detected significant changes.
         """
-
-        times: list = CO2_data['times']
-        CO2_values: list = CO2_data['CO2']
+        times: list = self.CO2_data['times']
+        CO2_values: list = self.CO2_data['CO2']
 
         if len(times) != len(CO2_values):
             raise ValueError("times and CO2 values must have the same length.")
@@ -131,14 +130,30 @@ class CO2FormData(FormData):
         for segment in merged_segments[:-2]:
             result_set.add(times[CO2_values.index(min(CO2_np[segment]))])
             result_set.add(times[CO2_values.index(max(CO2_np[segment]))])
-        return list(result_set)
 
-    @classmethod
-    def generate_ventilation_plot(self, CO2_data: dict,
+        # Calculate presence intervals and respective merge
+        infected_presence = self.infected_present_interval()
+        exposed_presence = self.exposed_present_interval()
+        all_state_change_times = self.population_present_changes(infected_presence, exposed_presence)
+        # Check proximity to existing state changes and update result set if necessary.
+        # If suggested point is close enough to a simulation time, replace the result with the
+        # simulation time. Otherwise, add the exact suggested point.
+        for change_point in all_state_change_times:
+            closest_point = min(result_set, key=lambda x: abs(x - change_point))
+            if abs(closest_point - change_point) <= 1: # Threshold for close points
+                result_set.remove(closest_point)
+                result_set.add(change_point)
+            else:
+                result_set.add(change_point)
+        return sorted(list(result_set))
+
+    def generate_ventilation_plot(self,
                                   transition_times: typing.Optional[list] = None,
-                                  predictive_CO2: typing.Optional[list] = None):
-            times_values = CO2_data['times']
-            CO2_values = CO2_data['CO2']
+                                  predictive_CO2: typing.Optional[list] = None) -> str:
+            
+            # Plot data (x-axis: times; y-axis: CO2 concentrations)
+            times_values: list = self.CO2_data['times']
+            CO2_values: list = self.CO2_data['CO2']
 
             fig = plt.figure(figsize=(7, 4), dpi=110)
             plt.plot(times_values, CO2_values, label='Input CO₂')
@@ -184,7 +199,7 @@ class CO2FormData(FormData):
             activity=None, # type: ignore
         )
 
-        all_state_changes=self.population_present_changes(infected_presence, exposed_presence)
+        all_state_changes = self.population_present_changes(infected_presence, exposed_presence)
         total_people = [infected_population.people_present(stop) + exposed_population.people_present(stop)
                         for _, stop in zip(all_state_changes[:-1], all_state_changes[1:])]
 
