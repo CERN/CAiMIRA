@@ -9,7 +9,6 @@ const CO2_data_form = [
   "exposed_lunch_start",
   "exposed_start",
   "fitting_ventilation_states",
-  "fitting_ventilation_type",
   "infected_coffee_break_option",
   "infected_coffee_duration",
   "infected_dont_have_breaks_with_exposed",
@@ -74,7 +73,7 @@ function uploadFile(endpoint) {
       }
     }
 
-    const data = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
+    const data = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: true });
     // Check if there is any data below the header row
     if (data.length <= 1) {
       $("#upload-error")
@@ -136,7 +135,6 @@ function generateJSONStructure(endpoint, jsonData) {
     inputToPopulate.val(JSON.stringify(finalStructure));
     $("#generate_fitting_data").prop("disabled", false);
     $("#fitting_ventilation_states").prop("disabled", false);
-    $("[name=fitting_ventilation_type]").prop("disabled", false);
     plotCO2Data(endpoint);
   }
 }
@@ -173,71 +171,64 @@ function validateCO2Form() {
   if (validateFormInputs($("#button_fit_data"))) submit = true;
 
   const $fittingToSubmit = $('#DIVCO2_fitting_to_submit');
-  // Check if natural ventilation is selected
-  if (
-    $fittingToSubmit.find('input[name="fitting_ventilation_type"]:checked').val() ==
-    "fitting_natural_ventilation"
-  ) {
-    // Validate ventilation scheme
-    const $ventilationStates = $fittingToSubmit.find("input[name=fitting_ventilation_states]");
-    const $referenceNode = $("#DIVCO2_fitting_result");
-    if ($ventilationStates.val() !== "") {
-      // validate input format
-      try {
-        const parsedValue = JSON.parse($ventilationStates.val());
-        if (Array.isArray(parsedValue)) {
-          if (parsedValue.length <= 1) {
-            insertErrorFor(
-              $referenceNode,
-              `'${$ventilationStates.attr('name')}' must have more than one $ventilationStates.<br />`
-            );
-            submit = false;
-          }
-          else {
-            const infected_finish = $(`[name=infected_finish]`).first().val();
-            const exposed_finish = $(`[name=exposed_finish]`).first().val();
-
-            const [hours_infected, minutes_infected] = infected_finish.split(":").map(Number);
-            const elapsed_time_infected =  hours_infected * 60 + minutes_infected;
-
-            const [hours_exposed, minutes_exposed] = exposed_finish.split(":").map(Number);
-            const elapsed_time_exposed =  hours_exposed * 60 + minutes_exposed;
-            
-            const max_presence_time = Math.max(elapsed_time_infected, elapsed_time_exposed);
-            const max_transition_time = parsedValue[parsedValue.length - 1] * 60;
-
-            if (max_transition_time > max_presence_time) {
-              insertErrorFor(
-                $referenceNode,
-                `The last transition time (${parsedValue[parsedValue.length - 1]}) should be before the last presence time (${max_presence_time / 60}).<br />`
-              );
-              submit = false;
-            }
-          }
-        }
-        else {
+  // Validate ventilation scheme
+  const $ventilationStates = $fittingToSubmit.find("input[name=fitting_ventilation_states]");
+  const $referenceNode = $("#DIVCO2_fitting_result");
+  if ($ventilationStates.val() !== "") {
+    // validate input format
+    try {
+      const parsedValue = JSON.parse($ventilationStates.val());
+      if (Array.isArray(parsedValue)) {
+        if (parsedValue.length <= 1) {
           insertErrorFor(
             $referenceNode,
-            `'${$ventilationStates.attr('name')}' must be a list.</br>`
+            `'${$ventilationStates.attr('name')}' must have more than one ventilation state change (at least the beggining and end of simulation time).<br />`
           );
           submit = false;
         }
-      } catch {
+        else {
+          const infected_finish = $(`[name=infected_finish]`).first().val();
+          const exposed_finish = $(`[name=exposed_finish]`).first().val();
+
+          const [hours_infected, minutes_infected] = infected_finish.split(":").map(Number);
+          const elapsed_time_infected =  hours_infected * 60 + minutes_infected;
+
+          const [hours_exposed, minutes_exposed] = exposed_finish.split(":").map(Number);
+          const elapsed_time_exposed =  hours_exposed * 60 + minutes_exposed;
+          
+          const max_presence_time = Math.max(elapsed_time_infected, elapsed_time_exposed);
+          const max_transition_time = parsedValue[parsedValue.length - 1] * 60;
+
+          if (max_transition_time > max_presence_time) {
+            insertErrorFor(
+              $referenceNode,
+              `The last transition time (${parsedValue[parsedValue.length - 1]}) should be before the last presence time (${max_presence_time / 60}).<br />`
+            );
+            submit = false;
+          }
+        }
+      }
+      else {
         insertErrorFor(
           $referenceNode,
-          `'${$ventilationStates.attr('name')}' must be a list of numbers.</br>`
+          `'${$ventilationStates.attr('name')}' must be a list.</br>`
         );
         submit = false;
       }
-    } else {
+    } catch {
       insertErrorFor(
         $referenceNode,
-        `'${$ventilationStates.attr('name')}' must be defined.</br>`
+        `'${$ventilationStates.attr('name')}' must be a list of numbers.</br>`
       );
       submit = false;
     }
+  } else {
+    insertErrorFor(
+      $referenceNode,
+      `'${$ventilationStates.attr('name')}' must be defined.</br>`
+    );
+    submit = false;
   }
-
   return submit;
 }
 
@@ -332,12 +323,6 @@ function plotCO2Data(url) {
 
 function submitFittingAlgorithm(url) {
   if (validateCO2Form()) {
-    // Disable all the ventilation inputs
-    $("#fitting_ventilation_states, [name=fitting_ventilation_type]").prop(
-      "disabled",
-      true
-    );
-
     // Prepare data for submission
     const CO2_mapping = formatCO2DataForm(CO2_data_form);
     $("#CO2_input_data_div").show();
@@ -380,12 +365,6 @@ function clearFittingResultComponent() {
   $referenceNode.find("#DIVCO2_fitting_result, #CO2_input_data_div").hide();
   $referenceNode.find("#DIVCO2_fitting_to_submit").hide();
   $referenceNode.find("#CO2_data_plot").attr("src", "");
-
-  // Update the ventilation scheme components
-  $referenceNode.find("#fitting_ventilation_states, [name=fitting_ventilation_type]").prop(
-    "disabled",
-    false
-  );
 
   // Update the bottom right buttons
   $referenceNode.find("#generate_fitting_data").show();
