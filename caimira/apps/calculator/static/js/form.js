@@ -479,20 +479,6 @@ function on_coffee_break_option_change() {
   }
 }
 
-function on_CO2_fitting_ventilation_change() {
-  ventilation_options = $('input[type=radio][name=fitting_ventilation_type]');
-  ventilation_options.each(function (index) {
-    if (this.checked) {
-      getChildElement($(this)).show();
-      require_fields(this);
-    }
-    else {
-      getChildElement($(this)).hide();
-      require_fields(this);
-    }
-  })
-}
-
 /* -------UI------- */
 
 function show_disclaimer() {
@@ -1069,12 +1055,6 @@ $(document).ready(function () {
   $("input[type=radio][name=infected_coffee_break_option]").change(on_coffee_break_option_change);
   // Call the function now to handle forward/back button presses in the browser.
   on_coffee_break_option_change();
-
-  // When the ventilation on the fitting changes we want to make its respective
-  // children show/hide.
-  $("input[type=radio][name=fitting_ventilation_type]").change(on_CO2_fitting_ventilation_change);
-  // Call the function now to handle forward/back button presses in the browser.
-  on_CO2_fitting_ventilation_change();
 
   // Setup the maximum number of people at page load (to handle back/forward),
   // and update it when total people is changed.

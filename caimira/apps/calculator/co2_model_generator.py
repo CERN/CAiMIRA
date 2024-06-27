@@ -21,13 +21,13 @@ LOG = logging.getLogger(__name__)
 class CO2FormData(FormData):
     CO2_data: dict
     fitting_ventilation_states: list
-    fitting_ventilation_type: str
     room_capacity: typing.Optional[int]
 
     #: The default values for undefined fields. Note that the defaults here
     #: and the defaults in the html form must not be contradictory.
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = {
         'CO2_data': '{}',
+        'fitting_ventilation_states': '[]',
         'exposed_coffee_break_option': 'coffee_break_0',
         'exposed_coffee_duration': 5,
         'exposed_finish': '17:30',
@@ -35,8 +35,6 @@ class CO2FormData(FormData):
         'exposed_lunch_option': True,
         'exposed_lunch_start': '12:30',
         'exposed_start': '08:30',
-        'fitting_ventilation_states': '[]',
-        'fitting_ventilation_type': 'fitting_natural_ventilation',
         'infected_coffee_break_option': 'coffee_break_0',
         'infected_coffee_duration': 5,
         'infected_dont_have_breaks_with_exposed': False,
@@ -173,14 +171,10 @@ class CO2FormData(FormData):
         state_change_times.update(exposed_presence.transition_times())
         return sorted(state_change_times)
 
-    def ventilation_transition_times(self) -> typing.Tuple[float, ...]:
-        # Check what type of ventilation is considered for the fitting
-        if self.fitting_ventilation_type == 'fitting_natural_ventilation':
-            vent_states = self.fitting_ventilation_states
-            vent_states.append(self.CO2_data['times'][-1])
-            return tuple(vent_states)
-        else:
-            return tuple((self.CO2_data['times'][0], self.CO2_data['times'][-1]))
+    def ventilation_transition_times(self) -> typing.List[float]:
+        vent_states = self.fitting_ventilation_states
+        vent_states.append(self.CO2_data['times'][-1]) # The last time value is always needed for the last ACH interval.
+        return vent_states
 
     def build_model(self, size=None) -> models.CO2DataModel: # type: ignore
         size = size or self.data_registry.monte_carlo['sample_size']
