@@ -1535,7 +1535,7 @@ class CO2DataModel:
         )
         return [CO2_concentrations.concentration(time) for time in self.times]
 
-    def CO2_fit_params(self):
+    def CO2_fit_params(self) -> typing.Dict:
         if len(self.times) != len(self.CO2_concentrations):
             raise ValueError('times and CO2_concentrations must have same length.')
 
@@ -1544,6 +1544,11 @@ class CO2DataModel:
                 'times and CO2_concentrations must contain at last two elements')
 
         def fun(x):
+            '''
+            The objective function to be minimized, where x is an argument
+            containing the initial guess for the breathing rate (exhalation_rate) 
+            and ventilation values (ventilation_values).
+            '''
             exhalation_rate = x[0]
             ventilation_values = tuple(x[1:])
             the_concentrations = self.CO2_concentrations_from_params(
