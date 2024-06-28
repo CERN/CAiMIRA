@@ -192,7 +192,7 @@ class ExposureComparisonResult(View):
 class CO2Application(Controller):
     def __init__(self) -> None:
         LOG.warning(
-            "CO2Application is deprecated and will no longer be maintained. It remains in the codebase for legacy purposes."
+            "CO2Application is currently deactivated and will no longer be maintained. It remains in the codebase for legacy purposes."
         )
 
         self._data_registry = DataRegistry()

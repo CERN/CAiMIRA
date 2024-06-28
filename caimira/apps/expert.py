@@ -933,7 +933,7 @@ class CAIMIRAStateBuilder(state.StateBuilder):
 class ExpertApplication(Controller):
     def __init__(self) -> None:
         LOG.warning(
-            "ExpertApplication is deprecated and will no longer be maintained. It remains in the codebase for legacy purposes."
+            "ExpertApplication is currently deactivated and will no longer be maintained. It remains in the codebase for legacy purposes."
         )
 
         self._data_registry = DataRegistry()
