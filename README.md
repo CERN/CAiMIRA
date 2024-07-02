@@ -103,7 +103,7 @@ pip install -e .   # At the root of the repository
 ### Running the Calculator app in development mode
 
 ```
-python -m caimira.apps.calculator
+python -m ui.apps.calculator
 ```
 
 To run with a specific template theme created:

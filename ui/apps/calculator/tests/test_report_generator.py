@@ -7,10 +7,11 @@ import numpy as np
 import pytest
 
 from ui.apps.calculator import make_app
-from ui.apps.calculator import ReportGenerator
-from ui.apps.calculator.report import readable_minutes
-import caimira.calculator.report.report_generator as rep_gen
 from caimira.api.controller.report_controller import generate_model, generate_report_results
+from caimira.apps.calculator.model_generator import VirusFormData
+from caimira.apps.calculator.report_generator import (ReportGenerator, readable_minutes, calculate_report_data,
+    manufacture_alternative_scenarios, interesting_times, comparison_report)
+import caimira.calculator.report.report_generator as rep_gen
 
 
 def test_generate_report(baseline_form) -> None:
@@ -105,3 +106,27 @@ def test_interesting_times_w_temp(exposure_model_w_outside_temp_changes):
         5., 5.4, 5.8, 6.2, 6.6, 7., 7.4, 7.8, 8.
     ]
     np.testing.assert_allclose(result, expected)
+
+
+def test_expected_new_cases(baseline_form_with_sr: VirusFormData):   
+    model = baseline_form_with_sr.build_model()
+    
+    executor_factory = partial(
+        concurrent.futures.ThreadPoolExecutor, 1,
+    )
+
+    # Short- and Long-range contributions
+    report_data = calculate_report_data(baseline_form_with_sr, model, executor_factory)
+    sr_lr_expected_new_cases = report_data['expected_new_cases']
+    sr_lr_prob_inf = report_data['prob_inf']/100
+    
+    # Long-range contributions alone
+    scenario_sample_times = interesting_times(model)
+    alternative_scenarios = manufacture_alternative_scenarios(baseline_form_with_sr)
+    alternative_statistics = comparison_report(
+        baseline_form_with_sr, report_data, alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
+    )
+
+    lr_expected_new_cases = alternative_statistics['stats']['Base scenario without short-range interactions']['expected_new_cases']
+    np.testing.assert_almost_equal(sr_lr_expected_new_cases, lr_expected_new_cases + sr_lr_prob_inf * baseline_form_with_sr.short_range_occupants, 2)
+    
