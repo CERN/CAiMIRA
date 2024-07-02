@@ -198,7 +198,7 @@ def scenario_statistics(
     compute_prob_exposure: bool
 ):
     model = mc_model.build_model(
-        size=mc_model.data_registry.monte_carlo_sample_size)
+        size=mc_model.data_registry.monte_carlo['sample_size'])
     if (compute_prob_exposure):
         # It means we have data to calculate the total_probability_rule
         prob_probabilistic_exposure = model.total_probability_rule()
