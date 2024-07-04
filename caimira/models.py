@@ -1380,16 +1380,16 @@ class ShortRangeModel:
     def _normed_jet_origin_concentration(self) -> _VectorisedFloat:
         """
         The initial jet concentration at the source origin (mouth/nose), normalized by
-        normalization_factor (corresponding to the diameter-independent variables). 
-        Results in mL.cm^-3.
+        normalization_factor in the ShortRange class (corresponding to the diameter-independent
+        variables). Results in mL.cm^-3.
         """
         # The short range origin concentration does not consider the mask contribution.
         return self.expiration.aerosols(mask=Mask.types['No mask'])
 
     def _long_range_normed_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
         """
-        Virus long-range exposure concentration normalized by normalization_factor, 
-        as function of time. Results in mL.cm^-3.
+        Virus long-range exposure concentration normalized by normalization_factor in the 
+        ShortRange class, as function of time. Results in mL.cm^-3.
         """
         return (concentration_model.concentration(time) / self.normalization_factor(concentration_model.infected))
 
@@ -1398,8 +1398,8 @@ class ShortRangeModel:
         Virus short-range exposure concentration, as a function of time.
 
         If the given time falls within a short-range interval it returns the
-        short-range concentration normalized by normalization_factor.
-        Otherwise it returns 0. Results in mL.cm^-3.
+        short-range concentration normalized by normalization_factor in the
+        Short-range class. Otherwise it returns 0. Results in mL.cm^-3.
         """
         start, stop = self.presence.boundaries()[0]
         # Verifies if the given time falls within a short-range interaction
