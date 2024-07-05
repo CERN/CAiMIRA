@@ -42,7 +42,7 @@ from .user import AuthenticatedUser, AnonymousUser
 # calculator version. If the calculator needs to make breaking changes (e.g. change
 # form attributes) then it can also increase its MAJOR version without needing to
 # increase the overall CAiMIRA version (found at ``caimira.__version__``).
-__version__ = "4.15.3"
+__version__ = "4.16.0"
 
 LOG = logging.getLogger("Calculator")
 
@@ -517,6 +517,9 @@ def make_app(
         (get_root_calculator_url(r'/user-guide'), GenericExtraPage, {
             'active_page': 'calculator/user-guide',
             'filename': 'userguide.html.j2'}),
+        (get_root_url(r'/expert-app'), GenericExtraPage, {
+            'active_page': 'expert-app',
+            'filename': 'expert-app.html.j2'}),
     ]
 
     profiler_enabled = int(os.environ.get('CAIMIRA_PROFILER_ENABLED', 0))
