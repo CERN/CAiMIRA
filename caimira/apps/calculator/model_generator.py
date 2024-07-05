@@ -208,7 +208,7 @@ class VirusFormData(FormData):
             humidity = float(self.humidity)
             inside_temp = self.inside_temp
 
-        return models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (inside_temp,)), humidity=humidity)
+        return models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (inside_temp,)), humidity=humidity) # type: ignore
 
     def build_mc_model(self) -> mc.ExposureModel:
         room = self.initialize_room()
