@@ -268,16 +268,20 @@ function displayFittingData(json_response) {
       " m³/h"
   );
   let ventilation_table =
-    "<tr><th>Time (HH:MM)</th><th>ACH value (h⁻¹)</th></tr>";
-  json_response["ventilation_values"].forEach((val, index) => {
+    "<tr><th>Time (HH:MM)</th><th>ACH value (h⁻¹)</th><th>Flow rate (L/s/person)</th></tr>";
+  json_response["ventilation_values"].forEach((CO2_val, index) => {
     let transition_times = displayTransitionTimesHourFormat(
       json_response["transition_times"][index],
       json_response["transition_times"][index + 1]
     );
-    ventilation_table += `<tr><td>${transition_times}</td><td>${val.toPrecision(
-      2
-    )}</td></tr>`;
+
+    ventilation_table += `<tr>
+                            <td>${transition_times}</td>
+                            <td>${CO2_val.toPrecision(2)}</td>
+                            <td>${json_response['ventilation_lsp_values'][index].toPrecision(2)}</td>
+                          </tr>`;
   });
+
   $("#disable_fitting_algorithm").prop("disabled", false);
   $("#ventilation_rate_fit").html(ventilation_table);
   $("#generate_fitting_data").html("Fit data");

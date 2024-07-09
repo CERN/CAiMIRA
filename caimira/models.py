@@ -1532,28 +1532,30 @@ class CO2DataModel:
     '''
     data_registry: DataRegistry
     room_volume: float
-    number: typing.Union[int, IntPiecewiseConstant]
-    presence: typing.Optional[Interval]
+    occupancy: IntPiecewiseConstant
     ventilation_transition_times: typing.Tuple[float, ...]
     times: typing.Sequence[float]
     CO2_concentrations: typing.Sequence[float]
 
-    def CO2_concentrations_from_params(self,
-                                exhalation_rate: float,
-                                ventilation_values: typing.Tuple[float, ...]) -> typing.List[_VectorisedFloat]:
-        CO2_concentrations = CO2ConcentrationModel(
+    def CO2_concentration_model(self, 
+                                exhalation_rate: float, 
+                                ventilation_values: typing.Tuple[float, ...]) -> CO2ConcentrationModel:
+        return CO2ConcentrationModel(
             data_registry=self.data_registry,
             room=Room(volume=self.room_volume),
             ventilation=CustomVentilation(PiecewiseConstant(
                 self.ventilation_transition_times, ventilation_values)),
             CO2_emitters=SimplePopulation(
-                number=self.number,
-                presence=self.presence,
+                number=self.occupancy,
+                presence=None,
                 activity=Activity(
                     exhalation_rate=exhalation_rate, inhalation_rate=exhalation_rate),
             )
         )
-        return [CO2_concentrations.concentration(time) for time in self.times]
+
+    def CO2_concentrations_from_params(self, CO2_concentration_model: CO2ConcentrationModel) -> typing.List[_VectorisedFloat]:
+        # Calculate the predictive CO2 concentration
+        return [CO2_concentration_model.concentration(time) for time in self.times]
 
     def CO2_fit_params(self):
         if len(self.times) != len(self.CO2_concentrations):
@@ -1566,10 +1568,11 @@ class CO2DataModel:
         def fun(x):
             exhalation_rate = x[0]
             ventilation_values = tuple(x[1:])
-            the_concentrations = self.CO2_concentrations_from_params(
+            CO2_concentration_model = self.CO2_concentration_model(
                 exhalation_rate=exhalation_rate,
                 ventilation_values=ventilation_values
             )
+            the_concentrations = self.CO2_concentrations_from_params(CO2_concentration_model)
             return np.sqrt(np.sum((np.array(self.CO2_concentrations) -
                                    np.array(the_concentrations))**2))
         # The goal is to minimize the difference between the two different curves (known concentrations vs. predicted concentrations)
@@ -1577,10 +1580,49 @@ class CO2DataModel:
                             bounds=[(0, None) for _ in range(len(self.ventilation_transition_times))],
                             options={'xtol': 1e-3})
 
+        # Final prediction
         exhalation_rate = res_dict['x'][0]
-        ventilation_values = res_dict['x'][1:]
-        predictive_CO2 = self.CO2_concentrations_from_params(exhalation_rate=exhalation_rate, ventilation_values=ventilation_values)
-        return {"exhalation_rate": exhalation_rate, "ventilation_values": list(ventilation_values), 'predictive_CO2': list(predictive_CO2)}
+        ventilation_values = res_dict['x'][1:] # In ACH
+
+        # Final CO2ConcentrationModel with obtained prediction
+        the_CO2_concentration_model = self.CO2_concentration_model(
+            exhalation_rate=exhalation_rate, 
+            ventilation_values=ventilation_values
+        )
+        the_predictive_CO2 = self.CO2_concentrations_from_params(the_CO2_concentration_model)
+
+        # Ventilation in L/s/person
+        def max_occupancy_in_interval(start: float, stop: float) -> int:
+            """
+            Given a certain ventilation interval, get the maximum number of
+            people in that period od time.
+            """
+            max_people: int = 0
+            for i, (people_start, people_stop) in enumerate(zip(self.occupancy.transition_times[:-1], 
+                                                                self.occupancy.transition_times[1:])):
+                if people_stop <= start or people_start >= stop:
+                    continue
+                if self.occupancy.values[i] > max_people: max_people = self.occupancy.values[i]
+            return max_people
+        
+        vent_volume_liter_person = []
+        for i, (vent_start, vent_stop) in enumerate(zip(self.ventilation_transition_times[:-1],
+                                                        self.ventilation_transition_times[1:])):
+            max_people = max_occupancy_in_interval(vent_start, vent_stop)
+            if max_people == 0:
+                # If in a certain interval there are no occupancy, the flow rate per second/person is 0
+                vent_volume_liter_person.append(0)
+            else:
+                vent_volume_liter_person.append(
+                    ventilation_values[i] / 3600 * self.room_volume / max_people * 1000
+                ) # 1m^3 = 1000L
+        
+        return {
+            "exhalation_rate": exhalation_rate, 
+            "ventilation_values": list(ventilation_values),
+            "ventilation_lsp_values": vent_volume_liter_person,
+            'predictive_CO2': list(the_predictive_CO2)
+        }
 
 
 @dataclass(frozen=True)

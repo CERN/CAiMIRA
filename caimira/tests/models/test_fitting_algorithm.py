@@ -41,9 +41,8 @@ def test_fitting_algorithm(data_registry, activity_type, ventilation_active, air
     data_model = models.CO2DataModel(
         data_registry=data_registry,
         room_volume=75,
-        number=models.IntPiecewiseConstant(transition_times=tuple(
+        occupancy=models.IntPiecewiseConstant(transition_times=tuple(
             [8, 12, 13, 17]), values=tuple([2, 1, 2])),
-        presence=None,
         ventilation_transition_times=tuple(ventilation_active),
         times=times,
         CO2_concentrations=CO2_concentrations
