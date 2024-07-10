@@ -371,14 +371,6 @@ class FormData:
             breaks=breaks,
         )
 
-    def population_present_interval(self) -> models.Interval:
-        state_change_times = set(
-            self.infected_present_interval().transition_times())
-        state_change_times.update(
-            self.exposed_present_interval().transition_times())
-        all_state_changes = sorted(state_change_times)
-        return models.SpecificInterval(tuple(zip(all_state_changes[:-1], all_state_changes[1:])))
-
     def exposed_present_interval(self) -> models.Interval:
         if self.specific_breaks != {}:  # It means the breaks are specific and not predefined
             breaks = self.generate_specific_break_times(
