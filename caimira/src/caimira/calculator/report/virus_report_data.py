@@ -171,13 +171,19 @@ def calculate_report_data(form: VirusFormData, executor_factory: typing.Callable
     long_range_cumulative_doses = np.cumsum(long_range_deposited_exposures)
 
     prob = np.array(model.infection_probability())
-    prob_dist_count, prob_dist_bins = np.histogram(
-        prob/100, bins=100, density=True)
-    prob_probabilistic_exposure = np.array(
-        model.total_probability_rule()).mean()
-    expected_new_cases = np.array(model.expected_new_cases()).mean()
-    exposed_presence_intervals = [
-        list(interval) for interval in model.exposed.presence_interval().boundaries()]
+    prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
+    
+    if form.exposure_option == "p_probabilistic_exposure":
+        prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
+    else: prob_probabilistic_exposure = None
+
+    if ((isinstance(form.dynamic_infected_occupancy, typing.List) and len(form.dynamic_infected_occupancy) > 0) or 
+        (isinstance(form.dynamic_exposed_occupancy, typing.List) and len(form.dynamic_exposed_occupancy) > 0)):
+        expected_new_cases = None
+    else:
+        expected_new_cases = np.array(model.expected_new_cases()).mean()
+
+    exposed_presence_intervals = [list(interval) for interval in model.exposed.presence_interval().boundaries()]
 
     conditional_probability_data = None
     uncertainties_plot_src = None
