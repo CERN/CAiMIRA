@@ -34,9 +34,11 @@ class FormData:
     infected_lunch_option: bool                     #Used if infected_dont_have_breaks_with_exposed
     infected_lunch_start: minutes_since_midnight    #Used if infected_dont_have_breaks_with_exposed
     infected_people: int
+    dynamic_infected_occupancy: list
     infected_start: minutes_since_midnight
     room_volume: float
     total_people: int
+    dynamic_exposed_occupancy: list
 
     data_registry: DataRegistry
 
