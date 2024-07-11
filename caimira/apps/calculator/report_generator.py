@@ -279,11 +279,14 @@ def uncertainties_plot(infection_probability: models._VectorisedFloat,
                        lower_percentiles: models._VectorisedFloat,
                        upper_percentiles: models._VectorisedFloat):
 
-    fig, axs = plt.subplots(2, 3,
+    fig, axes = plt.subplots(2, 3, 
         gridspec_kw={'width_ratios': [5, 0.5] + [1],
             'height_ratios': [3, 1], 'wspace': 0},
         sharey='row',
         sharex='col')
+    
+    # Type hint for axs
+    axs: np.ndarray = np.array(axes)
 
     for y, x in [(0, 1)] + [(1, i + 1) for i in range(2)]:
         axs[y, x].axis('off')
