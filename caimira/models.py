@@ -1504,7 +1504,7 @@ class ShortRangeModel:
         if stop<=start:
             return 0.
 
-        # Note that for the correct interpolation one needs to isolate those parameters
+        # Note that for the correct integration one needs to isolate those parameters
         # that are diameter-dependent from those that are diameter independent.
         # Therefore, the diameter-independent parameters (viral load, f_ind and BR)
         # are removed for the interpolation, and added back once the integration over
