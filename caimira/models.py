@@ -878,7 +878,7 @@ class _PopulationWithVirus(Population):
     def emission_rate_per_aerosol_per_person_when_present(self) -> _VectorisedFloat:
         """
         The emission rate of infectious respiratory particles (IRP) in the expired air per 
-        mL of respiratory fluid, if the infected population is present, in (IRP.cm^3)/(mL.h).
+        mL of respiratory fluid, if the infected population is present, in (virions.cm^3)/(mL.h).
         This method returns only the diameter-independent variables within the emission rate.
         It should not be a function of time.
         """
@@ -888,7 +888,7 @@ class _PopulationWithVirus(Population):
     def emission_rate_per_person_when_present(self) -> _VectorisedFloat:
         """
         The emission rate if the infected population is present, per person
-        (in IRP/h).
+        (in virions/h).
         """
         return (self.emission_rate_per_aerosol_per_person_when_present() *
                 self.aerosols())
@@ -920,7 +920,7 @@ class _PopulationWithVirus(Population):
 
 @dataclass(frozen=True)
 class EmittingPopulation(_PopulationWithVirus):
-    #: The emission rate of a single individual, in IRP / h.
+    #: The emission rate of a single individual, in virions / h.
     known_individual_emission_rate: float
 
     def aerosols(self):
@@ -934,7 +934,7 @@ class EmittingPopulation(_PopulationWithVirus):
     def emission_rate_per_aerosol_per_person_when_present(self) -> _VectorisedFloat:
         """
         The emission rate of infectious respiratory particles (IRP) in the expired air per 
-        mL of respiratory fluid, if the infected population is present, in (IRP.cm^3)/(mL.h).
+        mL of respiratory fluid, if the infected population is present, in (virions.cm^3)/(mL.h).
         This method returns only the diameter-independent variables within the emission rate.
         It should not be a function of time.
         """
@@ -963,13 +963,13 @@ class InfectedPopulation(_PopulationWithVirus):
     def emission_rate_per_aerosol_per_person_when_present(self) -> _VectorisedFloat:
         """
         The emission rate of infectious respiratory particles (IRP) in the expired air per 
-        mL of respiratory fluid, if the infected population is present, in (IRP.cm^3)/(mL.h).
+        mL of respiratory fluid, if the infected population is present, in (virions.cm^3)/(mL.h).
         This method returns only the diameter-independent variables within the emission rate.
         It should not be a function of time.
         """
         # Conversion factor explanation:
         # The exhalation rate is in m^3/h, therefore the 1e6 conversion factor
-        # is to convert m^3/h into cm^3/h to return (IRP.cm^3)/(mL.h),
+        # is to convert m^3/h into cm^3/h to return (virions.cm^3)/(mL.h),
         # so that we can then multiply by aerosols (mL/cm^3).
         ER = (self.virus.viral_load_in_sputum *
               self.activity.exhalation_rate *
@@ -1426,7 +1426,7 @@ class ShortRangeModel:
         """
         The normalization factor applied to the short-range results. It refers to the emission
         rate per aerosol without accounting for the exhalation rate (viral load and f_inf).
-        Result in (IRP.cm^3)/(mL.m^3).
+        Result in (virions.cm^3)/(mL.m^3).
         """
         # Re-use the emission rate method divided by the BR contribution. 
         return infected.emission_rate_per_aerosol_per_person_when_present() / infected.activity.exhalation_rate
@@ -1434,14 +1434,14 @@ class ShortRangeModel:
     def jet_origin_concentration(self, infected: InfectedPopulation) -> _VectorisedFloat:
         """
         The initial jet concentration at the source origin (mouth/nose).
-        Returns the full result with the diameter dependent and independent variables, in IRP/m^3.
+        Returns the full result with the diameter dependent and independent variables, in virions/m^3.
         """
         return self._normed_jet_origin_concentration() * self.normalization_factor(infected)
     
     def short_range_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
         """
         Virus short-range exposure concentration, as a function of time.
-        Factor of normalization applied back here. Results in IRP/m^3.
+        Factor of normalization applied back here. Results in virions/m^3.
         """
         return (self._normed_concentration(concentration_model, time) * 
                 self.normalization_factor(concentration_model.infected))
@@ -1727,7 +1727,6 @@ class ExposureModel:
         initial deposited exposure.
         """
         deposited_exposure: _VectorisedFloat = 0.
-        emission_rate_per_aerosol_per_person = self.concentration_model.normalization_factor()
         for interaction in self.short_range:
             start, stop = interaction.extract_between_bounds(time1, time2)
             short_range_jet_exposure = interaction._normed_jet_exposure_between_bounds(start, stop)
