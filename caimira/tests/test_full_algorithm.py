@@ -15,6 +15,8 @@ from caimira.models import _VectorisedFloat,Interval,SpecificInterval
 from caimira.monte_carlo.data import (expiration_distributions,
         expiration_BLO_factors,short_range_expiration_distributions,
         short_range_distances,virus_distributions,activity_distributions)
+import caimira.dataclass_utils as dc_utils
+
 
 SAMPLE_SIZE = 1_000_000
 TOLERANCE = 0.04
@@ -849,3 +851,119 @@ def test_exposure_with_shortrange_and_distributions(expo_sr_model_distr,
         rtol=0.03
         )
 
+
+def exposure_model_from_parameter(data_registry, short_range_models, f_inf=0.5, viral_load=1e9, BR=1.25):
+    virus: models.SARSCoV2 = models.SARSCoV2(
+        viral_load_in_sputum=viral_load,
+        infectious_dose=50,
+        viable_to_RNA_ratio=f_inf,
+        transmissibility_factor=0.51,
+    )
+    c_model = mc.ConcentrationModel(
+        data_registry=data_registry,
+        room=models.Room(volume=50, humidity=0.3),
+        ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
+                                     air_exch=10_000_000),
+        infected=mc.InfectedPopulation(
+            data_registry=data_registry,
+            number=1,
+            presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
+            virus=virus,
+            mask=models.Mask.types['No mask'],
+            activity=models.Activity.types['Seated'],
+            expiration=expiration_distributions(data_registry)['Breathing'],
+            host_immunity=0.,
+        ),
+        evaporation_factor=0.3,
+    )
+    return mc.ExposureModel(
+        data_registry=data_registry,
+        concentration_model=c_model,
+        short_range=short_range_models,
+        exposed=mc.Population(
+            number=1,
+            presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
+            mask=models.Mask.types['No mask'],
+            activity=models.Activity(inhalation_rate=BR, exhalation_rate=1.25),
+            host_immunity=0.,
+        ),
+        geographical_data=models.Cases(),
+    ).build_model(SAMPLE_SIZE)
+
+
+@retry(tries=10)
+def test_exposure_scale_with_f_inf(data_registry, sr_models):
+    """
+    Exposure scaling test for the fraction of infectious virus.
+    """
+    e_model_1: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range_models=sr_models, f_inf=0.5)
+    e_model_2: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range_models=sr_models, f_inf=1)
+    np.testing.assert_allclose(
+        2*e_model_1.deposited_exposure().mean(),
+        e_model_2.deposited_exposure().mean(), rtol=0.02
+    )
+
+
+@retry(tries=10)
+def test_exposure_scale_with_viral_load(data_registry, sr_models):
+    """
+    Exposure scaling test for the viral load.
+    """
+    e_model_1: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range_models=sr_models, viral_load=1e9)
+    e_model_2: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range_models=sr_models, viral_load=2e9)
+    np.testing.assert_allclose(
+        2*e_model_1.deposited_exposure().mean(),
+        e_model_2.deposited_exposure().mean(), rtol=0.02
+    )
+
+
+@retry(tries=10)
+def test_lr_exposure_scale_with_breathing_rate(data_registry):
+    """
+    Exposure scaling test for the breathing rate when there are only long-range 
+    interactions defined. Only the inhalation rate of the infected takes place 
+    at the deposited exposure level.
+    """
+    e_model_1: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range_models=(), BR=1.25)
+    e_model_2: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range_models=(), BR=2.5)
+    np.testing.assert_allclose(
+        2*e_model_1.deposited_exposure().mean(),
+        e_model_2.deposited_exposure().mean(), rtol=0.02
+    )
+
+
+@retry(tries=10)
+def test_exposure_scale_with_breathing_rate(data_registry, sr_models):
+    """
+    Exposure scaling test for the breathing rate when long- and short-range
+    interactions are defined. We need to apply the multiplication factor
+    to the inhalation rate of the infected (long-range), but also for
+    each short-range interaction
+    """
+    e_model_1: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range_models=sr_models, BR=1.25)
+    
+    seated_act = models.Activity.types['Seated']
+    heavy_exercise_act = models.Activity.types['Heavy exercise']
+    sr_models_activity = (
+        mc.ShortRangeModel(
+            data_registry = data_registry,
+            expiration = short_range_expiration_distributions(data_registry)['Speaking'],
+            activity = models.Activity(inhalation_rate=seated_act.inhalation_rate * 2, 
+                                       exhalation_rate=seated_act.exhalation_rate),
+            presence = interaction_intervals[0],
+            distance = 0.854,
+        ),
+        mc.ShortRangeModel(
+            data_registry = data_registry,
+            expiration = short_range_expiration_distributions(data_registry)['Breathing'],
+            activity = models.Activity(inhalation_rate=heavy_exercise_act.inhalation_rate * 2, 
+                                       exhalation_rate=heavy_exercise_act.inhalation_rate),
+            presence = interaction_intervals[1],
+            distance = 0.854,
+        ),
+    )
+    e_model_2: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range_models=sr_models_activity, BR=2.5)
+    np.testing.assert_allclose(
+        2*e_model_1.deposited_exposure().mean(),
+        e_model_2.deposited_exposure().mean(), rtol=0.02
+    )
