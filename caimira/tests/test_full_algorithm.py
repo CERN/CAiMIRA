@@ -15,7 +15,6 @@ from caimira.models import _VectorisedFloat,Interval,SpecificInterval
 from caimira.monte_carlo.data import (expiration_distributions,
         expiration_BLO_factors,short_range_expiration_distributions,
         short_range_distances,virus_distributions,activity_distributions)
-import caimira.dataclass_utils as dc_utils
 
 
 SAMPLE_SIZE = 1_000_000
@@ -938,7 +937,7 @@ def test_exposure_scale_with_breathing_rate(data_registry, sr_models):
     Exposure scaling test for the breathing rate when long- and short-range
     interactions are defined. We need to apply the multiplication factor
     to the inhalation rate of the infected (long-range), but also for
-    each short-range interaction
+    each short-range interaction.
     """
     e_model_1: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range_models=sr_models, BR=1.25)
     
