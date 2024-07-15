@@ -49,7 +49,7 @@ def test_short_range_model_ndarray(concentration_model, short_range_model):
     model = short_range_model.build_model(SAMPLE_SIZE)
     assert isinstance(model._normed_concentration(concentration_model, 10.75), np.ndarray)
     assert isinstance(model.short_range_concentration(concentration_model, 10.75), np.ndarray)
-    assert isinstance(model._normed_jet_exposure_between_bounds(concentration_model, 10.75, 10.85), np.ndarray)
+    assert isinstance(model._normed_jet_exposure_between_bounds(10.75, 10.85), np.ndarray)
     assert isinstance(model._normed_interpolated_longrange_exposure_between_bounds(concentration_model, 10.75, 10.85), np.ndarray)
     assert isinstance(model.short_range_concentration(concentration_model, 14.0), float)
 
@@ -106,9 +106,9 @@ def test_extract_between_bounds(short_range_model, time1, time2,
 @pytest.mark.parametrize(
     "time, expected_short_range_concentration", [
         [8.5, 0.],
-        [10.5, 11.266605],
-        [10.6, 11.266605],
-        [11.0, 11.266605],
+        [10.5, 5.6333025],
+        [10.6, 5.6333025],
+        [11.0, 5.6333025],
         [12.0, 0.],
     ]
 )
