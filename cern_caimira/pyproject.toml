@@ -3,7 +3,7 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "caimira"
+name = "cern-caimira"
 version = "2.0.0"
 description = "CAiMIRA - CERN Airborne Model for Indoor Risk Assessment"
 readme = "README.md"
@@ -62,10 +62,10 @@ doc = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/cern/caimira"
+Homepage = "https://cern.ch/caimira"
 
 [tool.setuptools]
-packages = ["caimira"]
+packages = ["cern_caimira"]
 package-dir = {"" = "src"}
 
 [tool.pytest.ini_options]
@@ -73,7 +73,6 @@ addopts = "--mypy"
 
 [tool.mypy]
 no_warn_no_return = true
-exclude = "caimira/profiler.py"
 
 [tool.mypy-loky]
 ignore_missing_imports = true

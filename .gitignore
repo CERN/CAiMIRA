@@ -19,3 +19,6 @@ app-config/openshift/caimira-prod
 
 # documentation build folder
 caimira/docs/_build
+
+# mypy
+.mypy_cache
