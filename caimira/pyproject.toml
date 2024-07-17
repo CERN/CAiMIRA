@@ -18,27 +18,21 @@ classifiers = [
 ]
 requires-python = ">=3.9"
 dependencies = [
-    "ipykernel",
-    "ipympl>=0.9.0",
-    "ipywidgets<8.0",
-    "Jinja2",
-    "loky",
     "matplotlib",
     "memoization",
     "mistune",
     "numpy",
     "pandas",
-    "psutil",
     "pyinstrument",
-    "pyjwt",
     "python-dateutil",
+    "requests",
     "retry",
     "ruptures",
     "scipy",
     "scikit-learn",
+    "tabulate",
     "timezonefinder",
     "tornado",
-    "types-retry",
 ]
 
 [project.optional-dependencies]
@@ -51,7 +45,8 @@ test = [
     "numpy-stubs @ git+https://github.com/numpy/numpy-stubs.git",
     "types-dataclasses",
     "types-python-dateutil",
-    "types-requests"
+    "types-requests",
+    "types-retry",
 ]
 doc = [
     "sphinx",
@@ -71,40 +66,7 @@ addopts = "--mypy"
 [tool.mypy]
 no_warn_no_return = true
 exclude = "caimira/profiler.py"
-ignore_missing_imports = true # TODO what to do here? 
 
-[tool.mypy-loky]
-ignore_missing_imports = true
-
-[tool.mypy-ipympl]
-ignore_missing_imports = true
-
-[tool.mypy-ipywidgets]
-ignore_missing_imports = true
-
-[tool.mypy-matplotlib]
-ignore_missing_imports = true
-
-[tool.mypy-mistune]
-ignore_missing_imports = true
-
-[tool.mypy-qrcode]
-ignore_missing_imports = true
-
-[tool.mypy-scipy]
-ignore_missing_imports = true
-
-[tool.mypy-timezonefinder]
-ignore_missing_imports = true
-
-[tool.mypy-pandas]
-ignore_missing_imports = true
-
-[tool.mypy-pstats]
-follow_imports = "skip"
-
-[tool.mypy-tabulate]
-ignore_missing_imports = true
-
-[tool.mypy-ruptures]
+[[tool.mypy.overrides]]
+module = ["pandas", "ruptures", "scipy.*", "setuptools", "sklearn.*", "tabulate"]
 ignore_missing_imports = true
