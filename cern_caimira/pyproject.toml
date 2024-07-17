@@ -70,7 +70,11 @@ addopts = "--mypy"
 
 [tool.mypy]
 no_warn_no_return = true
-ignore_missing_imports = true # TODO what to do here? 
+
+[[tool.mypy.overrides]]
+module = ["caimira.*", "ipympl.*", "loky", "ipywidgets", "setuptools", "pandas"]
+ignore_missing_imports = true
+
 
 [tool.mypy-loky]
 ignore_missing_imports = true

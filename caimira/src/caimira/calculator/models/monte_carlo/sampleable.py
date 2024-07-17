@@ -1,7 +1,7 @@
 import typing
 
 import numpy as np
-from sklearn.neighbors import KernelDensity # type: ignore
+from sklearn.neighbors import KernelDensity
 
 from caimira.calculator.models import models
 

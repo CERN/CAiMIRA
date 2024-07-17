@@ -11,59 +11,41 @@ include:
    file: acc_py_devtools/templates/gitlab-ci/python.yml
 
 variables:
-  project_name: caimira
+  PY_VERSION: "3.11"
 
 
 # ###################################################################################################
 # Test code - CAiMIRA (model) and CERN CAiMIRA (CERN's UI)
 
-  # A full installation of CAiMIRA, tested with pytest.
-test_install:
-  extends: .acc_py_full_test
+.py_full_test:
+  image: registry.cern.ch/docker.io/library/python:${PY_VERSION}
+  stage: test
+  before_script:
+    - pip install -e ${caimira_root}[test]
+    - pip install -e ${cern_caimira_root}[test]
+  script:
+    - cd ${caimira_root}
+    - python -m pytest
+    - cd ../${cern_caimira_root}
+    - python -m pytest
+
+
+# A full installation of CAiMIRA, tested with pytest.
+caimira_full_test:
+  extends: .py_full_test
   variables:
-    project_root: ./caimira
-    project_name: caimira
+    caimira_root: ./caimira
+    cern_caimira_root: ./cern_caimira 
 
 
 # A development installation of CAiMIRA tested with pytest.
-test_dev:
-  extends: .acc_py_dev_test
-  variables:
-    project_root: ./caimira
-    project_name: caimira
-
-
-# A development installation of CAiMIRA tested with pytest.
-test_dev-39:
+caimira_full_test-39:
+  extends: .py_full_test
   variables:
     PY_VERSION: "3.9"
-    project_root: ./caimira
-    project_name: caimira
-  extends: .acc_py_dev_test
+    caimira_root: ./caimira
+    cern_caimira_root: ./cern_caimira 
 
-# A full installation of CERN CAiMIRA, tested with pytest.
-test_install_cern_caimira:
-  extends: .acc_py_full_test
-  variables:
-    project_root: ./_cern_caimira
-    project_name: cern_caimira
-
-
-# A development installation of CERN CAiMIRA tested with pytest.
-test_dev_cern_caimira:
-  extends: .acc_py_dev_test
-  variables:
-    project_root: ./_cern_caimira
-    project_name: cern_caimira
-
-
-# A development installation of CERN CAiMIRA tested with pytest.
-test_dev-39_cern_caimira:
-  variables:
-    PY_VERSION: "3.9"
-    project_root: ./_cern_caimira
-    project_name: cern_caimira
-  extends: .acc_py_dev_test
 
 # ###################################################################################################
 # Test OpenShift config

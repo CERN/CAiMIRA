@@ -1,5 +1,5 @@
-# import pandas as pd
-# from tabulate import tabulate
+import pandas as pd
+from tabulate import tabulate
 
 '''
 Script file to generate the vaccine effectiveness values.
