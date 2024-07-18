@@ -1595,7 +1595,7 @@ class CO2DataModel:
         def max_occupancy_in_interval(start: float, stop: float) -> int:
             """
             Given a certain ventilation interval, get the maximum number of
-            people in that period od time.
+            people in that period of time.
             """
             max_people: int = 0
             for i, (people_start, people_stop) in enumerate(zip(self.occupancy.transition_times[:-1], 
