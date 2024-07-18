@@ -18,9 +18,9 @@ classifiers = [
 ]
 requires-python = ">=3.9"
 dependencies = [
-    "ipykernel",
-    "ipympl>=0.9.0",
-    "ipywidgets<8.0",
+    'ipykernel',
+    'ipympl >= 0.9.0',
+    'ipywidgets < 8.0',
     "Jinja2",
     "loky",
     "matplotlib",
@@ -28,14 +28,10 @@ dependencies = [
     "mistune",
     "numpy",
     "pandas",
-    "psutil",
     "pyinstrument",
-    "pyjwt",
-    "python-dateutil",
     "retry",
     "ruptures",
     "scipy",
-    "scikit-learn",
     "timezonefinder",
     "tornado",
     "types-retry",
@@ -50,7 +46,6 @@ test = [
     "pytest-tornasync",
     "numpy-stubs @ git+https://github.com/numpy/numpy-stubs.git",
     "types-dataclasses",
-    "types-python-dateutil",
     "types-requests"
 ]
 doc = [
@@ -72,42 +67,5 @@ addopts = "--mypy"
 no_warn_no_return = true
 
 [[tool.mypy.overrides]]
-module = ["caimira.*", "ipympl.*", "loky", "ipywidgets", "setuptools", "pandas"]
-ignore_missing_imports = true
-
-
-[tool.mypy-loky]
-ignore_missing_imports = true
-
-[tool.mypy-ipympl]
-ignore_missing_imports = true
-
-[tool.mypy-ipywidgets]
-ignore_missing_imports = true
-
-[tool.mypy-matplotlib]
-ignore_missing_imports = true
-
-[tool.mypy-mistune]
-ignore_missing_imports = true
-
-[tool.mypy-qrcode]
-ignore_missing_imports = true
-
-[tool.mypy-scipy]
-ignore_missing_imports = true
-
-[tool.mypy-timezonefinder]
-ignore_missing_imports = true
-
-[tool.mypy-pandas]
-ignore_missing_imports = true
-
-[tool.mypy-pstats]
-follow_imports = "skip"
-
-[tool.mypy-tabulate]
-ignore_missing_imports = true
-
-[tool.mypy-ruptures]
+module = ["caimira.*", "ipympl.*", "ipywidgets", "loky", "setuptools", "pandas"]
 ignore_missing_imports = true

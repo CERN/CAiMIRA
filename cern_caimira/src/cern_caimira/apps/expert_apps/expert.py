@@ -20,8 +20,6 @@ from caimira.calculator.store.data_registry import DataRegistry
 
 LOG = logging.getLogger(__name__)
 
-LOG = logging.getLogger(__name__)
-
 
 def collapsible(widgets_to_collapse: typing.List, title: str, start_collapsed=False):
     collapsed = widgets.Accordion([widgets.VBox(widgets_to_collapse)])
