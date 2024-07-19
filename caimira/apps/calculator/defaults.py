@@ -37,7 +37,7 @@ DEFAULTS = {
     'infected_lunch_option': True,
     'infected_lunch_start': '12:30',
     'infected_people': 1,
-    'dynamic_infected_occupancy': '[]',
+    'dynamic_infected_occupancy': NO_DEFAULT,
     'infected_start': '08:30',
     'inside_temp': NO_DEFAULT,
     'location_latitude': NO_DEFAULT,
