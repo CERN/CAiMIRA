@@ -18,7 +18,7 @@ minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
 
 @dataclasses.dataclass
 class FormData:
-    specific_breaks: dict
+    # Static occupancy inputs
     exposed_coffee_break_option: str
     exposed_coffee_duration: int
     exposed_finish: minutes_since_midnight
@@ -33,15 +33,18 @@ class FormData:
     infected_lunch_finish: minutes_since_midnight   #Used if infected_dont_have_breaks_with_exposed
     infected_lunch_option: bool                     #Used if infected_dont_have_breaks_with_exposed
     infected_lunch_start: minutes_since_midnight    #Used if infected_dont_have_breaks_with_exposed
-    infected_people: int
-    dynamic_infected_occupancy: list
     infected_start: minutes_since_midnight
+    infected_people: int
+    occupancy_format: str
     room_volume: float
+    specific_breaks: dict
     total_people: int
+
+    # Dynamic occupancy inputs
     dynamic_exposed_occupancy: list
+    dynamic_infected_occupancy: list
 
     data_registry: DataRegistry
-
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = DEFAULTS
 
     @classmethod
