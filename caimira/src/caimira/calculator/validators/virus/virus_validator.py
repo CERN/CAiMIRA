@@ -441,7 +441,7 @@ class VirusFormData(FormData):
         return (self.precise_activity['physical_activity'], respiratory_dict)
     
     def generate_dynamic_occupancy(self, dynamic_occupancy: typing.List[typing.Dict[str, typing.Any]]):
-        ### Data format validation ###
+        ##### Data format validation #####
         for occupancy in dynamic_occupancy:
             # Check if each occupancy entry is a dictionary
             if not isinstance(occupancy, typing.Dict):
@@ -453,7 +453,7 @@ class VirusFormData(FormData):
                 raise TypeError(f'Unable to fetch "total_people" key. Got "{dict_keys[0]}".')
             else:
                 value = occupancy["total_people"]
-                # Check if the total_people value is a non-negative integer
+                # Check if the value is a non-negative integer
                 if not isinstance(value, int):
                     raise ValueError(f"Total number of people should be integer. Got {value}.")
                 elif not value >= 0:
@@ -481,7 +481,7 @@ class VirusFormData(FormData):
         unique_transition_times_sorted = np.array(sorted(set(transition_times)))
 
         if len(values) != len(unique_transition_times_sorted) - 1:
-            raise ValueError("Cannot compute dynamic occupancy with the inputs provided.")
+            raise ValueError("Cannot compute dynamic occupancy with the provided inputs.")
         
         population_occupancy: models.IntPiecewiseConstant = models.IntPiecewiseConstant(
             transition_times=tuple(unique_transition_times_sorted),
@@ -512,6 +512,12 @@ class VirusFormData(FormData):
             # If dynamic occupancy is defined, the generator will parse and validate the
             # respective input to a format readable by the model - IntPiecewiseConstant.
             infected_occupancy, infected_presence = self.generate_dynamic_occupancy(self.dynamic_infected_occupancy)
+            # If exposed population is static, defined from the "total_people" input, validate
+            # if every occurency of infected population is less or equal than it.
+            if isinstance(self.dynamic_exposed_occupancy, typing.List) and len(self.dynamic_exposed_occupancy) == 0:
+                for infected_people in infected_occupancy.values:
+                    if infected_people >= self.total_people:
+                        raise ValueError('Number of infected people cannot be greater or equal to the number of total people.')
         else:
             # The number of exposed occupants is the total number of occupants
             # minus the number of infected occupants.
