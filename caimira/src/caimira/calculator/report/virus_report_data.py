@@ -173,15 +173,16 @@ def calculate_report_data(form: VirusFormData, executor_factory: typing.Callable
     prob = np.array(model.infection_probability())
     prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
     
-    if form.exposure_option == "p_probabilistic_exposure":
+    # Probabilistic exposure
+    if form.exposure_option == "p_probabilistic_exposure" and form.occupancy_format == "static":
         prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
-    else: prob_probabilistic_exposure = None
-
-    if ((isinstance(form.dynamic_infected_occupancy, typing.List) and len(form.dynamic_infected_occupancy) > 0) or 
-        (isinstance(form.dynamic_exposed_occupancy, typing.List) and len(form.dynamic_exposed_occupancy) > 0)):
-        expected_new_cases = None
-    else:
+    else: prob_probabilistic_exposure = 0
+    # Expected new cases
+    if (form.occupancy_format == "static"):
         expected_new_cases = np.array(model.expected_new_cases()).mean()
+    else:
+        # With dynamic occupancy, the expected number of new cases feature is disabled.
+        expected_new_cases = -1
 
     exposed_presence_intervals = [list(interval) for interval in model.exposed.presence_interval().boundaries()]
 
@@ -415,7 +416,8 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
 def scenario_statistics(
     mc_model: mc.ExposureModel,
     sample_times: typing.List[float],
-    compute_prob_exposure: bool
+    compute_prob_exposure: bool,
+    compute_expected_new_cases: bool,
 ):
     model = mc_model.build_model(
         size=mc_model.data_registry.monte_carlo['sample_size'])
@@ -424,10 +426,15 @@ def scenario_statistics(
         prob_probabilistic_exposure = model.total_probability_rule()
     else:
         prob_probabilistic_exposure = 0.
+    
+    if (compute_expected_new_cases):
+        expected_new_cases = np.mean(model.expected_new_cases())
+    else:
+        expected_new_cases = -1
 
     return {
         'probability_of_infection': np.mean(model.infection_probability()),
-        'expected_new_cases': np.mean(model.expected_new_cases()),
+        'expected_new_cases': expected_new_cases,
         'concentrations': [
             np.mean(model.concentration(time))
             for time in sample_times
@@ -453,17 +460,20 @@ def comparison_report(
     else:
         statistics = {}
 
-    if (form.short_range_option == "short_range_yes" and form.exposure_option == "p_probabilistic_exposure"):
+    if (form.short_range_option == "short_range_yes" and form.exposure_option == "p_probabilistic_exposure" and form.occupancy_format == "static"):
         compute_prob_exposure = True
     else:
         compute_prob_exposure = False
 
+    compute_expected_new_cases = True if (form.occupancy_format == "static") else False
+        
     with executor_factory() as executor:
         results = executor.map(
             scenario_statistics,
             scenarios.values(),
             [report_data['times']] * len(scenarios),
             [compute_prob_exposure] * len(scenarios),
+            [compute_expected_new_cases] * len(scenarios),
             timeout=60,
         )
 

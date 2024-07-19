@@ -26,16 +26,13 @@ class FormData:
     exposed_lunch_option: bool
     exposed_lunch_start: minutes_since_midnight
     exposed_start: minutes_since_midnight
-    # Used if infected_dont_have_breaks_with_exposed
     infected_coffee_break_option: str
-    infected_coffee_duration: int  # Used if infected_dont_have_breaks_with_exposed
+    infected_coffee_duration: int
     infected_dont_have_breaks_with_exposed: bool
     infected_finish: minutes_since_midnight
-    # Used if infected_dont_have_breaks_with_exposed
-    infected_lunch_finish: minutes_since_midnight
-    infected_lunch_option: bool  # Used if infected_dont_have_breaks_with_exposed
-    # Used if infected_dont_have_breaks_with_exposed
-    infected_lunch_start: minutes_since_midnight
+    infected_lunch_finish: minutes_since_midnight # Used if infected_dont_have_breaks_with_exposed
+    infected_lunch_option: bool # Used if infected_dont_have_breaks_with_exposed
+    infected_lunch_start: minutes_since_midnight # Used if infected_dont_have_breaks_with_exposed
     infected_people: int
     dynamic_infected_occupancy: list
     infected_start: minutes_since_midnight

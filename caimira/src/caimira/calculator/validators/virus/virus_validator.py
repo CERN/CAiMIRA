@@ -202,7 +202,8 @@ class VirusFormData(FormData):
                     f'The sum of all respiratory activities should be 100. Got {total_percentage}.')
 
         # Validate number of people with short-range interactions
-        max_occupants_for_sr = self.total_people - self.infected_people
+        if self.occupancy_format == "static": max_occupants_for_sr = self.total_people - self.infected_people
+        else: max_occupants_for_sr = np.max(np.array([entry["total_people"] for entry in self.dynamic_exposed_occupancy]))
         if self.short_range_occupants > max_occupants_for_sr:
             raise ValueError(
                 f'The total number of occupants having short-range interactions ({self.short_range_occupants}) should be lower than the exposed population ({max_occupants_for_sr}).'
@@ -494,35 +495,32 @@ class VirusFormData(FormData):
         # Initializes the virus
         virus = virus_distributions(self.data_registry)[self.virus_type]
 
-        activity_defn = self.data_registry.population_scenario_activity[
-            self.activity_type]['activity']
-        expiration_defn = self.data_registry.population_scenario_activity[
-            self.activity_type]['expiration']
-        if (self.activity_type == 'smallmeeting'):
-            # Conversation of N people is approximately 1/N% of the time speaking.
-            expiration_defn = {'Speaking': 1,
-                               'Breathing': self.total_people - 1}
-        elif (self.activity_type == 'precise'):
-            activity_defn, expiration_defn = self.generate_precise_activity_expiration() # TODO: what to do here?
-
-        activity = activity_distributions(self.data_registry)[activity_defn]
-        expiration = build_expiration(self.data_registry, expiration_defn)
-
-        if isinstance(self.dynamic_infected_occupancy, typing.List) and len(self.dynamic_infected_occupancy) > 0:
-            # If dynamic occupancy is defined, the generator will parse and validate the
-            # respective input to a format readable by the model - IntPiecewiseConstant.
-            infected_occupancy, infected_presence = self.generate_dynamic_occupancy(self.dynamic_infected_occupancy)
-            # If exposed population is static, defined from the "total_people" input, validate
-            # if every occurency of infected population is less or equal than it.
-            if isinstance(self.dynamic_exposed_occupancy, typing.List) and len(self.dynamic_exposed_occupancy) == 0:
-                for infected_people in infected_occupancy.values:
-                    if infected_people >= self.total_people:
-                        raise ValueError('Number of infected people cannot be greater or equal to the number of total people.')
+        # Occupancy
+        if self.occupancy_format == 'dynamic':
+            if isinstance(self.dynamic_infected_occupancy, typing.List) and len(self.dynamic_infected_occupancy) > 0:
+                # If dynamic occupancy is defined, the generator will parse and validate the
+                # respective input to a format readable by the model - `IntPiecewiseConstant`.
+                infected_occupancy, infected_presence = self.generate_dynamic_occupancy(self.dynamic_infected_occupancy)
+            else:
+                raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_infected_occupancy}".')
         else:
             # The number of exposed occupants is the total number of occupants
             # minus the number of infected occupants.
             infected_occupancy = self.infected_people
             infected_presence = self.infected_present_interval()
+
+        # Activity and expiration
+        activity_defn = self.data_registry.population_scenario_activity[self.activity_type]['activity']
+        expiration_defn = self.data_registry.population_scenario_activity[self.activity_type]['expiration']
+        if (self.activity_type == 'smallmeeting'):
+            # Conversation of N people is approximately 1/N% of the time speaking.
+            total_people: int = max(infected_occupancy.values) if self.occupancy_format == 'dynamic' else self.total_people
+            expiration_defn = {'Speaking': 1, 'Breathing': total_people - 1}
+        elif (self.activity_type == 'precise'):
+            activity_defn, expiration_defn = self.generate_precise_activity_expiration()
+
+        activity = activity_distributions(self.data_registry)[activity_defn]
+        expiration = build_expiration(self.data_registry, expiration_defn)
 
         infected = mc.InfectedPopulation(
             data_registry=self.data_registry,
@@ -542,11 +540,14 @@ class VirusFormData(FormData):
                          if self.activity_type == 'precise'
                          else str(self.data_registry.population_scenario_activity[self.activity_type]['activity']))
         activity = activity_distributions(self.data_registry)[activity_defn]
-    
-        if isinstance(self.dynamic_exposed_occupancy, typing.List) and len(self.dynamic_exposed_occupancy) > 0:
-            # If dynamic occupancy is defined, the generator will parse and validate the
-            # respective input to a format readable by the model - IntPiecewiseConstant.
-            exposed_occupancy, exposed_presence = self.generate_dynamic_occupancy(self.dynamic_exposed_occupancy)
+
+        if self.occupancy_format == 'dynamic':
+            if isinstance(self.dynamic_exposed_occupancy, typing.List) and len(self.dynamic_exposed_occupancy) > 0:
+                # If dynamic occupancy is defined, the generator will parse and validate the
+                # respective input to a format readable by the model - IntPiecewiseConstant.
+                exposed_occupancy, exposed_presence = self.generate_dynamic_occupancy(self.dynamic_exposed_occupancy)
+            else:
+                raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_exposed_occupancy}".')
         else:
             # The number of exposed occupants is the total number of occupants
             # minus the number of infected occupants.
@@ -597,8 +598,12 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'activity_type': 'office',
         'air_changes': '',
         'air_supply': '',
+        'ascertainment_bias': 'confidence_low',
         'ceiling_height': '',
         'conditional_probability_viral_loads': '0',
+        'dynamic_exposed_occupancy': '[]',
+        'dynamic_infected_occupancy': '[]',
+        'event_month': 'January',
         'exposed_coffee_break_option': 'coffee_break_4',
         'exposed_coffee_duration': '10',
         'exposed_finish': '18:00',
@@ -607,6 +612,8 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'exposed_lunch_start': '12:30',
         'exposed_start': '09:00',
         'floor_area': '',
+        'geographic_cases': 0,
+        'geographic_population': 0,
         'hepa_amount': '250',
         'hepa_option': '0',
         'humidity': '0.5',
@@ -618,43 +625,38 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'infected_lunch_option': '1',
         'infected_lunch_start': '12:30',
         'infected_people': '1',
-        'dynamic_infected_occupancy': '[]',
         'infected_start': '09:00',
         'inside_temp': '293.',
         'location_latitude': 46.20833,
         'location_longitude': 6.14275,
         'location_name': 'Geneva',
-        'geographic_population': 0,
-        'geographic_cases': 0,
-        'ascertainment_bias': 'confidence_low',
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': '',
         'calculator_version': calculator_version,
         'opening_distance': '0.2',
-        'event_month': 'January',
+        'occupancy_format': 'static',
         'room_heating_option': '0',
         'room_number': '123',
         'room_volume': '75',
+        'short_range_interactions': '[]',
+        'short_range_option': 'short_range_no',
         'simulation_name': 'Test',
         'total_people': '10',
-        'dynamic_exposed_occupancy': '[]',
-        'vaccine_option': '0',
         'vaccine_booster_option': '0',
-        'vaccine_type': 'Ad26.COV2.S_(Janssen)',
         'vaccine_booster_type': 'AZD1222_(AstraZeneca)',
+        'vaccine_option': '0',
+        'vaccine_type': 'Ad26.COV2.S_(Janssen)',
         'ventilation_type': 'natural_ventilation',
         'virus_type': 'SARS_CoV_2',
         'volume_type': 'room_volume_explicit',
+        'window_height': '2',
+        'window_opening_regime': 'windows_open_permanently',
         'windows_duration': '10',
         'windows_frequency': '60',
-        'window_height': '2',
+        'windows_number': '1',
         'window_type': 'window_sliding',
         'window_width': '2',
-        'windows_number': '1',
-        'window_opening_regime': 'windows_open_permanently',
-        'short_range_option': 'short_range_no',
-        'short_range_interactions': '[]',
     }
 
 
