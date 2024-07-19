@@ -73,7 +73,10 @@ class VirusFormData(FormData):
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = DEFAULTS
 
     def validate(self):
-        self.validate_population_parameters()
+        # Validate population parameters when static occupancy is defined.
+        # Dynamic population is validated in the generate_dynamic_occupancy method.
+        if self.occupancy_format == 'static':
+            self.validate_population_parameters()
 
         validation_tuples = [('activity_type', self.data_registry.population_scenario_activity.keys()),
                              ('mechanical_ventilation_type',

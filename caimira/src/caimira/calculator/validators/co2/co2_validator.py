@@ -60,8 +60,10 @@ class CO2FormData(FormData):
         self.data_registry = DataRegistry()
 
     def validate(self):
-        # Validate population parameters
-        self.validate_population_parameters()
+        # Validate population parameters when static occupancy is defined.
+        # Dynamic population is validated in the generate_dynamic_occupancy method.
+        if self.occupancy_format == 'static':
+            self.validate_population_parameters()
 
         # Validate room capacity
         if self.room_capacity:

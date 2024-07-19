@@ -176,7 +176,7 @@ def calculate_report_data(form: VirusFormData, executor_factory: typing.Callable
     # Probabilistic exposure
     if form.exposure_option == "p_probabilistic_exposure" and form.occupancy_format == "static":
         prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
-    else: prob_probabilistic_exposure = 0
+    else: prob_probabilistic_exposure = -1
     # Expected new cases
     if (form.occupancy_format == "static"):
         expected_new_cases = np.array(model.expected_new_cases()).mean()
@@ -425,7 +425,7 @@ def scenario_statistics(
         # It means we have data to calculate the total_probability_rule
         prob_probabilistic_exposure = model.total_probability_rule()
     else:
-        prob_probabilistic_exposure = 0.
+        prob_probabilistic_exposure = -1
     
     if (compute_expected_new_cases):
         expected_new_cases = np.mean(model.expected_new_cases())
