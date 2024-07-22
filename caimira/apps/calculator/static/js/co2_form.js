@@ -18,10 +18,13 @@ const CO2_data_form = [
   "infected_lunch_option",
   "infected_lunch_start",
   "infected_people",
+  "dynamic_infected_occupancy",
   "infected_start",
   "room_volume",
   "specific_breaks",
   "total_people",
+  "dynamic_exposed_occupancy",
+  "occupancy_format",
 ];
 
 // Method to upload a valid excel file
