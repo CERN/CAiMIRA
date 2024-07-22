@@ -443,56 +443,6 @@ class VirusFormData(FormData):
                              ] = respiratory_activity['percentage']
 
         return (self.precise_activity['physical_activity'], respiratory_dict)
-    
-    def generate_dynamic_occupancy(self, dynamic_occupancy: typing.List[typing.Dict[str, typing.Any]]):
-        ##### Data format validation #####
-        for occupancy in dynamic_occupancy:
-            # Check if each occupancy entry is a dictionary
-            if not isinstance(occupancy, typing.Dict):
-                raise TypeError(f'Each occupancy entry should be in a dictionary format. Got "{type(occupancy)}."')
-            
-            # Check for required keys in each occupancy entry
-            dict_keys = list(occupancy.keys())
-            if "total_people" not in dict_keys:
-                raise TypeError(f'Unable to fetch "total_people" key. Got "{dict_keys[0]}".')
-            else:
-                value = occupancy["total_people"]
-                # Check if the value is a non-negative integer
-                if not isinstance(value, int):
-                    raise ValueError(f"Total number of people should be integer. Got {value}.")
-                elif not value >= 0:
-                    raise ValueError(f"Total number of people should be non-negative. Got {value}.")
-            
-            if "start_time" not in dict_keys:
-                raise TypeError(f'Unable to fetch "start_time" key. Got "{dict_keys[1]}".')
-            if "finish_time" not in dict_keys:
-                raise TypeError(f'Unable to fetch "finish_time" key. Got "{dict_keys[2]}".')
-
-            # Validate time format for start_time and finish_time
-            for time_key in ["start_time", "finish_time"]:
-                time = occupancy[time_key]
-                if not re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$").match(time):
-                    raise TypeError(f'Wrong time format - "HH:MM". Got "{time}".')
-        
-        transition_times = []
-        values = []
-        for occupancy in dynamic_occupancy:
-            start_time = time_string_to_minutes(occupancy['start_time'])/60
-            finish_time = time_string_to_minutes(occupancy['finish_time'])/60
-            transition_times.extend([start_time, finish_time])
-            values.append(occupancy['total_people'])
-
-        unique_transition_times_sorted = np.array(sorted(set(transition_times)))
-
-        if len(values) != len(unique_transition_times_sorted) - 1:
-            raise ValueError("Cannot compute dynamic occupancy with the provided inputs.")
-        
-        population_occupancy: models.IntPiecewiseConstant = models.IntPiecewiseConstant(
-            transition_times=tuple(unique_transition_times_sorted),
-            values=tuple(values)
-        )
-        population_presence: typing.Union[None, models.Interval] = None
-        return population_occupancy, population_presence
 
     def infected_population(self) -> mc.InfectedPopulation:
         # Initializes the virus

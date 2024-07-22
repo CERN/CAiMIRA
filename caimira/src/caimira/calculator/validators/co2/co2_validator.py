@@ -44,11 +44,14 @@ class CO2FormData(FormData):
         'infected_lunch_option': True,
         'infected_lunch_start': '12:30',
         'infected_people': 1,
+        'dynamic_infected_occupancy': '[]',
         'infected_start': '08:30',
         'room_capacity': None,
         'room_volume': NO_DEFAULT,
         'specific_breaks': '{}',
         'total_people': NO_DEFAULT,
+        'dynamic_exposed_occupancy': '[]',
+        'occupancy_format': 'static',
     }
 
     def __init__(self, **kwargs):
@@ -196,20 +199,34 @@ class CO2FormData(FormData):
         size = size or self.data_registry.monte_carlo['sample_size']
         # Build a simple infected and exposed population for the case when presence
         # intervals and number of people are dynamic. Activity type is not needed.
-        infected_presence = self.infected_present_interval()
+        if self.occupancy_format == 'dynamic':
+            if isinstance(self.dynamic_infected_occupancy, typing.List) and len(self.dynamic_infected_occupancy) > 0:
+                infected_people, infected_presence = self.generate_dynamic_occupancy(self.dynamic_infected_occupancy)
+            else:
+                raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_infected_occupancy}".')
+            if isinstance(self.dynamic_exposed_occupancy, typing.List) and len(self.dynamic_exposed_occupancy) > 0:
+                exposed_people, exposed_presence = self.generate_dynamic_occupancy(self.dynamic_exposed_occupancy)
+            else:
+                raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_exposed_occupancy}".')
+        else:
+            infected_people = self.infected_people
+            exposed_people = self.total_people - self.infected_people
+            infected_presence = self.infected_present_interval()
+            exposed_presence = self.exposed_present_interval()
+
         infected_population = models.SimplePopulation(
-            number=self.infected_people,
+            number=infected_people,
             presence=infected_presence,
             activity=None, # type: ignore
         )
-        exposed_presence = self.exposed_present_interval()
         exposed_population=models.SimplePopulation(
-            number=self.total_people - self.infected_people,
+            number=exposed_people,
             presence=exposed_presence,
             activity=None, # type: ignore
         )
-
-        all_state_changes = self.population_present_changes(infected_presence, exposed_presence)
+        
+        all_state_changes=self.population_present_changes(infected_population.presence_interval(), 
+                                                          exposed_population.presence_interval())
         total_people = [infected_population.people_present(stop) + exposed_population.people_present(stop)
                         for _, stop in zip(all_state_changes[:-1], all_state_changes[1:])]
 
