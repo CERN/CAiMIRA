@@ -211,6 +211,23 @@ class VirusFormData(FormData):
             raise ValueError(
                 f'The total number of occupants having short-range interactions ({self.short_range_occupants}) should be lower than the exposed population ({max_occupants_for_sr}).'
             )
+        
+        # Validate short-range interactions interval
+        if self.short_range_option == "short_range_yes":
+            for interaction in self.short_range_interactions:
+                # Check if presence is within long-range exposure
+                presence = self.short_range_interval(interaction)
+                if (self.occupancy_format == 'dynamic'):
+                    long_range_start = min(time_string_to_minutes(self.dynamic_infected_occupancy[0]['start_time']), 
+                                            time_string_to_minutes(self.dynamic_exposed_occupancy[0]['start_time']))
+                    long_range_stop = max(time_string_to_minutes(self.dynamic_infected_occupancy[-1]['finish_time']), 
+                                            time_string_to_minutes(self.dynamic_exposed_occupancy[-1]['finish_time']))
+                else:
+                    long_range_start = min(self.infected_start, self.exposed_start)
+                    long_range_stop = max(self.infected_finish, self.exposed_finish)
+                if not (long_range_start/60 <= presence.present_times[0][0] <= long_range_stop/60 and 
+                        long_range_start/60 <= presence.present_times[0][-1] <= long_range_stop/60):
+                    raise ValueError(f"Short-range interactions should be defined during simulation time. Got {interaction}")
 
     def initialize_room(self) -> models.Room:
         # Initializes room with volume either given directly or as product of area and height
@@ -234,7 +251,7 @@ class VirusFormData(FormData):
     def build_mc_model(self) -> mc.ExposureModel:
         room = self.initialize_room()
         ventilation: models._VentilationBase = self.ventilation()
-        infected_population = self.infected_population()
+        infected_population: models.InfectedPopulation = self.infected_population()
         short_range = []
         if self.short_range_option == "short_range_yes":
             for interaction in self.short_range_interactions:
