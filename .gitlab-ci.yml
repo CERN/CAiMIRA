@@ -2,7 +2,6 @@ stages:
   - test
   - docker-build
   - oc-tag
-  - deploy
 
 # Use the acc-py-devtools templates found at
 # https://gitlab.cern.ch/-/ide/project/acc-co/devops/python/acc-py-devtools/blob/master/-/acc_py_devtools/templates/gitlab-ci/python.yml.
@@ -13,39 +12,50 @@ include:
 variables:
   PY_VERSION: "3.11"
 
-
 # ###################################################################################################
 # Test code - CAiMIRA (model) and CERN CAiMIRA (CERN's UI)
 
-.py_full_test:
+.test-base:
   image: registry.cern.ch/docker.io/library/python:${PY_VERSION}
   stage: test
-  before_script:
-    - pip install -e ${caimira_root}[test]
-    - pip install -e ${cern_caimira_root}[test]
+
+.test-run:
+  extends:
+    - .test-base
   script:
-    - cd ${caimira_root}
-    - python -m pytest
-    - cd ../${cern_caimira_root}
+    - cd ./${PROJECT_ROOT}
+    - pip install -e .[test]
     - python -m pytest
 
-
-# A full installation of CAiMIRA, tested with pytest.
-caimira_full_test:
-  extends: .py_full_test
+test-caimira-py311:
   variables:
-    caimira_root: ./caimira
-    cern_caimira_root: ./cern_caimira 
+    PROJECT_ROOT: "caimira"
+  extends:
+    - .test-run
 
+test-cern-caimira-py311:
+  before_script:
+    - cd ./caimira
+    - pip install -e .[test]
+    - cd ../
+  variables:
+    PROJECT_ROOT: "cern_caimira"
+  extends:
+    - .test-run
 
-# A development installation of CAiMIRA tested with pytest.
-caimira_full_test-39:
-  extends: .py_full_test
+test-caimira-py39:
   variables:
     PY_VERSION: "3.9"
-    caimira_root: ./caimira
-    cern_caimira_root: ./cern_caimira 
+    PROJECT_ROOT: "caimira"
+  extends:
+    - test-caimira-py311
 
+test-cern-caimira-py39:
+  variables:
+    PY_VERSION: "3.9"
+    PROJECT_ROOT: "cern_caimira"
+  extends:
+    - test-cern-caimira-py311
 
 # ###################################################################################################
 # Test OpenShift config
@@ -77,7 +87,6 @@ caimira_full_test-39:
       - ./app-config/openshift/${CAIMIRA_INSTANCE}/actual
       - ./app-config/openshift/${CAIMIRA_INSTANCE}/expected
 
-
 check_openshift_config_test:
   extends: .test_openshift_config
   variables:
@@ -86,29 +95,21 @@ check_openshift_config_test:
     OC_SERVER: https://api.paas.okd.cern.ch
     OC_TOKEN: "${OPENSHIFT_CAIMIRA_TEST_CONFIG_CHECKER_TOKEN}"
 
-
-check_openshift_config_prod:
-  extends: .test_openshift_config
-  variables:
-    CAIMIRA_INSTANCE: 'caimira-prod'
-    BRANCH: 'master'
-    OC_SERVER: https://api.paas.okd.cern.ch
-    OC_TOKEN: "${OPENSHIFT_CAIMIRA_PROD_CONFIG_CHECKER_TOKEN}"
+# TODO: for prod, it should ignore the different tag in the `image` field
+# check_openshift_config_prod:
+#   extends: .test_openshift_config
+#   variables:
+#     CAIMIRA_INSTANCE: 'caimira-prod'
+#     BRANCH: 'master'
+#     OC_SERVER: https://api.paas.okd.cern.ch
+#     OC_TOKEN: "${OPENSHIFT_CAIMIRA_PROD_CONFIG_CHECKER_TOKEN}"
 
 
 # ###################################################################################################
 # Build docker images
 
-.image_builder:
-  # Build and push images to the openshift instance, which automatically triggers an application re-deployment.
+.docker-build:
   stage: docker-build
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "live/caimira-test"'
-      variables:
-        IMAGE_TAG: caimira-test-latest
-    - if: '$CI_COMMIT_BRANCH == "master"'
-      variables:
-        IMAGE_TAG: caimira-prod-latest
   image:
     # Based on guidance at https://gitlab.cern.ch/gitlabci-examples/build_docker_image.
     # The kaniko debug image is recommended because it has a shell, and a shell is required for an image to be used with GitLab CI/CD.
@@ -123,32 +124,43 @@ check_openshift_config_prod:
     # Print the full registry path of the pushed image
     - echo "Image pushed successfully to ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG}"
 
+.docker-build-live-test:
+  variables:
+    IMAGE_TAG: caimira-test-latest
+  extends: .docker-build
+  before_script:
+    - echo "Branch is $CI_COMMIT_REF_NAME"
+    - echo "Building image for live/caimira-test branch with tag ${IMAGE_TAG}"
+  only:
+    - live/caimira-test
 
-auth-service-image_builder:
+.docker-build-release:
+  extends: .docker-build
+  before_script:
+    - echo "Tag is $CI_COMMIT_REF_NAME"
+    # Extract version number without 'v' prefix as IMAGE_TAG
+    - IMAGE_TAG=$(echo "$CI_COMMIT_REF_NAME" | sed 's/^v//')
+    - echo "Version is $IMAGE_TAG"
+  only:
+    - tags
+
+build-auth-service-image:
   extends:
-    - .image_builder
+    - .docker-build-live-test
+    - .docker-build-release
   variables:
     IMAGE_NAME: auth-service
     DOCKERFILE_DIRECTORY: app-config/auth-service
     DOCKER_CONTEXT_DIRECTORY: app-config/auth-service
 
-
-calculator-app-image_builder:
+build-calculator-app-image:
   extends:
-    - .image_builder
+    - .docker-build-live-test
+    - .docker-build-release
   variables:
     IMAGE_NAME: calculator-app
     DOCKERFILE_DIRECTORY: app-config/calculator-app
     DOCKER_CONTEXT_DIRECTORY: ""
-
-
-oci_calculator:
-  extends: .image_builder
-  variables:
-    IMAGE_NAME: calculator
-    DOCKERFILE_DIRECTORY: app-config/caimira-public-docker-image
-    DOCKER_CONTEXT_DIRECTORY: ""
-
 
 # ###################################################################################################
 # Link build Docker images OpenShift <-> GitLab registry
@@ -156,19 +168,14 @@ oci_calculator:
 .link_docker_images_with_gitlab_registry:
   stage: oc-tag
   image: gitlab-registry.cern.ch/paas-tools/openshift-client:latest
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "live/caimira-test"'
-      variables:
-        OC_PROJECT: "caimira-test"
-        OC_TOKEN: ${OPENSHIFT_CAIMIRA_TEST_DEPLOY_TOKEN}
-        IMAGE_TAG: caimira-test-latest
-    - if: '$CI_COMMIT_BRANCH == "master"'
-      variables:
-        OC_PROJECT: "caimira-prod"
-        OC_TOKEN: ${OPENSHIFT_CAIMIRA_PROD_DEPLOY_TOKEN}
-        IMAGE_TAG: caimira-prod-latest
+  variables:
+    OC_PROJECT: "caimira-test"
+    OC_TOKEN: ${OPENSHIFT_CAIMIRA_TEST_DEPLOY_TOKEN}
+    IMAGE_TAG: caimira-test-latest
   script:
      - oc tag --source=docker ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest --token ${OC_TOKEN} --server=https://api.paas.okd.cern.ch -n ${OC_PROJECT}
+  only:
+    - live/caimira-test  # for prod, we want to manually deploy the tag that we need
 
 link_auth-service_with_gitlab_registry:
   extends:
@@ -181,27 +188,3 @@ link_calculator-app_with_gitlab_registry:
     - .link_docker_images_with_gitlab_registry
   variables:
     IMAGE_NAME: calculator-app
-
-link_calculator_with_gitlab_registry:
-  extends:
-    - .link_docker_images_with_gitlab_registry
-  variables:
-    IMAGE_NAME: calculator
-
-
-# ###################################################################################################
-# Trigger build of CAiMIRA router on OpenShift
-
-trigger_caimira-router_build_on_openshift:
-  stage: deploy
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "live/caimira-test"'
-      variables:
-        OC_PROJECT: "caimira-test"
-        BUILD_WEBHOOK_SECRET: ${OPENSHIFT_CAIMIRA_TEST_BUILD_WEBHOOK_SECRET}
-    - if: '$CI_COMMIT_BRANCH == "master"'
-      variables:
-        OC_PROJECT: "caimira-prod"
-        BUILD_WEBHOOK_SECRET: ${OPENSHIFT_CAIMIRA_PROD_BUILD_WEBHOOK_SECRET}
-  script:
-     - curl -X POST -k https://api.paas.okd.cern.ch/apis/build.openshift.io/v1/namespaces/${OC_PROJECT}/buildconfigs/caimira-router/webhooks/${BUILD_WEBHOOK_SECRET}/generic
