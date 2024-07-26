@@ -103,25 +103,25 @@ pip install -e .   # At the root of the repository
 ### Running the Calculator app in development mode
 
 ```
-python -m ui.apps.calculator
+python -m cern_caimira.apps.calculator
 ```
 
 To run with a specific template theme created:
 
 ```
-python -m ui.apps.calculator --theme=ui/apps/templates/{theme}
+python -m cern_caimira.apps.calculator --theme=ui/apps/templates/{theme}
 ```
 
 To run the entire app in a different `APPLICATION_ROOT` path:
 
 ```
-python -m ui.apps.calculator --app_root=/myroot
+python -m cern_caimira.apps.calculator --app_root=/myroot
 ```
 
 To run the calculator on a different URL path:
 
 ```
-python -m ui.apps.calculator --prefix=/mycalc
+python -m cern_caimira.apps.calculator --prefix=/mycalc
 ```
 
 Each of these commands will start a local version of CAiMIRA, which can be visited at http://localhost:8080/.
