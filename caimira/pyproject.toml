@@ -56,9 +56,8 @@ doc = [
 [project.urls]
 Homepage = "https://github.com/cern/caimira"
 
-[tool.setuptools]
-packages = ["caimira"]
-package-dir = {"" = "src"}
+[tool.setuptools.package-data]
+caimira = ["**/*"]
 
 [tool.pytest.ini_options]
 addopts = "--mypy"

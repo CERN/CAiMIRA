@@ -3,6 +3,7 @@ __pycache__
 *.egg-info
 *.DS_Store
 *.pyc
+dist
 
 # Editor stuff
 *.swp

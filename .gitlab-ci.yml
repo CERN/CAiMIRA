@@ -1,7 +1,7 @@
 stages:
   - test
   - docker-build
-  - oc-tag
+  - deploy
 
 # Use the acc-py-devtools templates found at
 # https://gitlab.cern.ch/-/ide/project/acc-co/devops/python/acc-py-devtools/blob/master/-/acc_py_devtools/templates/gitlab-ci/python.yml.
@@ -18,6 +18,8 @@ variables:
 .test-base:
   image: registry.cern.ch/docker.io/library/python:${PY_VERSION}
   stage: test
+  except:
+    - live/caimira-test  # do not run tests on live/caimira-test branch
 
 .test-run:
   extends:
@@ -62,11 +64,7 @@ test-cern-caimira-py39:
 
 .test_openshift_config:
   stage: test
-  rules:
-    - if: '$OC_TOKEN && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == $BRANCH'
-      allow_failure: true  # The branch must represent what is deployed.  FIXME: change to true because of a diff between ConfigMaps
-    - if: '$OC_TOKEN && $CI_MERGE_REQUEST_EVENT_TYPE != "detached"'
-      allow_failure: true   # Anything other than the branch may fail without blocking the pipeline.
+  allow_failure: true
   image: registry.cern.ch/docker.io/mambaorg/micromamba
   before_script:
     - micromamba create --yes -p $HOME/env python=3.9 ruamel.yaml wget -c conda-forge
@@ -86,6 +84,9 @@ test-cern-caimira-py39:
     paths:
       - ./app-config/openshift/${CAIMIRA_INSTANCE}/actual
       - ./app-config/openshift/${CAIMIRA_INSTANCE}/expected
+  only:
+    - master
+    - live/caimira-test  # do not run tests on live/caimira-test branch
 
 check_openshift_config_test:
   extends: .test_openshift_config
@@ -108,6 +109,7 @@ check_openshift_config_test:
 # ###################################################################################################
 # Build docker images
 
+# base
 .docker-build:
   stage: docker-build
   image:
@@ -116,6 +118,7 @@ check_openshift_config_test:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
+    - echo "Building image for ${CI_COMMIT_REF_NAME} branch with tag ${IMAGE_TAG}"
     # Prepare Kaniko configuration file
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - echo "Building ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:latest Docker image..."
@@ -124,67 +127,95 @@ check_openshift_config_test:
     # Print the full registry path of the pushed image
     - echo "Image pushed successfully to ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG}"
 
-.docker-build-live-test:
-  variables:
-    IMAGE_TAG: caimira-test-latest
-  extends: .docker-build
-  before_script:
-    - echo "Branch is $CI_COMMIT_REF_NAME"
-    - echo "Building image for live/caimira-test branch with tag ${IMAGE_TAG}"
-  only:
-    - live/caimira-test
-
-.docker-build-release:
-  extends: .docker-build
-  before_script:
-    - echo "Tag is $CI_COMMIT_REF_NAME"
-    # Extract version number without 'v' prefix as IMAGE_TAG
-    - IMAGE_TAG=$(echo "$CI_COMMIT_REF_NAME" | sed 's/^v//')
-    - echo "Version is $IMAGE_TAG"
-  only:
-    - tags
-
-build-auth-service-image:
-  extends:
-    - .docker-build-live-test
-    - .docker-build-release
+.docker-build-auth-service:
   variables:
     IMAGE_NAME: auth-service
     DOCKERFILE_DIRECTORY: app-config/auth-service
     DOCKER_CONTEXT_DIRECTORY: app-config/auth-service
+  extends: .docker-build
 
-build-calculator-app-image:
-  extends:
-    - .docker-build-live-test
-    - .docker-build-release
+.docker-build-calculator-app:
   variables:
     IMAGE_NAME: calculator-app
     DOCKERFILE_DIRECTORY: app-config/calculator-app
     DOCKER_CONTEXT_DIRECTORY: ""
+  extends: .docker-build
+
+# on push to live/caimira-test
+.docker-build-test:
+  variables:
+    IMAGE_TAG: caimira-test-latest
+
+docker-build-auth-service-test:
+  extends:
+    - .docker-build-test
+    - .docker-build-auth-service
+  only:
+    - live/caimira-test
+
+docker-build-calculator-app-test:
+  extends:
+    - .docker-build-test
+    - .docker-build-calculator-app
+  only:
+    - live/caimira-test
+
+# on release
+.docker-build-release:
+  before_script:
+    # Extract version number without 'v' prefix as IMAGE_TAG
+    - IMAGE_TAG=$(echo "$CI_COMMIT_REF_NAME" | sed 's/^v//')
+    - echo "Version is $IMAGE_TAG"
+
+docker-build-auth-service-release:
+  extends:
+    - .docker-build-release
+    - .docker-build-auth-service
+  only:
+    - tag
+
+docker-build-calculator-app-release:
+  extends:
+    - .docker-build-release
+    - .docker-build-calculator-app
+  only:
+    - tag
 
 # ###################################################################################################
-# Link build Docker images OpenShift <-> GitLab registry
-
-.link_docker_images_with_gitlab_registry:
-  stage: oc-tag
-  image: gitlab-registry.cern.ch/paas-tools/openshift-client:latest
+# Deploy to OpenShift
+.deploy:
+  stage: deploy
+  image: gitlab-registry.cern.ch/paas-tools/openshift-client
   variables:
-    OC_PROJECT: "caimira-test"
-    OC_TOKEN: ${OPENSHIFT_CAIMIRA_TEST_DEPLOY_TOKEN}
     IMAGE_TAG: caimira-test-latest
+    OPENSHIFT_SERVER: https://api.paas.okd.cern.ch
+    OPENSHIFT_PROJECT: caimira-test
   script:
-     - oc tag --source=docker ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest --token ${OC_TOKEN} --server=https://api.paas.okd.cern.ch -n ${OC_PROJECT}
+    - echo "Deploying ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG} to OpenShift"
+    - oc login $OPENSHIFT_SERVER --token=$OPENSHIFT_CAIMIRA_TEST_DEPLOY_TOKEN
+    - oc project $OPENSHIFT_PROJECT
+    - oc set image dc/$OPENSHIFT_DEPLOYMENT $OPENSHIFT_CONTAINER_NAME=${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG}
+    - oc rollout status dc/$OPENSHIFT_DEPLOYMENT
   only:
-    - live/caimira-test  # for prod, we want to manually deploy the tag that we need
+    - live/caimira-test
 
-link_auth-service_with_gitlab_registry:
-  extends:
-    - .link_docker_images_with_gitlab_registry
+deploy-auth-service-test:
+  extends: .deploy
   variables:
     IMAGE_NAME: auth-service
+    OPENSHIFT_DEPLOYMENT: auth-service
+    OPENSHIFT_CONTAINER_NAME: auth-service
 
-link_calculator-app_with_gitlab_registry:
-  extends:
-    - .link_docker_images_with_gitlab_registry
+deploy-calculator-app-test:
+  extends: .deploy
   variables:
     IMAGE_NAME: calculator-app
+    OPENSHIFT_DEPLOYMENT: calculator-app
+    OPENSHIFT_CONTAINER_NAME: calculator-app
+
+deploy-calculator-open-app-test:
+  extends: .deploy
+  variables:
+    IMAGE_NAME: calculator-app
+    OPENSHIFT_DEPLOYMENT: calculator-open-app
+    OPENSHIFT_CONTAINER_NAME: calculator-open-app
