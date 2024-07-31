@@ -15,7 +15,7 @@
 
 </head>
 
-<body id="body" onload="on_report_load({{ form.conditional_probability_plot | int }})">
+<body id="body" onload="on_report_load({{ form.conditional_probability_viral_loads | int }})">
 
 <!-- MODEL REPR - Available in the developer tools once the report is generated. Useful to re-create the model using an interpreter that has CAiMIRA installed:
 
@@ -214,13 +214,13 @@
 									draw_histogram("prob_inf_hist", {{ prob_inf }}, {{ prob_inf_sd }});
 								</script>
 								<br>
-								{% if model.data_registry.virological_data['virus_distributions'][form.virus_type]['viral_load_in_sputum'] == 'Ref: Viral load - covid_overal_vl_data' %}
+								{% if model.data_registry.virological_data['virus_distributions'][form.virus_type]['viral_load_in_sputum'] == 'Ref: Viral load - covid overal viral load data' %}
 									<div class="form-check">
-										<input type="checkbox" id="conditional_probability_plot" class="tabbed form-check-input" name="conditional_probability_plot" value="1" onClick="conditional_probability_plot(this.checked, {{ form.conditional_probability_plot | int }});">
-										<label id="label_conditional_probability_plot" for="conditional_probability_plot" class="form-check-label col-sm-12">Generate full uncertainty data (as function of the viral load)</label>
+										<input type="checkbox" id="conditional_probability_viral_loads" class="tabbed form-check-input" name="conditional_probability_viral_loads" value="1" onClick="conditional_probability_viral_loads(this.checked, {{ form.conditional_probability_viral_loads | int }});">
+										<label id="label_conditional_probability_viral_loads" for="conditional_probability_viral_loads" class="form-check-label col-sm-12">Generate full uncertainty data (as function of the viral load)</label>
 									</div>
 								{% endif %}
-								{% if form.conditional_probability_plot %}
+								{% if form.conditional_probability_viral_loads %}
 								<div id="conditional_probability_div">
 									<img src= "{{ uncertainties_plot_src }}" />
 									<div class="ml-5">

@@ -15,7 +15,6 @@ DEFAULTS = {
     'precise_activity': '{}',
     'calculator_version': NO_DEFAULT,
     'ceiling_height': 0.,
-    'conditional_probability_plot': False,
     'conditional_probability_viral_loads': False,
     'CO2_fitting_result': '{}',
     'exposed_coffee_break_option': 'coffee_break_0',
