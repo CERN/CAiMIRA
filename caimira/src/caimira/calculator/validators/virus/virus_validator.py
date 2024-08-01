@@ -524,7 +524,7 @@ class VirusFormData(FormData):
             exposed_occupancy = self.total_people - self.infected_people
             exposed_presence = self.exposed_present_interval()
 
-        if (self.vaccine_option):
+        if (self.vaccine_option and self.virus_type != "Measles-R12" and self.virus_type != "Measles-R18"):
             if (self.vaccine_booster_option and self.vaccine_booster_type != 'Other'):
                 host_immunity = [vaccine['VE'] for vaccine in data.vaccine_booster_host_immunity if
                                  vaccine['primary series vaccine'] == self.vaccine_type and
