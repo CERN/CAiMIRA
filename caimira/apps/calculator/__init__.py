@@ -33,6 +33,7 @@ from caimira.store.data_service import DataService
 from . import markdown_tools
 from . import model_generator, co2_model_generator
 from .report_generator import ReportGenerator, calculate_report_data
+from .co2_report_generator import CO2ReportGenerator
 from .user import AuthenticatedUser, AnonymousUser
 
 # The calculator version is based on a combination of the model version and the
@@ -417,31 +418,21 @@ class CO2ModelResponse(BaseRequestHandler):
             self.finish(json.dumps(response_json))
             return
 
+        CO2_report_generator: CO2ReportGenerator = CO2ReportGenerator()
         if endpoint.rstrip('/') == 'plot':
-            transition_times: list = form.find_change_points_with_pelt()
-            self.finish({
-                'CO2_plot': form.generate_ventilation_plot(transition_times),
-                'transition_times': [round(el, 2) for el in transition_times]
-            })
+            report = CO2_report_generator.build_initial_plot(form)
+            self.finish(report)
         else:
             executor = loky.get_reusable_executor(
                 max_workers=self.settings['handler_worker_pool_size'],
                 timeout=300,
             )
-            report_task = executor.submit(form.build_model)
+            report_task = executor.submit(
+                CO2_report_generator.build_fitting_results, form,
+            )
+            
             report = await asyncio.wrap_future(report_task)
-            # Ventilation times after user manipulation from the suggested Pelt algorithm times.
-            ventilation_transition_times = report.ventilation_transition_times
-
-            # The result of the following method is a dict with the results of the fitting
-            # algorithm, namely the breathing rate and ACH values. It also returns the
-            # predictive CO2 result based on the fitting results.
-            result: typing.Dict = dict(report.CO2_fit_params())
-            # Add the transition times and CO2 plot to the results.
-            result['transition_times'] = ventilation_transition_times
-            result['CO2_plot'] = form.generate_ventilation_plot(transition_times=ventilation_transition_times[:-1], 
-                                                                predictive_CO2=result['predictive_CO2'])
-            self.finish(result)
+            self.finish(report)
 
 
 def get_url(app_root: str, relative_path: str = '/'):
