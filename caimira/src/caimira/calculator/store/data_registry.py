@@ -360,6 +360,40 @@ class DataRegistry:
                     "references": "",
                 },
             },
+            "Measles-R12": {
+                "viral_load_in_sputum": ViralLoads.COVID_OVERALL.value,
+                "infectious_dose": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
+                "viable_to_RNA_ratio": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 0.01, "high": 0.6},
+                    "references": "",
+                },
+                "transmissibility_factor": {
+                    "value": 0.07,
+                    "references": "",
+                },
+            },
+            "Measles-R18": {
+                "viral_load_in_sputum": ViralLoads.COVID_OVERALL.value,
+                "infectious_dose": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
+                "viable_to_RNA_ratio": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 0.01, "high": 0.6},
+                    "references": "",
+                },
+                "transmissibility_factor": {
+                    "value": 0.047,
+                    "references": "",
+                },
+            },
         },
     }
 

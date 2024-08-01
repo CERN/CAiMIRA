@@ -323,6 +323,18 @@ def virus_distributions(data_registry):
             transmissibility_factor=vd['SARS_CoV_2_OMICRON']['transmissibility_factor']['value'],
             infectiousness_days=vd['SARS_CoV_2_OMICRON']['infectiousness_days']['value'],
         ),
+        'Measles-R12': mc.Measles(
+            viral_load_in_sputum=evaluate_vl(vd['Measles-R12'], 'viral_load_in_sputum', data_registry),
+            infectious_dose=param_evaluation(vd['Measles-R12'], 'infectious_dose'),
+            viable_to_RNA_ratio=param_evaluation(vd['Measles-R12'], 'viable_to_RNA_ratio'),
+            transmissibility_factor=vd['Measles-R12']['transmissibility_factor']['value'],
+        ),
+        'Measles-R18': mc.Measles(
+            viral_load_in_sputum=evaluate_vl(vd['Measles-R18'], 'viral_load_in_sputum', data_registry),
+            infectious_dose=param_evaluation(vd['Measles-R18'], 'infectious_dose'),
+            viable_to_RNA_ratio=param_evaluation(vd['Measles-R18'], 'viable_to_RNA_ratio'),
+            transmissibility_factor=vd['Measles-R18']['transmissibility_factor']['value'],
+        ),
     }
 
 

@@ -512,6 +512,15 @@ class SARSCoV2(Virus):
         return np.where(hl_calc <= 0, 6.43, np.minimum(6.43, hl_calc))
 
 
+@dataclass(frozen=True)
+class Measles(SARSCoV2):
+    '''
+    Measles follows exactly the same behavior as the SARS-CoV-2.
+    For now, only the transmissibility factor is changing.
+    '''
+    pass
+
+
 # Example of Viruses only used for the Expert app and tests.
 Virus.types = {
     'SARS_CoV_2': SARSCoV2(
