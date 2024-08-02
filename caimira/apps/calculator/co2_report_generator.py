@@ -2,7 +2,7 @@ import concurrent.futures
 import dataclasses
 import typing
 
-from caimira.models import CO2DataModel
+from caimira.models import CO2DataModel, Interval, IntPiecewiseConstant
 from .co2_model_generator import CO2FormData
 
 
@@ -20,7 +20,11 @@ class CO2ReportGenerator:
         '''
         CO2model: CO2DataModel = form.build_model()
 
-        occupancy_transition_times: list = list(CO2model.number.transition_times)
+        if isinstance(CO2model.number, int) and isinstance(CO2model.presence, Interval):
+            occupancy_transition_times = list(CO2model.presence.transition_times())
+        elif isinstance(CO2model.number, IntPiecewiseConstant):
+            occupancy_transition_times = list(CO2model.number.transition_times)
+        
         ventilation_transition_times: list = form.find_change_points_with_scipy()
         # The entire ventilation changes consider the initial and final occupancy state change
         all_vent_transition_times: list = sorted(
@@ -52,7 +56,7 @@ class CO2ReportGenerator:
         CO2model: CO2DataModel = form.build_model()
 
         # Ventilation times after user manipulation from the suggested ventilation state change times.
-        ventilation_transition_times = CO2model.ventilation_transition_times
+        ventilation_transition_times = list(CO2model.ventilation_transition_times)
 
         # The result of the following method is a dict with the results of the fitting
         # algorithm, namely the breathing rate and ACH values. It also returns the
