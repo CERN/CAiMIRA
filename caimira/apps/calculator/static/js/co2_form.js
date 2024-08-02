@@ -283,17 +283,13 @@ function validateCO2Form() {
 }
 
 function displayTransitionTimesHourFormat(start, stop) {
-  var minutes_start = ((start % 1) * 60).toPrecision(2);
-  var minutes_stop = ((stop % 1) * 60).toPrecision(2);
-  return (
-    Math.floor(start) +
-    ":" +
-    (minutes_start != "0.0" ? minutes_start : "00") +
-    " - " +
-    Math.floor(stop) +
-    ":" +
-    (minutes_stop != "0.0" ? minutes_stop : "00")
-  );
+  const formatTime = (time) => {
+    const hours = Math.floor(time);
+    const minutes = Math.round((time % 1) * 60);
+    return `${hours}:${minutes.toString().padStart(2, '0')}`;
+  };
+
+  return `${formatTime(start)} - ${formatTime(stop)}`;
 }
 
 function displayFittingData(json_response) {
