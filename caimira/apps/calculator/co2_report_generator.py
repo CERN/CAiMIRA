@@ -13,13 +13,29 @@ class CO2ReportGenerator:
             self,
             form: CO2FormData,
     ) -> dict:
-        
-        transition_times: list = form.find_change_points_with_pelt()
-        ventilation_plot: str = form.generate_ventilation_plot(transition_times)
+        '''
+        Initial plot with the suggested ventilation state changes. 
+        This method receives the form input and returns the CO2
+        plot with the respective transition times.
+        '''
+        CO2model: CO2DataModel = form.build_model()
+
+        occupancy_transition_times: list = list(CO2model.number.transition_times)
+        ventilation_transition_times: list = form.find_change_points_with_scipy()
+        # The entire ventilation changes consider the initial and final occupancy state change
+        all_vent_transition_times: list = sorted(
+            [occupancy_transition_times[0]] + 
+            [occupancy_transition_times[-1]] + 
+            ventilation_transition_times)
+
+        ventilation_plot: str = form.generate_ventilation_plot(
+            ventilation_transition_times=all_vent_transition_times,
+            occupancy_transition_times=occupancy_transition_times
+        )
 
         context = {
             'CO2_plot': ventilation_plot,
-            'transition_times': [round(el, 2) for el in transition_times],
+            'transition_times': [round(el, 2) for el in all_vent_transition_times],
         }
 
         return context
@@ -28,7 +44,11 @@ class CO2ReportGenerator:
             self,
             form: CO2FormData,
     ) -> dict:
-        
+        '''
+        Final fitting results with the respective predictive CO2. 
+        This method receives the form input and returns the fitting results
+        along with the CO2 plot with the predictive CO2.
+        '''
         CO2model: CO2DataModel = form.build_model()
 
         # Ventilation times after user manipulation from the suggested ventilation state change times.
@@ -41,7 +61,7 @@ class CO2ReportGenerator:
 
         # Add the transition times and CO2 plot to the results.
         context['transition_times'] = ventilation_transition_times
-        context['CO2_plot'] = form.generate_ventilation_plot(transition_times=ventilation_transition_times[:-1], 
+        context['CO2_plot'] = form.generate_ventilation_plot(ventilation_transition_times=ventilation_transition_times[:-1], 
                                                        predictive_CO2=context['predictive_CO2'])
 
         return context

@@ -106,6 +106,39 @@ function uploadFile(endpoint) {
       }
     }
 
+    // Validate Excel times input encompass simulation time
+    const firstTimeInExcel = parseFloat((data[1][timesColumnIndex] * 60).toFixed(2))
+    const lastTimeInExcel = parseFloat((data[data.length - 1][timesColumnIndex] * 60).toFixed(2))
+    // Validate start time
+    const infected_start = $(`[name=infected_start]`).first().val();
+    const exposed_start = $(`[name=exposed_start]`).first().val();
+
+    let [hours_infected, minutes_infected] = infected_start.split(":").map(Number);
+    let elapsed_time_infected =  hours_infected * 60 + minutes_infected;
+
+    let [hours_exposed, minutes_exposed] = exposed_start.split(":").map(Number);
+    let elapsed_time_exposed =  hours_exposed * 60 + minutes_exposed;
+    
+    const min_presence_time = parseFloat((Math.min(elapsed_time_infected, elapsed_time_exposed)).toFixed(2));
+    
+    // Validate finish time
+    const infected_finish = $(`[name=infected_finish]`).first().val();
+    const exposed_finish = $(`[name=exposed_finish]`).first().val();
+
+    [hours_infected, minutes_infected] = infected_finish.split(":").map(Number);
+    elapsed_time_infected =  hours_infected * 60 + minutes_infected;
+
+    [hours_exposed, minutes_exposed] = exposed_finish.split(":").map(Number);
+    elapsed_time_exposed =  hours_exposed * 60 + minutes_exposed;
+    
+    const max_presence_time = parseFloat((Math.max(elapsed_time_infected, elapsed_time_exposed)).toFixed(2));
+    if (firstTimeInExcel > min_presence_time || lastTimeInExcel < max_presence_time) {
+      $("#upload-error")
+        .text(`The Excel times should encompass the entire simulation time (from ${min_presence_time/60} to ${max_presence_time/60}). 
+        Got Excel times from ${firstTimeInExcel/60} to ${lastTimeInExcel/60}. Either adapt the simulation presence times, or the Excel data.`).show();
+      return;
+    }
+    
     // Convert Excel file to JSON and further processing
     try {
       generateJSONStructure(endpoint, data);
