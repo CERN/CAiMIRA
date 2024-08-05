@@ -541,7 +541,15 @@ function draw_generic_concentration_plot(
         h_lines,
     ) {
 
-    list_of_scenarios = (plot_svg_id === 'CO2_concentration_graph') ? CO2_concentrations : alternative_scenarios
+    if (plot_svg_id === 'CO2_concentration_graph') {
+        list_of_scenarios = {'CO₂ concentration': {'concentrations': CO2_concentrations}};
+        min_y_axis_domain = 400;
+    }
+    else {
+        list_of_scenarios = alternative_scenarios;
+        min_y_axis_domain = 0;
+    }
+
     // H:M format
     var time_format = d3.timeFormat('%H:%M');
     // D3 array of ten categorical colors represented as RGB hexadecimal strings.
@@ -698,7 +706,7 @@ function draw_generic_concentration_plot(
     }
 
     function update_concentration_plot(concentration_data) {
-        list_of_scenarios = (plot_svg_id === 'CO2_concentration_graph') ? CO2_concentrations : alternative_scenarios
+        list_of_scenarios = (plot_svg_id === 'CO2_concentration_graph') ? {'CO₂ concentration': {'concentrations': CO2_concentrations}} : alternative_scenarios
         var highest_concentration = 0.
 
         for (scenario in list_of_scenarios) {
@@ -706,7 +714,7 @@ function draw_generic_concentration_plot(
             highest_concentration = Math.max(highest_concentration, Math.max(...scenario_concentrations));
         }
 
-        yRange.domain([0., highest_concentration*1.1]);
+        yRange.domain([min_y_axis_domain, highest_concentration*1.1]);
         yAxisEl.transition().duration(1000).call(yAxis);
 
         for (const [scenario_name, data] of Object.entries(data_for_scenarios)) {

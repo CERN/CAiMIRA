@@ -376,44 +376,6 @@ class ArveData(BaseRequestHandler):
         return self.finish(response.body)
 
 
-class CasesData(BaseRequestHandler):
-    async def get(self, country):
-        http_client = AsyncHTTPClient()
-        # First we need the country to fetch the data
-        URL = f'https://restcountries.com/v3.1/alpha/{country}?fields=name'
-        try:
-            response = await http_client.fetch(HTTPRequest(
-                url=URL,
-                method='GET',
-            ),
-            raise_error=True)
-        except Exception as e:
-            print("Something went wrong: %s" % e)
-
-        country_name = json.loads(response.body)['name']['common']
-
-        # Get global incident rates
-        URL = 'https://covid19.who.int/WHO-COVID-19-global-data.csv'
-        try:
-            response = await http_client.fetch(HTTPRequest(
-                url=URL,
-                method='GET',
-            ),
-            raise_error=True)
-        except Exception as e:
-            print("Something went wrong: %s" % e)
-
-        df = pd.read_csv(StringIO(response.body.decode('utf-8')), index_col=False)
-        cases = df.loc[df['Country'] == country_name]
-        # 7-day rolling average
-        current_date = str(datetime.datetime.now()).split(' ')[0]
-        eight_days_ago = str(datetime.datetime.now() - datetime.timedelta(days=7)).split(' ')[0]
-        cases = cases.set_index(['Date_reported'])
-        # If any of the 'New_cases' is 0, it means the data is not updated.
-        if (cases.loc[eight_days_ago:current_date]['New_cases'] == 0).any(): return self.finish('')
-        return self.finish(str(round(cases.loc[eight_days_ago:current_date]['New_cases'].mean())))
-
-
 class GenericExtraPage(BaseRequestHandler):
 
     def initialize(self, active_page: str, filename: str):
@@ -509,7 +471,6 @@ def make_app(
         (get_root_calculator_url(r'/report-json'), ConcentrationModelJsonResponse),
         (get_root_calculator_url(r'/baseline-model/result'), StaticModel),
         (get_root_calculator_url(r'/api/arve/v1/(.*)/(.*)'), ArveData),
-        (get_root_calculator_url(r'/cases/(.*)'), CasesData),
         # Generic Pages
         (get_root_url(r'/about'), GenericExtraPage, {
             'active_page': 'about',
