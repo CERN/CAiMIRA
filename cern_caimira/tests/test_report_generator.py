@@ -180,6 +180,6 @@ def test_static_vs_dynamic_occupancy_from_form(baseline_form_data, data_registry
             list(dynamic_occupancy_model.exposed.number.transition_times))
     
     np.testing.assert_almost_equal(static_occupancy_report_data['prob_inf'], dynamic_occupancy_report_data['prob_inf'], 1)
-    assert dynamic_occupancy_report_data['expected_new_cases'] == -1
+    np.testing.assert_almost_equal(static_occupancy_report_data['expected_new_cases'], dynamic_occupancy_report_data['expected_new_cases'], 1)
     assert dynamic_occupancy_report_data['prob_probabilistic_exposure'] == -1
     
