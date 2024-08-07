@@ -172,12 +172,6 @@ def calculate_report_data(form: VirusFormData, model: models.ExposureModel, exec
     if form.exposure_option == "p_probabilistic_exposure" and form.occupancy_format == "static":
         prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
     else: prob_probabilistic_exposure = -1
-    # Expected new cases
-    if (form.occupancy_format == "static"):
-        expected_new_cases = np.array(model.expected_new_cases()).mean()
-    else:
-        # With dynamic occupancy, the expected number of new cases feature is disabled.
-        expected_new_cases = -1
 
     exposed_presence_intervals = [list(interval) for interval in model.exposed.presence_interval().boundaries()]
 
@@ -206,7 +200,8 @@ def calculate_report_data(form: VirusFormData, model: models.ExposureModel, exec
         "prob_hist_count": list(prob_dist_count),
         "prob_hist_bins": list(prob_dist_bins),
         "prob_probabilistic_exposure": prob_probabilistic_exposure,
-        "expected_new_cases": expected_new_cases,
+        "expected_new_cases": np.array(model.expected_new_cases()).mean(),
+        "uncertainties_plot_src": uncertainties_plot_src,
         "CO2_concentrations": CO2_concentrations,
         "conditional_probability_data": conditional_probability_data,
         "uncertainties_plot_src": uncertainties_plot_src,
@@ -456,7 +451,13 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
 
     else:
         # When dynamic occupancy is defined, the replace of total people is useless - the expected number of new cases is not calculated.
-        no_short_range_alternative = dataclass_utils.replace(form, short_range_interactions=[], total_people=form.total_people - form.short_range_occupants)
+        if form.occupancy_format == 'static':
+            no_short_range_alternative = dataclass_utils.replace(form, short_range_interactions=[], total_people=form.total_people - form.short_range_occupants)
+        elif form.occupancy_format == 'dynamic':
+            for occ in form.dynamic_exposed_occupancy: # Update the number of exposed people with long-range exposure
+                if occ['total_people'] > form.short_range_occupants: occ['total_people'] = max(0, occ['total_people'] - form.short_range_occupants)
+            no_short_range_alternative = dataclass_utils.replace(form, short_range_interactions=[], dynamic_exposed_occupancy=form.dynamic_exposed_occupancy)
+        
         scenarios['Base scenario without short-range interactions'] = no_short_range_alternative.build_mc_model()
 
     return scenarios
@@ -466,23 +467,17 @@ def scenario_statistics(
     mc_model: mc.ExposureModel,
     sample_times: typing.List[float],
     compute_prob_exposure: bool,
-    compute_expected_new_cases: bool,
 ):
     model = mc_model.build_model(size=mc_model.data_registry.monte_carlo['sample_size'])
     if (compute_prob_exposure):
         # It means we have data to calculate the total_probability_rule
         prob_probabilistic_exposure = model.total_probability_rule()
     else:
-        prob_probabilistic_exposure = -1
-    
-    if (compute_expected_new_cases):
-        expected_new_cases = np.mean(model.expected_new_cases())
-    else:
-        expected_new_cases = -1
+        prob_probabilistic_exposure = -1 
 
     return {
         'probability_of_infection': np.mean(model.infection_probability()),
-        'expected_new_cases': expected_new_cases,
+        'expected_new_cases': np.mean(model.expected_new_cases()),
         'concentrations': [
             np.mean(model.concentration(time))
             for time in sample_times
@@ -513,8 +508,6 @@ def comparison_report(
         compute_prob_exposure = True
     else:
         compute_prob_exposure = False
-
-    compute_expected_new_cases = True if (form.occupancy_format == "static") else False
         
     with executor_factory() as executor:
         results = executor.map(
@@ -522,7 +515,6 @@ def comparison_report(
             scenarios.values(),
             [sample_times] * len(scenarios),
             [compute_prob_exposure] * len(scenarios),
-            [compute_expected_new_cases] * len(scenarios),
             timeout=60,
         )
 
