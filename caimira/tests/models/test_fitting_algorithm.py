@@ -7,7 +7,7 @@ from caimira import models
 
 @pytest.mark.parametrize(
     "activity_type, ventilation_active, air_exch, flow_rate_lsp", [
-        ['Seated', [8, 12, 13, 17], [0.25, 2.45, 0.25], [2.604166667, 51.04166667, 2.604166667]],
+        ['Seated', [8, 12, 13, 17], [0.25, 2.45, 0.25], [2.604166667, 25.520833335, 2.604166667]],
         ['Standing', [8, 10, 11, 12, 17], [1.25, 3.25, 1.45, 0.25], [13.02083333333, 33.8541666667, 15.1041666667, 2.6041666667]],
         ['Light activity', [8, 12, 17], [1.25, 0.25], [13.02083333333, 2.6041666667]],
         ['Moderate activity', [8, 13, 15, 16, 17], [2.25, 0.25, 3.45, 0.25], [23.4375, 2.6041666667, 35.9375, 2.6041666667]],
@@ -40,6 +40,7 @@ def test_fitting_algorithm(data_registry, activity_type, ventilation_active, air
     # Generate CO2DataModel
     data_model = models.CO2DataModel(
         data_registry=data_registry,
+        room_capacity=2,
         room_volume=75,
         occupancy=models.IntPiecewiseConstant(transition_times=tuple(
             [8, 12, 13, 17]), values=tuple([2, 1, 2])),
