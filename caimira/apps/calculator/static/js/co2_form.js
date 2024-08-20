@@ -19,6 +19,7 @@ const CO2_data_form = [
   "infected_lunch_start",
   "infected_people",
   "infected_start",
+  "room_capacity",
   "room_volume",
   "specific_breaks",
   "total_people",
@@ -137,6 +138,7 @@ function generateJSONStructure(endpoint, jsonData) {
     $("#generate_fitting_data").prop("disabled", false);
     $("#fitting_ventilation_states").prop("disabled", false);
     $("[name=fitting_ventilation_type]").prop("disabled", false);
+    $("#room_capacity").prop("disabled", false);
     plotCO2Data(endpoint);
   }
 }
@@ -152,7 +154,9 @@ function validateFormInputs(obj) {
   const $referenceNode = $("#DIVCO2_data_dialog");
   for (let i = 0; i < CO2_data_form.length; i++) {
     const $requiredElement = $(`[name=${CO2_data_form[i]}]`).first();
-    if ($requiredElement.attr('name') !== "fitting_ventilation_states" && $requiredElement.val() === "") {
+    if ($requiredElement.attr('name') !== "fitting_ventilation_states" && 
+        $requiredElement.attr('name') !== "room_capacity" && 
+        $requiredElement.val() === "") {
       insertErrorFor(
         $referenceNode,
         `'${$requiredElement.attr('name')}' must be defined.<br />`
@@ -233,6 +237,36 @@ function validateCO2Form() {
       insertErrorFor(
         $referenceNode,
         `'${$ventilationStates.attr('name')}' must be defined.</br>`
+      );
+      submit = false;
+    }
+    // Validate room capacity
+    const roomCapacity = $fittingToSubmit.find("input[name=room_capacity]");
+    const roomCapacityVal = roomCapacity.val();
+    if (roomCapacityVal !== "") {
+      const roomCapacityNumber = Number(roomCapacityVal);
+      const totalPeopleNumber = Number($("#total_people").val());
+      if (!Number.isInteger(roomCapacityNumber) || roomCapacityNumber <= 0) {
+        insertErrorFor(
+          $referenceNode,
+          `'${roomCapacity.attr('name')}' must be a valid integer (> 0).</br>`
+        );
+        submit = false;
+      }
+      else if (roomCapacityNumber < totalPeopleNumber){
+        insertErrorFor(
+          $referenceNode,
+          `'${roomCapacity.attr('name')}' must be higher than the total people.</br>`
+        );
+        submit = false;
+      }
+      console.log(roomCapacityNumber)
+      console.log(totalPeopleNumber)
+    }
+    else {
+      insertErrorFor(
+        $referenceNode,
+        `'${roomCapacity.attr('name')}' must be defined.</br>`
       );
       submit = false;
     }
@@ -338,6 +372,11 @@ function submitFittingAlgorithm(url) {
   if (validateCO2Form()) {
     // Disable all the ventilation inputs
     $("#fitting_ventilation_states, [name=fitting_ventilation_type]").prop(
+      "disabled",
+      true
+    );
+    // Disable room capacity input
+    $("#room_capacity").prop(
       "disabled",
       true
     );

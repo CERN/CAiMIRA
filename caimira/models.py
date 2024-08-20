@@ -1526,11 +1526,13 @@ class ShortRangeModel:
 @dataclass(frozen=True)
 class CO2DataModel:
     '''
-    The CO2DataModel class models CO2 data based on room volume, ventilation transition times, and people presence.
-    It uses optimization techniques to fit the model's parameters and estimate the exhalation rate and ventilation
-    values that best match the measured CO2 concentrations.
+    The CO2DataModel class models CO2 data based on room volume and capacity, 
+    ventilation transition times, and people presence.
+    It uses optimization techniques to fit the model's parameters and estimate the
+    exhalation rate and ventilation values that best match the measured CO2 concentrations.
     '''
     data_registry: DataRegistry
+    room_capacity: int
     room_volume: float
     occupancy: IntPiecewiseConstant
     ventilation_transition_times: typing.Tuple[float, ...]
@@ -1592,30 +1594,8 @@ class CO2DataModel:
         the_predictive_CO2 = self.CO2_concentrations_from_params(the_CO2_concentration_model)
 
         # Ventilation in L/s/person
-        def max_occupancy_in_interval(start: float, stop: float) -> int:
-            """
-            Given a certain ventilation interval, get the maximum number of
-            people in that period of time.
-            """
-            max_people: int = 0
-            for i, (people_start, people_stop) in enumerate(zip(self.occupancy.transition_times[:-1], 
-                                                                self.occupancy.transition_times[1:])):
-                if people_stop <= start or people_start >= stop:
-                    continue
-                if self.occupancy.values[i] > max_people: max_people = self.occupancy.values[i]
-            return max_people
-        
-        vent_volume_liter_person = []
-        for i, (vent_start, vent_stop) in enumerate(zip(self.ventilation_transition_times[:-1],
-                                                        self.ventilation_transition_times[1:])):
-            max_people = max_occupancy_in_interval(vent_start, vent_stop)
-            if max_people == 0:
-                # If in a certain interval there are no occupancy, the flow rate per second/person is 0
-                vent_volume_liter_person.append(0)
-            else:
-                vent_volume_liter_person.append(
-                    ventilation_values[i] / 3600 * self.room_volume / max_people * 1000
-                ) # 1m^3 = 1000L
+        vent_volume_liter_person = [vent / 3600 * self.room_volume / self.room_capacity * 1000 
+                                    for vent in ventilation_values] # 1m^3 = 1000L
         
         return {
             "exhalation_rate": exhalation_rate, 

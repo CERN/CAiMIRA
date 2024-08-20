@@ -22,6 +22,7 @@ class CO2FormData(FormData):
     CO2_data: dict
     fitting_ventilation_states: list
     fitting_ventilation_type: str
+    room_capacity: int
 
     #: The default values for undefined fields. Note that the defaults here
     #: and the defaults in the html form must not be contradictory.
@@ -45,6 +46,7 @@ class CO2FormData(FormData):
         'infected_lunch_start': '12:30',
         'infected_people': 1,
         'infected_start': '08:30',
+        'room_capacity': 10,
         'room_volume': NO_DEFAULT,
         'specific_breaks': '{}',
         'total_people': NO_DEFAULT,
@@ -61,6 +63,14 @@ class CO2FormData(FormData):
     def validate(self):
         # Validate population parameters
         self.validate_population_parameters()
+
+        # Validate room capacity
+        if type(self.room_capacity) is not int:
+            raise TypeError(f'The room capacity should be a valid integer (> 0). Got {type(self.room_capacity)}.')
+        if self.room_capacity <= 0:
+            raise TypeError(f'The room capacity should be a valid integer (> 0). Got {self.room_capacity}.')
+        if self.room_capacity < self.total_people:
+            raise TypeError(f'The room capacity should be higher than the total people in the room. Got {self.room_capacity}.')
 
         # Validate specific inputs - breaks (exposed and infected)
         if self.specific_breaks != {}:
@@ -181,6 +191,7 @@ class CO2FormData(FormData):
 
         return models.CO2DataModel(
                 data_registry=self.data_registry,
+                room_capacity=self.room_capacity,
                 room_volume=self.room_volume,
                 occupancy=models.IntPiecewiseConstant(transition_times=tuple(all_state_changes), values=tuple(total_people)),
                 ventilation_transition_times=self.ventilation_transition_times(),
