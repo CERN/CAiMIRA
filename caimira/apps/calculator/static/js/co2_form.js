@@ -301,8 +301,12 @@ function displayFittingData(json_response) {
       String(json_response["exhalation_rate"].toFixed(2)) +
       " m³/h"
   );
-  let ventilation_table =
-    "<tr><th>Time (HH:MM)</th><th>ACH value (h⁻¹)</th><th>Flow rate (L/s/person)</th></tr>";
+  let ventilation_table = `<tr>
+                            <th>Time (HH:MM)</th>
+                            <th>ACH value (h⁻¹)</th>
+                            <th>Flow rate (L/s)</th>
+                            <th>Flow rate (L/s/person)</th>
+                          </tr>`;
   json_response["ventilation_values"].forEach((CO2_val, index) => {
     let transition_times = displayTransitionTimesHourFormat(
       json_response["transition_times"][index],
@@ -312,6 +316,7 @@ function displayFittingData(json_response) {
     ventilation_table += `<tr>
                             <td>${transition_times}</td>
                             <td>${CO2_val.toPrecision(2)}</td>
+                            <td>${json_response['ventilation_ls_values'][index].toPrecision(2)}</td>
                             <td>${json_response['ventilation_lsp_values'][index].toPrecision(2)}</td>
                           </tr>`;
   });

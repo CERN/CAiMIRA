@@ -1593,13 +1593,17 @@ class CO2DataModel:
         )
         the_predictive_CO2 = self.CO2_concentrations_from_params(the_CO2_concentration_model)
 
-        # Ventilation in L/s/person
-        vent_volume_liter_person = [vent / 3600 * self.room_volume / self.room_capacity * 1000 
+        # Ventilation in L/s
+        vent_volume_liter = [vent / 3600 * self.room_volume * 1000 
                                     for vent in ventilation_values] # 1m^3 = 1000L
+        
+        # Ventilation in L/s/person
+        vent_volume_liter_person = [vent / self.room_capacity for vent in vent_volume_liter]
         
         return {
             "exhalation_rate": exhalation_rate, 
             "ventilation_values": list(ventilation_values),
+            "ventilation_ls_values": vent_volume_liter,
             "ventilation_lsp_values": vent_volume_liter_person,
             'predictive_CO2': list(the_predictive_CO2)
         }

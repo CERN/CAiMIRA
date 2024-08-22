@@ -364,9 +364,12 @@
                   <input type="text" class="form-control" id="fitting_ventilation_states" name="fitting_ventilation_states" placeholder="e.g. [8.5, 10, 11.5, 17]" form="not-submitted"><br>
                 </div>
                 <strong>Room data:</strong>
-                <div class="form-group row">
-                  <div class="col-sm-5"><label class="col-form-label">Maximum number of occupants:</label></div>
-                  <div class="col-sm-7 align-self-center"><input type="number" id="room_capacity" class="form-control" name="room_capacity" placeholder="Number" min=1 form="not-submitted"></div>
+                <div class="form-group">
+                  <label class="col-form-label" for="room_capacity">Maximum occupation – design limit:</label>
+                  <div data-tooltip="The maximum number of occupaants selected for the design of the building/room. What is typically shown in architectural design drawings.">
+                      <span class="tooltip_text">?</span>
+                  </div>
+                  <input type="number" id="room_capacity" class="form-control col-sm-7" name="room_capacity" placeholder="Number" min=1 form="not-submitted">
                 </div>
               </div>
 

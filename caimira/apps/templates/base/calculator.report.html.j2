@@ -541,14 +541,21 @@
 							{% endif %}
 							<li><p class="data_text">From Fitting:
 							{% if form.ventilation_type == "from_fitting" %}
-							Yes
+							Yes</p></li>
 							<table class="w-25 mt-3 ml-4" border="1">
-								<tr><th> Time (HH:MM)</th><th>ACH value (h⁻¹)</th></tr>
+								<tr>
+									<th> Time (HH:MM)</th>
+									<th>ACH value (h⁻¹)</th>
+									<th>Flow rate (L/s)</th>
+                            		<th>Flow rate (L/s/person)</th>
+								</tr>
 								{% for ventilation in form.CO2_fitting_result['ventilation_values'] %}
 									{% set transition_time = form.CO2_fitting_result['transition_times'] %}
 									<tr>
 										<td>{{ transition_time[loop.index - 1] | hour_format }} - {{ transition_time[loop.index] | hour_format }}</td>
 										<td>{{ ventilation | float_format }} </td>
+										<td>{{ form.CO2_fitting_result['ventilation_ls_values'][loop.index - 1] | float_format }} </td>
+										<td>{{ form.CO2_fitting_result['ventilation_lsp_values'][loop.index - 1] | float_format }} </td>
 									</tr>
 								{% endfor %} 
 								</table>
