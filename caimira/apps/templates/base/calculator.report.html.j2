@@ -539,10 +539,11 @@
 								<li><p class="data_text">HEPA amount: {{ form.hepa_amount }} m³ / hour</p></li>
 							</ul>
 							{% endif %}
-							<li><p class="data_text">From Fitting:
+							<li><p class="data_text">From fitting:
 							{% if form.ventilation_type == "from_fitting" %}
-							Yes</p></li>
-							<table class="w-25 mt-3 ml-4" border="1">
+							Yes</p>
+							<ul><li><p class="data_text">Room capacity: {{ form.CO2_fitting_result['room_capacity'] | int_format }}</p></li></ul></li>
+							<table class="w-50 mt-3 ml-4" border="1">
 								<tr>
 									<th> Time (HH:MM)</th>
 									<th>ACH value (h⁻¹)</th>
