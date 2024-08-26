@@ -69,8 +69,6 @@ class CO2FormData(FormData):
             raise TypeError(f'The room capacity should be a valid integer (> 0). Got {type(self.room_capacity)}.')
         if self.room_capacity <= 0:
             raise TypeError(f'The room capacity should be a valid integer (> 0). Got {self.room_capacity}.')
-        if self.room_capacity < self.total_people:
-            raise TypeError(f'The room capacity should be higher than the total people in the room. Got {self.room_capacity}.')
 
         # Validate specific inputs - breaks (exposed and infected)
         if self.specific_breaks != {}:

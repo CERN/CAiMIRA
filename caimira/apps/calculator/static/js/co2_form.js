@@ -253,15 +253,6 @@ function validateCO2Form() {
         );
         submit = false;
       }
-      else if (roomCapacityNumber < totalPeopleNumber){
-        insertErrorFor(
-          $referenceNode,
-          `'${roomCapacity.attr('name')}' must be higher than the total people.</br>`
-        );
-        submit = false;
-      }
-      console.log(roomCapacityNumber)
-      console.log(totalPeopleNumber)
     }
     else {
       insertErrorFor(
