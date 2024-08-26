@@ -217,6 +217,9 @@ class Room:
     #: The humidity in the room (from 0 to 1 - e.g. 0.5 is 50% humidity)
     humidity: _VectorisedFloat = 0.5
 
+    #: The maximum occupation of the room - design limit
+    capacity: float = 10
+
 
 @dataclass(frozen=True)
 class _VentilationBase:
@@ -1532,8 +1535,7 @@ class CO2DataModel:
     exhalation rate and ventilation values that best match the measured CO2 concentrations.
     '''
     data_registry: DataRegistry
-    room_capacity: int
-    room_volume: float
+    room: Room
     occupancy: IntPiecewiseConstant
     ventilation_transition_times: typing.Tuple[float, ...]
     times: typing.Sequence[float]
@@ -1544,7 +1546,7 @@ class CO2DataModel:
                                 ventilation_values: typing.Tuple[float, ...]) -> CO2ConcentrationModel:
         return CO2ConcentrationModel(
             data_registry=self.data_registry,
-            room=Room(volume=self.room_volume),
+            room=Room(volume=self.room.volume),
             ventilation=CustomVentilation(PiecewiseConstant(
                 self.ventilation_transition_times, ventilation_values)),
             CO2_emitters=SimplePopulation(
@@ -1594,17 +1596,18 @@ class CO2DataModel:
         the_predictive_CO2 = self.CO2_concentrations_from_params(the_CO2_concentration_model)
 
         # Ventilation in L/s
-        vent_volume_liter = [vent / 3600 * self.room_volume * 1000 
+        flow_rates_l_s = [vent / 3600 * self.room.volume * 1000 
                                     for vent in ventilation_values] # 1m^3 = 1000L
         
         # Ventilation in L/s/person
-        vent_volume_liter_person = [vent / self.room_capacity for vent in vent_volume_liter]
+        flow_rates_l_s_p = [flow_rate / self.room.capacity for flow_rate in flow_rates_l_s]
         
         return {
             "exhalation_rate": exhalation_rate, 
             "ventilation_values": list(ventilation_values),
-            "ventilation_ls_values": vent_volume_liter,
-            "ventilation_lsp_values": vent_volume_liter_person,
+            "room_capacity": self.room.capacity,
+            "ventilation_ls_values": flow_rates_l_s,
+            "ventilation_lsp_values": flow_rates_l_s_p,
             'predictive_CO2': list(the_predictive_CO2)
         }
 

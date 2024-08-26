@@ -191,8 +191,7 @@ class CO2FormData(FormData):
 
         return models.CO2DataModel(
                 data_registry=self.data_registry,
-                room_capacity=self.room_capacity,
-                room_volume=self.room_volume,
+                room=models.Room(volume=self.room_volume, capacity=self.room_capacity),
                 occupancy=models.IntPiecewiseConstant(transition_times=tuple(all_state_changes), values=tuple(total_people)),
                 ventilation_transition_times=self.ventilation_transition_times(),
                 times=self.CO2_data['times'],
