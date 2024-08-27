@@ -24,7 +24,7 @@ const CO2_data_form = [
   "total_people",
 ];
 
-// Method to upload a valid excel file
+// Method to upload a valid data file (accepted formats: .xls and .xlsx)
 function uploadFile(endpoint) {
   clearFittingResultComponent();
   const files = $("#file_upload")[0].files;
@@ -40,12 +40,12 @@ function uploadFile(endpoint) {
     .toUpperCase();
   if (extension !== ".XLS" && extension !== ".XLSX") {
     $("#upload-error")
-      .text("Please select a valid excel file (.XLS or .XLSX).")
+      .text("Please select a valid data file (.XLS or .XLSX).")
       .show();
     return;
   }
 
-  // FileReader API to read the Excel file
+  // FileReader API to read the data file
   const reader = new FileReader();
   reader.onload = function (event) {
     const fileContent = event.target.result;
@@ -79,7 +79,7 @@ function uploadFile(endpoint) {
     if (data.length <= 1) {
       $("#upload-error")
         .text(
-          "The Excel file is empty. Please make sure it contains data below the header row."
+          "The data file is empty. Please make sure it contains data below the header row."
         )
         .show();
       return;
@@ -106,9 +106,9 @@ function uploadFile(endpoint) {
       }
     }
 
-    // Validate Excel times input encompass simulation time
-    const firstTimeInExcel = parseFloat((data[1][timesColumnIndex] * 60).toFixed(2))
-    const lastTimeInExcel = parseFloat((data[data.length - 1][timesColumnIndex] * 60).toFixed(2))
+    // Validate times data encompass simulation time
+    const firstTimeInData = parseFloat((data[1][timesColumnIndex] * 60).toFixed(2))
+    const lastTimeInData = parseFloat((data[data.length - 1][timesColumnIndex] * 60).toFixed(2))
     // Validate start time
     const infected_start = $(`[name=infected_start]`).first().val();
     const exposed_start = $(`[name=exposed_start]`).first().val();
@@ -132,14 +132,14 @@ function uploadFile(endpoint) {
     elapsed_time_exposed =  hours_exposed * 60 + minutes_exposed;
     
     const max_presence_time = parseFloat((Math.max(elapsed_time_infected, elapsed_time_exposed)).toFixed(2));
-    if (firstTimeInExcel > min_presence_time || lastTimeInExcel < max_presence_time) {
+    if (firstTimeInData > min_presence_time || lastTimeInData < max_presence_time) {
       $("#upload-error")
-        .text(`The Excel times should encompass the entire simulation time (from ${min_presence_time/60} to ${max_presence_time/60}). 
-        Got Excel times from ${firstTimeInExcel/60} to ${lastTimeInExcel/60}. Either adapt the simulation presence times, or the Excel data.`).show();
+        .text(`The times data of the file should encompass the entire simulation time (from ${min_presence_time/60} to ${max_presence_time/60}). 
+        Got times from ${firstTimeInData/60} to ${lastTimeInData/60}. Either adapt the simulation presence times, or the times data of the file.`).show();
       return;
     }
     
-    // Convert Excel file to JSON and further processing
+    // Convert data file to JSON and further processing
     try {
       generateJSONStructure(endpoint, data);
       // If all validations pass, process the file here or display a success message
