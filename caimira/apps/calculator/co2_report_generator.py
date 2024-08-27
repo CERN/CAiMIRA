@@ -25,7 +25,7 @@ class CO2ReportGenerator:
         elif isinstance(CO2model.number, IntPiecewiseConstant):
             occupancy_transition_times = list(CO2model.number.transition_times)
         
-        ventilation_transition_times: list = form.find_change_points_with_scipy()
+        ventilation_transition_times: list = form.find_change_points()
         # The entire ventilation changes consider the initial and final occupancy state change
         all_vent_transition_times: list = sorted(
             [occupancy_transition_times[0]] + 

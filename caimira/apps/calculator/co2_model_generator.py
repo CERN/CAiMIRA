@@ -98,7 +98,7 @@ class CO2FormData(FormData):
                             if not re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$").match(time):
                                 raise TypeError(f'Wrong time format - "HH:MM". Got "{time}".')        
 
-    def find_change_points_with_scipy(self) -> list:
+    def find_change_points(self) -> list:
         """
         Perform change point detection using scipy library (find_peaks method) with rolling average of data.
         Incorporate existing state change candidates and adjust the result accordingly.
