@@ -172,7 +172,7 @@ class CO2FormData(FormData):
     def ventilation_transition_times(self) -> typing.List[float]:
         vent_states = self.fitting_ventilation_states
         last_time_from_input = self.CO2_data['times'][-1]
-        if (vent_states != [] and last_time_from_input != vent_states[-1]): # The last time value is always needed for the last ACH interval.
+        if (vent_states and last_time_from_input != vent_states[-1]): # The last time value is always needed for the last ACH interval.
             vent_states.append(last_time_from_input)
         return vent_states
 
