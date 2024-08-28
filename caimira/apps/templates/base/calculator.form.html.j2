@@ -366,14 +366,10 @@
                 <strong>Room data:</strong>
                 <div class="form-group">
                   <label class="col-form-label" for="room_capacity">Maximum occupation – design limit:</label>
-                  <div data-tooltip="The maximum number of occupants foreseen by the architectural design of the room. It is only used by the CO2 fitting algorithm to convert the ventilation rate obtained in L/s/person. If not specified, this conversion will not be performed.">
+                  <div data-tooltip="The maximum number of occupants foreseen by the conceptual (architectural) design of the room, also know as the room capacity. It is only used by the CO2 fitting algorithm to convert the ventilation rate obtained in L/s/person. If not specified, this conversion will not be performed.">
                       <span class="tooltip_text">?</span>
                   </div>
                   <input type="number" id="room_capacity" class="form-control col-sm-7" name="room_capacity" placeholder="Number" min=1 form="not-submitted">
-                  <p id="warning_room_capacity_null" class="mt-2" style="display: none">
-                    <strong>Note:</strong> The maximum occupation - design limit was not specified. <br>
-                    Therefore the flow rate in liters per second per person will not be performed.
-                  </p>
                 </div>
               </div>
 

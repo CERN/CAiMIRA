@@ -253,9 +253,6 @@ function validateCO2Form() {
         submit = false;
       }
     }
-    else {
-      $fittingToSubmit.find("#warning_room_capacity_null").show();
-    }
   }
 
   return submit;
@@ -425,7 +422,6 @@ function clearFittingResultComponent() {
   $referenceNode.find("#DIVCO2_fitting_result, #CO2_input_data_div").hide();
   $referenceNode.find("#DIVCO2_fitting_to_submit").hide();
   $referenceNode.find("#CO2_data_plot").attr("src", "");
-  $referenceNode.find("#warning_room_capacity_null").hide();
 
   // Update the ventilation scheme components
   $referenceNode.find("#fitting_ventilation_states, [name=fitting_ventilation_type]").prop(
