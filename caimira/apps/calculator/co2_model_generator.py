@@ -110,21 +110,29 @@ class CO2FormData(FormData):
         if len(times) != len(CO2_values):
             raise ValueError("times and CO2 values must have the same length.")
 
-        # Calculate minimum interval for peak detection
-        diff = times[1] - times[0]
-        interval_in_minutes = 30
-        distance_points = interval_in_minutes // (diff * 60) # minutes
+        # Time difference between two consecutive time data entries, in seconds
+        diff = (times[1] - times[0]) * 3600 # Initial data points in absolute hours, e.g. 14.78
+
+        # Calculate minimum interval for smoothing technique
+        smooth_min_interval_in_minutes = 1 # Minimum time difference for smooth technique
+        window_size = max(int((smooth_min_interval_in_minutes * 60) // diff), 1)
 
         # Applying a rolling average to smooth the initial data
-        window_size = int(0.01*len(times))  # 1% of the initial points window for smoothing
         smoothed_co2 = pd.Series(CO2_values).rolling(window=window_size, center=True).mean()
 
-        # Find peaks (maxima) in the smoothed data
-        distance = distance_points
-        peaks, _ = find_peaks(smoothed_co2.values, prominence=100, distance=distance)
+        # Calculate minimum interval for peaks and valleys detection
+        peak_valley_min_interval_in_minutes = 15 # Minimum time difference between two peaks or two valleys
+        min_distance_points = max(int((peak_valley_min_interval_in_minutes * 60) // diff), 1)
+
+        # Calculate minimum width of datapoints for valley detection
+        width_min_interval_in_minutes = 20 # Minimum time difference for a valley detection
+        min_valley_width = max(int((width_min_interval_in_minutes * 60) // diff), 1)
+
+        # Find peaks (maxima) in the smoothed data applying the distance factor
+        peaks, _ = find_peaks(smoothed_co2.values, prominence=100, distance=min_distance_points)
         
-        # Find valleys (minima) by inverting the smoothed data and applying a smooth factor
-        valleys, _ = find_peaks(-smoothed_co2.values, prominence=20, width=int(0.05*len(times)), distance=distance)
+        # Find valleys (minima) by inverting the smoothed data and applying the width and distance factors
+        valleys, _ = find_peaks(-smoothed_co2.values, prominence=50, width=min_valley_width, distance=min_distance_points)
 
         # Extract peak and valley timestamps
         timestamps = np.array(times)
