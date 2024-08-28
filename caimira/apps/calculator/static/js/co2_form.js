@@ -154,8 +154,8 @@ function validateFormInputs(obj) {
   const $referenceNode = $("#DIVCO2_data_dialog");
   for (let i = 0; i < CO2_data_form.length; i++) {
     const $requiredElement = $(`[name=${CO2_data_form[i]}]`).first();
-    if ($requiredElement.attr('name') !== "fitting_ventilation_states" && 
-        $requiredElement.attr('name') !== "room_capacity" && 
+    if ($requiredElement.attr('name') !== "fitting_ventilation_states" &&
+        $requiredElement.attr('name') !== "room_capacity" &&
         $requiredElement.val() === "") {
       insertErrorFor(
         $referenceNode,
@@ -245,7 +245,6 @@ function validateCO2Form() {
     const roomCapacityVal = roomCapacity.val();
     if (roomCapacityVal !== "") {
       const roomCapacityNumber = Number(roomCapacityVal);
-      const totalPeopleNumber = Number($("#total_people").val());
       if (!Number.isInteger(roomCapacityNumber) || roomCapacityNumber <= 0) {
         insertErrorFor(
           $referenceNode,
@@ -255,11 +254,7 @@ function validateCO2Form() {
       }
     }
     else {
-      insertErrorFor(
-        $referenceNode,
-        `'${roomCapacity.attr('name')}' must be defined.</br>`
-      );
-      submit = false;
+      $fittingToSubmit.find("#warning_room_capacity_null").show();
     }
   }
 
@@ -286,6 +281,10 @@ function displayFittingData(json_response) {
   // Not needed for the form submission
   delete json_response["CO2_plot"];
   delete json_response["predictive_CO2"];
+  // Convert nulls to empty strings in the JSON response
+  if (json_response["room_capacity"] === null) json_response["room_capacity"] = '';
+  if (json_response["ventilation_lsp_values"] === null) json_response["ventilation_lsp_values"] = '';
+  // Populate the hidden input
   $("#CO2_fitting_result").val(JSON.stringify(json_response));
   $("#exhalation_rate_fit").html(
     "Exhalation rate: " +
@@ -295,10 +294,14 @@ function displayFittingData(json_response) {
   let ventilation_table = `<tr>
                             <th>Time (HH:MM)</th>
                             <th>ACH value (h⁻¹)</th>
-                            <th>Flow rate (L/s)</th>
-                            <th>Flow rate (L/s/person)</th>
-                          </tr>`;
-  json_response["ventilation_values"].forEach((CO2_val, index) => {
+                            <th>Flow rate (L/s)</th>`;
+    // Check if ventilation_lsp_values is not empty
+    let hasLspValues = json_response['ventilation_lsp_values'] !== '';
+    if (hasLspValues) {
+      ventilation_table += `<th>Flow rate (L/s/person)</th>`;
+    }
+    ventilation_table += `</tr>`;
+    json_response["ventilation_values"].forEach((CO2_val, index) => {
     let transition_times = displayTransitionTimesHourFormat(
       json_response["transition_times"][index],
       json_response["transition_times"][index + 1]
@@ -307,9 +310,12 @@ function displayFittingData(json_response) {
     ventilation_table += `<tr>
                             <td>${transition_times}</td>
                             <td>${CO2_val.toPrecision(2)}</td>
-                            <td>${json_response['ventilation_ls_values'][index].toPrecision(2)}</td>
-                            <td>${json_response['ventilation_lsp_values'][index].toPrecision(2)}</td>
-                          </tr>`;
+                            <td>${json_response['ventilation_ls_values'][index].toPrecision(2)}</td>`;
+    // Add the L/s/person value if available
+    if (hasLspValues) {
+      ventilation_table += `<td>${json_response['ventilation_lsp_values'][index].toPrecision(2)}</td>`;
+    }
+    ventilation_table += `</tr>`;
   });
 
   $("#disable_fitting_algorithm").prop("disabled", false);
@@ -419,6 +425,7 @@ function clearFittingResultComponent() {
   $referenceNode.find("#DIVCO2_fitting_result, #CO2_input_data_div").hide();
   $referenceNode.find("#DIVCO2_fitting_to_submit").hide();
   $referenceNode.find("#CO2_data_plot").attr("src", "");
+  $referenceNode.find("#warning_room_capacity_null").hide();
 
   // Update the ventilation scheme components
   $referenceNode.find("#fitting_ventilation_states, [name=fitting_ventilation_type]").prop(
