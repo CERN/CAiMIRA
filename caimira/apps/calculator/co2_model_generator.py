@@ -22,7 +22,7 @@ class CO2FormData(FormData):
     CO2_data: dict
     fitting_ventilation_states: list
     fitting_ventilation_type: str
-    room_capacity: int
+    room_capacity: typing.Optional[int]
 
     #: The default values for undefined fields. Note that the defaults here
     #: and the defaults in the html form must not be contradictory.
@@ -46,7 +46,7 @@ class CO2FormData(FormData):
         'infected_lunch_start': '12:30',
         'infected_people': 1,
         'infected_start': '08:30',
-        'room_capacity': 10,
+        'room_capacity': None,
         'room_volume': NO_DEFAULT,
         'specific_breaks': '{}',
         'total_people': NO_DEFAULT,
@@ -65,10 +65,11 @@ class CO2FormData(FormData):
         self.validate_population_parameters()
 
         # Validate room capacity
-        if type(self.room_capacity) is not int:
-            raise TypeError(f'The room capacity should be a valid integer (> 0). Got {type(self.room_capacity)}.')
-        if self.room_capacity <= 0:
-            raise TypeError(f'The room capacity should be a valid integer (> 0). Got {self.room_capacity}.')
+        if self.room_capacity:
+            if type(self.room_capacity) is not int:
+                raise TypeError(f'The room capacity should be a valid integer (> 0). Got {type(self.room_capacity)}.')
+            if self.room_capacity <= 0:
+                raise TypeError(f'The room capacity should be a valid integer (> 0). Got {self.room_capacity}.')
 
         # Validate specific inputs - breaks (exposed and infected)
         if self.specific_breaks != {}:

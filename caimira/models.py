@@ -218,7 +218,7 @@ class Room:
     humidity: _VectorisedFloat = 0.5
 
     #: The maximum occupation of the room - design limit
-    capacity: float = 10
+    capacity: typing.Optional[int] = None
 
 
 @dataclass(frozen=True)
@@ -1596,11 +1596,10 @@ class CO2DataModel:
         the_predictive_CO2 = self.CO2_concentrations_from_params(the_CO2_concentration_model)
 
         # Ventilation in L/s
-        flow_rates_l_s = [vent / 3600 * self.room.volume * 1000 
-                                    for vent in ventilation_values] # 1m^3 = 1000L
+        flow_rates_l_s = [vent / 3600 * self.room.volume * 1000 for vent in ventilation_values] # 1m^3 = 1000L
         
         # Ventilation in L/s/person
-        flow_rates_l_s_p = [flow_rate / self.room.capacity for flow_rate in flow_rates_l_s]
+        flow_rates_l_s_p = [flow_rate / self.room.capacity for flow_rate in flow_rates_l_s] if self.room.capacity else None
         
         return {
             "exhalation_rate": exhalation_rate, 
