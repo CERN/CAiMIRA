@@ -102,7 +102,8 @@ class CO2FormData(FormData):
         """
         Perform change point detection using scipy library (find_peaks method) with rolling average of data.
         Incorporate existing state change candidates and adjust the result accordingly.
-        Returns a list of the detected ventilation state changes.
+        Returns a list of the detected ventilation state changes, discarding any contribution
+        of occupancy state changes.
         """
         times: list = self.CO2_data['times']
         CO2_values: list = self.CO2_data['CO2']
@@ -178,6 +179,12 @@ class CO2FormData(FormData):
         return sorted(state_change_times)
 
     def ventilation_transition_times(self) -> typing.List[float]:
+        '''
+        Check if the last time from the input data is
+        included in the ventilation ventilations state.
+        Given that the last time is a required state change, 
+        if not included, this method adds it.
+        '''
         vent_states = self.fitting_ventilation_states
         last_time_from_input = self.CO2_data['times'][-1]
         if (vent_states and last_time_from_input != vent_states[-1]): # The last time value is always needed for the last ACH interval.
