@@ -337,7 +337,7 @@ function displayFittingData(json_response) {
 
   $("#disable_fitting_algorithm").prop("disabled", false);
   $("#ventilation_rate_fit").html(ventilation_table);
-  $("#generate_fitting_data").html("Fit data");
+  $("#generate_fitting_data").html("Confirm and Fit data");
   $("#generate_fitting_data").hide();
   $("#save_and_dismiss_dialog").show();
 }
