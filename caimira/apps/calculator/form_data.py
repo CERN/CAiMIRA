@@ -410,6 +410,12 @@ def _safe_int_cast(value) -> int:
         return int(value)
     else:
         raise TypeError(f"Unable to safely cast {value} ({type(value)} type) to int")
+    
+
+def _safe_optional_int_cast(value) -> typing.Optional[int]:
+    if value is None or value == '':
+        return None
+    return _safe_int_cast(value)
 
 
 #: Mapping of field name to a callable which can convert values from form
@@ -427,6 +433,8 @@ def cast_class_fields(cls):
             _CAST_RULES_NATIVE_TO_FORM_ARG[_field.name] = time_minutes_to_string
         elif _field.type is int:
             _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = _safe_int_cast
+        elif _field.type is typing.Optional[int]:
+            _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = _safe_optional_int_cast
         elif _field.type is float:
             _CAST_RULES_FORM_ARG_TO_NATIVE[_field.name] = float
         elif _field.type is bool:

@@ -19,6 +19,7 @@ const CO2_data_form = [
   "infected_lunch_start",
   "infected_people",
   "infected_start",
+  "room_capacity",
   "room_volume",
   "specific_breaks",
   "total_people",
@@ -137,6 +138,7 @@ function generateJSONStructure(endpoint, jsonData) {
     $("#generate_fitting_data").prop("disabled", false);
     $("#fitting_ventilation_states").prop("disabled", false);
     $("[name=fitting_ventilation_type]").prop("disabled", false);
+    $("#room_capacity").prop("disabled", false);
     plotCO2Data(endpoint);
   }
 }
@@ -152,7 +154,9 @@ function validateFormInputs(obj) {
   const $referenceNode = $("#DIVCO2_data_dialog");
   for (let i = 0; i < CO2_data_form.length; i++) {
     const $requiredElement = $(`[name=${CO2_data_form[i]}]`).first();
-    if ($requiredElement.attr('name') !== "fitting_ventilation_states" && $requiredElement.val() === "") {
+    if ($requiredElement.attr('name') !== "fitting_ventilation_states" &&
+        $requiredElement.attr('name') !== "room_capacity" &&
+        $requiredElement.val() === "") {
       insertErrorFor(
         $referenceNode,
         `'${$requiredElement.attr('name')}' must be defined.<br />`
@@ -236,6 +240,19 @@ function validateCO2Form() {
       );
       submit = false;
     }
+    // Validate room capacity
+    const roomCapacity = $fittingToSubmit.find("input[name=room_capacity]");
+    const roomCapacityVal = roomCapacity.val();
+    if (roomCapacityVal !== "") {
+      const roomCapacityNumber = Number(roomCapacityVal);
+      if (!Number.isInteger(roomCapacityNumber) || roomCapacityNumber <= 0) {
+        insertErrorFor(
+          $referenceNode,
+          `'${roomCapacity.attr('name')}' must be a valid integer (> 0).</br>`
+        );
+        submit = false;
+      }
+    }
   }
 
   return submit;
@@ -261,23 +278,43 @@ function displayFittingData(json_response) {
   // Not needed for the form submission
   delete json_response["CO2_plot"];
   delete json_response["predictive_CO2"];
+  // Convert nulls to empty strings in the JSON response
+  if (json_response["room_capacity"] === null) json_response["room_capacity"] = '';
+  if (json_response["ventilation_lsp_values"] === null) json_response["ventilation_lsp_values"] = '';
+  // Populate the hidden input
   $("#CO2_fitting_result").val(JSON.stringify(json_response));
   $("#exhalation_rate_fit").html(
     "Exhalation rate: " +
       String(json_response["exhalation_rate"].toFixed(2)) +
       " m³/h"
   );
-  let ventilation_table =
-    "<tr><th>Time (HH:MM)</th><th>ACH value (h⁻¹)</th></tr>";
-  json_response["ventilation_values"].forEach((val, index) => {
+  let ventilation_table = `<tr>
+                            <th>Time (HH:MM)</th>
+                            <th>ACH value (h⁻¹)</th>
+                            <th>Flow rate (L/s)</th>`;
+    // Check if ventilation_lsp_values is not empty
+    let hasLspValues = json_response['ventilation_lsp_values'] !== '';
+    if (hasLspValues) {
+      ventilation_table += `<th>Flow rate (L/s/person)</th>`;
+    }
+    ventilation_table += `</tr>`;
+    json_response["ventilation_values"].forEach((CO2_val, index) => {
     let transition_times = displayTransitionTimesHourFormat(
       json_response["transition_times"][index],
       json_response["transition_times"][index + 1]
     );
-    ventilation_table += `<tr><td>${transition_times}</td><td>${val.toPrecision(
-      2
-    )}</td></tr>`;
+
+    ventilation_table += `<tr>
+                            <td>${transition_times}</td>
+                            <td>${CO2_val.toPrecision(2)}</td>
+                            <td>${json_response['ventilation_ls_values'][index].toPrecision(2)}</td>`;
+    // Add the L/s/person value if available
+    if (hasLspValues) {
+      ventilation_table += `<td>${json_response['ventilation_lsp_values'][index].toPrecision(2)}</td>`;
+    }
+    ventilation_table += `</tr>`;
   });
+
   $("#disable_fitting_algorithm").prop("disabled", false);
   $("#ventilation_rate_fit").html(ventilation_table);
   $("#generate_fitting_data").html("Fit data");
@@ -334,6 +371,11 @@ function submitFittingAlgorithm(url) {
   if (validateCO2Form()) {
     // Disable all the ventilation inputs
     $("#fitting_ventilation_states, [name=fitting_ventilation_type]").prop(
+      "disabled",
+      true
+    );
+    // Disable room capacity input
+    $("#room_capacity").prop(
       "disabled",
       true
     );

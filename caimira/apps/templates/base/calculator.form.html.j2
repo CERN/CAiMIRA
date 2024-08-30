@@ -363,6 +363,14 @@
                   </div>
                   <input type="text" class="form-control" id="fitting_ventilation_states" name="fitting_ventilation_states" placeholder="e.g. [8.5, 10, 11.5, 17]" form="not-submitted"><br>
                 </div>
+                <strong>Room data:</strong>
+                <div class="form-group">
+                  <label class="col-form-label" for="room_capacity">Maximum occupation – design limit:</label>
+                  <div data-tooltip="The maximum number of occupants foreseen by the conceptual (architectural) design of the room, also known as the room capacity. It is only used by the CO2 fitting algorithm to convert the ventilation rate obtained in L/s/person. If not specified, this conversion will not be performed.">
+                      <span class="tooltip_text">?</span>
+                  </div>
+                  <input type="number" id="room_capacity" class="form-control col-sm-7" name="room_capacity" placeholder="Number" min=1 form="not-submitted">
+                </div>
               </div>
 
               <div id="DIVCO2_fitting_result" style="display: none">
@@ -380,7 +388,7 @@
             </div>
           </div>
         </div>
-      </div></br> 
+      </div></br>
       <div class='sub_title'>HEPA filtration:</div>
       <div>
         <input type="radio" id="hepa_yes" name="hepa_option" value=1 onclick="require_fields(this)" data-enables="#DIVhepa_amount">

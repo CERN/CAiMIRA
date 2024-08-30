@@ -217,6 +217,9 @@ class Room:
     #: The humidity in the room (from 0 to 1 - e.g. 0.5 is 50% humidity)
     humidity: _VectorisedFloat = 0.5
 
+    #: The maximum occupation of the room - design limit
+    capacity: typing.Optional[int] = None
+
 
 @dataclass(frozen=True)
 class _VentilationBase:
@@ -1526,34 +1529,37 @@ class ShortRangeModel:
 @dataclass(frozen=True)
 class CO2DataModel:
     '''
-    The CO2DataModel class models CO2 data based on room volume, ventilation transition times, and people presence.
-    It uses optimization techniques to fit the model's parameters and estimate the exhalation rate and ventilation
-    values that best match the measured CO2 concentrations.
+    The CO2DataModel class models CO2 data based on room volume and capacity, 
+    ventilation transition times, and people presence.
+    It uses optimization techniques to fit the model's parameters and estimate the
+    exhalation rate and ventilation values that best match the measured CO2 concentrations.
     '''
     data_registry: DataRegistry
-    room_volume: float
-    number: typing.Union[int, IntPiecewiseConstant]
-    presence: typing.Optional[Interval]
+    room: Room
+    occupancy: IntPiecewiseConstant
     ventilation_transition_times: typing.Tuple[float, ...]
     times: typing.Sequence[float]
     CO2_concentrations: typing.Sequence[float]
 
-    def CO2_concentrations_from_params(self,
-                                exhalation_rate: float,
-                                ventilation_values: typing.Tuple[float, ...]) -> typing.List[_VectorisedFloat]:
-        CO2_concentrations = CO2ConcentrationModel(
+    def CO2_concentration_model(self, 
+                                exhalation_rate: float, 
+                                ventilation_values: typing.Tuple[float, ...]) -> CO2ConcentrationModel:
+        return CO2ConcentrationModel(
             data_registry=self.data_registry,
-            room=Room(volume=self.room_volume),
+            room=Room(volume=self.room.volume),
             ventilation=CustomVentilation(PiecewiseConstant(
                 self.ventilation_transition_times, ventilation_values)),
             CO2_emitters=SimplePopulation(
-                number=self.number,
-                presence=self.presence,
+                number=self.occupancy,
+                presence=None,
                 activity=Activity(
                     exhalation_rate=exhalation_rate, inhalation_rate=exhalation_rate),
             )
         )
-        return [CO2_concentrations.concentration(time) for time in self.times]
+
+    def CO2_concentrations_from_params(self, CO2_concentration_model: CO2ConcentrationModel) -> typing.List[_VectorisedFloat]:
+        # Calculate the predictive CO2 concentration
+        return [CO2_concentration_model.concentration(time) for time in self.times]
 
     def CO2_fit_params(self):
         if len(self.times) != len(self.CO2_concentrations):
@@ -1566,10 +1572,11 @@ class CO2DataModel:
         def fun(x):
             exhalation_rate = x[0]
             ventilation_values = tuple(x[1:])
-            the_concentrations = self.CO2_concentrations_from_params(
+            CO2_concentration_model = self.CO2_concentration_model(
                 exhalation_rate=exhalation_rate,
                 ventilation_values=ventilation_values
             )
+            the_concentrations = self.CO2_concentrations_from_params(CO2_concentration_model)
             return np.sqrt(np.sum((np.array(self.CO2_concentrations) -
                                    np.array(the_concentrations))**2))
         # The goal is to minimize the difference between the two different curves (known concentrations vs. predicted concentrations)
@@ -1577,10 +1584,31 @@ class CO2DataModel:
                             bounds=[(0, None) for _ in range(len(self.ventilation_transition_times))],
                             options={'xtol': 1e-3})
 
+        # Final prediction
         exhalation_rate = res_dict['x'][0]
-        ventilation_values = res_dict['x'][1:]
-        predictive_CO2 = self.CO2_concentrations_from_params(exhalation_rate=exhalation_rate, ventilation_values=ventilation_values)
-        return {"exhalation_rate": exhalation_rate, "ventilation_values": list(ventilation_values), 'predictive_CO2': list(predictive_CO2)}
+        ventilation_values = res_dict['x'][1:] # In ACH
+
+        # Final CO2ConcentrationModel with obtained prediction
+        the_CO2_concentration_model = self.CO2_concentration_model(
+            exhalation_rate=exhalation_rate, 
+            ventilation_values=ventilation_values
+        )
+        the_predictive_CO2 = self.CO2_concentrations_from_params(the_CO2_concentration_model)
+
+        # Ventilation in L/s
+        flow_rates_l_s = [vent / 3600 * self.room.volume * 1000 for vent in ventilation_values] # 1m^3 = 1000L
+        
+        # Ventilation in L/s/person
+        flow_rates_l_s_p = [flow_rate / self.room.capacity for flow_rate in flow_rates_l_s] if self.room.capacity else None
+        
+        return {
+            "exhalation_rate": exhalation_rate, 
+            "ventilation_values": list(ventilation_values),
+            "room_capacity": self.room.capacity,
+            "ventilation_ls_values": flow_rates_l_s,
+            "ventilation_lsp_values": flow_rates_l_s_p,
+            'predictive_CO2': list(the_predictive_CO2)
+        }
 
 
 @dataclass(frozen=True)
