@@ -19,10 +19,7 @@ class CO2ReportGenerator:
         '''
         CO2model: CO2DataModel = form.build_model()
 
-        if isinstance(CO2model.number, int) and isinstance(CO2model.presence, Interval):
-            occupancy_transition_times = list(CO2model.presence.transition_times())
-        elif isinstance(CO2model.number, IntPiecewiseConstant):
-            occupancy_transition_times = list(CO2model.number.transition_times)
+        occupancy_transition_times = list(CO2model.occupancy.transition_times)
         
         ventilation_transition_times: list = form.find_change_points()
         # The entire ventilation changes consider the initial and final occupancy state change

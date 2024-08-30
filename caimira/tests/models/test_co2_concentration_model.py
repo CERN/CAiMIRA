@@ -94,12 +94,11 @@ def test_predictive_model_accuracy(data_registry, scenario_data, room_volume, oc
 
     fitting_model: models.CO2DataModel = models.CO2DataModel(
         data_registry=data_registry,
-        room_volume=room_volume,
-        number=models.IntPiecewiseConstant(
+        room=models.Room(volume=room_volume),
+        occupancy=models.IntPiecewiseConstant(
             transition_times=presence_interval,
             values=occupancy
         ),
-        presence=None,
         ventilation_transition_times=all_state_changes,
         times=input_fitting_data['times'],
         CO2_concentrations=input_fitting_data['CO2'],

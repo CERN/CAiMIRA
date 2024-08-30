@@ -178,7 +178,7 @@ class CO2FormData(FormData):
         state_change_times.update(exposed_presence.transition_times())
         return sorted(state_change_times)
 
-    def ventilation_transition_times(self) -> typing.List[float]:
+    def ventilation_transition_times(self) -> typing.Tuple[float]:
         '''
         Check if the last time from the input data is
         included in the ventilation ventilations state.
@@ -189,7 +189,7 @@ class CO2FormData(FormData):
         last_time_from_input = self.CO2_data['times'][-1]
         if (vent_states and last_time_from_input != vent_states[-1]): # The last time value is always needed for the last ACH interval.
             vent_states.append(last_time_from_input)
-        return vent_states
+        return tuple(vent_states)
 
     def build_model(self, size=None) -> models.CO2DataModel: # type: ignore
         size = size or self.data_registry.monte_carlo['sample_size']
