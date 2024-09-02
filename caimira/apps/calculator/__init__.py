@@ -33,6 +33,7 @@ from caimira.store.data_service import DataService
 from . import markdown_tools
 from . import model_generator, co2_model_generator
 from .report_generator import ReportGenerator, calculate_report_data
+from .co2_report_generator import CO2ReportGenerator
 from .user import AuthenticatedUser, AnonymousUser
 
 # The calculator version is based on a combination of the model version and the
@@ -404,7 +405,10 @@ class CO2ModelResponse(BaseRequestHandler):
 
         requested_model_config = tornado.escape.json_decode(self.request.body)
         try:
-            form = co2_model_generator.CO2FormData.from_dict(requested_model_config, data_registry)
+            form: co2_model_generator.CO2FormData = co2_model_generator.CO2FormData.from_dict(
+                requested_model_config, 
+                data_registry
+            )
         except Exception as err:
             if self.settings.get("debug", False):
                 import traceback
@@ -414,29 +418,21 @@ class CO2ModelResponse(BaseRequestHandler):
             self.finish(json.dumps(response_json))
             return
 
+        CO2_report_generator: CO2ReportGenerator = CO2ReportGenerator()
         if endpoint.rstrip('/') == 'plot':
-            transition_times = co2_model_generator.CO2FormData.find_change_points_with_pelt(form.CO2_data)
-            self.finish({'CO2_plot': co2_model_generator.CO2FormData.generate_ventilation_plot(form.CO2_data, transition_times),
-                        'transition_times': [round(el, 2) for el in transition_times]})
+            report = CO2_report_generator.build_initial_plot(form)
+            self.finish(report)
         else:
             executor = loky.get_reusable_executor(
                 max_workers=self.settings['handler_worker_pool_size'],
                 timeout=300,
             )
             report_task = executor.submit(
-                co2_model_generator.CO2FormData.build_model, form,
+                CO2_report_generator.build_fitting_results, form,
             )
+            
             report = await asyncio.wrap_future(report_task)
-
-            result = dict(report.CO2_fit_params())
-            ventilation_transition_times = report.ventilation_transition_times
-
-            result['fitting_ventilation_type'] = form.fitting_ventilation_type
-            result['transition_times'] = ventilation_transition_times
-            result['CO2_plot'] = co2_model_generator.CO2FormData.generate_ventilation_plot(CO2_data=form.CO2_data,
-                                                                transition_times=ventilation_transition_times[:-1],
-                                                                predictive_CO2=result['predictive_CO2'])
-            self.finish(result)
+            self.finish(report)
 
 
 def get_url(app_root: str, relative_path: str = '/'):

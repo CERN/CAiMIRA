@@ -330,13 +330,10 @@ class VirusFormData(FormData):
                                                     min(self.infected_start, self.exposed_start)/60)
         if self.ventilation_type == 'from_fitting':
             ventilations = []
-            if self.CO2_fitting_result['fitting_ventilation_type'] == 'fitting_natural_ventilation':
-                transition_times = self.CO2_fitting_result['transition_times']
-                for index, (start, stop) in enumerate(zip(transition_times[:-1], transition_times[1:])):
-                    ventilations.append(models.AirChange(active=models.SpecificInterval(present_times=((start, stop), )),
-                                                         air_exch=self.CO2_fitting_result['ventilation_values'][index]))
-            else:
-                ventilations.append(models.AirChange(active=always_on, air_exch=self.CO2_fitting_result['ventilation_values'][0]))
+            transition_times = self.CO2_fitting_result['transition_times']
+            for index, (start, stop) in enumerate(zip(transition_times[:-1], transition_times[1:])):
+                ventilations.append(models.AirChange(active=models.SpecificInterval(present_times=((start, stop), )),
+                                                        air_exch=self.CO2_fitting_result['ventilation_values'][index]))
             return models.MultipleVentilation(tuple(ventilations))
 
         # Initializes a ventilation instance as a window if 'natural_ventilation' is selected, or as a HEPA-filter otherwise

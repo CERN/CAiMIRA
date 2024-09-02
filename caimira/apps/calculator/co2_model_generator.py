@@ -2,8 +2,9 @@ import dataclasses
 import logging
 import typing
 import numpy as np
-import ruptures as rpt
 import matplotlib.pyplot as plt
+from scipy.signal import find_peaks
+import pandas as pd
 import re
 
 from caimira import models
@@ -21,13 +22,13 @@ LOG = logging.getLogger(__name__)
 class CO2FormData(FormData):
     CO2_data: dict
     fitting_ventilation_states: list
-    fitting_ventilation_type: str
     room_capacity: typing.Optional[int]
 
     #: The default values for undefined fields. Note that the defaults here
     #: and the defaults in the html form must not be contradictory.
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = {
         'CO2_data': '{}',
+        'fitting_ventilation_states': '[]',
         'exposed_coffee_break_option': 'coffee_break_0',
         'exposed_coffee_duration': 5,
         'exposed_finish': '17:30',
@@ -35,8 +36,6 @@ class CO2FormData(FormData):
         'exposed_lunch_option': True,
         'exposed_lunch_start': '12:30',
         'exposed_start': '08:30',
-        'fitting_ventilation_states': '[]',
-        'fitting_ventilation_type': 'fitting_natural_ventilation',
         'infected_coffee_break_option': 'coffee_break_0',
         'infected_coffee_duration': 5,
         'infected_dont_have_breaks_with_exposed': False,
@@ -97,55 +96,75 @@ class CO2FormData(FormData):
                             raise TypeError(f'Unable to fetch "finish_time" key. Got "{dict_keys[1]}".')
                         for time in input_break.values():
                             if not re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$").match(time):
-                                raise TypeError(f'Wrong time format - "HH:MM". Got "{time}".')
+                                raise TypeError(f'Wrong time format - "HH:MM". Got "{time}".')        
 
-    @classmethod
-    def find_change_points_with_pelt(self, CO2_data: dict):
+    def find_change_points(self) -> list:
         """
-        Perform change point detection using Pelt algorithm from ruptures library with pen=15.
-        Returns a list of tuples containing (index, X-axis value) for the detected significant changes.
+        Perform change point detection using scipy library (find_peaks method) with rolling average of data.
+        Incorporate existing state change candidates and adjust the result accordingly.
+        Returns a list of the detected ventilation state changes, discarding any occupancy state change.
         """
-
-        times: list = CO2_data['times']
-        CO2_values: list = CO2_data['CO2']
+        times: list = self.CO2_data['times']
+        CO2_values: list = self.CO2_data['CO2']
 
         if len(times) != len(CO2_values):
             raise ValueError("times and CO2 values must have the same length.")
 
-        # Convert the input list to a numpy array for use with the ruptures library
-        CO2_np = np.array(CO2_values)
+        # Time difference between two consecutive time data entries, in seconds
+        diff = (times[1] - times[0]) * 3600 # Initial data points in absolute hours, e.g. 14.78
 
-        # Define the model for change point detection (Radial Basis Function kernel)
-        model = "rbf"
+        # Calculate minimum interval for smoothing technique
+        smooth_min_interval_in_minutes = 1 # Minimum time difference for smooth technique
+        window_size = max(int((smooth_min_interval_in_minutes * 60) // diff), 1)
 
-        # Fit the Pelt algorithm to the data with the specified model
-        algo = rpt.Pelt(model=model).fit(CO2_np)
+        # Applying a rolling average to smooth the initial data
+        smoothed_co2 = pd.Series(CO2_values).rolling(window=window_size, center=True).mean()
 
-        # Predict change points using the Pelt algorithm with a penalty value of 15
-        result = algo.predict(pen=15)
+        # Calculate minimum interval for peaks and valleys detection
+        peak_valley_min_interval_in_minutes = 15 # Minimum time difference between two peaks or two valleys
+        min_distance_points = max(int((peak_valley_min_interval_in_minutes * 60) // diff), 1)
 
-        # Find local minima and maxima
-        segments = np.split(np.arange(len(CO2_values)), result)
-        merged_segments = [np.hstack((segments[i], segments[i + 1])) for i in range(len(segments) - 1)]
-        result_set = set()
-        for segment in merged_segments[:-2]:
-            result_set.add(times[CO2_values.index(min(CO2_np[segment]))])
-            result_set.add(times[CO2_values.index(max(CO2_np[segment]))])
-        return list(result_set)
+        # Calculate minimum width of datapoints for valley detection
+        width_min_interval_in_minutes = 20 # Minimum duration of a valley
+        min_valley_width = max(int((width_min_interval_in_minutes * 60) // diff), 1)
 
-    @classmethod
-    def generate_ventilation_plot(self, CO2_data: dict,
-                                  transition_times: typing.Optional[list] = None,
-                                  predictive_CO2: typing.Optional[list] = None):
-            times_values = CO2_data['times']
-            CO2_values = CO2_data['CO2']
+        # Find peaks (maxima) in the smoothed data applying the distance factor
+        peaks, _ = find_peaks(smoothed_co2.values, prominence=100, distance=min_distance_points)
+        
+        # Find valleys (minima) by inverting the smoothed data and applying the width and distance factors
+        valleys, _ = find_peaks(-smoothed_co2.values, prominence=50, width=min_valley_width, distance=min_distance_points)
+
+        # Extract peak and valley timestamps
+        timestamps = np.array(times)
+        peak_timestamps = timestamps[peaks]
+        valley_timestamps = timestamps[valleys]
+
+        return sorted(np.concatenate((peak_timestamps, valley_timestamps)))
+
+    def generate_ventilation_plot(self,
+                                  ventilation_transition_times: typing.Optional[list] = None,
+                                  occupancy_transition_times: typing.Optional[list] = None,
+                                  predictive_CO2: typing.Optional[list] = None) -> str:
+            
+            # Plot data (x-axis: times; y-axis: CO2 concentrations)
+            times_values: list = self.CO2_data['times']
+            CO2_values: list = self.CO2_data['CO2']
 
             fig = plt.figure(figsize=(7, 4), dpi=110)
             plt.plot(times_values, CO2_values, label='Input CO₂')
 
-            if (transition_times):
-                for time in transition_times:
-                    plt.axvline(x = time, color = 'grey', linewidth=0.5, linestyle='--')
+            # Add occupancy state changes:
+            if (occupancy_transition_times):
+                for i, time in enumerate(occupancy_transition_times):
+                    plt.axvline(x = time, color = 'grey', linewidth=0.5, linestyle='--', label='Occupancy change (from input)' if i == 0 else None)
+            # Add ventilation state changes:
+            if (ventilation_transition_times):
+                for i, time in enumerate(ventilation_transition_times):
+                    if i == 0:
+                        label = 'Ventilation change (detected)' if occupancy_transition_times else 'Ventilation state changes'
+                    else: label = None
+                    plt.axvline(x = time, color = 'red', linewidth=0.5, linestyle='--', label=label)
+
             if (predictive_CO2):
                 plt.plot(times_values, predictive_CO2, label='Predictive CO₂')
             plt.xlabel('Time of day')
@@ -158,14 +177,18 @@ class CO2FormData(FormData):
         state_change_times.update(exposed_presence.transition_times())
         return sorted(state_change_times)
 
-    def ventilation_transition_times(self) -> typing.Tuple[float, ...]:
-        # Check what type of ventilation is considered for the fitting
-        if self.fitting_ventilation_type == 'fitting_natural_ventilation':
-            vent_states = self.fitting_ventilation_states
-            vent_states.append(self.CO2_data['times'][-1])
-            return tuple(vent_states)
-        else:
-            return tuple((self.CO2_data['times'][0], self.CO2_data['times'][-1]))
+    def ventilation_transition_times(self) -> typing.Tuple[float]:
+        '''
+        Check if the last time from the input data is
+        included in the ventilation ventilations state.
+        Given that the last time is a required state change, 
+        if not included, this method adds it.
+        '''
+        vent_states = self.fitting_ventilation_states
+        last_time_from_input = self.CO2_data['times'][-1]
+        if (vent_states and last_time_from_input != vent_states[-1]): # The last time value is always needed for the last ACH interval.
+            vent_states.append(last_time_from_input)
+        return tuple(vent_states)
 
     def build_model(self, size=None) -> models.CO2DataModel: # type: ignore
         size = size or self.data_registry.monte_carlo['sample_size']
@@ -184,7 +207,7 @@ class CO2FormData(FormData):
             activity=None, # type: ignore
         )
 
-        all_state_changes=self.population_present_changes(infected_presence, exposed_presence)
+        all_state_changes = self.population_present_changes(infected_presence, exposed_presence)
         total_people = [infected_population.people_present(stop) + exposed_population.people_present(stop)
                         for _, stop in zip(all_state_changes[:-1], all_state_changes[1:])]
 
