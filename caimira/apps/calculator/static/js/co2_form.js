@@ -134,8 +134,8 @@ function uploadFile(endpoint) {
     const max_presence_time = parseFloat((Math.max(elapsed_time_infected, elapsed_time_exposed)).toFixed(2));
     if (firstTimeInData > min_presence_time || lastTimeInData < max_presence_time) {
       $("#upload-error")
-        .text(`The times data of the file should encompass the entire simulation time (from ${min_presence_time/60} to ${max_presence_time/60}). 
-        Got times from ${firstTimeInData/60} to ${lastTimeInData/60}. Either adapt the simulation presence times, or the times data of the file.`).show();
+        .text(`The times of the data file should encompass the entire simulation time (from ${min_presence_time/60} to ${max_presence_time/60}). 
+        Got times from ${firstTimeInData/60} to ${lastTimeInData/60}. Either adapt the simulation presence times, or the times of the data file.`).show();
       return;
     }
     

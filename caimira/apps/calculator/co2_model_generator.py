@@ -102,8 +102,7 @@ class CO2FormData(FormData):
         """
         Perform change point detection using scipy library (find_peaks method) with rolling average of data.
         Incorporate existing state change candidates and adjust the result accordingly.
-        Returns a list of the detected ventilation state changes, discarding any contribution
-        of occupancy state changes.
+        Returns a list of the detected ventilation state changes, discarding any occupancy state change.
         """
         times: list = self.CO2_data['times']
         CO2_values: list = self.CO2_data['CO2']
@@ -126,7 +125,7 @@ class CO2FormData(FormData):
         min_distance_points = max(int((peak_valley_min_interval_in_minutes * 60) // diff), 1)
 
         # Calculate minimum width of datapoints for valley detection
-        width_min_interval_in_minutes = 20 # Minimum time difference for a valley detection
+        width_min_interval_in_minutes = 20 # Minimum duration of a valley
         min_valley_width = max(int((width_min_interval_in_minutes * 60) // diff), 1)
 
         # Find peaks (maxima) in the smoothed data applying the distance factor

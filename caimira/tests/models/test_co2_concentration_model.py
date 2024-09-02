@@ -49,16 +49,15 @@ def test_integrated_concentration(simple_co2_conc_model):
 @pytest.mark.parametrize(
     "scenario_data, room_volume, max_total_people, start, finish, state_changes", [
         ["office_scenario_1_sensor_data", 102, 4, "14:00", "17:30", (14.78, 15.1, 15.53, 15.87, 16.52, 16.83)],
-        ["office_scenario_2_sensor_data", 60, 2, "08:38", "17:30", (10.17, 12.45, 14.5)], # Second should be 12.87
+        ["office_scenario_2_sensor_data", 60, 2, "08:38", "17:30", (10.17, 12.45, 14.5)], # Second state change should actually be 12.87 - that's the real time at which the ventilation was changed in the room.
         ["meeting_scenario_1_sensor_data", 83, 3, "09:04", "11:45", (10.37, 11.07)],
         ["meeting_scenario_2_sensor_data", 83, 4, "13:40", "16:40", (14.37, 14.72, 15, 15.33, 15.68, 16.03)]
     ]
 )
 def test_find_change_points(scenario_data, room_volume, max_total_people, start, finish, state_changes, request):
     '''
-    Specific test of the find_change_points method using the
-    scipy find_peaks and specific smoothing techniques. Only
-    the ventilation state changes are target for detection.
+    Specific test of the find_change_points method. 
+    Testing the ventilation state changes only.
     '''
     CO2_form_model: CO2FormData = CO2FormData(
         CO2_data=request.getfixturevalue(scenario_data),
@@ -75,17 +74,17 @@ def test_find_change_points(scenario_data, room_volume, max_total_people, start,
 @pytest.mark.parametrize(
     "scenario_data, room_volume, occupancy, presence_interval, all_state_changes", [
         ["office_scenario_1_sensor_data", 102, (4,), (14, 17.5), (14, 14.25, 14.78, 15.1, 15.53, 15.87, 16.52, 16.83, 17.5)],
-        ["office_scenario_2_sensor_data", 60, (2, 0, 2), (8.62, 11.93, 12.42, 17.5), (8.62, 10.17, 12.45, 14.5, 17.5, 20.)],
+        ["office_scenario_2_sensor_data", 60, (2, 0, 2), (8.62, 11.93, 12.42, 17.5), (8.62, 10.17, 12.45, 14.5, 17.5, 20.)], # Third state change should actually be 12.87 - that's the real time at which the ventilation was changed in the room.
         ["meeting_scenario_1_sensor_data", 83, (2, 3, 2, 3), (9.07, 9.32, 9.75, 10.75, 11.75), (9.07, 10.37, 11.07, 11.75)],
         ["meeting_scenario_2_sensor_data", 83, (2, 3, 4), (13.67, 13.75, 15.87, 16.67), (13.67, 14.37, 14.72, 15.00, 15.33, 15.68, 16.03, 16.67)]
     ]
 )
 def test_predictive_model_accuracy(data_registry, scenario_data, room_volume, occupancy, presence_interval, all_state_changes, request):
     '''
-    Specific test corresponding to specific data files of four
-    different occurencies (2 office and 2 meeting room scenarios). 
+    Specific test corresponding to the data files of four
+    different scenarios (2 in an office and 2 in a meeting room). 
     The room volume, number of people and ventilation transition times 
-    correspond to the real occurencies in the simulation days.
+    correspond to the actual state change occurrences during the day.
 
     Note that the last time from the input file is considered as a ventilation
     state change.
