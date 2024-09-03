@@ -109,7 +109,7 @@ python -m cern_caimira.apps.calculator
 To run with a specific template theme created:
 
 ```
-python -m cern_caimira.apps.calculator --theme=ui/apps/templates/{theme}
+python -m cern_caimira.apps.calculator --theme=cern_caimira/src/cern_caimira/apps/templates/{theme}
 ```
 
 To run the entire app in a different `APPLICATION_ROOT` path:
@@ -168,9 +168,11 @@ Running with Visual Studio Code (VSCode):
 
 ### Running the tests
 
+Make sure you are in the root directory of the project. Then:
+
 ```
-pip install -e .[test]
-pytest ./caimira
+pip install -e .[test] 
+python -m pytest
 ```
 
 ### Running the profiler

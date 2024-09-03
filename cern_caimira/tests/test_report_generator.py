@@ -7,10 +7,9 @@ import numpy as np
 import pytest
 
 from cern_caimira.apps.calculator import make_app
-from cern_caimira.apps.calculator import ReportGenerator
-from cern_caimira.apps.calculator.report.virus_report import readable_minutes, manufacture_alternative_scenarios, comparison_report
-import caimira.calculator.report.report_generator as rep_gen
-from caimira.api.controller.report_controller import generate_model, generate_report_results
+from cern_caimira.apps.calculator import VirusReportGenerator
+from cern_caimira.apps.calculator.report.virus_report import readable_minutes
+import caimira.calculator.report.virus_report_data as rep_gen
 from caimira.calculator.validators.virus.virus_validator import VirusFormData
 
 
@@ -24,7 +23,7 @@ def test_generate_report(baseline_form) -> None:
 
     start = time.perf_counter()
 
-    generator: ReportGenerator = make_app().settings['report_generator']
+    generator: VirusReportGenerator = make_app().settings['report_generator']
 
     report = generator.build_report("", baseline_form, partial(
         concurrent.futures.ThreadPoolExecutor, 1,
@@ -119,8 +118,8 @@ def test_expected_new_cases(baseline_form_with_sr: VirusFormData):
     
     # Long-range contributions alone
     scenario_sample_times = rep_gen.interesting_times(model)
-    alternative_scenarios = manufacture_alternative_scenarios(baseline_form_with_sr)
-    alternative_statistics = comparison_report(
+    alternative_scenarios = rep_gen.manufacture_alternative_scenarios(baseline_form_with_sr)
+    alternative_statistics = rep_gen.comparison_report(
         baseline_form_with_sr, report_data, alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
     )
 

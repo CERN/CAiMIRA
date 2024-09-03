@@ -11,7 +11,7 @@ from ..form_validator import FormData, cast_class_fields
 from ..defaults import NO_DEFAULT
 from ...store.data_registry import DataRegistry
 from ...models import models
-from ...report.report_generator import img2base64, _figure2bytes
+from ...report.virus_report_data import img2base64, _figure2bytes
 
 minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
 

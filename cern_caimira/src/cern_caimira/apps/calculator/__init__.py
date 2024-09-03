@@ -29,13 +29,12 @@ from caimira.calculator.models.profiler import CaimiraProfiler, Profilers
 from caimira.calculator.store.data_registry import DataRegistry
 from caimira.calculator.store.data_service import DataService
 
-from caimira.api.controller.report_controller import generate_form_obj, generate_model, generate_report_results
-from caimira.calculator.report.report_generator import calculate_report_data
+from caimira.api.controller import virus_report_controller, co2_report_controller
+from caimira.calculator.report.virus_report_data import calculate_report_data
 from caimira.calculator.validators.virus import virus_validator
-from caimira.calculator.validators.co2 import co2_validator
 
 from . import markdown_tools
-from ..calculator.report.virus_report import ReportGenerator
+from .report.virus_report import VirusReportGenerator
 from ..calculator.report.co2_report import CO2ReportGenerator
 from .user import AuthenticatedUser, AnonymousUser
 
@@ -181,7 +180,7 @@ class ConcentrationModel(BaseRequestHandler):
         LOG.debug(pformat(requested_model_config))
 
         try:
-            form = generate_form_obj(requested_model_config, data_registry)
+            form = virus_report_controller.generate_form_obj(requested_model_config, data_registry)
         except Exception as err:
             LOG.exception(err)
             response_json = {'code': 400, 'error': f'Your request was invalid {html.escape(str(err))}'}
@@ -190,7 +189,7 @@ class ConcentrationModel(BaseRequestHandler):
             return
         
         base_url = self.request.protocol + "://" + self.request.host
-        report_generator: ReportGenerator = self.settings['report_generator']
+        report_generator: VirusReportGenerator = self.settings['report_generator']
         executor = loky.get_reusable_executor(
             max_workers=self.settings['handler_worker_pool_size'],
             timeout=300,
@@ -235,7 +234,7 @@ class ConcentrationModelJsonResponse(BaseRequestHandler):
         LOG.debug(pformat(requested_model_config))
 
         try:
-            form = generate_form_obj(requested_model_config, data_registry)
+            form = virus_report_controller.generate_form_obj(requested_model_config, data_registry)
         except Exception as err:
             LOG.exception(err)
             response_json = {'code': 400, 'error': f'Your request was invalid {html.escape(str(err))}'}
@@ -247,7 +246,7 @@ class ConcentrationModelJsonResponse(BaseRequestHandler):
             max_workers=self.settings['handler_worker_pool_size'],
             timeout=300,
         )
-        model = generate_model(form)
+        model = virus_report_controller.generate_model(form, data_registry)
         report_data_task = executor.submit(calculate_report_data, form, model,
                                            executor_factory=functools.partial(
                                                concurrent.futures.ThreadPoolExecutor,
@@ -266,10 +265,10 @@ class StaticModel(BaseRequestHandler):
         if data_service:
             data_service.update_registry(data_registry)
 
-        form = generate_form_obj(virus_validator.baseline_raw_form_data(), data_registry)
+        form = virus_report_controller.generate_form_obj(virus_validator.baseline_raw_form_data(), data_registry)
         
         base_url = self.request.protocol + "://" + self.request.host
-        report_generator: ReportGenerator = self.settings['report_generator']
+        report_generator: VirusReportGenerator = self.settings['report_generator']
         executor = loky.get_reusable_executor(max_workers=self.settings['handler_worker_pool_size'])
 
         report_task = executor.submit(
@@ -409,10 +408,7 @@ class CO2ModelResponse(BaseRequestHandler):
 
         requested_model_config = tornado.escape.json_decode(self.request.body)
         try:
-            form: co2_validator.CO2FormData = co2_validator.CO2FormData.from_dict(
-                requested_model_config, 
-                data_registry
-            )
+            form = co2_report_controller.generate_form_obj(requested_model_config, data_registry)
         except Exception as err:
             if self.settings.get("debug", False):
                 import traceback
@@ -544,7 +540,7 @@ def make_app(
         data_service=data_service,
         template_environment=template_environment,
         default_handler_class=Missing404Handler,
-        report_generator=ReportGenerator(loader, get_root_url, get_root_calculator_url),
+        report_generator=VirusReportGenerator(loader, get_root_url, get_root_calculator_url),
         xsrf_cookies=True,
         # COOKIE_SECRET being undefined will result in no login information being
         # presented to the user.
