@@ -176,7 +176,7 @@ def calculate_report_data(form: VirusFormData, executor_factory: typing.Callable
     # Probabilistic exposure
     if form.exposure_option == "p_probabilistic_exposure" and form.occupancy_format == "static":
         prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
-    else: prob_probabilistic_exposure = -1
+    else: prob_probabilistic_exposure = None
 
     exposed_presence_intervals = [list(interval) for interval in model.exposed.presence_interval().boundaries()]
 

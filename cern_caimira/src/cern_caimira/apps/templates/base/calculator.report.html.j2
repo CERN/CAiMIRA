@@ -145,19 +145,23 @@
 													{% if form.exposure_option == "p_probabilistic_exposure" %}
 														<br>
 														<div class="align-self-center alert alert-dark mb-0" role="alert">
-															The above {{ "result assumes" if form.short_range_option == "short_range_no" else "results assume" }} that <b>{{ form.infected_people }}
-															{{ "occupant is infected" if form.infected_people == 1 else "occupants are infected" }}
-															</b> in the room.
-															By taking into account the estimate of cases currently circulating in <b>{{ form.location_name }}</b>,
-															the probability of on-site transmission, having at least 1 new infection in an <b>event
-															with {{ form.total_people }} occupants</b>, is
-															{% if form.short_range_option == 'short_range_yes' %}:
-																<ul>
-																	<li><b>{{ long_range_prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming all occupants are exposed equally (i.e. without short-range interactions).</li>
-																	<li><b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming short-range interactions occur with the infector(s).</li>
-																</ul>
+															{% if form.occupancy_format == "static" %}
+																The above {{ "result assumes" if form.short_range_option == "short_range_no" else "results assume" }} that <b>{{ form.infected_people }}
+																{{ "occupant is infected" if form.infected_people == 1 else "occupants are infected" }}
+																</b> in the room.
+																By taking into account the estimate of cases currently circulating in <b>{{ form.location_name }}</b>,
+																the probability of on-site transmission, having at least 1 new infection in an <b>event
+																with {{ form.total_people }} occupants</b>, is
+																{% if form.short_range_option == 'short_range_yes' %}:
+																	<ul>
+																		<li><b>{{ long_range_prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming all occupants are exposed equally (i.e. without short-range interactions).</li>
+																		<li><b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming short-range interactions occur with the infector(s).</li>
+																	</ul>
+																{% else %}
+																	<b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>.
+																{% endif %}
 															{% else %}
-																<b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>.
+																<p><strong>Warning: </strong>Since dynamic occupancy was defined, the results for probabilistic exposure with incidence rates have not been computed.</p>
 															{% endif %}
 														</div>
 													{% endif %}
