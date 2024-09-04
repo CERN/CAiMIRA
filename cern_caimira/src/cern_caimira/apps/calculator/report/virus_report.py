@@ -5,13 +5,16 @@ import concurrent.futures
 import json
 import typing
 import jinja2
+import urllib
+import zlib
+import base64
 import numpy as np
 
 from .. import markdown_tools
 
 from caimira.calculator.models import models
 from caimira.calculator.validators.virus.virus_validator import VirusFormData
-from caimira.calculator.report.virus_report_data import calculate_report_data, interesting_times, manufacture_alternative_scenarios, manufacture_viral_load_scenarios_percentiles, comparison_report, generate_permalink
+from caimira.calculator.report.virus_report_data import alternative_scenarios_data, calculate_report_data, calculate_vl_scenarios_percentiles
 
 
 def minutes_to_time(minutes: int) -> str:
@@ -62,6 +65,25 @@ def non_zero_percentage(percentage: int) -> str:
         return "{:0.1f}%".format(percentage)
 
 
+def generate_permalink(base_url, get_root_url,  get_root_calculator_url, form: VirusFormData):
+    form_dict = VirusFormData.to_dict(form, strip_defaults=True)
+
+    # Generate the calculator URL arguments that would be needed to re-create this
+    # form.
+    args = urllib.parse.urlencode(form_dict)
+
+    # Then zlib compress + base64 encode the string. To be inverted by the
+    # /_c/ endpoint.
+    compressed_args = base64.b64encode(zlib.compress(args.encode())).decode()
+    qr_url = f"{base_url}{get_root_url()}/_c/{compressed_args}"
+    url = f"{base_url}{get_root_calculator_url()}?{args}"
+
+    return {
+        'link': url,
+        'shortened': qr_url,
+    }
+
+
 @dataclasses.dataclass
 class VirusReportGenerator:
     jinja_loader: jinja2.BaseLoader
@@ -74,44 +96,53 @@ class VirusReportGenerator:
             form: VirusFormData,
             executor_factory: typing.Callable[[], concurrent.futures.Executor],
     ) -> str:
-        model = form.build_model()
         context = self.prepare_context(
-            base_url, model, form, executor_factory=executor_factory)
+            base_url, form, executor_factory=executor_factory)
         return self.render(context)
 
     def prepare_context(
             self,
             base_url: str,
-            model: models.ExposureModel,
             form: VirusFormData,
             executor_factory: typing.Callable[[], concurrent.futures.Executor],
     ) -> dict:
         now = datetime.utcnow().astimezone()
         time = now.strftime("%Y-%m-%d %H:%M:%S UTC")
 
-        data_registry_version = f"v{model.data_registry.version}" if model.data_registry.version else None
         context = {
-            'model': model,
             'form': form,
             'creation_date': time,
-            'data_registry_version': data_registry_version,
         }
 
-        scenario_sample_times = interesting_times(model)
-        report_data = calculate_report_data(
-            form, model, executor_factory=executor_factory)
+        # Main report data
+        report_data = calculate_report_data(form, executor_factory)
         context.update(report_data)
 
-        alternative_scenarios = manufacture_alternative_scenarios(form)
-        context['alternative_viral_load'] = manufacture_viral_load_scenarios_percentiles(
-            model) if form.conditional_probability_viral_loads else None
-        context['alternative_scenarios'] = comparison_report(
-            form, report_data, alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
-        )
-        context['permalink'] = generate_permalink(
+        # Model and Data Registry
+        model: models.ExposureModel = report_data['model']
+        data_registry_version: typing.Optional[str] = f"v{model.data_registry.version}" if model.data_registry.version else None
+
+        # Alternative scenarios data
+        alternative_scenarios: typing.Dict[str,typing.Any] = alternative_scenarios_data(form, report_data, executor_factory)
+        context.update(alternative_scenarios)
+
+        # Alternative viral load data
+        if form.conditional_probability_viral_loads:
+            alternative_viral_load: typing.Dict[str,typing.Any] = calculate_vl_scenarios_percentiles(model)
+            context.update(alternative_viral_load)
+
+        # Permalink
+        permalink: typing.Dict[str, str] = generate_permalink(
             base_url, self.get_root_url, self.get_root_calculator_url, form)
-        context['get_url'] = self.get_root_url
-        context['get_calculator_url'] = self.get_root_calculator_url
+
+        # URLs (root, calculator and permalink)
+        context.update({
+            'model_repr': repr(model),
+            'data_registry_version': data_registry_version,
+            'permalink': permalink,
+            'get_url': self.get_root_url,
+            'get_calculator_url': self.get_root_calculator_url,
+        })
 
         return context
 

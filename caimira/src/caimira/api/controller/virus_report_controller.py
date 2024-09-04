@@ -18,10 +18,9 @@ def generate_model(form_obj, data_registry):
     return form_obj.build_model(sample_size=sample_size)
 
 
-def generate_report_results(form_obj, model):
+def generate_report_results(form_obj):
     return rg.calculate_report_data(
         form=form_obj,
-        model=model,
         executor_factory=functools.partial(
             concurrent.futures.ThreadPoolExecutor, None,  # TODO define report_parallelism
         ),

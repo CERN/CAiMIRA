@@ -5,8 +5,6 @@ import io
 import typing
 import numpy as np
 import matplotlib.pyplot as plt
-import urllib
-import zlib
 
 from caimira.calculator.models import models, dataclass_utils, profiler, monte_carlo as mc
 from caimira.calculator.models.enums import ViralLoads
@@ -123,7 +121,9 @@ def _calculate_co2_concentration(CO2_model, time, fn_name=None):
 
 
 @profiler.profile
-def calculate_report_data(form: VirusFormData, model: models.ExposureModel, executor_factory: typing.Callable[[], concurrent.futures.Executor]) -> typing.Dict[str, typing.Any]:
+def calculate_report_data(form: VirusFormData, executor_factory: typing.Callable[[], concurrent.futures.Executor]) -> typing.Dict[str, typing.Any]:
+    model: models.ExposureModel = form.build_model()
+    
     times = interesting_times(model)
     short_range_intervals = [interaction.presence.boundaries()[0]
                              for interaction in model.short_range]
@@ -191,7 +191,7 @@ def calculate_report_data(form: VirusFormData, model: models.ExposureModel, exec
             uncertainties_plot(prob, conditional_probability_data)))
 
     return {
-        "model_repr": repr(model),
+        "model": model,
         "times": list(times),
         "exposed_presence_intervals": exposed_presence_intervals,
         "short_range_intervals": short_range_intervals,
@@ -330,26 +330,7 @@ def img2base64(img_data) -> str:
     return f'data:image/png;base64,{pic_hash}'
 
 
-def generate_permalink(base_url, get_root_url,  get_root_calculator_url, form: VirusFormData):
-    form_dict = VirusFormData.to_dict(form, strip_defaults=True)
-
-    # Generate the calculator URL arguments that would be needed to re-create this
-    # form.
-    args = urllib.parse.urlencode(form_dict)
-
-    # Then zlib compress + base64 encode the string. To be inverted by the
-    # /_c/ endpoint.
-    compressed_args = base64.b64encode(zlib.compress(args.encode())).decode()
-    qr_url = f"{base_url}{get_root_url()}/_c/{compressed_args}"
-    url = f"{base_url}{get_root_calculator_url()}?{args}"
-
-    return {
-        'link': url,
-        'shortened': qr_url,
-    }
-
-
-def manufacture_viral_load_scenarios_percentiles(model: mc.ExposureModel) -> typing.Dict[str, mc.ExposureModel]:
+def calculate_vl_scenarios_percentiles(model: mc.ExposureModel) -> typing.Dict[str, mc.ExposureModel]:
     viral_load = model.concentration_model.infected.virus.viral_load_in_sputum
     scenarios = {}
     for percentil in (0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99):
@@ -359,7 +340,9 @@ def manufacture_viral_load_scenarios_percentiles(model: mc.ExposureModel) -> typ
                                                               )
         scenarios[str(vl)] = np.mean(
             specific_vl_scenario.infection_probability())
-    return scenarios
+    return {
+        'alternative_viral_load': scenarios,
+    }
 
 
 def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, mc.ExposureModel]:
@@ -451,7 +434,6 @@ def comparison_report(
         form: VirusFormData,
         report_data: typing.Dict[str, typing.Any],
         scenarios: typing.Dict[str, mc.ExposureModel],
-        sample_times: typing.List[float],
         executor_factory: typing.Callable[[], concurrent.futures.Executor],
 ):
     if (form.short_range_option == "short_range_no"):
@@ -474,7 +456,7 @@ def comparison_report(
         results = executor.map(
             scenario_statistics,
             scenarios.values(),
-            [sample_times] * len(scenarios),
+            [report_data['times']] * len(scenarios),
             [compute_prob_exposure] * len(scenarios),
             timeout=60,
         )
@@ -484,4 +466,11 @@ def comparison_report(
 
     return {
         'stats': statistics,
+    }
+
+
+def alternative_scenarios_data(form: VirusFormData, report_data: typing.Dict[str, typing.Any], executor_factory: typing.Callable[[], concurrent.futures.Executor]) -> typing.Dict[str, typing.Any]:
+    alternative_scenarios: typing.Dict[str, typing.Any] = manufacture_alternative_scenarios(form=form)
+    return {
+        'alternative_scenarios': comparison_report(form=form, report_data=report_data, scenarios=alternative_scenarios, executor_factory=executor_factory)
     }

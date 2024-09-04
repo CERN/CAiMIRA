@@ -246,8 +246,7 @@ class ConcentrationModelJsonResponse(BaseRequestHandler):
             max_workers=self.settings['handler_worker_pool_size'],
             timeout=300,
         )
-        model = virus_report_controller.generate_model(form, data_registry)
-        report_data_task = executor.submit(calculate_report_data, form, model,
+        report_data_task = executor.submit(calculate_report_data, form,
                                            executor_factory=functools.partial(
                                                concurrent.futures.ThreadPoolExecutor,
                                                self.settings['report_generation_parallelism'],

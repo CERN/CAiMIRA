@@ -104,23 +104,21 @@ def test_interesting_times_w_temp(exposure_model_w_outside_temp_changes):
     np.testing.assert_allclose(result, expected)
 
 
-def test_expected_new_cases(baseline_form_with_sr: VirusFormData):
-    model = baseline_form_with_sr.build_model()
-    
+def test_expected_new_cases(baseline_form_with_sr: VirusFormData):    
     executor_factory = partial(
         concurrent.futures.ThreadPoolExecutor, 1,
     )
 
     # Short- and Long-range contributions
-    report_data = rep_gen.calculate_report_data(baseline_form_with_sr, model, executor_factory)
+    report_data = rep_gen.calculate_report_data(baseline_form_with_sr, executor_factory)
     sr_lr_expected_new_cases = report_data['expected_new_cases']
     sr_lr_prob_inf = report_data['prob_inf']/100
     
     # Long-range contributions alone
-    scenario_sample_times = rep_gen.interesting_times(model)
+    scenario_sample_times = report_data['times']
     alternative_scenarios = rep_gen.manufacture_alternative_scenarios(baseline_form_with_sr)
     alternative_statistics = rep_gen.comparison_report(
-        baseline_form_with_sr, report_data, alternative_scenarios, scenario_sample_times, executor_factory=executor_factory,
+        baseline_form_with_sr, report_data, alternative_scenarios, executor_factory=executor_factory,
     )
 
     lr_expected_new_cases = alternative_statistics['stats']['Base scenario without short-range interactions']['expected_new_cases']
