@@ -90,17 +90,39 @@ In order to run CAiMIRA locally with docker, run the following:
 This will start a local version of CAiMIRA, which can be visited at http://localhost:8080/.
 
 
+## Folder structure
+
+The project contains two different Python packages:
+
+- `caimira`: Contains all the backend logic and is the package published in PyPI.
+- `cern_caimira`: Imports the backend package (`caimira`) and includes CERN-specific UI implementation.
+
+The folder layout follows best practices as described [here](https://ianhopkinson.org.uk/2022/02/understanding-setup-py-setup-cfg-and-pyproject-toml-in-python/).
+
+
 ## Development guide
 
 CAiMIRA is also mirrored to Github if you wish to collaborate on development and can be found at: https://github.com/CERN/caimira
 
 ### Installing CAiMIRA in editable mode
 
+In order to install the CAiMIRA's backend logic, from the root directory of the project:
+
 ```
-pip install -e .   # At the root of the repository
+cd caimira
+pip install -e .
+```
+
+In order to install the CERN-specific UI version, that links to the previously installed backend, from the root directory of the project:
+
+```
+cd cern_caimira
+pip install -e .
 ```
 
 ### Running the Calculator app in development mode
+
+In the root directory of the project:
 
 ```
 python -m cern_caimira.apps.calculator
@@ -131,13 +153,14 @@ Each of these commands will start a local version of CAiMIRA, which can be visit
 In order to generate the documentation, CAiMIRA must be installed first with the `doc` dependencies:
 
 ```
+cd caimira
 pip install -e .[doc]
 ```
 
-To generate the HTML documentation page, the command `make html` should be executed in the `caimira/docs` directory.
+To generate the HTML documentation page, the command `make html` should be executed in the `caimira/src/caimira/calculator/docs` directory.
 If any of the `.rst` files under the `caimira/docs` folder is changed, this command should be executed again.
 
-Then, right click on `caimira/docs/_build/html/index.html` and select `Open with` your preferred web browser.
+Then, right click on `caimira/src/caimira/calculator/docs/_build/html/index.html` and select `Open with` your preferred web browser.
 
 ### Running the CAiMIRA Expert-App or CO2-App apps in development mode
 
@@ -168,9 +191,22 @@ Running with Visual Studio Code (VSCode):
 
 ### Running the tests
 
+The project contains test files that separatelly test the functionality of the `caimira` backend and `cern_caimira` UI.
+
+To test the `caimira` package, from the root repository of the project:
+
 ```
+cd caimira
 pip install -e .[test]
-pytest ./caimira
+python -m pytest
+```
+
+To test the `cern_caimira` package, from the root repository of the project:
+
+```
+cd cern_caimira
+pip install -e .[test]
+python -m pytest
 ```
 
 ### Running the profiler
@@ -182,6 +218,32 @@ When visiting http://localhost:8080/profiler, you can start a new session and ch
 Keep the profiler page open. Then, in another window, navigate to any page in CAiMIRA, for example generate a new report. Refresh the profiler page, and click on the `Report` link to see the profiler output.
 
 The sessions are stored in a local file in the `/tmp` folder. To share it across multiple web nodes, a shared storage should be added to all web nodes. The folder can be customized via the environment variable `CAIMIRA_PROFILER_CACHE_DIR`.
+
+### CAiMIRA REST API Usage
+
+From the root directory of the project:
+
+1. Run the backend API:
+    ```
+    python -m caimira.api.app
+    ```
+
+2. The Tornado server will run on port `8088`.
+
+To test the API functionality, you can send a `POST` request to `http://localhost:8088/report` with the required inputs in the request body. For an example of the required inputs, see [this link](https://gitlab.cern.ch/caimira/caimira/-/blob/master/caimira/apps/calculator/model_generator.py?ref_type=heads#L492).
+
+The response format will be:
+
+```json
+{
+    "status": "success",
+    "message": "Results generated successfully",
+    "report_data": {
+        ...
+    },
+    ...
+}
+```
 
 ### Building the whole environment for local development
 
