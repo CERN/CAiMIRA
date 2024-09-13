@@ -172,14 +172,14 @@ docker-build-auth-service-release:
     - .docker-build-release
     - .docker-build-auth-service
   only:
-    - tag
+    - tags
 
 docker-build-calculator-app-release:
   extends:
     - .docker-build-release
     - .docker-build-calculator-app
   only:
-    - tag
+    - tags
 
 # ###################################################################################################
 # Deploy to OpenShift
