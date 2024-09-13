@@ -312,31 +312,26 @@ Then, switch to the project that you want to update:
 $ oc project caimira-test
 ```
 
-Create a new service account in OpenShift to use GitLab container registry:
+Create a new service account in OpenShift to access GitLab container registry:
 
 ```console
 $ oc create serviceaccount gitlabci-deployer
 serviceaccount "gitlabci-deployer" created
+```
 
-$ oc policy add-role-to-user registry-editor -z gitlabci-deployer
+Grant `edit` permission to the service account to run `oc set image` from CI an update the tag to deploy:
+```
+$ oc policy add-role-to-user edit -z gitlabci-deployer
+```
 
+Get the service account token for GitLab:
+```
 # We will refer to the output of this command as `test-token`
 $ oc serviceaccounts get-token gitlabci-deployer
 <...test-token...>
 ```
 
 Add the token to GitLab to allow GitLab to access OpenShift and define/change image stream tags. Go to `Settings` -> `CI / CD` -> `Variables` -> click on `Expand` button and create the variable `OPENSHIFT_CAIMIRA_TEST_DEPLOY_TOKEN`: insert the token `<...test-token...>`.
-
-Then, create the webhook secret to be able to trigger automatic builds from GitLab.
-
-Create and store the secret. Copy the secret above and add it to the GitLab project under `CI /CD` -> `Variables` with the name `OPENSHIFT_CAIMIRA_TEST_WEBHOOK_SECRET`.
-
-```console
-$ WEBHOOKSECRET=$(openssl rand -hex 50)
-$ oc create secret generic \
-  --from-literal="WebHookSecretKey=$WEBHOOKSECRET" \
-  gitlab-caimira-webhook-secret
-```
 
 For CI usage, we also suggest creating a service account:
 
