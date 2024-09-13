@@ -20,6 +20,7 @@ variables:
   stage: test
   except:
     - live/caimira-test  # do not run tests on live/caimira-test branch
+    - tags
 
 .test-run:
   extends:
@@ -86,7 +87,6 @@ test-cern-caimira-py39:
       - ./app-config/openshift/${CAIMIRA_INSTANCE}/expected
   only:
     - master
-    - live/caimira-test  # do not run tests on live/caimira-test branch
 
 check_openshift_config_test:
   extends: .test_openshift_config
