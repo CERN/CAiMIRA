@@ -2,7 +2,7 @@
 
 CAiMIRA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.
 
-CAiMIRA models the concentration profile of potential virions in enclosed spaces , both as background (room) concentration and during close-proximity interations, with clear and intuitive graphs.
+CAiMIRA models the concentration profile of potential virions in enclosed spaces , both as background (room) concentration and during close-proximity interactions, with clear and intuitive graphs.
 The user can set a number of parameters, including room volume, exposure time, activity type, mask-wearing and ventilation.
 The report generated indicates how to avoid exceeding critical concentrations and chains of airborne transmission in spaces such as individual offices, meeting rooms and labs.
 
@@ -90,54 +90,77 @@ In order to run CAiMIRA locally with docker, run the following:
 This will start a local version of CAiMIRA, which can be visited at http://localhost:8080/.
 
 
+## Folder structure
+
+The project contains two different Python packages:
+
+- `caimira`: Contains all the backend logic and the calculator model. It is the package published in PyPI.
+- `cern_caimira`: Imports and uses the backend package (`caimira`) and includes CERN-specific UI implementation.
+
+The folder layout follows best practices as described [here](https://ianhopkinson.org.uk/2022/02/understanding-setup-py-setup-cfg-and-pyproject-toml-in-python/).
+
+
 ## Development guide
 
 CAiMIRA is also mirrored to Github if you wish to collaborate on development and can be found at: https://github.com/CERN/caimira
 
 ### Installing CAiMIRA in editable mode
 
+In order to install the CAiMIRA's backend logic, create your own virtualenv and, from the root directory of the project, run:
+
 ```
-pip install -e .   # At the root of the repository
+cd caimira
+pip install -e .
+```
+
+In order to install the CERN-specific UI version, that links to the previously installed backend, activate your virtualenv and, from the root directory of the project, run:
+
+```
+cd cern_caimira
+pip install -e .
 ```
 
 ### Running the Calculator app in development mode
 
+This example describes how to run the calculator with the CERN-specific UI. In the root directory of the project:
+
 ```
-python -m caimira.apps.calculator
+python -m cern_caimira.apps.calculator
 ```
 
 To run with a specific template theme created:
 
 ```
-python -m caimira.apps.calculator --theme=caimira/apps/templates/{theme}
+python -m cern_caimira.apps.calculator --theme=cern_caimira/apps/templates/{theme}
 ```
 
 To run the entire app in a different `APPLICATION_ROOT` path:
 
 ```
-python -m caimira.apps.calculator --app_root=/myroot
+python -m cern_caimira.apps.calculator --app_root=/myroot
 ```
 
 To run the calculator on a different URL path:
 
 ```
-python -m caimira.apps.calculator --prefix=/mycalc
+python -m cern_caimira.apps.calculator --prefix=/mycalc
 ```
 
 Each of these commands will start a local version of CAiMIRA, which can be visited at http://localhost:8080/.
 
 ### How to compile and read the documentation
 
-In order to generate the documentation, CAiMIRA must be installed first with the `doc` dependencies:
+In order to generate the documentation, CAiMIRA must be installed first with the `doc` optional dependencies:
 
 ```
+cd caimira
 pip install -e .[doc]
 ```
 
-To generate the HTML documentation page, the command `make html` should be executed in the `caimira/docs` directory.
+To generate the HTML documentation page, the command `make html` should be executed in the `caimira/src/caimira/calculator/docs` directory.
 If any of the `.rst` files under the `caimira/docs` folder is changed, this command should be executed again.
 
-Then, right click on `caimira/docs/_build/html/index.html` and select `Open with` your preferred web browser.
+Then, right click on `caimira/src/caimira/calculator/docs/_build/html/index.html` and select `Open with` your preferred web browser.
 
 ### Running the CAiMIRA Expert-App or CO2-App apps in development mode
 
@@ -152,7 +175,7 @@ These applications only work within Jupyter notebooks. Attempting to run them ou
 
 ##### Prerequisites
 
-Make sure you have the needed dependencies intalled:
+Make sure you have the needed dependencies installed:
 
 ```
 pip install notebook jupyterlab
@@ -168,20 +191,60 @@ Running with Visual Studio Code (VSCode):
 
 ### Running the tests
 
+The project contains test files that separately test the functionality of the `caimira` backend and `cern_caimira` UI.
+
+To test the `caimira` package, from the root repository of the project:
+
 ```
+cd caimira
 pip install -e .[test]
-pytest ./caimira
+python -m pytest
+```
+
+To test the `cern_caimira` package, from the root repository of the project:
+
+```
+cd cern_caimira
+pip install -e .[test]
+python -m pytest
 ```
 
 ### Running the profiler
 
-The profiler is enabled when the environment variable `CAIMIRA_PROFILER_ENABLED` is set to 1.
+CAiMIRA includes a profiler designed to identify performance bottlenecks. The profiler is enabled when the environment variable `CAIMIRA_PROFILER_ENABLED` is set to 1.
 
 When visiting http://localhost:8080/profiler, you can start a new session and choose between [PyInstrument](https://github.com/joerick/pyinstrument) or [cProfile](https://docs.python.org/3/library/profile.html#module-cProfile). The app includes two different profilers, mainly because they can give different information.
 
 Keep the profiler page open. Then, in another window, navigate to any page in CAiMIRA, for example generate a new report. Refresh the profiler page, and click on the `Report` link to see the profiler output.
 
 The sessions are stored in a local file in the `/tmp` folder. To share it across multiple web nodes, a shared storage should be added to all web nodes. The folder can be customized via the environment variable `CAIMIRA_PROFILER_CACHE_DIR`.
+
+### CAiMIRA REST API Usage
+
+From the root directory of the project:
+
+1. Run the backend API:
+
+    ```
+    python -m caimira.api.app
+    ```
+
+2. The Tornado server will run on port `8088`.
+
+To test the API functionality, you can send a `POST` request to `http://localhost:8088/report` with the required inputs in the request body. For an example of the required inputs, see [this link](https://gitlab.cern.ch/caimira/caimira/-/blob/master/caimira/apps/calculator/model_generator.py?ref_type=heads#L492).
+
+The response format will be:
+
+```json
+{
+    "status": "success",
+    "message": "Results generated successfully",
+    "report_data": {
+        ...
+    },
+    ...
+}
+```
 
 ### Building the whole environment for local development
 
@@ -249,31 +312,26 @@ Then, switch to the project that you want to update:
 $ oc project caimira-test
 ```
 
-Create a new service account in OpenShift to use GitLab container registry:
+Create a new service account in OpenShift to access GitLab container registry:
 
 ```console
 $ oc create serviceaccount gitlabci-deployer
 serviceaccount "gitlabci-deployer" created
+```
 
-$ oc policy add-role-to-user registry-editor -z gitlabci-deployer
+Grant `edit` permission to the service account to run `oc set image` from CI an update the tag to deploy:
+```
+$ oc policy add-role-to-user edit -z gitlabci-deployer
+```
 
+Get the service account token for GitLab:
+```
 # We will refer to the output of this command as `test-token`
 $ oc serviceaccounts get-token gitlabci-deployer
 <...test-token...>
 ```
 
 Add the token to GitLab to allow GitLab to access OpenShift and define/change image stream tags. Go to `Settings` -> `CI / CD` -> `Variables` -> click on `Expand` button and create the variable `OPENSHIFT_CAIMIRA_TEST_DEPLOY_TOKEN`: insert the token `<...test-token...>`.
-
-Then, create the webhook secret to be able to trigger automatic builds from GitLab.
-
-Create and store the secret. Copy the secret above and add it to the GitLab project under `CI /CD` -> `Variables` with the name `OPENSHIFT_CAIMIRA_TEST_WEBHOOK_SECRET`.
-
-```console
-$ WEBHOOKSECRET=$(openssl rand -hex 50)
-$ oc create secret generic \
-  --from-literal="WebHookSecretKey=$WEBHOOKSECRET" \
-  gitlab-caimira-webhook-secret
-```
 
 For CI usage, we also suggest creating a service account:
 

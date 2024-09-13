@@ -1,5 +1,4 @@
-import caimira.models
-from caimira.dataclass_utils import nested_replace
+from caimira.calculator.models.dataclass_utils import nested_replace
 
 
 def test_exposure_r0(baseline_exposure_model):

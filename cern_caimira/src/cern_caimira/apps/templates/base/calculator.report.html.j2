@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0">
+
+  	<title>Report | CAiMIRA (CERN Airborne Model for Indoor Risk Assessment)</title>
+
+	<link rel="stylesheet" type="text/css" href="{{ get_calculator_url('/static/css') }}/report.css">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<link rel="stylesheet" href="{{ get_url('/static/css') }}/style.css">
+	<link rel="icon" type="image/x-icon" href="{{ get_url('/static/icons') }}/favicon.ico">
+	<script src="https://d3js.org/d3.v7.min.js"></script>
+	<script src="{{ get_calculator_url('/static/js') }}/report.js" type="application/javascript"></script>
+
+</head>
+
+<body id="body" onload="on_report_load({{ form.conditional_probability_viral_loads | int }})">
+
+<!-- MODEL REPR - Available in the developer tools once the report is generated. Useful to re-create the model using an interpreter that has CAiMIRA installed:
+
+{{ model_repr }}
+
+-->
+
+{% block report_header %}
+
+	<div id="report-header-div" class="d-flex flex-row" style="margin: 1%">
+		<a href="{{ get_url() }}" class="align-self-center"><img id="report_logo" src="{{ get_url('/static/images') }}/caimira_logo.200x200.png" class="d-inline-block align-middle mr-3"></a>
+		<div style="margin-right: -105px" class='align-self-center mr-auto'>
+			<h2 class="header_text mb-0"><a href="{{ permalink.shortened }}" style="color: #2f4858">REPORT - {{ form.simulation_name }}</a></h2>
+			<p class="mb-0" id="report_version"> Created {{ creation_date }} using CAiMIRA calculator version v{{ form.calculator_version }}. Data version {{ data_registry_version or '`default`' }}.</p>
+		</div>
+		<!-- Export CVS Concentration Button and Print Report Button -->
+		<button type="button" class="btn btn-outline-dark align-self-center"  id="export-csv" data-toggle="modal" data-target="#modalCSV">Export Data</button>
+		<button type="button" class="btn btn-outline-dark align-self-center ml-3" id="download-pdf" style="margin-right: -100pt" onclick="print();">Print Report</button>
+		<a href="{{ permalink.link }}" style="float: left;" id="pdf_qrcode_aref" class="align-self-center invisible mr-0"><div id="pdf_qrcode"></div></a>
+	</div>
+
+{% endblock report_header %}
+
+<div class="tabs-div">
+	<ul class="nav nav-tabs" role="tablist" style="margin: 0.5% 0% 0% 1%">
+		<li class="nav-item">
+			<a class="nav-link active" id="results-tab" data-toggle="tab" href="#results" role="tab" aria-controls="results" aria-selected="true">Results</a>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link" id="data-tab" data-toggle="tab" href="#data" role="tab" aria-controls="data" aria-selected="false">Input Data</a>
+		</li>
+		{% block report_preamble_navtab %}
+		{% endblock report_preamble_navtab %}
+	</ul>
+
+	<div class="tab-content" style="border-top: #dee2e6 1px solid; margin-top: -1px" >
+
+		<div class="tab-pane show active" id="results" role="tabpanel" aria-labelledby="results-tab" style="padding: 1%">
+			{% set long_range_prob_inf = prob_inf %}
+			{% set long_range_expected_cases = expected_new_cases %}
+
+			{# Update values if short range option is "short_range_yes" #}
+			{% if form.short_range_option == "short_range_yes" %}
+				{% set scenario = alternative_scenarios.stats.values() | first %}
+				{# Probability of infection values #}
+				{% set long_range_prob_inf = scenario.probability_of_infection %}
+				{# Expected new case values #}
+				{% set long_range_expected_cases = scenario.expected_new_cases %}
+				
+				{% if form.exposure_option == 'p_probabilistic_exposure' %}
+					{% set long_range_prob_probabilistic_exposure = scenario.prob_probabilistic_exposure %}
+				{% endif %}
+			{% endif %}
+
+			{% block report_results %}
+				<div class="card bg-light mb-3" id="results-div">
+  					<div class="card-header"><strong>Results </strong>
+					  	<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseResults" role="button" aria-expanded="true" aria-controls="collapseResults">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
+								<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
+							</svg>
+						</button>
+					</div>
+					<div class="collapse show" id="collapseResults">
+						<div class="card-body">
+							<p class="card-text">
+								<div class="align-self-center">
+									<div class="split">
+											<div class="card card-body align-self-center pi-box" style="text-align:center; max-width: 300px">
+												<h6 class="card-title">
+													<b>Probability of infection (%)</b><br>
+													{% if form.short_range_option == "short_range_yes" %}
+														Without <b>short-range interactions</b>
+													{% endif %}
+												</h6>
+												<br>
+												<img src="{{ get_url('/static/images') }}/long_range_anim.png" class="align-middle mb-3 pi-image">
+												<div class="d-flex" style="min-height: 160px">
+													{% block long_range_warning_animation %}
+														<div class="intro-banner-vdo-play-btn animation-color m-auto d-flex align-items-center justify-content-center">
+															<b>{{long_range_prob_inf | non_zero_percentage}}</b>
+															<i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
+															<span class="ripple animation-color"></span>
+															<span class="ripple animation-color"></span>
+															<span class="ripple animation-color"></span>
+														</div>
+													{% endblock long_range_warning_animation %}
+												</div>
+												<h6><b>Expected new cases:</b> {{ long_range_expected_cases | float_format }}</h6>
+											</div>
+											<br>
+											{% if form.short_range_option == "short_range_yes" %}
+												<div class="card card-body align-self-center pi-box" style="text-align:center; max-width: 300px">
+													<h6 class="card-title">
+														<b>Probability of infection (%)</b><br>
+														With <b>short-range interactions</b>
+													</h6>
+													<br>
+													<img src="{{ get_url('/static/images') }}/short_range_anim.png" class="align-middle mb-3 pi-image">
+													<div class="d-flex" style="min-height: 160px">
+														{% block warning_animation %}
+															<div class="intro-banner-vdo-play-btn animation-color m-auto d-flex align-items-center justify-content-center">
+															<b>{{prob_inf | non_zero_percentage}}</b>
+															<i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
+															<span class="ripple animation-color"></span>
+															<span class="ripple animation-color"></span>
+															<span class="ripple animation-color"></span>
+														</div>
+														{% endblock warning_animation %}
+													</div>
+													<h6><b>Expected new cases:</b> {{ expected_new_cases | float_format }}</h6>
+												</div>
+											{% endif %}
+										<div class="d-flex">
+											{% block report_summary %}
+											<div class="flex-row align-self-center">
+												<div class="align-self-center alert alert-dark mb-0" role="alert">
+													Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally (i.e. without short-range interactions), the <b>probability of one exposed occupant getting infected is {{ long_range_prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ long_range_expected_cases | float_format }}</b>*.
+												</div>
+												{% if form.short_range_option == "short_range_yes" %}
+													<br>
+													<div class="align-self-center alert alert-dark mb-0" role="alert">
+														In this scenario, the <b>probability the occupant(s) exposed to short-range interactions get infected can go as high as {{ prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases increases to {{ expected_new_cases | float_format }}</b>.
+													</div>
+												{% endif %}
+												{% block probabilistic_exposure_probability %}
+													{% if form.exposure_option == "p_probabilistic_exposure" %}
+														<br>
+														<div class="align-self-center alert alert-dark mb-0" role="alert">
+															The above {{ "result assumes" if form.short_range_option == "short_range_no" else "results assume" }} that <b>{{ form.infected_people }}
+															{{ "occupant is infected" if form.infected_people == 1 else "occupants are infected" }}
+															</b> in the room.
+															By taking into account the estimate of cases currently circulating in <b>{{ form.location_name }}</b>,
+															the probability of on-site transmission, having at least 1 new infection in an <b>event
+															with {{ form.total_people }} occupants</b>, is
+															{% if form.short_range_option == 'short_range_yes' %}:
+																<ul>
+																	<li><b>{{ long_range_prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming all occupants are exposed equally (i.e. without short-range interactions).</li>
+																	<li><b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming short-range interactions occur with the infector(s).</li>
+																</ul>
+															{% else %}
+																<b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>.
+															{% endif %}
+														</div>
+													{% endif %}
+												{% endblock probabilistic_exposure_probability %}
+											</div>
+											{% endblock report_summary %}
+										</div>
+									</div>
+									<br>
+									{% block report_summary_footnote %}
+									{% endblock report_summary_footnote %}
+								</div>
+								<br><p id="section1">* The results are based on the parameters and assumptions published in the CARA publication: <a href="https://doi.org/10.1098/rsfs.2021.0076"> doi.org/10.1098/rsfs.2021.0076</a>.</p><br>
+								{% if form.short_range_option == "short_range_yes" %}
+									{% if 'Speaking' in form.short_range_interactions|string or 'Shouting' in form.short_range_interactions|string %}
+										<button class="btn btn-sm btn-primary" id="button_full_exposure" disabled>Show full exposure</button>
+										<button class="btn btn-sm btn-primary ml-0" id="button_hide_high_concentration">Hide high concentration</button>
+									{% endif %}
+									<input type="checkbox" id="long_range_cumulative_checkbox"><label class="form-check-label ml-1" for="long_range_cumulative_checkbox" id="lr_cumulative_checkbox_label">Show doses from long-range exposure alone</label>
+								{% endif %}
+								<div id="concentration_plot" style="height: 400px"></div>
+								<script type="application/javascript">
+									let times = {{ times | JSONify }};
+									let concentrations_zoomed = {{ concentrations_zoomed | JSONify }};
+									let concentrations = {{ concentrations | JSONify }};
+									let cumulative_doses = {{ cumulative_doses | JSONify }};
+									let long_range_cumulative_doses = {{ long_range_cumulative_doses | JSONify }};
+									let exposed_presence_intervals = {{ exposed_presence_intervals | JSONify }};
+									let short_range_intervals = {{ short_range_intervals | JSONify }};
+									let short_range_expirations = {{ short_range_expirations | JSONify }};
+									draw_plot("concentration_plot");
+								</script>
+								<i>IRP - Infectious Respiratory Particles.</i>
+							</p>
+						</div>
+					</div>
+				</div>
+				<div class="card bg-light mb-3" id="results-div">
+  					<div class="card-header"><strong>Result uncertainties </strong>
+					  	<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseUncertainties" role="button" aria-expanded="true" aria-controls="collapseUncertainties">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
+								<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
+							</svg>
+						</button>
+					</div>
+					<div class="collapse show" id="collapseUncertainties">
+						<div class="card-body">
+							<div class="align-self-center">
+								<div id="prob_inf_hist" style="height: 400px"></div>
+								<script type="application/javascript">
+									let prob_dist = {{ prob_dist | JSONify }};
+									let prob_hist_count = {{ prob_hist_count | JSONify }};
+									let prob_hist_bins = {{ prob_hist_bins | JSONify }};
+									draw_histogram("prob_inf_hist", {{ prob_inf }}, {{ prob_inf_sd }});
+								</script>
+								<br>
+								{% if model.data_registry.virological_data['virus_distributions'][form.virus_type]['viral_load_in_sputum'] == 'Ref: Viral load - covid overal viral load data' %}
+									<div class="form-check">
+										<input type="checkbox" id="conditional_probability_viral_loads" class="tabbed form-check-input" name="conditional_probability_viral_loads" value="1" onClick="conditional_probability_viral_loads(this.checked, {{ form.conditional_probability_viral_loads | int }});">
+										<label id="label_conditional_probability_viral_loads" for="conditional_probability_viral_loads" class="form-check-label col-sm-12">Generate full uncertainty data (as function of the viral load)</label>
+									</div>
+								{% endif %}
+								{% if form.conditional_probability_viral_loads %}
+								<div id="conditional_probability_div">
+									<img src= "{{ uncertainties_plot_src }}" />
+									<div class="ml-5">
+										<p>(i) &nbsp;&nbsp;Predictive probability of infection for a given value of the viral load</p>
+										<p>(ii) &nbsp;Histogram of the viral load data</p>
+										<p>(iii) Histogram of the conditional probability of infection (result of total predictive probability in the middle)</p>
+									</div>
+								</div>
+								{% endif %}
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="card bg-light mb-3">
+					<div class="card-header"><strong>Predictive CO₂ Concentration Profile</strong>
+						<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseCO₂Profile" role="button" aria-expanded="false" aria-controls="collapseCO₂Profile">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
+								<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
+							</svg>
+						</button>
+					</div>
+					<div class="collapse" id="collapseCO₂Profile">
+						<div class="card-body">
+							<div>
+								<div id="CO2_concentration_graph" style="height: 400px"></div>
+								<script type="application/javascript">
+									var CO2_concentrations = {{ CO2_concentrations | JSONify }}
+									draw_generic_concentration_plot(
+											"CO2_concentration_graph",
+											"Mean concentration (ppm)",
+											h_lines = [
+												{'label': 'Acceptable level',
+												 'y': 800,
+												 'color': 'forestgreen',
+												 'style': 'dashed'
+												},
+												{'label': 'Insufficient level',
+												 'y': 1500,
+												 'color': 'firebrick',
+												 'style': 'dashed'
+												},
+											]
+									);
+								</script>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				{% if form.short_range_option == "short_range_no" %}
+					<div class="card bg-light mb-3">
+						<div class="card-header"><strong>Alternative scenarios</strong>
+							<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseAlternativeScenarios" role="button" aria-expanded="false" aria-controls="collapseAlternativeScenarios">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
+									<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
+								</svg>
+							</button>
+						</div>
+						<div class="collapse" id="collapseAlternativeScenarios">
+							<div class="card-body">
+								<div>
+									<div id="alternative_scenario_plot" style="height: 400px"></div>
+									<script type="application/javascript">
+										var alternative_scenarios = {{ alternative_scenarios.stats | JSONify }}
+										draw_generic_concentration_plot(
+											"alternative_scenario_plot",
+											"Mean concentration (IRP/m³)",
+										);
+									</script>
+									<br>
+									{% block report_scenarios_summary_table %}
+										<table class="table w-auto">
+											<thead class="thead-light">
+												<tr>
+													<th>Scenario</th>
+													<th>P(I)</th>
+													<th>Expected new cases</th>
+												</tr>
+											</thead>
+											<tbody>
+											{% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
+												<tr>
+													<td> {{ scenario_name }}</td>
+													<td> {{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
+													<td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>
+												</tr>
+											{% endfor %}
+											</tbody>
+										</table>
+									{% endblock report_scenarios_summary_table %}
+								</div>
+								<br/>
+								<p class="data_text"> <strong> Notes for alternative scenarios: </strong><br>
+									<ol>
+										<li>This graph shows the concentration of infectious quanta in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation).
+									For this reason, scenarios with different types of mask will show the same concentration on the graph but have different absorbed doses and infection probabilities.</li>
+										<li>If you have selected more sophisticated options, such as HEPA filtration or FFP2 masks, this will be indicated in the plot as the "base scenario", representing the inputs inserted in the form.<br>
+										The other alternative scenarios shown for comparison will not include either HEPA filtration or FFP2 masks.</li>
+									</ol>
+									<br>
+								</p>
+							</div>
+						</div>
+					</div>
+				{% endif %}
+
+			{% endblock report_results %}
+
+			<!-- Export Data Concentration Modal -->
+			<div class="modal fade" id="modalCSV" tabindex="-1" role="dialog" aria-labelledby="modalCSV" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="exampleModalLongTitle">Export data (.csv)</h5>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<b>Select the data to export:</b>
+							<div class="form-check mt-3">
+								<input type="checkbox" class="form-check-input" name="checkedItems" id="Time" onclick="display_rename_column(this.checked, 'time-rename-div')" checked disabled>
+								<label class="form-check-label" for="Time">Time of day</label>
+								<div id="time-rename-div" class="d-flex align-items-center">
+									<label class="col-form-label" for="time-rename-div">Column name:</label>
+									<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Time__rename" placeholder="Time" value="Time">
+								</div>
+							</div>
+							{# If short-range interactions are set, we don't display Alternative Scenarios, and there is no need to arrange items in a list #}
+							{% if form.short_range_option == "short_range_no" %}
+							<ul style="padding-left: inherit">
+								<li>
+									Current Scenario
+							{% endif %}
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input" name="checkedItems" id="Concentration" onclick="display_rename_column(this.checked, 'concentration-rename-div')">
+										<label class="form-check-label" for="Concentration">Concentration</label>
+										<div id="concentration-rename-div" class="align-items-center" style="display:none">
+											<label class="col-form-label" for="concentration-rename-div">Column name:</label>
+											<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Concentration__rename" placeholder="Concentration" value="Concentration">
+										</div>
+									</div>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input" name="checkedItems" id="Cumulative Dose" onclick="display_rename_column(this.checked, 'cumulative-dose-rename-div')">
+										<label class="form-check-label" for="Cumulative Dose">Cumulative dose</label>
+										<div id="cumulative-dose-rename-div" class="align-items-center" style="display:none">
+											<label class="col-form-label" for="cumulative-dose-rename-div">Column name:</label>
+											<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Cumulative Dose__rename" placeholder="Cumulative Dose" value="Cumulative Dose">
+										</div>
+									</div>
+									</li>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input" name="checkedItems" id="CO2_Concentration" onclick="display_rename_column(this.checked, 'CO2-rename-div')">
+										<label class="form-check-label" for="CO2_Concentration">CO₂ Concentration</label>
+										<div id="CO2-rename-div" class="align-items-center" style="display:none">
+											<label class="col-form-label" for="CO2-rename-div">Column name:</label>
+											<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="CO2_Concentration__rename" placeholder="CO₂ Concentration" value="CO₂ Concentration">
+										</div>
+									</div>
+									{% if form.short_range_option == "short_range_no" %}
+										</li>
+										<li>
+											Alternative Scenarios
+											<div class="form-check">
+												<input type="checkbox" class="form-check-input" name="checkedItems" id="Alternative Scenarios" onclick="check_download_button(); display_column_name_warning(this.checked);">
+												<label class="form-check-label" for="Alternative Scenarios">Concentration</label>
+												<p id="alternative_scenario_warning" class="text-warning" style="display: none">The column name will be the scenario name.</p>
+											</div>
+										</li>
+									{% endif %}
+							</ul>
+
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+							<button id="downloadCSV" type="button" class="btn btn-primary" onclick="export_csv();" disabled>Download</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{% block report_footer %}
+				<div class="card bg-light mb-3" id="link-results">
+					<div class="card-header"><strong>Link to reproduce results </strong>
+					<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseQRcode" role="button" aria-expanded="true" aria-controls="collapseQRcode">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
+						<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
+						</svg>
+					</button>
+					</div>
+					<div class="collapse show" id="collapseQRcode">
+						<div class="card-body">
+							<div class="text-center"><button id="mobile_link" class="btn btn-primary btn-sm d-none" data-toggle="tooltip" data-placement="top" title="Copy to clipboard" onclick="copy_clipboard('{{ permalink.link }}');">Click to copy a shareable link</button></div>
+							<div id="link_reproduce_results" class="split">
+								<div><a href="{{ permalink.link }}" style="float: left;"><div id="qrcode"></div></a></div>
+								<div class="align-self-center"><span style="float: left; vertical-align: middle; display: inline-block;">
+								<p style="display: inline-block; vertical-align: middle; line-height: normal;">
+								Click the QR code to regenerate the report and get a shareable link.<br>Alternatively, scan to regenerate the report.<br>
+								</p>
+								</span></div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div style="clear: both;"></div>
+			{% endblock report_footer %}
+		</div>
+
+		<div class="tab-pane" id="data" role="tabpanel" aria-labelledby="data-tab" style="padding: 1%">
+			{% block simulation_overview %}
+				<div class="card">
+					<div class="card-header"><strong>Simulation:</strong></div>
+					<div class="card-body">
+						<p>Simulation Name: {{ form.simulation_name }}</p>
+						<p>Room Number: {{ form.room_number }}</p>
+					</div>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"> <strong>Input data:</strong></div>
+					<div class="card-body">
+						<ul>
+							<li><p class="data_text">Virus variant:
+							{% if form.virus_type == "SARS_CoV_2" %}
+							SARS-CoV-2 (nominal strain)
+							{% elif form.virus_type == "SARS_CoV_2_ALPHA" %}
+							<a href="https://www.ecdc.europa.eu/en/publications-data/covid-19-risk-assessment-spread-new-sars-cov-2-variants-eueea">SARS-CoV-2 (Alpha VOC) </a>
+							{% elif form.virus_type == "SARS_CoV_2_BETA" %}
+							<a href="https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2021.26.24.2100509">SARS-CoV-2 (Beta VOC) </a>
+							{% elif form.virus_type == "SARS_CoV_2_GAMMA" %}
+							<a href="https://doi.org/10.1126/science.abh2644">SARS-CoV-2 (Gamma VOC)</a>
+							{% elif form.virus_type == "SARS_CoV_2_DELTA" %}
+							<a href="https://www.bmj.com/content/373/bmj.n1513">SARS-CoV-2 (Delta VOC)</a>
+							{% elif form.virus_type == "SARS_CoV_2_OMICRON" %}
+							<a href="https://gitlab.cern.ch/caimira/caimira/-/issues/226">SARS-CoV-2 (Omicron VOC)</a>
+							{% endif %}
+							</p></li>
+							<li><p class="data_text">Room Volume: {{ model.concentration_model.room.volume }} m³</p></li>
+							<li><p class="data_text">Room Central Heating: {{ "On" if form.room_heating_option else "Off" }}</p></li>
+							<li><p class="data_text">Geographic Location: {{ form.location_name }}</p></li>
+							{% if form.ventilation_type == "natural_ventilation" %}
+							<li><p class="data_text">Nearest weather station: {{ form.nearest_weather_station()[1].strip().title() }}</p></li>
+							{% endif %}
+						</ul>
+					</div>
+				</div>
+
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Vaccination data:</strong></div>
+					<div class="card-body">
+						{% if form.vaccine_option %}
+						<ul>
+							<li>Primary vaccine: {{ form.vaccine_type | replace("_", " ") }}
+							{% if form.vaccine_booster_option %}
+								<li>Booster vaccine: {{ form.vaccine_booster_type | replace("_", " ")}} </li>
+							{% endif %}
+							<li>Vaccine effectiveness: {{ model.exposed.host_immunity | percentage | non_zero_percentage }} </li>
+						</ul>
+						{% else %}
+						<p>No vaccination selected.</p>
+						{% endif %}
+					</div>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Ventilation data:</strong></div>
+					<div class="card-body">
+						<ul>
+							<li><p class="data_text">Mechanical ventilation:
+							{% if form.ventilation_type == "mechanical_ventilation" %}
+							Yes </p></li>
+							<ul>
+								<li><p class="data_subtext">
+								{% if form.mechanical_ventilation_type == "mech_type_air_supply"%}
+								Air supply flow rate: {{ form.air_supply }} m³ / hour
+								{% elif form.mechanical_ventilation_type == "mech_type_air_changes"%}
+								Air changes per hour: {{ form.air_changes }} h⁻¹
+								{% endif %}
+								</p></li>
+							</ul>
+							{% else %}
+							No </li>
+							{% endif %}
+							<li><p class="data_text">Natural ventilation:
+							{% if form.ventilation_type == "natural_ventilation"%}
+							Yes </p></li>
+							<ul>
+								<li><p class="data_subtext">Number of windows: {{ form.windows_number }}</p></li>
+								<li><p class="data_subtext">Height of window: {{ form.window_height }} m</p></li>
+								<li><p class="data_subtext">Window type:
+								{% if form.window_type == "window_hinged" %}
+								Top- or Bottom-Hung</p></li>
+								<li><p class="data_subtext">Width of window: {{ form.window_width }} m</p></li>
+								{% elif form.window_type == "window_sliding" %}
+								Sliding / Side-Hung</p></li>
+								{% endif %}
+								<li><p class="data_subtext">Opening distance: {{ form.opening_distance }} m</p></li>
+								<li><p class="data_subtext">Windows open:
+								{% if form.window_opening_regime == "windows_open_periodically" %}
+								Periodically for {{ form.windows_duration | readable_minutes}}
+									every {{ form.windows_frequency | readable_minutes}}
+								{% elif form.window_opening_regime == "windows_open_permanently" %}
+								Permanently
+								{% endif %}
+								</p></li>
+							</ul>
+								<p class="data_subtext data_italic">When using the natural ventilation option, air flows are calculated using averaged hourly temperatures for the region {{ form.location_name }}, based on historical data for the month selected.</p>
+							{% else %}
+							No </p></li>
+							{% endif %}
+							<li><p class="data_text">HEPA Filtration: {{ 'Yes' if form.hepa_option else 'No' }}</li>
+							{% if form.hepa_option %}
+							<ul>
+								<li><p class="data_text">HEPA amount: {{ form.hepa_amount }} m³ / hour</p></li>
+							</ul>
+							{% endif %}
+							<li><p class="data_text">From fitting:
+							{% if form.ventilation_type == "from_fitting" %}
+							Yes</p>
+							{% if form.CO2_fitting_result['room_capacity'] %}
+								<ul><li><p class="data_text">Room capacity: {{ form.CO2_fitting_result['room_capacity'] | int_format }}</p></li></ul>
+							{% endif %}
+							</li>
+							<table class="w-50 mt-3 ml-4" border="1">
+								<tr>
+									<th> Time (HH:MM)</th>
+									<th>ACH value (h⁻¹)</th>
+									<th>Flow rate (L/s)</th>
+                            		{% if form.CO2_fitting_result['room_capacity'] %}<th>Flow rate (L/s/person)</th>{% endif %}
+								</tr>
+								{% for ventilation in form.CO2_fitting_result['ventilation_values'] %}
+									{% set transition_time = form.CO2_fitting_result['transition_times'] %}
+									<tr>
+										<td>{{ transition_time[loop.index - 1] | hour_format }} - {{ transition_time[loop.index] | hour_format }}</td>
+										<td>{{ ventilation | float_format }} </td>
+										<td>{{ form.CO2_fitting_result['ventilation_ls_values'][loop.index - 1] | float_format }} </td>
+										{% if form.CO2_fitting_result['room_capacity'] %}<td>{{ form.CO2_fitting_result['ventilation_lsp_values'][loop.index - 1] | float_format }} </td>{% endif %}
+									</tr>
+								{% endfor %} 
+								</table>
+							{% else %}
+							No </p></li>
+							{% endif %}
+							</p></li>
+						</ul>
+					</div>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Event data:</strong></div>
+					<div class="card-body">
+						<ul>
+							<li><p class="data_text">Number of attendees and infected people: {{ form.total_people }} in attendance, of whom {{ form.infected_people }}
+							{{ "is" if form.infected_people == 1 else "are" }}
+							infected.</p></li>
+							{% if form.exposure_option == "p_probabilistic_exposure" %}
+							{% if form.ascertainment_bias == "confidence_high" %}
+								{% set conf_level = "High - Mandatory population surveillance." %}
+							{% elif form.ascertainment_bias == "confidence_medium" %}
+								{% set conf_level = "Medium - Recommended population wide surveillance." %}
+							{% else %}
+								{% set conf_level = "Low - Surveillance only for symptomatic patients." %}
+							{% endif %}
+							<li><p class="data_text">Population in {{ form.location_name }}: {{ form.geographic_population }}</p></li>
+							<li><p class="data_text">New reported cases in {{ form.location_name }} (7-day average): {{ form.geographic_cases }}</p></li>
+							<li><p class="data_text">Confidence level: {{ conf_level }} </p></li>
+							{% endif %}
+							<li><p class="data_text">
+							Activity type:
+							{% if form.activity_type == "office" %}
+							Office – typical scenario with all persons seated, speaking occasionally (speaking assumed for 1/3rd of the time).
+							{% elif form.activity_type == "smallmeeting" %}
+							Small meeting – typical scenario with all persons seated, one person speaking at a time.
+							{% elif form.activity_type == "largemeeting" %}
+							Large meeting – infected occupant(s) is standing and speaking 1/3rd of the time, while the other occupants are seated.
+							{% elif form.activity_type == "callcentre" %}
+							Call Centre - typical office-like scenario with all persons seated, all speaking continuously.
+							{% elif form.activity_type == "controlroom-day" %}
+							Control Room (Day Shift) - specific control room scenario, all persons seated, all speaking 50% of the time.
+							{% elif form.activity_type == "controlroom-night" %}
+							Control Room (Night Shift) - specific control room scenario with all persons seated, all speaking for 10% of the time.
+							{% elif form.activity_type == "library" %}
+							Library - Library scenario with all persons seated, breathing and not speaking.
+							{% elif form.activity_type == "workshop" %}
+							Workshop - assembly workshop environment, all persons doing moderate physical activity, speaking 50% of the time.
+							{% elif form.activity_type == "training" %}
+							Conference/Training (speaker infected) – one person (the speaker/trainer) standing, talking, all others seated, talking quietly (whispering). It is assumed the speaker/trainer is the infected person, for the worst case scenario.
+							{% elif form.activity_type == "training_attendee" %}
+							Conference/Training (attendee infected) – the infected person(s) are in the audience. All persons seated and breathing.
+							{% elif form.activity_type == "lab" %}
+							Laboratory - Lab or technical environment, all persons doing light physical activity, speaking 50% of the time.
+							{% elif form.activity_type == "gym" %}
+							Gym - For comparison only, all persons doing heavy physical exercise, breathing and not speaking.
+							{% endif %}
+							{% if form.ventilation_type == "from_fitting" %}
+							<p class="ml-5">Exhalation rate from fitting algorithm - {{form.CO2_fitting_result['exhalation_rate'] | round(2, 'floor')}} m³/h</p>
+							{% endif %}
+							</p></li>
+							{% if form.short_range_option == "short_range_yes" %}
+							<li><p class="data_text">Total number of occupants having short-range interactions: {{ form.short_range_occupants }}</p></li>
+							<ul>
+							{% for interaction in form.short_range_interactions %}
+							<li>Interaction no. {{ loop.index }}:
+								<ul>
+									<li>Expiratory activity: {{ "Shouting/Singing" if interaction.expiration == "Shouting" else interaction.expiration }} </li>
+									<li>Start time: {{ interaction.start_time }} </li>
+									<li>Duration: {{ interaction.duration }} {{ "minutes" if interaction.duration|float > 1 else "minute" }}</li>
+								</ul>
+							</li>
+							{% endfor %}
+							</ul>
+							{% endif %}
+							<li><p class="data_text">Exposed occupant(s) activity time:</p></li>
+								<ul>
+									<li><p class="data_subtext">Start time: {{ form.exposed_start | minutes_to_time }}</p></li>
+									<li><p class="data_subtext">End time: {{ form.exposed_finish | minutes_to_time }}</p></li>
+								</ul>
+							<li><p class="data_text">Infected occupant(s) activity time:</p></li>
+							<ul>
+								<li><p class="data_subtext">Start time: {{ form.infected_start | minutes_to_time }}</p></li>
+								<li><p class="data_subtext">End time: {{ form.infected_finish | minutes_to_time }}</p></li>
+							</ul>
+							<li><p class="data_text">Event for the month of {{ form.event_month }}</p></li>
+						</ul>
+					</div>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Break data:</strong></div>
+					<div class="card-body">
+						{% if form.infected_dont_have_breaks_with_exposed %}
+						<p style="padding-left:15px;"> Exposed occupant(s):</p>
+						{% endif %}
+						<ul>
+							<li><p class="data_text">Lunch break:
+							{% if form.exposed_lunch_option%}
+							Yes</li>
+							<ul>
+								<li><p class="data_subtext">Start time: {{ form.exposed_lunch_start | minutes_to_time }}</p></li>
+								<li><p class="data_subtext">End time: {{ form.exposed_lunch_finish | minutes_to_time }}</p></li>
+							</ul>
+							{% else%}
+							No
+							{% endif %}
+							</p></li>
+							<li><p class="data_text">Coffee breaks: {{ form.exposed_number_of_coffee_breaks() }}
+							{% if form.exposed_number_of_coffee_breaks() > 0 %}
+							each of {{ form.exposed_coffee_duration }} minutes duration
+							</p></li>
+							<ul>
+							{%- for start_time, end_time in form.exposed_coffee_break_times() %}
+							<li><p class="data_subtext">Coffee break {{ loop.index }}: Start: {{ start_time | minutes_to_time }} &nbsp&nbsp End: {{ end_time | minutes_to_time }}</p></li>
+							{%- endfor %}
+							</ul>
+							{% endif %}
+						</ul>
+						{% if form.infected_dont_have_breaks_with_exposed %}
+						<p style="padding-left:15px;"> Infected occupant(s):</p>
+
+						<ul>
+							<li><p class="data_text">Lunch break:
+							{% if form.infected_lunch_option%}
+							Yes</li>
+							<ul>
+								<li><p class="data_subtext">Start time: {{ form.infected_lunch_start | minutes_to_time }}</p></li>
+								<li><p class="data_subtext">End time: {{ form.infected_lunch_finish | minutes_to_time }}</p></li>
+							</ul>
+							{% else%}
+							No
+							{% endif %}
+							</p></li>
+							<li><p class="data_text">Coffee breaks: {{ form.infected_number_of_coffee_breaks() }}
+							{% if form.infected_number_of_coffee_breaks() > 0 %}
+							each of {{ form.infected_coffee_duration }} minutes duration
+							</p></li>
+							<ul>
+							{%- for start_time, end_time in form.infected_coffee_break_times() %}
+							<li><p class="data_subtext">Coffee break {{ loop.index }}: Start: {{ start_time | minutes_to_time }} &nbsp&nbsp End: {{ end_time | minutes_to_time }}</p></li>
+							{%- endfor %}
+							</ul>
+							{% endif %}
+						</ul>
+						{% else %}
+						<i>Same breaks taken by the exposed and infected persons.</i>
+						{% endif %}
+					</div>
+				</div>
+				<br>
+				<div class="card">
+					<div class="card-header"><strong>Mask wearing:</strong></div>
+					<div class="card-body">
+						<ul>
+							<li><p class="data_text">Masks worn at workstations? {{ 'Yes' if form.mask_wearing_option == "mask_on" else 'No' }} </p></li>
+							{% if form.mask_wearing_option == "mask_on" %}
+							<li><p class="data_text">Mask type: {{ form.mask_type }}</p></li>
+							{% endif %}
+						</ul>
+					</div>
+				</div>
+				<br>
+			{% endblock simulation_overview %}
+		</div>
+		{% block report_preamble %}
+		{% endblock report_preamble %}
+	</div>
+</div>
+
+{% block disclaimer_container %}
+	<br><br><br>
+	<div id="disclaimer" style="border: #dee2e6 1px solid; margin: 1%; padding: 20px" class="rounded">
+		{% block disclaimer %}
+			<p class="image"> <img align="middle" src="{{ get_calculator_url('/static/images') }}/disclaimer.jpg" width="40" height="40"><b>Disclaimer:</b><br><br></p>
+			{{ text_blocks['Disclaimer'] }}
+		{% endblock disclaimer %}
+	</div>
+	<br>
+{% endblock disclaimer_container %}
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script type="text/javascript">
+	//Enable tooltip
+	$('[data-toggle="tooltip"]').tooltip();
+
+    new QRCode(document.getElementById("qrcode"), {
+        text: "{{ permalink.shortened }}",
+        width: 330,
+        height: 330,
+        correctLevel : QRCode.CorrectLevel.L
+    });
+    new QRCode(document.getElementById("pdf_qrcode"), {
+        text: "{{ permalink.shortened }}",
+        width: 133,
+        height: 133,
+        correctLevel : QRCode.CorrectLevel.L
+    });
+</script>
+
+</body>
+</html>

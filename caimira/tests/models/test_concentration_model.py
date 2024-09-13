@@ -5,8 +5,8 @@ import numpy.testing as npt
 import pytest
 from dataclasses import dataclass
 
-from caimira import models
-from caimira.store.data_registry import DataRegistry
+from caimira.calculator.models import models
+from caimira.calculator.store.data_registry import DataRegistry
 
 @dataclass(frozen=True)
 class KnownConcentrationModelBase(models._ConcentrationModelBase):

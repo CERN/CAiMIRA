@@ -3,8 +3,8 @@ import numpy as np
 import typing
 import pytest
 
-from caimira import models
-from caimira.apps.calculator.co2_model_generator import CO2FormData
+from caimira.calculator.models import models
+from caimira.calculator.validators.co2.co2_validator import CO2FormData
 
 
 @pytest.fixture

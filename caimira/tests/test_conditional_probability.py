@@ -2,11 +2,11 @@ import numpy as np
 import pytest
 from retry import retry
 
-import caimira.monte_carlo as mc
-from caimira import models
-from caimira.dataclass_utils import nested_replace
-from caimira.apps.calculator import report_generator
-from caimira.monte_carlo.data import activity_distributions, virus_distributions, expiration_distributions
+import caimira.calculator.models.monte_carlo as mc
+from caimira.calculator.models import models
+from caimira.calculator.models.dataclass_utils import nested_replace
+from caimira.calculator.report import virus_report_data
+from caimira.calculator.models.monte_carlo.data import activity_distributions, virus_distributions, expiration_distributions
 
 
 @pytest.fixture
@@ -72,7 +72,7 @@ def test_conditional_prob_inf_given_vl_dist(data_registry, baseline_exposure_mod
     specific_vl = np.log10(mc_model.concentration_model.infected.virus.viral_load_in_sputum)
     step = 8/100
     actual_pi_means, actual_lower_percentiles, actual_upper_percentiles = (
-        report_generator.conditional_prob_inf_given_vl_dist(infection_probability, viral_loads, specific_vl, step)
+        virus_report_data.conditional_prob_inf_given_vl_dist(infection_probability, viral_loads, specific_vl, step)
     )
 
     assert np.allclose(actual_pi_means, expected_pi_means, atol=0.002)

@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cern-caimira"
+version = "4.17.0a1"
+description = "CAiMIRA - CERN Airborne Model for Indoor Risk Assessment"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "Andre Henriques", email = "andre.henriques@cern.ch" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: Apache Software License",
+]
+requires-python = ">=3.9"
+dependencies = [
+    'ipykernel',
+    'ipympl >= 0.9.0',
+    'ipywidgets < 8.0',
+    "Jinja2",
+    "loky",
+    "matplotlib",
+    "memoization",
+    "mistune",
+    "numpy",
+    "pandas",
+    "pyinstrument",
+    "retry",
+    "ruptures",
+    "scipy",
+    "timezonefinder",
+    "tornado",
+    "types-retry",
+]
+
+[project.optional-dependencies]
+dev = []
+test = [
+    "pytest",
+    "pytest-mypy >= 0.10.3",
+    "mypy >= 1.0.0",
+    "pytest-tornasync",
+    "numpy-stubs @ git+https://github.com/numpy/numpy-stubs.git",
+    "types-dataclasses",
+    "types-requests"
+]
+doc = [
+    "sphinx",
+    "sphinx_rtd_theme"
+]
+
+[project.urls]
+Homepage = "https://cern.ch/caimira"
+
+[tool.setuptools.package-data]
+cern_caimira = ["**/*"]
+
+[tool.pytest.ini_options]
+addopts = "--mypy"
+
+[tool.mypy]
+no_warn_no_return = true
+
+[[tool.mypy.overrides]]
+module = ["caimira.*", "ipympl.*", "ipywidgets", "loky", "setuptools", "pandas"]
+ignore_missing_imports = true

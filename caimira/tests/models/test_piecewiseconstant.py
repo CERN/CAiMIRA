@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from caimira import models
-from caimira import data
+from caimira.calculator.models import models
+from caimira.calculator.models import data
 
 
 def test_piecewiseconstantfunction_wrongarguments():

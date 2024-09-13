@@ -1,6 +1,6 @@
 import dataclasses
 
-from caimira.dataclass_utils import nested_replace, walk_dataclass
+from caimira.calculator.models.dataclass_utils import nested_replace, walk_dataclass
 
 
 @dataclasses.dataclass(frozen=True)

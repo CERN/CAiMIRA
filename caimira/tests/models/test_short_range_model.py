@@ -3,10 +3,10 @@ import typing
 import numpy as np
 import pytest
 
-from caimira import models
-import caimira.monte_carlo as mc_models
-from caimira.apps.calculator.model_generator import build_expiration
-from caimira.monte_carlo.data import short_range_expiration_distributions,\
+from caimira.calculator.models import models
+import caimira.calculator.models.monte_carlo as mc_models
+from caimira.calculator.validators.virus.virus_validator import build_expiration
+from caimira.calculator.models.monte_carlo.data import short_range_expiration_distributions,\
         expiration_distributions, short_range_distances, activity_distributions
 
 SAMPLE_SIZE = 250_000

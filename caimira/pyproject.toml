@@ -1,0 +1,70 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "caimira"
+version = "4.17.0a1"
+description = "CAiMIRA - CERN Airborne Model for Indoor Risk Assessment"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "Andre Henriques", email = "andre.henriques@cern.ch" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: Apache Software License",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "matplotlib",
+    "memoization",
+    "mistune",
+    "numpy",
+    "pandas",
+    "pyinstrument",
+    "python-dateutil",
+    "requests",
+    "retry",
+    "ruptures",
+    "scipy",
+    "scikit-learn",
+    "tabulate",
+    "timezonefinder",
+    "tornado",
+]
+
+[project.optional-dependencies]
+dev = []
+test = [
+    "pytest",
+    "pytest-mypy >= 0.10.3",
+    "mypy >= 1.0.0",
+    "pytest-tornasync",
+    "numpy-stubs @ git+https://github.com/numpy/numpy-stubs.git",
+    "types-dataclasses",
+    "types-python-dateutil",
+    "types-requests",
+    "types-retry",
+]
+doc = [
+    "sphinx",
+    "sphinx_rtd_theme"
+]
+
+[project.urls]
+Homepage = "https://github.com/cern/caimira"
+
+[tool.setuptools.package-data]
+caimira = ["**/*"]
+
+[tool.pytest.ini_options]
+addopts = "--mypy"
+
+[tool.mypy]
+no_warn_no_return = true
+exclude = "caimira/profiler.py"
+
+[[tool.mypy.overrides]]
+module = ["pandas", "ruptures", "scipy.*", "setuptools", "sklearn.*", "tabulate"]
+ignore_missing_imports = true
