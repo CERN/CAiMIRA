@@ -6,7 +6,6 @@ build-backend = "setuptools.build_meta"
 name = "cern-caimira"
 version = "2.0.0"
 description = "CAiMIRA - CERN Airborne Model for Indoor Risk Assessment"
-readme = "README.md"
 license = { text = "Apache-2.0" }
 authors = [
     { name = "Andre Henriques", email = "andre.henriques@cern.ch" }

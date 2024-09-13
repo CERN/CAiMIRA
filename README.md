@@ -2,7 +2,7 @@
 
 CAiMIRA is a risk assessment tool developed to model the concentration of viruses in enclosed spaces, in order to inform space-management decisions.
 
-CAiMIRA models the concentration profile of potential virions in enclosed spaces , both as background (room) concentration and during close-proximity interations, with clear and intuitive graphs.
+CAiMIRA models the concentration profile of potential virions in enclosed spaces , both as background (room) concentration and during close-proximity interactions, with clear and intuitive graphs.
 The user can set a number of parameters, including room volume, exposure time, activity type, mask-wearing and ventilation.
 The report generated indicates how to avoid exceeding critical concentrations and chains of airborne transmission in spaces such as individual offices, meeting rooms and labs.
 
@@ -94,8 +94,8 @@ This will start a local version of CAiMIRA, which can be visited at http://local
 
 The project contains two different Python packages:
 
-- `caimira`: Contains all the backend logic and is the package published in PyPI.
-- `cern_caimira`: Imports the backend package (`caimira`) and includes CERN-specific UI implementation.
+- `caimira`: Contains all the backend logic and the calculator model. It is the package published in PyPI.
+- `cern_caimira`: Imports and uses the backend package (`caimira`) and includes CERN-specific UI implementation.
 
 The folder layout follows best practices as described [here](https://ianhopkinson.org.uk/2022/02/understanding-setup-py-setup-cfg-and-pyproject-toml-in-python/).
 
@@ -106,14 +106,14 @@ CAiMIRA is also mirrored to Github if you wish to collaborate on development and
 
 ### Installing CAiMIRA in editable mode
 
-In order to install the CAiMIRA's backend logic, from the root directory of the project:
+In order to install the CAiMIRA's backend logic, create your own virtualenv and, from the root directory of the project, run:
 
 ```
 cd caimira
 pip install -e .
 ```
 
-In order to install the CERN-specific UI version, that links to the previously installed backend, from the root directory of the project:
+In order to install the CERN-specific UI version, that links to the previously installed backend, activate your virtualenv and, from the root directory of the project, run:
 
 ```
 cd cern_caimira
@@ -122,7 +122,7 @@ pip install -e .
 
 ### Running the Calculator app in development mode
 
-In the root directory of the project:
+This example describes how to run the calculator with the CERN-specific UI. In the root directory of the project:
 
 ```
 python -m cern_caimira.apps.calculator
@@ -150,7 +150,7 @@ Each of these commands will start a local version of CAiMIRA, which can be visit
 
 ### How to compile and read the documentation
 
-In order to generate the documentation, CAiMIRA must be installed first with the `doc` dependencies:
+In order to generate the documentation, CAiMIRA must be installed first with the `doc` optional dependencies:
 
 ```
 cd caimira
@@ -175,7 +175,7 @@ These applications only work within Jupyter notebooks. Attempting to run them ou
 
 ##### Prerequisites
 
-Make sure you have the needed dependencies intalled:
+Make sure you have the needed dependencies installed:
 
 ```
 pip install notebook jupyterlab
@@ -191,7 +191,7 @@ Running with Visual Studio Code (VSCode):
 
 ### Running the tests
 
-The project contains test files that separatelly test the functionality of the `caimira` backend and `cern_caimira` UI.
+The project contains test files that separately test the functionality of the `caimira` backend and `cern_caimira` UI.
 
 To test the `caimira` package, from the root repository of the project:
 
@@ -211,7 +211,7 @@ python -m pytest
 
 ### Running the profiler
 
-The profiler is enabled when the environment variable `CAIMIRA_PROFILER_ENABLED` is set to 1.
+CAiMIRA includes a profiler designed to identify performance bottlenecks. The profiler is enabled when the environment variable `CAIMIRA_PROFILER_ENABLED` is set to 1.
 
 When visiting http://localhost:8080/profiler, you can start a new session and choose between [PyInstrument](https://github.com/joerick/pyinstrument) or [cProfile](https://docs.python.org/3/library/profile.html#module-cProfile). The app includes two different profilers, mainly because they can give different information.
 
@@ -224,6 +224,7 @@ The sessions are stored in a local file in the `/tmp` folder. To share it across
 From the root directory of the project:
 
 1. Run the backend API:
+
     ```
     python -m caimira.api.app
     ```
