@@ -4,5 +4,3 @@
 Documentation for the CAiMIRA package
 
 """
-
-__version__ = "1.0.0"

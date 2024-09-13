@@ -10,9 +10,8 @@ import base64
 import functools
 import html
 import json
-import pandas as pd
+import importlib.metadata
 from pprint import pformat
-from io import StringIO
 import os
 from pathlib import Path
 import traceback
@@ -25,6 +24,7 @@ import loky
 from tornado.web import Application, RequestHandler, StaticFileHandler
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 import tornado.log
+from caimira import __version__ as calculator_version
 from caimira.calculator.models.profiler import CaimiraProfiler, Profilers
 from caimira.calculator.store.data_registry import DataRegistry
 from caimira.calculator.store.data_service import DataService
@@ -37,15 +37,6 @@ from . import markdown_tools
 from .report.virus_report import VirusReportGenerator
 from ..calculator.report.co2_report import CO2ReportGenerator
 from .user import AuthenticatedUser, AnonymousUser
-
-# The calculator version is based on a combination of the model version and the
-# semantic version of the calculator itself. The version uses the terms
-# "{MAJOR}.{MINOR}.{PATCH}" to describe the 3 distinct numbers constituting a version.
-# Effectively, if the model increases its MAJOR version then so too should this
-# calculator version. If the calculator needs to make breaking changes (e.g. change
-# form attributes) then it can also increase its MAJOR version without needing to
-# increase the overall CAiMIRA version (found at ``caimira.__version__``).
-__version__ = "4.17.0"
 
 LOG = logging.getLogger("Calculator")
 
@@ -310,7 +301,7 @@ class CalculatorForm(BaseRequestHandler):
             xsrf_form_html=self.xsrf_form_html(),
             get_url = template.globals['get_url'],
             get_calculator_url = template.globals["get_calculator_url"],
-            calculator_version=__version__,
+            calculator_version=calculator_version,
             text_blocks=template_environment.globals["common_text"],
             data_registry=data_registry.to_dict(),
         )
