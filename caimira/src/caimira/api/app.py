@@ -24,7 +24,7 @@ class Application(tornado.web.Application):
         settings = dict(
             debug=True,
         )
-        super(Application, self).__init__(handlers, **settings)
+        super().__init__(handlers, **settings)
 
 
 if __name__ == "__main__":

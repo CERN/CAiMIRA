@@ -6,6 +6,7 @@ import re
 
 import numpy as np
 
+from caimira import __version__ as calculator_version
 from ..form_validator import FormData, cast_class_fields, time_string_to_minutes
 from ..defaults import (DEFAULTS, CONFIDENCE_LEVEL_OPTIONS,
                         MECHANICAL_VENTILATION_TYPES, MASK_WEARING_OPTIONS, MONTH_NAMES, VACCINE_BOOSTER_TYPE, VACCINE_TYPE,
@@ -199,7 +200,7 @@ class VirusFormData(FormData):
             if total_percentage != 100:
                 raise ValueError(
                     f'The sum of all respiratory activities should be 100. Got {total_percentage}.')
-            
+
         # Validate number of people with short-range interactions
         max_occupants_for_sr = self.total_people - self.infected_people
         if self.short_range_occupants > max_occupants_for_sr:
@@ -559,7 +560,7 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': '',
-        'calculator_version': '4.17.0', #TODO different version for API and calculator form?
+        'calculator_version': calculator_version,
         'opening_distance': '0.2',
         'event_month': 'January',
         'room_heating_option': '0',

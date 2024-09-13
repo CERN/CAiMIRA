@@ -187,7 +187,7 @@ class ConcentrationModel(BaseRequestHandler):
             self.set_status(400)
             self.finish(json.dumps(response_json))
             return
-        
+
         base_url = self.request.protocol + "://" + self.request.host
         report_generator: VirusReportGenerator = self.settings['report_generator']
         executor = loky.get_reusable_executor(
@@ -265,7 +265,7 @@ class StaticModel(BaseRequestHandler):
             data_service.update_registry(data_registry)
 
         form = virus_report_controller.generate_form_obj(virus_validator.baseline_raw_form_data(), data_registry)
-        
+
         base_url = self.request.protocol + "://" + self.request.host
         report_generator: VirusReportGenerator = self.settings['report_generator']
         executor = loky.get_reusable_executor(max_workers=self.settings['handler_worker_pool_size'])
@@ -429,7 +429,7 @@ class CO2ModelResponse(BaseRequestHandler):
             report_task = executor.submit(
                 CO2_report_generator.build_fitting_results, form,
             )
-            
+
             report = await asyncio.wrap_future(report_task)
             self.finish(report)
 
@@ -529,7 +529,7 @@ def make_app(
         data_service_enabled = int(os.environ.get('DATA_SERVICE_ENABLED', 0))
     except ValueError:
         data_service_enabled = None
-        
+
     if data_service_enabled: data_service = DataService.create()
 
     return Application(
