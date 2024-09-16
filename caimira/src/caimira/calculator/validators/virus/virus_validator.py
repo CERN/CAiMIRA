@@ -470,7 +470,8 @@ class VirusFormData(FormData):
             if isinstance(self.dynamic_infected_occupancy, typing.List) and len(self.dynamic_infected_occupancy) > 0:
                 # If dynamic occupancy is defined, the generator will parse and validate the
                 # respective input to a format readable by the model - `IntPiecewiseConstant`.
-                infected_occupancy, infected_presence = self.generate_dynamic_occupancy(self.dynamic_infected_occupancy)
+                infected_occupancy = self.generate_dynamic_occupancy(self.dynamic_infected_occupancy)
+                infected_presence = None
             else:
                 raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_infected_occupancy}".')
         else:
@@ -515,7 +516,8 @@ class VirusFormData(FormData):
             if isinstance(self.dynamic_exposed_occupancy, typing.List) and len(self.dynamic_exposed_occupancy) > 0:
                 # If dynamic occupancy is defined, the generator will parse and validate the
                 # respective input to a format readable by the model - IntPiecewiseConstant.
-                exposed_occupancy, exposed_presence = self.generate_dynamic_occupancy(self.dynamic_exposed_occupancy)
+                exposed_occupancy = self.generate_dynamic_occupancy(self.dynamic_exposed_occupancy)
+                exposed_presence = None
             else:
                 raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_exposed_occupancy}".')
         else:

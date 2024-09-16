@@ -173,10 +173,13 @@ def calculate_report_data(form: VirusFormData, executor_factory: typing.Callable
     prob = np.array(model.infection_probability())
     prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
     
-    # Probabilistic exposure
-    if form.exposure_option == "p_probabilistic_exposure" and form.occupancy_format == "static":
-        prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
-    else: prob_probabilistic_exposure = None
+    # Probabilistic exposure and expected new cases (only for static occupancy)
+    prob_probabilistic_exposure = None
+    expected_new_cases = None
+    if form.occupancy_format == "static":
+        if form.exposure_option == "p_probabilistic_exposure":
+            prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
+        expected_new_cases =  np.array(model.expected_new_cases()).mean()
 
     exposed_presence_intervals = [list(interval) for interval in model.exposed.presence_interval().boundaries()]
 
@@ -207,11 +210,10 @@ def calculate_report_data(form: VirusFormData, executor_factory: typing.Callable
         "prob_hist_count": list(prob_dist_count),
         "prob_hist_bins": list(prob_dist_bins),
         "prob_probabilistic_exposure": prob_probabilistic_exposure,
-        "expected_new_cases": np.array(model.expected_new_cases()).mean(),
+        "expected_new_cases": expected_new_cases,
         "uncertainties_plot_src": uncertainties_plot_src,
         "CO2_concentrations": CO2_concentrations,
         "conditional_probability_data": conditional_probability_data,
-        "uncertainties_plot_src": uncertainties_plot_src,
     }
 
 
@@ -417,24 +419,20 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
 def scenario_statistics(
     mc_model: mc.ExposureModel,
     sample_times: typing.List[float],
+    static_occupancy: bool,
     compute_prob_exposure: bool,
 ):
     model = mc_model.build_model(
         size=mc_model.data_registry.monte_carlo['sample_size'])
-    if (compute_prob_exposure):
-        # It means we have data to calculate the total_probability_rule
-        prob_probabilistic_exposure = model.total_probability_rule()
-    else:
-        prob_probabilistic_exposure = -1 
 
     return {
         'probability_of_infection': np.mean(model.infection_probability()),
-        'expected_new_cases': np.mean(model.expected_new_cases()),
+        'expected_new_cases': np.mean(model.expected_new_cases()) if static_occupancy else None,
         'concentrations': [
             np.mean(model.concentration(time))
             for time in sample_times
         ],
-        'prob_probabilistic_exposure': prob_probabilistic_exposure,
+        'prob_probabilistic_exposure': model.total_probability_rule() if compute_prob_exposure else None,
     }
 
 
@@ -455,16 +453,15 @@ def comparison_report(
     else:
         statistics = {}
 
-    if (form.short_range_option == "short_range_yes" and form.exposure_option == "p_probabilistic_exposure" and form.occupancy_format == "static"):
-        compute_prob_exposure = True
-    else:
-        compute_prob_exposure = False
+    static_occupancy = form.occupancy_format == "static"
+    compute_prob_exposure = form.short_range_option == "short_range_yes" and form.exposure_option == "p_probabilistic_exposure" and static_occupancy
         
     with executor_factory() as executor:
         results = executor.map(
             scenario_statistics,
             scenarios.values(),
             [report_data['times']] * len(scenarios),
+            [static_occupancy] * len(scenarios),
             [compute_prob_exposure] * len(scenarios),
             timeout=60,
         )

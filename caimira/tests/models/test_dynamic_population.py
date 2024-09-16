@@ -232,24 +232,32 @@ def test_dynamic_total_probability_rule(
 
 
 def test_dynamic_expected_new_cases(
-        full_exposure_model: models.ExposureModel,
         dynamic_infected_single_exposure_model: models.ExposureModel,
         dynamic_exposed_single_exposure_model: models.ExposureModel,
         dynamic_population_exposure_model: models.ExposureModel):
 
-    base_expected_new_cases = full_exposure_model.expected_new_cases()
-    npt.assert_almost_equal(base_expected_new_cases, dynamic_infected_single_exposure_model.expected_new_cases())
-    npt.assert_almost_equal(base_expected_new_cases, dynamic_exposed_single_exposure_model.expected_new_cases())
-    npt.assert_almost_equal(base_expected_new_cases, dynamic_population_exposure_model.expected_new_cases())
+    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute expected new cases "
+                                                            "with dynamic occupancy")):
+        dynamic_infected_single_exposure_model.expected_new_cases()
+    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute expected new cases "
+                                                        "with dynamic occupancy")):
+        dynamic_exposed_single_exposure_model.expected_new_cases()
+    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute expected new cases "
+                                                            "with dynamic occupancy")):
+        dynamic_population_exposure_model.expected_new_cases()
 
 
 def test_dynamic_reproduction_number(
-        full_exposure_model: models.ExposureModel,
         dynamic_infected_single_exposure_model: models.ExposureModel,
         dynamic_exposed_single_exposure_model: models.ExposureModel,
         dynamic_population_exposure_model: models.ExposureModel):
     
-    base_reproduction_number = full_exposure_model.reproduction_number()
-    npt.assert_almost_equal(base_reproduction_number, dynamic_infected_single_exposure_model.reproduction_number())
-    npt.assert_almost_equal(base_reproduction_number, dynamic_exposed_single_exposure_model.reproduction_number())
-    npt.assert_almost_equal(base_reproduction_number, dynamic_population_exposure_model.reproduction_number())
+    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute reproduction number "
+                                                            "with dynamic occupancy")):
+        dynamic_infected_single_exposure_model.reproduction_number()
+    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute reproduction number "
+                                                            "with dynamic occupancy")):
+        dynamic_exposed_single_exposure_model.reproduction_number()
+    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute reproduction number "
+                                                            "with dynamic occupancy")):
+        dynamic_population_exposure_model.reproduction_number()

@@ -11,7 +11,7 @@
   {% set long_range_prob_inf = prob_inf %}
 {% endif %}
 
-{% if ((long_range_prob_inf > red_prob_lim) or (expected_new_cases >= 1)) %} 
+{% if ((long_range_prob_inf > red_prob_lim) or (form.occupancy_format == "static" and expected_new_cases >= 1)) %} 
   {% set long_range_scale_warning = 'red' %}
   {% set long_range_warning_color= 'bg-danger' %}
 {% elif (orange_prob_lim <= long_range_prob_inf <= red_prob_lim) %}
@@ -22,7 +22,7 @@
   {% set long_range_warning_color = 'bg-success' %} 
 {% endif %}
 
-{% if ((prob_inf > red_prob_lim) or (expected_new_cases >= 1)) %} {% set scale_warning = 'red' %}
+{% if ((prob_inf > red_prob_lim) or (form.occupancy_format == "static" and expected_new_cases >= 1)) %} {% set scale_warning = 'red' %}
 {% elif (orange_prob_lim <= prob_inf <= red_prob_lim) %} {% set scale_warning = 'orange' %} 
 {% else %} {% set scale_warning = 'green' %} 
 {% endif %}
@@ -70,7 +70,10 @@
         <div class="alert alert-success mb-0" role="alert">
           <strong>Acceptable:</strong>
       {% endif %}
-        Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally (i.e. without short-range interactions), the <b>probability of one exposed occupant getting infected is {{long_range_prob_inf | non_zero_percentage}}</b> and the <b>expected number of new cases is {{ long_range_expected_cases | float_format }}</b>*.
+        Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally (i.e. without short-range interactions), the <b>probability of one exposed occupant getting infected is {{long_range_prob_inf | non_zero_percentage}}</b>
+        {% if form.occupancy_format == "static" %}
+          and the <b>expected number of new cases is {{ long_range_expected_cases | float_format }}</b>
+        {% endif %}*.
       </div>
       {% if form.short_range_option == "short_range_yes" %} 
         <br>
@@ -84,7 +87,10 @@
           <div class="alert alert-success mb-0" role="alert">
             <strong>Acceptable:</strong>
         {% endif %}
-        In this scenario, the <b>probability the occupant(s) exposed to short-range interactions get infected can go as high as {{ prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases increases to {{ expected_new_cases | float_format }}</b>.
+        In this scenario, the <b>probability the occupant(s) exposed to short-range interactions get infected can go as high as {{ prob_inf | non_zero_percentage }}</b>
+        {% if form.occupancy_format == "static" %} 
+          and the <b>expected number of new cases increases to {{ expected_new_cases | float_format }}</b>
+        {% endif %}.
         </div>
       {% endif %}
       
@@ -137,12 +143,12 @@
                 <tr>
                     <th>Scenario</th>
                     <th>P(i)</th>
-                    <th>Expected new cases</th>
+                    {% if form.occupancy_format == "static" %}<th>Expected new cases</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
             {% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
-                {%if (( scenario_stats.probability_of_infection  > red_prob_lim) or (scenario_stats.expected_new_cases >= 1)) %}
+                {%if (( scenario_stats.probability_of_infection  > red_prob_lim) or (form.occupancy_format == "static" and scenario_stats.expected_new_cases >= 1)) %}
                   <tr class="alert-danger">
                 {% elif (orange_prob_lim <= scenario_stats.probability_of_infection <= red_prob_lim) %}
                   <tr class="alert-warning">
@@ -151,7 +157,7 @@
                 {% endif%}
                     <td> {{ scenario_name }}</td>
                     <td> {{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
-                    <td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>
+                    {% if form.occupancy_format == "static" %}<td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>{% endif %}
                 </tr>
             {% endfor %}
             </tbody>

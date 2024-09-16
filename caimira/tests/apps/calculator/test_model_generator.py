@@ -1,5 +1,5 @@
 import dataclasses
-import typing
+import re
 
 import numpy as np
 import numpy.testing as npt
@@ -588,3 +588,33 @@ def test_form_timezone(baseline_form_data, data_registry, longitude, latitude, m
     name, offset = form.tz_name_and_utc_offset()
     assert name == expected_tz_name
     assert offset == expected_offset
+
+
+@pytest.mark.parametrize(
+    ["dynamic_occupancy_input", "error"],
+    [
+        [[["total_people", 10, "start_time", "10:00", "finish_time", "11:00"]], "Each occupancy entry should be in a dictionary format. Got \"<class 'list'>\"."],
+        [[{"tal_people": 10, "start_time": "10:00", "finish_time": "11:00"}], "Unable to fetch \"total_people\" key. Got \"['tal_people', 'start_time', 'finish_time']\"."],
+        [[{"total_people": 10, "art_time": "10:00", "finish_time": "11:00"}], "Unable to fetch \"start_time\" key. Got \"['total_people', 'art_time', 'finish_time']\"."],
+        [[{"total_people": 10, "start_time": "10:00", "ish_time": "11:00"}], "Unable to fetch \"finish_time\" key. Got \"['total_people', 'start_time', 'ish_time']\"."],
+        [[{"total_people": 10, "start_time": "10", "finish_time": "11:00"}], "Wrong time format - \"HH:MM\". Got \"10\"."],
+        [[{"total_people": 10, "start_time": "10:00", "finish_time": "11"}], "Wrong time format - \"HH:MM\". Got \"11\"."],
+    ]
+)
+def test_dynamic_occupancy_structure(dynamic_occupancy_input, error, baseline_form: virus_validator.VirusFormData):
+    with pytest.raises(TypeError, match=re.escape(error)):
+        baseline_form.generate_dynamic_occupancy(dynamic_occupancy_input)
+
+
+@pytest.mark.parametrize(
+    ["dynamic_occupancy_input", "error"],
+    [
+        [[{"total_people": "10", "start_time": "10:00", "finish_time": "11:00"}], "Total number of people should be integer. Got \"<class 'str'>\"."],
+        [[{"total_people": 9.8, "start_time": "10:00", "finish_time": "11:00"}], "Total number of people should be integer. Got \"<class 'float'>\"."],
+        [[{"total_people": [10], "start_time": "10:00", "finish_time": "11:00"}], "Total number of people should be integer. Got \"<class 'list'>\"."],
+        [[{"total_people": -1, "start_time": "10:00", "finish_time": "11:00"}], "Total number of people should be non-negative. Got \"-1\"."],
+    ]
+)
+def test_dynamic_occupancy_total_people(dynamic_occupancy_input, error, baseline_form: virus_validator.VirusFormData):
+    with pytest.raises(ValueError, match=re.escape(error)):
+        baseline_form.generate_dynamic_occupancy(dynamic_occupancy_input)

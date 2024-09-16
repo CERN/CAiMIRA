@@ -19,7 +19,7 @@ minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
 
 @dataclasses.dataclass
 class FormData:
-    specific_breaks: dict
+    # Static occupancy inputs
     exposed_coffee_break_option: str
     exposed_coffee_duration: int
     exposed_finish: minutes_since_midnight
@@ -27,19 +27,23 @@ class FormData:
     exposed_lunch_option: bool
     exposed_lunch_start: minutes_since_midnight
     exposed_start: minutes_since_midnight
-    infected_coffee_break_option: str
-    infected_coffee_duration: int
+    infected_coffee_break_option: str               #Used if infected_dont_have_breaks_with_exposed
+    infected_coffee_duration: int                   #Used if infected_dont_have_breaks_with_exposed
     infected_dont_have_breaks_with_exposed: bool
     infected_finish: minutes_since_midnight
-    infected_lunch_finish: minutes_since_midnight # Used if infected_dont_have_breaks_with_exposed
-    infected_lunch_option: bool # Used if infected_dont_have_breaks_with_exposed
-    infected_lunch_start: minutes_since_midnight # Used if infected_dont_have_breaks_with_exposed
-    infected_people: int
-    dynamic_infected_occupancy: list
+    infected_lunch_finish: minutes_since_midnight   #Used if infected_dont_have_breaks_with_exposed
+    infected_lunch_option: bool                     #Used if infected_dont_have_breaks_with_exposed
+    infected_lunch_start: minutes_since_midnight    #Used if infected_dont_have_breaks_with_exposed
     infected_start: minutes_since_midnight
+    infected_people: int
+    occupancy_format: str
     room_volume: float
+    specific_breaks: dict
     total_people: int
+
+    # Dynamic occupancy inputs
     dynamic_exposed_occupancy: list
+    dynamic_infected_occupancy: list
 
     data_registry: DataRegistry
 
@@ -385,24 +389,24 @@ class FormData:
         for occupancy in dynamic_occupancy:
             # Check if each occupancy entry is a dictionary
             if not isinstance(occupancy, typing.Dict):
-                raise TypeError(f'Each occupancy entry should be in a dictionary format. Got "{type(occupancy)}."')
+                raise TypeError(f'Each occupancy entry should be in a dictionary format. Got "{type(occupancy)}".')
             
             # Check for required keys in each occupancy entry
             dict_keys = list(occupancy.keys())
             if "total_people" not in dict_keys:
-                raise TypeError(f'Unable to fetch "total_people" key. Got "{dict_keys[0]}".')
+                raise TypeError(f'Unable to fetch "total_people" key. Got "{dict_keys}".')
             else:
                 value = occupancy["total_people"]
                 # Check if the value is a non-negative integer
                 if not isinstance(value, int):
-                    raise ValueError(f"Total number of people should be integer. Got {value}.")
+                    raise ValueError(f'Total number of people should be integer. Got "{type(value)}".')
                 elif not value >= 0:
-                    raise ValueError(f"Total number of people should be non-negative. Got {value}.")
+                    raise ValueError(f'Total number of people should be non-negative. Got "{value}".')
             
             if "start_time" not in dict_keys:
-                raise TypeError(f'Unable to fetch "start_time" key. Got "{dict_keys[1]}".')
+                raise TypeError(f'Unable to fetch "start_time" key. Got "{dict_keys}".')
             if "finish_time" not in dict_keys:
-                raise TypeError(f'Unable to fetch "finish_time" key. Got "{dict_keys[2]}".')
+                raise TypeError(f'Unable to fetch "finish_time" key. Got "{dict_keys}".')
 
             # Validate time format for start_time and finish_time
             for time_key in ["start_time", "finish_time"]:
@@ -427,8 +431,7 @@ class FormData:
             transition_times=tuple(unique_transition_times_sorted),
             values=tuple(values)
         )
-        population_presence: typing.Union[None, models.Interval] = None
-        return population_occupancy, population_presence
+        return population_occupancy
 
 
 def _hours2timestring(hours: float):

@@ -201,11 +201,13 @@ class CO2FormData(FormData):
         # intervals and number of people are dynamic. Activity type is not needed.
         if self.occupancy_format == 'dynamic':
             if isinstance(self.dynamic_infected_occupancy, typing.List) and len(self.dynamic_infected_occupancy) > 0:
-                infected_people, infected_presence = self.generate_dynamic_occupancy(self.dynamic_infected_occupancy)
+                infected_people = self.generate_dynamic_occupancy(self.dynamic_infected_occupancy)
+                infected_presence = None
             else:
                 raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_infected_occupancy}".')
             if isinstance(self.dynamic_exposed_occupancy, typing.List) and len(self.dynamic_exposed_occupancy) > 0:
-                exposed_people, exposed_presence = self.generate_dynamic_occupancy(self.dynamic_exposed_occupancy)
+                exposed_people = self.generate_dynamic_occupancy(self.dynamic_exposed_occupancy)
+                exposed_presence = None
             else:
                 raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_exposed_occupancy}".')
         else:

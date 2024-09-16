@@ -104,7 +104,7 @@
 														</div>
 													{% endblock long_range_warning_animation %}
 												</div>
-												<h6><b>Expected new cases:</b> {{ long_range_expected_cases | float_format }}</h6>
+												{% if form.occupancy_format == "static" %}<h6><b>Expected new cases:</b> {{ long_range_expected_cases | float_format }}</h6>{% endif %}
 											</div>
 											<br>
 											{% if form.short_range_option == "short_range_yes" %}
@@ -126,19 +126,27 @@
 														</div>
 														{% endblock warning_animation %}
 													</div>
-													<h6><b>Expected new cases:</b> {{ expected_new_cases | float_format }}</h6>
+													{% if form.occupancy_format == "static" %}
+														<h6><b>Expected new cases:</b> {{ expected_new_cases | float_format }}</h6>
+													{% endif %}
 												</div>
 											{% endif %}
 										<div class="d-flex">
 											{% block report_summary %}
 											<div class="flex-row align-self-center">
 												<div class="align-self-center alert alert-dark mb-0" role="alert">
-													Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally (i.e. without short-range interactions), the <b>probability of one exposed occupant getting infected is {{ long_range_prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases is {{ long_range_expected_cases | float_format }}</b>*.
+													Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally (i.e. without short-range interactions), the <b>probability of one exposed occupant getting infected is {{ long_range_prob_inf | non_zero_percentage }}</b>
+													{% if form.occupancy_format == "static" %}
+														and the <b>expected number of new cases is {{ long_range_expected_cases | float_format }}</b>
+													{% endif %}*.
 												</div>
 												{% if form.short_range_option == "short_range_yes" %}
 													<br>
 													<div class="align-self-center alert alert-dark mb-0" role="alert">
-														In this scenario, the <b>probability the occupant(s) exposed to short-range interactions get infected can go as high as {{ prob_inf | non_zero_percentage }}</b> and the <b>expected number of new cases increases to {{ expected_new_cases | float_format }}</b>.
+														In this scenario, the <b>probability the occupant(s) exposed to short-range interactions get infected can go as high as {{ prob_inf | non_zero_percentage }}</b>
+														{% if form.occupancy_format == "static" %}
+															and the <b>expected number of new cases increases to {{ expected_new_cases | float_format }}</b>
+														{% endif %}.
 													</div>
 												{% endif %}
 												{% block probabilistic_exposure_probability %}
@@ -302,7 +310,7 @@
 												<tr>
 													<th>Scenario</th>
 													<th>P(I)</th>
-													<th>Expected new cases</th>
+													{% if form.occupancy_format == "static" %}<th>Expected new cases</th>{% endif %}
 												</tr>
 											</thead>
 											<tbody>
@@ -310,7 +318,7 @@
 												<tr>
 													<td> {{ scenario_name }}</td>
 													<td> {{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
-													<td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>
+													{% if form.occupancy_format == "static" %}<td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>{% endif %}
 												</tr>
 											{% endfor %}
 											</tbody>
@@ -630,11 +638,11 @@
 							<ul>
 							{% for interaction in form.short_range_interactions %}
 							<li>Interaction no. {{ loop.index }}:
-								<ul>
-									<li>Expiratory activity: {{ "Shouting/Singing" if interaction.expiration == "Shouting" else interaction.expiration }} </li>
-									<li>Start time: {{ interaction.start_time }} </li>
-									<li>Duration: {{ interaction.duration }} {{ "minutes" if interaction.duration|float > 1 else "minute" }}</li>
-								</ul>
+							<ul>
+								<li>Expiratory activity: {{ "Shouting/Singing" if interaction.expiration == "Shouting" else interaction.expiration }} </li>
+								<li>Start time: {{ interaction.start_time }} </li>
+								<li>Duration: {{ interaction.duration }} {{ "minutes" if interaction.duration|float > 1 else "minute" }}</li>
+							</ul>
 							</li>
 							{% endfor %}
 							</ul>
