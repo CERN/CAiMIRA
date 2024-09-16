@@ -98,76 +98,110 @@ class FormData:
         return form_dict
 
     def validate_population_parameters(self):
-        # Validate number of infected <= number of total people
-        if self.infected_people >= self.total_people:
-            raise ValueError(
-                'Number of infected people cannot be greater or equal to the number of total people.')
-
-        # Validate time intervals selected by user
-        time_intervals = [
-            ['exposed_start', 'exposed_finish'],
-            ['infected_start', 'infected_finish'],
-        ]
-        if self.exposed_lunch_option:
-            time_intervals.append(
-                ['exposed_lunch_start', 'exposed_lunch_finish'])
-        if self.infected_dont_have_breaks_with_exposed and self.infected_lunch_option:
-            time_intervals.append(
-                ['infected_lunch_start', 'infected_lunch_finish'])
-
-        for start_name, end_name in time_intervals:
-            start = getattr(self, start_name)
-            end = getattr(self, end_name)
-            if start > end:
+        # Static occupancy is defined.
+        if self.occupancy_format == 'static':        
+            # Validate number of infected <= number of total people
+            if self.infected_people >= self.total_people:
                 raise ValueError(
-                    f"{start_name} must be less than {end_name}. Got {start} and {end}.")
+                    'Number of infected people cannot be greater or equal to the number of total people.')
 
-        def validate_lunch(start, finish):
-            lunch_start = getattr(self, f'{population}_lunch_start')
-            lunch_finish = getattr(self, f'{population}_lunch_finish')
-            return (start <= lunch_start <= finish and
-                    start <= lunch_finish <= finish)
+            # Validate time intervals selected by user
+            time_intervals = [
+                ['exposed_start', 'exposed_finish'],
+                ['infected_start', 'infected_finish'],
+            ]
+            if self.exposed_lunch_option:
+                time_intervals.append(
+                    ['exposed_lunch_start', 'exposed_lunch_finish'])
+            if self.infected_dont_have_breaks_with_exposed and self.infected_lunch_option:
+                time_intervals.append(
+                    ['infected_lunch_start', 'infected_lunch_finish'])
 
-        def get_lunch_mins(population):
-            lunch_mins = 0
-            if getattr(self, f'{population}_lunch_option'):
-                lunch_mins = getattr(
-                    self, f'{population}_lunch_finish') - getattr(self, f'{population}_lunch_start')
-            return lunch_mins
-
-        def get_coffee_mins(population):
-            coffee_mins = 0
-            if getattr(self, f'{population}_coffee_break_option') != 'coffee_break_0':
-                coffee_mins = COFFEE_OPTIONS_INT[getattr(
-                    self, f'{population}_coffee_break_option')] * getattr(self, f'{population}_coffee_duration')
-            return coffee_mins
-
-        def get_activity_mins(population):
-            return getattr(self, f'{population}_finish') - getattr(self, f'{population}_start')
-
-        populations = [
-            'exposed', 'infected'] if self.infected_dont_have_breaks_with_exposed else ['exposed']
-        for population in populations:
-            # Validate lunch time within the activity times.
-            if (getattr(self, f'{population}_lunch_option') and
-                    not validate_lunch(getattr(self, f'{population}_start'), getattr(
-                        self, f'{population}_finish'))
-                    ):
-                raise ValueError(
-                    f"{population} lunch break must be within presence times."
-                )
-
-            # Length of breaks < length of activity
-            if (get_lunch_mins(population) + get_coffee_mins(population)) >= get_activity_mins(population):
-                raise ValueError(
-                    f"Length of breaks >= Length of {population} presence."
-                )
-
-            for attr_name, valid_set in [('exposed_coffee_break_option', COFFEE_OPTIONS_INT),
-                                         ('infected_coffee_break_option', COFFEE_OPTIONS_INT)]:
-                if getattr(self, attr_name) not in valid_set:
+            for start_name, end_name in time_intervals:
+                start = getattr(self, start_name)
+                end = getattr(self, end_name)
+                if start > end:
                     raise ValueError(
-                        f"{getattr(self, attr_name)} is not a valid value for {attr_name}")
+                        f"{start_name} must be less than {end_name}. Got {start} and {end}.")
+
+            def validate_lunch(start, finish):
+                lunch_start = getattr(self, f'{population}_lunch_start')
+                lunch_finish = getattr(self, f'{population}_lunch_finish')
+                return (start <= lunch_start <= finish and
+                        start <= lunch_finish <= finish)
+
+            def get_lunch_mins(population):
+                lunch_mins = 0
+                if getattr(self, f'{population}_lunch_option'):
+                    lunch_mins = getattr(
+                        self, f'{population}_lunch_finish') - getattr(self, f'{population}_lunch_start')
+                return lunch_mins
+
+            def get_coffee_mins(population):
+                coffee_mins = 0
+                if getattr(self, f'{population}_coffee_break_option') != 'coffee_break_0':
+                    coffee_mins = COFFEE_OPTIONS_INT[getattr(
+                        self, f'{population}_coffee_break_option')] * getattr(self, f'{population}_coffee_duration')
+                return coffee_mins
+
+            def get_activity_mins(population):
+                return getattr(self, f'{population}_finish') - getattr(self, f'{population}_start')
+
+            populations = [
+                'exposed', 'infected'] if self.infected_dont_have_breaks_with_exposed else ['exposed']
+            for population in populations:
+                # Validate lunch time within the activity times.
+                if (getattr(self, f'{population}_lunch_option') and
+                        not validate_lunch(getattr(self, f'{population}_start'), getattr(
+                            self, f'{population}_finish'))
+                        ):
+                    raise ValueError(
+                        f"{population} lunch break must be within presence times."
+                    )
+
+                # Length of breaks < length of activity
+                if (get_lunch_mins(population) + get_coffee_mins(population)) >= get_activity_mins(population):
+                    raise ValueError(
+                        f"Length of breaks >= Length of {population} presence."
+                    )
+
+                for attr_name, valid_set in [('exposed_coffee_break_option', COFFEE_OPTIONS_INT),
+                                            ('infected_coffee_break_option', COFFEE_OPTIONS_INT)]:
+                    if getattr(self, attr_name) not in valid_set:
+                        raise ValueError(
+                            f"{getattr(self, attr_name)} is not a valid value for {attr_name}")
+        # Dynamic occupancy is defined.
+        elif self.occupancy_format == 'dynamic':
+            for dynamic_format in (self.dynamic_infected_occupancy, self.dynamic_exposed_occupancy):
+                for occupancy in dynamic_format:
+                    # Check if each occupancy entry is a dictionary
+                    if not isinstance(occupancy, typing.Dict):
+                        raise TypeError(f'Each occupancy entry should be in a dictionary format. Got "{type(occupancy)}".')
+                    
+                    # Check for required keys in each occupancy entry
+                    dict_keys = list(occupancy.keys())
+                    if "total_people" not in dict_keys:
+                        raise TypeError(f'Unable to fetch "total_people" key. Got "{dict_keys}".')
+                    else:
+                        value = occupancy["total_people"]
+                        # Check if the value is a non-negative integer
+                        if not isinstance(value, int):
+                            raise ValueError(f'Total number of people should be integer. Got "{type(value)}".')
+                        elif not value >= 0:
+                            raise ValueError(f'Total number of people should be non-negative. Got "{value}".')
+                    
+                    if "start_time" not in dict_keys:
+                        raise TypeError(f'Unable to fetch "start_time" key. Got "{dict_keys}".')
+                    if "finish_time" not in dict_keys:
+                        raise TypeError(f'Unable to fetch "finish_time" key. Got "{dict_keys}".')
+
+                    # Validate time format for start_time and finish_time
+                    for time_key in ["start_time", "finish_time"]:
+                        time = occupancy[time_key]
+                        if not re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$").match(time):
+                            raise TypeError(f'Wrong time format - "HH:MM". Got "{time}".')
+        else:
+            raise ValueError(f"'{self.occupancy_format}' is not a valid value for 'self.occupancy_format'. Accepted values are 'static' or 'dynamic'.")
 
     def validate(self):
         raise NotImplementedError("Subclass must implement")
@@ -385,35 +419,6 @@ class FormData:
         )
     
     def generate_dynamic_occupancy(self, dynamic_occupancy: typing.List[typing.Dict[str, typing.Any]]):
-        ##### Data format validation #####
-        for occupancy in dynamic_occupancy:
-            # Check if each occupancy entry is a dictionary
-            if not isinstance(occupancy, typing.Dict):
-                raise TypeError(f'Each occupancy entry should be in a dictionary format. Got "{type(occupancy)}".')
-            
-            # Check for required keys in each occupancy entry
-            dict_keys = list(occupancy.keys())
-            if "total_people" not in dict_keys:
-                raise TypeError(f'Unable to fetch "total_people" key. Got "{dict_keys}".')
-            else:
-                value = occupancy["total_people"]
-                # Check if the value is a non-negative integer
-                if not isinstance(value, int):
-                    raise ValueError(f'Total number of people should be integer. Got "{type(value)}".')
-                elif not value >= 0:
-                    raise ValueError(f'Total number of people should be non-negative. Got "{value}".')
-            
-            if "start_time" not in dict_keys:
-                raise TypeError(f'Unable to fetch "start_time" key. Got "{dict_keys}".')
-            if "finish_time" not in dict_keys:
-                raise TypeError(f'Unable to fetch "finish_time" key. Got "{dict_keys}".')
-
-            # Validate time format for start_time and finish_time
-            for time_key in ["start_time", "finish_time"]:
-                time = occupancy[time_key]
-                if not re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$").match(time):
-                    raise TypeError(f'Wrong time format - "HH:MM". Got "{time}".')
-        
         transition_times = []
         values = []
         for occupancy in dynamic_occupancy:

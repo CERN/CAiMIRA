@@ -591,6 +591,20 @@ def test_form_timezone(baseline_form_data, data_registry, longitude, latitude, m
 
 
 @pytest.mark.parametrize(
+    ["occupancy_format_input", "error"],
+    [
+        ['dynamc', "'dynamc' is not a valid value for 'self.occupancy_format'. Accepted values are 'static' or 'dynamic'.",],
+        ['stact', "'stact' is not a valid value for 'self.occupancy_format'. Accepted values are 'static' or 'dynamic'.",],
+        ['random', "'random' is not a valid value for 'self.occupancy_format'. Accepted values are 'static' or 'dynamic'.",]
+    ]
+)
+def test_dynamic_format_input(occupancy_format_input, error, baseline_form: virus_validator.VirusFormData):
+    baseline_form.occupancy_format = occupancy_format_input
+    with pytest.raises(ValueError, match=re.escape(error)):
+        baseline_form.validate()
+
+
+@pytest.mark.parametrize(
     ["dynamic_occupancy_input", "error"],
     [
         [[["total_people", 10, "start_time", "10:00", "finish_time", "11:00"]], "Each occupancy entry should be in a dictionary format. Got \"<class 'list'>\"."],
@@ -602,8 +616,11 @@ def test_form_timezone(baseline_form_data, data_registry, longitude, latitude, m
     ]
 )
 def test_dynamic_occupancy_structure(dynamic_occupancy_input, error, baseline_form: virus_validator.VirusFormData):
+    baseline_form.occupancy_format = "dynamic"
+    baseline_form.dynamic_infected_occupancy = dynamic_occupancy_input
+    baseline_form.dynamic_exposed_occupancy = dynamic_occupancy_input
     with pytest.raises(TypeError, match=re.escape(error)):
-        baseline_form.generate_dynamic_occupancy(dynamic_occupancy_input)
+        baseline_form.validate()
 
 
 @pytest.mark.parametrize(
@@ -616,5 +633,8 @@ def test_dynamic_occupancy_structure(dynamic_occupancy_input, error, baseline_fo
     ]
 )
 def test_dynamic_occupancy_total_people(dynamic_occupancy_input, error, baseline_form: virus_validator.VirusFormData):
+    baseline_form.occupancy_format = "dynamic"
+    baseline_form.dynamic_infected_occupancy = dynamic_occupancy_input
+    baseline_form.dynamic_exposed_occupancy = dynamic_occupancy_input
     with pytest.raises(ValueError, match=re.escape(error)):
-        baseline_form.generate_dynamic_occupancy(dynamic_occupancy_input)
+        baseline_form.validate()
