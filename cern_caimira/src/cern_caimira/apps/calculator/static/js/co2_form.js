@@ -392,11 +392,6 @@ function plotCO2Data(url) {
 
 function submitFittingAlgorithm(url) {
   if (validateCO2Form()) {
-    // Disable all the ventilation inputs
-    $("#fitting_ventilation_states, [name=fitting_ventilation_type]").prop(
-      "disabled",
-      true
-    );
     // Disable room capacity input
     $("#room_capacity").prop(
       "disabled",
