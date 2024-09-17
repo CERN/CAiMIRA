@@ -193,8 +193,7 @@ class CO2FormData(FormData):
             vent_states.append(last_time_from_input)
         return tuple(vent_states)
 
-    def build_model(self, size=None) -> models.CO2DataModel: # type: ignore
-        size = size or self.data_registry.monte_carlo['sample_size']
+    def build_model(self, sample_size = None) -> models.CO2DataModel:
         # Build a simple infected and exposed population for the case when presence
         # intervals and number of people are dynamic. Activity type is not needed.
         if self.occupancy_format == 'dynamic':

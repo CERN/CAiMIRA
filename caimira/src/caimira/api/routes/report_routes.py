@@ -7,7 +7,7 @@ from caimira.api.controller.virus_report_controller import submit_virus_form
 from caimira.api.controller.co2_report_controller import submit_CO2_form
 
 
-class BaseReportHandler(tornado.web.RedirectHandler):
+class BaseReportHandler(tornado.web.RequestHandler):
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
         self.set_header("Access-Control-Allow-Headers", "x-requested-with")
@@ -22,7 +22,14 @@ class VirusReportHandler(BaseReportHandler):
     def post(self):
         try:
             form_data = json.loads(self.request.body)
-            report_data = submit_virus_form(form_data)
+            arguments = self.request.arguments
+            # Report generation parallelism argument
+            try:
+                report_generation_parallelism = int(arguments['report_generation_parallelism'][0])
+            except:
+                report_generation_parallelism = None
+
+            report_data = submit_virus_form(form_data, report_generation_parallelism)
 
             response_data = {
                 "status": "success",
@@ -36,12 +43,7 @@ class VirusReportHandler(BaseReportHandler):
             self.write_error(status_code=400, exc_info=sys.exc_info())
 
 
-class CO2ReportHandler(tornado.web.RequestHandler):
-    def set_default_headers(self):
-        self.set_header("Access-Control-Allow-Origin", "*")
-        self.set_header("Access-Control-Allow-Headers", "x-requested-with")
-        self.set_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-
+class CO2ReportHandler(BaseReportHandler):
     def post(self):
         try:
             form_data = json.loads(self.request.body)
