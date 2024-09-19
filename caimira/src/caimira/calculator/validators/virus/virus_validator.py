@@ -73,6 +73,7 @@ class VirusFormData(FormData):
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = DEFAULTS
 
     def validate(self):
+        # Validate population parameters 
         self.validate_population_parameters()
 
         validation_tuples = [('activity_type', self.data_registry.population_scenario_activity.keys()),
@@ -202,11 +203,29 @@ class VirusFormData(FormData):
                     f'The sum of all respiratory activities should be 100. Got {total_percentage}.')
 
         # Validate number of people with short-range interactions
-        max_occupants_for_sr = self.total_people - self.infected_people
+        if self.occupancy_format == "static": max_occupants_for_sr = self.total_people - self.infected_people
+        else: max_occupants_for_sr = np.max(np.array([entry["total_people"] for entry in self.dynamic_exposed_occupancy]))
         if self.short_range_occupants > max_occupants_for_sr:
             raise ValueError(
                 f'The total number of occupants having short-range interactions ({self.short_range_occupants}) should be lower than the exposed population ({max_occupants_for_sr}).'
             )
+        
+        # Validate short-range interactions interval
+        if self.short_range_option == "short_range_yes":
+            for interaction in self.short_range_interactions:
+                # Check if presence is within long-range exposure
+                presence = self.short_range_interval(interaction)
+                if (self.occupancy_format == 'dynamic'):
+                    long_range_start = min(time_string_to_minutes(self.dynamic_infected_occupancy[0]['start_time']), 
+                                            time_string_to_minutes(self.dynamic_exposed_occupancy[0]['start_time']))
+                    long_range_stop = max(time_string_to_minutes(self.dynamic_infected_occupancy[-1]['finish_time']), 
+                                            time_string_to_minutes(self.dynamic_exposed_occupancy[-1]['finish_time']))
+                else:
+                    long_range_start = min(self.infected_start, self.exposed_start)
+                    long_range_stop = max(self.infected_finish, self.exposed_finish)
+                if not (long_range_start/60 <= presence.present_times[0][0] <= long_range_stop/60 and 
+                        long_range_start/60 <= presence.present_times[0][-1] <= long_range_stop/60):
+                    raise ValueError(f"Short-range interactions should be defined during simulation time. Got {interaction}")
 
     def initialize_room(self) -> models.Room:
         # Initializes room with volume either given directly or as product of area and height
@@ -230,7 +249,7 @@ class VirusFormData(FormData):
     def build_mc_model(self) -> mc.ExposureModel:
         room = self.initialize_room()
         ventilation: models._VentilationBase = self.ventilation()
-        infected_population = self.infected_population()
+        infected_population: models.InfectedPopulation = self.infected_population()
         short_range = []
         if self.short_range_option == "short_range_yes":
             for interaction in self.short_range_interactions:
@@ -444,27 +463,39 @@ class VirusFormData(FormData):
         # Initializes the virus
         virus = virus_distributions(self.data_registry)[self.virus_type]
 
-        activity_defn = self.data_registry.population_scenario_activity[
-            self.activity_type]['activity']
-        expiration_defn = self.data_registry.population_scenario_activity[
-            self.activity_type]['expiration']
+        # Occupancy
+        if self.occupancy_format == 'dynamic':
+            if isinstance(self.dynamic_infected_occupancy, typing.List) and len(self.dynamic_infected_occupancy) > 0:
+                # If dynamic occupancy is defined, the generator will parse and validate the
+                # respective input to a format readable by the model - `IntPiecewiseConstant`.
+                infected_occupancy = self.generate_dynamic_occupancy(self.dynamic_infected_occupancy)
+                infected_presence = None
+            else:
+                raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_infected_occupancy}".')
+        else:
+            # The number of exposed occupants is the total number of occupants
+            # minus the number of infected occupants.
+            infected_occupancy = self.infected_people
+            infected_presence = self.infected_present_interval()
+
+        # Activity and expiration
+        activity_defn = self.data_registry.population_scenario_activity[self.activity_type]['activity']
+        expiration_defn = self.data_registry.population_scenario_activity[self.activity_type]['expiration']
         if (self.activity_type == 'smallmeeting'):
             # Conversation of N people is approximately 1/N% of the time speaking.
-            expiration_defn = {'Speaking': 1,
-                               'Breathing': self.total_people - 1}
+            total_people: int = max(infected_occupancy.values) if self.occupancy_format == 'dynamic' else self.total_people
+            expiration_defn = {'Speaking': 1, 'Breathing': total_people - 1}
         elif (self.activity_type == 'precise'):
             activity_defn, expiration_defn = self.generate_precise_activity_expiration()
 
         activity = activity_distributions(self.data_registry)[activity_defn]
         expiration = build_expiration(self.data_registry, expiration_defn)
 
-        infected_occupants = self.infected_people
-
         infected = mc.InfectedPopulation(
             data_registry=self.data_registry,
-            number=infected_occupants,
+            number=infected_occupancy,
+            presence=infected_presence,
             virus=virus,
-            presence=self.infected_present_interval(),
             mask=self.mask(),
             activity=activity,
             expiration=expiration,
@@ -479,10 +510,19 @@ class VirusFormData(FormData):
                          else str(self.data_registry.population_scenario_activity[self.activity_type]['activity']))
         activity = activity_distributions(self.data_registry)[activity_defn]
 
-        infected_occupants = self.infected_people
-        # The number of exposed occupants is the total number of occupants
-        # minus the number of infected occupants.
-        exposed_occupants = self.total_people - infected_occupants
+        if self.occupancy_format == 'dynamic':
+            if isinstance(self.dynamic_exposed_occupancy, typing.List) and len(self.dynamic_exposed_occupancy) > 0:
+                # If dynamic occupancy is defined, the generator will parse and validate the
+                # respective input to a format readable by the model - IntPiecewiseConstant.
+                exposed_occupancy = self.generate_dynamic_occupancy(self.dynamic_exposed_occupancy)
+                exposed_presence = None
+            else:
+                raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_exposed_occupancy}".')
+        else:
+            # The number of exposed occupants is the total number of occupants
+            # minus the number of infected occupants.
+            exposed_occupancy = self.total_people - self.infected_people
+            exposed_presence = self.exposed_present_interval()
 
         if (self.vaccine_option):
             if (self.vaccine_booster_option and self.vaccine_booster_type != 'Other'):
@@ -495,8 +535,8 @@ class VirusFormData(FormData):
             host_immunity = 0.
 
         exposed = mc.Population(
-            number=exposed_occupants,
-            presence=self.exposed_present_interval(),
+            number=exposed_occupancy,
+            presence=exposed_presence,
             activity=activity,
             mask=self.mask(),
             host_immunity=host_immunity,
@@ -528,8 +568,12 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'activity_type': 'office',
         'air_changes': '',
         'air_supply': '',
+        'ascertainment_bias': 'confidence_low',
         'ceiling_height': '',
         'conditional_probability_viral_loads': '0',
+        'dynamic_exposed_occupancy': '[]',
+        'dynamic_infected_occupancy': '[]',
+        'event_month': 'January',
         'exposed_coffee_break_option': 'coffee_break_4',
         'exposed_coffee_duration': '10',
         'exposed_finish': '18:00',
@@ -538,6 +582,8 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'exposed_lunch_start': '12:30',
         'exposed_start': '09:00',
         'floor_area': '',
+        'geographic_cases': 0,
+        'geographic_population': 0,
         'hepa_amount': '250',
         'hepa_option': '0',
         'humidity': '0.5',
@@ -554,36 +600,33 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'location_latitude': 46.20833,
         'location_longitude': 6.14275,
         'location_name': 'Geneva',
-        'geographic_population': 0,
-        'geographic_cases': 0,
-        'ascertainment_bias': 'confidence_low',
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': '',
         'calculator_version': calculator_version,
         'opening_distance': '0.2',
-        'event_month': 'January',
+        'occupancy_format': 'static',
         'room_heating_option': '0',
         'room_number': '123',
         'room_volume': '75',
+        'short_range_interactions': '[]',
+        'short_range_option': 'short_range_no',
         'simulation_name': 'Test',
         'total_people': '10',
-        'vaccine_option': '0',
         'vaccine_booster_option': '0',
-        'vaccine_type': 'Ad26.COV2.S_(Janssen)',
         'vaccine_booster_type': 'AZD1222_(AstraZeneca)',
+        'vaccine_option': '0',
+        'vaccine_type': 'Ad26.COV2.S_(Janssen)',
         'ventilation_type': 'natural_ventilation',
         'virus_type': 'SARS_CoV_2',
         'volume_type': 'room_volume_explicit',
+        'window_height': '2',
+        'window_opening_regime': 'windows_open_permanently',
         'windows_duration': '10',
         'windows_frequency': '60',
-        'window_height': '2',
+        'windows_number': '1',
         'window_type': 'window_sliding',
         'window_width': '2',
-        'windows_number': '1',
-        'window_opening_regime': 'windows_open_permanently',
-        'short_range_option': 'short_range_no',
-        'short_range_interactions': '[]',
     }
 
 

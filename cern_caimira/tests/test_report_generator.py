@@ -2,6 +2,7 @@ import concurrent.futures
 from functools import partial
 import os
 import time
+import json
 
 import numpy as np
 import pytest
@@ -123,4 +124,62 @@ def test_expected_new_cases(baseline_form_with_sr: VirusFormData):
 
     lr_expected_new_cases = alternative_statistics['stats']['Base scenario without short-range interactions']['expected_new_cases']
     np.testing.assert_almost_equal(sr_lr_expected_new_cases, lr_expected_new_cases + sr_lr_prob_inf * baseline_form_with_sr.short_range_occupants, 2)
+
+
+def test_static_vs_dynamic_occupancy_from_form(baseline_form_data, data_registry):
+    """ 
+    Assert that the results between a static and dynamic occupancy model (from form inputs) are similar. 
+    """
+    executor_factory = partial(
+        concurrent.futures.ThreadPoolExecutor, 1,
+    )
+   
+    # By default the baseline form accepts static occupancy
+    static_occupancy_baseline_form: VirusFormData = VirusFormData.from_dict(baseline_form_data, data_registry)
+    static_occupancy_model = static_occupancy_baseline_form.build_model()
+    static_occupancy_report_data = rep_gen.calculate_report_data(static_occupancy_baseline_form, executor_factory)
+
+    # Update the initial form data to include dynamic occupancy (please note the 4 coffee and 1 lunch breaks)
+    baseline_form_data['occupancy_format'] = 'dynamic'
+    baseline_form_data['dynamic_infected_occupancy'] = json.dumps([
+        {'total_people': 1, 'start_time': '09:00', 'finish_time': '10:03'},
+        {'total_people': 0, 'start_time': '10:03', 'finish_time': '10:13'},
+        {'total_people': 1, 'start_time': '10:13', 'finish_time': '11:16'},
+        {'total_people': 0, 'start_time': '11:16', 'finish_time': '11:26'},
+        {'total_people': 1, 'start_time': '11:26', 'finish_time': '12:30'},
+        {'total_people': 0, 'start_time': '12:30', 'finish_time': '13:30'},
+        {'total_people': 1, 'start_time': '13:30', 'finish_time': '14:53'},
+        {'total_people': 0, 'start_time': '14:53', 'finish_time': '15:03'},
+        {'total_people': 1, 'start_time': '15:03', 'finish_time': '16:26'},
+        {'total_people': 0, 'start_time': '16:26', 'finish_time': '16:36'},
+        {'total_people': 1, 'start_time': '16:36', 'finish_time': '18:00'},
+    ])
+    baseline_form_data['dynamic_exposed_occupancy'] = json.dumps([
+        {'total_people': 9, 'start_time': '09:00', 'finish_time': '10:03'},
+        {'total_people': 0, 'start_time': '10:03', 'finish_time': '10:13'},
+        {'total_people': 9, 'start_time': '10:13', 'finish_time': '11:16'},
+        {'total_people': 0, 'start_time': '11:16', 'finish_time': '11:26'},
+        {'total_people': 9, 'start_time': '11:26', 'finish_time': '12:30'},
+        {'total_people': 0, 'start_time': '12:30', 'finish_time': '13:30'},
+        {'total_people': 9, 'start_time': '13:30', 'finish_time': '14:53'},
+        {'total_people': 0, 'start_time': '14:53', 'finish_time': '15:03'},
+        {'total_people': 9, 'start_time': '15:03', 'finish_time': '16:26'},
+        {'total_people': 0, 'start_time': '16:26', 'finish_time': '16:36'},
+        {'total_people': 9, 'start_time': '16:36', 'finish_time': '18:00'},
+    ])
+    baseline_form_data['total_people'] = 0
+    baseline_form_data['infected_people'] = 0
+
+    dynamic_occupancy_baseline_form: VirusFormData = VirusFormData.from_dict(baseline_form_data, data_registry)
+    dynamic_occupancy_model = dynamic_occupancy_baseline_form.build_model()
+    dynamic_occupancy_report_data = rep_gen.calculate_report_data(dynamic_occupancy_baseline_form, executor_factory)
+
+    assert (list(sorted(static_occupancy_model.concentration_model.infected.presence.transition_times())) == 
+            list(dynamic_occupancy_model.concentration_model.infected.number.transition_times))
+    assert (list(sorted(static_occupancy_model.exposed.presence.transition_times())) == 
+            list(dynamic_occupancy_model.exposed.number.transition_times))
+    
+    np.testing.assert_almost_equal(static_occupancy_report_data['prob_inf'], dynamic_occupancy_report_data['prob_inf'], 1)
+    assert dynamic_occupancy_report_data['expected_new_cases'] == None
+    assert dynamic_occupancy_report_data['prob_probabilistic_exposure'] == None
     
