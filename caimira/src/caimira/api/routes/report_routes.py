@@ -26,7 +26,7 @@ class VirusReportHandler(BaseReportHandler):
             # Report generation parallelism argument
             try:
                 report_generation_parallelism = int(arguments['report_generation_parallelism'][0])
-            except:
+            except (ValueError, IndexError, KeyError):
                 report_generation_parallelism = None
 
             report_data = submit_virus_form(form_data, report_generation_parallelism)
