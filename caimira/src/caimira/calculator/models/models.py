@@ -807,7 +807,7 @@ class SimplePopulation:
     number: typing.Union[int, IntPiecewiseConstant]
 
     #: The times in which the people are in the room.
-    presence: typing.Union[None, Interval]
+    presence: typing.Optional[Interval]
 
     #: The physical activity being carried out by the people.
     activity: Activity

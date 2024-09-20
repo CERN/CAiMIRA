@@ -206,7 +206,7 @@ class FormData:
     def validate(self):
         raise NotImplementedError("Subclass must implement")
 
-    def build_model(self, sample_size=None):
+    def build_model(self, sample_size: typing.Optional[int] = None):
         raise NotImplementedError("Subclass must implement")
 
     def _compute_breaks_in_interval(self, start, finish, n_breaks, duration) -> models.BoundarySequence_t:

@@ -87,6 +87,7 @@ test-cern-caimira-py39:
       - ./app-config/openshift/${CAIMIRA_INSTANCE}/expected
   only:
     - master
+    - live/caimira-test
 
 check_openshift_config_test:
   extends: .test_openshift_config
