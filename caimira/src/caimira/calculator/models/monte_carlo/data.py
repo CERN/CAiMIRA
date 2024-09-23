@@ -224,7 +224,7 @@ def activity_distributions(data_registry):
     }
 
 
-# From https://doi.org/10.1101/2021.10.14.21264988 and references therein
+# From https://doi.org/10.1098/rsfs.2021.0076 and references therein
 def symptomatic_vl_frequencies(data_registry):
     return param_evaluation(data_registry.virological_data, 'symptomatic_vl_frequencies')
 
@@ -419,8 +419,8 @@ def expiration_distributions(data_registry):
         exp_type: expiration_distribution(
             data_registry=data_registry,
             BLO_factors=BLO_factors,
-            d_min=param_evaluation(data_registry.expiration_particle['long_range_particle_diameter'], 'minimum_diameter'),
-            d_max=param_evaluation(data_registry.expiration_particle['long_range_particle_diameter'], 'maximum_diameter')
+            d_min=param_evaluation(data_registry.expiration_particle['particle_size_range']['long_range'], 'minimum_diameter'),
+            d_max=param_evaluation(data_registry.expiration_particle['particle_size_range']['long_range'], 'maximum_diameter')
         )
         for exp_type, BLO_factors in expiration_BLO_factors(data_registry).items()
     }
@@ -431,8 +431,8 @@ def short_range_expiration_distributions(data_registry):
         exp_type: expiration_distribution(
             data_registry=data_registry,
             BLO_factors=BLO_factors,
-            d_min=param_evaluation(data_registry.expiration_particle['short_range_particle_diameter'], 'minimum_diameter'),
-            d_max=param_evaluation(data_registry.expiration_particle['short_range_particle_diameter'], 'maximum_diameter')
+            d_min=param_evaluation(data_registry.expiration_particle['particle_size_range']['short_range'], 'minimum_diameter'),
+            d_max=param_evaluation(data_registry.expiration_particle['particle_size_range']['short_range'], 'maximum_diameter')
         )
         for exp_type, BLO_factors in expiration_BLO_factors(data_registry).items()
     }
