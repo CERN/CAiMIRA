@@ -10,7 +10,7 @@ function draw_plot(svg_id) {
     let button_full_exposure = document.getElementById("button_full_exposure");
     let button_hide_high_concentration = document.getElementById("button_hide_high_concentration");
     let long_range_checkbox = document.getElementById('long_range_cumulative_checkbox')
-    let show_sr_legend = short_range_expirations.length > 0;
+    let show_sr_legend = short_range_expirations?.length > 0;
 
     var data_for_graphs = {
         'concentrations': [],
@@ -192,7 +192,7 @@ function draw_plot(svg_id) {
     // Area representing the short-range interaction(s).
     var shortRangeArea = {};
     var drawShortRangeArea = {};
-    short_range_intervals.forEach((b, index) => {
+    short_range_intervals?.forEach((b, index) => {
         shortRangeArea[index] = d3.area();
         drawShortRangeArea[index] = draw_area.append('svg:path');
 
