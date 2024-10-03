@@ -1849,7 +1849,7 @@ class ExposureModel:
             # Create an equivalent exposure model but changing the number of infected cases.
             total_people = self.concentration_model.infected.number + self.exposed.number
             max_num_infected = (total_people if total_people < 10 else 10)
-            # The influence of a higher number of simultainious infected people (> 4 - 5) yields an almost negligible contirbution to the total probability.
+            # The influence of a higher number of simultaneous infected people (> 4 - 5) yields an almost negligible contribution to the total probability.
             # To be on the safe side, a hard coded limit with a safety margin of 2x was set.
             # Therefore we decided a hard limit of 10 infected people.
             for num_infected in range(1, max_num_infected + 1):
