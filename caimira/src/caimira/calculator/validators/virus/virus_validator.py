@@ -11,7 +11,7 @@ from ..form_validator import FormData, cast_class_fields, time_string_to_minutes
 from ..defaults import (DEFAULTS, CONFIDENCE_LEVEL_OPTIONS,
                         MECHANICAL_VENTILATION_TYPES, MASK_WEARING_OPTIONS, MONTH_NAMES, VACCINE_BOOSTER_TYPE, VACCINE_TYPE,
                         VENTILATION_TYPES, VOLUME_TYPES, WINDOWS_OPENING_REGIMES, WINDOWS_TYPES)
-from ...models import models, data, monte_carlo as mc
+from ...models import models, data, dataclass_utils, monte_carlo as mc
 from ...models.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions, short_range_distances
 from ...models.monte_carlo.data import expiration_distribution, expiration_BLO_factors, expiration_distributions, short_range_expiration_distributions
 
@@ -246,8 +246,8 @@ class VirusFormData(FormData):
 
         return models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (inside_temp,)), humidity=humidity) # type: ignore
 
-    def build_mc_model(self) -> mc.ExposureModel:
-        room = self.initialize_room()
+    def build_mc_model(self, size: int) -> mc.ExposureModelGroup:
+        room: models.Room = self.initialize_room()
         ventilation: models._VentilationBase = self.ventilation()
         infected_population: models.InfectedPopulation = self.infected_population()
         short_range = []
@@ -262,29 +262,65 @@ class VirusFormData(FormData):
                     distance=short_range_distances(self.data_registry),
                 ))
 
-        return mc.ExposureModel(
+        concentration_model: models.ConcentrationModel = mc.ConcentrationModel(
             data_registry=self.data_registry,
-            concentration_model=mc.ConcentrationModel(
-                data_registry=self.data_registry,
-                room=room,
-                ventilation=ventilation,
-                infected=infected_population,
-                evaporation_factor=0.3,
-            ),
-            short_range=tuple(short_range),
-            exposed=self.exposed_population(),
-            geographical_data=mc.Cases(
-                geographic_population=self.geographic_population,
-                geographic_cases=self.geographic_cases,
-                ascertainment_bias=CONFIDENCE_LEVEL_OPTIONS[self.ascertainment_bias],
-            ),
-            exposed_to_short_range=self.short_range_occupants,
+            room=room,
+            ventilation=ventilation,
+            infected=infected_population,
+            evaporation_factor=0.3,
+        )
+        geographical_data: models.Cases = mc.Cases(
+            geographic_population=self.geographic_population,
+            geographic_cases=self.geographic_cases,
+            ascertainment_bias=CONFIDENCE_LEVEL_OPTIONS[self.ascertainment_bias],
         )
 
-    def build_model(self, sample_size=None) -> models.ExposureModel:
-        sample_size = sample_size or self.data_registry.monte_carlo['sample_size']
-        return self.build_mc_model().build_model(size=sample_size)
+        if self.occupancy_format == 'dynamic':
+            if isinstance(self.dynamic_exposed_occupancy, typing.List) and len(self.dynamic_exposed_occupancy) > 0:
+                exposure_model_set = []
+                for exposed_group in self.dynamic_exposed_occupancy:
+                    total_people = int(exposed_group['total_people'])
+                    start_time: float = float(time_string_to_minutes(exposed_group['start_time'])/60)
+                    finish_time: float = float(time_string_to_minutes(exposed_group['finish_time'])/60)
+                    exposed_population: mc.Population = self.exposed_population(total_people, start_time, finish_time)
 
+                    exposure_model_set.append(
+                        mc.ExposureModel(
+                            data_registry=self.data_registry,
+                            concentration_model=concentration_model,
+                            short_range=tuple(short_range),
+                            exposed=exposed_population,
+                            geographical_data=geographical_data,
+                            exposed_to_short_range=self.short_range_occupants,
+                        ).build_model(size)
+                    )
+                return mc.ExposureModelGroup(exposure_models=exposure_model_set)
+            else:
+                raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_exposed_occupancy}".')
+        elif self.occupancy_format == 'static':
+            total_people = int(self.total_people) - int(self.infected_people)
+            start_time: float = self.exposed_start/60
+            finish_time: float = self.exposed_finish/60
+            exposed_population: mc.Population = self.exposed_population(total_people, start_time, finish_time)
+            return mc.ExposureModelGroup(
+                exposure_models = [
+                    mc.ExposureModel(
+                        data_registry=self.data_registry,
+                        concentration_model=concentration_model,
+                        short_range=tuple(short_range),
+                        exposed=exposed_population,
+                        geographical_data=geographical_data,
+                        exposed_to_short_range=self.short_range_occupants,
+                    ).build_model(size)
+                ]
+            )
+        else:
+            raise TypeError(f'Undefined exposure type. Got "{self.occupancy_format}", accepted formats are "dynamic" or "exposed".')
+
+    def build_model(self, sample_size=None) -> models.ExposureModelGroup:
+        sample_size = sample_size or self.data_registry.monte_carlo['sample_size']
+        return self.build_mc_model(size=sample_size)
+                
     def build_CO2_model(self, sample_size=None) -> models.CO2ConcentrationModel:
         sample_size = sample_size or self.data_registry.monte_carlo['sample_size']
         infected_population: models.InfectedPopulation = self.infected_population(
@@ -504,25 +540,15 @@ class VirusFormData(FormData):
         )
         return infected
 
-    def exposed_population(self) -> mc.Population:
+    def exposed_population(self, 
+                           total_people: int, 
+                           start_time: float, 
+                           finish_time: float) -> mc.Population:
+        
         activity_defn = (self.precise_activity['physical_activity']
                          if self.activity_type == 'precise'
                          else str(self.data_registry.population_scenario_activity[self.activity_type]['activity']))
         activity = activity_distributions(self.data_registry)[activity_defn]
-
-        if self.occupancy_format == 'dynamic':
-            if isinstance(self.dynamic_exposed_occupancy, typing.List) and len(self.dynamic_exposed_occupancy) > 0:
-                # If dynamic occupancy is defined, the generator will parse and validate the
-                # respective input to a format readable by the model - IntPiecewiseConstant.
-                exposed_occupancy = self.generate_dynamic_occupancy(self.dynamic_exposed_occupancy)
-                exposed_presence = None
-            else:
-                raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_exposed_occupancy}".')
-        else:
-            # The number of exposed occupants is the total number of occupants
-            # minus the number of infected occupants.
-            exposed_occupancy = self.total_people - self.infected_people
-            exposed_presence = self.exposed_present_interval()
 
         if (self.vaccine_option):
             if (self.vaccine_booster_option and self.vaccine_booster_type != 'Other'):
@@ -535,8 +561,8 @@ class VirusFormData(FormData):
             host_immunity = 0.
 
         exposed = mc.Population(
-            number=exposed_occupancy,
-            presence=exposed_presence,
+            number=total_people,
+            presence=models.SpecificInterval(present_times=((start_time, finish_time), )),
             activity=activity,
             mask=self.mask(),
             host_immunity=host_immunity,
