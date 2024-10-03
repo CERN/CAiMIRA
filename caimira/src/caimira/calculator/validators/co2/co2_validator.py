@@ -28,8 +28,8 @@ class CO2FormData(FormData):
     # and the defaults in any html form must not be contradictory.
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = {
         'CO2_data': '{}',
+        'dynamic_exposed_occupancy': '{}',
         'dynamic_infected_occupancy': '[]',
-        'dynamic_exposed_occupancy': '[]',
         'exposed_coffee_break_option': 'coffee_break_0',
         'exposed_coffee_duration': 5,
         'exposed_finish': '17:30',
@@ -74,7 +74,7 @@ class CO2FormData(FormData):
                 raise TypeError(f'The room capacity should be a valid integer (> 0). Got {self.room_capacity}.')
 
         # Validate specific inputs - breaks (exposed and infected)
-        if self.specific_breaks != {}:
+        if self.specific_breaks != {} and self.occupancy_format == 'static':
             if type(self.specific_breaks) is not dict:
                 raise TypeError('The specific breaks should be in a dictionary.')
 
@@ -188,11 +188,6 @@ class CO2FormData(FormData):
 
             return img2base64(_figure2bytes(fig)), vent_plot_data
 
-    def population_present_changes(self, infected_presence: models.Interval, exposed_presence: models.Interval) -> typing.List[float]:
-        state_change_times = set(infected_presence.transition_times())
-        state_change_times.update(exposed_presence.transition_times())
-        return sorted(state_change_times)
-
     def ventilation_transition_times(self) -> typing.Tuple[float]:
         '''
         Check if the last time from the input data is
@@ -207,45 +202,16 @@ class CO2FormData(FormData):
         return tuple(vent_states)
 
     def build_model(self, sample_size = None) -> models.CO2DataModel:
-        # Build a simple infected and exposed population for the case when presence
-        # intervals and number of people are dynamic. Activity type is not needed.
-        if self.occupancy_format == 'dynamic':
-            if isinstance(self.dynamic_infected_occupancy, typing.List) and len(self.dynamic_infected_occupancy) > 0:
-                infected_people = self.generate_dynamic_occupancy(self.dynamic_infected_occupancy)
-                infected_presence = None
-            else:
-                raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_infected_occupancy}".')
-            if isinstance(self.dynamic_exposed_occupancy, typing.List) and len(self.dynamic_exposed_occupancy) > 0:
-                exposed_people = self.generate_dynamic_occupancy(self.dynamic_exposed_occupancy)
-                exposed_presence = None
-            else:
-                raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_exposed_occupancy}".')
-        else:
-            infected_people = self.infected_people
-            exposed_people = self.total_people - self.infected_people
-            infected_presence = self.infected_present_interval()
-            exposed_presence = self.exposed_present_interval()
-
-        infected_population = models.SimplePopulation(
-            number=infected_people,
-            presence=infected_presence,
-            activity=None, # type: ignore
-        )
-        exposed_population=models.SimplePopulation(
-            number=exposed_people,
-            presence=exposed_presence,
-            activity=None, # type: ignore
-        )
-        
-        all_state_changes=self.population_present_changes(infected_population.presence_interval(), 
-                                                          exposed_population.presence_interval())
-        total_people = [infected_population.people_present(stop) + exposed_population.people_present(stop)
-                        for _, stop in zip(all_state_changes[:-1], all_state_changes[1:])]
+        """
+        Builds a CO2 data model that considers data
+        from the defined population groups.
+        """
+        occupancy = self.build_CO2_piecewise()
 
         return models.CO2DataModel(
                 data_registry=self.data_registry,
                 room=models.Room(volume=self.room_volume, capacity=self.room_capacity),
-                occupancy=models.IntPiecewiseConstant(transition_times=tuple(all_state_changes), values=tuple(total_people)),
+                occupancy=occupancy,
                 ventilation_transition_times=self.ventilation_transition_times(),
                 times=self.CO2_data['times'],
                 CO2_concentrations=self.CO2_data['CO2'],

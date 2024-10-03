@@ -16,7 +16,7 @@ DEFAULTS = {
     'calculator_version': NO_DEFAULT,
     'ceiling_height': 0.,
     'conditional_probability_viral_loads': False,
-    'dynamic_exposed_occupancy': '[]',
+    'dynamic_exposed_occupancy': '{}',
     'dynamic_infected_occupancy': '[]',
     'event_month': 'January',
     'exposed_coffee_break_option': 'coffee_break_0',
@@ -56,7 +56,7 @@ DEFAULTS = {
     'room_number': NO_DEFAULT,
     'room_volume': 0.,
     'sensor_in_use': '',
-    'short_range_interactions': '[]',
+    'short_range_interactions': '{}',
     'short_range_occupants': 0,
     'short_range_option': 'short_range_no',
     'simulation_name': NO_DEFAULT,
@@ -82,7 +82,8 @@ DEFAULTS = {
 
 # ------------------ Validation ----------------------
 COFFEE_OPTIONS_INT = {'coffee_break_0': 0, 'coffee_break_1': 1,
-                      'coffee_break_2': 2, 'coffee_break_4': 4}
+                      'coffee_break_2': 2, 'coffee_break_3': 3, 
+                      'coffee_break_4': 4}
 CONFIDENCE_LEVEL_OPTIONS = {'confidence_low': 10,
                             'confidence_medium': 5, 'confidence_high': 2}
 MECHANICAL_VENTILATION_TYPES = {
