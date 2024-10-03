@@ -82,7 +82,8 @@ DEFAULTS = {
 
 # ------------------ Validation ----------------------
 COFFEE_OPTIONS_INT = {'coffee_break_0': 0, 'coffee_break_1': 1,
-                      'coffee_break_2': 2, 'coffee_break_4': 4}
+                      'coffee_break_2': 2, 'coffee_break_3': 3, 
+                      'coffee_break_4': 4}
 CONFIDENCE_LEVEL_OPTIONS = {'confidence_low': 10,
                             'confidence_medium': 5, 'confidence_high': 2}
 MECHANICAL_VENTILATION_TYPES = {
