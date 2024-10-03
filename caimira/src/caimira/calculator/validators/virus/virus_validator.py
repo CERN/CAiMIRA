@@ -4,6 +4,7 @@ import logging
 import typing
 import re
 
+from collections import defaultdict
 import numpy as np
 
 from caimira import __version__ as calculator_version
@@ -11,7 +12,7 @@ from ..form_validator import FormData, cast_class_fields, time_string_to_minutes
 from ..defaults import (DEFAULTS, CONFIDENCE_LEVEL_OPTIONS,
                         MECHANICAL_VENTILATION_TYPES, MASK_WEARING_OPTIONS, MONTH_NAMES, VACCINE_BOOSTER_TYPE, VACCINE_TYPE,
                         VENTILATION_TYPES, VOLUME_TYPES, WINDOWS_OPENING_REGIMES, WINDOWS_TYPES)
-from ...models import models, data, monte_carlo as mc
+from ...models import models, data, dataclass_utils, monte_carlo as mc
 from ...models.monte_carlo.data import activity_distributions, virus_distributions, mask_distributions, short_range_distances
 from ...models.monte_carlo.data import expiration_distribution, expiration_BLO_factors, expiration_distributions, short_range_expiration_distributions
 
@@ -51,7 +52,7 @@ class VirusFormData(FormData):
     room_heating_option: bool
     room_number: str
     sensor_in_use: str
-    short_range_interactions: list
+    short_range_interactions: dict
     short_range_occupants: int
     short_range_option: str
     simulation_name: str
@@ -73,7 +74,7 @@ class VirusFormData(FormData):
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = DEFAULTS
 
     def validate(self):
-        # Validate population parameters 
+        # Validate population parameters
         self.validate_population_parameters()
 
         validation_tuples = [('activity_type', self.data_registry.population_scenario_activity.keys()),
@@ -200,30 +201,31 @@ class VirusFormData(FormData):
                     f'The sum of all respiratory activities should be 100. Got {total_percentage}.')
 
         # Validate number of people with short-range interactions
-        if self.occupancy_format == "static": max_occupants_for_sr = self.total_people - self.infected_people
-        else: max_occupants_for_sr = np.max(np.array([entry["total_people"] for entry in self.dynamic_exposed_occupancy]))
+        if self.occupancy_format == 'static':
+            max_occupants_for_sr = self.total_people - self.infected_people
+        elif self.occupancy_format == 'dynamic':
+            max_occupants_for_sr = 0
+            for key, group in self.dynamic_exposed_occupancy.items():
+                occupants_in_group = group['total_people']
+                max_occupants_for_sr = max(max_occupants_for_sr, occupants_in_group)
+                
         if self.short_range_occupants > max_occupants_for_sr:
             raise ValueError(
                 f'The total number of occupants having short-range interactions ({self.short_range_occupants}) should be lower than the exposed population ({max_occupants_for_sr}).'
             )
-        
+
         # Validate short-range interactions interval
         if self.short_range_option == "short_range_yes":
-            for interaction in self.short_range_interactions:
-                # Check if presence is within long-range exposure
-                presence = self.short_range_interval(interaction)
-                if (self.occupancy_format == 'dynamic'):
-                    long_range_start = min(time_string_to_minutes(self.dynamic_infected_occupancy[0]['start_time']), 
-                                            time_string_to_minutes(self.dynamic_exposed_occupancy[0]['start_time']))
-                    long_range_stop = max(time_string_to_minutes(self.dynamic_infected_occupancy[-1]['finish_time']), 
-                                            time_string_to_minutes(self.dynamic_exposed_occupancy[-1]['finish_time']))
-                else:
-                    long_range_start = min(self.infected_start, self.exposed_start)
-                    long_range_stop = max(self.infected_finish, self.exposed_finish)
-                if not (long_range_start/60 <= presence.present_times[0][0] <= long_range_stop/60 and 
-                        long_range_start/60 <= presence.present_times[0][-1] <= long_range_stop/60):
-                    raise ValueError(f"Short-range interactions should be defined during simulation time. Got {interaction}")
-
+            if isinstance(self.short_range_interactions, dict):
+                # Check if occupancy format is static, there should be one key-value only in short_range_interactions
+                if self.occupancy_format == "static" and len(self.short_range_interactions) > 1:
+                    raise ValueError(
+                        'When occupancy format is "static", there should be only one interaction group in "short_range_interactions".'
+                    )
+                # The key is the actual identifier
+                for key, group in self.short_range_interactions.items():
+                    self.validate_dynamic_input(group, "short_range_interactions", key)
+    
     def initialize_room(self) -> models.Room:
         # Initializes room with volume either given directly or as product of area and height
         if self.volume_type == 'room_volume_explicit':
@@ -243,69 +245,99 @@ class VirusFormData(FormData):
 
         return models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (inside_temp,)), humidity=humidity) # type: ignore
 
-    def build_mc_model(self) -> mc.ExposureModel:
-        room = self.initialize_room()
+    def build_mc_model(self) -> typing.Union[mc.ExposureModel, mc.ExposureModelGroup]:
+        size = self.data_registry.monte_carlo['sample_size']
+
+        room: models.Room = self.initialize_room()
         ventilation: models._VentilationBase = self.ventilation()
         infected_population: models.InfectedPopulation = self.infected_population()
-        short_range = []
+
+        short_range = defaultdict(list)
         if self.short_range_option == "short_range_yes":
-            for interaction in self.short_range_interactions:
-                short_range.append(mc.ShortRangeModel(
-                    data_registry=self.data_registry,
-                    expiration=short_range_expiration_distributions(
-                        self.data_registry)[interaction['expiration']],
-                    activity=infected_population.activity,
-                    presence=self.short_range_interval(interaction),
-                    distance=short_range_distances(self.data_registry),
-                ))
+            for key, group in self.short_range_interactions.items():
+                for interaction in group:
+                    expiration = short_range_expiration_distributions(self.data_registry)[interaction['expiration']]
+                    presence = self.short_range_interval(interaction)
+                    distances = short_range_distances(self.data_registry)
+                    short_range[key].append(mc.ShortRangeModel(
+                        data_registry=self.data_registry,
+                        expiration=expiration,
+                        activity=infected_population.activity,
+                        presence=presence,
+                        distance=distances,
+                        expiration_def=interaction['expiration']
+                    ).build_model(size))
 
-        return mc.ExposureModel(
+        concentration_model: models.ConcentrationModel = mc.ConcentrationModel(
             data_registry=self.data_registry,
-            concentration_model=mc.ConcentrationModel(
-                data_registry=self.data_registry,
-                room=room,
-                ventilation=ventilation,
-                infected=infected_population,
-                evaporation_factor=0.3,
-            ),
-            short_range=tuple(short_range),
-            exposed=self.exposed_population(),
-            geographical_data=mc.Cases(
-                geographic_population=self.geographic_population,
-                geographic_cases=self.geographic_cases,
-                ascertainment_bias=CONFIDENCE_LEVEL_OPTIONS[self.ascertainment_bias],
-            ),
-            exposed_to_short_range=self.short_range_occupants,
-        )
+            room=room,
+            ventilation=ventilation,
+            infected=infected_population,
+            evaporation_factor=0.3,
+        ).build_model(size)
 
-    def build_model(self, sample_size=None) -> models.ExposureModel:
-        sample_size = sample_size or self.data_registry.monte_carlo['sample_size']
-        return self.build_mc_model().build_model(size=sample_size)
+        geographical_data: models.Cases = mc.Cases(
+            geographic_population=self.geographic_population,
+            geographic_cases=self.geographic_cases,
+            ascertainment_bias=CONFIDENCE_LEVEL_OPTIONS[self.ascertainment_bias],
+        ).build_model(size)
+
+        if self.occupancy_format == 'dynamic':
+            exposure_model_set = []
+            for exposure_group in self.dynamic_exposed_occupancy.keys():
+                sr_models: typing.Tuple[models.ShortRangeModel, ...] = tuple(short_range[exposure_group])
+                exposed_population: mc.Population = self.exposed_population(exposure_group).build_model(size)
+
+                exposure_model = mc.ExposureModel(
+                    data_registry=self.data_registry,
+                    concentration_model=concentration_model,
+                    short_range=sr_models,
+                    exposed=exposed_population,
+                    geographical_data=geographical_data,
+                    exposed_to_short_range=self.short_range_occupants,
+                )
+                exposure_model_set.append(exposure_model)
+
+            if len(list(self.dynamic_exposed_occupancy.keys())) == 1:
+                return exposure_model_set[0]
+            else:
+                return mc.ExposureModelGroup(
+                    data_registry=self.data_registry,
+                    exposure_models=[individual_model.build_model(size) for individual_model in exposure_model_set]
+                )
+
+        elif self.occupancy_format == 'static':
+            exposed_population = self.exposed_population()
+            short_range_tuple = tuple(item for sublist in short_range.values() for item in sublist)
+            return mc.ExposureModel(
+                data_registry=self.data_registry,
+                concentration_model=concentration_model,
+                short_range=short_range_tuple,
+                exposed=exposed_population,
+                geographical_data=geographical_data,
+                exposed_to_short_range=self.short_range_occupants,
+            )
+
+    def build_model(self, sample_size=None) -> typing.Union[models.ExposureModel, models.ExposureModelGroup]:
+        size = self.data_registry.monte_carlo['sample_size'] if not sample_size else sample_size
+        return self.build_mc_model().build_model(size=size)
 
     def build_CO2_model(self, sample_size=None) -> models.CO2ConcentrationModel:
+        """
+        Builds a CO2 model that considers the type of
+        activity and data from the defined population groups.
+        """
         sample_size = sample_size or self.data_registry.monte_carlo['sample_size']
-        infected_population: models.InfectedPopulation = self.infected_population(
-        ).build_model(sample_size)
-        exposed_population: models.Population = self.exposed_population().build_model(sample_size)
-
-        state_change_times = set(
-            infected_population.presence_interval().transition_times())
-        state_change_times.update(
-            exposed_population.presence_interval().transition_times())
-        transition_times = sorted(state_change_times)
-
-        total_people = [infected_population.people_present(stop) + exposed_population.people_present(stop)
-                        for _, stop in zip(transition_times[:-1], transition_times[1:])]
 
         if (self.activity_type == 'precise'):
             activity_defn, _ = self.generate_precise_activity_expiration()
         else:
             activity_defn = self.data_registry.population_scenario_activity[
                 self.activity_type]['activity']
-
+        
+        occupancy = self.build_CO2_piecewise()
         population = mc.SimplePopulation(
-            number=models.IntPiecewiseConstant(transition_times=tuple(
-                transition_times), values=tuple(total_people)),
+            number=occupancy,
             presence=None,
             activity=activity_distributions(self.data_registry)[activity_defn],
         )
@@ -420,6 +452,7 @@ class VirusFormData(FormData):
         # This is a minimal, always present source of ventilation, due
         # to the air infiltration from the outside.
         # See CERN-OPEN-2021-004, p. 12.
+        # type: ignore
         residual_vent: float = self.data_registry.ventilation['infiltration_ventilation'] # type: ignore
         infiltration_ventilation = models.AirChange(
             active=always_on, air_exch=residual_vent)
@@ -457,30 +490,30 @@ class VirusFormData(FormData):
         return (self.precise_activity['physical_activity'], respiratory_dict)
 
     def infected_population(self) -> mc.InfectedPopulation:
+        """
+        Generates an InfectedPopulation class, for both static and
+        dynamic occupancy.
+        """
         # Initializes the virus
         virus = virus_distributions(self.data_registry)[self.virus_type]
 
         # Occupancy
         if self.occupancy_format == 'dynamic':
-            if isinstance(self.dynamic_infected_occupancy, typing.List) and len(self.dynamic_infected_occupancy) > 0:
-                # If dynamic occupancy is defined, the generator will parse and validate the
-                # respective input to a format readable by the model - `IntPiecewiseConstant`.
-                infected_occupancy = self.generate_dynamic_occupancy(self.dynamic_infected_occupancy)
-                infected_presence = None
-            else:
-                raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_infected_occupancy}".')
+            infected_occupancy = self.generate_dynamic_occupancy(self.dynamic_infected_occupancy)
+            infected_presence = None
         else:
-            # The number of exposed occupants is the total number of occupants
-            # minus the number of infected occupants.
             infected_occupancy = self.infected_people
             infected_presence = self.infected_present_interval()
 
         # Activity and expiration
-        activity_defn = self.data_registry.population_scenario_activity[self.activity_type]['activity']
-        expiration_defn = self.data_registry.population_scenario_activity[self.activity_type]['expiration']
+        activity_defn = self.data_registry.population_scenario_activity[
+            self.activity_type]['activity']
+        expiration_defn = self.data_registry.population_scenario_activity[
+            self.activity_type]['expiration']
         if (self.activity_type == 'smallmeeting'):
             # Conversation of N people is approximately 1/N% of the time speaking.
-            total_people: int = max(infected_occupancy.values) if self.occupancy_format == 'dynamic' else self.total_people
+            total_people: int = max(
+                infected_occupancy.values) if self.occupancy_format == 'dynamic' else self.total_people
             expiration_defn = {'Speaking': 1, 'Breathing': total_people - 1}
         elif (self.activity_type == 'precise'):
             activity_defn, expiration_defn = self.generate_precise_activity_expiration()
@@ -496,31 +529,36 @@ class VirusFormData(FormData):
             mask=self.mask(),
             activity=activity,
             expiration=expiration,
-            # Vaccination status does not affect the infected population (for now)
+            # Vaccination status does not affect the infected population (for the time being)
             host_immunity=0.,
         )
         return infected
 
-    def exposed_population(self) -> mc.Population:
-        activity_defn = (self.precise_activity['physical_activity']
-                         if self.activity_type == 'precise'
-                         else str(self.data_registry.population_scenario_activity[self.activity_type]['activity']))
-        activity = activity_distributions(self.data_registry)[activity_defn]
-
+    def exposed_population(self, exposure_group: typing.Optional[str] = None) -> mc.Population:
+        """
+        Generates an exposed Population class, for both static and
+        dynamic occupancy. The number of people is constant for a
+        single group of exposed population, except when breaks are defined.
+        """
+        # Occupancy
         if self.occupancy_format == 'dynamic':
-            if isinstance(self.dynamic_exposed_occupancy, typing.List) and len(self.dynamic_exposed_occupancy) > 0:
-                # If dynamic occupancy is defined, the generator will parse and validate the
-                # respective input to a format readable by the model - IntPiecewiseConstant.
-                exposed_occupancy = self.generate_dynamic_occupancy(self.dynamic_exposed_occupancy)
-                exposed_presence = None
-            else:
-                raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_exposed_occupancy}".')
+            dynamic_group = self.dynamic_exposed_occupancy[exposure_group]
+
+            exposed_occupancy = dynamic_group['total_people']
+            exposed_presence = self.generate_dynamic_occupancy(dynamic_group['presence'])
         else:
             # The number of exposed occupants is the total number of occupants
             # minus the number of infected occupants.
             exposed_occupancy = self.total_people - self.infected_people
             exposed_presence = self.exposed_present_interval()
 
+        # Activity
+        activity_defn = (self.precise_activity['physical_activity']
+                         if self.activity_type == 'precise'
+                         else str(self.data_registry.population_scenario_activity[self.activity_type]['activity']))
+        activity = activity_distributions(self.data_registry)[activity_defn]
+
+        # Vaccination
         if (self.vaccine_option):
             if (self.vaccine_booster_option and self.vaccine_booster_type != 'Other'):
                 host_immunity = [vaccine['VE'] for vaccine in data.vaccine_booster_host_immunity if
@@ -569,7 +607,7 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'calculator_version': calculator_version,
         'ceiling_height': '',
         'conditional_probability_viral_loads': '0',
-        'dynamic_exposed_occupancy': '[]',
+        'dynamic_exposed_occupancy': '{}',
         'dynamic_infected_occupancy': '[]',
         'event_month': 'January',
         'exposed_coffee_break_option': 'coffee_break_4',
@@ -606,7 +644,7 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'room_heating_option': '0',
         'room_number': '123',
         'room_volume': '75',
-        'short_range_interactions': '[]',
+        'short_range_interactions': '{}',
         'short_range_option': 'short_range_no',
         'simulation_name': 'Test',
         'total_people': '10',
