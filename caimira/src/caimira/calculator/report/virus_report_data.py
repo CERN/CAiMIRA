@@ -122,59 +122,103 @@ def _calculate_co2_concentration(CO2_model, time, fn_name=None):
 
 @profiler.profile
 def calculate_report_data(form: VirusFormData, executor_factory: typing.Callable[[], concurrent.futures.Executor]) -> typing.Dict[str, typing.Any]:
+    """
+    General output data of a test scenario.
+    """
     models_set: models.ExposureModelGroup = form.build_model()
-    for model in models_set.exposure_models:
-        times = interesting_times(model)
-        short_range_intervals = [interaction.presence.boundaries()[0]
-                                for interaction in model.short_range]
-        short_range_expirations = [interaction['expiration']
-                                for interaction in form.short_range_interactions] if form.short_range_option == "short_range_yes" else []
+    
+    # For common properties across all the models, pick the first one.
+    baseline_model: models.ExposureModel = models_set.exposure_models[0]
+    
+    times = interesting_times(baseline_model)
+    exposed_presence_intervals = [list(interval) for interval in baseline_model.exposed.presence_interval().boundaries()] # TODO: which presence interval?
 
-        concentrations = [
-            np.array(model.concentration(float(time))).mean()
-            for time in times
-        ]
+    short_range_intervals = [interaction.presence.boundaries()[0]
+                                for interaction in baseline_model.short_range]
+    short_range_expirations = [interaction['expiration']
+                            for interaction in form.short_range_interactions] if form.short_range_option == "short_range_yes" else []
 
-        lower_concentrations = concentrations_with_sr_breathing(
-            form, model, times, short_range_intervals)
+    concentrations = [
+        np.array(baseline_model.concentration(float(time))).mean()
+        for time in times
+    ]
 
-        CO2_model: models.CO2ConcentrationModel = form.build_CO2_model()
+    lower_concentrations = concentrations_with_sr_breathing(
+        form, baseline_model, times, short_range_intervals)
+    
+    # The cumulative dose, probability of infection and probabilistic
+    # exposure is calculated at the top level.
+    cumulative_doses = []
+    for time1, time2 in zip(times[:-1], times[1:]):
+        for nth_model in models_set.exposure_models:
+            cumulative_doses.append(np.array(nth_model.deposited_exposure_between_bounds(float(time1), float(time2))).mean())
+    
+    cumulative_doses = np.cumsum(cumulative_doses)
+
+    prob = np.array(models_set.infection_probability())
+    prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
+
+    expected_new_cases = np.array(models_set.expected_new_cases()).mean()
+    expected_new_cases_per_group = [np.array(x).mean() for x in models_set.expected_new_cases_set()]
+    
+    CO2_model: models.CO2ConcentrationModel = form.build_CO2_model()
+    CO2_concentrations = [
+        np.array(CO2_model.concentration(float(time))).mean()
+        for time in times
+    ] # TODO: parallelism
+
+    # for model in models_set.exposure_models:
+        # times = interesting_times(model)
+        # short_range_intervals = [interaction.presence.boundaries()[0]
+        #                         for interaction in model.short_range]
+        # short_range_expirations = [interaction['expiration']
+        #                         for interaction in form.short_range_interactions] if form.short_range_option == "short_range_yes" else []
+
+        # concentrations = [
+        #     np.array(model.concentration(float(time))).mean()
+        #     for time in times
+        # ]
+
+        # lower_concentrations = concentrations_with_sr_breathing(
+        #     form, model, times, short_range_intervals)
+
+        # CO2_model: models.CO2ConcentrationModel = form.build_CO2_model()
 
         # compute deposited exposures and CO2 concentrations in parallel to increase performance
-        deposited_exposures = []
-        long_range_deposited_exposures = []
-        CO2_concentrations = []
+        # deposited_exposures = []
+        # long_range_deposited_exposures = []
+        # CO2_concentrations = []
 
-        tasks = []
-        with executor_factory() as executor:
-            for time1, time2 in zip(times[:-1], times[1:]):
-                tasks.append(executor.submit(
-                    _calculate_deposited_exposure, model, time1, time2, fn_name="de"))
-                tasks.append(executor.submit(
-                    _calculate_long_range_deposited_exposure, model, time1, time2, fn_name="lr"))
-                # co2 concentration: takes each time as param, not the interval
-                tasks.append(executor.submit(
-                    _calculate_co2_concentration, CO2_model, time1, fn_name="co2"))
-            # co2 concentration: calculate the last time too
-            tasks.append(executor.submit(_calculate_co2_concentration,
-                        CO2_model, times[-1], fn_name="co2"))
+        # tasks = []
+        # with executor_factory() as executor:
+        #     for time1, time2 in zip(times[:-1], times[1:]):
+        #         tasks.append(executor.submit(
+        #             _calculate_deposited_exposure, model, time1, time2, fn_name="de"))
+        #         tasks.append(executor.submit(
+        #             _calculate_long_range_deposited_exposure, model, time1, time2, fn_name="lr"))
+        #         # co2 concentration: takes each time as param, not the interval
+        #         tasks.append(executor.submit(
+        #             _calculate_co2_concentration, CO2_model, time1, fn_name="co2"))
+        #     # co2 concentration: calculate the last time too
+        #     tasks.append(executor.submit(_calculate_co2_concentration,
+        #                 CO2_model, times[-1], fn_name="co2"))
 
-        for task in tasks:
-            result, fn_name = task.result()
-            if fn_name == "de":
-                deposited_exposures.append(result)
-            elif fn_name == "lr":
-                long_range_deposited_exposures.append(result)
-            elif fn_name == "co2":
-                CO2_concentrations.append(result)
+        # for task in tasks:
+        #     result, fn_name = task.result()
+        #     if fn_name == "de":
+        #         deposited_exposures.append(result)
+        #     elif fn_name == "lr":
+        #         long_range_deposited_exposures.append(result)
+        #     elif fn_name == "co2":
+        #         CO2_concentrations.append(result)
 
-        cumulative_doses = np.cumsum(deposited_exposures)
-        long_range_cumulative_doses = np.cumsum(long_range_deposited_exposures)
+        # cumulative_doses = np.cumsum(deposited_exposures)
+        # long_range_cumulative_doses = np.cumsum(long_range_deposited_exposures)
 
-        prob = np.array(model.infection_probability())
-        prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
+        # prob = np.array(model.infection_probability())
+        # prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
 
-        prob_probabilistic_exposure = None
+        # prob_probabilistic_exposure = None
         # if form.occupancy_format == "static":
         #     if form.exposure_option == "p_probabilistic_exposure":
         #         prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
@@ -182,21 +226,22 @@ def calculate_report_data(form: VirusFormData, executor_factory: typing.Callable
         # elif form.occupancy_format == "dynamic":
         #     expected_new_cases = model_group.expected_new_cases()
 
-        exposed_presence_intervals = [list(interval) for interval in model.exposed.presence_interval().boundaries()]
+        # exposed_presence_intervals = [list(interval) for interval in baseline_model.exposed.presence_interval().boundaries()]
 
-        conditional_probability_data = None
-        uncertainties_plot_src = None
-        if (form.conditional_probability_viral_loads and
-                model.data_registry.virological_data['virus_distributions'][form.virus_type]['viral_load_in_sputum'] == ViralLoads.COVID_OVERALL.value):  # type: ignore
-            # Generate all the required data for the conditional probability plot
-            conditional_probability_data = manufacture_conditional_probability_data(
-                model, prob)
-            # Generate the matplotlib image based on the received data
-            uncertainties_plot_src = img2base64(_figure2bytes(
-                uncertainties_plot(prob, conditional_probability_data)))
-
+    # TODO: Needs more insight
+    conditional_probability_data = None
+    uncertainties_plot_src = None
+    if (form.conditional_probability_viral_loads and
+            baseline_model.data_registry.virological_data['virus_distributions'][form.virus_type]['viral_load_in_sputum'] == ViralLoads.COVID_OVERALL.value):  # type: ignore
+        # Generate all the required data for the conditional probability plot
+        conditional_probability_data = manufacture_conditional_probability_data(
+            baseline_model, prob)
+        # Generate the matplotlib image based on the received data
+        uncertainties_plot_src = img2base64(_figure2bytes(
+            uncertainties_plot(prob, conditional_probability_data)))
+        
     return {
-        "model": model,
+        "model": baseline_model,
         "times": list(times),
         "exposed_presence_intervals": exposed_presence_intervals,
         "short_range_intervals": short_range_intervals,
@@ -204,17 +249,20 @@ def calculate_report_data(form: VirusFormData, executor_factory: typing.Callable
         "concentrations": concentrations,
         "concentrations_zoomed": lower_concentrations,
         "cumulative_doses": list(cumulative_doses),
-        "long_range_cumulative_doses": list(long_range_cumulative_doses),
+        # "long_range_cumulative_doses": list(long_range_cumulative_doses),
+        "long_range_cumulative_doses": [],
         "prob_inf": prob.mean(),
         "prob_inf_sd": prob.std(),
         "prob_dist": list(prob),
         "prob_hist_count": list(prob_dist_count),
         "prob_hist_bins": list(prob_dist_bins),
-        "prob_probabilistic_exposure": prob_probabilistic_exposure,
-        # "expected_new_cases": expected_new_cases,
+        # "prob_probabilistic_exposure": prob_probabilistic_exposure,
+        "prob_probabilistic_exposure": [],
+        "expected_new_cases": expected_new_cases,
         "uncertainties_plot_src": uncertainties_plot_src,
         "CO2_concentrations": CO2_concentrations,
-        "conditional_probability_data": conditional_probability_data,
+        "conditional_probability_data": [],
+        # "conditional_probability_data": conditional_probability_data,
     }
 
 

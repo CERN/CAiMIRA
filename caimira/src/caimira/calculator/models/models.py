@@ -1809,7 +1809,6 @@ class ExposureModel:
         The number of virus per m^3 deposited on the respiratory tract.
         """
         population_change_times = self.population_state_change_times()
-
         deposited_exposure = []
         for start, stop in zip(population_change_times[:-1], population_change_times[1:]):
             deposited_exposure.append(self.deposited_exposure_between_bounds(start, stop))
@@ -1873,11 +1872,14 @@ class ExposureModel:
             2) Short- and long-range exposure: take the infection_probability of long-range multiplied by the occupants exposed to long-range only, 
                plus the infection_probability of short- and long-range multiplied by the occupants exposed to short-range only.
         """
-        if self.short_range != ():
-            new_cases_long_range = nested_replace(self, {'short_range': [],}).infection_probability() * (self.exposed.number - self.exposed_to_short_range)
-            return (new_cases_long_range + (self.infection_probability() * self.exposed_to_short_range)) / 100
+        if isinstance(self.exposed.number, int) and isinstance(self.exposed.presence, Interval):
+            if self.short_range != ():
+                new_cases_long_range = nested_replace(self, {'short_range': [],}).infection_probability() * (self.exposed.number - self.exposed_to_short_range)
+                return (new_cases_long_range + (self.infection_probability() * self.exposed_to_short_range)) / 100
 
-        return self.infection_probability() * self.exposed.number / 100
+            return self.infection_probability() * self.exposed.number / 100
+        else:
+            raise TypeError(f"Incorrect exposed population number format. Got {type(self.exposed.number)}.")
 
     def reproduction_number(self) -> _VectorisedFloat:
         """
@@ -1892,15 +1894,8 @@ class ExposureModel:
         # one infected case, respecting the presence interval.
         single_exposure_model = nested_replace(
             self, {
-                'concentration_model.infected': InfectedPopulation(
-                    number=1,
-                    presence=infected_population.presence_interval(),
-                    activity=infected_population.activity,
-                    mask=infected_population.mask,
-                    host_immunity=infected_population.mask,
-                    data_registry=infected_population.data_registry,
-                    virus=infected_population.virus,
-                ),
+                'concentration_model.infected.number': 1,
+                'concentration_model.infected.presence': infected_population.presence_interval(),
             }
         )
         return single_exposure_model.expected_new_cases()
@@ -1914,8 +1909,47 @@ class ExposureModelGroup:
     """
     exposure_models: typing.Tuple[ExposureModel, ...]
 
+    # @method_cache
+    # def long_range_deposited_exposure(self) -> _VectorisedFloat:
+    #     """
+    #     Dose of each individual exposure model.
+    #     """
+    #     return [model.long_range_deposited_exposure_between_bounds() for model in self.exposure_models]
+
     @method_cache
-    def infection_probability_set(self) -> _VectorisedFloat:
+    def _deposited_exposure_set(self) -> typing.List[_VectorisedFloat]:
+        """
+        Dose of each individual exposure model.
+        """
+        return [model.deposited_exposure() for model in self.exposure_models]
+
+    @method_cache
+    def _infection_probability_list(self) -> typing.List[_VectorisedFloat]:
+        # Deposited exposure
+        vD_list = self._deposited_exposure_set()
+
+        # Baseline model
+        model: ExposureModel = self.exposure_models[0]
+
+        # oneoverln2 multiplied by ID_50 corresponds to ID_63.
+        infectious_dose = oneoverln2 * model.concentration_model.virus.infectious_dose
+
+        # Probability of infection
+        return [(1 - np.exp(-((vD * (1 - model.exposed.host_immunity))/(infectious_dose *
+                model.concentration_model.virus.transmissibility_factor)))) for vD in vD_list]
+        
+    @method_cache
+    def infection_probability(self) -> _VectorisedFloat:
+        """
+        Infection probability when considering all the single
+        exposure models. Factors such as infectious dose,
+        transmissibility_factor and host_immunity are 
+        assumed to be constant over the scenarios.
+        """
+        return (1 - np.prod([1 - prob for prob in self._infection_probability_list()], axis = 0)) * 100
+    
+    @method_cache
+    def infection_probability_set(self) -> typing.List[_VectorisedFloat]:
         """
         Individual probability of infection for
         each exposure model initially defined.
@@ -1923,7 +1957,7 @@ class ExposureModelGroup:
         return [model.infection_probability()/100 for model in self.exposure_models]
     
     @method_cache
-    def expected_new_cases_set(self) -> _VectorisedFloat:
+    def expected_new_cases_set(self) -> typing.List[_VectorisedFloat]:
         """
         Individual expected new cases for
         each exposure model initially defined.

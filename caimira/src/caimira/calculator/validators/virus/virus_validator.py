@@ -246,7 +246,9 @@ class VirusFormData(FormData):
 
         return models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (inside_temp,)), humidity=humidity) # type: ignore
 
-    def build_mc_model(self, size: int) -> mc.ExposureModelGroup:
+    def build_mc_model(self, sample_size: typing.Optional[int] = None) -> mc.ExposureModelGroup:
+        size = sample_size or self.data_registry.monte_carlo['sample_size']
+
         room: models.Room = self.initialize_room()
         ventilation: models._VentilationBase = self.ventilation()
         infected_population: models.InfectedPopulation = self.infected_population()
@@ -283,7 +285,6 @@ class VirusFormData(FormData):
                     start_time: float = float(time_string_to_minutes(exposed_group['start_time'])/60)
                     finish_time: float = float(time_string_to_minutes(exposed_group['finish_time'])/60)
                     exposed_population: mc.Population = self.exposed_population(total_people, start_time, finish_time)
-
                     exposure_model_set.append(
                         mc.ExposureModel(
                             data_registry=self.data_registry,
@@ -298,10 +299,7 @@ class VirusFormData(FormData):
             else:
                 raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_exposed_occupancy}".')
         elif self.occupancy_format == 'static':
-            total_people = int(self.total_people) - int(self.infected_people)
-            start_time: float = self.exposed_start/60
-            finish_time: float = self.exposed_finish/60
-            exposed_population: mc.Population = self.exposed_population(total_people, start_time, finish_time)
+            exposed_population = self.exposed_population()
             return mc.ExposureModelGroup(
                 exposure_models = [
                     mc.ExposureModel(
@@ -311,15 +309,15 @@ class VirusFormData(FormData):
                         exposed=exposed_population,
                         geographical_data=geographical_data,
                         exposed_to_short_range=self.short_range_occupants,
-                    ).build_model(size)
+                    ).build_model(size) # TODO: Bring to top level the monte carlo generation
                 ]
             )
         else:
             raise TypeError(f'Undefined exposure type. Got "{self.occupancy_format}", accepted formats are "dynamic" or "exposed".')
 
     def build_model(self, sample_size=None) -> models.ExposureModelGroup:
-        sample_size = sample_size or self.data_registry.monte_carlo['sample_size']
-        return self.build_mc_model(size=sample_size)
+        size: int = self.data_registry.monte_carlo['sample_size'] if not sample_size else sample_size
+        return self.build_mc_model(sample_size=size).build_model(size)
                 
     def build_CO2_model(self, sample_size=None) -> models.CO2ConcentrationModel:
         sample_size = sample_size or self.data_registry.monte_carlo['sample_size']
@@ -541,10 +539,13 @@ class VirusFormData(FormData):
         return infected
 
     def exposed_population(self, 
-                           total_people: int, 
-                           start_time: float, 
-                           finish_time: float) -> mc.Population:
-        
+                           total_people: typing.Optional[int] = None, 
+                           start_time: typing.Optional[float] = None, 
+                           finish_time: typing.Optional[float] = None) -> mc.Population:
+        """
+        Generates an exposed Population class, both for static
+        and dynamic occupancy. It ensures back compatibility. 
+        """
         activity_defn = (self.precise_activity['physical_activity']
                          if self.activity_type == 'precise'
                          else str(self.data_registry.population_scenario_activity[self.activity_type]['activity']))
@@ -560,9 +561,16 @@ class VirusFormData(FormData):
         else:
             host_immunity = 0.
 
+        if total_people is not None and start_time is not None and finish_time is not None:
+            number = total_people
+            presence: models.Interval = models.SpecificInterval(present_times=((start_time, finish_time), ))
+        else:
+            number = self.total_people - self.infected_people
+            presence = self.exposed_present_interval()
+
         exposed = mc.Population(
-            number=total_people,
-            presence=models.SpecificInterval(present_times=((start_time, finish_time), )),
+            number=number,
+            presence=presence,
             activity=activity,
             mask=self.mask(),
             host_immunity=host_immunity,
