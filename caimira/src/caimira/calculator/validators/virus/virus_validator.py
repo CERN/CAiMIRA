@@ -295,12 +295,16 @@ class VirusFormData(FormData):
                             exposed_to_short_range=self.short_range_occupants,
                         ).build_model(size)
                     )
-                return mc.ExposureModelGroup(exposure_models=exposure_model_set)
+                return mc.ExposureModelGroup(
+                    data_registry=self.data_registry,
+                    exposure_models=exposure_model_set
+                )
             else:
                 raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_exposed_occupancy}".')
         elif self.occupancy_format == 'static':
             exposed_population = self.exposed_population()
             return mc.ExposureModelGroup(
+                data_registry=self.data_registry,
                 exposure_models = [
                     mc.ExposureModel(
                         data_registry=self.data_registry,

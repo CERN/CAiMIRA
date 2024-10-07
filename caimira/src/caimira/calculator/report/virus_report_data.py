@@ -398,7 +398,7 @@ def calculate_vl_scenarios_percentiles(model: mc.ExposureModel) -> typing.Dict[s
     }
 
 
-def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, mc.ExposureModel]:
+def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, mc.ExposureModelGroup]:
     scenarios = {}
     if (form.short_range_option == "short_range_no"):
         # Two special option cases - HEPA and/or FFP2 masks.
@@ -466,7 +466,7 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
 
 
 def scenario_statistics(
-    mc_model: mc.ExposureModel,
+    mc_model: mc.ExposureModelGroup,
     sample_times: typing.List[float],
     static_occupancy: bool,
     compute_prob_exposure: bool,
@@ -488,7 +488,7 @@ def scenario_statistics(
 def comparison_report(
         form: VirusFormData,
         report_data: typing.Dict[str, typing.Any],
-        scenarios: typing.Dict[str, mc.ExposureModel],
+        scenarios: typing.Dict[str, mc.ExposureModelGroup],
         executor_factory: typing.Callable[[], concurrent.futures.Executor],
 ):
     if (form.short_range_option == "short_range_no"):
