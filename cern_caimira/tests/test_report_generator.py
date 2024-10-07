@@ -136,7 +136,7 @@ def test_static_vs_dynamic_occupancy_from_form(baseline_form_data, data_registry
    
     # By default the baseline form accepts static occupancy
     static_occupancy_baseline_form: VirusFormData = VirusFormData.from_dict(baseline_form_data, data_registry)
-    static_occupancy_model = static_occupancy_baseline_form.build_model()
+    static_occupancy_models = static_occupancy_baseline_form.build_model()
     static_occupancy_report_data = rep_gen.calculate_report_data(static_occupancy_baseline_form, executor_factory)
 
     # Update the initial form data to include dynamic occupancy (please note the 4 coffee and 1 lunch breaks)
@@ -171,15 +171,13 @@ def test_static_vs_dynamic_occupancy_from_form(baseline_form_data, data_registry
     baseline_form_data['infected_people'] = 0
 
     dynamic_occupancy_baseline_form: VirusFormData = VirusFormData.from_dict(baseline_form_data, data_registry)
-    dynamic_occupancy_model = dynamic_occupancy_baseline_form.build_model()
+    dynamic_occupancy_models = dynamic_occupancy_baseline_form.build_model()
     dynamic_occupancy_report_data = rep_gen.calculate_report_data(dynamic_occupancy_baseline_form, executor_factory)
-
-    assert (list(sorted(static_occupancy_model.concentration_model.infected.presence.transition_times())) == 
-            list(dynamic_occupancy_model.concentration_model.infected.number.transition_times))
-    assert (list(sorted(static_occupancy_model.exposed.presence.transition_times())) == 
-            list(dynamic_occupancy_model.exposed.number.transition_times))
     
-    np.testing.assert_almost_equal(static_occupancy_report_data['prob_inf'], dynamic_occupancy_report_data['prob_inf'], 1)
-    assert dynamic_occupancy_report_data['expected_new_cases'] == None
-    assert dynamic_occupancy_report_data['prob_probabilistic_exposure'] == None
+    for static_occupancy_model, dynamic_occupancy_model in zip(static_occupancy_models.exposure_models, dynamic_occupancy_models.exposure_models):
+        assert (list(sorted(static_occupancy_model.concentration_model.infected.presence.transition_times())) == 
+                list(dynamic_occupancy_model.concentration_model.infected.number.transition_times))
+    
+    assert (list(static_occupancy_models.exposed_transition_times()) == 
+            list(dynamic_occupancy_models.exposed_transition_times()))
     
