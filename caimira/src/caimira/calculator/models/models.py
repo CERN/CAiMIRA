@@ -1907,6 +1907,9 @@ class ExposureModelGroup:
     Represents a group of exposure models, particular
     useful when dynamic exposed occupancy is defined.
     """
+    data_registry: DataRegistry
+
+    #: The set of exposure models for each exposed population
     exposure_models: typing.Tuple[ExposureModel, ...]
 
     # @method_cache
@@ -1915,6 +1918,21 @@ class ExposureModelGroup:
     #     Dose of each individual exposure model.
     #     """
     #     return [model.long_range_deposited_exposure_between_bounds() for model in self.exposure_models]
+    @method_cache
+    def exposed_transition_times(self) -> _VectorisedFloat:
+        transition_times = []
+        for model in self.exposure_models:
+            transition_times.extend(model.exposed.presence.transition_times())
+        return sorted(set(transition_times))
+
+    @method_cache
+    def concentration(self, time: float) -> _VectorisedFloat:
+        """
+        Iterates over all exposure models and returns the
+        concentration value of the model that corresponds
+        to the time interval given as input.
+        """
+        return np.sum([model.concentration(time) for model in self.exposure_models], axis=0)
 
     @method_cache
     def _deposited_exposure_set(self) -> typing.List[_VectorisedFloat]:
