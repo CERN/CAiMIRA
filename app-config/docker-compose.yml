@@ -1,5 +1,9 @@
 
 services:
+  api-app:
+    image: api-app
+    user: ${CURRENT_UID}
+
   calculator-app:
     image: calculator-app
     environment:

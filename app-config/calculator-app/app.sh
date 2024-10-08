@@ -26,7 +26,7 @@ if [[ "$APP_NAME" == "calculator-app" ]]; then
     export "DATA_SERVICE_ENABLED"="${DATA_SERVICE_ENABLED:=0}"
     export "CAIMIRA_PROFILER_ENABLED"="${CAIMIRA_PROFILER_ENABLED:=0}"
 
-    echo "Starting the caimira webservice with: python -m cern_caimira.apps.calculator ${args[@]}"
+    echo "Starting the caimira calculator app with: python -m cern_caimira.apps.calculator ${args[@]}"
     python -m cern_caimira.apps.calculator "${args[@]}"
 
 else
