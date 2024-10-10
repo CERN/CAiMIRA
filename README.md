@@ -269,6 +269,7 @@ export COOKIE_SECRET=$(openssl rand -hex 50)
 export OIDC_SERVER=https://auth.cern.ch/auth
 export OIDC_REALM=CERN
 export CLIENT_ID=caimira-test
+export CLIENT_SECRET=$CLIENT_SECRET
 ```
 
 Run docker compose:
