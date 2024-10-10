@@ -50,4 +50,3 @@ services:
         condition: service_started
       auth-service:
         condition: service_started
-    user: ${CURRENT_UID}

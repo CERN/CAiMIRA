@@ -251,10 +251,12 @@ The response format will be:
 ```
 docker build -f app-config/api-app/Dockerfile -t api-app .
 docker build -f app-config/calculator-app/Dockerfile -t calculator-app .
-docker build -f app-config/auth-service/Dockerfile -t auth-service .
+docker build ./app-config/auth-service -t auth-service
 ```
 
 If you are using a computer with ARM CPU (Mac M1/2/3), then add the arg `--platform linux/arm64` to the docker build cmd.
+
+If you need to debug the Docker build, add the args `--no-cache --progress=plain` to see a more verbose output in your terminal.
 
 Get the client secret from the CERN Application portal for the `caimira-test` app. See [CERN-SSO-integration](#cern-sso-integration) for more info.
 ```
