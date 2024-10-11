@@ -262,7 +262,7 @@ class VirusFormData(FormData):
                     activity=infected_population.activity,
                     presence=self.short_range_interval(interaction),
                     distance=short_range_distances(self.data_registry),
-                ))
+                ).build_model(size))
 
         concentration_model: models.ConcentrationModel = mc.ConcentrationModel(
             data_registry=self.data_registry,
@@ -270,31 +270,32 @@ class VirusFormData(FormData):
             ventilation=ventilation,
             infected=infected_population,
             evaporation_factor=0.3,
-        )
+        ).build_model(size)
         geographical_data: models.Cases = mc.Cases(
             geographic_population=self.geographic_population,
             geographic_cases=self.geographic_cases,
             ascertainment_bias=CONFIDENCE_LEVEL_OPTIONS[self.ascertainment_bias],
-        )
+        ).build_model(size)
 
         if self.occupancy_format == 'dynamic':
             if isinstance(self.dynamic_exposed_occupancy, typing.List) and len(self.dynamic_exposed_occupancy) > 0:
                 exposure_model_set = []
                 for exposed_group in self.dynamic_exposed_occupancy:
                     total_people = int(exposed_group['total_people'])
-                    start_time: float = float(time_string_to_minutes(exposed_group['start_time'])/60)
-                    finish_time: float = float(time_string_to_minutes(exposed_group['finish_time'])/60)
-                    exposed_population: mc.Population = self.exposed_population(total_people, start_time, finish_time)
-                    exposure_model_set.append(
-                        mc.ExposureModel(
-                            data_registry=self.data_registry,
-                            concentration_model=concentration_model,
-                            short_range=tuple(short_range),
-                            exposed=exposed_population,
-                            geographical_data=geographical_data,
-                            exposed_to_short_range=self.short_range_occupants,
-                        ).build_model(size)
-                    )
+                    if total_people > 0:
+                        start_time: float = float(time_string_to_minutes(exposed_group['start_time'])/60)
+                        finish_time: float = float(time_string_to_minutes(exposed_group['finish_time'])/60)
+                        exposed_population: mc.Population = self.exposed_population(total_people, start_time, finish_time).build_model(size)
+                        exposure_model_set.append(
+                            mc.ExposureModel(
+                                data_registry=self.data_registry,
+                                concentration_model=concentration_model,
+                                short_range=tuple(short_range),
+                                exposed=exposed_population,
+                                geographical_data=geographical_data,
+                                exposed_to_short_range=self.short_range_occupants,
+                            ).build_model(size)
+                        )
                 return mc.ExposureModelGroup(
                     data_registry=self.data_registry,
                     exposure_models=exposure_model_set
