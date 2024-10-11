@@ -1812,7 +1812,6 @@ class ExposureModel:
         deposited_exposure = []
         for start, stop in zip(population_change_times[:-1], population_change_times[1:]):
             deposited_exposure.append(self.deposited_exposure_between_bounds(start, stop))
-
         return deposited_exposure
 
     def deposited_exposure(self) -> _VectorisedFloat:
@@ -1912,49 +1911,24 @@ class ExposureModelGroup:
     #: The set of exposure models for each exposed population
     exposure_models: typing.Tuple[ExposureModel, ...]
 
-    # @method_cache
-    # def long_range_deposited_exposure(self) -> _VectorisedFloat:
-    #     """
-    #     Dose of each individual exposure model.
-    #     """
-    #     return [model.long_range_deposited_exposure_between_bounds() for model in self.exposure_models]
-    @method_cache
-    def exposed_transition_times(self) -> _VectorisedFloat:
-        transition_times = []
-        for model in self.exposure_models:
-            transition_times.extend(model.exposed.presence.transition_times())
-        return sorted(set(transition_times))
-
-    @method_cache
-    def concentration(self, time: float) -> _VectorisedFloat:
-        """
-        Iterates over all exposure models and returns the
-        concentration value of the model that corresponds
-        to the time interval given as input.
-        """
-        return np.sum([model.concentration(time) for model in self.exposure_models], axis=0)
-
     @method_cache
     def _deposited_exposure_set(self) -> typing.List[_VectorisedFloat]:
         """
         Dose of each individual exposure model.
         """
         return [model.deposited_exposure() for model in self.exposure_models]
-
+    
     @method_cache
-    def _infection_probability_list(self) -> typing.List[_VectorisedFloat]:
-        # Deposited exposure
+    def _infection_probability_list(self):
+        # Viral dose (vD)
         vD_list = self._deposited_exposure_set()
-
-        # Baseline model
-        model: ExposureModel = self.exposure_models[0]
-
+ 
         # oneoverln2 multiplied by ID_50 corresponds to ID_63.
-        infectious_dose = oneoverln2 * model.concentration_model.virus.infectious_dose
+        infectious_dose = oneoverln2 * self.exposure_models[0].concentration_model.virus.infectious_dose
 
-        # Probability of infection
-        return [(1 - np.exp(-((vD * (1 - model.exposed.host_immunity))/(infectious_dose *
-                model.concentration_model.virus.transmissibility_factor)))) for vD in vD_list]
+        # Probability of infection.
+        return [(1 - np.exp(-((vD * (1 - self.exposure_models[0].exposed.host_immunity))/(infectious_dose *
+                self.exposure_models[0].concentration_model.virus.transmissibility_factor)))) for vD in vD_list]
         
     @method_cache
     def infection_probability(self) -> _VectorisedFloat:
@@ -1965,29 +1939,13 @@ class ExposureModelGroup:
         assumed to be constant over the scenarios.
         """
         return (1 - np.prod([1 - prob for prob in self._infection_probability_list()], axis = 0)) * 100
-    
-    @method_cache
-    def infection_probability_set(self) -> typing.List[_VectorisedFloat]:
-        """
-        Individual probability of infection for
-        each exposure model initially defined.
-        """
-        return [model.infection_probability()/100 for model in self.exposure_models]
-    
-    @method_cache
-    def expected_new_cases_set(self) -> typing.List[_VectorisedFloat]:
-        """
-        Individual expected new cases for
-        each exposure model initially defined.
-        """
-        return [model.expected_new_cases() for model in self.exposure_models]
 
     def expected_new_cases(self) -> _VectorisedFloat:
         """
         Final expected number of new cases considering the
         contribution of each individual probability of infection.
         """
-        return np.sum(self.expected_new_cases_set(), axis=0)
+        return np.sum([nth_model.expected_new_cases() for nth_model in self.exposure_models], axis=0)
     
     def reproduction_number(self) -> _VectorisedFloat:
         """
