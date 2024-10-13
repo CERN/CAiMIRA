@@ -65,7 +65,6 @@ test-cern-caimira-py39:
 
 .test_openshift_config:
   stage: test
-  allow_failure: true
   image: registry.cern.ch/docker.io/mambaorg/micromamba
   before_script:
     - micromamba create --yes -p $HOME/env python=3.9 ruamel.yaml wget -c conda-forge
@@ -85,27 +84,24 @@ test-cern-caimira-py39:
     paths:
       - ./app-config/openshift/${CAIMIRA_INSTANCE}/actual
       - ./app-config/openshift/${CAIMIRA_INSTANCE}/expected
-  only:
-    - master
-    - live/caimira-test
 
 check_openshift_config_test:
   extends: .test_openshift_config
   variables:
     CAIMIRA_INSTANCE: 'caimira-test'
-    BRANCH: 'live/caimira-test'
     OC_SERVER: https://api.paas.okd.cern.ch
     OC_TOKEN: "${OPENSHIFT_CAIMIRA_TEST_CONFIG_CHECKER_TOKEN}"
+  only:
+    - live/caimira-test
 
-# TODO: for prod, it should ignore the different tag in the `image` field
-# check_openshift_config_prod:
-#   extends: .test_openshift_config
-#   variables:
-#     CAIMIRA_INSTANCE: 'caimira-prod'
-#     BRANCH: 'master'
-#     OC_SERVER: https://api.paas.okd.cern.ch
-#     OC_TOKEN: "${OPENSHIFT_CAIMIRA_PROD_CONFIG_CHECKER_TOKEN}"
-
+check_openshift_config_prod:
+  extends: .test_openshift_config
+  variables:
+    CAIMIRA_INSTANCE: 'caimira-prod'
+    OC_SERVER: https://api.paas.okd.cern.ch
+    OC_TOKEN: "${OPENSHIFT_CAIMIRA_PROD_CONFIG_CHECKER_TOKEN}"
+  only:
+    - master
 
 # ###################################################################################################
 # Build docker images

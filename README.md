@@ -357,9 +357,7 @@ $ cd app-config/openshift
 
 $ oc process -f configmap.yaml | oc create -f -
 $ oc process -f services.yaml | oc create -f -
-$ oc process -f imagestreams.yaml | oc create -f -
-$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/caimira-test' | oc create -f -
-$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='caimira-test'  | oc create -f -
+$ oc process -f deployments.yaml  | oc create -f -
 ```
 
 Manually create the **route** to access the website, see `routes.example.yaml`.
@@ -453,9 +451,7 @@ $ cd app-config/openshift
 
 $ oc process -f configmap.yaml | oc replace -f -
 $ oc process -f services.yaml | oc replace -f -
-$ oc process -f imagestreams.yaml | oc replace -f -
-$ oc process -f buildconfig.yaml --param GIT_BRANCH='live/caimira-test' | oc replace -f -
-$ oc process -f deploymentconfig.yaml --param PROJECT_NAME='caimira-test' | oc replace -f -
+$ oc process -f deployments.yaml | oc replace -f -
 ```
 
 Be aware that if you create/recreate the environment you must manually create a **route** in OpenShift,

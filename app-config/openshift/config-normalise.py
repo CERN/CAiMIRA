@@ -34,26 +34,16 @@ def clean_ephemeral_config(config: dict):
         item.get('spec', {}).pop('clusterIP', None)
         item.get('spec', {}).pop('clusterIPs', None)
         item.get('spec', {}).pop('revisionHistoryLimit', None)
+        item.get('spec', {}).pop('progressDeadlineSeconds', None)
 
-        if item['kind'] == 'BuildConfig':
-            for trigger in item.get('spec', {}).get('triggers', []):
-                trigger.get('imageChange', {}).pop('lastTriggeredImageID', None)
-            item.get('spec', {}).pop('failedBuildsHistoryLimit', None)
-            item.get('spec', {}).pop('successfulBuildsHistoryLimit', None)
-
-        if item['kind'] == 'DeploymentConfig':
+        if item['kind'] == 'Deployment':
+            item['spec'].pop('strategy', None)
             item['spec'].get('template', {}).get('metadata', {}).pop('creationTimestamp', None)
+            item['spec'].get('template', {}).get('metadata', {}).pop('annotations', None)
 
             for container in item['spec'].get('template', {}).get('spec', {}).get('containers', []):
                 # Drop the specific image name (and hash).
                 container.pop('image', None)
-            item['spec'].get('template', {}).get('metadata', {}).pop('creationTimestamp', None)
-            for trigger in item['spec'].get('triggers', []):
-                trigger.get('imageChangeParams', {}).pop('lastTriggeredImage', None)
-
-        # Drop the tags on ImageStream
-        if item['kind'] == 'ImageStream':
-            item['spec'].pop('tags', None)
 
         # Drop the unnecessary elements on Service
         if item['kind'] == 'Service':
@@ -77,14 +67,14 @@ def clean_ephemeral_config(config: dict):
     # Fix the configmap single element data structure
     if config['kind'] == 'ConfigMap':
         config['items'] = [{
-            'apiVersion': config.get('apiVersion', {}), 
-            'data': config.get('data', {}), 
-            'kind': config.get('kind', {}), 
+            'apiVersion': config.get('apiVersion', {}),
+            'data': config.get('data', {}),
+            'kind': config.get('kind', {}),
             'metadata': {'name': 'auth-service'}
         }]
         config['kind'] = 'List'
         config.pop('data', None)
-    
+
     return config
 
 

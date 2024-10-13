@@ -24,7 +24,7 @@
             protocol: TCP
             targetPort: 8080
         selector:
-          deploymentconfig: auth-service
+          app: auth-service
         sessionAffinity: 'None'
         type: 'ClusterIP'
     -
@@ -41,7 +41,7 @@
             protocol: TCP
             targetPort: 8080
         selector:
-          deploymentconfig: caimira-router
+          app: caimira-router
         sessionAffinity: 'None'
         type: 'ClusterIP'
     -
@@ -58,7 +58,7 @@
             protocol: TCP
             targetPort: 8080
         selector:
-          deploymentconfig: calculator-app
+          app: calculator-app
         sessionAffinity: 'None'
         type: 'ClusterIP'
     -
@@ -75,6 +75,6 @@
             protocol: TCP
             targetPort: 8080
         selector:
-          deploymentconfig: calculator-open-app
+          app: calculator-open-app
         sessionAffinity: 'None'
         type: 'ClusterIP'

@@ -17,7 +17,7 @@ def configure_parser(parser: argparse.ArgumentParser) -> None:
     )
 
 
-def generate_config(output_directory: pathlib.Path, project_name: str, hostname: str, branch: str):
+def generate_config(output_directory: pathlib.Path):
     output_directory.mkdir(exist_ok=True, parents=True)
 
     def oc_process(component_name: str, context: typing.Optional[dict] = None):
@@ -30,24 +30,18 @@ def generate_config(output_directory: pathlib.Path, project_name: str, hostname:
 
     oc_process('configmap')
     oc_process('services')
-    oc_process('imagestreams')
-    oc_process('buildconfig', context={'GIT_BRANCH': branch})
-    oc_process('deploymentconfig', context={'PROJECT_NAME': project_name})
+    oc_process('deployments')
 
     print(f'Config in: {output_directory.absolute()}')
 
 
 def handler(args: argparse.ArgumentParser) -> None:
     if args.instance == 'caimira-prod':
-        project_name = 'caimira-prod'
-        branch = 'master'
-        hostname = 'caimira.web.cern.ch'
+        pass
     elif args.instance == 'caimira-test':
-        project_name = 'caimira-test'
-        branch = 'live/caimira-test'
-        hostname = 'caimira-test.web.cern.ch'
+        pass
 
-    generate_config(pathlib.Path(args.output_directory), project_name, hostname, branch)
+    generate_config(pathlib.Path(args.output_directory))
 
 
 def main():
