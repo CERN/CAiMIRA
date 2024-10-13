@@ -134,29 +134,3 @@ class TestError500(tornado.testing.AsyncHTTPTestCase):
         response = self.fetch('/')
         assert response.code == 500
         assert 'Unfortunately an error occurred when processing your request' in response.body.decode()
-
-
-class TestCERNGenericPage(tornado.testing.AsyncHTTPTestCase):
-    def get_app(self):
-        cern_theme = Path(cern_caimira.apps.calculator.__file__).parent.parent / 'themes' / 'cern'
-        app = cern_caimira.apps.calculator.make_app(theme_dir=cern_theme)
-        pages = [
-            (r'/calculator/user-guide', cern_caimira.apps.calculator.GenericExtraPage, {'active_page': 'calculator/user-guide', 'filename': 'userguide.html.j2'}),
-            (r'/about', cern_caimira.apps.calculator.GenericExtraPage, {'active_page': 'about', 'filename': 'about.html.j2'}),
-        ]
-
-        return tornado.web.Application(pages, **app.settings)
-
-    @tornado.testing.gen_test(timeout=_TIMEOUT)
-    def test_user_guide(self):
-        response = yield self.http_client.fetch(self.get_url('/calculator/user-guide'))
-        self.assertEqual(response.code, 200)
-
-    @tornado.testing.gen_test(timeout=_TIMEOUT)
-    def test_about(self):
-        response = yield self.http_client.fetch(self.get_url('/about'))
-        self.assertEqual(response.code, 200)
-
-    def test_calculator_404(self):
-        response = self.fetch('/calculator')
-        assert response.code == 404

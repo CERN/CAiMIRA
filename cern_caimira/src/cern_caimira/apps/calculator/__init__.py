@@ -135,6 +135,7 @@ class BaseRequestHandler(RequestHandler):
             get_url = template.globals['get_url'],
             get_calculator_url = template.globals["get_calculator_url"],
             active_page='Error',
+            documentation_url = template.globals["documentation_url"],
             error_id=error_id,
             status_code=status_code,
             datetime=datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
@@ -278,6 +279,7 @@ class LandingPage(BaseRequestHandler):
         template = template_environment.get_template(
             "index.html.j2")
         report = template.render(
+            documentation_url = template.globals["documentation_url"],
             user=self.current_user,
             get_url = template_environment.globals['get_url'],
             get_calculator_url = template_environment.globals['get_calculator_url'],
@@ -458,12 +460,6 @@ def make_app(
         (get_root_calculator_url(r'/baseline-model/result'), StaticModel),
         (get_root_calculator_url(r'/api/arve/v1/(.*)/(.*)'), ArveData),
         # Generic Pages
-        (get_root_url(r'/about'), GenericExtraPage, {
-            'active_page': 'about',
-            'filename': 'about.html.j2'}),
-        (get_root_calculator_url(r'/user-guide'), GenericExtraPage, {
-            'active_page': 'calculator/user-guide',
-            'filename': 'userguide.html.j2'}),
         (get_root_url(r'/expert-app'), GenericExtraPage, {
             'active_page': 'expert-app',
             'filename': 'expert-app.html.j2'}),
@@ -510,6 +506,7 @@ def make_app(
     )
     template_environment.globals['get_url']=get_root_url
     template_environment.globals['get_calculator_url']=get_root_calculator_url
+    template_environment.globals['documentation_url']='https://caimira.docs.cern.ch'
 
     if debug:
         tornado.log.enable_pretty_logging()

@@ -774,60 +774,15 @@
 <br><br>
 
 <div class="container container--padding">
-  <b>Quick Guide:</b><br>
-  This tool simulates the airborne spread SARS-CoV-2 virus in a finite volume and estimates the risk of COVID-19 infection. It is based on current scientific data and can be used to compare the effectiveness of different mitigation measures.<br>
-  <b>Virus data:</b> <br>
-  SARS-CoV-2 covers the original "wild type" strain of the virus and three variants of concern (VOC):<br>
-  <ul>
-    <li>Alpha (also known as B.1.1.7, first identified in UK, Sept 2020),</li>
-    <li>Beta (also known as B.1.351, first identified in South Africa, May 2020).</li>
-    <li>Gamma (also known as P.1, first identified in Brazil/Japan, Jan 2021).</li>
-    <li>Delta (also known as B.1.617.2, first identified in India, Oct 2020).</li>
-    <li>Omicron (also known as B.1.1.529, first identified in South Africa, November 2021).</li>
-  </ul>
-  Modify the default as necessary, according to local area prevalence e.g. for <a href="https://www.covid19.admin.ch/fr/epidemiologic/virus-variants?detGeo=GE">Geneva</a>
-  or <a href="https://www.santepubliquefrance.fr/dossiers/coronavirus-covid-19/covid-19-cartographie-des-variants-en-france-donnees-par-region-et-par-departement">Ain (France)</a>.<br>
-  <b>Ventilation data:</b> <br>
-  <ul>
-    <li>Mechanical ventilation = the HVAC supply of fresh air. Check the flow rates with the concerned technical department.</li>
-    <li>Natural ventilation = the type of window opening. The opening distance is between the fixed frame and movable part when open (commonly used values are window height of 1.6m and window opening between 0.15m and 0.6m). In case of periodic opening, specify the duration (e.g. 10 min) per hour.</li>
-    <li>HEPA filtration = the air flow of the device. The following values are based on the different fan velocities of a specific commercial device proposed by the HSE Unit:</li>
-    <ul>
-        <li>Level 6 (max) = 430 m<sup>3</sup>/h (noisy),</li>
-        <li>Level 5 = 250 m<sup>3</sup>/h (ok w.r.t. noise, recommended),</li>
-        <li>Level 4 = 130 m<sup>3</sup>/h (silent),</li>
-        <li>Level 3 = 95 m<sup>3</sup>/h (silent).</li>
-    </ul>
-  </ul>
-  <b>Activity types:</b><br>
-  The type of activity applies to both the infected and exposed persons:
-  <ul>
-    <li>Office = all seated, talking 33% of the time,</li>
-    <li>Small meeting (< 10 occ.) = all seated, talking time shared between all persons,</li>
-    <li>Large meeting (>= 10 occ.) = speaker is standing and speaking 33% of the time, other occupants are seated,</li>							
-    <li>Call Centre = all seated, continuous talking,</li>
-    <li>Control Room (day shift) = all seated, talking 50% of the time,</li>
-    <li>Control Room (night shift) = all seated, talking 10% of the time,</li>
-    <li>Library = all seated, no talking, just breathing,</li>
-    <li>Laboratory = light physical activity, talking 50% of the time,</li>
-    <li>Workshop = moderate physical activity, talking 50% of the time,</li>
-    <li>Conference/Training (speaker infected) = speaker/trainer standing and talking, rest seated and talking quietly.
-    Speaker/Trainer assumed infected (worst case scenario),</li>
-    <li>Conference/Training (attendee infected) = someone in the audience is infected, all are seated and breathing.</li>
-    <li>Gym = heavy exercise, no talking, just breathing.</li>
-  </ul>
-  <b>Activity breaks:</b><br>
-  <ul>
-    <li>If coffee breaks are included, they are spread out evenly throughout the day,
-    in addition to any lunch break (if applicable).</li>
-  </ul>
-  Refer to <a href="{{ get_calculator_url() }}/user-guide"> Calculator App user guide </a>
-  for more detailed explanations on how to use this tool. <br>
+  <b>Quick Guide</b>: Refer to <a href="{{ documentation_url }}/project_overview/user_guide/quick_guide"> Calculator App quick user guide</a>.
+  <br>
+  <b>Full Guide</b>: Refer to <a href="{{ documentation_url }}/project_overview/user_guide/full_guide"> Calculator App full user guide</a>.
+  <br>
 </div>
 
 <div class="center container--padding pr-3 pl-3">
 <button class="btn btn-primary bigButton">
-  <a href="{{ get_calculator_url() }}/user-guide" class="{{ "nav-link active" if "user-guide" in active_page else "nav-link" }}" style="color:white">User guide</a>
+  <a href="{{ documentation_url }}/project_overview/user_guide/full_guide" class="nav-link" style="color:white">User guide</a>
 </button>
 <button class="btn btn-primary bigButton  ml-2" type="button" data-toggle="collapse" data-target="#collapseDisclaimer" aria-expanded="false" aria-controls="collapseDisclaimer">
     Disclaimer 

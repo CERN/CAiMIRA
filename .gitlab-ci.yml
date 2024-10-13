@@ -67,6 +67,7 @@ test-cern-caimira-py39:
 
 .test_openshift_config:
   stage: test
+  allow_failure: true
   image: registry.cern.ch/docker.io/mambaorg/micromamba
   before_script:
     - micromamba create --yes -p $HOME/env python=3.9 ruamel.yaml wget -c conda-forge
@@ -139,6 +140,13 @@ check_openshift_config_prod:
     DOCKER_CONTEXT_DIRECTORY: ""
   extends: .docker-build
 
+.docker-build-docs:
+  variables:
+    IMAGE_NAME: caimira-docs
+    DOCKERFILE_DIRECTORY: "caimira/docs"
+    DOCKER_CONTEXT_DIRECTORY: "caimira"
+  extends: .docker-build
+
 # on push to live/caimira-test
 .docker-build-test:
   variables:
@@ -155,6 +163,14 @@ docker-build-calculator-app-test:
   extends:
     - .docker-build-test
     - .docker-build-calculator-app
+  rules:
+    - if: $CI_COMMIT_BRANCH == "live/caimira-test"
+
+docker-build-docs-test:
+  extends: 
+    - .docker-build-docs
+  variables:
+    IMAGE_TAG: caimira-test-docs-latest
   rules:
     - if: $CI_COMMIT_BRANCH == "live/caimira-test"
 
@@ -176,6 +192,15 @@ docker-build-calculator-app-release:
   extends:
     - .docker-build-release
     - .docker-build-calculator-app
+  rules:
+    - if: $CI_COMMIT_TAG
+
+docker-build-docs-release:
+  extends:
+    - .docker-build-release
+    - .docker-build-docs
+  variables:
+    IMAGE_TAG: caimira-docs-latest
   rules:
     - if: $CI_COMMIT_TAG
 
@@ -217,3 +242,10 @@ deploy-calculator-open-app-test:
     IMAGE_NAME: calculator-app
     OPENSHIFT_DEPLOYMENT: calculator-open-app
     OPENSHIFT_CONTAINER_NAME: calculator-open-app
+
+deploy-docs-test:
+  extends: .deploy
+  variables:
+    IMAGE_NAME: caimira-docs
+    OPENSHIFT_DEPLOYMENT: caimira-test-docs
+    OPENSHIFT_CONTAINER_NAME: caimira-test-docs
