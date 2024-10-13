@@ -1,7 +1,8 @@
 FROM registry.cern.ch/docker.io/condaforge/mambaforge as conda
 
-RUN mamba create --yes -p /opt/app python=3.9
+RUN mamba create --yes -p /opt/app python=3.12
 COPY . /opt/app-source
+
 RUN conda run -p /opt/app python -m pip install /opt/app-source
 RUN cd /opt/app \
  && find -name '*.a' -delete \

@@ -219,7 +219,7 @@ Keep the profiler page open. Then, in another window, navigate to any page in CA
 
 The sessions are stored in a local file in the `/tmp` folder. To share it across multiple web nodes, a shared storage should be added to all web nodes. The folder can be customized via the environment variable `CAIMIRA_PROFILER_CACHE_DIR`.
 
-### CAiMIRA REST API Usage
+### CAiMIRA API Usage
 
 From the root directory of the project:
 
@@ -229,9 +229,9 @@ From the root directory of the project:
     python -m caimira.api.app
     ```
 
-2. The Tornado server will run on port `8088`.
+2. The Tornado server will run on port `8081`.
 
-To test the API functionality, you can send a `POST` request to `http://localhost:8088/report` with the required inputs in the request body. For an example of the required inputs, see [this link](https://gitlab.cern.ch/caimira/caimira/-/blob/master/caimira/apps/calculator/model_generator.py?ref_type=heads#L492).
+To test the API functionality, you can send a `POST` request to `http://localhost:8081/virus_report` with the required inputs in the request body. For an example of the required inputs, see [the baseline raw form data](https://gitlab.cern.ch/caimira/caimira/blob/master/caimira/src/caimira/calculator/validators/virus/virus_validator.py#L565).
 
 The response format will be:
 
@@ -248,13 +248,15 @@ The response format will be:
 
 ### Building the whole environment for local development
 
-**Simulate the docker build that takes place on openshift with:**
-
 ```
-s2i build file://$(pwd) --copy --keep-symlinks --context-dir ./app-config/nginx/ centos/nginx-112-centos7 caimira-nginx-app
-docker build . -f ./app-config/calculator-app/Dockerfile -t calculator-app
+docker build -f app-config/api-app/Dockerfile -t api-app .
+docker build -f app-config/calculator-app/Dockerfile -t calculator-app .
 docker build ./app-config/auth-service -t auth-service
 ```
+
+If you are using a computer with ARM CPU (Mac M1/2/3), then add the arg `--platform linux/arm64` to the docker build cmd.
+
+If you need to debug the Docker build, add the args `--no-cache --progress=plain` to see a more verbose output in your terminal.
 
 Get the client secret from the CERN Application portal for the `caimira-test` app. See [CERN-SSO-integration](#cern-sso-integration) for more info.
 ```
@@ -267,22 +269,23 @@ export COOKIE_SECRET=$(openssl rand -hex 50)
 export OIDC_SERVER=https://auth.cern.ch/auth
 export OIDC_REALM=CERN
 export CLIENT_ID=caimira-test
+export CLIENT_SECRET=$CLIENT_SECRET
 ```
 
-Run docker-compose:
+Run docker compose:
 ```
 cd app-config
-CURRENT_UID=$(id -u):$(id -g) docker-compose up
+CURRENT_UID=$(id -u):$(id -g) docker compose up
 ```
 
 Then visit http://localhost:8080/.
 
-### Setting up the application on openshift
+### Setting up the application on OpenShift
 
 The https://cern.ch/caimira application is running on CERN's OpenShift platform. In order to set it up for the first time, we followed the documentation at https://paas.docs.cern.ch/. In particular we:
 
  * Added the OpenShift application deploy key to the GitLab repository
- * Created a Python 3.6 (the highest possible at the time of writing) application in OpenShift
+ * Created a Python 3.12 (the highest possible at the time of writing) application in OpenShift
  * Configured a generic webhook on OpenShift, and call that from the CI of the GitLab repository
 
 ### Updating the caimira-test.web.cern.ch instance

@@ -1,5 +1,9 @@
-version: "3.8"
+
 services:
+  api-app:
+    image: api-app
+    user: ${CURRENT_UID}
+
   calculator-app:
     image: calculator-app
     environment:
@@ -7,7 +11,7 @@ services:
       - APP_NAME=calculator-app
       - APPLICATION_ROOT=/
       - CAIMIRA_CALCULATOR_PREFIX=/calculator-cern
-      - CAIMIRA_THEME=ui/apps/templates/cern
+      - CAIMIRA_THEME=cern_caimira/apps/templates/cern
       - DATA_SERVICE_ENABLED=0
       - CAIMIRA_PROFILER_ENABLED=0
     user: ${CURRENT_UID}
@@ -34,9 +38,11 @@ services:
     user: ${CURRENT_UID}
 
   caimira-router:
-    image: caimira-nginx-app
+    image: nginx:1.27
     ports:
       - "8080:8080"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf:ro
     depends_on:
       calculator-app:
         condition: service_started
@@ -44,4 +50,3 @@ services:
         condition: service_started
       auth-service:
         condition: service_started
-    user: ${CURRENT_UID}
