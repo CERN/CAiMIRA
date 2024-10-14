@@ -1945,7 +1945,7 @@ class ExposureModelGroup:
         Final expected number of new cases considering the
         contribution of each individual probability of infection.
         """
-        return np.sum([nth_model.expected_new_cases() for nth_model in self.exposure_models], axis=0)
+        return np.sum([np.array(nth_model.expected_new_cases()).mean() for nth_model in self.exposure_models])
     
     def reproduction_number(self) -> _VectorisedFloat:
         """
