@@ -73,7 +73,7 @@ class VirusFormData(FormData):
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = DEFAULTS
 
     def validate(self):
-        # Validate population parameters 
+        # Validate population parameters
         self.validate_population_parameters()
 
         validation_tuples = [('activity_type', self.data_registry.population_scenario_activity.keys()),
@@ -203,29 +203,35 @@ class VirusFormData(FormData):
                     f'The sum of all respiratory activities should be 100. Got {total_percentage}.')
 
         # Validate number of people with short-range interactions
-        if self.occupancy_format == "static": max_occupants_for_sr = self.total_people - self.infected_people
-        else: max_occupants_for_sr = np.max(np.array([entry["total_people"] for entry in self.dynamic_exposed_occupancy]))
+        if self.occupancy_format == "static":
+            max_occupants_for_sr = self.total_people - self.infected_people
+        else:
+            max_occupants_for_sr = np.max(
+                np.array([entry["total_people"] for entry in self.dynamic_exposed_occupancy]))
         if self.short_range_occupants > max_occupants_for_sr:
             raise ValueError(
                 f'The total number of occupants having short-range interactions ({self.short_range_occupants}) should be lower than the exposed population ({max_occupants_for_sr}).'
             )
-        
+
         # Validate short-range interactions interval
         if self.short_range_option == "short_range_yes":
             for interaction in self.short_range_interactions:
                 # Check if presence is within long-range exposure
                 presence = self.short_range_interval(interaction)
                 if (self.occupancy_format == 'dynamic'):
-                    long_range_start = min(time_string_to_minutes(self.dynamic_infected_occupancy[0]['start_time']), 
-                                            time_string_to_minutes(self.dynamic_exposed_occupancy[0]['start_time']))
-                    long_range_stop = max(time_string_to_minutes(self.dynamic_infected_occupancy[-1]['finish_time']), 
-                                            time_string_to_minutes(self.dynamic_exposed_occupancy[-1]['finish_time']))
+                    long_range_start = min(time_string_to_minutes(self.dynamic_infected_occupancy[0]['start_time']),
+                                           time_string_to_minutes(self.dynamic_exposed_occupancy[0]['start_time']))
+                    long_range_stop = max(time_string_to_minutes(self.dynamic_infected_occupancy[-1]['finish_time']),
+                                          time_string_to_minutes(self.dynamic_exposed_occupancy[-1]['finish_time']))
                 else:
-                    long_range_start = min(self.infected_start, self.exposed_start)
-                    long_range_stop = max(self.infected_finish, self.exposed_finish)
-                if not (long_range_start/60 <= presence.present_times[0][0] <= long_range_stop/60 and 
+                    long_range_start = min(
+                        self.infected_start, self.exposed_start)
+                    long_range_stop = max(
+                        self.infected_finish, self.exposed_finish)
+                if not (long_range_start/60 <= presence.present_times[0][0] <= long_range_stop/60 and
                         long_range_start/60 <= presence.present_times[0][-1] <= long_range_stop/60):
-                    raise ValueError(f"Short-range interactions should be defined during simulation time. Got {interaction}")
+                    raise ValueError(
+                        f"Short-range interactions should be defined during simulation time. Got {interaction}")
 
     def initialize_room(self) -> models.Room:
         # Initializes room with volume either given directly or as product of area and height
@@ -246,22 +252,25 @@ class VirusFormData(FormData):
 
         return models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (inside_temp,)), humidity=humidity) # type: ignore
 
-    def build_mc_model(self, sample_size: typing.Optional[int] = None) -> mc.ExposureModelGroup:
-        size = sample_size or self.data_registry.monte_carlo['sample_size']
+    def build_mc_model(self) -> typing.Union[mc.ExposureModel, mc.ExposureModelGroup]:
+        size = self.data_registry.monte_carlo['sample_size']
 
         room: models.Room = self.initialize_room()
         ventilation: models._VentilationBase = self.ventilation()
         infected_population: models.InfectedPopulation = self.infected_population()
+
         short_range = []
         if self.short_range_option == "short_range_yes":
             for interaction in self.short_range_interactions:
+                expiration = short_range_expiration_distributions(self.data_registry)[interaction['expiration']]
+                presence = self.short_range_interval(interaction)
+                distances = short_range_distances(self.data_registry)
                 short_range.append(mc.ShortRangeModel(
                     data_registry=self.data_registry,
-                    expiration=short_range_expiration_distributions(
-                        self.data_registry)[interaction['expiration']],
+                    expiration=expiration,
                     activity=infected_population.activity,
-                    presence=self.short_range_interval(interaction),
-                    distance=short_range_distances(self.data_registry),
+                    presence=presence,
+                    distance=distances,
                 ).build_model(size))
 
         concentration_model: models.ConcentrationModel = mc.ConcentrationModel(
@@ -271,6 +280,7 @@ class VirusFormData(FormData):
             infected=infected_population,
             evaporation_factor=0.3,
         ).build_model(size)
+
         geographical_data: models.Cases = mc.Cases(
             geographic_population=self.geographic_population,
             geographic_cases=self.geographic_cases,
@@ -278,52 +288,53 @@ class VirusFormData(FormData):
         ).build_model(size)
 
         if self.occupancy_format == 'dynamic':
-            if isinstance(self.dynamic_exposed_occupancy, typing.List) and len(self.dynamic_exposed_occupancy) > 0:
-                exposure_model_set = []
-                for exposed_group in self.dynamic_exposed_occupancy:
-                    total_people = int(exposed_group['total_people'])
-                    if total_people > 0:
-                        start_time: float = float(time_string_to_minutes(exposed_group['start_time'])/60)
-                        finish_time: float = float(time_string_to_minutes(exposed_group['finish_time'])/60)
-                        exposed_population: mc.Population = self.exposed_population(total_people, start_time, finish_time).build_model(size)
-                        exposure_model_set.append(
-                            mc.ExposureModel(
-                                data_registry=self.data_registry,
-                                concentration_model=concentration_model,
-                                short_range=tuple(short_range),
-                                exposed=exposed_population,
-                                geographical_data=geographical_data,
-                                exposed_to_short_range=self.short_range_occupants,
-                            ).build_model(size)
-                        )
-                return mc.ExposureModelGroup(
-                    data_registry=self.data_registry,
-                    exposure_models=exposure_model_set
-                )
-            else:
-                raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_exposed_occupancy}".')
-        elif self.occupancy_format == 'static':
-            exposed_population = self.exposed_population()
-            return mc.ExposureModelGroup(
-                data_registry=self.data_registry,
-                exposure_models = [
-                    mc.ExposureModel(
+            if not isinstance(self.dynamic_exposed_occupancy, list) or len(self.dynamic_exposed_occupancy) == 0:
+                raise TypeError(f'Expected a non-empty list of occupancy intervals for dynamic occupancy, got "{self.dynamic_exposed_occupancy}".')
+
+            exposure_model_set = []
+            for exposed_group in self.dynamic_exposed_occupancy:
+                total_people = int(exposed_group['total_people'])
+                if total_people > 0:
+                    start_time: float = float(time_string_to_minutes(exposed_group['start_time'])/60)
+                    finish_time: float = float(time_string_to_minutes(exposed_group['finish_time'])/60)
+                    exposed_population: mc.Population = self.exposed_population(
+                        total_people, start_time, finish_time).build_model(size)
+                    exposure_model: models.ExposureModel = mc.ExposureModel(
                         data_registry=self.data_registry,
                         concentration_model=concentration_model,
                         short_range=tuple(short_range),
                         exposed=exposed_population,
                         geographical_data=geographical_data,
                         exposed_to_short_range=self.short_range_occupants,
-                    ).build_model(size) # TODO: Bring to top level the monte carlo generation
-                ]
+                    ).build_model(size)
+                    exposure_model_set.append(exposure_model)
+                    
+            if len(self.dynamic_exposed_occupancy) == 1:
+                return exposure_model_set[0]
+            else:
+                return mc.ExposureModelGroup(
+                    data_registry=self.data_registry,
+                    exposure_models=exposure_model_set
+                )
+
+        elif self.occupancy_format == 'static':
+            exposed_population = self.exposed_population()
+            return mc.ExposureModel(
+                data_registry=self.data_registry,
+                concentration_model=concentration_model,
+                short_range=tuple(short_range),
+                exposed=exposed_population,
+                geographical_data=geographical_data,
+                exposed_to_short_range=self.short_range_occupants,
             )
         else:
-            raise TypeError(f'Undefined exposure type. Got "{self.occupancy_format}", accepted formats are "dynamic" or "exposed".')
+            raise TypeError(
+                f'Undefined exposure type. Got "{self.occupancy_format}", accepted formats are "dynamic" or "exposed".')
 
-    def build_model(self, sample_size=None) -> models.ExposureModelGroup:
+    def build_model(self, sample_size=None) -> typing.Union[models.ExposureModel, models.ExposureModelGroup]:
         size: int = self.data_registry.monte_carlo['sample_size'] if not sample_size else sample_size
-        return self.build_mc_model(sample_size=size).build_model(size)
-                
+        return self.build_mc_model().build_model(size=size)
+
     def build_CO2_model(self, sample_size=None) -> models.CO2ConcentrationModel:
         sample_size = sample_size or self.data_registry.monte_carlo['sample_size']
         infected_population: models.InfectedPopulation = self.infected_population(
@@ -462,6 +473,7 @@ class VirusFormData(FormData):
         # This is a minimal, always present source of ventilation, due
         # to the air infiltration from the outside.
         # See CERN-OPEN-2021-004, p. 12.
+        # type: ignore
         residual_vent: float = self.data_registry.ventilation['infiltration_ventilation'] # type: ignore
         infiltration_ventilation = models.AirChange(
             active=always_on, air_exch=residual_vent)
@@ -507,10 +519,12 @@ class VirusFormData(FormData):
             if isinstance(self.dynamic_infected_occupancy, typing.List) and len(self.dynamic_infected_occupancy) > 0:
                 # If dynamic occupancy is defined, the generator will parse and validate the
                 # respective input to a format readable by the model - `IntPiecewiseConstant`.
-                infected_occupancy = self.generate_dynamic_occupancy(self.dynamic_infected_occupancy)
+                infected_occupancy = self.generate_dynamic_occupancy(
+                    self.dynamic_infected_occupancy)
                 infected_presence = None
             else:
-                raise TypeError(f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_infected_occupancy}".')
+                raise TypeError(
+                    f'If dynamic occupancy is selected, a populated list of occupancy intervals is expected. Got "{self.dynamic_infected_occupancy}".')
         else:
             # The number of exposed occupants is the total number of occupants
             # minus the number of infected occupants.
@@ -518,11 +532,14 @@ class VirusFormData(FormData):
             infected_presence = self.infected_present_interval()
 
         # Activity and expiration
-        activity_defn = self.data_registry.population_scenario_activity[self.activity_type]['activity']
-        expiration_defn = self.data_registry.population_scenario_activity[self.activity_type]['expiration']
+        activity_defn = self.data_registry.population_scenario_activity[
+            self.activity_type]['activity']
+        expiration_defn = self.data_registry.population_scenario_activity[
+            self.activity_type]['expiration']
         if (self.activity_type == 'smallmeeting'):
             # Conversation of N people is approximately 1/N% of the time speaking.
-            total_people: int = max(infected_occupancy.values) if self.occupancy_format == 'dynamic' else self.total_people
+            total_people: int = max(
+                infected_occupancy.values) if self.occupancy_format == 'dynamic' else self.total_people
             expiration_defn = {'Speaking': 1, 'Breathing': total_people - 1}
         elif (self.activity_type == 'precise'):
             activity_defn, expiration_defn = self.generate_precise_activity_expiration()
@@ -543,9 +560,9 @@ class VirusFormData(FormData):
         )
         return infected
 
-    def exposed_population(self, 
-                           total_people: typing.Optional[int] = None, 
-                           start_time: typing.Optional[float] = None, 
+    def exposed_population(self,
+                           total_people: typing.Optional[int] = None,
+                           start_time: typing.Optional[float] = None,
                            finish_time: typing.Optional[float] = None) -> mc.Population:
         """
         Generates an exposed Population class, both for static
@@ -568,7 +585,8 @@ class VirusFormData(FormData):
 
         if total_people is not None and start_time is not None and finish_time is not None:
             number = total_people
-            presence: models.Interval = models.SpecificInterval(present_times=((start_time, finish_time), ))
+            presence: models.Interval = models.SpecificInterval(
+                present_times=((start_time, finish_time), ))
         else:
             number = self.total_people - self.infected_people
             presence = self.exposed_present_interval()
