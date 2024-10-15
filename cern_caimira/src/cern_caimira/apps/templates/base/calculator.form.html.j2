@@ -382,10 +382,7 @@
         </div>
       </div></br>
       <div class='sub_title'>
-        HEPA Filtration / eACH:
-        <div data-tooltip="CADR - Clean Air Delivery Rate">
-          <span class="tooltip_text">?</span>
-        </div>
+        HEPA Filtration / Eq. ventilation:
       </div>
       <div>
         <input type="radio" id="hepa_yes" name="hepa_option" value=1 onclick="require_fields(this)" data-enables="#DIVhepa_amount">
@@ -394,7 +391,12 @@
           <label for="hepa_no" class="col-form-label ml-2">No</label>
       </div>
       <div class="form-group row tabbed" id="DIVhepa_amount">
-        <div class="col-md-6"><label for="hepa_amount" class="col-form-label">Flow rate / CADR (m³ / hour):</label></div>
+        <div class="col-md-7">
+          <label for="hepa_amount" class="col-form-label">Flow rate / CADR (m³ / hour):</label>
+          <div data-tooltip="CADR - Clean Air Delivery Rate">
+            <span class="tooltip_text">?</span>
+          </div>
+        </div>
         <div class="col-md-4"><input type="number" step="any" id="hepa_amount" class="non_zero form-control" name="hepa_amount" placeholder="Flow rate" min="0" data-has-radio="#hepa_yes"></div>
       </div>
       <hr width="80%">
