@@ -21,14 +21,15 @@ def build_initial_plot(
         [occupancy_transition_times[-1]] +
         ventilation_transition_times)
 
-    ventilation_plot: str = form.generate_ventilation_plot(
-        ventilation_transition_times=all_vent_transition_times,
+    vent_plot_img, vent_plot_data = form.generate_ventilation_plot(
+        ventilation_transition_times=ventilation_transition_times,
         occupancy_transition_times=occupancy_transition_times
     )
 
     context = {
-        'CO2_plot': ventilation_plot,
         'transition_times': [round(el, 2) for el in all_vent_transition_times],
+        'CO2_plot_img': vent_plot_img,
+        'CO2_plot_data': vent_plot_data
     }
 
     return context
@@ -52,9 +53,12 @@ def build_fitting_results(
     # predictive CO2 result based on the fitting results.
     context = dict(CO2model.CO2_fit_params())
 
+    vent_plot_img, vent_plot_data = form.generate_ventilation_plot(ventilation_transition_times=ventilation_transition_times[:-1],
+                                        predictive_CO2=context['predictive_CO2'])
+
     # Add the transition times and CO2 plot to the results.
     context['transition_times'] = ventilation_transition_times
-    context['CO2_plot'] = form.generate_ventilation_plot(ventilation_transition_times=ventilation_transition_times[:-1],
-                                                         predictive_CO2=context['predictive_CO2'])
+    context['CO2_plot_img'] = vent_plot_img
+    context['CO2_plot_data'] = vent_plot_data
 
     return context
