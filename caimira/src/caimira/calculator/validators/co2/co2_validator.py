@@ -147,7 +147,7 @@ class CO2FormData(FormData):
     def generate_ventilation_plot(self,
                                   ventilation_transition_times: typing.Optional[list] = None,
                                   occupancy_transition_times: typing.Optional[list] = None,
-                                  predictive_CO2: typing.Optional[list] = None) -> dict:
+                                  predictive_CO2: typing.Optional[list] = None):
             
             # Plot data (x-axis: times; y-axis: CO2 concentrations)
             times_values: list = self.CO2_data['times']
