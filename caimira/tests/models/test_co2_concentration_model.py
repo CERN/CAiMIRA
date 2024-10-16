@@ -57,7 +57,7 @@ def test_integrated_concentration(simple_co2_conc_model):
 def test_find_change_points(scenario_data, room_volume, max_total_people, start, finish, state_changes, request):
     '''
     Specific test of the find_change_points method. 
-    Testing the ventilation state changes only.
+    Testing the ventilation transition times only.
     '''
     CO2_form_model: CO2FormData = CO2FormData(
         CO2_data=request.getfixturevalue(scenario_data),
