@@ -84,12 +84,12 @@ def _build_mc_model(model: dataclass_instance) -> typing.Type[MCModelBase[_Model
 
             else:
                 # Check that we don't need to do anything with this type.
-                for item in new_field.type.__args__:
+                for item in new_field.type.__args__: # type: ignore
                     if getattr(item, '__module__', None) == 'source.models.models':
                         raise ValueError(
                             f"unsupported type annotation transformation required for {new_field.type}")
         elif field_type.__module__ == 'source.models.models':
-            mc_model = getattr(sys.modules[__name__], new_field.type.__name__)
+            mc_model = getattr(sys.modules[__name__], new_field.type.__name__) # type: ignore
             field_type = typing.Union[new_field.type, mc_model]
 
         fields.append((new_field.name, field_type, new_field))
@@ -126,8 +126,8 @@ _MODEL_CLASSES = [
 
 # Inject the runtime generated MC types into this module.
 for _model in _MODEL_CLASSES:
-    setattr(sys.modules[__name__], _model.__name__, _build_mc_model(_model))
+    setattr(sys.modules[__name__], _model.__name__, _build_mc_model(_model)) # type: ignore
 
 
 # Make sure that each of the models is imported if you do a ``import *``.
-__all__ = [_model.__name__ for _model in _MODEL_CLASSES] + ["MCModelBase"]
+__all__ = [_model.__name__ for _model in _MODEL_CLASSES] + ["MCModelBase"] # type: ignore

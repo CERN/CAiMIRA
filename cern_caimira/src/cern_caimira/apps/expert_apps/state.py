@@ -25,7 +25,7 @@ class StateBuilder:
     def resolve_builder(self, field: dataclasses.Field):
         method_name = [
             f'build_name_{field.name}',
-            f'build_type_{field.type.__name__}',
+            f'build_type_{field.type.__name__}', # type: ignore
         ]
         for name in method_name:
             method = getattr(self, name, None)
