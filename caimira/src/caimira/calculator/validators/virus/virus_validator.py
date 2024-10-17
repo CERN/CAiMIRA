@@ -252,6 +252,14 @@ class VirusFormData(FormData):
 
         return models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (inside_temp,)), humidity=humidity) # type: ignore
 
+    def find_corresponding_short_range_models(self, sr_model: models.ShortRangeModel, start: float, finish: float) -> bool:
+        """
+        Filter function to check which short-range interactions
+        belong to a certain exposure model within the group.
+        """
+        sr_start, sr_finish = sr_model.presence.boundaries()[0]
+        return start <= sr_start and sr_finish <= finish
+
     def build_mc_model(self) -> typing.Union[mc.ExposureModel, mc.ExposureModelGroup]:
         size = self.data_registry.monte_carlo['sample_size']
 
@@ -271,6 +279,7 @@ class VirusFormData(FormData):
                     activity=infected_population.activity,
                     presence=presence,
                     distance=distances,
+                    expiration_def=interaction['expiration']
                 ).build_model(size))
 
         concentration_model: models.ConcentrationModel = mc.ConcentrationModel(
@@ -297,12 +306,12 @@ class VirusFormData(FormData):
                 if total_people > 0:
                     start_time: float = float(time_string_to_minutes(exposed_group['start_time'])/60)
                     finish_time: float = float(time_string_to_minutes(exposed_group['finish_time'])/60)
-                    exposed_population: mc.Population = self.exposed_population(
-                        total_people, start_time, finish_time).build_model(size)
+                    sr_models: typing.Tuple[models.ShortRangeModel, ...] = tuple(filter(lambda x: self.find_corresponding_short_range_models(x, start_time, finish_time), short_range))
+                    exposed_population: mc.Population = self.exposed_population(total_people, start_time, finish_time).build_model(size)
                     exposure_model: models.ExposureModel = mc.ExposureModel(
                         data_registry=self.data_registry,
                         concentration_model=concentration_model,
-                        short_range=tuple(short_range),
+                        short_range=sr_models,
                         exposed=exposed_population,
                         geographical_data=geographical_data,
                         exposed_to_short_range=self.short_range_occupants,
@@ -332,7 +341,7 @@ class VirusFormData(FormData):
                 f'Undefined exposure type. Got "{self.occupancy_format}", accepted formats are "dynamic" or "exposed".')
 
     def build_model(self, sample_size=None) -> typing.Union[models.ExposureModel, models.ExposureModelGroup]:
-        size: int = self.data_registry.monte_carlo['sample_size'] if not sample_size else sample_size
+        size = self.data_registry.monte_carlo['sample_size'] if not sample_size else sample_size
         return self.build_mc_model().build_model(size=size)
 
     def build_CO2_model(self, sample_size=None) -> models.CO2ConcentrationModel:
