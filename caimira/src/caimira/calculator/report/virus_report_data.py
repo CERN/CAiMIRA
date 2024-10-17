@@ -105,29 +105,47 @@ def interesting_times(model: typing.Union[models.ExposureModel, models.ExposureM
     return nice_times
 
 
-def concentrations_with_sr_breathing(form: VirusFormData, 
-                                     model: typing.Union[models.ExposureModel, models.ExposureModelGroup], 
-                                     times: typing.List[float], 
-                                     short_range_intervals: typing.List) -> typing.List[float]:
+def process_short_range_interactions(model: typing.Union[models.ExposureModel, models.ExposureModelGroup], 
+                                     times: typing.List[float]):
+    """
+    Process both ExposureModel and ExposureModelGroup for short-range 
+    expirations, intervals and concentrations. Returns a tuple containing 
+    lower concentrations, short-range expirations, and short-range intervals.
+    """
+    if isinstance(model, models.ExposureModelGroup):
+        model_list = model.exposure_models
+    elif isinstance(model, models.ExposureModel):
+        model_list = (model,)
+    else:
+        raise TypeError(f"Model should be either an instance of ExposureModel or ExposureModelGroup. Got '{type(model)}.'")
+    
+    # Collect short-range expirations and intervals
+    short_range_expirations, short_range_intervals = [], []
+    for nth_model in model_list:
+        for nth_sr_model in nth_model.short_range:
+            short_range_expirations.append(nth_sr_model.expiration_def)
+            short_range_intervals.append(nth_sr_model.presence.boundaries()[0])
+            
+    # Collect lower concentrations (including Breathing)
     lower_concentrations = []
     for time in times:
-        for index, (start, stop) in enumerate(short_range_intervals):
-            # For visualization issues, add short-range breathing activity to the initial long-range concentrations
-            if start <= time <= stop and form.short_range_interactions[index]['expiration'] == 'Breathing':
-                if isinstance(model, models.ExposureModelGroup):
-                    lower_concentrations.append(np.sum([np.array(nth_model.concentration(float(time))).mean() for nth_model in model.exposure_models]))
-                elif isinstance(model, models.ExposureModel):
-                    lower_concentrations.append(np.array(model.concentration(float(time))).mean())
-                else:
-                    raise TypeError(f"Model should be either an ExposureModel or ExposureModelGroup. Got '{type(model)}.'")
+        breathing_found = False
+        for nth_model in model_list:
+            for nth_sr_model in nth_model.short_range:
+                start, stop = nth_sr_model.presence.boundaries()[0]
+
+                # Check if the expiration is "Breathing" and the if time is within boundaries
+                if nth_sr_model.expiration_def == 'Breathing' and (start <= time <= stop):
+                    lower_concentrations.append(np.sum([np.array(nth_model.concentration(float(time))).mean() for nth_model in model_list]))
+                    breathing_found = True
+                    break
+
+            if breathing_found:
                 break
-        if isinstance(model, models.ExposureModelGroup):
-            lower_concentrations.append(np.sum([np.array(nth_model.concentration(float(time))).mean() for nth_model in model.exposure_models]))
-        elif isinstance(model, models.ExposureModel):
-            lower_concentrations.append(np.array(model.concentration_model.concentration(float(time))).mean())
-        else:
-            raise TypeError(f"Model should be either an instance of ExposureModel or ExposureModelGroup. Got '{type(model)}.'")
-    return lower_concentrations
+        
+        lower_concentrations.append(np.sum([np.array(nth_model.concentration_model.concentration(float(time))).mean() for nth_model in model_list]))
+
+    return lower_concentrations, short_range_expirations, short_range_intervals
 
 
 def _calculate_deposited_exposure(model: typing.Union[models.ExposureModel, models.ExposureModelGroup], 
@@ -167,27 +185,17 @@ def calculate_report_data(form: VirusFormData, executor_factory: typing.Callable
         exposed_presence_intervals = []
         for nth_model in model.exposure_models:
             exposed_presence_intervals.extend(list(nth_model.exposed.presence_interval().boundaries()))
-        
-        # Short-range related inputs
-        short_range_intervals = []
-        for nth_model in model.exposure_models:
-            short_range_intervals.extend([interaction.presence.boundaries()[0]
-                                    for interaction in nth_model.short_range])
-        short_range_intervals = list(set(short_range_intervals))
-    else:
+    elif isinstance(model, models.ExposureModel):
         exposed_presence_intervals = [list(interval) for interval in model.exposed.presence_interval().boundaries()]
-        short_range_intervals = [interaction.presence.boundaries()[0] for interaction in model.short_range]
+    else:
+        raise TypeError(f"Model should be either an instance of ExposureModel or ExposureModelGroup. Got '{type(model)}.'")
     
-    short_range_expirations = []
-    if form.short_range_option == "short_range_yes":
-        short_range_expirations.extend([interaction['expiration']
-                            for interaction in form.short_range_interactions])
-    short_range_expirations = list(set(short_range_expirations))
+    # Handle short-range related outputs
+    lower_concentrations, short_range_expirations, short_range_intervals = None, None, None
+     # Short-range related data:
+    if (form.short_range_option == "short_range_yes"):
+       lower_concentrations, short_range_expirations, short_range_intervals = process_short_range_interactions(model, times)
     
-    # Concentration profile
-    lower_concentrations = concentrations_with_sr_breathing(
-        form, model, times, short_range_intervals)
-
     # Probability of infection
     prob = np.array(model.infection_probability())
     prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
@@ -234,7 +242,7 @@ def calculate_report_data(form: VirusFormData, executor_factory: typing.Callable
             long_range_deposited_exposures.append(result)
         elif fn_name == "cn":
             concentrations.append(result)
-        elif fn_name == "co2_concentration":
+        elif fn_name == "co2":
             CO2_concentrations.append(result)
 
     cumulative_doses = np.cumsum(deposited_exposures)
@@ -287,7 +295,6 @@ def calculate_report_data(form: VirusFormData, executor_factory: typing.Callable
         "expected_new_cases": expected_new_cases,
         "uncertainties_plot_src": uncertainties_plot_src,
         "CO2_concentrations": CO2_concentrations,
-        "conditional_probability_data": [],
         "conditional_probability_data": conditional_probability_data,
     }
 

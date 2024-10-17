@@ -1324,6 +1324,9 @@ class ShortRangeModel:
     #: Interpersonal distances
     distance: _VectorisedFloat
 
+    #: Expiration definition
+    expiration_def: typing.Optional[str] = None
+
     def dilution_factor(self) -> _VectorisedFloat:
         '''
         The dilution factor for the respective expiratory activity type.
