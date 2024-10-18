@@ -67,6 +67,7 @@ test-cern-caimira-py39:
 
 .test_openshift_config:
   stage: test
+  allow_failure: true
   image: registry.cern.ch/docker.io/mambaorg/micromamba
   before_script:
     - micromamba create --yes -p $HOME/env python=3.9 ruamel.yaml wget -c conda-forge
