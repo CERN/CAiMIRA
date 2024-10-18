@@ -139,6 +139,13 @@ check_openshift_config_prod:
     DOCKER_CONTEXT_DIRECTORY: ""
   extends: .docker-build
 
+.docker-build-docs:
+  variables:
+    IMAGE_NAME: caimira-docs
+    DOCKERFILE_DIRECTORY: "docs"
+    DOCKER_CONTEXT_DIRECTORY: "docs"
+  extends: .docker-build
+
 # on push to live/caimira-test
 .docker-build-test:
   variables:
@@ -155,6 +162,14 @@ docker-build-calculator-app-test:
   extends:
     - .docker-build-test
     - .docker-build-calculator-app
+  rules:
+    - if: $CI_COMMIT_BRANCH == "live/caimira-test"
+
+docker-build-docs-test:
+  extends: 
+    - .docker-build-docs
+  variables:
+    IMAGE_TAG: caimira-test-docs-latest
   rules:
     - if: $CI_COMMIT_BRANCH == "live/caimira-test"
 
@@ -192,8 +207,8 @@ docker-build-calculator-app-release:
     - echo "Deploying ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG} to OpenShift"
     - oc login $OPENSHIFT_SERVER --token=$OPENSHIFT_CAIMIRA_TEST_DEPLOY_TOKEN
     - oc project $OPENSHIFT_PROJECT
-    - oc set image dc/$OPENSHIFT_DEPLOYMENT $OPENSHIFT_CONTAINER_NAME=${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG}
-    - oc rollout status dc/$OPENSHIFT_DEPLOYMENT
+    - oc set image deployment/$OPENSHIFT_DEPLOYMENT $OPENSHIFT_CONTAINER_NAME=${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG}
+    - oc rollout status deployment/$OPENSHIFT_DEPLOYMENT
   rules:
     - if: $CI_COMMIT_BRANCH == "live/caimira-test"
 
@@ -217,3 +232,10 @@ deploy-calculator-open-app-test:
     IMAGE_NAME: calculator-app
     OPENSHIFT_DEPLOYMENT: calculator-open-app
     OPENSHIFT_CONTAINER_NAME: calculator-open-app
+
+deploy-docs-test:
+  extends: .deploy
+  variables:
+    IMAGE_NAME: caimira-docs
+    OPENSHIFT_DEPLOYMENT: caimira-test-docs
+    OPENSHIFT_CONTAINER_NAME: caimira-test-docs
