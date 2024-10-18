@@ -171,8 +171,8 @@ docker-build-docs-test:
     - .docker-build-docs
   variables:
     IMAGE_TAG: caimira-test-docs-latest
-  only:
-    - live/caimira-test
+  rules:
+    - if: $CI_COMMIT_BRANCH == "live/caimira-test"
 
 # on release
 .docker-build-release:
