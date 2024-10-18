@@ -208,8 +208,8 @@ docker-build-calculator-app-release:
     - echo "Deploying ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG} to OpenShift"
     - oc login $OPENSHIFT_SERVER --token=$OPENSHIFT_CAIMIRA_TEST_DEPLOY_TOKEN
     - oc project $OPENSHIFT_PROJECT
-    - oc set image dc/$OPENSHIFT_DEPLOYMENT $OPENSHIFT_CONTAINER_NAME=${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG}
-    - oc rollout status dc/$OPENSHIFT_DEPLOYMENT
+    - oc set image deployment/$OPENSHIFT_DEPLOYMENT $OPENSHIFT_CONTAINER_NAME=${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG}
+    - oc rollout status deployment/$OPENSHIFT_DEPLOYMENT
   rules:
     - if: $CI_COMMIT_BRANCH == "live/caimira-test"
 
