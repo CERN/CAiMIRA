@@ -142,6 +142,13 @@ check_openshift_config_test:
     DOCKER_CONTEXT_DIRECTORY: ""
   extends: .docker-build
 
+.docker-build-docs:
+  variables:
+    IMAGE_NAME: caimira-docs
+    DOCKERFILE_DIRECTORY: "docs"
+    DOCKER_CONTEXT_DIRECTORY: "docs"
+  extends: .docker-build
+
 # on push to live/caimira-test
 .docker-build-test:
   variables:
@@ -158,6 +165,14 @@ docker-build-calculator-app-test:
   extends:
     - .docker-build-test
     - .docker-build-calculator-app
+  only:
+    - live/caimira-test
+
+docker-build-docs-test:
+  extends: 
+    - .docker-build-docs
+  variables:
+    IMAGE_TAG: caimira-test-docs-latest
   only:
     - live/caimira-test
 
