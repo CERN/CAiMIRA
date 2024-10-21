@@ -298,10 +298,6 @@ Including transitive dependencies is essential to acknowledge the full spectrum 
 
 - License: [BSD License (BSD-3-Clause)](https://pypi.org/project/numpy/)
 
-#### numpy-stubs 0.0.1
-
-- License: [BSD License (BSD-3-Clause)](https://github.com/numpy/numpy-stubs/tree/master)
-
 #### overrides 7.4.0
 
 - License: [Apache License 2.0](https://pypi.org/project/overrides/)

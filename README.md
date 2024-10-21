@@ -219,7 +219,7 @@ Keep the profiler page open. Then, in another window, navigate to any page in CA
 
 The sessions are stored in a local file in the `/tmp` folder. To share it across multiple web nodes, a shared storage should be added to all web nodes. The folder can be customized via the environment variable `CAIMIRA_PROFILER_CACHE_DIR`.
 
-### CAiMIRA API Usage
+### Running the APIs app
 
 From the root directory of the project:
 
@@ -298,6 +298,13 @@ but it may be origin if you haven't configured it differently):
 
     git push --force upstream name-of-local-branch:live/caimira-test
 
+### Releases on PyPI
+
+The APIs app is released on PyPI at <URL>.
+
+To test new releases, use the test instance.
+
+The full documentation is available [here](https://packaging.python.org/en/latest/guides/using-testpypi/).
 
 ## OpenShift templates
 
@@ -441,7 +448,7 @@ The CERN data service collects data from various sources and expose them via a R
 
 The service is enabled when the environment variable `DATA_SERVICE_ENABLED` is set to 1.
 
-## Update configuration
+### Update configuration
 
 If you need to **update** existing configuration, then modify this repository and after having logged in, run:
 
