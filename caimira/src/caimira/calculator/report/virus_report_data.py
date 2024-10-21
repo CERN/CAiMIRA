@@ -220,7 +220,7 @@ def calculate_report_data(form: VirusFormData, executor_factory: typing.Callable
 def conditional_prob_inf_given_vl_dist(
     infection_probability: models._VectorisedFloat,
     viral_loads: np.ndarray,
-    specific_vl: float,
+    specific_vl: models._VectorisedFloat,
     step: models._VectorisedFloat
 ):
 

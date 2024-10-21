@@ -46,17 +46,25 @@ The API is served by the **Tornado** web framework, which provides asynchronous 
 
 To run the API, follow these steps from the root directory of the project:
 
-1. Install dependencies:
-    ```
-    cd caimira
-    pip install -e .
-    ```
+1. Install dependencies (two options available):
+    - From previously cloned [GitLab Repository](https://gitlab.cern.ch/caimira/caimira):
+
+            cd caimira
+            pip install -e .
+    
+    - From [PyPI](https://pypi.org/project/caimira/):
+
+            pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple caimira
+    
+        !!! info
+            `--extra-index-url` is necessary to resolve dependencies from PyPI.
+
     
 2. Run the backend:
-    ```
-    python -m caimira.api.app
-    ```
-    The web server will be accessible on port `8081`.
+
+        python -m caimira.api.app
+
+    The web server will be accessible at [http://localhost:8081/](http://localhost:8081/).
     
 #### API Endpoints
 
