@@ -38,9 +38,7 @@ def fetch_config(output_directory: pathlib.Path):
     for component, name in [
             ('configmap', 'auth-service'),
             ('services', None),
-            ('imagestreams', None),
-            ('buildconfig', None),
-            ('deploymentconfig', None)]:
+            ('deployments', None)]:
 
         with (output_directory / f'{component}.yaml').open('wt') as fh:
             cmd = ['oc', 'get', '-o', 'yaml', component]

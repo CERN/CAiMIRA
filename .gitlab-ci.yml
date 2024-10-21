@@ -18,9 +18,11 @@ variables:
 .test-base:
   image: registry.cern.ch/docker.io/library/python:${PY_VERSION}
   stage: test
-  except:
-    - live/caimira-test  # do not run tests on live/caimira-test branch
-    - tags
+  rules:
+    # do not run tests on live/caimira-test branch or tags
+    - if: $CI_COMMIT_BRANCH != "live/caimira-test"
+    - if: $CI_COMMIT_TAG
+      when: never
 
 .test-run:
   extends:
@@ -65,7 +67,6 @@ test-cern-caimira-py39:
 
 .test_openshift_config:
   stage: test
-  allow_failure: true
   image: registry.cern.ch/docker.io/mambaorg/micromamba
   before_script:
     - micromamba create --yes -p $HOME/env python=3.9 ruamel.yaml wget -c conda-forge
@@ -85,27 +86,24 @@ test-cern-caimira-py39:
     paths:
       - ./app-config/openshift/${CAIMIRA_INSTANCE}/actual
       - ./app-config/openshift/${CAIMIRA_INSTANCE}/expected
-  only:
-    - master
-    - live/caimira-test
 
 check_openshift_config_test:
   extends: .test_openshift_config
   variables:
     CAIMIRA_INSTANCE: 'caimira-test'
-    BRANCH: 'live/caimira-test'
     OC_SERVER: https://api.paas.okd.cern.ch
     OC_TOKEN: "${OPENSHIFT_CAIMIRA_TEST_CONFIG_CHECKER_TOKEN}"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "live/caimira-test"
 
-# TODO: for prod, it should ignore the different tag in the `image` field
-# check_openshift_config_prod:
-#   extends: .test_openshift_config
-#   variables:
-#     CAIMIRA_INSTANCE: 'caimira-prod'
-#     BRANCH: 'master'
-#     OC_SERVER: https://api.paas.okd.cern.ch
-#     OC_TOKEN: "${OPENSHIFT_CAIMIRA_PROD_CONFIG_CHECKER_TOKEN}"
-
+check_openshift_config_prod:
+  extends: .test_openshift_config
+  variables:
+    CAIMIRA_INSTANCE: 'caimira-prod'
+    OC_SERVER: https://api.paas.okd.cern.ch
+    OC_TOKEN: "${OPENSHIFT_CAIMIRA_PROD_CONFIG_CHECKER_TOKEN}"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
 
 # ###################################################################################################
 # Build docker images
@@ -119,12 +117,11 @@ check_openshift_config_test:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
-    - echo "Building image for ${CI_COMMIT_REF_NAME} branch with tag ${IMAGE_TAG}"
+    - echo "Building image for ${CI_COMMIT_REF_NAME} branch with tag ${IMAGE_TAG} and latest"
     # Prepare Kaniko configuration file
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - echo "Building ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:latest Docker image..."
     # Build and push the image from the Dockerfile
-    - /kaniko/executor --context ${CI_PROJECT_DIR}/${DOCKER_CONTEXT_DIRECTORY} --dockerfile ${CI_PROJECT_DIR}/${DOCKERFILE_DIRECTORY}/Dockerfile --destination ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG}
+    - /kaniko/executor --context ${CI_PROJECT_DIR}/${DOCKER_CONTEXT_DIRECTORY} --dockerfile ${CI_PROJECT_DIR}/${DOCKERFILE_DIRECTORY}/Dockerfile --destination ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG} --destination ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:latest
     # Print the full registry path of the pushed image
     - echo "Image pushed successfully to ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG}"
 
@@ -151,15 +148,15 @@ docker-build-auth-service-test:
   extends:
     - .docker-build-test
     - .docker-build-auth-service
-  only:
-    - live/caimira-test
+  rules:
+    - if: $CI_COMMIT_BRANCH == "live/caimira-test"
 
 docker-build-calculator-app-test:
   extends:
     - .docker-build-test
     - .docker-build-calculator-app
-  only:
-    - live/caimira-test
+  rules:
+    - if: $CI_COMMIT_BRANCH == "live/caimira-test"
 
 # on release
 .docker-build-release:
@@ -172,15 +169,15 @@ docker-build-auth-service-release:
   extends:
     - .docker-build-release
     - .docker-build-auth-service
-  only:
-    - tags
+  rules:
+    - if: $CI_COMMIT_TAG
 
 docker-build-calculator-app-release:
   extends:
     - .docker-build-release
     - .docker-build-calculator-app
-  only:
-    - tags
+  rules:
+    - if: $CI_COMMIT_TAG
 
 # ###################################################################################################
 # Deploy to OpenShift
@@ -195,10 +192,10 @@ docker-build-calculator-app-release:
     - echo "Deploying ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG} to OpenShift"
     - oc login $OPENSHIFT_SERVER --token=$OPENSHIFT_CAIMIRA_TEST_DEPLOY_TOKEN
     - oc project $OPENSHIFT_PROJECT
-    - oc set image dc/$OPENSHIFT_DEPLOYMENT $OPENSHIFT_CONTAINER_NAME=${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG}
-    - oc rollout status dc/$OPENSHIFT_DEPLOYMENT
-  only:
-    - live/caimira-test
+    - oc set image deployment/$OPENSHIFT_DEPLOYMENT $OPENSHIFT_CONTAINER_NAME=${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${IMAGE_TAG}
+    - oc rollout status deployment/$OPENSHIFT_DEPLOYMENT
+  rules:
+    - if: $CI_COMMIT_BRANCH == "live/caimira-test"
 
 deploy-auth-service-test:
   extends: .deploy

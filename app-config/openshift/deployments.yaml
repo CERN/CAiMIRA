@@ -10,8 +10,8 @@
     template: "caimira-application"
   objects:
     -
-      apiVersion: apps.openshift.io/v1
-      kind: DeploymentConfig
+      apiVersion: apps/v1
+      kind: Deployment
       metadata:
         name: auth-service
         labels:
@@ -22,11 +22,10 @@
           metadata:
             labels:
               app: auth-service
-              deploymentconfig: auth-service
           spec:
             containers:
               - name: auth-service
-                image: '${PROJECT_NAME}/auth-service'
+                image: 'gitlab-registry.cern.ch/caimira/caimira/auth-service:latest'
                 ports:
                   - containerPort: 8080
                     protocol: TCP
@@ -36,7 +35,13 @@
                   - secretRef:
                       name: auth-service-secrets
                 imagePullPolicy: Always
-                resources: {}
+                resources:
+                  limits:
+                    cpu: 100m
+                    memory: 250Mi
+                  requests:
+                    cpu: 50m
+                    memory: 40Mi
                 terminationMessagePath: /dev/termination-log
                 terminationMessagePolicy: File
             dnsPolicy: ClusterFirst
@@ -53,24 +58,13 @@
             maxUnavailable: 25%
             timeoutSeconds: 600
             updatePeriodSeconds: 1
-          type: Rolling
-        test: false
+          type: RollingUpdate
         selector:
-          deploymentconfig: auth-service
-        triggers:
-          - type: ConfigChange
-          - type: ImageChange
-            imageChangeParams:
-              automatic: true
-              containerNames:
-                - auth-service
-              from:
-                kind: ImageStreamTag
-                name: 'auth-service:latest'
-                namespace: ${PROJECT_NAME}
+          matchLabels:
+            app: auth-service
     -
-      apiVersion: apps.openshift.io/v1
-      kind: DeploymentConfig
+      apiVersion: apps/v1
+      kind: Deployment
       metadata:
         name: caimira-router
       spec:
@@ -80,16 +74,42 @@
             labels:
               app: caimira-router
           spec:
+            volumes:
+              - name: nginx-config
+                configMap:
+                  name: router
+                  defaultMode: 420
+              - name: var-run
+                emptyDir: {}
+              - name: var-cache-nginx
+                emptyDir: {}
+              - name: var-log-nginx
+                emptyDir: {}
             containers:
               - name: caimira-router
-                image: '${PROJECT_NAME}/caimira-router'
+                image: 'registry.cern.ch/docker.io/library/nginx:1.23'
                 ports:
                   - containerPort: 8080
                     protocol: TCP
                   - containerPort: 8443
                     protocol: TCP
                 imagePullPolicy: Always
-                resources: {}
+                resources:
+                  limits:
+                    cpu: 100m
+                    memory: 250Mi
+                  requests:
+                    cpu: 50m
+                    memory: 16Mi
+                volumeMounts:
+                  - name: nginx-config
+                    mountPath: /etc/nginx/conf.d
+                  - name: var-run
+                    mountPath: /var/run
+                  - name: var-cache-nginx
+                    mountPath: /var/cache/nginx
+                  - name: var-log-nginx
+                    mountPath: /var/log/nginx
                 terminationMessagePath: /dev/termination-log
                 terminationMessagePolicy: File
             dnsPolicy: ClusterFirst
@@ -106,24 +126,13 @@
             maxUnavailable: 25%
             timeoutSeconds: 600
             updatePeriodSeconds: 1
-          type: Rolling
-        test: false
+          type: RollingUpdate
         selector:
-          app: caimira-router
-        triggers:
-          - type: ImageChange
-            imageChangeParams:
-              automatic: true
-              containerNames:
-                - caimira-router
-              from:
-                kind: ImageStreamTag
-                name: 'caimira-router:latest'
-                namespace: ${PROJECT_NAME}
-          - type: ConfigChange
+          matchLabels:
+            app: caimira-router
     -
-      apiVersion: apps.openshift.io/v1
-      kind: DeploymentConfig
+      apiVersion: apps/v1
+      kind: Deployment
       metadata:
         name: calculator-app
         labels:
@@ -153,7 +162,7 @@
                 - name: CAIMIRA_CALCULATOR_PREFIX
                   value: /calculator-cern
                 - name: CAIMIRA_THEME
-                  value: caimira/apps/templates/cern
+                  value: cern_caimira/apps/templates/cern
                 - name: ARVE_CLIENT_ID
                   valueFrom:
                     secretKeyRef:
@@ -173,7 +182,7 @@
                   value: '0'
                 - name: CAIMIRA_PROFILER_ENABLED
                   value: '1'
-                image: '${PROJECT_NAME}/calculator-app'
+                image: 'gitlab-registry.cern.ch/caimira/caimira/calculator-app:latest'
                 ports:
                   - containerPort: 8080
                     protocol: TCP
@@ -193,8 +202,8 @@
                     cpu: '3'
                     memory: 3Gi
                   requests:
-                    cpu: '1'
-                    memory: 1Gi
+                    cpu: 50m
+                    memory: 250Mi
                 terminationMessagePath: /dev/termination-log
                 terminationMessagePolicy: File
             dnsPolicy: ClusterFirst
@@ -211,24 +220,13 @@
             maxUnavailable: 25%
             timeoutSeconds: 600
             updatePeriodSeconds: 1
-          type: Rolling
-        test: false
+          type: RollingUpdate
         selector:
-          app: calculator-app
-        triggers:
-          - type: ImageChange
-            imageChangeParams:
-              automatic: true
-              containerNames:
-                - calculator-app
-              from:
-                kind: ImageStreamTag
-                name: 'calculator-app:latest'
-                namespace: ${PROJECT_NAME}
-          - type: ConfigChange
+          matchLabels:
+            app: calculator-app
     -
-      apiVersion: apps.openshift.io/v1
-      kind: DeploymentConfig
+      apiVersion: apps/v1
+      kind: Deployment
       metadata:
         name: calculator-open-app
         labels:
@@ -254,7 +252,7 @@
                   value: '0'
                 - name: CAIMIRA_PROFILER_ENABLED
                   value: '1'
-                image: '${PROJECT_NAME}/calculator-app'
+                image: 'gitlab-registry.cern.ch/caimira/caimira/calculator-app:latest'
                 ports:
                   - containerPort: 8080
                     protocol: TCP
@@ -264,8 +262,8 @@
                     cpu: '3'
                     memory: 3Gi
                   requests:
-                    cpu: '1'
-                    memory: 1Gi
+                    cpu: 50m
+                    memory: 250Mi
                 terminationMessagePath: /dev/termination-log
                 terminationMessagePolicy: File
             dnsPolicy: ClusterFirst
@@ -282,25 +280,7 @@
             maxUnavailable: 25%
             timeoutSeconds: 600
             updatePeriodSeconds: 1
-          type: Rolling
-        test: false
+          type: RollingUpdate
         selector:
-          app: calculator-open-app
-        triggers:
-          - type: ConfigChange
-          - type: ImageChange
-            imageChangeParams:
-              automatic: true
-              containerNames:
-                - calculator-open-app
-              from:
-                kind: ImageStreamTag
-                name: 'calculator-app:latest'
-                namespace: ${PROJECT_NAME}
-          - type: ConfigChange
-
-  parameters:
-    - name: PROJECT_NAME
-      description: The name of this project, e.g. caimira-test
-      required: true
-      
+          matchLabels:
+            app: calculator-open-app
