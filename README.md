@@ -131,7 +131,7 @@ python -m cern_caimira.apps.calculator
 To run with a specific template theme created:
 
 ```
-python -m cern_caimira.apps.calculator --theme=cern_caimira/apps/templates/{theme}
+python -m cern_caimira.apps.calculator --theme=cern_caimira/src/cern_caimira/apps/templates/{theme}
 ```
 
 To run the entire app in a different `APPLICATION_ROOT` path:
