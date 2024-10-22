@@ -84,14 +84,17 @@ def _build_mc_model(model: dataclass_instance) -> typing.Type[MCModelBase[_Model
 
             else:
                 # Check that we don't need to do anything with this type.
-                for item in new_field.type.__args__:
-                    if getattr(item, '__module__', None) == 'source.models.models':
-                        raise ValueError(
-                            f"unsupported type annotation transformation required for {new_field.type}")
+                if hasattr(new_field.type, "__args__"):
+                    for item in new_field.type.__args__:
+                        if getattr(item, '__module__', None) == 'source.models.models':
+                            raise ValueError(
+                                f"unsupported type annotation transformation required for {new_field.type}")
         elif field_type.__module__ == 'source.models.models':
-            mc_model = getattr(sys.modules[__name__], new_field.type.__name__)
-            field_type = typing.Union[new_field.type, mc_model]
-
+            if isinstance(new_field.type, type):
+                mc_model = getattr(sys.modules[__name__], new_field.type.__name__)
+                field_type = typing.Union[new_field.type, mc_model]
+            else:
+                raise ValueError(f"Expected a class/type but got {new_field.type}")
         fields.append((new_field.name, field_type, new_field))
 
     bases = []
@@ -120,7 +123,7 @@ def _build_mc_model(model: dataclass_instance) -> typing.Type[MCModelBase[_Model
 
 _MODEL_CLASSES = [
     cls for cls in vars(models).values()
-    if dataclasses.is_dataclass(cls)
+    if dataclasses.is_dataclass(cls) and isinstance(cls, type)
 ]
 
 
