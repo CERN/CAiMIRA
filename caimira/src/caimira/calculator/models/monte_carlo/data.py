@@ -125,7 +125,7 @@ class BLOmodel:
     Represents the probability distribution from the BLO model.
     It is a sum of three lognormal distributions, each of the form
     A * cn * (1 / d) * (1 / (np.sqrt(2 * np.pi) * sigma)) *
-            np.exp(-(np.log(d)-mu) ** 2 / (2 * sigma ** 2))
+    np.exp(-(np.log(d)-mu) ** 2 / (2 * sigma ** 2))
     with A the factor in front of the B, L or O mode.
     From G. Johnson et al., Modality of human
     expired aerosol size distributions, Journal of Aerosol Science,

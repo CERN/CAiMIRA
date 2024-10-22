@@ -16,7 +16,7 @@ class MCModelBase(typing.Generic[_ModelType]):
 
     This base class is essentially a declarative description of a caimira.models
     model with a :meth:`.build_model` method to generate an appropriate
-    ``caimira.models` model instance on demand.
+    `caimira.models` model instance on demand.
 
     """
     _base_cls: typing.Type[dataclass_instance]
