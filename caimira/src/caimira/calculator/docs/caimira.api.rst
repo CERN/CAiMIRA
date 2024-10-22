@@ -1,5 +1,5 @@
-caimira.apps package
-====================
+caimira.api package
+===================
 
 Subpackages
 -----------
@@ -7,15 +7,16 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   caimira.apps.calculator
+   caimira.api.controller
+   caimira.api.routes
 
 Submodules
 ----------
 
-caimira.apps.expert module
---------------------------
+caimira.api.app module
+----------------------
 
-.. automodule:: caimira.apps.expert
+.. automodule:: caimira.api.app
    :members:
    :undoc-members:
    :show-inheritance:
@@ -23,7 +24,7 @@ caimira.apps.expert module
 Module contents
 ---------------
 
-.. automodule:: caimira.apps
+.. automodule:: caimira.api
    :members:
    :undoc-members:
    :show-inheritance:

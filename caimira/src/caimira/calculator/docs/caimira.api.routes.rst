@@ -1,13 +1,13 @@
-caimira.tests.data package
+caimira.api.routes package
 ==========================
 
 Submodules
 ----------
 
-caimira.tests.data.test\_weather module
----------------------------------------
+caimira.api.routes.report\_routes module
+----------------------------------------
 
-.. automodule:: caimira.tests.data.test_weather
+.. automodule:: caimira.api.routes.report_routes
    :members:
    :undoc-members:
    :show-inheritance:
@@ -15,7 +15,7 @@ caimira.tests.data.test\_weather module
 Module contents
 ---------------
 
-.. automodule:: caimira.tests.data
+.. automodule:: caimira.api.routes
    :members:
    :undoc-members:
    :show-inheritance:
