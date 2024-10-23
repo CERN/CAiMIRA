@@ -19,50 +19,147 @@ on:
         default: 'Manual trigger'
 
 jobs:
-  test-install:
+  test-caimira-py311:
+    name: Test CAiMIRA with Python 3.11
     runs-on: ubuntu-latest
     env:
-      PROJECT_ROOT: ./
-      PROJECT_NAME: caimira
-      CAIMIRA_TESTS_CALCULATOR_TIMEOUT: 30
+      PROJECT_ROOT: "caimira"
+      PY_VERSION: "3.11"
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v2
+      - name: Set up Python ${{ env.PY_VERSION }}
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: ${{ env.PY_VERSION }}
 
-      - name: Install dependencies
-        run: |
-          python -m pip install ${PROJECT_ROOT}[test]
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt', '**/setup.py') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
-      - name: Run tests
+      - name: Install Dependencies
         run: |
-          mkdir -p ~/not-the-source-dir && cd ~/not-the-source-dir
-          python -m pytest --pyargs ${PROJECT_NAME}
-  test-dev:
-    runs-on: ubuntu-20.04
+          cd ${{ env.PROJECT_ROOT }}
+          pip install --upgrade pip
+          pip install -e .[test]
+
+      - name: Run Tests
+        run: |
+          cd caimira
+          python -m pytest
+
+  test-cern-caimira-py311:
+    name: Test CERN CAiMIRA with Python 3.11
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/live/caimira-test' && !startsWith(github.ref, 'refs/tags/')
     env:
-      PROJECT_ROOT: ./
-      PROJECT_NAME: caimira
-      CAIMIRA_TESTS_CALCULATOR_TIMEOUT: 30
+      PROJECT_ROOT: "cern_caimira"
+      PY_VERSION: "3.11"
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v2
+      - name: Set up Python ${{ env.PY_VERSION }}
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: ${{ env.PY_VERSION }}
 
-      - name: Install dependencies
-        run: |
-          python -m pip install -e ${PROJECT_ROOT}[test]
-          python -m pip install pytest-cov
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt', '**/setup.py') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
-      - name: Run tests
+      - name: Install Dependencies
         run: |
-          cd ${PROJECT_ROOT}
-          python -m pytest ./${PROJECT_NAME} --cov=${PROJECT_NAME} --junitxml=report.xml
+          cd caimira
+          pip install --upgrade pip
+          pip install -e .[test]
+          cd ../${{ env.PROJECT_ROOT }}
+          pip install --upgrade pip
+          pip install -e .[test]
+
+      - name: Run Tests
+        run: |
+          cd cern_caimira
+          python -m pytest
+
+  test-caimira-py39:
+    name: Test CAiMIRA with Python 3.9
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/live/caimira-test' && !startsWith(github.ref, 'refs/tags/')
+    env:
+      PROJECT_ROOT: "caimira"
+      PY_VERSION: "3.9"
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ env.PY_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PY_VERSION }}
+
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt', '**/setup.py') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Dependencies
+        run: |
+          cd ${{ env.PROJECT_ROOT }}
+          pip install --upgrade pip
+          pip install -e .[test]
+
+      - name: Run Tests
+        run: |
+          cd caimira
+          python -m pytest
+
+  test-cern-caimira-py39:
+    name: Test CERN CAiMIRA with Python 3.9
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/live/caimira-test' && !startsWith(github.ref, 'refs/tags/')
+    env:
+      PROJECT_ROOT: "cern_caimira"
+      PY_VERSION: "3.9"
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ env.PY_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PY_VERSION }}
+
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt', '**/setup.py') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Dependencies
+        run: |
+          cd caimira
+          pip install --upgrade pip
+          pip install -e .[test]
+          cd ../${{ env.PROJECT_ROOT }}
+          pip install --upgrade pip
+          pip install -e .[test]
+
+      - name: Run Tests
+        run: |
+          cd cern_caimira
+          python -m pytest
