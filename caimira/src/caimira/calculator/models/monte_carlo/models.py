@@ -129,8 +129,8 @@ _MODEL_CLASSES = [
 
 # Inject the runtime generated MC types into this module.
 for _model in _MODEL_CLASSES:
-    setattr(sys.modules[__name__], _model.__name__, _build_mc_model(_model))
+    setattr(sys.modules[__name__], _model.__name__, _build_mc_model(_model)) # type: ignore
 
 
 # Make sure that each of the models is imported if you do a ``import *``.
-__all__ = [_model.__name__ for _model in _MODEL_CLASSES] + ["MCModelBase"]
+__all__ = [_model.__name__ for _model in _MODEL_CLASSES] + ["MCModelBase"] # type: ignore

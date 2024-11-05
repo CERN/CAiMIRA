@@ -222,7 +222,7 @@ function validateCO2Form() {
         if (parsedValue.length <= 1) {
           insertErrorFor(
             $referenceNode,
-            `'${$ventilationStates.attr('name')}' must have more than one ventilation state change (at least the beggining and end of simulation time).<br />`
+            `'${$ventilationStates.attr('name')}' must have more than one ventilation transition time (at least the beginning and end of simulation time).<br />`
           );
           submit = false;
         }
@@ -297,9 +297,9 @@ function displayTransitionTimesHourFormat(start, stop) {
 
 function displayFittingData(json_response) {
   $("#DIVCO2_fitting_result").show();
-  $("#CO2_data_plot").attr("src", json_response["CO2_plot"]);
+  $("#CO2_data_plot").attr("src", json_response["CO2_plot_img"]);
   // Not needed for the form submission
-  delete json_response["CO2_plot"];
+  delete json_response["CO2_plot_img"];
   delete json_response["predictive_CO2"];
   // Convert nulls to empty strings in the JSON response
   if (json_response["room_capacity"] === null) json_response["room_capacity"] = '';
@@ -381,7 +381,7 @@ function plotCO2Data(url) {
       response
         .json()
         .then((json_response) => {
-          $("#CO2_data_plot").attr("src", json_response["CO2_plot"])
+          $("#CO2_data_plot").attr("src", json_response["CO2_plot_img"])
           $("#fitting_ventilation_states").val(`[${json_response["transition_times"]}]`)
         })
         .then($("#DIVCO2_fitting_to_submit").show())

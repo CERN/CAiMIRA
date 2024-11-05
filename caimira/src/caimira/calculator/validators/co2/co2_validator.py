@@ -105,7 +105,7 @@ class CO2FormData(FormData):
         """
         Perform change point detection using scipy library (find_peaks method) with rolling average of data.
         Incorporate existing state change candidates and adjust the result accordingly.
-        Returns a list of the detected ventilation state changes, discarding any occupancy state change.
+        Returns a list of the detected ventilation transition times, discarding any occupancy state change.
         """
         times: list = self.CO2_data['times']
         CO2_values: list = self.CO2_data['CO2']
@@ -147,33 +147,46 @@ class CO2FormData(FormData):
     def generate_ventilation_plot(self,
                                   ventilation_transition_times: typing.Optional[list] = None,
                                   occupancy_transition_times: typing.Optional[list] = None,
-                                  predictive_CO2: typing.Optional[list] = None) -> str:
+                                  predictive_CO2: typing.Optional[list] = None):
             
             # Plot data (x-axis: times; y-axis: CO2 concentrations)
             times_values: list = self.CO2_data['times']
             CO2_values: list = self.CO2_data['CO2']
 
             fig = plt.figure(figsize=(7, 4), dpi=110)
-            plt.plot(times_values, CO2_values, label='Input CO₂')
+            plt.plot(times_values, CO2_values, label='CO₂ Data')
+            
+            # Add predictive CO2
+            if (predictive_CO2):
+                plt.plot(times_values, predictive_CO2, label='Predictive CO₂')
 
-            # Add occupancy state changes:
-            if (occupancy_transition_times):
-                for i, time in enumerate(occupancy_transition_times):
-                    plt.axvline(x = time, color = 'grey', linewidth=0.5, linestyle='--', label='Occupancy change (from input)' if i == 0 else None)
-            # Add ventilation state changes:
+            # Add ventilation transition times:
             if (ventilation_transition_times):
                 for i, time in enumerate(ventilation_transition_times):
                     if i == 0:
-                        label = 'Ventilation change (detected)' if occupancy_transition_times else 'Ventilation state changes'
+                        label = 'Ventilation transition times (suggestion)' if occupancy_transition_times else 'Ventilation transition times'
                     else: label = None
-                    plt.axvline(x = time, color = 'red', linewidth=0.5, linestyle='--', label=label)
+                    plt.axvline(x = time, color = 'red', linewidth=1, linestyle='--', label=label)
+            
+            # Add occupancy changes (UI):
+            if (occupancy_transition_times):
+                for i, time in enumerate(occupancy_transition_times):
+                    plt.axvline(x = time, color = 'grey', linewidth=1, linestyle='--', label='Occupancy change (from UI)' if i == 0 else None)
 
-            if (predictive_CO2):
-                plt.plot(times_values, predictive_CO2, label='Predictive CO₂')
             plt.xlabel('Time of day')
             plt.ylabel('Concentration (ppm)')
             plt.legend()
-            return img2base64(_figure2bytes(fig))
+
+            vent_plot_data = {
+                'plot': img2base64(_figure2bytes(fig)),
+                'times': times_values,
+                'CO2': CO2_values,
+                'occ_trans_time': occupancy_transition_times,
+                'vent_trans_time': ventilation_transition_times,
+                'predictive_CO2': predictive_CO2,
+            }
+
+            return img2base64(_figure2bytes(fig)), vent_plot_data
 
     def population_present_changes(self, infected_presence: models.Interval, exposed_presence: models.Interval) -> typing.List[float]:
         state_change_times = set(infected_presence.transition_times())
