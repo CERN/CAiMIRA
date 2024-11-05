@@ -1,3 +1,11 @@
+# 4.17.4 (November 05, 2024)
+
+## Features Added
+- CO2 fitting algorithm post-review changes
+
+## Bug Fixes
+- N/A
+
 # 4.17.3 (October 16, 2024)
 
 ## Features Added
