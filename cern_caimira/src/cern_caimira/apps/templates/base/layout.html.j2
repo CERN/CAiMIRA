@@ -44,7 +44,7 @@
               </a>
               <ul class="dropdown-menu dropwown-navbar-colors" style="min-width: 12rem;" aria-labelledby="navbarDropdown">
                 <li><a href="{{ get_calculator_url() }}" class="{{ "header-navbar nav-link active" if "calculator/" == active_page else "header-navbar nav-link" }}">Calculator</a></li>
-                <li><div class="d-flex"><span class="d-flex align-self-center submenu-division"></span><a href="{{ documentation_url }}/project_overview/user_guide/full_guide" class="header-navbar nav-link">User Guide</a></div></li>
+                <li><div class="d-flex"><span class="d-flex align-self-center submenu-division"></span><a href="{{ documentation_url }}/user_interfaces/CAiMIRA/full_guide" class="header-navbar nav-link">User Guide</a></div></li>
                 <li><a href="{{ get_url() }}/expert-app" class="{{ "header-navbar nav-link active" if "expert-app" == active_page else "header-navbar nav-link" }}">Expert app</a></li>
                 <li><a href="{{ get_url() }}/expert-app" class="{{ "header-navbar nav-link active" if "expert-app" == active_page else "header-navbar nav-link" }}">CO₂ Simulator</a></li>
               </ul>
@@ -52,11 +52,11 @@
           </div>
           <div id="mobile_calculator_option">
             <li class="nav-link"><a href="{{ get_calculator_url() }}" class="{{ "header-navbar nav-link active" if "calculator/" == active_page else "header-navbar nav-link" }}">Calculator</a></li>
-            <li class="nav-link"><a href="{{ documentation_url }}/project_overview/user_guide/full_guide" class="header-navbar nav-link">User Guide</a></li>
+            <li class="nav-link"><a href="{{ documentation_url }}/user_interfaces/CAiMIRA/full_guide" class="header-navbar nav-link">User Guide</a></li>
           </div>
           {% block covid_information%}
           {% endblock covid_information%}
-          <li class="nav-link"><a href="{{ documentation_url }}/project_overview/about/" class="header-navbar nav-link">About</a></li>
+          <li class="nav-link"><a href="{{ documentation_url }}/root/about" class="header-navbar nav-link">About</a></li>
             {% if user.is_authenticated() %}
             <li class="nav-item dropdown p-2">
               <a class="nav-link active dropdown-toggle d-inline-block" href="https://cern.ch/users-portal" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
