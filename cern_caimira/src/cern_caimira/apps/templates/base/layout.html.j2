@@ -44,7 +44,7 @@
               </a>
               <ul class="dropdown-menu dropwown-navbar-colors" style="min-width: 12rem;" aria-labelledby="navbarDropdown">
                 <li><a href="{{ get_calculator_url() }}" class="{{ "header-navbar nav-link active" if "calculator/" == active_page else "header-navbar nav-link" }}">Calculator</a></li>
-                <li><div class="d-flex"><span class="d-flex align-self-center submenu-division"></span><a href="{{ get_calculator_url() }}/user-guide" class="{{ "header-navbar nav-link active" if "user-guide" in active_page else "header-navbar nav-link" }}">User Guide</a></div></li>
+                <li><div class="d-flex"><span class="d-flex align-self-center submenu-division"></span><a href="{{ documentation_url }}/project_overview/user_guide/full_guide" class="header-navbar nav-link">User Guide</a></div></li>
                 <li><a href="{{ get_url() }}/expert-app" class="{{ "header-navbar nav-link active" if "expert-app" == active_page else "header-navbar nav-link" }}">Expert app</a></li>
                 <li><a href="{{ get_url() }}/expert-app" class="{{ "header-navbar nav-link active" if "expert-app" == active_page else "header-navbar nav-link" }}">CO₂ Simulator</a></li>
               </ul>
@@ -52,11 +52,11 @@
           </div>
           <div id="mobile_calculator_option">
             <li class="nav-link"><a href="{{ get_calculator_url() }}" class="{{ "header-navbar nav-link active" if "calculator/" == active_page else "header-navbar nav-link" }}">Calculator</a></li>
-            <li class="nav-link"><a href="{{ get_calculator_url() }}/user-guide" class="{{ "header-navbar nav-link active" if "user-guide" in active_page else "header-navbar nav-link" }}">User Guide</a></li>
+            <li class="nav-link"><a href="{{ documentation_url }}/project_overview/user_guide/full_guide" class="header-navbar nav-link">User Guide</a></li>
           </div>
           {% block covid_information%}
           {% endblock covid_information%}
-          <li class="nav-link"><a href="{{ get_url('/about') }}" class="{{ "header-navbar nav-link active" if "about" == active_page else "header-navbar nav-link" }}">About</a></li>
+          <li class="nav-link"><a href="{{ documentation_url }}/project_overview/about/" class="header-navbar nav-link">About</a></li>
             {% if user.is_authenticated() %}
             <li class="nav-item dropdown p-2">
               <a class="nav-link active dropdown-toggle d-inline-block" href="https://cern.ch/users-portal" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -93,13 +93,12 @@
                     policy issues. Any initiative is conducted on a best effort and as-is basis, without liability or
                     warranty.</em></span></p>
           <p style="font-size:10px;">
-              CAiMIRA is <a href="https://gitlab.cern.ch/caimira/caimira/-/blob/master/LICENSE" class="ext">Apache 2.0 licensed</a> open-source
+              CAiMIRA is <a href="https://gitlab.cern.ch/caimira/caimira/-/blob/master/caimira/LICENSE" class="ext">Apache 2.0 licensed</a> open-source
               software developed at CERN.
               You can find the source code at <a href="https://gitlab.cern.ch/caimira/caimira">https://gitlab.cern.ch/caimira/caimira</a>,
               where we welcome contributions, feature requests and issue reports.
           </p>
         </div>
-
       </div>
     </div>
   </footer>

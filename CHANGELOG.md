@@ -1,3 +1,12 @@
+# 4.17.5 (November 20, 2024)
+
+## Features Added
+- Mkdocs documentation
+- Folder layout adapted
+
+## Bug Fixes
+- N/A
+
 # 4.17.4 (November 05, 2024)
 
 ## Features Added

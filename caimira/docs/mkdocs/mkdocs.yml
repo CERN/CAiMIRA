@@ -1,0 +1,43 @@
+site_name: CAiMIRA Docs
+theme:
+  name: material
+  logo: assets/caimira_logo.png
+  favicon: assets/caimira_logo.png
+  features:
+    - content.code.copy
+
+repo_url: https://gitlab.cern.ch/caimira/caimira
+
+nav:
+  - Home: index.md
+  - About: root/about.md
+  - Installation: root/installation.md
+  - Deployment: root/deployment.md
+  - Open Source Acknowledgments: root/open_source_acknowledgments.md
+  - License: LICENSE.md
+  - Physics of the model: root/physics_model.md
+  - Code:
+      - Architecture: code/architecture.md
+      - CO₂ Fitting Algorithm: code/fitting_algorithm.md
+      - REST API: code/rest_api.md
+      - models.py: code/models.md
+  - User Interfaces:
+      - CAiMIRA Calculator:
+          - Quick Guide: user_interfaces/CAiMIRA/quick_guide.md
+          - Full Guide: user_interfaces/CAiMIRA/full_guide.md
+      - ARIA: https://partnersplatform.who.int/aria
+
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+  - toc:
+      toc_depth: '1-3'
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+
+extra_javascript:
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+
