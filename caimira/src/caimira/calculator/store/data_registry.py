@@ -254,7 +254,7 @@ class DataRegistry:
                 },
                 "infectiousness_days": {
                     "value": 14,
-                    "references": "From authorities, only used for incidence rate calculations.",
+                    "references": "From French and Swiss guidelines (2021), supported by WHO (https://iris.who.int/bitstream/handle/10665/342004/WHO-2019-nCoV-IHR-Quarantine-2021.1-eng.pdf). Only used for incidence rate calculations.",
                 },
             },
             "SARS_CoV_2_ALPHA": {
@@ -275,7 +275,7 @@ class DataRegistry:
                 },
                 "infectiousness_days": {
                     "value": 14,
-                    "references": "From authorities, only used for incidence rate calculations.",
+                    "references": "From French and Swiss guidelines (2021), supported by WHO (https://iris.who.int/bitstream/handle/10665/342004/WHO-2019-nCoV-IHR-Quarantine-2021.1-eng.pdf). Only used for incidence rate calculations.",
                 },
             },
             "SARS_CoV_2_BETA": {
@@ -296,7 +296,7 @@ class DataRegistry:
                 },
                 "infectiousness_days": {
                     "value": 14,
-                    "references": "From authorities, only used for incidence rate calculations.",
+                    "references": "From French and Swiss guidelines (2021), supported by WHO (https://iris.who.int/bitstream/handle/10665/342004/WHO-2019-nCoV-IHR-Quarantine-2021.1-eng.pdf). Only used for incidence rate calculations.",
                 },
             },
             "SARS_CoV_2_GAMMA": {
@@ -317,7 +317,7 @@ class DataRegistry:
                 },
                 "infectiousness_days": {
                     "value": 14,
-                    "references": "From authorities, only used for incidence rate calculations.",
+                    "references": "From French and Swiss guidelines (2021), supported by WHO (https://iris.who.int/bitstream/handle/10665/342004/WHO-2019-nCoV-IHR-Quarantine-2021.1-eng.pdf). Only used for incidence rate calculations.",
                 },
             },
             "SARS_CoV_2_DELTA": {
@@ -338,7 +338,7 @@ class DataRegistry:
                 },
                 "infectiousness_days": {
                     "value": 14,
-                    "references": "From authorities, only used for incidence rate calculations.",
+                    "references": "From French and Swiss guidelines (2021), supported by WHO (https://iris.who.int/bitstream/handle/10665/342004/WHO-2019-nCoV-IHR-Quarantine-2021.1-eng.pdf). Only used for incidence rate calculations.",
                 },
             },
             "SARS_CoV_2_OMICRON": {
@@ -359,7 +359,7 @@ class DataRegistry:
                 },
                 "infectiousness_days": {
                     "value": 14,
-                    "references": "From authorities, only used for incidence rate calculations.",
+                    "references": "From French and Swiss guidelines (2021), supported by WHO (https://iris.who.int/bitstream/handle/10665/342004/WHO-2019-nCoV-IHR-Quarantine-2021.1-eng.pdf). Only used for incidence rate calculations.",
                 },
             },
         },
