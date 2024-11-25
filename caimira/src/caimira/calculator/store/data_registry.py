@@ -7,16 +7,18 @@ class DataRegistry:
     version = None
 
     expiration_particle = {
-        "long_range_particle_diameter": {
-            "minimum_diameter": 0.1,
-            "maximum_diameter": 30,
-            "references": "Morawska et al. (https://doi.org/10.1016/j.jaerosci.2008.11.002); Johnson et al. (https://doi.org/10.1016/j.jaerosci.2011.07.009).",
-        },
-        "short_range_particle_diameter": {
-            "minimum_diameter": 0.1,
-            "maximum_diameter": 100,
-            "references": "Morawska et al. (https://doi.org/10.1016/j.jaerosci.2008.11.002); Johnson et al. (https://doi.org/10.1016/j.jaerosci.2011.07.009).",
-        },
+        "particle_size_range": {
+            "long_range": {
+                "minimum_diameter": 0.1,
+                "maximum_diameter": 30,
+                "references": "Morawska et al. (https://doi.org/10.1016/j.jaerosci.2008.11.002); Johnson et al. (https://doi.org/10.1016/j.jaerosci.2011.07.009).",
+            },
+            "short_range": {
+                "minimum_diameter": 0.1,
+                "maximum_diameter": 100,
+                "references": "Morawska et al. (https://doi.org/10.1016/j.jaerosci.2008.11.002); Johnson et al. (https://doi.org/10.1016/j.jaerosci.2011.07.009).",
+            },
+        },   
         "BLOmodel": {
             "cn": {"B": 0.06, "L": 0.2, "O": 0.0010008},
             "mu": {"B": 0.989541, "L": 1.38629, "O": 4.97673},
@@ -244,7 +246,7 @@ class DataRegistry:
                 "viable_to_RNA_ratio": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 0.01, "high": 0.6},
-                    "references": "",
+                    "references": "Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
                 },
                 "transmissibility_factor": {
                     "value": 1,
@@ -252,7 +254,7 @@ class DataRegistry:
                 },
                 "infectiousness_days": {
                     "value": 14,
-                    "references": "",
+                    "references": "From French and Swiss guidelines (2021), supported by WHO (https://iris.who.int/bitstream/handle/10665/342004/WHO-2019-nCoV-IHR-Quarantine-2021.1-eng.pdf). Only used for incidence rate calculations.",
                 },
             },
             "SARS_CoV_2_ALPHA": {
@@ -265,7 +267,7 @@ class DataRegistry:
                 "viable_to_RNA_ratio": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 0.01, "high": 0.6},
-                    "references": "",
+                    "references": "Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
                 },
                 "transmissibility_factor": {
                     "value": 0.78,
@@ -273,7 +275,7 @@ class DataRegistry:
                 },
                 "infectiousness_days": {
                     "value": 14,
-                    "references": "",
+                    "references": "From French and Swiss guidelines (2021), supported by WHO (https://iris.who.int/bitstream/handle/10665/342004/WHO-2019-nCoV-IHR-Quarantine-2021.1-eng.pdf). Only used for incidence rate calculations.",
                 },
             },
             "SARS_CoV_2_BETA": {
@@ -286,7 +288,7 @@ class DataRegistry:
                 "viable_to_RNA_ratio": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 0.01, "high": 0.6},
-                    "references": "",
+                    "references": "Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
                 },
                 "transmissibility_factor": {
                     "value": 0.8,
@@ -294,7 +296,7 @@ class DataRegistry:
                 },
                 "infectiousness_days": {
                     "value": 14,
-                    "references": "",
+                    "references": "From French and Swiss guidelines (2021), supported by WHO (https://iris.who.int/bitstream/handle/10665/342004/WHO-2019-nCoV-IHR-Quarantine-2021.1-eng.pdf). Only used for incidence rate calculations.",
                 },
             },
             "SARS_CoV_2_GAMMA": {
@@ -307,7 +309,7 @@ class DataRegistry:
                 "viable_to_RNA_ratio": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 0.01, "high": 0.6},
-                    "references": "",
+                    "references": "Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
                 },
                 "transmissibility_factor": {
                     "value": 0.72,
@@ -315,7 +317,7 @@ class DataRegistry:
                 },
                 "infectiousness_days": {
                     "value": 14,
-                    "references": "",
+                    "references": "From French and Swiss guidelines (2021), supported by WHO (https://iris.who.int/bitstream/handle/10665/342004/WHO-2019-nCoV-IHR-Quarantine-2021.1-eng.pdf). Only used for incidence rate calculations.",
                 },
             },
             "SARS_CoV_2_DELTA": {
@@ -328,7 +330,7 @@ class DataRegistry:
                 "viable_to_RNA_ratio": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 0.01, "high": 0.6},
-                    "references": "",
+                    "references": "Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
                 },
                 "transmissibility_factor": {
                     "value": 0.51,
@@ -336,7 +338,7 @@ class DataRegistry:
                 },
                 "infectiousness_days": {
                     "value": 14,
-                    "references": "",
+                    "references": "From French and Swiss guidelines (2021), supported by WHO (https://iris.who.int/bitstream/handle/10665/342004/WHO-2019-nCoV-IHR-Quarantine-2021.1-eng.pdf). Only used for incidence rate calculations.",
                 },
             },
             "SARS_CoV_2_OMICRON": {
@@ -349,15 +351,15 @@ class DataRegistry:
                 "viable_to_RNA_ratio": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 0.01, "high": 0.6},
-                    "references": "",
+                    "references": "Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
                 },
                 "transmissibility_factor": {
                     "value": 0.2,
-                    "references": "",
+                    "references": "Du et al. (https://www.mdpi.com/1999-4915/14/4/821).",
                 },
                 "infectiousness_days": {
                     "value": 14,
-                    "references": "",
+                    "references": "From French and Swiss guidelines (2021), supported by WHO (https://iris.who.int/bitstream/handle/10665/342004/WHO-2019-nCoV-IHR-Quarantine-2021.1-eng.pdf). Only used for incidence rate calculations.",
                 },
             },
         },
@@ -422,7 +424,7 @@ class DataRegistry:
         "inside_temp": 293.,
         "humidity_with_heating": 0.3,
         "humidity_without_heating": 0.5,
-        "references": "",
+        "references": "N/A.",
     }
 
     ventilation = {
@@ -438,12 +440,12 @@ class DataRegistry:
     concentration_model = {
         "virus_concentration_model": {
             "min_background_concentration": 0.0,
-            "references": "",
+            "references": "N/A.",
         },
         "CO2_concentration_model": {
             "CO2_atmosphere_concentration": 440.44,
             "CO2_fraction_exhaled": 0.042,
-            "references": "",
+            "references": "ECMWF - https://charts.ecmwf.int/products/carbon-dioxide-forecasts; Zhang et al. (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7127751/).",
         },
     }
 
@@ -468,77 +470,89 @@ class DataRegistry:
 
     monte_carlo = {
         "sample_size": 250000,
-        "references": "",
+        "references": "N/A.",
     }
 
     population_scenario_activity = {
-        "office": {"placeholder": "Office", "activity": "Seated", "expiration": {"Speaking": 1, "Breathing": 2}},
+        "office": {"placeholder": "Office", "activity": "Seated", "expiration": {"Speaking": 1, "Breathing": 2}, "references": "N/A."},
         "smallmeeting": {
             "placeholder": "Small meeting (<10 occ.)",
             "activity": "Seated",
             "expiration": {"Speaking": 1},
+            "references": "N/A.",
         },
         "largemeeting": {
             "placeholder": "Large meeting (>= 10 occ.)",
             "activity": "Standing",
             "expiration": {"Speaking": 1, "Breathing": 2},
+            "references": "N/A.",
         },
         "callcenter": {"placeholder": "Call Center", "activity": "Seated", "expiration": {"Speaking": 1}},
         "controlroom-day": {
             "placeholder": "Control Room - Day shift",
             "activity": "Seated",
             "expiration": {"Speaking": 1, "Breathing": 1},
+            "references": "N/A.",
         },
         "controlroom-night": {
             "placeholder": "Control Room - Night shift",
             "activity": "Seated",
             "expiration": {"Speaking": 1, "Breathing": 9},
+            "references": "N/A.",
         },
-        "library": {"placeholder": "Library", "activity": "Seated", "expiration": {"Breathing": 1}},
+        "library": {"placeholder": "Library", "activity": "Seated", "expiration": {"Breathing": 1}, "references": "N/A."},
         "lab": {
             "placeholder": "Lab",
             "activity": "Light activity",
             "expiration": {"Speaking": 1, "Breathing": 1},
+            "references": "N/A.",
         },
         "workshop": {
             "placeholder": "Workshop",
             "activity": "Moderate activity",
             "expiration": {"Speaking": 1, "Breathing": 1},
+            "references": "N/A.",
         },
-        "training": {"placeholder": "Conference/Training (speaker infected)", "activity": "Standing", "expiration": {"Speaking": 1}},
-        "training_attendee": {"placeholder": "Conference/Training (attendee infected)", "activity": "Seated", "expiration": {"Breathing": 1}},
-        "gym": {"placeholder": "Gym", "activity": "Heavy exercise", "expiration": {"Breathing": 1}},
+        "training": {"placeholder": "Conference/Training (speaker infected)", "activity": "Standing", "expiration": {"Speaking": 1}, "references": "N/A."},
+        "training_attendee": {"placeholder": "Conference/Training (attendee infected)", "activity": "Seated", "expiration": {"Breathing": 1}, "references": "N/A."},
+        "gym": {"placeholder": "Gym", "activity": "Heavy exercise", "expiration": {"Breathing": 1}, "references": "N/A."},
         "household-day": {
             "placeholder": "Household (day time)",
             "activity": "Light activity",
             "expiration": {"Breathing": 5, "Speaking": 5},
+            "references": "N/A.",
         },
         "household-night": {
             "placeholder": "Household (evening and night time)",
             "activity": "Seated",
             "expiration": {"Breathing": 7, "Speaking": 3},
+            "references": "N/A."
         },
         "primary-school": {
             "placeholder": "Primary school",
             "activity": "Light activity",
             "expiration": {"Breathing": 5, "Speaking": 5},
+            "references": "N/A.",
         },
         "secondary-school": {
             "placeholder": "Secondary school",
             "activity": "Light activity",
             "expiration": {"Breathing": 7, "Speaking": 3},
+            "references": "N/A.",
         },
         "university": {
             "placeholder": "University",
             "activity": "Seated",
             "expiration": {"Breathing": 9, "Speaking": 1},
+            "references": "N/A.",
         },
         "restaurant": {
             "placeholder": "Restaurant",
             "activity": "Seated",
             "expiration": {"Breathing": 1, "Speaking": 9},
+            "references": "N/A.",
         },
-        "precise": {"placeholder": "Precise", "activity": "", "expiration": {}},
+        "precise": {"placeholder": "Precise", "activity": "", "expiration": {}, "references": "N/A."},
     }
 
     def to_dict(self):
