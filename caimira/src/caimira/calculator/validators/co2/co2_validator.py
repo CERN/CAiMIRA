@@ -24,11 +24,12 @@ class CO2FormData(FormData):
     fitting_ventilation_states: list
     room_capacity: typing.Optional[int]
 
-    #: The default values for undefined fields. Note that the defaults here
-    #: and the defaults in the html form must not be contradictory.
+    # The default values for undefined fields. Note that the defaults here
+    # and the defaults in any html form must not be contradictory.
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = {
         'CO2_data': '{}',
-        'fitting_ventilation_states': '[]',
+        'dynamic_infected_occupancy': '[]',
+        'dynamic_exposed_occupancy': '{}',
         'exposed_coffee_break_option': 'coffee_break_0',
         'exposed_coffee_duration': 5,
         'exposed_finish': '17:30',
@@ -36,6 +37,7 @@ class CO2FormData(FormData):
         'exposed_lunch_option': True,
         'exposed_lunch_start': '12:30',
         'exposed_start': '08:30',
+        'fitting_ventilation_states': '[]',
         'infected_coffee_break_option': 'coffee_break_0',
         'infected_coffee_duration': 5,
         'infected_dont_have_breaks_with_exposed': False,
@@ -44,14 +46,12 @@ class CO2FormData(FormData):
         'infected_lunch_option': True,
         'infected_lunch_start': '12:30',
         'infected_people': 1,
-        'dynamic_infected_occupancy': '[]',
         'infected_start': '08:30',
+        'occupancy_format': 'static',
         'room_capacity': None,
         'room_volume': NO_DEFAULT,
         'specific_breaks': '{}',
         'total_people': NO_DEFAULT,
-        'dynamic_exposed_occupancy': '[]',
-        'occupancy_format': 'static',
     }
 
     def __init__(self, **kwargs):

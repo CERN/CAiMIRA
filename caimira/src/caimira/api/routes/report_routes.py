@@ -11,17 +11,20 @@ class VirusReportHandler(BaseRequestHandler):
         try:
             form_data = json.loads(self.request.body)
             arguments = self.request.arguments
-            report_generation_parallelism = int(arguments.get(
-                'report_generation_parallelism', [None])[0] or 0)
+            # Report generation parallelism argument
+            try:
+                report_generation_parallelism = int(arguments['report_generation_parallelism'][0])
+            except (ValueError, IndexError, KeyError):
+                report_generation_parallelism = None
 
-            report_data = submit_virus_form(
-                form_data, report_generation_parallelism)
+            report_data = submit_virus_form(form_data, report_generation_parallelism)
 
             response_data = {
                 "status": "success",
                 "message": "Results generated successfully",
                 "report_data": report_data,
             }
+
             self.write(response_data)
         except Exception as e:
             traceback.print_exc()
@@ -39,6 +42,7 @@ class CO2ReportHandler(BaseRequestHandler):
                 "message": "Results generated successfully",
                 "report_data": report_data,
             }
+
             self.write(response_data)
         except Exception as e:
             traceback.print_exc()
