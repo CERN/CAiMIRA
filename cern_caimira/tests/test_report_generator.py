@@ -116,7 +116,6 @@ def test_expected_new_cases(baseline_form_with_sr: VirusFormData):
     sr_lr_prob_inf = report_data['prob_inf']/100
     
     # Long-range contributions alone
-    scenario_sample_times = report_data['times']
     alternative_scenarios = rep_gen.manufacture_alternative_scenarios(baseline_form_with_sr)
     alternative_statistics = rep_gen.comparison_report(
         baseline_form_with_sr, report_data, alternative_scenarios, executor_factory=executor_factory,

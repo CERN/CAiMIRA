@@ -31,7 +31,7 @@ markdown_extensions:
   - pymdownx.arithmatex:
       generic: true
   - toc:
-      toc_depth: '1-3'
+      toc_depth: '1-4'
   - admonition
   - pymdownx.details
   - attr_list

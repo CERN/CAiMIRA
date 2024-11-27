@@ -1,24 +1,12 @@
 import json
 import traceback
-import tornado.web
 import sys
-
+from caimira.api.routes.base_handler import BaseRequestHandler
 from caimira.api.controller.virus_report_controller import submit_virus_form
 from caimira.api.controller.co2_report_controller import submit_CO2_form
 
 
-class BaseReportHandler(tornado.web.RequestHandler):
-    def set_default_headers(self):
-        self.set_header("Access-Control-Allow-Origin", "*")
-        self.set_header("Access-Control-Allow-Headers", "x-requested-with")
-        self.set_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-
-    def write_error(self, status_code, **kwargs):
-        self.set_status(status_code)
-        self.write({"message": kwargs.get('exc_info')[1].__str__()})
-
-
-class VirusReportHandler(BaseReportHandler):
+class VirusReportHandler(BaseRequestHandler):
     def post(self):
         try:
             form_data = json.loads(self.request.body)
@@ -43,7 +31,7 @@ class VirusReportHandler(BaseReportHandler):
             self.write_error(status_code=400, exc_info=sys.exc_info())
 
 
-class CO2ReportHandler(BaseReportHandler):
+class CO2ReportHandler(BaseRequestHandler):
     def post(self):
         try:
             form_data = json.loads(self.request.body)
