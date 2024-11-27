@@ -107,7 +107,34 @@ python -m cern_caimira.apps.calculator --prefix=/mycalc
 
 Each of these commands will start a local version of CAiMIRA, which can be visited at [http://localhost:8080/](http://localhost:8080/).
 
-#### REST API
+#### Running the Expert-Apps
+ 
+The CAiMIRA Expert App and the CO2 App are tools to dynamically interact with various parameters of the CAiMIRA model. 
+
+##### Disclaimer
+
+The `ExpertApplication` and `CO2Application` are no longer actively maintained but will remain in the codebase for legacy purposes.
+Please note that the functionality of these applications might be compromised due to deprecation issues.
+
+##### Running the Applications
+
+These applications only work within Jupyter notebooks. Attempting to run them outside of a Jupyter environment may result in errors or degraded functionality.
+
+Make sure you have the needed dependencies installed:
+
+```
+pip install notebook jupyterlab
+```
+
+Running with Visual Studio Code (VSCode):
+
+1. Ensure you have the following extensions installed in VSCode: `Jupyter` and `Python`.
+
+2. Open VSCode and navigate to the directory containing the notebook.
+
+3. Open the notebook (e.g. `caimira/apps/expert/caimira.ipynb`) and run the cells by clicking the `run` button next to each cell.
+
+### Installing and running REST API
 
 To use the REST API, from the root directory of the project:
 
@@ -135,33 +162,6 @@ The response format will be:
 ```
 
 For further details please refer to the [REST API documentation page](../code/rest_api.md).
-
-#### Running the Expert-Apps
- 
-The CAiMIRA Expert App and the CO2 App are tools to dynamically interact with various parameters of the CAiMIRA model. 
-
-##### Disclaimer
-
-The `ExpertApplication` and `CO2Application` are no longer actively maintained but will remain in the codebase for legacy purposes.
-Please note that the functionality of these applications might be compromised due to deprecation issues.
-
-##### Running the Applications
-
-These applications only work within Jupyter notebooks. Attempting to run them outside of a Jupyter environment may result in errors or degraded functionality.
-
-Make sure you have the needed dependencies installed:
-
-```
-pip install notebook jupyterlab
-```
-
-Running with Visual Studio Code (VSCode):
-
-1. Ensure you have the following extensions installed in VSCode: `Jupyter` and `Python`.
-
-2. Open VSCode and navigate to the directory containing the notebook.
-
-3. Open the notebook (e.g. `caimira/apps/expert/caimira.ipynb`) and run the cells by clicking the `run` button next to each cell.
 
 
 ### Installing and running tests
