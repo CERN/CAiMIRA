@@ -7,22 +7,17 @@ import tornado.ioloop
 import tornado.web
 import tornado.log
 import logging
-
-from caimira.api.routes.report_routes import VirusReportHandler, CO2ReportHandler
+from caimira.api.routes.routes import routes
 
 logging.basicConfig(format="%(message)s", level=logging.INFO)
 
 
 class Application(tornado.web.Application):
     def __init__(self, debug):
-        handlers = [
-            (r"/co2_report", CO2ReportHandler),
-            (r"/virus_report", VirusReportHandler),
-        ]
         settings = dict(
             debug=debug,
         )
-        super().__init__(handlers, **settings)
+        super().__init__(routes, **settings)
 
 
 if __name__ == "__main__":

@@ -1,49 +1,34 @@
 import json
 import traceback
-import tornado.web
 import sys
-
+from caimira.api.routes.base_handler import BaseRequestHandler
 from caimira.api.controller.virus_report_controller import submit_virus_form
 from caimira.api.controller.co2_report_controller import submit_CO2_form
 
 
-class BaseReportHandler(tornado.web.RequestHandler):
-    def set_default_headers(self):
-        self.set_header("Access-Control-Allow-Origin", "*")
-        self.set_header("Access-Control-Allow-Headers", "x-requested-with")
-        self.set_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-
-    def write_error(self, status_code, **kwargs):
-        self.set_status(status_code)
-        self.write({"message": kwargs.get('exc_info')[1].__str__()})
-
-
-class VirusReportHandler(BaseReportHandler):
+class VirusReportHandler(BaseRequestHandler):
     def post(self):
         try:
             form_data = json.loads(self.request.body)
             arguments = self.request.arguments
-            # Report generation parallelism argument
-            try:
-                report_generation_parallelism = int(arguments['report_generation_parallelism'][0])
-            except (ValueError, IndexError, KeyError):
-                report_generation_parallelism = None
+            report_generation_parallelism = int(arguments.get(
+                'report_generation_parallelism', [None])[0] or 0)
 
-            report_data = submit_virus_form(form_data, report_generation_parallelism)
+            report_data = submit_virus_form(
+                form_data, report_generation_parallelism)
 
             response_data = {
                 "status": "success",
                 "message": "Results generated successfully",
                 "report_data": report_data,
             }
-
             self.write(response_data)
         except Exception as e:
             traceback.print_exc()
             self.write_error(status_code=400, exc_info=sys.exc_info())
 
 
-class CO2ReportHandler(BaseReportHandler):
+class CO2ReportHandler(BaseRequestHandler):
     def post(self):
         try:
             form_data = json.loads(self.request.body)
@@ -54,7 +39,6 @@ class CO2ReportHandler(BaseReportHandler):
                 "message": "Results generated successfully",
                 "report_data": report_data,
             }
-
             self.write(response_data)
         except Exception as e:
             traceback.print_exc()
