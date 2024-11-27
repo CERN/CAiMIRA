@@ -1,18 +1,20 @@
 ## Docker
 
+The easiest way to run a version of CAiMIRA Calculator is to use docker. 
+Install Docker software here: [https://www.docker.com/](https://www.docker.com/)
+
 ### Using the pre-built image
 
-The easiest way to run a version of CAiMIRA Calculator is to use docker. A pre-built
-image of CAiMIRA is made available at [https://gitlab.cern.ch/caimira/caimira/container_registry](https://gitlab.cern.ch/caimira/caimira/container_registry).
+1. Load a pre-built image of CAiMIRA, available at [https://gitlab.cern.ch/caimira/caimira/container_registry](https://gitlab.cern.ch/caimira/caimira/container_registry).
 In order to run CAiMIRA locally with docker, run the following:
 
     docker run -it -p 8080:8080 -e APP_NAME='calculator-app' gitlab-registry.cern.ch/caimira/caimira/calculator-app
 
-This will start a local version of CAiMIRA, which can be visited at [http://localhost:8080/](http://localhost:8080/).
+2. This will start a local version of CAiMIRA, which can be visited by loading this URL in your browser: [http://localhost:8080/](http://localhost:8080/)
 
-### Building the whole environment
+### Building the full environment
 
-To build the whole environment for local development, from the root directory of the project, run:
+To build the full environment (_i.e. ...?? Luis, what does full environment mean?_) for local development, from the root directory of the project, run:
 
 ```
 docker build -f app-config/api-app/Dockerfile -t api-app .
@@ -20,9 +22,9 @@ docker build -f app-config/calculator-app/Dockerfile -t calculator-app .
 docker build ./app-config/auth-service -t auth-service
 ```
 
-If you are using a computer with ARM CPU (Mac M1/2/3), then add the arg `--platform linux/arm64` to the docker build cmd.
+If you are using a computer with ARM CPU (Mac M1/2/3), then add the arg `--platform linux/arm64` to the 3 `docker build` cmds.
 
-If you need to debug the Docker build, add the args `--no-cache --progress=plain` to see a more verbose output in your terminal.
+If you need to debug the Docker build, add the args `--no-cache --progress=plain` to the 3 `docker build` cmds (??) to see a more verbose output in your terminal.
 
 Get the client secret from the CERN Application portal for the `caimira-test` app. See [CERN-SSO-integration](deployment.md#cern-sso-integration) for more info.
 ```
@@ -38,7 +40,7 @@ export CLIENT_ID=caimira-test
 export CLIENT_SECRET=$CLIENT_SECRET
 ```
 
-Run docker compose:
+Run docker compose in the root folder:
 ```
 cd app-config
 CURRENT_UID=$(id -u):$(id -g) docker compose up
@@ -48,20 +50,25 @@ Then visit [http://localhost:8080/](http://localhost:8080/).
 
 ## Development mode
 
-CAiMIRA is mirrored to Github if you wish to collaborate on development and can be found at: [https://github.com/CERN/caimira](https://github.com/CERN/caimira)
+To install the code locally in development mode clone the repository from Gitlab:
+1. Go to [https://gitlab.cern.ch/caimira/caimira/](https://gitlab.cern.ch/caimira/caimira/)
+2. Code → Clone with HTTPS
+3. Choose a root folder for the project
 
-### Folder structure
+CAiMIRA is also mirrored to Github if you wish to collaborate on development: [https://github.com/CERN/caimira](https://github.com/CERN/caimira)
+
+### Source code folder structure
 
 The project contains two different Python packages:
 
-- `caimira`: Contains all the backend logic and the calculator model. It is the package published in PyPI.
-- `cern_caimira`: Imports and uses the backend package (`caimira`) and includes CERN-specific UI implementation.
+- `caimira`: Contains all the backend logic and the generic calculator UI. This package is published in [PyPI](https://pypi.org/project/caimira/).
+- `cern_caimira`: Imports and uses the backend package (`caimira`) and includes CERN-specific UI features.
 
 The folder layout follows best practices as described [here](https://ianhopkinson.org.uk/2022/02/understanding-setup-py-setup-cfg-and-pyproject-toml-in-python/).
 
-### Installing and running CAiMIRA
+### Setup
 
-Installing CAiMIRA in editable mode and running the Calculator App.
+Installing CAiMIRA in editable mode and running the Calculator app:
 
 #### Installing
 
@@ -140,7 +147,7 @@ For further details please refer to the [REST API documentation page](../code/re
  
 The CAiMIRA Expert App and the CO2 App are tools to dynamically interact with various parameters of the CAiMIRA model. 
 
-##### Disclaimer
+##### Note
 
 The `ExpertApplication` and `CO2Application` are no longer actively maintained but will remain in the codebase for legacy purposes.
 Please note that the functionality of these applications might be compromised due to deprecation issues.
