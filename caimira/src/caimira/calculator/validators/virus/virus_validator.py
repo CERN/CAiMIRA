@@ -22,53 +22,53 @@ minutes_since_midnight = typing.NewType('minutes_since_midnight', int)
 
 @dataclasses.dataclass
 class VirusFormData(FormData):
+    ascertainment_bias: str
     activity_type: str
     air_changes: float
     air_supply: float
     arve_sensors_option: bool
-    precise_activity: dict
+    calculator_version: str
     ceiling_height: float
-    conditional_probability_viral_loads: bool
     CO2_fitting_result: dict
+    conditional_probability_viral_loads: bool
+    event_month: str
+    exposure_option: str
     floor_area: float
+    geographic_cases: int
+    geographic_population: int
     hepa_amount: float
     hepa_option: bool
     humidity: str
     inside_temp: float
-    location_name: str
     location_latitude: float
     location_longitude: float
-    geographic_population: int
-    geographic_cases: int
-    ascertainment_bias: str
-    exposure_option: str
+    location_name: str
     mask_type: str
     mask_wearing_option: str
     mechanical_ventilation_type: str
-    calculator_version: str
     opening_distance: float
-    event_month: str
+    precise_activity: dict
     room_heating_option: bool
     room_number: str
+    sensor_in_use: str
+    short_range_interactions: list
+    short_range_occupants: int
+    short_range_option: str
     simulation_name: str
-    vaccine_option: bool
     vaccine_booster_option: bool
-    vaccine_type: str
     vaccine_booster_type: str
+    vaccine_option: bool
+    vaccine_type: str
     ventilation_type: str
     virus_type: str
     volume_type: str
-    windows_duration: float
-    windows_frequency: float
     window_height: float
+    window_opening_regime: str
     window_type: str
     window_width: float
+    windows_duration: float
+    windows_frequency: float
     windows_number: int
-    window_opening_regime: str
-    sensor_in_use: str
-    short_range_option: str
-    short_range_interactions: list
-    short_range_occupants: int
 
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = DEFAULTS
 
@@ -77,21 +77,18 @@ class VirusFormData(FormData):
         self.validate_population_parameters()
 
         validation_tuples = [('activity_type', self.data_registry.population_scenario_activity.keys()),
-                             ('mechanical_ventilation_type',
-                              MECHANICAL_VENTILATION_TYPES),
-                             ('mask_type', list(mask_distributions(
-                                 self.data_registry).keys())),
+                             ('ascertainment_bias', CONFIDENCE_LEVEL_OPTIONS),
+                             ('event_month', MONTH_NAMES),
+                             ('mechanical_ventilation_type', MECHANICAL_VENTILATION_TYPES),
+                             ('mask_type', list(mask_distributions(self.data_registry).keys())),
                              ('mask_wearing_option', MASK_WEARING_OPTIONS),
+                             ('vaccine_type', VACCINE_TYPE),
+                             ('vaccine_booster_type', VACCINE_BOOSTER_TYPE),
                              ('ventilation_type', VENTILATION_TYPES),
-                             ('virus_type', list(virus_distributions(
-                                 self.data_registry).keys())),
+                             ('virus_type', list(virus_distributions(self.data_registry).keys())),
                              ('volume_type', VOLUME_TYPES),
                              ('window_opening_regime', WINDOWS_OPENING_REGIMES),
-                             ('window_type', WINDOWS_TYPES),
-                             ('event_month', MONTH_NAMES),
-                             ('ascertainment_bias', CONFIDENCE_LEVEL_OPTIONS),
-                             ('vaccine_type', VACCINE_TYPE),
-                             ('vaccine_booster_type', VACCINE_BOOSTER_TYPE),]
+                             ('window_type', WINDOWS_TYPES)]
 
         for attr_name, valid_set in validation_tuples:
             if getattr(self, attr_name) not in valid_set:
@@ -569,6 +566,7 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'air_changes': '',
         'air_supply': '',
         'ascertainment_bias': 'confidence_low',
+        'calculator_version': calculator_version,
         'ceiling_height': '',
         'conditional_probability_viral_loads': '0',
         'dynamic_exposed_occupancy': '[]',
@@ -603,9 +601,8 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'mask_type': 'Type I',
         'mask_wearing_option': 'mask_off',
         'mechanical_ventilation_type': '',
-        'calculator_version': calculator_version,
-        'opening_distance': '0.2',
         'occupancy_format': 'static',
+        'opening_distance': '0.2',
         'room_heating_option': '0',
         'room_number': '123',
         'room_volume': '75',
@@ -622,12 +619,11 @@ def baseline_raw_form_data() -> typing.Dict[str, typing.Union[str, float]]:
         'volume_type': 'room_volume_explicit',
         'window_height': '2',
         'window_opening_regime': 'windows_open_permanently',
+        'window_type': 'window_sliding',
+        'window_width': '2',
         'windows_duration': '10',
         'windows_frequency': '60',
         'windows_number': '1',
-        'window_type': 'window_sliding',
-        'window_width': '2',
     }
-
 
 cast_class_fields(VirusFormData)

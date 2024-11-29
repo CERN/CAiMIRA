@@ -5,7 +5,7 @@ This documentation provides comprehensive guidance on the CERN Airborne Model fo
 It includes details on the diameter-dependent mathematical model and the code developed based on the underlying published research. It also covers documentation on the code itself, including explanations of the main module (`models.py`), and the recently added REST API feature, providing a through understanding of the CAiMIRA's functionality.
 
 <figure markdown="span">
-  [![CAiMIRA logo](assets/caimira_logo.png){ width="100" }](https://caimira.web.cern.ch/)
+  [![CAiMIRA logo](assets/caimira_full_logo.png){ width="50%" }](https://caimira.web.cern.ch/)
 </figure>
 
 # Contents:
