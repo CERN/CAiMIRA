@@ -81,21 +81,7 @@ Before proceeding with the development installation of CAiMIRA, ensure that your
 
 ### Installing and running
 
-This section provides instructions for setting up, running, and testing CAiMIRA in a local development environment. It covers the installation of the backend logic, interaction with the CAiMIRA-native UI, and utilization of the API app. Additionally, instructions for legacy applications (expert apps), testing procedures, and tools for profiling and documentation generation are provided.
-
-##### Prerequisites:
-
-!!! warning
-    Follow this section only if you are not proceeding to the [CAiMIRA backend](#1-backend) chapter.
-
-1. Ensure the tools listed in the main prerequisites are installed.
-2. Clone the CAiMIRA repository and install dependencies:
-
-        git clone https://gitlab.cern.ch/caimira/caimira.git
-        cd caimira
-
-    !!! note
-        The directory in which you run the previous commands will be the root directory of your project.
+This section provides instructions for setting up, running, and testing CAiMIRA in a local development environment. It covers the installation of the backend logic alone (e.g. for parametric studies, modelling, research), interaction with the CAiMIRA-native UI, and utilization of the API app. Additionally, instructions for legacy applications (expert apps), testing procedures, and tools for profiling and documentation generation are provided.
 
 #### CAiMIRA
 
@@ -103,30 +89,36 @@ The following sections provide step-by-step instructions for setting up and runn
 
 ##### 1. Backend
 
-The CAiMIRA backend includes the mathematical logic and the REST API for programmatic interaction with the models. Local installation enables full access to these features, supporting development and testing.
-
-###### Installing
+The CAiMIRA backend includes the logic underlying the [physics model](https://caimira-test.docs.cern.ch/root/physics_model/) and the REST API for programmatic interaction with the models. Local installation enables full access to these features, supporting development and testing.
 
 CAiMIRA's backend logic can be installed with the following two options:
 
-1. **From the [GitLab Repository](https://gitlab.cern.ch/caimira/caimira)**:
+1. **From [PyPI](https://pypi.org/project/caimira/)**:
+
+        pip install caimira
+        
+    !!! note
+        The directory in which you run these commands will be the root directory of your project.
     
-    Clone the repository and install it in editable mode for development by running the following commands:
-
-        git clone https://gitlab.cern.ch/caimira/caimira.git
-        cd caimira
-        pip install -e ./caimira
-
-2. **From [PyPI](https://pypi.org/project/caimira/)**:
-
-    CAiMIRA is available on PyPI for installation. For testing new releases, use the PyPI Test instance by running the following command (directory independent):
+    For testing new releases, use the PyPI Test instance by running the following command (directory independent):
     
         pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple caimira
     
     !!! info
         `--extra-index-url` is necessary to resolve dependencies from PyPI.
 
-###### Running and testing
+2. **From the [GitLab Repository](https://gitlab.cern.ch/caimira/caimira)**:
+    
+    Clone the repository and install it in editable mode for development by running the following commands:
+
+        git clone https://gitlab.cern.ch/caimira/caimira.git
+    
+    In the root directory:
+        
+        cd caimira
+        pip install -e ./caimira
+
+###### Running and testing with API
 
 CAiMIRA backend includes a REST API for programmatic interaction with its models. The following steps describe how to run and test the API locally.
     
@@ -155,16 +147,11 @@ CAiMIRA backend includes a REST API for programmatic interaction with its models
     
     For further details please refer to the [REST API documentation page](../code/rest_api.md).
 
-##### 2. Calculator
+##### 2. Native Calculator app 
 
 The CAiMIRA Calculator integrates the backend functionality with a CAiMIRA-native UI, offering a complete webpage for modeling and interaction. Local installation in editable mode facilitates both development and testing, which are described in the following sections.
 
-###### Installing:
-
-In order to install the CAiMIRA's backend logic, from the root directory of the project, run:
-
-    cd caimira
-    pip install -e .
+###### Installing UI:
 
 In order to install the CAiMIRA-native UI version, that links to the previously installed backend, from the root directory of the project, run:
 
@@ -185,6 +172,10 @@ Additional options allow customization, such as specifying themes, application r
 
         python -m cern_caimira.apps.calculator --theme=cern_caimira/src/cern_caimira/apps/templates/{theme}
 
+    Where `{theme}` is the name of the folder within the `cern_caimira/apps/templates/` directory. E.g. for the `cern` theme:
+
+        python -m cern_caimira.apps.calculator --theme=cern_caimira/src/cern_caimira/apps/templates/cern
+
 - **Run the app with a different `APPLICATION_ROOT` path**:
 
     The base path of the web application on the server. It determines where the app is "rooted" in relation to the server's URL structure. To run with a specific application root:
@@ -201,7 +192,7 @@ Each of these commands will start a local version of CAiMIRA, which can be visit
 
 ##### Expert-Apps:
 
-The CAiMIRA Expert App and CO2 App are legacy tools designed to provide dynamic interaction with the CAiMIRA model parameters.
+The CAiMIRA Expert App and CO~2~ App are legacy tools designed to provide dynamic interaction with the CAiMIRA model parameters.
 
 !!! warning
 
