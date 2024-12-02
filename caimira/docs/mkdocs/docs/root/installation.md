@@ -83,18 +83,20 @@ Before proceeding with the development installation of CAiMIRA, ensure that your
 
 This section provides instructions for setting up, running, and testing CAiMIRA in a local development environment. 
 
-Cloning the full repository from GitLab is required for using the [native Calculator app](#calculator), running [tests](#tests), [profiling](#profiler), or generating [documentation](#docs). This ensures access to both the backend and the native UI, along with all tools and resources.
+Cloning the full repository from GitLab is required for using the [native Calculator app](#calculator), running [tests](#tests), [profiling](#profiler), or generating [documentation](#docs). 
+
+**For development and/or running the backend model alone (without a UI), or for REST API integration, go directly to the [Backend](#backend) section.**
 
 The repository can be cloned with the following command:
-
-    git clone https://gitlab.cern.ch/caimira/caimira.git  
-    cd caimira
 
 !!! note
     The directory in which you run these commands will be the root directory of your project.
 
-!!! warning
-    If only the backend functionality is needed, such as for REST API integration or standalone use, the repository does not necessarily needs to be cloned. Instead, the backend can be installed and run directly using the instructions provided in the [backend](#backend) section.
+```
+git clone https://gitlab.cern.ch/caimira/caimira.git  
+```
+
+This ensures access to both the backend and the native UI, along with all tools and resources.
 
 #### Calculator
 
@@ -158,9 +160,11 @@ The CAiMIRA Expert App and CO<sub>2</sub> App are legacy tools designed to provi
     The `ExpertApplication` and `CO2Application` are no longer actively maintained but will remain in the codebase for legacy purposes.
     Please note that the functionality of these applications might be compromised due to deprecation issues.
 
-###### Running the Applications
+These apps only work within Jupyter notebooks. 
 
-These applications only work within Jupyter notebooks. Attempting to run them outside of a Jupyter environment may result in errors or degraded functionality.
+!!! warning
+    
+    Attempting to run them outside of a Jupyter environment may result in errors or degraded functionality.
 
 1. **Install dependencies**:
 
