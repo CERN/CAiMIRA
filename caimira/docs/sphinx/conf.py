@@ -17,10 +17,7 @@ sys.path.insert(0, os.path.abspath('../../src/caimira/calculator'))
 # -- Project information -----------------------------------------------------
 
 project = 'CAiMIRA'
-copyright = '2024, Andre Henriques et al.'
 author = 'Andre Henriques et al.'
-
-release = '1.0.0'
 
 # -- General configuration ---------------------------------------------------
 
