@@ -38,7 +38,7 @@ Contributions are welcome on our [GitHub repository](https://github.com/CERN/CAi
 
 Developed by CERN's HSE, Beams, and IT departments, in collaboration with WHO.
 
-© Copyright 2020-2021 CERN. All rights not expressly granted are reserved.<br>
+© Copyright 2020 CERN. All rights not expressly granted are reserved.<br>
 Licensed under the Apache License, Version 2.0
 
 See the full [license](caimira/LICENSE) for details.
