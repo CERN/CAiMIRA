@@ -56,7 +56,7 @@ doc = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/cern/caimira"
+Homepage = "https://gitlab.cern.ch/caimira/caimira"
 
 [tool.setuptools.package-data]
 caimira = ["**/*"]
