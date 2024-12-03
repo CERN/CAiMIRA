@@ -206,6 +206,7 @@ docker-build-docs-release:
 
 # ###################################################################################################
 # Deploy to OpenShift
+
 .deploy:
   stage: deploy
   image: gitlab-registry.cern.ch/paas-tools/openshift-client
@@ -249,3 +250,25 @@ deploy-docs-test:
     IMAGE_NAME: caimira-docs
     OPENSHIFT_DEPLOYMENT: caimira-test-docs
     OPENSHIFT_CONTAINER_NAME: caimira-test-docs
+
+# ###################################################################################################
+# Publish on PyPI
+
+.publish-to-pypi:
+  stage: deploy
+  image: python:3.12
+  script:
+    - cd caimira
+    - pip install build twine
+    - python -m build
+    - twine upload dist/* -u $PYPI_USERNAME -p $PYPI_TOKEN
+  rules:
+    - if: $CI_COMMIT_TAG
+
+publish-caimira:
+  extends: .publish-to-pypi
+  variables:
+    PYPI_USERNAME: __token__
+    PYPI_TOKEN: $PYPI_TOKEN
+  rules:
+    - if: $CI_COMMIT_TAG

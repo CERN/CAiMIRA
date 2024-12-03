@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "caimira"
 version = "4.17.5"
 description = "CAiMIRA - CERN Airborne Model for Indoor Risk Assessment"
+readme = "README.md"
 license = { text = "Apache-2.0" }
 authors = [
     { name = "Andre Henriques", email = "andre.henriques@cern.ch" }
@@ -41,7 +42,6 @@ test = [
     "pytest-mypy >= 0.10.3",
     "mypy >= 1.0.0",
     "pytest-tornasync",
-    "numpy-stubs @ git+https://github.com/numpy/numpy-stubs.git",
     "types-dataclasses",
     "types-python-dateutil",
     "types-requests",
@@ -56,7 +56,7 @@ doc = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/cern/caimira"
+Homepage = "https://gitlab.cern.ch/caimira/caimira"
 
 [tool.setuptools.package-data]
 caimira = ["**/*"]
