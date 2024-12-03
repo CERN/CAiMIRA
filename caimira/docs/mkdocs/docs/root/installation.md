@@ -257,13 +257,6 @@ CAiMIRA's backend logic can be installed with the following two options:
 
         pip install caimira
             
-    For testing new releases, use the PyPI Test instance by running the following command (directory independent):
-    
-        pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple caimira
-    
-    !!! info
-        `--extra-index-url` is necessary to resolve dependencies from PyPI.
-
 2. **From the [GitLab Repository](https://gitlab.cern.ch/caimira/caimira)<sup>1</sup>**:
     
     Clone the repository and install it in editable mode for development by running the following commands:

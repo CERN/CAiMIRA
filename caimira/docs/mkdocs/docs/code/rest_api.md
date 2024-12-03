@@ -54,11 +54,7 @@ To run the API, follow these steps from the root directory of the project:
     
     - From [PyPI](https://pypi.org/project/caimira/):
 
-            pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple caimira
-    
-        !!! info
-            `--extra-index-url` is necessary to resolve dependencies from PyPI.
-
+            pip install caimira
     
 2. Run the backend:
 
@@ -208,3 +204,12 @@ As the project is growing, more endpoints targeted to specific tasks will be dev
                 "room_volume": "60",
                 "total_people": "2"
             }'
+
+#### Development
+
+For testing new releases, use the PyPI Test instance by running the following command (directory independent):
+    
+    pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple caimira
+    
+!!! info
+    `--extra-index-url` is necessary to resolve dependencies from PyPI.
