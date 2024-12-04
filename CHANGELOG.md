@@ -1,3 +1,14 @@
+# 4.17.6 (December 4, 2024)
+
+## Features Added
+- Data registry update
+- REST API adjustments in docs
+- Release to PyPI
+
+## Bug Fixes
+- Corrected user guide and about doc refs
+- Minor fix in docker pre-built instruction
+
 # 4.17.5 (November 21, 2024)
 
 ## Features Added
