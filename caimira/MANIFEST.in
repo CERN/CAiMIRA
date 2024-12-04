@@ -1,0 +1,9 @@
+recursive-include src *.py
+recursive-include src *.json
+recursive-include src *.txt
+
+exclude *.pyc
+exclude **/__pycache__/*
+exclude tests/*
+exclude docs/*
+exclude *.md
