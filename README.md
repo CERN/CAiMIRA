@@ -41,4 +41,4 @@ Developed by CERN's HSE, Beams, and IT departments, in collaboration with WHO.
 © Copyright 2020 CERN. All rights not expressly granted are reserved.<br>
 Licensed under the Apache License, Version 2.0
 
-See the full [license](caimira/LICENSE) for details.
+See the full [license](https://gitlab.cern.ch/caimira/caimira/-/blob/master/caimira/LICENSE) for details.
