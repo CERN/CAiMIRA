@@ -11,22 +11,7 @@ from caimira.calculator.models.enums import ViralLoads
 from caimira.calculator.validators.virus.virus_validator import VirusFormData
 
 
-def model_start_end(model: models.ExposureModel):
-    """
-    Calculates the start and end times for a single ExposureModel.
-
-    Determines the boundary times of an ExposureModel by comparing
-    the presence intervals of both the exposed and the infected people.
-    """
-    t_start = min(model.exposed.presence_interval().boundaries()[0][0],
-                  model.concentration_model.infected.presence_interval().boundaries()[0][0])
-    t_end = max(model.exposed.presence_interval().boundaries()[-1][1],
-                model.concentration_model.infected.presence_interval().boundaries()[-1][1])
-    
-    return t_start, t_end
-
-
-def model_boundary_times(model: typing.Union[models.ExposureModelGroup, models.ExposureModel]):
+def model_start_end(model: typing.Union[models.ExposureModelGroup, models.ExposureModel]):
     """
     Calculates the boundary times for an ExposureModel or ExposureModelGroup.
     
@@ -40,7 +25,11 @@ def model_boundary_times(model: typing.Union[models.ExposureModelGroup, models.E
         t_end = max((model_start_end(nth_model)[1] for nth_model in model.exposure_models))
         return t_start, t_end
     else:
-        return model_start_end(model)
+        t_start = min(model.exposed.presence_interval().boundaries()[0][0],
+                  model.concentration_model.infected.presence_interval().boundaries()[0][0])
+        t_end = max(model.exposed.presence_interval().boundaries()[-1][1],
+                model.concentration_model.infected.presence_interval().boundaries()[-1][1])
+        return t_start, t_end
 
 
 def fill_big_gaps(array, gap_size):
@@ -84,7 +73,7 @@ def non_temp_transition_times(model: typing.Union[models.ExposureModelGroup, mod
             else:
                 yield name, obj
 
-    t_start, t_end = model_boundary_times(model)
+    t_start, t_end = model_start_end(model)
 
     change_times = {t_start, t_end}
     for _, obj in walk_model(model, name="exposure"):

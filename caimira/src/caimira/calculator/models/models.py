@@ -1944,24 +1944,6 @@ class ExposureModelGroup:
     
     def reproduction_number(self) -> _VectorisedFloat:
         """
-        Reproduction number considering the contribution
-        of each individual probability of infection and
-        a single infected occupant.
+        Expected number of cases when there is only one infected case.
         """
-        single_exposure_models = []
-        for model in self.exposure_models:
-            if model.concentration_model.infected.number != 1:
-                model = nested_replace(
-                    self, {
-                        'model.concentration_model.infected.number': 1
-                    }
-                )
-            single_exposure_models.append(model)
-
-        single_exposure_model_group = nested_replace(
-            self, {
-                'exposure_models': single_exposure_models,
-            }
-        )
-        return single_exposure_model_group.expected_new_cases()
-    
+        return np.sum([model.reproduction_number() for model in self.exposure_models], axis=0) # type: ignore
