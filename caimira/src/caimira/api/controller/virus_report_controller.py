@@ -4,7 +4,6 @@ import typing
 
 from caimira.calculator.validators.virus.virus_validator import VirusFormData
 from caimira.calculator.store.data_registry import DataRegistry
-from caimira.calculator.models.models import ExposureModel
 import caimira.calculator.report.virus_report_data as rg
 
 
@@ -33,5 +32,6 @@ def submit_virus_form(form_data: typing.Dict, report_generation_parallelism: typ
 
     # Handle model representation
     if report_data['model']: report_data['model'] = repr(report_data['model'])
+    for single_group_output in report_data['groups'].values(): del single_group_output['model'] # Model representation per group not needed
 
     return report_data

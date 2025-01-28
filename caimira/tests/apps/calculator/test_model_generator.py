@@ -17,7 +17,7 @@ from caimira.calculator.store.data_registry import DataRegistry
 
 def test_model_from_dict(baseline_form_data, data_registry):
     form = virus_validator.VirusFormData.from_dict(baseline_form_data, data_registry)
-    assert isinstance(form.build_model(), models.ExposureModel)
+    assert isinstance(form.build_model(), models.ExposureModelGroup)
 
 
 def test_model_from_dict_invalid(baseline_form_data, data_registry):

@@ -6,7 +6,6 @@ import ast
 import json
 import re
 
-from collections import defaultdict
 import numpy as np
 
 from .defaults import DEFAULTS, NO_DEFAULT, COFFEE_OPTIONS_INT
