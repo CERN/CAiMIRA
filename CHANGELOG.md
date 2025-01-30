@@ -1,10 +1,3 @@
-# 4.18.0 (February X, 2025)
-
-## Features Added
-- Dynamic groups in API response
-- Jinja2 templates update
-- Code documentation update
-
 # 4.17.6 (December 4, 2024)
 
 ## Features Added
