@@ -18,10 +18,10 @@ It includes details on the diameter-dependent mathematical model and the code de
 * [Physics of the model](root/physics_model.md)
 * **Code**
     * [Architecture](code/architecture.md)
-    * [CO₂ Fitting Algorithm](code/fitting_algorithm.md)
-    * [Dynamic Groups](code/dynamic_groups.md)
-    * [REST API](code/rest_api.md)
     * [models.py](code/models.md)
+    * [Dynamic Groups](code/dynamic_groups.md)
+    * [CO₂ Fitting Algorithm](code/fitting_algorithm.md)
+    * [REST API](code/rest_api.md)
 * **User Interfaces**
     * **CAiMIRA Calculator**
         * [Quick Guide](user_interfaces/CAiMIRA/quick_guide.md)
