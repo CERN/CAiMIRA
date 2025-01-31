@@ -3,7 +3,7 @@
 The dynamic occupancy introduces the capability to handle multiple **exposure** groups within an event. Instead of having one single set of parameters for all the exposed (susceptible) occupants, this feature enables the model to have *n* groups, each with a specific occupancy profile and set of short-range interactions. This will facilitate more accurate risk assessments in a more heterogenous environment. This can also be used to define dynamic groups for the [CO<sub>2</sub> fitting algorithm](fitting_algorithm.md).
 
 !!!note
-    When in development mode, this feature enables the model to have *n* groups, each with their specific characteristics, e.g. masks, physical activity or host immunities.
+    When in development mode, this feature enables the model to have *n* groups, each with their specific characteristics, e.g. masks, physical activity or host immunities. For more details see [here](#model-generator-development-mode).
 
 This page covers the [description](#feature-description), [input structure](#input-structure), and [results structure](#output-structure) of this feature.
 
@@ -106,7 +106,7 @@ The `short_range_interactions` object defines the number of short-range interact
 !!! warning 
     Short-range interactions cannot overlap within the same group, i.e. only one short-range interaction per group is allowed for any given time.
 
-#### Model generator
+#### Model generator (development mode)
 
 Following the previous JSON examples of `dynamic_exposed_occupancy`, `dynamic_infected_occupancy`, and `short_range_interactions`, the `ExposureModelGroups` object that would be generated would have the following structure:
 
@@ -170,6 +170,9 @@ Following the previous JSON examples of `dynamic_exposed_occupancy`, `dynamic_in
 
     !!!note
         Each exposure group (`group_1` and `group_2`) originates one `ExposureModel`, and the `ConcentrationModel`, originated with the `dynamic_infected_occupancy` is the same for both exposure groups.
+
+    !!!note
+        `concentration_model_infected` represents an entire `ConcentrationModel` built from the `dynamic_infected_occupancy` and replicated across all the `ExposureModel`. More details [here](../models/#concentrationmodel-class).
 
 ### Results structure (model output)
 
