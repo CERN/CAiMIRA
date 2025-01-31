@@ -196,7 +196,7 @@ After the defining the simulation and when making a request to the API, the resp
                         "concentrations": ..., 
                         "cumulative_doses": ..., 
                         "long_range_prob": ..., 
-                        "long_range_R0": ..., 
+                        "long_range_expected_new_cases": ..., 
                         "short_range_interactions": ..., 
                         "concentrations_zoomed": ..., 
                         "long_range_cumulative_doses": ...
