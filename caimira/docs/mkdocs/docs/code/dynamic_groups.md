@@ -26,7 +26,7 @@ The `dynamic_exposed_occupancy` object defines the presence of exposed populatio
 - `total_people`: The total number of **exposed** individuals in the group.
 - `presence`: A list of time intervals (`start_time` and `finish_time`) during which the group was present, formatted as `HH:MM`.
 
-!!!example
+???+ example
 
         dynamic_exposed_occupancy = {
             "group_1": {
@@ -57,7 +57,7 @@ Unlike the `dynamic_exposed_occupancy`, the `dynamic_infected_occupancy` represe
 - `total_people`: the total number of **infected** individuals in the group,
 - `start_time` and `finish_time`: the time boundaries at which the occupants were present, formatted as `HH:MM`.
 
-!!!example
+???+ example
 
         dynamic_infected_occupancy = [
             {"total_people": 2, "start_time": "10:00", "finish_time": "12:00"},
@@ -82,23 +82,23 @@ The `short_range_interactions` object defines the number of short-range interact
 - `start_time`: when the interaction starts, formatted as `HH:MM`.
 - `duration`: duration of the interaction (in minutes). 
 
-!!!example
+???+ example
 
         short_range_interactions = {
             "group_1": [
                 {"expiration": "Shouting", "start_time": "10:00", "duration": 30},
-                {"expiration": "Speaking", "start_time": "11:10", "duration": 15}
+                {"expiration": "Speaking", "start_time": "11:15", "duration": 15}
             ],
             "group_2": [
-                {"expiration": "Shouting", "start_time": "10:10", "duration": 30}
+                {"expiration": "Shouting", "start_time": "10:15", "duration": 30}
             ]
         }
 
     - `group_1` has **2 interactions** in two time intervals:
         - `Shouting`, from `10:00` for `30` minutes,
-        - `Speaking`, from `11:10` for `15` minutes.
+        - `Speaking`, from `11:15` for `15` minutes.
     - `group_2` has **1 interaction**, in a single time interval:
-        - `Shouting` from `10:10` for `30` minutes.
+        - `Shouting` from `10:15` for `30` minutes.
 
 !!! note
     Extensive validation is conducted in the algorithm to guarantee that the interactions are related to an existing **exposure** group, and that the times are within the concerned exposure group simulation time.
@@ -106,11 +106,76 @@ The `short_range_interactions` object defines the number of short-range interact
 !!! warning 
     Short-range interactions cannot overlap within the same group, i.e. only one short-range interaction per group is allowed for any given time.
 
+#### Model generator
+
+Following the previous JSON examples of `dynamic_exposed_occupancy`, `dynamic_infected_occupancy`, and `short_range_interactions`, the `ExposureModelGroups` object that would be generated would have the following structure:
+
+???+ note "Structure"
+    
+        ExposureModelGroup(
+            ExposureModel(
+                data_registry=...,
+                concentration_model=concentration_model_infected,
+                short_range=(
+                    ShortRangeModel(
+                        data_registry=...,
+                        expiration="Shouting",
+                        activity=...,
+                        presence=SpecificInterval(((10., 11.5),)),
+                        distance=...,
+                    ),
+                    ShortRangeModel(
+                        data_registry=...,
+                        expiration="Shouting",
+                        activity=...,
+                        presence=SpecificInterval(((11.25, 11.5),)),
+                        distance=...,
+                    ),
+                ),
+                exposed=Population(
+                    number=5,
+                    presence=SpecificInterval(((9., 12.), (13., 17.))),
+                    activity=...,
+                    mask=...,
+                    host_immunity=...,
+                ),
+                geographical_data=...,
+                exposed_to_short_range=...,
+                identifier="group_1',
+            ),
+            ExposureModel(
+                data_registry=...,
+                concentration_model=concentration_model_infected,
+                short_range=(
+                    ShortRangeModel(
+                        data_registry=...,
+                        expiration="Shouting",
+                        activity=...,
+                        presence=SpecificInterval(((10.25, 10.75),)),
+                        distance=...,
+                    ),
+                ),
+                exposed=Population(
+                    number=5,
+                    presence=SpecificInterval(((10., 11.),)),
+                    activity=...,
+                    mask=...,
+                    host_immunity=...,
+                ),
+                geographical_data=...,
+                exposed_to_short_range=...,
+                identifier="group_2",
+            )
+        )
+
+    !!!note
+        Each exposure group (`group_1` and `group_2`) originates one `ExposureModel`, and the `ConcentrationModel`, originated with the `dynamic_infected_occupancy` is the same for both exposure groups.
+
 ### Results structure (model output)
 
 After the defining the simulation and when making a request to the API, the response is structured as a JSON object that consists of a `status` field indicating success or failure, along with a `message` providing additional details. If successful, the `report_data` object contains the computed exposure results per group and model configuration.
 
-!!!example
+???+ example
 
         {
             "status": "success",
