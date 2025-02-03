@@ -194,7 +194,6 @@ def test_infection_probability(
     npt.assert_almost_equal(base_infection_probability, dynamic_population_exposure_model.infection_probability())
 
 
-@pytest.mark.skip
 def test_dynamic_total_probability_rule(
         dynamic_infected_single_exposure_model: models.ExposureModel,
         dynamic_population_exposure_model: models.ExposureModel):
@@ -207,27 +206,33 @@ def test_dynamic_total_probability_rule(
         dynamic_population_exposure_model.total_probability_rule()
 
 
-@pytest.mark.skip
-def test_dynamic_expected_new_cases(
-        dynamic_infected_single_exposure_model: models.ExposureModel,
-        dynamic_population_exposure_model: models.ExposureModel):
-
-    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute expected new cases "
-                                                            "with dynamic occupancy")):
-        dynamic_infected_single_exposure_model.expected_new_cases()
-    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute expected new cases "
-                                                            "with dynamic occupancy")):
-        dynamic_population_exposure_model.expected_new_cases()
+def test_exposure_model_group_structure(data_registry, full_exposure_model: models.ExposureModel):
+    """
+    ExposureModels must have the same ConcentrationModel.
+    In this test the number of infected occupants is different.
+    """
+    another_full_exposure_model = dc_utils.nested_replace(full_exposure_model,
+        {'concentration_model.infected.number': 2, })
+    with pytest.raises(ValueError, match=re.escape("All ExposureModels must have the same ConcentrationModel.")):
+        models.ExposureModelGroup(data_registry, exposure_models=(full_exposure_model, another_full_exposure_model, ))
 
 
-@pytest.mark.skip
-def test_dynamic_reproduction_number(
-        dynamic_infected_single_exposure_model: models.ExposureModel,
-        dynamic_population_exposure_model: models.ExposureModel):
+def test_exposure_model_group_expected_new_cases(data_registry, full_exposure_model: models.ExposureModel):
+    """
+    ExposureModelGroup expected number of new cases must
+    be the sum of expected new cases of each ExposureModel.
+
+    In this case, the number of exposed people is changing
+    between the two ExposureModel groups.
+    """
+    another_full_exposure_model = dc_utils.nested_replace(
+        full_exposure_model, {'exposed.number': 5, }
+    )
+    exposure_model_group = models.ExposureModelGroup(
+        data_registry=data_registry,
+        exposure_models=(full_exposure_model, another_full_exposure_model, ),
+    )
     
-    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute reproduction number "
-                                                            "with dynamic occupancy")):
-        dynamic_infected_single_exposure_model.reproduction_number()
-    with pytest.raises(NotImplementedError, match=re.escape("Cannot compute reproduction number "
-                                                            "with dynamic occupancy")):
-        dynamic_population_exposure_model.reproduction_number()
+    assert exposure_model_group.expected_new_cases() == (
+        full_exposure_model.expected_new_cases() + another_full_exposure_model.expected_new_cases()
+    )

@@ -1924,6 +1924,15 @@ class ExposureModelGroup:
     #: The set of exposure models for each exposed population
     exposure_models: typing.Tuple[ExposureModel, ...]
 
+    def __post_init__(self):
+        """
+        Validate that all ExposureModels have the same ConcentrationModel.
+        """
+        first_concentration_model = self.exposure_models[0].concentration_model
+        for model in self.exposure_models[1:]:
+            if model.concentration_model != first_concentration_model:
+                raise ValueError("All ExposureModels must have the same ConcentrationModel.")
+
     @method_cache
     def _deposited_exposure_list(self) -> typing.List[_VectorisedFloat]:
         """
