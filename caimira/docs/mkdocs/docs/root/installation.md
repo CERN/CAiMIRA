@@ -284,7 +284,7 @@ CAiMIRA backend includes a REST API for programmatic interaction with its models
 
 2. **Test the API**:
 
-    Send a `POST` request to  `http://localhost:8081/virus_report` with the required inputs in the body. Example request formats can be found in the [Virus Validator Code](https://gitlab.cern.ch/caimira/caimira/blob/master/caimira/src/caimira/calculator/validators/virus/virus_validator.py#L565).
+    Send a `POST` request to  `http://localhost:8081/virus/report` with the required inputs in the body. Example request formats can be found in the [Virus Validator Code](https://gitlab.cern.ch/caimira/caimira/blob/master/caimira/src/caimira/calculator/validators/virus/virus_validator.py#L565).
 
 3. **Example Response**:
     A successful response will return data in the following format:
@@ -293,7 +293,7 @@ CAiMIRA backend includes a REST API for programmatic interaction with its models
             {
                 "status": "success",
                 "message": "Results generated successfully",
-                "report_data": {
+                "results": {
                     ...
                 },
                 ...
