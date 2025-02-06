@@ -647,7 +647,47 @@ class Particle:
             return 1.88e-4
         else:
             return 1.88e-4 * (self.diameter*evaporation_factor / 2.5)**2
+    
+    def fraction_deposited_et(self, d, log_d) -> _VectorisedFloat:
+        IF = 1 - 0.5 * (1 - (1 / (1 + (0.00076*(d**2.8)))))
+        return IF * (
+            (1 / (1 + np.exp(6.84 + 1.183 * log_d))) +
+            (1 / (1 + np.exp(0.924 - 1.885 * log_d)))
+        )
+    
+    def fraction_deposited_tb(self, d, log_d) -> _VectorisedFloat:
+        return (0.00352 / d) * (
+            np.exp(-0.234 * (log_d + 3.40) ** 2) + 
+            (63.9 * np.exp(-0.819 * (log_d - 1.61) ** 2))
+        )
+    
+    def fraction_deposited_av(self, d, log_d) -> _VectorisedFloat:
+        return (0.0155 / d) * (
+            np.exp(-0.416 * (log_d + 2.84) ** 2) +
+            (19.11 * np.exp(-0.482 * (log_d - 1.362) ** 2))
+        )
 
+    def fraction_deposited_df(self, d, log_d) -> _VectorisedFloat:
+        IF = 1 - 0.5 * (1 - (1 / (1 + (0.00076*(d**2.8)))))
+        return IF * (
+            0.0587 + 
+            (0.911 / (1 + np.exp(4.77 + 1.485 * log_d))) + 
+            (0.943 / (1 + np.exp(0.508 - 2.58 * log_d)))
+        )
+
+    def segmented_fraction_deposited(self, evaporation_factor: float=0.3):
+        # The deposition fraction depends on aerosol particle diameter.
+        if self.diameter is None:
+            return 0.6
+        else:
+            d = self.diameter * evaporation_factor
+            log_d = np.log(d)
+            return (
+                self.fraction_deposited_et(d, log_d), 
+                self.fraction_deposited_tb(d, log_d), 
+                self.fraction_deposited_av(d, log_d),
+            )
+    
     def fraction_deposited(self, evaporation_factor: float=0.3) -> _VectorisedFloat:
         """
         The fraction of particles actually deposited in the respiratory
