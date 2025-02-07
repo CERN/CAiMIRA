@@ -668,7 +668,7 @@ class Particle:
             IFrac = 1 - 0.5 * (1 - (1 / (1 + (0.00076*(d**2.8)))))
             fdep = IFrac * (0.0587
                     + (0.911/(1 + np.exp(4.77 + 1.485 * np.log(d))))
-                    + (0.943/(1 + np.exp(0.508 - 2.58 * np.log(d)))))
+                    + (0.943/(1 + np.exp(0.508 - 2.58 * np.log(d))))) # type: ignore
         return fdep
 
 

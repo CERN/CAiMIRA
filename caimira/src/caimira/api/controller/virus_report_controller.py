@@ -4,7 +4,6 @@ import typing
 
 from caimira.calculator.validators.virus.virus_validator import VirusFormData
 from caimira.calculator.store.data_registry import DataRegistry
-from caimira.calculator.models.models import ExposureModel
 import caimira.calculator.report.virus_report_data as rg
 
 
