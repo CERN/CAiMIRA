@@ -1,3 +1,13 @@
+# 4.17.7 (December 4, 2024)
+
+## Features Added
+- Added new route for the suggested ventilation transition times
+- Small updates on routes' nomenclatures
+- Updated documentation
+
+## Bug Fixes
+- Wrong URL in README (related to CAiMIRA reference)
+
 # 4.17.6 (December 4, 2024)
 
 ## Features Added
