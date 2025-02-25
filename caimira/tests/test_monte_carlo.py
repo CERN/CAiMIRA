@@ -3,12 +3,11 @@ import dataclasses
 import numpy as np
 import pytest
 
-import caimira.calculator.models
-import caimira.calculator.models.models
-import caimira.calculator.models.monte_carlo.sampleable
+import caimira.calculator.models.models as models
+import caimira.calculator.models.monte_carlo as mc
 
 MODEL_CLASSES = [
-    cls for cls in vars(caimira.calculator.models).values()
+    cls for cls in vars(models).values()
     if dataclasses.is_dataclass(cls)
 ]
 
@@ -21,11 +20,11 @@ def test_type_annotations():
     # runtime execution.
     missing = []
     for cls in MODEL_CLASSES:
-        if not hasattr(caimira.calculator.models.monte_carlo, cls.__name__):
+        if not hasattr(mc, cls.__name__):
             missing.append(cls.__name__)
             continue
-        mc_cls = getattr(caimira.calculator.models.monte_carlo, cls.__name__)
-        assert issubclass(mc_cls, caimira.calculator.models.monte_carlo.MCModelBase)
+        mc_cls = getattr(mc, cls.__name__)
+        assert issubclass(mc_cls, mc.MCModelBase)
 
     if missing:
         msg = (
@@ -37,25 +36,25 @@ def test_type_annotations():
 
 
 @pytest.fixture
-def baseline_mc_concentration_model(data_registry) -> caimira.calculator.models.monte_carlo.ConcentrationModel:
-    mc_model = caimira.calculator.models.monte_carlo.ConcentrationModel(
+def baseline_mc_concentration_model(data_registry) -> mc.ConcentrationModel:
+    mc_model = mc.ConcentrationModel(
         data_registry=data_registry,
-        room=caimira.calculator.models.monte_carlo.Room(volume=caimira.calculator.models.monte_carlo.sampleable.Normal(75, 20),
-                        inside_temp=caimira.calculator.models.models.PiecewiseConstant((0., 24.), (293,))),
-        ventilation=caimira.calculator.models.monte_carlo.SlidingWindow(
+        room=mc.Room(volume=mc.sampleable.Normal(75, 20),
+                        inside_temp=models.PiecewiseConstant((0., 24.), (293,))),
+        ventilation=mc.SlidingWindow(
             data_registry=data_registry,
-            active=caimira.calculator.models.models.PeriodicInterval(period=120, duration=120),
-            outside_temp=caimira.calculator.models.models.PiecewiseConstant((0., 24.), (283,)),
+            active=models.PeriodicInterval(period=120, duration=120),
+            outside_temp=models.PiecewiseConstant((0., 24.), (283,)),
             window_height=1.6, opening_length=0.6,
         ),
-        infected=caimira.calculator.models.models.InfectedPopulation(
+        infected=models.InfectedPopulation(
             data_registry=data_registry,
             number=1,
-            virus=caimira.calculator.models.models.Virus.types['SARS_CoV_2'],
-            presence=caimira.calculator.models.models.SpecificInterval(((0., 4.), (5., 8.))),
-            mask=caimira.calculator.models.models.Mask.types['No mask'],
-            activity=caimira.calculator.models.models.Activity.types['Light activity'],
-            expiration=caimira.calculator.models.models.Expiration.types['Breathing'],
+            virus=models.Virus.types['SARS_CoV_2'],
+            presence=models.SpecificInterval(((0., 4.), (5., 8.))),
+            mask=models.Mask.types['No mask'],
+            activity=models.Activity.types['Light activity'],
+            expiration=models.Expiration.types['Breathing'],
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
@@ -64,39 +63,39 @@ def baseline_mc_concentration_model(data_registry) -> caimira.calculator.models.
 
 
 @pytest.fixture
-def baseline_mc_sr_model() -> caimira.calculator.models.monte_carlo.ShortRangeModel:
+def baseline_mc_sr_model() -> mc.ShortRangeModel:
     return ()
 
 
 @pytest.fixture
-def baseline_mc_exposure_model(data_registry, baseline_mc_concentration_model, baseline_mc_sr_model) -> caimira.calculator.models.monte_carlo.ExposureModel:
-    return caimira.calculator.models.monte_carlo.ExposureModel(
+def baseline_mc_exposure_model(data_registry, baseline_mc_concentration_model, baseline_mc_sr_model) -> mc.ExposureModel:
+    return mc.ExposureModel(
         data_registry,
         baseline_mc_concentration_model,
         baseline_mc_sr_model,
-        exposed=caimira.calculator.models.models.Population(
+        exposed=models.Population(
             number=10,
             presence=baseline_mc_concentration_model.infected.presence,
             activity=baseline_mc_concentration_model.infected.activity,
             mask=baseline_mc_concentration_model.infected.mask,
             host_immunity=0.,
         ),
-        geographical_data=caimira.calculator.models.models.Cases(),
+        geographical_data=models.Cases(),
     )
 
 
-def test_build_concentration_model(baseline_mc_concentration_model: caimira.calculator.models.monte_carlo.ConcentrationModel):
+def test_build_concentration_model(baseline_mc_concentration_model: mc.ConcentrationModel):
     model = baseline_mc_concentration_model.build_model(7)
-    assert isinstance(model, caimira.calculator.models.models.ConcentrationModel)
+    assert isinstance(model, models.ConcentrationModel)
     assert isinstance(model.concentration(time=0.), float)
     conc = model.concentration(time=1.)
     assert isinstance(conc, np.ndarray)
     assert conc.shape == (7, )
 
 
-def test_build_exposure_model(baseline_mc_exposure_model: caimira.calculator.models.monte_carlo.ExposureModel):
+def test_build_exposure_model(baseline_mc_exposure_model: mc.ExposureModel):
     model = baseline_mc_exposure_model.build_model(7)
-    assert isinstance(model, caimira.calculator.models.models.ExposureModel)
+    assert isinstance(model, mc.ExposureModel)
     prob = model.deposited_exposure()
     assert isinstance(prob, np.ndarray)
     assert prob.shape == (7, )
