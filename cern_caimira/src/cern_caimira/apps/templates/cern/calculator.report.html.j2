@@ -4,26 +4,26 @@
 {% set orange_prob_lim = 2 %}
 {% set red_prob_lim = 10 %}
 
-{% if form.short_range_option == "short_range_yes" %} 
-  {% set scenario = alternative_scenarios.stats.values() | first %}
-  {% set long_range_prob_inf = scenario.probability_of_infection %}
+{% set group_results = groups.values() | first %}
+{% if group_results.get('long_range_prob') %} 
+  {% set long_range_prob_inf = group_results.long_range_prob %}
 {% else %}
-  {% set long_range_prob_inf = prob_inf %}
+  {% set long_range_prob_inf = group_results.prob_inf %}
 {% endif %}
 
-{% if ((long_range_prob_inf > red_prob_lim) or (form.occupancy_format == "static" and expected_new_cases >= 1)) %} 
+{% if ((long_range_prob_inf > red_prob_lim) or (form.occupancy_format == "static" and group_results.expected_new_cases >= 1)) %} 
   {% set long_range_scale_warning = 'red' %}
   {% set long_range_warning_color= 'bg-danger' %}
 {% elif (orange_prob_lim <= long_range_prob_inf <= red_prob_lim) %}
-   {% set long_range_scale_warning = 'orange' %} 
-   {% set long_range_warning_color = 'bg-warning' %} 
+  {% set long_range_scale_warning = 'orange' %} 
+  {% set long_range_warning_color = 'bg-warning' %} 
 {% else %} 
   {% set long_range_scale_warning = 'green' %} 
   {% set long_range_warning_color = 'bg-success' %} 
 {% endif %}
 
-{% if ((prob_inf > red_prob_lim) or (form.occupancy_format == "static" and expected_new_cases >= 1)) %} {% set scale_warning = 'red' %}
-{% elif (orange_prob_lim <= prob_inf <= red_prob_lim) %} {% set scale_warning = 'orange' %} 
+{% if ((group_results.prob_inf > red_prob_lim) or (form.occupancy_format == "static" and group_results.expected_new_cases >= 1)) %} {% set scale_warning = 'red' %}
+{% elif (orange_prob_lim <= group_results.prob_inf <= red_prob_lim) %} {% set scale_warning = 'orange' %} 
 {% else %} {% set scale_warning = 'green' %} 
 {% endif %}
 
@@ -49,7 +49,7 @@
   {% elif scale_warning == 'green' %} {% set warning_color = 'bg-success' %} 
   {% endif %}
   <div class="intro-banner-vdo-play-btn {{warning_color}} m-auto d-flex align-items-center justify-content-center">
-    <b>{{prob_inf | non_zero_percentage}}</b>
+    <b>{{ group_results.prob_inf | non_zero_percentage}}</b>
     <i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
     <span class="ripple {{warning_color}}"></span>
     <span class="ripple {{warning_color}}"></span>
@@ -85,8 +85,8 @@
           <div class="alert alert-success mb-0" role="alert">
             <strong>Acceptable:</strong>
         {% endif %}
-        In this scenario, the <b>probability the occupant(s) exposed to short-range interactions get infected can go as high as {{ prob_inf | non_zero_percentage }}</b>
-        and the <b>expected number of new cases increases to {{ expected_new_cases | float_format }}</b>
+        In this scenario, the <b>probability the occupant(s) exposed to short-range interactions get infected can go as high as {{ group_results.prob_inf | non_zero_percentage }}</b>
+        and the <b>expected number of new cases increases to {{ group_results.expected_new_cases | float_format }}</b>
         </div>
       {% endif %}
       
@@ -94,7 +94,7 @@
         {{ super() }}
       {% endblock probabilistic_exposure_probability %}
 
-      {% if (prob_inf > 2) %}
+      {% if (group_results.prob_inf > 2) %}
         <br>
         {% if cern_level == "green-1" %}  
           <div class="alert alert-dark mb-0" role="alert" style="height:fit-content">

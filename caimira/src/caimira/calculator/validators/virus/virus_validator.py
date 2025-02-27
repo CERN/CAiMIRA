@@ -245,7 +245,7 @@ class VirusFormData(FormData):
 
         return models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0, 24), (inside_temp,)), humidity=humidity) # type: ignore
 
-    def build_mc_model(self) -> typing.Union[mc.ExposureModel, mc.ExposureModelGroup]:
+    def build_mc_model(self) -> mc.ExposureModelGroup:
         size = self.data_registry.monte_carlo['sample_size']
 
         room: models.Room = self.initialize_room()
@@ -295,30 +295,31 @@ class VirusFormData(FormData):
                     exposed=exposed_population,
                     geographical_data=geographical_data,
                     exposed_to_short_range=self.short_range_occupants,
+                    identifier=exposure_group,
                 )
                 exposure_model_set.append(exposure_model)
 
-            if len(list(self.dynamic_exposed_occupancy.keys())) == 1:
-                return exposure_model_set[0]
-            else:
-                return mc.ExposureModelGroup(
-                    data_registry=self.data_registry,
-                    exposure_models=[individual_model.build_model(size) for individual_model in exposure_model_set]
-                )
+            return mc.ExposureModelGroup(
+                data_registry=self.data_registry,
+                exposure_models=[individual_model.build_model(size) for individual_model in exposure_model_set]
+            )
 
         elif self.occupancy_format == 'static':
             exposed_population = self.exposed_population()
             short_range_tuple = tuple(item for sublist in short_range.values() for item in sublist)
-            return mc.ExposureModel(
+            return mc.ExposureModelGroup(
                 data_registry=self.data_registry,
-                concentration_model=concentration_model,
-                short_range=short_range_tuple,
-                exposed=exposed_population,
-                geographical_data=geographical_data,
-                exposed_to_short_range=self.short_range_occupants,
+                exposure_models = [mc.ExposureModel(
+                    data_registry=self.data_registry,
+                    concentration_model=concentration_model,
+                    short_range=short_range_tuple,
+                    exposed=exposed_population,
+                    geographical_data=geographical_data,
+                    exposed_to_short_range=self.short_range_occupants,
+                ).build_model(size)]
             )
 
-    def build_model(self, sample_size=None) -> typing.Union[models.ExposureModel, models.ExposureModelGroup]:
+    def build_model(self, sample_size=None) -> models.ExposureModelGroup:
         size = self.data_registry.monte_carlo['sample_size'] if not sample_size else sample_size
         return self.build_mc_model().build_model(size=size)
 

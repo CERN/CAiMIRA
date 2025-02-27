@@ -112,8 +112,8 @@ def test_expected_new_cases(baseline_form_with_sr: VirusFormData):
 
     # Short- and Long-range contributions
     report_data = rep_gen.calculate_report_data(baseline_form_with_sr, executor_factory)
-    sr_lr_expected_new_cases = report_data['expected_new_cases']
-    sr_lr_prob_inf = report_data['prob_inf']/100
+    sr_lr_expected_new_cases = report_data['groups']['static']['expected_new_cases']
+    sr_lr_prob_inf = report_data['groups']['static']['prob_inf']/100
     
     # Long-range contributions alone
     alternative_scenarios = rep_gen.manufacture_alternative_scenarios(baseline_form_with_sr)

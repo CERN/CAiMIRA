@@ -126,13 +126,13 @@ p.notes {
         padding: 15px; 
         page-break-inside: avoid;
     }
-    #button_full_exposure, #button_hide_high_concentration {
+    #button_full_exposure-group_static, #button_hide_high_concentration-group_static {
         display: none!important;
     }
-    #long_range_cumulative_checkbox, #lr_cumulative_checkbox_label {
+    #long_range_cumulative_checkbox-group_static, #lr_cumulative_checkbox_label-group_static {
         display: none!important;
     }
-    #button_alternative_full_exposure, #button_alternative_hide_high_concentration {
+    #button_alternative_full_exposure-group_static, #button_alternative_hide_high_concentration-group_static {
         display: none!important;
     }
     #export-csv {

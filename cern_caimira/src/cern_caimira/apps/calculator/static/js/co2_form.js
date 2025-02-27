@@ -301,6 +301,7 @@ function displayFittingData(json_response) {
   // Not needed for the form submission
   delete json_response["CO2_plot_img"];
   delete json_response["predictive_CO2"];
+  delete json_response["CO2_plot_data"];
   // Convert nulls to empty strings in the JSON response
   if (json_response["room_capacity"] === null) json_response["room_capacity"] = '';
   if (json_response["ventilation_lsp_values"] === null) json_response["ventilation_lsp_values"] = '';

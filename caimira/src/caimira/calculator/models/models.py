@@ -666,7 +666,7 @@ class Particle:
             # deposition fraction depends on aerosol particle diameter.
             d = (self.diameter * evaporation_factor)
             IFrac = 1 - 0.5 * (1 - (1 / (1 + (0.00076*(d**2.8)))))
-            fdep = IFrac * (0.0587
+            fdep = IFrac * (0.0587 # type: ignore
                     + (0.911/(1 + np.exp(4.77 + 1.485 * np.log(d))))
                     + (0.943/(1 + np.exp(0.508 - 2.58 * np.log(d)))))
         return fdep
@@ -1642,6 +1642,9 @@ class ExposureModel:
     #: Total people with short-range interactions
     exposed_to_short_range: int = 0
 
+    #: Unique group identifier
+    identifier: str = 'static'
+
     #: The number of times the exposure event is repeated (default 1).
     @property
     def repeats(self) -> int:
@@ -1920,6 +1923,15 @@ class ExposureModelGroup:
 
     #: The set of exposure models for each exposed population
     exposure_models: typing.Tuple[ExposureModel, ...]
+
+    def __post_init__(self):
+        """
+        Validate that all ExposureModels have the same ConcentrationModel.
+        """
+        first_concentration_model = self.exposure_models[0].concentration_model
+        for model in self.exposure_models[1:]:
+            if model.concentration_model != first_concentration_model:
+                raise ValueError("All ExposureModels must have the same ConcentrationModel.")
 
     @method_cache
     def _deposited_exposure_list(self) -> typing.List[_VectorisedFloat]:

@@ -5,6 +5,9 @@ import io
 import typing
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
+from collections import defaultdict
 
 from caimira.calculator.models import models, dataclass_utils, profiler, monte_carlo as mc
 from caimira.calculator.models.enums import ViralLoads
@@ -108,208 +111,220 @@ def interesting_times(model: typing.Union[models.ExposureModelGroup, models.Expo
     return nice_times
 
 
-def process_short_range_interactions(model: typing.Union[models.ExposureModelGroup, models.ExposureModel], 
-                                     times: typing.List[float]):
+def _concentrations_with_sr_breathing(form: VirusFormData, model: models.ExposureModel, 
+                                      time: float, fn_name: typing.Optional[str] = None):
     """
-    Process both ExposureModel and ExposureModelGroup for short-range 
-    expirations, intervals and concentrations. Returns a tuple containing 
-    lower concentrations, short-range expirations, and short-range intervals.
+    Returns the zoomed viral concentrations.
     """
-    if isinstance(model, models.ExposureModelGroup):
-        model_list = model.exposure_models
-    elif isinstance(model, models.ExposureModel):
-        model_list = (model,)
-    else:
-        raise TypeError(f"Model should be either an instance of ExposureModel or ExposureModelGroup. Got '{type(model)}.'")
-    
-    # Collect short-range expirations and intervals
-    short_range_expirations: typing.List[str] = []
-    short_range_intervals: typing.List[models.BoundarySequence_t] = []
-    for model in model_list:
-        for short_range_model in model.short_range:
-            short_range_expirations.append(short_range_model.expiration_def) # type: ignore
-            short_range_intervals.extend(short_range_model.presence.boundaries())
-
-    # Collect lower concentrations (including Breathing)
-    lower_concentrations = []
-    for time in times:
-        breathing_found = False
-        for model in model_list:
-            for short_range_model in model.short_range:
-                ((start, stop),) = short_range_model.presence.boundaries()
-
-                # Check if the expiration is "Breathing" and the if time is within boundaries
-                if short_range_model.expiration_def == 'Breathing' and (start <= time <= stop):
-                    lower_concentrations.append(np.sum([np.array(model.concentration(float(time))).mean() for model in model_list]))
-                    breathing_found = True
-                    break
-
-            if breathing_found:
-                break
-        
-        lower_concentrations.append(np.sum([np.array(model.concentration_model.concentration(float(time))).mean() for model in model_list]))
-
-    return lower_concentrations, short_range_expirations, short_range_intervals
+    for index, (start, stop) in enumerate([interaction.presence.boundaries()[0] for interaction in model.short_range]):
+        if start <= time <= stop and form.short_range_interactions[model.identifier][index]['expiration'] == 'Breathing':
+            return np.array(model.concentration(float(time))).mean(), fn_name
+    return np.array(model.concentration_model.concentration(float(time))).mean(), fn_name
 
 
-def _calculate_deposited_exposure(model: typing.Union[models.ExposureModelGroup, models.ExposureModel], 
+def _calculate_deposited_exposure(model: models.ExposureModel, 
                                   time1: float, time2: float, fn_name: typing.Optional[str] = None):
-    if isinstance(model, models.ExposureModelGroup):
-        return np.sum([np.array(nth_model.deposited_exposure_between_bounds(float(time1), float(time2))).mean() for nth_model in model.exposure_models]), fn_name
-    else:
-        return np.array(model.deposited_exposure_between_bounds(float(time1), float(time2))).mean(), fn_name
+    return np.array(model.deposited_exposure_between_bounds(float(time1), float(time2))).mean(), fn_name
 
 
-def _calculate_long_range_deposited_exposure(model: typing.Union[models.ExposureModelGroup, models.ExposureModel], 
+def _calculate_long_range_deposited_exposure(model: models.ExposureModel, 
                                              time1: float, time2: float, fn_name: typing.Optional[str] = None):
-    if isinstance(model, models.ExposureModelGroup):
-        return np.sum([np.array(nth_model.long_range_deposited_exposure_between_bounds(float(time1), float(time2))).mean() for nth_model in model.exposure_models]), fn_name
-    else:
-        return np.array(model.long_range_deposited_exposure_between_bounds(float(time1), float(time2))).mean(), fn_name
+    return np.array(model.long_range_deposited_exposure_between_bounds(float(time1), float(time2))).mean(), fn_name
 
 
-def _calculate_concentration(model: typing.Union[models.ExposureModelGroup, models.ExposureModel], 
+def _calculate_concentration(model: models.ExposureModel, 
                              time: float, fn_name: typing.Optional[str] = None):
-    if isinstance(model, models.ExposureModelGroup):
-        return np.sum([np.array(nth_model.concentration(float(time))).mean() for nth_model in model.exposure_models]), fn_name
-    else:
-        return np.array(model.concentration(float(time))).mean(), fn_name
+    """
+    Returns the concentration of viruses emitted by
+    the infected population. Short- and long-range included.
+    """
+    return np.array(model.concentration(float(time))).mean(), fn_name
 
 
 def _calculate_co2_concentration(CO2_model: models.CO2ConcentrationModel, time: float, fn_name: typing.Optional[str] = None):
+    """
+    Returns the CO2 concentration emitted by all
+    the present population.
+    """
     return np.array(CO2_model.concentration(float(time))).mean(), fn_name
+
+
+def merge_intervals(intervals: typing.List[typing.List[float]]) -> typing.List[typing.List[float]]:
+    """
+    Merges overlapping intervals from a list of intervals.
+    Assumes intervals are sorted based on start times.
+    """
+    if not intervals:
+        return []
+
+    merged = [list(intervals[0])]
+    for start, end in intervals[1:]:
+        if merged[-1][1] < start:
+            merged.append([start, end])
+        else:
+            merged[-1][1] = max(merged[-1][1], end)
+    return merged
+
+
+def merge_short_range_interactions(all_exposed_groups: typing.Dict[str, typing.Any]) -> typing.List[typing.Dict[str, typing.Any]]:
+    """
+    Expands the short range interactions per exposed group to a single data structure.
+    """
+    merged_interactions = defaultdict(list)
+    for group in all_exposed_groups.values():
+        for interaction in group["short_range_interactions"]:
+            merged_interactions[interaction["expiration"]].extend(interaction["presence_interval"])
+    
+    # Merge and sort intervals
+    return [
+        {"expiration": exp, "presence_interval": merge_intervals(sorted(intervals, key=lambda x: x[0]))}
+        for exp, intervals in merged_interactions.items()
+    ]
+
+
+def group_results(form: VirusFormData, model_group: models.ExposureModelGroup) -> typing.Dict[str, typing.Any]:
+    """
+    Generates the output per group of exposure models.
+    """
+    groups: dict = defaultdict(dict)
+    for single_group in model_group.exposure_models:
+        # Probability of infection
+        prob = single_group.infection_probability()
+        prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
+
+        # Expected new cases
+        expected_new_cases = np.array(single_group.expected_new_cases())
+
+        groups[single_group.identifier] = {
+            "model": single_group,
+            "prob_inf": prob.mean(),
+            "prob_inf_sd": prob.std(),
+            "prob_dist": list(prob),
+            "prob_hist_count": list(prob_dist_count),
+            "prob_hist_bins": list(prob_dist_bins),
+            "expected_new_cases": expected_new_cases.mean(),
+            "exposed_presence_intervals": list(single_group.exposed.presence_interval().boundaries()),
+        }
+
+        # In case of conditional probability plot
+        if (form.conditional_probability_viral_loads and
+                single_group.data_registry.virological_data['virus_distributions'][form.virus_type]['viral_load_in_sputum'] == ViralLoads.COVID_OVERALL.value):  # type: ignore
+            conditional_probability_data = manufacture_conditional_probability_data(single_group, prob)
+            groups[single_group.identifier].update({
+                "conditional_probability_data": conditional_probability_data,
+                "uncertainties_plot_src": img2base64(_figure2bytes(uncertainties_plot(prob, conditional_probability_data)))
+            })
+
+        # Probabilistic exposure
+        if form.exposure_option == "p_probabilistic_exposure":
+            groups[single_group.identifier].update({
+                "prob_probabilistic_exposure": np.array(single_group.total_probability_rule()).mean()
+            })
+
+        # In case of short-range interactions
+        if single_group.short_range != ():
+            # Short range outputs
+            short_range_interactions: dict = defaultdict(list)
+            for short_range_model in single_group.short_range:
+                short_range_interactions[short_range_model.expiration_def].extend(
+                    short_range_model.presence.boundaries()
+                )
+
+            long_range_single_group = dataclass_utils.nested_replace(
+                single_group, {'short_range': ()}
+            )
+            groups[single_group.identifier].update({
+                "long_range_prob": long_range_single_group.infection_probability().mean(),
+                "long_range_expected_new_cases": long_range_single_group.expected_new_cases().mean(),
+                "short_range_interactions": [
+                    {"expiration": expiration, "presence_interval": intervals}
+                    for expiration, intervals in short_range_interactions.items()
+                ],
+            })
+
+    return groups
 
 
 @profiler.profile
 def calculate_report_data(form: VirusFormData, executor_factory: typing.Callable[[], concurrent.futures.Executor]) -> typing.Dict[str, typing.Any]:
     """
-    General output data of a test scenario.
+    Simulation output data.
     """
-    model: typing.Union[models.ExposureModel, models.ExposureModelGroup] = form.build_model()
-    times = interesting_times(model)
-    
-    if isinstance(model, models.ExposureModelGroup):
-        exposed_presence_intervals = []
-        probabilities_of_infection = []
-        for nth_model in model.exposure_models:
-            exposed_presence_intervals.extend(list(nth_model.exposed.presence_interval().boundaries()))
-            probabilities_of_infection.append(nth_model.infection_probability())
-            index_of_max_mean = max(
-                range(len(probabilities_of_infection)), 
-                key=lambda i: probabilities_of_infection[i].mean()
-            )
-            probability_of_infection = probabilities_of_infection[index_of_max_mean]
-    elif isinstance(model, models.ExposureModel):
-        exposed_presence_intervals = [list(interval) for interval in model.exposed.presence_interval().boundaries()]
-        probability_of_infection = model.infection_probability()
-    else:
-        raise TypeError(f"Model should be either an instance of ExposureModel or ExposureModelGroup. Got '{type(model)}.'")
-    
-    # Handle short-range related outputs
-    lower_concentrations, short_range_expirations, short_range_intervals = None, None, None
-     # Short-range related data:
-    if (form.short_range_option == "short_range_yes"):
-       lower_concentrations, short_range_expirations, short_range_intervals = process_short_range_interactions(model, times)
-    
-    # Probability of infection
-    prob = probability_of_infection
-    prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
+    model_group: models.ExposureModelGroup = form.build_model()
+    results_per_group: typing.Dict[str, typing.Any] = group_results(form, model_group)
 
-    # Expected new cases
-    expected_new_cases = np.array(model.expected_new_cases()).mean()
-
-    # Expected number of new cases per group
-    # expected_new_cases_per_group = [np.array(model.expected_new_cases()).mean() for model in models_set.exposure_models]
+    times = interesting_times(model_group)
     
     # CO2 concentration 
     CO2_model: models.CO2ConcentrationModel = form.build_CO2_model()
 
     # Compute deposited exposures and virus/CO2 concentrations in parallel to increase performance
-    deposited_exposures = []
-    long_range_deposited_exposures = []
+    deposited_exposures = defaultdict(list)
+    long_range_deposited_exposures = defaultdict(list)
+    concentrations = defaultdict(list)
+    concentrations_zoomed = defaultdict(list)
     CO2_concentrations = []
-    concentrations = []
 
     tasks = []
-    with executor_factory() as executor: # TODO: parallelism in the models
+    with executor_factory() as executor:
         for time1, time2 in zip(times[:-1], times[1:]):
-            tasks.append(executor.submit(
-                _calculate_deposited_exposure, model, time1, time2, fn_name="de"))
-            tasks.append(executor.submit(
-                _calculate_long_range_deposited_exposure, model, time1, time2, fn_name="de_lr"))
-            tasks.append(executor.submit(
-                _calculate_concentration, model, time1, fn_name="cn"))
-            # virus and co2 concentration: takes each time as param, not the interval
+            for single_group in model_group.exposure_models:
+                tasks.append(executor.submit(
+                    _calculate_deposited_exposure, single_group, time1, time2, fn_name=f"{single_group.identifier}:de"))
+                # virus and co2 concentration: takes each time as param, not the interval
+                tasks.append(executor.submit(
+                    _calculate_concentration, single_group, time1, fn_name=f"{single_group.identifier}:cn"))
+                if single_group.short_range != ():
+                    tasks.append(executor.submit(
+                        _calculate_long_range_deposited_exposure, single_group, time1, time2, fn_name=f"{single_group.identifier}:de_lr"))
+                    tasks.append(executor.submit(
+                        _concentrations_with_sr_breathing, form, single_group, time1, fn_name=f"{single_group.identifier}:cn_zoomed")) 
+            
             tasks.append(executor.submit(
                 _calculate_co2_concentration, CO2_model, time1, fn_name="co2"))
+        
         # virus and co2 concentration: calculate the last time too
-        tasks.append(executor.submit( _calculate_concentration, 
-                    model, times[-1], fn_name="cn"))
+        for single_model in model_group.exposure_models:
+            tasks.append(executor.submit(_calculate_concentration, 
+                        single_model, times[-1], fn_name=f"{single_model.identifier}:cn"))
+            if single_group.short_range != ():
+                tasks.append(executor.submit(_concentrations_with_sr_breathing, 
+                                             form, single_model, times[-1], fn_name=f"{single_model.identifier}:cn_zoomed"))
+                
         tasks.append(executor.submit(_calculate_co2_concentration,
                     CO2_model, times[-1], fn_name="co2"))
     
     for task in tasks:
         result, fn_name = task.result()
-        if fn_name == "de":
-            deposited_exposures.append(result)
-        elif fn_name == "de_lr":
-            long_range_deposited_exposures.append(result)
-        elif fn_name == "cn":
-            concentrations.append(result)
-        elif fn_name == "co2":
-            CO2_concentrations.append(result)
-
-    cumulative_doses = np.cumsum(deposited_exposures)
-    long_range_cumulative_doses = np.cumsum(long_range_deposited_exposures)
-
-    prob_probabilistic_exposure = None
-    if isinstance(model, models.ExposureModel) and form.exposure_option == "p_probabilistic_exposure":
-        prob_probabilistic_exposure = np.array(model.total_probability_rule()).mean()
-
-    conditional_probability_data = None
-    uncertainties_plot_src = None
-    if form.conditional_probability_viral_loads:
-        if isinstance(model, models.ExposureModelGroup):
-            all_the_same_virus = True
-            for nth_model in model.exposure_models:
-                if nth_model.data_registry.virological_data['virus_distributions'][form.virus_type]['viral_load_in_sputum'] != ViralLoads.COVID_OVERALL.value:  # type: ignore
-                    all_the_same_virus = False
-            if all_the_same_virus:
-                # Given the similarities, pick the first exposure model
-                the_model: models.ExposureModel = model.exposure_models[0]
-                # Generate all the required data for the conditional probability plot
-                conditional_probability_data = manufacture_conditional_probability_data(the_model, prob)
-                # Generate the matplotlib image based on the received data
-                uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(prob, conditional_probability_data)))
-        elif isinstance(model, models.ExposureModel):
-            if model.data_registry.virological_data['virus_distributions'][form.virus_type]['viral_load_in_sputum'] != ViralLoads.COVID_OVERALL.value:  # type: ignore
-                # Generate all the required data for the conditional probability plot
-                conditional_probability_data = manufacture_conditional_probability_data(model, prob)
-                # Generate the matplotlib image based on the received data
-                uncertainties_plot_src = img2base64(_figure2bytes(uncertainties_plot(prob, conditional_probability_data)))
+        if ":" in fn_name:
+            if fn_name.split(":")[1] == "de":
+                deposited_exposures[fn_name.split(':')[0]].append(result)
+            elif fn_name.split(":")[1] == "de_lr":
+                long_range_deposited_exposures[fn_name.split(':')[0]].append(result)
+            elif fn_name.split(":")[1] == "cn":
+                concentrations[fn_name.split(':')[0]].append(result)
+            elif fn_name.split(":")[1] == "cn_zoomed":
+                concentrations_zoomed[fn_name.split(':')[0]].append(result)
         else:
-            raise TypeError(f"Model should be either an instance of ExposureModel or ExposureModelGroup. Got '{type(model)}.'")
+            if fn_name == "co2":
+                CO2_concentrations.append(result)
 
+    # Update results per group
+    for single_group in model_group.exposure_models:
+        results_per_group[single_group.identifier]["concentrations"] = concentrations[single_group.identifier]
+        results_per_group[single_group.identifier]["cumulative_doses"] = list(np.cumsum(deposited_exposures[single_group.identifier]))
+        # Calculate long_range results when short-range interactions are defined
+        if single_group.short_range != ():
+            results_per_group[single_group.identifier]["concentrations_zoomed"] = concentrations_zoomed[single_group.identifier]
+            results_per_group[single_group.identifier]["long_range_cumulative_doses"] = list(np.cumsum(long_range_deposited_exposures[single_group.identifier]))
+    
     return {
-        "model": model.exposure_models[0] if isinstance(model, models.ExposureModelGroup) else model, # TODO: which model do we want to show info about?
+        # General results across all groups
+        "model": model_group.exposure_models[0],
         "times": list(times),
-        "exposed_presence_intervals": exposed_presence_intervals,
-        "short_range_intervals": short_range_intervals,
-        "short_range_expirations": short_range_expirations,
-        "concentrations": list(concentrations),
-        "concentrations_zoomed": lower_concentrations,
-        "cumulative_doses": list(cumulative_doses),
-        "long_range_cumulative_doses": list(long_range_cumulative_doses),
-        "prob_inf": prob.mean(),
-        "prob_inf_sd": prob.std(),
-        "prob_dist": list(prob),
-        "prob_hist_count": list(prob_dist_count),
-        "prob_hist_bins": list(prob_dist_bins),
-        "prob_probabilistic_exposure": prob_probabilistic_exposure,
-        "expected_new_cases": expected_new_cases,
-        "uncertainties_plot_src": uncertainties_plot_src,
         "CO2_concentrations": CO2_concentrations,
-        "conditional_probability_data": conditional_probability_data,
+        # Group specific results
+        "groups": results_per_group,
     }
 
 
@@ -435,9 +450,7 @@ def calculate_vl_scenarios_percentiles(model: mc.ExposureModel) -> typing.Dict[s
     scenarios = {}
     for percentil in (0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99):
         vl = np.quantile(viral_load, percentil)
-        specific_vl_scenario = dataclass_utils.nested_replace(model,
-                                                              {'concentration_model.infected.virus.viral_load_in_sputum': vl}
-                                                              )
+        specific_vl_scenario = dataclass_utils.nested_replace(model, {'concentration_model.infected.virus.viral_load_in_sputum': vl})
         scenarios[str(vl)] = np.mean(
             specific_vl_scenario.infection_probability())
     return {
@@ -517,55 +530,43 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, t
 
 
 def scenario_statistics(
-    mc_model: typing.Union[mc.ExposureModel, mc.ExposureModelGroup],
+    mc_model_group: mc.ExposureModelGroup,
     sample_times: typing.List[float],
     compute_prob_exposure: bool,
 ):
-    model: typing.Union[models.ExposureModelGroup, models.ExposureModel] = mc_model.build_model(
-        size=mc_model.data_registry.monte_carlo['sample_size'])
+    model_group: models.ExposureModelGroup = mc_model_group.build_model(
+        size=mc_model_group.data_registry.monte_carlo['sample_size'])
+    model = model_group.exposure_models[0]
     
-    if isinstance(model, models.ExposureModelGroup):
-        concentrations = [
-            np.sum([np.array(nth_model.concentration(float(time))).mean() for nth_model in model.exposure_models])
-            for time in sample_times
-        ]
-        prob = np.max([np.mean(nth_model.infection_probability()) for nth_model in model.exposure_models])
-    elif isinstance(model, models.ExposureModel):
-        concentrations = [
+    return {
+        'probability_of_infection': np.mean(model.infection_probability()),
+        'expected_new_cases': np.mean(model.expected_new_cases()),
+        'concentrations': [
             np.mean(model.concentration(time))
             for time in sample_times
-        ]
-        prob = np.mean(model.infection_probability())
-    else:
-        raise TypeError(f"Model should be either an instance of ExposureModel or ExposureModelGroup. Got '{type(model)}.'")
-
-    return {
-        'probability_of_infection': prob,
-        'expected_new_cases': np.mean(model.expected_new_cases()),
-        'concentrations': concentrations,
-        'prob_probabilistic_exposure': model.total_probability_rule() if isinstance(model, models.ExposureModel) and compute_prob_exposure else None
+        ],
+        'prob_probabilistic_exposure': model.total_probability_rule() if compute_prob_exposure else None,
     }
 
 
 def comparison_report(
         form: VirusFormData,
         report_data: typing.Dict[str, typing.Any],
-        scenarios: typing.Dict[str, typing.Union[mc.ExposureModel, mc.ExposureModelGroup]],
+        scenarios: typing.Dict[str, mc.ExposureModelGroup],
         executor_factory: typing.Callable[[], concurrent.futures.Executor],
-):
+):  
     if (form.short_range_option == "short_range_no"):
         statistics = {
             'Current scenario': {
-                'probability_of_infection': report_data['prob_inf'],
-                'expected_new_cases': report_data['expected_new_cases'],
-                'concentrations': report_data['concentrations'],
+                'probability_of_infection': report_data['groups']['static']['prob_inf'],
+                'expected_new_cases': report_data['groups']['static']['expected_new_cases'],
+                'concentrations': report_data['groups']['static']['concentrations'],
             }
         }
     else:
         statistics = {}
 
-    static_occupancy = form.occupancy_format == "static"
-    compute_prob_exposure = form.short_range_option == "short_range_yes" and form.exposure_option == "p_probabilistic_exposure" and static_occupancy
+    compute_prob_exposure = form.short_range_option == "short_range_yes" and form.exposure_option == "p_probabilistic_exposure" and form.occupancy_format == "static"
         
     with executor_factory() as executor:
         results = executor.map(
@@ -576,7 +577,7 @@ def comparison_report(
             timeout=60,
         )
 
-    for (name, model), model_stats in zip(scenarios.items(), results):
+    for (name, _), model_stats in zip(scenarios.items(), results):
         statistics[name] = model_stats
 
     return {

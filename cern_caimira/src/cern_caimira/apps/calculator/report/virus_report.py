@@ -123,8 +123,8 @@ class VirusReportGenerator:
         data_registry_version: typing.Optional[str] = f"v{model.data_registry.version}" if model.data_registry.version else None
 
         # Alternative scenarios data
-        alternative_scenarios: typing.Dict[str,typing.Any] = alternative_scenarios_data(form, report_data, executor_factory)
-        context.update(alternative_scenarios)
+        if form.occupancy_format == 'static':
+            context.update(alternative_scenarios_data(form, report_data, executor_factory)) 
 
         # Alternative viral load data
         if form.conditional_probability_viral_loads:
