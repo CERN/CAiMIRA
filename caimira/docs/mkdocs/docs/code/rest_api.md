@@ -18,7 +18,7 @@ The `app-config` directory at the root of the project is specific to the CERN en
 
 * `src/caimira/api`: Contains the REST API implementation, defining the endpoints, request handling, and input/output formats.
     * `/app.py` : Entry point for the CAiMIRA backend, powered by the [Tornado](https://www.tornadoweb.org/en/stable/) framework. It sets up the server, defines the routes for handling reports, and starts the Tornado I/O loop.
-    * `/controller`: Contains the core logic for handling incoming API requests. It interprets user input, interact with models, and send responses back to the client. 
+    * `/controller`: Contains the core logic for handling incoming API requests. It interprets user input, interact with models, and send responses back to the client.
     * `/routes`: Defines the API endpoints and associate them with the corresponding controller functions.
 * `src/caimira/calculator`: contains the core models used in CAiMIRA for processing inputs and generating outputs.
     * `/models`: Contains the classes reponsible to define the whole object oriented hierarchical model.
@@ -51,17 +51,28 @@ To run the API, follow these steps from the root directory of the project:
 
             cd caimira
             pip install -e .
-    
+
     - From [PyPI](https://pypi.org/project/caimira/):
 
             pip install caimira
-    
+
 2. Run the backend:
 
         python -m caimira.api.app
 
     The web server will be accessible at [http://localhost:8081/](http://localhost:8081/).
-    
+
+!!! warning "CORS Configuration"
+    When running a client web application on a different domain than the REST API server,
+    do not forget to set the environment variable `CAIMIRA_ALLOWED_ORIGINS`:
+
+    `export CAIMIRA_ALLOWED_ORIGINS="https://myclientapp.org"`
+
+    If you need to allow multiple domains, input a comma-separated list of domains:
+
+    `export CAIMIRA_ALLOWED_ORIGINS="https://myclientapp.org,https://myclientapp2.org"`
+
+
 ### API Endpoints
 
 Currently, the REST API contains two routing categories that provide the generation of results for the main CAiMIRA outputs:
@@ -75,7 +86,7 @@ Currently, the REST API contains two routing categories that provide the generat
 #### Virus Results
 
 ??? Abstract "POST **/virus/report** (virus report data generation):"
-    
+
     * **Description**: Core endpoint that allows users to submit data for the virus report generation. Data is processed by the CAiMIRA engine, and the results are returned in the response.
     * **Input**: The body of the request must include the necessary input data in JSON format. Examples of the required input can be found [here](https://gitlab.cern.ch/caimira/caimira/-/blob/master/caimira/src/caimira/calculator/validators/defaults.py?ref_type=heads).
     * **Response**: On success (status code `200`), the response will contain the following structure:
@@ -87,10 +98,10 @@ Currently, the REST API contains two routing categories that provide the generat
                 ...
                 }
             }
-            
+
     * **Error Handling**: In case of errors, the API will return appropriate error messages and HTTP status codes, such as `400` for bad requests, `404` for not found, or `500` for internal server errors.
 
-    ??? note "Example body"        
+    ??? note "Example body"
             {
                 "activity_type": "office",
                 "calculator_version": "N/A",
@@ -128,7 +139,7 @@ Currently, the REST API contains two routing categories that provide the generat
     For the full list of accepted inputs and respective values please refer to CAiMIRA's official defaults in GitLab repository [here](https://gitlab.cern.ch/caimira/caimira/-/blob/master/caimira/src/caimira/calculator/validators/co2/co2_validator.py?ref_type=heads#L29).
 
     ??? note "Example cURL (with the above body)"
-        
+
             curl -X POST "http://localhost:8081/virus/report" \
             -H "Content-Type: application/json" \
             -d '{
@@ -170,12 +181,12 @@ Currently, the REST API contains two routing categories that provide the generat
 #### CO₂ Results
 
 ??? Abstract "POST **/co2/transition_times** (suggested transition times)"
-    
+
     * **Description**: Endpoint that allows users to retrieve the suggested times based on the CO₂ input data (occupancy and ventilation transition times). Data is processed by the CAiMIRA engine, and the results are returned in the response.
 
     ??? note "Example body"
 
-            {    
+            {
                 "CO2_data": "{\"times\":[8.000,8.033,8.067,8.100,8.133,8.167,8.200,8.233,8.267,8.300,8.333,8.367,8.400,8.433,8.467,8.500,8.533,8.567,8.600,8.633,8.667,8.700,8.733,8.767,8.800,8.833,8.867,8.900,8.933,8.967,9.000,9.033,9.067,9.100,9.133,9.167,9.200,9.233,9.267,9.300,9.333,9.367,9.400,9.433,9.467,9.500,9.533,9.567,9.600,9.633,9.667,9.700,9.733,9.767,9.800,9.833,9.867,9.900,9.933,9.967,10.000,10.033,10.067,10.100,10.133,10.167,10.200,10.233,10.267,10.300,10.333,10.367,10.400,10.433,10.467,10.500,10.533,10.567,10.600,10.633,10.667,10.700,10.733,10.767,10.800,10.833,10.867,10.900,10.933,10.967,11.000,11.033,11.067,11.100,11.133,11.167,11.200,11.233,11.267,11.300,11.333,11.367,11.400,11.433,11.467,11.500,11.533,11.567,11.600,11.633,11.667,11.700,11.733,11.767,11.800,11.833,11.867,11.900,11.933,11.967,12.000,12.033,12.067,12.100,12.133,12.167,12.200,12.233,12.267,12.300,12.333,12.367,12.400,12.433,12.467,12.500,12.533,12.567,12.600,12.633,12.667,12.700,12.733,12.767,12.800,12.833,12.867,12.900,12.933,12.967,13.001],\"CO2\":[445.189,443.284,440.908,443.431,442.366,444.094,445.152,445.656,447.968,447.998,443.950,442.547,439.313,438.225,441.433,441.190,443.804,445.173,446.494,445.278,452.073,458.844,470.828,478.147,488.338,502.126,522.057,545.519,579.881,616.245,641.154,676.288,701.938,720.464,746.933,765.830,779.098,794.173,810.624,825.967,838.340,854.355,876.382,886.208,898.408,921.718,942.848,953.812,978.956,990.321,1002.931,1017.361,1029.379,1041.028,1051.883,1067.220,1073.530,1079.738,1093.733,1104.814,1125.798,1141.115,1151.046,1160.053,1176.367,1193.665,1180.104,1015.334,864.746,802.681,774.455,728.268,697.326,676.063,657.555,640.564,606.534,595.925,577.753,553.605,530.213,524.968,523.153,521.534,512.944,505.297,502.056,502.463,505.248,507.477,509.171,511.313,513.780,520.393,529.137,532.798,530.111,523.964,521.574,519.052,510.294,509.982,514.349,518.396,524.603,521.003,519.448,523.313,527.460,528.326,526.355,527.008,529.968,534.019,535.616,533.514,530.552,522.348,524.243,532.021,539.127,538.836,526.186,517.509,507.993,493.703,485.632,479.527,471.584,472.226,468.206,463.099,461.038,458.980,456.354,458.615,459.162,462.963,465.558,468.448,475.207,480.323,488.962,527.992,579.613,606.594,611.218,617.023,635.927,651.079,676.647]}",
                 "total_people":"2",
                 "exposed_start":"08:30",
@@ -190,10 +201,10 @@ Currently, the REST API contains two routing categories that provide the generat
     For the full list of accepted inputs and respective values please refer to CAiMIRA's official defaults in GitLab repository [here](https://gitlab.cern.ch/caimira/caimira/-/blob/master/caimira/src/caimira/calculator/validators/defaults.py?ref_type=heads).
 
     ??? "**Example cURL** (with the above body)"
-        
+
             curl -X POST "http://localhost:8081/co2/transition_times" \
             -H "Content-Type: application/json" \
-            -d '{    
+            -d '{
                 "CO2_data": "{\"times\":[8.000,8.033,8.067,8.100,8.133,8.167,8.200,8.233,8.267,8.300,8.333,8.367,8.400,8.433,8.467,8.500,8.533,8.567,8.600,8.633,8.667,8.700,8.733,8.767,8.800,8.833,8.867,8.900,8.933,8.967,9.000,9.033,9.067,9.100,9.133,9.167,9.200,9.233,9.267,9.300,9.333,9.367,9.400,9.433,9.467,9.500,9.533,9.567,9.600,9.633,9.667,9.700,9.733,9.767,9.800,9.833,9.867,9.900,9.933,9.967,10.000,10.033,10.067,10.100,10.133,10.167,10.200,10.233,10.267,10.300,10.333,10.367,10.400,10.433,10.467,10.500,10.533,10.567,10.600,10.633,10.667,10.700,10.733,10.767,10.800,10.833,10.867,10.900,10.933,10.967,11.000,11.033,11.067,11.100,11.133,11.167,11.200,11.233,11.267,11.300,11.333,11.367,11.400,11.433,11.467,11.500,11.533,11.567,11.600,11.633,11.667,11.700,11.733,11.767,11.800,11.833,11.867,11.900,11.933,11.967,12.000,12.033,12.067,12.100,12.133,12.167,12.200,12.233,12.267,12.300,12.333,12.367,12.400,12.433,12.467,12.500,12.533,12.567,12.600,12.633,12.667,12.700,12.733,12.767,12.800,12.833,12.867,12.900,12.933,12.967,13.001],\"CO2\":[445.189,443.284,440.908,443.431,442.366,444.094,445.152,445.656,447.968,447.998,443.950,442.547,439.313,438.225,441.433,441.190,443.804,445.173,446.494,445.278,452.073,458.844,470.828,478.147,488.338,502.126,522.057,545.519,579.881,616.245,641.154,676.288,701.938,720.464,746.933,765.830,779.098,794.173,810.624,825.967,838.340,854.355,876.382,886.208,898.408,921.718,942.848,953.812,978.956,990.321,1002.931,1017.361,1029.379,1041.028,1051.883,1067.220,1073.530,1079.738,1093.733,1104.814,1125.798,1141.115,1151.046,1160.053,1176.367,1193.665,1180.104,1015.334,864.746,802.681,774.455,728.268,697.326,676.063,657.555,640.564,606.534,595.925,577.753,553.605,530.213,524.968,523.153,521.534,512.944,505.297,502.056,502.463,505.248,507.477,509.171,511.313,513.780,520.393,529.137,532.798,530.111,523.964,521.574,519.052,510.294,509.982,514.349,518.396,524.603,521.003,519.448,523.313,527.460,528.326,526.355,527.008,529.968,534.019,535.616,533.514,530.552,522.348,524.243,532.021,539.127,538.836,526.186,517.509,507.993,493.703,485.632,479.527,471.584,472.226,468.206,463.099,461.038,458.980,456.354,458.615,459.162,462.963,465.558,468.448,475.207,480.323,488.962,527.992,579.613,606.594,611.218,617.023,635.927,651.079,676.647]}",
                 "total_people":"2",
                 "exposed_start":"08:30",
@@ -231,13 +242,13 @@ Currently, the REST API contains two routing categories that provide the generat
             }
 
 ??? Abstract "POST **/co2/report** (CO₂ report data generation)"
-    
+
     * **Description**: Core endpoint that allows users to submit data for the CO₂ report generation. Data is processed by the CAiMIRA engine, and the results are returned in the response.
     * The input, response and error handling topics are similar to the previously described `virus/report` section.
 
     ??? note "Example body"
 
-            {    
+            {
                 "CO2_data": "{\"times\":[8.000,8.033,8.067,8.100,8.133,8.167,8.200,8.233,8.267,8.300,8.333,8.367,8.400,8.433,8.467,8.500,8.533,8.567,8.600,8.633,8.667,8.700,8.733,8.767,8.800,8.833,8.867,8.900,8.933,8.967,9.000,9.033,9.067,9.100,9.133,9.167,9.200,9.233,9.267,9.300,9.333,9.367,9.400,9.433,9.467,9.500,9.533,9.567,9.600,9.633,9.667,9.700,9.733,9.767,9.800,9.833,9.867,9.900,9.933,9.967,10.000,10.033,10.067,10.100,10.133,10.167,10.200,10.233,10.267,10.300,10.333,10.367,10.400,10.433,10.467,10.500,10.533,10.567,10.600,10.633,10.667,10.700,10.733,10.767,10.800,10.833,10.867,10.900,10.933,10.967,11.000,11.033,11.067,11.100,11.133,11.167,11.200,11.233,11.267,11.300,11.333,11.367,11.400,11.433,11.467,11.500,11.533,11.567,11.600,11.633,11.667,11.700,11.733,11.767,11.800,11.833,11.867,11.900,11.933,11.967,12.000,12.033,12.067,12.100,12.133,12.167,12.200,12.233,12.267,12.300,12.333,12.367,12.400,12.433,12.467,12.500,12.533,12.567,12.600,12.633,12.667,12.700,12.733,12.767,12.800,12.833,12.867,12.900,12.933,12.967,13.001],\"CO2\":[445.189,443.284,440.908,443.431,442.366,444.094,445.152,445.656,447.968,447.998,443.950,442.547,439.313,438.225,441.433,441.190,443.804,445.173,446.494,445.278,452.073,458.844,470.828,478.147,488.338,502.126,522.057,545.519,579.881,616.245,641.154,676.288,701.938,720.464,746.933,765.830,779.098,794.173,810.624,825.967,838.340,854.355,876.382,886.208,898.408,921.718,942.848,953.812,978.956,990.321,1002.931,1017.361,1029.379,1041.028,1051.883,1067.220,1073.530,1079.738,1093.733,1104.814,1125.798,1141.115,1151.046,1160.053,1176.367,1193.665,1180.104,1015.334,864.746,802.681,774.455,728.268,697.326,676.063,657.555,640.564,606.534,595.925,577.753,553.605,530.213,524.968,523.153,521.534,512.944,505.297,502.056,502.463,505.248,507.477,509.171,511.313,513.780,520.393,529.137,532.798,530.111,523.964,521.574,519.052,510.294,509.982,514.349,518.396,524.603,521.003,519.448,523.313,527.460,528.326,526.355,527.008,529.968,534.019,535.616,533.514,530.552,522.348,524.243,532.021,539.127,538.836,526.186,517.509,507.993,493.703,485.632,479.527,471.584,472.226,468.206,463.099,461.038,458.980,456.354,458.615,459.162,462.963,465.558,468.448,475.207,480.323,488.962,527.992,579.613,606.594,611.218,617.023,635.927,651.079,676.647]}",
                 "total_people":"2",
                 "exposed_start":"08:30",
@@ -256,10 +267,10 @@ Currently, the REST API contains two routing categories that provide the generat
     For the full list of accepted inputs and respective values please refer to CAiMIRA's official defaults in GitLab repository [here](https://gitlab.cern.ch/caimira/caimira/-/blob/master/caimira/src/caimira/calculator/validators/defaults.py?ref_type=heads).
 
     ??? "**Example cURL** (with the above body)"
-        
+
             curl -X POST "http://localhost:8081/co2/report" \
             -H "Content-Type: application/json" \
-            -d '{    
+            -d '{
                 "CO2_data": "{\"times\":[8.000,8.033,8.067,8.100,8.133,8.167,8.200,8.233,8.267,8.300,8.333,8.367,8.400,8.433,8.467,8.500,8.533,8.567,8.600,8.633,8.667,8.700,8.733,8.767,8.800,8.833,8.867,8.900,8.933,8.967,9.000,9.033,9.067,9.100,9.133,9.167,9.200,9.233,9.267,9.300,9.333,9.367,9.400,9.433,9.467,9.500,9.533,9.567,9.600,9.633,9.667,9.700,9.733,9.767,9.800,9.833,9.867,9.900,9.933,9.967,10.000,10.033,10.067,10.100,10.133,10.167,10.200,10.233,10.267,10.300,10.333,10.367,10.400,10.433,10.467,10.500,10.533,10.567,10.600,10.633,10.667,10.700,10.733,10.767,10.800,10.833,10.867,10.900,10.933,10.967,11.000,11.033,11.067,11.100,11.133,11.167,11.200,11.233,11.267,11.300,11.333,11.367,11.400,11.433,11.467,11.500,11.533,11.567,11.600,11.633,11.667,11.700,11.733,11.767,11.800,11.833,11.867,11.900,11.933,11.967,12.000,12.033,12.067,12.100,12.133,12.167,12.200,12.233,12.267,12.300,12.333,12.367,12.400,12.433,12.467,12.500,12.533,12.567,12.600,12.633,12.667,12.700,12.733,12.767,12.800,12.833,12.867,12.900,12.933,12.967,13.001],\"CO2\":[445.189,443.284,440.908,443.431,442.366,444.094,445.152,445.656,447.968,447.998,443.950,442.547,439.313,438.225,441.433,441.190,443.804,445.173,446.494,445.278,452.073,458.844,470.828,478.147,488.338,502.126,522.057,545.519,579.881,616.245,641.154,676.288,701.938,720.464,746.933,765.830,779.098,794.173,810.624,825.967,838.340,854.355,876.382,886.208,898.408,921.718,942.848,953.812,978.956,990.321,1002.931,1017.361,1029.379,1041.028,1051.883,1067.220,1073.530,1079.738,1093.733,1104.814,1125.798,1141.115,1151.046,1160.053,1176.367,1193.665,1180.104,1015.334,864.746,802.681,774.455,728.268,697.326,676.063,657.555,640.564,606.534,595.925,577.753,553.605,530.213,524.968,523.153,521.534,512.944,505.297,502.056,502.463,505.248,507.477,509.171,511.313,513.780,520.393,529.137,532.798,530.111,523.964,521.574,519.052,510.294,509.982,514.349,518.396,524.603,521.003,519.448,523.313,527.460,528.326,526.355,527.008,529.968,534.019,535.616,533.514,530.552,522.348,524.243,532.021,539.127,538.836,526.186,517.509,507.993,493.703,485.632,479.527,471.584,472.226,468.206,463.099,461.038,458.980,456.354,458.615,459.162,462.963,465.558,468.448,475.207,480.323,488.962,527.992,579.613,606.594,611.218,617.023,635.927,651.079,676.647]}",
                 "total_people":"2",
                 "exposed_start":"08:30",
@@ -308,8 +319,8 @@ Currently, the REST API contains two routing categories that provide the generat
 ### Development
 
 For testing new releases, use the PyPI Test instance by running the following command (directory independent):
-    
+
     pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple caimira
-    
+
 !!! info
     `--extra-index-url` is necessary to resolve dependencies from PyPI.
