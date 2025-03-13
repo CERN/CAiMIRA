@@ -169,9 +169,9 @@ Currently, the REST API contains two routing categories that provide the generat
 
 #### CO₂ Results
 
-??? Abstract "POST **/co2/transition_times** (suggested ventilation transition times)"
+??? Abstract "POST **/co2/transition_times** (suggested transition times)"
     
-    * **Description**: Endpoint that allows users to retrieve the suggested ventilation times based on the CO₂ input data. Data is processed by the CAiMIRA engine, and the results are returned in the response.
+    * **Description**: Endpoint that allows users to retrieve the suggested times based on the CO₂ input data (occupancy and ventilation transition times). Data is processed by the CAiMIRA engine, and the results are returned in the response.
 
     ??? note "Example body"
 
@@ -185,19 +185,6 @@ Currently, the REST API contains two routing categories that provide the generat
                 "infected_people":"1",
                 "room_volume":"60",
                 "room_capacity": 10
-            }
-
-        In case of success (`200`), the response will contain the following structure:
-
-            {
-                "status": "success",
-                "message": "Results generated successfully",
-                "results": [
-                    8.5,
-                    10.167,
-                    12.467,
-                    13.0
-                ]
             }
 
     For the full list of accepted inputs and respective values please refer to CAiMIRA's official defaults in GitLab repository [here](https://gitlab.cern.ch/caimira/caimira/-/blob/master/caimira/src/caimira/calculator/validators/defaults.py?ref_type=heads).
@@ -217,6 +204,31 @@ Currently, the REST API contains two routing categories that provide the generat
                 "room_volume":"60",
                 "room_capacity": 10,
             }'
+
+    ??? "**Example response**"
+
+        In case of success (`200`), the response will contain the following structure:
+
+            {
+                "status": "success",
+                "message": "Results generated successfully",
+                "results": {
+                    "occupancy_times": [
+                        8.5,
+                        13.0
+                    ],
+                    "ventilation_times": [
+                        10.167,
+                        12.467
+                    ],
+                    "total_times": [
+                        8.5,
+                        10.167,
+                        12.467,
+                        13.0
+                    ]
+                }
+            }
 
 ??? Abstract "POST **/co2/report** (CO₂ report data generation)"
     
@@ -259,6 +271,39 @@ Currently, the REST API contains two routing categories that provide the generat
                 "room_capacity": 10,
                 "fitting_ventilation_states":"[8.5,10.167,12.467,13.0]"
             }'
+
+    ??? "**Example response**"
+
+        In case of success (`200`), the response will contain the following structure:
+
+            {
+                "status": "success",
+                "message": "Results generated successfully",
+                "results": {
+                    "exhalation_rate": 0.3317476241040026,
+                    "ventilation_values": [
+                        6.520768146832283e-05,
+                        6.350639949708053,
+                        ...
+                    ],
+                    "room_capacity": 10,
+                    "ventilation_ls_values": [
+                        0.0010867946911387138,
+                        105.84399916180087,
+                        ...
+                    ],
+                    "ventilation_lsp_values": [
+                        0.00010867946911387139,
+                        10.584399916180086,
+                        ...
+                    ],
+                    "predictive_CO2": [
+                        440.44,
+                        440.44,
+                        ...
+                    ]
+                }
+            }
 
 ### Development
 

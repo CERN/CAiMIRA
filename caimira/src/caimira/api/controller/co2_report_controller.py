@@ -17,25 +17,31 @@ def generate_report(model: CO2DataModel) -> typing.Dict:
     return dict(model.CO2_fit_params())
 
 
-def generate_transition_times(CO2model: CO2DataModel, vent_transition_times: list) -> list:
-    # The entire ventilation changes consider the initial and final occupancy state change
-    occupancy_transition_times = list(CO2model.occupancy.transition_times)
-    all_vent_transition_times: list = sorted(
-        [occupancy_transition_times[0]] +
-        [occupancy_transition_times[-1]] +
-        vent_transition_times)
-    return all_vent_transition_times
+def request_CO2_transition_times(form_data: dict) -> dict:
+    """
+    Calculate and return the transition times related to CO2 levels including
+    the ventilation transition times (identified from the change point algorithm)
+    and relevant occupancy transition times (first and last occurrences).
+    """
+    data_registry = DataRegistry()
 
-
-def request_CO2_transition_times(form_data: typing.Dict) -> list:
-    data_registry: DataRegistry = DataRegistry()
-
-    form_obj: CO2FormData = generate_form_obj(form_data=form_data, data_registry=data_registry)
-    CO2model: CO2DataModel = generate_model(form_obj=form_obj)
-    vent_transition_times: list = form_obj.find_change_points()
-    all_vent_transition_times: list = generate_transition_times(CO2model, vent_transition_times)
+    form_obj = generate_form_obj(form_data=form_data, data_registry=data_registry)
+    CO2model = generate_model(form_obj=form_obj)
     
-    return all_vent_transition_times
+    # Occupancy transition times
+    occupancy_transition_times = list(CO2model.occupancy.transition_times)
+    relevant_occupancy_times = [occupancy_transition_times[0]] + [occupancy_transition_times[-1]]
+    # Ventilation transition times
+    vent_transition_times = form_obj.find_change_points()
+    ventilation_times = sorted(vent_transition_times)
+    # Total transition times
+    total_times = sorted(relevant_occupancy_times + ventilation_times)
+    
+    return {
+        "occupancy_times": occupancy_transition_times,
+        "ventilation_times": ventilation_times,
+        "total_times": total_times
+    }
 
 
 def request_CO2_report(form_data: typing.Dict) -> typing.Dict:
