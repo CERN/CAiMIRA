@@ -1,3 +1,12 @@
+# 4.17.8 (March 13, 2025)
+
+## Bug Fixes
+- Implemented missing preflight CORS request handling.
+
+## Other
+- Changed CO₂ transition times API response to split occupancy
+  and ventilation times. Adapted documentation.
+
 # 4.17.7 (December 4, 2024)
 
 ## Features Added
