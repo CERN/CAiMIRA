@@ -213,7 +213,7 @@ def test_exposure_model_group_structure(data_registry, full_exposure_model: mode
     """
     another_full_exposure_model = dc_utils.nested_replace(full_exposure_model,
         {'concentration_model.infected.number': 2, })
-    with pytest.raises(ValueError, match=re.escape("All ExposureModels must have the same ConcentrationModel.")):
+    with pytest.raises(ValueError, match=re.escape("All ExposureModels must have the same infected number and presence in the ConcentrationModel.")):
         models.ExposureModelGroup(data_registry, exposure_models=(full_exposure_model, another_full_exposure_model, ))
 
 

@@ -36,14 +36,10 @@ class FormData:
     infected_lunch_start: minutes_since_midnight    #Used if infected_dont_have_breaks_with_exposed
     infected_start: minutes_since_midnight
     infected_people: int
-    occupancy_format: str
+    occupancy: dict
     room_volume: float
     specific_breaks: dict
     total_people: int
-
-    # Dynamic occupancy inputs
-    dynamic_exposed_occupancy: dict
-    dynamic_infected_occupancy: list
 
     data_registry: DataRegistry
 
@@ -96,147 +92,169 @@ class FormData:
                 if default is not NO_DEFAULT and value in [default, 'not-applicable']:
                     form_dict.pop(attr)
         return form_dict
-    
-    def validate_dynamic_input(self, dynamic_input_value, input_name, dynamic_input_key = None):
-        # Check if the input is a valid non-empty list
-        specific_group_msg = f' in "{dynamic_input_key}" ("presence")' if dynamic_input_key else ''
 
-        if not isinstance(dynamic_input_value, list) :
-            raise TypeError(f'The input "{input_name}"{specific_group_msg} should be a valid, non-empty list. Got "{type(dynamic_input_value)}".')
-        # Check if input is populated
-        if len(dynamic_input_value) == 0:
-            raise ValueError(f'The input "{input_name}" should be a valid, non-empty list. Got "{dynamic_input_value}".')
+    def validate_group_presence_input(self, group_id: str, group_presence: typing.Dict):
+        """
+        When occupancy is defined, this method validates the
+        presence times within an occupancy group.
+        """
+        # Checks if the presence input is a valid list
+        if not isinstance(group_presence, list):
+            raise TypeError(f'The presence parameter in occupancy group "{group_id}" should be a valid list. Got {type(group_presence)}.')
+        # Checks if the presence input is populated
+        if len(group_presence) == 0:
+            raise TypeError(f'The presence parameter in occupancy group "{group_id}" should be a valid, non-empty list. Got {group_presence}.')
         
-        # To store already processed interactions for overlap checking
-        existing_dynamic_infected_interval = []
-        existing_dynamic_exposed_interval = []
-        short_range_existing_interaction = []
+        # Already processed presence intervals for overlap checking
+        existing_occupancy_presence_interval = []
         
-        for entry in dynamic_input_value:
-            # Check if each entry is a dictionary
-            if not isinstance(entry, typing.Dict):
-                raise TypeError(f'Each entry in "{input_name}" should be a dictionary. Got "{type(entry)}".')
+        for presence_interval in group_presence:
+            # Checks if each presence entry is a valid dict
+            if not isinstance(presence_interval, typing.Dict):
+                raise TypeError(f'Each presence interval should be a valid dictionary. Got {type(presence_interval)} in occupancy group "{group_id}".')
 
-            # Check for required keys in each entry
-            dict_keys = entry.keys()
+            # Parameters in each presence entry
+            presence_params = presence_interval.keys()
 
-            # Check for the "start_time" and "finish_time" keys for "dynamic_exposed_occupancy" and "dynamic_infected_occupancy"
-            if input_name in ["dynamic_exposed_occupancy", "dynamic_infected_occupancy"]:
-                # Check for time format in "start_time" and "finish_time"
-                for time_key in ["start_time", "finish_time"]:
-                    if time_key not in dict_keys:
-                        raise TypeError(f'Missing "{time_key}" key in "{input_name}"{specific_group_msg}. Got keys: "{list(dict_keys)}".')
-                    time_value = entry[time_key]
-                    if not re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$").match(time_value):
-                        raise ValueError(f'Invalid time format for "{time_key}" in "{input_name}"{specific_group_msg}. Expected "HH:MM". Got "{time_value}".')
-                if entry["finish_time"] <= entry["start_time"]:
-                    raise ValueError(f'Occupancy presence in "{input_name}"{specific_group_msg} entry has a finish time after the start time. Got start time: "{entry["start_time"]}" and finish time: "{entry["finish_time"]}".')
-                                        
-            # Check for the "dynamic_infected_occupancy" uniqueness of intervals, 
-            # as well as the "total_people" keyword and its constraints
-            if input_name == "dynamic_infected_occupancy":
-                self.check_overlap(entry, existing_dynamic_infected_interval)
-                existing_dynamic_infected_interval.append(entry)
-                if "total_people" not in dict_keys:
-                    raise TypeError(f'Missing "total_people" key in "dynamic_infected_occupancy". Got keys: "{list(dict_keys)}".')
-                else:
-                    value = entry["total_people"]
-                    if not isinstance(value, int) or value < 0:
-                        raise ValueError(f'The "total_people" in "{input_name}" should be a non-negative integer. Got "{value}".')
+            # Checks for the "start_time" and "finish_time" params
+            for time_param in ["start_time", "finish_time"]:
+                if time_param not in presence_params:
+                    raise TypeError(f'Missing {time_param} key in presence parameter of occupancy group "{group_id}".' 
+                                    f' Got keys: {", ".join(presence_params)}.')
+                
+                time_value = presence_interval[time_param]
+                if not re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$").match(time_value):
+                    raise ValueError(f'Invalid time format found in presence parameter of occupancy group "{group_id}". '
+                                     f'Expected HH:MM, got {time_value}.')
             
-            # Check for the "dynamic_exposed_occupancy" uniqueness of intervals
-            if input_name == "dynamic_exposed_occupancy":
-                self.check_overlap(entry, existing_dynamic_exposed_interval)
-                existing_dynamic_exposed_interval.append(entry)
+            if presence_interval["finish_time"] <= presence_interval["start_time"]:
+                raise ValueError(f'Inconsistent times found in "presence" parameter of occupancy group "{group_id}".'
+                                 f'The "{presence_interval}" entry has a start time ("{presence_interval["start_time"]}") '
+                                 f'after the finish time ("{presence_interval["finish_time"]}").')
 
-            # Check for remaining short-range inputs
-            if input_name == "short_range_interactions":
-                # Check for time format in "start_time" and "finish_time"
-                if "start_time" not in dict_keys:
-                    raise TypeError(f'Missing "start_time" key in "short_range_interactions", "{dynamic_input_key}". Got keys: "{list(dict_keys)}".')
-                start_time = entry["start_time"]
+            # Checks for the occupancy group uniqueness of intervals
+            self.check_overlap(presence_interval, existing_occupancy_presence_interval)
+            existing_occupancy_presence_interval.append(presence_interval)
+
+    def validate_short_range_interaction_input(self, group_id: str, sr_interactions: typing.List):
+        """
+        Validates the short-range interactions within an occupancy group.
+        """
+        # Within a group, checks if the short-range input is a valid list
+        if not isinstance(sr_interactions, list):
+            raise TypeError(f'The short-range interactions in occupancy group "{group_id}" should be defined in a valid list. Got {type(sr_interactions)}.')
+        # Within a group, checks if the list is populated
+        if len(sr_interactions) == 0:
+            raise TypeError(f'The short-range interactions in occupancy group "{group_id}" should be a non-empty list. Got {type(sr_interactions)}.')
+        
+        # Already processed interactions for overlap checking
+        existing_sr_interaction_interval: typing.List = []
+
+        for interaction in sr_interactions:
+            # Checks if each interaction is a valid dict
+            if not isinstance(interaction, typing.Dict):
+                raise TypeError(f'Each short-range interaction should be a dictionary. Got {type(interaction)} in occupancy group "{group_id}".')
+            
+            # Parameters in each short-range interaction
+            interaction_params = interaction.keys()
+
+            # Checks for the expiration key and its constraints
+            if "expiration" not in interaction_params:
+                raise TypeError(f'Missing expiration key in short-range interaction for occupancy group "{group_id}". Got keys: {", ".join(interaction_params)}.')
+            else:
+                expiration = interaction["expiration"]
+                if expiration not in list(self.data_registry.expiration_particle['expiration_BLO_factors'].keys()): # type: ignore
+                    raise ValueError(f'Invalid expiration value in short-range interaction for occupancy group "{group_id}". Got "{expiration}".')
+
+            # Checks for start_time key and its format
+            if "start_time" not in interaction_params:
+                raise TypeError(f'Missing start_time key in short-range interaction for occupancy group "{group_id}". Got keys: {", ".join(interaction_params)}.')
+            else:
+                start_time = interaction["start_time"]
                 if not re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$").match(start_time):
-                    raise ValueError(f'Invalid time format for "start_time" in "short_range_interactions", "{dynamic_input_key}". Expected "HH:MM". Got "{start_time}".')
-                
-                # Check for the "expiration" key and its constraints
-                if "expiration" not in dict_keys:
-                    raise TypeError(f'Missing "expiration" key in "short_range_interactions", "{dynamic_input_key}". Got keys: "{list(dict_keys)}".')
-                else:
-                    value = entry["expiration"]
-                    if value not in list(self.data_registry.expiration_particle['expiration_BLO_factors'].keys()):
-                        raise ValueError(f'The "expiration" in "short_range_interactions", "{dynamic_input_key}", does not exist in the registry. Got "{value}".')
-                
-                if "duration" not in dict_keys:
-                    raise TypeError(f'Missing "duration" key in "short_range_interactions", "{dynamic_input_key}". Got keys: "{list(dict_keys)}".')
-                duration = entry["duration"]
+                    raise ValueError(f'Invalid time format for start_time in short-range interaction for occupancy group "{group_id}". Expected HH:MM, got {start_time}.')
+            
+            # Checks for "duration" and its format
+            if "duration" not in interaction_params:
+                raise TypeError(f'Missing duration key in short-range interaction for occupancy group "{group_id}". Got keys: {", ".join(interaction_params)}.')
+            else:
+                duration = interaction["duration"]
                 if duration < 0:
-                    raise ValueError(f'The "duration" in "short_range_interactions", "{dynamic_input_key}", should be a non-negative integer. Got "{duration}".')
+                    raise ValueError(f'The duration value in short-range interaction for occupancy group "{group_id}" should be a non-negative integer. Got {duration}.')
+
+            # Legacy usage - occupancy input is not defined (default empty dict)
+            if not self.occupancy:
+                # It means that we have a single exposure model
+                lr_start = min(self.infected_start, self.exposed_start)/60
+                lr_stop = max(self.infected_finish, self.exposed_finish)/60
                 
-                # Occupancy format dependent inputs
-                if self.occupancy_format == 'dynamic':
-                    # Find corresponding exposure group
-                    exposure_group_obj = next(
-                        (occupancy_group for occupancy_key, occupancy_group in self.dynamic_exposed_occupancy.items()
-                        if occupancy_key == dynamic_input_key),
-                        None
+                if not self.check_interaction_is_within_long_range(interaction, existing_sr_interaction_interval, lr_start, lr_stop):
+                    raise ValueError(
+                        f'Short-range interactions must occur during simulation time. Got {interaction} in occupancy group "{group_id}".'
+                    )
+                
+                # Add interaction to the list of already processed interactions
+                existing_sr_interaction_interval.append(interaction)
+            else:
+                # Find corresponding exposure group
+                occupancy_group_obj = next(
+                    (occupancy_value for occupancy_key, occupancy_value in self.occupancy.items()
+                    if occupancy_key == group_id),
+                    None
+                )
+
+                if occupancy_group_obj is None:
+                    raise ValueError(
+                        f'Occupancy group "{group_id}" referenced in short-range interactions was not found in the occupancy input.'
                     )
 
-                    if exposure_group_obj is None:
-                        raise ValueError(
-                            f'Exposure group "{dynamic_input_key}" in short-range interaction not found in dynamic exposed occupancy.'
-                        )
+                is_within_any_lr = False
+                for presence in occupancy_group_obj['presence']:
+                    # Check for correct timing within long-range exposure and overlaps with existing interactions
+                    lr_start = time_string_to_minutes(presence['start_time'])/60
+                    lr_stop = time_string_to_minutes(presence['finish_time'])/60
+                    
+                    # Flag to check if interaction falls within any long-range exposure interval
+                    if self.check_interaction_is_within_long_range(interaction, existing_sr_interaction_interval, lr_start, lr_stop):
+                        is_within_any_lr = True
+                    
+                    # Add interaction to the list of processed interactions if within long-range
+                    existing_sr_interaction_interval.append(interaction)
 
-                    is_within_any_long_range = False
-                    for exposure_interval in exposure_group_obj['presence']:
-                        # Check for correct timing within long-range exposure and overlaps with existing interactions
-                        long_range_start = time_string_to_minutes(exposure_interval['start_time'])/60
-                        long_range_stop = time_string_to_minutes(exposure_interval['finish_time'])/60
-                        
-                        # Flag to check if interaction falls within any long-range exposure interval
-                        if self.check_time_and_overlap(
-                            entry, short_range_existing_interaction, long_range_start, long_range_stop
-                        ): is_within_any_long_range = True
-                        
-                        # Add interaction to the list of processed interactions if within long-range
-                        short_range_existing_interaction.append(entry)
-                    
-                    # If no long-range interval contains the interaction, raise an error
-                    if not is_within_any_long_range:
-                        raise ValueError(
-                            f'Short-range interaction "{entry}" does not fall within any long-range exposure interval in "{dynamic_input_key}".'
-                        )
-                    
-                elif self.occupancy_format == 'static':
-                    # It means that we have a single exposure model
-                    long_range_start = min(self.infected_start, self.exposed_start)/60
-                    long_range_stop = max(self.infected_finish, self.exposed_finish)/60
-                    
-                    if not self.check_time_and_overlap(entry, short_range_existing_interaction, long_range_start, long_range_stop):
-                        raise ValueError(
-                            f'Short-range interactions should be defined during simulation time. Got "{entry}".'
-                        )
-                    
-                    # Add interaction to the list of processed interactions
-                    short_range_existing_interaction.append(entry)
-                else:
-                    raise TypeError(
-                        f'Undefined exposure type. Got "{self.occupancy_format}", accepted formats are "dynamic" or "exposed".')
+                # If the interaction does not fall within any presence interval of the occupancy group, raise an error
+                if not is_within_any_lr:
+                    raise ValueError(
+                        f'Short-range interaction {interaction} does not fall within any presence interval in occupancy group "{group_id}".'
+                    )
     
-    def validate_dynamic_exposed_format(self, dynamic_exposed_group: dict, key: str):
+    def validate_dynamic_exposed_format(self, group_id: str, group: typing.Dict):
         """
-        Validates the expected keywords for the dynamic
-        exposed input.
-        """
-        # Total people
-        if 'total_people' not in dynamic_exposed_group:
-            raise TypeError(f'Missing "total_people" key in "dynamic_exposed_occupancy" group "{key}". Got keys: "{list(dynamic_exposed_group.keys())}".')
+        Validates the expected keywords for the occupancy input.
+        """       
+        # Parameters in each presence entry
+        group_params = group.keys()
+
+        # Total people input
+        if 'total_people' not in group_params:
+            raise TypeError(f'Missing total_people key in occupancy group "{group_id}". Got keys: {", ".join(group_params)}.')
         else:
-            total_people = dynamic_exposed_group['total_people']
+            total_people = group['total_people']
             if not isinstance(total_people, int) or total_people < 0:
-                raise ValueError(f'The "total_people" in "dynamic_exposed_occupancy" group "{key}" should be a non-negative integer. Got "{total_people}".')
-        # Presence
-        if 'presence' not in dynamic_exposed_group:
-            raise TypeError(f'Missing "presence" key in "dynamic_exposed_occupancy" group "{key}". Got keys: "{list(dynamic_exposed_group.keys())}".')
+                raise ValueError(f'The total_people input in occupancy group "{group_id}" should be a non-negative integer. Got {total_people}.')
+        
+        # Infected people input
+        if 'infected' not in group_params:
+            raise TypeError(f'Missing infected key in occupancy group "{group_id}". Got keys: {", ".join(group_params)}.')
+        else:
+            infected = group['infected']
+            if not isinstance(infected, int) or infected < 0:
+                raise ValueError(f'The infected input in occupancy group "{group_id}" should be a non-negative integer. Got {infected}.')
+            elif infected > total_people: # Validate number of infected <= number of total people
+                raise ValueError(f'The number of infected people ({infected}) cannot be greater than the total people ({total_people}).')
+
+        # Presence input
+        if 'presence' not in group_params:
+            raise TypeError(f'Missing presence key in occupancy group "{group_id}". Got keys: {", ".join(group_params)}.')
         
     def get_start_and_finish_time(self, entry: dict):
         entry_start = time_string_to_minutes(entry["start_time"])/60
@@ -245,140 +263,128 @@ class FormData:
         else:
             entry_finish = entry_start + entry['duration']/60
         return entry_start, entry_finish
-
-    def check_time_and_overlap(self, interaction, existing_interactions, lr_start, lr_stop):
+    
+    def check_interaction_is_within_long_range(self, interaction, existing_interactions, 
+                                               lr_start, lr_stop):
         """
-        Checks if the interaction overlaps with any existing interactions for the
-        same exposure group and if it falls within the long-range exposure time.
+        Check if the short-range interaction falls within the long-range exposure time.
+        Check if the short-range interaction given as input overlaps with any already 
+        existing interactions for the same occupancy group. 
         """
         interaction_start, interaction_finish = self.get_start_and_finish_time(interaction)
         # Check if the SR interaction is within the LR exposure time
         if lr_start <= interaction_start <= lr_stop and lr_start <= interaction_finish <= lr_stop:
-            for existing in existing_interactions:
-                existing_start, existing_finish = self.get_start_and_finish_time(existing)
-                # Check for overlap
-                if interaction_start < existing_finish and existing_start < interaction_finish:
-                    raise ValueError(
-                        f'Overlap detected for "short-range interaction": New interaction '
-                        f'"{interaction}" overlaps with existing interaction "{existing}".'
-                    )
-            # Return True if interaction falls within the current long-range interval
+            # Check the overlap with already existing interactions
+            self.check_overlap(interaction, existing_interactions)
             return True
         return False
     
-    def check_overlap(self, interaction, existing_interactions):
+    def check_overlap(self, entry, existing_entries):
         """
-        Checks if the dynamic entry overlaps with any already existing interaction.
+        Check if an entry overlaps with an already existing entry
+        by comparing the start and finish times of all entries.
         """
-        interaction_start = time_string_to_minutes(interaction["start_time"])/60
-        interaction_finish = time_string_to_minutes(interaction["finish_time"])/60
-        
-        for existing in existing_interactions:
-            existing_start = time_string_to_minutes(existing["start_time"])/60
-            existing_finish = time_string_to_minutes(existing["finish_time"])/60
-
+        entry_start, entry_finish = self.get_start_and_finish_time(entry)
+        for existing_entry in existing_entries:
+            existing_entry_start, existing_entry_finish = self.get_start_and_finish_time(existing_entry)
             # Check for overlap
-            if (interaction_start < existing_finish and existing_start < interaction_finish):
+            if (entry_start < existing_entry_finish and existing_entry_start < entry_finish):
                 raise ValueError(
-                    f'Overlap detected: New interaction '
-                    f'"{interaction}" overlaps with existing interaction "{existing}".'
+                    f'Overlap detected: The entry {entry} overlaps with '
+                    f'an already existing entry ({existing_entry}).'
             )
+        # In case no exception is raised, simply returns
         return
     
-    
     def validate_population_parameters(self):
-        """Validates required parameters for dynamic inputs"""
-        # Static occupancy is defined.
-        if self.occupancy_format == 'static':        
-            # Validate number of infected <= number of total people
-            if self.infected_people >= self.total_people:
-                raise ValueError(
-                    'Number of infected people cannot be greater or equal to the number of total people.')
-
-            # Validate time intervals selected by user
-            time_intervals = [
-                ['exposed_start', 'exposed_finish'],
-                ['infected_start', 'infected_finish'],
-            ]
-            if self.exposed_lunch_option:
-                time_intervals.append(
-                    ['exposed_lunch_start', 'exposed_lunch_finish'])
-            if self.infected_dont_have_breaks_with_exposed and self.infected_lunch_option:
-                time_intervals.append(
-                    ['infected_lunch_start', 'infected_lunch_finish'])
-
-            for start_name, end_name in time_intervals:
-                start = getattr(self, start_name)
-                end = getattr(self, end_name)
-                if start > end:
+        """
+        Validate required parameters for dynamic inputs.
+        """
+        if isinstance(self.occupancy, typing.Dict):
+            # Legacy usage - occupancy input is not defined (default empty dict)
+            if not self.occupancy:
+                # Validate number of infected <= number of total people
+                if self.infected_people >= self.total_people:
                     raise ValueError(
-                        f"{start_name} must be less than {end_name}. Got {start} and {end}.")
+                        'Number of infected people cannot be greater or equal to the number of total people.')
 
-            def validate_lunch(start, finish):
-                lunch_start = getattr(self, f'{population}_lunch_start')
-                lunch_finish = getattr(self, f'{population}_lunch_finish')
-                return (start <= lunch_start <= finish and
-                        start <= lunch_finish <= finish)
+                # Validate time intervals selected by user
+                time_intervals = [
+                    ['exposed_start', 'exposed_finish'],
+                    ['infected_start', 'infected_finish'],
+                ]
+                if self.exposed_lunch_option:
+                    time_intervals.append(
+                        ['exposed_lunch_start', 'exposed_lunch_finish'])
+                if self.infected_dont_have_breaks_with_exposed and self.infected_lunch_option:
+                    time_intervals.append(
+                        ['infected_lunch_start', 'infected_lunch_finish'])
 
-            def get_lunch_mins(population):
-                lunch_mins = 0
-                if getattr(self, f'{population}_lunch_option'):
-                    lunch_mins = getattr(
-                        self, f'{population}_lunch_finish') - getattr(self, f'{population}_lunch_start')
-                return lunch_mins
-
-            def get_coffee_mins(population):
-                coffee_mins = 0
-                if getattr(self, f'{population}_coffee_break_option') != 'coffee_break_0':
-                    coffee_mins = COFFEE_OPTIONS_INT[getattr(
-                        self, f'{population}_coffee_break_option')] * getattr(self, f'{population}_coffee_duration')
-                return coffee_mins
-
-            def get_activity_mins(population):
-                return getattr(self, f'{population}_finish') - getattr(self, f'{population}_start')
-
-            populations = [
-                'exposed', 'infected'] if self.infected_dont_have_breaks_with_exposed else ['exposed']
-            for population in populations:
-                # Validate lunch time within the activity times.
-                if (getattr(self, f'{population}_lunch_option') and
-                        not validate_lunch(getattr(self, f'{population}_start'), getattr(
-                            self, f'{population}_finish'))
-                        ):
-                    raise ValueError(
-                        f"{population} lunch break must be within presence times."
-                    )
-
-                # Length of breaks < length of activity
-                if (get_lunch_mins(population) + get_coffee_mins(population)) >= get_activity_mins(population):
-                    raise ValueError(
-                        f"Length of breaks >= Length of {population} presence."
-                    )
-
-                for attr_name, valid_set in [('exposed_coffee_break_option', COFFEE_OPTIONS_INT),
-                                            ('infected_coffee_break_option', COFFEE_OPTIONS_INT)]:
-                    if getattr(self, attr_name) not in valid_set:
+                for start_name, end_name in time_intervals:
+                    start = getattr(self, start_name)
+                    end = getattr(self, end_name)
+                    if start > end:
                         raise ValueError(
-                            f"{getattr(self, attr_name)} is not a valid value for {attr_name}")
-        # Dynamic occupancy is defined.
-        elif self.occupancy_format == 'dynamic':
-            # Validate dynamic input format
-            self.validate_dynamic_input(self.dynamic_infected_occupancy, "dynamic_infected_occupancy")
-            # Check if dynamic exposed input is a dict
-            if isinstance(self.dynamic_exposed_occupancy, dict):
-                # Check if the dict is not empty
-                if not self.dynamic_exposed_occupancy:
-                    raise ValueError(f'The input "dynamic_exposed_occupancy" should be a valid, non-empty dict. Got "{self.dynamic_exposed_occupancy}".')
-                # The key is the actual identifier
-                for key, group in self.dynamic_exposed_occupancy.items():
-                    # For each group, validate dynamic exposed input format
-                    self.validate_dynamic_exposed_format(group, key)
-                    # ...as well as validate dynamic exposed presence data
-                    self.validate_dynamic_input(group['presence'], "dynamic_exposed_occupancy", key)
+                            f"{start_name} must be less than {end_name}. Got {start} and {end}.")
+
+                def validate_lunch(start, finish):
+                    lunch_start = getattr(self, f'{population}_lunch_start')
+                    lunch_finish = getattr(self, f'{population}_lunch_finish')
+                    return (start <= lunch_start <= finish and
+                            start <= lunch_finish <= finish)
+
+                def get_lunch_mins(population):
+                    lunch_mins = 0
+                    if getattr(self, f'{population}_lunch_option'):
+                        lunch_mins = getattr(
+                            self, f'{population}_lunch_finish') - getattr(self, f'{population}_lunch_start')
+                    return lunch_mins
+
+                def get_coffee_mins(population):
+                    coffee_mins = 0
+                    if getattr(self, f'{population}_coffee_break_option') != 'coffee_break_0':
+                        coffee_mins = COFFEE_OPTIONS_INT[getattr(
+                            self, f'{population}_coffee_break_option')] * getattr(self, f'{population}_coffee_duration')
+                    return coffee_mins
+
+                def get_activity_mins(population):
+                    return getattr(self, f'{population}_finish') - getattr(self, f'{population}_start')
+
+                populations = [
+                    'exposed', 'infected'] if self.infected_dont_have_breaks_with_exposed else ['exposed']
+                for population in populations:
+                    # Validate lunch time within the activity times.
+                    if (getattr(self, f'{population}_lunch_option') and
+                            not validate_lunch(getattr(self, f'{population}_start'), getattr(
+                                self, f'{population}_finish'))
+                            ):
+                        raise ValueError(
+                            f"{population} lunch break must be within presence times."
+                        )
+
+                    # Length of breaks < length of activity
+                    if (get_lunch_mins(population) + get_coffee_mins(population)) >= get_activity_mins(population):
+                        raise ValueError(
+                            f"Length of breaks >= Length of {population} presence."
+                        )
+
+                    for attr_name, valid_set in [('exposed_coffee_break_option', COFFEE_OPTIONS_INT),
+                                                ('infected_coffee_break_option', COFFEE_OPTIONS_INT)]:
+                        if getattr(self, attr_name) not in valid_set:
+                            raise ValueError(
+                                f"{getattr(self, attr_name)} is not a valid value for {attr_name}")
+            # Occupancy input is defined
             else:
-                raise TypeError(f'The input "dynamic_exposed_occupancy" should be a valid, non-empty dict. Got "{type(self.dynamic_exposed_occupancy)}".')
+                # Checks if occupancy input is a valid dict
+                if self.occupancy and isinstance(self.occupancy, typing.Dict):
+                    # The key is the actual identifier
+                    for group_id, group in self.occupancy.items():
+                        # For each group, validate input format
+                        self.validate_dynamic_exposed_format(group_id, group)
+                        # ...as well as the respective presence input
+                        self.validate_group_presence_input(group_id, group['presence'])
         else:
-            raise ValueError(f"'{self.occupancy_format}' is not a valid value for 'self.occupancy_format'. Accepted values are 'static' or 'dynamic'.")
+            raise TypeError(f'The occupancy input should be a valid dictionary. Got {self.occupancy}.')
 
     def validate(self):
         raise NotImplementedError("Subclass must implement")
@@ -386,72 +392,73 @@ class FormData:
     def build_model(self, sample_size: typing.Optional[int] = None):
         raise NotImplementedError("Subclass must implement")
     
-    def population_present_changes(self, population_list: typing.List[models.Interval]) -> typing.List[float]:
+    def population_present_changes(self, transition_times_list: typing.Tuple[float, ...]) -> typing.List[float]:
         """
         Returns a sorted list of unique state changes on
         a population list.
         """
-        state_change_times = set(population_list[0].transition_times())
-        for population in population_list:
-            state_change_times.update(population.transition_times())
-        return sorted(state_change_times)
+        return sorted(set(transition_times_list))
+    
+    def convert_interval_to_piecewise(self, interval: models.SpecificInterval, value: int):
+        """
+        Converts an Interval and a single value to an IntPiecewiseConstant.
+        """
+        transition_times = []
+        values = []
+
+        for start, end in interval.present_times:
+            transition_times.extend([start, end])
+            values.extend([value, 0])
+
+        # Drop the last value (0) to match number of intervals
+        if values:
+            values.pop()
+
+        return models.IntPiecewiseConstant(
+            transition_times=tuple(transition_times),
+            values=tuple(values),
+        )
 
     def build_CO2_piecewise(self):
         """
         Builds a simple IntPiecewiseConstant for the different
         population groups that are defined.
         """
-        if self.occupancy_format == 'dynamic':
-            infected_occupancy = self.generate_dynamic_occupancy(self.dynamic_infected_occupancy)
-            total_models = [models.SimplePopulation(
-                number=infected_occupancy, # IntPiecewiseConstant
-                presence=None,
-                activity=None, # type: ignore
-            )]
+        # Legacy usage - occupancy input is not defined (default empty dict)
+        if not self.occupancy:
+            infected_occupancy = self.convert_interval_to_piecewise(
+                interval=self.infected_present_interval(),
+                value=self.infected_people,
+            )
+            exposed_occupancy = self.convert_interval_to_piecewise(
+                interval=self.exposed_present_interval(),
+                value=self.total_people - self.infected_people,
+            )
+            total_models = [infected_occupancy, exposed_occupancy]
+        else:
+            infected_occupancy = self.generate_infected_occupancy(self.occupancy)
+            total_models = [infected_occupancy]
             # For all state changes
-            total_presence = [infected_occupancy.interval()]
-
-            for exposure_group in self.dynamic_exposed_occupancy.values():
-                exposed_occupancy = exposure_group['total_people']
-                exposed_presence = self.generate_dynamic_occupancy(exposure_group['presence'])
-                total_models.append(models.SimplePopulation(
-                    number=exposed_occupancy, # int
-                    presence=exposed_presence, # SpecificInterval
-                    activity=None, # type: ignore
-                ))
-                # For all state changes
-                total_presence.append(exposed_presence)
-        
-        elif self.occupancy_format == 'static':
-            infected_people = self.infected_people
-            exposed_people = self.total_people - self.infected_people
-            infected_presence = self.infected_present_interval()
-            exposed_presence = self.exposed_present_interval()
-
-            infected_population = models.SimplePopulation(
-                number=infected_people,
-                presence=infected_presence,
-                activity=None, # type: ignore
-            )
-            exposed_population=models.SimplePopulation(
-                number=exposed_people,
-                presence=exposed_presence,
-                activity=None, # type: ignore
-            )
-            
-            total_presence = [infected_presence, exposed_presence]
-            total_models = [infected_population, exposed_population]
+            for group in self.occupancy.values():
+                model_piecewise = self.convert_interval_to_piecewise(
+                    interval=self.generate_exposed_presence(group['presence']),
+                    value=group['total_people'] - group['infected']
+                )
+                total_models.append(model_piecewise)
 
         # Get all state change times from combined populations
-        all_state_changes=self.population_present_changes(total_presence)
+        all_state_changes = self.population_present_changes([t for model in total_models for t in model.transition_times])
 
         # Compute total people at each state change
         total_people = []
         for _, stop in zip(all_state_changes[:-1], all_state_changes[1:]):
-            total_people_in_group = sum(population.people_present(stop) for population in total_models)
+            total_people_in_group = sum(model.value(stop) for model in total_models)
             total_people.append(total_people_in_group)
 
-        return models.IntPiecewiseConstant(transition_times=tuple(all_state_changes), values=tuple(total_people))
+        return models.IntPiecewiseConstant(
+            transition_times=tuple(all_state_changes), 
+            values=tuple(total_people)
+        )
 
     def _compute_breaks_in_interval(self, start, finish, n_breaks, duration) -> models.BoundarySequence_t:
         break_delay = ((finish - start) -
@@ -661,66 +668,66 @@ class FormData:
             self.exposed_start, self.exposed_finish,
             breaks=breaks,
         )
+
+    def generate_exposed_presence(self, presence: typing.List) -> models.SpecificInterval:
+            """
+            Creates a model to represent exposed occupancy over time.
+            """
+            exposed_intervals = []
+
+            # Sort occupancy entries by start_time to ensure proper ordering
+            presence_sorted = sorted(
+                presence, key=lambda x: time_string_to_minutes(x['start_time'])
+            )
+            
+            for period in presence_sorted:
+                start_time = time_string_to_minutes(period['start_time']) / 60
+                finish_time = time_string_to_minutes(period['finish_time']) / 60   
+                exposed_intervals.append((start_time, finish_time))
+
+            return models.SpecificInterval(tuple(exposed_intervals))
     
-    def generate_dynamic_occupancy(self, dynamic_occupancy: typing.List[typing.Dict[str, typing.Any]]):
+    def generate_infected_occupancy(self, occupancy: typing.Dict) -> models.IntPiecewiseConstant:
         """
-        Creates a model to represent occupancy over time. If `total_people` is 
-        provided in the input, the method generates an `IntPiecewiseConstant` model, representing 
-        occupancy as a piecewise constant function with defined values for each interval. 
-        Otherwise, it generates a `SpecificInterval` model, which only tracks the presence of 
-        intervals without associating values to them.
+        Creates a model to represent infected occupancy over time.
         """
+        transition_times = set()
+        infected_intervals = []
 
-        # Initialize variables
-        if 'total_people' in dynamic_occupancy[0]: # build IntPiecewiseConstant
-            computePiecewiseConstant = True
-            transition_times = []
-            values = []
-        else:
-            computePiecewiseConstant = False
-            present_times = [] # build SpecificInterval
+        # Extract presence data
+        for group in occupancy.values():
+            infected = group["infected"]
+            for period in group["presence"]:
+                start_time = time_string_to_minutes(period['start_time']) / 60
+                finish_time = time_string_to_minutes(period['finish_time']) / 60
+                transition_times.add(start_time) # unique time points
+                transition_times.add(finish_time) # unique time points
+                infected_intervals.append((start_time, finish_time, infected))
+        
+        # Sort transition times
+        sorted_transition_times = list(sorted(transition_times))
 
-        # Sort occupancy entries by start_time to ensure proper ordering
-        dynamic_occupancy_sorted = sorted(
-            dynamic_occupancy, key=lambda x: time_string_to_minutes(x['start_time'])
+        # Values for each time segment
+        raw_values = [
+            sum(people for start, end, people in infected_intervals if start <= t1 < end)
+            for t1 in sorted_transition_times[:-1]
+        ]
+
+        # Merge consecutive intervals with the same infected count
+        opt_times = [sorted_transition_times[0]]
+        opt_values = [raw_values[0]]
+        for i in range(1, len(raw_values)):
+            if raw_values[i] != opt_values[-1]:
+                opt_times.append(sorted_transition_times[i])
+                opt_values.append(raw_values[i])
+        # Ensure the last time is included
+        opt_times.append(sorted_transition_times[-1])
+
+        return models.IntPiecewiseConstant(
+            transition_times=tuple(opt_times),
+            values=tuple(opt_values)
         )
 
-        last_finish_time = None
-
-        for occupancy in dynamic_occupancy_sorted:
-            start_time = time_string_to_minutes(occupancy['start_time']) / 60
-            finish_time = time_string_to_minutes(occupancy['finish_time']) / 60
-            
-            if computePiecewiseConstant:
-                total_people = occupancy['total_people']
-
-                # Fill in gap with a zero occupancy if there is a time gap
-                if last_finish_time is not None and start_time > last_finish_time:
-                    transition_times.append(last_finish_time)
-                    values.append(0)  # Add zero for the gap period
-
-                # Update lists with current occupancy entry
-                transition_times.extend([start_time, finish_time])
-                values.append(total_people)
-
-                # Update the last known finish time
-                last_finish_time = finish_time
-            else:
-                present_times.append((start_time, finish_time))
-                    
-        # When computing the total people, validate that we have enough values to compute the occupancy
-        if computePiecewiseConstant:
-            unique_transition_times_sorted = np.array(sorted(set(transition_times)))
-            if (len(values) != len(unique_transition_times_sorted) - 1):
-                raise ValueError("Cannot compute dynamic occupancy with the provided inputs.")
-            else:
-                return models.IntPiecewiseConstant(
-                    transition_times=tuple(unique_transition_times_sorted),
-                    values=tuple(values)
-                )            
-        else:
-            return models.SpecificInterval(tuple(present_times))
-        
 
 def _hours2timestring(hours: float):
     # Convert times like 14.5 to strings, like "14:30"

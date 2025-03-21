@@ -1643,7 +1643,7 @@ class ExposureModel:
     exposed_to_short_range: int = 0
 
     #: Unique group identifier
-    identifier: str = 'static'
+    identifier: str = 'group_1'
 
     #: The number of times the exposure event is repeated (default 1).
     @property
@@ -1930,8 +1930,10 @@ class ExposureModelGroup:
         """
         first_concentration_model = self.exposure_models[0].concentration_model
         for model in self.exposure_models[1:]:
-            if model.concentration_model != first_concentration_model:
-                raise ValueError("All ExposureModels must have the same ConcentrationModel.")
+            # Check that the number of infected people and their presence is the same
+            if (model.concentration_model.infected.number != first_concentration_model.infected.number or
+                model.concentration_model.infected.presence != first_concentration_model.infected.presence):
+                raise ValueError("All ExposureModels must have the same infected number and presence in the ConcentrationModel.")
 
     @method_cache
     def _deposited_exposure_list(self) -> typing.List[_VectorisedFloat]:

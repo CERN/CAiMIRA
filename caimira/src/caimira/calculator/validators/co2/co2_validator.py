@@ -28,8 +28,6 @@ class CO2FormData(FormData):
     # and the defaults in any html form must not be contradictory.
     _DEFAULTS: typing.ClassVar[typing.Dict[str, typing.Any]] = {
         'CO2_data': '{}',
-        'dynamic_exposed_occupancy': '{}',
-        'dynamic_infected_occupancy': '[]',
         'exposed_coffee_break_option': 'coffee_break_0',
         'exposed_coffee_duration': 5,
         'exposed_finish': '17:30',
@@ -47,7 +45,7 @@ class CO2FormData(FormData):
         'infected_lunch_start': '12:30',
         'infected_people': 1,
         'infected_start': '08:30',
-        'occupancy_format': 'static',
+        'occupancy': '{}',
         'room_capacity': None,
         'room_volume': NO_DEFAULT,
         'specific_breaks': '{}',
@@ -74,7 +72,7 @@ class CO2FormData(FormData):
                 raise TypeError(f'The room capacity should be a valid integer (> 0). Got {self.room_capacity}.')
 
         # Validate specific inputs - breaks (exposed and infected)
-        if self.specific_breaks != {} and self.occupancy_format == 'static':
+        if self.specific_breaks != {} and not self.occupancy:
             if type(self.specific_breaks) is not dict:
                 raise TypeError('The specific breaks should be in a dictionary.')
 

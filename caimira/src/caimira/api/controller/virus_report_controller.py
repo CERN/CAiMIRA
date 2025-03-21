@@ -29,7 +29,7 @@ def submit_virus_form(form_data: typing.Dict, report_generation_parallelism: typ
 
     form_obj: VirusFormData = generate_form_obj(form_data=form_data, data_registry=data_registry)
     report_data: typing.Dict = generate_report(form_obj=form_obj, report_generation_parallelism=report_generation_parallelism)
-    
+
     # Handle model representation
     if report_data['model']:
         report_data['model'] = repr(report_data['model'])

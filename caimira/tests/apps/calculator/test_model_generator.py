@@ -590,71 +590,52 @@ def test_form_timezone(baseline_form_data, data_registry, longitude, latitude, m
     assert offset == expected_offset
 
 
-@pytest.mark.parametrize(
-    ["occupancy_format_input", "error"],
-    [
-        ['dynamc', "'dynamc' is not a valid value for 'self.occupancy_format'. Accepted values are 'static' or 'dynamic'.",],
-        ['stact', "'stact' is not a valid value for 'self.occupancy_format'. Accepted values are 'static' or 'dynamic'.",],
-        ['random', "'random' is not a valid value for 'self.occupancy_format'. Accepted values are 'static' or 'dynamic'.",]
-    ]
-)
-def test_occupancy_format_input(occupancy_format_input, error, baseline_form: virus_validator.VirusFormData):
-    baseline_form.occupancy_format = occupancy_format_input
-    with pytest.raises(ValueError, match=re.escape(error)):
-        baseline_form.validate()
-
-
-def test_dynamic_input_format_ValueError(baseline_form: virus_validator.VirusFormData):
-    baseline_form.occupancy_format = "dynamic"        
-    # Check empty list for infected occupancy
-    baseline_form.dynamic_infected_occupancy = []
-    error = 'The input "dynamic_infected_occupancy" should be a valid, non-empty list. Got "[]".'
-    with pytest.raises(ValueError, match=re.escape(error)):
-        baseline_form.validate()
-    # Check empty dict for exposed occupancy
-    baseline_form.dynamic_infected_occupancy = [{"total_people": 10, "start_time": "10:00", "finish_time": "11:00"}]
-    baseline_form.dynamic_exposed_occupancy = {}
-    error = 'The input "dynamic_exposed_occupancy" should be a valid, non-empty dict. Got "{}".'
-    with pytest.raises(ValueError, match=re.escape(error)):
-        baseline_form.validate()
-
-
-@pytest.mark.parametrize(
-    ["exposed_format", "error"],
-    [   
-        [
-            {"tal_people": 10, "presence": [{"start_time": "10:00", "finish_time": "11:00"}],},
-            'Missing "total_people" key in "dynamic_exposed_occupancy" group "group_1". Got keys: "[\'tal_people\', \'presence\']".'
-        ],
-        [
-            {"total_people": 10, "pesence": [{"start_time": "10:00", "finish_time": "11:00"}],},
-            'Missing "presence" key in "dynamic_exposed_occupancy" group "group_1". Got keys: "[\'total_people\', \'pesence\']".'
-        ],
-    ]
-)
-def test_dynamic_exposed_format_TypeError(exposed_format, error, baseline_form: virus_validator.VirusFormData):
-    baseline_form.occupancy_format = "dynamic"
-    baseline_form.dynamic_infected_occupancy = [{"total_people": 10, "start_time": "10:00", "finish_time": "11:00"}]
-    baseline_form.dynamic_exposed_occupancy = {"group_1": exposed_format}
+def test_occupancy_TypeError(baseline_form: virus_validator.VirusFormData):
+    baseline_form.occupancy = [] # type: ignore
+    error = 'The occupancy input should be a valid dictionary. Got [].'
     with pytest.raises(TypeError, match=re.escape(error)):
         baseline_form.validate()
 
 
 @pytest.mark.parametrize(
-    ["exposed_presence", "error"],
+    ["occupancy", "error"],
     [   
-        [[["start_time", "10:00", "finish_time", "11:00"]], 'Each entry in "dynamic_exposed_occupancy" should be a dictionary. Got "<class \'list\'>".'],
-        [[{"art_time": "10:00", "finish_time": "11:00"}], 'Missing "start_time" key in "dynamic_exposed_occupancy" in "group_1" ("presence"). Got keys: "[\'art_time\', \'finish_time\']".'],
-        [[{"start_time": "10:00", "ish_time": "11:00"}], 'Missing "finish_time" key in "dynamic_exposed_occupancy" in "group_1" ("presence"). Got keys: "[\'start_time\', \'ish_time\']".'],
+        [
+            {"tal_people": 10, "infected": 5, "presence": [{"start_time": "10:00", "finish_time": "11:00"}],},
+            'Missing total_people key in occupancy group "group_A". Got keys: tal_people, infected, presence.'
+        ],
+        [
+            {"total_people": 10, "infeted": 5, "presence": [{"start_time": "10:00", "finish_time": "11:00"}],},
+            'Missing infected key in occupancy group "group_A". Got keys: total_people, infeted, presence.'
+        ],
+        [
+            {"total_people": 10, "infected": 5, "pesence": [{"start_time": "10:00", "finish_time": "11:00"}],},
+            'Missing presence key in occupancy group "group_A". Got keys: total_people, infected, pesence.'
+        ],
     ]
 )
-def test_dynamic_exposed_presence_TypeError(exposed_presence, error, baseline_form: virus_validator.VirusFormData):
-    baseline_form.occupancy_format = "dynamic"
-    baseline_form.dynamic_infected_occupancy = [{"total_people": 10, "start_time": "10:00", "finish_time": "11:00"}]
-    baseline_form.dynamic_exposed_occupancy = {
-        "group_1": {
+def test_occupancy_general_params_TypeError(occupancy, error, baseline_form: virus_validator.VirusFormData):
+    baseline_form.occupancy = {"group_A": occupancy}
+    with pytest.raises(TypeError, match=re.escape(error)):
+        baseline_form.validate()
+
+
+@pytest.mark.parametrize(
+    ["occupancy_presence", "error"],
+    [   
+        [{"start_time": "10:00", "finish_time": "11:00"}, 'The presence parameter in occupancy group "group_A" should be a valid list. Got <class \'dict\'>.'],
+        [[], 'The presence parameter in occupancy group "group_A" should be a valid, non-empty list. Got [].'],
+        [[["start_time", "10:00", "finish_time", "11:00"]], 'Each presence interval should be a valid dictionary. Got <class \'list\'> in occupancy group "group_A".'],
+        [[{"art_time": "10:00", "finish_time": "11:00"}], 'Missing start_time key in presence parameter of occupancy group "group_A". Got keys: art_time, finish_time.'],
+        [[{"start_time": "10:00", "ish_time": "11:00"}], 'Missing finish_time key in presence parameter of occupancy group "group_A". Got keys: start_time, ish_time.'],
+    ]
+)
+def test_occupancy_presence_TypeError(occupancy_presence, error, baseline_form: virus_validator.VirusFormData):
+    baseline_form.occupancy = {
+        "group_A": {
             "total_people": 10,
-            "presence": exposed_presence,
+            "infected": 5,
+            "presence": occupancy_presence,
         }
     }
     with pytest.raises(TypeError, match=re.escape(error)):
@@ -662,42 +643,60 @@ def test_dynamic_exposed_presence_TypeError(exposed_presence, error, baseline_fo
 
 
 @pytest.mark.parametrize(
-    ["exposed_presence", "error"],
+    ["occupancy_presence", "error"],
     [
-        [[{"start_time": "10", "finish_time": "11:00"}], 'Invalid time format for "start_time" in "dynamic_exposed_occupancy" in "group_1" ("presence"). Expected "HH:MM". Got "10".'],
-        [[{"start_time": "10:00", "finish_time": "11"}], 'Invalid time format for "finish_time" in "dynamic_exposed_occupancy" in "group_1" ("presence"). Expected "HH:MM". Got "11".'],
+        [[{"start_time": "10", "finish_time": "11:00"}], 'Invalid time format found in presence parameter of occupancy group "group_A". Expected HH:MM, got 10.'],
+        [[{"start_time": "10:00", "finish_time": "11"}], 'Invalid time format found in presence parameter of occupancy group "group_A". Expected HH:MM, got 11.'],
     ]
 )
-def test_dynamic_exposed_presence_ValueError(exposed_presence, error, baseline_form: virus_validator.VirusFormData):
-    baseline_form.occupancy_format = "dynamic"
-    baseline_form.dynamic_infected_occupancy = [{"total_people": 10, "start_time": "10:00", "finish_time": "11:00"}]
-    baseline_form.dynamic_exposed_occupancy = {
-        "group_1": {
+def test_occupancy_presence_ValueError(occupancy_presence, error, baseline_form: virus_validator.VirusFormData):
+    baseline_form.occupancy = {
+        "group_A": {
             "total_people": 10,
-            "presence": exposed_presence
+            "infected": 5,
+            "presence": occupancy_presence
         }
     }
     with pytest.raises(ValueError, match=re.escape(error)):
         baseline_form.validate()
 
+
 @pytest.mark.parametrize(
-    ["exposed_total_people", "error"],
+    ["total_people", "error"],
     [
-        ["10", 'The "total_people" in "dynamic_exposed_occupancy" group "group_1" should be a non-negative integer. Got "10".'],
-        [9.8, 'The "total_people" in "dynamic_exposed_occupancy" group "group_1" should be a non-negative integer. Got "9.8".'],
-        [[10], 'The "total_people" in "dynamic_exposed_occupancy" group "group_1" should be a non-negative integer. Got "[10]".'],
-        [-1, 'The "total_people" in "dynamic_exposed_occupancy" group "group_1" should be a non-negative integer. Got "-1".'],
+        ["10", 'The total_people input in occupancy group "group_A" should be a non-negative integer. Got 10.'],
+        [9.8, 'The total_people input in occupancy group "group_A" should be a non-negative integer. Got 9.8.'],
+        [[10], 'The total_people input in occupancy group "group_A" should be a non-negative integer. Got [10].'],
+        [-1, 'The total_people input in occupancy group "group_A" should be a non-negative integer. Got -1.'],
     ]
 )
-def test_dynamic_exposed_total_people_ValueError(exposed_total_people, error, baseline_form: virus_validator.VirusFormData):
-    baseline_form.occupancy_format = "dynamic"
-    baseline_form.dynamic_infected_occupancy = [
-        {"total_people": 1, "start_time": "08:00", "finish_time": "10:00"},
-        {"total_people": 2, "start_time": "10:00", "finish_time": "18:00"},
+def test_occupancy_total_people_ValueError(total_people, error, baseline_form: virus_validator.VirusFormData):
+    baseline_form.occupancy = {
+        "group_A": {
+            "total_people": total_people,
+            "infected": 10,
+            "presence": [{"start_time": "08:00", "finish_time": "18:00"},],
+        },
+    }
+    with pytest.raises(ValueError, match=re.escape(error)):
+        baseline_form.validate()
+
+
+@pytest.mark.parametrize(
+    ["infected", "error"],
+    [
+        ["10", 'The infected input in occupancy group "group_A" should be a non-negative integer. Got 10.'],
+        [9.8, 'The infected input in occupancy group "group_A" should be a non-negative integer. Got 9.8.'],
+        [[10], 'The infected input in occupancy group "group_A" should be a non-negative integer. Got [10].'],
+        [-1, 'The infected input in occupancy group "group_A" should be a non-negative integer. Got -1.'],
+        [30, 'The number of infected people (30) cannot be greater than the total people (20).']
     ]
-    baseline_form.dynamic_exposed_occupancy = {
-        "group_1": {
-            "total_people": exposed_total_people,
+)
+def test_occupancy_infected_ValueError(infected, error, baseline_form: virus_validator.VirusFormData):
+    baseline_form.occupancy = {
+        "group_A": {
+            "total_people": 20,
+            "infected": infected,
             "presence": [{"start_time": "08:00", "finish_time": "18:00"},],
         },
     }
@@ -705,42 +704,11 @@ def test_dynamic_exposed_total_people_ValueError(exposed_total_people, error, ba
         baseline_form.validate()
         
 
-def test_dynamic_infected_overlap(baseline_form: virus_validator.VirusFormData):
-    baseline_form.occupancy_format = "dynamic"
-    baseline_form.dynamic_infected_occupancy = [
-        {"total_people": 10, "start_time": "08:00", "finish_time": "18:00"},
-        {"total_people": 10, "start_time": "10:00", "finish_time": "18:00"},
-    ]
-    baseline_form.dynamic_exposed_occupancy = {
-        "group_1": {
+def test_occupancy_presence_overlap(baseline_form: virus_validator.VirusFormData):
+    baseline_form.occupancy = {
+        "group_A": {
             "total_people": 10,
-            "presence": [{"start_time": "08:00", "finish_time": "18:00"}],
-        },
-        "group_2": {
-            "total_people": 10,
-            "presence": [{"start_time": "10:00", "finish_time": "11:00"}],
-        },
-        "group_3": {
-            "total_people": 10,
-            "presence": [{"start_time": "15:00", "finish_time": "18:00"}],
-        },
-    }
-    error = (
-        'Overlap detected: New interaction '
-        '"{\'total_people\': 10, \'start_time\': \'10:00\', \'finish_time\': \'18:00\'}" '
-        'overlaps with existing interaction '
-        '"{\'total_people\': 10, \'start_time\': \'08:00\', \'finish_time\': \'18:00\'}".'
-    )
-    with pytest.raises(ValueError, match=re.escape(error)):
-        baseline_form.validate()
-        
-
-def test_dynamic_exposure_group_duplication(baseline_form: virus_validator.VirusFormData):
-    baseline_form.occupancy_format = "dynamic"
-    baseline_form.dynamic_infected_occupancy = [{"total_people": 10, "start_time": "10:00", "finish_time": "11:00"}]
-    baseline_form.dynamic_exposed_occupancy = {
-        "group_1": {
-            "total_people": 10,
+            "infected": 5,
             "presence": [
                 {"start_time": "08:00", "finish_time": "17:00"},
                 {"start_time": "13:00", "finish_time": "14:00"},
@@ -748,10 +716,10 @@ def test_dynamic_exposure_group_duplication(baseline_form: virus_validator.Virus
         },
     }
     error = (
-        'Overlap detected: New interaction '
-        '"{\'start_time\': \'13:00\', \'finish_time\': \'14:00\'}"'
-        ' overlaps with existing interaction '
-        '"{\'start_time\': \'08:00\', \'finish_time\': \'17:00\'}".'
+        'Overlap detected: The entry '
+        '{\'start_time\': \'13:00\', \'finish_time\': \'14:00\'}'
+        ' overlaps with an already existing entry '
+        '({\'start_time\': \'08:00\', \'finish_time\': \'17:00\'}).'
     )
     with pytest.raises(ValueError, match=re.escape(error)):
         baseline_form.validate()
@@ -760,32 +728,32 @@ def test_dynamic_exposure_group_duplication(baseline_form: virus_validator.Virus
 @pytest.mark.parametrize(
     ["short_range_input", "error"],
     [
-        [[["expiration", "Shouting", "start_time", "09:00", "duration", 30]], 'Each entry in "short_range_interactions" should be a dictionary. Got "<class \'list\'>".'],
-        [[{"expiratio": "Shouting", "start_time": "09:00", "duration": 30}], 'Missing "expiration" key in "short_range_interactions", "group_1". Got keys: "[\'expiratio\', \'start_time\', \'duration\']".'],
-        [[{"expiration": "Shouting", "start_tim": "09:00", "duration": 30}], 'Missing "start_time" key in "short_range_interactions", "group_1". Got keys: "[\'expiration\', \'start_tim\', \'duration\']".'],
-        [[{"expiration": "Shouting", "start_time": "09:00", "duratio": 30}], 'Missing "duration" key in "short_range_interactions", "group_1". Got keys: "[\'expiration\', \'start_time\', \'duratio\']".'],
+        [[["expiration", "Shouting", "start_time", "09:00", "duration", 30]], 'Each short-range interaction should be a dictionary. Got <class \'list\'> in occupancy group "group_A".'],
+        [[{"expiratio": "Shouting", "start_time": "09:00", "duration": 30}], 'Missing expiration key in short-range interaction for occupancy group "group_A". Got keys: expiratio, start_time, duration.'],
+        [[{"expiration": "Shouting", "start_tim": "09:00", "duration": 30}], 'Missing start_time key in short-range interaction for occupancy group "group_A". Got keys: expiration, start_tim, duration.'],
+        [[{"expiration": "Shouting", "start_time": "09:00", "duratio": 30}], 'Missing duration key in short-range interaction for occupancy group "group_A". Got keys: expiration, start_time, duratio.'],
     ]
 )
 def test_short_range_TypeError(short_range_input, error, baseline_form: virus_validator.VirusFormData):
     baseline_form.short_range_option = "short_range_yes"
-    baseline_form.short_range_interactions = {"group_1": short_range_input}
+    baseline_form.short_range_interactions = {"group_A": short_range_input}
     with pytest.raises(TypeError, match=re.escape(error)):
         baseline_form.validate()
 
 
 def test_short_range_exposure_group(baseline_form: virus_validator.VirusFormData):
-    baseline_form.occupancy_format = 'dynamic'
-    baseline_form.dynamic_infected_occupancy = [{"total_people": 10, "start_time": "10:00", "finish_time": "11:00"}]
-    baseline_form.dynamic_exposed_occupancy = {
-        "group_1": {
-            "total_people": 10,
+    baseline_form.occupancy = {
+        "group_A": {
+            "total_people": 20,
+            "infected": 10,
             "presence": [
                 {"start_time": "10:00", "finish_time": "12:00"},
                 {"start_time": "13:00", "finish_time": "17:00"},
             ],
         },
-        "group_2": {
-            "total_people": 10,
+        "group_B": {
+            "total_people": 20,
+            'infected': 10,
             "presence": [
                 {"start_time": "10:00", "finish_time": "11:00"},
             ],
@@ -795,19 +763,19 @@ def test_short_range_exposure_group(baseline_form: virus_validator.VirusFormData
     # Check for existence of the dictionary key
     baseline_form.short_range_option = 'short_range_yes'
     baseline_form.short_range_interactions = {
-        "group_4": [{"expiration": "Shouting", "start_time": "10:30", "duration": 30}],
+        "group_C": [{"expiration": "Shouting", "start_time": "10:30", "duration": 30}],
     }
-    error = 'Exposure group "group_4" in short-range interaction not found in dynamic exposed occupancy.'
+    error = 'Occupancy group "group_C" referenced in short-range interactions was not found in the occupancy input.'
     with pytest.raises(ValueError, match=re.escape(error)):
         baseline_form.validate()
 
     # Check if interaction time is within simulation time
     baseline_form.short_range_interactions = {
-        "group_1": [{"expiration": "Shouting", "start_time": "18:00", "duration": 30}],
+        "group_A": [{"expiration": "Shouting", "start_time": "18:00", "duration": 30}],
     }
     error = (
-        'Short-range interaction "{\'expiration\': \'Shouting\', \'start_time\': \'18:00\', \'duration\': 30}"'
-        ' does not fall within any long-range exposure interval in "group_1".'
+        'Short-range interaction {\'expiration\': \'Shouting\', \'start_time\': \'18:00\', \'duration\': 30}'
+        ' does not fall within any presence interval in occupancy group "group_A".'
     )
     with pytest.raises(ValueError, match=re.escape(error)):
         baseline_form.validate()
@@ -816,52 +784,82 @@ def test_short_range_exposure_group(baseline_form: virus_validator.VirusFormData
 @pytest.mark.parametrize(
     ["short_range_input", "error"],
     [
-        [[{"expiration": "Shouting", "start_time": "9", "duration": 30}], 'Invalid time format for "start_time" in "short_range_interactions", "group_1". Expected "HH:MM". Got "9".'],
-        [[{"expiration": "Whisper", "start_time": "09:00", "duration": 30}], 'The "expiration" in "short_range_interactions", "group_1", does not exist in the registry. Got "Whisper".'],
-        [[{"expiration": "Shouting", "start_time": "09:00", "duration": -30}], 'The "duration" in "short_range_interactions", "group_1", should be a non-negative integer. Got "-30".'],
+        [[{"expiration": "Shouting", "start_time": "9", "duration": 30}], 'Invalid time format for start_time in short-range interaction for occupancy group "group_A". Expected HH:MM, got 9.'],
+        [[{"expiration": "Whisper", "start_time": "09:00", "duration": 30}], 'Invalid expiration value in short-range interaction for occupancy group "group_A". Got "Whisper".'],
+        [[{"expiration": "Shouting", "start_time": "09:00", "duration": -30}], 'The duration value in short-range interaction for occupancy group "group_A" should be a non-negative integer. Got -30.'],
     ]
 )
 def test_short_range_value_error(short_range_input, error, baseline_form: virus_validator.VirusFormData):
     baseline_form.short_range_option = "short_range_yes"
-    baseline_form.short_range_interactions = {"group_1": short_range_input}
+    baseline_form.short_range_interactions = {"group_A": short_range_input}
     with pytest.raises(ValueError, match=re.escape(error)):
         baseline_form.validate()
 
 
-def test_short_range_with_static_occupancy(baseline_form: virus_validator.VirusFormData):
-    # By default the occupancy format is 'static'
+def test_short_range_with_occupancy_format(baseline_form: virus_validator.VirusFormData):
     baseline_form.short_range_option = "short_range_yes"
-    baseline_form.short_range_interactions = {"group_1": [{"expiration": "Shouting", "start_time": "07:00", "duration": 30}]}
+    baseline_form.short_range_interactions = {"group_A": [{"expiration": "Shouting", "start_time": "07:00", "duration": 30}]}
 
-    # Check if interaction is defined during simulation time
+    # Checks if interaction is defined during simulation time
     error = (
-        'Short-range interactions should be defined during simulation time. Got '
-        '"{\'expiration\': \'Shouting\', \'start_time\': \'07:00\', \'duration\': 30}".'
+        'Short-range interactions must occur during simulation time. Got'
+        ' {\'expiration\': \'Shouting\', \'start_time\': \'07:00\', \'duration\': 30}'
+        ' in occupancy group "group_A".'
     )
     with pytest.raises(ValueError, match=re.escape(error)):
         baseline_form.validate()
 
-    # Check overlap of interactions
+    # Checks overlap of short-range interactions
     baseline_form.short_range_interactions = {
-        "group_1": [{"expiration": "Shouting", "start_time": "10:00", "duration": 30},
+        "group_A": [{"expiration": "Shouting", "start_time": "10:00", "duration": 30},
                     {"expiration": "Shouting", "start_time": "10:10", "duration": 15}],
     }
     error = (
-        'Overlap detected for "short-range interaction": New interaction '
-        '"{\'expiration\': \'Shouting\', \'start_time\': \'10:10\', \'duration\': 15}"'
-        ' overlaps with existing interaction "{\'expiration\': \'Shouting\', \'start_time\': \'10:00\', \'duration\': 30}".'
+        'Overlap detected: The entry '
+        '{\'expiration\': \'Shouting\', \'start_time\': \'10:10\', \'duration\': 15}'
+        ' overlaps with an already existing entry '
+        '({\'expiration\': \'Shouting\', \'start_time\': \'10:00\', \'duration\': 30}).'
     )
     with pytest.raises(ValueError, match=re.escape(error)):
         baseline_form.validate()
 
-    # Check if more than one group is defined
+    # Checks if short_range_option relates with the short_range-interactions input
+    baseline_form.short_range_option = "short_range_yes"
+    baseline_form.short_range_interactions = {}
+    error = (
+        'When short_range_option input is set to "short_range_yes", the short_range_interactions '
+        'input should not be empty. Got {}.'
+    )
+    with pytest.raises(ValueError, match=re.escape(error)):
+        baseline_form.validate()
+    
+    # Checks if more than one group is defined (legacy)
     baseline_form.short_range_interactions = {
-        "group_1": [{"expiration": "Shouting", "start_time": "10:00", "duration": 30},
-                    {"expiration": "Shouting", "start_time": "10:10", "duration": 15}],
-        "group_2": [{"expiration": "Shouting", "start_time": "10:00", "duration": 30}]
+        "group_A": [{"expiration": "Shouting", "start_time": "10:00", "duration": 30}],
+        "group_B": [{"expiration": "Shouting", "start_time": "10:00", "duration": 30}]
     }
     error = (
-        'When occupancy format is "static", there should be only one interaction group in "short_range_interactions".'
+        'Incompatible number of occupancy groups in the short_range_interactions input. '
+        'Got 2 groups when the maximum is 1.'
+    )
+    with pytest.raises(ValueError, match=re.escape(error)):
+        baseline_form.validate()
+
+    # Checks if more than one group is defined
+    baseline_form.occupancy = {
+        "group_A": {"total_people": 20, "infected": 10, "presence": [
+                {"start_time": "10:00", "finish_time": "12:00"},
+                {"start_time": "13:00", "finish_time": "17:00"},
+            ],
+        }
+    }
+    baseline_form.short_range_interactions = {
+        "group_A": [{"expiration": "Shouting", "start_time": "10:00", "duration": 30}],
+        "group_B": [{"expiration": "Shouting", "start_time": "10:00", "duration": 30}]
+    }
+    error = (
+        'Incompatible number of occupancy groups in the short_range_interactions input. '
+        'Got 2 groups when the maximum is 1 (from the occupancy input).'
     )
     with pytest.raises(ValueError, match=re.escape(error)):
         baseline_form.validate()

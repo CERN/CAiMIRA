@@ -1,8 +1,6 @@
 // Input data for CO2 fitting algorithm 
 const CO2_data_form = [
   "CO2_data",
-  "dynamic_exposed_occupancy",
-  "dynamic_infected_occupancy",
   "exposed_coffee_break_option",
   "exposed_coffee_duration",
   "exposed_finish",
@@ -20,7 +18,7 @@ const CO2_data_form = [
   "infected_lunch_start",
   "infected_people",
   "infected_start",
-  "occupancy_format",
+  "occupancy",
   "room_capacity",
   "room_volume",
   "specific_breaks",

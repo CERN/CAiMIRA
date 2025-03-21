@@ -74,7 +74,6 @@ def _build_mc_model(model: dataclass_instance) -> typing.Type[MCModelBase[_Model
             elif new_field.type == typing.Tuple[models.SpecificInterval, ...]:
                 SI = getattr(sys.modules[__name__], "SpecificInterval")
                 field_type = typing.Tuple[typing.Union[models.SpecificInterval, SI], ...]
-
             elif new_field.type == typing.Union[int, models.IntPiecewiseConstant]:
                 IPC = getattr(sys.modules[__name__], "IntPiecewiseConstant")
                 field_type = typing.Union[int, models.IntPiecewiseConstant, IPC]

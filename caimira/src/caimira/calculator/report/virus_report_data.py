@@ -246,13 +246,13 @@ def group_results(form: VirusFormData, model_group: models.ExposureModelGroup) -
 
 
 @profiler.profile
-def calculate_report_data(form: VirusFormData, executor_factory: typing.Callable[[], concurrent.futures.Executor]) -> typing.Dict[str, typing.Any]:
+def calculate_report_data(form: VirusFormData, 
+                          executor_factory: typing.Callable[[], concurrent.futures.Executor]) -> typing.Dict[str, typing.Any]:
     """
-    Simulation output data.
+    Generates the simulation output data.
     """
     model_group: models.ExposureModelGroup = form.build_model()
     results_per_group: typing.Dict[str, typing.Any] = group_results(form, model_group)
-
     times = interesting_times(model_group)
     
     # CO2 concentration 
@@ -458,8 +458,13 @@ def calculate_vl_scenarios_percentiles(model: mc.ExposureModel) -> typing.Dict[s
     }
 
 
-def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, typing.Union[mc.ExposureModel, mc.ExposureModelGroup]]:
-    scenarios = {}
+def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, mc.ExposureModel]:
+    """
+    Generates the data structure containing all the alternative scenarios.
+    It is only compatible with single group occupancy models, therefore
+    it returns an ExposureModel object and not an ExposureModelGroup.
+    """
+    scenarios: typing.Dict[str, models.ExposureModelGroup] = {}
     if (form.short_range_option == "short_range_no"):
         # Two special option cases - HEPA and/or FFP2 masks.
         FFP2_being_worn = bool(form.mask_wearing_option ==
@@ -512,31 +517,33 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, t
             scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_mc_model()
     else:
         # Adjust the number of exposed people with long-range exposure based on short-range interactions
-        if form.occupancy_format == 'static':
+        if not form.occupancy:
             no_short_range_alternative = dataclass_utils.replace(form, short_range_interactions={}, total_people=form.total_people - form.short_range_occupants)
-        elif form.occupancy_format == 'dynamic':
-            for group_name, occupancy_list in form.dynamic_exposed_occupancy.items():
+        else:
+            for group_id, group in form.occupancy.items():
                 # Check if the group exists in short-range interactions
-                if group_name in form.short_range_interactions:
+                if group_id in form.short_range_interactions:
                     short_range_count = form.short_range_occupants
-                    total_people = occupancy_list['total_people']
+                    total_people = group['total_people']
                     if total_people > short_range_count > 0:
                         # Update the total_people with the adjusted value
-                       occupancy_list['total_people'] = max(0, total_people - short_range_count)
-            no_short_range_alternative = dataclass_utils.replace(form, short_range_interactions={}, dynamic_exposed_occupancy=form.dynamic_exposed_occupancy)        
+                       group['total_people'] = max(0, total_people - short_range_count)
+            no_short_range_alternative = dataclass_utils.replace(form, short_range_interactions={}, occupancy=form.occupancy)        
         scenarios['Base scenario without short-range interactions'] = no_short_range_alternative.build_mc_model()
 
+    for sceario_name, scenario in scenarios.items():
+        scenarios[sceario_name] = scenario.exposure_models[0] # type: ignore
     return scenarios
 
 
 def scenario_statistics(
-    mc_model_group: mc.ExposureModelGroup,
+    mc_model: mc.ExposureModel,
     sample_times: typing.List[float],
     compute_prob_exposure: bool,
 ):
-    model_group: models.ExposureModelGroup = mc_model_group.build_model(
-        size=mc_model_group.data_registry.monte_carlo['sample_size'])
-    model = model_group.exposure_models[0]
+    model = mc_model.build_model(
+        size=mc_model.data_registry.monte_carlo['sample_size']
+    )
     
     return {
         'probability_of_infection': np.mean(model.infection_probability()),
@@ -552,21 +559,21 @@ def scenario_statistics(
 def comparison_report(
         form: VirusFormData,
         report_data: typing.Dict[str, typing.Any],
-        scenarios: typing.Dict[str, mc.ExposureModelGroup],
+        scenarios: typing.Dict[str, mc.ExposureModel],
         executor_factory: typing.Callable[[], concurrent.futures.Executor],
 ):  
     if (form.short_range_option == "short_range_no"):
         statistics = {
             'Current scenario': {
-                'probability_of_infection': report_data['groups']['static']['prob_inf'],
-                'expected_new_cases': report_data['groups']['static']['expected_new_cases'],
-                'concentrations': report_data['groups']['static']['concentrations'],
+                'probability_of_infection': report_data['groups']['group_1']['prob_inf'],
+                'expected_new_cases': report_data['groups']['group_1']['expected_new_cases'],
+                'concentrations': report_data['groups']['group_1']['concentrations'],
             }
         }
     else:
         statistics = {}
 
-    compute_prob_exposure = form.short_range_option == "short_range_yes" and form.exposure_option == "p_probabilistic_exposure" and form.occupancy_format == "static"
+    compute_prob_exposure = form.short_range_option == "short_range_yes" and form.exposure_option == "p_probabilistic_exposure" and not form.occupancy
         
     with executor_factory() as executor:
         results = executor.map(
@@ -585,7 +592,9 @@ def comparison_report(
     }
 
 
-def alternative_scenarios_data(form: VirusFormData, report_data: typing.Dict[str, typing.Any], executor_factory: typing.Callable[[], concurrent.futures.Executor]) -> typing.Dict[str, typing.Any]:
+def alternative_scenarios_data(form: VirusFormData, 
+                               report_data: typing.Dict[str, typing.Any], 
+                               executor_factory: typing.Callable[[], concurrent.futures.Executor]) -> typing.Dict[str, typing.Any]:
     alternative_scenarios: typing.Dict[str, typing.Any] = manufacture_alternative_scenarios(form=form)
     return {
         'alternative_scenarios': comparison_report(form=form, report_data=report_data, scenarios=alternative_scenarios, executor_factory=executor_factory)

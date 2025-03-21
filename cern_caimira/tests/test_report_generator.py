@@ -112,8 +112,8 @@ def test_expected_new_cases(baseline_form_with_sr: VirusFormData):
 
     # Short- and Long-range contributions
     report_data = rep_gen.calculate_report_data(baseline_form_with_sr, executor_factory)
-    sr_lr_expected_new_cases = report_data['groups']['static']['expected_new_cases']
-    sr_lr_prob_inf = report_data['groups']['static']['prob_inf']/100
+    sr_lr_expected_new_cases = report_data['groups']['group_1']['expected_new_cases']
+    sr_lr_prob_inf = report_data['groups']['group_1']['prob_inf']/100
     
     # Long-range contributions alone
     alternative_scenarios = rep_gen.manufacture_alternative_scenarios(baseline_form_with_sr)
@@ -123,3 +123,27 @@ def test_expected_new_cases(baseline_form_with_sr: VirusFormData):
 
     lr_expected_new_cases = alternative_statistics['stats']['Base scenario without short-range interactions']['expected_new_cases']
     np.testing.assert_almost_equal(sr_lr_expected_new_cases, lr_expected_new_cases + sr_lr_prob_inf * baseline_form_with_sr.short_range_occupants, 2)
+
+
+def test_alternative_scenarios(baseline_form):
+    """
+    Tests if the alternative scenarios are only generated when
+    the occupancy input is empty ({}) - legacy usage.
+    """
+    generator: VirusReportGenerator = make_app().settings['report_generator']
+    report_data = generator.prepare_context("", baseline_form, partial(
+        concurrent.futures.ThreadPoolExecutor, 1,
+    ))
+    assert "alternative_scenarios" in report_data.keys()
+
+    baseline_form.occupancy = {
+        "group_A": {
+            "total_people": 10,
+            "infected": 5,
+            "presence": [{"start_time": "10:00", "finish_time": "11:00"}]
+        }
+    }
+    report_data = generator.prepare_context("", baseline_form, partial(
+        concurrent.futures.ThreadPoolExecutor, 1,
+    ))
+    assert "alternative_scenarios" not in report_data.keys()

@@ -1238,7 +1238,7 @@ $(document).ready(function () {
 
           <div class='form-group row d-none'>
             <div class="col-sm-6"><label class="col-form-label col-form-label-sm"> Exposure group:</label></div>
-            <div class="col-sm-6"><input type="text" id="sr_group_no_${index}" value="${value.exposure_group}" class="form-control form-control-sm short_range_option" name="short_range_exposure_group" placeholder="A" onchange="validate_sr_time(this)" form="not-submitted"><br></div>
+            <div class="col-sm-6"><input type="text" id="sr_group_no_${index}" value="${value.exposure_group}" class="form-control form-control-sm short_range_option" name="short_range_exposure_group" placeholder="group_1" onchange="validate_sr_time(this)" form="not-submitted"><br></div>
           </div>
 
           <div class="form-group" style="max-width: 8rem">
@@ -1258,11 +1258,11 @@ $(document).ready(function () {
   // When short_range_yes option is selected, we want to inject rows for each expiractory activity, start_time and duration.
   $("body").on("click", ".add_node_btn_frm_field", function(e) {
     let last_row = $(".form_field_outer").find(".form_field_outer_row");
-    if (last_row.length == 0) $("#dialog_sr").append(inject_sr_interaction(1, value = { activity: "", start_time: "", duration: "15", exposure_group: "A" }));
+    if (last_row.length == 0) $("#dialog_sr").append(inject_sr_interaction(1, value = { activity: "", start_time: "", duration: "15", exposure_group: "group_1" }));
     else {
         last_index = last_row.last().find(".short_range_option").prop("id").split("_").slice(-1)[0];
         index = parseInt(last_index) + 1;
-        $("#dialog_sr").append(inject_sr_interaction(index, value = { activity: "", start_time: "", duration: "15", exposure_group: "A"}));
+        $("#dialog_sr").append(inject_sr_interaction(index, value = { activity: "", start_time: "", duration: "15", exposure_group: "group_1"}));
     }
   });
 
