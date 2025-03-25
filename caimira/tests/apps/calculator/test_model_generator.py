@@ -863,3 +863,71 @@ def test_short_range_with_occupancy_format(baseline_form: virus_validator.VirusF
     )
     with pytest.raises(ValueError, match=re.escape(error)):
         baseline_form.validate()
+
+
+def test_population_generation_from_occupancy(baseline_form: virus_validator.VirusFormData):
+    # Checks the correct translation of the occupancy data into the right exposure and infected models
+    baseline_form.occupancy = {
+        "group_A": {
+            "total_people": 5,
+            "infected": 2,
+            "presence": [
+                    {"start_time": "09:00", "finish_time": "12:00"},
+                    {"start_time": "13:00", "finish_time": "17:00"},
+                ],
+        },
+        "group_B": {
+            "total_people": 3,
+                "infected": 1,
+                "presence": [
+                        {"start_time": "09:00", "finish_time": "10:00"},
+                        {"start_time": "11:00", "finish_time": "12:00"},
+                    ],
+        },
+    }
+
+    exposure_model_group: models.ExposureModelGroup = baseline_form.build_model()
+    
+    # Assert that from this occupancy input, two ExposureModels are created
+    assert len(exposure_model_group.exposure_models) == 2
+    assert all(isinstance(model, models.ExposureModel) for model in exposure_model_group.exposure_models)
+    
+    first_group = exposure_model_group.exposure_models[0]
+    second_group = exposure_model_group.exposure_models[1]
+
+    # Assert the exposed population generation (number and presence) from the occupancy input
+    # Type checks
+    assert isinstance(first_group.exposed, models.Population)
+    assert isinstance(first_group.exposed.number, int)
+    assert isinstance(first_group.exposed.presence, models.Interval)
+
+    assert isinstance(second_group.exposed, models.Population)
+    assert isinstance(second_group.exposed.number, int)
+    assert isinstance(second_group.exposed.presence, models.Interval)
+
+    # Value checks
+    assert first_group.exposed.number == 3
+    assert tuple(first_group.exposed.presence.transition_times()) == (9, 12, 13, 17)
+    assert first_group.exposed.presence.boundaries() == ((9, 12), (13, 17))
+    
+    assert second_group.exposed.number == 2
+    assert tuple(second_group.exposed.presence.transition_times()) == (9, 10, 11, 12)
+    assert second_group.exposed.presence.boundaries() == ((9, 10), (11, 12))
+    
+    # Assert that the infected population is the same for all the models
+    # Type checks
+    assert isinstance(first_group.concentration_model.infected, models.InfectedPopulation)
+    assert isinstance(second_group.concentration_model.infected, models.InfectedPopulation)
+    # Value checks
+    assert first_group.concentration_model.infected.number == second_group.concentration_model.infected.number
+    assert first_group.concentration_model.infected.presence == second_group.concentration_model.infected.presence
+    
+    # Assert the infected population generation (number and presence) from the occupancy input
+    for infected_obj in [first_group.concentration_model.infected, second_group.concentration_model.infected]:
+        # Type checks
+        assert isinstance(infected_obj.number, models.IntPiecewiseConstant)
+        assert infected_obj.presence is None
+        # Value checks
+        assert infected_obj.number.interval().boundaries() == ((9, 10), (10, 11), (11, 12), (13, 17))
+        assert infected_obj.number.transition_times == (9, 10, 11, 12, 13, 17)
+        assert infected_obj.number.values == (3, 2, 3, 0, 2)    
