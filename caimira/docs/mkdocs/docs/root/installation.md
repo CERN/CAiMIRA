@@ -216,7 +216,7 @@ CAiMIRA includes comprehensive documentation, which can be compiled and viewed l
 
 1. **Install CAiMIRA with documentation dependencies**:
 
-    First, ensure CAiMIRA is installed along with the `doc` dependencies:
+    First, ensure CAiMIRA is fully installed along with the `doc` dependencies:
 
         cd caimira
         pip install -e .[doc]
@@ -232,7 +232,7 @@ CAiMIRA includes comprehensive documentation, which can be compiled and viewed l
 
     Run the `style_docs.py` script to apply custom styles, move required files, and generate a UML diagram:
 
-        python style_docs.py \
+        python ../style_docs.py \
         && mv sphinx/_build/markdown/index.md mkdocs/docs/code/models.md \
         && pyreverse -o png -p UML-CAiMIRA --output-directory mkdocs/docs ../src/caimira/calculator/models/models.py
 

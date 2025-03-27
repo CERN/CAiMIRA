@@ -18,9 +18,10 @@ nav:
   - Physics of the model: root/physics_model.md
   - Code:
       - Architecture: code/architecture.md
+      - models.py: code/models.md
+      - Dynamic Groups: code/dynamic_groups.md
       - CO₂ Fitting Algorithm: code/fitting_algorithm.md
       - REST API: code/rest_api.md
-      - models.py: code/models.md
   - User Interfaces:
       - CAiMIRA Calculator:
           - Quick Guide: user_interfaces/CAiMIRA/quick_guide.md
