@@ -18,7 +18,7 @@ It includes details on the diameter-dependent mathematical model and the code de
 * [Physics of the model](root/physics_model.md)
 * **Code**
     * [Architecture](code/architecture.md)
-    * [models.py](code/models.md)
+    * [Models](code/models.md)
     * [Dynamic Groups](code/dynamic_groups.md)
     * [CO₂ Fitting Algorithm](code/fitting_algorithm.md)
     * [REST API](code/rest_api.md)

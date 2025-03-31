@@ -231,10 +231,30 @@ CAiMIRA includes comprehensive documentation, which can be compiled and viewed l
 3. **Customize and organize documentation**:
 
     Run the `style_docs.py` script to apply custom styles, move required files, and generate a UML diagram:
-
-        python ../style_docs.py \
+        
+        cd ..
+        python style_docs.py \
         && mv sphinx/_build/markdown/index.md mkdocs/docs/code/models.md \
         && pyreverse -o png -p UML-CAiMIRA --output-directory mkdocs/docs ../src/caimira/calculator/models/models.py
+
+    Make sure this command is executed in the `docs` directory.
+
+    ???tip "Terminal tips"
+
+        One can verify the current directory in the terminal by executing the following command:
+
+            pwd
+        
+        To navigate between directories, the `cd` instruction should be used. For example, if one is in the `sphinx` directory and wants to go back to `docs`, the command to be executed would typically be this one:
+
+            cd ..
+            
+        As the `sphinx` directory is `caimira/docs/sphinx`, to go back to `caimira/docs` one would typically just need to go back one level by using the `..` definition.
+        
+        On the other way around, to navigate from the `docs` to the `sphinx` directory, the command to be executed would typically be this one:
+
+            cd sphinx
+
 
 4. **Start the documentation server**:
 
