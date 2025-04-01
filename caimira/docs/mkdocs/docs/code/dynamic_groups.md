@@ -13,7 +13,7 @@ The feature revolves around the concept of a new `ExposureModelGroup` class, whi
 
 ### Input Structure
 
-The modelling of dynamic occupancy with the definition of groups is controlled by the `occupancy` input sent by the frontend form, initially defined by an empty dictionary:
+The modelling of dynamic occupancy with the definition of groups is controlled by the `occupancy` input sent by the frontend, initially defined by an empty dictionary:
 
 ```
 occupancy = "{}"
@@ -61,18 +61,18 @@ The `occupancy` object defines various occupancy groups, each identified by an u
 !!!info
     The number of groups in the `occupancy` input results in the creation of multiple exposure group objects. From the previous example, where two groups are defined, the two exposure instances of each group will have following structure, respectively:
 
-    - 1<sup>st</sup> exposed population - `3` people from `09:00` to `12:00` and from `13:00` to `17:00`
-    - 2<sup>nd</sup> exposed population - `5` people from `10:00` to `11:00`
+    - **Exposed population from `group_1`** - `3` people from `09:00` to `12:00` and from `13:00` to `17:00`
+    - **Exposed population from `group_2`** - `5` people from `10:00` to `11:00`
     
-    The combination of the `presence` and number of `infected` of all groups leads to the creation of a single infected object, replicated across all groups. From the previous example, the respective instance will be composed of the following structure:
+    The combination of the `presence` and number of `infected` of all groups leads to the creation of a single infected object **(`InfectedPopulation`)**, which is replicated across all groups. From the previous example, the respective instance will be composed of the following structure:
         
-    - `2` people, from `09:00` to `10:00` (`2` people from `group_1` and `0` people from `group_2`)
-    - `7` people, from `10:00` to `11:00` (`2` people from `group_1` and `5` people from `group_2`)
-    - `2` people, from `11:00` to `12:00` (`2` people from `group_1` and `0` people from `group_2`)
-    - `0` people, from `12:00` to `13:00` (`0` people from `group_1` and `0` people from `group_2`)
-    - `2` people, from `13:00` to `17:00` (`2` people from `group_1` and `0` people from `group_2`)
+    - **`2` infected**, from `09:00` to `10:00` (`2` people from `group_1` and `0` people from `group_2`)
+    - **`7` infected**, from `10:00` to `11:00` (`2` people from `group_1` and `5` people from `group_2`)
+    - **`2` infected**, from `11:00` to `12:00` (`2` people from `group_1` and `0` people from `group_2`)
+    - **`0` infected**, from `12:00` to `13:00` (`0` people from `group_1` and `0` people from `group_2`)
+    - **`2` infected**, from `13:00` to `17:00` (`2` people from `group_1` and `0` people from `group_2`)
     
-    Note that the infected population contributes equally to the concentration in each exposure group.
+    Note that the infected population contributes equally to the **long-range** concentration in **all the occupant groups**.
 
 #### Short-range interactions
 
@@ -82,9 +82,12 @@ The `short_range_interactions` object defines the number of short-range interact
 - `start_time`: when the interaction starts, formatted as `HH:MM`
 - `duration`: duration of the interaction (in minutes)
 
-Short-range interactions are processed separately form the long-range exposure. Each short-range entry assumes that the same exposed individual is interacting with one of the infectors during the specified period. This means that if a group is composed of multiple exposed individuals, the interactions always involves the same one unless the group is further subdivided. For more detailed tracking of interactions within the exposed population, the occupancy groups should be divided into smaller ones, potentially consisting of single exposed individuals within the infected population.
+Short-range interactions are processed separately form the long-range exposure. Each short-range object in the same group assumes that the same exposed occupant in that group is interacting with one of the infectors during the specified period. In other words, these interactions are all linked to the same occupant and the total short-range exposure will be the cumulative sum of all the short-range objects in the occupancy group.
+To be able to appoint different short-range interactions to different exposed occupants in a given group, a workaround is to subdivide them into smaller groups. See examples below.
 
-???+ example
+???+ example "Example 1"
+
+    The occupancy object is the one defined above ([here](#parameters)).
 
         short_range_interactions = {
             "group_1": [
@@ -96,11 +99,53 @@ Short-range interactions are processed separately form the long-range exposure. 
             ]
         }
 
-    - `group_1` has **2 interactions** in two time intervals:
+    - `group_1` has **2 interactions with exposed occupant A** in two time intervals:
         - `Shouting`, from `10:00` for `30` minutes
         - `Speaking`, from `11:15` for `15` minutes
-    - `group_2` has **1 interaction**, in a single time interval:
+    - `group_2` has **1 interaction with exposed occupant B**, in a single time interval:
         - `Shouting` from `10:15` for `30` minutes
+
+???+ example "Example 2"
+
+        occupancy = {
+            "group_1_A": {
+                "total_people": 4,
+                "infected": 1,
+                "presence": [
+                    {"start_time": "09:00", "finish_time": "12:00"},
+                    {"start_time": "13:00", "finish_time": "17:00"}
+                ]
+            },
+            "group_1_B": {
+                "total_people": 1,
+                "infected": 1,
+                "presence": [
+                    {"start_time": "09:00", "finish_time": "12:00"},
+                    {"start_time": "13:00", "finish_time": "17:00"}
+                ]
+            },
+            ...
+        }
+
+        ...
+
+        short_range_interactions = {
+            "group_1_A": [
+                {"expiration": "Shouting", "start_time": "10:00", "duration": 30},
+            ],
+            "group_1_B": [
+                {"expiration": "Speaking", "start_time": "11:15", "duration": 15}
+            ],
+        }
+
+    - `group_1_A` has **1 interaction with exposed occupant A** in a single time interval:
+
+        - `Shouting`, from `10:00` for `30` minutes,
+
+    - `group_1_B` has **1 interaction with exposed occupant B** in a single time interval:
+
+        - `Speaking`, from `11:15` for `15` minutes.
+
 
 !!! note
     The input format must follow this dictionary structure, regardless of whether `occupancy` is defined. For example, in the *legacy* format, the short-range group should always be specified within a dictionary under the identifier `group_1`, as this is the default single-group identifier (see [here](../models/#identifier-str-group_1)).
@@ -196,6 +241,18 @@ Following the previous JSON example of the `occupancy` input, the `ExposureModel
             ),
             evaporation_factor=...,
         )
+
+    In line with the example above, we see:
+    
+    - 2 `ExposureModel`: one for each occupancy group
+    - 3 `ShortRangeModel`: two for `group_1` and one for `group_2`
+    - In the `exposed` population (`Population`):
+        - the `number` is calculated from `total_people` - `infected`
+        - the `presence` interval is taken from the `occupancy` group object
+        - the `mask`, `activity`, etc. can be different for each group
+    - In  the `infected` population (`InfectedPopulation`):
+        - the `number` interval is calculated from the `occupancy` group object as a total sum of the infected from all groups at each `presence` interval
+    - The `ConcentrationModel` shall be the same in each `ExposureModel`
 
     !!!note
         As previously described, each occupancy group (`group_1` and `group_2`) leads to the creation of one `ExposureModel`, and the `ConcentrationModel`, originated from the combination of the `presence` and number of `infected`, should be the same for all `ExposureModel` groups.
