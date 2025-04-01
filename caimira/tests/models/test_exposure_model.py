@@ -78,19 +78,19 @@ def known_concentrations(func, data_registry=DataRegistry()):
 @pytest.mark.parametrize(
     "population, cm, expected_exposure, expected_probability", [
         [populations[1], known_concentrations(lambda t: 18.),
-         np.array([64.02320633, 59.45012016]), np.array([67.9503762594, 65.2366759251])],
+         np.array([61.47704218, 57.08582488]), np.array([66.46671825, 63.74477329])],
 
         [populations[2], known_concentrations(lambda t: 18.),
-         np.array([40.91708675, 45.73086166]), np.array([51.6749232285, 55.6374622042])],
+         np.array([39.28983899, 43.91217299]), np.array([39.28983899, 54.18007995])],
 
         [populations[0], known_concentrations(lambda t: np.array([18., 36.])),
-         np.array([45.73086166, 91.46172332]), np.array([55.6374622042, 80.3196524031])],
+         np.array([43.91217299, 87.82434597]), np.array([54.18007995, 79.00534926])],
 
         [populations[1], known_concentrations(lambda t: np.array([18., 36.])),
-         np.array([64.02320633, 118.90024032]), np.array([67.9503762594, 87.9151129926])],
+         np.array([61.47704218, 122.9540844]), np.array([66.46671825, 88.75519015])],
 
         [populations[2], known_concentrations(lambda t: np.array([18., 36.])),
-         np.array([40.91708675, 91.46172332]), np.array([51.6749232285, 80.3196524031])],
+         np.array([39.28983899, 87.82434597]), np.array([50.25690322, 79.00534926])],
     ])
 def test_exposure_model_ndarray(data_registry, population, cm,
                                 expected_exposure, expected_probability, sr_model, cases_model):

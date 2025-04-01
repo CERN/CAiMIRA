@@ -649,6 +649,9 @@ class Particle:
             return 1.88e-4 * (self.diameter*evaporation_factor / 2.5)**2
     
     def fraction_deposited_et(self, d: _VectorisedFloat, log_d: _VectorisedFloat) -> _VectorisedFloat:
+        """
+        The fraction of particles deposited in the extrathoracic region.
+        """
         IF = 1 - 0.5 * (1 - (1 / (1 + (0.00076*(d**2.8)))))
         return IF * (
             (1 / (1 + np.exp(6.84 + 1.183 * log_d))) +
@@ -656,18 +659,27 @@ class Particle:
         )
     
     def fraction_deposited_tb(self, d: _VectorisedFloat, log_d: _VectorisedFloat) -> _VectorisedFloat:
+        """
+        The fraction of particles deposited in the tracheobronchial region.
+        """
         return (0.00352 / d) * (
             np.exp(-0.234 * (log_d + 3.40) ** 2) + 
             (63.9 * np.exp(-0.819 * (log_d - 1.61) ** 2))
         )
     
     def fraction_deposited_av(self, d: _VectorisedFloat, log_d: _VectorisedFloat) -> _VectorisedFloat:
+        """
+        The fraction of particles deposited in the alveolar region.
+        """
         return (0.0155 / d) * (
             np.exp(-0.416 * (log_d + 2.84) ** 2) +
             (19.11 * np.exp(-0.482 * (log_d - 1.362) ** 2))
         )
 
-    def fraction_deposited_df(self, d, log_d) -> _VectorisedFloat:
+    def fraction_deposited_total(self, d, log_d) -> _VectorisedFloat:
+        """
+        The total fraction of particles deposited in the respiratory track.
+        """
         IF = 1 - 0.5 * (1 - (1 / (1 + (0.00076*(d**2.8)))))
         return IF * (
             0.0587 + 
@@ -688,16 +700,13 @@ class Particle:
             # model is not evaluated for specific values of aerosol
             # diameters - we choose a single "average" deposition factor,
             # as in https://doi.org/10.1101/2021.10.14.21264988.
-            if region is None:
-                fdep = 0.6
-            else:
-                fdep = 0.6/3 # 3 respiratory track regions
+            fdep = 0.6
         else:
             # deposition fraction depends on aerosol particle diameter.
             d = (self.diameter * evaporation_factor)
             log_d = np.log(d)
             if region is None:
-                fdep = self.fraction_deposited_df(d, log_d)
+                fdep = self.fraction_deposited_total(d, log_d)
             else:
                 if region == "et": 
                     fdep = self.fraction_deposited_et(d, log_d)
