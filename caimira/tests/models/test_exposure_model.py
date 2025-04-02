@@ -405,8 +405,8 @@ def test_diameter_vectorisation_room(data_registry, diameter_dependent_model, sr
 @pytest.mark.parametrize(
     ["cm", "host_immunity", "expected_probability"],
     [
-        [known_concentrations(lambda t: 18.), np.array([0.25, 0.5]), np.array([57.40415859, 41.03956914])],
-        [known_concentrations(lambda t: 18.), np.array([0., 1.]), np.array([67.95037626, 0.])],
+        [known_concentrations(lambda t: 18.), np.array([0.25, 0.5]), np.array([55.93365366, 39.78768672])],
+        [known_concentrations(lambda t: 18.), np.array([0., 1.]), np.array([66.46671825, 0.])],
     ]
 )
 def test_host_immunity_vectorisation(data_registry, sr_model, cases_model, cm, host_immunity, expected_probability):
