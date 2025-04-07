@@ -1,0 +1,32 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-executables-have-shebangs
+      # check toml files
+      - id: check-toml
+      # check yaml files
+      - id: check-yaml
+      # fixing empty or blank of end file
+      - id: end-of-file-fixer
+        types: [python]
+      # check trailing whitespace on file
+      - id: trailing-whitespace
+      # sort the entries of package on requirements.txt
+      - id: requirements-txt-fixer
+
+  # ruff formatter and linter
+  # replace black and flake8
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.3
+    hooks:
+      - id: ruff
+      - id: ruff-format
+
+  # mirror of prettier
+  # beautify of toml and yaml files
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: "v4.0.0-alpha.8"
+    hooks:
+      - id: prettier
+        types_or: [toml, yaml]
