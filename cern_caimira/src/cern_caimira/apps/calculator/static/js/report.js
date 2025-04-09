@@ -290,7 +290,7 @@ function draw_plot(svg_id, group_id, times, concentrations_zoomed,
         });
 
         // Short-Range Area.
-        short_range_intervals.forEach((b, index) => {
+        short_range_intervals.flat().forEach((b, index) => {
             shortRangeArea[index].x(d => xTimeRange(d.time))
                 .y0(graph_height - 50)
                 .y1(d => yRange(d.concentration));

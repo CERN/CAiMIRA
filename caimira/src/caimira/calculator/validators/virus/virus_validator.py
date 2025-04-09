@@ -258,9 +258,10 @@ class VirusFormData(FormData):
 
         short_range = defaultdict(list)
         if self.short_range_option == "short_range_yes":
+            sr_expiration_distributions = short_range_expiration_distributions(self.data_registry)
             for key, group in self.short_range_interactions.items():
                 for interaction in group:
-                    expiration = short_range_expiration_distributions(self.data_registry)[interaction['expiration']]
+                    expiration = sr_expiration_distributions[interaction['expiration']]
                     presence = self.short_range_interval(interaction)
                     distances = short_range_distances(self.data_registry)
                     short_range[key].append(mc.ShortRangeModel(
@@ -269,7 +270,6 @@ class VirusFormData(FormData):
                         activity=infected_population.activity,
                         presence=presence,
                         distance=distances,
-                        expiration_def=interaction['expiration']
                     ))
 
         concentration_model: models.ConcentrationModel = mc.ConcentrationModel(

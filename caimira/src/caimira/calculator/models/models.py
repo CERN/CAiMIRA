@@ -711,6 +711,9 @@ class Expiration(_ExpirationBase):
     # to c_n,i in Eq. (4) of https://doi.org/10.1101/2021.10.14.21264988)
     cn: float = 1.
 
+    #: Expiration name
+    name: typing.Optional[str] = None
+
     @property
     def particle(self) -> Particle:
         """
@@ -1313,7 +1316,7 @@ class ShortRangeModel:
     data_registry: DataRegistry
 
     #: Expiration type
-    expiration: _ExpirationBase
+    expiration: Expiration
 
     #: Activity type
     activity: Activity
@@ -1323,9 +1326,6 @@ class ShortRangeModel:
 
     #: Interpersonal distances
     distance: _VectorisedFloat
-
-    #: Expiration definition
-    expiration_def: typing.Optional[str] = None
 
     def dilution_factor(self) -> _VectorisedFloat:
         '''

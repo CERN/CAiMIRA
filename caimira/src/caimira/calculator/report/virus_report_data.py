@@ -5,8 +5,6 @@ import io
 import typing
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib
-matplotlib.use('Agg')
 from collections import defaultdict
 
 from caimira.calculator.models import models, dataclass_utils, profiler, monte_carlo as mc
@@ -226,7 +224,7 @@ def group_results(form: VirusFormData, model_group: models.ExposureModelGroup) -
             # Short range outputs
             short_range_interactions: dict = defaultdict(list)
             for short_range_model in single_group.short_range:
-                short_range_interactions[short_range_model.expiration_def].extend(
+                short_range_interactions[short_range_model.expiration.name].extend(
                     short_range_model.presence.boundaries()
                 )
 
