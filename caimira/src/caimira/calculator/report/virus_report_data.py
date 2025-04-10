@@ -5,6 +5,7 @@ import io
 import typing
 import numpy as np
 import matplotlib.pyplot as plt
+from collections import defaultdict
 
 from caimira.calculator.models import models, dataclass_utils, profiler, monte_carlo as mc
 from caimira.calculator.models.enums import ViralLoads
@@ -108,12 +109,12 @@ def concentrations_with_sr_breathing(form: VirusFormData, model: models.Exposure
     return lower_concentrations
 
 
-def _calculate_deposited_exposure(model, time1, time2, fn_name=None):
-    return np.array(model.deposited_exposure_between_bounds(float(time1), float(time2))).mean(), fn_name
+def _calculate_deposited_exposure(model, time1, time2, region, fn_name=None):
+    return np.array(model.deposited_exposure_between_bounds(float(time1), float(time2), region)).mean(), fn_name
 
 
-def _calculate_long_range_deposited_exposure(model, time1, time2, fn_name=None):
-    return np.array(model.long_range_deposited_exposure_between_bounds(float(time1), float(time2))).mean(), fn_name
+def _calculate_long_range_deposited_exposure(model, time1, time2, region, fn_name=None):
+    return np.array(model.long_range_deposited_exposure_between_bounds(float(time1), float(time2), region)).mean(), fn_name
 
 
 def _calculate_co2_concentration(CO2_model, time, fn_name=None):
@@ -140,17 +141,17 @@ def calculate_report_data(form: VirusFormData, executor_factory: typing.Callable
     CO2_model: models.CO2ConcentrationModel = form.build_CO2_model()
 
     # compute deposited exposures and CO2 concentrations in parallel to increase performance
-    deposited_exposures = []
-    long_range_deposited_exposures = []
+    deposited_exposures = defaultdict(list)
+    long_range_deposited_exposures = defaultdict(list)
     CO2_concentrations = []
-
     tasks = []
     with executor_factory() as executor:
         for time1, time2 in zip(times[:-1], times[1:]):
-            tasks.append(executor.submit(
-                _calculate_deposited_exposure, model, time1, time2, fn_name="de"))
-            tasks.append(executor.submit(
-                _calculate_long_range_deposited_exposure, model, time1, time2, fn_name="lr"))
+            for f_dep_zone in ("et", "tb", "av"):
+                tasks.append(executor.submit(
+                    _calculate_deposited_exposure, model, time1, time2, f_dep_zone, fn_name=f"{f_dep_zone}_de"))
+                tasks.append(executor.submit(
+                    _calculate_long_range_deposited_exposure, model, time1, time2, f_dep_zone, fn_name=f"{f_dep_zone}_lr"))
             # co2 concentration: takes each time as param, not the interval
             tasks.append(executor.submit(
                 _calculate_co2_concentration, CO2_model, time1, fn_name="co2"))
@@ -160,15 +161,20 @@ def calculate_report_data(form: VirusFormData, executor_factory: typing.Callable
 
     for task in tasks:
         result, fn_name = task.result()
-        if fn_name == "de":
-            deposited_exposures.append(result)
-        elif fn_name == "lr":
-            long_range_deposited_exposures.append(result)
+        if "_de" in fn_name:
+            deposited_exposures[fn_name].append(result)
+        elif "_lr" in fn_name:
+            long_range_deposited_exposures[fn_name].append(result)
         elif fn_name == "co2":
             CO2_concentrations.append(result)
 
-    cumulative_doses = np.cumsum(deposited_exposures)
-    long_range_cumulative_doses = np.cumsum(long_range_deposited_exposures)
+    # Fractional cumulative dose
+    frac_cumulative_doses = {region: list(np.cumsum(de)) for region, de in deposited_exposures.items()}
+    lr_frac_cumulative_doses = {region: list(np.cumsum(lr_de)) for region, lr_de in long_range_deposited_exposures.items()}
+    
+    # Total cumulative dose
+    cumulative_doses = np.sum(list(frac_cumulative_doses.values()), axis=0)
+    long_range_cumulative_doses = np.sum(list(lr_frac_cumulative_doses.values()), axis=0)
 
     prob = np.array(model.infection_probability())
     prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
@@ -214,6 +220,8 @@ def calculate_report_data(form: VirusFormData, executor_factory: typing.Callable
         "uncertainties_plot_src": uncertainties_plot_src,
         "CO2_concentrations": CO2_concentrations,
         "conditional_probability_data": conditional_probability_data,
+        "frac_cumulative_doses": frac_cumulative_doses,
+        "lr_frac_cumulative_doses": lr_frac_cumulative_doses,
     }
 
 

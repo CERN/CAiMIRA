@@ -968,12 +968,12 @@ def test_exposure_scale_with_breathing_rate(data_registry, sr_models):
     )
 
 
-def test_regional_fdep(c_model_distr: models.ConcentrationModel):
+def test_regional_fdep(c_model_distr: mc.ConcentrationModel):
     conc_model: models.ConcentrationModel = c_model_distr.build_model(SAMPLE_SIZE)
 
-    fdep_et = conc_model.infected.particle.fraction_deposited(region="et")
-    fdep_tb = conc_model.infected.particle.fraction_deposited(region="tb")
-    fdep_av = conc_model.infected.particle.fraction_deposited(region="av")
+    fdep_et = np.array(conc_model.infected.particle.fraction_deposited(region="et"))
+    fdep_tb = np.array(conc_model.infected.particle.fraction_deposited(region="tb"))
+    fdep_av = np.array(conc_model.infected.particle.fraction_deposited(region="av"))
     fdep_all_regions = np.sum((fdep_et, fdep_tb, fdep_av), axis=0)
 
     fdep = conc_model.infected.particle.fraction_deposited()

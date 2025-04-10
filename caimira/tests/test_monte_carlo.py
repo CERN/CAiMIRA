@@ -95,7 +95,7 @@ def test_build_concentration_model(baseline_mc_concentration_model: mc.Concentra
 
 def test_build_exposure_model(baseline_mc_exposure_model: mc.ExposureModel):
     model = baseline_mc_exposure_model.build_model(7)
-    assert isinstance(model, mc.ExposureModel)
+    assert isinstance(model, models.ExposureModel)
     prob = model.deposited_exposure()
     assert isinstance(prob, np.ndarray)
     assert prob.shape == (7, )

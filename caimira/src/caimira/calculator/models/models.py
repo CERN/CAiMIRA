@@ -687,7 +687,7 @@ class Particle:
             (0.943 / (1 + np.exp(0.508 - 2.58 * log_d)))
         )
     
-    def fraction_deposited(self, evaporation_factor: float=0.3, region: str=None) -> _VectorisedFloat:
+    def fraction_deposited(self, evaporation_factor: float=0.3, region: typing.Optional[str]=None) -> _VectorisedFloat:
         """
         The fraction of particles actually deposited in the respiratory
         tract (over the total number of particles). It depends on the
@@ -700,7 +700,7 @@ class Particle:
             # model is not evaluated for specific values of aerosol
             # diameters - we choose a single "average" deposition factor,
             # as in https://doi.org/10.1101/2021.10.14.21264988.
-            fdep = 0.6
+            fdep: _VectorisedFloat = 0.6
         else:
             # deposition fraction depends on aerosol particle diameter.
             d = (self.diameter * evaporation_factor)
@@ -1722,7 +1722,7 @@ class ExposureModel:
 
         return sorted(state_change_times)
 
-    def long_range_fraction_deposited(self, region: str) -> _VectorisedFloat:
+    def long_range_fraction_deposited(self, region: typing.Optional[str]=None) -> _VectorisedFloat:
         """
         The fraction of particles actually deposited in the respiratory
         tract (over the total number of particles). It depends on the
@@ -1764,7 +1764,7 @@ class ExposureModel:
             concentration += interaction.short_range_concentration(self.concentration_model, time)
         return concentration
 
-    def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float, region: str) -> _VectorisedFloat:
+    def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float, region: typing.Optional[str]=None) -> _VectorisedFloat:
         deposited_exposure = 0.
 
         emission_rate_per_aerosol_per_person = \
@@ -1796,7 +1796,7 @@ class ExposureModel:
 
         return deposited_exposure
 
-    def deposited_exposure_between_bounds(self, time1: float, time2: float, region: str) -> _VectorisedFloat:
+    def deposited_exposure_between_bounds(self, time1: float, time2: float, region: typing.Optional[str]=None) -> _VectorisedFloat:
         """
         The number of virus per m^3 deposited on the respiratory tract
         between any two times.
@@ -1867,24 +1867,47 @@ class ExposureModel:
         """
         The number of virus per m^3 deposited on the respiratory tract.
         """
-        all_region_vD = np.sum((self._deposited_exposure_list("et"), 
-                                self._deposited_exposure_list("tb"), 
-                                self._deposited_exposure_list("av")), axis=0)
-        return np.sum(all_region_vD, axis=0) * self.repeats
+        if self.concentration_model.infected.particle.diameter is None:
+            return np.sum(self._deposited_exposure_list(), axis=0) * self.repeats
+        else:
+            all_region_vD = np.sum((self._deposited_exposure_list("et"), 
+                                    self._deposited_exposure_list("tb"), 
+                                    self._deposited_exposure_list("av")), axis=0)
+            return np.sum(all_region_vD, axis=0) * self.repeats
 
     def _infection_probability_list(self):
-        # Viral dose per region (vD)
-        vD_list_et = self._deposited_exposure_list(region="et")
-        vD_list_tb = self._deposited_exposure_list(region="tb")
-        vD_list_av = self._deposited_exposure_list(region="av")
+        """
+        Calculates infection probability values based on population state change times.
 
-        # oneoverln2 multiplied by ID_50 corresponds to ID_63.
-        infectious_dose = oneoverln2 * self.concentration_model.virus.infectious_dose
+        This method uses either:
+        1. Legacy logic with a global deposition fraction when the particle diameter is
+        not defined, or
+        2. Region-specific fractional deposited exposure in different pulmonary regions 
+        when the particle diameter is defined.
+        """
+        if self.concentration_model.infected.particle.diameter is None:
+            vD_list = self._deposited_exposure_list()
 
-        # Probability of infection.
-        return [(1 - np.exp(-(((vD_et + vD_tb + vD_av) * (1 - self.exposed.host_immunity))/(infectious_dose *
-                self.concentration_model.virus.transmissibility_factor)))) 
-                for vD_et, vD_tb, vD_av in zip(vD_list_et, vD_list_tb, vD_list_av)]
+            # oneoverln2 multiplied by ID_50 corresponds to ID_63.
+            infectious_dose = oneoverln2 * self.concentration_model.virus.infectious_dose
+
+            # Probability of infection.
+            return [(1 - np.exp(-((vD * (1 - self.exposed.host_immunity))/(infectious_dose *
+                    self.concentration_model.virus.transmissibility_factor)))) for vD in vD_list]
+        else:
+            # Viral dose per region (vD)
+            vD_list_et = self._deposited_exposure_list(region="et")
+            vD_list_tb = self._deposited_exposure_list(region="tb")
+            vD_list_av = self._deposited_exposure_list(region="av")
+
+            # oneoverln2 multiplied by ID_50 corresponds to ID_63.
+            infectious_dose = oneoverln2 * self.concentration_model.virus.infectious_dose
+
+            # Probability of infection. Implement discretized infectious dose.
+            return [(1 - np.exp(-(((vD_et/infectious_dose + vD_tb/infectious_dose + vD_av/infectious_dose) *
+                    (1 - self.exposed.host_immunity))/(
+                    self.concentration_model.virus.transmissibility_factor)))) 
+                    for vD_et, vD_tb, vD_av in zip(vD_list_et, vD_list_tb, vD_list_av)]
 
     @method_cache
     def infection_probability(self) -> _VectorisedFloat:
