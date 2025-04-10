@@ -78,19 +78,19 @@ def known_concentrations(func, data_registry=DataRegistry()):
 @pytest.mark.parametrize(
     "population, cm, expected_exposure, expected_probability", [
         [populations[1], known_concentrations(lambda t: 18.),
-         np.array([61.47704218, 57.08582488]), np.array([66.46671825, 63.74477329])],
+         np.array([61.4770421822, 57.0858248835]), np.array([66.4667182522, 63.7447732889])],
 
         [populations[2], known_concentrations(lambda t: 18.),
-         np.array([39.28983899, 43.91217299]), np.array([39.28983899, 54.18007995])],
+         np.array([39.2898389886, 43.9121729873]), np.array([50.2569032222, 54.1800799486])],
 
         [populations[0], known_concentrations(lambda t: np.array([18., 36.])),
-         np.array([43.91217299, 87.82434597]), np.array([54.18007995, 79.00534926])],
+         np.array([43.9121729873, 87.8243459746]), np.array([54.1800799486, 79.0053492649])],
 
         [populations[1], known_concentrations(lambda t: np.array([18., 36.])),
-         np.array([61.47704218, 122.9540844]), np.array([66.46671825, 88.75519015])],
+         np.array([61.4770421822, 114.1716497670]), np.array([66.4667182522, 86.8555853613])],
 
         [populations[2], known_concentrations(lambda t: np.array([18., 36.])),
-         np.array([39.28983899, 87.82434597]), np.array([50.25690322, 79.00534926])],
+         np.array([39.2898389886, 87.8243459746]), np.array([50.2569032222, 79.0053492649])],
     ])
 def test_exposure_model_ndarray(data_registry, population, cm,
                                 expected_exposure, expected_probability, sr_model, cases_model):
@@ -109,9 +109,9 @@ def test_exposure_model_ndarray(data_registry, population, cm,
 
 
 @pytest.mark.parametrize("population, expected_deposited_exposure", [
-        [populations[0], np.array([1.52436206, 1.52436206])],
-        [populations[1], np.array([2.13410688, 1.98167067])],
-        [populations[2], np.array([1.36390289, 1.52436206])],
+        [populations[0], np.array([1.4637391, 1.4637391])],
+        [populations[1], np.array([2.049234739, 1.902860829])],
+        [populations[2], np.array([1.3096613, 1.4637391])],
     ])
 def test_exposure_model_ndarray_and_float_mix(data_registry, population, expected_deposited_exposure, sr_model, cases_model):
     cm = known_concentrations(
@@ -127,9 +127,9 @@ def test_exposure_model_ndarray_and_float_mix(data_registry, population, expecte
 
 
 @pytest.mark.parametrize("population, expected_deposited_exposure", [
-        [populations[0], np.array([1.52436206, 1.52436206])],
-        [populations[1], np.array([2.13410688, 1.98167067])],
-        [populations[2], np.array([1.36390289, 1.52436206])],
+        [populations[0], np.array([1.4637391, 1.4637391])],
+        [populations[1], np.array([2.049234739, 1.902860829])],
+        [populations[2], np.array([1.3096613, 1.4637391])],
     ])
 def test_exposure_model_vector(data_registry, population, expected_deposited_exposure, sr_model, cases_model):
     cm_array = known_concentrations(lambda t: np.array([0.6, 0.6]))
@@ -142,7 +142,7 @@ def test_exposure_model_vector(data_registry, population, expected_deposited_exp
 def test_exposure_model_scalar(data_registry, sr_model, cases_model):
     cm_scalar = known_concentrations(lambda t: 0.6)
     model_scalar = ExposureModel(data_registry, cm_scalar, sr_model, populations[0], cases_model)
-    expected_deposited_exposure = 1.52436206
+    expected_deposited_exposure = 1.4637391
     np.testing.assert_almost_equal(
         model_scalar.deposited_exposure(), expected_deposited_exposure
     )
@@ -405,8 +405,8 @@ def test_diameter_vectorisation_room(data_registry, diameter_dependent_model, sr
 @pytest.mark.parametrize(
     ["cm", "host_immunity", "expected_probability"],
     [
-        [known_concentrations(lambda t: 18.), np.array([0.25, 0.5]), np.array([55.93365366, 39.78768672])],
-        [known_concentrations(lambda t: 18.), np.array([0., 1.]), np.array([66.46671825, 0.])],
+        [known_concentrations(lambda t: 18.), np.array([0.25, 0.5]), np.array([55.9336536641, 39.7876867152])],
+        [known_concentrations(lambda t: 18.), np.array([0., 1.]), np.array([66.4667182522, 0.])],
     ]
 )
 def test_host_immunity_vectorisation(data_registry, sr_model, cases_model, cm, host_immunity, expected_probability):
