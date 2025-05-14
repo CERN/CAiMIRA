@@ -246,17 +246,17 @@ class DataRegistry:
                 "infectious_dose_et": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
-                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                    "references": "",
                 },
                 "infectious_dose_tb": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
-                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                    "references": "",
                 },
                 "infectious_dose_av": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
-                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                    "references": "",
                 },
                 "viable_to_RNA_ratio": {
                     "associated_value": "Uniform distribution",
@@ -282,17 +282,17 @@ class DataRegistry:
                 "infectious_dose_et": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
-                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                    "references": "",
                 },
                 "infectious_dose_tb": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
-                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                    "references": "",
                 },
                 "infectious_dose_av": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
-                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                    "references": "",
                 },
                 "viable_to_RNA_ratio": {
                     "associated_value": "Uniform distribution",
@@ -318,17 +318,17 @@ class DataRegistry:
                 "infectious_dose_et": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
-                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                    "references": "",
                 },
                 "infectious_dose_tb": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
-                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                    "references": "",
                 },
                 "infectious_dose_av": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
-                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                    "references": "",
                 },
                 "viable_to_RNA_ratio": {
                     "associated_value": "Uniform distribution",
@@ -354,17 +354,17 @@ class DataRegistry:
                 "infectious_dose_et": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
-                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                    "references": "",
                 },
                 "infectious_dose_tb": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
-                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                    "references": "",
                 },
                 "infectious_dose_av": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
-                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                    "references": "",
                 },
                 "viable_to_RNA_ratio": {
                     "associated_value": "Uniform distribution",
@@ -390,17 +390,17 @@ class DataRegistry:
                 "infectious_dose_et": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
-                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                    "references": "",
                 },
                 "infectious_dose_tb": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
-                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                    "references": "",
                 },
                 "infectious_dose_av": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
-                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                    "references": "",
                 },
                 "viable_to_RNA_ratio": {
                     "associated_value": "Uniform distribution",
@@ -426,17 +426,17 @@ class DataRegistry:
                 "infectious_dose_et": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
-                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                    "references": "",
                 },
                 "infectious_dose_tb": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
-                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                    "references": "",
                 },
                 "infectious_dose_av": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
-                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                    "references": "",
                 },
                 "viable_to_RNA_ratio": {
                     "associated_value": "Uniform distribution",
