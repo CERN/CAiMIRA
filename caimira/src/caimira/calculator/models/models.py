@@ -461,10 +461,17 @@ class CustomVentilation(_VentilationBase):
 
 @dataclass(frozen=True)
 class Virus:
+    '''
+    General Virus class. 
+    
+    The infectious dose can be discretized by respiratory region (extrathoracic, 
+    tracheobronchial, or alveolar). Otherwise, the legacy infectious_dose will be
+    considered for the three respiratory regions.
+    '''
     #: RNA copies  / mL
     viral_load_in_sputum: _VectorisedFloat
 
-    #: Dose to initiate infection, in RNA copies
+    #: Dose to initiate infection (legacy), in RNA copies
     infectious_dose: _VectorisedFloat
 
     #: viable-to-RNA virus ratio as a function of the viral load
@@ -473,11 +480,32 @@ class Virus:
     #: Reported increase of transmissibility of a VOC
     transmissibility_factor: float
 
+    #: Number of days the infector is contagious
+    infectiousness_days: int
+
     #: Pre-populated examples of Viruses.
     types: typing.ClassVar[typing.Dict[str, "Virus"]]
 
-    #: Number of days the infector is contagious
-    infectiousness_days: int
+    #: Dose to initiate infection in the extrathoracic zone, in RNA copies
+    infectious_dose_et: typing.Optional[_VectorisedFloat] = None
+
+    #: Dose to initiate infection in the tracheobronchial zone, in RNA copies
+    infectious_dose_tb: typing.Optional[_VectorisedFloat] = None
+
+    #: Dose to initiate infection in the alveolar zone, in RNA copies
+    infectious_dose_av: typing.Optional[_VectorisedFloat] = None
+    
+    @property
+    def effective_infectious_dose_et(self) -> _VectorisedFloat:
+        return self.infectious_dose_et if self.infectious_dose_et is not None else self.infectious_dose
+    
+    @property
+    def effective_infectious_dose_tb(self) -> _VectorisedFloat:
+        return self.infectious_dose_tb if self.infectious_dose_tb is not None else self.infectious_dose
+    
+    @property
+    def effective_infectious_dose_av(self) -> _VectorisedFloat:
+        return self.infectious_dose_av if self.infectious_dose_av is not None else self.infectious_dose
 
     def halflife(self, humidity: _VectorisedFloat, inside_temp: _VectorisedFloat) -> _VectorisedFloat:
         # Biological decay (inactivation of the virus in air) - virus
@@ -1901,10 +1929,12 @@ class ExposureModel:
             vD_list_av = self._deposited_exposure_list(region="av")
 
             # oneoverln2 multiplied by ID_50 corresponds to ID_63.
-            infectious_dose = oneoverln2 * self.concentration_model.virus.infectious_dose
+            infectious_dose_et = oneoverln2 * self.concentration_model.virus.effective_infectious_dose_et
+            infectious_dose_tb = oneoverln2 * self.concentration_model.virus.effective_infectious_dose_tb
+            infectious_dose_av = oneoverln2 * self.concentration_model.virus.effective_infectious_dose_av
 
             # Probability of infection. Implement discretized infectious dose.
-            return [(1 - np.exp(-(((vD_et/infectious_dose + vD_tb/infectious_dose + vD_av/infectious_dose) *
+            return [(1 - np.exp(-(((vD_et/infectious_dose_et + vD_tb/infectious_dose_tb + vD_av/infectious_dose_av) *
                     (1 - self.exposed.host_immunity))/(
                     self.concentration_model.virus.transmissibility_factor)))) 
                     for vD_et, vD_tb, vD_av in zip(vD_list_et, vD_list_tb, vD_list_av)]
