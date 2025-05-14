@@ -243,6 +243,21 @@ class DataRegistry:
                     "parameters": {"low": 10, "high": 100},
                     "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
                 },
+                "infectious_dose_et": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
+                "infectious_dose_tb": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
+                "infectious_dose_av": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
                 "viable_to_RNA_ratio": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 0.01, "high": 0.6},
@@ -260,6 +275,21 @@ class DataRegistry:
             "SARS_CoV_2_ALPHA": {
                 "viral_load_in_sputum": ViralLoads.COVID_OVERALL.value,
                 "infectious_dose": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
+                "infectious_dose_et": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
+                "infectious_dose_tb": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
+                "infectious_dose_av": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
                     "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
@@ -285,6 +315,21 @@ class DataRegistry:
                     "parameters": {"low": 10, "high": 100},
                     "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
                 },
+                "infectious_dose_et": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
+                "infectious_dose_tb": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
+                "infectious_dose_av": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
                 "viable_to_RNA_ratio": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 0.01, "high": 0.6},
@@ -302,6 +347,21 @@ class DataRegistry:
             "SARS_CoV_2_GAMMA": {
                 "viral_load_in_sputum": ViralLoads.COVID_OVERALL.value,
                 "infectious_dose": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
+                "infectious_dose_et": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
+                "infectious_dose_tb": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
+                "infectious_dose_av": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
                     "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
@@ -327,6 +387,21 @@ class DataRegistry:
                     "parameters": {"low": 10, "high": 100},
                     "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
                 },
+                "infectious_dose_et": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
+                "infectious_dose_tb": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
+                "infectious_dose_av": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
                 "viable_to_RNA_ratio": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 0.01, "high": 0.6},
@@ -344,6 +419,21 @@ class DataRegistry:
             "SARS_CoV_2_OMICRON": {
                 "viral_load_in_sputum": ViralLoads.COVID_OVERALL.value,
                 "infectious_dose": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
+                "infectious_dose_et": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
+                "infectious_dose_tb": {
+                    "associated_value": "Uniform distribution",
+                    "parameters": {"low": 10, "high": 100},
+                    "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",
+                },
+                "infectious_dose_av": {
                     "associated_value": "Uniform distribution",
                     "parameters": {"low": 10, "high": 100},
                     "references": "Lednicky et al. (https://doi.org/10.1016/j.ijid.2020.09.025); Henriques et al. (https://doi.org/10.1098/rsfs.2021.0076) and references therein.",

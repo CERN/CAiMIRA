@@ -284,6 +284,9 @@ def virus_distributions(data_registry):
         'SARS_CoV_2': mc.SARSCoV2(
             viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2'], 'viral_load_in_sputum', data_registry),
             infectious_dose=param_evaluation(vd['SARS_CoV_2'], 'infectious_dose'),
+            infectious_dose_et=param_evaluation(vd['SARS_CoV_2'], 'infectious_dose_et'),
+            infectious_dose_tb=param_evaluation(vd['SARS_CoV_2'], 'infectious_dose_tb'),
+            infectious_dose_av=param_evaluation(vd['SARS_CoV_2'], 'infectious_dose_av'),
             viable_to_RNA_ratio=param_evaluation(vd['SARS_CoV_2'], 'viable_to_RNA_ratio'),
             transmissibility_factor=vd['SARS_CoV_2']['transmissibility_factor']['value'],
             infectiousness_days=vd['SARS_CoV_2']['infectiousness_days']['value'],
@@ -291,6 +294,9 @@ def virus_distributions(data_registry):
         'SARS_CoV_2_ALPHA': mc.SARSCoV2(
             viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_ALPHA'], 'viral_load_in_sputum', data_registry),
             infectious_dose=param_evaluation(vd['SARS_CoV_2_ALPHA'], 'infectious_dose'),
+            infectious_dose_et=param_evaluation(vd['SARS_CoV_2_ALPHA'], 'infectious_dose_et'),
+            infectious_dose_tb=param_evaluation(vd['SARS_CoV_2_ALPHA'], 'infectious_dose_tb'),
+            infectious_dose_av=param_evaluation(vd['SARS_CoV_2_ALPHA'], 'infectious_dose_av'),
             viable_to_RNA_ratio=param_evaluation(vd['SARS_CoV_2_ALPHA'], 'viable_to_RNA_ratio'),
             transmissibility_factor=vd['SARS_CoV_2_ALPHA']['transmissibility_factor']['value'],
             infectiousness_days=vd['SARS_CoV_2_ALPHA']['infectiousness_days']['value'],
@@ -298,6 +304,9 @@ def virus_distributions(data_registry):
         'SARS_CoV_2_BETA': mc.SARSCoV2(
             viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_BETA'], 'viral_load_in_sputum', data_registry),
             infectious_dose=param_evaluation(vd['SARS_CoV_2_BETA'], 'infectious_dose'),
+            infectious_dose_et=param_evaluation(vd['SARS_CoV_2_BETA'], 'infectious_dose_et'),
+            infectious_dose_tb=param_evaluation(vd['SARS_CoV_2_BETA'], 'infectious_dose_tb'),
+            infectious_dose_av=param_evaluation(vd['SARS_CoV_2_BETA'], 'infectious_dose_av'),
             viable_to_RNA_ratio=param_evaluation(vd['SARS_CoV_2_BETA'], 'viable_to_RNA_ratio'),
             transmissibility_factor=vd['SARS_CoV_2_BETA']['transmissibility_factor']['value'],
             infectiousness_days=vd['SARS_CoV_2_BETA']['infectiousness_days']['value'],
@@ -305,6 +314,9 @@ def virus_distributions(data_registry):
         'SARS_CoV_2_GAMMA': mc.SARSCoV2(
             viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_GAMMA'], 'viral_load_in_sputum', data_registry),
             infectious_dose=param_evaluation(vd['SARS_CoV_2_GAMMA'], 'infectious_dose'),
+            infectious_dose_et=param_evaluation(vd['SARS_CoV_2_GAMMA'], 'infectious_dose_et'),
+            infectious_dose_tb=param_evaluation(vd['SARS_CoV_2_GAMMA'], 'infectious_dose_tb'),
+            infectious_dose_av=param_evaluation(vd['SARS_CoV_2_GAMMA'], 'infectious_dose_av'),
             viable_to_RNA_ratio=param_evaluation(vd['SARS_CoV_2_GAMMA'], 'viable_to_RNA_ratio'),
             transmissibility_factor=vd['SARS_CoV_2_GAMMA']['transmissibility_factor']['value'],
             infectiousness_days=vd['SARS_CoV_2_GAMMA']['infectiousness_days']['value'],
@@ -312,6 +324,9 @@ def virus_distributions(data_registry):
         'SARS_CoV_2_DELTA': mc.SARSCoV2(
             viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_DELTA'], 'viral_load_in_sputum', data_registry),
             infectious_dose=param_evaluation(vd['SARS_CoV_2_DELTA'], 'infectious_dose'),
+            infectious_dose_et=param_evaluation(vd['SARS_CoV_2_DELTA'], 'infectious_dose_et'),
+            infectious_dose_tb=param_evaluation(vd['SARS_CoV_2_DELTA'], 'infectious_dose_tb'),
+            infectious_dose_av=param_evaluation(vd['SARS_CoV_2_DELTA'], 'infectious_dose_av'),
             viable_to_RNA_ratio=param_evaluation(vd['SARS_CoV_2_DELTA'], 'viable_to_RNA_ratio'),
             transmissibility_factor=vd['SARS_CoV_2_DELTA']['transmissibility_factor']['value'],
             infectiousness_days=vd['SARS_CoV_2_DELTA']['infectiousness_days']['value'],
@@ -319,6 +334,9 @@ def virus_distributions(data_registry):
         'SARS_CoV_2_OMICRON': mc.SARSCoV2(
             viral_load_in_sputum=evaluate_vl(vd['SARS_CoV_2_OMICRON'], 'viral_load_in_sputum', data_registry),
             infectious_dose=param_evaluation(vd['SARS_CoV_2_OMICRON'], 'infectious_dose'),
+            infectious_dose_et=param_evaluation(vd['SARS_CoV_2_OMICRON'], 'infectious_dose_et'),
+            infectious_dose_tb=param_evaluation(vd['SARS_CoV_2_OMICRON'], 'infectious_dose_tb'),
+            infectious_dose_av=param_evaluation(vd['SARS_CoV_2_OMICRON'], 'infectious_dose_av'),
             viable_to_RNA_ratio=param_evaluation(vd['SARS_CoV_2_OMICRON'], 'viable_to_RNA_ratio'),
             transmissibility_factor=vd['SARS_CoV_2_OMICRON']['transmissibility_factor']['value'],
             infectiousness_days=vd['SARS_CoV_2_OMICRON']['infectiousness_days']['value'],
