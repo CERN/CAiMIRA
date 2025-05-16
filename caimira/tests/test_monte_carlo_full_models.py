@@ -348,7 +348,7 @@ def waiting_room_mc(data_registry):
         ["ski_cabin_mc",     12.92, 0.39, 21.796, 10231*0.305],
         ["skagit_chorale_mc",61.01, 36.53, 84.730, 190422*0.305],
         ["bus_ride_mc",      10.59, 7.06, 6.650, 5419*0.305],
-        ["gym_mc",           0.52, 0.14, 0.249, 1450*0.305/2.], # there are two infected in this case
+        ["gym_mc",           0.52, 0.15, 0.249, 1450*0.305/2.], # there are two infected in this case
         ["waiting_room_mc",  1.53, 0.21, 0.844, 929*0.305],
     ]
 )

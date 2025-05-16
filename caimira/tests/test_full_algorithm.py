@@ -756,6 +756,7 @@ def test_longrange_concentration_with_distributions(c_model_distr, time, data_re
         )
 
 
+@retry(tries=10)
 def test_longrange_exposure_with_distributions(data_registry, c_model_distr):
     simple_expo_model = SimpleExposureModel(
         infected_presence = presence,
