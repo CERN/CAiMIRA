@@ -265,7 +265,7 @@ class FormData:
         return entry_start, entry_finish
     
     def check_interaction_is_within_long_range(self, interaction: typing.Dict, existing_interactions: typing.List, 
-                                               lr_start: minutes_since_midnight, lr_stop: minutes_since_midnight) -> bool:
+                                               lr_start: float, lr_stop: float) -> bool:
         """
         Check if the short-range interaction falls within the long-range exposure time.
         Check if the short-range interaction given as input overlaps with any already 
