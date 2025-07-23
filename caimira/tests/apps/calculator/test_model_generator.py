@@ -626,8 +626,8 @@ def test_occupancy_general_params_TypeError(occupancy, error, baseline_form: vir
         [{"start_time": "10:00", "finish_time": "11:00"}, 'The presence parameter in occupancy group "group_A" should be a valid list. Got <class \'dict\'>.'],
         [[], 'The presence parameter in occupancy group "group_A" should be a valid, non-empty list. Got [].'],
         [[["start_time", "10:00", "finish_time", "11:00"]], 'Each presence interval should be a valid dictionary. Got <class \'list\'> in occupancy group "group_A".'],
-        [[{"art_time": "10:00", "finish_time": "11:00"}], 'Missing start_time key in presence parameter of occupancy group "group_A". Got keys: art_time, finish_time.'],
-        [[{"start_time": "10:00", "ish_time": "11:00"}], 'Missing finish_time key in presence parameter of occupancy group "group_A". Got keys: start_time, ish_time.'],
+        [[{"art_time": "10:00", "finish_time": "11:00"}], 'Missing start_time key in "presence" parameter of occupancy group "group_A". Got keys: art_time, finish_time.'],
+        [[{"start_time": "10:00", "ish_time": "11:00"}], 'Missing finish_time key in "presence" parameter of occupancy group "group_A". Got keys: start_time, ish_time.'],
     ]
 )
 def test_occupancy_presence_TypeError(occupancy_presence, error, baseline_form: virus_validator.VirusFormData):
@@ -645,8 +645,8 @@ def test_occupancy_presence_TypeError(occupancy_presence, error, baseline_form: 
 @pytest.mark.parametrize(
     ["occupancy_presence", "error"],
     [
-        [[{"start_time": "10", "finish_time": "11:00"}], 'Invalid time format found in presence parameter of occupancy group "group_A". Expected HH:MM, got 10.'],
-        [[{"start_time": "10:00", "finish_time": "11"}], 'Invalid time format found in presence parameter of occupancy group "group_A". Expected HH:MM, got 11.'],
+        [[{"start_time": "10", "finish_time": "11:00"}], 'Invalid time format found in "presence" parameter of occupancy group "group_A". Expected HH:MM, got 10.'],
+        [[{"start_time": "10:00", "finish_time": "11"}], 'Invalid time format found in "presence" parameter of occupancy group "group_A". Expected HH:MM, got 11.'],
     ]
 )
 def test_occupancy_presence_ValueError(occupancy_presence, error, baseline_form: virus_validator.VirusFormData):
