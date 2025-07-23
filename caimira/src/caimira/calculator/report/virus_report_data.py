@@ -529,8 +529,8 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
             no_short_range_alternative = dataclass_utils.replace(form, short_range_interactions={}, occupancy=form.occupancy)        
         scenarios['Base scenario without short-range interactions'] = no_short_range_alternative.build_mc_model()
 
-    for sceario_name, scenario in scenarios.items():
-        scenarios[sceario_name] = scenario.exposure_models[0] # type: ignore
+    for scenario_name, scenario in scenarios.items():
+        scenarios[scenario_name] = scenario.exposure_models[0] # type: ignore
     return scenarios
 
 
