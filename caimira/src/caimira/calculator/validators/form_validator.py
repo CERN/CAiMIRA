@@ -258,7 +258,7 @@ class FormData:
         
     def get_start_and_finish_time(self, entry: typing.Dict) -> typing.Tuple:
         entry_start = time_string_to_minutes(entry["start_time"])/60
-        if "finish_time" in list(entry.keys()):
+        if "finish_time" in entry:
             entry_finish = time_string_to_minutes(entry["finish_time"])/60
         else:
             entry_finish = entry_start + entry['duration']/60
