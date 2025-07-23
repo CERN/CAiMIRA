@@ -256,7 +256,7 @@ class FormData:
         if 'presence' not in group_params:
             raise TypeError(f'Missing presence key in occupancy group "{group_id}". Got keys: {", ".join(group_params)}.')
         
-    def get_start_and_finish_time(self, entry: dict):
+    def get_start_and_finish_time(self, entry: typing.Dict) -> typing.Tuple:
         entry_start = time_string_to_minutes(entry["start_time"])/60
         if "finish_time" in list(entry.keys()):
             entry_finish = time_string_to_minutes(entry["finish_time"])/60
@@ -264,8 +264,8 @@ class FormData:
             entry_finish = entry_start + entry['duration']/60
         return entry_start, entry_finish
     
-    def check_interaction_is_within_long_range(self, interaction, existing_interactions, 
-                                               lr_start, lr_stop):
+    def check_interaction_is_within_long_range(self, interaction: typing.Dict, existing_interactions: typing.List, 
+                                               lr_start: minutes_since_midnight, lr_stop: minutes_since_midnight) -> bool:
         """
         Check if the short-range interaction falls within the long-range exposure time.
         Check if the short-range interaction given as input overlaps with any already 
@@ -279,7 +279,7 @@ class FormData:
             return True
         return False
     
-    def check_overlap(self, entry, existing_entries):
+    def check_overlap(self, entry: typing.Dict, existing_entries: typing.List):
         """
         Check if an entry overlaps with an already existing entry
         by comparing the start and finish times of all entries.
