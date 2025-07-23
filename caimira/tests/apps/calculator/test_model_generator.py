@@ -592,7 +592,7 @@ def test_form_timezone(baseline_form_data, data_registry, longitude, latitude, m
 
 def test_occupancy_TypeError(baseline_form: virus_validator.VirusFormData):
     baseline_form.occupancy = [] # type: ignore
-    error = 'The occupancy input should be a valid dictionary. Got [].'
+    error = 'The "occupancy" input should be a valid dictionary. Got [].'
     with pytest.raises(TypeError, match=re.escape(error)):
         baseline_form.validate()
 
@@ -602,15 +602,15 @@ def test_occupancy_TypeError(baseline_form: virus_validator.VirusFormData):
     [   
         [
             {"tal_people": 10, "infected": 5, "presence": [{"start_time": "10:00", "finish_time": "11:00"}],},
-            'Missing total_people key in occupancy group "group_A". Got keys: tal_people, infected, presence.'
+            'Missing "total_people" key in occupancy group "group_A". Got keys: tal_people, infected, presence.'
         ],
         [
             {"total_people": 10, "infeted": 5, "presence": [{"start_time": "10:00", "finish_time": "11:00"}],},
-            'Missing infected key in occupancy group "group_A". Got keys: total_people, infeted, presence.'
+            'Missing "infected" key in occupancy group "group_A". Got keys: total_people, infeted, presence.'
         ],
         [
             {"total_people": 10, "infected": 5, "pesence": [{"start_time": "10:00", "finish_time": "11:00"}],},
-            'Missing presence key in occupancy group "group_A". Got keys: total_people, infected, pesence.'
+            'Missing "presence" key in occupancy group "group_A". Got keys: total_people, infected, pesence.'
         ],
     ]
 )
@@ -623,11 +623,11 @@ def test_occupancy_general_params_TypeError(occupancy, error, baseline_form: vir
 @pytest.mark.parametrize(
     ["occupancy_presence", "error"],
     [   
-        [{"start_time": "10:00", "finish_time": "11:00"}, 'The presence parameter in occupancy group "group_A" should be a valid list. Got <class \'dict\'>.'],
-        [[], 'The presence parameter in occupancy group "group_A" should be a valid, non-empty list. Got [].'],
+        [{"start_time": "10:00", "finish_time": "11:00"}, 'The "presence" parameter in occupancy group "group_A" should be a valid list. Got <class \'dict\'>.'],
+        [[], 'The "presence" parameter in occupancy group "group_A" should be a valid, non-empty list. Got [].'],
         [[["start_time", "10:00", "finish_time", "11:00"]], 'Each presence interval should be a valid dictionary. Got <class \'list\'> in occupancy group "group_A".'],
-        [[{"art_time": "10:00", "finish_time": "11:00"}], 'Missing start_time key in "presence" parameter of occupancy group "group_A". Got keys: art_time, finish_time.'],
-        [[{"start_time": "10:00", "ish_time": "11:00"}], 'Missing finish_time key in "presence" parameter of occupancy group "group_A". Got keys: start_time, ish_time.'],
+        [[{"art_time": "10:00", "finish_time": "11:00"}], 'Missing "start_time" key in "presence" parameter of occupancy group "group_A". Got keys: art_time, finish_time.'],
+        [[{"start_time": "10:00", "ish_time": "11:00"}], 'Missing "finish_time" key in "presence" parameter of occupancy group "group_A". Got keys: start_time, ish_time.'],
     ]
 )
 def test_occupancy_presence_TypeError(occupancy_presence, error, baseline_form: virus_validator.VirusFormData):
@@ -664,10 +664,10 @@ def test_occupancy_presence_ValueError(occupancy_presence, error, baseline_form:
 @pytest.mark.parametrize(
     ["total_people", "error"],
     [
-        ["10", 'The total_people input in occupancy group "group_A" should be a non-negative integer. Got 10.'],
-        [9.8, 'The total_people input in occupancy group "group_A" should be a non-negative integer. Got 9.8.'],
-        [[10], 'The total_people input in occupancy group "group_A" should be a non-negative integer. Got [10].'],
-        [-1, 'The total_people input in occupancy group "group_A" should be a non-negative integer. Got -1.'],
+        ["10", 'The "total_people" input in occupancy group "group_A" should be a non-negative integer. Got 10.'],
+        [9.8, 'The "total_people" input in occupancy group "group_A" should be a non-negative integer. Got 9.8.'],
+        [[10], 'The "total_people" input in occupancy group "group_A" should be a non-negative integer. Got [10].'],
+        [-1, 'The "total_people" input in occupancy group "group_A" should be a non-negative integer. Got -1.'],
     ]
 )
 def test_occupancy_total_people_ValueError(total_people, error, baseline_form: virus_validator.VirusFormData):
@@ -729,9 +729,9 @@ def test_occupancy_presence_overlap(baseline_form: virus_validator.VirusFormData
     ["short_range_input", "error"],
     [
         [[["expiration", "Shouting", "start_time", "09:00", "duration", 30]], 'Each short-range interaction should be a dictionary. Got <class \'list\'> in occupancy group "group_A".'],
-        [[{"expiratio": "Shouting", "start_time": "09:00", "duration": 30}], 'Missing expiration key in short-range interaction for occupancy group "group_A". Got keys: expiratio, start_time, duration.'],
-        [[{"expiration": "Shouting", "start_tim": "09:00", "duration": 30}], 'Missing start_time key in short-range interaction for occupancy group "group_A". Got keys: expiration, start_tim, duration.'],
-        [[{"expiration": "Shouting", "start_time": "09:00", "duratio": 30}], 'Missing duration key in short-range interaction for occupancy group "group_A". Got keys: expiration, start_time, duratio.'],
+        [[{"expiratio": "Shouting", "start_time": "09:00", "duration": 30}], 'Missing "expiration" key in short-range interaction for occupancy group "group_A". Got keys: expiratio, start_time, duration.'],
+        [[{"expiration": "Shouting", "start_tim": "09:00", "duration": 30}], 'Missing "start_time" key in short-range interaction for occupancy group "group_A". Got keys: expiration, start_tim, duration.'],
+        [[{"expiration": "Shouting", "start_time": "09:00", "duratio": 30}], 'Missing "duration" key in short-range interaction for occupancy group "group_A". Got keys: expiration, start_time, duratio.'],
     ]
 )
 def test_short_range_TypeError(short_range_input, error, baseline_form: virus_validator.VirusFormData):
