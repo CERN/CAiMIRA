@@ -119,12 +119,12 @@ class FormData:
             # Checks for the "start_time" and "finish_time" params
             for time_param in ["start_time", "finish_time"]:
                 if time_param not in presence_params:
-                    raise TypeError(f'Missing {time_param} key in presence parameter of occupancy group "{group_id}".' 
+                    raise TypeError(f'Missing {time_param} key in "presence" parameter of occupancy group "{group_id}".' 
                                     f' Got keys: {", ".join(presence_params)}.')
                 
                 time_value = presence_interval[time_param]
                 if not re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$").match(time_value):
-                    raise ValueError(f'Invalid time format found in presence parameter of occupancy group "{group_id}". '
+                    raise ValueError(f'Invalid time format found in "presence" parameter of occupancy group "{group_id}". '
                                      f'Expected HH:MM, got {time_value}.')
             
             if presence_interval["finish_time"] <= presence_interval["start_time"]:
