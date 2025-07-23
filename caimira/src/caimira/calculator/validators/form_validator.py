@@ -93,17 +93,17 @@ class FormData:
                     form_dict.pop(attr)
         return form_dict
 
-    def validate_group_presence_input(self, group_id: str, group_presence: typing.Dict):
+    def validate_group_presence_input(self, group_id: str, group_presence: typing.List):
         """
         When occupancy is defined, this method validates the
         presence times within an occupancy group.
         """
         # Checks if the presence input is a valid list
         if not isinstance(group_presence, list):
-            raise TypeError(f'The presence parameter in occupancy group "{group_id}" should be a valid list. Got {type(group_presence)}.')
+            raise TypeError(f'The "presence" parameter in occupancy group "{group_id}" should be a valid list. Got {type(group_presence)}.')
         # Checks if the presence input is populated
         if len(group_presence) == 0:
-            raise TypeError(f'The presence parameter in occupancy group "{group_id}" should be a valid, non-empty list. Got {group_presence}.')
+            raise TypeError(f'The "presence" parameter in occupancy group "{group_id}" should be a valid, non-empty list. Got {group_presence}.')
         
         # Already processed presence intervals for overlap checking
         existing_occupancy_presence_interval = []
@@ -119,7 +119,7 @@ class FormData:
             # Checks for the "start_time" and "finish_time" params
             for time_param in ["start_time", "finish_time"]:
                 if time_param not in presence_params:
-                    raise TypeError(f'Missing {time_param} key in "presence" parameter of occupancy group "{group_id}".' 
+                    raise TypeError(f'Missing "{time_param}" key in "presence" parameter of occupancy group "{group_id}".' 
                                     f' Got keys: {", ".join(presence_params)}.')
                 
                 time_value = presence_interval[time_param]
@@ -160,7 +160,7 @@ class FormData:
 
             # Checks for the expiration key and its constraints
             if "expiration" not in interaction_params:
-                raise TypeError(f'Missing expiration key in short-range interaction for occupancy group "{group_id}". Got keys: {", ".join(interaction_params)}.')
+                raise TypeError(f'Missing "expiration" key in short-range interaction for occupancy group "{group_id}". Got keys: {", ".join(interaction_params)}.')
             else:
                 expiration = interaction["expiration"]
                 if expiration not in list(self.data_registry.expiration_particle['expiration_BLO_factors'].keys()): # type: ignore
@@ -168,7 +168,7 @@ class FormData:
 
             # Checks for start_time key and its format
             if "start_time" not in interaction_params:
-                raise TypeError(f'Missing start_time key in short-range interaction for occupancy group "{group_id}". Got keys: {", ".join(interaction_params)}.')
+                raise TypeError(f'Missing "start_time" key in short-range interaction for occupancy group "{group_id}". Got keys: {", ".join(interaction_params)}.')
             else:
                 start_time = interaction["start_time"]
                 if not re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$").match(start_time):
@@ -236,15 +236,15 @@ class FormData:
 
         # Total people input
         if 'total_people' not in group_params:
-            raise TypeError(f'Missing total_people key in occupancy group "{group_id}". Got keys: {", ".join(group_params)}.')
+            raise TypeError(f'Missing "total_people" key in occupancy group "{group_id}". Got keys: {", ".join(group_params)}.')
         else:
             total_people = group['total_people']
             if not isinstance(total_people, int) or total_people < 0:
-                raise ValueError(f'The total_people input in occupancy group "{group_id}" should be a non-negative integer. Got {total_people}.')
+                raise ValueError(f'The "total_people" input in occupancy group "{group_id}" should be a non-negative integer. Got {total_people}.')
         
         # Infected people input
         if 'infected' not in group_params:
-            raise TypeError(f'Missing infected key in occupancy group "{group_id}". Got keys: {", ".join(group_params)}.')
+            raise TypeError(f'Missing "infected" key in occupancy group "{group_id}". Got keys: {", ".join(group_params)}.')
         else:
             infected = group['infected']
             if not isinstance(infected, int) or infected < 0:
@@ -254,7 +254,7 @@ class FormData:
 
         # Presence input
         if 'presence' not in group_params:
-            raise TypeError(f'Missing presence key in occupancy group "{group_id}". Got keys: {", ".join(group_params)}.')
+            raise TypeError(f'Missing "presence" key in occupancy group "{group_id}". Got keys: {", ".join(group_params)}.')
         
     def get_start_and_finish_time(self, entry: typing.Dict) -> typing.Tuple:
         entry_start = time_string_to_minutes(entry["start_time"])/60
@@ -384,7 +384,7 @@ class FormData:
                         # ...as well as the respective presence input
                         self.validate_group_presence_input(group_id, group['presence'])
         else:
-            raise TypeError(f'The occupancy input should be a valid dictionary. Got {self.occupancy}.')
+            raise TypeError(f'The "occupancy" input should be a valid dictionary. Got {self.occupancy}.')
 
     def validate(self):
         raise NotImplementedError("Subclass must implement")
