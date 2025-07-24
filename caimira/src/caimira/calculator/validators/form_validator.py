@@ -106,7 +106,7 @@ class FormData:
             raise TypeError(f'The "presence" parameter in occupancy group "{group_id}" should be a valid, non-empty list. Got {group_presence}.')
         
         # Already processed presence intervals for overlap checking
-        existing_occupancy_presence_interval = []
+        existing_occupancy_presence_interval: typing.List = []
         
         for presence_interval in group_presence:
             # Checks if each presence entry is a valid dict

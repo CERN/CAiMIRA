@@ -237,7 +237,7 @@ class DataclassInstanceState(DataclassState[Datamodel_T]):
 
         # TODO: It is possible to cut observer connections by clearing like this.
         self._data.clear()
-        for field in dataclasses.fields(instance_dataclass):
+        for field in dataclasses.fields(instance_dataclass): # type: ignore
             if dataclasses.is_dataclass(field.type):
                 self._data[field.name] = self._state_builder.visit(field)
                 self._data[field.name].dcs_observe(self._fire_observers)
