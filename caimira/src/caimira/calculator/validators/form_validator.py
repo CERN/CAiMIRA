@@ -176,7 +176,7 @@ class FormData:
             
             # Checks for "duration" and its format
             if "duration" not in interaction_params:
-                raise TypeError(f'Missing duration key in short-range interaction for occupancy group "{group_id}". Got keys: {", ".join(interaction_params)}.')
+                raise TypeError(f'Missing "duration" key in short-range interaction for occupancy group "{group_id}". Got keys: {", ".join(interaction_params)}.')
             else:
                 duration = interaction["duration"]
                 if duration < 0:
