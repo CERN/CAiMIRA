@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cern-caimira"
-version = "4.17.8"
+version = "4.18.0"
 description = "CAiMIRA - CERN Airborne Model for Indoor Risk Assessment"
 license = { text = "Apache-2.0" }
 authors = [
