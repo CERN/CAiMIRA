@@ -365,6 +365,7 @@ def expiration_distribution(
         BLO_factors,
         d_min=0.1,
         d_max=30.,
+        exp_type=None,
 ):
     """
     Returns an Expiration with an aerosol diameter distribution, defined
@@ -382,6 +383,7 @@ def expiration_distribution(
             kernel_bandwidth=0.1,
         ),
         cn=BLOmodel(data_registry, BLO_factors).integrate(d_min, d_max),
+        name=exp_type,
     )
 
 
@@ -432,7 +434,8 @@ def short_range_expiration_distributions(data_registry):
             data_registry=data_registry,
             BLO_factors=BLO_factors,
             d_min=param_evaluation(data_registry.expiration_particle['particle_size_range']['short_range'], 'minimum_diameter'),
-            d_max=param_evaluation(data_registry.expiration_particle['particle_size_range']['short_range'], 'maximum_diameter')
+            d_max=param_evaluation(data_registry.expiration_particle['particle_size_range']['short_range'], 'maximum_diameter'),
+            exp_type=exp_type,
         )
         for exp_type, BLO_factors in expiration_BLO_factors(data_registry).items()
     }

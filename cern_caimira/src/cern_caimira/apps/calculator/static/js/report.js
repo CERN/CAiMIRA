@@ -4,13 +4,18 @@ function on_report_load(conditional_probability_viral_loads) {
 }
 
 /* Generate the concentration plot using d3 library. */
-function draw_plot(svg_id) {
+function draw_plot(svg_id, group_id, times, concentrations_zoomed, 
+                concentrations, cumulative_doses, long_range_cumulative_doses, 
+                exposed_presence_intervals, short_range_interactions) {
 
     // Used for controlling the short-range interactions 
-    let button_full_exposure = document.getElementById("button_full_exposure");
-    let button_hide_high_concentration = document.getElementById("button_hide_high_concentration");
-    let long_range_checkbox = document.getElementById('long_range_cumulative_checkbox')
-    let show_sr_legend = short_range_expirations.length > 0;
+    let button_full_exposure = document.getElementById(`button_full_exposure-group_${group_id}`);
+    let button_hide_high_concentration = document.getElementById(`button_hide_high_concentration-group_${group_id}`);
+    let long_range_checkbox = document.getElementById(`long_range_cumulative_checkbox-group_${group_id}`);
+    let show_sr_legend = short_range_interactions.length > 0;
+
+    let short_range_intervals = short_range_interactions.map((interaction) => interaction["presence_interval"]);
+    let short_range_expirations = short_range_interactions.map((interaction) => interaction["expiration"]);
 
     var data_for_graphs = {
         'concentrations': [],
@@ -192,7 +197,7 @@ function draw_plot(svg_id) {
     // Area representing the short-range interaction(s).
     var shortRangeArea = {};
     var drawShortRangeArea = {};
-    short_range_intervals.forEach((b, index) => {
+    short_range_intervals?.forEach((b, index) => {
         shortRangeArea[index] = d3.area();
         drawShortRangeArea[index] = draw_area.append('svg:path');
 
@@ -285,7 +290,7 @@ function draw_plot(svg_id) {
         });
 
         // Short-Range Area.
-        short_range_intervals.forEach((b, index) => {
+        short_range_intervals.flat().forEach((b, index) => {
             shortRangeArea[index].x(d => xTimeRange(d.time))
                 .y0(graph_height - 50)
                 .y1(d => yRange(d.concentration));
@@ -521,12 +526,12 @@ function draw_plot(svg_id) {
     }
 
     // Draw for the first time to initialize.
-    redraw();
+    redraw(svg_id);
     update_concentration_plot(concentrations, cumulative_doses);
 
     // Redraw based on the new size whenever the browser window is resized.
     window.addEventListener("resize", e => {
-        redraw();
+        redraw(svg_id);
         if (button_full_exposure && button_full_exposure.disabled) update_concentration_plot(concentrations, cumulative_doses);
         else update_concentration_plot(concentrations_zoomed, long_range_cumulative_doses)
     });
@@ -536,12 +541,13 @@ function draw_plot(svg_id) {
 // 'list_of_scenarios' is a dictionary with all the scenarios 
 // 'times' is a list of times for all the scenarios
 function draw_generic_concentration_plot(
-        plot_svg_id,
+        svg_id,
+        times,
         y_axis_label,
         h_lines,
     ) {
 
-    if (plot_svg_id === 'CO2_concentration_graph') {
+    if (svg_id === 'CO2_concentration_graph') {
         list_of_scenarios = {'CO₂ concentration': {'concentrations': CO2_concentrations}};
         min_y_axis_domain = 400;
     }
@@ -575,7 +581,7 @@ function draw_generic_concentration_plot(
     var first_scenario = Object.values(data_for_scenarios)[0]
 
     // Add main SVG element
-    var plot_div = document.getElementById(plot_svg_id);
+    var plot_div = document.getElementById(svg_id);
     var vis = d3.select(plot_div).append('svg');
 
     var xRange = d3.scaleTime().domain([first_scenario[0].hour, first_scenario[first_scenario.length - 1].hour]);
@@ -706,7 +712,7 @@ function draw_generic_concentration_plot(
     }
 
     function update_concentration_plot(concentration_data) {
-        list_of_scenarios = (plot_svg_id === 'CO2_concentration_graph') ? {'CO₂ concentration': {'concentrations': CO2_concentrations}} : alternative_scenarios
+        list_of_scenarios = (svg_id === 'CO2_concentration_graph') ? {'CO₂ concentration': {'concentrations': CO2_concentrations}} : alternative_scenarios
         var highest_concentration = 0.
 
         for (scenario in list_of_scenarios) {
@@ -739,11 +745,11 @@ function draw_generic_concentration_plot(
     var graph_width;
     var graph_height;
 
-    function redraw() {
+    function redraw(svg_id) {
         // Define width and height according to the screen size. Always use an already defined
-        var window_width = document.getElementById('concentration_plot').clientWidth;
+        var window_width = document.getElementById(svg_id).clientWidth;
         var div_width = window_width;
-        var div_height = document.getElementById('concentration_plot').clientHeight;
+        var div_height = document.getElementById(svg_id).clientHeight;
         graph_width = div_width;
         graph_height = div_height;
         var margins = { top: 30, right: 20, bottom: 50, left: 60 };
@@ -882,12 +888,12 @@ function draw_generic_concentration_plot(
     }
 
     // Draw for the first time to initialize.
-    redraw();
+    redraw(svg_id);
     update_concentration_plot('concentrations');
 
     // Redraw based on the new size whenever the browser window is resized.
     window.addEventListener("resize", e => {
-        redraw();
+        redraw(svg_id);
         update_concentration_plot('concentrations');
     });
 }

@@ -666,7 +666,7 @@ class Particle:
             # deposition fraction depends on aerosol particle diameter.
             d = (self.diameter * evaporation_factor)
             IFrac = 1 - 0.5 * (1 - (1 / (1 + (0.00076*(d**2.8)))))
-            fdep = IFrac * (0.0587
+            fdep = IFrac * (0.0587 # type: ignore
                     + (0.911/(1 + np.exp(4.77 + 1.485 * np.log(d))))
                     + (0.943/(1 + np.exp(0.508 - 2.58 * np.log(d))))) # type: ignore
         return fdep
@@ -710,6 +710,9 @@ class Expiration(_ExpirationBase):
     # (in cm^-3), integrated over all aerosol diameters (corresponding
     # to c_n,i in Eq. (4) of https://doi.org/10.1101/2021.10.14.21264988)
     cn: float = 1.
+
+    #: Expiration name
+    name: typing.Optional[str] = None
 
     @property
     def particle(self) -> Particle:
@@ -799,7 +802,7 @@ Activity.types = {
 @dataclass(frozen=True)
 class SimplePopulation:
     """
-    Represents a group of people all with exactly the same behaviour and
+    Represents a group of people all with exactly the same behavior and
     situation.
 
     """
@@ -844,7 +847,7 @@ class SimplePopulation:
 @dataclass(frozen=True)
 class Population(SimplePopulation):
     """
-    Represents a group of people all with exactly the same behaviour and
+    Represents a group of people all with exactly the same behavior and
     situation, considering the usage of mask and a certain host immunity.
 
     """
@@ -1313,7 +1316,7 @@ class ShortRangeModel:
     data_registry: DataRegistry
 
     #: Expiration type
-    expiration: _ExpirationBase
+    expiration: Expiration
 
     #: Activity type
     activity: Activity
@@ -1639,6 +1642,9 @@ class ExposureModel:
     #: Total people with short-range interactions
     exposed_to_short_range: int = 0
 
+    #: Unique group identifier
+    identifier: str = 'group_1'
+
     #: The number of times the exposure event is repeated (default 1).
     @property
     def repeats(self) -> int:
@@ -1653,6 +1659,9 @@ class ExposureModel:
         In other words, the air exchange rate from the
         ventilation, and the virus decay constant, must
         not be given as arrays.
+
+        It also checks that the number of exposed is
+        static during the simulation time.
         """
         c_model = self.concentration_model
         # Check if the diameter is vectorised.
@@ -1663,6 +1672,11 @@ class ExposureModel:
                 c_model.ventilation.air_exchange(c_model.room, time)) for time in c_model.state_change_times()))):
             raise ValueError("If the diameter is an array, none of the ventilation parameters "
                              "or virus decay constant can be arrays at the same time.")
+        
+        # Check if exposed population is static
+        if not isinstance(self.exposed.number, int) or not isinstance(self.exposed.presence, Interval):
+            raise TypeError("The exposed number must be an int and presence an Interval. "
+                            f"Got {type(self.exposed.number)} and {type(self.exposed.presence)}.")
 
     @method_cache
     def population_state_change_times(self) -> typing.List[float]:
@@ -1809,11 +1823,9 @@ class ExposureModel:
         The number of virus per m^3 deposited on the respiratory tract.
         """
         population_change_times = self.population_state_change_times()
-
         deposited_exposure = []
         for start, stop in zip(population_change_times[:-1], population_change_times[1:]):
             deposited_exposure.append(self.deposited_exposure_between_bounds(start, stop))
-
         return deposited_exposure
 
     def deposited_exposure(self) -> _VectorisedFloat:
@@ -1838,8 +1850,7 @@ class ExposureModel:
         return (1 - np.prod([1 - prob for prob in self._infection_probability_list()], axis = 0)) * 100
 
     def total_probability_rule(self) -> _VectorisedFloat:
-        if (isinstance(self.concentration_model.infected.number, IntPiecewiseConstant) or
-                isinstance(self.exposed.number, IntPiecewiseConstant)):
+        if (isinstance(self.concentration_model.infected.number, IntPiecewiseConstant)):
                 raise NotImplementedError("Cannot compute total probability "
                         "(including incidence rate) with dynamic occupancy")
 
@@ -1847,9 +1858,9 @@ class ExposureModel:
             sum_probability = 0.0
 
             # Create an equivalent exposure model but changing the number of infected cases.
-            total_people = self.concentration_model.infected.number + self.exposed.number
+            total_people = self.concentration_model.infected.number + self.exposed.number # type: ignore
             max_num_infected = (total_people if total_people < 10 else 10)
-            # The influence of a higher number of simultainious infected people (> 4 - 5) yields an almost negligible contirbution to the total probability.
+            # The influence of a higher number of simultaneous infected people (> 4 - 5) yields an almost negligible contribution to the total probability.
             # To be on the safe side, a hard coded limit with a safety margin of 2x was set.
             # Therefore we decided a hard limit of 10 infected people.
             for num_infected in range(1, max_num_infected + 1):
@@ -1872,43 +1883,81 @@ class ExposureModel:
             1) Long-range exposure: take the infection_probability and multiply by the occupants exposed to long-range. 
             2) Short- and long-range exposure: take the infection_probability of long-range multiplied by the occupants exposed to long-range only, 
                plus the infection_probability of short- and long-range multiplied by the occupants exposed to short-range only.
-
-        Currently disabled when dynamic occupancy is defined for the exposed population.
         """
-
-        if (isinstance(self.concentration_model.infected.number, IntPiecewiseConstant) or
-            isinstance(self.exposed.number, IntPiecewiseConstant)):
-            raise NotImplementedError("Cannot compute expected new cases "
-                    "with dynamic occupancy")
-
+        number = self.exposed.number
         if self.short_range != ():
-            new_cases_long_range = nested_replace(self, {'short_range': [],}).infection_probability() * (self.exposed.number - self.exposed_to_short_range)
+            new_cases_long_range = nested_replace(self, {'short_range': [],}).infection_probability() * (number - self.exposed_to_short_range) # type: ignore
             return (new_cases_long_range + (self.infection_probability() * self.exposed_to_short_range)) / 100
 
-        return self.infection_probability() * self.exposed.number / 100
+        return self.infection_probability() * number / 100
 
     def reproduction_number(self) -> _VectorisedFloat:
         """
         The reproduction number can be thought of as the expected number of
         cases directly generated by one infected case in a population.
-
-        Currently disabled when dynamic occupancy is defined for both the infected and exposed population.
         """
-
-        if (isinstance(self.concentration_model.infected.number, IntPiecewiseConstant) or
-            isinstance(self.exposed.number, IntPiecewiseConstant)):
-            raise NotImplementedError("Cannot compute reproduction number "
-                    "with dynamic occupancy")
-
-        if self.concentration_model.infected.number == 1:
+        infected_population: InfectedPopulation = self.concentration_model.infected
+        if isinstance(infected_population.number, int) and infected_population.number == 1:
             return self.expected_new_cases()
 
         # Create an equivalent exposure model but with precisely
-        # one infected case.
+        # one infected case, respecting the presence interval.
         single_exposure_model = nested_replace(
             self, {
-                'concentration_model.infected.number': 1}
+                'concentration_model.infected.number': 1,
+                'concentration_model.infected.presence': infected_population.presence_interval(),
+            }
         )
-
         return single_exposure_model.expected_new_cases()
     
+
+@dataclass(frozen=True)
+class ExposureModelGroup:
+    """
+    Represents a group of exposure models. This is to handle the case
+    when different groups of people come and go in the room at different
+    times. These groups are then handled fully independently, with
+    exposure dose and probability of infection defined for each of them.
+    """
+    data_registry: DataRegistry
+
+    #: The set of exposure models for each exposed population
+    exposure_models: typing.Tuple[ExposureModel, ...]
+
+    def __post_init__(self):
+        """
+        Validate that all ExposureModels have the same ConcentrationModel.
+        """
+        first_concentration_model = self.exposure_models[0].concentration_model
+        for model in self.exposure_models[1:]:
+            # Check that the number of infected people and their presence is the same
+            if (model.concentration_model.infected.number != first_concentration_model.infected.number or
+                model.concentration_model.infected.presence != first_concentration_model.infected.presence):
+                raise ValueError("All ExposureModels must have the same infected number and presence in the ConcentrationModel.")
+
+    @method_cache
+    def _deposited_exposure_list(self) -> typing.List[_VectorisedFloat]:
+        """
+        List of doses absorbed by each member of the groups.
+        """
+        return [model.deposited_exposure() for model in self.exposure_models]
+    
+    @method_cache
+    def _infection_probability_list(self):
+        """
+        List of the probability of infection for each group.
+        """
+        return [model.infection_probability() for model in self.exposure_models] # type: ignore
+
+    def expected_new_cases(self) -> _VectorisedFloat:
+        """
+        Final expected number of new cases considering the
+        contribution of each individual probability of infection.
+        """
+        return np.sum([model.expected_new_cases() for model in self.exposure_models], axis=0) # type: ignore
+    
+    def reproduction_number(self) -> _VectorisedFloat:
+        """
+        Expected number of cases when there is only one infected case.
+        """
+        return np.sum([model.reproduction_number() for model in self.exposure_models], axis=0) # type: ignore

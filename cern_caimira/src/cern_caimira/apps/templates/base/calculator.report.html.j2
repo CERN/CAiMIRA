@@ -54,362 +54,361 @@
 	<div class="tab-content" style="border-top: #dee2e6 1px solid; margin-top: -1px" >
 
 		<div class="tab-pane show active" id="results" role="tabpanel" aria-labelledby="results-tab" style="padding: 1%">
-			{% set long_range_prob_inf = prob_inf %}
-			{% set long_range_expected_cases = expected_new_cases %}
-
-			{# Update values if short range option is "short_range_yes" #}
-			{% if form.short_range_option == "short_range_yes" %}
-				{% set scenario = alternative_scenarios.stats.values() | first %}
-				{# Probability of infection values #}
-				{% set long_range_prob_inf = scenario.probability_of_infection %}
-				{# Expected new case values #}
-				{% set long_range_expected_cases = scenario.expected_new_cases %}
-				
-				{% if form.exposure_option == 'p_probabilistic_exposure' %}
-					{% set long_range_prob_probabilistic_exposure = scenario.prob_probabilistic_exposure %}
+			{% for group_id, group_results in groups.items() %}
+				{% if group_results.get('long_range_prob_inf') %}{{group_results.long_range_prob_inf}}{% endif %}
+				{% set long_range_prob_inf = group_results.prob_inf %}
+				{% set long_range_expected_cases = group_results.expected_new_cases %}
+				{# Update values if short range option is "short_range_yes" #}
+				{% if group_results.get('long_range_prob') %}
+					{# Probability of infection values #}
+					{% set long_range_prob_inf = group_results.long_range_prob %}
+					{# Expected new case values #}
+					{% set long_range_expected_cases = group_results.long_range_expected_new_cases %}
+					
+					{% if form.exposure_option == 'p_probabilistic_exposure' %}
+						{% set long_range_prob_probabilistic_exposure = scenario.prob_probabilistic_exposure %}
+					{% endif %}
 				{% endif %}
-			{% endif %}
-
-			{% block report_results %}
-				<div class="card bg-light mb-3" id="results-div">
-  					<div class="card-header"><strong>Results </strong>
-					  	<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseResults" role="button" aria-expanded="true" aria-controls="collapseResults">
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
-								<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
-							</svg>
-						</button>
-					</div>
-					<div class="collapse show" id="collapseResults">
-						<div class="card-body">
-							<p class="card-text">
-								<div class="align-self-center">
-									<div class="split">
-											<div class="card card-body align-self-center pi-box" style="text-align:center; max-width: 300px">
-												<h6 class="card-title">
-													<b>Probability of infection (%)</b><br>
-													{% if form.short_range_option == "short_range_yes" %}
-														Without <b>short-range interactions</b>
-													{% endif %}
-												</h6>
-												<br>
-												<img src="{{ get_url('/static/images') }}/long_range_anim.png" class="align-middle mb-3 pi-image">
-												<div class="d-flex" style="min-height: 160px">
-													{% block long_range_warning_animation %}
-														<div class="intro-banner-vdo-play-btn animation-color m-auto d-flex align-items-center justify-content-center">
-															<b>{{long_range_prob_inf | non_zero_percentage}}</b>
-															<i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
-															<span class="ripple animation-color"></span>
-															<span class="ripple animation-color"></span>
-															<span class="ripple animation-color"></span>
-														</div>
-													{% endblock long_range_warning_animation %}
-												</div>
-												{% if form.occupancy_format == "static" %}<h6><b>Expected new cases:</b> {{ long_range_expected_cases | float_format }}</h6>{% endif %}
-											</div>
-											<br>
-											{% if form.short_range_option == "short_range_yes" %}
-												<div class="card card-body align-self-center pi-box" style="text-align:center; max-width: 300px">
-													<h6 class="card-title">
-														<b>Probability of infection (%)</b><br>
-														With <b>short-range interactions</b>
-													</h6>
-													<br>
-													<img src="{{ get_url('/static/images') }}/short_range_anim.png" class="align-middle mb-3 pi-image">
-													<div class="d-flex" style="min-height: 160px">
-														{% block warning_animation %}
-															<div class="intro-banner-vdo-play-btn animation-color m-auto d-flex align-items-center justify-content-center">
-															<b>{{prob_inf | non_zero_percentage}}</b>
-															<i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
-															<span class="ripple animation-color"></span>
-															<span class="ripple animation-color"></span>
-															<span class="ripple animation-color"></span>
-														</div>
-														{% endblock warning_animation %}
-													</div>
-													{% if form.occupancy_format == "static" %}
-														<h6><b>Expected new cases:</b> {{ expected_new_cases | float_format }}</h6>
-													{% endif %}
-												</div>
-											{% endif %}
-										<div class="d-flex">
-											{% block report_summary %}
-											<div class="flex-row align-self-center">
-												<div class="align-self-center alert alert-dark mb-0" role="alert">
-													Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally (i.e. without short-range interactions), the <b>probability of one exposed occupant getting infected is {{ long_range_prob_inf | non_zero_percentage }}</b>
-													{% if form.occupancy_format == "static" %}
-														and the <b>expected number of new cases is {{ long_range_expected_cases | float_format }}</b>
-													{% endif %}*.
-												</div>
-												{% if form.short_range_option == "short_range_yes" %}
-													<br>
-													<div class="align-self-center alert alert-dark mb-0" role="alert">
-														In this scenario, the <b>probability the occupant(s) exposed to short-range interactions get infected can go as high as {{ prob_inf | non_zero_percentage }}</b>
-														{% if form.occupancy_format == "static" %}
-															and the <b>expected number of new cases increases to {{ expected_new_cases | float_format }}</b>
-														{% endif %}.
-													</div>
-												{% endif %}
-												{% block probabilistic_exposure_probability %}
-													{% if form.exposure_option == "p_probabilistic_exposure" %}
-														<br>
-														<div class="align-self-center alert alert-dark mb-0" role="alert">
-															{% if form.occupancy_format == "static" %}
-																The above {{ "result assumes" if form.short_range_option == "short_range_no" else "results assume" }} that <b>{{ form.infected_people }}
-																{{ "occupant is infected" if form.infected_people == 1 else "occupants are infected" }}
-																</b> in the room.
-																By taking into account the estimate of cases currently circulating in <b>{{ form.location_name }}</b>,
-																the probability of on-site transmission, having at least 1 new infection in an <b>event
-																with {{ form.total_people }} occupants</b>, is
-																{% if form.short_range_option == 'short_range_yes' %}:
-																	<ul>
-																		<li><b>{{ long_range_prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming all occupants are exposed equally (i.e. without short-range interactions).</li>
-																		<li><b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming short-range interactions occur with the infector(s).</li>
-																	</ul>
-																{% else %}
-																	<b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>.
-																{% endif %}
-															{% else %}
-																<p><strong>Warning: </strong>Since dynamic occupancy was defined, the results for probabilistic exposure with incidence rates have not been computed.</p>
-															{% endif %}
-														</div>
-													{% endif %}
-												{% endblock probabilistic_exposure_probability %}
-											</div>
-											{% endblock report_summary %}
-										</div>
-									</div>
-									<br>
-									{% block report_summary_footnote %}
-									{% endblock report_summary_footnote %}
-								</div>
-								<br><p id="section1">* The results are based on the parameters and assumptions published in the CARA publication: <a href="https://doi.org/10.1098/rsfs.2021.0076"> doi.org/10.1098/rsfs.2021.0076</a>.</p><br>
-								{% if form.short_range_option == "short_range_yes" %}
-									{% if 'Speaking' in form.short_range_interactions|string or 'Shouting' in form.short_range_interactions|string %}
-										<button class="btn btn-sm btn-primary" id="button_full_exposure" disabled>Show full exposure</button>
-										<button class="btn btn-sm btn-primary ml-0" id="button_hide_high_concentration">Hide high concentration</button>
-									{% endif %}
-									<input type="checkbox" id="long_range_cumulative_checkbox"><label class="form-check-label ml-1" for="long_range_cumulative_checkbox" id="lr_cumulative_checkbox_label">Show doses from long-range exposure alone</label>
-								{% endif %}
-								<div id="concentration_plot" style="height: 400px"></div>
-								<script type="application/javascript">
-									let times = {{ times | JSONify }};
-									let concentrations_zoomed = {{ concentrations_zoomed | JSONify }};
-									let concentrations = {{ concentrations | JSONify }};
-									let cumulative_doses = {{ cumulative_doses | JSONify }};
-									let long_range_cumulative_doses = {{ long_range_cumulative_doses | JSONify }};
-									let exposed_presence_intervals = {{ exposed_presence_intervals | JSONify }};
-									let short_range_intervals = {{ short_range_intervals | JSONify }};
-									let short_range_expirations = {{ short_range_expirations | JSONify }};
-									draw_plot("concentration_plot");
-								</script>
-								<i>IRP - Infectious Respiratory Particles.</i>
-							</p>
-						</div>
-					</div>
-				</div>
-				<div class="card bg-light mb-3" id="results-div">
-  					<div class="card-header"><strong>Result uncertainties </strong>
-					  	<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseUncertainties" role="button" aria-expanded="true" aria-controls="collapseUncertainties">
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
-								<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
-							</svg>
-						</button>
-					</div>
-					<div class="collapse show" id="collapseUncertainties">
-						<div class="card-body">
-							<div class="align-self-center">
-								<div id="prob_inf_hist" style="height: 400px"></div>
-								<script type="application/javascript">
-									let prob_dist = {{ prob_dist | JSONify }};
-									let prob_hist_count = {{ prob_hist_count | JSONify }};
-									let prob_hist_bins = {{ prob_hist_bins | JSONify }};
-									draw_histogram("prob_inf_hist", {{ prob_inf }}, {{ prob_inf_sd }});
-								</script>
-								<br>
-								{% if model.data_registry.virological_data['virus_distributions'][form.virus_type]['viral_load_in_sputum'] == 'Ref: Viral load - covid overal viral load data' %}
-									<div class="form-check">
-										<input type="checkbox" id="conditional_probability_viral_loads" class="tabbed form-check-input" name="conditional_probability_viral_loads" value="1" onClick="conditional_probability_viral_loads(this.checked, {{ form.conditional_probability_viral_loads | int }});">
-										<label id="label_conditional_probability_viral_loads" for="conditional_probability_viral_loads" class="form-check-label col-sm-12">Generate full uncertainty data (as function of the viral load)</label>
-									</div>
-								{% endif %}
-								{% if form.conditional_probability_viral_loads %}
-								<div id="conditional_probability_div">
-									<img src= "{{ uncertainties_plot_src }}" />
-									<div class="ml-5">
-										<p>(i) &nbsp;&nbsp;Predictive probability of infection for a given value of the viral load</p>
-										<p>(ii) &nbsp;Histogram of the viral load data</p>
-										<p>(iii) Histogram of the conditional probability of infection (result of total predictive probability in the middle)</p>
-									</div>
-								</div>
-								{% endif %}
-							</div>
-						</div>
-					</div>
-				</div>
-
-				<div class="card bg-light mb-3">
-					<div class="card-header"><strong>Predictive CO₂ Concentration Profile</strong>
-						<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseCO₂Profile" role="button" aria-expanded="false" aria-controls="collapseCO₂Profile">
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
-								<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
-							</svg>
-						</button>
-					</div>
-					<div class="collapse" id="collapseCO₂Profile">
-						<div class="card-body">
-							<div>
-								<div id="CO2_concentration_graph" style="height: 400px"></div>
-								<script type="application/javascript">
-									var CO2_concentrations = {{ CO2_concentrations | JSONify }}
-									draw_generic_concentration_plot(
-											"CO2_concentration_graph",
-											"Mean concentration (ppm)",
-											h_lines = [
-												{'label': 'Acceptable level',
-												 'y': 800,
-												 'color': 'forestgreen',
-												 'style': 'dashed'
-												},
-												{'label': 'Insufficient level',
-												 'y': 1500,
-												 'color': 'firebrick',
-												 'style': 'dashed'
-												},
-											]
-									);
-								</script>
-							</div>
-						</div>
-					</div>
-				</div>
-
-				{% if form.short_range_option == "short_range_no" %}
-					<div class="card bg-light mb-3">
-						<div class="card-header"><strong>Alternative scenarios</strong>
-							<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseAlternativeScenarios" role="button" aria-expanded="false" aria-controls="collapseAlternativeScenarios">
+				
+				{% block report_results scoped %}
+					<div class="card bg-light mb-3" id="results-div">
+						<div class="card-header"><strong>Results{% if form.occupancy != {} %} - {{ group_id }}{% endif %}</strong>
+							<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseResults-group_{{ group_id }}" role="button" aria-expanded="true" aria-controls="collapseResults">
 								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
 									<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
 								</svg>
 							</button>
 						</div>
-						<div class="collapse" id="collapseAlternativeScenarios">
+						<div class="collapse show" id="collapseResults-group_{{ group_id }}">
 							<div class="card-body">
-								<div>
-									<div id="alternative_scenario_plot" style="height: 400px"></div>
+								<p class="card-text">
+									<div class="align-self-center">
+										<div class="split">
+												<div class="card card-body align-self-center pi-box" style="text-align:center; max-width: 300px">
+													<h6 class="card-title">
+														<b>Probability of infection (%)</b><br>
+														{% if group_results.get('long_range_prob') %}
+															Without <b>short-range interactions</b>
+														{% endif %}
+													</h6>
+													<br>
+													<img src="{{ get_url('/static/images') }}/long_range_anim.png" class="align-middle mb-3 pi-image">
+													<div class="d-flex" style="min-height: 160px">
+														{% block long_range_warning_animation scoped %}
+															<div class="intro-banner-vdo-play-btn animation-color m-auto d-flex align-items-center justify-content-center">
+																<b>{{ long_range_prob_inf | non_zero_percentage }}</b>
+																<i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
+																<span class="ripple animation-color"></span>
+																<span class="ripple animation-color"></span>
+																<span class="ripple animation-color"></span>
+															</div>
+														{% endblock long_range_warning_animation %}
+													</div>
+													<h6><b>Expected new cases:</b> {{ long_range_expected_cases | float_format }}</h6>
+												</div>
+												<br>
+												{% if group_results.get('long_range_prob') %}
+													<div class="card card-body align-self-center pi-box" style="text-align:center; max-width: 300px">
+														<h6 class="card-title">
+															<b>Probability of infection (%)</b><br>
+															With <b>short-range interactions</b>
+														</h6>
+														<br>
+														<img src="{{ get_url('/static/images') }}/short_range_anim.png" class="align-middle mb-3 pi-image">
+														<div class="d-flex" style="min-height: 160px">
+															{% block warning_animation scoped %}
+																<div class="intro-banner-vdo-play-btn animation-color m-auto d-flex align-items-center justify-content-center">
+																<b>{{ group_results.prob_inf | non_zero_percentage }}</b>
+																<i class="glyphicon glyphicon-play whiteText" aria-hidden="true"></i>
+																<span class="ripple animation-color"></span>
+																<span class="ripple animation-color"></span>
+																<span class="ripple animation-color"></span>
+															</div>
+															{% endblock warning_animation %}
+														</div>
+														<h6><b>Expected new cases:</b> {{ group_results.expected_new_cases | float_format }}</h6>
+													</div>
+												{% endif %}
+											<div class="d-flex">
+												{% block report_summary scoped %}
+												<div class="flex-row align-self-center">
+													<div class="align-self-center alert alert-dark mb-0" role="alert">
+														Taking into account the uncertainties tied to the model variables, in this scenario and assuming all occupants are exposed equally (i.e. without short-range interactions), the <b>probability of one exposed occupant getting infected is {{ long_range_prob_inf | non_zero_percentage }}</b>
+														and the <b>expected number of new cases is {{ long_range_expected_cases | float_format }}</b>*.
+													</div>
+													{% if group_results.get('long_range_prob') %}
+														<br>
+														<div class="align-self-center alert alert-dark mb-0" role="alert">
+															In this scenario, the <b>probability the occupant(s) exposed to short-range interactions get infected can go as high as {{ group_results.prob_inf | non_zero_percentage }}</b>
+															and the <b>expected number of new cases increases to {{ group_results.expected_new_cases | float_format }}</b>.
+														</div>
+													{% endif %}
+													{% block probabilistic_exposure_probability %}
+														{% if form.exposure_option == "p_probabilistic_exposure" %}
+															<br>
+															<div class="align-self-center alert alert-dark mb-0" role="alert">
+																{% if form.occupancy == {} %}
+																	The above {{ "result assumes" if form.short_range_option == "short_range_no" else "results assume" }} that <b>{{ form.infected_people }}
+																	{{ "occupant is infected" if form.infected_people == 1 else "occupants are infected" }}
+																	</b> in the room.
+																	By taking into account the estimate of cases currently circulating in <b>{{ form.location_name }}</b>,
+																	the probability of on-site transmission, having at least 1 new infection in an <b>event
+																	with {{ form.total_people }} occupants</b>, is
+																	{% if form.short_range_option == 'short_range_yes' %}:
+																		<ul>
+																			<li><b>{{ long_range_prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming all occupants are exposed equally (i.e. without short-range interactions).</li>
+																			<li><b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>, assuming short-range interactions occur with the infector(s).</li>
+																		</ul>
+																	{% else %}
+																		<b>{{ prob_probabilistic_exposure | non_zero_percentage }}</b>.
+																	{% endif %}
+																{% else %}
+																	<p><strong>Warning: </strong>Since dynamic occupancy was defined, the results for probabilistic exposure with incidence rates have not been computed.</p>
+																{% endif %}
+															</div>
+														{% endif %}
+													{% endblock probabilistic_exposure_probability %}
+												</div>
+												{% endblock report_summary %}
+											</div>
+										</div>
+										<br>
+										{% block report_summary_footnote %}
+										{% endblock report_summary_footnote %}
+									</div>
+									<br><p id="section1">* The results are based on the parameters and assumptions published in the CARA publication: <a href="https://doi.org/10.1098/rsfs.2021.0076"> doi.org/10.1098/rsfs.2021.0076</a>.</p><br>
+									{% if group_results.get('long_range_prob') %}
+										{% if form.short_range_option == 'short_range_yes' and ('Speaking' in form.short_range_interactions[group_id]|string or 'Shouting' in form.short_range_interactions[group_id]|string) %}
+											<button class="btn btn-sm btn-primary" id="button_full_exposure-group_{{ group_id }}" disabled>Show full exposure</button>
+											<button class="btn btn-sm btn-primary ml-0" id="button_hide_high_concentration-group_{{ group_id }}">Hide high concentration</button>
+										{% endif %}
+										<input type="checkbox" id="long_range_cumulative_checkbox-group_{{ group_id }}">
+										<label class="form-check-label ml-1" for="long_range_cumulative_checkbox-group_{{ group_id }}" id="lr_cumulative_checkbox_label-group_{{ group_id }}">Show doses from long-range exposure alone</label>
+									{% endif %}
+									<div id="concentration_plot-group_{{ group_id }}" style="height: 400px"></div>
 									<script type="application/javascript">
-										var alternative_scenarios = {{ alternative_scenarios.stats | JSONify }}
-										draw_generic_concentration_plot(
-											"alternative_scenario_plot",
-											"Mean concentration (IRP/m³)",
-										);
+										draw_plot("concentration_plot-group_{{ group_id }}",
+												{{ group_id | JSONify }}, 
+												{{ times | JSONify }},
+												{{ group_results.get("concentrations_zoomed", []) | JSONify }},
+												{{ group_results.concentrations | JSONify }},
+												{{ group_results.cumulative_doses | JSONify }},
+												{{ group_results.get("long_range_cumulative_doses", []) | JSONify }},
+												{{ group_results.exposed_presence_intervals | JSONify }},
+												{{ group_results.get("short_range_interactions", []) | JSONify }}
+										)
 									</script>
-									<br>
-									{% block report_scenarios_summary_table %}
-										<table class="table w-auto">
-											<thead class="thead-light">
-												<tr>
-													<th>Scenario</th>
-													<th>P(I)</th>
-													{% if form.occupancy_format == "static" %}<th>Expected new cases</th>{% endif %}
-												</tr>
-											</thead>
-											<tbody>
-											{% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
-												<tr>
-													<td> {{ scenario_name }}</td>
-													<td> {{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
-													{% if form.occupancy_format == "static" %}<td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>{% endif %}
-												</tr>
-											{% endfor %}
-											</tbody>
-										</table>
-									{% endblock report_scenarios_summary_table %}
-								</div>
-								<br/>
-								<p class="data_text"> <strong> Notes for alternative scenarios: </strong><br>
-									<ol>
-										<li>This graph shows the concentration of infectious quanta in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation).
-									For this reason, scenarios with different types of mask will show the same concentration on the graph but have different absorbed doses and infection probabilities.</li>
-										<li>If you have selected more sophisticated options, such as HEPA filtration or FFP2 masks, this will be indicated in the plot as the "base scenario", representing the inputs inserted in the form.<br>
-										The other alternative scenarios shown for comparison will not include either HEPA filtration or FFP2 masks.</li>
-									</ol>
-									<br>
+									<i>IRP - Infectious Respiratory Particles.</i>
 								</p>
 							</div>
 						</div>
 					</div>
-				{% endif %}
-
-			{% endblock report_results %}
-
-			<!-- Export Data Concentration Modal -->
-			<div class="modal fade" id="modalCSV" tabindex="-1" role="dialog" aria-labelledby="modalCSV" aria-hidden="true">
-				<div class="modal-dialog modal-dialog-centered" role="document">
-					<div class="modal-content">
-						<div class="modal-header">
-							<h5 class="modal-title" id="exampleModalLongTitle">Export data (.csv)</h5>
-							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-							<span aria-hidden="true">&times;</span>
+					<div class="card bg-light mb-3" id="results-div">
+						<div class="card-header"><strong>Result uncertainties{% if form.occupancy != {} %} - {{ group_id }}{% endif %}</strong>
+							<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseUncertainties-group_{{ group_id }}" role="button" aria-expanded="true" aria-controls="collapseUncertainties">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
+									<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
+								</svg>
 							</button>
 						</div>
-						<div class="modal-body">
-							<b>Select the data to export:</b>
-							<div class="form-check mt-3">
-								<input type="checkbox" class="form-check-input" name="checkedItems" id="Time" onclick="display_rename_column(this.checked, 'time-rename-div')" checked disabled>
-								<label class="form-check-label" for="Time">Time of day</label>
-								<div id="time-rename-div" class="d-flex align-items-center">
-									<label class="col-form-label" for="time-rename-div">Column name:</label>
-									<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Time__rename" placeholder="Time" value="Time">
+						<div class="collapse show" id="collapseUncertainties-group_{{ group_id }}">
+							<div class="card-body">
+								<div class="align-self-center">
+									<div id="prob_inf_hist-group_{{ group_id }}" style="height: 400px"></div>
+									<script type="application/javascript">
+										prob_dist = {{ group_results.prob_dist | JSONify }};
+										prob_hist_count = {{ group_results.prob_hist_count | JSONify }};
+										prob_hist_bins = {{ group_results.prob_hist_bins | JSONify }};
+										draw_histogram("prob_inf_hist-group_{{ group_id }}", {{ group_results.prob_inf }}, {{ group_results.prob_inf_sd }});
+									</script>
+									<br>
+									{% if group_results.model.data_registry.virological_data['virus_distributions'][form.virus_type]['viral_load_in_sputum'] == 'Ref: Viral load - covid overal viral load data' %}
+										<div class="form-check">
+											<input type="checkbox" id="conditional_probability_viral_loads" class="tabbed form-check-input" name="conditional_probability_viral_loads" value="1" onClick="conditional_probability_viral_loads(this.checked, {{ form.conditional_probability_viral_loads | int }});">
+											<label id="label_conditional_probability_viral_loads" for="conditional_probability_viral_loads" class="form-check-label col-sm-12">Generate full uncertainty data (as function of the viral load)</label>
+										</div>
+									{% endif %}
+									{% if form.conditional_probability_viral_loads %}
+									<div id="conditional_probability_div">
+										<img src= "{{ group_results.uncertainties_plot_src }}" />
+										<div class="ml-5">
+											<p>(i) &nbsp;&nbsp;Predictive probability of infection for a given value of the viral load</p>
+											<p>(ii) &nbsp;Histogram of the viral load data</p>
+											<p>(iii) Histogram of the conditional probability of infection (result of total predictive probability in the middle)</p>
+										</div>
+									</div>
+									{% endif %}
 								</div>
 							</div>
-							{# If short-range interactions are set, we don't display Alternative Scenarios, and there is no need to arrange items in a list #}
-							{% if form.short_range_option == "short_range_no" %}
-							<ul style="padding-left: inherit">
-								<li>
-									Current Scenario
-							{% endif %}
-									<div class="form-check">
-										<input type="checkbox" class="form-check-input" name="checkedItems" id="Concentration" onclick="display_rename_column(this.checked, 'concentration-rename-div')">
-										<label class="form-check-label" for="Concentration">Concentration</label>
-										<div id="concentration-rename-div" class="align-items-center" style="display:none">
-											<label class="col-form-label" for="concentration-rename-div">Column name:</label>
-											<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Concentration__rename" placeholder="Concentration" value="Concentration">
-										</div>
-									</div>
-									<div class="form-check">
-										<input type="checkbox" class="form-check-input" name="checkedItems" id="Cumulative Dose" onclick="display_rename_column(this.checked, 'cumulative-dose-rename-div')">
-										<label class="form-check-label" for="Cumulative Dose">Cumulative dose</label>
-										<div id="cumulative-dose-rename-div" class="align-items-center" style="display:none">
-											<label class="col-form-label" for="cumulative-dose-rename-div">Column name:</label>
-											<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Cumulative Dose__rename" placeholder="Cumulative Dose" value="Cumulative Dose">
-										</div>
-									</div>
-									</li>
-									<div class="form-check">
-										<input type="checkbox" class="form-check-input" name="checkedItems" id="CO2_Concentration" onclick="display_rename_column(this.checked, 'CO2-rename-div')">
-										<label class="form-check-label" for="CO2_Concentration">CO₂ Concentration</label>
-										<div id="CO2-rename-div" class="align-items-center" style="display:none">
-											<label class="col-form-label" for="CO2-rename-div">Column name:</label>
-											<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="CO2_Concentration__rename" placeholder="CO₂ Concentration" value="CO₂ Concentration">
-										</div>
-									</div>
-									{% if form.short_range_option == "short_range_no" %}
-										</li>
-										<li>
-											Alternative Scenarios
-											<div class="form-check">
-												<input type="checkbox" class="form-check-input" name="checkedItems" id="Alternative Scenarios" onclick="check_download_button(); display_column_name_warning(this.checked);">
-												<label class="form-check-label" for="Alternative Scenarios">Concentration</label>
-												<p id="alternative_scenario_warning" class="text-warning" style="display: none">The column name will be the scenario name.</p>
-											</div>
-										</li>
-									{% endif %}
-							</ul>
-
 						</div>
-						<div class="modal-footer">
-							<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-							<button id="downloadCSV" type="button" class="btn btn-primary" onclick="export_csv();" disabled>Download</button>
+					</div>
+					{% if form.short_range_option == "short_range_no" and form.occupancy == {} %}
+						<div class="card bg-light mb-3">
+							<div class="card-header"><strong>Alternative scenarios</strong>
+								<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseAlternativeScenarios" role="button" aria-expanded="false" aria-controls="collapseAlternativeScenarios">
+									<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
+										<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
+									</svg>
+								</button>
+							</div>
+							<div id="collapseAlternativeScenarios">
+								<div class="card-body">
+									<div>
+										<div id="alternative_scenario_plot" style="height: 400px"></div>
+										<script type="application/javascript">
+											var alternative_scenarios = {{ alternative_scenarios.stats | JSONify }}
+											draw_generic_concentration_plot(
+												"alternative_scenario_plot",
+												{{ times | JSONify }},
+												"Mean concentration (IRP/m³)",
+											);
+										</script>
+										<br>
+										{% block report_scenarios_summary_table %}
+											<table class="table w-auto">
+												<thead class="thead-light">
+													<tr>
+														<th>Scenario</th>
+														<th>P(I)</th>
+														<th>Expected new cases</th>
+													</tr>
+												</thead>
+												<tbody>
+												{% for scenario_name, scenario_stats in alternative_scenarios.stats.items() %}
+													<tr>
+														<td> {{ scenario_name }}</td>
+														<td> {{ scenario_stats.probability_of_infection | non_zero_percentage }}</td>
+														<td style="text-align:right">{{ scenario_stats.expected_new_cases | float_format }}</td>
+													</tr>
+												{% endfor %}
+												</tbody>
+											</table>
+										{% endblock report_scenarios_summary_table %}
+									</div>
+									<br/>
+									<p class="data_text"> <strong> Notes for alternative scenarios: </strong><br>
+										<ol>
+											<li>This graph shows the concentration of infectious quanta in the air. The filtration of Type I and FFP2 masks, if worn, applies not only to the emission rate but also to the individual exposure (i.e. inhalation).
+										For this reason, scenarios with different types of mask will show the same concentration on the graph but have different absorbed doses and infection probabilities.</li>
+											<li>If you have selected more sophisticated options, such as HEPA filtration or FFP2 masks, this will be indicated in the plot as the "base scenario", representing the inputs inserted in the form.<br>
+											The other alternative scenarios shown for comparison will not include either HEPA filtration or FFP2 masks.</li>
+										</ol>
+										<br>
+									</p>
+								</div>
+							</div>
+						</div>
+					{% endif %}
+
+				{% endblock report_results %}
+
+				<!-- Export Data Concentration Modal -->
+				<div class="modal fade" id="modalCSV" tabindex="-1" role="dialog" aria-labelledby="modalCSV" aria-hidden="true">
+					<div class="modal-dialog modal-dialog-centered" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLongTitle">Export data (.csv)</h5>
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<b>Select the data to export:</b>
+								<div class="form-check mt-3">
+									<input type="checkbox" class="form-check-input" name="checkedItems" id="Time" onclick="display_rename_column(this.checked, 'time-rename-div')" checked disabled>
+									<label class="form-check-label" for="Time">Time of day</label>
+									<div id="time-rename-div" class="d-flex align-items-center">
+										<label class="col-form-label" for="time-rename-div">Column name:</label>
+										<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Time__rename" placeholder="Time" value="Time">
+									</div>
+								</div>
+								{# If short-range interactions are set, we don't display Alternative Scenarios, and there is no need to arrange items in a list #}
+								{% if form.short_range_option == "short_range_no" %}
+								<ul style="padding-left: inherit">
+									<li>
+										Current Scenario
+								{% endif %}
+										<div class="form-check">
+											<input type="checkbox" class="form-check-input" name="checkedItems" id="Concentration" onclick="display_rename_column(this.checked, 'concentration-rename-div')">
+											<label class="form-check-label" for="Concentration">Concentration</label>
+											<div id="concentration-rename-div" class="align-items-center" style="display:none">
+												<label class="col-form-label" for="concentration-rename-div">Column name:</label>
+												<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Concentration__rename" placeholder="Concentration" value="Concentration">
+											</div>
+										</div>
+										<div class="form-check">
+											<input type="checkbox" class="form-check-input" name="checkedItems" id="Cumulative Dose" onclick="display_rename_column(this.checked, 'cumulative-dose-rename-div')">
+											<label class="form-check-label" for="Cumulative Dose">Cumulative dose</label>
+											<div id="cumulative-dose-rename-div" class="align-items-center" style="display:none">
+												<label class="col-form-label" for="cumulative-dose-rename-div">Column name:</label>
+												<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="Cumulative Dose__rename" placeholder="Cumulative Dose" value="Cumulative Dose">
+											</div>
+										</div>
+										</li>
+										<div class="form-check">
+											<input type="checkbox" class="form-check-input" name="checkedItems" id="CO2_Concentration" onclick="display_rename_column(this.checked, 'CO2-rename-div')">
+											<label class="form-check-label" for="CO2_Concentration">CO₂ Concentration</label>
+											<div id="CO2-rename-div" class="align-items-center" style="display:none">
+												<label class="col-form-label" for="CO2-rename-div">Column name:</label>
+												<input type="text" class="form-control form-control-sm col-sm-4 ml-2" id="CO2_Concentration__rename" placeholder="CO₂ Concentration" value="CO₂ Concentration">
+											</div>
+										</div>
+										{% if form.short_range_option == "short_range_no" and form.occupancy == {} %}
+											</li>
+											<li>
+												Alternative Scenarios
+												<div class="form-check">
+													<input type="checkbox" class="form-check-input" name="checkedItems" id="Alternative Scenarios" onclick="check_download_button(); display_column_name_warning(this.checked);">
+													<label class="form-check-label" for="Alternative Scenarios">Concentration</label>
+													<p id="alternative_scenario_warning" class="text-warning" style="display: none">The column name will be the scenario name.</p>
+												</div>
+											</li>
+										{% endif %}
+								</ul>
+
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+								<button id="downloadCSV" type="button" class="btn btn-primary" onclick="export_csv();" disabled>Download</button>
+							</div>
+						</div>
+					</div>
+				</div>
+
+			{% endfor %}
+
+			<div class="card bg-light mb-3">
+				<div class="card-header"><strong>Predictive CO₂ Concentration Profile</strong>
+					<button class="icon_button p-0 float-right" data-toggle="collapse" href="#collapseCO₂Profile" role="button" aria-expanded="true" aria-controls="collapseCO₂Profile">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-expand" viewBox="0 0 16 16">
+							<path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
+						</svg>
+					</button>
+				</div>
+				<div id="collapseCO₂Profile">
+					<div class="card-body">
+						<div>
+							<div id="CO2_concentration_graph" style="height: 400px"></div>
+							<script type="application/javascript">
+								var CO2_concentrations = {{ CO2_concentrations | JSONify }}
+								draw_generic_concentration_plot(
+										"CO2_concentration_graph",
+										{{ times | JSONify }},
+										"Mean concentration (ppm)",
+										h_lines = [
+											{'label': 'Acceptable level',
+											'y': 800,
+											'color': 'forestgreen',
+											'style': 'dashed'
+											},
+											{'label': 'Insufficient level',
+											'y': 1500,
+											'color': 'firebrick',
+											'style': 'dashed'
+											},
+										]
+								);
+							</script>
 						</div>
 					</div>
 				</div>
@@ -443,7 +442,7 @@
 		</div>
 
 		<div class="tab-pane" id="data" role="tabpanel" aria-labelledby="data-tab" style="padding: 1%">
-			{% block simulation_overview %}
+			{% block simulation_overview scoped %}
 				<div class="card">
 					<div class="card-header"><strong>Simulation:</strong></div>
 					<div class="card-body">
@@ -636,14 +635,19 @@
 							{% if form.short_range_option == "short_range_yes" %}
 							<li><p class="data_text">Total number of occupants having short-range interactions: {{ form.short_range_occupants }}</p></li>
 							<ul>
-							{% for interaction in form.short_range_interactions %}
-							<li>Interaction no. {{ loop.index }}:
-							<ul>
-								<li>Expiratory activity: {{ "Shouting/Singing" if interaction.expiration == "Shouting" else interaction.expiration }} </li>
-								<li>Start time: {{ interaction.start_time }} </li>
-								<li>Duration: {{ interaction.duration }} {{ "minutes" if interaction.duration|float > 1 else "minute" }}</li>
-							</ul>
-							</li>
+							{% for key, interactions in form.short_range_interactions.items() %}
+								<li>Interactions for group "{{ key }}":</li>
+								<ul>
+									{% for interaction in interactions %}
+										<li>Interaction no. {{ loop.index }}:
+											<ul>
+												<li>Expiratory activity: {{ "Shouting/Singing" if interaction.expiration == "Shouting" else interaction.expiration }} </li>
+												<li>Start time: {{ interaction.start_time }} </li>
+												<li>Duration: {{ interaction.duration }} {{ "minutes" if interaction.duration|float > 1 else "minute" }}</li>
+											</ul>
+										</li>
+									{% endfor %}
+								</ul>
 							{% endfor %}
 							</ul>
 							{% endif %}

@@ -17,14 +17,12 @@ const CO2_data_form = [
   "infected_lunch_option",
   "infected_lunch_start",
   "infected_people",
-  "dynamic_infected_occupancy",
   "infected_start",
+  "occupancy",
   "room_capacity",
   "room_volume",
   "specific_breaks",
-  "total_people",
-  "dynamic_exposed_occupancy",
-  "occupancy_format",
+  "total_people"
 ];
 
 // Method to upload a valid data file (accepted formats: .xls and .xlsx)
@@ -301,6 +299,7 @@ function displayFittingData(json_response) {
   // Not needed for the form submission
   delete json_response["CO2_plot_img"];
   delete json_response["predictive_CO2"];
+  delete json_response["CO2_plot_data"];
   // Convert nulls to empty strings in the JSON response
   if (json_response["room_capacity"] === null) json_response["room_capacity"] = '';
   if (json_response["ventilation_lsp_values"] === null) json_response["ventilation_lsp_values"] = '';

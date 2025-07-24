@@ -1,3 +1,19 @@
+# 4.18.0 (July 24, 2025)
+
+## Feature Added
+- Dynamic occupancy: groups of exposed + infected may now be defined.
+Model and calculator updated, and tests added. Documentation still to
+be updated. User interface mostly unchanged (the new feature is not
+visible there).
+
+## Bug Fixes
+- Fix in profiler to adapt to a non back-compatible change in pyinstrument
+package.
+- Type ignored in the expert app.
+
+## Other
+- Update of mypy, pytest-mypy and pyinstrument dependencies (version).
+
 # 4.17.8 (March 13, 2025)
 
 ## Bug Fixes

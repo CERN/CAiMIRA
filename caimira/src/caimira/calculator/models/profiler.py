@@ -31,7 +31,7 @@ class Profilers(Enum):
 
 
 class PyInstrumentWrapper:
-    profiler = PyInstrumentProfiler(async_mode=True)
+    profiler = PyInstrumentProfiler(async_mode='enabled')
 
     @property
     def is_running(self):

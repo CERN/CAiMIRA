@@ -631,22 +631,38 @@ function validate_form(form) {
   }
 
   // Generate the short-range interactions list
-  var short_range_interactions = [];
-  $(".form_field_outer_row").each(function (index, element){
-      let obj = {};
-      const $element = $(element);
-      obj.expiration = $element.find("[name='short_range_expiration']").val();
-      obj.start_time = $element.find("[name='short_range_start_time']").val();
-      obj.duration = $element.find("[name='short_range_duration']").val();
-      short_range_interactions.push(JSON.stringify(obj));
+  let short_range_interactions = {};
+  $(".form_field_outer_row").each(function (index, element) {
+    const $element = $(element);
+
+    let obj = {};
+    obj.expiration = $element.find("[name='short_range_expiration']").val();
+    obj.start_time = $element.find("[name='short_range_start_time']").val();
+    obj.duration = parseFloat($element.find("[name='short_range_duration']").val());
+    
+    const exposure_group = $element.find("[name='short_range_exposure_group']").val();
+    
+    // If the exposure_group key already exists, push the new obj into the array
+    if (short_range_interactions[exposure_group]) {
+        short_range_interactions[exposure_group].push(obj);
+    } else {
+        // Otherwise, create a new array with the current obj
+        short_range_interactions[exposure_group] = [obj];
+    }
   });
 
-  // Sort list by time
-  short_range_interactions.sort(function (a, b) {
-    return JSON.parse(a).start_time.localeCompare(JSON.parse(b).start_time);
-  });
-  $("input[type=text][name=short_range_interactions]").val('[' + short_range_interactions + ']');
-  if (short_range_interactions.length == 0) {
+  // Sort each array within the short_range_interactions object by start_time
+  for (const key in short_range_interactions) {
+    short_range_interactions[key].sort(function (a, b) {
+      return a.start_time.localeCompare(b.start_time);
+    });
+  }
+
+  // Convert the entire object to a JSON string and assign it to the input field
+  $("input[type=text][name=short_range_interactions]").val(JSON.stringify(short_range_interactions));
+  
+  // Check if there are no entries and update the radio button accordingly
+  if (Object.keys(short_range_interactions).length === 0) {
     $("input[type=radio][id=short_range_no]").prop("checked", true);
     on_short_range_option_change();
   }
@@ -907,18 +923,42 @@ $(document).ready(function () {
       }
 
       // Read short-range from URL
-      else if (name == 'short_range_interactions') {
-        let index = 1;
-        for (const interaction of JSON.parse(value)) {
-          $("#dialog_sr").append(inject_sr_interaction(index, value = interaction, is_validated="row_validated"))
-          $('#sr_expiration_no_' + String(index)).val(interaction.expiration).change();
-          document.getElementById('sr_expiration_no_' + String(index)).disabled = true;
-          document.getElementById('sr_start_no_' + String(index)).disabled = true;
-          document.getElementById('sr_duration_no_' + String(index)).disabled = true;
-          document.getElementById('edit_row_no_' + String(index)).style.cssText = 'display:inline !important';
-          document.getElementById('validate_row_no_' + String(index)).style.cssText = 'display: none !important';
-          index++;
+      else if (name === 'short_range_interactions') {
+        // Parse the JSON value from the URL
+        let interactions = JSON.parse(value);
+        let index = 1; // Initialize interaction index
+    
+        // Iterate over each group in the interactions
+        for (const group in interactions) {
+            if (interactions.hasOwnProperty(group)) {
+                // Iterate over each interaction within the group
+                for (const interaction of interactions[group]) {
+                  // Append the interaction row to the dialog
+                    $("#dialog_sr").append(inject_sr_interaction(index, interaction, "row_validated"));
+                    
+                    // Set the values for each input field based on the interaction
+                    $('#sr_expiration_no_' + index).val(interaction.expiration).change();
+                    document.getElementById('sr_start_no_' + index).value = interaction.start_time; // Set start time
+                    document.getElementById('sr_duration_no_' + index).value = interaction.duration; // Set duration
+                    document.getElementById('sr_group_no_' + index).value = group; // Set exposure group
+    
+                    // Disable the input fields for editing
+                    document.getElementById('sr_expiration_no_' + index).disabled = true;
+                    document.getElementById('sr_start_no_' + index).disabled = true;
+                    document.getElementById('sr_duration_no_' + index).disabled = true;
+                    document.getElementById('sr_group_no_' + index).disabled = true;
+    
+                    // Update visibility of editing and validation rows
+                    document.getElementById('edit_row_no_' + index).style.display = 'inline';
+                    document.getElementById('validate_row_no_' + index).style.display = 'none';
+    
+                    // Increment the index for the next interaction
+                    index++;
+                }
+            }
         }
+    
+        // Update the total count of interactions displayed
         $("#sr_interactions").text(index - 1);
       }
 
@@ -1196,6 +1236,11 @@ $(document).ready(function () {
             <div class="col-sm-6"><input type="number" id="sr_duration_no_${index}" value="${value.duration}" class="form-control form-control-sm short_range_option" name="short_range_duration" min=1 placeholder="Minutes" onchange="validate_sr_time(this)" form="not-submitted"><br></div>
           </div>
 
+          <div class='form-group row d-none'>
+            <div class="col-sm-6"><label class="col-form-label col-form-label-sm"> Exposure group:</label></div>
+            <div class="col-sm-6"><input type="text" id="sr_group_no_${index}" value="${value.exposure_group}" class="form-control form-control-sm short_range_option" name="short_range_exposure_group" placeholder="group_1" onchange="validate_sr_time(this)" form="not-submitted"><br></div>
+          </div>
+
           <div class="form-group" style="max-width: 8rem">
             <button type="button" id="edit_row_no_${index}" class="edit_node_btn_frm_field btn btn-success btn-sm d-none">Edit</button>
             <button type="button" id="validate_row_no_${index}" class="validate_node_btn_frm_field btn btn-success btn-sm">Save</button>
@@ -1213,11 +1258,11 @@ $(document).ready(function () {
   // When short_range_yes option is selected, we want to inject rows for each expiractory activity, start_time and duration.
   $("body").on("click", ".add_node_btn_frm_field", function(e) {
     let last_row = $(".form_field_outer").find(".form_field_outer_row");
-    if (last_row.length == 0) $("#dialog_sr").append(inject_sr_interaction(1, value = { activity: "", start_time: "", duration: "15" }));
+    if (last_row.length == 0) $("#dialog_sr").append(inject_sr_interaction(1, value = { activity: "", start_time: "", duration: "15", exposure_group: "group_1" }));
     else {
         last_index = last_row.last().find(".short_range_option").prop("id").split("_").slice(-1)[0];
         index = parseInt(last_index) + 1;
-        $("#dialog_sr").append(inject_sr_interaction(index, value = { activity: "", start_time: "", duration: "15" }));
+        $("#dialog_sr").append(inject_sr_interaction(index, value = { activity: "", start_time: "", duration: "15", exposure_group: "group_1"}));
     }
   });
 

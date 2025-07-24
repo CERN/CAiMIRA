@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "caimira"
-version = "4.17.8"
+version = "4.18.0"
 description = "CAiMIRA - CERN Airborne Model for Indoor Risk Assessment"
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -23,7 +23,7 @@ dependencies = [
     "mistune",
     "numpy",
     "pandas",
-    "pyinstrument",
+    "pyinstrument >= 5.0.3",
     "python-dateutil",
     "requests",
     "retry",
@@ -39,8 +39,8 @@ dependencies = [
 dev = []
 test = [
     "pytest",
-    "pytest-mypy >= 0.10.3",
-    "mypy >= 1.0.0",
+    "pytest-mypy >= 1.0.1",
+    "mypy >= 1.17.0",
     "pytest-tornasync",
     "types-dataclasses",
     "types-python-dateutil",

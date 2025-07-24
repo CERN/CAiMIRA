@@ -122,9 +122,9 @@ class VirusReportGenerator:
         model: models.ExposureModel = report_data['model']
         data_registry_version: typing.Optional[str] = f"v{model.data_registry.version}" if model.data_registry.version else None
 
-        # Alternative scenarios data
-        alternative_scenarios: typing.Dict[str,typing.Any] = alternative_scenarios_data(form, report_data, executor_factory)
-        context.update(alternative_scenarios)
+        # Alternative scenarios data (only generated in the legacy version - when occupancy input is empty)
+        if not form.occupancy:
+            context.update(alternative_scenarios_data(form, report_data, executor_factory)) 
 
         # Alternative viral load data
         if form.conditional_probability_viral_loads:
