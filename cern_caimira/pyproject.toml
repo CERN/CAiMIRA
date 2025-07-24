@@ -27,7 +27,7 @@ dependencies = [
     "mistune",
     "numpy",
     "pandas",
-    "pyinstrument",
+    "pyinstrument >= 5.0.3",
     "retry",
     "ruptures",
     "scipy",
@@ -40,8 +40,8 @@ dependencies = [
 dev = []
 test = [
     "pytest",
-    "pytest-mypy >= 0.10.3",
-    "mypy >= 1.0.0",
+    "pytest-mypy >= 1.0.1",
+    "mypy >= 1.17.0",
     "pytest-tornasync",
     "types-dataclasses",
     "types-requests"
