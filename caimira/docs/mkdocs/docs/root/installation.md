@@ -245,13 +245,11 @@ CAiMIRA includes comprehensive documentation, which can be compiled and viewed l
 
             pwd
         
-        To navigate between directories, the `cd` instruction should be used. For example, if one is in the `sphinx` directory and wants to go back to `docs`, the command to be executed would typically be this one:
+        To navigate between directories, the `cd` instruction should be used. For example, if one is in the `caimira/docs/sphinx` directory and wants to go up to `caimira/docs`, the command to be executed would typically be:
 
             cd ..
             
-        As the `sphinx` directory is `caimira/docs/sphinx`, to go back to `caimira/docs` one would typically just need to go back one level by using the `..` definition.
-        
-        On the other way around, to navigate from the `docs` to the `sphinx` directory, the command to be executed would typically be this one:
+        Conversely, to navigate from the `caimira/docs` to its `caimira/docs/sphinx` subdirectory, the command to be executed would be:
 
             cd sphinx
 
