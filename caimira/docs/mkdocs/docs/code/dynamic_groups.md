@@ -1,6 +1,6 @@
 # Dynamic Occupancy Groups
 
-The dynamic occupancy introduces the capability to handle multiple occupancy groups, composed of **infected** and/or **exposed** population within an event. Instead of having one single set of parameters for all the exposed (susceptible) occupants, this feature enables the model to have *n* groups, each with a specific occupancy profile and set of short-range interactions. This can also be used to define dynamic occupancy groups for the [CO<sub>2</sub> fitting algorithm](fitting_algorithm.md).
+The dynamic occupancy introduces the capability to handle multiple occupancy groups, composed of **infected** and/or **exposed** population, within an event. Instead of having one single set of parameters for all the exposed (susceptible) occupants, this feature enables the model to have *n* groups, each with a specific occupancy profile and set of short-range interactions. This can also be used to define dynamic occupancy groups for the [CO<sub>2</sub> fitting algorithm](fitting_algorithm.md).
 
 !!!tip
     When in [development mode](#model-generator-development-mode), this feature enables the model to have *n* groups, each with their specific characteristics, e.g. masks, physical activity or host immunities. Check below for more details.
@@ -16,10 +16,28 @@ The feature revolves around the concept of a new `ExposureModelGroup` class, whi
 The modelling of dynamic occupancy with the definition of groups is controlled by the `occupancy` input sent by the frontend, initially defined by an empty dictionary:
 
 ```
-occupancy = "{}"
+occupancy = {}
 ```
 
-In case the `occupancy` is not given as input in the request, or if its value is set to the default (empty dictionary), the algorithm will execute as in the *legacy* version of CAiMIRA (i.e. without dynamic groups).
+In case the `occupancy` is not given as input in the request, or if its value is set to the default (empty dictionary), the algorithm will work as in the *legacy* version of CAiMIRA, i.e. with a single group, the timing of which are defined via the keys (sent by the frontend):
+    'infected_coffee_break_option': 'coffee_break_0',
+    'infected_coffee_duration': 5,
+    'infected_dont_have_breaks_with_exposed': False,
+    'infected_finish': '17:30',
+    'infected_lunch_finish': '13:30',
+    'infected_lunch_option': True,
+    'infected_lunch_start': '12:30',
+    'infected_people': 1,
+    'infected_start': '08:30',
+    'exposed_coffee_break_option': 'coffee_break_0',
+    'exposed_coffee_duration': 5,
+    'exposed_finish': '17:30',
+    'exposed_lunch_finish': '13:30',
+    'exposed_lunch_option': True,
+    'exposed_lunch_start': '12:30',
+    'exposed_start': '08:30',
+
+here given with their default values.
 
 #### Parameters
 
