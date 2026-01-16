@@ -133,9 +133,6 @@ class PeriodicInterval(Interval):
 @dataclass(frozen=True)
 class PiecewiseConstant:
 
-    # TODO: Implement rather a periodic version (24-hour period), where
-    # transition_times and values have the same length.
-
     #: transition times at which the function changes value (hours).
     transition_times: typing.Tuple[float, ...]
 
@@ -143,25 +140,58 @@ class PiecewiseConstant:
     values: typing.Tuple[_VectorisedFloat, ...]
 
     def __post_init__(self):
-        if len(self.transition_times) != len(self.values)+1:
-            raise ValueError("transition_times must contain one more element than values")
+        if len(self.transition_times) not in (len(self.values), len(self.values) + 1):
+            raise ValueError(
+                "transition_times must contain the same number of elements as values "
+                "(periodic 24h) or one more (non-periodic)"
+            )
         if tuple(sorted(set(self.transition_times))) != self.transition_times:
             raise ValueError("transition_times must not contain duplicated elements and must be sorted")
         shapes = [np.array(v).shape for v in self.values]
         if not all(shapes[0] == shape for shape in shapes):
             raise ValueError("All values must have the same shape")
 
-    def value(self, time) -> _VectorisedFloat:
+    def value(self, time: float) -> _VectorisedFloat:
+        """
+        Returns the value of the function at a given time.
+        If non-periodic (len(transition_times) == len(values) + 1):
+            Returns values[0] if time <= transition_times[0],
+            values[-1] if time > transition_times[-1].
+        If periodic (len(transition_times) == len(values)):
+            Assumes a 24-hour period and wraps the time.
+        """
+        if len(self.transition_times) == len(self.values):
+            # Periodic version (24-hour period)
+            period = 24.0
+            t0 = self.transition_times[0]
+            # Normalize time to (t0, t0 + period]
+            time = t0 + (time - t0) % period
+            if time == t0:
+                time = t0 + period
+
+            for i in range(len(self.transition_times)):
+                t_start = self.transition_times[i]
+                t_end = (
+                    self.transition_times[i + 1]
+                    if i + 1 < len(self.transition_times)
+                    else t0 + period
+                )
+                if t_start < time <= t_end:
+                    return self.values[i]
+            return self.values[-1]
+
+        # Non-periodic version
         if time <= self.transition_times[0]:
             return self.values[0]
         elif time > self.transition_times[-1]:
             return self.values[-1]
 
-        for t1, t2, value in zip(self.transition_times[:-1],
-                                 self.transition_times[1:], self.values):
+        for t1, t2, value in zip(
+            self.transition_times[:-1], self.transition_times[1:], self.values
+        ):
             if t1 < time <= t2:
-                break
-        return value
+                return value
+        return self.values[-1]
 
     def interval(self) -> Interval:
         # Build an Interval object

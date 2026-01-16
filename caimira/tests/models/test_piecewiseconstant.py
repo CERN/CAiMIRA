@@ -6,9 +6,10 @@ from caimira.calculator.models import data
 
 
 def test_piecewiseconstantfunction_wrongarguments():
-    # Number of values should be 1+number of transition times
-    pytest.raises(ValueError, models.PiecewiseConstant, (0, 1), (0, 0))
-    pytest.raises(ValueError, models.PiecewiseConstant, (0,), (0, 0))
+    # Number of values should be same as number of transition times (periodic)
+    # or 1+number of transition times (non-periodic)
+    pytest.raises(ValueError, models.PiecewiseConstant, (0, 1, 2), (0,)) # len(times) == 3, len(values) == 1
+    pytest.raises(ValueError, models.PiecewiseConstant, (0,), (0, 0)) # len(times) == 1, len(values) == 2
     # Two transition times cannot be equal
     pytest.raises(ValueError, models.PiecewiseConstant, (0, 2, 2), (0, 0))
     # Unsorted transition times are not allowed
@@ -39,6 +40,35 @@ def test_piecewiseconstant(time, expected_value):
     values = (2, 5, 8)
     fun = models.PiecewiseConstant(transition_times, values)
     assert fun.value(time) == expected_value
+
+
+def test_piecewiseconstant_periodic():
+    # 24-hour periodic test
+    # (0, 12, 18) -> values (1, 2, 3)
+    # 0 < t <= 12 -> 1
+    # 12 < t <= 18 -> 2
+    # 18 < t <= 24 -> 3
+    pc = models.PiecewiseConstant((0, 12, 18), (1, 2, 3))
+
+    # Within first period
+    assert pc.value(6) == 1
+    assert pc.value(12) == 1
+    assert pc.value(15) == 2
+    assert pc.value(18) == 2
+    assert pc.value(21) == 3
+    assert pc.value(24) == 3
+
+    # 0 handling (normalized to 24)
+    assert pc.value(0) == 3
+
+    # Wrap around to second period (24-48)
+    assert pc.value(30) == 1
+    assert pc.value(42) == 2
+    assert pc.value(48) == 3
+
+    # Negative time
+    assert pc.value(-3) == 3
+    assert pc.value(-18) == 1
 
 
 def test_piecewiseconstant_interp():
