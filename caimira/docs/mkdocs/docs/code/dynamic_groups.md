@@ -1,9 +1,9 @@
 # Dynamic Occupancy Groups
 
-The dynamic occupancy introduces the capability to handle multiple occupancy groups, composed of **infected** and/or **exposed** population, within an event. Instead of having one single set of parameters for all the exposed (susceptible) occupants, this feature enables the model to have *n* groups, each with a specific occupancy profile and set of short-range interactions. This can also be used to define dynamic occupancy groups for the [CO<sub>2</sub> fitting algorithm](fitting_algorithm.md).
+The dynamic occupancy introduces the capability to handle multiple occupancy groups, composed of **infected** and/or **exposed** population, within an event. Instead of having one single set of parameters for all the exposed (susceptible) occupants, this feature allows the model to have *n* groups, each with a specific occupancy profile and set of short-range interactions. This can also be used to define dynamic occupancy groups for the [CO<sub>2</sub> fitting algorithm](fitting_algorithm.md).
 
 !!!tip
-    When in [development mode](#model-generator-development-mode), this feature enables the model to have *n* groups, each with their specific characteristics, e.g. masks, physical activity or host immunities. Check below for more details.
+    When in [development mode](#model-generator-development-mode), this feature allows the model to have *n* groups, each with their specific characteristics, e.g. masks, physical activity or host immunities. Check below for more details.
 
 This page covers the [description](#feature-description), [input structure](#input-structure), and [results structure](#results-structure-model-output) of this feature.
 
