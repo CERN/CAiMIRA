@@ -9,17 +9,19 @@ This page covers the [description](#feature-description), [input structure](#inp
 
 ## Feature Description
 
-The feature revolves around the concept of a new `ExposureModelGroup` class, which encapsulates a set of `ExposureModel` instances. Each `ExposureModel` represents a distinct group of exposed occupants.
+The feature revolves around the concept of a new [`ExposureModelGroup`](models.md/#exposuremodelgroup-class) class, which encapsulates a set of [`ExposureModel`](models.md/#exposuremodel-class) instances. Each `ExposureModel` represents a distinct group of exposed occupants.
 
 ### Input Structure
 
-The modelling of dynamic occupancy with the definition of groups is controlled by the `occupancy` input sent by the frontend, initially defined by an empty dictionary:
+The modelling of dynamic occupancy with the definition of groups is controlled by the `occupancy` input sent by the frontend (in `src/caimira/calculator/validators/form_validator.py`), initially defined by an empty dictionary:
 
 ```
 occupancy = {}
 ```
 
 In case the `occupancy` is not given as input in the request, or if its value is set to the default (empty dictionary), the algorithm will work as in the *legacy* version of CAiMIRA, i.e. with a single group, the timing of which are defined via the keys (sent by the frontend):
+```
+{
     'infected_coffee_break_option': 'coffee_break_0',
     'infected_coffee_duration': 5,
     'infected_dont_have_breaks_with_exposed': False,
@@ -36,6 +38,8 @@ In case the `occupancy` is not given as input in the request, or if its value is
     'exposed_lunch_option': True,
     'exposed_lunch_start': '12:30',
     'exposed_start': '08:30',
+}
+```
 
 here given with their default values.
 
@@ -48,9 +52,10 @@ The `occupancy` object defines various occupancy groups, each identified by an u
 - `presence`: A list of time intervals (`start_time` and `finish_time`) during which the group was present, formatted as `HH:MM`
 
 !!!note
-    The `infected` value must be an integer that does not exceed `total_people` and has a minimum value of `0` when the group consists solely of exposed individuals. The group key is a custom string chosen by the user to identify the respective group.
+    The `infected` value must be an integer that does not exceed `total_people` and has a minimum value of `0` (case when the group consists solely of exposed individuals). The group key is a custom string chosen by the user to identify the respective group.
 
-???+ example
+<span id="Example">
+???+ example "Example"
 
         occupancy = {
             "group_1": {
@@ -77,7 +82,7 @@ The `occupancy` object defines various occupancy groups, each identified by an u
         - `10:00` to `11:00`
 
 !!!info
-    The number of groups in the `occupancy` input results in the creation of multiple exposure group objects. From the previous example, where two groups are defined, the two exposure instances of each group will have following structure, respectively:
+    The number of groups in the `occupancy` input results in the creation of multiple `ExposureModel` objects. From the previous example, where two groups are defined, the two exposure instances will have the following exposed population, respectively:
 
     - **Exposed population from `group_1`** - `3` people from `09:00` to `12:00` and from `13:00` to `17:00`
     - **Exposed population from `group_2`** - `5` people from `10:00` to `11:00`
@@ -94,15 +99,16 @@ The `occupancy` object defines various occupancy groups, each identified by an u
 
 #### Short-range interactions
 
-The `short_range_interactions` object defines the number of short-range interactions per occupancy group. Each set of interactions is identified by its corresponding group key (`group_1`, `group_2`, etc.), mapping to an object that specifies:
+In the front end (in `src/caimira/calculator/validators/virus/virus_validator.py`), the `short_range_interactions` object defines the short-range interactions for each occupancy group. Each set of interactions is identified by its corresponding group key (`group_1`, `group_2`, etc.), mapping to an object that specifies:
 
 - `expiration`: expiration type of that short-range interaction (`Breathing`, `Speaking`, or `Shouting`)
 - `start_time`: when the interaction starts, formatted as `HH:MM`
 - `duration`: duration of the interaction (in minutes)
 
-Short-range interactions are processed separately form the long-range exposure. Each short-range object in the same group assumes that the same exposed occupant in that group is interacting with one of the infectors during the specified period. In other words, these interactions are all linked to the same occupant and the total short-range exposure will be the cumulative sum of all the short-range objects in the occupancy group.
-To be able to appoint different short-range interactions to different exposed occupants in a given group, a workaround is to subdivide them into smaller groups. See examples below.
+Short-range interactions are processed separately from the long-range exposure. Each short-range object in the same group assumes that the same exposed occupant in that group is interacting with one of the infectors during the specified period. In other words, these interactions are all linked to the same occupant and the total short-range exposure will be the cumulative sum of all the short-range objects in the occupancy group.
+To be able to appoint different short-range interactions to different exposed occupants in a given group, a workaround is to subdivide them into smaller groups --- see examples below.
 
+<span id="Example-1">
 ???+ example "Example 1"
 
     The occupancy object is the one defined above ([here](#parameters)).
@@ -175,7 +181,7 @@ To be able to appoint different short-range interactions to different exposed oc
 
 #### Model generator (development mode)
 
-Following the previous JSON example of the `occupancy` input, the `ExposureModelGroup` object that would be generated should have the following structure:
+Following the previous example ([here](#Example) and [here](#Example-1)) of the `occupancy` input, the `ExposureModelGroup` object that would be generated should have the following structure:
 
 ???+ note "Structure"
     
@@ -189,7 +195,7 @@ Following the previous JSON example of the `occupancy` input, the `ExposureModel
                             data_registry=...,
                             expiration="Shouting",
                             activity=...,
-                            presence=SpecificInterval(((10., 11.5),)),
+                            presence=SpecificInterval(((10., 10.5),)),
                             distance=...,
                         ),
                         ShortRangeModel(
@@ -279,7 +285,7 @@ Following the previous JSON example of the `occupancy` input, the `ExposureModel
 
     ??? tip "How to interpret one `IntPiecewiseConstant` instance?"
 
-        The `IntPiecewiseConstant` inherits from the `PiecewiseConstant` (see [here](../models/#intpiecewiseconstant-class)), and expects the `transition_times` and `values` as arguments.
+        The `IntPiecewiseConstant` inherits from the `PiecewiseConstant` (see [here](../models/#intpiecewiseconstant-class)), and expects the `transition_times` and `values` as arguments (`values` should be integers).
                 
         In the provided example, the infected population has `transition_times` of `(9.0, 10.0, 11.0, 12.0, 13.0, 17.0)` with corresponding values `(2, 7, 2, 0, 2)`. This data can be interpreted as follows:
 
@@ -291,7 +297,7 @@ Following the previous JSON example of the `occupancy` input, the `ExposureModel
 
 ### Results structure (model output)
 
-After the defining the simulation and when making a request to the API, the response is structured as a JSON object that consists of a `status` field indicating success or failure, along with a `message` providing additional details. If successful, the `report_data` object contains the computed exposure results per group and model configuration.
+After defining the simulation and when making a request to the API, the response (in `src/caimira/api/routes/report_routes.py`) is structured as a JSON object that consists of a `status` field indicating success or failure, along with a `message` providing additional details. If successful, the `report_data` object (from `src/caimira/calculator/report/virus_report_data.py`) contains the computed exposure results per group and model configuration.
 
 ???+ example
 
@@ -326,7 +332,7 @@ After the defining the simulation and when making a request to the API, the resp
 
     The output response is structured as follows:
 
-    - Top-Level Fields:
+    - Top-level Fields:
 
         - `status` (string) – Indicates whether the request was successful (`"success"`) or if an error occurred (`"error"`).
         - `message` (string) – Provides a brief description of the response outcome.
