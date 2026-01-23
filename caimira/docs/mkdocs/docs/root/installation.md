@@ -237,7 +237,7 @@ CAiMIRA includes comprehensive documentation, which can be compiled and viewed l
         && mv sphinx/_build/markdown/index.md mkdocs/docs/code/models.md \
         && pyreverse -o png -p UML-CAiMIRA --output-directory mkdocs/docs ../src/caimira/calculator/models/models.py
 
-    Make sure this command is executed in the `docs` directory.
+    Make sure this command is executed in the `docs` directory (hence the initial `cd ..` command --- see also below).
 
     ???tip "Terminal tips"
 
@@ -258,7 +258,7 @@ CAiMIRA includes comprehensive documentation, which can be compiled and viewed l
 
     To view the documentation locally, use MkDocs to serve it:
  
-        cd ../mkdocs
+        cd mkdocs
         python -m mkdocs serve --dev-addr=0.0.0.0:8080
 
     The documentation can now be accessed at [http://0.0.0.0:8080/](http://0.0.0.0:8080/).
