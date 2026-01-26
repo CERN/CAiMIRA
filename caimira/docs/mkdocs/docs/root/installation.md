@@ -216,7 +216,7 @@ CAiMIRA includes comprehensive documentation, which can be compiled and viewed l
 
 1. **Install CAiMIRA with documentation dependencies**:
 
-    First, ensure CAiMIRA is installed along with the `doc` dependencies:
+    First, ensure CAiMIRA is fully installed along with the `doc` dependencies:
 
         cd caimira
         pip install -e .[doc]
@@ -231,16 +231,34 @@ CAiMIRA includes comprehensive documentation, which can be compiled and viewed l
 3. **Customize and organize documentation**:
 
     Run the `style_docs.py` script to apply custom styles, move required files, and generate a UML diagram:
-
+        
+        cd ..
         python style_docs.py \
         && mv sphinx/_build/markdown/index.md mkdocs/docs/code/models.md \
         && pyreverse -o png -p UML-CAiMIRA --output-directory mkdocs/docs ../src/caimira/calculator/models/models.py
+
+    Make sure this command is executed in the `docs` directory (hence the initial `cd ..` command --- see also below).
+
+    ???tip "Terminal tips"
+
+        One can verify the current directory in the terminal by executing the following command:
+
+            pwd
+        
+        To navigate between directories, the `cd` instruction should be used. For example, if one is in the `caimira/docs/sphinx` directory and wants to go up to `caimira/docs`, the command to be executed would typically be:
+
+            cd ..
+            
+        Conversely, to navigate from the `caimira/docs` to its `caimira/docs/sphinx` subdirectory, the command to be executed would be:
+
+            cd sphinx
+
 
 4. **Start the documentation server**:
 
     To view the documentation locally, use MkDocs to serve it:
  
-        cd ../mkdocs
+        cd mkdocs
         python -m mkdocs serve --dev-addr=0.0.0.0:8080
 
     The documentation can now be accessed at [http://0.0.0.0:8080/](http://0.0.0.0:8080/).
