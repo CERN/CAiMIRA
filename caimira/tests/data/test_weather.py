@@ -63,8 +63,8 @@ def test_timezone_at__out_of_range():
 @pytest.mark.parametrize(
     ["latitude", "longitude", "expected_tz_name"],
     [
-        [6.14275, 46.20833, 'Europe/Paris'],  # Geneva timezone
-        [144.96751, -37.81739, "Australia/Sydney"],  # Melbourne timezone
+        [6.14275, 46.20833, 'Europe/Zurich'],  # Geneva timezone
+        [144.96751, -37.81739, "Australia/Melbourne"],  # Melbourne timezone
         [-176.433333, -44.033333, 'Pacific/Chatham'],  # Chatham Islands
     ]
 )
