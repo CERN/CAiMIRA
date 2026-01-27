@@ -31,7 +31,7 @@ dependencies = [
     "scipy",
     "scikit-learn",
     "tabulate",
-    "timezonefinder == 8.1.0",
+    "timezonefinder",
     "tornado",
 ]
 
