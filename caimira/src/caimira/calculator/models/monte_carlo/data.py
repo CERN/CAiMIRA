@@ -364,7 +364,7 @@ def expiration_distribution(
         data_registry,
         BLO_factors,
         d_min=0.1,
-        d_max=30.,
+        d_max=20.,
         exp_type=None,
 ):
     """
