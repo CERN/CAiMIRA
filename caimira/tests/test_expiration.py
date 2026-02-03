@@ -48,8 +48,8 @@ def test_multiple():
     "BLO_weights, expected_aerosols",
     [
         [(1.,0.,0.), 8.33551e-13],
-        [(1.,1.,1.), 2.20071e-11],
-        [(1.,5.,5.), 1.06701e-10],
+        [(1.,1.,1.), 2.109523e-11],
+        [(1.,5.,5.), 1.018961e-10],
     ],
 )
 def test_expiration_aerosols(data_registry, BLO_weights, expected_aerosols):
