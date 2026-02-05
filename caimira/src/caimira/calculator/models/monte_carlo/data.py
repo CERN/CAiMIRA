@@ -363,8 +363,7 @@ def mask_distributions(data_registry):
 def expiration_distribution(
         data_registry,
         BLO_factors,
-        d_min=0.1,
-        d_max=20.,
+        short_range=False,
         exp_type=None,
 ):
     """
@@ -375,6 +374,12 @@ def expiration_distribution(
     an historical choice based on previous implementations of the model
     (it limits the influence of the O-mode).
     """
+    if not short_range:
+        d_min=param_evaluation(data_registry.expiration_particle['particle_size_range']['long_range'], 'minimum_diameter')
+        d_max=param_evaluation(data_registry.expiration_particle['particle_size_range']['long_range'], 'maximum_diameter')
+    else:
+        d_min=param_evaluation(data_registry.expiration_particle['particle_size_range']['short_range'], 'minimum_diameter')
+        d_max=param_evaluation(data_registry.expiration_particle['particle_size_range']['short_range'], 'maximum_diameter')
     dscan = np.linspace(d_min, d_max, 3000)
     return mc.Expiration(
         CustomKernel(
@@ -421,8 +426,7 @@ def expiration_distributions(data_registry):
         exp_type: expiration_distribution(
             data_registry=data_registry,
             BLO_factors=BLO_factors,
-            d_min=param_evaluation(data_registry.expiration_particle['particle_size_range']['long_range'], 'minimum_diameter'),
-            d_max=param_evaluation(data_registry.expiration_particle['particle_size_range']['long_range'], 'maximum_diameter')
+            short_range=False,
         )
         for exp_type, BLO_factors in expiration_BLO_factors(data_registry).items()
     }
@@ -433,8 +437,7 @@ def short_range_expiration_distributions(data_registry):
         exp_type: expiration_distribution(
             data_registry=data_registry,
             BLO_factors=BLO_factors,
-            d_min=param_evaluation(data_registry.expiration_particle['particle_size_range']['short_range'], 'minimum_diameter'),
-            d_max=param_evaluation(data_registry.expiration_particle['particle_size_range']['short_range'], 'maximum_diameter'),
+            short_range=True,
             exp_type=exp_type,
         )
         for exp_type, BLO_factors in expiration_BLO_factors(data_registry).items()
