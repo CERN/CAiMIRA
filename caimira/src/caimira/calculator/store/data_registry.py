@@ -11,7 +11,7 @@ class DataRegistry:
             "long_range": {
                 "minimum_diameter": 0.1,
                 "maximum_diameter": 20,
-                "references": "Henriques et al. (https://doi.org/10.1098/rsif.2024.0740).",
+                "references": "Hunziker (https://doi.org/10.1136/bmjopen-2020-047772); Cheng et al. (https://doi.org/10.1016/j.indenv.2024.100045); Henriques et al. (https://doi.org/10.1098/rsif.2024.0740).",
             },
             "short_range": {
                 "minimum_diameter": 0.1,
