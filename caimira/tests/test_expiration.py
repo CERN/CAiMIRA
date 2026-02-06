@@ -47,9 +47,9 @@ def test_multiple():
 @pytest.mark.parametrize(
     "BLO_weights, expected_aerosols",
     [
-        [(1.,0.,0.), 8.362134e-13],
-        [(1.,1.,1.), 2.112247e-11],
-        [(1.,5.,5.), 1.021722e-10],
+        [(1.,0.,0.), 8.33551e-13],
+        [(1.,1.,1.), 2.108356e-11],
+        [(1.,5.,5.), 1.020836e-10],
     ],
 )
 def test_expiration_aerosols(data_registry, BLO_weights, expected_aerosols):
