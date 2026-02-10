@@ -127,7 +127,7 @@ As mentioned in Jia, W. et al. <sup>[1](#id7)</sup>, the jet concentration depen
 Here, once again, we shall normalize the short-range concentration to the diameter-independent quantities.
 IMPORTANT NOTE: since the susceptible host is physically closer to the infector, the emitted particles are larger in size,
 hence a new distribution of diameters should be taken into consideration.
-As opposed to $D_{\mathrm{max}} = 30\mathrm{μm}$ for the long-range MC integration, the short-range model will assume a $D_{\mathrm{max}} = 100\mathrm{μm}$.
+As opposed to $D_{\mathrm{max}} = 20\mathrm{μm}$ for the long-range MC integration, the short-range model will assume a $D_{\mathrm{max}} = 100\mathrm{μm}$.
 Very similar to what we did with the **emission rate**, we need to calculate the scaling factor from the probability distribution, $N_p(D)$ - $cn$, as well as the **volume concentration** for those diameters.
 
 During a given exposure time, multiple short-range interactions can be defined in the model.
@@ -168,7 +168,7 @@ we need to account for that difference.
 The former operation is given in method `caimira.models.models.ShortRangeModel._long_range_normed_concentration()`. For the diameter range difference, there are a few options:
 one solution would be to recompute the values a second time using $D_{\mathrm{max}} = 100\mathrm{μm}$;
 or perform a approximation using linear interpolation, which is possible and more effective in terms of performance. We decided to adopt the interpolation solution.
-The set of points with a known value are given by the default expiration particle diameters for long-range, i.e. from 0 to 30 $\mathrm{μm}$.
+The set of points with a known value are given by the default expiration particle diameters for long-range, i.e. from 0 to 20 $\mathrm{μm}$.
 The set of points we want the interpolated values are given by the short-range expiration particle diameters, i.e. from 0 to 100 $\mathrm{μm}$.
 
 To summarize, in the code, $C_{\mathrm{SR}}(t, D)$ is computed as follows:
