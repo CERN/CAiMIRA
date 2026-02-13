@@ -334,11 +334,7 @@ def waiting_room_mc(data_registry):
     )
 
 
-# In the following tests all the initial expected values for emission
-# rate were multiplied by the average of the distribution of fraction
-# of infected viruses (0.305, for a uniform distribution from 0.01 to 0.6)
-# following the change of convention that this ratio should be
-# applied at the emission level.
+# Expected values were obtained by building the same models with 10 000 000 samples
 @retry(tries=10)
 @pytest.mark.parametrize(
     "mc_model, expected_pi, expected_new_cases, expected_dose, expected_ER_per_person",
@@ -367,6 +363,7 @@ def test_report_models(mc_model, expected_pi, expected_new_cases,
         expected_ER_per_person, rtol=TOLERANCE)
 
 
+# Expected values were obtained by building the same models with 10 000 000 samples
 @retry(tries=10)
 @pytest.mark.parametrize(
     "mask_type, month, expected_pi, expected_dose, expected_ER",

@@ -370,9 +370,8 @@ def expiration_distribution(
     Returns an Expiration with an aerosol diameter distribution, defined
     by the BLO factors (a length-3 tuple).
     The total concentration of aerosols, cn, is computed by integrating
-    the distribution between 0.1 and 30 microns - these boundaries are
-    an historical choice based on previous implementations of the model
-    (it limits the influence of the O-mode).
+    the distribution over the particle size range defined in data_registry
+    for long- or short-range interactions (from minimum_diameter to maximum_diameter).
     """
     if not short_range:
         d_min=param_evaluation(data_registry.expiration_particle['particle_size_range']['long_range'], 'minimum_diameter')
