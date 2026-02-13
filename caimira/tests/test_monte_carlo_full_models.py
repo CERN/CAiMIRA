@@ -334,22 +334,18 @@ def waiting_room_mc(data_registry):
     )
 
 
-# In the following tests all the initial expected values for emission
-# rate were multiplied by the average of the distribution of fraction
-# of infected viruses (0.305, for a uniform distribution from 0.01 to 0.6)
-# following the change of convention that this ratio should be
-# applied at the emission level.
+# Expected values were obtained by building the same models with 10 000 000 samples
 @retry(tries=10)
 @pytest.mark.parametrize(
     "mc_model, expected_pi, expected_new_cases, expected_dose, expected_ER_per_person",
     [
-        ["shared_office_mc", 5.38, 0.16, 3.350, 1056*0.305],
-        ["classroom_mc",     8.21, 1.56, 11.356, 7416*0.305],
-        ["ski_cabin_mc",     12.92, 0.39, 21.796, 10231*0.305],
-        ["skagit_chorale_mc",61.01, 36.53, 84.730, 190422*0.305],
-        ["bus_ride_mc",      10.59, 7.06, 6.650, 5419*0.305],
-        ["gym_mc",           0.52, 0.14, 0.249, 1450*0.305/2.], # there are two infected in this case
-        ["waiting_room_mc",  1.53, 0.21, 0.844, 929*0.305],
+        ["shared_office_mc", 5.25, 0.16, 3.241, 303.41],
+        ["classroom_mc",     8.06, 1.53, 11.053, 2092.78],
+        ["ski_cabin_mc",     12.71, 0.38, 20.776, 2973.02],
+        ["skagit_chorale_mc",60.29, 36.18, 82.829, 55067.29],
+        ["bus_ride_mc",      10.30, 6.90, 6.489, 1626.92],
+        ["gym_mc",           0.52, 0.14, 0.247, 220.17], # there are two infected in this case
+        ["waiting_room_mc",  1.51, 0.21, 0.835, 280.42],
     ]
 )
 def test_report_models(mc_model, expected_pi, expected_new_cases,
@@ -367,16 +363,17 @@ def test_report_models(mc_model, expected_pi, expected_new_cases,
         expected_ER_per_person, rtol=TOLERANCE)
 
 
+# Expected values were obtained by building the same models with 10 000 000 samples
 @retry(tries=10)
 @pytest.mark.parametrize(
     "mask_type, month, expected_pi, expected_dose, expected_ER",
     [
-        ["No mask", "Jul", 7.689, 10.050, 1034.435*0.305],
-        ["Type I",  "Jul", 1.663, 0.938, 193.52*0.305],
-        ["FFP2",    "Jul", 0.523, 0.253, 193.52*0.305],
-        ["Type I",  "Feb", 0.659, 0.325, 193.52*0.305],
-        ["Cloth",   "Feb", 2.653, 1.741, 673.10*0.305],
-        ["Cloth",   "Jul", 5.322, 5.064, 673.10*0.305],
+        ["No mask", "Jul", 7.585, 9.801, 305.446],
+        ["Type I",  "Jul", 1.603, 0.904, 56.549],
+        ["FFP2",    "Jul", 0.512, 0.244, 56.698],
+        ["Type I",  "Feb", 0.636, 0.309, 56.467],
+        ["Cloth",   "Feb", 2.596, 1.689, 198.377],
+        ["Cloth",   "Jul", 5.245, 4.949, 199.294],
     ],
 )
 def test_small_shared_office_Geneva(data_registry, mask_type, month, expected_pi,

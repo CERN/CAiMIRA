@@ -69,7 +69,7 @@ class SimpleConcentrationModel:
     diameter_min: float = 0.1
 
     #: Maximum particle diameter considered (microns)
-    diameter_max: float = 30.
+    diameter_max: float = 20.
 
     #: Evaporation factor
     evaporation: float = 0.3
