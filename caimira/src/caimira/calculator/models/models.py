@@ -1947,6 +1947,20 @@ class ExposureModelGroup:
         """
         List of the probability of infection for each group.
         """
+        return [model.infection_probability()/100 for model in self.exposure_models] # type: ignore
+    
+    @method_cache
+    def infection_probability(self) -> _VectorisedFloat:
+        """
+        Multiply over all groups to get the probability that someone in some group got infected.
+        """
+        return (1 - np.prod([1 - prob for prob in self._infection_probability_list()], axis = 0))
+    
+    @method_cache
+    def _total_probability_rule_list(self):
+        """
+        List of the probability of infection for each group.
+        """
         return [model.infection_probability() for model in self.exposure_models] # type: ignore
 
     def expected_new_cases(self) -> _VectorisedFloat:
