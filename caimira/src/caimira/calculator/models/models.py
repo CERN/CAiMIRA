@@ -842,6 +842,9 @@ class SimplePopulation:
             return self.number * self.person_present(time)
         else:
             return int(self.number.value(time))
+        
+    def transition_times(self):
+        return self.presence_interval().transition_times()
 
 
 @dataclass(frozen=True)
@@ -989,6 +992,22 @@ class InfectedPopulation(_PopulationWithVirus):
         The Particle object representing the aerosol - here the default one
         """
         return self.expiration.particle
+    
+@dataclass(frozen=True)
+class MultiplePopulations:
+    """
+    Store the information of multiple populations to be used for dynamic emitters/infected.
+    """
+    populations: list[SimplePopulation]
+
+    def people_present(self, time: float):
+        return np.sum([population.people_present(time) for population in self.populations])
+    
+    def transition_times(self):
+        state_change_times = {0.}
+        for population in self.populations:
+            state_change_times.update(population.transition_times())
+        return sorted(state_change_times)
 
 
 @dataclass(frozen=True)
@@ -1029,7 +1048,7 @@ class _ConcentrationModelBase:
     ventilation: _VentilationBase
 
     @property
-    def population(self) -> SimplePopulation:
+    def population(self) -> typing.Union[MultiplePopulations, SimplePopulation]:
         """
         Population in the room (the emitters of what we compute the
         concentration of)
@@ -1089,7 +1108,7 @@ class _ConcentrationModelBase:
         the times at which their state changes.
         """
         state_change_times = {0.}
-        state_change_times.update(self.population.presence_interval().transition_times())
+        state_change_times.update(self.population.transition_times())
         state_change_times.update(self.ventilation.transition_times(self.room))
         return sorted(state_change_times)
 
@@ -1098,7 +1117,10 @@ class _ConcentrationModelBase:
         """
         First presence time. Before that, the concentration is zero.
         """
-        return self.population.presence_interval().boundaries()[0][0]
+        if isinstance(self.population, MultiplePopulations):
+            return np.min([simple_population.presence_interval().boundaries()[0][0] for simple_population in self.population.populations])
+        else:
+            return self.population.presence_interval().boundaries()[0][0]
 
     def last_state_change(self, time: float) -> float:
         """
