@@ -1327,6 +1327,59 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         # CO2 concentration given in ppm, hence the 1e6 factor.
         return (1e6*self.population.activity.exhalation_rate
                 *self.CO2_fraction_exhaled)
+    
+class CO2ConcentrationModelGroup:
+    """
+    CO2 model with dynamic occupancy, one CO2ConcentrationModel per group.
+    """
+
+    concentration_models = list[CO2ConcentrationModel]
+
+    def __post_init__(self):
+        self.data_registry = set([model.data_registry for model in self.concentration_models])
+        self.room = set([model.data_registry for model in self.concentration_models])
+        self.ventilation = set([model.data_registry for model in self.concentration_models])
+        self.background_concentration = set([model.min_background_concentration() for model in self.concentration_models])
+
+        if len(self.data_registry) != 1:
+            raise ValueError("All concentration models must have the same data_registry.")
+        if len(self.room) != 1:
+            raise ValueError("All concentration models must have the same room.")
+        if len(self.ventilation) != 1:
+            raise ValueError("All concentration models must have the same ventilation.")
+        if len(self.background_concentration) != 1:
+            raise ValueError("All concentration models must have the same background_concentration.")
+    
+    @property
+    def population(self) -> MultiplePopulations:
+        return MultiplePopulations(
+            populations=[model.population for model in self.concentration_models]
+        )
+    
+    @method_cache
+    def state_change_times(self) -> typing.List[float]:
+        """
+        All time dependent entities on this model must provide information about
+        the times at which their state changes.
+        """
+        # state_change_times = {0.}
+        # for model in self.concentration_models:
+        #     state_change_times.update(model.state_change_times())
+        # return sorted(state_change_times)
+        state_change_times = {0.}
+        state_change_times.update(self.population.transition_times())
+        state_change_times.update(self.ventilation.transition_times(self.room))
+        return sorted(state_change_times)
+    
+    def _align_state_change_times(self):
+        for i, model in enumerate(self.concentration_models):
+            """if state change not in model add it to the model"""#PROBLEM: calculations stop when group leaves
+            pass
+
+    def concentration(self):
+        self._align_state_change_times()
+        return np.sum([model.concentration for model in self.concentration_models]) - self.background_concentration * (len(self.concentration_models) - 1)
+
 
 
 @dataclass(frozen=True)
@@ -1706,7 +1759,7 @@ class ExposureModel:
         All time dependent population entities on this model must provide information
         about the times at which their state changes.
         """
-        state_change_times = set(self.concentration_model.infected.presence_interval().transition_times())
+        state_change_times = set(self.concentration_model.infected.presence_interval().transition_times()) #update with all concentration_models
         state_change_times.update(self.exposed.presence_interval().transition_times())
 
         return sorted(state_change_times)
@@ -1718,9 +1771,9 @@ class ExposureModel:
         particle diameter.
         """
         return self.concentration_model.infected.particle.fraction_deposited(
-                    self.concentration_model.evaporation_factor)
+                    self.concentration_model.evaporation_factor) #sum over all concentration_models
 
-    def _long_range_normed_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
+    def _long_range_normed_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:#sum over all concentration_models
         """
         The number of virions per meter^3 between any two times, normalized
         by the emission rate of the infected population
@@ -1748,7 +1801,7 @@ class ExposureModel:
         It considers the long-range concentration with the
         contribution of the short-range concentration.
         """
-        concentration = self.concentration_model.concentration(time)
+        concentration = self.concentration_model.concentration(time)#sum over all concentration_models
         for interaction in self.short_range:
             concentration += interaction.short_range_concentration(self.concentration_model, time)
         return concentration
@@ -1758,7 +1811,7 @@ class ExposureModel:
 
         emission_rate_per_aerosol_per_person = \
             self.concentration_model.infected.emission_rate_per_aerosol_per_person_when_present()
-        aerosols = self.concentration_model.infected.aerosols()
+        aerosols = self.concentration_model.infected.aerosols()#sum over all concentration_models
         fdep = self.long_range_fraction_deposited()
 
         diameter = self.concentration_model.infected.particle.diameter
@@ -1861,18 +1914,18 @@ class ExposureModel:
         vD_list = self._deposited_exposure_list()
 
         # oneoverln2 multiplied by ID_50 corresponds to ID_63.
-        infectious_dose = oneoverln2 * self.concentration_model.virus.infectious_dose
+        infectious_dose = oneoverln2 * self.concentration_model.virus.infectious_dose#all concentration_models with same virus
 
         # Probability of infection.
         return [(1 - np.exp(-((vD * (1 - self.exposed.host_immunity))/(infectious_dose *
-                self.concentration_model.virus.transmissibility_factor)))) for vD in vD_list]
+                self.concentration_model.virus.transmissibility_factor)))) for vD in vD_list] #all concentration_models with same virus (if several viruses, calculate infection risk for each of them)
 
     @method_cache
     def infection_probability(self) -> _VectorisedFloat:
         return (1 - np.prod([1 - prob for prob in self._infection_probability_list()], axis = 0)) * 100
 
     def total_probability_rule(self) -> _VectorisedFloat:
-        if (isinstance(self.concentration_model.infected.number, IntPiecewiseConstant)):
+        if (isinstance(self.concentration_model.infected.number, IntPiecewiseConstant)):#change test
                 raise NotImplementedError("Cannot compute total probability "
                         "(including incidence rate) with dynamic occupancy")
 
@@ -1918,7 +1971,7 @@ class ExposureModel:
         The reproduction number can be thought of as the expected number of
         cases directly generated by one infected case in a population.
         """
-        infected_population: InfectedPopulation = self.concentration_model.infected
+        infected_population: InfectedPopulation = self.concentration_model.infected#sum over all concentration_models
         if isinstance(infected_population.number, int) and infected_population.number == 1:
             return self.expected_new_cases()
 
