@@ -996,22 +996,22 @@ class InfectedPopulation(_PopulationWithVirus):
 @dataclass(frozen=True)
 class MultiplePopulations:
     """
-    Store the information of multiple populations to be used for dynamic emitters/infected.
+    Store the information of multiple groups to be used for dynamic emitters/infected.
     """
-    populations: list[SimplePopulation]
+    groups: list[SimplePopulation]
 
     def people_present(self, time: float):
-        return np.sum([population.people_present(time) for population in self.populations])
+        return np.sum([group.people_present(time) for group in self.groups])
     
     def transition_times(self):
         state_change_times = {0.}
-        for population in self.populations:
-            state_change_times.update(population.transition_times())
+        for group in self.groups:
+            state_change_times.update(group.transition_times())
         return sorted(state_change_times)
     
 @dataclass(frozen=True)
 class MultipleInfectedPopulations(MultiplePopulations):
-    populations: list[InfectedPopulation]
+    groups: list[InfectedPopulation]
 
 
 @dataclass(frozen=True)
@@ -1072,14 +1072,38 @@ class _ConcentrationModelBase:
         the concentration will decay to.
         """
         return self.data_registry.concentration_model['virus_concentration_model']['min_background_concentration'] # type: ignore
-
-    def normalization_factor(self) -> _VectorisedFloat:
+    
+    @method_cache
+    def group_normalization_factors(self) -> list[_VectorisedFloat]:
+        """
+        Calculate the normalization factor (in the same unit as the concentration) for each group.
+        """
+        raise NotImplementedError("Subclass must implement")
+    
+    def normalization_factor(self, time: typing.Optional[float] = None) -> _VectorisedFloat:
         """
         Normalization factor (in the same unit as the concentration).
         This factor is applied to the normalized concentration only
         at the very end.
+
+        For multiple infected groups, the total normalization factor is the sum of the 
+        normalization factors for each group scaled by the relative number of occupants.
         """
-        raise NotImplementedError("Subclass must implement")
+        # we normalize by the emission rate
+        if isinstance(self.population, MultiplePopulations):
+            if time == None:
+                raise ValueError("A time must be given for calculating the normalization_factor with dynamic occupants.")
+            total_people_present = self.population.people_present(time)
+            relative_group_sizes = [group.people_present(time) / total_people_present 
+                                    if total_people_present != 0 else 0
+                                    for group in self.population.groups]
+        else:
+            relative_group_sizes = [1]
+        group_normalization_factors = self.group_normalization_factors()
+        print(group_normalization_factors)
+        print(relative_group_sizes)
+        print(np.sum([nf*n for nf, n in zip(group_normalization_factors, relative_group_sizes)], axis=0))
+        return np.sum([nf*n for nf, n in zip(group_normalization_factors, relative_group_sizes)], axis=0)
 
     @method_cache
     def _normed_concentration_limit(self, time: float) -> _VectorisedFloat:
@@ -1122,7 +1146,7 @@ class _ConcentrationModelBase:
         First presence time. Before that, the concentration is zero.
         """
         if isinstance(self.population, MultiplePopulations):
-            return np.min([simple_population.presence_interval().boundaries()[0][0] for simple_population in self.population.populations])
+            return np.min([group.presence_interval().boundaries()[0][0] for group in self.population.groups])
         else:
             return self.population.presence_interval().boundaries()[0][0]
 
@@ -1273,10 +1297,14 @@ class ConcentrationModel(_ConcentrationModelBase):
     @property
     def virus(self) -> Virus:
         return self.infected.virus
-
-    def normalization_factor(self) -> _VectorisedFloat:
+    
+    @method_cache # efficient to cache?
+    def group_normalization_factors(self) -> list[_VectorisedFloat]:
         # we normalize by the emission rate
-        return self.infected.emission_rate_per_person_when_present()
+        if isinstance(self.population, MultipleInfectedPopulations):
+            return [group.emission_rate_per_person_when_present() for group in self.infected.groups]
+        else: 
+            return [self.infected.emission_rate_per_person_when_present()]
 
     def removal_rate(self, time: float) -> _VectorisedFloat:
         # Equilibrium velocity of particle motion toward the floor
@@ -1325,12 +1353,17 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         Background CO2 concentration in the atmosphere (in ppm)
         """
         return self.CO2_atmosphere_concentration
-
-    def normalization_factor(self) -> _VectorisedFloat:
+    
+    @method_cache # efficient to cache?
+    def group_normalization_factors(self) -> list[_VectorisedFloat]:
         # normalization by the CO2 exhaled per person.
         # CO2 concentration given in ppm, hence the 1e6 factor.
-        return (1e6*self.population.activity.exhalation_rate
-                *self.CO2_fraction_exhaled)
+        if isinstance(self.population, MultiplePopulations):
+            return [1e6*group.activity.exhalation_rate
+                *self.CO2_fraction_exhaled for group in self.infected.groups]
+        else: 
+            return [1e6*self.population.activity.exhalation_rate
+                *self.CO2_fraction_exhaled]
 
 
 @dataclass(frozen=True)
