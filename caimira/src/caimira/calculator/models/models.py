@@ -1173,6 +1173,14 @@ class _ConcentrationModelBase:
             f"The requested time ({time}) is greater than last available "
             f"state change time ({change_time})"
         )
+    
+    def state_changed(self, start: float, stop: float) -> bool:
+        """
+        Test if the normalization factor is constant over the entire interval
+        [start, stop].
+        """
+        next_state_change = self._next_state_change(start)
+        return next_state_change < stop
 
     @method_cache
     def _normed_concentration_cached(self, time: float) -> _VectorisedFloat:
@@ -1238,7 +1246,7 @@ class _ConcentrationModelBase:
         normalized by normalization_factor.
         Start and stop must be in interval with same normalization factor.
         """
-        #if self.normalization_factor(start) != self.normalization_factor(stop): #improve test
+        #if self.state_changed(start, stop):
         #    raise ValueError("normed_integrated_concentration can only be calculated for start and stop in interval with constant normalization factor.")
         if stop <= self._first_presence_time():
             return (stop - start)*self.min_background_concentration()/self.normalization_factor()
@@ -1270,7 +1278,9 @@ class _ConcentrationModelBase:
         """
         Get the integrated concentration of viruses in the air between the times start and stop.
         """
-        #TODO: sum over intervals with different normalization factors, as this must be done before reversing normalization
+        if self.state_changed(start, stop):
+            #TODO: sum over intervals with different normalization factors, as this must be done before reversing normalization
+            pass
         return (self.normed_integrated_concentration(start, stop) *
                 self.normalization_factor())
 
