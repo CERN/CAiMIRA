@@ -1100,9 +1100,6 @@ class _ConcentrationModelBase:
         else:
             relative_group_sizes = [1]
         group_normalization_factors = self.group_normalization_factors()
-        print(group_normalization_factors)
-        print(relative_group_sizes)
-        print(np.sum([nf*n for nf, n in zip(group_normalization_factors, relative_group_sizes)], axis=0))
         return np.sum([nf*n for nf, n in zip(group_normalization_factors, relative_group_sizes)], axis=0)
 
     @method_cache
@@ -1126,8 +1123,7 @@ class _ConcentrationModelBase:
         else:
             invRR = np.nan if RR == 0. else 1. / RR # type: ignore
 
-        return (self.population.people_present(time) * invRR / V +
-                self.min_background_concentration()/self.normalization_factor())
+        return self.population.people_present(time) * invRR / V
 
     @method_cache
     def state_change_times(self) -> typing.List[float]:
@@ -1201,7 +1197,7 @@ class _ConcentrationModelBase:
         # The model always starts at t=0, but we avoid running concentration calculations
         # before the first presence as an optimisation.
         if time <= self._first_presence_time():
-            return self.min_background_concentration()/self.normalization_factor()
+            return 0
 
         next_state_change_time = self._next_state_change(time)
         RR = self.removal_rate(next_state_change_time)
@@ -1233,14 +1229,17 @@ class _ConcentrationModelBase:
         to this method.
         """
         return (self._normed_concentration_cached(time) *
-                self.normalization_factor())
+                self.normalization_factor()) + self.min_background_concentration()
 
     @method_cache
     def normed_integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
         """
         Get the integrated concentration between the times start and stop,
         normalized by normalization_factor.
+        Start and stop must be in interval with same normalization factor.
         """
+        #if self.normalization_factor(start) != self.normalization_factor(stop): #improve test
+        #    raise ValueError("normed_integrated_concentration can only be calculated for start and stop in interval with constant normalization factor.")
         if stop <= self._first_presence_time():
             return (stop - start)*self.min_background_concentration()/self.normalization_factor()
         state_change_times = self.state_change_times()
@@ -1253,6 +1252,7 @@ class _ConcentrationModelBase:
             start = max([interval_start, req_start])
             stop = min([interval_stop, req_stop])
 
+            normed_background_concentration = self.min_background_concentration()/self.normalization_factor()
             conc_start = self._normed_concentration_cached(start)
 
             next_conc_state = self._next_state_change(stop)
@@ -1260,6 +1260,7 @@ class _ConcentrationModelBase:
             RR = self.removal_rate(next_conc_state)
             delta_time = stop - start
             total_normed_concentration += (
+                normed_background_concentration * delta_time +
                 conc_limit * delta_time +
                 (conc_limit - conc_start) * (np.exp(-RR*delta_time)-1) / RR
             )
@@ -1269,6 +1270,7 @@ class _ConcentrationModelBase:
         """
         Get the integrated concentration of viruses in the air between the times start and stop.
         """
+        #TODO: sum over intervals with different normalization factors, as this must be done before reversing normalization
         return (self.normed_integrated_concentration(start, stop) *
                 self.normalization_factor())
 
