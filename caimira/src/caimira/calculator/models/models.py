@@ -1164,10 +1164,22 @@ class _ConcentrationModelBase:
 
     def _next_state_change(self, time: float) -> float:
         """
-        Find the nearest future state change.
+        Find the nearest future (or present) state change.
         """
         for change_time in self.state_change_times():
             if change_time >= time:
+                return change_time
+        raise ValueError(
+            f"The requested time ({time}) is greater than last available "
+            f"state change time ({change_time})"
+        )
+    
+    def strict_next_state_change(self, time: float) -> float:
+        """
+        Find the nearest future state change,
+        """
+        for change_time in self.state_change_times():
+            if change_time > time:
                 return change_time
         raise ValueError(
             f"The requested time ({time}) is greater than last available "
@@ -1179,7 +1191,7 @@ class _ConcentrationModelBase:
         Test if the normalization factor is constant over the entire interval
         [start, stop].
         """
-        next_state_change = self._next_state_change(start)
+        next_state_change = self.strict_next_state_change(start)
         return next_state_change < stop
 
     @method_cache
@@ -1247,7 +1259,7 @@ class _ConcentrationModelBase:
         Start and stop must be in interval with same normalization factor.
         """
         #if self.state_changed(start, stop):
-        #    raise ValueError("normed_integrated_concentration can only be calculated for start and stop in interval with constant normalization factor.")
+        #    raise ValueError("Cannot calculate normalized sum over intervals with different normalization factors.")
         if stop <= self._first_presence_time():
             return (stop - start)*self.min_background_concentration()/self.normalization_factor()
         state_change_times = self.state_change_times()
@@ -1769,27 +1781,6 @@ class ExposureModel:
         return self.concentration_model.infected.particle.fraction_deposited(
                     self.concentration_model.evaporation_factor)
 
-    def _long_range_normed_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
-        """
-        The number of virions per meter^3 between any two times, normalized
-        by the emission rate of the infected population
-        """
-        exposure = 0.
-        for start, stop in self.exposed.presence_interval().boundaries():
-            if stop < time1:
-                continue
-            elif start > time2:
-                break
-            elif start <= time1 and time2<= stop:
-                exposure += self.concentration_model.normed_integrated_concentration(time1, time2)
-            elif start <= time1 and stop < time2:
-                exposure += self.concentration_model.normed_integrated_concentration(time1, stop)
-            elif time1 < start and time2 <= stop:
-                exposure += self.concentration_model.normed_integrated_concentration(start, time2)
-            elif time1 <= start and stop < time2:
-                exposure += self.concentration_model.normed_integrated_concentration(start, stop)
-        return exposure
-
     def concentration(self, time: float) -> _VectorisedFloat:
         """
         Virus exposure concentration, as a function of time.
@@ -1802,12 +1793,16 @@ class ExposureModel:
             concentration += interaction.short_range_concentration(self.concentration_model, time)
         return concentration
 
-    def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
+    def _long_range_deposited_exposure_within_interval(self, time1: float, time2: float) -> _VectorisedFloat:
+        if self.concentration_model.state_changed(time1, time2):
+            raise ValueError("Cannot calculate normalized sum over intervals with different normalization factors.")
+        
         deposited_exposure = 0.
 
+        ##TODO: how to align with the new normalization factor??
         emission_rate_per_aerosol_per_person = \
-            self.concentration_model.infected.emission_rate_per_aerosol_per_person_when_present()
-        aerosols = self.concentration_model.infected.aerosols()
+            self.concentration_model.infected.emission_rate_per_aerosol_per_person_when_present()#
+        aerosols = self.concentration_model.infected.aerosols()#
         fdep = self.long_range_fraction_deposited()
 
         diameter = self.concentration_model.infected.particle.diameter
@@ -1817,13 +1812,13 @@ class ExposureModel:
             # to perform properly the Monte-Carlo integration over
             # particle diameters (doing things in another order would
             # lead to wrong results for the probability of infection).
-            dep_exposure_integrated = np.array(self._long_range_normed_exposure_between_bounds(time1, time2) *
-                                                aerosols *
+            dep_exposure_integrated = np.array(self.concentration_model.normed_integrated_concentration(time1, time2) *
+                                                aerosols * # normalization reversed partially inside sum
                                                 fdep).mean()
         else:
             # In the case of a single diameter or no diameter defined,
             # one should not take any mean at this stage.
-            dep_exposure_integrated = self._long_range_normed_exposure_between_bounds(time1, time2)*aerosols*fdep
+            dep_exposure_integrated = self.concentration_model.normed_integrated_concentration(time1, time2)*aerosols*fdep
 
         # Then we multiply by the diameter-independent quantity emission_rate_per_aerosol_per_person,
         # and parameters of the vD equation (i.e. BR_k and n_in).
@@ -1831,6 +1826,39 @@ class ExposureModel:
                 emission_rate_per_aerosol_per_person *
                 self.exposed.activity.inhalation_rate *
                 (1 - self.exposed.mask.inhale_efficiency()))
+
+        return deposited_exposure
+    
+    def _long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
+        """
+        Calculate the total deposited_exposure over intervals with potentially different normalization factors.
+        """
+        deposited_exposure = 0.
+        interval_start = time1
+        interval_end = self.concentration_model.strict_next_state_change(interval_start)
+        while interval_end < time2 and interval_start != interval_end:
+            deposited_exposure += self._long_range_deposited_exposure_within_interval(interval_start, interval_end)
+            interval_start = interval_end
+            interval_end = self.concentration_model.strict_next_state_change(interval_start)
+        
+        deposited_exposure += self._long_range_deposited_exposure_within_interval(interval_start, time2)
+        return deposited_exposure
+    
+    def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
+        deposited_exposure = 0.
+        for start, stop in self.exposed.presence_interval().boundaries():
+            if stop < time1:
+                continue
+            elif start > time2:
+                break
+            elif start <= time1 and time2 <= stop:
+                deposited_exposure += self._long_range_deposited_exposure_between_bounds(time1, time2)
+            elif start <= time1 and stop < time2:
+                deposited_exposure += self._long_range_deposited_exposure_between_bounds(time1, stop)
+            elif time1 < start and time2 <= stop:
+                deposited_exposure += self._long_range_deposited_exposure_between_bounds(start, time2)
+            elif time1 <= start and stop < time2:
+                deposited_exposure += self._long_range_deposited_exposure_between_bounds(start, stop)
 
         return deposited_exposure
 
