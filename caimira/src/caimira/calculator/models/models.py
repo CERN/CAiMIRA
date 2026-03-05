@@ -36,6 +36,7 @@ from dataclasses import dataclass
 import typing
 
 import numpy as np
+import math
 from scipy.interpolate import interp1d
 import scipy.stats as sct
 from scipy.optimize import minimize
@@ -1074,7 +1075,7 @@ class _ConcentrationModelBase:
         return self.data_registry.concentration_model['virus_concentration_model']['min_background_concentration'] # type: ignore
     
     @method_cache
-    def group_normalization_factors(self) -> list[_VectorisedFloat]:
+    def normalization_factor_list(self) -> list[typing.Tuple[_VectorisedFloat]]:
         """
         Calculate the normalization factor (in the same unit as the concentration) for each group.
         """
@@ -1099,8 +1100,8 @@ class _ConcentrationModelBase:
                                     for group in self.population.groups]
         else:
             relative_group_sizes = [1]
-        group_normalization_factors = self.group_normalization_factors()
-        return np.sum([nf*n for nf, n in zip(group_normalization_factors, relative_group_sizes)], axis=0)
+        group_normalization_factors = self.normalization_factor_list()
+        return np.sum([math.prod(nf)*n for nf, n in zip(group_normalization_factors, relative_group_sizes)], axis=0)
 
     @method_cache
     def _normed_concentration_limit(self, time: float) -> _VectorisedFloat:
@@ -1323,12 +1324,12 @@ class ConcentrationModel(_ConcentrationModelBase):
         return self.infected.virus
     
     @method_cache # efficient to cache?
-    def group_normalization_factors(self) -> list[_VectorisedFloat]:
+    def normalization_factor_list(self) -> list[tuple[_VectorisedFloat, _VectorisedFloat]]:
         # we normalize by the emission rate
         if isinstance(self.population, MultipleInfectedPopulations):
-            return [group.emission_rate_per_person_when_present() for group in self.infected.groups]
+            return [(group.emission_rate_per_aerosol_per_person_when_present(), group.aerosols()) for group in self.infected.groups]
         else: 
-            return [self.infected.emission_rate_per_person_when_present()]
+            return [(self.infected.emission_rate_per_aerosol_per_person_when_present(), self.infected.aerosols())]
 
     def removal_rate(self, time: float) -> _VectorisedFloat:
         # Equilibrium velocity of particle motion toward the floor
@@ -1379,15 +1380,15 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         return self.CO2_atmosphere_concentration
     
     @method_cache # efficient to cache?
-    def group_normalization_factors(self) -> list[_VectorisedFloat]:
+    def normalization_factor_list(self) -> list[tuple[_VectorisedFloat]]:
         # normalization by the CO2 exhaled per person.
         # CO2 concentration given in ppm, hence the 1e6 factor.
         if isinstance(self.population, MultiplePopulations):
-            return [1e6*group.activity.exhalation_rate
-                *self.CO2_fraction_exhaled for group in self.infected.groups]
+            return [(1e6*group.activity.exhalation_rate
+                *self.CO2_fraction_exhaled,) for group in self.infected.groups]
         else: 
-            return [1e6*self.population.activity.exhalation_rate
-                *self.CO2_fraction_exhaled]
+            return [(1e6*self.population.activity.exhalation_rate
+                *self.CO2_fraction_exhaled,)]
 
 
 @dataclass(frozen=True)
