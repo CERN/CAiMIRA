@@ -1799,34 +1799,28 @@ class ExposureModel:
             raise ValueError("Cannot calculate normalized sum over intervals with different normalization factors.")
         
         deposited_exposure = 0.
-
-        ##TODO: how to align with the new normalization factor??
-        emission_rate_per_aerosol_per_person = \
-            self.concentration_model.infected.emission_rate_per_aerosol_per_person_when_present()#
-        aerosols = self.concentration_model.infected.aerosols()#
         fdep = self.long_range_fraction_deposited()
-
         diameter = self.concentration_model.infected.particle.diameter
+        normed_integrated_concentration = self.concentration_model.normed_integrated_concentration(time1, time2)
 
-        if not np.isscalar(diameter) and diameter is not None:
-            # We compute first the mean of all diameter-dependent quantities
-            # to perform properly the Monte-Carlo integration over
-            # particle diameters (doing things in another order would
-            # lead to wrong results for the probability of infection).
-            dep_exposure_integrated = np.array(self.concentration_model.normed_integrated_concentration(time1, time2) *
-                                                aerosols * # normalization reversed partially inside sum
-                                                fdep).mean()
-        else:
-            # In the case of a single diameter or no diameter defined,
-            # one should not take any mean at this stage.
-            dep_exposure_integrated = self.concentration_model.normed_integrated_concentration(time1, time2)*aerosols*fdep
+        for emission_rate_per_aerosol_per_person, aerosols in self.concentration_model.normalization_factor_list():
+            if not np.isscalar(diameter) and diameter is not None:
+                # We compute first the mean of all diameter-dependent quantities
+                # to perform properly the Monte-Carlo integration over
+                # particle diameters (doing things in another order would
+                # lead to wrong results for the probability of infection).
+                dep_exposure_integrated = np.array(normed_integrated_concentration*aerosols*fdep).mean()
+            else:
+                # In the case of a single diameter or no diameter defined,
+                # one should not take any mean at this stage.
+                dep_exposure_integrated = normed_integrated_concentration*aerosols*fdep
 
-        # Then we multiply by the diameter-independent quantity emission_rate_per_aerosol_per_person,
-        # and parameters of the vD equation (i.e. BR_k and n_in).
-        deposited_exposure += (dep_exposure_integrated *
-                emission_rate_per_aerosol_per_person *
-                self.exposed.activity.inhalation_rate *
-                (1 - self.exposed.mask.inhale_efficiency()))
+            # Then we multiply by the diameter-independent quantity emission_rate_per_aerosol_per_person,
+            # and parameters of the vD equation (i.e. BR_k and n_in).
+            deposited_exposure += (dep_exposure_integrated *
+                    emission_rate_per_aerosol_per_person *
+                    self.exposed.activity.inhalation_rate *
+                    (1 - self.exposed.mask.inhale_efficiency()))
 
         return deposited_exposure
     
