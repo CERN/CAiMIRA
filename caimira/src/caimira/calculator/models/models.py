@@ -1081,6 +1081,17 @@ class _ConcentrationModelBase:
         """
         raise NotImplementedError("Subclass must implement")
     
+    def relative_group_sizes(self, time: typing.Optional[float] = None) -> list[int]:
+        if isinstance(self.population, MultiplePopulations):
+            if time == None:
+                raise ValueError("A time must be given for calculating the normalization_factor with dynamic occupants.")
+            total_people_present = self.population.people_present(time)
+            return [group.people_present(time) / total_people_present 
+                                    if total_people_present != 0 else 0
+                                    for group in self.population.groups]
+        else:
+            return [1]
+    
     def normalization_factor(self, time: typing.Optional[float] = None) -> _VectorisedFloat:
         """
         Normalization factor (in the same unit as the concentration).
@@ -1090,16 +1101,7 @@ class _ConcentrationModelBase:
         For multiple infected groups, the total normalization factor is the sum of the 
         normalization factors for each group scaled by the relative number of occupants.
         """
-        # we normalize by the emission rate
-        if isinstance(self.population, MultiplePopulations):
-            if time == None:
-                raise ValueError("A time must be given for calculating the normalization_factor with dynamic occupants.")
-            total_people_present = self.population.people_present(time)
-            relative_group_sizes = [group.people_present(time) / total_people_present 
-                                    if total_people_present != 0 else 0
-                                    for group in self.population.groups]
-        else:
-            relative_group_sizes = [1]
+        relative_group_sizes = self.relative_group_sizes(time)
         group_normalization_factors = self.normalization_factor_list()
         return np.sum([math.prod(nf)*n for nf, n in zip(group_normalization_factors, relative_group_sizes)], axis=0)
 
@@ -1758,7 +1760,8 @@ class ExposureModel:
                 c_model.ventilation.air_exchange(c_model.room, time)) for time in c_model.state_change_times()))):
             raise ValueError("If the diameter is an array, none of the ventilation parameters "
                              "or virus decay constant can be arrays at the same time.")
-        
+        elif isinstance(c_model.infected, MultipleInfectedPopulations):
+            pass
         # Check if exposed population is static
         if not isinstance(self.exposed.number, int) or not isinstance(self.exposed.presence, Interval):
             raise TypeError("The exposed number must be an int and presence an Interval. "
@@ -1770,7 +1773,7 @@ class ExposureModel:
         All time dependent population entities on this model must provide information
         about the times at which their state changes.
         """
-        state_change_times = set(self.concentration_model.infected.transition_times())
+        state_change_times = set(self.concentration_model.population.transition_times())
         state_change_times.update(self.exposed.transition_times())
 
         return sorted(state_change_times)
@@ -1781,8 +1784,12 @@ class ExposureModel:
         tract (over the total number of particles). It depends on the
         particle diameter.
         """
-        return self.concentration_model.infected.particle.fraction_deposited(
+        if isinstance(self.concentration_model.infected, MultipleInfectedPopulations):
+            return [group.particle.fraction_deposited(
                     self.concentration_model.evaporation_factor)
+                    for group in self.concentration_model.infected.groups]
+        return [self.concentration_model.infected.particle.fraction_deposited(
+                self.concentration_model.evaporation_factor)]
 
     def concentration(self, time: float) -> _VectorisedFloat:
         """
@@ -1797,15 +1804,38 @@ class ExposureModel:
         return concentration
 
     def _long_range_deposited_exposure_within_interval(self, time1: float, time2: float) -> _VectorisedFloat:
+        """
+        To perform properly the Monte-Carlo integration over particle diameters, we must first calculate
+        the mean of all diameter dependent quantities.
+
+        Thus, we must factorize the normalization factor into the diameter dependent (aerosols) and
+        non-diameter dependent part and sum over the normed integrated concentration multiplied by different
+        parts of the normalization factor. 
+        
+        Specifically, we here calculate:
+        \int_{t_i}^{t_{i+1}}C(t) = \sum_{k=1}^n a_k(T_i) \cdot vR_{pa} \cdot A(D) \int_{t_i}^{t_{i+1}} \frac{ C(t)}{NF}
+        """
         if self.concentration_model.state_changed(time1, time2):
             raise ValueError("Cannot calculate normalized sum over intervals with different normalization factors.")
         
         deposited_exposure = 0.
-        fdep = self.long_range_fraction_deposited()
-        diameter = self.concentration_model.infected.particle.diameter
         normed_integrated_concentration = self.concentration_model.normed_integrated_concentration(time1, time2)
+        time = (time1+time2)/2
+        relative_group_sizes = self.concentration_model.relative_group_sizes(time)
 
-        for emission_rate_per_aerosol_per_person, aerosols in self.concentration_model.normalization_factor_list():
+        fdeps = self.long_range_fraction_deposited()
+        normalization_factor_components = self.concentration_model.normalization_factor_list()
+        if isinstance(self.concentration_model.infected, MultipleInfectedPopulations):
+            diameters = [group.particle.diameter for group in self.concentration_model.population.groups]
+        else:
+            diameters = [self.concentration_model.infected.particle.diameter]
+
+        for i in range(len(normalization_factor_components)):
+            emission_rate_per_aerosol_per_person, aerosols = normalization_factor_components[i]
+            diameter = diameters[i]
+            fdep = fdeps[i]
+            relative_group_size = relative_group_sizes[i]
+
             if not np.isscalar(diameter) and diameter is not None:
                 # We compute first the mean of all diameter-dependent quantities
                 # to perform properly the Monte-Carlo integration over
@@ -1821,6 +1851,7 @@ class ExposureModel:
             # and parameters of the vD equation (i.e. BR_k and n_in).
             deposited_exposure += (dep_exposure_integrated *
                     emission_rate_per_aerosol_per_person *
+                    relative_group_size *
                     self.exposed.activity.inhalation_rate *
                     (1 - self.exposed.mask.inhale_efficiency()))
 

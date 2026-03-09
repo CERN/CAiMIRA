@@ -78,7 +78,7 @@ def simple_dynamic_conc_model(data_registry, dummy_multiple_populations):
         known_multiple_populations = dummy_multiple_populations,
         known_removal_rate = 10.,
         known_min_background_concentration = known_min_background_concentration,
-        known_normalization_factors = [(10.,), (2,), (0,)])
+        known_normalization_factors = [(10.,), (2,), (0,4)])
 
 def test_multiple_populations(simple_dynamic_conc_model):
     assert isinstance(simple_dynamic_conc_model.population, models.MultiplePopulations)
