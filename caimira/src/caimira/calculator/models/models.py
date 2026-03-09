@@ -1284,7 +1284,7 @@ class _ConcentrationModelBase:
             start = max([interval_start, req_start])
             stop = min([interval_stop, req_stop])
 
-            normed_background_concentration = self.min_background_concentration()/self.normalization_factor(time)
+            normed_background_concentration = self.min_background_concentration()/self.normalization_factor(time) # never divide by normalization factor, add background concentration in the end
             conc_start = self._normed_concentration_cached(start)
 
             next_conc_state = self._next_state_change(stop)
@@ -1828,7 +1828,7 @@ class ExposureModel:
         parts of the normalization factor. 
         
         Specifically, we here calculate:
-        \int_{t_i}^{t_{i+1}}C(t) = \sum_{k=1}^n a_k(T_i) \cdot vR_{pa} \cdot A(D) \int_{t_i}^{t_{i+1}} \frac{ C(t)}{NF}
+        \sum_{k=1}^n a_k(T_i)vR_{pa,k} \cdot \left(A_k (D) \int_{t_i}^{t_{i+1}}\frac{C(t)- C(t_i)e^{-\lambda_{RR}(D)t}}{NF(T_i)}dt \right)
         """
         if self.concentration_model.state_changed(time1, time2):
             raise ValueError("Cannot calculate normalized sum over intervals with different normalization factors.")
