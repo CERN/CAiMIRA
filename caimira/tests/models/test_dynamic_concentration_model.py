@@ -78,7 +78,7 @@ def simple_dynamic_conc_model(data_registry, dummy_multiple_populations):
         known_multiple_populations = dummy_multiple_populations,
         known_removal_rate = 10.,
         known_min_background_concentration = known_min_background_concentration,
-        known_normalization_factors = [(10.,), (2,), (0,4)])
+        known_normalization_factors = [(2.,5,), (2,), (0,4)])
 
 def test_multiple_populations(simple_dynamic_conc_model):
     assert isinstance(simple_dynamic_conc_model.population, models.MultiplePopulations)
@@ -109,8 +109,11 @@ def test_first_presence_time(simple_dynamic_conc_model):
     ] 
 )
 def test_presence(time, expected_people_present, expected_relative_group_sizes, simple_dynamic_conc_model):
-    np.allclose(simple_dynamic_conc_model.relative_group_sizes(time), expected_relative_group_sizes)
     npt.assert_array_equal(simple_dynamic_conc_model.population.people_present(time), expected_people_present)
+    np.allclose(simple_dynamic_conc_model.relative_group_sizes(time), expected_relative_group_sizes)
+    assert len(simple_dynamic_conc_model.relative_group_sizes(time)) == 3
+    with pytest.raises(ValueError):
+        simple_dynamic_conc_model.relative_group_sizes()
 
 @pytest.mark.parametrize(
     "time, expected_normalization_factor", [
@@ -129,3 +132,5 @@ def test_presence(time, expected_people_present, expected_relative_group_sizes, 
 )
 def test_normalization_factor(time, expected_normalization_factor, simple_dynamic_conc_model):
     assert np.allclose(simple_dynamic_conc_model.normalization_factor(time), expected_normalization_factor)
+    with pytest.raises(ValueError):
+        simple_dynamic_conc_model.normalization_factor()
