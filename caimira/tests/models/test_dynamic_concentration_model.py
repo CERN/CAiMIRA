@@ -92,24 +92,25 @@ def test_state_change_times(simple_dynamic_conc_model):
 def test_first_presence_time(simple_dynamic_conc_model):
     npt.assert_array_equal(simple_dynamic_conc_model._first_presence_time(), 0.4)
 
+
 @pytest.mark.parametrize(
-    "time, expected_people_present", [
-        [0.5, 10],
-        [1., 11],
-        [1.1, 0],
-        [2., 11],
-        [2, 11],
-        [2.5, 1],
-        [5., 0],
-        [6., 5],
-        [4., 0],
-        [7., 0],
-        [0.1, 0],
-    ]
+       "time, expected_people_present, expected_relative_group_sizes", [
+        [0.5, 10, [0, 1, 0]],
+        [1.0, 11, [1/11, 10/11, 0]],
+        [1.1, 0,  [0, 0, 0]],
+        [2.0, 11, [1/11, 10/11, 0]],
+        [2,   11, [1/11, 10/11, 0]],
+        [2.5, 1,  [1, 0, 0]],
+        [5.,  0,  [0, 0, 0]],
+        [6.,  5,  [0, 0, 1]],
+        [4.,  0,  [0, 0, 0]],
+        [7.,  0,  [0, 0, 0]],
+        [0.1, 0,  [0, 0, 0]],
+    ] 
 )
-def test_people_present(time, expected_people_present, simple_dynamic_conc_model):
-    result = simple_dynamic_conc_model.population.people_present(time)
-    npt.assert_array_equal(result, expected_people_present)
+def test_presence(time, expected_people_present, expected_relative_group_sizes, simple_dynamic_conc_model):
+    np.allclose(simple_dynamic_conc_model.relative_group_sizes(time), expected_relative_group_sizes)
+    npt.assert_array_equal(simple_dynamic_conc_model.population.people_present(time), expected_people_present)
 
 @pytest.mark.parametrize(
     "time, expected_normalization_factor", [
