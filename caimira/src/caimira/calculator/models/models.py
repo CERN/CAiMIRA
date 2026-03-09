@@ -1014,6 +1014,13 @@ class MultiplePopulations:
 class MultipleInfectedPopulations(MultiplePopulations):
     groups: list[InfectedPopulation]
 
+    def __post_init__(self):
+        viruses = set([infected.virus for infected in self.groups])
+        assert len(viruses) == 1
+
+    @property
+    def virus(self) -> Virus:
+        return self.groups[0].virus
 
 @dataclass(frozen=True)
 class Cases:
@@ -1103,6 +1110,7 @@ class _ConcentrationModelBase:
         """
         relative_group_sizes = self.relative_group_sizes(time)
         group_normalization_factors = self.normalization_factor_list()
+        assert len(relative_group_sizes) == len(group_normalization_factors)
         return np.sum([math.prod(nf)*n for nf, n in zip(group_normalization_factors, relative_group_sizes)], axis=0)
 
     @method_cache
@@ -1761,7 +1769,14 @@ class ExposureModel:
             raise ValueError("If the diameter is an array, none of the ventilation parameters "
                              "or virus decay constant can be arrays at the same time.")
         elif isinstance(c_model.infected, MultipleInfectedPopulations):
-            pass
+            for group in c_model.infected.groups:
+                if (isinstance(group, InfectedPopulation) and not np.isscalar(group.expiration.diameter)
+                    # Check if the diameter-independent elements of the infectious_virus_removal_rate method are vectorised.
+                    and not (
+                        all(np.isscalar(c_model.virus.decay_constant(c_model.room.humidity, c_model.room.inside_temp.value(time)) +
+                        c_model.ventilation.air_exchange(c_model.room, time)) for time in c_model.state_change_times()))):
+                    raise ValueError("If the diameter is an array, none of the ventilation parameters "
+                                    "or virus decay constant can be arrays at the same time.")
         # Check if exposed population is static
         if not isinstance(self.exposed.number, int) or not isinstance(self.exposed.presence, Interval):
             raise TypeError("The exposed number must be an int and presence an Interval. "

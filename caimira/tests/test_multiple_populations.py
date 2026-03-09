@@ -36,6 +36,45 @@ def dummy_multiple_populations() -> models.MultiplePopulations:
     )
     return models.MultiplePopulations([group1, group2, group3])
 
+@pytest.fixture
+def dummy_multiple_infected_populations(data_registry) -> models.MultipleInfectedPopulations:
+    interesting_times1 = models.SpecificInterval(([0.5, 1.], [1.1, 2], [2., 3.]), )
+    group1 = models.InfectedPopulation(
+        data_registry=data_registry,
+        virus=models.Virus.types['SARS_CoV_2_ALPHA'],
+        expiration=models.Expiration.types['Speaking'],
+        number=1,
+        presence=interesting_times1,
+        mask=models.Mask.types['No mask'],
+        activity=models.Activity.types['Seated'],
+        host_immunity=0.,
+    )
+
+    interesting_times2 = models.SpecificInterval(([0.4, 1.], [1.1, 2]), )
+    group2 = models.InfectedPopulation(
+        data_registry=data_registry,
+        virus=models.Virus.types['SARS_CoV_2_ALPHA'],
+        expiration=models.Expiration.types['Speaking'],
+        number=10,
+        presence=interesting_times2,
+        mask=models.Mask.types['Cloth'],
+        activity=models.Activity.types['Heavy exercise'],
+        host_immunity=0.,
+    )
+
+    interesting_times3 = models.SpecificInterval(([5., 6.],), )
+    group3 = models.InfectedPopulation(
+        data_registry=data_registry,
+        virus=models.Virus.types['SARS_CoV_2_ALPHA'],
+        expiration=models.Expiration.types['Speaking'],
+        number=5,
+        presence=interesting_times3,
+        mask=models.Mask.types['Type I'],
+        activity=models.Activity.types['Light activity'],
+        host_immunity=0.5,
+    )
+    return models.MultipleInfectedPopulations([group1, group2, group3])
+
 
 def test_multiple_populations(dummy_multiple_populations):
     assert isinstance(dummy_multiple_populations, models.MultiplePopulations)
@@ -66,3 +105,6 @@ def test_transition_times(dummy_multiple_populations):
     expected_transition_times = sorted(set((0.0, 0.4, 0.5, 1., 1.1, 2, 3., 5, 6)))
     result = dummy_multiple_populations.transition_times()
     npt.assert_array_equal(result, expected_transition_times)
+
+def test_virus(dummy_multiple_infected_populations):
+    assert isinstance(dummy_multiple_infected_populations.virus, models.Virus)
