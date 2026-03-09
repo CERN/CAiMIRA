@@ -1250,7 +1250,7 @@ class _ConcentrationModelBase:
         to this method.
         """
         return (self._normed_concentration_cached(time) *
-                self.normalization_factor()) + self.min_background_concentration()
+                self.normalization_factor(time)) + self.min_background_concentration()
 
     @method_cache
     def normed_integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
@@ -1261,8 +1261,9 @@ class _ConcentrationModelBase:
         """
         #if self.state_changed(start, stop):
         #    raise ValueError("Cannot calculate normalized sum over intervals with different normalization factors.")
+        time = (start+stop)/2
         if stop <= self._first_presence_time():
-            return (stop - start)*self.min_background_concentration()/self.normalization_factor()
+            return (stop - start)*self.min_background_concentration()/self.normalization_factor(time)
         state_change_times = self.state_change_times()
         req_start, req_stop = start, stop
         total_normed_concentration = 0.
@@ -1273,7 +1274,7 @@ class _ConcentrationModelBase:
             start = max([interval_start, req_start])
             stop = min([interval_stop, req_stop])
 
-            normed_background_concentration = self.min_background_concentration()/self.normalization_factor()
+            normed_background_concentration = self.min_background_concentration()/self.normalization_factor(time)
             conc_start = self._normed_concentration_cached(start)
 
             next_conc_state = self._next_state_change(stop)
@@ -1291,11 +1292,12 @@ class _ConcentrationModelBase:
         """
         Get the integrated concentration of viruses in the air between the times start and stop.
         """
+        time=(start+stop)/2
         if self.state_changed(start, stop):
             #TODO: sum over intervals with different normalization factors, as this must be done before reversing normalization
             pass
         return (self.normed_integrated_concentration(start, stop) *
-                self.normalization_factor())
+                self.normalization_factor(time))
 
 
 @dataclass(frozen=True)
@@ -1385,7 +1387,7 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         # CO2 concentration given in ppm, hence the 1e6 factor.
         if isinstance(self.population, MultiplePopulations):
             return [(1e6*group.activity.exhalation_rate
-                *self.CO2_fraction_exhaled,) for group in self.infected.groups]
+                *self.CO2_fraction_exhaled,) for group in self.population.groups]
         else: 
             return [(1e6*self.population.activity.exhalation_rate
                 *self.CO2_fraction_exhaled,)]
