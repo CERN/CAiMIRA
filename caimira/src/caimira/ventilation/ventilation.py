@@ -397,7 +397,7 @@ def find_next_air_exch_by_co2(
         pass
     else:
         if max_ventilation_changes:
-            k = len(concentrations_CO2) // max_ventilation_changes
+            k = np.max([len(concentrations_CO2) // max_ventilation_changes, 1])
         else:
             k = 1
         concentrations_to_loop = concentrations_CO2[::k]
