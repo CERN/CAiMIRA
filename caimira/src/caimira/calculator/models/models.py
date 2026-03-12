@@ -788,6 +788,7 @@ class Activity:
     #: Pre-populated examples of Activities.
     types: typing.ClassVar[typing.Dict[str, "Activity"]]
 
+    name: typing.Optional[str] = None
 
 # Example of Activities only used for the Expert app and tests.
 Activity.types = {

@@ -192,6 +192,7 @@ def activity_distributions(data_registry):
                 data_registry.activity_distributions['Seated'], 'inhalation_rate'),
             exhalation_rate=param_evaluation(
                 data_registry.activity_distributions['Seated'], 'exhalation_rate'),
+            name = 'Seated',
         ),
 
         'Standing': mc.Activity(
@@ -199,6 +200,7 @@ def activity_distributions(data_registry):
                 data_registry.activity_distributions['Standing'], 'inhalation_rate'),
             exhalation_rate=param_evaluation(
                 data_registry.activity_distributions['Standing'], 'exhalation_rate'),
+            name = 'Standing',
         ),
 
         'Light activity': mc.Activity(
@@ -206,6 +208,7 @@ def activity_distributions(data_registry):
                 data_registry.activity_distributions['Light activity'], 'inhalation_rate'),
             exhalation_rate=param_evaluation(
                 data_registry.activity_distributions['Light activity'], 'exhalation_rate'),
+            name = 'Light activity',
         ),
 
         'Moderate activity': mc.Activity(
@@ -213,6 +216,7 @@ def activity_distributions(data_registry):
                 data_registry.activity_distributions['Moderate activity'], 'inhalation_rate'),
             exhalation_rate=param_evaluation(
                 data_registry.activity_distributions['Moderate activity'], 'exhalation_rate'),
+            name = 'Moderate activity',
         ),
 
         'Heavy exercise': mc.Activity(
@@ -220,6 +224,7 @@ def activity_distributions(data_registry):
                 data_registry.activity_distributions['Heavy exercise'], 'inhalation_rate'),
             exhalation_rate=param_evaluation(
                 data_registry.activity_distributions['Heavy exercise'], 'exhalation_rate'),
+            name = 'Heavy exercise',
         ),
     }
 
