@@ -273,6 +273,9 @@ def model_concentration_results(
         )
 
         all_concentrations.append(concentrations_CO2)
+
+    else: 
+        all_concentrations.append([])
     #return times, air_exch, probability, concentrations_viral
     return exposure_model, times, all_concentrations
 
@@ -316,47 +319,48 @@ def plot_model_concentration_results(
     # )
 
     # ===== CO2 concentration (RIGHT AXIS) =====
-    ax2 = ax1.twinx()
-    if isinstance(concentrations_CO2[0], float):
-        mean_CO2 = concentrations_CO2
-    else:
-        mean_CO2 = [np.mean(c) for c in concentrations_CO2]
-    print(f"Max average CO2: {np.max(mean_CO2):.2f}")
-    if isinstance(air_exch_list, list):
-        print(f"Air changes per hour: {[round(air_exch, 2) for air_exch in air_exch_list]}")
-    else:
-        print(f"Air changes per hour: {air_exch_list:.2f}")
-    ax2.plot(
-        times,
-        mean_CO2,
-        color='tab:red',
-        label='CO₂ concentration'
-    )
-    ax2.set_ylabel('CO₂ concentration (ppm)', color='tab:red')
-    ax2.tick_params(axis='y', labelcolor='tab:red')
-    if deterministic_CO2:
-        new_ax2_ymax = max(concentrations_CO2)*1.1
-        if new_ax2_ymax > ax2_ymax:
-            ax2_ymax = new_ax2_ymax*1.1
-        ax2.set_ylim([440,ax2_ymax])
-    else:
-        new_ax2_ymax = max([np.quantile(c, 0.95) for c in concentrations_CO2])*1.1
-        if new_ax2_ymax > ax2_ymax:
-            ax2_ymax = new_ax2_ymax*1.1
-        ax2.set_ylim([440,ax2_ymax])
-
-        ax2.fill_between(
+    if CO2_values:
+        ax2 = ax1.twinx()
+        if isinstance(concentrations_CO2[0], float):
+            mean_CO2 = concentrations_CO2
+        else:
+            mean_CO2 = [np.mean(c) for c in concentrations_CO2]
+        print(f"Max average CO2: {np.max(mean_CO2):.2f}")
+        if isinstance(air_exch_list, list):
+            print(f"Air changes per hour: {[round(air_exch, 2) for air_exch in air_exch_list]}")
+        else:
+            print(f"Air changes per hour: {air_exch_list:.2f}")
+        ax2.plot(
             times,
-            [np.quantile(c, 0.05) for c in concentrations_CO2],
-            [np.quantile(c, 0.95) for c in concentrations_CO2],
+            mean_CO2,
             color='tab:red',
-            alpha=0.2
+            label='CO₂ concentration'
         )
+        ax2.set_ylabel('CO₂ concentration (ppm)', color='tab:red')
+        ax2.tick_params(axis='y', labelcolor='tab:red')
+        if deterministic_CO2:
+            new_ax2_ymax = max(concentrations_CO2)*1.1
+            if new_ax2_ymax > ax2_ymax:
+                ax2_ymax = new_ax2_ymax*1.1
+            ax2.set_ylim([440,ax2_ymax])
+        else:
+            new_ax2_ymax = max([np.quantile(c, 0.95) for c in concentrations_CO2])*1.1
+            if new_ax2_ymax > ax2_ymax:
+                ax2_ymax = new_ax2_ymax*1.1
+            ax2.set_ylim([440,ax2_ymax])
 
-    # ===== Combined legend =====
-    lines = ax1.get_lines() + ax2.get_lines()
-    labels = [line.get_label() for line in lines]
-    ax1.legend(lines, labels, loc='best')
+            ax2.fill_between(
+                times,
+                [np.quantile(c, 0.05) for c in concentrations_CO2],
+                [np.quantile(c, 0.95) for c in concentrations_CO2],
+                color='tab:red',
+                alpha=0.2
+            )
+
+        # ===== Combined legend =====
+        lines = ax1.get_lines() + ax2.get_lines()
+        labels = [line.get_label() for line in lines]
+        ax1.legend(lines, labels, loc='best')
 
     plt.tight_layout()
     plt.show()
