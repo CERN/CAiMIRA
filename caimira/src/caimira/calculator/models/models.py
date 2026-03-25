@@ -1123,10 +1123,7 @@ class _ConcentrationModelBase:
         for change_time in self.state_change_times():
             if change_time >= time:
                 return change_time
-        raise ValueError(
-            f"The requested time ({time}) is greater than last available "
-            f"state change time ({change_time})"
-        )
+        return time
 
     @method_cache
     def _normed_concentration_cached(self, time: float) -> _VectorisedFloat:
@@ -1194,6 +1191,8 @@ class _ConcentrationModelBase:
         if stop <= self._first_presence_time():
             return (stop - start)*self.min_background_concentration()/self.normalization_factor()
         state_change_times = self.state_change_times()
+        if stop > state_change_times[-1]:
+            state_change_times.append(stop)
         req_start, req_stop = start, stop
         total_normed_concentration = 0.
         for interval_start, interval_stop in zip(state_change_times[:-1], state_change_times[1:]):

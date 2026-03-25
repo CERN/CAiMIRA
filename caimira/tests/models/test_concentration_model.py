@@ -107,6 +107,26 @@ def simple_conc_model(data_registry):
         evaporation_factor=0.3,
     )
 
+@pytest.fixture
+def simple_conc_model_extended_presence(data_registry):
+    ventilation_times = models.SpecificInterval(([0.5, 1.], [1.1, 2], [2., 3.]), )
+    return models.ConcentrationModel(
+        data_registry=data_registry,
+        room = models.Room(75, models.PiecewiseConstant((0., 24.), (293,))),
+        ventilation = models.AirChange(ventilation_times, 100),
+        infected = models.InfectedPopulation(
+            data_registry=data_registry,
+            number=1,
+            presence=models.SpecificInterval(([0.5, 1.], [1.1, 2], [2., 3.], [20., 20.001]), ),
+            mask=models.Mask.types['Type I'],
+            activity=models.Activity.types['Seated'],
+            virus=models.Virus.types['SARS_CoV_2'],
+            expiration=models.Expiration.types['Breathing'],
+            host_immunity=0.,
+        ),
+        evaporation_factor=0.3,
+    )
+
 
 @pytest.fixture
 def dummy_population(simple_conc_model) -> models.Population:
@@ -162,14 +182,6 @@ def test_next_state_change_time(
         expected_next_state_change,
 ):
     assert simple_conc_model._next_state_change(float(time)) == expected_next_state_change
-
-
-def test_next_state_change_time_out_of_range(simple_conc_model: models.ConcentrationModel):
-    with pytest.raises(
-            ValueError,
-            match=re.escape("The requested time (3.1) is greater than last available state change time (3.0)")
-    ):
-        simple_conc_model._next_state_change(3.1)
 
 
 def test_first_presence_time(simple_conc_model):
@@ -286,3 +298,30 @@ def test_zero_ventilation_rate(
 
     normed_concentration = known_conc_model.concentration(1)
     assert normed_concentration == pytest.approx(expected_concentration, abs=1e-6)
+
+@pytest.mark.parametrize("time", [3.1,10])
+def test_concentration_limit_last_state_change(simple_conc_model, time):
+    assert simple_conc_model.removal_rate(time) > 0
+    npt.assert_almost_equal(simple_conc_model._normed_concentration_limit(time), 0)
+
+@pytest.mark.parametrize([
+    "start",
+    "stop"],
+    [
+        [10, 19],
+        [3, 19],
+        [0., 19],
+        [0., 20],
+    ]
+)
+def test_concentration_after_last_state_change(simple_conc_model, simple_conc_model_extended_presence, start, stop):
+    """
+    Test that the concentration results for a model with no more presence of emitters  
+    equals the concentration results of a model where the emitter will reenter at a later point.
+    """
+    time = (start+stop)/2
+    npt.assert_almost_equal(simple_conc_model.removal_rate(time), simple_conc_model_extended_presence.removal_rate(time))
+    npt.assert_almost_equal(simple_conc_model.concentration(time), simple_conc_model_extended_presence.concentration(time))
+    npt.assert_almost_equal(simple_conc_model._normed_concentration(time), simple_conc_model_extended_presence._normed_concentration(time))
+    npt.assert_almost_equal(simple_conc_model.normed_integrated_concentration(start, stop), simple_conc_model_extended_presence.normed_integrated_concentration(start, stop))
+    npt.assert_almost_equal(simple_conc_model.integrated_concentration(start, stop), simple_conc_model_extended_presence.integrated_concentration(start, stop))
