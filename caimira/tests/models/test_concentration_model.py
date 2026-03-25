@@ -302,7 +302,7 @@ def test_zero_ventilation_rate(
 @pytest.mark.parametrize("time", [3.1,10])
 def test_concentration_limit_last_state_change(simple_conc_model, time):
     assert simple_conc_model.removal_rate(time) > 0
-    npt.assert_almost_equal(simple_conc_model._normed_concentration_limit(time), 0)
+    npt.assert_almost_equal(simple_conc_model._normed_concentration_limit(time), simple_conc_model.min_background_concentration()/simple_conc_model.normalization_factor())
 
 @pytest.mark.parametrize([
     "start",
