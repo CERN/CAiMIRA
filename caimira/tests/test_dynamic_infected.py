@@ -199,16 +199,7 @@ def test_population_state_change_times(valid_conc_model_list):
     model = get_exposure_model(valid_conc_model_list).build_model(1)
     assert model.population_state_change_times() == expected_state_changes
 
-@pytest.mark.parametrize(
-    "time",
-    [0., 
-     0.6, 
-     1., 
-     3., 
-     7,  # TODO: make ConcentrationModel able to work after last state change
-     17. # TODO: make ConcentrationModel able to work after last state change
-     ],
-)
+@pytest.mark.parametrize("time", [0., 0.6, 1., 3., 7, 17.])
 def test_concentration(time, valid_conc_model_list):
     separate_concentrations = [get_exposure_model(valid_conc_model).build_model(SAMPLE_SIZE).concentration(time) for valid_conc_model in valid_conc_model_list]
     concentration = get_exposure_model(valid_conc_model_list).build_model(SAMPLE_SIZE).concentration(time)
@@ -221,8 +212,8 @@ def test_concentration(time, valid_conc_model_list):
         [0., 1],
         [0.6, 2],
         [1, 3.],
-        [1, 7.],   # TODO: make ConcentrationModel able to work after last state change
-        [0, 17.],  # TODO: make ConcentrationModel able to work after last state change
+        [1, 7.], 
+        [0, 17.],  
     ],
 )
 def test_deposited_exposure(start, stop, valid_conc_model_list):
