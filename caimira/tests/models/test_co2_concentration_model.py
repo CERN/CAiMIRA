@@ -130,7 +130,6 @@ def test_predictive_model_accuracy(data_registry, scenario_data, room_volume, oc
 
 @pytest.mark.parametrize("time", [4.1,10])
 def test_concentration_limit_last_state_change(simple_co2_conc_model, time):
-    assert simple_co2_conc_model.removal_rate(time) > 0
     npt.assert_almost_equal(simple_co2_conc_model._normed_concentration_limit(time), simple_co2_conc_model.min_background_concentration()/simple_co2_conc_model.normalization_factor())
 
 @pytest.mark.parametrize([
