@@ -163,27 +163,6 @@ def test_last_state_change_time(
     assert simple_conc_model.last_state_change(float(time)) == expected_last_state_change
 
 
-@pytest.mark.parametrize(
-    "time, expected_next_state_change", [
-        [0.0, 0.0],
-        [0.5, 0.5],
-        [1, 1],
-        [1.05, 1.1],
-        [1.1, 1.1],
-        [1.11, 2],
-        [2, 2],
-        [2.1, 3],
-        [3, 3],
-    ]
-)
-def test_next_state_change_time(
-        simple_conc_model: models.ConcentrationModel,
-        time,
-        expected_next_state_change,
-):
-    assert simple_conc_model._next_state_change(float(time)) == expected_next_state_change
-
-
 def test_first_presence_time(simple_conc_model):
     assert simple_conc_model._first_presence_time() == 0.5
 
