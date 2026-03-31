@@ -1180,12 +1180,12 @@ class _ConcentrationModelBase:
         """
         if stop <= self._first_presence_time():
             return (stop - start)*self.min_background_concentration()/self.normalization_factor()
-        state_change_times = self.state_change_times()
-        if stop > state_change_times[-1]:
-            state_change_times.append(stop)
+        change_times = self.state_change_times()
+        if stop > change_times[-1]:
+            change_times.append(stop)
         req_start, req_stop = start, stop
         total_normed_concentration = 0.
-        for interval_start, interval_stop in zip(state_change_times[:-1], state_change_times[1:]):
+        for interval_start, interval_stop in zip(change_times[:-1], change_times[1:]):
             if req_start > interval_stop or req_stop < interval_start:
                 continue
             # Clip the current interval to the requested range.
