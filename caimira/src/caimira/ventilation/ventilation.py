@@ -391,7 +391,7 @@ def find_next_air_exch_by_co2(
     
     concentrations_CO2 = concentrations[-1]
     min_CO2 = np.max([max_CO2*min_CO2_fraction, CO2_models[0].min_background_concentration()])
-    target = np.max([min_CO2*0.99, CO2_models[0].min_background_concentration()])
+    target = np.max([max_CO2*0.99, CO2_models[0].min_background_concentration()])
 
     within_limit = True
     if change_ventilation_at:
@@ -411,7 +411,8 @@ def find_next_air_exch_by_co2(
         if time > np.max(vent_transition_times): # allow some time for co2 level to decrease below max limit
             if c > max_CO2:
                 within_limit = False
-                vent_transition_times.append(time)
+                vent_transition_times[-1]=time
+                vent_transition_times.append(time+0.000000001) # Need one more element in this list
 
                 new_air_exch = np.max([get_new_air_exch_from_target_CO2(CO2_models, target, time), 0.25])
                 air_exch_list.append(new_air_exch)
@@ -419,7 +420,8 @@ def find_next_air_exch_by_co2(
                 break
             elif c < min_CO2 and air_exch_list[-1] != 0.25:
                 within_limit = False
-                vent_transition_times.append(time)
+                vent_transition_times[-1]=time
+                vent_transition_times.append(time+0.000000001) # Need one more element in this list
 
                 new_air_exch = np.max([air_exch_list[-1]/2, 0.25])
                 air_exch_list.append(new_air_exch)
