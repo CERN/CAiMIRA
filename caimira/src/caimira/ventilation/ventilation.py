@@ -6,11 +6,10 @@ import bisect
 
 from caimira.calculator.models import models
 from caimira.calculator.store.data_registry import DataRegistry
-
 from caimira.calculator.report.virus_report_data import interesting_times
 
-import caimira.ventilation.scenarios as scenarios
-from caimira.ventilation.get_models import *
+import caimira.ventilation.get_models as get_models
+from caimira.ventilation.scenarios import ScenarioVar
 
 
 SAMPLE_SIZE: int = 250_000
@@ -24,12 +23,12 @@ def first_vent_transition_times(scenario: ScenarioVar) -> tuple[float, float]:
 
 def calculate_infection_probability(
         scenario: ScenarioVar,
-        air_exch_values: typing.Union[MutableTuple, float], 
-        vent_transition_times: typing.Optional[MutableTuple] = None,
+        air_exch_values: typing.Union[list, float], 
+        vent_transition_times: typing.Optional[list] = None,
         ) -> float:
     if not vent_transition_times:
         vent_transition_times = first_vent_transition_times(scenario)
-    exposure_model = get_exposure_model(air_exch_values, vent_transition_times, scenario)
+    exposure_model = get_models.get_exposure_model(air_exch_values, vent_transition_times, scenario)
     exposure_model = exposure_model.build_model(SAMPLE_SIZE)
     pis: models._VectorisedFloat = np.array(exposure_model.infection_probability()/100)
     pi = np.mean(pis)
@@ -37,18 +36,18 @@ def calculate_infection_probability(
 
 def calculate_deposited_exposure(
         scenario: ScenarioVar,
-        air_exch_values: typing.Union[MutableTuple, float], 
-        vent_transition_times: typing.Optional[MutableTuple] = None,
+        air_exch_values: typing.Union[list, float], 
+        vent_transition_times: typing.Optional[list] = None,
         ) -> float:
     if not vent_transition_times:
         vent_transition_times = first_vent_transition_times(scenario)
-    exposure_model = get_exposure_model(air_exch_values, vent_transition_times, scenario)
+    exposure_model = get_models.get_exposure_model(air_exch_values, vent_transition_times, scenario)
     exposure_model = exposure_model.build_model(SAMPLE_SIZE)
     dose = np.mean(exposure_model.deposited_exposure())
     return dose
 
 def carry_forward_air_change_times(
-        air_change_per_hour_list: typing.Union[MutableTuple, float], 
+        air_change_per_hour_list: typing.Union[list, float], 
         vent_transition_times: list, 
         extended_vent_transition_times: list,
     ):
@@ -67,8 +66,8 @@ def carry_forward_air_change_times(
     return extended_air_change_per_hour_list
 
 def clean_air_per_sec_per_pers(
-        air_change_per_hour_list: typing.Union[MutableTuple, float], 
-        vent_transition_times: MutableTuple, 
+        air_change_per_hour_list: typing.Union[list, float], 
+        vent_transition_times: list, 
         exposure_model: models.ExposureModel
     ) -> tuple[list[float], list[float]]:
     """
@@ -232,15 +231,15 @@ def plot_probabilities(
 
 def model_concentration_results(
         scenario,
-        air_exch_list: typing.Union[MutableTuple, float], 
-        vent_transition_times: typing.Optional[MutableTuple] = None, 
+        air_exch_list: typing.Union[list, float], 
+        vent_transition_times: typing.Optional[list] = None, 
         viral_values: bool = True, 
         CO2_values: bool = True,
         deterministic_CO2: bool = True
     ):
     if not vent_transition_times:
         vent_transition_times = first_vent_transition_times(scenario)
-    exposure_model = get_exposure_model(air_exch_list, vent_transition_times, scenario).build_model(size=SAMPLE_SIZE)
+    exposure_model = get_models.get_exposure_model(air_exch_list, vent_transition_times, scenario).build_model(size=SAMPLE_SIZE)
     times: models._VectorisedFloat = interesting_times(
         exposure_model, approx_n_pts=1000)
     
@@ -260,13 +259,6 @@ def model_concentration_results(
             concentrations_viral[peak_concentration_index], 0.05), 0)
         percentil_95 = round(np.quantile(
             concentrations_viral[peak_concentration_index], 0.95), 0)
-        # print('Peak concentration: ', f'{mean} [{percentil_05} - {percentil_95}]')
-
-        ############ Plot the results #############
-        # plt.plot(times, [np.mean(c) for c in concentrations_viral])
-        # plt.xlabel('Time of day')
-        # plt.ylabel('concentration (IRP / m3)')
-        # plt.show()
 
         ############# Inhaled dose ############
         deposited_exposure: models._VectorisedFloat = exposure_model.deposited_exposure()
@@ -287,9 +279,9 @@ def model_concentration_results(
     ############# Peak CO2 concentration #############
     if CO2_values:
         if deterministic_CO2:
-            CO2_model_infected, CO2_model_exposed = get_deterministic_CO2_models(exposure_model)
+            CO2_model_infected, CO2_model_exposed = get_models.get_deterministic_CO2_models(exposure_model)
         else:
-            CO2_model_infected, CO2_model_exposed = get_CO2_models(exposure_model)
+            CO2_model_infected, CO2_model_exposed = get_models.get_CO2_models(exposure_model)
 
         model_start = exposure_model.concentration_model.infected.presence_interval().boundaries()[0][0]
         model_end = exposure_model.concentration_model.infected.presence_interval().boundaries()[-1][1]
@@ -343,8 +335,8 @@ def model_concentration_results(
 
 def plot_model_concentration_results(
         scenario: ScenarioVar,
-        air_exch_list: typing.Union[MutableTuple, float], 
-        vent_transition_times: typing.Optional[MutableTuple] = None,  
+        air_exch_list: typing.Union[list, float], 
+        vent_transition_times: typing.Optional[list] = None,  
         viral_values: bool = True, 
         CO2_values: bool = True,
         deterministic_CO2: bool = True,
@@ -382,7 +374,6 @@ def plot_model_concentration_results(
     print(f"Clean air delivery (L/s/person): Mean: {np.mean([[cld for cld in clean_air_delivery if isinstance(cld, float)]])}, All values: {[round(cld, 2) if type(cld)==float else cld for cld in clean_air_delivery]}")
 
     axes = []
-    # ===== CO2 concentration (RIGHT AXIS) =====
     if CO2_values:
         axco2 = axviral.twinx()
         if isinstance(concentrations_CO2[0], float):
@@ -487,8 +478,8 @@ def plot_model_concentration_results(
 
 def find_next_air_exch_by_co2(
     scenario: ScenarioVar,
-    air_exch_list: typing.Union[MutableTuple, float], 
-    vent_transition_times: typing.Optional[MutableTuple], 
+    air_exch_list: typing.Union[list, float], 
+    vent_transition_times: typing.Optional[list], 
     max_CO2: float,
     min_CO2_fraction: float = 0.95,
     target_CO2_fraction: float = 0.95,
@@ -505,7 +496,7 @@ def find_next_air_exch_by_co2(
     if min_CO2_fraction < 0 or min_CO2_fraction > 1:
         raise ValueError(f"target_fraction must be in range [0, 1], got {min_CO2_fraction}")
     exposure_model, times, concentrations = model_concentration_results(scenario, air_exch_list, vent_transition_times, viral_values=False)
-    CO2_models: typing.Tuple[models.CO2ConcentrationModel] = get_CO2_models(exposure_model)
+    CO2_models: typing.Tuple[models.CO2ConcentrationModel] = get_models.get_CO2_models(exposure_model)
 
     if max_CO2 < CO2_models[0].min_background_concentration():
         raise ValueError(f"max_CO2 must be higher than the background concentration {CO2_models[0].min_background_concentration()}")

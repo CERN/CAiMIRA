@@ -4,27 +4,23 @@ from caimira.calculator.models import models, dataclass_utils
 from caimira.calculator.store.data_registry import DataRegistry
 import caimira.calculator.models.monte_carlo.models as mc
 
-import caimira.ventilation.scenarios as scenarios
 import caimira.ventilation.deterministic_emitters as de
+from caimira.ventilation.scenarios import ScenarioVar
 
 data_registry = DataRegistry()
 
-ScenarioVar = typing.Tuple[models.Room, models.InfectedPopulation, models.Population] # (room, infected, exposed)
-MutableTuple = typing.Union[typing.Tuple[float], list[float]]
-
 def custom_ventilation(
-        air_exch_values: typing.Union[MutableTuple, float], 
-        transition_times: MutableTuple = (0,0.001)
+        air_exch_values: typing.Union[list, float], 
+        transition_times: list = [0,0.001]
         ) -> models.MultipleVentilation:
     if isinstance(air_exch_values, float) or isinstance(air_exch_values, int):
         air_exch_values = (air_exch_values,)
-    elif isinstance(air_exch_values, list):
+    else:
         if len(air_exch_values) == 1:
             air_exch_values = (air_exch_values[0],)
         else:
             air_exch_values = tuple(air_exch_values)
-    if isinstance(transition_times, list):
-        transition_times = tuple(transition_times)
+    transition_times = tuple(transition_times)
     return models.CustomVentilation(
                         ventilation_value=models.PiecewiseConstant(
                             transition_times=transition_times,
@@ -33,9 +29,9 @@ def custom_ventilation(
                     )
 
 def get_exposure_model(
-        air_exch_values: typing.Union[MutableTuple, float] = (0.25,), 
-        vent_transition_times: MutableTuple = (0,0.001),
-        scenario: ScenarioVar = scenarios.shared_office()
+        air_exch_values: typing.Union[list, float], 
+        vent_transition_times: list,
+        scenario: ScenarioVar,
         ) -> models.ExposureModel:
     if len(scenario) < 3:
         print("ERROR: scenario must be (room, infected, exposed).")
@@ -85,7 +81,7 @@ def get_deterministic_CO2_models(
 def get_CO2_models(
         exposure_model: models.ExposureModel
     ) -> typing.Tuple[models.CO2ConcentrationModel]:
-    # For the CO2 concentration profile we assume that the breaks between the infected and exposed are similar.
+    # For the CO2 concentration profile we assume that the breaks for the infected and the exposed occur at the same time(s).
     CO2_model_infected: models.CO2ConcentrationModel = models.CO2ConcentrationModel(
         data_registry=data_registry,
         room=exposure_model.concentration_model.room,

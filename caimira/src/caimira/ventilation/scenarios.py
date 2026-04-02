@@ -1,11 +1,12 @@
 from caimira.calculator.models import models
-from caimira.calculator.store.data_registry import DataRegistry
 import caimira.calculator.models.monte_carlo.models as mc
+from caimira.calculator.store.data_registry import DataRegistry
 
 from caimira.calculator.models.monte_carlo.data import activity_distributions, virus_distributions
 from caimira.calculator.validators.virus.virus_validator import build_expiration, expiration_distributions
 
 data_registry = DataRegistry()
+ScenarioVar = tuple[models.Room, models.InfectedPopulation, models.Population] # (room, infected, exposed)
 
 ############ Shared office scenario #############
 def shared_office():
