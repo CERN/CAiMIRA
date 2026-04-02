@@ -339,7 +339,6 @@ def model_concentration_results(
 
     else: 
         all_concentrations.append([])
-    #return times, air_exch, probability, concentrations_viral
     return exposure_model, times, all_concentrations
 
 def plot_model_concentration_results(
@@ -361,7 +360,7 @@ def plot_model_concentration_results(
     exposure_model, times, concentrations = model_concentration_results(scenario, air_exch_list, vent_transition_times, viral_values, CO2_values, deterministic_CO2)
     concentrations_viral, concentrations_CO2 = concentrations
     ############ Combined plot: Viral concentration + CO2 ############
-    fig, axviral = plt.subplots(figsize = (9,4))
+    _, axviral = plt.subplots(figsize = (9,5))
 
     # ===== Viral concentration (LEFT AXIS) =====
     mean_viral = [np.mean(c) for c in concentrations_viral]
@@ -380,7 +379,7 @@ def plot_model_concentration_results(
 
     clean_air_delivery, _ = clean_air_per_sec_per_pers(air_exch_list, vent_transition_times, exposure_model)
     print(f"Air changes per hour: Mean: {np.mean(air_exch_list)}, All values: {[round(air_exch, 2) for air_exch in air_exch_list]}")
-    print(f"Clean-Air Delivery (L/s/person): Mean: {np.mean([[cld for cld in clean_air_delivery if isinstance(cld, float)]])}, All values: {[round(cld, 2) if type(cld)==float else cld for cld in clean_air_delivery]}")
+    print(f"Clean air delivery (L/s/person): Mean: {np.mean([[cld for cld in clean_air_delivery if isinstance(cld, float)]])}, All values: {[round(cld, 2) if type(cld)==float else cld for cld in clean_air_delivery]}")
 
     axes = []
     # ===== CO2 concentration (RIGHT AXIS) =====
@@ -443,7 +442,7 @@ def plot_model_concentration_results(
         axaex.tick_params(axis='y', labelcolor='tab:green')
         axaex_ymax = 0
 
-        new_axaex_ymax = max(extended_air_exch_list)*1.1
+        new_axaex_ymax = max(extended_air_exch_list)*1.15
         if new_axaex_ymax > axaex_ymax:
             axaex_ymax = new_axaex_ymax
         axaex.set_ylim([0,axaex_ymax])
@@ -453,7 +452,7 @@ def plot_model_concentration_results(
         axcad = axviral.twinx()
         extended_air_exch_list = carry_forward_air_change_times(air_exch_list, vent_transition_times, times)
         clean_air_delivery, _ = clean_air_per_sec_per_pers(extended_air_exch_list, times, exposure_model)
-        #clean_air_delivery_float = [cld for cld in clean_air_delivery if isinstance(cld, float)]
+
         assert len(times) == len(clean_air_delivery) + 1
         clean_air_delivery.append(np.inf)
         clean_air_delivery_float = list(np.where(np.isfinite(np.array(clean_air_delivery)), np.array(clean_air_delivery), np.nan))
@@ -463,11 +462,11 @@ def plot_model_concentration_results(
             color='tab:orange',
             label='air exchange per hour'
         )
-        axcad.set_ylabel('air exchange per hour', color='tab:orange')
+        axcad.set_ylabel('clean air delivery (L/s/person)', color='tab:orange')
         axcad.tick_params(axis='y', labelcolor='tab:orange')
         axcad_ymax = 0
 
-        new_axcad_ymax = max(clean_air_delivery_float)*1.1
+        new_axcad_ymax = max(clean_air_delivery_float)*1.2
         if new_axcad_ymax > axcad_ymax:
             axcad_ymax = new_axcad_ymax
         axcad.set_ylim([0,axcad_ymax])
@@ -476,13 +475,12 @@ def plot_model_concentration_results(
         if plot_air_exch:
             axcad.spines["right"].set_position(("outward", 60))
 
-    # ===== Combined legend =====
     lines = axviral.get_lines()
     for ax in axes:
         lines += ax.get_lines()
 
     labels = [line.get_label() for line in lines]
-    axviral.legend(lines, labels, loc='best')
+    axviral.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=len(axes)+1)
 
     plt.tight_layout()
     plt.show()
@@ -496,6 +494,7 @@ def find_next_air_exch_by_co2(
     target_CO2_fraction: float = 0.95,
     max_ventilation_changes: typing.Optional[int] = None,
     change_ventilation_at: typing.Optional[list[float]] = None,
+    run_count: int = 1
     ):
     if not vent_transition_times:
         vent_transition_times = first_vent_transition_times(scenario)
@@ -525,7 +524,7 @@ def find_next_air_exch_by_co2(
         #times_to_loop = 
         pass
     else:
-        if max_ventilation_changes:
+        if max_ventilation_changes and run_count > 1: # Let first change of the ventilation rate occur whenever
             k = np.max([len(concentrations_CO2) // max_ventilation_changes, 1])
         else:
             k = 1
@@ -559,8 +558,11 @@ def find_next_air_exch_by_co2(
 
     if within_limit:
         return air_exch_list, vent_transition_times
+    elif run_count > len(times):
+        raise RuntimeError("Failed to converge")
     else:
-        return find_next_air_exch_by_co2(scenario, air_exch_list, vent_transition_times, max_CO2, min_CO2_fraction, target_CO2_fraction, max_ventilation_changes, change_ventilation_at)
+        run_count += 1
+        return find_next_air_exch_by_co2(scenario, air_exch_list, vent_transition_times, max_CO2, min_CO2_fraction, target_CO2_fraction, max_ventilation_changes, change_ventilation_at, run_count)
     
 
 def get_new_air_exch_from_target_CO2(
