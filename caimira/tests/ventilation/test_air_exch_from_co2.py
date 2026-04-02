@@ -7,7 +7,8 @@ from caimira.calculator.models import models
 from caimira.calculator.store.data_registry import DataRegistry
 
 import caimira.ventilation.deterministic_emitters as de
-from caimira.ventilation.ventilation import *
+import caimira.ventilation.get_models as get_models
+import caimira.ventilation.find_air_exch as find_air_exch
 
 data_registry = DataRegistry()
 
@@ -38,7 +39,7 @@ def deterministic_CO2_models(CO2_emitters):
             data_registry=data_registry,
             room=models.Room(volume=50, humidity=0.6, inside_temp=models.PiecewiseConstant(
             (0, 24), (20+273.15, ))),
-            ventilation=custom_ventilation(air_exch_values=[0.25]),
+            ventilation=get_models.custom_ventilation(air_exch_values=[0.25]),
             CO2_emitters=CO2_emitter,
         ) 
         for CO2_emitter in CO2_emitters]
@@ -55,13 +56,13 @@ def deterministic_CO2_models(CO2_emitters):
 )
 def test_get_new_air_exch_from_target_CO2_single_model(target_CO2_lim, time, expected_air_exch, deterministic_CO2_models, expected_CO2_lim):
     deterministic_CO2_model = deterministic_CO2_models[0]
-    air_exch_result = get_new_air_exch_from_target_CO2([deterministic_CO2_model], target_CO2_lim, time)
+    air_exch_result = find_air_exch.get_new_air_exch_from_target_CO2([deterministic_CO2_model], target_CO2_lim, time)
 
     new_air_exch = np.max([air_exch_result, 0.25])
     
     adjusted_deterministic_CO2_model = dataclasses.replace(
             deterministic_CO2_model, **{
-                'ventilation': custom_ventilation(air_exch_values=[0.25, new_air_exch], transition_times=[0,0.001,time])
+                'ventilation': get_models.custom_ventilation(air_exch_values=[0.25, new_air_exch], transition_times=[0,0.001,time])
             }
         )
             
@@ -81,13 +82,13 @@ def test_get_new_air_exch_from_target_CO2_single_model(target_CO2_lim, time, exp
     ]
 )
 def test_get_new_air_exch_from_target_CO2_multiple_models(target_CO2_lim, time, expected_air_exch, deterministic_CO2_models, expected_CO2_lim):
-    air_exch_result = get_new_air_exch_from_target_CO2(deterministic_CO2_models, target_CO2_lim, time)
+    air_exch_result = find_air_exch.get_new_air_exch_from_target_CO2(deterministic_CO2_models, target_CO2_lim, time)
 
     new_air_exch = np.max([air_exch_result, 0.25])
     
     adjusted_deterministic_CO2_models = [dataclasses.replace(
             deterministic_CO2_model, **{
-                'ventilation': custom_ventilation(air_exch_values=[0.25, new_air_exch], transition_times=[0,0.001,time])
+                'ventilation': get_models.custom_ventilation(air_exch_values=[0.25, new_air_exch], transition_times=[0,0.001,time])
             }
         ) for deterministic_CO2_model in deterministic_CO2_models]
             
