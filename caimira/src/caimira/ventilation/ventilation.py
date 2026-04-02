@@ -50,15 +50,15 @@ def calculate_deposited_exposure(
 def carry_forward_air_change_times(
         air_change_per_hour_list: typing.Union[MutableTuple, float], 
         vent_transition_times: list, 
-        clean_air_delivery_transition_times: list,
+        extended_vent_transition_times: list,
     ):
     """
     Re-specify the air exchange value at intervals between the time points in vent_transition_times
-    for the finer intervals between the time points in clean_air_delivery_transition_times.
-    Note that vent_transition_times is a subset of clean_air_delivery_transition_times and both lists are sorted.
+    for the finer intervals between the time points in extended_vent_transition_times.
+    Note that vent_transition_times is a subset of extended_vent_transition_times and both lists are sorted.
     """
     extended_air_change_per_hour_list = []
-    for time in clean_air_delivery_transition_times[:-1]:
+    for time in extended_vent_transition_times[:-1]:
         i = bisect.bisect_right(vent_transition_times, time) - 1
         if i >= 0 and i < len(air_change_per_hour_list):
             extended_air_change_per_hour_list.append(air_change_per_hour_list[i])
@@ -91,7 +91,7 @@ def clean_air_per_sec_per_pers(
         )
 
         if n_occupants == 0:
-            clean_air_delivery.append("inf")
+            clean_air_delivery.append(np.inf)
 
         else:
             Q_ach = 1000 / 3600 * air_exch * room.volume # Volumetric flow rate in L s^{−1}
@@ -352,13 +352,16 @@ def plot_model_concentration_results(
         plot_air_exch: bool = True,
         plot_clean_air_delivery: bool = True,
     ):
+    if not isinstance(air_exch_list, list):
+        air_exch_list = [air_exch_list]
+        
     if not vent_transition_times:
         vent_transition_times = first_vent_transition_times(scenario)
     axviral_ymax = 0
     exposure_model, times, concentrations = model_concentration_results(scenario, air_exch_list, vent_transition_times, viral_values, CO2_values, deterministic_CO2)
     concentrations_viral, concentrations_CO2 = concentrations
     ############ Combined plot: Viral concentration + CO2 ############
-    fig, axviral = plt.subplots(figsize = (6,4))
+    fig, axviral = plt.subplots(figsize = (9,4))
 
     # ===== Viral concentration (LEFT AXIS) =====
     mean_viral = [np.mean(c) for c in concentrations_viral]
@@ -375,20 +378,8 @@ def plot_model_concentration_results(
         axviral_ymax = max(mean_viral)*1.1
     axviral.set_ylim([0,axviral_ymax])
 
-    # Optional uncertainty band
-    # ax1.fill_between(
-    #     times,
-    #     [np.quantile(c, 0.05) for c in concentrations_viral],
-    #     [np.quantile(c, 0.95) for c in concentrations_viral],
-    #     color='tab:blue',
-    #     alpha=0.2
-    # )
-    if isinstance(air_exch_list, list):
-        clean_air_delivery, _ = clean_air_per_sec_per_pers(air_exch_list, vent_transition_times, exposure_model)
-        print(f"Air changes per hour: Mean: {np.mean(air_exch_list)}, All values: {[round(air_exch, 2) for air_exch in air_exch_list]}")
-    else:
-        clean_air_delivery, _ = clean_air_per_sec_per_pers([air_exch_list], vent_transition_times, exposure_model)
-        print(f"Air changes per hour: {air_exch_list:.2f}")
+    clean_air_delivery, _ = clean_air_per_sec_per_pers(air_exch_list, vent_transition_times, exposure_model)
+    print(f"Air changes per hour: Mean: {np.mean(air_exch_list)}, All values: {[round(air_exch, 2) for air_exch in air_exch_list]}")
     print(f"Clean-Air Delivery (L/s/person): Mean: {np.mean([[cld for cld in clean_air_delivery if isinstance(cld, float)]])}, All values: {[round(cld, 2) if type(cld)==float else cld for cld in clean_air_delivery]}")
 
     axes = []
@@ -428,11 +419,62 @@ def plot_model_concentration_results(
                 alpha=0.2
             )
         axes.append(axco2)
-    
+
+    if plot_air_exch or plot_clean_air_delivery:
+        axco2.spines["right"].set_visible(False)
+        axco2.spines["left"].set_visible(True)
+        axco2.yaxis.set_label_position("left")
+        axco2.yaxis.set_ticks_position("left")
+        axco2.spines["left"].set_position(("outward", 60))
+            
     if plot_air_exch:
-        pass
+        axaex = axviral.twinx()
+        extended_air_exch_list = carry_forward_air_change_times(air_exch_list, vent_transition_times, times)
+
+        assert len(times) == len(extended_air_exch_list) + 1
+        extended_air_exch_list.append(extended_air_exch_list[-1])
+        axaex.plot(
+            times,
+            extended_air_exch_list,
+            color='tab:green',
+            label='air exchange per hour'
+        )
+        axaex.set_ylabel('air exchange per hour', color='tab:green')
+        axaex.tick_params(axis='y', labelcolor='tab:green')
+        axaex_ymax = 0
+
+        new_axaex_ymax = max(extended_air_exch_list)*1.1
+        if new_axaex_ymax > axaex_ymax:
+            axaex_ymax = new_axaex_ymax
+        axaex.set_ylim([0,axaex_ymax])
+        axes.append(axaex)
+
     if plot_clean_air_delivery:
-        pass
+        axcad = axviral.twinx()
+        extended_air_exch_list = carry_forward_air_change_times(air_exch_list, vent_transition_times, times)
+        clean_air_delivery, _ = clean_air_per_sec_per_pers(extended_air_exch_list, times, exposure_model)
+        #clean_air_delivery_float = [cld for cld in clean_air_delivery if isinstance(cld, float)]
+        assert len(times) == len(clean_air_delivery) + 1
+        clean_air_delivery.append(np.inf)
+        clean_air_delivery_float = list(np.where(np.isfinite(np.array(clean_air_delivery)), np.array(clean_air_delivery), np.nan))
+        axcad.plot(
+            times,
+            clean_air_delivery_float,
+            color='tab:orange',
+            label='air exchange per hour'
+        )
+        axcad.set_ylabel('air exchange per hour', color='tab:orange')
+        axcad.tick_params(axis='y', labelcolor='tab:orange')
+        axcad_ymax = 0
+
+        new_axcad_ymax = max(clean_air_delivery_float)*1.1
+        if new_axcad_ymax > axcad_ymax:
+            axcad_ymax = new_axcad_ymax
+        axcad.set_ylim([0,axcad_ymax])
+        axes.append(axcad)
+
+        if plot_air_exch:
+            axcad.spines["right"].set_position(("outward", 60))
 
     # ===== Combined legend =====
     lines = axviral.get_lines()
