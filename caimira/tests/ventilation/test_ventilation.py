@@ -64,11 +64,11 @@ cf = (1/4)*(1000/3600)*50
 @pytest.mark.parametrize(
     "air_exch_list, vent_transition_times, expected_clean_air_delivery, expected_clean_air_delivery_transition_times",
     [
-        [[0.25], [0, 0.001], ["inf", 0.25*cf, "inf", 0.25*cf], [0, 8.5, 12.5, 13.5, 17.5]],
-         [[1], [0, 0.001], ["inf", 1*cf, "inf", 1*cf], [0, 8.5, 12.5, 13.5, 17.5]],
-         [[0.25, 1], [0, 9, 9.1], ["inf", 0.25*cf, 1*cf, "inf", 1*cf], [0, 8.5, 9, 12.5, 13.5, 17.5]],
-        [[0.25, 1, 9, 2, 0.5, 1], [0, 4, 9, 12.5, 13, 17, 17.000001], ["inf", "inf", 1*cf, 9*cf, "inf", "inf", 0.5*cf, 1*cf], [0, 4, 8.5, 9, 12.5, 13, 13.5, 17, 17.5]],
-        [[0.25, 1], [0, 18, 18.0001], ["inf", 0.25*cf, "inf", 0.25*cf, "inf"], [0, 8.5, 12.5, 13.5, 17.5, 18]],
+        [[0.25], [0, 0.001], [np.inf, 0.25*cf, np.inf, 0.25*cf], [0, 8.5, 12.5, 13.5, 17.5]],
+         [[1], [0, 0.001], [np.inf, 1*cf, np.inf, 1*cf], [0, 8.5, 12.5, 13.5, 17.5]],
+         [[0.25, 1], [0, 9, 9.1], [np.inf, 0.25*cf, 1*cf, np.inf, 1*cf], [0, 8.5, 9, 12.5, 13.5, 17.5]],
+        [[0.25, 1, 9, 2, 0.5, 1], [0, 4, 9, 12.5, 13, 17, 17.000001], [np.inf, np.inf, 1*cf, 9*cf, np.inf, np.inf, 0.5*cf, 1*cf], [0, 4, 8.5, 9, 12.5, 13, 13.5, 17, 17.5]],
+        [[0.25, 1], [0, 18, 18.0001], [np.inf, 0.25*cf, np.inf, 0.25*cf, np.inf], [0, 8.5, 12.5, 13.5, 17.5, 18]],
     ]
 )
 def test_clean_air_per_sec_per_pers_conversion(air_exch_list, vent_transition_times, expected_clean_air_delivery, expected_clean_air_delivery_transition_times):
