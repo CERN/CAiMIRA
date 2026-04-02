@@ -16,12 +16,19 @@ from caimira.ventilation.get_models import *
 SAMPLE_SIZE: int = 250_000
 data_registry = DataRegistry()
 
+def first_vent_transition_times(scenario: ScenarioVar) -> tuple[float, float]:
+    _, infected, exposed = scenario
+    model_start = min(infected.build_model(1).presence_interval().boundaries()[0][0], exposed.build_model(1).presence_interval().boundaries()[0][0])
+    return [model_start, model_start+0.00001] # Short interval to initialize the ventilation, the ventilation rate of the last interval continues after the last time
+
 
 def calculate_infection_probability(
-        air_exch_values: typing.Union[MutableTuple, float] = (0.25,), 
-        vent_transition_times: MutableTuple = (0,0.001),
-        scenario: ScenarioVar = scenarios.shared_office()
+        scenario: ScenarioVar,
+        air_exch_values: typing.Union[MutableTuple, float], 
+        vent_transition_times: typing.Optional[MutableTuple] = None,
         ) -> float:
+    if not vent_transition_times:
+        vent_transition_times = first_vent_transition_times(scenario)
     exposure_model = get_exposure_model(air_exch_values, vent_transition_times, scenario)
     exposure_model = exposure_model.build_model(SAMPLE_SIZE)
     pis: models._VectorisedFloat = np.array(exposure_model.infection_probability()/100)
@@ -29,16 +36,22 @@ def calculate_infection_probability(
     return pi
 
 def calculate_deposited_exposure(
-        air_exch_values: typing.Union[MutableTuple, float] = (0.25,), 
-        vent_transition_times: MutableTuple = (0,0.001),
-        scenario: ScenarioVar = scenarios.shared_office()
+        scenario: ScenarioVar,
+        air_exch_values: typing.Union[MutableTuple, float], 
+        vent_transition_times: typing.Optional[MutableTuple] = None,
         ) -> float:
+    if not vent_transition_times:
+        vent_transition_times = first_vent_transition_times(scenario)
     exposure_model = get_exposure_model(air_exch_values, vent_transition_times, scenario)
     exposure_model = exposure_model.build_model(SAMPLE_SIZE)
     dose = np.mean(exposure_model.deposited_exposure())
     return dose
 
-def carry_forward_air_change_times(air_change_per_hour_list, vent_transition_times, clean_air_delivery_transition_times):
+def carry_forward_air_change_times(
+        air_change_per_hour_list: typing.Union[MutableTuple, float], 
+        vent_transition_times: list, 
+        clean_air_delivery_transition_times: list,
+    ):
     """
     Re-specify the air exchange value at intervals between the time points in vent_transition_times
     for the finer intervals between the time points in clean_air_delivery_transition_times.
@@ -52,7 +65,6 @@ def carry_forward_air_change_times(air_change_per_hour_list, vent_transition_tim
         elif i == len(air_change_per_hour_list):
             extended_air_change_per_hour_list.append(air_change_per_hour_list[-1])
     return extended_air_change_per_hour_list
-
 
 def clean_air_per_sec_per_pers(
         air_change_per_hour_list: typing.Union[MutableTuple, float], 
@@ -88,8 +100,8 @@ def clean_air_per_sec_per_pers(
     return clean_air_delivery, clean_air_delivery_transition_times
 
 def find_constant_air_exch(
+    scenario: ScenarioVar,
     lim_probability_infection: float,
-    scenario: ScenarioVar = scenarios.shared_office(),
     lo=0,
     hi=60,
     tol=1e-2,
@@ -123,8 +135,8 @@ def find_constant_air_exch(
     return root_air_exch, p
 
 def plot_probabilities(
-    lim_probability_infection_list: list[float], 
-    scenario: ScenarioVar = scenarios.shared_office(), 
+    scenario: ScenarioVar,
+    lim_probability_infection_list: list[float],  
     air_exch_list: list[float] = list(range(0, 60, 2))
     ):
 
@@ -171,7 +183,7 @@ def plot_probabilities(
 
     for lim_probability_infection in lim_probability_infection_list:
         if lim_probability_infection > 0:
-            lim_air_exch, probability = find_constant_air_exch(lim_probability_infection, scenario, hi=air_exch_list[-1])
+            lim_air_exch, probability = find_constant_air_exch(scenario, lim_probability_infection, hi=air_exch_list[-1])
             dose = calculate_deposited_exposure(air_exch_values=lim_air_exch, scenario=scenario)
 
             ax1.plot(
@@ -219,14 +231,15 @@ def plot_probabilities(
 
 
 def model_concentration_results(
+        scenario,
         air_exch_list: typing.Union[MutableTuple, float], 
-        vent_transition_times: MutableTuple = (0,0.001), 
-        scenario: ScenarioVar = scenarios.shared_office(), 
+        vent_transition_times: typing.Optional[MutableTuple] = None, 
         viral_values: bool = True, 
         CO2_values: bool = True,
         deterministic_CO2: bool = True
     ):
-    
+    if not vent_transition_times:
+        vent_transition_times = first_vent_transition_times(scenario)
     exposure_model = get_exposure_model(air_exch_list, vent_transition_times, scenario).build_model(size=SAMPLE_SIZE)
     times: models._VectorisedFloat = interesting_times(
         exposure_model, approx_n_pts=1000)
@@ -330,34 +343,37 @@ def model_concentration_results(
     return exposure_model, times, all_concentrations
 
 def plot_model_concentration_results(
+        scenario: ScenarioVar,
         air_exch_list: typing.Union[MutableTuple, float], 
-        vent_transition_times: MutableTuple = (0,0.001), 
-        scenario: ScenarioVar = scenarios.shared_office(), 
+        vent_transition_times: typing.Optional[MutableTuple] = None,  
         viral_values: bool = True, 
         CO2_values: bool = True,
-        deterministic_CO2: bool = True
+        deterministic_CO2: bool = True,
+        plot_air_exch: bool = True,
+        plot_clean_air_delivery: bool = True,
     ):
-    ax1_ymax = 0
-    ax2_ymax = 0
-    exposure_model, times, concentrations = model_concentration_results(air_exch_list, vent_transition_times, scenario, viral_values, CO2_values, deterministic_CO2)
+    if not vent_transition_times:
+        vent_transition_times = first_vent_transition_times(scenario)
+    axviral_ymax = 0
+    exposure_model, times, concentrations = model_concentration_results(scenario, air_exch_list, vent_transition_times, viral_values, CO2_values, deterministic_CO2)
     concentrations_viral, concentrations_CO2 = concentrations
     ############ Combined plot: Viral concentration + CO2 ############
-    fig, ax1 = plt.subplots(figsize = (6,4))
+    fig, axviral = plt.subplots(figsize = (6,4))
 
     # ===== Viral concentration (LEFT AXIS) =====
     mean_viral = [np.mean(c) for c in concentrations_viral]
-    ax1.plot(
+    axviral.plot(
         times,
         mean_viral,
         color='tab:blue',
         label='Viral concentration'
     )
-    ax1.set_xlabel('Time of day')
-    ax1.set_ylabel('Viral concentration (IRP / m³)', color='tab:blue')
-    ax1.tick_params(axis='y', labelcolor='tab:blue')
-    if max(mean_viral)*1.1 > ax1_ymax:
-        ax1_ymax = max(mean_viral)*1.1
-    ax1.set_ylim([0,ax1_ymax])
+    axviral.set_xlabel('Time of day')
+    axviral.set_ylabel('Viral concentration (IRP / m³)', color='tab:blue')
+    axviral.tick_params(axis='y', labelcolor='tab:blue')
+    if max(mean_viral)*1.1 > axviral_ymax:
+        axviral_ymax = max(mean_viral)*1.1
+    axviral.set_ylim([0,axviral_ymax])
 
     # Optional uncertainty band
     # ax1.fill_between(
@@ -375,66 +391,79 @@ def plot_model_concentration_results(
         print(f"Air changes per hour: {air_exch_list:.2f}")
     print(f"Clean-Air Delivery (L/s/person): Mean: {np.mean([[cld for cld in clean_air_delivery if isinstance(cld, float)]])}, All values: {[round(cld, 2) if type(cld)==float else cld for cld in clean_air_delivery]}")
 
+    axes = []
     # ===== CO2 concentration (RIGHT AXIS) =====
     if CO2_values:
-        ax2 = ax1.twinx()
+        axco2 = axviral.twinx()
         if isinstance(concentrations_CO2[0], float):
             mean_CO2 = concentrations_CO2
         else:
             mean_CO2 = [np.mean(c) for c in concentrations_CO2]
         print(f"Max CO2: {np.max(mean_CO2):.2f}")
-        ax2.plot(
+        axco2.plot(
             times,
             mean_CO2,
             color='tab:red',
             label='CO₂ concentration'
         )
-        ax2.set_ylabel('CO₂ concentration (ppm)', color='tab:red')
-        ax2.tick_params(axis='y', labelcolor='tab:red')
+        axco2.set_ylabel('CO₂ concentration (ppm)', color='tab:red')
+        axco2.tick_params(axis='y', labelcolor='tab:red')
+        axco2_ymax = 0
         if deterministic_CO2:
-            new_ax2_ymax = max(concentrations_CO2)*1.1
-            if new_ax2_ymax > ax2_ymax:
-                ax2_ymax = new_ax2_ymax*1.1
-            ax2.set_ylim([440,ax2_ymax])
+            new_axco2_ymax = max(concentrations_CO2)*1.1
+            if new_axco2_ymax > axco2_ymax:
+                axco2_ymax = new_axco2_ymax
+            axco2.set_ylim([440,axco2_ymax])
         else:
-            new_ax2_ymax = max([np.quantile(c, 0.95) for c in concentrations_CO2])*1.1
-            if new_ax2_ymax > ax2_ymax:
-                ax2_ymax = new_ax2_ymax*1.1
-            ax2.set_ylim([440,ax2_ymax])
+            new_axco2_ymax = max([np.quantile(c, 0.95) for c in concentrations_CO2])*1.1
+            if new_axco2_ymax > axco2_ymax:
+                axco2_ymax = new_axco2_ymax
+            axco2.set_ylim([440,axco2_ymax])
 
-            ax2.fill_between(
+            axco2.fill_between(
                 times,
                 [np.quantile(c, 0.05) for c in concentrations_CO2],
                 [np.quantile(c, 0.95) for c in concentrations_CO2],
                 color='tab:red',
                 alpha=0.2
             )
+        axes.append(axco2)
+    
+    if plot_air_exch:
+        pass
+    if plot_clean_air_delivery:
+        pass
 
-        # ===== Combined legend =====
-        lines = ax1.get_lines() + ax2.get_lines()
-        labels = [line.get_label() for line in lines]
-        ax1.legend(lines, labels, loc='best')
+    # ===== Combined legend =====
+    lines = axviral.get_lines()
+    for ax in axes:
+        lines += ax.get_lines()
+
+    labels = [line.get_label() for line in lines]
+    axviral.legend(lines, labels, loc='best')
 
     plt.tight_layout()
     plt.show()
 
 def find_next_air_exch_by_co2(
+    scenario: ScenarioVar,
     air_exch_list: typing.Union[MutableTuple, float], 
-    vent_transition_times: MutableTuple, 
+    vent_transition_times: typing.Optional[MutableTuple], 
     max_CO2: float,
     min_CO2_fraction: float = 0.95,
     target_CO2_fraction: float = 0.95,
-    scenario: ScenarioVar = scenarios.shared_office(),
     max_ventilation_changes: typing.Optional[int] = None,
     change_ventilation_at: typing.Optional[list[float]] = None,
     ):
+    if not vent_transition_times:
+        vent_transition_times = first_vent_transition_times(scenario)
     #TODO? differentiate between when/how often ventilation may be increased and decreased?
     if max_ventilation_changes and change_ventilation_at:
         print(f"May satisfy both max_ventilation_changes and change_ventilation_at, using change_ventilation_at")
     
     if min_CO2_fraction < 0 or min_CO2_fraction > 1:
         raise ValueError(f"target_fraction must be in range [0, 1], got {min_CO2_fraction}")
-    exposure_model, times, concentrations = model_concentration_results(air_exch_list, vent_transition_times, scenario, viral_values=False)
+    exposure_model, times, concentrations = model_concentration_results(scenario, air_exch_list, vent_transition_times, viral_values=False)
     CO2_models: typing.Tuple[models.CO2ConcentrationModel] = get_CO2_models(exposure_model)
 
     if max_CO2 < CO2_models[0].min_background_concentration():
@@ -489,7 +518,7 @@ def find_next_air_exch_by_co2(
     if within_limit:
         return air_exch_list, vent_transition_times
     else:
-        return find_next_air_exch_by_co2(air_exch_list, vent_transition_times, max_CO2, min_CO2_fraction, target_CO2_fraction, scenario, max_ventilation_changes, change_ventilation_at)
+        return find_next_air_exch_by_co2(scenario, air_exch_list, vent_transition_times, max_CO2, min_CO2_fraction, target_CO2_fraction, max_ventilation_changes, change_ventilation_at)
     
 
 def get_new_air_exch_from_target_CO2(
