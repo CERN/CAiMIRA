@@ -2,6 +2,7 @@ import typing
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import brentq
+import bisect
 
 from caimira.calculator.models import models
 from caimira.calculator.store.data_registry import DataRegistry
@@ -36,6 +37,55 @@ def calculate_deposited_exposure(
     exposure_model = exposure_model.build_model(SAMPLE_SIZE)
     dose = np.mean(exposure_model.deposited_exposure())
     return dose
+
+def carry_forward_air_change_times(air_change_per_hour_list, vent_transition_times, clean_air_delivery_transition_times):
+    """
+    Re-specify the air exchange value at intervals between the time points in vent_transition_times
+    for the finer intervals between the time points in clean_air_delivery_transition_times.
+    Note that vent_transition_times is a subset of clean_air_delivery_transition_times and both lists are sorted.
+    """
+    extended_air_change_per_hour_list = []
+    for time in clean_air_delivery_transition_times[:-1]:
+        i = bisect.bisect_right(vent_transition_times, time) - 1
+        if i >= 0 and i < len(air_change_per_hour_list):
+            extended_air_change_per_hour_list.append(air_change_per_hour_list[i])
+        elif i == len(air_change_per_hour_list):
+            extended_air_change_per_hour_list.append(air_change_per_hour_list[-1])
+    return extended_air_change_per_hour_list
+
+
+def clean_air_per_sec_per_pers(
+        air_change_per_hour_list: typing.Union[MutableTuple, float], 
+        vent_transition_times: MutableTuple, 
+        exposure_model: models.ExposureModel
+    ) -> tuple[list[float], list[float]]:
+    """
+    Convert from air exchange per hour to liter per second per person.
+    """
+    room=exposure_model.concentration_model.room
+
+    clean_air_delivery_transition_times = sorted(
+        set(exposure_model.population_state_change_times()) |
+        set(vent_transition_times[:-1]) # Remove the last transition time
+    )
+
+    longer_air_change_per_hour_list = np.array(carry_forward_air_change_times(air_change_per_hour_list, vent_transition_times, clean_air_delivery_transition_times))
+
+    clean_air_delivery = []
+    for air_exch, time in zip(longer_air_change_per_hour_list, clean_air_delivery_transition_times[1:]):
+        n_occupants = (
+            exposure_model.exposed.people_present(time) 
+            + exposure_model.concentration_model.infected.people_present(time)
+        )
+
+        if n_occupants == 0:
+            clean_air_delivery.append("inf")
+
+        else:
+            Q_ach = 1000 / 3600 * air_exch * room.volume # Volumetric flow rate in L s^{−1}
+            clean_air_delivery.append(Q_ach / n_occupants)
+
+    return clean_air_delivery, clean_air_delivery_transition_times
 
 def find_constant_air_exch(
     lim_probability_infection: float,
@@ -289,7 +339,7 @@ def plot_model_concentration_results(
     ):
     ax1_ymax = 0
     ax2_ymax = 0
-    _, times, concentrations = model_concentration_results(air_exch_list, vent_transition_times, scenario, viral_values, CO2_values, deterministic_CO2)
+    exposure_model, times, concentrations = model_concentration_results(air_exch_list, vent_transition_times, scenario, viral_values, CO2_values, deterministic_CO2)
     concentrations_viral, concentrations_CO2 = concentrations
     ############ Combined plot: Viral concentration + CO2 ############
     fig, ax1 = plt.subplots(figsize = (6,4))
@@ -317,6 +367,13 @@ def plot_model_concentration_results(
     #     color='tab:blue',
     #     alpha=0.2
     # )
+    if isinstance(air_exch_list, list):
+        clean_air_delivery, _ = clean_air_per_sec_per_pers(air_exch_list, vent_transition_times, exposure_model)
+        print(f"Air changes per hour: Mean: {np.mean(air_exch_list)}, All values: {[round(air_exch, 2) for air_exch in air_exch_list]}")
+    else:
+        clean_air_delivery, _ = clean_air_per_sec_per_pers([air_exch_list], vent_transition_times, exposure_model)
+        print(f"Air changes per hour: {air_exch_list:.2f}")
+    print(f"Clean-Air Delivery (L/s/person): Mean: {np.mean([[cld for cld in clean_air_delivery if isinstance(cld, float)]])}, All values: {[round(cld, 2) if type(cld)==float else cld for cld in clean_air_delivery]}")
 
     # ===== CO2 concentration (RIGHT AXIS) =====
     if CO2_values:
@@ -325,11 +382,7 @@ def plot_model_concentration_results(
             mean_CO2 = concentrations_CO2
         else:
             mean_CO2 = [np.mean(c) for c in concentrations_CO2]
-        print(f"Max average CO2: {np.max(mean_CO2):.2f}")
-        if isinstance(air_exch_list, list):
-            print(f"Air changes per hour: {[round(air_exch, 2) for air_exch in air_exch_list]}")
-        else:
-            print(f"Air changes per hour: {air_exch_list:.2f}")
+        print(f"Max CO2: {np.max(mean_CO2):.2f}")
         ax2.plot(
             times,
             mean_CO2,
@@ -370,6 +423,7 @@ def find_next_air_exch_by_co2(
     vent_transition_times: MutableTuple, 
     max_CO2: float,
     min_CO2_fraction: float = 0.95,
+    target_CO2_fraction: float = 0.95,
     scenario: ScenarioVar = scenarios.shared_office(),
     max_ventilation_changes: typing.Optional[int] = None,
     change_ventilation_at: typing.Optional[list[float]] = None,
@@ -391,7 +445,7 @@ def find_next_air_exch_by_co2(
     
     concentrations_CO2 = concentrations[-1]
     min_CO2 = np.max([max_CO2*min_CO2_fraction, CO2_models[0].min_background_concentration()])
-    target = np.max([max_CO2*0.99, CO2_models[0].min_background_concentration()])
+    target = np.max([max_CO2*target_CO2_fraction, CO2_models[0].min_background_concentration()])
 
     within_limit = True
     if change_ventilation_at:
@@ -435,7 +489,7 @@ def find_next_air_exch_by_co2(
     if within_limit:
         return air_exch_list, vent_transition_times
     else:
-        return find_next_air_exch_by_co2(air_exch_list, vent_transition_times, max_CO2, min_CO2_fraction, scenario, max_ventilation_changes, change_ventilation_at)
+        return find_next_air_exch_by_co2(air_exch_list, vent_transition_times, max_CO2, min_CO2_fraction, target_CO2_fraction, scenario, max_ventilation_changes, change_ventilation_at)
     
 
 def get_new_air_exch_from_target_CO2(
