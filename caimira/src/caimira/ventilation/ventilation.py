@@ -419,7 +419,7 @@ def plot_model_concentration_results(
             )
         axes.append(axco2)
 
-    if plot_air_exch or plot_clean_air_delivery:
+    if CO2_values and (plot_air_exch or plot_clean_air_delivery):
         axco2.spines["right"].set_visible(False)
         axco2.spines["left"].set_visible(True)
         axco2.yaxis.set_label_position("left")
