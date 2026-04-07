@@ -74,5 +74,5 @@ def test_carry_forward_air_change_times(vent_transition_times, air_exch_list, ne
 def test_clean_air_per_sec_per_pers_conversion(air_exch_list, vent_transition_times):
     expected_clean_air_delivery = [(1/4)*(1000/3600)*50*air_exch for air_exch in air_exch_list]
     exposure_model = shared_office_exposure_model(air_exch_list, vent_transition_times)
-    clean_air_delivery = find_air_exch.clean_air_per_sec_per_pers(air_exch_list, vent_transition_times, exposure_model)
+    clean_air_delivery = find_air_exch.clean_air_per_sec_per_pers(air_exch_list, exposure_model)
     npt.assert_allclose(clean_air_delivery, expected_clean_air_delivery)

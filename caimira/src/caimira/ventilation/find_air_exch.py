@@ -42,7 +42,6 @@ def max_occupancy(exposure_model: models.ExposureModel) -> int:
 
 def clean_air_per_sec_per_pers(
         air_change_per_hour_list: typing.Union[list, float], 
-        vent_transition_times: list, 
         exposure_model: models.ExposureModel
     ) -> tuple[list[float], list[float]]:
     """

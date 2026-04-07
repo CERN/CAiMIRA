@@ -137,7 +137,7 @@ def plot_model_concentration_results(
         axviral_ymax = max(mean_viral)*1.1
     axviral.set_ylim([0,axviral_ymax])
 
-    clean_air_delivery = find_air_exch.clean_air_per_sec_per_pers(air_exch_list, vent_transition_times, exposure_model)
+    clean_air_delivery = find_air_exch.clean_air_per_sec_per_pers(air_exch_list, exposure_model)
     print(f"Air changes per hour: Mean: {np.mean(air_exch_list)}, All values: {[round(air_exch, 2) for air_exch in air_exch_list]}")
     print(f"Clean air delivery (L/s/person): Mean: {np.mean([[cld for cld in clean_air_delivery if isinstance(cld, float)]])}, All values: {[round(cld, 2) if type(cld)==float else cld for cld in clean_air_delivery]}")
 
@@ -210,7 +210,7 @@ def plot_model_concentration_results(
     if plot_clean_air_delivery:
         axcad = axviral.twinx()
         extended_air_exch_list = find_air_exch.carry_forward_air_change_times(air_exch_list, vent_transition_times, times)
-        clean_air_delivery = find_air_exch.clean_air_per_sec_per_pers(extended_air_exch_list, times, exposure_model)
+        clean_air_delivery = find_air_exch.clean_air_per_sec_per_pers(extended_air_exch_list, exposure_model)
 
         assert len(times) == len(clean_air_delivery) + 1
         clean_air_delivery.append(np.inf)
