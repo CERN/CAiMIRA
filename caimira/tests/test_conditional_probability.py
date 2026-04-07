@@ -8,6 +8,7 @@ from caimira.calculator.models.dataclass_utils import nested_replace
 from caimira.calculator.report import virus_report_data
 from caimira.calculator.models.monte_carlo.data import activity_distributions, virus_distributions, expiration_distributions
 
+oneoverln2 = 1 / np.log(2)
 
 @pytest.fixture
 def baseline_exposure_model(data_registry):
@@ -78,3 +79,20 @@ def test_conditional_prob_inf_given_vl_dist(data_registry, baseline_exposure_mod
     assert np.allclose(actual_pi_means, expected_pi_means, atol=0.002)
     assert np.allclose(actual_lower_percentiles, expected_lower_percentiles, atol=0.002)
     assert np.allclose(actual_upper_percentiles, expected_upper_percentiles, atol=0.002)
+
+
+def test_probability_logic(baseline_exposure_model):
+    """
+    Test that the current logic for calculating the probability of infection 
+    corresponds to the old logic updated in
+    https://gitlab.cern.ch/caimira/caimira/-/merge_requests/451
+    """
+    mc_model: models.ExposureModel = baseline_exposure_model.build_model(2_000_000)
+
+    vD = mc_model.deposited_exposure()
+    infectious_dose = oneoverln2 * mc_model.concentration_model.virus.infectious_dose
+    expected_pi = (1 - np.exp(-((vD * (1 - mc_model.exposed.host_immunity))/(infectious_dose * 
+                mc_model.concentration_model.virus.transmissibility_factor))))
+
+    actual_pi = mc_model.infection_probability() / 100
+    assert np.allclose(expected_pi, actual_pi, atol=1e-14)

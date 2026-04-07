@@ -19,18 +19,19 @@ class KnownNormedconcentration(models.ConcentrationModel):
 
     """
     normed_concentration_function: typing.Callable = lambda x: 0
+    normed_concentration_limit_function: typing.Callable = normed_concentration_function
 
     def removal_rate(self, time: float) -> models._VectorisedFloat:
         # Very large decay constant -> same as constant concentration
         return 1.e50
 
     def _normed_concentration_limit(self, time: float) -> models._VectorisedFloat:
-        return self.normed_concentration_function(time) * self.infected.number
+        return self.normed_concentration_limit_function(time) * self.infected.number
 
     def state_change_times(self):
         return [0., 24.]
 
-    def _next_state_change(self, time: float):
+    def _next_state_change(self, time: float): # Outdated method, see merge_requests/539
         return 24.
 
     def _normed_concentration(self, time: float) -> models._VectorisedFloat:  # noqa
@@ -56,7 +57,7 @@ populations = [
     ),
 ]
 
-def known_concentrations(func, data_registry=DataRegistry()):
+def known_concentrations(func, func_lim=None, data_registry=DataRegistry()):
     dummy_room = models.Room(50, 0.5)
     dummy_ventilation = models._VentilationBase()
     dummy_infected_population = models.InfectedPopulation(
@@ -71,8 +72,13 @@ def known_concentrations(func, data_registry=DataRegistry()):
     )
     normed_func = lambda x: (func(x) /
         dummy_infected_population.emission_rate_per_person_when_present())
+    if func_lim:
+        normed_func_lim = lambda x: (func_lim(x) /
+            dummy_infected_population.emission_rate_per_person_when_present())
+    else:
+        normed_func_lim = normed_func
     return KnownNormedconcentration(data_registry, dummy_room, dummy_ventilation,
-                                dummy_infected_population, 0.3, normed_func)
+                                dummy_infected_population, 0.3, normed_func, normed_func_lim)
 
 
 @pytest.mark.parametrize(
@@ -114,8 +120,13 @@ def test_exposure_model_ndarray(data_registry, population, cm,
         [populations[2], np.array([1.36390289, 1.52436206])],
     ])
 def test_exposure_model_ndarray_and_float_mix(data_registry, population, expected_deposited_exposure, sr_model, cases_model):
-    cm = known_concentrations(
-        lambda t: 0. if np.floor(t) % 2 else np.array([0.6, 0.6]))
+    func = lambda t: 0. if np.floor(t) % 2 else np.array([0.6, 0.6])
+
+    # After merge_requests/539 normed_integrated_concentration computes normed_concentration_limit(t).
+    # However, the expected_deposited_exposure values assume normed_integrated_concentration computes
+    # normed_concentration_limit(_next_state_change(t)) = np.array([0.6, 0.6]) for all t
+    func_lim = lambda t: func(24)
+    cm = known_concentrations(func,func_lim)
     model = ExposureModel(data_registry, cm, sr_model, population, cases_model)
 
     np.testing.assert_almost_equal(
