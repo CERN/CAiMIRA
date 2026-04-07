@@ -61,23 +61,18 @@ def shared_office_exposure_model(air_exch_values, vent_transition_times) -> mode
 def test_carry_forward_air_change_times(vent_transition_times, air_exch_list, new_vent_transition_times, expected_new_air_exch_list):
     assert find_air_exch.carry_forward_air_change_times(air_exch_list, vent_transition_times, new_vent_transition_times) == expected_new_air_exch_list
 
-cf = (1/4)*(1000/3600)*50
 @pytest.mark.parametrize(
-    "air_exch_list, vent_transition_times, expected_clean_air_delivery, expected_clean_air_delivery_transition_times",
+    "air_exch_list, vent_transition_times",
     [
-        [[0.25], [0, 0.001], [np.inf, 0.25*cf, np.inf, 0.25*cf], [0, 8.5, 12.5, 13.5, 17.5]],
-         [[1], [0, 0.001], [np.inf, 1*cf, np.inf, 1*cf], [0, 8.5, 12.5, 13.5, 17.5]],
-         [[0.25, 1], [0, 9, 9.1], [np.inf, 0.25*cf, 1*cf, np.inf, 1*cf], [0, 8.5, 9, 12.5, 13.5, 17.5]],
-        [[0.25, 1, 9, 2, 0.5, 1], [0, 4, 9, 12.5, 13, 17, 17.000001], [np.inf, np.inf, 1*cf, 9*cf, np.inf, np.inf, 0.5*cf, 1*cf], [0, 4, 8.5, 9, 12.5, 13, 13.5, 17, 17.5]],
-        [[0.25, 1], [0, 18, 18.0001], [np.inf, 0.25*cf, np.inf, 0.25*cf, np.inf], [0, 8.5, 12.5, 13.5, 17.5, 18]],
+        [[0.25], [0, 0.001]],
+         [[1], [0, 0.001]],
+         [[0.25, 1], [0, 9, 9.1]],
+        [[0.25, 1, 9, 2, 0.5, 1], [0, 4, 9, 12.5, 13, 17, 17.000001]],
+        [[0.25, 1], [0, 18, 18.0001]],
     ]
 )
-def test_clean_air_per_sec_per_pers_conversion(air_exch_list, vent_transition_times, expected_clean_air_delivery, expected_clean_air_delivery_transition_times):
+def test_clean_air_per_sec_per_pers_conversion(air_exch_list, vent_transition_times):
+    expected_clean_air_delivery = [(1/4)*(1000/3600)*50*air_exch for air_exch in air_exch_list]
     exposure_model = shared_office_exposure_model(air_exch_list, vent_transition_times)
-    clean_air_delivery, clean_air_delivery_transition_times = find_air_exch.clean_air_per_sec_per_pers(air_exch_list, vent_transition_times, exposure_model)
-    assert clean_air_delivery_transition_times == expected_clean_air_delivery_transition_times
-    assert len(clean_air_delivery) == len(clean_air_delivery_transition_times) -1
-    assert [
-            pytest.approx(e) if isinstance(e, float) else e
-            for e in clean_air_delivery
-        ] == expected_clean_air_delivery
+    clean_air_delivery = find_air_exch.clean_air_per_sec_per_pers(air_exch_list, vent_transition_times, exposure_model)
+    npt.assert_allclose(clean_air_delivery, expected_clean_air_delivery)

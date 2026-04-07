@@ -28,6 +28,18 @@ def carry_forward_air_change_times(
             extended_air_change_per_hour_list.append(air_change_per_hour_list[-1])
     return extended_air_change_per_hour_list
 
+def max_occupancy(exposure_model: models.ExposureModel) -> int:
+    times = exposure_model.population_state_change_times()
+    max_n = 1
+    for time in times:
+        n_occupants = (
+            exposure_model.exposed.people_present(time) 
+            + exposure_model.concentration_model.infected.people_present(time)
+        )
+        if n_occupants > max_n:
+            max_n = n_occupants
+    return max_n
+
 def clean_air_per_sec_per_pers(
         air_change_per_hour_list: typing.Union[list, float], 
         vent_transition_times: list, 
@@ -37,29 +49,8 @@ def clean_air_per_sec_per_pers(
     Convert from air exchange per hour to liter per second per person.
     """
     room=exposure_model.concentration_model.room
-
-    clean_air_delivery_transition_times = sorted(
-        set(exposure_model.population_state_change_times()) |
-        set(vent_transition_times[:-1]) # Remove the last transition time
-    )
-
-    longer_air_change_per_hour_list = np.array(carry_forward_air_change_times(air_change_per_hour_list, vent_transition_times, clean_air_delivery_transition_times))
-
-    clean_air_delivery = []
-    for air_exch, time in zip(longer_air_change_per_hour_list, clean_air_delivery_transition_times[1:]):
-        n_occupants = (
-            exposure_model.exposed.people_present(time) 
-            + exposure_model.concentration_model.infected.people_present(time)
-        )
-
-        if n_occupants == 0:
-            clean_air_delivery.append(np.inf)
-
-        else:
-            Q_ach = 1000 / 3600 * air_exch * room.volume # Volumetric flow rate in L s^{−1}
-            clean_air_delivery.append(Q_ach / n_occupants)
-
-    return clean_air_delivery, clean_air_delivery_transition_times
+    n_occupants = max_occupancy(exposure_model)
+    return [1000 / 3600 * air_exch * room.volume / n_occupants for air_exch in air_change_per_hour_list]
 
 def find_constant_air_exch(
     scenario: ScenarioVar,
