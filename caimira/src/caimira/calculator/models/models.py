@@ -1116,18 +1116,6 @@ class _ConcentrationModelBase:
         t_index = max([t_index - 1, 0])
         return times[t_index]
 
-    def _next_state_change(self, time: float) -> float:
-        """
-        Find the nearest future state change.
-        """
-        for change_time in self.state_change_times():
-            if change_time >= time:
-                return change_time
-        raise ValueError(
-            f"The requested time ({time}) is greater than last available "
-            f"state change time ({change_time})"
-        )
-
     @method_cache
     def _normed_concentration_cached(self, time: float) -> _VectorisedFloat:
         """
@@ -1153,8 +1141,7 @@ class _ConcentrationModelBase:
         if time <= self._first_presence_time():
             return self.min_background_concentration()/self.normalization_factor()
 
-        next_state_change_time = self._next_state_change(time)
-        RR = self.removal_rate(next_state_change_time)
+        RR = self.removal_rate(time)
 
         t_last_state_change = self.last_state_change(time)
         conc_at_last_state_change = self._normed_concentration_cached(t_last_state_change)
@@ -1165,12 +1152,12 @@ class _ConcentrationModelBase:
             curr_conc_state = np.empty(RR.shape, dtype=np.float64)
             curr_conc_state[RR == 0.] = delta_time * self.population.people_present(time) / (
                 self.room.volume[RR == 0.] if isinstance(self.room.volume,np.ndarray) else self.room.volume)
-            curr_conc_state[RR != 0.] = self._normed_concentration_limit(next_state_change_time)[RR != 0.] * (1 - fac[RR != 0.])
+            curr_conc_state[RR != 0.] = self._normed_concentration_limit(time)[RR != 0.] * (1 - fac[RR != 0.])
         else:
             if RR == 0.:
                 curr_conc_state = delta_time * self.population.people_present(time) / self.room.volume
             else:
-                curr_conc_state = self._normed_concentration_limit(next_state_change_time) * (1 - fac)
+                curr_conc_state = self._normed_concentration_limit(time) * (1 - fac)
 
         return curr_conc_state + conc_at_last_state_change * fac
 
@@ -1193,10 +1180,12 @@ class _ConcentrationModelBase:
         """
         if stop <= self._first_presence_time():
             return (stop - start)*self.min_background_concentration()/self.normalization_factor()
-        state_change_times = self.state_change_times()
+        change_times = self.state_change_times()
+        if stop > change_times[-1]:
+            change_times.append(stop)
         req_start, req_stop = start, stop
         total_normed_concentration = 0.
-        for interval_start, interval_stop in zip(state_change_times[:-1], state_change_times[1:]):
+        for interval_start, interval_stop in zip(change_times[:-1], change_times[1:]):
             if req_start > interval_stop or req_stop < interval_start:
                 continue
             # Clip the current interval to the requested range.
@@ -1204,10 +1193,8 @@ class _ConcentrationModelBase:
             stop = min([interval_stop, req_stop])
 
             conc_start = self._normed_concentration_cached(start)
-
-            next_conc_state = self._next_state_change(stop)
-            conc_limit = self._normed_concentration_limit(next_conc_state)
-            RR = self.removal_rate(next_conc_state)
+            conc_limit = self._normed_concentration_limit(stop)
+            RR = self.removal_rate(stop)
             delta_time = stop - start
             total_normed_concentration += (
                 conc_limit * delta_time +
