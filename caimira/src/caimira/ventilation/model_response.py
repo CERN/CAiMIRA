@@ -130,11 +130,11 @@ def model_concentration_results(
 
         concentrations_CO2 = (
             np.add(
-                concentrations_CO2_infected,
-                concentration_CO2_exposed,
+                concentrations_CO2_infected,          # type: ignore
+                concentration_CO2_exposed,            # type: ignore
             )
             - CO2_model_exposed.min_background_concentration()
         )
 
-        all_concentrations.append(concentrations_CO2)
+        all_concentrations.append(concentrations_CO2) # type: ignore
     return exposure_model, times, all_concentrations

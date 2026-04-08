@@ -24,13 +24,13 @@ def get_exposure_model(
         air_exch_values: list[float], 
         vent_transition_times: list[float],
         scenario: ScenarioVar,
-        ) -> mc.ExposureModel:
+        ) -> mc.ExposureModel:                       # type: ignore
     if len(scenario) < 3:
         print("ERROR: scenario must be (room, infected, exposed).")
     room, infected, exposed = scenario
-    return mc.ExposureModel(
+    return mc.ExposureModel(                         # type: ignore
         data_registry=data_registry,
-        concentration_model=mc.ConcentrationModel(
+        concentration_model=mc.ConcentrationModel(   # type: ignore
             data_registry=data_registry,
             room=room,
             ventilation=custom_ventilation(air_exch_values=air_exch_values, transition_times=vent_transition_times),

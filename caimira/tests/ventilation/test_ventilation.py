@@ -16,14 +16,14 @@ data_registry=DataRegistry()
 
 
 def shared_office_exposure_model(air_exch_values, vent_transition_times) -> models.ExposureModel:
-    return mc.ExposureModel(
+    return mc.ExposureModel( # type: ignore
         data_registry=data_registry,
-        concentration_model=mc.ConcentrationModel(
+        concentration_model=mc.ConcentrationModel( # type: ignore
             data_registry=data_registry,
-            room=mc.Room(volume=50, humidity=0.6, inside_temp=mc.PiecewiseConstant(
+            room=mc.Room(volume=50, humidity=0.6, inside_temp=mc.PiecewiseConstant( # type: ignore
                 (0, 24), (20+273.15, ))),
             ventilation=get_models.custom_ventilation(air_exch_values=air_exch_values, transition_times=vent_transition_times),
-            infected=mc.InfectedPopulation(
+            infected=mc.InfectedPopulation( # type: ignore
                             data_registry=data_registry,
                             number=1,
                             presence=models.SpecificInterval(
@@ -38,9 +38,9 @@ def shared_office_exposure_model(air_exch_values, vent_transition_times) -> mode
             evaporation_factor=0.3,
         ),
         short_range=(),
-        exposed=mc.Population(
+        exposed=mc.Population( # type: ignore
                 number=3,
-                presence=mc.SpecificInterval(
+                presence=models.SpecificInterval(
                     present_times=((8.5, 12.5), (13.5, 17.5))),
                 activity=activity_distributions(data_registry)['Seated'],
                 mask=models.Mask.types['No mask'],

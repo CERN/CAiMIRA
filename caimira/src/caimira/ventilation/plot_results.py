@@ -56,7 +56,7 @@ def plot_probabilities(
     for lim_probability_infection in lim_probability_infection_list:
         if lim_probability_infection > 0:
             lim_air_exch, probability = find_air_exch.find_constant_air_exch(scenario, lim_probability_infection, hi=air_exch_list[-1])
-            dose = model_response.calculate_deposited_exposure(air_exch_values=[lim_air_exch], scenario=scenario)
+            # dose = model_response.calculate_deposited_exposure(air_exch_values=[lim_air_exch], scenario=scenario)
 
             ax1.plot(
                 lim_air_exch,
@@ -239,7 +239,7 @@ def plot_model_concentration_results(
         lines += ax.get_lines()
 
     labels = [line.get_label() for line in lines]
-    axviral.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=len(axes)+1)
+    axviral.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=len(axes)+1) # type: ignore
 
     plt.tight_layout()
     plt.show()

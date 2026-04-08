@@ -47,7 +47,7 @@ def clean_air_per_sec_per_pers(
     """
     Convert from air exchange per hour to liter per second per person.
     """
-    volume: float = exposure_model.concentration_model.room.volume
+    volume: float = exposure_model.concentration_model.room.volume # type: ignore
     n_occupants = max_occupancy(exposure_model)
     return [1000 / 3600 * air_exch * volume / n_occupants for air_exch in air_change_per_hour_list]
 
@@ -107,7 +107,7 @@ def find_next_air_exch_by_co2(
     if min_CO2_fraction < 0 or min_CO2_fraction > 1:
         raise ValueError(f"target_fraction must be in range [0, 1], got {min_CO2_fraction}")
     exposure_model, times, concentrations = model_response.model_concentration_results(scenario, air_exch_list, vent_transition_times, viral_values=False)
-    CO2_models: typing.Tuple[models.CO2ConcentrationModel] = get_models.get_CO2_models(exposure_model)
+    CO2_models: tuple[models.CO2ConcentrationModel, models.CO2ConcentrationModel] = get_models.get_CO2_models(exposure_model)
 
     if max_CO2 < CO2_models[0].min_background_concentration():
         raise ValueError(f"max_CO2 must be higher than the background concentration {CO2_models[0].min_background_concentration()}")
@@ -139,8 +139,7 @@ def find_next_air_exch_by_co2(
                 within_limit = False
                 vent_transition_times[-1]=time
                 vent_transition_times.append(time+0.000000001) # Need one more element in this list
-
-                new_air_exch = max(get_new_air_exch_from_target_CO2(CO2_models, target, time), 0.25)
+                new_air_exch = max(get_new_air_exch_from_target_CO2(CO2_models, target, time), 0.25) # type: ignore
                 air_exch_list.append(new_air_exch)
 
                 break
@@ -171,7 +170,7 @@ def get_new_air_exch_from_target_CO2(
         CO2_models: typing.Tuple[models.CO2ConcentrationModel], 
         target: float,
         time: float,
-    ) -> float:
+    ):
     """
     Let the target be the wanted CO2 concentration limit.
     Find the corresponding air exchange per hour.
