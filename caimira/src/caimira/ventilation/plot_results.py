@@ -12,10 +12,10 @@ def plot_probabilities(
     air_exch_list: list[float] = list(range(0, 60, 2))
     ):
 
-    infection_probability = [model_response.calculate_infection_probability(air_exch_values=air_exch, scenario=scenario) for air_exch in air_exch_list]
-    dose = [model_response.calculate_deposited_exposure(air_exch_values=air_exch, scenario=scenario) for air_exch in air_exch_list]
+    infection_probability = [model_response.calculate_infection_probability(air_exch_values=[air_exch], scenario=scenario) for air_exch in air_exch_list]
+    dose = [model_response.calculate_deposited_exposure(air_exch_values=[air_exch], scenario=scenario) for air_exch in air_exch_list]
 
-    print(f"0 ACH   =>   P(I) = {model_response.calculate_infection_probability(air_exch_values=0, scenario=scenario)*100:.2f}%, Dose = {model_response.calculate_deposited_exposure(air_exch_values=0, scenario=scenario):.2f}")
+    print(f"0 ACH   =>   P(I) = {model_response.calculate_infection_probability(air_exch_values=[0], scenario=scenario)*100:.2f}%, Dose = {model_response.calculate_deposited_exposure(air_exch_values=[0], scenario=scenario):.2f}")
 
     fig, ax1 = plt.subplots(1, 1, figsize = (6,4))
     #fig, (ax1, ax2) = plt.subplots(1, 2, figsize = (12,5))
@@ -56,7 +56,7 @@ def plot_probabilities(
     for lim_probability_infection in lim_probability_infection_list:
         if lim_probability_infection > 0:
             lim_air_exch, probability = find_air_exch.find_constant_air_exch(scenario, lim_probability_infection, hi=air_exch_list[-1])
-            dose = model_response.calculate_deposited_exposure(air_exch_values=lim_air_exch, scenario=scenario)
+            dose = model_response.calculate_deposited_exposure(air_exch_values=[lim_air_exch], scenario=scenario)
 
             ax1.plot(
                 lim_air_exch,
@@ -103,7 +103,7 @@ def plot_probabilities(
 
 def plot_model_concentration_results(
         scenario: ScenarioVar,
-        air_exch_list: typing.Union[list, float], 
+        air_exch_list: list[float], 
         vent_transition_times: typing.Optional[list] = None,  
         viral_values: bool = True, 
         CO2_values: bool = True,
@@ -135,7 +135,7 @@ def plot_model_concentration_results(
     axviral.tick_params(axis='y', labelcolor='tab:blue')
     if max(mean_viral)*1.1 > axviral_ymax:
         axviral_ymax = max(mean_viral)*1.1
-    axviral.set_ylim([0,axviral_ymax])
+    axviral.set_ylim((0,axviral_ymax))
 
     clean_air_delivery = find_air_exch.clean_air_per_sec_per_pers(air_exch_list, exposure_model)
     print(f"Air changes per hour: Mean: {np.mean(air_exch_list)}, All values: {[round(air_exch, 2) for air_exch in air_exch_list]}")
@@ -162,12 +162,12 @@ def plot_model_concentration_results(
             new_axco2_ymax = max(concentrations_CO2)*1.1
             if new_axco2_ymax > axco2_ymax:
                 axco2_ymax = new_axco2_ymax
-            axco2.set_ylim([440,axco2_ymax])
+            axco2.set_ylim((440,axco2_ymax))
         else:
             new_axco2_ymax = max([np.quantile(c, 0.95) for c in concentrations_CO2])*1.1
             if new_axco2_ymax > axco2_ymax:
                 axco2_ymax = new_axco2_ymax
-            axco2.set_ylim([440,axco2_ymax])
+            axco2.set_ylim((440,axco2_ymax))
 
             axco2.fill_between(
                 times,
@@ -204,7 +204,7 @@ def plot_model_concentration_results(
         new_axaex_ymax = max(extended_air_exch_list)*1.15
         if new_axaex_ymax > axaex_ymax:
             axaex_ymax = new_axaex_ymax
-        axaex.set_ylim([0,axaex_ymax])
+        axaex.set_ylim((0,axaex_ymax))
         axes.append(axaex)
 
     if plot_clean_air_delivery:
@@ -228,7 +228,7 @@ def plot_model_concentration_results(
         new_axcad_ymax = max(clean_air_delivery_float)*1.2
         if new_axcad_ymax > axcad_ymax:
             axcad_ymax = new_axcad_ymax
-        axcad.set_ylim([0,axcad_ymax])
+        axcad.set_ylim((0,axcad_ymax))
         axes.append(axcad)
 
         if plot_air_exch:

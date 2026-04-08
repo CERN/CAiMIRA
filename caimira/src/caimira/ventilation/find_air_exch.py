@@ -10,10 +10,10 @@ import caimira.ventilation.model_response as model_response
 from caimira.ventilation.scenarios import ScenarioVar
 
 def carry_forward_air_change_times(
-        air_change_per_hour_list: typing.Union[list, float], 
-        vent_transition_times: list, 
-        extended_vent_transition_times: list,
-    ):
+        air_change_per_hour_list: list[float],
+        vent_transition_times: list[float], 
+        extended_vent_transition_times: list[float],
+    ) -> list[float]:
     """
     Re-specify the air exchange value at intervals between the time points in vent_transition_times
     for the finer intervals between the time points in extended_vent_transition_times.
@@ -41,9 +41,9 @@ def max_occupancy(exposure_model: models.ExposureModel) -> int:
     return max_n
 
 def clean_air_per_sec_per_pers(
-        air_change_per_hour_list: typing.Union[list, float], 
+        air_change_per_hour_list: list[float], 
         exposure_model: models.ExposureModel
-    ) -> tuple[list[float], list[float]]:
+    ) -> list[float]:
     """
     Convert from air exchange per hour to liter per second per person.
     """
@@ -54,12 +54,12 @@ def clean_air_per_sec_per_pers(
 def find_constant_air_exch(
     scenario: ScenarioVar,
     lim_probability_infection: float,
-    lo=0,
-    hi=60,
-    tol=1e-2,
+    lo: float = 0,
+    hi: float = 60,
+    tol: float = 1e-2,
 ) -> tuple[float, float]:
     
-    f = lambda air_exch: model_response.calculate_infection_probability(air_exch_values=air_exch, scenario=scenario)
+    f = lambda air_exch: model_response.calculate_infection_probability(air_exch_values=[air_exch], scenario=scenario)
     f0 = lambda air_exch: f(air_exch) - lim_probability_infection
 
     f_lo = f0(lo)
@@ -89,8 +89,8 @@ def find_constant_air_exch(
 
 def find_next_air_exch_by_co2(
     scenario: ScenarioVar,
-    air_exch_list: typing.Union[list, float], 
-    vent_transition_times: typing.Optional[list], 
+    air_exch_list: list[float], 
+    vent_transition_times: typing.Optional[list[float]], 
     max_CO2: float,
     min_CO2_fraction: float = 0.95,
     target_CO2_fraction: float = 0.95,

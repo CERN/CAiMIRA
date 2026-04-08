@@ -10,16 +10,13 @@ from caimira.ventilation.scenarios import ScenarioVar
 data_registry = DataRegistry()
 
 def custom_ventilation(
-        air_exch_values: typing.Union[list, float], 
-        transition_times: list = [0,0.001]
+        air_exch_values: list[float], 
+        transition_times: list[float] = [0,0.001]
         ) -> models.MultipleVentilation:
-    if isinstance(air_exch_values, float) or isinstance(air_exch_values, int):
-        air_exch_values = (air_exch_values,)
+    if len(air_exch_values) == 1:
+        air_exch_values = (air_exch_values[0],)
     else:
-        if len(air_exch_values) == 1:
-            air_exch_values = (air_exch_values[0],)
-        else:
-            air_exch_values = tuple(air_exch_values)
+        air_exch_values = tuple(air_exch_values)
     transition_times = tuple(transition_times)
     return models.CustomVentilation(
                         ventilation_value=models.PiecewiseConstant(
@@ -29,10 +26,10 @@ def custom_ventilation(
                     )
 
 def get_exposure_model(
-        air_exch_values: typing.Union[list, float], 
-        vent_transition_times: list,
+        air_exch_values: list[float], 
+        vent_transition_times: list[float],
         scenario: ScenarioVar,
-        ) -> models.ExposureModel:
+        ) -> mc.ExposureModel:
     if len(scenario) < 3:
         print("ERROR: scenario must be (room, infected, exposed).")
     room, infected, exposed = scenario

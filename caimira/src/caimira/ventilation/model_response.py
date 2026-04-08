@@ -9,39 +9,38 @@ from caimira.ventilation.scenarios import ScenarioVar
 
 SAMPLE_SIZE: int = 250_000
 
-def first_vent_transition_times(scenario: ScenarioVar) -> tuple[float, float]:
+def first_vent_transition_times(scenario: ScenarioVar) -> list[float]:
     _, infected, exposed = scenario
     model_start = min(infected.build_model(1).presence_interval().boundaries()[0][0], exposed.build_model(1).presence_interval().boundaries()[0][0])
     return [model_start, model_start+0.00001] # Short interval to initialize the ventilation, the ventilation rate of the last interval continues after the last time
 
 def calculate_infection_probability(
         scenario: ScenarioVar,
-        air_exch_values: typing.Union[list, float], 
+        air_exch_values: list[float], 
         vent_transition_times: typing.Optional[list] = None,
         ) -> float:
     if not vent_transition_times:
         vent_transition_times = first_vent_transition_times(scenario)
     exposure_model = get_models.get_exposure_model(air_exch_values, vent_transition_times, scenario)
     exposure_model = exposure_model.build_model(SAMPLE_SIZE)
-    pis: models._VectorisedFloat = np.array(exposure_model.infection_probability()/100)
+    pis = np.array(exposure_model.infection_probability()/100)
     pi = np.mean(pis)
     return pi
 
 def calculate_deposited_exposure(
         scenario: ScenarioVar,
-        air_exch_values: typing.Union[list, float], 
+        air_exch_values: list[float], 
         vent_transition_times: typing.Optional[list] = None,
         ) -> float:
     if not vent_transition_times:
         vent_transition_times = first_vent_transition_times(scenario)
-    exposure_model = get_models.get_exposure_model(air_exch_values, vent_transition_times, scenario)
-    exposure_model = exposure_model.build_model(SAMPLE_SIZE)
+    exposure_model = get_models.get_exposure_model(air_exch_values, vent_transition_times, scenario).build_model(SAMPLE_SIZE)
     dose = np.mean(exposure_model.deposited_exposure())
     return dose
 
 def model_concentration_results(
         scenario,
-        air_exch_list: typing.Union[list, float], 
+        air_exch_list: list[float], 
         vent_transition_times: typing.Optional[list] = None, 
         viral_values: bool = True, 
         CO2_values: bool = True,
@@ -50,13 +49,13 @@ def model_concentration_results(
     if not vent_transition_times:
         vent_transition_times = first_vent_transition_times(scenario)
     exposure_model = get_models.get_exposure_model(air_exch_list, vent_transition_times, scenario).build_model(size=SAMPLE_SIZE)
-    times: models._VectorisedFloat = interesting_times(
+    times = interesting_times(
         exposure_model, approx_n_pts=1000)
     
     all_concentrations = []
     if viral_values:
         ############# Peak viral concentration ############
-        concentrations_viral: models._VectorisedFloat = [
+        concentrations_viral = [
             np.array(exposure_model.concentration(float(time)))
             for time in times
         ]
@@ -71,14 +70,14 @@ def model_concentration_results(
             concentrations_viral[peak_concentration_index], 0.95), 0)
 
         ############# Inhaled dose ############
-        deposited_exposure: models._VectorisedFloat = exposure_model.deposited_exposure()
+        deposited_exposure = exposure_model.deposited_exposure()
         mean = round(np.mean(deposited_exposure), 4)
         percentil_05 = round(np.quantile(deposited_exposure, 0.05), 0)
         percentil_95 = round(np.quantile(deposited_exposure, 0.95), 0)
         print('Inhaled dose: ', f'{mean} [{percentil_05} - {percentil_95}]')
 
         ############# Probability of Infection ############
-        pis: models._VectorisedFloat = exposure_model.infection_probability()/100
+        pis = exposure_model.infection_probability()/100
         mean_pi = round(np.mean(pis), 4)
         percentil_05 = round(np.quantile(pis, 0.05), 0)
         percentil_95 = round(np.quantile(pis, 0.95), 0)
@@ -97,14 +96,14 @@ def model_concentration_results(
         model_end = exposure_model.concentration_model.infected.presence_interval().boundaries()[-1][1]
 
         if deterministic_CO2:
-            concentrations_CO2_infected: models._VectorisedFloat = [
+            concentrations_CO2_infected = [
                 np.array(CO2_model_infected.concentration(float(time)))
                 if model_start <= time <= model_end
                 else CO2_model_exposed.min_background_concentration()
                 for time in times
             ]
         else:
-            concentrations_CO2_infected: models._VectorisedFloat = [
+            concentrations_CO2_infected = [
                 np.array(CO2_model_infected.concentration(float(time)))
                 if model_start <= time <= model_end
                 else np.ones(SAMPLE_SIZE)*CO2_model_exposed.min_background_concentration()
@@ -129,7 +128,7 @@ def model_concentration_results(
                         for time in times
                     ]
 
-        concentrations_CO2: models._VectorisedFloat = (
+        concentrations_CO2 = (
             np.add(
                 concentrations_CO2_infected,
                 concentration_CO2_exposed,
@@ -140,5 +139,5 @@ def model_concentration_results(
         all_concentrations.append(concentrations_CO2)
 
     else: 
-        all_concentrations.append([])
+        all_concentrations.append(None)
     return exposure_model, times, all_concentrations
