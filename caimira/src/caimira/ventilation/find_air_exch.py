@@ -47,9 +47,9 @@ def clean_air_per_sec_per_pers(
     """
     Convert from air exchange per hour to liter per second per person.
     """
-    room=exposure_model.concentration_model.room
+    volume: float = exposure_model.concentration_model.room.volume
     n_occupants = max_occupancy(exposure_model)
-    return [1000 / 3600 * air_exch * room.volume / n_occupants for air_exch in air_change_per_hour_list]
+    return [1000 / 3600 * air_exch * volume / n_occupants for air_exch in air_change_per_hour_list]
 
 def find_constant_air_exch(
     scenario: ScenarioVar,
@@ -140,7 +140,7 @@ def find_next_air_exch_by_co2(
                 vent_transition_times[-1]=time
                 vent_transition_times.append(time+0.000000001) # Need one more element in this list
 
-                new_air_exch = np.max([get_new_air_exch_from_target_CO2(CO2_models, target, time), 0.25])
+                new_air_exch = max(get_new_air_exch_from_target_CO2(CO2_models, target, time), 0.25)
                 air_exch_list.append(new_air_exch)
 
                 break
@@ -168,7 +168,7 @@ def find_next_air_exch_by_co2(
     
 
 def get_new_air_exch_from_target_CO2(
-        CO2_models: list[models.CO2ConcentrationModel], 
+        CO2_models: typing.Tuple[models.CO2ConcentrationModel], 
         target: float,
         time: float,
     ) -> float:

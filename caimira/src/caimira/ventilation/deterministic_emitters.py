@@ -4,7 +4,7 @@ import numpy as np
 from caimira.calculator.models import models
 
 @dataclass(frozen=True)
-class DeterministicActivity:
+class DeterministicActivity(models.Activity):
     #: Inhalation rate in m^3/h
     inhalation_rate: float
 

@@ -12,16 +12,11 @@ data_registry = DataRegistry()
 def custom_ventilation(
         air_exch_values: list[float], 
         transition_times: list[float] = [0,0.001]
-        ) -> models.MultipleVentilation:
-    if len(air_exch_values) == 1:
-        air_exch_values = (air_exch_values[0],)
-    else:
-        air_exch_values = tuple(air_exch_values)
-    transition_times = tuple(transition_times)
+        ) -> models.CustomVentilation:
     return models.CustomVentilation(
                         ventilation_value=models.PiecewiseConstant(
-                            transition_times=transition_times,
-                            values=air_exch_values,
+                            transition_times=tuple(transition_times),
+                            values=tuple(air_exch_values),
                             )
                     )
 
@@ -58,7 +53,7 @@ def simple_to_deterministic_population(simple_population: models.SimplePopulatio
 
 def get_deterministic_CO2_models(
         exposure_model: models.ExposureModel
-    ) -> typing.Tuple[de.DeterministicCO2ConcentrationModel]:
+    ) -> tuple[models.CO2ConcentrationModel, models.CO2ConcentrationModel]:
     CO2_model_infected = de.DeterministicCO2ConcentrationModel(
         data_registry=data_registry,
         room=exposure_model.concentration_model.room,
@@ -77,7 +72,7 @@ def get_deterministic_CO2_models(
 
 def get_CO2_models(
         exposure_model: models.ExposureModel
-    ) -> typing.Tuple[models.CO2ConcentrationModel]:
+    ) -> tuple[models.CO2ConcentrationModel, models.CO2ConcentrationModel]:
     # For the CO2 concentration profile we assume that the breaks for the infected and the exposed occur at the same time(s).
     CO2_model_infected: models.CO2ConcentrationModel = models.CO2ConcentrationModel(
         data_registry=data_registry,

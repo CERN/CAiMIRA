@@ -11,7 +11,7 @@ SAMPLE_SIZE: int = 250_000
 
 def first_vent_transition_times(scenario: ScenarioVar) -> list[float]:
     _, infected, exposed = scenario
-    model_start = min(infected.build_model(1).presence_interval().boundaries()[0][0], exposed.build_model(1).presence_interval().boundaries()[0][0])
+    model_start = min(infected.build_model(1).presence_interval().boundaries()[0][0], exposed.build_model(1).presence_interval().boundaries()[0][0]) # type: ignore
     return [model_start, model_start+0.00001] # Short interval to initialize the ventilation, the ventilation rate of the last interval continues after the last time
 
 def calculate_infection_probability(
@@ -60,7 +60,7 @@ def model_concentration_results(
             for time in times
         ]
 
-        peak_concentration_index: int = np.argmax(
+        peak_concentration_index = np.argmax(
             [c.mean() for c in concentrations_viral])
 
         mean = round(np.mean(concentrations_viral[peak_concentration_index]), 0)
@@ -137,7 +137,4 @@ def model_concentration_results(
         )
 
         all_concentrations.append(concentrations_CO2)
-
-    else: 
-        all_concentrations.append(None)
     return exposure_model, times, all_concentrations

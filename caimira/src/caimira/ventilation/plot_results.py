@@ -116,7 +116,7 @@ def plot_model_concentration_results(
         
     if not vent_transition_times:
         vent_transition_times = model_response.first_vent_transition_times(scenario)
-    axviral_ymax = 0
+    axviral_ymax = 0.
     exposure_model, times, concentrations = model_response.model_concentration_results(scenario, air_exch_list, vent_transition_times, viral_values, CO2_values, deterministic_CO2)
     concentrations_viral, concentrations_CO2 = concentrations
     ############ Combined plot: Viral concentration + CO2 ############
@@ -157,7 +157,7 @@ def plot_model_concentration_results(
         )
         axco2.set_ylabel('CO₂ concentration (ppm)', color='tab:red')
         axco2.tick_params(axis='y', labelcolor='tab:red')
-        axco2_ymax = 0
+        axco2_ymax = 0.
         if deterministic_CO2:
             new_axco2_ymax = max(concentrations_CO2)*1.1
             if new_axco2_ymax > axco2_ymax:
@@ -199,7 +199,7 @@ def plot_model_concentration_results(
         )
         axaex.set_ylabel('air exchange per hour', color='tab:green')
         axaex.tick_params(axis='y', labelcolor='tab:green')
-        axaex_ymax = 0
+        axaex_ymax = 0.
 
         new_axaex_ymax = max(extended_air_exch_list)*1.15
         if new_axaex_ymax > axaex_ymax:
@@ -219,11 +219,11 @@ def plot_model_concentration_results(
             times,
             clean_air_delivery_float,
             color='tab:orange',
-            label='air exchange per hour'
+            label='clean air delivery'
         )
         axcad.set_ylabel('clean air delivery (L/s/person)', color='tab:orange')
         axcad.tick_params(axis='y', labelcolor='tab:orange')
-        axcad_ymax = 0
+        axcad_ymax = 0.
 
         new_axcad_ymax = max(clean_air_delivery_float)*1.2
         if new_axcad_ymax > axcad_ymax:

@@ -28,7 +28,7 @@ def shared_office():
 
     exposed = mc.Population(
                 number=3,
-                presence=mc.SpecificInterval(
+                presence=models.SpecificInterval(
                     present_times=((8.5, 12.5), (13.5, 17.5))),
                 activity=activity_distributions(data_registry)['Seated'],
                 mask=models.Mask.types['No mask'],
@@ -54,7 +54,7 @@ def classroom():
 
     exposed = mc.Population(
                 number=19,
-                presence=mc.SpecificInterval(
+                presence=models.SpecificInterval(
                     present_times=((8.5, 10), (10.25, 12.5), (13.5, 15.), (15.25, 17.5),)),
                 activity=activity_distributions(data_registry)['Seated'],
                 mask=models.Mask.types['No mask'],
@@ -82,7 +82,7 @@ def patient_ward():
 
     exposed = mc.Population(
                 number=1,
-                presence=mc.SpecificInterval(
+                presence=models.SpecificInterval(
                     # 4 * 30min over a full shift
                     present_times=((8, 8.5), (11, 11.5), (14, 14.5), (17, 17.5), ),
                 ),
@@ -109,7 +109,7 @@ def ICU():
     )
     exposed=mc.Population(
         number=6, # 1 nurse per patient 
-        presence=mc.SpecificInterval(
+        presence=models.SpecificInterval(
             present_times=((8, 12), (13, 17), ), # 8h shift with 1 h break 
         ),
         activity=activity_distributions(data_registry)['Light activity'],
