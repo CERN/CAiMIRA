@@ -60,7 +60,7 @@ def find_constant_air_exch(
 ) -> tuple[float, float]:
     
     f = lambda air_exch: model_response.calculate_infection_probability(air_exch_values=[air_exch], scenario=scenario)
-    f0 = lambda air_exch: f(air_exch) - lim_probability_infection
+    f0 = lambda air_exch: f(air_exch) - lim_probability_infection + tol*1.1 # add a small number larger than tol to ensure p < lim_probability_infection
 
     f_lo = f0(lo)
     f_hi = f0(hi)
@@ -79,10 +79,7 @@ def find_constant_air_exch(
     # OBS: Only guaranteed for this model build 
     p = f(root_air_exch)
 
-    if p > lim_probability_infection:
-        # Slightly increase air exchange 
-        root_air_exch = np.nextafter(root_air_exch, hi)
-        p = f(root_air_exch)
+    assert p < lim_probability_infection
 
     return root_air_exch, p
 
