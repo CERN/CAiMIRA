@@ -36,8 +36,9 @@ def acl_1(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, str]:
                 mask=models.Mask.types[mask_exposed],
                 host_immunity=0.,
             )
+    pi_max = 0.05
     scenario_name = "ACL-1: " + "Infected " + mask_infected + ", Exposed " + mask_exposed
-    return (room, infected, exposed), scenario_name
+    return (room, infected, exposed), pi_max, scenario_name
 
 def acl_2(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, str]:
     """General public spaces · offices · classrooms · retail """
@@ -65,8 +66,9 @@ def acl_2(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, str]:
                 mask=models.Mask.types[mask_infected],
                 host_immunity=0.,
             )
+    pi_max = 0.02
     scenario_name = "ACL-2: " + "Infected " + mask_infected + ", Exposed " + mask_exposed
-    return (room, infected, exposed), scenario_name
+    return (room, infected, exposed), pi_max, scenario_name
 
 def acl_3(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, str]:
     """Healthcare-adjacent · vulnerable populations · congregate """
@@ -94,8 +96,9 @@ def acl_3(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, str]:
                 mask=models.Mask.types[mask_infected],
                 host_immunity=0.,
             )
+    pi_max = 0.01
     scenario_name = "ACL-3: " + "Infected " + mask_infected + ", Exposed " + mask_exposed
-    return (room, infected, exposed), scenario_name
+    return (room, infected, exposed), pi_max, scenario_name
 
 def acl_4(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, str]:
     """Confirmed source · isolation rooms · AGP suites """
@@ -122,5 +125,6 @@ def acl_4(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, str]:
                 mask=models.Mask.types[mask_infected],
                 host_immunity=0.,
             )
+    pi_max = 0.001
     scenario_name = "ACL-4: " + "Infected " + mask_infected + ", Exposed " + mask_exposed
-    return (room, infected, exposed), scenario_name
+    return (room, infected, exposed), pi_max, scenario_name
