@@ -8,7 +8,7 @@ import caimira.ventilation.find_air_exch as find_air_exch
 from caimira.ventilation.scenarios import ScenarioVar
 
 figsize_prob = (7,6)
-figsize_conc = (8,6)
+figsize_conc = (9,6)
 titlesize = 16
 fontsize = 14
 ticksize = 12
@@ -18,7 +18,8 @@ def plot_probabilities(
     lim_probability_infection_list: list[float],  
     air_exch_list: list[float] = list(range(0, 60, 2)),
     title: str = "",
-    plot_dose: bool = False
+    plot_dose: bool = False,
+    save_to: typing.Optional[str] = None,
     ):
 
     infection_probability = [model_response.calculate_infection_probability(air_exch_values=[air_exch], scenario=scenario) for air_exch in air_exch_list]
@@ -75,46 +76,47 @@ def plot_probabilities(
         ax2.spines['top'].set_visible(False)
 
     for lim_probability_infection in lim_probability_infection_list:
-        if lim_probability_infection > 0:
-            lim_air_exch, probability = find_air_exch.find_constant_air_exch(scenario, lim_probability_infection, hi=air_exch_list[-1])
+        ax1.axhline(y=lim_probability_infection, color='k', linestyle='--', label=f'P(I) = {lim_probability_infection:.1%}')
+        # if lim_probability_infection > 0:
+            # lim_air_exch, probability = find_air_exch.find_constant_air_exch(scenario, lim_probability_infection, hi=air_exch_list[-1])
 
-            ax1.plot(
-                lim_air_exch,
-                probability,
-                "o",
-                color="k",
-                markersize=8,
-            )
+            # ax1.plot(
+            #     lim_air_exch,
+            #     probability,
+            #     "o",
+            #     color="k",
+            #     markersize=8,
+            # )
 
-            ax1.annotate(
-                #f"P(I) limit: {lim*100}% \n({lim_air_exch:.1f}, {probability:.2%})",
-                f"({lim_air_exch:.1f}, {probability:.1%})",
-                xy=(lim_air_exch, probability),
-                xytext=(5, 5),           
-                textcoords="offset points",
-                fontsize=fontsize,
-                color="k"
-            )
+            # ax1.annotate(
+            #     #f"P(I) limit: {lim*100}% \n({lim_air_exch:.1f}, {probability:.2%})",
+            #     f"({lim_air_exch:.1f}, {probability:.1%})",
+            #     xy=(lim_air_exch, probability),
+            #     xytext=(5, 5),           
+            #     textcoords="offset points",
+            #     fontsize=fontsize,
+            #     color="k"
+            # )
 
-            if plot_dose:
-                dose = model_response.calculate_deposited_exposure(air_exch_values=[lim_air_exch], scenario=scenario)
+            # if plot_dose:
+            #     dose = model_response.calculate_deposited_exposure(air_exch_values=[lim_air_exch], scenario=scenario)
 
-                ax2.plot(
-                    lim_air_exch,
-                    dose,
-                    "o",
-                    color="k",
-                    markersize=8,
-                )
+            #     ax2.plot(
+            #         lim_air_exch,
+            #         dose,
+            #         "o",
+            #         color="k",
+            #         markersize=8,
+            #     )
 
-                ax2.annotate(
-                    f"({lim_air_exch:.1f}, {dose:.1f})",
-                    xy=(lim_air_exch, dose),
-                    xytext=(5, 5),           
-                    textcoords="offset points",
-                    fontsize=fontsize,
-                    color="k"
-                )
+            #     ax2.annotate(
+            #         f"({lim_air_exch:.1f}, {dose:.1f})",
+            #         xy=(lim_air_exch, dose),
+            #         xytext=(5, 5),           
+            #         textcoords="offset points",
+            #         fontsize=fontsize,
+            #         color="k"
+            #     )
 
     lines = ax1.get_lines() 
     if plot_dose:
@@ -123,6 +125,8 @@ def plot_probabilities(
     ax1.legend(lines, labels, fontsize=fontsize) # type: ignore
     plt.title(title, fontsize=titlesize)
     plt.tight_layout()
+    if save_to:
+        plt.savefig(save_to)
     plt.show()
 
 def plot_model_concentration_results(
@@ -135,6 +139,7 @@ def plot_model_concentration_results(
         deterministic_CO2: bool = True,
         plot_air_exch: bool = True,
         plot_clean_air_delivery: bool = True,
+        save_to: typing.Optional[str] = None,
     ):
     if not isinstance(air_exch_list, list):
         air_exch_list = [air_exch_list]
@@ -261,7 +266,7 @@ def plot_model_concentration_results(
 
     axviral.text(
     0.95, 0.05,                     # (x, y) in axes coordinates
-    f"P(I)={pi:.1%}",
+    f"P(I)={pi:.2%}",
     transform=axviral.transAxes,       # use axes fraction (0–1)
     fontsize=fontsize,
     ha='right',                    # align right
@@ -282,4 +287,6 @@ def plot_model_concentration_results(
     axviral.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=2, fontsize=fontsize) # type: ignore
     plt.title(title, fontsize=titlesize)
     plt.tight_layout()
+    if save_to:
+        plt.savefig(save_to)
     plt.show()
