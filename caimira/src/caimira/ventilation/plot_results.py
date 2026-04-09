@@ -41,12 +41,12 @@ def plot_probabilities(
     ax1.grid(True, linestyle="--", alpha=0.6)
 
     if plot_dose:
-        dose = [model_response.calculate_deposited_exposure(air_exch_values=[air_exch], scenario=scenario) for air_exch in air_exch_list]
+        dose_list = [model_response.calculate_deposited_exposure(air_exch_values=[air_exch], scenario=scenario) for air_exch in air_exch_list]
         ax2 = ax1.twinx()
 
         ax2.plot(
             air_exch_list,
-            dose,
+            dose_list,
             linewidth=2,
             color="tab:red",
             label="Dose",
