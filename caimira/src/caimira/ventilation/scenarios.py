@@ -12,10 +12,10 @@ ScenarioVar = tuple[models.Room, models.InfectedPopulation, models.Population] #
 
 def acl_1(mask_infected: str, mask_exposed: str) -> ScenarioVar:
     """Low-density community · residential · private offices"""
-    room = mc.Room(volume=100, humidity=0.5, inside_temp=mc.PiecewiseConstant(
+    room = mc.Room(volume=100, humidity=0.5, inside_temp=mc.PiecewiseConstant(               # type: ignore
         (0, 24), (20+273.15, )))
 
-    infected = mc.InfectedPopulation(
+    infected = mc.InfectedPopulation(                                                        # type: ignore
                             data_registry=data_registry,
                             number=1,
                             presence=models.SpecificInterval(
@@ -28,7 +28,7 @@ def acl_1(mask_infected: str, mask_exposed: str) -> ScenarioVar:
                             host_immunity=0.,
                         )
 
-    exposed = mc.Population(
+    exposed = mc.Population(                                                                 # type: ignore
                 number=20,
                 presence=models.SpecificInterval(
                                 present_times=((10, 17), )),
@@ -40,10 +40,10 @@ def acl_1(mask_infected: str, mask_exposed: str) -> ScenarioVar:
 
 def acl_2(mask_infected: str, mask_exposed: str) -> ScenarioVar:
     """General public spaces · offices · classrooms · retail """
-    room = mc.Room(volume=150, humidity=0.5, inside_temp=mc.PiecewiseConstant(
+    room = mc.Room(volume=150, humidity=0.5, inside_temp=mc.PiecewiseConstant(               # type: ignore
         (0, 24), (20+273.15, )))
 
-    infected = mc.InfectedPopulation(
+    infected = mc.InfectedPopulation(                                                        # type: ignore
                             data_registry=data_registry,
                             number=1,
                             presence=models.SpecificInterval(
@@ -56,7 +56,7 @@ def acl_2(mask_infected: str, mask_exposed: str) -> ScenarioVar:
                             host_immunity=0.,
                         )
 
-    exposed = mc.Population(
+    exposed = mc.Population(                                                                 # type: ignore
                 number=40,
                 presence=models.SpecificInterval(
                                 present_times=((10, 17), )),
@@ -68,10 +68,10 @@ def acl_2(mask_infected: str, mask_exposed: str) -> ScenarioVar:
 
 def acl_3(mask_infected: str, mask_exposed: str) -> ScenarioVar:
     """Healthcare-adjacent · vulnerable populations · congregate """
-    room = mc.Room(volume=150, humidity=0.3, inside_temp=mc.PiecewiseConstant(
+    room = mc.Room(volume=150, humidity=0.3, inside_temp=mc.PiecewiseConstant(              # type: ignore
         (0, 24), (20+273.15, )))
 
-    infected = mc.InfectedPopulation(
+    infected = mc.InfectedPopulation(                                                       # type: ignore
                             data_registry=data_registry,
                             number=5,
                             presence=models.SpecificInterval(
@@ -84,7 +84,7 @@ def acl_3(mask_infected: str, mask_exposed: str) -> ScenarioVar:
                             host_immunity=0.,
                         )
 
-    exposed = mc.Population(
+    exposed = mc.Population(                                                               # type: ignore
                 number=50,
                 presence=models.SpecificInterval(
                     present_times=((10, 15),)),
@@ -96,10 +96,10 @@ def acl_3(mask_infected: str, mask_exposed: str) -> ScenarioVar:
 
 def acl_4(mask_infected: str, mask_exposed: str) -> ScenarioVar:
     """Confirmed source · isolation rooms · AGP suites """
-    room = mc.Room(volume=40, humidity=0.3, inside_temp=mc.PiecewiseConstant(
+    room = mc.Room(volume=40, humidity=0.3, inside_temp=mc.PiecewiseConstant(              # type: ignore
         (0, 24), (20+273.15, )))
 
-    infected = mc.InfectedPopulation(
+    infected = mc.InfectedPopulation(                                                      # type: ignore
                             data_registry=data_registry,
                             number=1,
                             presence=models.SpecificInterval(
@@ -111,7 +111,7 @@ def acl_4(mask_infected: str, mask_exposed: str) -> ScenarioVar:
                             host_immunity=0.,
                         )
 
-    exposed = mc.Population(
+    exposed = mc.Population(                                                             # type: ignore
                 number=2,
                 presence=models.SpecificInterval(
                     present_times=((10, 12),)),
