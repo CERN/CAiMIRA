@@ -15,7 +15,7 @@ def plot_probabilities(
     infection_probability = [model_response.calculate_infection_probability(air_exch_values=[air_exch], scenario=scenario) for air_exch in air_exch_list]
     dose = [model_response.calculate_deposited_exposure(air_exch_values=[air_exch], scenario=scenario) for air_exch in air_exch_list]
 
-    print(f"0 ACH   =>   P(I) = {model_response.calculate_infection_probability(air_exch_values=[0], scenario=scenario)*100:.2f}%, Dose = {model_response.calculate_deposited_exposure(air_exch_values=[0], scenario=scenario):.2f}")
+    print(f"60 ACH   =>   P(I) = {model_response.calculate_infection_probability(air_exch_values=[60], scenario=scenario)*100:.2f}%, Dose = {model_response.calculate_deposited_exposure(air_exch_values=[60], scenario=scenario):.2f}")
 
     fig, ax1 = plt.subplots(1, 1, figsize = (6,4))
     #fig, (ax1, ax2) = plt.subplots(1, 2, figsize = (12,5))
