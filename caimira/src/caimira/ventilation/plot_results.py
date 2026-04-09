@@ -2,23 +2,30 @@ import typing
 import numpy as np
 import matplotlib.pyplot as plt
 
+import caimira.ventilation.get_models as get_models
 import caimira.ventilation.model_response as model_response
 import caimira.ventilation.find_air_exch as find_air_exch
 from caimira.ventilation.scenarios import ScenarioVar
 
+figsize_prob = (7,6)
+figsize_conc = (8,6)
+titlesize = 16
+fontsize = 14
+ticksize = 12
+
 def plot_probabilities(
     scenario: ScenarioVar,
     lim_probability_infection_list: list[float],  
-    air_exch_list: list[float] = list(range(0, 60, 2))
+    air_exch_list: list[float] = list(range(0, 60, 2)),
+    title: str = "",
+    plot_dose: bool = False
     ):
 
     infection_probability = [model_response.calculate_infection_probability(air_exch_values=[air_exch], scenario=scenario) for air_exch in air_exch_list]
-    dose = [model_response.calculate_deposited_exposure(air_exch_values=[air_exch], scenario=scenario) for air_exch in air_exch_list]
 
     print(f"60 ACH   =>   P(I) = {model_response.calculate_infection_probability(air_exch_values=[60], scenario=scenario)*100:.2f}%, Dose = {model_response.calculate_deposited_exposure(air_exch_values=[60], scenario=scenario):.2f}")
 
-    fig, ax1 = plt.subplots(1, 1, figsize = (6,4))
-    #fig, (ax1, ax2) = plt.subplots(1, 2, figsize = (12,5))
+    fig, ax1 = plt.subplots(1, 1, figsize=figsize_prob)
 
     ax1.plot(
         air_exch_list,
@@ -27,36 +34,49 @@ def plot_probabilities(
         color="tab:blue",
         label="Infection probability P(I)"
     )
-    ax1.set_ylabel('Infection probability P(I)', color='tab:blue')
-    ax1.tick_params(axis='y', labelcolor='tab:blue')
+    ax1.set_ylabel('Infection probability P(I)', color='tab:blue', fontsize=fontsize)
+    ax1.tick_params(axis='y', labelcolor='tab:blue', labelsize=ticksize)
+    ax1.set_xlabel("air exchange per hour", fontsize=fontsize)
+    ax1.tick_params(axis='x', labelsize=ticksize)
+    ax1.grid(True, linestyle="--", alpha=0.6)
 
-    # ax2.plot(
-    #     air_exch_list,
-    #     dose,
-    #     linewidth=2,
-    #     color="tab:red",
-    #     label="Dose"
-    # )
-    # ax2.set_ylabel('Viral dose', color='tab:red')
-    # ax2.tick_params(axis='y', labelcolor='tab:red')
+    if plot_dose:
+        dose = [model_response.calculate_deposited_exposure(air_exch_values=[air_exch], scenario=scenario) for air_exch in air_exch_list]
+        ax2 = ax1.twinx()
 
-    ax3 = ax1.twinx()
+        ax2.plot(
+            air_exch_list,
+            dose,
+            linewidth=2,
+            color="tab:red",
+            label="Dose",
+            linestyle="--"
+        )
+        ax2.set_ylabel('Viral dose', color='tab:red', fontsize=fontsize)
+        ax2.tick_params(axis='y', labelcolor='tab:red', labelsize=ticksize)
 
-    ax3.plot(
-        air_exch_list,
-        dose,
-        linewidth=2,
-        color="tab:red",
-        label="Dose",
-        linestyle="--"
-    )
-    ax3.set_ylabel('Viral dose', color='tab:red')
-    ax3.tick_params(axis='y', labelcolor='tab:red')
+    else:
+        exposure_model = get_models.get_exposure_model(air_exch_list[:1], model_response.first_vent_transition_times(scenario), scenario).build_model(1)
+        clean_air_per_sec_per_pers = find_air_exch.clean_air_per_sec_per_pers(air_exch_list, exposure_model)
+
+        ax2 = ax1.twiny()
+        ax2.plot(
+                clean_air_per_sec_per_pers,
+                infection_probability,
+                linewidth=2,
+                color="tab:blue",
+                label="Infection probability P(I)"
+            )
+        ax2.set_xlabel("clean air delivery (L/s/person)", fontsize=fontsize)
+        ax2.tick_params(axis='x', labelsize=ticksize)
+        ax2.xaxis.set_ticks_position('bottom')
+        ax2.xaxis.set_label_position('bottom')
+        ax2.spines['bottom'].set_position(('outward', 40))
+        ax2.spines['top'].set_visible(False)
 
     for lim_probability_infection in lim_probability_infection_list:
         if lim_probability_infection > 0:
             lim_air_exch, probability = find_air_exch.find_constant_air_exch(scenario, lim_probability_infection, hi=air_exch_list[-1])
-            # dose = model_response.calculate_deposited_exposure(air_exch_values=[lim_air_exch], scenario=scenario)
 
             ax1.plot(
                 lim_air_exch,
@@ -72,32 +92,36 @@ def plot_probabilities(
                 xy=(lim_air_exch, probability),
                 xytext=(5, 5),           
                 textcoords="offset points",
-                fontsize=10,
+                fontsize=fontsize,
                 color="k"
             )
 
-            # ax2.plot(
-            #     lim_air_exch,
-            #     dose,
-            #     "o",
-            #     color="k",
-            #     markersize=8,
-            # )
+            if plot_dose:
+                dose = model_response.calculate_deposited_exposure(air_exch_values=[lim_air_exch], scenario=scenario)
 
-            # ax2.annotate(
-            #     f"({lim_air_exch:.1f}, {dose:.1f})",
-            #     xy=(lim_air_exch, dose),
-            #     xytext=(5, 5),           
-            #     textcoords="offset points",
-            #     fontsize=10,
-            #     color="k"
-            # )
+                ax2.plot(
+                    lim_air_exch,
+                    dose,
+                    "o",
+                    color="k",
+                    markersize=8,
+                )
 
-    ax1.set_xlabel("Air Changes per Hour", fontsize=12)
-    #ax2.set_xlabel("Air Changes per Hour", fontsize=12)
-    ax1.grid(True, linestyle="--", alpha=0.6)
-    #ax2.grid(True, linestyle="--", alpha=0.6)
-    plt.legend()
+                ax2.annotate(
+                    f"({lim_air_exch:.1f}, {dose:.1f})",
+                    xy=(lim_air_exch, dose),
+                    xytext=(5, 5),           
+                    textcoords="offset points",
+                    fontsize=fontsize,
+                    color="k"
+                )
+
+    lines = ax1.get_lines() 
+    if plot_dose:
+        lines += ax2.get_lines()
+    labels = [line.get_label() for line in lines]
+    ax1.legend(lines, labels, fontsize=fontsize) # type: ignore
+    plt.title(title, fontsize=titlesize)
     plt.tight_layout()
     plt.show()
 
@@ -105,6 +129,7 @@ def plot_model_concentration_results(
         scenario: ScenarioVar,
         air_exch_list: list[float], 
         vent_transition_times: typing.Optional[list] = None,  
+        title: str = "",
         viral_values: bool = True, 
         CO2_values: bool = True,
         deterministic_CO2: bool = True,
@@ -117,10 +142,10 @@ def plot_model_concentration_results(
     if not vent_transition_times:
         vent_transition_times = model_response.first_vent_transition_times(scenario)
     axviral_ymax = 0.
-    exposure_model, times, concentrations = model_response.model_concentration_results(scenario, air_exch_list, vent_transition_times, viral_values, CO2_values, deterministic_CO2)
+    exposure_model, times, concentrations, pi = model_response.model_concentration_results(scenario, air_exch_list, vent_transition_times, viral_values, CO2_values, deterministic_CO2)
     concentrations_viral, concentrations_CO2 = concentrations
     ############ Combined plot: Viral concentration + CO2 ############
-    _, axviral = plt.subplots(figsize = (9,5))
+    _, axviral = plt.subplots(figsize=figsize_conc)
 
     # ===== Viral concentration (LEFT AXIS) =====
     mean_viral = [np.mean(c) for c in concentrations_viral]
@@ -130,9 +155,9 @@ def plot_model_concentration_results(
         color='tab:blue',
         label='Viral concentration'
     )
-    axviral.set_xlabel('Time of day')
-    axviral.set_ylabel('Viral concentration (IRP / m³)', color='tab:blue')
-    axviral.tick_params(axis='y', labelcolor='tab:blue')
+    axviral.set_xlabel('Time of day', fontsize=fontsize)
+    axviral.set_ylabel('Viral concentration (IRP / m³)', color='tab:blue', fontsize=fontsize)
+    axviral.tick_params(axis='y', labelcolor='tab:blue', labelsize=ticksize)
     if max(mean_viral)*1.1 > axviral_ymax:
         axviral_ymax = max(mean_viral)*1.1
     axviral.set_ylim((0,axviral_ymax))
@@ -155,8 +180,8 @@ def plot_model_concentration_results(
             color='tab:red',
             label='CO₂ concentration'
         )
-        axco2.set_ylabel('CO₂ concentration (ppm)', color='tab:red')
-        axco2.tick_params(axis='y', labelcolor='tab:red')
+        axco2.set_ylabel('CO₂ concentration (ppm)', color='tab:red', fontsize=fontsize)
+        axco2.tick_params(axis='y', labelcolor='tab:red', labelsize=ticksize)
         axco2_ymax = 0.
         if deterministic_CO2:
             new_axco2_ymax = max(concentrations_CO2)*1.1
@@ -197,8 +222,8 @@ def plot_model_concentration_results(
             color='tab:green',
             label='air exchange per hour'
         )
-        axaex.set_ylabel('air exchange per hour', color='tab:green')
-        axaex.tick_params(axis='y', labelcolor='tab:green')
+        axaex.set_ylabel('air exchange per hour', color='tab:green', fontsize=fontsize)
+        axaex.tick_params(axis='y', labelcolor='tab:green', labelsize=ticksize)
         axaex_ymax = 0.
 
         new_axaex_ymax = max(extended_air_exch_list)*1.15
@@ -221,8 +246,8 @@ def plot_model_concentration_results(
             color='tab:orange',
             label='clean air delivery'
         )
-        axcad.set_ylabel('clean air delivery (L/s/person)', color='tab:orange')
-        axcad.tick_params(axis='y', labelcolor='tab:orange')
+        axcad.set_ylabel('clean air delivery (L/s/person)', color='tab:orange', fontsize=fontsize)
+        axcad.tick_params(axis='y', labelcolor='tab:orange', labelsize=ticksize)
         axcad_ymax = 0.
 
         new_axcad_ymax = max(clean_air_delivery_float)*1.2
@@ -234,12 +259,27 @@ def plot_model_concentration_results(
         if plot_air_exch:
             axcad.spines["right"].set_position(("outward", 60))
 
+    axviral.text(
+    0.95, 0.05,                     # (x, y) in axes coordinates
+    f"P(I)={pi:.1%}",
+    transform=axviral.transAxes,       # use axes fraction (0–1)
+    fontsize=fontsize,
+    ha='right',                    # align right
+    va='bottom',                   # align bottom
+    bbox=dict(
+        boxstyle="round",
+        facecolor="white",
+        alpha=0.8
+    )
+)
+
+    axviral.tick_params(axis='x', labelsize=ticksize)
     lines = axviral.get_lines()
     for ax in axes:
         lines += ax.get_lines()
 
     labels = [line.get_label() for line in lines]
-    axviral.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=len(axes)+1) # type: ignore
-
+    axviral.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=2, fontsize=fontsize) # type: ignore
+    plt.title(title, fontsize=titlesize)
     plt.tight_layout()
     plt.show()

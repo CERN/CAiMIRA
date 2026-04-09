@@ -84,6 +84,8 @@ def model_concentration_results(
         print('Probability of infection: ', f'{mean_pi} [{percentil_05} - {percentil_95}]')
 
         all_concentrations.append(concentrations_viral)
+    else:
+        mean_pi = None
 
     ############# Peak CO2 concentration #############
     if CO2_values:
@@ -137,4 +139,4 @@ def model_concentration_results(
         )
 
         all_concentrations.append(concentrations_CO2) # type: ignore
-    return exposure_model, times, all_concentrations
+    return exposure_model, times, all_concentrations, mean_pi

@@ -103,7 +103,7 @@ def find_next_air_exch_by_co2(
     
     if min_CO2_fraction < 0 or min_CO2_fraction > 1:
         raise ValueError(f"target_fraction must be in range [0, 1], got {min_CO2_fraction}")
-    exposure_model, times, concentrations = model_response.model_concentration_results(scenario, air_exch_list, vent_transition_times, viral_values=False)
+    exposure_model, times, concentrations, _ = model_response.model_concentration_results(scenario, air_exch_list, vent_transition_times, viral_values=False)
     CO2_models: tuple[models.CO2ConcentrationModel, models.CO2ConcentrationModel] = get_models.get_CO2_models(exposure_model)
 
     if max_CO2 < CO2_models[0].min_background_concentration():
