@@ -10,7 +10,7 @@ ScenarioVar = tuple[models.Room, models.InfectedPopulation, models.Population] #
 
 ############ Airborne Control Levels (ACL) inspired by Luca Fontana #############
 
-def acl_1(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, str]:
+def acl_1(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, float, str]:
     """Low-density community · residential · private offices"""
     room = mc.Room(volume=100, humidity=0.5, inside_temp=mc.PiecewiseConstant(               # type: ignore
         (0, 24), (20+273.15, )))
@@ -40,7 +40,7 @@ def acl_1(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, str]:
     scenario_name = "ACL-1: " + "Infected " + mask_infected + ", Exposed " + mask_exposed
     return (room, infected, exposed), pi_max, scenario_name
 
-def acl_2(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, str]:
+def acl_2(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, float, str]:
     """General public spaces · offices · classrooms · retail """
     room = mc.Room(volume=150, humidity=0.5, inside_temp=mc.PiecewiseConstant(               # type: ignore
         (0, 24), (20+273.15, )))
@@ -70,7 +70,7 @@ def acl_2(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, str]:
     scenario_name = "ACL-2: " + "Infected " + mask_infected + ", Exposed " + mask_exposed
     return (room, infected, exposed), pi_max, scenario_name
 
-def acl_3(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, str]:
+def acl_3(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, float, str]:
     """Healthcare-adjacent · vulnerable populations · congregate """
     room = mc.Room(volume=150, humidity=0.3, inside_temp=mc.PiecewiseConstant(              # type: ignore
         (0, 24), (20+273.15, )))
@@ -100,7 +100,7 @@ def acl_3(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, str]:
     scenario_name = "ACL-3: " + "Infected " + mask_infected + ", Exposed " + mask_exposed
     return (room, infected, exposed), pi_max, scenario_name
 
-def acl_4(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, str]:
+def acl_4(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, float, str]:
     """Confirmed source · isolation rooms · AGP suites """
     room = mc.Room(volume=40, humidity=0.3, inside_temp=mc.PiecewiseConstant(              # type: ignore
         (0, 24), (20+273.15, )))
