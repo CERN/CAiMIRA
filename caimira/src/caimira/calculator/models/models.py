@@ -1917,7 +1917,7 @@ class ExposureModel:
                 # By means of the total probability rule
                 prob_at_least_one_infected = 1 - (1 - prob_ind)**n
                 sum_probability += (prob_at_least_one_infected *
-                    self.geographical_data.probability_meet_infected_person(self.concentration_model.infected.virus, num_infected, total_people))
+                    self.geographical_data.probability_meet_infected_person(self.virus, num_infected, total_people))
             return sum_probability * 100
         else:
             return 0
@@ -1973,14 +1973,18 @@ class ExposureModelGroup:
 
     def __post_init__(self):
         """
-        Validate that all ExposureModels have the same ConcentrationModel.
+        Validate that all ExposureModels have the same list of ConcentrationModels.
         """
-        first_concentration_model = self.exposure_models[0].concentration_model
-        for model in self.exposure_models[1:]:
-            # Check that the number of infected people and their presence is the same
-            if (model.concentration_model.infected.number != first_concentration_model.infected.number or
-                model.concentration_model.infected.presence != first_concentration_model.infected.presence):
-                raise ValueError("All ExposureModels must have the same infected number and presence in the ConcentrationModel.")
+        n_concentration_models = len(self.exposure_models[0].concentration_model_list)
+        if any(len(exposure_model.concentration_model_list) != n_concentration_models for exposure_model in self.exposure_models[1:]):
+                raise ValueError("All ExposureModels must have the same number of ConcentrationModels.")
+        for i in range(n_concentration_models):
+            first_concentration_model = self.exposure_models[0].concentration_model_list[i]
+            for model in self.exposure_models[1:]:
+                # Check that the number of infected people and their presence is the same
+                if (model.concentration_model_list[i].infected.number != first_concentration_model.infected.number or
+                    model.concentration_model_list[i].infected.presence != first_concentration_model.infected.presence):
+                    raise ValueError("All ExposureModels must have the same infected number and presence in each ConcentrationModel.")
 
     @method_cache
     def _deposited_exposure_list(self) -> typing.List[_VectorisedFloat]:
