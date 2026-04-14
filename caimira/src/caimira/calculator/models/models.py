@@ -1892,7 +1892,10 @@ class ExposureModel:
         return (1 - np.prod([1 - prob for prob in self._infection_probability_list()], axis = 0)) * 100
 
     def total_probability_rule(self) -> _VectorisedFloat:
-        if (isinstance(self.concentration_model.infected.number, IntPiecewiseConstant) or isinstance(self.concentration_model, list)):
+        if isinstance(self.concentration_model, list):
+            raise NotImplementedError("Cannot compute total probability "
+                        "(including incidence rate) with dynamic occupancy")
+        elif isinstance(self.concentration_model.infected.number, IntPiecewiseConstant):
                 raise NotImplementedError("Cannot compute total probability "
                         "(including incidence rate) with dynamic occupancy")
 
