@@ -1754,13 +1754,17 @@ class ExposureModel:
 
         It considers the long-range concentration with the
         contribution of the short-range concentration.
+
+        Since the different ConcentrationModel objects may have different diameter bases drawn 
+        from different distributions, the concentrations from different ConcentrationModel 
+        objects must be averaged over the diameter before summed together.
         """
-        concentration = sum([c_model.concentration(time) for c_model in self.concentration_model_list])
+        concentration = sum([np.array(c_model.concentration(time)).mean() for c_model in self.concentration_model_list])
         for interaction in self.short_range:
             if isinstance(self.concentration_model, list):
                 raise NotImplementedError("yet to implement dynamic infected for SR interactions")
-            concentration += interaction.short_range_concentration(self.concentration_model, time)
-        return np.array(concentration).mean() # Integrate over all diameters
+            concentration += np.array(interaction.short_range_concentration(self.concentration_model, time)).mean()
+        return concentration
 
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         deposited_exposure = 0.
