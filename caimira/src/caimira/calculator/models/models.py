@@ -1748,9 +1748,9 @@ class ExposureModel:
                 exposure += c_model.normed_integrated_concentration(start, stop)
         return exposure
 
-    def concentration(self, time: float) -> _VectorisedFloat:
+    def concentration(self, time: float) -> float:
         """
-        Virus exposure concentration, as a function of time.
+        Integrated virus exposure concentration, as a function of time.
 
         It considers the long-range concentration with the
         contribution of the short-range concentration.
@@ -1760,7 +1760,7 @@ class ExposureModel:
             if isinstance(self.concentration_model, list):
                 raise NotImplementedError("yet to implement dynamic infected for SR interactions")
             concentration += interaction.short_range_concentration(self.concentration_model, time)
-        return concentration
+        return np.array(concentration).mean() # Integrate over all diameters
 
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         deposited_exposure = 0.
