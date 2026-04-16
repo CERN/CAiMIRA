@@ -47,10 +47,10 @@ def short_range_model(data_registry):
 def test_short_range_model_ndarray(concentration_model, short_range_model):
     concentration_model = concentration_model.build_model(SAMPLE_SIZE)
     model = short_range_model.build_model(SAMPLE_SIZE)
-    assert isinstance(model._normed_concentration(concentration_model, 10.75), np.ndarray)
-    assert isinstance(model.short_range_concentration(concentration_model, 10.75), np.ndarray)
-    assert isinstance(model._normed_jet_exposure_between_bounds(10.75, 10.85), np.ndarray)
-    assert isinstance(model._normed_interpolated_longrange_exposure_between_bounds(concentration_model, 10.75, 10.85), np.ndarray)
+    assert isinstance(model.dilution_factor(), np.ndarray)
+    assert isinstance(model._normed_jet_origin_concentration(), np.ndarray)
+    assert isinstance(model._normed_diluted_jet_origin_concentration(), np.ndarray)
+    assert isinstance(model.diluted_jet_origin_concentration(concentration_model.infected), np.ndarray)
     assert isinstance(model.short_range_concentration(concentration_model, 14.0), float)
 
 
@@ -105,7 +105,7 @@ def test_extract_between_bounds(short_range_model, time1, time2,
 
 @pytest.mark.parametrize(
     "time, expected_short_range_concentration", [
-        [8.5, 0.],
+        [8.5, 0.], # LR cancel SR at t=0?
         [10.5, 5.6333025],
         [10.6, 5.6333025],
         [11.0, 5.6333025],
@@ -117,7 +117,7 @@ def test_short_range_concentration(time, expected_short_range_concentration,
     concentration_model = concentration_model.build_model(SAMPLE_SIZE)
     model = short_range_model.build_model(SAMPLE_SIZE)
     np.testing.assert_allclose(
-        np.array(model.short_range_concentration(concentration_model, time)).mean(),
+        model.short_range_concentration(concentration_model, time),
         expected_short_range_concentration, rtol=0.02
     )
 
