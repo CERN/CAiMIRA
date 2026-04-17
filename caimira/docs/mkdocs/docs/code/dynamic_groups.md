@@ -251,15 +251,17 @@ generated should have the following structure:
                     short_range=(
                         ShortRangeModel(
                             data_registry=...,
-                            expiration="Shouting",
-                            activity=...,
+                            infected=...,
+                            short_range_activity=...,
+                            short_range_expiration=...,
                             presence=SpecificInterval(((10., 10.5),)),
                             distance=...,
                         ),
                         ShortRangeModel(
                             data_registry=...,
-                            expiration="Shouting",
-                            activity=...,
+                            infected=...,
+                            short_range_activity=...,
+                            short_range_expiration=...,
                             presence=SpecificInterval(((11.25, 11.5),)),
                             distance=...,
                         ),
@@ -281,8 +283,9 @@ generated should have the following structure:
                     short_range=(
                         ShortRangeModel(
                             data_registry=...,
-                            expiration="Shouting",
-                            activity=...,
+                            infected=...,
+                            short_range_activity=...,
+                            short_range_expiration=...,
                             presence=SpecificInterval(((10.25, 10.75),)),
                             distance=...,
                         ),
@@ -335,6 +338,17 @@ generated should have the following structure:
     - In  the `infected` population (`InfectedPopulation`):
         - the `number` interval is calculated from the `occupancy` group
         object as a total sum of the infected from all groups at each `presence` interval
+        - the `activity' describes all the physical activities performed by the 
+        infected population throughout their presence. The type of physical activity is 
+        treated as a constant mixture of all the physical activities performed.
+        - the `expiration' describes all the expiratory activities performed by 
+        the infected population throughout their presence. The type of expiratory activity is 
+        treated as a constant mixture of all the expiratory activities performed.
+    - In  the `ShortRangeModel`:
+        - the `short_range_activity' describes the physical activities performed by the 
+        infected population during the short-range interaction only. 
+        - the `short_range_expiration' describes the expiratory activities performed by 
+        the infected population during the short-range interaction only. 
     - The `ConcentrationModel` shall be the same in each `ExposureModel`
 
     !!!note
@@ -348,6 +362,16 @@ generated should have the following structure:
         in each model. To ensure consistency, the algorithm verifies that the
         `number` and `presence` parameters of `InfectedPopulation` remain
         identical across all `ExposureModel` instances.
+
+        Also, note that the types of physical and expiratory activities of the infected 
+        performed during short-range interactions must also cotribute to the overall 
+        combination of physical and expiratory activities performed by that infected 
+        throughout their total presence. That is, the type(s) of physical/expiratory activity(ies) 
+        in `ShortRangeModel.short_range_activity`/`ShortRangeModel.short_range_expiration` must 
+        be in the physical/expiratory activity(ies) of 
+        `ShortRangeModel.infected.activity`/`ShortRangeModel.infected.expiration`. For example, 
+        if the type of `short_range_expiration' is "Shouting", then the type of
+        `infected.expiration' may be 1/2 "Shouting" and 1/2 "Speaking".
 
     ??? tip "How to interpret one `IntPiecewiseConstant` instance?"
 
