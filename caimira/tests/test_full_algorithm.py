@@ -513,26 +513,25 @@ def c_model_distr(data_registry) -> mc.ConcentrationModel:
         evaporation_factor=0.3,
     )
 
-
-@pytest.fixture
-def sr_models(data_registry) -> typing.Tuple[mc.ShortRangeModel, ...]:
+def short_range_models(data_registry, infected) -> typing.Tuple[mc.ShortRangeModel, ...]:
     return (
         mc.ShortRangeModel(
             data_registry = data_registry,
-            expiration = short_range_expiration_distributions(data_registry)['Speaking'],
-            activity = models.Activity.types['Seated'],
+            infected=infected,
+            short_range_activity = models.Activity.types['Seated'],
+            short_range_expiration = short_range_expiration_distributions(data_registry)['Speaking'],
             presence = interaction_intervals[0],
             distance = 0.854,
         ),
         mc.ShortRangeModel(
             data_registry = data_registry,
-            expiration = short_range_expiration_distributions(data_registry)['Breathing'],
-            activity = models.Activity.types['Heavy exercise'],
+            infected=infected,
+            short_range_activity = models.Activity.types['Heavy exercise'],
+            short_range_expiration = short_range_expiration_distributions(data_registry)['Breathing'],
             presence = interaction_intervals[1],
             distance = 0.854,
         ),
     )
-
 
 @pytest.fixture
 def simple_c_model(data_registry) -> SimpleConcentrationModel:
@@ -567,11 +566,11 @@ def simple_sr_models(data_registry) -> typing.Tuple[SimpleShortRangeModel, ...]:
 
 
 @pytest.fixture
-def expo_sr_model(data_registry, c_model,sr_models) -> mc.ExposureModel:
+def expo_sr_model(data_registry, c_model) -> mc.ExposureModel:
     return mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=c_model,
-        short_range=sr_models,
+        short_range=short_range_models(data_registry, c_model.infected),
         exposed=mc.Population(
             number=1,
             presence=presence,
@@ -608,15 +607,17 @@ def expo_sr_model_distr(data_registry, c_model_distr) -> mc.ExposureModel:
         short_range=(
             mc.ShortRangeModel(
                 data_registry = data_registry,
-                expiration = short_range_expiration_distributions(data_registry)['Breathing'],
-                activity = activity_distributions(data_registry)['Seated'],
+                infected=c_model_distr.infected,
+                short_range_activity = activity_distributions(data_registry)['Seated'],
+                short_range_expiration = short_range_expiration_distributions(data_registry)['Breathing'],
                 presence = interaction_intervals[0],
                 distance = short_range_distances(data_registry),
             ),
             mc.ShortRangeModel(
                 data_registry = data_registry,
-                expiration = short_range_expiration_distributions(data_registry)['Speaking'],
-                activity = activity_distributions(data_registry)['Seated'],
+                infected=c_model_distr.infected,
+                short_range_activity = activity_distributions(data_registry)['Seated'],
+                short_range_expiration = short_range_expiration_distributions(data_registry)['Speaking'],
                 presence = interaction_intervals[1],
                 distance = short_range_distances(data_registry),
             ),
@@ -683,8 +684,8 @@ def test_longrange_concentration(time,c_model,simple_c_model):
 @pytest.mark.parametrize(
     "time", [10, 10.7, 11., 12.5, 14.75, 14.9, 17]
 )
-def test_shortrange_concentration(time,c_model,simple_c_model,
-                                  sr_models,simple_sr_models):
+def test_shortrange_concentration(data_registry, time,c_model,simple_c_model,simple_sr_models):
+    sr_models = short_range_models(data_registry, c_model.infected)
     result_sr_model = np.sum([np.array(
             sr_mod.build_model(SAMPLE_SIZE).short_range_concentration(c_model.build_model(SAMPLE_SIZE),time)).mean()
         for sr_mod in sr_models])
@@ -850,15 +851,14 @@ def test_exposure_with_shortrange_and_distributions(expo_sr_model_distr,
         rtol=0.03
         )
 
-
-def exposure_model_from_parameter(data_registry, short_range_models, f_inf=0.5, viral_load=1e9, BR=1.25):
+def c_model_from_parameter(data_registry, f_inf=0.5, viral_load=1e9):
     virus: models.SARSCoV2 = models.SARSCoV2(
         viral_load_in_sputum=viral_load,
         infectious_dose=50,
         viable_to_RNA_ratio=f_inf,
         transmissibility_factor=0.51,
     )
-    c_model = mc.ConcentrationModel(
+    return mc.ConcentrationModel(
         data_registry=data_registry,
         room=models.Room(volume=50, humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
@@ -875,10 +875,18 @@ def exposure_model_from_parameter(data_registry, short_range_models, f_inf=0.5, 
         ),
         evaporation_factor=0.3,
     )
+
+def exposure_model_from_parameter(data_registry, short_range_bool=True, short_range=None, f_inf=0.5, viral_load=1e9, BR=1.25):
+    c_model = c_model_from_parameter(data_registry, f_inf=f_inf, viral_load=viral_load)
+    if short_range_bool:
+        if not short_range:
+            short_range = short_range_models(data_registry, c_model.infected)
+    else:
+        short_range = ()
     return mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=c_model,
-        short_range=short_range_models,
+        short_range=(),
         exposed=mc.Population(
             number=1,
             presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
@@ -891,12 +899,12 @@ def exposure_model_from_parameter(data_registry, short_range_models, f_inf=0.5, 
 
 
 @retry(tries=10)
-def test_exposure_scale_with_f_inf(data_registry, sr_models):
+def test_exposure_scale_with_f_inf(data_registry):
     """
     Exposure scaling test for the fraction of infectious virus.
     """
-    e_model_1: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range_models=sr_models, f_inf=0.5)
-    e_model_2: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range_models=sr_models, f_inf=1)
+    e_model_1: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, f_inf=0.5)
+    e_model_2: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, f_inf=1)
     np.testing.assert_allclose(
         2*e_model_1.deposited_exposure().mean(),
         e_model_2.deposited_exposure().mean(), rtol=0.02
@@ -904,12 +912,12 @@ def test_exposure_scale_with_f_inf(data_registry, sr_models):
 
 
 @retry(tries=10)
-def test_exposure_scale_with_viral_load(data_registry, sr_models):
+def test_exposure_scale_with_viral_load(data_registry):
     """
     Exposure scaling test for the viral load.
     """
-    e_model_1: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range_models=sr_models, viral_load=1e9)
-    e_model_2: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range_models=sr_models, viral_load=2e9)
+    e_model_1: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, viral_load=1e9)
+    e_model_2: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, viral_load=2e9)
     np.testing.assert_allclose(
         2*e_model_1.deposited_exposure().mean(),
         e_model_2.deposited_exposure().mean(), rtol=0.02
@@ -923,8 +931,8 @@ def test_lr_exposure_scale_with_breathing_rate(data_registry):
     interactions defined. Only the inhalation rate of the infected takes place 
     at the deposited exposure level.
     """
-    e_model_1: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range_models=(), BR=1.25)
-    e_model_2: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range_models=(), BR=2.5)
+    e_model_1: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range_bool=False, BR=1.25)
+    e_model_2: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range_bool=False, BR=2.5)
     np.testing.assert_allclose(
         2*e_model_1.deposited_exposure().mean(),
         e_model_2.deposited_exposure().mean(), rtol=0.02
@@ -932,36 +940,38 @@ def test_lr_exposure_scale_with_breathing_rate(data_registry):
 
 
 @retry(tries=10)
-def test_exposure_scale_with_breathing_rate(data_registry, sr_models):
+def test_exposure_scale_with_breathing_rate(data_registry):
     """
     Exposure scaling test for the breathing rate when long- and short-range
     interactions are defined. We need to apply the multiplication factor
     to the inhalation rate of the infected (long-range), but also for
     each short-range interaction.
     """
-    e_model_1: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range_models=sr_models, BR=1.25)
+    e_model_1: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, BR=1.25)
     
     seated_act = models.Activity.types['Seated']
     heavy_exercise_act = models.Activity.types['Heavy exercise']
     sr_models_activity = (
         mc.ShortRangeModel(
             data_registry = data_registry,
-            expiration = short_range_expiration_distributions(data_registry)['Speaking'],
-            activity = models.Activity(inhalation_rate=seated_act.inhalation_rate * 2, 
+            infected=c_model_from_parameter(data_registry=data_registry).infected,
+            short_range_activity = models.Activity(inhalation_rate=seated_act.inhalation_rate * 2, 
                                        exhalation_rate=seated_act.exhalation_rate),
+            short_range_expiration = short_range_expiration_distributions(data_registry)['Speaking'],
             presence = interaction_intervals[0],
             distance = 0.854,
         ),
         mc.ShortRangeModel(
             data_registry = data_registry,
-            expiration = short_range_expiration_distributions(data_registry)['Breathing'],
-            activity = models.Activity(inhalation_rate=heavy_exercise_act.inhalation_rate * 2, 
+            infected=c_model_from_parameter(data_registry=data_registry).infected,
+            short_range_activity = models.Activity(inhalation_rate=heavy_exercise_act.inhalation_rate * 2, 
                                        exhalation_rate=heavy_exercise_act.inhalation_rate),
+            short_range_expiration = short_range_expiration_distributions(data_registry)['Breathing'],
             presence = interaction_intervals[1],
             distance = 0.854,
         ),
     )
-    e_model_2: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range_models=sr_models_activity, BR=2.5)
+    e_model_2: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range=sr_models_activity, BR=2.5)
     np.testing.assert_allclose(
         2*e_model_1.deposited_exposure().mean(),
         e_model_2.deposited_exposure().mean(), rtol=0.02
