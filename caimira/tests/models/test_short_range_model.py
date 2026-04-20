@@ -51,7 +51,10 @@ def test_short_range_model_ndarray(concentration_model, short_range_model):
     assert isinstance(model._normed_jet_origin_concentration(), np.ndarray)
     assert isinstance(model._normed_diluted_jet_origin_concentration(), np.ndarray)
     assert isinstance(model.diluted_jet_origin_concentration(concentration_model.infected), np.ndarray)
+    assert isinstance(model.short_range_concentration(concentration_model, 11.0), float)
     assert isinstance(model.short_range_concentration(concentration_model, 14.0), float)
+    assert model.short_range_concentration(concentration_model, 11.0) > 0
+    assert model.short_range_concentration(concentration_model, 12.0) == 0
 
 
 @pytest.mark.parametrize(

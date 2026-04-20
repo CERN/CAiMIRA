@@ -1408,8 +1408,12 @@ class ShortRangeModel:
     
     def short_range_concentration(self, concentration_model: ConcentrationModel, time):
         dilution_factor = self.dilution_factor()
-        return (self.diluted_jet_origin_concentration(concentration_model.infected).mean()
-                - np.mean(1/dilution_factor * concentration_model.concentration(time)))
+        start, stop = self.presence.boundaries()[0]
+        # Verifies if the given time falls within a short-range interaction
+        if start <= time <= stop:
+            return (np.mean(self.diluted_jet_origin_concentration(concentration_model.infected))
+                    - np.mean(1/dilution_factor * concentration_model.concentration(time)))
+        return 0.
 
     @method_cache
     def extract_between_bounds(self, time1: float, time2: float) -> typing.Union[None, typing.Tuple[float,float]]:
@@ -1749,7 +1753,6 @@ class ExposureModel:
             # Only adding the additional contribution from the short-range interaction
             start, stop = interaction.extract_between_bounds(time1, time2)
             short_range_jet_exposure = interaction._normed_jet_exposure_between_bounds(start, stop)
-            short_range_lr_exposure = self.concentration_model.integrated_concentration(start, stop)#does not neet to be interpolated because in the following we either average them seperately or there is max one D
 
             dilution = interaction.dilution_factor()
 
@@ -1764,15 +1767,11 @@ class ExposureModel:
                 # particle diameters (doing things in another order would
                 # lead to wrong results for the probability of infection).
                 this_deposited_exposure = (np.array(short_range_jet_exposure
-                    * fdep).mean()
-                    - np.array(short_range_lr_exposure * fdep).mean()
-                    * self.concentration_model.infected.activity.exhalation_rate)
+                    * fdep).mean())
             else:
                 # In the case of a single diameter or no diameter defined,
                 # one should not take any mean at this stage.
-                this_deposited_exposure = (short_range_jet_exposure * fdep
-                    - short_range_lr_exposure * fdep
-                    * self.concentration_model.infected.activity.exhalation_rate)
+                this_deposited_exposure = (short_range_jet_exposure * fdep)
 
             # Multiply by the (diameter-independent) inhalation rate
             _deposited_exposure = (this_deposited_exposure *
@@ -1785,6 +1784,8 @@ class ExposureModel:
                 (self.concentration_model.infected.emission_rate_per_aerosol_per_person_when_present() / (
                 self.concentration_model.infected.activity.exhalation_rate * 10**6)) *                 
                 (1 - self.exposed.mask.inhale_efficiency()))
+            
+            deposited_exposure -= self.long_range_deposited_exposure_between_bounds(time1, time2)/dilution
 
             
         # Long-range contributions from all infected populations (including the ones with SR interactions)
