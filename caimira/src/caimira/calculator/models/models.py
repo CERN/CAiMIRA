@@ -1406,13 +1406,15 @@ class ShortRangeModel:
         return (self._normed_diluted_jet_origin_concentration() * 
                 self.normalization_factor(infected))
     
-    def short_range_concentration(self, concentration_model: ConcentrationModel, time):
+    def short_range_concentration(self, concentration_model_list: list[ConcentrationModel], time):
         dilution_factor = self.dilution_factor()
         start, stop = self.presence.boundaries()[0]
         # Verifies if the given time falls within a short-range interaction
         if start <= time <= stop:
-            return (np.mean(self.diluted_jet_origin_concentration(concentration_model.infected))
-                    - np.mean(1/dilution_factor * concentration_model.concentration(time)))
+            concentration = np.mean(self.diluted_jet_origin_concentration(concentration_model.infected))
+            for concentration_model in concentration_model_list:
+                concentration -= np.mean(1/dilution_factor * concentration_model.concentration(time))
+            return concentration
         return 0.
 
     @method_cache
@@ -1587,12 +1589,6 @@ class ExposureModel:
         It also checks that the number of exposed is
         static during the simulation time.
         """
-
-        if len(self.concentration_model_list) > 1 and len(self.short_range) > 0:
-            # NOTE: since ShortRangeModel has properties expiration and activity, which InfectedPopulation
-            # the short range interaction is with does not have to be defined (?)
-            raise NotImplementedError("Short range interactions with multiple infected populations not yet implemented.")
-        
         _ = self.virus
         _ = self.room
         _ = self.ventilation
@@ -1698,9 +1694,7 @@ class ExposureModel:
         """
         concentration = sum([np.array(c_model.concentration(time)).mean() for c_model in self.concentration_model_list])
         for interaction in self.short_range:
-            if isinstance(self.concentration_model, list):
-                raise NotImplementedError("yet to implement dynamic infected for SR interactions")
-            concentration += interaction.short_range_concentration(self.concentration_model, time)
+            concentration += interaction.short_range_concentration(self.concentration_model_list, time)
         return concentration
 
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
@@ -1747,9 +1741,6 @@ class ExposureModel:
         """
         deposited_exposure: _VectorisedFloat = 0.
         for interaction in self.short_range:
-            if isinstance(self.concentration_model, list):
-                raise NotImplementedError("yet to implement dynamic infected for SR interactions")
-
             # Only adding the additional contribution from the short-range interaction
             start, stop = interaction.extract_between_bounds(time1, time2)
             short_range_jet_exposure = interaction._normed_jet_exposure_between_bounds(start, stop)
@@ -1781,8 +1772,8 @@ class ExposureModel:
             # Then we multiply by the emission rate without the BR contribution (and conversion factor),
             # and parameters of the vD equation (i.e. n_in).
             deposited_exposure += _deposited_exposure*(
-                (self.concentration_model.infected.emission_rate_per_aerosol_per_person_when_present() / (
-                self.concentration_model.infected.activity.exhalation_rate * 10**6)) *                 
+                (interaction.infected.emission_rate_per_aerosol_per_person_when_present() / (
+                interaction.infected.activity.exhalation_rate * 10**6)) *                 
                 (1 - self.exposed.mask.inhale_efficiency()))
             
             deposited_exposure -= self.long_range_deposited_exposure_between_bounds(time1, time2)/dilution
