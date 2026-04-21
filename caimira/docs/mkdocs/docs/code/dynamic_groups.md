@@ -339,8 +339,7 @@ generated should have the following structure:
         - the `number` interval is calculated from the `occupancy` group
         object as a total sum of the infected from all groups at each `presence` interval
         - the `activity' describes all the physical activities performed by the 
-        infected population throughout their presence. The type of physical activity is 
-        treated as a constant mixture of all the physical activities performed.
+        infected population throughout their presence.
         - the `expiration' describes all the expiratory activities performed by 
         the infected population throughout their presence. The type of expiratory activity is 
         treated as a constant mixture of all the expiratory activities performed.
@@ -362,16 +361,6 @@ generated should have the following structure:
         in each model. To ensure consistency, the algorithm verifies that the
         `number` and `presence` parameters of `InfectedPopulation` remain
         identical across all `ExposureModel` instances.
-
-        Also, note that the types of physical and expiratory activities of the infected 
-        performed during short-range interactions must also cotribute to the overall 
-        combination of physical and expiratory activities performed by that infected 
-        throughout their total presence. That is, the type(s) of physical/expiratory activity(ies) 
-        in `ShortRangeModel.short_range_activity`/`ShortRangeModel.short_range_expiration` must 
-        be in the physical/expiratory activity(ies) of 
-        `ShortRangeModel.infected.activity`/`ShortRangeModel.infected.expiration`. For example, 
-        if the type of `short_range_expiration' is "Shouting", then the type of
-        `infected.expiration' may be 1/2 "Shouting" and 1/2 "Speaking".
 
     ??? tip "How to interpret one `IntPiecewiseConstant` instance?"
 
