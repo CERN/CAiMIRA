@@ -1308,11 +1308,11 @@ class ShortRangeModel:
     infected: InfectedPopulation
 
     #: Physical activity of the infected during this short-range interaction. 
-    #  All types of physical activities in short_range_activity must also be in infected.activity.
+    #  TODO: All types of physical activities in short_range_activity must also be in infected.activity (or reasonable).
     short_range_activity: Activity
 
     #: Expiratory activity of the infected during this short-range interaction. 
-    #  All types of expiratory activities in short_range_expiration must also be in infected.expiration.
+    #  TODO: Validate that all types of expiratory activities in short_range_expiration are also in infected.expiration.
     #  dmin and dmax are different for short_range_expiration and infected.expiration.
     short_range_expiration: Expiration
 
@@ -1328,16 +1328,6 @@ class ShortRangeModel:
         
         if self.presence.boundaries()[0][0] < self.infected.presence.boundaries()[0][0] or self.presence.boundaries()[-1][-1] > self.infected.presence.boundaries()[-1][-1]:
             raise ValueError("The short-range-interaction cannot last longer than the presence of the infected.")
-        
-        # for expiration_type in self.short_range_expiration.types.keys():
-        #     if expiration_type not in self.infected.expiration.types.keys():
-        #         raise ValueError(f"All types of short-range expiratory activities must be a parts of the long-range expiratory activities. \
-        #                          {expiration_type} in the short-range expiration but not in the long-range expiration.")
-        
-        # for activity_type in self.short_range_activity.types.keys():
-        #     if activity_type not in self.infected.activity.types.keys():
-        #         raise ValueError(f"All types of short-range physical activities must be a parts of the long-range physical activities. \
-        #                          {activity_type} in the short-range activity but not in the long-range activity.")
     
     def dilution_factor(self) -> _VectorisedFloat:
         '''
