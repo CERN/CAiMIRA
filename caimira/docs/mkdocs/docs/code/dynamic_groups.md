@@ -362,6 +362,16 @@ generated should have the following structure:
         `number` and `presence` parameters of `InfectedPopulation` remain
         identical across all `ExposureModel` instances.
 
+        Also, note that the types of expiratory activities of the infected 
+        performed during short-range interactions must also cotribute to the overall 
+        combination of expiratory activities performed by that infected 
+        throughout their total presence. That is, all the expiratory activity types 
+        in `ShortRangeModel.short_range_expiration` must also be in 
+        `ShortRangeModel.infected.expiration`. For example, 
+        if the type of `short_range_expiration' is "Shouting", then the type of
+        `infected.expiration' must be either "Shouting" or a mixture of "Shouting" 
+        and other exiratory acticvities (e.g. 1/2 "Shouting" and 1/2 "Speaking").
+
     ??? tip "How to interpret one `IntPiecewiseConstant` instance?"
 
         The `IntPiecewiseConstant` inherits from the `PiecewiseConstant`
