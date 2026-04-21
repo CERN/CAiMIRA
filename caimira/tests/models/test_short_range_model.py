@@ -54,6 +54,26 @@ def test_short_range_model_ndarray(concentration_model, short_range_model):
     assert isinstance(model._normed_interpolated_longrange_exposure_between_bounds(concentration_model, 10.75, 10.85), np.ndarray)
     assert isinstance(model.short_range_concentration(concentration_model, 14.0), float)
 
+def test_invalid_expiration_short_range_model(data_registry):
+    long_range_expiration = short_range_expiration_distributions(data_registry)['Breathing'],
+    non_matching_short_range_expiration=short_range_expiration_distributions(data_registry)['Speaking']
+    lr_sr_activity = models.Activity.types['Seated']
+    with pytest.raises(ValueError, match="All types of short-range expiratory activities must be a parts of the long-range expiratory activities."):
+        mc_models.ShortRangeModel(data_registry=data_registry,
+                                     infected=mc_models.InfectedPopulation(
+                                        data_registry=data_registry,
+                                        number=1,
+                                        virus=models.Virus.types['SARS_CoV_2'],
+                                        presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
+                                        mask=models.Mask.types['No mask'],
+                                        activity=lr_sr_activity,
+                                        expiration=long_range_expiration,
+                                        host_immunity=0.,
+                                    ),
+                                     short_range_activity=lr_sr_activity,
+                                     short_range_expiration=non_matching_short_range_expiration,
+                                     presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
+                                     distance=short_range_distances(data_registry))
 
 @pytest.mark.parametrize(
     "activity, expected_dilution", [
