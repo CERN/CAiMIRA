@@ -252,16 +252,16 @@ generated should have the following structure:
                         ShortRangeModel(
                             data_registry=...,
                             infected=...,
-                            short_range_activity=...,
-                            short_range_expiration=...,
+                            activity=...,
+                            expiration=...,
                             presence=SpecificInterval(((10., 10.5),)),
                             distance=...,
                         ),
                         ShortRangeModel(
                             data_registry=...,
                             infected=...,
-                            short_range_activity=...,
-                            short_range_expiration=...,
+                            activity=...,
+                            expiration=...,
                             presence=SpecificInterval(((11.25, 11.5),)),
                             distance=...,
                         ),
@@ -284,8 +284,8 @@ generated should have the following structure:
                         ShortRangeModel(
                             data_registry=...,
                             infected=...,
-                            short_range_activity=...,
-                            short_range_expiration=...,
+                            activity=...,
+                            expiration=...,
                             presence=SpecificInterval(((10.25, 10.75),)),
                             distance=...,
                         ),
@@ -344,9 +344,9 @@ generated should have the following structure:
         the infected population throughout their presence. The type of expiratory activity is 
         treated as a constant mixture of all the expiratory activities performed.
     - In  the `ShortRangeModel`:
-        - the `short_range_activity' describes the physical activities performed by the 
+        - the `activity' describes the physical activities performed by the 
         infected population during the short-range interaction only. 
-        - the `short_range_expiration' describes the expiratory activities performed by 
+        - the `expiration' describes the expiratory activities performed by 
         the infected population during the short-range interaction only. 
     - The `ConcentrationModel` shall be the same in each `ExposureModel`
 

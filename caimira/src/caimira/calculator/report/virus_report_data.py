@@ -115,7 +115,7 @@ def _concentrations_with_sr_breathing(form: VirusFormData, model: models.Exposur
     Returns the zoomed viral concentrations.
     """
     for index, (start, stop) in enumerate([interaction.presence.boundaries()[0] for interaction in model.short_range]):
-        if start <= time <= stop and form.short_range_interactions[model.identifier][index]['expiration'] == 'Breathing': # TODO: change name "expiration" to "short_range_expiration"
+        if start <= time <= stop and form.short_range_interactions[model.identifier][index]['expiration'] == 'Breathing':
             return model.concentration(float(time)), fn_name
     return np.array(model.concentration_model.concentration(float(time))).mean(), fn_name
 
@@ -171,11 +171,11 @@ def merge_short_range_interactions(all_exposed_groups: typing.Dict[str, typing.A
     merged_interactions = defaultdict(list)
     for group in all_exposed_groups.values():
         for interaction in group["short_range_interactions"]:
-            merged_interactions[interaction["expiration"]].extend(interaction["presence_interval"]) # TODO: change name "expiration" to "short_range_expiration"
+            merged_interactions[interaction["expiration"]].extend(interaction["presence_interval"]) 
     
     # Merge and sort intervals
     return [
-        {"expiration": exp, "presence_interval": merge_intervals(sorted(intervals, key=lambda x: x[0]))} # TODO: change name "expiration" to "short_range_expiration"
+        {"expiration": exp, "presence_interval": merge_intervals(sorted(intervals, key=lambda x: x[0]))} 
         for exp, intervals in merged_interactions.items()
     ]
 
@@ -224,7 +224,7 @@ def group_results(form: VirusFormData, model_group: models.ExposureModelGroup) -
             # Short range outputs
             short_range_interactions: dict = defaultdict(list)
             for short_range_model in single_group.short_range:
-                short_range_interactions[short_range_model.short_range_expiration.name].extend(
+                short_range_interactions[short_range_model.expiration.name].extend(
                     short_range_model.presence.boundaries()
                 )
 
@@ -235,8 +235,8 @@ def group_results(form: VirusFormData, model_group: models.ExposureModelGroup) -
                 "long_range_prob": long_range_single_group.infection_probability().mean(),
                 "long_range_expected_new_cases": long_range_single_group.expected_new_cases().mean(),
                 "short_range_interactions": [
-                    {"expiration": short_range_expiration, "presence_interval": intervals} # TODO: change name "expiration" to "short_range_expiration"
-                    for short_range_expiration, intervals in short_range_interactions.items()
+                    {"expiration": expiration, "presence_interval": intervals}
+                    for expiration, intervals in short_range_interactions.items()
                 ],
             })
 

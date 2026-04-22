@@ -1308,13 +1308,13 @@ class ShortRangeModel:
     infected: InfectedPopulation
 
     #: Physical activity of the infected during this short-range interaction. 
-    #  TODO: All types of physical activities in short_range_activity must also be in infected.activity (or reasonable).
-    short_range_activity: Activity
+    #  TODO: All types of physical activities in activity must also be in infected.activity (or reasonable).
+    activity: Activity
 
     #: Expiratory activity of the infected during this short-range interaction. 
-    #  TODO: Validate that all types of expiratory activities in short_range_expiration are also in infected.expiration.
-    #  dmin and dmax are different for short_range_expiration and infected.expiration.
-    short_range_expiration: Expiration
+    #  TODO: Validate that all types of expiratory activities in expiration are also in infected.expiration.
+    #  dmin and dmax are different for expiration and infected.expiration.
+    expiration: Expiration
 
     #: Short-range interaction time
     presence: SpecificInterval
@@ -1338,7 +1338,7 @@ class ShortRangeModel:
         mouth_diameter: float = _dilution_factor['mouth_diameter'] # type: ignore
 
         # Breathing rate, from m3/h to m3/s
-        BR = np.array(self.short_range_activity.exhalation_rate/3600.)
+        BR = np.array(self.activity.exhalation_rate/3600.)
 
         # Exhalation coefficient. Ratio between the duration of a breathing cycle and the duration of
         # the exhalation.
@@ -1392,7 +1392,7 @@ class ShortRangeModel:
         variables). Results in mL.cm^-3.
         """
         # The short range origin concentration does not consider the mask contribution.
-        return self.short_range_expiration.aerosols(mask=Mask.types['No mask'])
+        return self.expiration.aerosols(mask=Mask.types['No mask'])
 
     def _long_range_normed_concentration(self, concentration_model: ConcentrationModel, time: float) -> _VectorisedFloat:
         """
@@ -1422,7 +1422,7 @@ class ShortRangeModel:
             # The set of points where we want the interpolated values are the short-range particle diameters (given the current expiration);
             # The set of points with a known value are the long-range particle diameters (given the initial expiration);
             # The set of known values are the long-range concentration values normalized by the viral load.
-            long_range_normed_concentration_interpolated=np.interp(np.array(self.short_range_expiration.particle.diameter),
+            long_range_normed_concentration_interpolated=np.interp(np.array(self.expiration.particle.diameter),
                                 np.array(concentration_model.infected.particle.diameter), long_range_normed_concentration)
 
             # Short-range concentration formula. The long-range concentration is added in the concentration method (ExposureModel).
@@ -1523,7 +1523,7 @@ class ShortRangeModel:
                 /concentration_model.infected.activity.exhalation_rate
                 )
         normed_int_concentration_interpolated = np.interp(
-                np.array(self.short_range_expiration.particle.diameter),
+                np.array(self.expiration.particle.diameter),
                 np.array(concentration_model.infected.particle.diameter),
                 normed_int_concentration
                 )
@@ -1782,8 +1782,8 @@ class ExposureModel:
                                         self.concentration_model, start, stop)
             dilution = interaction.dilution_factor()
 
-            fdep = interaction.short_range_expiration.particle.fraction_deposited(evaporation_factor=1.0)
-            diameter = interaction.short_range_expiration.particle.diameter
+            fdep = interaction.expiration.particle.fraction_deposited(evaporation_factor=1.0)
+            diameter = interaction.expiration.particle.diameter
 
             # Aerosols not considered given the formula for the initial
             # concentration at mouth/nose.
@@ -1805,7 +1805,7 @@ class ExposureModel:
 
             # Multiply by the (diameter-independent) inhalation rate
             deposited_exposure += (this_deposited_exposure *
-                                   interaction.short_range_activity.inhalation_rate # NOTE: why not self.exposed.activity.inhalation_rate?
+                                   interaction.activity.inhalation_rate # NOTE: why not self.exposed.activity.inhalation_rate?
                                    /dilution)
 
         # Then we multiply by the emission rate without the BR contribution (and conversion factor),
