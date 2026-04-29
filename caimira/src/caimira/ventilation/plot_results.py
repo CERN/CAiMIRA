@@ -38,6 +38,7 @@ def plot_probabilities(
     ax1.set_ylabel('Infection probability P(I)', color='tab:blue', fontsize=fontsize)
     ax1.tick_params(axis='y', labelcolor='tab:blue', labelsize=ticksize)
     ax1.set_xlabel("air exchange per hour", fontsize=fontsize)
+    ax1.set_xticks(np.arange(0, air_exch_list[-1]+5, 5))
     ax1.tick_params(axis='x', labelsize=ticksize)
     ax1.grid(True, linestyle="--", alpha=0.6)
 
@@ -168,8 +169,8 @@ def plot_model_concentration_results(
     axviral.set_ylim((0,axviral_ymax))
 
     clean_air_delivery = find_air_exch.clean_air_per_sec_per_pers(air_exch_list, exposure_model)
-    print(f"Air changes per hour: Mean: {np.mean(air_exch_list)}, All values: {[round(air_exch, 2) for air_exch in air_exch_list]}")
-    print(f"Clean air delivery (L/s/person): Mean: {np.mean([[cld for cld in clean_air_delivery if isinstance(cld, float)]])}, All values: {[round(cld, 2) if type(cld)==float else cld for cld in clean_air_delivery]}")
+    print(f"Air changes per hour: {[round(air_exch, 2) for air_exch in air_exch_list]}")
+    print(f"Clean air delivery (L/s/person): {[round(cld, 2) if type(cld)==float else cld for cld in clean_air_delivery]}")
 
     axes = []
     if CO2_values:
