@@ -39,7 +39,7 @@ def concentration_model(data_registry) -> mc_models.ConcentrationModel:
 def short_range_model(data_registry, concentration_model):
     return mc_models.ShortRangeModel(data_registry=data_registry,
                                      infected=concentration_model.infected,
-                                     activity=activity_distributions(data_registry)['Seated'], # NOTE: not matching infected.activity. Functionallity may be depricated.
+                                     activity=activity_distributions(data_registry)['Seated'], # NOTE: not within infected.activity. In the future, this initialization might trigger an error.
                                      expiration=short_range_expiration_distributions(data_registry)['Breathing'],
                                      presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
                                      distance=short_range_distances(data_registry))
@@ -153,8 +153,8 @@ def test_short_range_exposure_with_ndarray_mask(data_registry):
     )
     sr_model = mc_models.ShortRangeModel(data_registry=data_registry,
                                          infected=c_model.infected,
-                                         activity=models.Activity.types['Heavy exercise'],                           # NOTE: not matching infected.activity. Functionallity may be depricated.
-                                         expiration=short_range_expiration_distributions(data_registry)['Shouting'], # NOTE: not matching infected.expiration. Functionallity may be depricated.
+                                         activity=models.Activity.types['Heavy exercise'],                           # NOTE: not within infected.activity. In the future, this initialization might trigger an error.
+                                         expiration=short_range_expiration_distributions(data_registry)['Shouting'], # NOTE: not within infected.expiration. In the future, this initialization might trigger an error.
                                          presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
                                          distance=0.854)
     e_model = mc_models.ExposureModel(
