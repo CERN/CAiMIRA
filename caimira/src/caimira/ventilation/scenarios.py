@@ -24,7 +24,7 @@ def acl_1(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, float, st
                             mask=models.Mask.types[mask_infected],
                             activity=activity_distributions(data_registry)['Seated'],
                             expiration=build_expiration(data_registry,
-                                {'Speaking': 1/3, 'Breathing': 2/3}),
+                                {'Breathing': 2/3, 'Speaking': 1/3}),
                             host_immunity=0.,
                         )
 
@@ -52,9 +52,9 @@ def acl_2(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, float, st
                                 present_times=((10, 17), )),
                             virus=virus_distributions(data_registry)['SARS_CoV_2_OMICRON'],
                             mask=models.Mask.types[mask_exposed],
-                            activity=activity_distributions(data_registry)['Light activity'],
+                            activity=activity_distributions(data_registry)['Moderate activity'],
                             expiration=build_expiration(data_registry,
-                                {'Speaking': 2/10, 'Breathing': 7/10, 'Shouting': 1/10}),
+                                {'Breathing': 2/3, 'Speaking': 1/3}),
                             host_immunity=0.,
                         )
 
@@ -62,7 +62,7 @@ def acl_2(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, float, st
                 number=40,
                 presence=models.SpecificInterval(
                                 present_times=((10, 17), )),
-                activity=activity_distributions(data_registry)['Light activity'],
+                activity=activity_distributions(data_registry)['Moderate activity'],
                 mask=models.Mask.types[mask_infected],
                 host_immunity=0.,
             )
@@ -84,7 +84,7 @@ def acl_3(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, float, st
                             mask=models.Mask.types[mask_exposed],
                             activity=activity_distributions(data_registry)['Seated'],
                             expiration=build_expiration(data_registry,
-                                {'Speaking': 1/2, 'Breathing': 1/2}),
+                                {'Breathing': 1/2, 'Speaking': 1/2}),
                             host_immunity=0.,
                         )
 
@@ -102,6 +102,8 @@ def acl_3(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, float, st
 
 def acl_4(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, float, str]:
     """Confirmed source · isolation rooms · AGP suites """
+    if mask_exposed != 'FFP2':
+        print(f'WARNING: For  ACL-4 the expected mask for the exposed is FFP2, got mask "{mask_exposed}".')
     room = mc.Room(volume=40, humidity=0.3, inside_temp=mc.PiecewiseConstant(              # type: ignore
         (0, 24), (20+273.15, )))
 
@@ -113,7 +115,8 @@ def acl_4(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, float, st
                             virus=virus_distributions(data_registry)['SARS_CoV_2_OMICRON'],
                             mask=models.Mask.types[mask_exposed],
                             activity=activity_distributions(data_registry)['Seated'],
-                            expiration=expiration_distributions(data_registry)['Breathing'],
+                            expiration=build_expiration(data_registry,
+                                {'Breathing': 3/5, 'Speaking': 1/5, 'Shouting': 1/5}),
                             host_immunity=0.,
                         )
 
