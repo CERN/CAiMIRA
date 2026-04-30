@@ -171,11 +171,11 @@ def merge_short_range_interactions(all_exposed_groups: typing.Dict[str, typing.A
     merged_interactions = defaultdict(list)
     for group in all_exposed_groups.values():
         for interaction in group["short_range_interactions"]:
-            merged_interactions[interaction["expiration"]].extend(interaction["presence_interval"])
+            merged_interactions[interaction["expiration"]].extend(interaction["presence_interval"]) 
     
     # Merge and sort intervals
     return [
-        {"expiration": exp, "presence_interval": merge_intervals(sorted(intervals, key=lambda x: x[0]))}
+        {"expiration": exp, "presence_interval": merge_intervals(sorted(intervals, key=lambda x: x[0]))} 
         for exp, intervals in merged_interactions.items()
     ]
 
