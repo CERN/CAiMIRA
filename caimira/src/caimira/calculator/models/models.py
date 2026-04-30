@@ -1684,6 +1684,19 @@ class ExposureModel:
             elif time1 <= start and stop < time2:
                 exposure += c_model.normed_integrated_concentration(start, stop)
         return exposure
+    
+    def long_range_concentration(self, time: float) -> float:
+        """
+        Integrated virus exposure concentration, as a function of time.
+
+        It only considers the long-range concentration without the
+        contribution of the short-range concentration.
+
+        Since the different ConcentrationModel objects may have different diameter bases drawn 
+        from different distributions, the concentrations from different ConcentrationModel 
+        objects must be averaged over the diameter before summed together.
+        """
+        return sum([np.array(c_model.concentration(time)).mean() for c_model in self.concentration_model_list])
 
     def concentration(self, time: float) -> float:
         """
@@ -1696,7 +1709,7 @@ class ExposureModel:
         from different distributions, the concentrations from different ConcentrationModel 
         objects must be averaged over the diameter before summed together.
         """
-        concentration = sum([np.array(c_model.concentration(time)).mean() for c_model in self.concentration_model_list])
+        concentration = self.long_range_concentration(time)
         for interaction in self.short_range:
             if isinstance(self.concentration_model, list):
                 raise NotImplementedError("yet to implement dynamic infected for SR interactions")
