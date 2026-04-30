@@ -1302,18 +1302,33 @@ class ShortRangeModel:
     '''
     data_registry: DataRegistry
 
-    #: Expiration type
-    expiration: Expiration
+    #: The infected who is exhaling the two-stage jet (or rather, the population that infected belongs to).
+    #  infected.expiration and infected.activity are expirations and activities throughout infected.presence 
+    #  which may last longer than this short-range interaction.
+    infected: InfectedPopulation
 
-    #: Activity type
+    #: Physical activity of the infected during this short-range interaction. 
+    #  TODO: All types of physical activities in activity must also be in infected.activity (or reasonable).
     activity: Activity
 
-    #: Short-range expiration and respective presence
+    #: Expiratory activity of the infected during this short-range interaction. 
+    #  TODO: Validate that all types of expiratory activities in expiration are also in infected.expiration.
+    #  dmin and dmax are different for expiration and infected.expiration.
+    expiration: Expiration
+
+    #: Short-range interaction time
     presence: SpecificInterval
 
     #: Interpersonal distances
     distance: _VectorisedFloat
 
+    def __post_init__(self):
+        if self.infected.mask != Mask.types['No mask']:
+            raise ValueError("Cannot have short-range interactions with infected wearing mask.")
+        
+        if self.presence.boundaries()[0][0] < self.infected.presence.boundaries()[0][0] or self.presence.boundaries()[-1][-1] > self.infected.presence.boundaries()[-1][-1]:
+            raise ValueError("The short-range-interaction cannot last longer than the presence of the infected.")
+    
     def dilution_factor(self) -> _VectorisedFloat:
         '''
         The dilution factor for the respective expiratory activity type.
@@ -1379,39 +1394,39 @@ class ShortRangeModel:
         # The short range origin concentration does not consider the mask contribution.
         return self.expiration.aerosols(mask=Mask.types['No mask'])
 
-    def _normed_diluted_jet_origin_concentration(self):
+    def _normed_diluted_jet_concentration(self):
         return 1/self.dilution_factor()*self._normed_jet_origin_concentration()
 
-    def normalization_factor(self, infected: InfectedPopulation) -> _VectorisedFloat:
+    def normalization_factor(self) -> _VectorisedFloat:
         """
         The normalization factor applied to the short-range results. It refers to the emission
         rate per aerosol without accounting for the exhalation rate (viral load and f_inf).
         Result in (virions.cm^3)/(mL.m^3).
         """
         # Re-use the emission rate method divided by the BR contribution. 
-        return infected.emission_rate_per_aerosol_per_person_when_present() / infected.activity.exhalation_rate
+        return self.infected.emission_rate_per_aerosol_per_person_when_present() / self.infected.activity.exhalation_rate
     
-    def jet_origin_concentration(self, infected: InfectedPopulation) -> _VectorisedFloat:
+    def jet_origin_concentration(self) -> _VectorisedFloat:
         """
         The initial jet concentration at the source origin (mouth/nose).
         Returns the full result with the diameter dependent and independent variables, in virions/m^3.
         """
-        return self._normed_jet_origin_concentration() * self.normalization_factor(infected)
+        return self._normed_jet_origin_concentration() * self.normalization_factor()
     
-    def diluted_jet_origin_concentration(self, infected: InfectedPopulation) -> _VectorisedFloat:
+    def diluted_jet_concentration(self) -> _VectorisedFloat:
         """
         Virus short-range exposure concentration, as a function of time.
         Factor of normalization applied back here. Results in virions/m^3.
         """
-        return (self._normed_diluted_jet_origin_concentration() * 
-                self.normalization_factor(infected))
+        return (self._normed_diluted_jet_concentration() * 
+                self.normalization_factor())
     
     def short_range_concentration(self, concentration_model: ConcentrationModel, time):
         dilution_factor = self.dilution_factor()
         start, stop = self.presence.boundaries()[0]
         # Verifies if the given time falls within a short-range interaction
         if start <= time <= stop:
-            return (np.mean(self.diluted_jet_origin_concentration(concentration_model.infected))
+            return (np.mean(self.diluted_jet_concentration())
                     - np.mean(1/dilution_factor * concentration_model.concentration(time)))
         return 0.
 
