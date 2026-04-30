@@ -116,7 +116,7 @@ def _concentrations_with_sr_breathing(form: VirusFormData, model: models.Exposur
     for index, (start, stop) in enumerate([interaction.presence.boundaries()[0] for interaction in model.short_range]):
         if start <= time <= stop and form.short_range_interactions[model.identifier][index]['expiration'] == 'Breathing':
             return model.concentration(float(time)), fn_name
-    return model.concentration(float(time)), fn_name
+    return model.long_range_concentration(float(time)), fn_name
 
 
 def _calculate_deposited_exposure(model: models.ExposureModel, 
