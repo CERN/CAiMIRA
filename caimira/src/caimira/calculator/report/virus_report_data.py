@@ -2,6 +2,7 @@ import concurrent.futures
 import base64
 import dataclasses
 import io
+import copy
 import typing
 import numpy as np
 import matplotlib.pyplot as plt
@@ -447,7 +448,15 @@ def calculate_vl_scenarios_percentiles(model: mc.ExposureModel) -> typing.Dict[s
     scenarios = {}
     for percentil in (0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99):
         vl = np.quantile(viral_load, percentil)
-        specific_vl_scenario = dataclass_utils.nested_replace(model, {'model.virus.viral_load_in_sputum': vl})
+
+        new_conc_model = copy.deepcopy(model.concentration_model)
+        if isinstance(model.concentration_model, list):
+            new_conc_model = [dataclass_utils.nested_replace(cm, {'infected.virus.viral_load_in_sputum': vl}) for cm in model.concentration_model]
+        else:
+            cm = model.concentration_model
+            new_conc_model = dataclass_utils.nested_replace(cm, {'infected.virus.viral_load_in_sputum': vl})
+
+        specific_vl_scenario = dataclass_utils.nested_replace(model, {'concentration_model': new_conc_model})
         scenarios[str(vl)] = np.mean(
             specific_vl_scenario.infection_probability())
     return {
