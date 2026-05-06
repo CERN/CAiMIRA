@@ -1,12 +1,12 @@
 The [https://cern.ch/caimira](https://cern.ch/caimira) application is running on CERN's OpenShift platform. In order to set it up for the first time, we followed the documentation at [https://paas.docs.cern.ch/](https://paas.docs.cern.ch/). In particular we:
 
  * Added the OpenShift application deploy key to the GitLab repository
- * Created a Python 3.12 (the highest possible at the time of writing) application in OpenShift
+ * Created a Python 3.14 (the highest possible at the time of writing) application in OpenShift
  * Configured a generic webhook on OpenShift, and call that from the CI of the GitLab repository
 
 ## OpenShift templates
 
-For the first setup, get the [oc](https://docs.okd.io/3.11/cli_reference/get_started_cli.html) client and then login:
+For the first setup, get the [oc](https://docs.okd.io/3.14/cli_reference/get_started_cli.html) client and then login:
 
 ```console
 $ oc login https://api.paas.okd.cern.ch

@@ -57,7 +57,7 @@ Before proceeding with the development installation of CAiMIRA, ensure that your
 
 1. **Python Environment**:
 
-    - Python `3.9` or later.
+    - Python `3.14` or later.
     - `pip`, `setuptools` must but installed and up-to-date. You can update them by opening a terminal and running:
 
             python -m pip install --upgrade pip setuptools
