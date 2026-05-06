@@ -10,7 +10,7 @@ include:
    file: acc_py_devtools/templates/gitlab-ci/python.yml
 
 variables:
-  PY_VERSION: "3.11"
+  PY_VERSION: "3.14"
 
 # ###################################################################################################
 # Test code - CAiMIRA (model) and CERN CAiMIRA (CERN's UI)
@@ -48,16 +48,16 @@ test-cern-caimira-py311:
   extends:
     - .test-run
 
-test-caimira-py39:
+test-caimira-py314:
   variables:
-    PY_VERSION: "3.9"
+    PY_VERSION: "3.14"
     PROJECT_ROOT: "caimira"
   extends:
     - test-caimira-py311
 
-test-cern-caimira-py39:
+test-cern-caimira-py314:
   variables:
-    PY_VERSION: "3.9"
+    PY_VERSION: "3.14"
     PROJECT_ROOT: "cern_caimira"
   extends:
     - test-cern-caimira-py311
