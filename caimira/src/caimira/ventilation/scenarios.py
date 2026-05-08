@@ -12,7 +12,7 @@ ScenarioVar = tuple[models.Room, models.InfectedPopulation, models.Population] #
 
 def acl_1(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, float, str]:
     """Low-density community · residential · private offices"""
-    room = mc.Room(volume=100, humidity=0.5, inside_temp=mc.PiecewiseConstant(               # type: ignore
+    room = mc.Room(volume=252, humidity=0.5, inside_temp=mc.PiecewiseConstant(               # type: ignore
         (0, 24), (20+273.15, )))
 
     infected = mc.InfectedPopulation(                                                        # type: ignore
@@ -36,13 +36,13 @@ def acl_1(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, float, st
                 mask=models.Mask.types[mask_exposed],
                 host_immunity=0.,
             )
-    pi_max = 0.05
+    pi_max = 0.1
     scenario_name = "ACL-1: " + "Infected " + mask_infected + ", Exposed " + mask_exposed
     return (room, infected, exposed), pi_max, scenario_name
 
 def acl_2(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, float, str]:
     """General public spaces · offices · classrooms · retail """
-    room = mc.Room(volume=150, humidity=0.5, inside_temp=mc.PiecewiseConstant(               # type: ignore
+    room = mc.Room(volume=492, humidity=0.5, inside_temp=mc.PiecewiseConstant(               # type: ignore
         (0, 24), (20+273.15, )))
 
     infected = mc.InfectedPopulation(                                                        # type: ignore
@@ -72,7 +72,7 @@ def acl_2(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, float, st
 
 def acl_3(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, float, str]:
     """Healthcare-adjacent · vulnerable populations · congregate """
-    room = mc.Room(volume=150, humidity=0.3, inside_temp=mc.PiecewiseConstant(              # type: ignore
+    room = mc.Room(volume=660, humidity=0.3, inside_temp=mc.PiecewiseConstant(              # type: ignore
         (0, 24), (20+273.15, )))
 
     infected = mc.InfectedPopulation(                                                       # type: ignore
@@ -104,7 +104,7 @@ def acl_4(mask_infected: str, mask_exposed: str) -> tuple[ScenarioVar, float, st
     """Confirmed source · isolation rooms · AGP suites """
     if mask_exposed != 'FFP2':
         print(f'WARNING: For  ACL-4 the expected mask for the exposed is FFP2, got mask "{mask_exposed}".')
-    room = mc.Room(volume=40, humidity=0.3, inside_temp=mc.PiecewiseConstant(              # type: ignore
+    room = mc.Room(volume=60, humidity=0.3, inside_temp=mc.PiecewiseConstant(              # type: ignore
         (0, 24), (20+273.15, )))
 
     infected = mc.InfectedPopulation(                                                      # type: ignore
