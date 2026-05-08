@@ -20,27 +20,17 @@ def plot_probabilities(
     title: str = "",
     plot_dose: bool = False,
     save_to: typing.Optional[str] = None,
+    both_axis: bool = False,
     ):
 
     infection_probability = [model_response.calculate_infection_probability(air_exch_values=[air_exch], scenario=scenario) for air_exch in air_exch_list]
-
+    
+    exposure_model = get_models.get_exposure_model(air_exch_list[:1], model_response.first_vent_transition_times(scenario), scenario).build_model(1)
+    clean_air_per_sec_per_pers = find_air_exch.clean_air_per_sec_per_pers(air_exch_list, exposure_model)
+    
     print(f"60 ACH   =>   P(I) = {model_response.calculate_infection_probability(air_exch_values=[60], scenario=scenario)*100:.2f}%, Dose = {model_response.calculate_deposited_exposure(air_exch_values=[60], scenario=scenario):.2f}")
 
     fig, ax1 = plt.subplots(1, 1, figsize=figsize_prob)
-
-    ax1.plot(
-        air_exch_list,
-        infection_probability,
-        linewidth=2,
-        color="tab:blue",
-        label="Infection probability P(I)"
-    )
-    ax1.set_ylabel('Infection probability P(I)', color='tab:blue', fontsize=fontsize)
-    ax1.tick_params(axis='y', labelcolor='tab:blue', labelsize=ticksize)
-    ax1.set_xlabel("air exchange per hour", fontsize=fontsize)
-    ax1.set_xticks(np.arange(0, air_exch_list[-1]+5, 5))
-    ax1.tick_params(axis='x', labelsize=ticksize)
-    ax1.grid(True, linestyle="--", alpha=0.6)
 
     if plot_dose:
         dose_list = [model_response.calculate_deposited_exposure(air_exch_values=[air_exch], scenario=scenario) for air_exch in air_exch_list]
@@ -57,9 +47,17 @@ def plot_probabilities(
         ax2.set_ylabel('Viral dose', color='tab:red', fontsize=fontsize)
         ax2.tick_params(axis='y', labelcolor='tab:red', labelsize=ticksize)
 
-    else:
-        exposure_model = get_models.get_exposure_model(air_exch_list[:1], model_response.first_vent_transition_times(scenario), scenario).build_model(1)
-        clean_air_per_sec_per_pers = find_air_exch.clean_air_per_sec_per_pers(air_exch_list, exposure_model)
+    if both_axis:
+        ax1.plot(
+            air_exch_list,
+            infection_probability,
+            linewidth=2,
+            color="tab:blue",
+            label="Infection probability P(I)"
+        )
+
+        ax1.set_xlabel("air exchange per hour", fontsize=fontsize)
+        ax1.set_xticks(np.arange(0, air_exch_list[-1]+5, 5))
 
         ax2 = ax1.twiny()
         ax2.plot(
@@ -76,6 +74,25 @@ def plot_probabilities(
         ax2.spines['bottom'].set_position(('outward', 40))
         ax2.spines['top'].set_visible(False)
 
+    else:
+        ax1.plot(
+                clean_air_per_sec_per_pers,
+                infection_probability,
+                linewidth=2,
+                color="tab:blue",
+                label="Infection probability P(I)"
+            )
+        ax1.set_xlabel("clean air delivery (L/s/person)", fontsize=fontsize)
+        ax1.tick_params(axis='x', labelsize=ticksize)
+        ax1.set_xticks(np.arange(0, clean_air_per_sec_per_pers[-1]+5, 5))
+
+    ax1.set_ylabel('Infection probability P(I)', color='tab:blue', fontsize=fontsize)
+    ax1.tick_params(axis='y', labelcolor='tab:blue', labelsize=ticksize)
+    ax1.tick_params(axis='x', labelsize=ticksize)
+    ax1.grid(True, linestyle="--", alpha=0.6)
+    ax1.tick_params(axis='x', labelsize=ticksize)
+
+        
     for lim_probability_infection in lim_probability_infection_list:
         ax1.axhline(y=lim_probability_infection, color='k', linestyle='--', label=f'P(I) = {lim_probability_infection:.1%}')
         # if lim_probability_infection > 0:
@@ -119,7 +136,9 @@ def plot_probabilities(
             #         color="k"
             #     )
 
-    lines = ax1.get_lines() 
+    lines = ax1.get_lines()
+    if both_axis:
+        lines += ax2.get_lines() 
     if plot_dose:
         lines += ax2.get_lines()
     labels = [line.get_label() for line in lines]
@@ -235,7 +254,9 @@ def plot_model_concentration_results(
         new_axaex_ymax = max(extended_air_exch_list)*1.15
         if new_axaex_ymax > axaex_ymax:
             axaex_ymax = new_axaex_ymax
-        axaex.set_ylim((0,axaex_ymax))
+        if axaex_ymax != np.inf:
+            print(axaex_ymax, type(axaex_ymax))
+            axaex.set_ylim((0,axaex_ymax))
         axes.append(axaex)
 
     if plot_clean_air_delivery:
