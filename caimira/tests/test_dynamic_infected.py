@@ -140,19 +140,6 @@ def invalid_rooms_conc_model_list(all_infected_populations):
     ) for vol in [75,100]]
 
 @pytest.fixture
-def invalid_vent_conc_model_list(all_infected_populations):
-    """
-    Invalid list of concentration models because the ventilations are different.
-    """
-    return [models.ConcentrationModel(
-        data_registry=data_registry,
-        room = models.Room(75, models.PiecewiseConstant((0., 24.), (293,))),
-        ventilation = models.AirChange(interesting_times, air_exch),
-        infected = all_infected_populations[0],
-        evaporation_factor=0.3,
-    ) for air_exch in [10,100]]
-
-@pytest.fixture
 def valid_conc_model_list(all_infected_populations):
     return [models.ConcentrationModel(
         data_registry=data_registry,
@@ -177,7 +164,7 @@ def get_exposure_model(concentration_model_list) -> mc.ExposureModel:
         geographical_data=models.Cases(),
     )
 
-def test_common_params(valid_conc_model_list, invalid_viruses_conc_model_list, invalid_rooms_conc_model_list, invalid_vent_conc_model_list):
+def test_common_params(valid_conc_model_list, invalid_viruses_conc_model_list, invalid_rooms_conc_model_list):
     """
     Check that one cannot initialize an ExposureModel with ConcentrationModels 
     with different viruses, rooms, and ventilations.
@@ -186,13 +173,10 @@ def test_common_params(valid_conc_model_list, invalid_viruses_conc_model_list, i
         get_exposure_model(invalid_viruses_conc_model_list).build_model(1)
     with pytest.raises(ValueError):
         get_exposure_model(invalid_rooms_conc_model_list).build_model(1)
-    with pytest.raises(ValueError):
-        get_exposure_model(invalid_vent_conc_model_list).build_model(1)
 
     valid_model = get_exposure_model(valid_conc_model_list).build_model(1)
     assert isinstance(valid_model.virus, models.Virus)
     assert isinstance(valid_model.room, models.Room)
-    assert isinstance(valid_model.ventilation, models._VentilationBase)
 
 def test_population_state_change_times(valid_conc_model_list):
     expected_state_changes = [0.5, 1., 1.1, 2., 3., 5., 8.5, 12, 13., 17.5]

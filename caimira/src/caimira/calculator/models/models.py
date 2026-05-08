@@ -1670,9 +1670,19 @@ class ExposureModel:
             # the short range interaction is with does not have to be defined (?)
             raise NotImplementedError("Short range interactions with multiple infected populations not yet implemented.")
         
-        _ = self.virus
-        _ = self.room
-        _ = self.ventilation
+        viruses = [c_model.virus for c_model in self.concentration_model_list]
+        virus = viruses[0]
+        if any(v != virus for v in viruses):
+            raise ValueError("All infected must be infected with the same virus.")
+        rooms = [c_model.room for c_model in self.concentration_model_list]
+        room = rooms[0]
+        if any(r != room for r in rooms):
+            raise ValueError("All concentration models must describe the same room.")
+        
+        # TODO: test that all concentration models have overlapping ventilations
+        #       NOTE: Different concentration models can have different occupancy times, and therefore different
+        #       start and end times for which the ventilation is defined. Therefore, the ventilation objects 
+        #       must overlapp, but not neccecarily be identical.
 
         for c_model in self.concentration_model_list:
             # Check if the diameter is vectorised.
@@ -1699,27 +1709,11 @@ class ExposureModel:
 
     @property
     def virus(self):
-        viruses = [c_model.virus for c_model in self.concentration_model_list]
-        virus = viruses[0]
-        if any(v != virus for v in viruses[1:]):
-            raise ValueError("All infected must be infected with the same virus.")
-        return virus
+        return self.concentration_model_list[0].virus
     
     @property
     def room(self):
-        rooms = [c_model.room for c_model in self.concentration_model_list]
-        room = rooms[0]
-        if any(r != room for r in rooms[1:]):
-            raise ValueError("All concentration models must describe the same room.")
-        return room
-    
-    @property
-    def ventilation(self):
-        ventilations = [c_model.ventilation for c_model in self.concentration_model_list]
-        ventilation = ventilations[0]
-        if any(v != ventilation for v in ventilations[1:]):
-            raise ValueError("All concentration models must have the same ventilation.")
-        return ventilation
+        return self.concentration_model_list[0].room
 
     @method_cache
     def population_state_change_times(self) -> typing.List[float]:
