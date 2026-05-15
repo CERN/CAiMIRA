@@ -9,7 +9,7 @@ from caimira.calculator.validators.virus.virus_validator import build_expiration
 from caimira.calculator.store.data_registry import DataRegistry
 
 import caimira.ventilation.get_models as get_models
-import caimira.ventilation.find_air_exch as find_air_exch
+import caimira.ventilation.find_requirements as find_requirements
 
 
 data_registry=DataRegistry()
@@ -59,7 +59,7 @@ def shared_office_exposure_model(air_exch_values, vent_transition_times) -> mode
     ]
 )
 def test_carry_forward_air_change_times(vent_transition_times, air_exch_list, new_vent_transition_times, expected_new_air_exch_list):
-    assert find_air_exch.carry_forward_air_change_times(air_exch_list, vent_transition_times, new_vent_transition_times) == expected_new_air_exch_list
+    assert find_requirements.carry_forward_air_change_times(air_exch_list, vent_transition_times, new_vent_transition_times) == expected_new_air_exch_list
 
 @pytest.mark.parametrize(
     "air_exch_list, vent_transition_times",
@@ -74,5 +74,5 @@ def test_carry_forward_air_change_times(vent_transition_times, air_exch_list, ne
 def test_clean_air_per_sec_per_pers_conversion(air_exch_list, vent_transition_times):
     expected_clean_air_delivery = [(1/4)*(1000/3600)*50*air_exch for air_exch in air_exch_list]
     exposure_model = shared_office_exposure_model(air_exch_list, vent_transition_times)
-    clean_air_delivery = find_air_exch.clean_air_per_sec_per_pers(air_exch_list, exposure_model)
+    clean_air_delivery = find_requirements.clean_air_per_sec_per_pers(air_exch_list, exposure_model)
     npt.assert_allclose(clean_air_delivery, expected_clean_air_delivery)

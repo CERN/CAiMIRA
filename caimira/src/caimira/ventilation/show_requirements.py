@@ -1,10 +1,11 @@
 import typing
 import numpy as np
+import scipy.stats as stats
 import matplotlib.pyplot as plt
 
 import caimira.ventilation.get_models as get_models
 import caimira.ventilation.model_response as model_response
-import caimira.ventilation.find_air_exch as find_air_exch
+import caimira.ventilation.find_requirements as find_requirements
 from caimira.ventilation.scenarios import ScenarioVar
 
 figsize_prob = (7,6)
@@ -26,7 +27,7 @@ def plot_probabilities(
     infection_probability = [model_response.calculate_infection_probability(air_exch_values=[air_exch], scenario=scenario) for air_exch in air_exch_list]
     
     exposure_model = get_models.get_exposure_model(air_exch_list[:1], model_response.first_vent_transition_times(scenario), scenario).build_model(1)
-    clean_air_per_sec_per_pers = find_air_exch.clean_air_per_sec_per_pers(air_exch_list, exposure_model)
+    clean_air_per_sec_per_pers = find_requirements.clean_air_per_sec_per_pers(air_exch_list, exposure_model)
     
     print(f"60 ACH   =>   P(I) = {model_response.calculate_infection_probability(air_exch_values=[60], scenario=scenario)*100:.2f}%, Dose = {model_response.calculate_deposited_exposure(air_exch_values=[60], scenario=scenario):.2f}")
 
@@ -96,7 +97,7 @@ def plot_probabilities(
     for lim_probability_infection in lim_probability_infection_list:
         ax1.axhline(y=lim_probability_infection, color='k', linestyle='--', label=f'P(I) = {lim_probability_infection:.1%}')
         # if lim_probability_infection > 0:
-            # lim_air_exch, probability = find_air_exch.find_constant_air_exch(scenario, lim_probability_infection, hi=air_exch_list[-1])
+            # lim_air_exch, probability = find_requirements.find_constant_air_exch(scenario, lim_probability_infection, hi=air_exch_list[-1])
 
             # ax1.plot(
             #     lim_air_exch,
@@ -187,7 +188,7 @@ def plot_model_concentration_results(
         axviral_ymax = max(mean_viral)*1.1
     axviral.set_ylim((0,axviral_ymax))
 
-    clean_air_delivery = find_air_exch.clean_air_per_sec_per_pers(air_exch_list, exposure_model)
+    clean_air_delivery = find_requirements.clean_air_per_sec_per_pers(air_exch_list, exposure_model)
     print(f"Air changes per hour: {[round(air_exch, 2) for air_exch in air_exch_list]}")
     print(f"Clean air delivery (L/s/person): {[round(cld, 2) if type(cld)==float else cld for cld in clean_air_delivery]}")
 
@@ -237,7 +238,7 @@ def plot_model_concentration_results(
             
     if plot_air_exch:
         axaex = axviral.twinx()
-        extended_air_exch_list = find_air_exch.carry_forward_air_change_times(air_exch_list, vent_transition_times, times)
+        extended_air_exch_list = find_requirements.carry_forward_air_change_times(air_exch_list, vent_transition_times, times)
 
         assert len(times) == len(extended_air_exch_list) + 1
         extended_air_exch_list.append(extended_air_exch_list[-1])
@@ -261,8 +262,8 @@ def plot_model_concentration_results(
 
     if plot_clean_air_delivery:
         axcad = axviral.twinx()
-        extended_air_exch_list = find_air_exch.carry_forward_air_change_times(air_exch_list, vent_transition_times, times)
-        clean_air_delivery = find_air_exch.clean_air_per_sec_per_pers(extended_air_exch_list, exposure_model)
+        extended_air_exch_list = find_requirements.carry_forward_air_change_times(air_exch_list, vent_transition_times, times)
+        clean_air_delivery = find_requirements.clean_air_per_sec_per_pers(extended_air_exch_list, exposure_model)
 
         assert len(times) == len(clean_air_delivery) + 1
         clean_air_delivery.append(np.inf)
@@ -312,3 +313,16 @@ def plot_model_concentration_results(
     if save_to:
         plt.savefig(save_to)
     plt.show()
+
+def confidence_interval(air_exch, transition_times, scenario, confidence_level = 0.95, SAMPLE_SIZE=250000):
+    pis = [
+        np.mean(
+            get_models.get_exposure_model(
+                air_exch,
+                transition_times,
+                scenario,
+            ).build_model(SAMPLE_SIZE).infection_probability()
+        )
+        for _ in range(100)
+    ]
+    return stats.t.interval(confidence_level, df=len(pis)-1, loc=np.mean(pis), scale=np.std(pis, ddof=1) / np.sqrt(len(pis)))

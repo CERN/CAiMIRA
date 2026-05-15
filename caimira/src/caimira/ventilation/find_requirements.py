@@ -186,3 +186,10 @@ def get_new_air_exch_from_target_CO2(
         abs_CO2_emission += CO2_model.population.people_present(time)*CO2_model.normalization_factor()
 
     return np.mean(abs_CO2_emission / (room_volume * (target - background_concentration)))
+
+def concentration_limit(CO2_models, time, const_air_exch):  
+    limit = CO2_models[0].min_background_concentration()
+    for CO2_model in CO2_models:
+        V = CO2_model.room.volume
+        limit += CO2_model.population.people_present(time) / (V*const_air_exch) * CO2_model.normalization_factor()
+    return limit

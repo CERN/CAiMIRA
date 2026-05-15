@@ -8,7 +8,7 @@ from caimira.calculator.store.data_registry import DataRegistry
 
 import caimira.ventilation.deterministic_emitters as de
 import caimira.ventilation.get_models as get_models
-import caimira.ventilation.find_air_exch as find_air_exch
+import caimira.ventilation.find_requirements as find_requirements
 
 data_registry = DataRegistry()
 
@@ -56,7 +56,7 @@ def deterministic_CO2_models(CO2_emitters):
 )
 def test_get_new_air_exch_from_target_CO2_single_model(target_CO2_lim, time, expected_air_exch, deterministic_CO2_models, expected_CO2_lim):
     deterministic_CO2_model = deterministic_CO2_models[0]
-    air_exch_result = find_air_exch.get_new_air_exch_from_target_CO2([deterministic_CO2_model], target_CO2_lim, time)
+    air_exch_result = find_requirements.get_new_air_exch_from_target_CO2([deterministic_CO2_model], target_CO2_lim, time)
 
     new_air_exch = np.max([air_exch_result, 0.25])
     
@@ -82,7 +82,7 @@ def test_get_new_air_exch_from_target_CO2_single_model(target_CO2_lim, time, exp
     ]
 )
 def test_get_new_air_exch_from_target_CO2_multiple_models(target_CO2_lim, time, expected_air_exch, deterministic_CO2_models, expected_CO2_lim):
-    air_exch_result = find_air_exch.get_new_air_exch_from_target_CO2(deterministic_CO2_models, target_CO2_lim, time)
+    air_exch_result = find_requirements.get_new_air_exch_from_target_CO2(deterministic_CO2_models, target_CO2_lim, time)
 
     new_air_exch = np.max([air_exch_result, 0.25])
     
