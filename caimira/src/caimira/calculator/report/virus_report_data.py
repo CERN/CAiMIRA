@@ -116,7 +116,7 @@ def _concentrations_with_sr_breathing(form: VirusFormData, model: models.Exposur
     """
     for index, (start, stop) in enumerate([interaction.presence.boundaries()[0] for interaction in model.short_range]):
         if start <= time <= stop and form.short_range_interactions[model.identifier][index]['expiration'] == 'Breathing':
-            return np.array(model.concentration(float(time))).mean(), fn_name
+            return model.concentration(float(time)), fn_name
     return np.array(model.concentration_model.concentration(float(time))).mean(), fn_name
 
 
@@ -136,7 +136,7 @@ def _calculate_concentration(model: models.ExposureModel,
     Returns the concentration of viruses emitted by
     the infected population. Short- and long-range included.
     """
-    return np.array(model.concentration(float(time))).mean(), fn_name
+    return model.concentration(float(time)), fn_name
 
 
 def _calculate_co2_concentration(CO2_model: models.CO2ConcentrationModel, time: float, fn_name: typing.Optional[str] = None):
@@ -171,11 +171,11 @@ def merge_short_range_interactions(all_exposed_groups: typing.Dict[str, typing.A
     merged_interactions = defaultdict(list)
     for group in all_exposed_groups.values():
         for interaction in group["short_range_interactions"]:
-            merged_interactions[interaction["expiration"]].extend(interaction["presence_interval"])
+            merged_interactions[interaction["expiration"]].extend(interaction["presence_interval"]) 
     
     # Merge and sort intervals
     return [
-        {"expiration": exp, "presence_interval": merge_intervals(sorted(intervals, key=lambda x: x[0]))}
+        {"expiration": exp, "presence_interval": merge_intervals(sorted(intervals, key=lambda x: x[0]))} 
         for exp, intervals in merged_interactions.items()
     ]
 
@@ -547,7 +547,7 @@ def scenario_statistics(
         'probability_of_infection': np.mean(model.infection_probability()),
         'expected_new_cases': np.mean(model.expected_new_cases()),
         'concentrations': [
-            np.mean(model.concentration(time))
+            model.concentration(time)
             for time in sample_times
         ],
         'prob_probabilistic_exposure': model.total_probability_rule() if compute_prob_exposure else None,

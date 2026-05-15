@@ -266,8 +266,9 @@ class VirusFormData(FormData):
                     distances = short_range_distances(self.data_registry)
                     short_range[key].append(mc.ShortRangeModel(
                         data_registry=self.data_registry,
+                        infected=infected_population,
+                        activity=infected_population.activity, # TODO: allow specification of SR activity, as implemented in the backend (see doc)
                         expiration=expiration,
-                        activity=infected_population.activity,
                         presence=presence,
                         distance=distances,
                     ))
