@@ -70,7 +70,37 @@ def acl_2(mask_infected) -> tuple[ScenarioVar, float, str]:
     scenario_name = "ACL-2: " + "Infected " + mask_infected
     return (room, infected, exposed), pi_max, scenario_name
 
-def acl_3(mask_infected) -> tuple[ScenarioVar, float, str]:
+def acl_3a(mask_infected) -> tuple[ScenarioVar, float, str]:
+    """Healthcare-adjacent · vulnerable populations · congregate """
+    room = mc.Room(volume=660, humidity=0.3, inside_temp=mc.PiecewiseConstant(              # type: ignore
+        (0, 24), (20+273.15, )))
+
+    infected = mc.InfectedPopulation(                                                       # type: ignore
+                            data_registry=data_registry,
+                            number=1,
+                            presence=models.SpecificInterval(
+                                present_times=((0, 5), )),
+                            virus=virus_distributions(data_registry)['SARS_CoV_2_OMICRON'],
+                            mask=models.Mask.types[mask_infected],
+                            activity=activity_distributions(data_registry)['Seated'],
+                            expiration=build_expiration(data_registry,
+                                {'Breathing': 1/2, 'Speaking': 1/2}),
+                            host_immunity=0.,
+                        )
+
+    exposed = mc.Population(                                                               # type: ignore
+                number=50,
+                presence=models.SpecificInterval(
+                    present_times=((0, 5),)),
+                activity=activity_distributions(data_registry)['Light activity'],
+                mask=models.Mask.types[mask_infected],
+                host_immunity=0.,
+            )
+    pi_max = 0.01
+    scenario_name = "ACL-3: " + "Infected " + mask_infected
+    return (room, infected, exposed), pi_max, scenario_name
+
+def acl_3b(mask_infected) -> tuple[ScenarioVar, float, str]:
     """Healthcare-adjacent · vulnerable populations · congregate """
     room = mc.Room(volume=660, humidity=0.3, inside_temp=mc.PiecewiseConstant(              # type: ignore
         (0, 24), (20+273.15, )))
