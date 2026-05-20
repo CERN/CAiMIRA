@@ -72,7 +72,7 @@ def acl_2(mask_infected) -> tuple[ScenarioVar, float, str]:
 
 def acl_3a(mask_infected) -> tuple[ScenarioVar, float, str]:
     """Healthcare-adjacent · vulnerable populations · congregate """
-    room = mc.Room(volume=660, humidity=0.3, inside_temp=mc.PiecewiseConstant(              # type: ignore
+    room = mc.Room(volume=612, humidity=0.3, inside_temp=mc.PiecewiseConstant(              # type: ignore
         (0, 24), (20+273.15, )))
 
     infected = mc.InfectedPopulation(                                                       # type: ignore
