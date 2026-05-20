@@ -40,16 +40,29 @@ def max_occupancy(exposure_model: models.ExposureModel) -> int:
             max_n = n_occupants
     return max_n
 
-def clean_air_per_sec_per_pers(
+def ACH_to_CADR(
         air_change_per_hour_list: list[float], 
-        exposure_model: models.ExposureModel
+        scenario: ScenarioVar,
     ) -> list[float]:
     """
     Convert from air exchange per hour to liter per second per person.
     """
+    exposure_model = get_models.get_exposure_model([0], model_response.first_vent_transition_times(scenario), scenario).build_model(1)
     volume: float = exposure_model.concentration_model.room.volume # type: ignore
     n_occupants = max_occupancy(exposure_model)
     return [1000 / 3600 * air_exch * volume / n_occupants for air_exch in air_change_per_hour_list]
+
+def CADR_to_ACH(
+        CADR_list: list[float], 
+        scenario: ScenarioVar,
+    ) -> list[float]:
+    """
+    Convert from liter per second per person to air exchange per hour.
+    """
+    exposure_model = get_models.get_exposure_model([0], model_response.first_vent_transition_times(scenario), scenario).build_model(1)
+    volume: float = exposure_model.concentration_model.room.volume # type: ignore
+    n_occupants = max_occupancy(exposure_model)
+    return [3600 / 1000 *  clean_air_delivery / volume * n_occupants for clean_air_delivery in CADR_list]
 
 def find_constant_air_exch(
     scenario: ScenarioVar,

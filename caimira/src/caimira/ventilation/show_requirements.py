@@ -26,8 +26,7 @@ def plot_probabilities(
 
     infection_probability = [model_response.calculate_infection_probability(air_exch_values=[air_exch], scenario=scenario) for air_exch in air_exch_list]
     
-    exposure_model = get_models.get_exposure_model(air_exch_list[:1], model_response.first_vent_transition_times(scenario), scenario).build_model(1)
-    clean_air_per_sec_per_pers = find_requirements.clean_air_per_sec_per_pers(air_exch_list, exposure_model)
+    clean_air_per_sec_per_pers = find_requirements.ACH_to_CADR(air_exch_list, scenario)
     
     print(f"60 ACH   =>   P(I) = {model_response.calculate_infection_probability(air_exch_values=[60], scenario=scenario)*100:.2f}%, Dose = {model_response.calculate_deposited_exposure(air_exch_values=[60], scenario=scenario):.2f}")
 
@@ -188,7 +187,7 @@ def plot_model_concentration_results(
         axviral_ymax = max(mean_viral)*1.1
     axviral.set_ylim((0,axviral_ymax))
 
-    clean_air_delivery = find_requirements.clean_air_per_sec_per_pers(air_exch_list, exposure_model)
+    clean_air_delivery = find_requirements.ACH_to_CADR(air_exch_list, scenario)
     print(f"Air changes per hour: {[round(air_exch, 2) for air_exch in air_exch_list]}")
     print(f"Clean air delivery (L/s/person): {[round(cld, 2) if type(cld)==float else cld for cld in clean_air_delivery]}")
 
@@ -263,7 +262,7 @@ def plot_model_concentration_results(
     if plot_clean_air_delivery:
         axcad = axviral.twinx()
         extended_air_exch_list = find_requirements.carry_forward_air_change_times(air_exch_list, vent_transition_times, times)
-        clean_air_delivery = find_requirements.clean_air_per_sec_per_pers(extended_air_exch_list, exposure_model)
+        clean_air_delivery = find_requirements.ACH_to_CADR(extended_air_exch_list, scenario)
 
         assert len(times) == len(clean_air_delivery) + 1
         clean_air_delivery.append(np.inf)
@@ -316,7 +315,7 @@ def plot_model_concentration_results(
 
 def confidence_interval(air_exch, transition_times, scenario, confidence_level = 0.95, SAMPLE_SIZE=250000):
     pis = [
-        np.mean(
+        np.nanmean(
             get_models.get_exposure_model(
                 air_exch,
                 transition_times,
