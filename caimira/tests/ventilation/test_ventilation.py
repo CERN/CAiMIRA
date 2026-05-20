@@ -15,15 +15,10 @@ import caimira.ventilation.find_requirements as find_requirements
 data_registry=DataRegistry()
 
 
-def shared_office_exposure_model(air_exch_values, vent_transition_times) -> models.ExposureModel:
-    return mc.ExposureModel( # type: ignore
-        data_registry=data_registry,
-        concentration_model=mc.ConcentrationModel( # type: ignore
-            data_registry=data_registry,
-            room=mc.Room(volume=50, humidity=0.6, inside_temp=mc.PiecewiseConstant( # type: ignore
-                (0, 24), (20+273.15, ))),
-            ventilation=get_models.custom_ventilation(air_exch_values=air_exch_values, transition_times=vent_transition_times),
-            infected=mc.InfectedPopulation( # type: ignore
+def shared_office_scenario() -> models.ExposureModel:
+    room=mc.Room(volume=50, humidity=0.6, inside_temp=mc.PiecewiseConstant( # type: ignore
+                (0, 24), (20+273.15, )))
+    infected=mc.InfectedPopulation( # type: ignore
                             data_registry=data_registry,
                             number=1,
                             presence=models.SpecificInterval(
@@ -34,20 +29,16 @@ def shared_office_exposure_model(air_exch_values, vent_transition_times) -> mode
                             expiration=build_expiration(data_registry,
                                 {'Speaking': 1/3, 'Breathing': 2/3}),
                             host_immunity=0.,
-                        ),
-            evaporation_factor=0.3,
-        ),
-        short_range=(),
-        exposed=mc.Population( # type: ignore
+                        )
+    exposed=mc.Population( # type: ignore
                 number=3,
                 presence=models.SpecificInterval(
                     present_times=((8.5, 12.5), (13.5, 17.5))),
                 activity=activity_distributions(data_registry)['Seated'],
                 mask=models.Mask.types['No mask'],
                 host_immunity=0.,
-            ),
-        geographical_data=(),
-    ).build_model(size=1)
+            )
+    return room, infected, exposed
 
 @pytest.mark.parametrize(
     "vent_transition_times, air_exch_list, new_vent_transition_times, expected_new_air_exch_list",
@@ -62,17 +53,18 @@ def test_carry_forward_air_change_times(vent_transition_times, air_exch_list, ne
     assert find_requirements.carry_forward_air_change_times(air_exch_list, vent_transition_times, new_vent_transition_times) == expected_new_air_exch_list
 
 @pytest.mark.parametrize(
-    "air_exch_list, vent_transition_times",
+    "air_exch_list",
     [
-        [[0.25], [0, 0.001]],
-         [[1], [0, 0.001]],
-         [[0.25, 1], [0, 9, 9.1]],
-        [[0.25, 1, 9, 2, 0.5, 1], [0, 4, 9, 12.5, 13, 17, 17.000001]],
-        [[0.25, 1], [0, 18, 18.0001]],
+        [0.25],
+         [1],
+         [0.25, 1],
+        [0.25, 1, 9, 2, 0.5, 1],
+        [0.25, 1],
     ]
 )
-def test_clean_air_per_sec_per_pers_conversion(air_exch_list, vent_transition_times):
+def test_conversion(air_exch_list):
     expected_clean_air_delivery = [(1/4)*(1000/3600)*50*air_exch for air_exch in air_exch_list]
-    exposure_model = shared_office_exposure_model(air_exch_list, vent_transition_times)
-    clean_air_delivery = find_requirements.clean_air_per_sec_per_pers(air_exch_list, exposure_model)
+    clean_air_delivery = find_requirements.ACH_to_CADR(air_exch_list, shared_office_scenario())
+    air_exch_list_result = find_requirements.CADR_to_ACH(clean_air_delivery, shared_office_scenario())
     npt.assert_allclose(clean_air_delivery, expected_clean_air_delivery)
+    npt.assert_allclose(air_exch_list_result, air_exch_list)
