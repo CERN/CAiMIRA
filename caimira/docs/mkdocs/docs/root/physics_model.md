@@ -1,16 +1,53 @@
 # Physics of the Model
 
-This page describes the CAiMIRA model and its dependence on the Particles diameter.
+The CAiMIRA model mimics the physical process of viral transmission through five stages presented in the topmost part of Figure 1: 
+Emission, removal, concentration, dose, and infection probability. 
+Along with viral transmission, CAiMIRA also simulates emission, removal, and concentration of $CO_2$, as shown in the lower part of Figure 1.
+[![CAiMIRA Structure](CAiMIRA_structure.png)](CAiMIRA_structure.png)
+*Figure 1: Structure of the CAiMIRA model showing the viral transmission and $CO_2$ simulation processes.*
 
-## Context
+The viral **emission rate** – $\mathrm{vR}(D)$, **removal rate** – $\mathrm{vRR}(D)$, and **concentration** – $C(t, D)$ are considered for a given aerosol diameter $D$,
+as the behavior of the virus-laden particles in the room environment and inside the susceptible host (once inhaled) are diameter-dependent. The total viral dose deposited in the respiratory tract
+
+$\mathrm{vD^{total}} =\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{vD(D)} \mathrm{d}D$
+
+is estimated by Monte Carlo integration (see below). For computational efficiency in the model inplementation, the diameter-dependent dose $\mathrm{vD(D)}$ is factored into three components: 
+A probability distribution of $D$, a diameter-independent component, and a remaining diameter-dependent component. 
+Because the viral concentration is a factor of the dose, and the viral emission rate is a factor of the viral concentration, $C(t, D)$ and $\mathrm{vR}(D)$ are also factored into probability distribution of $D$, a diameter-independent component, and a remaining diameter-dependent component (details below).
+
+This page describes the derivation of the equations specifying the emission rate, removal rate, and concentration of virions and $CO_2$, as well as the viral dose exposure and probability of infection (see Figure 1). 
+After having derived the full equations, it is described how the computations are devided into different classes and methods in the CAiMIRA implementation for computational efficiency.
+
+
+<details>
+<summary>Monte Carlo Integration</summary>
+Monte Carlo integration takes advantage of the fact that the expected value of a function g of a random variable D can be approximated by drawing samples {D_1, D_2, ..., D_s} from the probability distribution p(D) and compute the average. That is,
+
+$E[g(D)] = \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{g}(D) \cdot \mathrm{p}(D) \mathrm{d}D \approx \frac{1}{S}\sum_{i=1}^S \mathrm{g}(D)$ 
+
+The approximation improves for a larger number of samples. For computational efficiency, however, the number of samples should not be unneccecarily high. The lower the variability of p(D), the less samples are needed to stabilize the results. Therefore, one wish to choose a probability distribution p(D) that contains as much information about D as possible.
+</details>
+
+## Backend Structure
 
 The `caimira.calculator.validators` package contains modules responsible for binding all input values from the request to their respective model variables. These modules, `co2.co2_validator` and `virus.virus_validator`, inherit from the parent `form_validator` module, and handle input validation for the CO<sub>2</sub> and virus model generators, respectively.
 The `caimira.calculator.report` package contains modules responsible for binding all results from the model calculations into the respective output variables in the request output. These modules, `co2_report_data` and `virus_report_data`, handle outputs for the CO<sub>2</sub> and virus model, respectively.
 The `caimira.models.models` module itself implements the core CAiMIRA methods.  A useful feature of the implementation is that we can benefit from vectorization, which allows running multiple parameterization of the model at the same time.
 
-Unlike other similar models, some of the CAiMIRA variables are considered for a given aerosol diameter $D$,
-as the behavior of the virus-laden particles in the room environment and inside the susceptible host (once inhaled) are diameter-dependent.
-Here, these variables are identified by their functional dependency on $D$, as for the **emission rate** – $\mathrm{vR}(D)$, **removal rate** – $\mathrm{vRR}(D)$, and **concentration** – $C(t, D)$.
+
+## Emission
+### Separation and Averaging of Monte Carlo Random Variables
+## Removal
+## Concentration
+### Long-Range Compartment
+### Short-Range Compartment
+### Separation and Averaging of Monte Carlo Random Variables
+## Dose
+### Separation, Averaging, and Integration of Monte Carlo Random Variables
+## Infection Probability
+
+
+## Context
 
 Despite the outcome of the CAiMIRA results include the entire range of diameters, throughout the model,
 most of the variables and parameters are kept in their diameter-dependent form for any possible detailed analysis of intermediate results.
