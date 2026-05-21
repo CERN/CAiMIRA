@@ -15,15 +15,6 @@ is estimated by Monte Carlo integration (see below). For computational efficienc
 A probability distribution of $D$, a diameter-independent component, and a remaining diameter-dependent component. 
 Because the viral concentration is a factor of the dose, and the viral emission rate is a factor of the viral concentration, $C(t, D)$ and $\mathrm{vR}(D)$ are also factored into probability distribution of $D$, a diameter-independent component, and a remaining diameter-dependent component (details below).
 
-<details>
-<summary>Monte Carlo Integration</summary>
-Monte Carlo integration takes advantage of the fact that the expected value of a function g of a random variable D can be approximated by drawing samples {D_1, D_2, ..., D_s} from the probability distribution p(D) and compute the average. That is,
-
-$E[g(D)] = \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{g}(D) \cdot \mathrm{p}(D) \mathrm{d}D \approx \frac{1}{S}\sum_{i=1}^S \mathrm{g}(D)$ 
-
-The approximation improves for a larger number of samples. For computational efficiency, however, the number of samples should not be unneccecarily high. The lower the variability of p(D), the less samples are needed to stabilize the results. Therefore, one wish to choose a probability distribution p(D) that contains as much information about D as possible.
-</details>
-
 This page describes the derivation of the equations specifying the emission rate, removal rate, and concentration of virions and $CO_2$, as well as the viral dose exposure and probability of infection (see Figure 1). 
 After having derived the full equations, it is described how the computations are devided into different classes and methods in the CAiMIRA implementation for computational efficiency.
 
@@ -62,22 +53,51 @@ f_{\mathrm{amp},j,i} =
 \end{cases}
 $$
 
-The emission rate $\mathrm{vR}(D)$ is kept in its diameter-dependent form, as an array over the diameter, for computation of the viral concentration and dose.
-However, one may integrate over $D$ to find the total emission rate:
+Note that the diameter-dependence is kept at this stage. Since other parameters downstream in code are also diameter-dependent, the Monte-Carlo integration over the particle diameter is computed at the level of the dose $\mathrm{vD^{total}}$.
+In case one would like to have intermediate results for emission rate, one approximate
+
 $\mathrm{vR}^{total} = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} {\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{in}} \cdot f_{\mathrm{inf}} \cdot E_c(D) \mathrm{d}D = = {\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{in}} \cdot f_{\mathrm{inf}} \cdot E_{c,j}^{\mathrm{total}}$
+
 for 
+
 $E_{c,j}^{\mathrm{total}} = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} E_c(D) \mathrm{d}D $
-which is approximated using Monte Carlo integration over the particle diameter.
+
+using Monte Carlo integration.
 
 ### Probability distribution of the particle diameter D
-When approxing integrals over the particle diameter by Monte Carlo integration, we need a probability distribution $p_D(D)$ to sample the particle diameter $D$ from. 
+When Monte Carlo integrating over the particle diameter, we need a probability distribution $p_D(D)$ to sample the particle diameter $D$ from. 
 Observe that
+
 $p_D(D)=\frac{N_p(D)}{K}=\sum_{i \in I(j)} \frac{c_{n,i}}{K}\left[\frac{1}{D\sqrt{2 \pi} \sigma_{D_i}} \exp{-\frac{(\ln D -\mu_{D_i})^2}{2 (\sigma_{D_i})^2}}\right]$
+
 is a mixture distribution: the sum of three log-normal probability distributions weighed by $w_i = \frac{c_{n,i}}{K}$ such that $w_i>0$ and $\sum_{i \in I(j)} w_i =1$. 
 
-Whenever an integral over $D$ is approximated by Monte Carlo integration in CAiMIRA, $D$ is sampled from $p_D(D)$ truncated between $D_{\mathrm{min}}$ and $D_{\mathrm{min}}$
+In the CAiMIRA model, $D$ is sampled from $p_D(D)$ truncated between $D_{\mathrm{min}}$ and $D_{\mathrm{min}}$ when calling the function `calculator.models.monte_carlo.data.expiration_distribution()`, which retrieves the truncated $p_D(D)$ from methods of the class `calculator.models.monte_carlo.data.BLOModel`.
 
-### Separation and Averaging of Monte Carlo Random Variables
+<details>
+<summary>Monte Carlo Integration</summary>
+Monte Carlo integration takes advantage of the fact that the expected value of a function g of a random variable D can be approximated by drawing samples {$D_1$, $D_2$, ...,$ D_S$} from the probability distribution p(D) and compute the average. That is,
+
+$E[g(D)] = \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{g}(D) \cdot \mathrm{p}(D) \mathrm{d}D \approx \frac{1}{S}\sum_{i=1}^S \mathrm{g}(D_i)$ 
+
+The approximation improves for a larger number of samples. For computational efficiency, however, the number of samples should not be unneccecarily high. The lower the variability of p(D), the less samples are needed to stabilize the results. Therefore, one wish to choose a probability distribution p(D) that contains as much information about D as possible.
+</details>
+
+Note that the analytical integrals approximated by Monte Carlo integration in CAiMIRA does not explisitly include $p_D(D)$. 
+Generally, $\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{h}(D)$ being approximated by Monte Carlo integration means drawing samples {$D_1$, $D_2$, ...,$ D_S$} from the probability distribution p(D) and computing $\frac{1}{S}\sum_{i=1}^S \frac{\mathrm{h}(D_i)}{p_D(D_i)}$.
+
+Every quantity $\mathrm{h}(D)$ that is approximated by Monte Carlo integration in the CAiMIRA model has $N_p(D)$ as a linear factor which will cancel the $N_p(D)$ factor of $p_D(D)$, so the fraction $\frac{\mathrm{h}(D_i)}{p_D(D_i)}$ will not include $N_p(D)$.
+
+
+### Computation of the Emission Rate
+The computation of the emission rate $\mathrm{vR}(D)$ in CAiMIRA can be divided into three steps:
+
+1. Calculate the diameter-**independent** component of $\mathrm{vR}(D)$, i.e. ${\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{in}} \cdot f_{\mathrm{inf}}$, in `caimira.models.models.InfectedPopulation.emission_rate_per_aerosol_per_person_when_present()`. 
+2. Draw S samples {$D_1$, $D_2$, ...,$D_S$} from p(D) (default S = 250 000 samples) when creating an `caimira.models.models.Expiration` object by calling the function `calculator.models.monte_carlo.data.expiration_distribution()`.
+3. Compute the diameter-**dependent** $\frac{E_{c,j}(D_i)}{p_D(D_i)} = K \cdot V_p(D_i) \cdot (1 − η_\mathrm{out}(D_i))$ for every $D_i \in ${$D_1$, $D_2$, ...,$D_S$} in `caimira.models.models.InfectedPopulation.aerosols()`.
+
+Calculate the full emission rate (per person infected), which is the multiplication of the two previous methods, and corresponds to $\mathrm{vR(D)}$: `caimira.models.models._PopulationWithVirus.emission_rate_per_person_when_present()`.
+
 The diameter-independent component $BR_k \cdot vl_{in} \cdot f_{inf}$ of the emission rate is 
 ## Removal
 ## Concentration
@@ -123,20 +143,9 @@ To summarize, the Expiration object contains, as a vectorised float, a sample of
 
 ## Emission Rate - vR(D)
 
-The mathematical equations to calculate $\mathrm{vR}(D)$ are defined in the paper - Henriques, A. et al. <sup>[2](#id8)</sup> - as follows:
 
-$\mathrm{vR}(D)_j= \mathrm{vl_{in}} \cdot E_{c,j}(D,f_{\mathrm{amp}},\eta_{\mathrm{out}}(D)) \cdot {\mathrm{BR}}_{\mathrm{k}}$ ,
 
-$E_{c,j}^{\mathrm{total}} = \int_0^{D_{\mathrm{max}}} E_{c,j}(D)\, \mathrm{d}D$ .
-
-The later integral, which is giving the total volumetric particle emission concentration (in mL/m<sub>3</sub> ), is a example of a numerical Monte-Carlo integration over the particle diameters,
-since $E_{c,j}(D)$ is a diameter-dependent quantity. $E^{\mathrm{total}}_{c, j}$ is calculated from the mean of the Monte-Carlo sample $E_{c,j}(D)$.
-Note that $D_{\mathrm{max}}$ value will differ, depending on the type of exposure (see below).
-
-In the code, for a given Expiration, we use different methods to perform the calculations *step-by-step*:
-
-1. Calculate the non aerosol-dependent quantities in the emission rate per person infected, which is the multiplication of the diameter-**independent** variables: `caimira.models.models.InfectedPopulation.emission_rate_per_aerosol_per_person_when_present()`. This corresponds to the $\mathrm{vl_{in}} \cdot \mathrm{BR_{k}}$ part of the $\mathrm{vR}(D)$ equation, together with the fraction of infectious virus, $f_{\mathrm{inf}}$.
-2. Calculate the diameter-**dependent** variable `caimira.models.models.InfectedPopulation.aerosols()`, which is the result of $E_{c,j}(D) = N_p(D) \cdot V_p(D) \cdot (1 − η_\mathrm{out}(D))$ (in mL/(m<sub>3</sub> .µm)), with $N_p(D)$ being the product of the BLO distribution by the scaling factor $cn$. Note that this result is not integrated over the diameters at this stage, thus the units are still  *‘per aerosol diameter’*.
+variable `caimira.models.models.InfectedPopulation.aerosols()`, which is the result of $E_{c,j}(D) = N_p(D) \cdot V_p(D) \cdot (1 − η_\mathrm{out}(D))$ (in mL/(m<sub>3</sub> .µm)), with $N_p(D)$ being the product of the BLO distribution by the scaling factor $cn$. Note that this result is not integrated over the diameters at this stage, thus the units are still  *‘per aerosol diameter’*.
 3. Calculate the full emission rate (per person infected), which is the multiplication of the two previous methods, and corresponds to $\mathrm{vR(D)}$: `caimira.models.models._PopulationWithVirus.emission_rate_per_person_when_present()`.
 
 Note that the diameter-dependence is kept at this stage. Since other parameters downstream in code are also diameter-dependent, the Monte-Carlo integration over the aerosol sizes is computed at the level of the dose $\mathrm{vD^{total}}$.
