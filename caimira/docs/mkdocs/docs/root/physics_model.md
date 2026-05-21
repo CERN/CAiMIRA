@@ -15,10 +15,6 @@ is estimated by Monte Carlo integration (see below). For computational efficienc
 A probability distribution of $D$, a diameter-independent component, and a remaining diameter-dependent component. 
 Because the viral concentration is a factor of the dose, and the viral emission rate is a factor of the viral concentration, $C(t, D)$ and $\mathrm{vR}(D)$ are also factored into probability distribution of $D$, a diameter-independent component, and a remaining diameter-dependent component (details below).
 
-This page describes the derivation of the equations specifying the emission rate, removal rate, and concentration of virions and $CO_2$, as well as the viral dose exposure and probability of infection (see Figure 1). 
-After having derived the full equations, it is described how the computations are devided into different classes and methods in the CAiMIRA implementation for computational efficiency.
-
-
 <details>
 <summary>Monte Carlo Integration</summary>
 Monte Carlo integration takes advantage of the fact that the expected value of a function g of a random variable D can be approximated by drawing samples {D_1, D_2, ..., D_s} from the probability distribution p(D) and compute the average. That is,
@@ -28,6 +24,9 @@ $E[g(D)] = \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{g}(D) \cdot \mathr
 The approximation improves for a larger number of samples. For computational efficiency, however, the number of samples should not be unneccecarily high. The lower the variability of p(D), the less samples are needed to stabilize the results. Therefore, one wish to choose a probability distribution p(D) that contains as much information about D as possible.
 </details>
 
+This page describes the derivation of the equations specifying the emission rate, removal rate, and concentration of virions and $CO_2$, as well as the viral dose exposure and probability of infection (see Figure 1). 
+After having derived the full equations, it is described how the computations are devided into different classes and methods in the CAiMIRA implementation for computational efficiency.
+
 ## Backend Structure
 
 The `caimira.calculator.validators` package contains modules responsible for binding all input values from the request to their respective model variables. These modules, `co2.co2_validator` and `virus.virus_validator`, inherit from the parent `form_validator` module, and handle input validation for the CO<sub>2</sub> and virus model generators, respectively.
@@ -36,7 +35,50 @@ The `caimira.models.models` module itself implements the core CAiMIRA methods.  
 
 
 ## Emission
+Infectious individuals inside the room are assumed to be the only source of virus. Their emission rate per unit diameter of infectious virus is
+
+$\mathrm{vR}(D)= {\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{in}} \cdot f_{\mathrm{inf}} \cdot E_c(D)$
+
+given the breathing rate $BR_k$ for a constant physical activity $k \in \{\mathrm{Seated}, \mathrm{Standing}, \mathrm{Light},$ $\mathrm{Moderate}, \mathrm{Heavy}\}$. $vl_{\mathrm{in}}$ is the viral load in the respiratory tract (in RNA copies per mL) and $f_{inf}$ is the fraction of infectious virus. 
+$E_c(D)$ represents the volumetric particle emission concentration per unit diameter (in mL/(m<sub>3</sub> .µm)) given by
+
+$E_{c,j}(D) = N_p(D) \cdot V_p(D) \cdot (1 − η_\mathrm{out}(D))$
+
+where $V_p(D)$ is the particles' individual volume and $\eta_{out}$ is the outward mask efficiency. For an expiratory activity $j \subseteq \{\mathrm{Breathing}, \mathrm{Speaking}, \mathrm{Shouting}\}$, the number of particles with diameter $D$ is given by 
+
+$N_{p}(D)=\sum_{\forall j} \sum_{i \in \{B,L,O\}} a_j \cdot f_{\mathrm{amp}, j, i} \cdot c_{n,i} \cdot \left[\frac{1}{D\sqrt{2 \pi} \sigma_{D_i}} \exp{-\frac{(\ln D -\mu_{D_i})^2}{2 (\sigma_{D_i})^2}}\right]$
+
+for B = bronchial, L = larynx, O = oral being the sources of the emitted particles. We have $I(\mathrm{Breathing}) = \{B\}$ and $I(\mathrm{Speaking}) = I(\mathrm{Shouting}) = \{B, L, O\}$. $a_j$ is the fraction of time the infected performes each expiratory activity.
+$c_{n,i}$ is the particle emission concentration, and $\mu_{D_i}$ and $\sigma_{D_i}$ are the mean and standard deviations, respectively, of the log-normal distribution found to fit the number of expired particles with diameter $D$, for $i \in \{B, L, O\}$ \citep{BLOfit}. 
+$f_{\mathrm{amp}, j, i}$ is the amplitude of the vocalization, defined as 
+
+$$
+f_{\mathrm{amp},j,i} =
+\begin{cases}
+1, & \text{if } i = B\\[2mm]
+0, & \text{if } i \in \{L,O\} \text{ and } j = \text{Breathing}\\[2mm]
+1, & \text{if } i \in \{L,O\} \text{ and } j = \text{Speaking} \\[2mm]
+5, & \text{if } i \in \{L,O\} \text{ and } j = \text{Shouting}
+\end{cases}
+$$
+
+The emission rate $\mathrm{vR}(D)$ is kept in its diameter-dependent form, as an array over the diameter, for computation of the viral concentration and dose.
+However, one may integrate over $D$ to find the total emission rate:
+$\mathrm{vR}^{total} = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} {\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{in}} \cdot f_{\mathrm{inf}} \cdot E_c(D) \mathrm{d}D = = {\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{in}} \cdot f_{\mathrm{inf}} \cdot E_{c,j}^{\mathrm{total}}$
+for 
+$E_{c,j}^{\mathrm{total}} = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} E_c(D) \mathrm{d}D $
+which is approximated using Monte Carlo integration over the particle diameter.
+
+### Probability distribution of the particle diameter D
+When approxing integrals over the particle diameter by Monte Carlo integration, we need a probability distribution $p_D(D)$ to sample the particle diameter $D$ from. 
+Observe that
+$p_D(D)=\frac{N_p(D)}{K}=\sum_{i \in I(j)} \frac{c_{n,i}}{K}\left[\frac{1}{D\sqrt{2 \pi} \sigma_{D_i}} \exp{-\frac{(\ln D -\mu_{D_i})^2}{2 (\sigma_{D_i})^2}}\right]$
+is a mixture distribution: the sum of three log-normal probability distributions weighed by $w_i = \frac{c_{n,i}}{K}$ such that $w_i>0$ and $\sum_{i \in I(j)} w_i =1$. 
+
+Whenever an integral over $D$ is approximated by Monte Carlo integration in CAiMIRA, $D$ is sampled from $p_D(D)$ truncated between $D_{\mathrm{min}}$ and $D_{\mathrm{min}}$
+
 ### Separation and Averaging of Monte Carlo Random Variables
+The diameter-independent component $BR_k \cdot vl_{in} \cdot f_{inf}$ of the emission rate is 
 ## Removal
 ## Concentration
 ### Long-Range Compartment
