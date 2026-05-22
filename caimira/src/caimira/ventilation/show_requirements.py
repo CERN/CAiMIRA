@@ -8,8 +8,8 @@ import caimira.ventilation.model_response as model_response
 import caimira.ventilation.find_requirements as find_requirements
 from caimira.ventilation.scenarios import ScenarioVar
 
-figsize_prob = (7,6)
-figsize_conc = (9,6)
+figsize_prob = (7,4)
+figsize_conc = (10,6)
 titlesize = 16
 fontsize = 14
 ticksize = 12
@@ -67,7 +67,7 @@ def plot_probabilities(
                 color="tab:blue",
                 label="Infection probability P(I)"
             )
-        ax2.set_xlabel("clean air delivery (L/s/person)", fontsize=fontsize)
+        ax2.set_xlabel("CADR [L/s/person]", fontsize=fontsize)
         ax2.tick_params(axis='x', labelsize=ticksize)
         ax2.xaxis.set_ticks_position('bottom')
         ax2.xaxis.set_label_position('bottom')
@@ -82,7 +82,7 @@ def plot_probabilities(
                 color="tab:blue",
                 label="Infection probability P(I)"
             )
-        ax1.set_xlabel("clean air delivery (L/s/person)", fontsize=fontsize)
+        ax1.set_xlabel("CADR [L/s/person]", fontsize=fontsize)
         ax1.tick_params(axis='x', labelsize=ticksize)
         ax1.set_xticks(np.arange(0, clean_air_per_sec_per_pers[-1]+5, 5))
 
@@ -137,8 +137,6 @@ def plot_probabilities(
             #     )
 
     lines = ax1.get_lines()
-    if both_axis:
-        lines += ax2.get_lines() 
     if plot_dose:
         lines += ax2.get_lines()
     labels = [line.get_label() for line in lines]
@@ -151,8 +149,9 @@ def plot_probabilities(
 
 def plot_model_concentration_results(
         scenario: ScenarioVar,
-        air_exch_list: list[float], 
-        vent_transition_times: typing.Optional[list] = None,  
+        air_exch_list: list[float],
+        vent_transition_times: typing.Optional[list] = None, 
+        max_CO2: typing.Optional[float] = None,
         title: str = "",
         viral_values: bool = True, 
         CO2_values: bool = True,
@@ -167,7 +166,7 @@ def plot_model_concentration_results(
     if not vent_transition_times:
         vent_transition_times = model_response.first_vent_transition_times(scenario)
     axviral_ymax = 0.
-    exposure_model, times, concentrations, pi = model_response.model_concentration_results(scenario, air_exch_list, vent_transition_times, viral_values, CO2_values, deterministic_CO2)
+    _, times, concentrations, pi = model_response.model_concentration_results(scenario, air_exch_list, vent_transition_times, viral_values, CO2_values, deterministic_CO2)
     concentrations_viral, concentrations_CO2 = concentrations
     ############ Combined plot: Viral concentration + CO2 ############
     _, axviral = plt.subplots(figsize=figsize_conc)
@@ -181,7 +180,7 @@ def plot_model_concentration_results(
         label='Viral concentration'
     )
     axviral.set_xlabel('Time of day', fontsize=fontsize)
-    axviral.set_ylabel('Viral concentration (IRP / m³)', color='tab:blue', fontsize=fontsize)
+    axviral.set_ylabel('IRP / m³', color='tab:blue', fontsize=fontsize)
     axviral.tick_params(axis='y', labelcolor='tab:blue', labelsize=ticksize)
     if max(mean_viral)*1.1 > axviral_ymax:
         axviral_ymax = max(mean_viral)*1.1
@@ -198,14 +197,14 @@ def plot_model_concentration_results(
             mean_CO2 = concentrations_CO2
         else:
             mean_CO2 = [np.mean(c) for c in concentrations_CO2]
-        print(f"Max CO2: {np.max(mean_CO2):.2f}")
+        print(f"Max CO₂: {np.max(mean_CO2):.2f}")
         axco2.plot(
             times,
             mean_CO2,
             color='tab:red',
             label='CO₂ concentration'
         )
-        axco2.set_ylabel('CO₂ concentration (ppm)', color='tab:red', fontsize=fontsize)
+        axco2.set_ylabel('ppm', color='tab:red', fontsize=fontsize)
         axco2.tick_params(axis='y', labelcolor='tab:red', labelsize=ticksize)
         axco2_ymax = 0.
         if deterministic_CO2:
@@ -227,6 +226,9 @@ def plot_model_concentration_results(
                 alpha=0.2
             )
         axes.append(axco2)
+
+        if max_CO2:
+            axco2.axhline(y=max_CO2, color='k', linestyle='--', label=f'Max CO₂ {max_CO2:.0f}')
 
     if CO2_values and (plot_air_exch or plot_clean_air_delivery):
         axco2.spines["right"].set_visible(False)
@@ -270,17 +272,17 @@ def plot_model_concentration_results(
         axcad.plot(
             times,
             clean_air_delivery_float,
-            color='tab:orange',
-            label='clean air delivery'
+            color='tab:green',
+            label='CADR'
         )
-        axcad.set_ylabel('clean air delivery (L/s/person)', color='tab:orange', fontsize=fontsize)
-        axcad.tick_params(axis='y', labelcolor='tab:orange', labelsize=ticksize)
+        axcad.set_ylabel('L/s/person', color='tab:green', fontsize=fontsize)
+        axcad.tick_params(axis='y', labelcolor='tab:green', labelsize=ticksize)
         axcad_ymax = 0.
 
         new_axcad_ymax = max(clean_air_delivery_float)*1.2
         if new_axcad_ymax > axcad_ymax:
             axcad_ymax = new_axcad_ymax
-        axcad.set_ylim((0,axcad_ymax))
+        axcad.set_ylim((0,axcad_ymax*1.5))
         axes.append(axcad)
 
         if plot_air_exch:
@@ -306,7 +308,7 @@ def plot_model_concentration_results(
         lines += ax.get_lines()
 
     labels = [line.get_label() for line in lines]
-    axviral.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=2, fontsize=fontsize) # type: ignore
+    axviral.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=4, fontsize=fontsize) # type: ignore
     plt.title(title, fontsize=titlesize)
     plt.tight_layout()
     if save_to:
