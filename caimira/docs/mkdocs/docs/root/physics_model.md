@@ -2,103 +2,107 @@
 
 The CAiMIRA model mimics the physical process of viral transmission through five stages presented in the topmost part of Figure 1: 
 Emission, removal, concentration, dose, and infection probability. 
-Along with viral transmission, CAiMIRA also simulates emission, removal, and concentration of $CO_2$, as shown in the lower part of Figure 1.
+Along with viral transmission, CAiMIRA also simulates emission, removal, and concentration of CO_2, as shown in the lower part of Figure 1.
 [![CAiMIRA Structure](CAiMIRA_structure.png)](CAiMIRA_structure.png)
-*Figure 1: Structure of the CAiMIRA model showing the viral transmission and $CO_2$ simulation processes.*
+*Figure 1: Structure of the CAiMIRA model showing the viral transmission and CO_2 simulation processes.*
 
-The viral **emission rate** – $\mathrm{vR}(D)$, **removal rate** – $\mathrm{vRR}(D)$, and **concentration** – $C(t, D)$ are considered for a given aerosol diameter $D$,
-as the behavior of the virus-laden particles in the room environment and inside the susceptible host (once inhaled) are diameter-dependent. The total viral dose deposited in the respiratory tract
+The viral **emission rate** – $\mathrm{vR}(D)$, **removal rate** – $\mathrm{vRR}(D)$, **concentration** – $C(t, D)$, and **dose** $\mathrm{vD(D)}$ are considered for a given aerosol diameter $D$,
+as the behavior of the virus-laden particles in the room environment and inside the respiratory tract are diameter-dependent. The probability of infection is computed from the total viral dose deposited in the respiratory tract
 
 $\mathrm{vD^{total}} =\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{vD(D)} \mathrm{d}D$
 
-is estimated by Monte Carlo integration (see below). For computational efficiency in the model inplementation, the diameter-dependent dose $\mathrm{vD(D)}$ is factored into three components: 
+which is estimated by Monte Carlo integration (see below). 
+For computational efficiency, the diameter-dependent dose $\mathrm{vD(D)}$ is factored into three components: 
 A probability distribution of $D$, a diameter-independent component, and a remaining diameter-dependent component. 
 Because the viral concentration is a factor of the dose, and the viral emission rate is a factor of the viral concentration, $C(t, D)$ and $\mathrm{vR}(D)$ are also factored into probability distribution of $D$, a diameter-independent component, and a remaining diameter-dependent component (details below).
+Intermediate results for the total viral emission rate $\mathrm{vR}^{total}$, total viral removal rate $\mathrm{vRR}^{total}$, and total viral concentration $\mathrm{C(t)}^{total}$ can also be obtained by integrating over the particle diameter.
 
-This page describes the derivation of the equations specifying the emission rate, removal rate, and concentration of virions and $CO_2$, as well as the viral dose exposure and probability of infection (see Figure 1). 
+This page describes the derivation of the equations specifying the emission rate, removal rate, and concentration of virions and CO_2, as well as the viral dose exposure and probability of infection (see Figure 1). 
 After having derived the full equations, it is described how the computations are devided into different classes and methods in the CAiMIRA implementation for computational efficiency.
 
 ## Backend Structure
 
 The `caimira.calculator.validators` package contains modules responsible for binding all input values from the request to their respective model variables. These modules, `co2.co2_validator` and `virus.virus_validator`, inherit from the parent `form_validator` module, and handle input validation for the CO<sub>2</sub> and virus model generators, respectively.
 The `caimira.calculator.report` package contains modules responsible for binding all results from the model calculations into the respective output variables in the request output. These modules, `co2_report_data` and `virus_report_data`, handle outputs for the CO<sub>2</sub> and virus model, respectively.
-The `caimira.models.models` module itself implements the core CAiMIRA methods.  A useful feature of the implementation is that we can benefit from vectorization, which allows running multiple parameterization of the model at the same time.
+The `caimira.calculator.store.data_registry` contains input values to CAiMIRA that are not user-defined. These are collected in a class **DataRegistry**.
+The `caimira.calculator.models.models` module itself implements the core CAiMIRA methods. A useful feature of the implementation is that we can benefit from vectorization, which allows running multiple parameterizations of the model at the same time.
 
 
-## Emission
+## Emission 
+### Derivation of the Analytical Emission Rate
 Infectious individuals inside the room are assumed to be the only source of virus. Their emission rate per unit diameter of infectious virus is
 
 $\mathrm{vR}(D)= {\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{in}} \cdot f_{\mathrm{inf}} \cdot E_c(D)$
 
-given the breathing rate $BR_k$ for a constant physical activity $k \in \{\mathrm{Seated}, \mathrm{Standing}, \mathrm{Light},$ $\mathrm{Moderate}, \mathrm{Heavy}\}$. $vl_{\mathrm{in}}$ is the viral load in the respiratory tract (in RNA copies per mL) and $f_{inf}$ is the fraction of infectious virus. 
-$E_c(D)$ represents the volumetric particle emission concentration per unit diameter (in mL/(m<sub>3</sub> .µm)) given by
+given the breathing rate ${\mathrm{BR}}_{\mathrm{k}}$ for a constant physical activity $k \in \{\mathrm{Seated}, \mathrm{Standing}, \mathrm{Light},$ $\mathrm{Moderate}, \mathrm{Heavy}\}$. $vl_{\mathrm{in}}$ is the viral load in the respiratory tract (in RNA copies per mL) and $f_{inf}$ is the fraction of infectious virus. 
+$E_c(D)$ represents the volumetric particle emission concentration per unit diameter (in mL/(m<sub>3</sub> .µm) given by
 
-$E_{c,j}(D) = N_p(D) \cdot V_p(D) \cdot (1 − η_\mathrm{out}(D))$
+$E_{c}(D) = N_p(D) \cdot V_p(D) \cdot (1 − η_\mathrm{out}(D))$
 
-where $V_p(D)$ is the particles' individual volume and $\eta_{out}$ is the outward mask efficiency. For an expiratory activity $j \subseteq \{\mathrm{Breathing}, \mathrm{Speaking}, \mathrm{Shouting}\}$, the number of particles with diameter $D$ is given by 
+where $V_p(D)$ is the particles' individual volume and $\eta_{out}$ is the outward mask efficiency. For an expiratory activity $j \subseteq \{\mathrm{Breathing}, \mathrm{Speaking}, \mathrm{Singing}, \mathrm{Shouting}\}$, the number of particles with diameter $D$ is given by 
 
-$N_{p}(D)=\sum_{\forall j} \sum_{i \in \{B,L,O\}} a_j \cdot f_{\mathrm{amp}, j, i} \cdot c_{n,i} \cdot \left[\frac{1}{D\sqrt{2 \pi} \sigma_{D_i}} \exp{-\frac{(\ln D -\mu_{D_i})^2}{2 (\sigma_{D_i})^2}}\right]$
+$N_{p}(D)=\sum_{\forall j} \sum_{i \in \{\mathrm{B},\mathrm{L},\mathrm{O}\}} a_j \cdot f_{\mathrm{amp}, j, i} \cdot c_{n,i} \cdot \left[\frac{1}{D\sqrt{2 \pi} \sigma_{D_i}} \exp{-\frac{(\ln D -\mu_{D_i})^2}{2 (\sigma_{D_i})^2}}\right]$
 
-for B = bronchial, L = larynx, O = oral being the sources of the emitted particles. We have $I(\mathrm{Breathing}) = \{B\}$ and $I(\mathrm{Speaking}) = I(\mathrm{Shouting}) = \{B, L, O\}$. $a_j$ is the fraction of time the infected performes each expiratory activity.
-$c_{n,i}$ is the particle emission concentration, and $\mu_{D_i}$ and $\sigma_{D_i}$ are the mean and standard deviations, respectively, of the log-normal distribution found to fit the number of expired particles with diameter $D$, for $i \in \{B, L, O\}$ \citep{BLOfit}. 
-$f_{\mathrm{amp}, j, i}$ is the amplitude of the vocalization, defined as 
-
-$$
-f_{\mathrm{amp},j,i} =
-\begin{cases}
-1, & \text{if } i = B\\[2mm]
-0, & \text{if } i \in \{L,O\} \text{ and } j = \text{Breathing}\\[2mm]
-1, & \text{if } i \in \{L,O\} \text{ and } j = \text{Speaking} \\[2mm]
-5, & \text{if } i \in \{L,O\} \text{ and } j = \text{Shouting}
-\end{cases}
-$$
+for B = bronchial, L = larynx, O = oral being the sources of the emitted particles. $a_j$ is the fraction of time the infected performes each expiratory activity $j$.
+$c_{n,i}$ is the particle emission concentration, and $\mu_{D_i}$ and $\sigma_{D_i}$ are the mean and standard deviations, respectively, of the log-normal distribution found to fit the number of expired particles with diameter $D$, for $i \in \{\mathrm{B},\mathrm{L},\mathrm{O}\}$ \citep{BLOfit}. 
+$f_{\mathrm{amp}, j, i}$ is the amplitude of the vocalization, set to 5 for $i \in \{L,O\}$ if $j = \{\text{Singing}, \text{Shouting}\}$ and otherwise 1. Note, however, that for $i \in \{L,O\}$ and $j = \text{Breathing}$ $f_{\mathrm{amp}, j, i}$ is set to zero in `caimira.calculator.store.data_registry`, although it is technically the particle emission concentration $c_{n,i}$ that is zero in that case. This technicallity has no effect on the output, it only simplifies the implementation of $c_{n,i}$.
 
 Note that the diameter-dependence is kept at this stage. Since other parameters downstream in code are also diameter-dependent, the Monte-Carlo integration over the particle diameter is computed at the level of the dose $\mathrm{vD^{total}}$.
-In case one would like to have intermediate results for emission rate, one approximate
+In case one would like to have intermediate results for emission rate, however, one may compute
 
-$\mathrm{vR}^{total} = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} {\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{in}} \cdot f_{\mathrm{inf}} \cdot E_c(D) \mathrm{d}D = = {\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{in}} \cdot f_{\mathrm{inf}} \cdot E_{c,j}^{\mathrm{total}}$
+$\mathrm{vR}^{total} = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} {\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{in}} \cdot f_{\mathrm{inf}} \cdot E_c(D) \mathrm{d}D = {\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{in}} \cdot f_{\mathrm{inf}} \cdot E_{c}^{\mathrm{total}}$
 
 for 
 
-$E_{c,j}^{\mathrm{total}} = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} E_c(D) \mathrm{d}D $
+$E_{c}^{\mathrm{total}} = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} E_c(D) \mathrm{d}D $
 
 using Monte Carlo integration.
 
-### Probability distribution of the particle diameter D
-When Monte Carlo integrating over the particle diameter, we need a probability distribution $p_D(D)$ to sample the particle diameter $D$ from. 
+### Distribution of the Particle Diameter
+When Monte Carlo integrating over the particle diameter, a probability distribution $\mathrm{p}_D(D)$ is needed for sampling of the particle diameter $D$. 
 Observe that
 
-$p_D(D)=\frac{N_p(D)}{K}=\sum_{i \in I(j)} \frac{c_{n,i}}{K}\left[\frac{1}{D\sqrt{2 \pi} \sigma_{D_i}} \exp{-\frac{(\ln D -\mu_{D_i})^2}{2 (\sigma_{D_i})^2}}\right]$
+$\mathrm{p}_D(D)=\frac{N_p(D)}{K}=\sum_{i \in I(j)} \frac{c_{n,i}}{K}\left[\frac{1}{D\sqrt{2 \pi} \sigma_{D_i}} \exp{-\frac{(\ln D -\mu_{D_i})^2}{2 (\sigma_{D_i})^2}}\right]$
 
 is a mixture distribution: the sum of three log-normal probability distributions weighed by $w_i = \frac{c_{n,i}}{K}$ such that $w_i>0$ and $\sum_{i \in I(j)} w_i =1$. 
 
-In the CAiMIRA model, $D$ is sampled from $p_D(D)$ truncated between $D_{\mathrm{min}}$ and $D_{\mathrm{min}}$ when calling the function `calculator.models.monte_carlo.data.expiration_distribution()`, which retrieves the truncated $p_D(D)$ from methods of the class `calculator.models.monte_carlo.data.BLOModel`.
+In the CAiMIRA model, $D$ is sampled from $\mathrm{p}_D(D)$ truncated between $D_{\mathrm{min}}$ and $D_{\mathrm{min}}$ when calling the function `calculator.models.monte_carlo.data.expiration_distribution()`, which retrieves the truncated $\mathrm{p}_D(D)$ from `calculator.models.monte_carlo.data.BLOModel`.
 
 <details>
 <summary>Monte Carlo Integration</summary>
-Monte Carlo integration takes advantage of the fact that the expected value of a function g of a random variable D can be approximated by drawing samples {$D_1$, $D_2$, ...,$ D_S$} from the probability distribution p(D) and compute the average. That is,
+Monte Carlo integration takes advantage of the fact that the expected value of a function g of a random variable D can be approximated by drawing samples {$D_1$, $D_2$, ...,$ D_S$} from the probability distribution $\mathrm{p}_D(D)$ and compute the average. That is,
 
-$E[g(D)] = \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{g}(D) \cdot \mathrm{p}(D) \mathrm{d}D \approx \frac{1}{S}\sum_{i=1}^S \mathrm{g}(D_i)$ 
+$E[g(D)] = \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{g}(D) \cdot \mathrm{p}_D(D) \mathrm{d}D \approx \frac{1}{S}\sum_{i=1}^S \mathrm{g}(D_i)$ 
 
-The approximation improves for a larger number of samples. For computational efficiency, however, the number of samples should not be unneccecarily high. The lower the variability of p(D), the less samples are needed to stabilize the results. Therefore, one wish to choose a probability distribution p(D) that contains as much information about D as possible.
+The approximation improves for a larger number of samples. For computational efficiency, however, the number of samples should not be unneccecarily high. The lower the variability of p(D), the less samples are needed to stabilize the results. Therefore, one wish to choose a probability distribution $\mathrm{p}_D(D)$  that contains as much information about D as possible.
 </details>
 
-Note that the analytical integrals approximated by Monte Carlo integration in CAiMIRA does not explisitly include $p_D(D)$. 
-Generally, $\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{h}(D)$ being approximated by Monte Carlo integration means drawing samples {$D_1$, $D_2$, ...,$ D_S$} from the probability distribution p(D) and computing $\frac{1}{S}\sum_{i=1}^S \frac{\mathrm{h}(D_i)}{p_D(D_i)}$.
+Note that the analytical integrals approximated by Monte Carlo integration in CAiMIRA does not explisitly include $\mathrm{p}_D(D)$. Analytically, one therefore computes $\frac{1}{S}\sum_{i=1}^S \frac{\mathrm{h}(D_i)}{\mathrm{p}_D(D_i)}$.
 
-Every quantity $\mathrm{h}(D)$ that is approximated by Monte Carlo integration in the CAiMIRA model has $N_p(D)$ as a linear factor which will cancel the $N_p(D)$ factor of $p_D(D)$, so the fraction $\frac{\mathrm{h}(D_i)}{p_D(D_i)}$ will not include $N_p(D)$.
+Since every quantity $\mathrm{h}(D)$ that is approximated by Monte Carlo integration in the CAiMIRA model has $N_p(D)$ as a linear factor, which will cancel the $N_p(D)$ factor of $\mathrm{p}_D(D)$, the fraction $\frac{\mathrm{h}(D)}{\mathrm{p}_D(D)}$ will not include $N_p(D)$. Essentially, this means $N_p(D)$ is "replaced" by $K$ in the equation for $E_{c}(D)$ in the model implementation. For example, one therefore computes 
+
+$E_{c}^{\mathrm{total}} = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} \frac{E_c(D) \cdot K}{N_p(D)} \cdot \mathrm{p}_D(D) \mathrm{d}D \approx \frac{1}{S}\sum_{i=1}^S \frac{E_c(D) \cdot K}{N_p(D)}$.
 
 
 ### Computation of the Emission Rate
 The computation of the emission rate $\mathrm{vR}(D)$ in CAiMIRA can be divided into three steps:
 
 1. Calculate the diameter-**independent** component of $\mathrm{vR}(D)$, i.e. ${\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{in}} \cdot f_{\mathrm{inf}}$, in `caimira.models.models.InfectedPopulation.emission_rate_per_aerosol_per_person_when_present()`. 
-2. Draw S samples {$D_1$, $D_2$, ...,$D_S$} from p(D) (default S = 250 000 samples) when creating an `caimira.models.models.Expiration` object by calling the function `calculator.models.monte_carlo.data.expiration_distribution()`.
-3. Compute the diameter-**dependent** $\frac{E_{c,j}(D_i)}{p_D(D_i)} = K \cdot V_p(D_i) \cdot (1 − η_\mathrm{out}(D_i))$ for every $D_i \in ${$D_1$, $D_2$, ...,$D_S$} in `caimira.models.models.InfectedPopulation.aerosols()`.
+2. Draw S samples {$D_1$, $D_2$, ...,$D_S$} from $\mathrm{p}_D(D)$  (default S = 250 000 samples) when creating an **Expiration** object by calling the function `calculator.models.monte_carlo.data.expiration_distribution()`.
+3. Compute the diameter-**dependent** $\frac{E_c(D_i) \cdot K}{N_p(D_i)}$ for every $D_i \in ${$D_1$, $D_2$, ...,$D_S$} in `caimira.models.models.InfectedPopulation.aerosols()`. WRONG, why multiply by $cn$ also?
 
-Calculate the full emission rate (per person infected), which is the multiplication of the two previous methods, and corresponds to $\mathrm{vR(D)}$: `caimira.models.models._PopulationWithVirus.emission_rate_per_person_when_present()`.
+The emission rate (per person infected) $\mathrm{vR(D)}$ can be computed by: `caimira.models.models._PopulationWithVirus.emission_rate_per_person_when_present()`, outputting a vector $[\mathrm{vR(D_1)}, \mathrm{vR(D_2)}, ..., \mathrm{vR(D_S)}]$ who's average is $\mathrm{vR}^{total}$.
 
-The diameter-independent component $BR_k \cdot vl_{in} \cdot f_{inf}$ of the emission rate is 
+By default, however, the diameter-dependence is kept at this stage because more diameter-dependent variables will be introduced downstream in the model before Monte-Carlo integrating over the aerosol sizes to obtain the dose $\mathrm{vD^{total}}$.
+
+### Storage of Intermediate Computations
+The methods for computing the components of the emission rate can be accessed through the class **InfectedPopulation**, representing a population of infected with a certain number of people, all with the same expirational activity, physical activity, virus, face mask, immunity and (incremental) presence. **InfectedPopulation** is initialized an **Expiration** object, an **Activity** object, a **Virus** object, a **Mask** object, a float host_immunity, and an **Interval** object corresponding to those properties. Furthermore, **InfectedPopulation** is initialized with by **DataRegistry** and the integer number of people in the infected population.
+
+The **Expiration** object (`caimira.models.models.Expiration`) represents the expiration of aerosols by an infected person, and is initialized by an S-dimentional array (or a single float if S=1) of the samples {$D_1$, $D_2$, ...,$D_S$} drawn from $\mathrm{p}_D(D)$.The samples {$D_1$, $D_2$, ...,$D_S$} are generated by **CustomKernel** (`caimira.calculator.models.monte_carlo.sampleable.CustomKernel`). The **CustomKernel** is built for the distribution $\mathrm{p}_D(D)$ defined by the `distribution()` method of **BLOModel** (`caimira.models.monte_carlo.data.BLOmodel`). **Expiration** is also passed a float $cn$ upon initialization, acting as a scaling factor computed as the integral over every mode in $\{\mathrm{B},\mathrm{L},\mathrm{O}\}$ between $D_{\mathrm{min}}$ and $D_{\mathrm{max}}$ in `BLOModel.integrate()`. The **BLOModel** is initialized by a set of BLO_factors corresponding to the type of expirational activity performed. Consult `caimira.models.monte_carlo.data.expiration_distribution()` for further details on how **Expiration** is initialized.
+
+In the property `Expiration.particle`, the class **Particle** (representing virus-laden aerosols) is initialized with the array of diameters stored in **Expiration**. **Particle** contains methods for computing the diameter-dependent deposition factor and settling velocity of aerosols, which will be used downstream in the model.
+
+
 ## Removal
 ## Concentration
 ### Long-Range Compartment
@@ -109,47 +113,12 @@ The diameter-independent component $BR_k \cdot vl_{in} \cdot f_{inf}$ of the emi
 ## Infection Probability
 
 
-## Context
-
-Despite the outcome of the CAiMIRA results include the entire range of diameters, throughout the model,
-most of the variables and parameters are kept in their diameter-dependent form for any possible detailed analysis of intermediate results.
-Only the final quantities shown in output, such as the concentration and the dose, are integrated over the diameter distribution.
-This is performed thanks to a Monte-Carlo (MC) integration at the level of the dose ($\mathrm{vD^{total}}$) which is computed over a distribution of particle diameters,
-from which the average value (i.e. `.mean()` of the numpy array) is then calculated – this is equivalent to an analytical integral over diameters
-provided the sample size is large enough. Example of the MC integration over the diameters for the short-range dose:
-`(np.array(short_range_jet_exposure* fdep).mean()`.
+## Separation of Random Variables
 
 It is important to distinguish between 1) Monte-Carlo random variables (which are vectorized independently on its diameter-dependence) and 2) numerical Monte-Carlo integration for the diameter-dependence.
 Since the integral of the diameter-dependent variables are solved when computing the dose – $\mathrm{vD^{total}}$ – while performing some of the intermediate calculations,
 we normalize the results by *dividing* by the Monte-Carlo variables that are diameter-independent, so that they are not considered in the Monte-Carlo integration (e.g. the **viral load** parameter, or the result of the `caimira.models.models.InfectedPopulation.emission_rate_per_aerosol_per_person_when_present()` method).
 
-## Expiration
-
-The **Expiration** class (representing the expiration of aerosols by an infected person) has the Particle – `caimira.models.models.Expiration.particle` – as one of its properties,
-which represents the virus-laden aerosol with a vectorized parameter: the particle diameter (assuming a perfect sphere).
-For a given aerosol diameter, one `caimira.models.models.Expiration` object provides the aerosol **volume** - $V_p(D)$, multiplied by the **mask outward efficiency** - $η_\mathrm{out}(D)$ to include the filtration capacity, when applicable.
-
-The BLO model represents the distribution of diameters used in the model. It corresponds to the sum of three log-normal distributions, weighted by the **B**, **L** and **O** modes.
-The aerosol diameter distributions are given by the `caimira.models.monte_carlo.data.BLOmodel.distribution()` method.
-
-The `caimira.models.monte_carlo.data.BLOmodel` class itself contains the method to return the mathematical values of the probability distribution for a given diameter (in microns),
-as well as the method to return its integral between the **min** and **max** diameters.
-The BLO model is used to provide the probability density function (PDF) of the aerosol diameters for a given **Expiration** type defined in `caimira.models.monte_carlo.data.expiration_distribution()`.
-To compute the total concentration of particles per mode (B, L and O), $cn$ in particles/cm<sub>3</sub>, in other words, the total concentration of aerosols per unit volume of expired air,
-an integration of the log-normal distributions is performed over all aerosol diameters. In the code it is used as a scaling factor in the `caimira.models.models.Expiration` class.
-
-Under the `caimira.calculator.validators.virus.virus_validator` module, when it comes to generate the Expiration model, the diameter property is sampled through the BLO `caimira.models.monte_carlo.data.BLOmodel.distribution()` method, while the value for the $cn$ is given by the `caimira.models.monte_carlo.data.BLOmodel.integrate()` method.
-To summarize, the Expiration object contains, as a vectorised float, a sample of diameters following the BLO distribution. Depending on different expiratory types, the contributions from each mode will be different, therefore the resulting distribution also differs from model to model.
-
-## Emission Rate - vR(D)
-
-
-
-variable `caimira.models.models.InfectedPopulation.aerosols()`, which is the result of $E_{c,j}(D) = N_p(D) \cdot V_p(D) \cdot (1 − η_\mathrm{out}(D))$ (in mL/(m<sub>3</sub> .µm)), with $N_p(D)$ being the product of the BLO distribution by the scaling factor $cn$. Note that this result is not integrated over the diameters at this stage, thus the units are still  *‘per aerosol diameter’*.
-3. Calculate the full emission rate (per person infected), which is the multiplication of the two previous methods, and corresponds to $\mathrm{vR(D)}$: `caimira.models.models._PopulationWithVirus.emission_rate_per_person_when_present()`.
-
-Note that the diameter-dependence is kept at this stage. Since other parameters downstream in code are also diameter-dependent, the Monte-Carlo integration over the aerosol sizes is computed at the level of the dose $\mathrm{vD^{total}}$.
-In case one would like to have intermediate results for emission rate, perform the Monte-Carlo integration of $E_{c, j}^{\mathrm{total}}$ and compute $\mathrm{vR^{total}} =\mathrm{vl_{in}} \cdot f_{\mathrm{inf}} \cdot E_{c, j}^{\mathrm{total}} \cdot \mathrm{BR_k}$.
 
 ## Virus Concentration - C(t, D)
 
