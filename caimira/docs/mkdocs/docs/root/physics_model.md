@@ -104,6 +104,13 @@ In the property `Expiration.particle`, the class **Particle** (representing viru
 
 
 ## Removal
+The viral **viral removal rate** is given by
+
+$\lambda_{\mathrm{vRR}}(t,D) = \lambda_{\mathrm{ACH}}(t)+\lambda_{\mathrm{dep}}(D)+\lambda_{\mathrm{bio}}$
+
+where $\lambda_{\mathrm{ACH}}(t)$ is the air exchange per hour, $\\lambda_{\mathrm{dep}}(D)$ is the particle deposition, and $\lambda_{\mathrm{bio}}$ is the biological decay. The diameter-dependent viral removal rate at a given time is calculated by `caimira.models.models.ConcentrationModel.removal_rate()`.
+
+
 ## Concentration
 ### Long-Range Compartment
 ### Short-Range Compartment
