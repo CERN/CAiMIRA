@@ -823,7 +823,280 @@ class Cases:
         From https://doi.org/10.1038/s41562-020-01000-9.
         """
         return sct.binom.pmf(n_infected, event_population, self.probability_random_individual(virus))
-    
+
+
+@dataclass(frozen=True)
+class _ConcentrationModelBase:
+    """
+    A generic superclass that contains the methods to calculate the
+    concentration (e.g. viral concentration or CO2 concentration).
+    """
+    data_registry: DataRegistry
+    room: Room
+    ventilation: _VentilationBase
+
+    @property
+    def population(self) -> SimplePopulation:
+        """
+        Population in the room (the emitters of what we compute the
+        concentration of)
+        """
+        raise NotImplementedError("Subclass must implement")
+
+    def removal_rate(self, time: float) -> _VectorisedFloat:
+        """
+        Remove rate of the species considered, in h^-1
+        """
+        raise NotImplementedError("Subclass must implement")
+
+    def min_background_concentration(self) -> _VectorisedFloat:
+        """
+        Minimum background concentration in the room for a given scenario
+        (in the same unit as the concentration). Its the value towards which
+        the concentration will decay to.
+        """
+        return self.data_registry.concentration_model['virus_concentration_model']['min_background_concentration'] # type: ignore
+
+    def normalization_factor(self) -> _VectorisedFloat:
+        """
+        Normalization factor (in the same unit as the concentration).
+        This factor is applied to the normalized concentration only
+        at the very end.
+        """
+        raise NotImplementedError("Subclass must implement")
+
+    @method_cache
+    def _normed_concentration_limit(self, time: float) -> _VectorisedFloat:
+        """
+        Provides a constant that represents the theoretical asymptotic
+        value reached by the concentration when time goes to infinity,
+        if all parameters were to stay time-independent.
+        This is normalized by the normalization factor, the latter acting as a
+        multiplicative constant factor for the concentration model that
+        can be put back in front of the concentration after the time
+        dependence has been solved for.
+        """
+        V = self.room.volume
+        RR = self.removal_rate(time)
+
+        if isinstance(RR, np.ndarray):
+            invRR = np.empty(RR.shape, dtype=np.float64)
+            invRR[RR == 0.] = np.nan
+            invRR[RR != 0.] = 1. / RR[RR != 0.]
+        else:
+            invRR = np.nan if RR == 0. else 1. / RR # type: ignore
+
+        return (self.population.people_present(time) * invRR / V +
+                self.min_background_concentration()/self.normalization_factor())
+
+    @method_cache
+    def state_change_times(self) -> typing.List[float]:
+        """
+        All time dependent entities on this model must provide information about
+        the times at which their state changes.
+        """
+        state_change_times = {0.}
+        state_change_times.update(self.population.presence_interval().transition_times())
+        state_change_times.update(self.ventilation.transition_times(self.room))
+        return sorted(state_change_times)
+
+    @method_cache
+    def _first_presence_time(self) -> float:
+        """
+        First presence time. Before that, the concentration is zero.
+        """
+        return self.population.presence_interval().boundaries()[0][0]
+
+    def last_state_change(self, time: float) -> float:
+        """
+        Find the most recent/previous state change.
+
+        Find the nearest time less than the given one. If there is a state
+        change exactly at ``time`` the previous state change is returned
+        (except at ``time == 0``).
+        """
+        times = self.state_change_times()
+        t_index: int = np.searchsorted(times, time)  # type: ignore
+        # Search sorted gives us the index to insert the given time. Instead we
+        # want to get the index of the most recent time, so reduce the index by
+        # one unless we are already at 0.
+        t_index = max([t_index - 1, 0])
+        return times[t_index]
+
+    @method_cache
+    def _normed_concentration_cached(self, time: float) -> _VectorisedFloat:
+        """
+        A cached version of the _normed_concentration method. Use this
+        method if you expect that there may be multiple concentration
+        calculations for the same time (e.g. at state change times).
+        """
+        return self._normed_concentration(time)
+
+    def _normed_concentration(self, time: float) -> _VectorisedFloat:
+        """
+        Concentration as a function of time, and normalized by
+        normalization_factor.
+        The formulas used here assume that all parameters (ventilation,
+        emission rate) are constant between two state changes - only
+        the value of these parameters at the next state change, are used.
+
+        Note that time is not vectorised. You can only pass a single float
+        to this method.
+        """
+        # The model always starts at t=0, but we avoid running concentration calculations
+        # before the first presence as an optimisation.
+        if time <= self._first_presence_time():
+            return self.min_background_concentration()/self.normalization_factor()
+
+        RR = self.removal_rate(time)
+
+        t_last_state_change = self.last_state_change(time)
+        conc_at_last_state_change = self._normed_concentration_cached(t_last_state_change)
+        delta_time = time - t_last_state_change
+
+        fac = np.exp(-RR * delta_time)
+        if isinstance(RR, np.ndarray):
+            curr_conc_state = np.empty(RR.shape, dtype=np.float64)
+            curr_conc_state[RR == 0.] = delta_time * self.population.people_present(time) / (
+                self.room.volume[RR == 0.] if isinstance(self.room.volume,np.ndarray) else self.room.volume)
+            curr_conc_state[RR != 0.] = self._normed_concentration_limit(time)[RR != 0.] * (1 - fac[RR != 0.])
+        else:
+            if RR == 0.:
+                curr_conc_state = delta_time * self.population.people_present(time) / self.room.volume
+            else:
+                curr_conc_state = self._normed_concentration_limit(time) * (1 - fac)
+
+        return curr_conc_state + conc_at_last_state_change * fac
+
+    def concentration(self, time: float) -> _VectorisedFloat:
+        """
+        Total concentration as a function of time. The normalization
+        factor has been put back.
+
+        Note that time is not vectorised. You can only pass a single float
+        to this method.
+        """
+        return (self._normed_concentration_cached(time) *
+                self.normalization_factor())
+
+    @method_cache
+    def normed_integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
+        """
+        Get the integrated concentration between the times start and stop,
+        normalized by normalization_factor.
+        """
+        if stop <= self._first_presence_time():
+            return (stop - start)*self.min_background_concentration()/self.normalization_factor()
+        change_times = self.state_change_times()
+        if stop > change_times[-1]:
+            change_times.append(stop)
+        req_start, req_stop = start, stop
+        total_normed_concentration = 0.
+        for interval_start, interval_stop in zip(change_times[:-1], change_times[1:]):
+            if req_start > interval_stop or req_stop < interval_start:
+                continue
+            # Clip the current interval to the requested range.
+            start = max([interval_start, req_start])
+            stop = min([interval_stop, req_stop])
+
+            conc_start = self._normed_concentration_cached(start)
+            conc_limit = self._normed_concentration_limit(stop)
+            RR = self.removal_rate(stop)
+            delta_time = stop - start
+            total_normed_concentration += (
+                conc_limit * delta_time +
+                (conc_limit - conc_start) * (np.exp(-RR*delta_time)-1) / RR
+            )
+        return total_normed_concentration
+
+    def integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
+        """
+        Get the integrated concentration of viruses in the air between the times start and stop.
+        """
+        return (self.normed_integrated_concentration(start, stop) *
+                self.normalization_factor())
+
+
+@dataclass(frozen=True)
+class ConcentrationModel(_ConcentrationModelBase):
+    """
+    Class used for the computation of the long-range virus concentration.
+    """
+    #: Infected population in the room, emitting virions
+    infected: InfectedPopulation
+
+    #: evaporation factor: the particles' diameter is multiplied by this
+    # factor as soon as they are in the air (but AFTER going out of the,
+    # mask, if any).
+    evaporation_factor: float
+
+    def __post_init__(self):
+        if self.evaporation_factor is None:
+            self.evaporation_factor = self.data_registry.expiration_particle['particle']['evaporation_factor']
+
+    @property
+    def population(self) -> InfectedPopulation:
+        return self.infected
+
+    @property
+    def virus(self) -> Virus:
+        return self.infected.virus
+
+    def normalization_factor(self) -> _VectorisedFloat:
+        # we normalize by the emission rate
+        return self.infected.emission_rate_per_person_when_present()
+
+    def removal_rate(self, time: float) -> _VectorisedFloat:
+        # Equilibrium velocity of particle motion toward the floor
+        vg = self.infected.particle.settling_velocity(self.evaporation_factor)
+        # Height of the emission source to the floor - i.e. mouth/nose (m)
+        h = 1.5
+        # Deposition rate (h^-1)
+        k = (vg * 3600) / h
+        return (
+            k + self.virus.decay_constant(self.room.humidity, self.room.inside_temp.value(time))
+            + self.ventilation.air_exchange(self.room, time)
+        )
+
+
+@dataclass(frozen=True)
+class CO2ConcentrationModel(_ConcentrationModelBase):
+    """
+    Class used for the computation of the CO2 concentration.
+    """
+    #: Population in the room emitting CO2
+    CO2_emitters: SimplePopulation
+
+    #: CO2 concentration in the atmosphere (in ppm)
+    @property
+    def CO2_atmosphere_concentration(self) -> float:
+        return self.data_registry.concentration_model['CO2_concentration_model']['CO2_atmosphere_concentration'] # type: ignore
+
+    #: CO2 fraction in the exhaled air
+    @property
+    def CO2_fraction_exhaled(self) -> float:
+        return self.data_registry.concentration_model['CO2_concentration_model']['CO2_fraction_exhaled'] # type: ignore
+
+    @property
+    def population(self) -> SimplePopulation:
+        return self.CO2_emitters
+
+    def removal_rate(self, time: float) -> _VectorisedFloat:
+        return self.ventilation.air_exchange(self.room, time)
+
+    def min_background_concentration(self) -> _VectorisedFloat:
+        """
+        Background CO2 concentration in the atmosphere (in ppm)
+        """
+        return self.CO2_atmosphere_concentration
+
+    def normalization_factor(self) -> _VectorisedFloat:
+        # normalization by the CO2 exhaled per person.
+        # CO2 concentration given in ppm, hence the 1e6 factor.
+        return (1e6*self.population.activity.exhalation_rate
+                *self.CO2_fraction_exhaled)
+
+
 @dataclass(frozen=True)
 class ShortRangeModel:
     '''
