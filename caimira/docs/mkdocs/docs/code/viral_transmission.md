@@ -1,4 +1,4 @@
-# Physics of the Model
+# Physics of Viral Transmission
 
 The CAiMIRA model mimics the physical process of viral transmission through five stages presented in the topmost part of Figure 1: 
 Emission, removal, concentration, dose, and infection probability. 
@@ -179,30 +179,7 @@ For the calculator app report, the total concentration (MC integral over the dia
 Otherwise, the diameter-dependence continues until we compute the inhaled dose in the `models.ExposureModel` class.
 
 ### Short-Range Compartment
-### Separation and Averaging of Monte Carlo Random Variables
-## Dose
-The long-range concentration, integrated over the exposure time (in piecewise constant steps), $C(D)$, is given by `models._ConcentrationModelBase.integrated_concentration()`.
-
-The following methods calculate the integrated concentration between two times. They are mostly used when calculating the **dose**:
-
-* `models._ConcentrationModelBase.normed_integrated_concentration()`, $\mathrm{C_\mathrm{normed}}(D)$ that returns the integrated long-range concentration of viruses in the air, between any two times, normalized by the emission rate per person infected. Note that this method performs the integral between any two times of the previously mentioned `models._ConcentrationModelBase._normed_concentration()` method.
-* `models._ConcentrationModelBase.integrated_concentration()`, $C(D)$, that returns the same result as the previous one, but multiplied by the emission rate (per person infected).
-
-The integral over the exposure times is calculated directly in the class (integrated methods).
-### Separation, Averaging, and Integration of Monte Carlo Random Variables
-## Infection Probability
-
-
-## Separation of Random Variables
-
-It is important to distinguish between 1) Monte-Carlo random variables (which are vectorized independently on its diameter-dependence) and 2) numerical Monte-Carlo integration for the diameter-dependence.
-Since the integral of the diameter-dependent variables are solved when computing the dose – $\mathrm{vD^{total}}$ – while performing some of the intermediate calculations,
-we normalize the results by *dividing* by the Monte-Carlo variables that are diameter-independent, so that they are not considered in the Monte-Carlo integration (e.g. the **viral load** parameter, or the result of the `models.InfectedPopulation.emission_rate_per_aerosol_per_person_when_present()` method).
-
-
-## Virus Concentration - C(t, D)
-
-### Short-range approach
+TO BE REVIEWED
 
 The short-range concentration is the result of a two-stage exhaled jet model developed by Jia, W. et al. <sup>[1](#id7)</sup> and is expressed as:
 
@@ -282,6 +259,22 @@ Note that `models.ShortRangeModel._normed_concentration()` method is different f
 
 Unless one is computing the mean concentration values (e.g. for the plots in the report), the diameter-dependence is kept at this stage. Since other parameters downstream in the code are also diameter-dependent, the Monte-Carlo integration over the particle sizes is computed at the level of the dose $\mathrm{vD^{total}}$.
 In case one would like to have intermediate results for the initial short-range concentration, this is done at the `models.ExposureModel` class level.
+
+
+## Dose
+The long-range concentration, integrated over the exposure time (in piecewise constant steps), $C(D)$, is given by `models._ConcentrationModelBase.integrated_concentration()`.
+
+The following methods calculate the integrated concentration between two times. They are mostly used when calculating the **dose**:
+
+* `models._ConcentrationModelBase.normed_integrated_concentration()`, $\mathrm{C_\mathrm{normed}}(D)$ that returns the integrated long-range concentration of viruses in the air, between any two times, normalized by the emission rate per person infected. Note that this method performs the integral between any two times of the previously mentioned `models._ConcentrationModelBase._normed_concentration()` method.
+* `models._ConcentrationModelBase.integrated_concentration()`, $C(D)$, that returns the same result as the previous one, but multiplied by the emission rate (per person infected).
+
+The integral over the exposure times is calculated directly in the class (integrated methods).
+
+
+
+
+
 
 ## Dose - vD
 
@@ -390,6 +383,22 @@ The final operation in the `models.ExposureModel.deposited_exposure_between_boun
 
 If short-range interactions exist: the long-range component is added to the already calculated short-range component (deposited_exposure), hence completing $C_{\mathrm{SR}}$.
 If the are no short-range interactions: the short-range component (deposited_exposure) is zero, hence the result is equal solely to the long-range component $C_{\mathrm{LR}}$.
+
+
+### Separation of Random Variables
+
+It is important to distinguish between 1) Monte-Carlo random variables (which are vectorized independently on its diameter-dependence) and 2) numerical Monte-Carlo integration for the diameter-dependence.
+Since the integral of the diameter-dependent variables are solved when computing the dose – $\mathrm{vD^{total}}$ – while performing some of the intermediate calculations,
+we normalize the results by *dividing* by the Monte-Carlo variables that are diameter-independent, so that they are not considered in the Monte-Carlo integration (e.g. the **viral load** parameter, or the result of the `models.InfectedPopulation.emission_rate_per_aerosol_per_person_when_present()` method).
+
+
+## Infection Probability
+### Deterministic Exposure
+#### Derivation
+#### Implementation
+### Probabilistic Exposure
+#### Derivation
+#### Implementation
 
 ## CO<sub>2</sub> Concentration
 
