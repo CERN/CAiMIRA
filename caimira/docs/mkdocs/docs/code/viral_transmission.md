@@ -161,7 +161,7 @@ $C_{\mathrm{LR}}(t, D)$ is calculated stepwise over intervals where this assumpt
 #### Computation of the Long-Range Concentration
 Note that
 
-$C_{\mathrm{LR}}(t, D) = \mathrm{vR(D)} \cdot \left(\frac{N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r}- C_0(D)\right) \exp{-\lambda_{vRR}(D)\cdot t} \right)$.
+$C_{\mathrm{LR}}(t, D) = \mathrm{vR(D)} \cdot \left(\frac{N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r}- \frac{C_0(D)}{\mathrm{vR(D)}}\right) \exp{-\lambda_{vRR}(D)\cdot t} \right)$.
 
 For computational speed-up purposes we first compute $\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{vR(D)}}$, i.e. the long-range concentration normalized by the emission rate. This diameter-dependent component is later retrieved in `models.ExposureModel` to compute the dose exposure.
 
@@ -262,6 +262,42 @@ In case one would like to have intermediate results for the initial short-range 
 
 
 ## Dose
+### Derivation of the Analytical Dose
+The long-range viral dose deposited in the respiratory tract of the exposed, for a given aerosol diameter, is
+
+$\mathrm{vD}(D) = \int_{t1}^{t2}C(t, D)\;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$
+we split into long-range and short-range dose. 
+
+
+#### Long-Range Dose
+The long-range viral dose deposited in the respiratory tract of the exposed, for a given aerosol diameter, is
+
+$\mathrm{vD}_{\mathrm{LR}}(D) = \int_{t1}^{t2}C_{\mathrm{LR}}(t, D)\;\mathrm{d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$
+
+where $t_1$ and $t_n$ are the start and end times of the occupancy (and simulation), $C_{\mathrm{LR}}(t, D)$ is the long-range viral concentration, $\mathrm{BR}_{\mathrm{k}}$ is the breathing rate of the exposed, $f_{\mathrm{dep}}(D)$ is the deposition fraction in the respiratory tract, and  $\eta_{\mathrm{in}}$ is the inward mask efficiency. Over an interval $[t_i, t_{i+1}]$ where both $\lambda_{vRR}(t, D)$ and $N_{\mathrm{inf}}$ are constant, $C_{\mathrm{LR}}(t, D)$ is given by the solution to the mass-balance ODE above. Therefore, we compute 
+
+
+$\int_{t_1}^{t_n} C_{\mathrm{LR}}(t, D) \mathrm{d}t  =  \sum_{i=1}^n \int_{t_i}^{t_{i+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t $
+    
+$=  \sum_{i=1}^n \int_{t_i}^{t_{i+1}} \left[\mathrm{vR(D)} \cdot \left(\frac{N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r}- \frac{C_0(D)}{\mathrm{vR(D)}} \right) \exp{-\lambda_{vRR}(D)\cdot t} \right) \right] \mathrm{d}t$
+
+$=  \sum_{i=1}^n \frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r} (t_{i+1}-t_{i}) + \sum_{i=1}^n \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r}- C_0(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_i)t_{i+1}}}{\lambda_{vRR}(D,t_i)} - \sum_{i=1}^n \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r}- C_0(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_i)t_i}}{\lambda_{vRR}(D,t_i)}$
+
+for a given particle diameter $D$. The total dose deposited in the respiratory tract of the exposed is obtained by integrating over the particle diameter, which we approximate by 
+
+$\mathrm{vD}^{\mathrm{total}} =\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{vD}(D) \mathrm{d}D$
+
+cannot be solved analytically and is therefore solved using Monte Carlo integration.
+
+#### Short-Range Dose
+
+### 
+
+
+
+
+
+
 The long-range concentration, integrated over the exposure time (in piecewise constant steps), $C(D)$, is given by `models._ConcentrationModelBase.integrated_concentration()`.
 
 The following methods calculate the integrated concentration between two times. They are mostly used when calculating the **dose**:
@@ -285,7 +321,7 @@ The receiving dose, which is inhaled by the exposed host, in infectious virions 
 is calculated by first integrating the viral concentration profile (for a given particle diameter) over the exposure time and multiplying by scaling factors such as the proportion of virions which are infectious and the deposition fraction,
 as well as the inhalation rate and the effect of masks:
 
-$\mathrm{vD}(D) = \int_{t1}^{t2}C(t, D)\;\mathrm{d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$ .
+$\mathrm{vD}{\mathrm{LR}}(D) = \int_{t1}^{t2}C(t, D)\;\mathrm{d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$ .
 
 where $C(t, D)$ is the concentration value at a given time, which can be either the short- or long-range concentration, $f_{\mathrm{dep}}(D)$ is the (diameter-dependent) deposition fraction in the respiratory tract, $\mathrm{BR}_{\mathrm{k}}$ is the inhalation rate and $\eta_{\mathrm{in}}$ is the inward efficiency of the face mask.
 
