@@ -329,6 +329,17 @@ untill an instance of `models.ConcentrationModel` is passed to `models.ShortRang
 
 Note that multiple short-range interactions can be defined during a given exposure time. We initialize one **ShortRangeModel** for each interaction.
 
+### Combining the Short-Range and Long-Range Compartments
+Here, we explain how to combine the long-range and short-range compartments to obtain the full viral concentration profile. 
+We group exposed with similar properties together in a **Population** passed to `models.ExposureModel`. Different exposed populations may have different exposure times and short-range interactions, also passed to `models.ExposureModel` upon initialization. 
+Therefore, the viral concentration profile may be different for every exposed population. 
+
+CONTINUE
+
+Note that, in addition to all the viral concentration profiles from the perspective of each exposed population, we have the long-range concentration profile, which is independent of the presence of any exposed population. 
+The long-range concentration profile is simply computed by calling `models._ConcentrationModelBase.concentration()` for resonble time-resolution ranging between the start and end times of the simulation, 
+and averaging the resulting arrays over the particle diameter to Monte Carlo integrate over $D$.
+
 
 ## Dose
 ### Derivation of the Analytical Dose
