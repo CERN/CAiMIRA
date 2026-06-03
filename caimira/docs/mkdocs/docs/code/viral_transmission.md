@@ -87,9 +87,9 @@ $E_{c}^{\mathrm{total}} = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} \frac{E_c(D
 ### Computation of the Emission Rate
 The computation of the emission rate $\mathrm{vR}(D)$ in CAiMIRA can be divided into three steps:
 
-1. Calculate the diameter-**independent** component of $\mathrm{vR}(D)$, i.e. ${\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{in}} \cdot f_{\mathrm{inf}}$, in `models.InfectedPopulation.emission_rate_per_aerosol_per_person_when_present()`. 
-2. Draw S samples {$D_1$, $D_2$, ...,$D_S$} from $\mathrm{p}_D(D)$  (default S = 250 000 samples) when creating an **Expiration** object by calling the function `monte_carlo.data.expiration_distribution()`.
-3. Compute the diameter-**dependent** $\frac{E_c(D_i) \cdot K}{N_p(D_i)}$ for every $D_i \in ${$D_1$, $D_2$, ...,$D_S$} in `models.InfectedPopulation.aerosols()`. WRONG, why multiply by $cn$ also?
+* Calculate the diameter-**independent** component of $\mathrm{vR}(D)$, i.e. ${\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{in}} \cdot f_{\mathrm{inf}}$, in `models.InfectedPopulation.emission_rate_per_aerosol_per_person_when_present()`. 
+* Draw S samples {$D_1$, $D_2$, ...,$D_S$} from $\mathrm{p}_D(D)$  (default S = 250 000 samples) when creating an **Expiration** object by calling the function `monte_carlo.data.expiration_distribution()`.
+* Compute the diameter-**dependent** $\frac{E_c(D_i) \cdot K}{N_p(D_i)}$ for every $D_i \in ${$D_1$, $D_2$, ...,$D_S$} in `models.InfectedPopulation.aerosols()`. WRONG, why multiply by $cn$ also?
 
 The emission rate (per person infected) $\mathrm{vR(D)}$ can be computed by: `models._PopulationWithVirus.emission_rate_per_person_when_present()`, outputting a vector $[\mathrm{vR(D_1)}, \mathrm{vR(D_2)}, ..., \mathrm{vR(D_S)}]$ who's average is $\mathrm{vR}^{total}$.
 
@@ -201,9 +201,9 @@ For computational speed-up purposes we first compute $\frac{C_{\mathrm{LR}}(t, D
 
 Intermediate results for the long-range viral concentration can be obtained by computing
 
-1. The normalized concentration $\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{vR(D)}}$ in `models._ConcentrationModelBase._normed_concentration()`.
-2. The normalization factor $\frac{\mathrm{vR(D)}}{\mathrm{p}_D(D)}$ in `models._PopulationWithVirus.emission_rate_per_person_when_present()`, which is called in `models.ConcentrationModel.normalization_factor()` to override the abstract method `models._ConcentrationModelBase.normalization_factor()`.
-3. $\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{p}_D(D)}$ as the product of the two above methods in `models._ConcentrationModelBase.concentration()`.
+* The normalized concentration $\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{vR(D)}}$ in `models._ConcentrationModelBase._normed_concentration()`.
+* The normalization factor $\frac{\mathrm{vR(D)}}{\mathrm{p}_D(D)}$ in `models._PopulationWithVirus.emission_rate_per_person_when_present()`, which is called in `models.ConcentrationModel.normalization_factor()` to override the abstract method `models._ConcentrationModelBase.normalization_factor()`.
+* $\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{p}_D(D)}$ as the product of the two above methods in `models._ConcentrationModelBase.concentration()`.
 
 Averaging the array $\left[\frac{C_{\mathrm{LR}}(t, D_1)}{\mathrm{p}_D(D_1)}, \frac{C_{\mathrm{LR}}(t, D_2)}{\mathrm{p}_D(D_2)}, ..., \frac{C_{\mathrm{LR}}(t, D_S)}{\mathrm{p}_D(D_S)}\right]$ returned by `models._ConcentrationModelBase.concentration()` corresponds to Monte Carlo integrating
 
@@ -235,86 +235,99 @@ $ \approx \sum_{n=1}^{n_p} \frac{1}{S_n}\sum_{i=1}^{S_n} \frac{C_{\mathrm{LR},n}
 
 
 ### Short-Range Compartment
-TO BE REVIEWED
-
+#### Derivation of the Analytical Short-Range Concentration
 The short-range concentration is the result of a two-stage exhaled jet model developed by Jia, W. et al. <sup>[1](#id7)</sup> and is expressed as:
 
-$C_{\mathrm{SR}}(t, D) = C_{\mathrm{LR}} (t, D) + \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100μm}(t, D))$ ,
+$C_{\mathrm{SR}}(t, D) 
+= C_{\mathrm{LR}} (t, D) + \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}}(t, D)) 
+= \frac{S({x})-1}{S({x})} C_{\mathrm{LR}}(t, D) + \frac{1}{S({x})}C_{0, \mathrm{SR}}(D)$,
 
-where $S(x)$ is the dilution factor due to jet dynamics, as a function of the interpersonal distance $x$ and $C_{0, \mathrm{SR}}(D)$ corresponds to the initial concentration of virions at the mouth/nose outlet during exhalation.
-$C_{\mathrm{LR}, 100μm}(t, D)$ is the long-range concentration, calculated in `models._ConcentrationModelBase.concentration()` method but **interpolated** to the diameter range used for close-proximity (from 0 to 100μm).
-Note that $C_{0, \mathrm{SR}}(D)$ is constant over time, hence only dependent on the particle diameter distribution.
+where $S(x) > 0$ is the dilution factor due to jet dynamics, as a function of the interpersonal distance $x$, and 
 
-For code simplification, we split the $C_{\mathrm{SR}}(t, D)$ equation into two components:
+$C_{0, \mathrm{SR}}(D) = \mathrm{vl_{in}} \cdot f_{\mathrm{inf}} \cdot E_c(D)$
 
-* short-range component: $\frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100μm}(t, D))$, dealt with in the dataclass `models.ShortRangeModel`.
-* long-range component: $C_{\mathrm{LR}} (t, D)$.
+is the initial concentration of virions at the mouth/nose outlet during exhalation. Note that $C_{0, \mathrm{SR}}(D)$ is constant over time, except it is set to zero untill (and including) the the start of the short-range interaction and after the end of the short-range interaction.
 
-The short-range data class (`models.ShortRangeModel`) models the short-range component of a close-range interaction **concentration** and the respective **dilution_factor**.
-Its inputs are the **expiration** definition, the **activity type**, the **presence time**, and the **interpersonal distance** between any two individuals.
-When generating a full model, the short-range class is defined with a new **Expiration** distribution,
-given that the **min** and **max** diameters for the short-range interactions are different from those used in the long-range concentration (the idea is that very large particles should not be considered in the long-range case as they fall rapidly on the floor,
-while they must be in for the short-range case).
+We allow the physical and expirational activity of the infected and exposed to be different at short-range and long-range (in the current frontent, only the expirational activity may be different).
+Also, because smaller particles remain airborn longer than bigger particles, we set $D_{\mathrm{max}}=20\mathrm{μm}$ at long-range and $D_{\mathrm{min}}=100\mathrm{μm}$ at short-range.
+Concequently, $E_c(D)$ has a different $N_p$ for $C_{0, \mathrm{SR}}(D)$ than for $C_{\mathrm{LR}} (t, D)$, so the particle diameters sampled to compute $C_{0, \mathrm{SR}}(D)$ and $C_{\mathrm{LR}} (t, D)$ are drawn from different probability distributions. 
+Lets name the different probability distributions at long-range and short-range $\mathrm{p}_{\mathrm{LR},D}(D)$ and $\mathrm{p}_{\mathrm{SR},D}(D)$.
 
-As mentioned in Jia, W. et al. <sup>[1](#id7)</sup>, the jet concentration depends on the **long-range concentration** of viruses.
-Here, once again, we shall normalize the short-range concentration to the diameter-independent quantities.
-IMPORTANT NOTE: since the susceptible host is physically closer to the infector, the emitted particles are larger in size,
-hence a new distribution of diameters should be taken into consideration.
-As opposed to $D_{\mathrm{max}} = 20\mathrm{μm}$ for the long-range MC integration, the short-range model will assume a $D_{\mathrm{max}} = 100\mathrm{μm}$.
-Very similar to what we did with the **emission rate**, we need to calculate the scaling factor from the probability distribution, $N_p(D)$ - $cn$, as well as the **volume concentration** for those diameters.
+In CAiMIRA version 4.18.0, we sample the diameters from the different $\mathrm{p}_{\mathrm{LR},D}(D)$ and $\mathrm{p}_{\mathrm{SR},D}(D)$, compute $\frac{C_{\mathrm{LR}}(t, D_i)}{\mathrm{p}_{\mathrm{LR},D}(D_i)}$ and $\frac{C_{0, \mathrm{SR}}(D_j)}{\mathrm{p}_{\mathrm{SR},D}(D_j)}$,
+and interpolate the vector $\left[\frac{C_{\mathrm{LR}}(t, D_1)}{\mathrm{p}_{\mathrm{LR},D}(D_1)}, \frac{C_{\mathrm{LR}}(t, D_2)}{\mathrm{p}_{\mathrm{LR},D}(D_2)}, ..., \frac{C_{\mathrm{LR}}(t, D_{S_N})}{\mathrm{p}_{\mathrm{LR},D}(D_{S_N})}\right]$ 
+to the diameter basis sampled from $\mathrm{p}_{\mathrm{SR},D}(D)$. Thechnically, we then Monte Carlo Integrate
 
-During a given exposure time, multiple short-range interactions can be defined in the model.
-In addition, for each individual interaction, the expiration type may be different.
+$C_{\mathrm{SR}}^{\mathrm{total}}(t, D) 
+= \int_{D_\mathrm{min}}^{D_\mathrm{max}} C_{\mathrm{SR}}(t, D) \mathrm{d}D 
+= \int_{D_\mathrm{min}}^{D_\mathrm{max}} \frac{S({x})-1}{S({x})} C_{\mathrm{LR}}(t, D) + \frac{1}{S({x})}C_{0, \mathrm{SR}}(D) \mathrm{d}D $
 
-To calculate the short-range component, we first need to calculate what is the **dilution factor**, that depends on the distance $x$ as a random variable, from a log normal distribution in `monte_carlo.data.short_range_distances()`.
-This factor is calculated in a two-stage expiratory jet model, with its transition point defined as follows:
+$ \approx \int_{0}^{100\mathrm{μm}} \left( \frac{S({x})-1}{S({x})} \cdot \frac{C_{\mathrm{LR}}(t, D)}{\mathrm{p}_{\mathrm{LR},D}(D)} + \frac{1}{S({x})} \cdot \frac{C_{0, \mathrm{SR}}(D) }{\mathrm{p}_{\mathrm{SR},D}(D)} \right) \cdot \mathrm{p}_{\mathrm{SR},D}(D) \mathrm{d}D$
 
-$\mathrm{xstar}=𝛽_{\mathrm{x1}} (Q_{\mathrm{exh}} \cdot u_{0})^\frac{1}{4} \cdot (\mathrm{tstar} + t_{0})^\frac{1}{2} - x_{0}$,
+which is a good approximation if $\mathrm{p}_{\mathrm{LR},D}(D) \approx \mathrm{p}_{\mathrm{SR},D}(D)$ and $\mathrm{p}_{\mathrm{LR},D}(D_i) \approx 0$ for $D_i > 20\mathrm{μm}$.
+In the newer versions of CAiMIRA, however, we aviod the approximation by rather computing
 
-where $Q_{\mathrm{exh}}= φ \mathrm{BR}$ is the expired flow rate during the expiration period, in $m^{3} s^{-1}$, φ is the exhalation coefficient
-(dimensionless) and represents the ratio between the total period of a breathing cycle and the duration of the exhalation alone.
-Assuming the duration of the inhalation part is equal to the exhalation and one starts immediately after the other, φ will always be equal to 2 no matter what is the breating cycle time. $\mathrm{BR}$ is the given exhalation rate.
-$u_{0}$ is the expired jet speed (in $m s^{-1}$) given by $u_{0}=\frac{Q_{\mathrm{exh}}}{A_{m}}$, $A_{m}$ being the area of the mouth assuming a perfect circle (average mouth_diameter of 0.02m).
-The time of the transition point $\mathrm{tstar}$ is defined as 2s and corresponds to the end of the exhalation period, i.e. when the jet is interrupted. The distance of the virtual origin of the puff-like stage is defined by
-$x_{0}=\frac{\textrm{mouth_diameter}}{2𝛽_{\mathrm{r1}}}$ (in m), and the corresponding time is given by $t_{0} = \frac{\sqrt{\pi} \cdot \textrm{mouth_diameter}^3}{8𝛽_{\mathrm{r1}}^2𝛽_{\mathrm{x1}}^2Q_{exh}}$ (in s).
-Having the distance for the transition point, we can calculate the dilution factor at the transition point, defined as follows:
+$C_{\mathrm{SR}}^{\mathrm{total}}(t) 
+= \int_{D_\mathrm{min}}^{D_\mathrm{max}} C_{\mathrm{SR}}(t, D) \mathrm{d}D 
+= \int_{D_\mathrm{min}}^{D_\mathrm{max}} \frac{S({x})-1}{S({x})} C_{\mathrm{LR}}(t, D) + \frac{1}{S({x})}C_{0, \mathrm{SR}}(D) \mathrm{d}D $
 
-$\mathrm{Sxstar}=2𝛽_{\mathrm{r1}}\frac{(xstar + x_{0})}{\textrm{mouth_diameter}}$.
+$= \frac{S({x})-1}{S({x})} \cdot \int_{0}^{20\mathrm{μm}} \frac{C_{\mathrm{LR}}(t, D)}{\mathrm{p}_{\mathrm{LR},D}(D)} \cdot \mathrm{p}_{\mathrm{LR},D}(D) \mathrm{d}D + \frac{1}{S({x})} \cdot \int_{0}^{100\mathrm{μm}} \frac{C_{0, \mathrm{SR}}(D) }{\mathrm{p}_{\mathrm{SR},D}(D)} \cdot \mathrm{p}_{\mathrm{SR},D}(D) \mathrm{d}D$
 
-The remaining dilution factors, either in the jet- or puff-like stages are calculated as follows:
+$\approx \frac{S({x})-1}{S({x})} \cdot \frac{1}{S_N}\sum_{i=1}^{S_N} \frac{C_{\mathrm{LR}}(t, D_i)}{\mathrm{p}_{\mathrm{LR},D}(D_i)} + \frac{1}{S({x})} \cdot \frac{1}{S_N}\sum_{j=1}^{S_N} \frac{C_{0, \mathrm{SR}}(D_j)}{\mathrm{p}_{\mathrm{SR},D}(D_j)} $.
 
-$\mathrm{factors}(x)=\begin{cases}\hfil 2𝛽_{\mathrm{r1}}\frac{(x + x_{0})}{\textrm{mouth_diameter}} & \textrm{if } x < \mathrm{xstar},\\\hfil \mathrm{Sxstar} \cdot \biggl(1 + \frac{𝛽_{\mathrm{r2}}(x - xstar)}{𝛽_{\mathrm{r1}}(xstar + x_{0})}\biggl)^3 & \textrm{if } x > \mathrm{xstar}.\end{cases}$
+Note that $C_{\mathrm{SR}}(t, D)$ is the actual concentration at short-range, with the long-range concentration entrained. Hence, one is NOT supposed to add the long-range and short-range concentration on top of each other.
+In the CAiMIRA model, only the short-range concentration from infectious are modeled.
+For the sake of curiosity, however, we note that that if $C_{0, \mathrm{SR}}(D) = 0$ and $S({x}) < \infty$ then $C_{\mathrm{LR}}(t, D) > C_{\mathrm{SR}}(t, D)$, 
+meaning the exhaled jet of a non-infectious person contains less virions than the background concentration. 
 
-The penetration coefficients in the jet-like stage $𝛽_{\mathrm{r1}}$, $𝛽_{\mathrm{r2}}$ and $𝛽_{\mathrm{x1}}$ are defined by the following empirical values 0.18, 0.2, and 2.4 respectively. The dilution factor for each distance $x$ is then stored in the $\mathrm{factors}$ array that is returned by the method.
+#### The Dilution Factor
+This **dilution factor** is given by 
+$$
+S({x}) =
+\begin{cases} 
+\frac{2𝛽_{r,j}(x+x_{0}}{D_m} \hspace{2cm} 0 < x \leq x^*,\\
+S({x^*})[1+\frac{𝛽_{r,p}(x-x^*)}{𝛽_{r,j}(x+x_{0})}]^3 \quad x > x^*,
+\end{cases}
+$$
 
-Having the dilution factors, the **initial concentration of virions at the mouth/nose**, $C_{0, \mathrm{SR}}(D)$, is calculated as follows:
+where $x_{0}=\frac{D_m}{2𝛽_{\mathrm{r1}}}$ distance of the virtual origin of the puff-like stage (in $\mathrm{m}$) with $D_m$ being the diameter (in $\mathrm{m}$) of the mouth opening, assumed to be a perfect circle.
+All the $𝛽$-parameters are streamwise and radial penetration coefficients set in `caimira.calculator.store.data_registry`.
+The distance $x$ a random variable sampled from a log-normal distribution in `monte_carlo.data.short_range_distances()` and passed as `distance` to `models.ShortRangeModel`. 
+The transition point is defined as 
 
-$C_{0, \mathrm{SR}}(D) = N_p(D) \cdot V_p(D) \cdot \mathrm{vl_{in}} \cdot 10^{-6}$,
-given by `models.Expiration.jet_origin_concentration()`. It computes the same quantity as `models.Expiration.aerosols()`, except for the mask inclusion. As previously mentioned, it is normalized by the **viral load**, which is a diameter-independent property.
-Note, the $10^{-6}$ factor corresponds to the conversion from $\mathrm{μm}^{3} \cdot \mathrm{cm}^{-3}$ to $\mathrm{mL} \cdot m^{-3}$.
+$\mathrm{x^*}=𝛽_{\mathrm{x1}} \cdot \sqrt[4]{Q_{\mathrm{exh}} \cdot u_{0}} \cdot \sqrt{\mathrm{t^*} + t_{0}} - x_{0}$,
 
-Note that similarly to the long-range approach, the MC integral over the diameters is not calculated at this stage.
+where $Q_{\mathrm{exh}}= φ \mathrm{BR}_{\mathrm{k}}$ is the expired flow rate during the expiration period in $\mathrm{m^{3} s^{-1}}$. 
+$φ$ is the (dimensionless) exhalation coefficient, given by the ratio between the total period of a breathing cycle and the duration of the exhalation alone. 
+Assuming the duration of an inhalation and an exhalation are equal, and one starts immediately after the other, $φ=2$. 
+$\mathrm{BR}_{\mathrm{k}}$ is the breathing rate determined by the infected's physical activity during the short-range interaction.
+Next, $u_{0}=\frac{Q_{\mathrm{exh}}}{A_{m}}$ is the expired jet speed (in $\mathrm{m s^{-1}}$), with $A_{m}$ being the area of the mouth opening.
+The time of the transition point $\mathrm{t^*}$ is defined as half a breathing cycle, corresponding to the end of the exhalation period when the jet is interrupted, and set in `caimira.calculator.store.data_registry`.
+Finally, $t_{0} = \frac{\sqrt{\pi} \cdot D_m^3}{8𝛽_{\mathrm{r1}}^2𝛽_{\mathrm{x1}}^2Q_{exh}}$ is the time (in $\mathrm{s}$) corresponding to the distance of the virtual origin of the puff-like stage $x_{0}$.
 
-For consistency, the long-range concentration parameter, $C_{\mathrm{LR}, 100\mathrm{μm}}(t, D)$ in the `models.ShortRangeModel` class **only**,
-shall also be normalized by the **viral load** and **fraction of infectious virus**, since in the short-range model the diameter range is different than at long-range (as mentioned above),
-we need to account for that difference.
-The former operation is given in method `models.ShortRangeModel._long_range_normed_concentration()`. For the diameter range difference, there are a few options:
-one solution would be to recompute the values a second time using $D_{\mathrm{max}} = 100\mathrm{μm}$;
-or perform a approximation using linear interpolation, which is possible and more effective in terms of performance. We decided to adopt the interpolation solution.
-The set of points with a known value are given by the default expiration particle diameters for long-range, i.e. from 0 to 20 $\mathrm{μm}$.
-The set of points we want the interpolated values are given by the short-range expiration particle diameters, i.e. from 0 to 100 $\mathrm{μm}$.
 
-To summarize, in the code, $C_{\mathrm{SR}}(t, D)$ is computed as follows:
+#### Computation of the Short-Range Concentration
+`models.ShortRangeModel` models the short-range component of the short-range concentration and the **dilution_factor**. 
+Its inputs of`models.ShortRangeModel` are the **infected** population expiering the jet, their **expiration**, their physical **activity**, the **presence time** for the short-range interaction, and the **interpersonal distance** between any the infected and the exposed they are breathing at.
+Note that **infected** is an instance of `models.InfectedPopulation`, which also contains instances of **Expiration** and **Activity**. However, these correspond to the expirational activities and physical activities of the infected during long-range interactions, which may be different from the expiration and activity during short-range interactions.
+Therefore, we generate new **Expiration** and **Activity** objects for **ShortRangeModel** corresponding to the infecteds' behaviour at short range. 
+Even if the expirational activities at long-range and short-range are the same, a new **Expiration** instance is needed at short-range because $D_{\mathrm{max}}$ is different at short-range and long-range, yielding **Expiration** objects with different diameter samples. 
+`models.ShortRangeModel` is kept completely seperate of `models._ConcentrationModelBase`, exce
 
-* calculate the dilution_factor - $S({x})$ - in the method `models.ShortRangeModel.dilution_factor()`, with the distance $x$ as a random variable (log normal distribution in `monte_carlo.data.short_range_distances()`)
-* compute $\frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100\mathrm{μm}}(t, D))$ in method `models.ShortRangeModel.normed_concentration()`,
-* multiply by the diameter-independent parameters, viral load and $\mathrm{f_{inf}}$, in method `models.ShortRangeModel.short_range_concentration()`
-* complete the equation of $C_{\mathrm{SR}}(t, D)$ by adding the long-range concentration from the `models._ConcentrationModelBase.concentration()` (all integrated over $D$), returning the final short-range concentration value for a given time and expiration activity. This is done at the level of the Exposure Model (`models.ExposureModel.concentration()`).
+Similarly to the computation of the long-range concentration in `models._ConcentrationModelBase`, we separate the computation of diameter-dependent random variables and diameter-independent random variables for computational efficiency. 
+We compute
+* the normalized viral concentration at the outlet, i.e. $\frac{C_{0, \mathrm{SR}}(D)}{E_c(D)}=\mathrm{vl_{in}} \cdot f_{\mathrm{inf}}$, in `models.ShortRangeModel._normed_jet_origin_concentration()` 
+* the dilution factor $\frac{1}{S({x})}$ in `models.ShortRangeModel.dilution_factor()` 
+* the normalization factor $\frac{E_c(D)}{\mathrm{p}_{\mathrm{SR},D}(D)}$ in `models.ShortRangeModel.normalization_factor()`.
 
-Note that `models.ShortRangeModel._normed_concentration()` method is different from `models._ConcentrationModelBase._normed_concentration()` and `models._ConcentrationModelBase.concentration()` differs from `models.ExposureModel.concentration()`.
+The product of the two first methods are returned by `models.ShortRangeModel._normed_jet_origin_concentration()` and sendt to **ExposureModel**, 
+keeping the diameter dependence and separation of random variables because more diameter-dependent variables will be introduced before Monte Carlo integrating to compute the dose exposure. 
 
-Unless one is computing the mean concentration values (e.g. for the plots in the report), the diameter-dependence is kept at this stage. Since other parameters downstream in the code are also diameter-dependent, the Monte-Carlo integration over the particle sizes is computed at the level of the dose $\mathrm{vD^{total}}$.
-In case one would like to have intermediate results for the initial short-range concentration, this is done at the `models.ExposureModel` class level.
+If we want intermediate results for the full short-range concentration, e.g. for the report, we integrate the long-range and short-range components over the particle diameter before adding them together. 
+The full $C_{\mathrm{SR}}^{\mathrm{total}}(t)$ is computed in `models.ShortRangeModel.short_range_concentration()`, as explained above. 
+Note that `models.ShortRangeModel` is kept completely seperate of `models._ConcentrationModelBase`, 
+untill an instance of `models.ConcentrationModel` is passed to `models.ShortRangeModel.short_range_concentration()`to retrieve the long-range concentration needed to compute $C_{\mathrm{SR}}^{\mathrm{total}}(t)$ [MR TODO].
+
+Note that multiple short-range interactions can be defined during a given exposure time. We initialize one **ShortRangeModel** for each interaction.
 
 
 ## Dose
