@@ -687,7 +687,7 @@ def test_longrange_concentration(time,c_model,simple_c_model):
 def test_shortrange_concentration(data_registry, time,c_model,simple_c_model,simple_sr_models):
     sr_models = short_range_models(data_registry, c_model.infected)
     result_sr_model = np.sum([np.array(
-            sr_mod.build_model(SAMPLE_SIZE).short_range_concentration(c_model.build_model(SAMPLE_SIZE),time)).mean()
+            sr_mod.build_model(SAMPLE_SIZE).short_range_concentration_difference(c_model.build_model(SAMPLE_SIZE),time)).mean()
         for sr_mod in sr_models])
     result_simple_sr_model = np.sum([np.array(
             sr_mod.concentration(simple_c_model,time)).mean()

@@ -52,10 +52,10 @@ def test_short_range_model_ndarray(concentration_model, short_range_model):
     assert isinstance(model._normed_jet_origin_concentration(), np.ndarray)
     assert isinstance(model._normed_diluted_jet_concentration(), np.ndarray)
     assert isinstance(model.diluted_jet_concentration(), np.ndarray)
-    assert isinstance(model.short_range_concentration(concentration_model, 11.0), float)
-    assert isinstance(model.short_range_concentration(concentration_model, 14.0), float)
-    assert model.short_range_concentration(concentration_model, 11.0) > 0
-    assert model.short_range_concentration(concentration_model, 12.0) == 0
+    assert isinstance(model.short_range_concentration_difference(concentration_model, 11.0), float)
+    assert isinstance(model.short_range_concentration_difference(concentration_model, 14.0), float)
+    assert model.short_range_concentration_difference(concentration_model, 11.0) > 0
+    assert model.short_range_concentration_difference(concentration_model, 12.0) == 0
 
 
 @pytest.mark.parametrize(
@@ -131,7 +131,7 @@ def test_short_range_concentration(time, expected_short_range_concentration,
     concentration_model = concentration_model.build_model(SAMPLE_SIZE)
     model = short_range_model.build_model(SAMPLE_SIZE)
     np.testing.assert_allclose(
-        model.short_range_concentration(concentration_model, time),
+        model.short_range_concentration_difference(concentration_model, time),
         expected_short_range_concentration, rtol=0.02
     )
 

@@ -1421,7 +1421,14 @@ class ShortRangeModel:
         return (self._normed_diluted_jet_concentration() * 
                 self.normalization_factor())
     
-    def short_range_concentration(self, concentration_model: ConcentrationModel, time):
+    def short_range_concentration_difference(self, concentration_model: ConcentrationModel, time):
+        """
+        Computes the difference between the long-range concentration 
+        and the total concentration at short-range.
+
+        Adding the (long-range) concentration_model.concentration to the returned value of this function,
+        one obtains the actual viral concentration at short-range.
+        """
         dilution_factor = self.dilution_factor()
         start, stop = self.presence.boundaries()[0]
         # Verifies if the given time falls within a short-range interaction
@@ -1728,7 +1735,7 @@ class ExposureModel:
         for interaction in self.short_range:
             if isinstance(self.concentration_model, list):
                 raise NotImplementedError("yet to implement dynamic infected for SR interactions")
-            concentration += interaction.short_range_concentration(self.concentration_model, time)
+            concentration += interaction.short_range_concentration_difference(self.concentration_model, time)
         return concentration
 
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
