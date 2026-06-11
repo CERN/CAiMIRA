@@ -236,11 +236,10 @@ $ \approx \sum_{n=1}^{n_p} \frac{1}{S_n}\sum_{i=1}^{S_n} \frac{C_{\mathrm{LR},n}
 
 ### Short-Range Compartment
 #### Derivation of the Analytical Short-Range Concentration
-The short-range concentration is the result of a two-stage exhaled jet model developed by Jia, W. et al. <sup>[1](#id7)</sup> and is expressed as:
+The viral concentration at short-range is the result of a two-stage exhaled jet model developed by Jia, W. et al. <sup>[1](#id7)</sup> and is expressed as:
 
 $C_{\mathrm{SR}}(t, D) 
-= C_{\mathrm{LR}} (t, D) + \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}}(t, D)) 
-= \frac{S({x})-1}{S({x})} C_{\mathrm{LR}}(t, D) + \frac{1}{S({x})}C_{0, \mathrm{SR}}(D)$,
+= C_{\mathrm{LR}} (t, D) + \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}}(t, D))$,
 
 where $S(x) > 0$ is the dilution factor due to jet dynamics, as a function of the interpersonal distance $x$, and 
 
@@ -257,27 +256,35 @@ In CAiMIRA version 4.18.0, we sample the diameters from the different $\mathrm{p
 and interpolate the vector $\left[\frac{C_{\mathrm{LR}}(t, D_1)}{\mathrm{p}_{\mathrm{LR},D}(D_1)}, \frac{C_{\mathrm{LR}}(t, D_2)}{\mathrm{p}_{\mathrm{LR},D}(D_2)}, ..., \frac{C_{\mathrm{LR}}(t, D_{S_N})}{\mathrm{p}_{\mathrm{LR},D}(D_{S_N})}\right]$ 
 to the diameter basis sampled from $\mathrm{p}_{\mathrm{SR},D}(D)$. Thechnically, we then Monte Carlo Integrate
 
-$C_{\mathrm{SR}}^{\mathrm{total}}(t, D) 
+$C_{\mathrm{SR}}^{\mathrm{total}}(t) 
 = \int_{D_\mathrm{min}}^{D_\mathrm{max}} C_{\mathrm{SR}}(t, D) \mathrm{d}D 
-= \int_{D_\mathrm{min}}^{D_\mathrm{max}} \frac{S({x})-1}{S({x})} C_{\mathrm{LR}}(t, D) + \frac{1}{S({x})}C_{0, \mathrm{SR}}(D) \mathrm{d}D $
+= \int_{D_\mathrm{min}}^{D_\mathrm{max}} C_{\mathrm{LR}} (t, D) + \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}}(t, D)) \mathrm{d}D $
 
-$ \approx \int_{0}^{100\mathrm{μm}} \left( \frac{S({x})-1}{S({x})} \cdot \frac{C_{\mathrm{LR}}(t, D)}{\mathrm{p}_{\mathrm{LR},D}(D)} + \frac{1}{S({x})} \cdot \frac{C_{0, \mathrm{SR}}(D) }{\mathrm{p}_{\mathrm{SR},D}(D)} \right) \cdot \mathrm{p}_{\mathrm{SR},D}(D) \mathrm{d}D$
+$ \approx \int_{0}^{100\mathrm{μm}} \frac{C_{\mathrm{LR}}(t, D)}{\mathrm{p}_{\mathrm{LR},D}(D)} + \frac{1}{S({x})} \left( \frac{C_{0, \mathrm{SR}}(D) }{\mathrm{p}_{\mathrm{SR},D}(D)} -\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{p}_{\mathrm{LR},D}(D)}\right) \mathrm{p}_{\mathrm{SR},D}(D) \mathrm{d}D$
 
 which is a good approximation if $\mathrm{p}_{\mathrm{LR},D}(D) \approx \mathrm{p}_{\mathrm{SR},D}(D)$ and $\mathrm{p}_{\mathrm{LR},D}(D_i) \approx 0$ for $D_i > 20\mathrm{μm}$.
 In the newer versions of CAiMIRA, however, we aviod the approximation by rather computing
 
 $C_{\mathrm{SR}}^{\mathrm{total}}(t) 
 = \int_{D_\mathrm{min}}^{D_\mathrm{max}} C_{\mathrm{SR}}(t, D) \mathrm{d}D 
-= \int_{D_\mathrm{min}}^{D_\mathrm{max}} \frac{S({x})-1}{S({x})} C_{\mathrm{LR}}(t, D) + \frac{1}{S({x})}C_{0, \mathrm{SR}}(D) \mathrm{d}D $
+= \int_{D_\mathrm{min}}^{D_\mathrm{max}} C_{\mathrm{LR}}(t, D) + \frac{1}{S({x})} \left(C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}}(t, D) \right) \mathrm{d}D $
 
-$= \frac{S({x})-1}{S({x})} \cdot \int_{0}^{20\mathrm{μm}} \frac{C_{\mathrm{LR}}(t, D)}{\mathrm{p}_{\mathrm{LR},D}(D)} \cdot \mathrm{p}_{\mathrm{LR},D}(D) \mathrm{d}D + \frac{1}{S({x})} \cdot \int_{0}^{100\mathrm{μm}} \frac{C_{0, \mathrm{SR}}(D) }{\mathrm{p}_{\mathrm{SR},D}(D)} \cdot \mathrm{p}_{\mathrm{SR},D}(D) \mathrm{d}D$
+$= \int_{0}^{20\mathrm{μm}} \frac{C_{\mathrm{LR}}(t, D)}{\mathrm{p}_{\mathrm{LR},D}(D)} \cdot \mathrm{p}_{\mathrm{LR},D}(D) \mathrm{d}D + \frac{1}{S({x})} \cdot \left(\int_{0}^{100\mathrm{μm}} \frac{C_{0, \mathrm{SR}}(D) }{\mathrm{p}_{\mathrm{SR},D}(D)} \cdot \mathrm{p}_{\mathrm{SR},D}(D) \mathrm{d}D- \int_{0}^{20\mathrm{μm}} \frac{C_{\mathrm{LR}}(t, D)}{\mathrm{p}_{\mathrm{LR},D}(D)} \cdot \mathrm{p}_{\mathrm{LR},D}(D) \mathrm{d}D \right)$
 
-$\approx \frac{S({x})-1}{S({x})} \cdot \frac{1}{S_N}\sum_{i=1}^{S_N} \frac{C_{\mathrm{LR}}(t, D_i)}{\mathrm{p}_{\mathrm{LR},D}(D_i)} + \frac{1}{S({x})} \cdot \frac{1}{S_N}\sum_{j=1}^{S_N} \frac{C_{0, \mathrm{SR}}(D_j)}{\mathrm{p}_{\mathrm{SR},D}(D_j)} $.
+$\approx \frac{1}{S_N}\sum_{i=1}^{S_N} \frac{C_{\mathrm{LR}}(t, D_i)}{\mathrm{p}_{\mathrm{LR},D}(D_i)} + \frac{1}{S({x})} \cdot \left(\frac{1}{S_N}\sum_{j=1}^{S_N} \frac{C_{0, \mathrm{SR}}(D_j)}{\mathrm{p}_{\mathrm{SR},D}(D_j)} - \frac{1}{S_N}\sum_{i=1}^{S_N} \frac{C_{\mathrm{LR}}(t, D_i)}{\mathrm{p}_{\mathrm{LR},D}(D_i)} \right)$.
 
 Note that $C_{\mathrm{SR}}(t, D)$ is the actual concentration at short-range, with the long-range concentration entrained. Hence, one is NOT supposed to add the long-range and short-range concentration on top of each other.
-In the CAiMIRA model, only the short-range concentration from infectious are modeled.
-For the sake of curiosity, however, we note that that if $C_{0, \mathrm{SR}}(D) = 0$ and $S({x}) < \infty$ then $C_{\mathrm{LR}}(t, D) > C_{\mathrm{SR}}(t, D)$, 
-meaning the exhaled jet of a non-infectious person contains less virions than the background concentration. 
+To ease addition of contributions from several, incremental short-range interactions, we define the short-range concentration difference
+
+$C_{\mathrm{SR-LR}}^{\mathrm{total}}(t) = C_{\mathrm{SR}}^{\mathrm{total}}(t) - C_{\mathrm{LR}}^{\mathrm{total}}(t)$
+
+$ = \frac{1}{S({x})} \cdot \left(\int_{0}^{100\mathrm{μm}} \frac{C_{0, \mathrm{SR}}(D) }{\mathrm{p}_{\mathrm{SR},D}(D)} \cdot \mathrm{p}_{\mathrm{SR},D}(D) \mathrm{d}D- \int_{0}^{20\mathrm{μm}} \frac{C_{\mathrm{LR}}(t, D)}{\mathrm{p}_{\mathrm{LR},D}(D)} \cdot \mathrm{p}_{\mathrm{LR},D}(D) \mathrm{d}D \right) $
+
+$\approx \frac{1}{S({x})} \cdot \left(\frac{1}{S_N}\sum_{j=1}^{S_N} \frac{C_{0, \mathrm{SR}}(D_j)}{\mathrm{p}_{\mathrm{SR},D}(D_j)} - \frac{1}{S_N}\sum_{i=1}^{S_N} \frac{C_{\mathrm{LR}}(t, D_i)}{\mathrm{p}_{\mathrm{LR},D}(D_i)} \right)$
+
+For the sake of curiosity, note that that if $S({x}) < \infty$ and $C_{0, \mathrm{SR}}(D)$ is small enough (e.g. zero) then $C_{\mathrm{SR-LR}}^{\mathrm{total}}(t) < 0$, 
+meaning the exhaled jet of a person with a low (or no) viable viral load and/or emission rate contains less virions than the background concentration. 
+In the CAiMIRA model, only the short-range concentration from infectious are modeled, and it seems probable that every infected population has $C_{0, \mathrm{SR}}(D)$ is big enough for $C_{\mathrm{SR-LR}}^{\mathrm{total}}(t) > 0$.
 
 #### The Dilution Factor
 This **dilution factor** is given by 
@@ -323,22 +330,32 @@ The product of the two first methods are returned by `models.ShortRangeModel._no
 keeping the diameter dependence and separation of random variables because more diameter-dependent variables will be introduced before Monte Carlo integrating to compute the dose exposure. 
 
 If we want intermediate results for the full short-range concentration, e.g. for the report, we integrate the long-range and short-range components over the particle diameter before adding them together. 
-The full $C_{\mathrm{SR}}^{\mathrm{total}}(t)$ is computed in `models.ShortRangeModel.short_range_concentration()`, as explained above. 
-Note that `models.ShortRangeModel` is kept completely seperate of `models._ConcentrationModelBase`, 
-untill an instance of `models.ConcentrationModel` is passed to `models.ShortRangeModel.short_range_concentration()`to retrieve the long-range concentration needed to compute $C_{\mathrm{SR}}^{\mathrm{total}}(t)$ [MR TODO].
+$C_{\mathrm{SR-LR}}^{\mathrm{total}}(t)$ is computed in `models.ShortRangeModel.short_range_concentration_difference()` and added to $C_{\mathrm{LR}}^{\mathrm{total}}(t)$ from `models.ConcentrationModel.concentration()` to compute $C_{\mathrm{SR}}^{\mathrm{total}}(t)$, as explained above. 
+Note that `models.ShortRangeModel` is kept completely seperate of `models._ConcentrationModelBase` untill
+untill an instance of `models.ConcentrationModel` is passed to, and combined with, `models.ShortRangeModel.short_range_concentration_difference()` to compute $C_{\mathrm{SR}}^{\mathrm{total}}(t)$ [MR TODO].
 
 Note that multiple short-range interactions can be defined during a given exposure time. We initialize one **ShortRangeModel** for each interaction.
 
-### Combining the Short-Range and Long-Range Compartments
-Here, we explain how to combine the long-range and short-range compartments to obtain the full viral concentration profile. 
-We group exposed with similar properties together in a **Population** passed to `models.ExposureModel`. Different exposed populations may have different exposure times and short-range interactions, also passed to `models.ExposureModel` upon initialization. 
-Therefore, the viral concentration profile may be different for every exposed population. 
+### Total Viral Concentration
+Different exposed populations may experience different viral concentrations depending on their occupancy periods and the occurrence of short-range interactions. For a given exposed population, the total viral concentration at time $t$ is given by
 
-CONTINUE
+$C^{\mathrm{total}}(t) = C_{\mathrm{LR}}^{\mathrm{total}}(t) + \sum_{i}^{n_\mathrm{SR}}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) C_{\mathrm{SR-LR},i}^{\mathrm{total}}(t)$
 
-Note that, in addition to all the viral concentration profiles from the perspective of each exposed population, we have the long-range concentration profile, which is independent of the presence of any exposed population. 
-The long-range concentration profile is simply computed by calling `models._ConcentrationModelBase.concentration()` for resonble time-resolution ranging between the start and end times of the simulation, 
-and averaging the resulting arrays over the particle diameter to Monte Carlo integrate over $D$.
+where $n_\mathrm{SR}$ denotes the total number of short-range interactions experienced by the exposed population during its entire occupancy period. The indicator function associated with the $i$-th short-range interaction is defined as
+
+$
+\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) =
+\begin{cases}
+1, & \text{if } t \in T_{\mathrm{SR},i}, \\
+0, & \text{else}.
+\end{cases}
+$
+
+where $T_{\mathrm{SR},i}$ represents the time interval over which the i-th short-range interaction occurs. Thus, the contribution $C_{\mathrm{SR-LR},i}^{\mathrm{total}}(t)$ is included in the total concentration only while that short-range interaction is active. Note, as previously mentioned, that we integrate over the particle diameter before summing together the long-range and short-range contributions to the concentration because we have different probability distributions for the particle diameter at long-range and short-range. For each exposed population, $C^{\mathrm{total}}(t)$ is computed by `models.ExposureModel.concentration()`. 
+
+In addition to the viral concentration profile for each exposed population, we have the long-range viral concentration profile which is independent of all the exposed populations. This long-range concentration is computed by `models._ConcentrationModelBase.concentration()`, and also retrieved by `models.ExposureModel.concentration()` for an **ExposureModel** with no short-range interactions.
+
+In the report, the viral concentration, either at long-range or from the perspective of a specific exposed population, is plotted over time.
 
 
 ## Dose
