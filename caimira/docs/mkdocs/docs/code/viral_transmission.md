@@ -339,31 +339,71 @@ Note that multiple short-range interactions can be defined during a given exposu
 ### Total Viral Concentration
 Different exposed populations may experience different viral concentrations depending on their occupancy periods and the occurrence of short-range interactions. For a given exposed population, the total viral concentration at time $t$ is given by
 
-$C^{\mathrm{total}}(t) = C_{\mathrm{LR}}^{\mathrm{total}}(t) + \sum_{i}^{n_\mathrm{SR}}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) C_{\mathrm{SR-LR},i}^{\mathrm{total}}(t)$
+$C^{\mathrm{total}}(t) = \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}}^{\mathrm{total}}(t) + \sum_{i}^{n_\mathrm{SR}}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i}^{\mathrm{total}}(t)$
 
-where $n_\mathrm{SR}$ denotes the total number of short-range interactions experienced by the exposed population during its entire occupancy period. The indicator function associated with the $i$-th short-range interaction is defined as
+where $n_\mathrm{SR}$ denotes the total number of short-range interactions experienced by the exposed population during its entire occupancy period. The indicator function
+
+$
+\mathbf{1}_{t \in T}(t) =
+\begin{cases}
+1, & \text{if } t \in T, \\
+0, & \text{else}
+\end{cases}
+$
+
+ensures the long-range concentration is only considered for the set of times $T$ when the exposed is inside the room, which is a subset of the time interval $[t_0, t_n]$ from when the exposed first enters at $t_0$ untill they leave for the last time at $t_n$. Similarly, the indicator function associated with the $i$-th short-range interaction is defined as
 
 $
 \mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) =
 \begin{cases}
 1, & \text{if } t \in T_{\mathrm{SR},i}, \\
-0, & \text{else}.
+0, & \text{else},
 \end{cases}
 $
 
-where $T_{\mathrm{SR},i}$ represents the time interval over which the i-th short-range interaction occurs. Thus, the contribution $C_{\mathrm{SR-LR},i}^{\mathrm{total}}(t)$ is included in the total concentration only while that short-range interaction is active. Note, as previously mentioned, that we integrate over the particle diameter before summing together the long-range and short-range contributions to the concentration because we have different probability distributions for the particle diameter at long-range and short-range. For each exposed population, $C^{\mathrm{total}}(t)$ is computed by `models.ExposureModel.concentration()`. 
+where $T_{\mathrm{SR},i} \subseteq T$ is the set of times when the $i$-th short-range interaction occurs. Thus, the contribution $C_{\mathrm{SR-LR},i}^{\mathrm{total}}(t)$ is included in the total concentration only while that short-range interaction is happening. Note, as previously mentioned, that we integrate over the particle diameter before summing together the long-range and short-range contributions to the concentration because we have different probability distributions for the particle diameter at long-range and short-range. For each exposed population, $C^{\mathrm{total}}(t)$ is computed by `models.ExposureModel.concentration()`. 
 
 In addition to the viral concentration profile for each exposed population, we have the long-range viral concentration profile which is independent of all the exposed populations. This long-range concentration is computed by `models._ConcentrationModelBase.concentration()`, and also retrieved by `models.ExposureModel.concentration()` for an **ExposureModel** with no short-range interactions.
 
-In the report, the viral concentration, either at long-range or from the perspective of a specific exposed population, is plotted over time.
+The viral concentration at long-range and from the perspective of a specific exposed population is plotted over time in the report.
 
 
 ## Dose
-### Derivation of the Analytical Dose
-The long-range viral dose deposited in the respiratory tract of the exposed, for a given aerosol diameter, is
+The diameter-dependent viral dose deposited in the respiratory tract of an exposed is given by
 
-$\mathrm{vD}(D) = \int_{t1}^{t2}C(t, D)\;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$
-we split into long-range and short-range dose. 
+$\mathrm{vD}(D) = \int_{t_0}^{t_n}C(t, D)\;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$,
+
+where $t_0$ is the first time exposed enters and $t_n$ is the last time they leave. $\mathrm{BR}_{\mathrm{k}}$ is the breathing rate of the exposed, $f_{\mathrm{dep}}(D)$ is the deposition factor in the respiratory tract, and $\eta_{\mathrm{in}}$ is the inwards mask efficiency of the face mask worn by the exposed.
+$C(t, D)$ is the viral concentration from the perspective of the exposed. 
+When the exposed is inside the room and not engaged in a short-range interaction $C(t, D)=C_{\mathrm{LR}} (t, D)$, 
+and when the exposed is enganging in their $i$-th short-range interaction $C(t, D)=C_{\mathrm{SR},i} (t, D)$. Using the definition of , this can be expressed as
+
+$C(t, D) = \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) + \sum_{i}^{n_\mathrm{SR}}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i} (t, D)$
+
+where the indicator functions ant the time intervals $T$ and $T_{\mathrm{SR},i}$ follow the definitions from the previous sections. We have now introduced all diameter-dependent quantities, and all down-stream computations only depend on the total dose exposure
+
+$\mathrm{vD}^{\mathrm{total}} =\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{vD}(D) \mathrm{d}D$.
+
+Similarly to the computation of the total viral concentration, we account for having diferent diameter distributions at long-range and short-range when Monte Carlo integrating $C(t, D)$ over $D$ by separating the dose into a long-range and a short-range component as follows
+
+$\mathrm{vD}^{\mathrm{total}} 
+=\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_n}C(t, D)\;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \mathrm{d}D$
+
+$\quad\quad\quad=\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \mathrm{d}D$
+
+$\quad\quad\quad\quad+\sum_{i}^{n_\mathrm{SR}}\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_n}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \mathrm{d}D$
+
+Lets define
+
+$\mathrm{vD}_{\mathrm{LR}}^{\mathrm{total}} =\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \mathrm{d}D$
+
+$\mathrm{vD}_{\mathrm{SR-LR},i}^{\mathrm{total}}=\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_n}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \mathrm{d}D$
+
+so
+
+$\mathrm{vD}^{\mathrm{total}} = \mathrm{vD}_{\mathrm{LR}}^{\mathrm{total}} + \sum_{i}^{n_\mathrm{SR}}\mathrm{vD}_{\mathrm{SR-LR},i}^{\mathrm{total}}$
+
+This separation also makes it easier to compare the importance of long-range vs short-range interactions for viral transmission. 
 
 
 #### Long-Range Dose
@@ -376,7 +416,7 @@ where $t_1$ and $t_n$ are the start and end times of the occupancy (and simulati
 
 $\int_{t_1}^{t_n} C_{\mathrm{LR}}(t, D) \mathrm{d}t  =  \sum_{i=1}^n \int_{t_i}^{t_{i+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t $
     
-$=  \sum_{i=1}^n \int_{t_i}^{t_{i+1}} \left[\mathrm{vR(D)} \cdot \left(\frac{N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r}- \frac{C_{\mathrm{LR},0}(D)}{\mathrm{vR(D)}} \right) \exp{-\lambda_{vRR}(D)\cdot t} \right) \right] \mathrm{d}t$
+$= \sum_{i=1}^n \int_{t_i}^{t_{i+1}} \left[\mathrm{vR(D)} \cdot \left(\frac{N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r}- \frac{C_{\mathrm{LR},0}(D)}{\mathrm{vR(D)}} \right) \exp{-\lambda_{vRR}(D)\cdot t} \right) \right] \mathrm{d}t$
 
 $=  \sum_{i=1}^n \frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r} (t_{i+1}-t_{i}) + \sum_{i=1}^n \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_i)t_{i+1}}}{\lambda_{vRR}(D,t_i)} - \sum_{i=1}^n \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_i)t_i}}{\lambda_{vRR}(D,t_i)}$
 
