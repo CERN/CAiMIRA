@@ -439,15 +439,21 @@ $=\frac{1}{S({x})} \cdot (t_{j+1}-t_j) \cdot C_{0, \mathrm{SR}}(D) -\frac{1}{S({
 
 In total, the short-range dose component is
 
-$\mathrm{vD}_{\mathrm{SR-LR},i}(D)=\frac{\sum_{j=1}^n \mathbf{1}_{t \in T_{\mathrm{SR},i}}(t_j) (t_{j+1}-t_j)}{S({x})} \cdot C_{0, \mathrm{SR},i}(D) \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) - \mathrm{vD}_{\mathrm{LR}}(D)$
+$\mathrm{vD}_{\mathrm{SR-LR},i}(D)=\mathrm{vD}_{0, \mathrm{SR},i}(D) - \mathrm{vD}_{\mathrm{LR}}(D)$
+
+for 
+
+$\mathrm{vD}_{0, \mathrm{SR},i}(D) = \frac{\sum_{j=1}^n \mathbf{1}_{t \in T_{\mathrm{SR},i}}(t_j) (t_{j+1}-t_j)}{S({x})} \cdot C_{0, \mathrm{SR},i}(D) \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$
 
 
-### 
+#### Computation of the Dose
+The total dose exposure $\mathrm{vD}^{\mathrm{total}}$ is computed by `models.ExposureModel.deposited_exposure()`, which returns the sum of doses over time intervals where the occupancy of the exposed is constant. The doses over time intervals where the occupancy of the exposed is constant is computed in `models.ExposureModel._deposited_exposure_list()` by calling `models.ExposureModel.deposited_exposure_between_bounds()`, which computes $\mathrm{vD}_{0, \mathrm{SR},i}(D)$ and retrieves $\mathrm{vD}_{\mathrm{LR}}(D)$ from `models.ExposureModel.long_range_deposited_exposure_between_bounds()` to compute $\mathrm{vD}^{\mathrm{total}}$.
+
+Multiplying by the normalization factors...
 
 
 
-
-
+##### Separation of Random Variables
 
 The long-range concentration, integrated over the exposure time (in piecewise constant steps), $C(D)$, is given by `models._ConcentrationModelBase.integrated_concentration()`.
 
