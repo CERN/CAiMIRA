@@ -339,7 +339,7 @@ Note that multiple short-range interactions can be defined during a given exposu
 ### Total Viral Concentration
 Different exposed populations may experience different viral concentrations depending on their occupancy periods and the occurrence of short-range interactions. For a given exposed population, the total viral concentration at time $t$ is given by
 
-$C^{\mathrm{total}}(t) = \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}}^{\mathrm{total}}(t) + \sum_{i}^{n_\mathrm{SR}}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i}^{\mathrm{total}}(t)$
+$C^{\mathrm{total}}(t) = \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}}^{\mathrm{total}}(t) + \sum_{i=1}^{n_\mathrm{SR}}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i}^{\mathrm{total}}(t)$
 
 where $n_\mathrm{SR}$ denotes the total number of short-range interactions experienced by the exposed population during its entire occupancy period. The indicator function
 
@@ -369,6 +369,7 @@ The viral concentration at long-range and from the perspective of a specific exp
 
 
 ## Dose
+### Derivation of the Analytical Dose Exposure
 The diameter-dependent viral dose deposited in the respiratory tract of an exposed is given by
 
 $\mathrm{vD}(D) = \int_{t_0}^{t_n}C(t, D)\;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$,
@@ -376,11 +377,12 @@ $\mathrm{vD}(D) = \int_{t_0}^{t_n}C(t, D)\;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}}
 where $t_0$ is the first time exposed enters and $t_n$ is the last time they leave. $\mathrm{BR}_{\mathrm{k}}$ is the breathing rate of the exposed, $f_{\mathrm{dep}}(D)$ is the deposition factor in the respiratory tract, and $\eta_{\mathrm{in}}$ is the inwards mask efficiency of the face mask worn by the exposed.
 $C(t, D)$ is the viral concentration from the perspective of the exposed. 
 When the exposed is inside the room and not engaged in a short-range interaction $C(t, D)=C_{\mathrm{LR}} (t, D)$, 
-and when the exposed is enganging in their $i$-th short-range interaction $C(t, D)=C_{\mathrm{SR},i} (t, D)$. Using the definition of , this can be expressed as
+and when the exposed is enganging in their $i$-th short-range interaction $C(t, D)=C_{\mathrm{SR},i} (t, D)$. So 
+(we assume only one short-range interaction at a time (i.e. $\bigcap_{i=1}^{n_\mathrm{SR}}T_{\mathrm{SR},i} = \empty$), although this is not technically required in the backend model (TODO?))
 
-$C(t, D) = \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) + \sum_{i}^{n_\mathrm{SR}}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i} (t, D)$
+$C(t, D) = \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) + \sum_{i=1}^{n_\mathrm{SR}}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i} (t, D)$
 
-where the indicator functions ant the time intervals $T$ and $T_{\mathrm{SR},i}$ follow the definitions from the previous sections. We have now introduced all diameter-dependent quantities, and all down-stream computations only depend on the total dose exposure
+where the indicator functions and the time intervals $T$ and $T_{\mathrm{SR},i}$ follow the definitions from the previous sections. We have now introduced all diameter-dependent quantities, and all down-stream computations only depend on the total dose exposure
 
 $\mathrm{vD}^{\mathrm{total}} =\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{vD}(D) \mathrm{d}D$.
 
@@ -391,42 +393,39 @@ $\mathrm{vD}^{\mathrm{total}}
 
 $\quad\quad\quad=\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \mathrm{d}D$
 
-$\quad\quad\quad\quad+\sum_{i}^{n_\mathrm{SR}}\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_n}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \mathrm{d}D$
+$\quad\quad\quad\quad+\sum_{i=1}^{n_\mathrm{SR}}\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_n}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \mathrm{d}D$
 
 Lets define
 
-$\mathrm{vD}_{\mathrm{LR}}^{\mathrm{total}} =\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \mathrm{d}D$
+$\mathrm{vD}_{\mathrm{LR}}(D) =\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$
 
-$\mathrm{vD}_{\mathrm{SR-LR},i}^{\mathrm{total}}=\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_n}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \mathrm{d}D$
+$\mathrm{vD}_{\mathrm{SR-LR},i}(D)=\int_{t_0}^{t_n}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$
 
 so
 
-$\mathrm{vD}^{\mathrm{total}} = \mathrm{vD}_{\mathrm{LR}}^{\mathrm{total}} + \sum_{i}^{n_\mathrm{SR}}\mathrm{vD}_{\mathrm{SR-LR},i}^{\mathrm{total}}$
+$\mathrm{vD}^{\mathrm{total}} = \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{LR}}(D)\mathrm{d}D + \sum_{i=1}^{n_\mathrm{SR}}\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{SR-LR},i}(D)\mathrm{d}D$
 
-This separation also makes it easier to compare the importance of long-range vs short-range interactions for viral transmission. 
+This separation also makes it easier to compare the importance of long-range vs short-range interactions for viral transmission. While the integral over the particle diameter $D$ is approximated by Monte Carlo integration, the integral over time $t$ is solved analytically.
 
 
-#### Long-Range Dose
-The long-range viral dose deposited in the respiratory tract of the exposed, for a given aerosol diameter, is
-
-$\mathrm{vD}_{\mathrm{LR}}(D) = \int_{t1}^{t2}C_{\mathrm{LR}}(t, D)\;\mathrm{d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$
-
-where $t_1$ and $t_n$ are the start and end times of the occupancy (and simulation), $C_{\mathrm{LR}}(t, D)$ is the long-range viral concentration, $\mathrm{BR}_{\mathrm{k}}$ is the breathing rate of the exposed, $f_{\mathrm{dep}}(D)$ is the deposition fraction in the respiratory tract, and  $\eta_{\mathrm{in}}$ is the inward mask efficiency. Over an interval $[t_i, t_{i+1}]$ where both $\lambda_{vRR}(t, D)$ and $N_{\mathrm{inf}}$ are constant, $C_{\mathrm{LR}}(t, D)$ is given by the solution to the mass-balance ODE above. Therefore, we compute 
-
+#### Long-Range Dose Component
+Recall that we found an analytical solution for $C_{\mathrm{LR}}(t, D)$ by solving an ODE, assuming the viral concentration was the only time-dependent factor. This assumption holds over time intervals $[t_i, t_{i+1}]$. Therefore
 
 $\int_{t_1}^{t_n} C_{\mathrm{LR}}(t, D) \mathrm{d}t  =  \sum_{i=1}^n \int_{t_i}^{t_{i+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t $
     
 $= \sum_{i=1}^n \int_{t_i}^{t_{i+1}} \left[\mathrm{vR(D)} \cdot \left(\frac{N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r}- \frac{C_{\mathrm{LR},0}(D)}{\mathrm{vR(D)}} \right) \exp{-\lambda_{vRR}(D)\cdot t} \right) \right] \mathrm{d}t$
 
-$=  \sum_{i=1}^n \frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r} (t_{i+1}-t_{i}) + \sum_{i=1}^n \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_i)t_{i+1}}}{\lambda_{vRR}(D,t_i)} - \sum_{i=1}^n \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_i)t_i}}{\lambda_{vRR}(D,t_i)}$
+$=  \sum_{i=1}^n \frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r} (t_{i+1}-t_{i}) + \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_i)t_{i+1}}}{\lambda_{vRR}(D,t_i)} - \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_i)t_i}}{\lambda_{vRR}(D,t_i)}$
 
-for a given particle diameter $D$. The total dose deposited in the respiratory tract of the exposed is obtained by integrating over the particle diameter, which we approximate by 
+Lets also assume that the occupancy of the exposed is also constant over $[t_i, t_{i+1}]$ (this can be achieved by redefining $[t_i, t_{i+1}]$ withouth contradicting the previous requirement for $[t_i, t_{i+1}]$). Then, the intdicator function is constant over $[t_i, t_{i+1}]$ so
 
-$\mathrm{vD}^{\mathrm{total}} =\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{vD}(D) \mathrm{d}D$
+$\int_{t_i}^{t_{i+1}} \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}}(t, D) \mathrm{d}t=\mathbf{1}_{t \in T}(t_i) \cdot \int_{t_i}^{t_{i+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t$.
 
-cannot be solved analytically and is therefore solved using Monte Carlo integration.
+In total, the long range dose component is 
 
-#### Short-Range Dose
+$\mathrm{vD}_{\mathrm{LR}}(D) =\sum_{i=1}^n\mathbf{1}_{t_i \in T}(t) \cdot \left( \frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r} (t_{i+1}-t_{i}) + \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_i)t_{i+1}}}{\lambda_{vRR}(D,t_i)} - \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_i)t_i}}{\lambda_{vRR}(D,t_i)}\right) \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$
+
+#### Short-Range Dose Component
 
 ### 
 
