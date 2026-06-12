@@ -124,7 +124,7 @@ Assuming mass balance, the change in the viral concentration equal the differenc
 
 $\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} = \frac{\mathrm{vR}(D)\,N_{\mathrm{inf}}}{V_r} - \lambda_{vRR}(D) \cdot C_{\mathrm{LR}}(t, D)$.
 
-Assuming the viral concentration is the only time-dependent variable, this ODE can be solved analytically for a given particle size $D$. The solution might only hold over time intervals $[t_i, t_{i+1}]$ where the assumption that $\lambda_{vRR}(D)$ and $N_{\mathrm{inf}}$ are time-independent holds. In that case, the viral concentration at the end of the previous interval $C_{\mathrm{LR}}(t_i,D)$ can be carried forward as an intital condition to the next interval. 
+Assuming the viral concentration is the only time-dependent variable, this ODE can be solved analytically for a given particle size $D$. The solution might only hold over time intervals $[t_j, t_\{j\+1\}]$ where the assumption that $\lambda_{vRR}(D)$ and $N_{\mathrm{inf}}$ are time-independent holds. In that case, the viral concentration at the end of the previous interval $C_{\mathrm{LR}}(t_j,D)$ can be carried forward as an intital condition to the next interval. 
 
 The homogeneous solution (satisfying 
 $\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} + \lambda_{vRR}(D)\cdot\,C_{\mathrm{LR}}(t, D) = 0$)
@@ -146,27 +146,27 @@ which combined with the general solution yields
 
 $A_2 = \frac{\mathrm{vR(D)}\,N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r}$.
 
-For at the end of the last time interval (at $t=t_i$) the general solution gives
-$C_{\mathrm{LR}}(t_i, D) = A_2 + A_1\cdot \exp{-\lambda_{vRR}(D)\cdot t_i}$. 
+For at the end of the last time interval (at $t=t_j$) the general solution gives
+$C_{\mathrm{LR}}(t_j, D) = A_2 + A_1\cdot \exp{-\lambda_{vRR}(D)\cdot t_j}$. 
 Hence, 
 
-$A_1 = -\left(\frac{\mathrm{vR(D)}\,N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r}-C_{\mathrm{LR}}(t_i, D)\right) \cdot \exp{\lambda_{vRR}(D)\cdot t_i}$.
+$A_1 = -\left(\frac{\mathrm{vR(D)}\,N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r}-C_{\mathrm{LR}}(t_j, D)\right) \cdot \exp{\lambda_{vRR}(D)\cdot t_j}$.
 
 In conclusion, the analytical solution of the ODE describing the viral concentration, assuming only the concentration is time-dependent, is
 
-$C_{\mathrm{LR}}(t, D) = \frac{\mathrm{vR(D)}\,N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r} - \left(\left(\frac{\mathrm{vR(D)}\,N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r}- C_{\mathrm{LR}}(t_i, D)\right) \cdot \exp{\lambda_{vRR}(D)\cdot t_i}\right) \exp{-\lambda_{vRR}(D)\cdot t}$
+$C_{\mathrm{LR}}(t, D) = \frac{\mathrm{vR(D)}\,N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r} - \left(\left(\frac{\mathrm{vR(D)}\,N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r}- C_{\mathrm{LR}}(t_j, D)\right) \cdot \exp{\lambda_{vRR}(D)\cdot t_j}\right) \exp{-\lambda_{vRR}(D)\cdot t}$
 
-$= \frac{\mathrm{vR(D)}\,N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{\mathrm{vR(D)}\,N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r}-C_{\mathrm{LR}}(t_i, D)\right) \exp{-\lambda_{vRR}(D)\cdot (t-t_i)}$. 
+$= \frac{\mathrm{vR(D)}\,N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{\mathrm{vR(D)}\,N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r}-C_{\mathrm{LR}}(t_j, D)\right) \exp{-\lambda_{vRR}(D)\cdot (t-t_j)}$. 
 
 
 In CAiMIRA, we compute the normaized concentration $\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{vR(D)}}$ in `models._ConcentrationModelBase._normed_concentration()`. 
-The normalized concentration $\frac{C_{\mathrm{LR}}(t_i, D)}{\mathrm{vR(D)}}$ is computed and stored to be used in the next step by `models._ConcentrationModelBase._normed_concentration_cached()`. 
-To inspect the properties of $\frac{C_{\mathrm{LR}}(t_i, D)}{\mathrm{vR(D)}}$ by finding its solution to the differential equation
+The normalized concentration $\frac{C_{\mathrm{LR}}(t_j, D)}{\mathrm{vR(D)}}$ is computed and stored to be used in the next step by `models._ConcentrationModelBase._normed_concentration_cached()`. 
+To inspect the properties of $\frac{C_{\mathrm{LR}}(t_j, D)}{\mathrm{vR(D)}}$ by finding its solution to the differential equation
 
-$C_{\mathrm{LR}}(t_{i+1}, D)= \frac{\mathrm{vR(D)}\,N_{\mathrm{inf},i+1}}{\lambda_{vRR,i+1}(D)\,V_r} - \left(\frac{\mathrm{vR(D)}\,N_{\mathrm{inf},i+1}}{\lambda_{vRR,i+1}(D)\,V_r}-C_{\mathrm{LR}}(t_i, D)\right) \exp{-\lambda_{vRR,i+1}(D)\cdot (t_{i+1}-t_i)}$. 
+$C_{\mathrm{LR}}(t_\{j\+1\}, D)= \frac{\mathrm{vR(D)}\,N_{\mathrm{inf},i+1}}{\lambda_{vRR,i+1}(D)\,V_r} - \left(\frac{\mathrm{vR(D)}\,N_{\mathrm{inf},i+1}}{\lambda_{vRR,i+1}(D)\,V_r}-C_{\mathrm{LR}}(t_j, D)\right) \exp{-\lambda_{vRR,i+1}(D)\cdot (t_\{j\+1\}-t_j)}$. 
 
 Lets first clarify the notation by setting $y_i =C_{\mathrm{LR}}(t_{i}, D)$, $B_{i+1}=\frac{\mathrm{vR(D)}\,N_{\mathrm{inf},i+1}}{\lambda_{vRR,i+1}(D)\,V_r}$, 
-and $K_i = \exp{-\lambda_{vRR,i+1}(D)\cdot (t_{i+1}-t_i)}$. Note that we no longer assume that the number of infected and viral removal rate are time-independent: 
+and $K_i = \exp{-\lambda_{vRR,i+1}(D)\cdot (t_\{j\+1\}-t_j)}$. Note that we no longer assume that the number of infected and viral removal rate are time-independent: 
 $B_i$ depends on $i$ because $N_{\mathrm{inf},i+1}$ and/or $\lambda_{vRR,i+1}(D)$ change with $i$. Using the new notation, we get
 
 $y_{i+1}= B_{i+1} - (B_{i+1}-y_i) K_i \quad \Rightarrow \quad y_{i+1} = B_{i+1}(1-K_i)+K_i y_i$
@@ -181,20 +181,20 @@ $\prod_{j=n}^{i-1}K_j = \prod_{j=n}^{i-1}\exp{-\lambda_{vRR,j+1}(D)\cdot (t_{j+1
 
 $t_0=0$, and $y_0=C_{\mathrm{LR}}(0, D)=C_0$ we obtain the solution 
 
-$C_{\mathrm{LR}}(t_i, D)
+$C_{\mathrm{LR}}(t_j, D)
 =C_0 \cdot \left(\exp{ - \sum_{j=0}^{i-1} \lambda_{vRR,j+1}(D)\cdot(t_{j+1}-t_j)}\right)
 +\sum_{m=0}^{i-1}
 \frac{\mathrm{vR(D)}\,N_{\mathrm{inf},m+1}}{\lambda_{vRR,m+1}(D)\,V_r}
 \cdot \left(\exp{ - \sum_{j=m+1}^{i-1} \lambda_{vRR,j+1}(D)\cdot(t_{j+1}-t_j)}\right)
 \cdot \left(1- \exp{-\lambda_{vRR,m+1}(D)\cdot (t_{m+1}-t_m)}\right)$
 
-Importantly, the viral emission $\mathrm{vR(D)}$ is constant so, assuming the initial viral concentration $C_0=0$, $\mathrm{vR(D)}$ is a linear factor of $C_{\mathrm{LR}}(t_i, D)$ for all $i$.
-Therefore, we can always compute the normalized concentration at the last time step $\frac{C_{\mathrm{LR}}(t_i, D)}{\mathrm{vR(D)}}$ and $\mathrm{vR(D)}$ separately.
+Importantly, the viral emission $\mathrm{vR(D)}$ is constant so, assuming the initial viral concentration $C_0=0$, $\mathrm{vR(D)}$ is a linear factor of $C_{\mathrm{LR}}(t_j, D)$ for all $i$.
+Therefore, we can always compute the normalized concentration at the last time step $\frac{C_{\mathrm{LR}}(t_j, D)}{\mathrm{vR(D)}}$ and $\mathrm{vR(D)}$ separately.
 
-Inserting $C_{\mathrm{LR}}(t_i, D)$ into the solution of the mass-balance ODE above, and replacing $N_{\mathrm{inf}}$ and $\lambda_{vRR}$ by $N_{\mathrm{inf},i+1}$ and $\lambda_{vRR,i+1}$, 
-we find an expression for the long range viral concentration that does not require recurrent computations of $C_{\mathrm{LR}}(t_i, D)$.
+Inserting $C_{\mathrm{LR}}(t_j, D)$ into the solution of the mass-balance ODE above, and replacing $N_{\mathrm{inf}}$ and $\lambda_{vRR}$ by $N_{\mathrm{inf},i+1}$ and $\lambda_{vRR,i+1}$, 
+we find an expression for the long range viral concentration that does not require recurrent computations of $C_{\mathrm{LR}}(t_j, D)$.
 The expression will, however, depend on all the stepwise constant values of the number of infected and viral removal rate.
-Computationally, it might be just as efficient to compute $C_{\mathrm{LR}}(t_i, D)$ recurrently, as in CAiMIRA, because we also want to compute the concentration profile.
+Computationally, it might be just as efficient to compute $C_{\mathrm{LR}}(t_j, D)$ recurrently, as in CAiMIRA, because we also want to compute the concentration profile.
 
 #### Computation of the Long-Range Concentration
 For computational speed-up purposes we first compute $\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{vR(D)}}$, i.e. the long-range concentration normalized by the emission rate. This diameter-dependent component is later retrieved in `models.ExposureModel` to compute the dose exposure.
@@ -276,7 +276,7 @@ $\approx \frac{1}{S_N}\sum_{i=1}^{S_N} \frac{C_{\mathrm{LR}}(t, D_i)}{\mathrm{p}
 Note that $C_{\mathrm{SR}}(t, D)$ is the actual concentration at short-range, with the long-range concentration entrained. Hence, one is NOT supposed to add the long-range and short-range concentration on top of each other.
 To ease addition of contributions from several, incremental short-range interactions, we define the short-range concentration difference
 
-$C_{\mathrm{SR-LR}}^{\mathrm{total}}(t) = C_{\mathrm{SR}}^{\mathrm{total}}(t) - C_{\mathrm{LR}}^{\mathrm{total}}(t)$
+$C_{\mathrm{SR-LR}}^{\mathrm{total}}(t) = C_{\mathrm{SR}}^{\mathrm{total}}(t) - C_{\mathrm{LR}}^{\mathrm{total}}(t)=\frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}}(t, D))$
 
 $ = \frac{1}{S({x})} \cdot \left(\int_{0}^{100\mathrm{μm}} \frac{C_{0, \mathrm{SR}}(D) }{\mathrm{p}_{\mathrm{SR},D}(D)} \cdot \mathrm{p}_{\mathrm{SR},D}(D) \mathrm{d}D- \int_{0}^{20\mathrm{μm}} \frac{C_{\mathrm{LR}}(t, D)}{\mathrm{p}_{\mathrm{LR},D}(D)} \cdot \mathrm{p}_{\mathrm{LR},D}(D) \mathrm{d}D \right) $
 
@@ -409,23 +409,38 @@ This separation also makes it easier to compare the importance of long-range vs 
 
 
 #### Long-Range Dose Component
-Recall that we found an analytical solution for $C_{\mathrm{LR}}(t, D)$ by solving an ODE, assuming the viral concentration was the only time-dependent factor. This assumption holds over time intervals $[t_i, t_{i+1}]$. Therefore
+Recall that we found an analytical solution for $C_{\mathrm{LR}}(t, D)$ by solving an ODE, assuming the viral concentration was the only time-dependent factor. This assumption holds over time intervals $[t_j, t_{j+1}]$. Therefore
 
-$\int_{t_1}^{t_n} C_{\mathrm{LR}}(t, D) \mathrm{d}t  =  \sum_{i=1}^n \int_{t_i}^{t_{i+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t $
+$\int_{t_1}^{t_n} C_{\mathrm{LR}}(t, D) \mathrm{d}t  =  \sum_{j=1}^n \int_{t_j}^{t_{j+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t $
     
-$= \sum_{i=1}^n \int_{t_i}^{t_{i+1}} \left[\mathrm{vR(D)} \cdot \left(\frac{N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r}- \frac{C_{\mathrm{LR},0}(D)}{\mathrm{vR(D)}} \right) \exp{-\lambda_{vRR}(D)\cdot t} \right) \right] \mathrm{d}t$
+$= \sum_{j=1}^n \int_{t_j}^{t_{j+1}} \left[\mathrm{vR(D)} \cdot \left(\frac{N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r}- \frac{C_{\mathrm{LR},0}(D)}{\mathrm{vR(D)}} \right) \exp{-\lambda_{vRR}(D)\cdot t} \right) \right] \mathrm{d}t$
 
-$=  \sum_{i=1}^n \frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r} (t_{i+1}-t_{i}) + \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_i)t_{i+1}}}{\lambda_{vRR}(D,t_i)} - \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_i)t_i}}{\lambda_{vRR}(D,t_i)}$
+$=  \sum_{j=1}^n \frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_j)\,V_r} (t_{j+1}-t_{i}) + \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_j)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_j)t_{j+1}}}{\lambda_{vRR}(D,t_j)} - \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_j)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_j)t_j}}{\lambda_{vRR}(D,t_j)}$
 
-Lets also assume that the occupancy of the exposed is also constant over $[t_i, t_{i+1}]$ (this can be achieved by redefining $[t_i, t_{i+1}]$ withouth contradicting the previous requirement for $[t_i, t_{i+1}]$). Then, the intdicator function is constant over $[t_i, t_{i+1}]$ so
+Lets also assume that the occupancy of the exposed is also constant over $[t_j, t_{j+1}]$ (this can be achieved by redefining $[t_j, t_{j+1}]$ withouth contradicting the previous requirement for $[t_j, t_{j+1}]$). Then, the intdicator function is constant over $[t_j, t_{j+1}]$ so
 
-$\int_{t_i}^{t_{i+1}} \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}}(t, D) \mathrm{d}t=\mathbf{1}_{t \in T}(t_i) \cdot \int_{t_i}^{t_{i+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t$.
+$\int_{t_j}^{t_{j+1}} \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}}(t, D) \mathrm{d}t=\mathbf{1}_{t \in T}(t_j) \cdot \int_{t_j}^{t_{j+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t$.
 
 In total, the long range dose component is 
 
-$\mathrm{vD}_{\mathrm{LR}}(D) =\sum_{i=1}^n\mathbf{1}_{t_i \in T}(t) \cdot \left( \frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r} (t_{i+1}-t_{i}) + \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_i)t_{i+1}}}{\lambda_{vRR}(D,t_i)} - \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_i)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_i)t_i}}{\lambda_{vRR}(D,t_i)}\right) \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$
+$\mathrm{vD}_{\mathrm{LR}}(D) =\sum_{j=1}^n\mathbf{1}_{t_j \in T}(t) \cdot \left( \frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_j)\,V_r} (t_{j+1}-t_{i}) + \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_j)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_j)t_{j+1}}}{\lambda_{vRR}(D,t_j)} - \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_j)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_j)t_j}}{\lambda_{vRR}(D,t_j)}\right) \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$
 
 #### Short-Range Dose Component
+Similar to the long-range component, we have 
+
+$\int_{t_0}^{t_n} \mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i}(t, D) \mathrm{d}t
+= \sum_{j=1}^n \mathbf{1}_{t \in T_{\mathrm{SR},i}}(t_j) \cdot \int_{t_j}^{t_{j+1}} C_{\mathrm{SR-LR},i}(t, D) \mathrm{d}t$.
+
+for $[t_j, t_{j+1}]$ defined in the section above. Next,
+
+$\int_{t_j}^{t_{j+1}} C_{\mathrm{SR-LR,i}}(t, D) \mathrm{d}t=\int_{t_j}^{t_{j+1}} \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR},i}(D) - C_{\mathrm{LR}}(t, D)) \mathrm{d}t$
+
+$=\frac{1}{S({x})} \cdot (t_{j+1}-t_j) \cdot C_{0, \mathrm{SR}}(D) -\frac{1}{S({x})} \int_{t_j}^{t_{j+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t$.
+
+In total, the short-range dose component is
+
+$\mathrm{vD}_{\mathrm{SR-LR},i}(D)=\frac{\sum_{j=1}^n \mathbf{1}_{t \in T_{\mathrm{SR},i}}(t_j) (t_{j+1}-t_j)}{S({x})} \cdot C_{0, \mathrm{SR},i}(D) \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) - \mathrm{vD}_{\mathrm{LR}}(D)$
+
 
 ### 
 
