@@ -1758,16 +1758,19 @@ class ExposureModel:
     
     def long_range_concentration(self, time: float) -> float:
         """
-        Integrated virus exposure concentration, as a function of time.
+        Total virus concentration in the room, as a function of time.
 
         It only considers the long-range concentration without the
         contribution of the short-range concentration.
 
-        Since the different ConcentrationModel objects may have different diameter bases drawn 
-        from different distributions, the concentrations from different ConcentrationModel 
-        objects must be averaged over the diameter before summed together.
+        Since the different ConcentrationModel objects may have different infected with different expirations,
+        they can have different particle diameters bases drawn from different probability distributions.
+        To Monte Carlo integrate correctly over the particle diameter, we must therefore average the concentration 
+        of each ConcentrationModel over the particle diameter before adding together all the contributions from all 
+        the ConcentrationModels.
         """
-        return sum([np.array(c_model.concentration(time)).mean() for c_model in self.concentration_model_list])
+        return sum([np.array(c_model.concentration(time)).mean() for c_model in self.concentration_model_list]) # Average over particle diameter
+    
     def concentration(self, time: float) -> float:
         """
         Integrated virus exposure concentration, as a function of time.
