@@ -435,7 +435,9 @@ for $[t_j, t_{j+1}]$ defined in the section above. Next,
 
 $\int_{t_j}^{t_{j+1}} \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR},i}(D) - C_{\mathrm{LR}}(t, D)) \mathrm{d}t=\frac{1}{S({x})} \cdot (t_{j+1}-t_j) \cdot C_{0, \mathrm{SR}}(D) -\frac{1}{S({x})} \int_{t_j}^{t_{j+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t$.
 
-Therefore, the short-range dose component from the $i$-th short-range interaction is
+Note that $t \in T_{\mathrm{SR},i} \Rightarrow t \in T$ (i.e. if there is a short-range interaction occuring, the occupants are present). Therefore, $\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) = \mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot \mathbf{1}_{t \in T}(t)$. 
+
+Combining the arguments above, we find that the short-range dose component from the $i$-th short-range interaction is
 
 $\mathrm{vD}_{\mathrm{SR-LR},i}(D)=\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot \frac{1}{S({x})} \cdot \left((t_{j+1}-t_j) \cdot C_{0, \mathrm{SR},i}(D) -\int_{t_j}^{t_{j+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t \right) \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$
 
@@ -447,30 +449,31 @@ $\mathrm{vD}_{0, \mathrm{SR},i}(D) = (t_{j+1}-t_j) \cdot C_{0, \mathrm{SR},i}(D)
 
 
 #### Computation of the Dose
-The total dose exposure $\mathrm{vD}^{\mathrm{total}}$ is computed by `models.ExposureModel.deposited_exposure()`, which returns the sum of doses over time intervals where the occupancy of the exposed is constant. The doses over time intervals where the occupancy of the exposed is constant is computed in `models.ExposureModel._deposited_exposure_list()` by calling `models.ExposureModel.deposited_exposure_between_bounds()`, which computes $\mathrm{vD}_{0, \mathrm{SR},i}(D)$ and retrieves $\mathrm{vD}_{\mathrm{LR}}(D)$ from `models.ExposureModel.long_range_deposited_exposure_between_bounds()` to compute $\mathrm{vD}^{\mathrm{total}}$.
+The total dose exposure $\mathrm{vD}^{\mathrm{total}}$ is computed by `models.ExposureModel.deposited_exposure()`. 
+When computing the dose, the time intervals $[t_j, t_{j+1}]$ that we intergrate over are determined to:
+- only include doses from time intervals where the exposed is present
+- only integrate the concentration over time intervals where the occupancy of the infected and ventilation is constant. 
 
-The Monte Carlo integration over the particle diameter is performed as follows
+The first point is ensured by the dose being computed for a list of intervals where the occupancy is constant by `models.ExposureModel._deposited_exposure_list()`, which are then added together in `models.ExposureModel.deposited_exposure()`. Within `models.ExposureModel._deposited_exposure_list()`, after ensuring that we are within a time interval with constant occupancy of the exposed, we call `models.ExposureModel.deposited_exposure_between_bounds()` to compute the total dose exposure for that time interval. 
+
+The magic happends in `models.ExposureModel.deposited_exposure_between_bounds()`. There we consider the long-range component and short-range component of the dose separately, summing over the short-range interactions passed to **ExposureModel** to add the $C_{0, \mathrm{SR},i}(D)$ dose contributions and retrieving $\mathrm{vD}_{\mathrm{LR}}(D)$ from `models.ExposureModel.long_range_deposited_exposure_between_bounds()` to compute $\mathrm{vD}^{\mathrm{total}}$. The full Monte Carlo integration over the particle diameter follows
 
 $\mathrm{vD}^{\mathrm{total}} 
-= \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{LR}}(D)\mathrm{d}D + \sum_{i=1}^{n_\mathrm{SR}}\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{SR-LR},i}(D)\mathrm{d}D$
+= \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{LR}}(D)\mathrm{d}D + \sum_{i=1}^{n_\mathrm{SR}} \mathbf{1}_{t \in T_{\mathrm{SR},i}}(t_i) \cdot\left[\frac{1}{S({x})} \cdot\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{0, \mathrm{SR},i}(D) \mathrm{d}D - \frac{1}{S({x})} \cdot \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{LR}}(D)\mathrm{d}D \right]$
 
-$= \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{LR}}(D)\mathrm{d}D + \sum_{i=1}^{n_\mathrm{SR}} \left[\frac{1}{S({x})} \cdot\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{0, \mathrm{SR},i}(D) \mathrm{d}D - \frac{1}{S({x})} \cdot \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{LR}}(D)\mathrm{d}D \right]$
-
-Multiplying by the normalization factors...
+Recall that we normalized the concentration by the emission rate for computational efficiency before multiplying by the normalization factor to integrate over the particle diameter. Similarly, the order of computations in `models.ExposureModel.deposited_exposure_between_bounds()` are structured to separate Monte Carlo integration of diamter-dependent and non-diameter dependent random variables for computational efficiency. 
 
 
 
 ##### Separation of Random Variables
+It is important to distinguish between 1) Monte-Carlo random variables (which are vectorized independently on its diameter-dependence) and 2) numerical Monte-Carlo integration for the diameter-dependence.
+Since the integral of the diameter-dependent variables are solved when computing the dose – $\mathrm{vD^{total}}$ – while performing some of the intermediate calculations,
+we normalize the results by *dividing* by the Monte-Carlo variables that are diameter-independent, so that they are not considered in the Monte-Carlo integration (e.g. the **viral load** parameter, or the result of the `models.InfectedPopulation.emission_rate_per_aerosol_per_person_when_present()` method).
 
-The long-range concentration, integrated over the exposure time (in piecewise constant steps), $C(D)$, is given by `models._ConcentrationModelBase.integrated_concentration()`.
-
-The following methods calculate the integrated concentration between two times. They are mostly used when calculating the **dose**:
+The following methods calculate the integrated concentration between two times.
 
 * `models._ConcentrationModelBase.normed_integrated_concentration()`, $\mathrm{C_\mathrm{normed}}(D)$ that returns the integrated long-range concentration of viruses in the air, between any two times, normalized by the emission rate per person infected. Note that this method performs the integral between any two times of the previously mentioned `models._ConcentrationModelBase._normed_concentration()` method.
 * `models._ConcentrationModelBase.integrated_concentration()`, $C(D)$, that returns the same result as the previous one, but multiplied by the emission rate (per person infected).
-
-The integral over the exposure times is calculated directly in the class (integrated methods).
-
 
 
 
@@ -518,21 +521,7 @@ In the end, the governing method is `models.ExposureModel.deposited_exposure_bet
 
 ### Short-range approach
 
-In theory, the dose during a close-proximity interaction (short-range) is simply added to the dose inhaled due to the long-range and may be defined as follows:
 
-$\mathrm{vD}(D)= \mathrm{vD^{LR}}(D) + \sum\limits_{i=1}^{n} \int_{t1}^{t2}C_{\mathrm{SR}}(t, D)\;\mathrm{d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$ ,
-
-where $\mathrm{vD_{LR}}(D)$ is the long-range, diameter-dependent dose computed previously.
-
-From above, the short-range concentration:
-
-$C_{\mathrm{SR}}(t, D) = C_{\mathrm{LR}, 100μm} (t, D) + \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100μm}(t, D))$ ,
-
-In the code, the method that returns the value for the total dose (independently if it is short- or long-range) is given by `models.ExposureModel.deposited_exposure_between_bounds()`.
-For code simplification, we split the $C_{\mathrm{SR}}(t, D)$ equation into two components:
-
-* short-range component: $\frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}, 100μm}(t, D))$;
-* long-range component: $C_{\mathrm{LR}} (t, D)$.
 
 Similarly as above, first we perform the multiplications by the diameter-dependent variables so that we can profit from the Monte-Carlo integration. Then we multiply the final value by the diameter-independent variables.
 The method `models.ShortRangeModel._normed_jet_exposure_between_bounds()` gets the integrated short-range concentration of viruses in the air between the times start and stop, normalized by the **viral load** and **fraction of infectious virus**,
@@ -566,13 +555,6 @@ If short-range interactions exist: the long-range component is added to the alre
 If the are no short-range interactions: the short-range component (deposited_exposure) is zero, hence the result is equal solely to the long-range component $C_{\mathrm{LR}}$.
 
 
-### Separation of Random Variables
-
-It is important to distinguish between 1) Monte-Carlo random variables (which are vectorized independently on its diameter-dependence) and 2) numerical Monte-Carlo integration for the diameter-dependence.
-Since the integral of the diameter-dependent variables are solved when computing the dose – $\mathrm{vD^{total}}$ – while performing some of the intermediate calculations,
-we normalize the results by *dividing* by the Monte-Carlo variables that are diameter-independent, so that they are not considered in the Monte-Carlo integration (e.g. the **viral load** parameter, or the result of the `models.InfectedPopulation.emission_rate_per_aerosol_per_person_when_present()` method).
-
-
 ## Infection Probability
 ### Deterministic Exposure
 #### Derivation
@@ -580,19 +562,6 @@ we normalize the results by *dividing* by the Monte-Carlo variables that are dia
 ### Probabilistic Exposure
 #### Derivation
 #### Implementation
-
-## CO<sub>2</sub> Concentration
-
-The estimate of the concentration of CO<sub>2</sub> in a given room to indicate the air quality is given by the same approach as for the long-range virus concentration,
-$C_{\mathrm{LR}}(t, D)$, where $C_{\mathrm{LR},0}(D)$ is considered to be the background (outdoor) CO<sub>2</sub> concentration (`models.CO2ConcentrationModel.CO2_atmosphere_concentration()`).
-
-In order to compute the CO<sub>2</sub> concentration one should then simply use the `models.CO2ConcentrationModel.concentration()` method.
-A fraction of 4.2% of the exhalation rate of the defined activity was considered as supplied to the room (`models.CO2ConcentrationModel.CO2_fraction_exhaled()`).
-
-Note still that nothing depends on the aerosol diameter $D$ in this case (no particles are involved) - hence in this class all parameters are constant w.r.t $D$.
-
-Since the CO<sub>2</sub> concentration differs from the virus concentration, the specific removal rate, CO<sub>2</sub> atmospheric concentration and normalization factors are respectively defined in `models.CO2ConcentrationModel.removal_rate()`,
-`models.CO2ConcentrationModel.min_background_concentration()` and `models.CO2ConcentrationModel.normalization_factor()`.
 
 ## References
 
