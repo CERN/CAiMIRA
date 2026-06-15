@@ -276,7 +276,7 @@ $\approx \frac{1}{S_N}\sum_{i=1}^{S_N} \frac{C_{\mathrm{LR}}(t, D_i)}{\mathrm{p}
 Note that $C_{\mathrm{SR}}(t, D)$ is the actual concentration at short-range, with the long-range concentration entrained. Hence, one is NOT supposed to add the long-range and short-range concentration on top of each other.
 To ease addition of contributions from several, incremental short-range interactions, we define the short-range concentration difference
 
-$C_{\mathrm{SR-LR}}^{\mathrm{total}}(t) = C_{\mathrm{SR}}^{\mathrm{total}}(t) - C_{\mathrm{LR}}^{\mathrm{total}}(t)=\frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}}(t, D))$
+$C_{\mathrm{SR-LR}}^{\mathrm{total}}(t) = C_{\mathrm{SR}}^{\mathrm{total}}(t) - C_{\mathrm{LR}}^{\mathrm{total}}(t)$
 
 $ = \frac{1}{S({x})} \cdot \left(\int_{0}^{100\mathrm{μm}} \frac{C_{0, \mathrm{SR}}(D) }{\mathrm{p}_{\mathrm{SR},D}(D)} \cdot \mathrm{p}_{\mathrm{SR},D}(D) \mathrm{d}D- \int_{0}^{20\mathrm{μm}} \frac{C_{\mathrm{LR}}(t, D)}{\mathrm{p}_{\mathrm{LR},D}(D)} \cdot \mathrm{p}_{\mathrm{LR},D}(D) \mathrm{d}D \right) $
 
@@ -370,7 +370,7 @@ The viral concentration at long-range and from the perspective of a specific exp
 
 ## Dose
 ### Derivation of the Analytical Dose Exposure
-The diameter-dependent viral dose deposited in the respiratory tract of an exposed is given by
+The diameter-dependent viral dose deposited in the respiratory tract of an exposed, i.e. the number of viable virions that will contribute to a potential infection, is given by
 
 $\mathrm{vD}(D) = \int_{t_0}^{t_n}C(t, D)\;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$,
 
@@ -380,7 +380,7 @@ When the exposed is inside the room and not engaged in a short-range interaction
 and when the exposed is enganging in their $i$-th short-range interaction $C(t, D)=C_{\mathrm{SR},i} (t, D)$. So 
 (we assume only one short-range interaction at a time (i.e. $\bigcap_{i=1}^{n_\mathrm{SR}}T_{\mathrm{SR},i} = \empty$), although this is not technically required in the backend model (TODO?))
 
-$C(t, D) = \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) + \sum_{i=1}^{n_\mathrm{SR}}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i} (t, D)$
+$C(t, D) = \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) + \sum_{i=1}^{n_\mathrm{SR}}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR},i}(D) - C_{\mathrm{LR}}(t, D))$
 
 where the indicator functions and the time intervals $T$ and $T_{\mathrm{SR},i}$ follow the definitions from the previous sections. We have now introduced all diameter-dependent quantities, and all down-stream computations only depend on the total dose exposure
 
@@ -393,13 +393,13 @@ $\mathrm{vD}^{\mathrm{total}}
 
 $\quad\quad\quad=\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \mathrm{d}D$
 
-$\quad\quad\quad\quad+\sum_{i=1}^{n_\mathrm{SR}}\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_n}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \mathrm{d}D$
+$\quad\quad\quad\quad+\sum_{i=1}^{n_\mathrm{SR}}\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_n}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR},i}(D) - C_{\mathrm{LR}}(t, D)) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \mathrm{d}D$
 
 Lets define
 
 $\mathrm{vD}_{\mathrm{LR}}(D) =\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$
 
-$\mathrm{vD}_{\mathrm{SR-LR},i}(D)=\int_{t_0}^{t_n}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$
+$\mathrm{vD}_{\mathrm{SR-LR},i}(D)=\int_{t_0}^{t_n}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR},i}(D) - C_{\mathrm{LR}}(t, D)) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$
 
 so
 
@@ -429,25 +429,32 @@ $\mathrm{vD}_{\mathrm{LR}}(D) =\sum_{j=1}^n\mathbf{1}_{t_j \in T}(t) \cdot \left
 Similar to the long-range component, we have 
 
 $\int_{t_0}^{t_n} \mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i}(t, D) \mathrm{d}t
-= \sum_{j=1}^n \mathbf{1}_{t \in T_{\mathrm{SR},i}}(t_j) \cdot \int_{t_j}^{t_{j+1}} C_{\mathrm{SR-LR},i}(t, D) \mathrm{d}t$.
+= \mathbf{1}_{t \in T_{\mathrm{SR},i}}(t_j) \cdot \int_{t_j}^{t_{j+1}} C_{\mathrm{SR-LR},i}(t, D) \mathrm{d}t$.
 
 for $[t_j, t_{j+1}]$ defined in the section above. Next,
 
-$\int_{t_j}^{t_{j+1}} C_{\mathrm{SR-LR,i}}(t, D) \mathrm{d}t=\int_{t_j}^{t_{j+1}} \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR},i}(D) - C_{\mathrm{LR}}(t, D)) \mathrm{d}t$
+$\int_{t_j}^{t_{j+1}} \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR},i}(D) - C_{\mathrm{LR}}(t, D)) \mathrm{d}t=\frac{1}{S({x})} \cdot (t_{j+1}-t_j) \cdot C_{0, \mathrm{SR}}(D) -\frac{1}{S({x})} \int_{t_j}^{t_{j+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t$.
 
-$=\frac{1}{S({x})} \cdot (t_{j+1}-t_j) \cdot C_{0, \mathrm{SR}}(D) -\frac{1}{S({x})} \int_{t_j}^{t_{j+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t$.
+Therefore, the short-range dose component from the $i$-th short-range interaction is
 
-In total, the short-range dose component is
+$\mathrm{vD}_{\mathrm{SR-LR},i}(D)=\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot \frac{1}{S({x})} \cdot \left((t_{j+1}-t_j) \cdot C_{0, \mathrm{SR},i}(D) -\int_{t_j}^{t_{j+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t \right) \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$
 
-$\mathrm{vD}_{\mathrm{SR-LR},i}(D)=\mathrm{vD}_{0, \mathrm{SR},i}(D) - \mathrm{vD}_{\mathrm{LR}}(D)$
+$=\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot \frac{1}{S({x})} \cdot \left(\mathrm{vD}_{0, \mathrm{SR},i}(D)-\mathrm{vD}_{\mathrm{LR}}(D)\right)$
 
 for 
 
-$\mathrm{vD}_{0, \mathrm{SR},i}(D) = \frac{\sum_{j=1}^n \mathbf{1}_{t \in T_{\mathrm{SR},i}}(t_j) (t_{j+1}-t_j)}{S({x})} \cdot C_{0, \mathrm{SR},i}(D) \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$
+$\mathrm{vD}_{0, \mathrm{SR},i}(D) = (t_{j+1}-t_j) \cdot C_{0, \mathrm{SR},i}(D) \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$
 
 
 #### Computation of the Dose
 The total dose exposure $\mathrm{vD}^{\mathrm{total}}$ is computed by `models.ExposureModel.deposited_exposure()`, which returns the sum of doses over time intervals where the occupancy of the exposed is constant. The doses over time intervals where the occupancy of the exposed is constant is computed in `models.ExposureModel._deposited_exposure_list()` by calling `models.ExposureModel.deposited_exposure_between_bounds()`, which computes $\mathrm{vD}_{0, \mathrm{SR},i}(D)$ and retrieves $\mathrm{vD}_{\mathrm{LR}}(D)$ from `models.ExposureModel.long_range_deposited_exposure_between_bounds()` to compute $\mathrm{vD}^{\mathrm{total}}$.
+
+The Monte Carlo integration over the particle diameter is performed as follows
+
+$\mathrm{vD}^{\mathrm{total}} 
+= \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{LR}}(D)\mathrm{d}D + \sum_{i=1}^{n_\mathrm{SR}}\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{SR-LR},i}(D)\mathrm{d}D$
+
+$= \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{LR}}(D)\mathrm{d}D + \sum_{i=1}^{n_\mathrm{SR}} \left[\frac{1}{S({x})} \cdot\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{0, \mathrm{SR},i}(D) \mathrm{d}D - \frac{1}{S({x})} \cdot \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{LR}}(D)\mathrm{d}D \right]$
 
 Multiplying by the normalization factors...
 
@@ -470,25 +477,6 @@ The integral over the exposure times is calculated directly in the class (integr
 
 
 ## Dose - vD
-
-The term dose refers to the number of viable virions (infectious virus) that will contribute to a potential infection.
-It results in a combination of several properties: exposure, inhalation rate, aerosol deposition in the respiratory tract and the effect of protective equipment such as masks.
-
-The receiving dose, which is inhaled by the exposed host, in infectious virions per unit diameter (diameter-dependence),
-is calculated by first integrating the viral concentration profile (for a given particle diameter) over the exposure time and multiplying by scaling factors such as the proportion of virions which are infectious and the deposition fraction,
-as well as the inhalation rate and the effect of masks:
-
-$\mathrm{vD}{\mathrm{LR}}(D) = \int_{t1}^{t2}C(t, D)\;\mathrm{d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})$ .
-
-where $C(t, D)$ is the concentration value at a given time, which can be either the short- or long-range concentration, $f_{\mathrm{dep}}(D)$ is the (diameter-dependent) deposition fraction in the respiratory tract, $\mathrm{BR}_{\mathrm{k}}$ is the inhalation rate and $\eta_{\mathrm{in}}$ is the inward efficiency of the face mask.
-
-Given that the calculation is diameter-dependent, to calculate the dose in the model, the code contains different methods that consider the parameters that are dependent on the aerosol size, $D$.
-The total dose, at the end of the exposure scenario, results from the sum of the dose accumulated over time, integrated over particle diameters:
-
-$\mathrm{vD^{total}} = \int_0^{D_{\mathrm{max}}} \mathrm{vD}(D) \, \mathrm{d}D$ .
-
-This calculation is computed using a Monte-Carlo integration over $D$. As previously described, many different parameters samples are generated using the probability distribution from the $N_p(D)$ equation.
-The dose for each of them is then computed, and their **average** value over all samples represents a good approximation of the total dose, provided that the number of samples is large enough.
 
 ### Long-range approach
 
