@@ -6,6 +6,8 @@ Along with viral transmission, CAiMIRA also simulates emission, removal, and con
 [![CAiMIRA Structure](CAiMIRA_structure.png)](CAiMIRA_structure.png)
 *Figure 1: Structure of the CAiMIRA model showing the viral transmission and CO_2 simulation processes.*
 
+This page details the how the viral transmission is modelled. Details on how the CO_2 concentration is simulated can be found on the page **Computation of the CO<sub>2</sub> Concentration**.
+
 The viral **emission rate** – $\mathrm{vR}(D)$, **removal rate** – $\mathrm{vRR}(D)$, **concentration** – $C(t, D)$, and **dose** $\mathrm{vD(D)}$ are considered for a given aerosol diameter $D$,
 as the behavior of the virus-laden particles in the room environment and inside the respiratory tract are diameter-dependent. The probability of infection is computed from the total viral dose deposited in the respiratory tract
 
@@ -17,16 +19,10 @@ A probability distribution of $D$, a diameter-independent component, and a remai
 Because the viral concentration is a factor of the dose, and the viral emission rate is a factor of the viral concentration, $C(t, D)$ and $\mathrm{vR}(D)$ are also factored into probability distribution of $D$, a diameter-independent component, and a remaining diameter-dependent component (details below).
 Intermediate results for the total viral emission rate $\mathrm{vR}^{total}$, total viral removal rate $\mathrm{vRR}^{total}$, and total viral concentration $\mathrm{C(t)}^{total}$ can also be obtained by integrating over the particle diameter.
 
-This page describes the derivation of the equations specifying the emission rate, removal rate, and concentration of virions and CO_2, as well as the viral dose exposure and probability of infection (see Figure 1). 
+This page describes the derivation of the equations specifying the emission rate, removal rate, and concentration of virions, as well as the viral dose exposure and probability of infection (see Figure 1). 
 After having derived the full equations, it is described how the computations are devided into different classes and methods in the CAiMIRA implementation for computational efficiency.
 
-## Backend Structure
-
-The `caimira.calculator.validators` package contains modules responsible for binding all input values from the request to their respective model variables. These modules, `co2.co2_validator` and `virus.virus_validator`, inherit from the parent `form_validator` module, and handle input validation for the CO<sub>2</sub> and virus model generators, respectively.
-The `caimira.calculator.report` package contains modules responsible for binding all results from the model calculations into the respective output variables in the request output. These modules, `co2_report_data` and `virus_report_data`, handle outputs for the CO<sub>2</sub> and virus model, respectively.
-The `caimira.calculator.store.data_registry` contains input values to CAiMIRA that are not user-defined. These are collected in a class **DataRegistry**.
-The `caimira.calculator.models.models.py` (hereafter abbreviated as `models`) and `caimira.calculator.models.monte_carlo` (hereafter abbreviated as `monte_carlo`) implements the core CAiMIRA methods. A useful feature of the implementation is that we can benefit from vectorization, which allows running multiple parameterizations of the model at the same time.
-
+In the following, the `caimira.calculator.models.models.py` package is abbreviated as `models` and the `caimira.calculator.models.monte_carlo` package is abbreviated as `monte_carlo`.
 
 ## Emission 
 ### Derivation of the Analytical Emission Rate
