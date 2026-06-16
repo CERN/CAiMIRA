@@ -335,7 +335,7 @@ This **dilution factor** is given by
 $$
 S({x}) =
 \begin{cases} 
-\frac{2𝛽_{r,j}(x+x_{0}}{D_m} \hspace{2cm} 0 < x \leq x^*,\\
+\frac{2𝛽_{r,j}(x+x_{0})}{D_m} \hspace{2cm} 0 < x \leq x^*,\\
 S({x^*})[1+\frac{𝛽_{r,p}(x-x^*)}{𝛽_{r,j}(x+x_{0})}]^3 \quad x > x^*,
 \end{cases}
 $$
