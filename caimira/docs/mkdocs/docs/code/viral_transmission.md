@@ -217,14 +217,14 @@ Using the exact same procedure and assumptions as for the previous ODE, we find 
 
 $C_{\mathrm{LR}}(t, D)= \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r}-C_{\mathrm{LR}}(t_i, D)\right) \exp{-\lambda_{vRR}(D)\cdot (t-t_i)}$
 
-Note that $C_{\mathrm{LR}}(t_0, D)=0$ and 
+Note that $C_{\mathrm{LR}}(t_0, D)=0$ and for $t \in [t_0, t_1]$
 
-$C_{\mathrm{LR}}(t_1, D)= \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r}-C_{\mathrm{LR}}(t_0, D)\right) \exp{-\lambda_{vRR}(D)\cdot (t_1-t_0)}$
+$C_{\mathrm{LR}}(t, D)= \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r}-C_{\mathrm{LR}}(t_0, D)\right) \exp{-\lambda_{vRR}(D)\cdot (t-t_0)}$
 
-$= \sum_{n=1}^{n_p} \left[\frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} - \frac{\\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} \exp{-\lambda_{vRR}(D)\cdot (t_1-t_0)} \right] =\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t_1, D)$
+$= \sum_{n=1}^{n_p} \left[\frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} - \frac{\\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} \exp{-\lambda_{vRR}(D)\cdot (t-t_0)} \right] =\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t_1, D)$
 
 
-For the final equality, we set $C_{\mathrm{LR},n}(t_1, D)=\frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} \cdot \left(1-\exp{-\lambda_{vRR}(D)\cdot t_1-t_0}\right)$ to indicate that this expression can be computed by a **ConcentrationModel** object, as described above, because all the $N_{\mathrm{inf},n}$ infected belong to the same **IntectedPopulation**, and thus have the same viral emission rate and samples of $D$. Next, for $t \in [t_1, t_2]$ we have
+For the final equality, we set $C_{\mathrm{LR},n}(t, D)=\frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} \cdot \left(1-\exp{-\lambda_{vRR}(D)\cdot t_1-t_0}\right)$ to indicate that this expression can be computed by a **ConcentrationModel** object, as described above, because all the $N_{\mathrm{inf},n}$ infected belong to the same **IntectedPopulation**, and thus have the same viral emission rate and samples of $D$. Next, for $t \in [t_1, t_2]$ we have
 
 $C_{\mathrm{LR}}(t, D)= \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r}-C_{\mathrm{LR}}(t_1, D)\right) \exp{-\lambda_{vRR}(D)\cdot (t-t_1)}$
 
@@ -237,6 +237,32 @@ The pattern extends to
 $C_{\mathrm{LR}}(t, D)=\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D)$
 
 for all $t$, so we may use multiple **ConcentrationModel** objects to compute the total long-range concentration resulting from emissions from infected with different properties. 
+
+<details>
+<summary>Proof</summary>
+We prove the proposition
+
+$C_{\mathrm{LR}}(t, D)=\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D)$
+
+for all $t$ by induction. We have already proved the proposition for $t \in [t_0, t_2]$. To complete the proof, we must show that $C_{\mathrm{LR}}(t, D)=\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D)$ for $t \in [t_2, t_k]$ for all $k$, which is the case if 
+
+The proposition holds for $t \in [t_i, t_{i+1}]$  $\Rightarrow$ The proposition holds for $t \in [t_{i+1}, t_{i+2}]$.
+
+Hence, assume that 
+
+$C_{\mathrm{LR}}(t, D)=\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D)$
+
+for $t \in [t_i, t_{i+1}]$. For $t \in [t_{i+1}, t_{i+2}]$ we then have
+
+$C_{\mathrm{LR}}(t, D)$
+
+$= \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r}-\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t_{i+1}, D)\right) \exp{-\lambda_{vRR}(D)\cdot (t-t_{i+1})}$
+
+$= \sum_{n=1}^{n_p} \left[ \frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r}-C_{\mathrm{LR},n}(t_{i+1}, D)\right) \exp{-\lambda_{vRR}(D)\cdot (t-t_{i+1})} \right] =\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D)$
+
+which completes the proof.
+
+</details>
 
 Using several **ConcentrationModel** objects was motivated by the **InfectedPopulation** objects having different samples of $D$ stored in their **Exporation** object, which cannot be considered equal because they stem from different distributions $\mathrm{p}_{D,n}(D)$. 
 When we Monte Carlo integrate to obtain the total long-range concentration, we compute
