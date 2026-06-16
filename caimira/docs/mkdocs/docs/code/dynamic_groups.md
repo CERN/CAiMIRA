@@ -1,7 +1,6 @@
 # Dynamic Occupancy Groups
 
-The dynamic occupancy introduces the capability to handle multiple occupancy
-groups, composed of **infected** and/or **exposed** population, within an event.
+The dynamic occupancy introduces the capability to handle multiple groups of **exposed** populations, within an event.
 Instead of having one single set of parameters for all the exposed (susceptible)
 occupants, this feature allows the model to have *n* groups, each with a
 specific occupancy profile and set of short-range interactions. This can
@@ -25,6 +24,7 @@ The feature revolves around the concept of a new
 encapsulates a set of [`ExposureModel`](models.md/#exposuremodel-class)
 instances. Each `ExposureModel` represents a distinct group of exposed occupants.
 
+The infected are implemented by passing multiple `ConcentrationModel` objects to the `ExposureModel`s in `ExposureModelGroup`, as described in the page Physics of Viral Transmission.
 ### Input Structure
 
 The modelling of dynamic occupancy with the definition of groups is
