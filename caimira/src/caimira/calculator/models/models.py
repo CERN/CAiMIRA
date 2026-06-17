@@ -1899,7 +1899,7 @@ class ExposureModel:
         """
         return np.sum(self._deposited_exposure_list(), axis=0) * self.repeats
 
-    def _infection_probability_list(self):
+    def _individual_infection_probability_list(self):
         # Viral dose (vD)
         vD_list = self._deposited_exposure_list()
 
@@ -1911,8 +1911,8 @@ class ExposureModel:
                 self.virus.transmissibility_factor)))) for vD in vD_list]
 
     @method_cache
-    def infection_probability(self) -> _VectorisedFloat:
-        return (1 - np.prod([1 - prob for prob in self._infection_probability_list()], axis = 0)) * 100
+    def individual_infection_probability(self) -> _VectorisedFloat:
+        return (1 - np.prod([1 - prob for prob in self._individual_infection_probability_list()], axis = 0)) * 100
 
     def total_probability_rule(self) -> _VectorisedFloat:
         if isinstance(self.concentration_model, list):
@@ -1935,7 +1935,7 @@ class ExposureModel:
                 exposure_model = nested_replace(
                     self, {'concentration_model.infected.number': num_infected}
                 )
-                prob_ind = exposure_model.infection_probability().mean() / 100
+                prob_ind = exposure_model.individual_infection_probability().mean() / 100
                 n = total_people - num_infected
                 # By means of the total probability rule
                 prob_at_least_one_infected = 1 - (1 - prob_ind)**n
@@ -1948,16 +1948,16 @@ class ExposureModel:
     def expected_new_cases(self) -> _VectorisedFloat:
         """
         The expected_new_cases may provide one or two different outputs:
-            1) Long-range exposure: take the infection_probability and multiply by the occupants exposed to long-range. 
-            2) Short- and long-range exposure: take the infection_probability of long-range multiplied by the occupants exposed to long-range only, 
-               plus the infection_probability of short- and long-range multiplied by the occupants exposed to short-range only.
+            1) Long-range exposure: take the individual_infection_probability and multiply by the occupants exposed to long-range. 
+            2) Short- and long-range exposure: take the individual_infection_probability of long-range multiplied by the occupants exposed to long-range only, 
+               plus the individual_infection_probability of short- and long-range multiplied by the occupants exposed to short-range only.
         """
         number = self.exposed.number
         if self.short_range != ():
-            new_cases_long_range = nested_replace(self, {'short_range': [],}).infection_probability() * (number - self.exposed_to_short_range) # type: ignore
-            return (new_cases_long_range + (self.infection_probability() * self.exposed_to_short_range)) / 100
+            new_cases_long_range = nested_replace(self, {'short_range': [],}).individual_infection_probability() * (number - self.exposed_to_short_range) # type: ignore
+            return (new_cases_long_range + (self.individual_infection_probability() * self.exposed_to_short_range)) / 100
 
-        return self.infection_probability() * number / 100
+        return self.individual_infection_probability() * number / 100
 
     def reproduction_number(self) -> _VectorisedFloat:
         """
@@ -2017,11 +2017,11 @@ class ExposureModelGroup:
         return [model.deposited_exposure() for model in self.exposure_models]
     
     @method_cache
-    def _infection_probability_list(self):
+    def individual_infection_probability(self):
         """
         List of the probability of infection for each group.
         """
-        return [model.infection_probability() for model in self.exposure_models] # type: ignore
+        return [model.individual_infection_probability() for model in self.exposure_models] # type: ignore
 
     def expected_new_cases(self) -> _VectorisedFloat:
         """

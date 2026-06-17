@@ -729,7 +729,7 @@ def test_longrange_exposure(data_registry, c_model):
         simple_expo_model.dose().mean(), rtol=TOLERANCE
         )
     npt.assert_allclose(
-        expo_model.infection_probability().mean(),
+        expo_model.individual_infection_probability().mean(),
         simple_expo_model.probability_infection().mean(), rtol=TOLERANCE
         )
 
@@ -794,7 +794,7 @@ def test_longrange_exposure_with_distributions(data_registry, c_model_distr):
         simple_expo_model.dose().mean(), rtol=TOLERANCE
         )
     npt.assert_allclose(
-        expo_model.infection_probability().mean(),
+        expo_model.individual_infection_probability().mean(),
         simple_expo_model.probability_infection().mean(), rtol=TOLERANCE
         )
 
@@ -820,7 +820,7 @@ def test_exposure_with_shortrange(expo_sr_model,simple_expo_sr_model):
         simple_expo_sr_model.dose().mean(), rtol=TOLERANCE
         )
     npt.assert_allclose(
-        expo_sr_model.build_model(SAMPLE_SIZE).infection_probability().mean(),
+        expo_sr_model.build_model(SAMPLE_SIZE).individual_infection_probability().mean(),
         simple_expo_sr_model.probability_infection().mean(), rtol=TOLERANCE
         )
 
@@ -846,7 +846,7 @@ def test_exposure_with_shortrange_and_distributions(expo_sr_model_distr,
         simple_expo_sr_model_distr.dose().mean(), rtol=0.05
         )
     npt.assert_allclose(
-        expo_sr_model_distr.build_model(SAMPLE_SIZE).infection_probability().mean(),
+        expo_sr_model_distr.build_model(SAMPLE_SIZE).individual_infection_probability().mean(),
         simple_expo_sr_model_distr.probability_infection().mean(),
         rtol=0.03
         )
