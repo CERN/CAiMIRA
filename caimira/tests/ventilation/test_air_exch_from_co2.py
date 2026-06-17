@@ -54,9 +54,9 @@ def deterministic_CO2_models(CO2_emitters):
         [100, 13, 0, 440.44],
     ]
 )
-def test_get_new_air_exch_from_target_CO2_single_model(target_CO2_lim, time, expected_air_exch, deterministic_CO2_models, expected_CO2_lim):
+def test_get_new_air_exch_from_target_CO2_limit_single_model(target_CO2_lim, time, expected_air_exch, deterministic_CO2_models, expected_CO2_lim):
     deterministic_CO2_model = deterministic_CO2_models[0]
-    air_exch_result = find_requirements.get_new_air_exch_from_target_CO2([deterministic_CO2_model], target_CO2_lim, time)
+    air_exch_result = find_requirements.get_new_air_exch_from_target_CO2_limit([deterministic_CO2_model], target_CO2_lim, time)
 
     new_air_exch = np.max([air_exch_result, 0.25])
     
@@ -81,8 +81,8 @@ def test_get_new_air_exch_from_target_CO2_single_model(target_CO2_lim, time, exp
         [100, 13, 0, 440.44],
     ]
 )
-def test_get_new_air_exch_from_target_CO2_multiple_models(target_CO2_lim, time, expected_air_exch, deterministic_CO2_models, expected_CO2_lim):
-    air_exch_result = find_requirements.get_new_air_exch_from_target_CO2(deterministic_CO2_models, target_CO2_lim, time)
+def test_get_new_air_exch_from_target_CO2_limit_multiple_models(target_CO2_lim, time, expected_air_exch, deterministic_CO2_models, expected_CO2_lim):
+    air_exch_result = find_requirements.get_new_air_exch_from_target_CO2_limit(deterministic_CO2_models, target_CO2_lim, time)
 
     new_air_exch = np.max([air_exch_result, 0.25])
     

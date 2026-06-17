@@ -7,7 +7,7 @@ from caimira.calculator.models import models
 
 import caimira.ventilation.get_models as get_models
 import caimira.ventilation.model_response as model_response
-from caimira.ventilation.scenarios import ScenarioVar
+from caimira.ventilation.scenarios import ScenarioVar 
 
 def carry_forward_air_change_times(
         air_change_per_hour_list: list[float],
@@ -149,7 +149,7 @@ def find_next_air_exch_by_co2(
                 within_limit = False
                 vent_transition_times[-1]=time
                 vent_transition_times.append(time+0.000000001) # Need one more element in this list
-                new_air_exch = max(get_new_air_exch_from_target_CO2(CO2_models, target, time), 0.25) # type: ignore
+                new_air_exch = max(get_new_air_exch_from_target_CO2_limit(CO2_models, target, time), 0.25) # type: ignore
                 air_exch_list.append(new_air_exch)
 
                 break
@@ -176,7 +176,7 @@ def find_next_air_exch_by_co2(
         return find_next_air_exch_by_co2(scenario, air_exch_list, vent_transition_times, max_CO2, min_CO2_fraction, target_CO2_fraction, max_ventilation_changes, change_ventilation_at, run_count)
     
 
-def get_new_air_exch_from_target_CO2(
+def get_new_air_exch_from_target_CO2_limit(
         CO2_models: typing.Tuple[models.CO2ConcentrationModel], 
         target: float,
         time: float,
@@ -206,3 +206,4 @@ def concentration_limit(CO2_models, time, const_air_exch):
         V = CO2_model.room.volume
         limit += CO2_model.population.people_present(time) / (V*const_air_exch) * CO2_model.normalization_factor()
     return limit
+
