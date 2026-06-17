@@ -1821,7 +1821,7 @@ class ExposureModel:
 
         return deposited_exposure
 
-    def deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:###
+    def deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         """
         The number of virus per m^3 deposited on the respiratory tract
         between any two times.
