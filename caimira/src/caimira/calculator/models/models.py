@@ -1629,7 +1629,7 @@ class ExposureModel:
     data_registry: DataRegistry
 
     #: The virus concentration model which this exposure model should consider.
-    concentration_model: ConcentrationModel
+    concentration_model: typing.Union[ConcentrationModel, list[ConcentrationModel]]
 
     #: The list of short-range models which this exposure model should consider.
     short_range: typing.Tuple[ShortRangeModel, ...]
@@ -1664,20 +1664,56 @@ class ExposureModel:
         It also checks that the number of exposed is
         static during the simulation time.
         """
-        c_model = self.concentration_model
-        # Check if the diameter is vectorised.
-        if (isinstance(c_model.infected, InfectedPopulation) and not np.isscalar(c_model.infected.expiration.diameter)
-            # Check if the diameter-independent elements of the infectious_virus_removal_rate method are vectorised.
-            and not (
-                all(np.isscalar(c_model.virus.decay_constant(c_model.room.humidity, c_model.room.inside_temp.value(time)) +
-                c_model.ventilation.air_exchange(c_model.room, time)) for time in c_model.state_change_times()))):
-            raise ValueError("If the diameter is an array, none of the ventilation parameters "
-                             "or virus decay constant can be arrays at the same time.")
+
+        if len(self.concentration_model_list) > 1 and len(self.short_range) > 0:
+            # NOTE: since ShortRangeModel has properties expiration and activity, which InfectedPopulation
+            # the short range interaction is with does not have to be defined (?)
+            raise NotImplementedError("Short range interactions with multiple infected populations not yet implemented.")
+        
+        viruses = [c_model.virus for c_model in self.concentration_model_list]
+        virus = viruses[0]
+        if any(v != virus for v in viruses):
+            raise ValueError("All infected must be infected with the same virus.")
+        rooms = [c_model.room for c_model in self.concentration_model_list]
+        room = rooms[0]
+        if any(r != room for r in rooms):
+            raise ValueError("All concentration models must describe the same room.")
+        
+        # TODO: test that all concentration models have overlapping ventilations
+        #       NOTE: Different concentration models can have different occupancy times, and therefore different
+        #       start and end times for which the ventilation is defined. Therefore, the ventilation objects 
+        #       must overlapp, but not neccecarily be identical.
+
+        for c_model in self.concentration_model_list:
+            # Check if the diameter is vectorised.
+            if (isinstance(c_model.infected, InfectedPopulation) and not np.isscalar(c_model.infected.expiration.diameter)
+                # Check if the diameter-independent elements of the infectious_virus_removal_rate method are vectorised.
+                and not (
+                    all(np.isscalar(self.virus.decay_constant(self.room.humidity, self.room.inside_temp.value(time)) +
+                    c_model.ventilation.air_exchange(self.room, time)) for time in c_model.state_change_times()))):
+                raise ValueError("If the diameter is an array, none of the ventilation parameters "
+                                "or virus decay constant can be arrays at the same time.")
         
         # Check if exposed population is static
         if not isinstance(self.exposed.number, int) or not isinstance(self.exposed.presence, Interval):
             raise TypeError("The exposed number must be an int and presence an Interval. "
                             f"Got {type(self.exposed.number)} and {type(self.exposed.presence)}.")
+        
+    @property
+    def concentration_model_list(self):
+        if isinstance(self.concentration_model, list):
+            return self.concentration_model
+        elif isinstance(self.concentration_model, ConcentrationModel):
+            return [self.concentration_model]
+        raise TypeError(f"concentration_model must be a ConcentrationModel or list of ConcentrationModel, got type {type(self.concentration_model)}.")
+
+    @property
+    def virus(self):
+        return self.concentration_model_list[0].virus
+    
+    @property
+    def room(self):
+        return self.concentration_model_list[0].room
 
     @method_cache
     def population_state_change_times(self) -> typing.List[float]:
@@ -1685,21 +1721,21 @@ class ExposureModel:
         All time dependent population entities on this model must provide information
         about the times at which their state changes.
         """
-        state_change_times = set(self.concentration_model.infected.presence_interval().transition_times())
-        state_change_times.update(self.exposed.presence_interval().transition_times())
+        state_change_times = set(self.exposed.presence_interval().transition_times())
+        for c_model in self.concentration_model_list:
+            state_change_times.update(c_model.infected.presence_interval().transition_times())
 
         return sorted(state_change_times)
 
-    def long_range_fraction_deposited(self) -> _VectorisedFloat:
+    def long_range_fraction_deposited(self, c_model) -> _VectorisedFloat:
         """
         The fraction of particles actually deposited in the respiratory
         tract (over the total number of particles). It depends on the
         particle diameter.
         """
-        return self.concentration_model.infected.particle.fraction_deposited(
-                    self.concentration_model.evaporation_factor)
+        return c_model.infected.particle.fraction_deposited(c_model.evaporation_factor)
 
-    def _long_range_normed_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
+    def _long_range_normed_exposure_between_bounds(self, c_model, time1: float, time2: float) -> _VectorisedFloat:
         """
         The number of virions per meter^3 between any two times, normalized
         by the emission rate of the infected population
@@ -1711,56 +1747,77 @@ class ExposureModel:
             elif start > time2:
                 break
             elif start <= time1 and time2<= stop:
-                exposure += self.concentration_model.normed_integrated_concentration(time1, time2)
+                exposure += c_model.normed_integrated_concentration(time1, time2)
             elif start <= time1 and stop < time2:
-                exposure += self.concentration_model.normed_integrated_concentration(time1, stop)
+                exposure += c_model.normed_integrated_concentration(time1, stop)
             elif time1 < start and time2 <= stop:
-                exposure += self.concentration_model.normed_integrated_concentration(start, time2)
+                exposure += c_model.normed_integrated_concentration(start, time2)
             elif time1 <= start and stop < time2:
-                exposure += self.concentration_model.normed_integrated_concentration(start, stop)
+                exposure += c_model.normed_integrated_concentration(start, stop)
         return exposure
+    
+    def long_range_concentration(self, time: float) -> float:
+        """
+        Total virus concentration in the room, as a function of time.
 
+        It only considers the long-range concentration without the
+        contribution of the short-range concentration.
+
+        Since the different ConcentrationModel objects may have different infected with different expirations,
+        they can have different particle diameters bases drawn from different probability distributions.
+        To Monte Carlo integrate correctly over the particle diameter, we must therefore average the concentration 
+        of each ConcentrationModel over the particle diameter before adding together all the contributions from all 
+        the ConcentrationModels.
+        """
+        return sum([np.array(c_model.concentration(time)).mean() for c_model in self.concentration_model_list]) # Average over particle diameter
+    
     def concentration(self, time: float) -> float:
         """
         Integrated virus exposure concentration, as a function of time.
 
         It considers the long-range concentration with the
         contribution of the short-range concentration.
+
+        Since the different ConcentrationModel objects may have different diameter bases drawn 
+        from different distributions, the concentrations from different ConcentrationModel 
+        objects must be averaged over the diameter before summed together.
         """
-        concentration = self.concentration_model.concentration(time)
+        concentration = self.long_range_concentration(time)
         for interaction in self.short_range:
-            concentration += interaction.short_range_concentration(self.concentration_model, time)
-        return np.array(concentration).mean() # Integrate over all diameters
+            if isinstance(self.concentration_model, list):
+                raise NotImplementedError("yet to implement dynamic infected for SR interactions")
+            concentration += np.array(interaction.short_range_concentration(self.concentration_model, time)).mean()
+        return concentration
 
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         deposited_exposure = 0.
 
-        emission_rate_per_aerosol_per_person = \
-            self.concentration_model.infected.emission_rate_per_aerosol_per_person_when_present()
-        aerosols = self.concentration_model.infected.aerosols()
-        fdep = self.long_range_fraction_deposited()
+        for c_model in self.concentration_model_list:
+            diameter = c_model.infected.particle.diameter
+            fdep = self.long_range_fraction_deposited(c_model)
+            aerosols = c_model.infected.aerosols()
+            emission_rate_per_aerosol_per_person = \
+                c_model.infected.emission_rate_per_aerosol_per_person_when_present()
 
-        diameter = self.concentration_model.infected.particle.diameter
+            if not np.isscalar(diameter) and diameter is not None:
+                # We compute first the mean of all diameter-dependent quantities
+                # to perform properly the Monte-Carlo integration over
+                # particle diameters (doing things in another order would
+                # lead to wrong results for the probability of infection).
+                dep_exposure_integrated = np.array(self._long_range_normed_exposure_between_bounds(c_model, time1, time2) *
+                                                    aerosols *
+                                                    fdep).mean()
+            else:
+                # In the case of a single diameter or no diameter defined,
+                # one should not take any mean at this stage.
+                dep_exposure_integrated = self._long_range_normed_exposure_between_bounds(c_model, time1, time2)*aerosols*fdep
 
-        if not np.isscalar(diameter) and diameter is not None:
-            # We compute first the mean of all diameter-dependent quantities
-            # to perform properly the Monte-Carlo integration over
-            # particle diameters (doing things in another order would
-            # lead to wrong results for the probability of infection).
-            dep_exposure_integrated = np.array(self._long_range_normed_exposure_between_bounds(time1, time2) *
-                                                aerosols *
-                                                fdep).mean()
-        else:
-            # In the case of a single diameter or no diameter defined,
-            # one should not take any mean at this stage.
-            dep_exposure_integrated = self._long_range_normed_exposure_between_bounds(time1, time2)*aerosols*fdep
-
-        # Then we multiply by the diameter-independent quantity emission_rate_per_aerosol_per_person,
-        # and parameters of the vD equation (i.e. BR_k and n_in).
-        deposited_exposure += (dep_exposure_integrated *
-                emission_rate_per_aerosol_per_person *
-                self.exposed.activity.inhalation_rate *
-                (1 - self.exposed.mask.inhale_efficiency()))
+            # Then we multiply by the diameter-independent quantity emission_rate_per_aerosol_per_person,
+            # and parameters of the vD equation (i.e. BR_k and n_in).
+            deposited_exposure += (dep_exposure_integrated *
+                    emission_rate_per_aerosol_per_person *
+                    self.exposed.activity.inhalation_rate *
+                    (1 - self.exposed.mask.inhale_efficiency()))
 
         return deposited_exposure
 
@@ -1776,10 +1833,15 @@ class ExposureModel:
         """
         deposited_exposure: _VectorisedFloat = 0.
         for interaction in self.short_range:
+            if isinstance(self.concentration_model, list):
+                raise NotImplementedError("yet to implement dynamic infected for SR interactions")
+            else:
+                c_model = self.concentration_model
+            # Only adding the additional contribution from the short-range interaction
             start, stop = interaction.extract_between_bounds(time1, time2)
             short_range_jet_exposure = interaction._normed_jet_exposure_between_bounds(start, stop)
             short_range_lr_exposure = interaction._normed_interpolated_longrange_exposure_between_bounds(
-                                        self.concentration_model, start, stop)
+                                        c_model, start, stop) 
             dilution = interaction.dilution_factor()
 
             fdep = interaction.expiration.particle.fraction_deposited(evaporation_factor=1.0)
@@ -1795,26 +1857,28 @@ class ExposureModel:
                 this_deposited_exposure = (np.array(short_range_jet_exposure
                     * fdep).mean()
                     - np.array(short_range_lr_exposure * fdep).mean()
-                    * self.concentration_model.infected.activity.exhalation_rate)
+                    * c_model.infected.activity.exhalation_rate)
             else:
                 # In the case of a single diameter or no diameter defined,
                 # one should not take any mean at this stage.
                 this_deposited_exposure = (short_range_jet_exposure * fdep
                     - short_range_lr_exposure * fdep
-                    * self.concentration_model.infected.activity.exhalation_rate)
+                    * c_model.infected.activity.exhalation_rate)
 
             # Multiply by the (diameter-independent) inhalation rate
-            deposited_exposure += (this_deposited_exposure *
-                                   interaction.activity.inhalation_rate # NOTE: why not self.exposed.activity.inhalation_rate?
-                                   /dilution)
+            _deposited_exposure = (this_deposited_exposure *
+                                   interaction.activity.inhalation_rate
+                                   /dilution) 
+            
+            # Then we multiply by the emission rate without the BR contribution (and conversion factor),
+            # and parameters of the vD equation (i.e. n_in).
+            deposited_exposure += _deposited_exposure*(
+                (c_model.infected.emission_rate_per_aerosol_per_person_when_present() / (
+                c_model.infected.activity.exhalation_rate * 10**6)) *                 
+                (1 - self.exposed.mask.inhale_efficiency()))
 
-        # Then we multiply by the emission rate without the BR contribution (and conversion factor),
-        # and parameters of the vD equation (i.e. n_in).
-        deposited_exposure *= (
-            (self.concentration_model.infected.emission_rate_per_aerosol_per_person_when_present() / (
-             self.concentration_model.infected.activity.exhalation_rate * 10**6)) *                 
-            (1 - self.exposed.mask.inhale_efficiency()))
-        # Long-range concentration
+            
+        # Long-range contributions from all infected populations (including the ones with SR interactions)
         deposited_exposure += self.long_range_deposited_exposure_between_bounds(time1, time2)
 
         return deposited_exposure
@@ -1840,18 +1904,21 @@ class ExposureModel:
         vD_list = self._deposited_exposure_list()
 
         # oneoverln2 multiplied by ID_50 corresponds to ID_63.
-        infectious_dose = oneoverln2 * self.concentration_model.virus.infectious_dose
+        infectious_dose = oneoverln2 * self.virus.infectious_dose
 
         # Probability of infection.
         return [(1 - np.exp(-((vD * (1 - self.exposed.host_immunity))/(infectious_dose *
-                self.concentration_model.virus.transmissibility_factor)))) for vD in vD_list]
+                self.virus.transmissibility_factor)))) for vD in vD_list]
 
     @method_cache
     def infection_probability(self) -> _VectorisedFloat:
         return (1 - np.prod([1 - prob for prob in self._infection_probability_list()], axis = 0)) * 100
 
     def total_probability_rule(self) -> _VectorisedFloat:
-        if (isinstance(self.concentration_model.infected.number, IntPiecewiseConstant)):
+        if isinstance(self.concentration_model, list):
+            raise NotImplementedError("Cannot compute total probability "
+                        "(including incidence rate) with dynamic occupancy")
+        elif isinstance(self.concentration_model.infected.number, IntPiecewiseConstant):
                 raise NotImplementedError("Cannot compute total probability "
                         "(including incidence rate) with dynamic occupancy")
 
@@ -1873,7 +1940,7 @@ class ExposureModel:
                 # By means of the total probability rule
                 prob_at_least_one_infected = 1 - (1 - prob_ind)**n
                 sum_probability += (prob_at_least_one_infected *
-                    self.geographical_data.probability_meet_infected_person(self.concentration_model.infected.virus, num_infected, total_people))
+                    self.geographical_data.probability_meet_infected_person(self.virus, num_infected, total_people))
             return sum_probability * 100
         else:
             return 0
@@ -1897,6 +1964,8 @@ class ExposureModel:
         The reproduction number can be thought of as the expected number of
         cases directly generated by one infected case in a population.
         """
+        if isinstance(self.concentration_model, list):
+            raise NotImplementedError("yet to implement dynamic infected for the reproduction number")
         infected_population: InfectedPopulation = self.concentration_model.infected
         if isinstance(infected_population.number, int) and infected_population.number == 1:
             return self.expected_new_cases()
@@ -1927,14 +1996,18 @@ class ExposureModelGroup:
 
     def __post_init__(self):
         """
-        Validate that all ExposureModels have the same ConcentrationModel.
+        Validate that all ExposureModels have the same list of ConcentrationModels.
         """
-        first_concentration_model = self.exposure_models[0].concentration_model
-        for model in self.exposure_models[1:]:
-            # Check that the number of infected people and their presence is the same
-            if (model.concentration_model.infected.number != first_concentration_model.infected.number or
-                model.concentration_model.infected.presence != first_concentration_model.infected.presence):
-                raise ValueError("All ExposureModels must have the same infected number and presence in the ConcentrationModel.")
+        n_concentration_models = len(self.exposure_models[0].concentration_model_list)
+        if any(len(exposure_model.concentration_model_list) != n_concentration_models for exposure_model in self.exposure_models[1:]):
+                raise ValueError("All ExposureModels must have the same number of ConcentrationModels.")
+        for i in range(n_concentration_models):
+            first_concentration_model = self.exposure_models[0].concentration_model_list[i]
+            for model in self.exposure_models[1:]:
+                # Check that the number of infected people and their presence is the same
+                if (model.concentration_model_list[i].infected.number != first_concentration_model.infected.number or
+                    model.concentration_model_list[i].infected.presence != first_concentration_model.infected.presence):
+                    raise ValueError("All ExposureModels must have the same infected number and presence in each ConcentrationModel.")
 
     @method_cache
     def _deposited_exposure_list(self) -> typing.List[_VectorisedFloat]:

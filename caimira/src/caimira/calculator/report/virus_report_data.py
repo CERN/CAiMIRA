@@ -2,6 +2,7 @@ import concurrent.futures
 import base64
 import dataclasses
 import io
+import copy
 import typing
 import numpy as np
 import matplotlib.pyplot as plt
@@ -26,10 +27,9 @@ def model_start_end(model: typing.Union[models.ExposureModelGroup, models.Exposu
         t_end = max((model_start_end(nth_model)[1] for nth_model in model.exposure_models))
         return t_start, t_end
     else:
-        t_start = min(model.exposed.presence_interval().boundaries()[0][0],
-                  model.concentration_model.infected.presence_interval().boundaries()[0][0])
-        t_end = max(model.exposed.presence_interval().boundaries()[-1][1],
-                model.concentration_model.infected.presence_interval().boundaries()[-1][1])
+        state_change_times = model.population_state_change_times()
+        t_start = min(state_change_times)
+        t_end = max(state_change_times)
         return t_start, t_end
 
 
@@ -117,7 +117,7 @@ def _concentrations_with_sr_breathing(form: VirusFormData, model: models.Exposur
     for index, (start, stop) in enumerate([interaction.presence.boundaries()[0] for interaction in model.short_range]):
         if start <= time <= stop and form.short_range_interactions[model.identifier][index]['expiration'] == 'Breathing':
             return model.concentration(float(time)), fn_name
-    return np.array(model.concentration_model.concentration(float(time))).mean(), fn_name
+    return model.long_range_concentration(float(time)), fn_name
 
 
 def _calculate_deposited_exposure(model: models.ExposureModel, 
@@ -358,11 +358,11 @@ def manufacture_conditional_probability_data(
     step = (max_vl - min_vl)/100
     viral_loads = np.arange(min_vl, max_vl, step)
     specific_vl = np.log10(
-        exposure_model.concentration_model.virus.viral_load_in_sputum)
+        exposure_model.virus.viral_load_in_sputum)
     pi_means, lower_percentiles, upper_percentiles = conditional_prob_inf_given_vl_dist(infection_probability, viral_loads,
                                                                                         specific_vl, step)
     log10_vl_in_sputum = np.log10(
-        exposure_model.concentration_model.infected.virus.viral_load_in_sputum)
+        exposure_model.virus.viral_load_in_sputum)
 
     return {
         'viral_loads': list(viral_loads),
@@ -444,11 +444,19 @@ def img2base64(img_data) -> str:
 
 
 def calculate_vl_scenarios_percentiles(model: mc.ExposureModel) -> typing.Dict[str, mc.ExposureModel]:
-    viral_load = model.concentration_model.infected.virus.viral_load_in_sputum
+    viral_load = model.virus.viral_load_in_sputum
     scenarios = {}
     for percentil in (0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99):
         vl = np.quantile(viral_load, percentil)
-        specific_vl_scenario = dataclass_utils.nested_replace(model, {'concentration_model.infected.virus.viral_load_in_sputum': vl})
+
+        new_conc_model = copy.deepcopy(model.concentration_model)
+        if isinstance(model.concentration_model, list):
+            new_conc_model = [dataclass_utils.nested_replace(cm, {'infected.virus.viral_load_in_sputum': vl}) for cm in model.concentration_model]
+        else:
+            cm = model.concentration_model
+            new_conc_model = dataclass_utils.nested_replace(cm, {'infected.virus.viral_load_in_sputum': vl})
+
+        specific_vl_scenario = dataclass_utils.nested_replace(model, {'concentration_model': new_conc_model})
         scenarios[str(vl)] = np.mean(
             specific_vl_scenario.infection_probability())
     return {

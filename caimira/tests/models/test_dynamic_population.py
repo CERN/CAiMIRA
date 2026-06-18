@@ -75,7 +75,7 @@ def dynamic_population_exposure_model(full_exposure_model, baseline_infected_pop
 def test_population_number(full_exposure_model: models.ExposureModel,
                            baseline_infected_population: models.InfectedPopulation, time: float):
 
-    int_population_number: models.InfectedPopulation = full_exposure_model.concentration_model.infected
+    int_population_number: models.InfectedPopulation = full_exposure_model.concentration_model.infected # type: ignore
     piecewise_population_number: models.InfectedPopulation = baseline_infected_population
 
     with pytest.raises(
@@ -213,7 +213,7 @@ def test_exposure_model_group_structure(data_registry, full_exposure_model: mode
     """
     another_full_exposure_model = dc_utils.nested_replace(full_exposure_model,
         {'concentration_model.infected.number': 2, })
-    with pytest.raises(ValueError, match=re.escape("All ExposureModels must have the same infected number and presence in the ConcentrationModel.")):
+    with pytest.raises(ValueError, match=re.escape("All ExposureModels must have the same infected number and presence in each ConcentrationModel.")):
         models.ExposureModelGroup(data_registry, exposure_models=(full_exposure_model, another_full_exposure_model, ))
 
 

@@ -470,7 +470,7 @@
 							<a href="https://gitlab.cern.ch/caimira/caimira/-/issues/226">SARS-CoV-2 (Omicron VOC)</a>
 							{% endif %}
 							</p></li>
-							<li><p class="data_text">Room Volume: {{ model.concentration_model.room.volume }} m³</p></li>
+							<li><p class="data_text">Room Volume: {{ model.room.volume }} m³</p></li>
 							<li><p class="data_text">Room Central Heating: {{ "On" if form.room_heating_option else "Off" }}</p></li>
 							<li><p class="data_text">Geographic Location: {{ form.location_name }}</p></li>
 							{% if form.ventilation_type == "natural_ventilation" %}

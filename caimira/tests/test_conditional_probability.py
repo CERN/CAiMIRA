@@ -70,7 +70,7 @@ def test_conditional_prob_inf_given_vl_dist(data_registry, baseline_exposure_mod
         expected_upper_percentiles.append(np.quantile(pi, 0.95))
 
     infection_probability = mc_model.infection_probability() / 100
-    specific_vl = np.log10(mc_model.concentration_model.infected.virus.viral_load_in_sputum)
+    specific_vl = np.log10(mc_model.virus.viral_load_in_sputum)
     step = 8/100
     actual_pi_means, actual_lower_percentiles, actual_upper_percentiles = (
         virus_report_data.conditional_prob_inf_given_vl_dist(infection_probability, viral_loads, specific_vl, step)
@@ -90,9 +90,9 @@ def test_probability_logic(baseline_exposure_model):
     mc_model: models.ExposureModel = baseline_exposure_model.build_model(2_000_000)
 
     vD = mc_model.deposited_exposure()
-    infectious_dose = oneoverln2 * mc_model.concentration_model.virus.infectious_dose
+    infectious_dose = oneoverln2 * mc_model.virus.infectious_dose
     expected_pi = (1 - np.exp(-((vD * (1 - mc_model.exposed.host_immunity))/(infectious_dose * 
-                mc_model.concentration_model.virus.transmissibility_factor))))
+                mc_model.virus.transmissibility_factor))))
 
     actual_pi = mc_model.infection_probability() / 100
     assert np.allclose(expected_pi, actual_pi, atol=1e-14)
