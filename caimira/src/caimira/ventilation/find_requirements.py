@@ -1,6 +1,7 @@
 import typing
 import numpy as np
 from scipy.optimize import brentq
+from scipy.special import lambertw
 import bisect
 
 from caimira.calculator.models import models
@@ -206,4 +207,41 @@ def concentration_limit(CO2_models, time, const_air_exch):
         V = CO2_model.room.volume
         limit += CO2_model.population.people_present(time) / (V*const_air_exch) * CO2_model.normalization_factor()
     return limit
+
+def set_minimal_air_exch_from_target_CO2(
+    CO2_models: typing.Tuple[models.CO2ConcentrationModel], 
+    CO2_target: float,
+    target_time: float,
+    state_time: typing.Optional[float] = None,
+    ):
+    """
+    Find the air exchange neccecary for the CO2 concentration to be *CO2_target* at *target_time*.
+    Interpreting *CO2_target* as the maximum acceptible CO2 concentration value, the returned 
+    air exchange will be the minimal acceptible air exchange (the air exchange ensuring the 
+    CO2 concentration does not go higher than *CO2_target* before *target_time*).
+
+    The number of people present are assumed to constantly equal the number of people present at *state_time*.
+    """
+    room_volumes = list(set([CO2_model.room.volume for CO2_model in CO2_models]))
+    background_concentrations = list(set([CO2_model.min_background_concentration() for CO2_model in CO2_models]))
+    if len(room_volumes) != 1:
+        raise ValueError("CO2 models must have the same room")
+    if len(background_concentrations) != 1:
+        raise ValueError("CO2 models must have the same background concentration")
+    background_concentration = background_concentrations[0]
+    room_volume = room_volumes[0]
+
+    if not state_time:
+        state_time = target_time
+
+    abs_CO2_emission = 0
+    for CO2_model in CO2_models:
+        abs_CO2_emission += CO2_model.population.people_present(state_time)*CO2_model.normalization_factor()
+
+    u = (abs_CO2_emission/room_volume) / (CO2_target - background_concentration)
+    w = -target_time*u * np.exp(-target_time*u) # always negative
+
+    return u + 1/target_time * lambertw(w, k=-1).real # output ventilation always real and positive
+
+    
 
