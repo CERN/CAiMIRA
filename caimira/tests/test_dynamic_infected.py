@@ -166,8 +166,8 @@ def get_exposure_model(concentration_model_list) -> mc.ExposureModel:
 
 def test_common_params(valid_conc_model_list, invalid_viruses_conc_model_list, invalid_rooms_conc_model_list):
     """
-    Check that one cannot initialize an ExposureModel with ConcentrationModels 
-    with different viruses, rooms, and ventilations.
+    Check that an error is raised when initializing an ExposureModel with ConcentrationModels 
+    with different viruses and rooms.
     """
     with pytest.raises(ValueError):
         get_exposure_model(invalid_viruses_conc_model_list).build_model(1)
