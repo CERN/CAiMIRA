@@ -1393,7 +1393,7 @@ class ShortRangeModel:
         """
         # The short range origin concentration does not consider the mask contribution.
         return self.expiration.aerosols(mask=Mask.types['No mask'])
-
+    
     def _normed_diluted_jet_concentration(self):
         return 1/self.dilution_factor()*self._normed_jet_origin_concentration()
 
@@ -1428,6 +1428,10 @@ class ShortRangeModel:
 
         Adding the (long-range) concentration_model.concentration to the returned value of this function,
         one obtains the actual viral concentration at short-range.
+
+        Note that we here Monte Carlo integrate over the particle diameter, because the this needs to be 
+        done before subtracting the long-range concentration from the short-range since they have different 
+        diameter distributions. Hence, the output is diameter-independent.
         """
         dilution_factor = self.dilution_factor()
         start, stop = self.presence.boundaries()[0]
