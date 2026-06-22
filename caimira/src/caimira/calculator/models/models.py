@@ -208,7 +208,7 @@ class IntPiecewiseConstant(PiecewiseConstant):
 
 @dataclass(frozen=True)
 class Room:
-    #: The total volume of the room
+    #: The total volume of the room (m^3)
     volume: _VectorisedFloat
 
     #: The temperature inside the room (Kelvin).
@@ -868,12 +868,11 @@ class _PopulationWithVirus(Population):
     virus: Virus
 
     @method_cache
-    def fraction_of_infectious_virus(self) -> _VectorisedFloat:
+    def infectious_viral_load_in_sputum(self) -> _VectorisedFloat:
         """
-        The fraction of infectious virus.
-
+        The fraction of infectious virus in RNA copies  / mL.
         """
-        return 1
+        return self.virus.viral_load_in_sputum * self.virus.viable_to_RNA_ratio * (1 - self.host_immunity)
 
     def aerosols(self):
         """
@@ -952,13 +951,6 @@ class InfectedPopulation(_PopulationWithVirus):
     #: The type of expiration that is being emitted whilst doing the activity.
     expiration: _ExpirationBase
 
-    @method_cache
-    def fraction_of_infectious_virus(self) -> _VectorisedFloat:
-        """
-        The fraction of infectious virus.
-        """
-        return self.virus.viable_to_RNA_ratio * (1 - self.host_immunity)
-
     def aerosols(self):
         """
         Total volume of aerosols expired per volume of exhaled air (mL/cm^3).
@@ -977,10 +969,8 @@ class InfectedPopulation(_PopulationWithVirus):
         # The exhalation rate is in m^3/h, therefore the 1e6 conversion factor
         # is to convert m^3/h into cm^3/h to return (virions.cm^3)/(mL.h),
         # so that we can then multiply by aerosols (mL/cm^3).
-        ER = (self.virus.viral_load_in_sputum *
-              self.activity.exhalation_rate *
-              self.fraction_of_infectious_virus() *
-              10**6)
+        ER = (self.infectious_viral_load_in_sputum() *
+              self.activity.exhalation_rate * 1e+6)
         return ER
 
     @property
@@ -1403,8 +1393,8 @@ class ShortRangeModel:
         rate per aerosol without accounting for the exhalation rate (viral load and f_inf).
         Result in (virions.cm^3)/(mL.m^3).
         """
-        # Re-use the emission rate method divided by the BR contribution. 
-        return self.infected.emission_rate_per_aerosol_per_person_when_present() / self.infected.activity.exhalation_rate
+        # Note the conversion factor to convert final result to RNA/(m^3)
+        return self.infected.infectious_viral_load_in_sputum() * 1e+6
     
     def jet_origin_concentration(self) -> _VectorisedFloat:
         """
@@ -1813,11 +1803,11 @@ class ExposureModel:
                                    interaction.activity.inhalation_rate
                                    /dilution) 
             
+            
             # Then we multiply by the emission rate without the BR contribution (and conversion factor),
             # and parameters of the vD equation (i.e. n_in).
             deposited_exposure += _deposited_exposure*(
-                (self.concentration_model.infected.emission_rate_per_aerosol_per_person_when_present() / (
-                self.concentration_model.infected.activity.exhalation_rate * 10**6)) *                 
+                self.concentration_model.infected.infectious_viral_load_in_sputum() *                 
                 (1 - self.exposed.mask.inhale_efficiency()))
             
             deposited_exposure -= self.long_range_deposited_exposure_between_bounds(time1, time2)/dilution
