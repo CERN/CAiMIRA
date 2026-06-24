@@ -1387,13 +1387,15 @@ class ShortRangeModel:
     def _normed_diluted_jet_concentration(self):
         return 1/self.dilution_factor()*self._normed_jet_origin_concentration()
 
-    def normalization_factor(self) -> _VectorisedFloat:
+    def normalization_factor(self, concentration_model=None) -> _VectorisedFloat:
         """
         The normalization factor applied to the short-range results. It refers to the emission
         rate per aerosol without accounting for the exhalation rate (viral load and f_inf).
         Result in (virions.cm^3)/(mL.m^3).
         """
         # Note the conversion factor to convert final result to RNA/(m^3)
+        if isinstance(concentration_model, ConcentrationModel):
+            return concentration_model.infected.infectious_viral_load_in_sputum() * 1e+6
         return self.infected.infectious_viral_load_in_sputum() * 1e+6
     
     def jet_origin_concentration(self) -> _VectorisedFloat:
@@ -1465,7 +1467,7 @@ class ShortRangeModel:
         """
         start, stop = self.extract_between_bounds(time1, time2)
         # Note the conversion factor mL.cm^-3 -> mL.m^-3
-        jet_origin = self._normed_jet_origin_concentration() * 10**6
+        jet_origin = self._normed_jet_origin_concentration() #* 10**6
         return jet_origin * (stop - start)
 
 
@@ -1610,6 +1612,8 @@ class ExposureModel:
             raise NotImplementedError("Short range interactions with multiple infected populations not yet implemented.")
         
         viruses = [c_model.virus for c_model in self.concentration_model_list]
+        # for interaction in self.short_range:
+        #     viruses.append(interaction.infected.virus)
         virus = viruses[0]
         if any(v != virus for v in viruses):
             raise ValueError("All infected must be infected with the same virus.")
@@ -1728,8 +1732,10 @@ class ExposureModel:
             concentration += interaction.short_range_concentration_difference(self.concentration_model, time)
         return concentration
 
-    def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
+    def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float, exposed_inhalation_rate=None) -> _VectorisedFloat:
         deposited_exposure = 0.
+        if not isinstance(exposed_inhalation_rate, _VectorisedFloat):
+            exposed_inhalation_rate = self.exposed.activity.inhalation_rate
 
         for c_model in self.concentration_model_list:
             diameter = c_model.infected.particle.diameter
@@ -1755,7 +1761,7 @@ class ExposureModel:
             # and parameters of the vD equation (i.e. BR_k and n_in).
             deposited_exposure += (dep_exposure_integrated *
                     emission_rate_per_aerosol_per_person *
-                    self.exposed.activity.inhalation_rate *
+                    exposed_inhalation_rate *
                     (1 - self.exposed.mask.inhale_efficiency()))
 
         return deposited_exposure
@@ -1799,18 +1805,13 @@ class ExposureModel:
                 this_deposited_exposure = (short_range_jet_exposure * fdep)
 
             # Multiply by the (diameter-independent) inhalation rate
-            _deposited_exposure = (this_deposited_exposure *
-                                   interaction.activity.inhalation_rate
+            deposited_exposure += (this_deposited_exposure *
+                                   interaction.normalization_factor(self.concentration_model)*
+                                   interaction.activity.inhalation_rate *
+                                   (1 - self.exposed.mask.inhale_efficiency())
                                    /dilution) 
             
-            
-            # Then we multiply by the emission rate without the BR contribution (and conversion factor),
-            # and parameters of the vD equation (i.e. n_in).
-            deposited_exposure += _deposited_exposure*(
-                self.concentration_model.infected.infectious_viral_load_in_sputum() *                 
-                (1 - self.exposed.mask.inhale_efficiency()))
-            
-            deposited_exposure -= self.long_range_deposited_exposure_between_bounds(time1, time2)/dilution
+            deposited_exposure -= self.long_range_deposited_exposure_between_bounds(time1, time2, exposed_inhalation_rate=interaction.activity.inhalation_rate)/dilution
 
             
         # Long-range contributions from all infected populations (including the ones with SR interactions)
