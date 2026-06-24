@@ -837,6 +837,21 @@ def test_concentration_with_shortrange_and_distributions(
         rtol=TOLERANCE
         )
 
+@retry(tries=10)
+def test_common_infectious_viral_load_in_sputum(expo_sr_model_distr):
+    model = expo_sr_model_distr.build_model(SAMPLE_SIZE*10)
+    lr_model = model.concentration_model
+    sr_model = model.short_range
+    npt.assert_allclose(
+        lr_model.infected.infectious_viral_load_in_sputum().mean(),
+        sr_model[0].infected.infectious_viral_load_in_sputum().mean(),
+        rtol=0.03
+        )
+    npt.assert_allclose(
+        lr_model.infected.infectious_viral_load_in_sputum().mean(),
+        sr_model[1].infected.infectious_viral_load_in_sputum().mean(),
+        rtol=0.03
+        )
 
 @retry(tries=10)
 def test_exposure_with_shortrange_and_distributions(expo_sr_model_distr,

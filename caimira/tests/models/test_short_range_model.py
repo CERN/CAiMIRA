@@ -1,6 +1,7 @@
 import typing
 
 import numpy as np
+import numpy.testing as npt
 import pytest
 
 from caimira.calculator.models import models
@@ -44,6 +45,14 @@ def short_range_model(data_registry, concentration_model):
                                      presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
                                      distance=short_range_distances(data_registry))
 
+def test_short_range_infected(concentration_model, short_range_model):
+    lr_model = concentration_model.build_model(SAMPLE_SIZE)
+    sr_model = short_range_model.build_model(SAMPLE_SIZE)
+    npt.assert_allclose(
+        lr_model.infected.infectious_viral_load_in_sputum(),
+        sr_model.infected.infectious_viral_load_in_sputum(),
+        rtol=0.03
+        )
 
 def test_short_range_model_ndarray(concentration_model, short_range_model):
     concentration_model = concentration_model.build_model(SAMPLE_SIZE)
