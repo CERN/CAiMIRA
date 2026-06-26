@@ -1415,31 +1415,9 @@ class ShortRangeModel:
     
     def diluted_jet_concentration(self) -> _VectorisedFloat:
         """
-        Virus short-range exposure concentration, as a function of time.
-        Factor of normalization applied back here. Results in virions/m^3.
+        Results in virions/m^3.
         """
-        return (self._normed_diluted_jet_concentration() * 
-                self.normalization_factor())
-    
-    def short_range_concentration_difference(self, concentration_model: ConcentrationModel, time):
-        """
-        Computes the difference between the long-range concentration 
-        and the total concentration at short-range.
-
-        Adding the (long-range) concentration_model.concentration to the returned value of this function,
-        one obtains the actual viral concentration at short-range.
-
-        Note that we here Monte Carlo integrate over the particle diameter, because the this needs to be 
-        done before subtracting the long-range concentration from the short-range since they have different 
-        diameter distributions. Hence, the output is diameter-independent.
-        """
-        dilution_factor = self.dilution_factor()
-        start, stop = self.presence.boundaries()[0]
-        # Verifies if the given time falls within a short-range interaction
-        if start <= time <= stop:
-            return (np.mean(self.diluted_jet_concentration())
-                    - np.mean(1/dilution_factor * concentration_model.concentration(time)))
-        return 0.
+        return (self._normed_diluted_jet_concentration() * self.normalization_factor())
 
     @method_cache
     def extract_between_bounds(self, time1: float, time2: float) -> typing.Union[None, typing.Tuple[float,float]]:
@@ -1731,11 +1709,15 @@ class ExposureModel:
         from different distributions, the concentrations from different ConcentrationModel 
         objects must be averaged over the diameter before summed together.
         """
-        concentration = self.long_range_concentration(time)
+        lr_concentration = self.long_range_concentration(time)
+        concentration = lr_concentration
         for interaction in self.short_range:
-            if isinstance(self.concentration_model, list):
-                raise NotImplementedError("yet to implement dynamic infected for SR interactions")
-            concentration += interaction.short_range_concentration_difference(self.concentration_model, time)
+            start, stop = interaction.presence.boundaries()[0]
+            # Verifies if the given time falls within a short-range interaction
+            if start <= time <= stop:
+                dilution_factor = interaction.dilution_factor()
+                concentration += np.mean(interaction.diluted_jet_concentration())
+                concentration -= np.mean(1/dilution_factor * lr_concentration)
         return concentration
 
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:

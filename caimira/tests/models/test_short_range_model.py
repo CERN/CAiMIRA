@@ -44,6 +44,21 @@ def short_range_model(data_registry, concentration_model):
                                      presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
                                      distance=short_range_distances(data_registry))
 
+@pytest.fixture
+def exposure_model(data_registry, concentration_model, short_range_model):
+    return mc_models.ExposureModel(data_registry=data_registry,
+                                     concentration_model=concentration_model,
+                                     short_range=(short_range_model,),
+                                     exposed = mc_models.Population(
+                                        number=1,
+                                        presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
+                                        mask=models.Mask.types['No mask'],
+                                        activity=models.Activity.types['Light activity'],
+                                        host_immunity=0.,
+                                    ),
+                                    geographical_data = models.Cases(),
+                                    exposed_to_short_range = 1)
+
 
 def test_short_range_model_ndarray(concentration_model, short_range_model):
     concentration_model = concentration_model.build_model(SAMPLE_SIZE)
@@ -52,10 +67,7 @@ def test_short_range_model_ndarray(concentration_model, short_range_model):
     assert isinstance(model._normed_jet_origin_concentration(), np.ndarray)
     assert isinstance(model._normed_diluted_jet_concentration(), np.ndarray)
     assert isinstance(model.diluted_jet_concentration(), np.ndarray)
-    assert isinstance(model.short_range_concentration_difference(concentration_model, 11.0), float)
-    assert isinstance(model.short_range_concentration_difference(concentration_model, 14.0), float)
-    assert model.short_range_concentration_difference(concentration_model, 11.0) > 0
-    assert model.short_range_concentration_difference(concentration_model, 12.0) == 0
+    assert np.all(model.diluted_jet_concentration() > 0)
 
 
 @pytest.mark.parametrize(
@@ -118,21 +130,19 @@ def test_extract_between_bounds(short_range_model, time1, time2,
 
 
 @pytest.mark.parametrize(
-    "time, expected_short_range_concentration", [
-        [8.5, 0.], # LR cancel SR at t=0?
+    "time, expected_short_range_concentration_component", [
+        [8.5, 0.],
         [10.5, 5.6333025],
         [10.6, 5.6333025],
         [11.0, 5.6333025],
         [12.0, 0.],
     ]
 )
-def test_short_range_concentration(time, expected_short_range_concentration,
-                                   concentration_model, short_range_model):
-    concentration_model = concentration_model.build_model(SAMPLE_SIZE)
-    model = short_range_model.build_model(SAMPLE_SIZE)
+def test_short_range_concentration(time, expected_short_range_concentration_component, exposure_model):
+    exposure_model = exposure_model.build_model(SAMPLE_SIZE)
     np.testing.assert_allclose(
-        model.short_range_concentration_difference(concentration_model, time),
-        expected_short_range_concentration, rtol=0.02
+        np.mean(exposure_model.concentration(time))-np.mean(exposure_model.long_range_concentration(time)),
+        expected_short_range_concentration_component, rtol=0.02
     )
 
 
