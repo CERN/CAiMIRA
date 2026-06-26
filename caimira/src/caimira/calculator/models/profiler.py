@@ -42,7 +42,7 @@ class PyInstrumentWrapper:
 
     def stop(self):
         self.profiler.stop()
-        report_html = self.profiler.output_html(timeline=True)
+        report_html = self.profiler.output_html()
         report_id = str(abs(hash(report_html)))
         return report_id, Profilers.PYINSTRUMENT.value, report_html
 
