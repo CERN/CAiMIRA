@@ -251,15 +251,17 @@ generated should have the following structure:
                     short_range=(
                         ShortRangeModel(
                             data_registry=...,
-                            expiration="Shouting",
+                            infected=...,
                             activity=...,
+                            expiration=...,
                             presence=SpecificInterval(((10., 10.5),)),
                             distance=...,
                         ),
                         ShortRangeModel(
                             data_registry=...,
-                            expiration="Shouting",
+                            infected=...,
                             activity=...,
+                            expiration=...,
                             presence=SpecificInterval(((11.25, 11.5),)),
                             distance=...,
                         ),
@@ -281,8 +283,9 @@ generated should have the following structure:
                     short_range=(
                         ShortRangeModel(
                             data_registry=...,
-                            expiration="Shouting",
+                            infected=...,
                             activity=...,
+                            expiration=...,
                             presence=SpecificInterval(((10.25, 10.75),)),
                             distance=...,
                         ),
@@ -335,6 +338,16 @@ generated should have the following structure:
     - In  the `infected` population (`InfectedPopulation`):
         - the `number` interval is calculated from the `occupancy` group
         object as a total sum of the infected from all groups at each `presence` interval
+        - the `activity' describes all the physical activities performed by the 
+        infected population throughout their presence.
+        - the `expiration' describes all the expiratory activities performed by 
+        the infected population throughout their presence. The type of expiratory activity is 
+        treated as a constant mixture of all the expiratory activities performed.
+    - In  the `ShortRangeModel`:
+        - the `activity' describes the physical activities performed by the 
+        infected population during the short-range interaction only. 
+        - the `expiration' describes the expiratory activities performed by 
+        the infected population during the short-range interaction only. 
     - The `ConcentrationModel` shall be the same in each `ExposureModel`
 
     !!!note

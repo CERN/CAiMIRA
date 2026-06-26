@@ -1,4 +1,5 @@
 import datetime
+import re
 
 import dateutil.tz
 import numpy as np
@@ -56,7 +57,7 @@ def test_refine_non_monotonic():
 
 
 def test_timezone_at__out_of_range():
-    with pytest.raises(ValueError, match='out of bounds'):
+    with pytest.raises(ValueError, match=re.escape('Invalid longitude 181.0: must be in range [-180.0, 180.0]')):
         wx.timezone_at(latitude=88, longitude=181)
 
 

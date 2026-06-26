@@ -19,12 +19,12 @@ on:
         default: 'Manual trigger'
 
 jobs:
-  test-caimira-py311:
-    name: Test CAiMIRA with Python 3.11
+  test-caimira-py314:
+    name: Test CAiMIRA with Python 3.14
     runs-on: ubuntu-latest
     env:
       PROJECT_ROOT: "caimira"
-      PY_VERSION: "3.11"
+      PY_VERSION: "3.14"
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -53,13 +53,13 @@ jobs:
           cd caimira
           python -m pytest
 
-  test-cern-caimira-py311:
-    name: Test CERN CAiMIRA with Python 3.11
+  test-cern-caimira-py314:
+    name: Test CERN CAiMIRA with Python 3.14
     runs-on: ubuntu-latest
     if: github.ref != 'refs/heads/live/caimira-test' && !startsWith(github.ref, 'refs/tags/')
     env:
       PROJECT_ROOT: "cern_caimira"
-      PY_VERSION: "3.11"
+      PY_VERSION: "3.14"
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -91,13 +91,13 @@ jobs:
           cd cern_caimira
           python -m pytest
 
-  test-caimira-py39:
-    name: Test CAiMIRA with Python 3.9
+  test-caimira-py314:
+    name: Test CAiMIRA with Python 3.14
     runs-on: ubuntu-latest
     if: github.ref != 'refs/heads/live/caimira-test' && !startsWith(github.ref, 'refs/tags/')
     env:
       PROJECT_ROOT: "caimira"
-      PY_VERSION: "3.9"
+      PY_VERSION: "3.14"
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -126,13 +126,13 @@ jobs:
           cd caimira
           python -m pytest
 
-  test-cern-caimira-py39:
-    name: Test CERN CAiMIRA with Python 3.9
+  test-cern-caimira-py314:
+    name: Test CERN CAiMIRA with Python 3.14
     runs-on: ubuntu-latest
     if: github.ref != 'refs/heads/live/caimira-test' && !startsWith(github.ref, 'refs/tags/')
     env:
       PROJECT_ROOT: "cern_caimira"
-      PY_VERSION: "3.9"
+      PY_VERSION: "3.14"
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
