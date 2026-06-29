@@ -1257,44 +1257,6 @@ class ConcentrationModel(_ConcentrationModelBase):
 
 
 @dataclass(frozen=True)
-class CO2ConcentrationModel(_ConcentrationModelBase):
-    """
-    Class used for the computation of the CO2 concentration.
-    """
-    #: Population in the room emitting CO2
-    CO2_emitters: SimplePopulation
-
-    #: CO2 concentration in the atmosphere (in ppm)
-    @property
-    def CO2_atmosphere_concentration(self) -> float:
-        return self.data_registry.concentration_model['CO2_concentration_model']['CO2_atmosphere_concentration'] # type: ignore
-
-    #: CO2 fraction in the exhaled air
-    @property
-    def CO2_fraction_exhaled(self) -> float:
-        return self.data_registry.concentration_model['CO2_concentration_model']['CO2_fraction_exhaled'] # type: ignore
-
-    @property
-    def population(self) -> SimplePopulation:
-        return self.CO2_emitters
-
-    def removal_rate(self, time: float) -> _VectorisedFloat:
-        return self.ventilation.air_exchange(self.room, time)
-
-    def min_background_concentration(self) -> _VectorisedFloat:
-        """
-        Background CO2 concentration in the atmosphere (in ppm)
-        """
-        return self.CO2_atmosphere_concentration
-
-    def normalization_factor(self) -> _VectorisedFloat:
-        # normalization by the CO2 exhaled per person.
-        # CO2 concentration given in ppm, hence the 1e6 factor.
-        return (1e6*self.population.activity.exhalation_rate
-                *self.CO2_fraction_exhaled)
-
-
-@dataclass(frozen=True)
 class ShortRangeModel:
     '''
     Based on the two-stage (jet/puff) expiratory jet model by
@@ -1455,6 +1417,44 @@ class ShortRangeModel:
         # Note the conversion factor mL.cm^-3 -> mL.m^-3
         jet_origin = self._normed_jet_origin_concentration() * 10**6
         return jet_origin * (stop - start)
+    
+
+@dataclass(frozen=True)
+class CO2ConcentrationModel(_ConcentrationModelBase):
+    """
+    Class used for the computation of the CO2 concentration.
+    """
+    #: Population in the room emitting CO2
+    CO2_emitters: SimplePopulation
+
+    #: CO2 concentration in the atmosphere (in ppm)
+    @property
+    def CO2_atmosphere_concentration(self) -> float:
+        return self.data_registry.concentration_model['CO2_concentration_model']['CO2_atmosphere_concentration'] # type: ignore
+
+    #: CO2 fraction in the exhaled air
+    @property
+    def CO2_fraction_exhaled(self) -> float:
+        return self.data_registry.concentration_model['CO2_concentration_model']['CO2_fraction_exhaled'] # type: ignore
+
+    @property
+    def population(self) -> SimplePopulation:
+        return self.CO2_emitters
+
+    def removal_rate(self, time: float) -> _VectorisedFloat:
+        return self.ventilation.air_exchange(self.room, time)
+
+    def min_background_concentration(self) -> _VectorisedFloat:
+        """
+        Background CO2 concentration in the atmosphere (in ppm)
+        """
+        return self.CO2_atmosphere_concentration
+
+    def normalization_factor(self) -> _VectorisedFloat:
+        # normalization by the CO2 exhaled per person.
+        # CO2 concentration given in ppm, hence the 1e6 factor.
+        return (1e6*self.population.activity.exhalation_rate
+                *self.CO2_fraction_exhaled)
 
 
 @dataclass(frozen=True)
