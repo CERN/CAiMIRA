@@ -1,3 +1,13 @@
+# 4.19.0 (May 6, 2026)
+
+## Bug fixes
+- Upgrade dependencies to python 3.14.
+
+## Other
+- Max particle diameter 20 µm at long-range.
+- Averaging over the particle diameter in ExposureModel.concentration().
+- Infected as a property of ShortRangeModel.
+
 # 4.18.0 (July 24, 2025)
 
 ## Feature Added
