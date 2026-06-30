@@ -1322,10 +1322,7 @@ class ShortRangeModel:
     #: Interpersonal distances
     distance: _VectorisedFloat
 
-    def __post_init__(self):
-        if self.infected.mask != Mask.types['No mask']:
-            raise ValueError("Cannot have short-range interactions with infected wearing mask.")
-        
+    def __post_init__(self):        
         if self.presence.boundaries()[0][0] < self.infected.presence.boundaries()[0][0] or self.presence.boundaries()[-1][-1] > self.infected.presence.boundaries()[-1][-1]:
             raise ValueError("The short-range-interaction cannot last longer than the presence of the infected.")
     
