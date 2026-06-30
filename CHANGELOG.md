@@ -4,9 +4,9 @@
 - Upgrade dependencies to python 3.14.
 
 ## Other
-- Max particle diameter 20 µm at long-range.
-- Averaging over the particle diameter in ExposureModel.concentration().
-- Infected as a property of ShortRangeModel.
+- Changed the maximum particle diameter at long-range from 30 µm to 20 µm (https://royalsocietypublishing.org/rsif/article/22/223/20240740/90689/An-integrated-airborne-transmission-risk)
+- Averaging over the particle diameter in ExposureModel.concentration() rather than when calling ExposureModel.concentration() in virus_report_data.py.
+- Added 'infected' (type=InfectedPopulation) as a property of ShortRangeModel, rather than passing 'infected' to methods of ShortRangeModel.
 
 # 4.18.0 (July 24, 2025)
 
