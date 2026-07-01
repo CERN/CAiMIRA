@@ -1717,7 +1717,7 @@ class ExposureModel:
             if start <= time <= stop:
                 dilution_factor = interaction.dilution_factor()
                 # The diluted jet concentration and diluted long-range concentration are both Monte Carlo integrated over the particle diameters 
-                # before being combining together, as they have different diameter distributions
+                # before being combined together, as they have different diameter distributions
                 concentration += np.mean(interaction.diluted_jet_concentration())
                 concentration -= np.mean(1/dilution_factor * lr_concentration)
         return concentration
