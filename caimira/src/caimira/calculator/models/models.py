@@ -1415,7 +1415,7 @@ class ShortRangeModel:
     
     def diluted_jet_concentration(self) -> _VectorisedFloat:
         """
-        Results in virions/m^3.
+        The diluted short-range component of the viral concentration, in virions/m^3.
         """
         return (self._normed_diluted_jet_concentration() * self.normalization_factor())
 
@@ -1716,6 +1716,8 @@ class ExposureModel:
             # Verifies if the given time falls within a short-range interaction
             if start <= time <= stop:
                 dilution_factor = interaction.dilution_factor()
+                # The diluted jet concentration and diluted long-range concentration are both Monte Carlo integrated over the particle diameters 
+                # before being combining together, as they have different diameter distributions
                 concentration += np.mean(interaction.diluted_jet_concentration())
                 concentration -= np.mean(1/dilution_factor * lr_concentration)
         return concentration

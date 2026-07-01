@@ -686,12 +686,12 @@ def test_longrange_concentration(time,c_model,simple_c_model):
 )
 def test_shortrange_concentration(time, expo_sr_model, simple_c_model, simple_sr_models):
     expo_sr_model=expo_sr_model.build_model(SAMPLE_SIZE)
-    result = expo_sr_model.concentration(time) - expo_sr_model.long_range_concentration(time)
+    result_sr_model = expo_sr_model.concentration(time) - expo_sr_model.long_range_concentration(time)
     result_simple_sr_model = np.sum([np.array(
             sr_mod.concentration(simple_c_model,time)).mean()
         for sr_mod in simple_sr_models])
     npt.assert_allclose(
-        result,result_simple_sr_model,rtol=TOLERANCE
+        result_sr_model,result_simple_sr_model,rtol=TOLERANCE
         )
 
 
