@@ -684,11 +684,9 @@ def test_longrange_concentration(time,c_model,simple_c_model):
 @pytest.mark.parametrize(
     "time", [10, 10.7, 11., 12.5, 14.75, 14.9, 17]
 )
-def test_shortrange_concentration(data_registry, time,c_model,simple_c_model,simple_sr_models):
-    sr_models = short_range_models(data_registry, c_model.infected)
-    result_sr_model = np.sum([np.array(
-            sr_mod.build_model(SAMPLE_SIZE).short_range_concentration_difference(c_model.build_model(SAMPLE_SIZE),time)).mean()
-        for sr_mod in sr_models])
+def test_shortrange_concentration(time, expo_sr_model, simple_c_model, simple_sr_models):
+    expo_sr_model=expo_sr_model.build_model(SAMPLE_SIZE)
+    result_sr_model = expo_sr_model.concentration(time) - expo_sr_model.long_range_concentration(time)
     result_simple_sr_model = np.sum([np.array(
             sr_mod.concentration(simple_c_model,time)).mean()
         for sr_mod in simple_sr_models])
