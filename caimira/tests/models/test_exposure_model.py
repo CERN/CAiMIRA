@@ -105,12 +105,12 @@ def test_exposure_model_ndarray(data_registry, population, cm,
         model.deposited_exposure(), expected_exposure
     )
     np.testing.assert_almost_equal(
-        model.infection_probability(), expected_probability, decimal=10
+        model.individual_infection_probability(), expected_probability, decimal=10
     )
 
-    assert isinstance(model.infection_probability(), np.ndarray)
+    assert isinstance(model.individual_infection_probability(), np.ndarray)
     assert isinstance(model.expected_new_cases(), np.ndarray)
-    assert model.infection_probability().shape == (2,)
+    assert model.individual_infection_probability().shape == (2,)
     assert model.expected_new_cases().shape == (2,)
 
 
@@ -133,7 +133,7 @@ def test_exposure_model_ndarray_and_float_mix(data_registry, population, expecte
         model.deposited_exposure(), expected_deposited_exposure
     )
 
-    assert isinstance(model.infection_probability(), np.ndarray)
+    assert isinstance(model.individual_infection_probability(), np.ndarray)
     assert isinstance(model.expected_new_cases(), np.ndarray)
 
 
@@ -260,7 +260,7 @@ def test_infectious_dose_vectorisation(sr_model, cases_model, data_registry):
         models.Mask.types['Type I'], 0.,
     )
     model = ExposureModel(data_registry, cm, sr_model, population, cases_model)
-    inf_probability = model.infection_probability()
+    inf_probability = model.individual_infection_probability()
     assert isinstance(inf_probability, np.ndarray)
     assert inf_probability.shape == (3, )
 
@@ -426,7 +426,7 @@ def test_host_immunity_vectorisation(data_registry, sr_model, cases_model, cm, h
         models.Mask(np.array([0.3, 0.35])), host_immunity=host_immunity
     )
     model = ExposureModel(data_registry, cm, sr_model, population, cases_model)
-    inf_probability = model.infection_probability()
+    inf_probability = model.individual_infection_probability()
 
     np.testing.assert_almost_equal(
         inf_probability, expected_probability, decimal=1

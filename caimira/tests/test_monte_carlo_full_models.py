@@ -34,7 +34,7 @@ TorontoTemperatures = {
 }
 
 
-# References values for infection_probability and expected new cases
+# References values for individual_infection_probability and expected new cases
 # in the following tests, were obtained from the feature/mc branch
 @pytest.fixture
 def shared_office_mc(data_registry):
@@ -352,7 +352,7 @@ def test_report_models(mc_model, expected_pi, expected_new_cases,
                        expected_dose, expected_ER_per_person, request):
     mc_model = request.getfixturevalue(mc_model)
     exposure_model = mc_model.build_model(size=SAMPLE_SIZE)
-    npt.assert_allclose(exposure_model.infection_probability().mean(),
+    npt.assert_allclose(exposure_model.individual_infection_probability().mean(),
                         expected_pi, rtol=TOLERANCE)
     npt.assert_allclose(exposure_model.expected_new_cases().mean(),
                         expected_new_cases, rtol=TOLERANCE)
@@ -421,7 +421,7 @@ def test_small_shared_office_Geneva(data_registry, mask_type, month, expected_pi
         geographical_data=models.Cases(),
     )
     exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
-    npt.assert_allclose(exposure_model.infection_probability().mean(),
+    npt.assert_allclose(exposure_model.individual_infection_probability().mean(),
                         expected_pi, rtol=TOLERANCE)
     npt.assert_allclose(exposure_model.deposited_exposure().mean(),
                         expected_dose, rtol=TOLERANCE)
