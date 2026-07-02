@@ -188,7 +188,7 @@ def group_results(form: VirusFormData, model_group: models.ExposureModelGroup) -
     groups: dict = defaultdict(dict)
     for single_group in model_group.exposure_models:
         # Probability of infection
-        prob = single_group.infection_probability()
+        prob = single_group.individual_infection_probability()
         prob_dist_count, prob_dist_bins = np.histogram(prob/100, bins=100, density=True)
 
         # Expected new cases
@@ -244,7 +244,7 @@ def group_results(form: VirusFormData, model_group: models.ExposureModelGroup) -
             )
 
             groups[single_group.identifier].update({
-                "long_range_prob": long_range_single_group.infection_probability().mean(),
+                "long_range_prob": long_range_single_group.individual_infection_probability().mean(),
                 "long_range_expected_new_cases": long_range_single_group.expected_new_cases().mean(),
                 "short_range_interactions": [
                     {
@@ -342,7 +342,7 @@ def calculate_report_data(form: VirusFormData,
 
 
 def conditional_prob_inf_given_vl_dist(
-    infection_probability: models._VectorisedFloat,
+    individual_infection_probability: models._VectorisedFloat,
     viral_loads: np.ndarray,
     specific_vl: models._VectorisedFloat,
     step: models._VectorisedFloat
@@ -354,7 +354,7 @@ def conditional_prob_inf_given_vl_dist(
 
     for vl_log in viral_loads:
         # Probability of infection corresponding to a certain viral load value in the distribution
-        specific_prob = infection_probability[np.where(
+        specific_prob = individual_infection_probability[np.where(
             (vl_log-step/2-specific_vl)*(vl_log+step/2-specific_vl) < 0)[0]]  # type: ignore
 
         pi_means.append(specific_prob.mean())
@@ -366,7 +366,7 @@ def conditional_prob_inf_given_vl_dist(
 
 def manufacture_conditional_probability_data(
     exposure_model: models.ExposureModel,
-    infection_probability: models._VectorisedFloat
+    individual_infection_probability: models._VectorisedFloat
 ):
     min_vl = 2
     max_vl = 10
@@ -374,7 +374,7 @@ def manufacture_conditional_probability_data(
     viral_loads = np.arange(min_vl, max_vl, step)
     specific_vl = np.log10(
         exposure_model.virus.viral_load_in_sputum)
-    pi_means, lower_percentiles, upper_percentiles = conditional_prob_inf_given_vl_dist(infection_probability, viral_loads,
+    pi_means, lower_percentiles, upper_percentiles = conditional_prob_inf_given_vl_dist(individual_infection_probability, viral_loads,
                                                                                         specific_vl, step)
     log10_vl_in_sputum = np.log10(
         exposure_model.virus.viral_load_in_sputum)
@@ -388,7 +388,7 @@ def manufacture_conditional_probability_data(
     }
 
 
-def uncertainties_plot(infection_probability: models._VectorisedFloat,
+def uncertainties_plot(individual_infection_probability: models._VectorisedFloat,
                        conditional_probability_data: dict):
 
     viral_loads: list = conditional_probability_data['viral_loads']
@@ -414,7 +414,7 @@ def uncertainties_plot(infection_probability: models._VectorisedFloat,
     axs00.fill_between(viral_loads, np.array(lower_percentiles), np.array(
         upper_percentiles), alpha=0.1, label='5ᵗʰ and 95ᵗʰ percentile')
 
-    axs02.hist(infection_probability, bins=30, orientation='horizontal')
+    axs02.hist(individual_infection_probability, bins=30, orientation='horizontal')
     axs02.set_xticks([])
     axs02.set_xticklabels([])
     axs02.set_facecolor("lightgrey")
@@ -423,7 +423,7 @@ def uncertainties_plot(infection_probability: models._VectorisedFloat,
     axs02.set_xlim(0, highest_bar)
 
     axs02.text(highest_bar * 0.5, 50,
-               "$P(I)=$\n" + rf"$\bf{np.round(np.mean(infection_probability), 1)}$%", ha='center', va='center')
+               "$P(I)=$\n" + rf"$\bf{np.round(np.mean(individual_infection_probability), 1)}$%", ha='center', va='center')
     axs10.hist(log10_vl_in_sputum,
                bins=150, range=(2, 10), color='grey')
     axs10.set_facecolor("lightgrey")
@@ -473,7 +473,7 @@ def calculate_vl_scenarios_percentiles(model: mc.ExposureModel) -> typing.Dict[s
 
         specific_vl_scenario = dataclass_utils.nested_replace(model, {'concentration_model': new_conc_model})
         scenarios[str(vl)] = np.mean(
-            specific_vl_scenario.infection_probability())
+            specific_vl_scenario.individual_infection_probability())
     return {
         'alternative_viral_load': scenarios,
     }
@@ -567,7 +567,7 @@ def scenario_statistics(
     )
     
     return {
-        'probability_of_infection': np.mean(model.infection_probability()),
+        'probability_of_infection': np.mean(model.individual_infection_probability()),
         'expected_new_cases': np.mean(model.expected_new_cases()),
         'concentrations': [
             model.concentration(time)

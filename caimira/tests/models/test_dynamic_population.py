@@ -184,14 +184,14 @@ def test_dynamic_dose(data_registry, full_exposure_model: models.ExposureModel, 
     npt.assert_almost_equal(dynamic_exposure, np.sum(static_exposure))
 
 
-def test_infection_probability(
+def test_individual_infection_probability(
         full_exposure_model: models.ExposureModel,
         dynamic_infected_single_exposure_model: models.ExposureModel,
         dynamic_population_exposure_model: models.ExposureModel):
 
-    base_infection_probability = full_exposure_model.infection_probability()
-    npt.assert_almost_equal(base_infection_probability, dynamic_infected_single_exposure_model.infection_probability())
-    npt.assert_almost_equal(base_infection_probability, dynamic_population_exposure_model.infection_probability())
+    base_individual_infection_probability = full_exposure_model.individual_infection_probability()
+    npt.assert_almost_equal(base_individual_infection_probability, dynamic_infected_single_exposure_model.individual_infection_probability())
+    npt.assert_almost_equal(base_individual_infection_probability, dynamic_population_exposure_model.individual_infection_probability())
 
 
 def test_dynamic_total_probability_rule(
