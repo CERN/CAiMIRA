@@ -10,7 +10,11 @@ def data_registry():
     return DataRegistry()
 
 @pytest.fixture
-def baseline_concentration_model(data_registry):
+def baseline_sr_model():
+    return ()
+
+@pytest.fixture
+def baseline_concentration_model(data_registry, baseline_sr_model):
     model = models.ConcentrationModel(
         data_registry=data_registry,
         room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293,))),
@@ -31,21 +35,16 @@ def baseline_concentration_model(data_registry):
             # on Miller et al. (2020) - 50 represents the infectious dose.
         ),
         evaporation_factor=0.3,
+        short_range=baseline_sr_model,
     )
     return model
 
 
 @pytest.fixture
-def baseline_sr_model():
-    return ()
-
-
-@pytest.fixture
-def baseline_exposure_model(data_registry, baseline_concentration_model, baseline_sr_model):
+def baseline_exposure_model(data_registry, baseline_concentration_model):
     return models.ExposureModel(
         data_registry=data_registry,
         concentration_model=baseline_concentration_model,
-        short_range=baseline_sr_model,
         exposed=models.Population(
             number=1000,
             presence=baseline_concentration_model.infected.presence,

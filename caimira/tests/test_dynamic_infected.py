@@ -153,7 +153,6 @@ def get_exposure_model(concentration_model_list) -> mc.ExposureModel:
     return mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=concentration_model_list,
-        short_range=(),
         exposed=mc.Population(
             number=1,
             presence=models.SpecificInterval(present_times=((8.5, 12), (13, 17.5))),

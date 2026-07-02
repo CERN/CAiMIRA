@@ -67,11 +67,11 @@ def shared_office_mc(data_registry):
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
+        short_range=(),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=concentration_mc,
-        short_range=(),
         exposed=mc.Population(
             number=3,
             presence=mc.SpecificInterval(present_times=((0, 3.5), (4.5, 9))),
@@ -114,11 +114,11 @@ def classroom_mc(data_registry):
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
+        short_range=(),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=concentration_mc,
-        short_range=(),
         exposed=mc.Population(
             number=19,
             presence=models.SpecificInterval(((0, 2), (2.5, 4), (5, 7), (7.5, 9))),
@@ -152,11 +152,11 @@ def ski_cabin_mc(data_registry):
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
+        short_range=(),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=concentration_mc,
-        short_range=(),
         exposed=mc.Population(
             number=3,
             presence=models.SpecificInterval(((0, 20/60),)),
@@ -196,11 +196,11 @@ def skagit_chorale_mc(data_registry):
                 host_immunity=0.,
             ),
         evaporation_factor=0.3,
+        short_range=(),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=concentration_mc,
-        short_range=(),
         exposed=mc.Population(
             number=60,
             presence=models.SpecificInterval(((0, 2.5), )),
@@ -240,11 +240,11 @@ def bus_ride_mc(data_registry):
                 host_immunity=0.,
             ),
         evaporation_factor=0.3,
+        short_range=(),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=concentration_mc,
-        short_range=(),
         exposed=mc.Population(
             number=67,
             presence=models.SpecificInterval(((0, 1.67), )),
@@ -279,11 +279,11 @@ def gym_mc(data_registry):
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
+        short_range=(),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=concentration_mc,
-        short_range=(),
         exposed=mc.Population(
             number=28,
             presence=concentration_mc.infected.presence,
@@ -318,11 +318,11 @@ def waiting_room_mc(data_registry):
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
+        short_range=(),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=concentration_mc,
-        short_range=(),
         exposed=mc.Population(
             number=14,
             presence=concentration_mc.infected.presence,
@@ -406,11 +406,11 @@ def test_small_shared_office_Geneva(data_registry, mask_type, month, expected_pi
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
+        short_range=(),
     )
     exposure_mc = mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=concentration_mc,
-        short_range=(),
         exposed=mc.Population(
             number=1,
             presence=concentration_mc.infected.presence,

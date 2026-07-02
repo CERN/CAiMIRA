@@ -35,9 +35,13 @@ def test_type_annotations():
         )
         pytest.fail(msg)
 
+@pytest.fixture
+def baseline_mc_sr_model() -> caimira.calculator.models.monte_carlo.ShortRangeModel:
+    return ()
+
 
 @pytest.fixture
-def baseline_mc_concentration_model(data_registry) -> caimira.calculator.models.monte_carlo.ConcentrationModel:
+def baseline_mc_concentration_model(data_registry, baseline_mc_sr_model) -> caimira.calculator.models.monte_carlo.ConcentrationModel:
     mc_model = caimira.calculator.models.monte_carlo.ConcentrationModel(
         data_registry=data_registry,
         room=caimira.calculator.models.monte_carlo.Room(volume=caimira.calculator.models.monte_carlo.sampleable.Normal(75, 20),
@@ -59,21 +63,16 @@ def baseline_mc_concentration_model(data_registry) -> caimira.calculator.models.
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
+        short_range=baseline_mc_sr_model,
     )
     return mc_model
 
 
 @pytest.fixture
-def baseline_mc_sr_model() -> caimira.calculator.models.monte_carlo.ShortRangeModel:
-    return ()
-
-
-@pytest.fixture
-def baseline_mc_exposure_model(data_registry, baseline_mc_concentration_model, baseline_mc_sr_model) -> caimira.calculator.models.monte_carlo.ExposureModel:
+def baseline_mc_exposure_model(data_registry, baseline_mc_concentration_model) -> caimira.calculator.models.monte_carlo.ExposureModel:
     return caimira.calculator.models.monte_carlo.ExposureModel(
         data_registry,
         baseline_mc_concentration_model,
-        baseline_mc_sr_model,
         exposed=caimira.calculator.models.models.Population(
             number=10,
             presence=baseline_mc_concentration_model.infected.presence,

@@ -78,7 +78,10 @@ def known_concentrations(func, func_lim=None, data_registry=DataRegistry()):
     else:
         normed_func_lim = normed_func
     return KnownNormedconcentration(data_registry, dummy_room, dummy_ventilation,
-                                dummy_infected_population, 0.3, normed_func, normed_func_lim)
+                                dummy_infected_population, 0.3, short_range=(), 
+                                normed_concentration_function=normed_func, 
+                                normed_concentration_limit_function=normed_func_lim
+                                )
 
 
 @pytest.mark.parametrize(
@@ -100,7 +103,8 @@ def known_concentrations(func, func_lim=None, data_registry=DataRegistry()):
     ])
 def test_exposure_model_ndarray(data_registry, population, cm,
                                 expected_exposure, expected_probability, sr_model, cases_model):
-    model = ExposureModel(data_registry, cm, sr_model, population, cases_model)
+    model = ExposureModel(data_registry, cm, population, cases_model)
+    print(model.concentration_model_list[0].short_range)
     np.testing.assert_almost_equal(
         model.deposited_exposure(), expected_exposure
     )
@@ -127,7 +131,7 @@ def test_exposure_model_ndarray_and_float_mix(data_registry, population, expecte
     # normed_concentration_limit(_next_state_change(t)) = np.array([0.6, 0.6]) for all t
     func_lim = lambda t: func(24)
     cm = known_concentrations(func,func_lim)
-    model = ExposureModel(data_registry, cm, sr_model, population, cases_model)
+    model = ExposureModel(data_registry, cm, population, cases_model)
 
     np.testing.assert_almost_equal(
         model.deposited_exposure(), expected_deposited_exposure
@@ -144,7 +148,7 @@ def test_exposure_model_ndarray_and_float_mix(data_registry, population, expecte
     ])
 def test_exposure_model_vector(data_registry, population, expected_deposited_exposure, sr_model, cases_model):
     cm_array = known_concentrations(lambda t: np.array([0.6, 0.6]))
-    model_array = ExposureModel(data_registry, cm_array, sr_model, population, cases_model)
+    model_array = ExposureModel(data_registry, cm_array, population, cases_model)
     np.testing.assert_almost_equal(
         model_array.deposited_exposure(), np.array(expected_deposited_exposure)
     )
@@ -152,7 +156,7 @@ def test_exposure_model_vector(data_registry, population, expected_deposited_exp
 
 def test_exposure_model_scalar(data_registry, sr_model, cases_model):
     cm_scalar = known_concentrations(lambda t: 0.6)
-    model_scalar = ExposureModel(data_registry, cm_scalar, sr_model, populations[0], cases_model)
+    model_scalar = ExposureModel(data_registry, cm_scalar, populations[0], cases_model)
     expected_deposited_exposure = 1.52436206
     np.testing.assert_almost_equal(
         model_scalar.deposited_exposure(), expected_deposited_exposure
@@ -231,7 +235,7 @@ def test_exposure_model_integral_accuracy(data_registry, exposed_time_interval,
         10, presence_interval, models.Activity.types['Standing'],
         models.Mask.types['Type I'], 0.,
     )
-    model = ExposureModel(data_registry, conc_model, sr_model, population, cases_model)
+    model = ExposureModel(data_registry, conc_model, population, cases_model)
     np.testing.assert_allclose(model.deposited_exposure(), expected_deposited_exposure)
 
 
@@ -259,7 +263,7 @@ def test_infectious_dose_vectorisation(sr_model, cases_model, data_registry):
         10, presence_interval, models.Activity.types['Standing'],
         models.Mask.types['Type I'], 0.,
     )
-    model = ExposureModel(data_registry, cm, sr_model, population, cases_model)
+    model = ExposureModel(data_registry, cm, population, cases_model)
     inf_probability = model.infection_probability()
     assert isinstance(inf_probability, np.ndarray)
     assert inf_probability.shape == (3, )
@@ -321,7 +325,7 @@ def test_probabilistic_exposure_probability(data_registry, sr_model, exposed_pop
     population = models.Population(
         exposed_population, models.PeriodicInterval(120, 60), models.Activity.types['Standing'],
         models.Mask.types['Type I'], host_immunity=0.,)
-    model = ExposureModel(data_registry, cm, sr_model, population, models.Cases(geographic_population=pop,
+    model = ExposureModel(data_registry, cm, population, models.Cases(geographic_population=pop,
         geographic_cases=cases, ascertainment_bias=AB),)
     np.testing.assert_allclose(
         model.total_probability_rule(), probabilistic_exposure_probability, rtol=0.05
@@ -353,7 +357,7 @@ def test_diameter_vectorisation_window_opening(data_registry, diameter_dependent
     )
     with pytest.raises(ValueError, match="If the diameter is an array, none of the ventilation parameters "
                                         "or virus decay constant can be arrays at the same time."):
-        models.ExposureModel(data_registry, concentration, sr_model, populations[0], cases_model)
+        models.ExposureModel(data_registry, concentration, populations[0], cases_model)
 
 
 def test_diameter_vectorisation_hinged_window(data_registry, diameter_dependent_model, sr_model, cases_model):
@@ -367,7 +371,7 @@ def test_diameter_vectorisation_hinged_window(data_registry, diameter_dependent_
     )
     with pytest.raises(ValueError, match="If the diameter is an array, none of the ventilation parameters "
                                         "or virus decay constant can be arrays at the same time."):
-        models.ExposureModel(data_registry, concentration, sr_model, populations[0], cases_model)
+        models.ExposureModel(data_registry, concentration, populations[0], cases_model)
 
 
 def test_diameter_vectorisation_HEPA_filter(data_registry, diameter_dependent_model, sr_model, cases_model):
@@ -378,7 +382,7 @@ def test_diameter_vectorisation_HEPA_filter(data_registry, diameter_dependent_mo
     )
     with pytest.raises(ValueError, match="If the diameter is an array, none of the ventilation parameters "
                                         "or virus decay constant can be arrays at the same time."):
-        models.ExposureModel(data_registry, concentration, sr_model, populations[1], cases_model)
+        models.ExposureModel(data_registry, concentration, populations[1], cases_model)
 
 
 def test_diameter_vectorisation_air_change(data_registry, diameter_dependent_model, sr_model, cases_model):
@@ -389,7 +393,7 @@ def test_diameter_vectorisation_air_change(data_registry, diameter_dependent_mod
     )
     with pytest.raises(ValueError, match="If the diameter is an array, none of the ventilation parameters "
                                         "or virus decay constant can be arrays at the same time."):
-        models.ExposureModel(data_registry, concentration, sr_model, populations[2], cases_model)
+        models.ExposureModel(data_registry, concentration, populations[2], cases_model)
 
 
 @pytest.mark.parametrize(
@@ -410,7 +414,7 @@ def test_diameter_vectorisation_room(data_registry, diameter_dependent_model, sr
         room = models.Room(volume=volume, inside_temp=inside_temp, humidity=humidity),
         ventilation = models.HVACMechanical(active=models.SpecificInterval(((0., 24.), )), q_air_mech=100.))
     with pytest.raises(ValueError, match=error_message):
-        models.ExposureModel(data_registry, concentration, sr_model, populations[0], cases_model)
+        models.ExposureModel(data_registry, concentration, populations[0], cases_model)
 
 
 @pytest.mark.parametrize(
@@ -425,7 +429,7 @@ def test_host_immunity_vectorisation(data_registry, sr_model, cases_model, cm, h
         10, halftime, models.Activity.types['Standing'],
         models.Mask(np.array([0.3, 0.35])), host_immunity=host_immunity
     )
-    model = ExposureModel(data_registry, cm, sr_model, population, cases_model)
+    model = ExposureModel(data_registry, cm, population, cases_model)
     inf_probability = model.infection_probability()
 
     np.testing.assert_almost_equal(

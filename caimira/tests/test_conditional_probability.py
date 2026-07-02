@@ -31,11 +31,11 @@ def baseline_exposure_model(data_registry):
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
+        short_range=(),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=concentration_mc,
-        short_range=(),
         exposed=mc.Population(
             number=3,
             presence=mc.SpecificInterval(present_times=((0, 3.5), (4.5, 9))),
