@@ -152,8 +152,7 @@ def valid_conc_model_tuple(all_infected_populations):
 def get_exposure_model(concentration_model_tuple) -> mc.ExposureModel:
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=concentration_model_tuple,
-        short_range=(),
+        concentration_model=concentration_model_list,
         exposed=mc.Population(
             number=1,
             presence=models.SpecificInterval(present_times=((8.5, 12), (13, 17.5))),
