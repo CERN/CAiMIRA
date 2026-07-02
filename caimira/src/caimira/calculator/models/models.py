@@ -1111,19 +1111,6 @@ class ShortRangeModel:
     
     def _normed_diluted_jet_concentration(self):
         return 1/self.dilution_factor()*self._normed_jet_origin_concentration()
-    
-    # def jet_origin_concentration(self) -> _VectorisedFloat:
-    #     """
-    #     The initial jet concentration at the source origin (mouth/nose).
-    #     Returns the full result with the diameter dependent and independent variables, in virions/m^3.
-    #     """
-    #     return self._normed_jet_origin_concentration() * self.normalization_factor()
-
-    # def diluted_jet_concentration(self) -> _VectorisedFloat:
-    #     """
-    #     Results in virions/m^3.
-    #     """
-    #     return (self._normed_diluted_jet_concentration() * self.normalization_factor())
 
     @method_cache
     def extract_between_bounds(self, time1: float, time2: float) -> typing.Union[None, typing.Tuple[float,float]]:
@@ -1405,8 +1392,10 @@ class ConcentrationModel(_ConcentrationModelBase):
     
     def short_range_normalization_factor(self) -> _VectorisedFloat:
         """
-        The normalization factor applied to the short-range results. It refers to the emission
-        rate per aerosol without accounting for the exhalation rate (viral load and f_inf).
+        The normalization factor applied to the short-range results. 
+        It refers to the emission rate per aerosol without accounting for the exhalation rate (viral load and f_inf).
+        All short-range interactions are with the same infected, and so the same normalization factor is the same
+        for every ShortRangeModel.
         Result in (virions.cm^3)/(mL.m^3).
         """
         # Re-use the emission rate method divided by the BR contribution. 
@@ -1682,6 +1671,7 @@ class ExposureModel:
         of each ConcentrationModel over the particle diameter before adding together all the contributions from all 
         the ConcentrationModels.
         """
+        #TODO for sr interactions multiply by dilution factor before averaging
         return sum([np.array(c_model.concentration(time)).mean() for c_model in self.concentration_model_list]) # Average over particle diameter
     
     def concentration(self, time: float) -> float:
@@ -1701,6 +1691,7 @@ class ExposureModel:
             for interaction in c_model.short_range:
                 start, stop = interaction.presence.boundaries()[0]
                 # Verifies if the given time falls within a short-range interaction
+                # NOTE: max one short-range interaction at a time, so the test should just yield true once (TODO check?)
                 if start <= time <= stop:
                     dilution_factor = interaction.dilution_factor()
                     concentration += np.mean(interaction._normed_diluted_jet_concentration() * c_model.short_range_normalization_factor())
