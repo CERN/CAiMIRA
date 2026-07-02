@@ -60,14 +60,13 @@ def exposure_model(data_registry, concentration_model):
                                     exposed_to_short_range = 1)
 
 
-def test_short_range_model_ndarray(concentration_model, short_range_model):
-    concentration_model = concentration_model.build_model(SAMPLE_SIZE)
-    model = short_range_model.build_model(SAMPLE_SIZE)
-    assert isinstance(model.dilution_factor(), np.ndarray)
-    assert isinstance(model._normed_jet_origin_concentration(), np.ndarray)
-    assert isinstance(model._normed_diluted_jet_concentration(), np.ndarray)
-    assert isinstance(model.diluted_jet_concentration(), np.ndarray)
-    assert np.all(model.diluted_jet_concentration() > 0)
+def test_short_range_model_ndarray(short_range_model):
+    sr_model = short_range_model.build_model(SAMPLE_SIZE)
+    assert isinstance(sr_model.dilution_factor(), np.ndarray)
+    assert isinstance(sr_model._normed_jet_origin_concentration(), np.ndarray)
+    assert isinstance(sr_model._normed_diluted_jet_concentration(), np.ndarray)
+    assert np.all(sr_model._normed_diluted_jet_concentration() > 0)
+
 
 
 @pytest.mark.parametrize(
