@@ -388,7 +388,7 @@ def build_exposure_model(data_registry, concentration_model):
     infected = concentration_model.infected
     return models.ExposureModel(
         data_registry=data_registry,
-        concentration_model=concentration_model,
+        concentration_model=(concentration_model,),
         exposed=models.Population(
             number=10,
             presence=infected.presence,

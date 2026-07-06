@@ -570,7 +570,7 @@ def simple_sr_models(data_registry) -> typing.Tuple[SimpleShortRangeModel, ...]:
 def expo_sr_model(data_registry, short_range_models) -> mc.ExposureModel:
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=c_model(short_range_models),
+        concentration_model=(c_model(short_range_models),),
         exposed=mc.Population(
             number=1,
             presence=presence,
@@ -619,7 +619,7 @@ def expo_sr_model_distr(data_registry) -> mc.ExposureModel:
         )
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=c_model_distr(short_range),
+        concentration_model=(c_model_distr(short_range),),
         exposed=mc.Population(
             number=1,
             presence=presence,
@@ -709,7 +709,7 @@ def test_longrange_exposure(data_registry):
     )
     expo_model = mc.ExposureModel(
             data_registry=data_registry,
-            concentration_model=c_model().build_model(SAMPLE_SIZE),
+            concentration_model=(c_model(),),
             exposed=mc.Population(
                 number=1,
                 presence=presence,
@@ -773,7 +773,7 @@ def test_longrange_exposure_with_distributions(data_registry):
     )
     expo_model = mc.ExposureModel(
             data_registry=data_registry,
-            concentration_model=c_model_distr().build_model(SAMPLE_SIZE),
+            concentration_model=(c_model_distr(),),
             exposed=mc.Population(
                 number=1,
                 presence=presence,
@@ -880,7 +880,7 @@ def exposure_model_from_parameter(data_registry, short_range_bool=True, short_ra
         short_range = ()
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=c_model,
+        concentration_model=(c_model,),
         exposed=mc.Population(
             number=1,
             presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),

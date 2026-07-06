@@ -295,7 +295,7 @@ class VirusFormData(FormData):
                 data_registry=self.data_registry,
                 exposure_models = (mc.ExposureModel(
                     data_registry=self.data_registry,
-                    concentration_model=concentration_model,
+                    concentration_model=(concentration_model,),
                     exposed=exposed_population,
                     geographical_data=geographical_data,
                     exposed_to_short_range=self.short_range_occupants,
@@ -317,7 +317,7 @@ class VirusFormData(FormData):
 
                 exposure_model = mc.ExposureModel(
                     data_registry=self.data_registry,
-                    concentration_model=concentration_model,
+                    concentration_model=(concentration_model,),
                     exposed=exposed_population,
                     geographical_data=geographical_data,
                     exposed_to_short_range=self.short_range_occupants,

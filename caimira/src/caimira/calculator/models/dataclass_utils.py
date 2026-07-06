@@ -80,3 +80,19 @@ def walk_dataclass(model, name=""):
         yield fq_name, obj
         if dataclasses.is_dataclass(obj):
             yield from walk_dataclass(obj, name=fq_name)
+
+        elif isinstance(obj, tuple):
+            for i, item in enumerate(obj):
+                item_name = f"{fq_name}[{i}]"
+                yield item_name, item
+                if dataclasses.is_dataclass(item):
+                    yield from walk_dataclass(item, item_name)
+
+def replace_concentration_model_properties(exp_model, replacements):
+    return dataclasses.replace(
+        exp_model,
+        concentration_model=tuple(
+            nested_replace(cm, replacements)
+            for cm in exp_model.concentration_model
+        ),
+    )
