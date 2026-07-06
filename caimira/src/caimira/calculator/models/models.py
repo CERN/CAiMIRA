@@ -1871,8 +1871,6 @@ class ExposureModel:
             2) Short- and long-range exposure: take the individual_infection_probability of long-range multiplied by the occupants exposed to long-range only, 
                plus the individual_infection_probability of short- and long-range multiplied by the occupants exposed to short-range only.
         """
-        if len(self.concentration_model) > 1:
-            raise NotImplementedError("Cannot compute expected new cases with dynamic occupancy")
         number = self.exposed.number
 
         has_short_range = any(c_model.infected.short_range != () for c_model in self.concentration_model)
