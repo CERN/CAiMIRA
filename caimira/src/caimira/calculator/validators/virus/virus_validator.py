@@ -283,19 +283,19 @@ class VirusFormData(FormData):
             exposed_population = self.exposed_population()
             short_range_tuple = tuple(item for sublist in short_range.values() for item in sublist)
 
-            concentration_model: models.ConcentrationModel = mc.ConcentrationModel(
-                data_registry=self.data_registry,
-                room=room,
-                ventilation=ventilation,
-                infected=infected_population,
-                evaporation_factor=0.3,
-                short_range=short_range_tuple,
-            )
             return mc.ExposureModelGroup(
                 data_registry=self.data_registry,
                 exposure_models = (mc.ExposureModel(
                     data_registry=self.data_registry,
-                    concentration_model=(concentration_model,),
+                    concentration_model=(mc.ConcentrationModel(
+                            data_registry=self.data_registry,
+                            room=room,
+                            ventilation=ventilation,
+                            infected=infected_population,
+                            evaporation_factor=0.3,
+                            short_range=short_range_tuple,
+                        ),
+                    ),
                     exposed=exposed_population,
                     geographical_data=geographical_data,
                     exposed_to_short_range=self.short_range_occupants,
@@ -305,19 +305,19 @@ class VirusFormData(FormData):
             exposure_model_set = []
             for exposure_group in self.occupancy.keys():
                 sr_models: typing.Tuple[models.ShortRangeModel, ...] = tuple(short_range[exposure_group])
-                concentration_model: models.ConcentrationModel = mc.ConcentrationModel(
-                    data_registry=self.data_registry,
-                    room=room,
-                    ventilation=ventilation,
-                    infected=infected_population,
-                    evaporation_factor=0.3,
-                    short_range=sr_models,
-                )
                 exposed_population = self.exposed_population(exposure_group)
-
+                
                 exposure_model = mc.ExposureModel(
                     data_registry=self.data_registry,
-                    concentration_model=(concentration_model,),
+                    concentration_model=(mc.ConcentrationModel(
+                            data_registry=self.data_registry,
+                            room=room,
+                            ventilation=ventilation,
+                            infected=infected_population,
+                            evaporation_factor=0.3,
+                            short_range=sr_models,
+                        ),
+                    ),
                     exposed=exposed_population,
                     geographical_data=geographical_data,
                     exposed_to_short_range=self.short_range_occupants,

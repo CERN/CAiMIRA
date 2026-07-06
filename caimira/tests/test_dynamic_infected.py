@@ -152,18 +152,6 @@ def short_range_models():
         ) for sr_expiration, sr_activity in zip(sr_expirations, sr_activities))
 
 @pytest.fixture
-def short_range_models():
-    sr_expirations=[models.Expiration.types['Breathing'], models.Expiration.types['Speaking']]
-    sr_activities=[models.Activity.types['Seated'], models.Activity.types['Standing']]
-    return tuple([mc.ShortRangeModel(
-        data_registry=data_registry,
-        expiration=sr_expiration,
-        activity=sr_activity,
-        presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
-        distance=0.854
-        ) for sr_expiration, sr_activity in zip(sr_expirations, sr_activities)])
-
-@pytest.fixture
 def valid_conc_model_tuple(all_infected_populations):
     return tuple(mc.ConcentrationModel(
         data_registry=data_registry,

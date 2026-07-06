@@ -1881,7 +1881,7 @@ class ExposureModel:
                         for c_model in self.concentration_model
                     ]
                 },
-            ).individual_infection_probability() * (number - self.exposed_to_short_range)
+            ).individual_infection_probability() * (number - self.exposed_to_short_range) # type: ignore
 
             return (
                 new_cases_long_range
