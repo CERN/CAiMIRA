@@ -47,7 +47,7 @@ def short_range_model(data_registry, concentration_model):
 @pytest.fixture
 def exposure_model(data_registry, concentration_model, short_range_model):
     return mc_models.ExposureModel(data_registry=data_registry,
-                                     concentration_model=concentration_model,
+                                     concentration_model=(concentration_model,),
                                      short_range=(short_range_model,),
                                      exposed = mc_models.Population(
                                         number=1,
@@ -172,7 +172,7 @@ def test_short_range_exposure_with_ndarray_mask(data_registry):
                                          distance=0.854)
     e_model = mc_models.ExposureModel(
         data_registry = data_registry,
-        concentration_model = c_model,
+        concentration_model = (c_model,),
         short_range = (sr_model,),
         exposed = mc_models.Population(
             number=1,

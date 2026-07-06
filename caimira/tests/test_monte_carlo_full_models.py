@@ -70,7 +70,7 @@ def shared_office_mc(data_registry):
     )
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=concentration_mc,
+        concentration_model=(concentration_mc,),
         short_range=(),
         exposed=mc.Population(
             number=3,
@@ -117,7 +117,7 @@ def classroom_mc(data_registry):
     )
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=concentration_mc,
+        concentration_model=(concentration_mc,),
         short_range=(),
         exposed=mc.Population(
             number=19,
@@ -155,7 +155,7 @@ def ski_cabin_mc(data_registry):
     )
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=concentration_mc,
+        concentration_model=(concentration_mc,),
         short_range=(),
         exposed=mc.Population(
             number=3,
@@ -199,7 +199,7 @@ def skagit_chorale_mc(data_registry):
     )
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=concentration_mc,
+        concentration_model=(concentration_mc,),
         short_range=(),
         exposed=mc.Population(
             number=60,
@@ -243,7 +243,7 @@ def bus_ride_mc(data_registry):
     )
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=concentration_mc,
+        concentration_model=(concentration_mc,),
         short_range=(),
         exposed=mc.Population(
             number=67,
@@ -282,7 +282,7 @@ def gym_mc(data_registry):
     )
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=concentration_mc,
+        concentration_model=(concentration_mc,),
         short_range=(),
         exposed=mc.Population(
             number=28,
@@ -321,7 +321,7 @@ def waiting_room_mc(data_registry):
     )
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=concentration_mc,
+        concentration_model=(concentration_mc,),
         short_range=(),
         exposed=mc.Population(
             number=14,
@@ -359,7 +359,7 @@ def test_report_models(mc_model, expected_pi, expected_new_cases,
     npt.assert_allclose(exposure_model.deposited_exposure().mean(),
                         expected_dose, rtol=TOLERANCE)
     npt.assert_allclose(
-        exposure_model.concentration_model.infected.emission_rate_per_person_when_present().mean(),
+        exposure_model.concentration_model[0].infected.emission_rate_per_person_when_present().mean(),
         expected_ER_per_person, rtol=TOLERANCE)
 
 
@@ -409,7 +409,7 @@ def test_small_shared_office_Geneva(data_registry, mask_type, month, expected_pi
     )
     exposure_mc = mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=concentration_mc,
+        concentration_model=(concentration_mc,),
         short_range=(),
         exposed=mc.Population(
             number=1,
@@ -426,5 +426,5 @@ def test_small_shared_office_Geneva(data_registry, mask_type, month, expected_pi
     npt.assert_allclose(exposure_model.deposited_exposure().mean(),
                         expected_dose, rtol=TOLERANCE)
     npt.assert_allclose(
-        exposure_model.concentration_model.infected.emission_rate_per_person_when_present().mean(),
+        exposure_model.concentration_model[0].infected.emission_rate_per_person_when_present().mean(),
         expected_ER, rtol=TOLERANCE)

@@ -72,7 +72,7 @@ def baseline_mc_sr_model() -> caimira.calculator.models.monte_carlo.ShortRangeMo
 def baseline_mc_exposure_model(data_registry, baseline_mc_concentration_model, baseline_mc_sr_model) -> caimira.calculator.models.monte_carlo.ExposureModel:
     return caimira.calculator.models.monte_carlo.ExposureModel(
         data_registry,
-        baseline_mc_concentration_model,
+        (baseline_mc_concentration_model,),
         baseline_mc_sr_model,
         exposed=caimira.calculator.models.models.Population(
             number=10,

@@ -114,45 +114,45 @@ def all_infected_populations(infected_dynamic_number, infected_dynamic_presence,
     return infected_dynamic_number + infected_dynamic_presence + infected_dynamic_mask + infected_dynamic_activity + infected_dynamic_expiration + infected_dynamic_immunity
 
 @pytest.fixture
-def invalid_viruses_conc_model_list(infected_dynamic_virus):
+def invalid_viruses_conc_model_tuple(infected_dynamic_virus):
     """
-    Invalid list of concentration models because the viruses are different.
+    Invalid tuple of concentration models because the viruses are different.
     """
-    return [models.ConcentrationModel(
+    return tuple(mc.ConcentrationModel(
         data_registry=data_registry,
         room = models.Room(75, models.PiecewiseConstant((0., 24.), (293,))),
         ventilation = models.AirChange(interesting_times, 100),
         infected = infected_population,
         evaporation_factor=0.3,
-    ) for infected_population in infected_dynamic_virus]
+    ) for infected_population in infected_dynamic_virus)
 
 @pytest.fixture
-def invalid_rooms_conc_model_list(all_infected_populations):
+def invalid_rooms_conc_model_tuple(all_infected_populations):
     """
-    Invalid list of concentration models because the rooms are different.
+    Invalid tuple of concentration models because the rooms are different.
     """
-    return [models.ConcentrationModel(
+    return tuple(mc.ConcentrationModel(
         data_registry=data_registry,
         room = models.Room(vol, models.PiecewiseConstant((0., 24.), (293,))),
         ventilation = models.AirChange(interesting_times, 100),
         infected = all_infected_populations[0],
         evaporation_factor=0.3,
-    ) for vol in [75,100]]
+    ) for vol in [75,100])
 
 @pytest.fixture
-def valid_conc_model_list(all_infected_populations):
-    return [models.ConcentrationModel(
+def valid_conc_model_tuple(all_infected_populations):
+    return tuple(mc.ConcentrationModel(
         data_registry=data_registry,
         room = models.Room(75, models.PiecewiseConstant((0., 24.), (293,))),
         ventilation = models.AirChange(interesting_times, 100),
         infected = infected_population,
         evaporation_factor=0.3,
-    ) for infected_population in all_infected_populations]
+    ) for infected_population in all_infected_populations)
 
-def get_exposure_model(concentration_model_list) -> mc.ExposureModel:
+def get_exposure_model(concentration_model_tuple) -> mc.ExposureModel:
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=concentration_model_list,
+        concentration_model=concentration_model_tuple,
         short_range=(),
         exposed=mc.Population(
             number=1,
@@ -164,29 +164,29 @@ def get_exposure_model(concentration_model_list) -> mc.ExposureModel:
         geographical_data=models.Cases(),
     )
 
-def test_common_params(valid_conc_model_list, invalid_viruses_conc_model_list, invalid_rooms_conc_model_list):
+def test_common_params(valid_conc_model_tuple, invalid_viruses_conc_model_tuple, invalid_rooms_conc_model_tuple):
     """
     Check that an error is raised when initializing an ExposureModel with ConcentrationModels 
     with different viruses and rooms.
     """
     with pytest.raises(ValueError):
-        get_exposure_model(invalid_viruses_conc_model_list).build_model(1)
+        get_exposure_model(invalid_viruses_conc_model_tuple).build_model(1)
     with pytest.raises(ValueError):
-        get_exposure_model(invalid_rooms_conc_model_list).build_model(1)
+        get_exposure_model(invalid_rooms_conc_model_tuple).build_model(1)
 
-    valid_model = get_exposure_model(valid_conc_model_list).build_model(1)
+    valid_model = get_exposure_model(valid_conc_model_tuple).build_model(1)
     assert isinstance(valid_model.virus, models.Virus)
     assert isinstance(valid_model.room, models.Room)
 
-def test_population_state_change_times(valid_conc_model_list):
+def test_population_state_change_times(valid_conc_model_tuple):
     expected_state_changes = [0.5, 1., 1.1, 2., 3., 5., 8.5, 12, 13., 17.5]
-    model = get_exposure_model(valid_conc_model_list).build_model(1)
+    model = get_exposure_model(valid_conc_model_tuple).build_model(1)
     assert model.population_state_change_times() == expected_state_changes
 
 @pytest.mark.parametrize("time", [0., 0.6, 1., 3., 7, 17.])
-def test_concentration(time, valid_conc_model_list):
-    separate_concentrations = [get_exposure_model(valid_conc_model).build_model(SAMPLE_SIZE).concentration(time) for valid_conc_model in valid_conc_model_list]
-    concentration = get_exposure_model(valid_conc_model_list).build_model(SAMPLE_SIZE).concentration(time)
+def test_concentration(time, valid_conc_model_tuple):
+    separate_concentrations = [get_exposure_model((valid_conc_model,)).build_model(SAMPLE_SIZE).concentration(time) for valid_conc_model in valid_conc_model_tuple]
+    concentration = get_exposure_model(valid_conc_model_tuple).build_model(SAMPLE_SIZE).concentration(time)
     assert np.allclose(concentration, sum(separate_concentrations))
     assert concentration >= 0
 
@@ -200,9 +200,9 @@ def test_concentration(time, valid_conc_model_list):
         [0, 17.],  
     ],
 )
-def test_deposited_exposure(start, stop, valid_conc_model_list):
-    separate_deposited_exposures = [get_exposure_model(valid_conc_model).build_model(SAMPLE_SIZE).deposited_exposure_between_bounds(start, stop) for valid_conc_model in valid_conc_model_list]
-    deposited_exposure = get_exposure_model(valid_conc_model_list).build_model(SAMPLE_SIZE).deposited_exposure_between_bounds(start, stop)
+def test_deposited_exposure(start, stop, valid_conc_model_tuple):
+    separate_deposited_exposures = [get_exposure_model((valid_conc_model,)).build_model(SAMPLE_SIZE).deposited_exposure_between_bounds(start, stop) for valid_conc_model in valid_conc_model_tuple]
+    deposited_exposure = get_exposure_model(valid_conc_model_tuple).build_model(SAMPLE_SIZE).deposited_exposure_between_bounds(start, stop)
     assert np.allclose(deposited_exposure, sum(separate_deposited_exposures))
     assert deposited_exposure >= 0
 
