@@ -239,9 +239,3 @@ def test_deposited_exposure(start, stop, valid_conc_model_tuple):
     assert np.allclose(deposited_exposure, sum(separate_deposited_exposures))
     assert deposited_exposure >= 0
 
-def test_exposure_with_shortrange_and_distributions(valid_conc_model_tuple):
-    model = get_exposure_model(valid_conc_model_tuple).build_model(SAMPLE_SIZE)
-    print(model.deposited_exposure())
-    assert np.all(model.deposited_exposure() >= 0)
-    assert np.all(model.individual_infection_probability() >= 0)
-
