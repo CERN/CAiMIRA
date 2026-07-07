@@ -84,6 +84,22 @@ def baseline_mc_exposure_model(data_registry, baseline_mc_concentration_model, b
         geographical_data=caimira.calculator.models.models.Cases(),
     )
 
+@pytest.fixture
+def mc_exposure_model_with_concentration_model_list(data_registry, baseline_mc_concentration_model, baseline_mc_sr_model) -> caimira.calculator.models.monte_carlo.ExposureModel:
+    return caimira.calculator.models.monte_carlo.ExposureModel(
+        data_registry,
+        [baseline_mc_concentration_model],
+        baseline_mc_sr_model,
+        exposed=caimira.calculator.models.models.Population(
+            number=10,
+            presence=baseline_mc_concentration_model.infected.presence,
+            activity=baseline_mc_concentration_model.infected.activity,
+            mask=baseline_mc_concentration_model.infected.mask,
+            host_immunity=0.,
+        ),
+        geographical_data=caimira.calculator.models.models.Cases(),
+    )
+
 
 def test_build_concentration_model(baseline_mc_concentration_model: caimira.calculator.models.monte_carlo.ConcentrationModel):
     model = baseline_mc_concentration_model.build_model(7)
@@ -100,3 +116,10 @@ def test_build_exposure_model(baseline_mc_exposure_model: caimira.calculator.mod
     prob = model.deposited_exposure()
     assert isinstance(prob, np.ndarray)
     assert prob.shape == (7, )
+
+
+def test_no_listed_mc_models(mc_exposure_model_with_concentration_model_list: caimira.calculator.models.monte_carlo.ExposureModel):
+    with pytest.raises(TypeError, match="MCModelBase instances must be passed directly or as tuples to be " \
+                                            "built into `caimira.models` objects, and not as list elements."):
+        mc_exposure_model_with_concentration_model_list.build_model(7)
+
