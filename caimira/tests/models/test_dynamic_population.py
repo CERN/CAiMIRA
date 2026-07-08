@@ -5,13 +5,13 @@ import numpy.testing as npt
 import pytest
 
 from caimira.calculator.models import models
-from caimira.calculator.models import dataclass_utils as dc_utils
+from caimira.calculator.models import dataclass_utils
 
 @pytest.fixture
 def full_exposure_model(data_registry):
     return models.ExposureModel(
         data_registry=data_registry,
-        concentration_model=models.ConcentrationModel(
+        concentration_model=(models.ConcentrationModel(
             data_registry=data_registry,
             room=models.Room(volume=100),
             ventilation=models.AirChange(
@@ -27,7 +27,7 @@ def full_exposure_model(data_registry):
                 host_immunity=0.
             ),
             evaporation_factor=0.3,
-        ),
+        ),),
         short_range=(),
         exposed=models.Population(
             number=10,
@@ -57,14 +57,15 @@ def baseline_infected_population(data_registry):
 
 @pytest.fixture
 def dynamic_infected_single_exposure_model(full_exposure_model, baseline_infected_population):
-    return dc_utils.nested_replace(full_exposure_model,
-        {'concentration_model.infected': baseline_infected_population, })
+    return dataclass_utils.replace_concentration_model_properties(full_exposure_model,
+        {'infected': baseline_infected_population, })
+
 
 
 @pytest.fixture
 def dynamic_population_exposure_model(full_exposure_model, baseline_infected_population):
-    return dc_utils.nested_replace(full_exposure_model, {
-            'concentration_model.infected': baseline_infected_population,
+    return dataclass_utils.replace_concentration_model_properties(full_exposure_model, {
+            'infected': baseline_infected_population,
     })
 
 
@@ -75,14 +76,14 @@ def dynamic_population_exposure_model(full_exposure_model, baseline_infected_pop
 def test_population_number(full_exposure_model: models.ExposureModel,
                            baseline_infected_population: models.InfectedPopulation, time: float):
 
-    int_population_number: models.InfectedPopulation = full_exposure_model.concentration_model.infected # type: ignore
+    int_population_number: models.InfectedPopulation = full_exposure_model.concentration_model[0].infected # type: ignore
     piecewise_population_number: models.InfectedPopulation = baseline_infected_population
 
     with pytest.raises(
         TypeError,
         match=f'The presence argument must be an "Interval". Got {type(None)}'
     ):
-        dc_utils.nested_replace(
+        dataclass_utils.nested_replace(
             int_population_number, {'presence': None}
         )
 
@@ -90,7 +91,7 @@ def test_population_number(full_exposure_model: models.ExposureModel,
         TypeError,
         match="The presence argument must be None for a IntPiecewiseConstant number"
     ):
-        dc_utils.nested_replace(
+        dataclass_utils.nested_replace(
             piecewise_population_number, {'presence': models.SpecificInterval(((8, 12), ))}
         )
 
@@ -117,13 +118,12 @@ def test_linearity_with_number_of_infected(full_exposure_model: models.ExposureM
                         number_of_infected: int):
 
 
-    static_multiple_exposure_model: models.ExposureModel = dc_utils.nested_replace(
+    static_multiple_exposure_model: models.ExposureModel = dataclass_utils.replace_concentration_model_properties(
         full_exposure_model,
         {
-            'concentration_model.infected.number': number_of_infected,
+            'infected.number': number_of_infected,
         }
     )
-
     npt.assert_almost_equal(static_multiple_exposure_model.concentration(time), dynamic_infected_single_exposure_model.concentration(time) * number_of_infected)
     npt.assert_almost_equal(static_multiple_exposure_model.deposited_exposure(), dynamic_infected_single_exposure_model.deposited_exposure() * number_of_infected)
 
@@ -133,10 +133,10 @@ def test_linearity_with_number_of_infected(full_exposure_model: models.ExposureM
 )
 def test_dynamic_dose(data_registry, full_exposure_model: models.ExposureModel, time: float):
 
-    dynamic_infected: models.ExposureModel = dc_utils.nested_replace(
+    dynamic_infected: models.ExposureModel = dataclass_utils.replace_concentration_model_properties(
         full_exposure_model,
         {
-            'concentration_model.infected': models.InfectedPopulation(
+            'infected': models.InfectedPopulation(
                 data_registry=data_registry,
                 number=models.IntPiecewiseConstant(
                     (8, 10, 12, 13, 17), (1, 2, 0, 3)),
@@ -150,27 +150,27 @@ def test_dynamic_dose(data_registry, full_exposure_model: models.ExposureModel, 
         }
     )
 
-    single_infected: models.ExposureModel = dc_utils.nested_replace(
+    single_infected: models.ExposureModel = dataclass_utils.replace_concentration_model_properties(
         full_exposure_model,
         {
-            'concentration_model.infected.number': 1,
-            'concentration_model.infected.presence': models.SpecificInterval(((8, 10), )),
+            'infected.number': 1,
+            'infected.presence': models.SpecificInterval(((8, 10), )),
         }
     )
 
-    two_infected: models.ExposureModel = dc_utils.nested_replace(
+    two_infected: models.ExposureModel = dataclass_utils.replace_concentration_model_properties(
         full_exposure_model,
         {
-            'concentration_model.infected.number': 2,
-            'concentration_model.infected.presence': models.SpecificInterval(((10, 12), )),
+            'infected.number': 2,
+            'infected.presence': models.SpecificInterval(((10, 12), )),
         }
     )
 
-    three_infected: models.ExposureModel = dc_utils.nested_replace(
+    three_infected: models.ExposureModel = dataclass_utils.replace_concentration_model_properties(
         full_exposure_model,
         {
-            'concentration_model.infected.number': 3,
-            'concentration_model.infected.presence': models.SpecificInterval(((13, 17), )),
+            'infected.number': 3,
+            'infected.presence': models.SpecificInterval(((13, 17), )),
         }
     )
 
@@ -211,8 +211,8 @@ def test_exposure_model_group_structure(data_registry, full_exposure_model: mode
     ExposureModels must have the same ConcentrationModel.
     In this test the number of infected occupants is different.
     """
-    another_full_exposure_model = dc_utils.nested_replace(full_exposure_model,
-        {'concentration_model.infected.number': 2, })
+    another_full_exposure_model = dataclass_utils.replace_concentration_model_properties(full_exposure_model,
+        {'infected.number': 2, })
     with pytest.raises(ValueError, match=re.escape("All ExposureModels must have the same infected number and presence in each ConcentrationModel.")):
         models.ExposureModelGroup(data_registry, exposure_models=(full_exposure_model, another_full_exposure_model, ))
 
@@ -225,7 +225,7 @@ def test_exposure_model_group_expected_new_cases(data_registry, full_exposure_mo
     In this case, the number of exposed people is changing
     between the two ExposureModel groups.
     """
-    another_full_exposure_model = dc_utils.nested_replace(
+    another_full_exposure_model = dataclass_utils.nested_replace(
         full_exposure_model, {'exposed.number': 5, }
     )
     exposure_model_group = models.ExposureModelGroup(

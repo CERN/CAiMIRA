@@ -4,7 +4,7 @@ from retry import retry
 
 import caimira.calculator.models.monte_carlo as mc
 from caimira.calculator.models import models
-from caimira.calculator.models.dataclass_utils import nested_replace
+from caimira.calculator.models import dataclass_utils
 from caimira.calculator.report import virus_report_data
 from caimira.calculator.models.monte_carlo.data import activity_distributions, virus_distributions, expiration_distributions
 
@@ -34,7 +34,7 @@ def baseline_exposure_model(data_registry):
     )
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=concentration_mc,
+        concentration_model=(concentration_mc,),
         short_range=(),
         exposed=mc.Population(
             number=3,
@@ -58,9 +58,9 @@ def test_conditional_prob_inf_given_vl_dist(data_registry, baseline_exposure_mod
     expected_upper_percentiles = []
 
     for vl in viral_loads:
-        model_vl: models.ExposureModel = nested_replace(
+        model_vl: models.ExposureModel = dataclass_utils.replace_concentration_model_properties(
             mc_model, {
-                'concentration_model.infected.virus.viral_load_in_sputum' : 10**vl,
+                'infected.virus.viral_load_in_sputum' : 10**vl,
             }
         )
         pi = model_vl.individual_infection_probability()/100

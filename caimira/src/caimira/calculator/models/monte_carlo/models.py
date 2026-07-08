@@ -31,6 +31,12 @@ class MCModelBase(typing.Generic[_ModelType]):
             return item.build_model(size)
         elif isinstance(item, tuple):
             return tuple(cls._to_vectorized_form(sub, size) for sub in item)
+        elif isinstance(item, list):
+            if any(isinstance(e, MCModelBase) for e in item):
+                raise TypeError(
+                    "MCModelBase instances must be passed directly or as tuples to be " \
+                    "built into `caimira.models` objects, and not as list elements."
+                )
         else:
             return item
 
