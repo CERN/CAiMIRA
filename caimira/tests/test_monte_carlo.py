@@ -72,7 +72,22 @@ def baseline_mc_concentration_model(data_registry, baseline_mc_sr_model) -> caim
 def baseline_mc_exposure_model(data_registry, baseline_mc_concentration_model) -> caimira.calculator.models.monte_carlo.ExposureModel:
     return caimira.calculator.models.monte_carlo.ExposureModel(
         data_registry,
-        baseline_mc_concentration_model,
+        (baseline_mc_concentration_model,),
+        exposed=caimira.calculator.models.models.Population(
+            number=10,
+            presence=baseline_mc_concentration_model.infected.presence,
+            activity=baseline_mc_concentration_model.infected.activity,
+            mask=baseline_mc_concentration_model.infected.mask,
+            host_immunity=0.,
+        ),
+        geographical_data=caimira.calculator.models.models.Cases(),
+    )
+
+@pytest.fixture
+def mc_exposure_model_with_concentration_model_list(data_registry, baseline_mc_concentration_model, baseline_mc_sr_model) -> caimira.calculator.models.monte_carlo.ExposureModel:
+    return caimira.calculator.models.monte_carlo.ExposureModel(
+        data_registry=data_registry,
+        concentration_model=[baseline_mc_concentration_model],
         exposed=caimira.calculator.models.models.Population(
             number=10,
             presence=baseline_mc_concentration_model.infected.presence,
