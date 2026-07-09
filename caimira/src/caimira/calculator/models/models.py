@@ -1360,7 +1360,7 @@ class ConcentrationModel(_ConcentrationModelBase):
     Class used for the computation of the long-range virus concentration.
     """
     #: Infected population in the room, emitting virions
-    infected: InfectedPopulation
+    infected: _PopulationWithVirus
 
     #: evaporation factor: the particles' diameter is multiplied by this
     # factor as soon as they are in the air (but AFTER going out of the,
@@ -1372,7 +1372,7 @@ class ConcentrationModel(_ConcentrationModelBase):
             self.evaporation_factor = self.data_registry.expiration_particle['particle']['evaporation_factor']
 
     @property
-    def population(self) -> InfectedPopulation:
+    def population(self) -> _PopulationWithVirus:
         return self.infected
 
     @property
@@ -1911,7 +1911,7 @@ class ExposureModel:
         """
         if len(self.concentration_model) > 1:
             raise NotImplementedError("yet to implement dynamic infected for the reproduction number")
-        infected_population: InfectedPopulation = self.concentration_model[0].infected
+        infected_population: _PopulationWithVirus = self.concentration_model[0].infected
         if isinstance(infected_population.number, int) and infected_population.number == 1:
             return self.expected_new_cases()
 
