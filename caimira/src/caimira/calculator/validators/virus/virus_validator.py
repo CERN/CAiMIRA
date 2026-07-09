@@ -282,7 +282,7 @@ class VirusFormData(FormData):
             # Legacy usage - occupancy input is not defined (default empty dict)
             exposed_population = self.exposed_population()
             short_range_tuple = tuple(item for sublist in short_range.values() for item in sublist)
-            infected_population: models.InfectedPopulation = self.infected_population(short_range_tuple)
+            infected_population = self.infected_population(short_range_tuple)
 
             return mc.ExposureModelGroup(
                 data_registry=self.data_registry,
@@ -306,7 +306,7 @@ class VirusFormData(FormData):
             for exposure_group in self.occupancy.keys():
                 sr_models: typing.Tuple[models.ShortRangeModel, ...] = tuple(short_range[exposure_group])
                 exposed_population = self.exposed_population(exposure_group)
-                infected_population: models.InfectedPopulation = self.infected_population(sr_models)
+                infected_population = self.infected_population(sr_models)
                 
                 exposure_model = mc.ExposureModel(
                     data_registry=self.data_registry,
@@ -501,7 +501,7 @@ class VirusFormData(FormData):
 
         return (self.precise_activity['physical_activity'], respiratory_dict)
 
-    def infected_population(self, short_range: typing.Tuple[mc.ShortRangeModel] = ()) -> mc.InfectedPopulation:
+    def infected_population(self, short_range = ()) -> mc.InfectedPopulation:
         """
         Generates an InfectedPopulation class, for both static and
         dynamic occupancy.

@@ -1739,7 +1739,7 @@ class ExposureModel:
 
             # Then we multiply by the diameter-independent quantity emission_rate_per_aerosol_per_person,
             # and parameters of the vD equation (i.e. BR_k and n_in).
-            deposited_exposure += (dep_exposure_integrated *
+            deposited_exposure += (dep_exposure_integrated *                             # type: ignore
                     emission_rate_per_aerosol_per_person *
                     self.exposed.activity.inhalation_rate *
                     (1 - self.exposed.mask.inhale_efficiency()))
@@ -1792,9 +1792,9 @@ class ExposureModel:
                 
                 # Then we multiply by the emission rate without the BR contribution (and conversion factor),
                 # and parameters of the vD equation (i.e. n_in).
-                deposited_exposure += _deposited_exposure*(
+                deposited_exposure += _deposited_exposure*(                                                        # type: ignore
                     (self.concentration_model[0].infected.emission_rate_per_aerosol_per_person_when_present() / (
-                    self.concentration_model[0].infected.activity.exhalation_rate * 10**6)) *                 
+                    self.concentration_model[0].infected.activity.exhalation_rate * 10**6)) *
                     (1 - self.exposed.mask.inhale_efficiency()))
                 
                 # deposited_exposure += _deposited_exposure*(
