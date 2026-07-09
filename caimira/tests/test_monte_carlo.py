@@ -61,9 +61,9 @@ def baseline_mc_concentration_model(data_registry, baseline_mc_sr_model) -> caim
             activity=caimira.calculator.models.models.Activity.types['Light activity'],
             expiration=caimira.calculator.models.models.Expiration.types['Breathing'],
             host_immunity=0.,
+            short_range=baseline_mc_sr_model,
         ),
         evaporation_factor=0.3,
-        short_range=baseline_mc_sr_model,
     )
     return mc_model
 

@@ -76,6 +76,7 @@ def build_model(data_registry, interval_duration):
             activity=models.Activity.types['Light activity'],
             known_individual_emission_rate=970 * 50,
             host_immunity=0.,
+            short_range=(),
             # Superspreading event, where ejection factor is fixed based
             # on Miller et al. (2020) - 50 represents the infectious dose.
         ),
@@ -249,9 +250,9 @@ def build_hourly_dependent_model(
             activity=models.Activity.types['Light activity'],
             known_individual_emission_rate=970 * 50,
             host_immunity=0,
+            short_range=short_range,
         ),
         evaporation_factor=0.3,
-        short_range=short_range,
     )
     return model
 
@@ -275,6 +276,7 @@ def build_constant_temp_model(data_registry, outside_temp, intervals_open=((7.5,
             activity=models.Activity.types['Light activity'],
             known_individual_emission_rate=970 * 50,
             host_immunity=0.,
+            short_range=(),
         ),
         evaporation_factor=0.3,
     )
@@ -307,6 +309,7 @@ def build_hourly_dependent_model_multipleventilation(data_registry, month, inter
             activity=models.Activity.types['Light activity'],
             known_individual_emission_rate=970 * 50,
             host_immunity=0.,
+            short_range=(),
         ),
         evaporation_factor=0.3,
     )

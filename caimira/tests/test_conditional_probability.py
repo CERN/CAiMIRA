@@ -29,9 +29,9 @@ def baseline_exposure_model(data_registry):
             activity=activity_distributions(data_registry)['Seated'],
             expiration=expiration_distributions(data_registry)['Breathing'],
             host_immunity=0.,
+            short_range=(),
         ),
         evaporation_factor=0.3,
-        short_range=(),
     )
     return mc.ExposureModel(
         data_registry=data_registry,

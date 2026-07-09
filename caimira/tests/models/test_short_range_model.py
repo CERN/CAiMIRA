@@ -39,9 +39,9 @@ def concentration_model(data_registry, short_range_model) -> mc_models.Concentra
             activity=models.Activity.types['Light activity'],
             expiration=build_expiration(data_registry, {'Speaking': 0.33, 'Breathing': 0.67}),
             host_immunity=0.,
+            short_range=(short_range_model,),
         ),
         evaporation_factor=0.3,
-        short_range=(short_range_model,),
     )
 
 
@@ -156,9 +156,9 @@ def test_short_range_exposure_with_ndarray_mask(data_registry):
             activity=models.Activity.types['Seated'],
             expiration=expiration_distributions(data_registry)['Breathing'],
             host_immunity=0.,
+            short_range=(sr_model,),
         ),
         evaporation_factor=0.3,
-        short_range=(sr_model,),
     )
 
     e_model = mc_models.ExposureModel(

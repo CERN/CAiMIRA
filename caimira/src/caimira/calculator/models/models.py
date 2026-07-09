@@ -798,199 +798,6 @@ Activity.types = {
     'Heavy exercise': Activity(3.30, 3.30),
 }
 
-
-@dataclass(frozen=True)
-class SimplePopulation:
-    """
-    Represents a group of people all with exactly the same behavior and
-    situation.
-
-    """
-    #: How many in the population.
-    number: typing.Union[int, IntPiecewiseConstant]
-
-    #: The times in which the people are in the room.
-    presence: typing.Optional[Interval]
-
-    #: The physical activity being carried out by the people.
-    activity: Activity
-
-    def __post_init__(self):
-        if isinstance(self.number, int):
-            if not isinstance(self.presence, Interval):
-                raise TypeError(f'The presence argument must be an "Interval". Got {type(self.presence)}')
-        else:
-            if self.presence is not None:
-                raise TypeError(f'The presence argument must be None for a IntPiecewiseConstant number')
-
-    def presence_interval(self):
-        if isinstance(self.presence, Interval):
-            return self.presence
-        elif isinstance(self.number, IntPiecewiseConstant):
-            return self.number.interval()
-
-    def person_present(self, time: float):
-        # Allow back-compatibility
-        if isinstance(self.number, int) and isinstance(self.presence, Interval):
-            return self.presence.triggered(time)
-        elif isinstance(self.number, IntPiecewiseConstant):
-            return self.number.value(time) != 0
-
-    def people_present(self, time: float):
-        # Allow back-compatibility
-        if isinstance(self.number, int):
-            return self.number * self.person_present(time)
-        else:
-            return int(self.number.value(time))
-
-
-@dataclass(frozen=True)
-class Population(SimplePopulation):
-    """
-    Represents a group of people all with exactly the same behavior and
-    situation, considering the usage of mask and a certain host immunity.
-
-    """
-    #: The kind of mask being worn by the people.
-    mask: Mask
-
-    #: The ratio of virions that are inactivated by the person's immunity.
-    # This parameter considers the potential antibodies in the person,
-    # which might render inactive some RNA copies (virions).
-    host_immunity: float
-
-
-@dataclass(frozen=True)
-class _PopulationWithVirus(Population):
-    data_registry: DataRegistry
-
-    #: The virus with which the population is infected.
-    virus: Virus
-
-    @method_cache
-    def fraction_of_infectious_virus(self) -> _VectorisedFloat:
-        """
-        The fraction of infectious virus.
-
-        """
-        return 1
-
-    def aerosols(self):
-        """
-        Total volume of aerosols expired per volume of exhaled air (mL/cm^3).
-        """
-        raise NotImplementedError("Subclass must implement")
-
-    def emission_rate_per_aerosol_per_person_when_present(self) -> _VectorisedFloat:
-        """
-        The emission rate of infectious respiratory particles (IRP) in the expired air per 
-        mL of respiratory fluid, if the infected population is present, in (virions.cm^3)/(mL.h).
-        This method returns only the diameter-independent variables within the emission rate.
-        It should not be a function of time.
-        """
-        raise NotImplementedError("Subclass must implement")
-
-    @method_cache
-    def emission_rate_per_person_when_present(self) -> _VectorisedFloat:
-        """
-        The emission rate if the infected population is present, per person
-        (in virions/h).
-        """
-        return (self.emission_rate_per_aerosol_per_person_when_present() *
-                self.aerosols())
-
-    def emission_rate(self, time: float) -> _VectorisedFloat:
-        """
-        The emission rate of the population vs time.
-        """
-        # Note: The original model avoids time dependence on the emission rate
-        # at the cost of implementing a piecewise (on time) concentration function.
-
-        if not self.person_present(time):
-            return 0.
-
-        # Note: It is essential that the value of the emission rate is not
-        # itself a function of time. Any change in rate must be accompanied
-        # with a declaration of state change time, as is the case for things
-        # like Ventilation.
-        return self.emission_rate_per_person_when_present() * self.people_present(time)
-
-    @property
-    def particle(self) -> Particle:
-        """
-        The Particle object representing the aerosol expired by the
-        population - here we take the default Particle object
-        """
-        return Particle()
-
-
-@dataclass(frozen=True)
-class EmittingPopulation(_PopulationWithVirus):
-    #: The emission rate of a single individual, in virions / h.
-    known_individual_emission_rate: float
-
-    def aerosols(self):
-        """
-        Total volume of aerosols expired per volume of exhaled air (mL/cm^3).
-        Here arbitrarily set to 1 as the full emission rate is known.
-        """
-        return 1.
-
-    @method_cache
-    def emission_rate_per_aerosol_per_person_when_present(self) -> _VectorisedFloat:
-        """
-        The emission rate of infectious respiratory particles (IRP) in the expired air per 
-        mL of respiratory fluid, if the infected population is present, in (virions.cm^3)/(mL.h).
-        This method returns only the diameter-independent variables within the emission rate.
-        It should not be a function of time.
-        """
-        return self.known_individual_emission_rate
-    
-
-@dataclass(frozen=True)
-class InfectedPopulation(_PopulationWithVirus):
-    #: The type of expiration that is being emitted whilst doing the activity.
-    expiration: _ExpirationBase
-
-    @method_cache
-    def fraction_of_infectious_virus(self) -> _VectorisedFloat:
-        """
-        The fraction of infectious virus.
-        """
-        return self.virus.viable_to_RNA_ratio * (1 - self.host_immunity)
-
-    def aerosols(self):
-        """
-        Total volume of aerosols expired per volume of exhaled air (mL/cm^3).
-        """
-        return self.expiration.aerosols(self.mask)
-
-    @method_cache
-    def emission_rate_per_aerosol_per_person_when_present(self) -> _VectorisedFloat:
-        """
-        The emission rate of infectious respiratory particles (IRP) in the expired air per 
-        mL of respiratory fluid, if the infected population is present, in (virions.cm^3)/(mL.h).
-        This method returns only the diameter-independent variables within the emission rate.
-        It should not be a function of time.
-        """
-        # Conversion factor explanation:
-        # The exhalation rate is in m^3/h, therefore the 1e6 conversion factor
-        # is to convert m^3/h into cm^3/h to return (virions.cm^3)/(mL.h),
-        # so that we can then multiply by aerosols (mL/cm^3).
-        ER = (self.virus.viral_load_in_sputum *
-              self.activity.exhalation_rate *
-              self.fraction_of_infectious_virus() *
-              10**6)
-        return ER
-
-    @property
-    def particle(self) -> Particle:
-        """
-        The Particle object representing the aerosol - here the default one
-        """
-        return self.expiration.particle
-
-
 @dataclass(frozen=True)
 class Cases:
     """
@@ -1148,6 +955,211 @@ class ShortRangeModel:
         # Note the conversion factor mL.cm^-3 -> mL.m^-3
         jet_origin = self._normed_jet_origin_concentration() * 10**6
         return jet_origin * (stop - start)
+
+@dataclass(frozen=True)
+class SimplePopulation:
+    """
+    Represents a group of people all with exactly the same behavior and
+    situation.
+
+    """
+    #: How many in the population.
+    number: typing.Union[int, IntPiecewiseConstant]
+
+    #: The times in which the people are in the room.
+    presence: typing.Optional[Interval]
+
+    #: The physical activity being carried out by the people.
+    activity: Activity
+
+    def __post_init__(self):
+        if isinstance(self.number, int):
+            if not isinstance(self.presence, Interval):
+                raise TypeError(f'The presence argument must be an "Interval". Got {type(self.presence)}')
+        else:
+            if self.presence is not None:
+                raise TypeError(f'The presence argument must be None for a IntPiecewiseConstant number')
+
+    def presence_interval(self):
+        if isinstance(self.presence, Interval):
+            return self.presence
+        elif isinstance(self.number, IntPiecewiseConstant):
+            return self.number.interval()
+
+    def person_present(self, time: float):
+        # Allow back-compatibility
+        if isinstance(self.number, int) and isinstance(self.presence, Interval):
+            return self.presence.triggered(time)
+        elif isinstance(self.number, IntPiecewiseConstant):
+            return self.number.value(time) != 0
+
+    def people_present(self, time: float):
+        # Allow back-compatibility
+        if isinstance(self.number, int):
+            return self.number * self.person_present(time)
+        else:
+            return int(self.number.value(time))
+
+
+@dataclass(frozen=True)
+class Population(SimplePopulation):
+    """
+    Represents a group of people all with exactly the same behavior and
+    situation, considering the usage of mask and a certain host immunity.
+
+    """
+    #: The kind of mask being worn by the people.
+    mask: Mask
+
+    #: The ratio of virions that are inactivated by the person's immunity.
+    # This parameter considers the potential antibodies in the person,
+    # which might render inactive some RNA copies (virions).
+    host_immunity: float
+
+
+@dataclass(frozen=True)
+class _PopulationWithVirus(Population):
+    data_registry: DataRegistry
+
+    #: The virus with which the population is infected.
+    virus: Virus
+
+    #: Short range interactions that the _PopulationWithVirus has
+    short_range: typing.Tuple[ShortRangeModel, ...]
+
+    @property
+    def particle(self) -> Particle:
+        """
+        The Particle object representing the aerosol expired by the
+        population - here we take the default Particle object
+        """
+        return Particle()
+
+    @method_cache
+    def fraction_of_infectious_virus(self) -> _VectorisedFloat:
+        """
+        The fraction of infectious virus.
+
+        """
+        return 1
+
+    def aerosols(self):
+        """
+        Total volume of aerosols expired per volume of exhaled air (mL/cm^3).
+        """
+        raise NotImplementedError("Subclass must implement")
+
+    def emission_rate_per_aerosol_per_person_when_present(self) -> _VectorisedFloat:
+        """
+        The emission rate of infectious respiratory particles (IRP) in the expired air per 
+        mL of respiratory fluid, if the infected population is present, in (virions.cm^3)/(mL.h).
+        This method returns only the diameter-independent variables within the emission rate.
+        It should not be a function of time.
+        """
+        raise NotImplementedError("Subclass must implement")
+
+    @method_cache
+    def emission_rate_per_person_when_present(self) -> _VectorisedFloat:
+        """
+        The emission rate if the infected population is present, per person
+        (in virions/h).
+        """
+        return (self.emission_rate_per_aerosol_per_person_when_present() *
+                self.aerosols())
+
+    def emission_rate(self, time: float) -> _VectorisedFloat:
+        """
+        The emission rate of the population vs time.
+        """
+        # Note: The original model avoids time dependence on the emission rate
+        # at the cost of implementing a piecewise (on time) concentration function.
+
+        if not self.person_present(time):
+            return 0.
+
+        # Note: It is essential that the value of the emission rate is not
+        # itself a function of time. Any change in rate must be accompanied
+        # with a declaration of state change time, as is the case for things
+        # like Ventilation.
+        return self.emission_rate_per_person_when_present() * self.people_present(time)
+    
+    def short_range_normalization_factor(self) -> _VectorisedFloat:
+        """
+        The normalization factor applied to the short-range results. 
+        It refers to the emission rate per aerosol without accounting for the exhalation rate (viral load and f_inf).
+        All short-range interactions are with the same infected, and so the same normalization factor is the same
+        for every ShortRangeModel.
+        Result in (virions.cm^3)/(mL.m^3).
+        """
+        # Re-use the emission rate method divided by the BR contribution. 
+        return self.emission_rate_per_aerosol_per_person_when_present() / self.activity.exhalation_rate
+
+
+@dataclass(frozen=True)
+class EmittingPopulation(_PopulationWithVirus):
+    #: The emission rate of a single individual, in virions / h.
+    known_individual_emission_rate: float
+
+    def aerosols(self):
+        """
+        Total volume of aerosols expired per volume of exhaled air (mL/cm^3).
+        Here arbitrarily set to 1 as the full emission rate is known.
+        """
+        return 1.
+
+    @method_cache
+    def emission_rate_per_aerosol_per_person_when_present(self) -> _VectorisedFloat:
+        """
+        The emission rate of infectious respiratory particles (IRP) in the expired air per 
+        mL of respiratory fluid, if the infected population is present, in (virions.cm^3)/(mL.h).
+        This method returns only the diameter-independent variables within the emission rate.
+        It should not be a function of time.
+        """
+        return self.known_individual_emission_rate
+    
+
+@dataclass(frozen=True)
+class InfectedPopulation(_PopulationWithVirus):
+    #: The type of expiration that is being emitted whilst doing the activity.
+    expiration: _ExpirationBase
+
+    @property
+    def particle(self) -> Particle:
+        """
+        The Particle object representing the aerosol - here the default one
+        """
+        return self.expiration.particle
+
+    @method_cache
+    def fraction_of_infectious_virus(self) -> _VectorisedFloat:
+        """
+        The fraction of infectious virus.
+        """
+        return self.virus.viable_to_RNA_ratio * (1 - self.host_immunity)
+
+    def aerosols(self):
+        """
+        Total volume of aerosols expired per volume of exhaled air (mL/cm^3).
+        """
+        return self.expiration.aerosols(self.mask)
+
+    @method_cache
+    def emission_rate_per_aerosol_per_person_when_present(self) -> _VectorisedFloat:
+        """
+        The emission rate of infectious respiratory particles (IRP) in the expired air per 
+        mL of respiratory fluid, if the infected population is present, in (virions.cm^3)/(mL.h).
+        This method returns only the diameter-independent variables within the emission rate.
+        It should not be a function of time.
+        """
+        # Conversion factor explanation:
+        # The exhalation rate is in m^3/h, therefore the 1e6 conversion factor
+        # is to convert m^3/h into cm^3/h to return (virions.cm^3)/(mL.h),
+        # so that we can then multiply by aerosols (mL/cm^3).
+        ER = (self.virus.viral_load_in_sputum *
+              self.activity.exhalation_rate *
+              self.fraction_of_infectious_virus() *
+              10**6)
+        return ER
 
 
 @dataclass(frozen=True)
@@ -1355,9 +1367,6 @@ class ConcentrationModel(_ConcentrationModelBase):
     # mask, if any).
     evaporation_factor: float
 
-    #: Short range interactions that the infected has
-    short_range: typing.Tuple[ShortRangeModel, ...] = ()
-
     def __post_init__(self):
         if self.evaporation_factor is None:
             self.evaporation_factor = self.data_registry.expiration_particle['particle']['evaporation_factor']
@@ -1389,17 +1398,6 @@ class ConcentrationModel(_ConcentrationModelBase):
     def infectious_virus_removal_rate(self, time: float) -> _VectorisedFloat:
         # defined for back-compatibility purposes
         return self.removal_rate(time)
-    
-    def short_range_normalization_factor(self) -> _VectorisedFloat:
-        """
-        The normalization factor applied to the short-range results. 
-        It refers to the emission rate per aerosol without accounting for the exhalation rate (viral load and f_inf).
-        All short-range interactions are with the same infected, and so the same normalization factor is the same
-        for every ShortRangeModel.
-        Result in (virions.cm^3)/(mL.m^3).
-        """
-        # Re-use the emission rate method divided by the BR contribution. 
-        return self.infected.emission_rate_per_aerosol_per_person_when_present() / self.infected.activity.exhalation_rate
     
 
 @dataclass(frozen=True)
@@ -1571,6 +1569,14 @@ class ExposureModel:
         It also checks that the number of exposed is
         static during the simulation time.
         """
+        if not isinstance(self.concentration_model, tuple):
+            raise ValueError(f"self.concentration_model be a tuple, got {type(self.concentration_model)}.")
+        
+        if not all(isinstance(c_model, ConcentrationModel) for c_model in self.concentration_model):
+            raise ValueError("The self.concentration_model tuple must only contain model.ConcentrationModel objects.")
+        
+        if len(self.concentration_model) == 0:
+            raise ValueError("ExposureModel must contain at least one ConcentrationModel.")
         
         viruses = [c_model.virus for c_model in self.concentration_model]
         virus = viruses[0]
@@ -1694,12 +1700,12 @@ class ExposureModel:
         """
         concentration = self.long_range_concentration(time)
         for c_model in self.concentration_model:
-            for interaction in c_model.short_range:
+            for interaction in c_model.infected.short_range:
                 start, stop = interaction.presence.boundaries()[0]
                 # Verifies if the given time falls within a short-range interaction
                 # NOTE: max one short-range interaction at a time, so the test should just yield true once (TODO check?)
                 if start <= time <= stop:
-                    concentration += np.mean(interaction._normed_diluted_jet_concentration() * c_model.short_range_normalization_factor())
+                    concentration += np.mean(interaction._normed_diluted_jet_concentration() * c_model.infected.short_range_normalization_factor())
                     concentration -= self.diluted_long_range_concentration(interaction, time)
         return concentration
 
@@ -1747,7 +1753,7 @@ class ExposureModel:
         """
         deposited_exposure: _VectorisedFloat = 0.
         for c_model in self.concentration_model:
-            for interaction in c_model.short_range:
+            for interaction in c_model.infected.short_range:
                 if len(self.concentration_model) > 1:
                     raise NotImplementedError("yet to implement dynamic infected for SR interactions")
 
@@ -1870,16 +1876,24 @@ class ExposureModel:
         """
         number = self.exposed.number
 
-        has_short_range = any(c_model.short_range != () for c_model in self.concentration_model)
+        has_short_range = any(c_model.infected.short_range != () for c_model in self.concentration_model)
 
         if has_short_range:
             new_cases_long_range = nested_replace(
                 self,
                 {
-                    "concentration_model": [
-                        nested_replace(c_model, {"short_range": []})
+                    "concentration_model": tuple(
+                        nested_replace(
+                            c_model,
+                            {
+                                "infected": nested_replace(
+                                    c_model.infected,
+                                    {"short_range": ()},
+                                )
+                            },
+                        )
                         for c_model in self.concentration_model
-                    ]
+                    )
                 },
             ).individual_infection_probability() * (number - self.exposed_to_short_range) # type: ignore
 

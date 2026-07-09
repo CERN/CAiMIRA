@@ -24,10 +24,10 @@ def full_exposure_model(data_registry):
                 activity=models.Activity.types['Seated'],
                 expiration=models.Expiration.types['Breathing'],
                 virus=models.Virus.types['SARS_CoV_2'],
-                host_immunity=0.
+                host_immunity=0.,
+                short_range=(),
             ),
             evaporation_factor=0.3,
-            short_range=(),
         ),),
         exposed=models.Population(
             number=10,
@@ -52,6 +52,7 @@ def baseline_infected_population(data_registry):
         virus=models.Virus.types['SARS_CoV_2'],
         expiration=models.Expiration.types['Breathing'],
         host_immunity=0.,
+        short_range=(),
     )
 
 
@@ -146,6 +147,7 @@ def test_dynamic_dose(data_registry, full_exposure_model: models.ExposureModel, 
                 virus=models.Virus.types['SARS_CoV_2'],
                 expiration=models.Expiration.types['Breathing'],
                 host_immunity=0.,
+                short_range=(),
             ),
         }
     )

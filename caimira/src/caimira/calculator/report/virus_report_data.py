@@ -115,7 +115,7 @@ def _concentrations_with_sr_breathing(form: VirusFormData, model: models.Exposur
     Returns the zoomed viral concentrations.
     """
     for c_model in model.concentration_model:
-        for index, (start, stop) in enumerate([interaction.presence.boundaries()[0] for interaction in c_model.short_range]):
+        for index, (start, stop) in enumerate([interaction.presence.boundaries()[0] for interaction in c_model.infected.short_range]):
             if start <= time <= stop and form.short_range_interactions[model.identifier][index]['expiration'] == 'Breathing':
                 return model.concentration(float(time)), fn_name
     return model.long_range_concentration(float(time)), fn_name
@@ -225,9 +225,9 @@ def group_results(form: VirusFormData, model_group: models.ExposureModelGroup) -
         has_short_range = False
 
         for concentration_model in single_group.concentration_model:
-            if concentration_model.short_range != ():
+            if concentration_model.infected.short_range != ():
                 has_short_range = True
-                for short_range_model in concentration_model.short_range:
+                for short_range_model in concentration_model.infected.short_range:
                     short_range_interactions[short_range_model.expiration.name].extend(
                         short_range_model.presence.boundaries()
                     )
@@ -236,8 +236,16 @@ def group_results(form: VirusFormData, model_group: models.ExposureModelGroup) -
             long_range_single_group = dataclass_utils.nested_replace(
                 single_group,
                 {
-                    "concentration_model": list(
-                        dataclass_utils.nested_replace(cm, {"short_range": ()})
+                    "concentration_model": tuple(
+                        dataclass_utils.nested_replace(
+                            cm,
+                            {
+                                "infected": dataclass_utils.nested_replace(
+                                    cm.infected,
+                                    {"short_range": ()},
+                                )
+                            },
+                        )
                         for cm in single_group.concentration_model
                     )
                 },
@@ -287,7 +295,7 @@ def calculate_report_data(form: VirusFormData,
                 # virus and co2 concentration: takes each time as param, not the interval
                 tasks.append(executor.submit(
                     _calculate_concentration, single_group, time1, fn_name=f"{single_group.identifier}:cn"))
-                if any(c_model.short_range != () for c_model in single_group.concentration_model):
+                if any(c_model.infected.short_range != () for c_model in single_group.concentration_model):
                     tasks.append(executor.submit(
                         _calculate_long_range_deposited_exposure, single_group, time1, time2, fn_name=f"{single_group.identifier}:de_lr"))
                     tasks.append(executor.submit(
@@ -300,7 +308,7 @@ def calculate_report_data(form: VirusFormData,
         for single_model in model_group.exposure_models:
             tasks.append(executor.submit(_calculate_concentration, 
                         single_model, times[-1], fn_name=f"{single_model.identifier}:cn"))
-            if any(c_model.short_range != () for c_model in single_group.concentration_model):
+            if any(c_model.infected.short_range != () for c_model in single_group.concentration_model):
                 tasks.append(executor.submit(_concentrations_with_sr_breathing, 
                                              form, single_model, times[-1], fn_name=f"{single_model.identifier}:cn_zoomed"))
                 
@@ -327,7 +335,7 @@ def calculate_report_data(form: VirusFormData,
         results_per_group[single_group.identifier]["concentrations"] = concentrations[single_group.identifier]
         results_per_group[single_group.identifier]["cumulative_doses"] = list(np.cumsum(deposited_exposures[single_group.identifier]))
         # Calculate long_range results when short-range interactions are defined
-        if any(c_model.short_range != () for c_model in single_group.concentration_model):
+        if any(c_model.infected.short_range != () for c_model in single_group.concentration_model):
             results_per_group[single_group.identifier]["concentrations_zoomed"] = concentrations_zoomed[single_group.identifier]
             results_per_group[single_group.identifier]["long_range_cumulative_doses"] = list(np.cumsum(long_range_deposited_exposures[single_group.identifier]))
     

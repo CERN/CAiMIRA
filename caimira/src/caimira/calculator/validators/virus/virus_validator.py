@@ -254,7 +254,7 @@ class VirusFormData(FormData):
     def build_mc_model(self) -> mc.ExposureModelGroup:
         room: models.Room = self.initialize_room()
         ventilation: models._VentilationBase = self.ventilation()
-        infected_population: models.InfectedPopulation = self.infected_population()
+        infected_population_no_short_range: models.InfectedPopulation = self.infected_population()
 
         short_range = defaultdict(list)
         if self.short_range_option == "short_range_yes":
@@ -266,7 +266,7 @@ class VirusFormData(FormData):
                     distances = short_range_distances(self.data_registry)
                     short_range[key].append(mc.ShortRangeModel(
                         data_registry=self.data_registry,
-                        activity=infected_population.activity, # TODO: allow specification of SR activity, as implemented in the backend (see doc)
+                        activity=infected_population_no_short_range.activity, # TODO: allow specification of SR activity, as implemented in the backend (see doc)
                         expiration=expiration,
                         presence=presence,
                         distance=distances,
@@ -282,6 +282,7 @@ class VirusFormData(FormData):
             # Legacy usage - occupancy input is not defined (default empty dict)
             exposed_population = self.exposed_population()
             short_range_tuple = tuple(item for sublist in short_range.values() for item in sublist)
+            infected_population: models.InfectedPopulation = self.infected_population(short_range_tuple)
 
             return mc.ExposureModelGroup(
                 data_registry=self.data_registry,
@@ -293,7 +294,6 @@ class VirusFormData(FormData):
                             ventilation=ventilation,
                             infected=infected_population,
                             evaporation_factor=0.3,
-                            short_range=short_range_tuple,
                         ),
                     ),
                     exposed=exposed_population,
@@ -306,6 +306,7 @@ class VirusFormData(FormData):
             for exposure_group in self.occupancy.keys():
                 sr_models: typing.Tuple[models.ShortRangeModel, ...] = tuple(short_range[exposure_group])
                 exposed_population = self.exposed_population(exposure_group)
+                infected_population: models.InfectedPopulation = self.infected_population(sr_models)
                 
                 exposure_model = mc.ExposureModel(
                     data_registry=self.data_registry,
@@ -315,7 +316,6 @@ class VirusFormData(FormData):
                             ventilation=ventilation,
                             infected=infected_population,
                             evaporation_factor=0.3,
-                            short_range=sr_models,
                         ),
                     ),
                     exposed=exposed_population,
@@ -501,7 +501,7 @@ class VirusFormData(FormData):
 
         return (self.precise_activity['physical_activity'], respiratory_dict)
 
-    def infected_population(self) -> mc.InfectedPopulation:
+    def infected_population(self, short_range: typing.Tuple[mc.ShortRangeModel] = ()) -> mc.InfectedPopulation:
         """
         Generates an InfectedPopulation class, for both static and
         dynamic occupancy.
@@ -543,6 +543,7 @@ class VirusFormData(FormData):
             expiration=expiration,
             # Vaccination status does not affect the infected population (for the time being)
             host_immunity=0.,
+            short_range=short_range,
         )
         return infected
 

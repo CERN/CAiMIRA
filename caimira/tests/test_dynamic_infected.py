@@ -16,7 +16,7 @@ interesting_times = models.SpecificInterval(([0.5, 1.], [1.1, 2], [2., 3.]), )
 @pytest.fixture
 def infected_dynamic_virus():
     virus_types = ['SARS_CoV_2', 'SARS_CoV_2_ALPHA']
-    return [models.InfectedPopulation(
+    return [mc.InfectedPopulation(
             data_registry=data_registry,
             number=1,
             presence=interesting_times,
@@ -25,11 +25,12 @@ def infected_dynamic_virus():
             virus=models.Virus.types[virus_type],
             expiration=models.Expiration.types['Breathing'],
             host_immunity=0.,
+            short_range=(),
         ) for virus_type in virus_types]
 
 @pytest.fixture
 def infected_dynamic_number():
-    return [models.InfectedPopulation(
+    return [mc.InfectedPopulation(
             data_registry=data_registry,
             number=n,
             presence=interesting_times,
@@ -38,12 +39,13 @@ def infected_dynamic_number():
             virus=models.Virus.types['SARS_CoV_2'],
             expiration=models.Expiration.types['Breathing'],
             host_immunity=0.,
+            short_range=(),
         ) for n in range(1, 3)]
 
 @pytest.fixture
 def infected_dynamic_presence():
     interesting_times_list = [interesting_times, models.SpecificInterval(([0.5, 1.], [5., 13.]), )]
-    return [models.InfectedPopulation(
+    return [mc.InfectedPopulation(
             data_registry=data_registry,
             number=1,
             presence=interesting_times,
@@ -52,12 +54,13 @@ def infected_dynamic_presence():
             virus=models.Virus.types['SARS_CoV_2'],
             expiration=models.Expiration.types['Breathing'],
             host_immunity=0.,
+            short_range=(),
         ) for interesting_times in interesting_times_list]
 
 @pytest.fixture
 def infected_dynamic_mask():
     mask_types = ['Type I', 'No mask']
-    return [models.InfectedPopulation(
+    return [mc.InfectedPopulation(
             data_registry=data_registry,
             number=1,
             presence=interesting_times,
@@ -66,12 +69,13 @@ def infected_dynamic_mask():
             virus=models.Virus.types['SARS_CoV_2'],
             expiration=models.Expiration.types['Breathing'],
             host_immunity=0.,
+            short_range=(),
         ) for mask_type in mask_types]
 
 @pytest.fixture
 def infected_dynamic_activity():
     activity_types = ['Seated', 'Standing']
-    return [models.InfectedPopulation(
+    return [mc.InfectedPopulation(
             data_registry=data_registry,
             number=1,
             presence=interesting_times,
@@ -80,12 +84,13 @@ def infected_dynamic_activity():
             virus=models.Virus.types['SARS_CoV_2'],
             expiration=models.Expiration.types['Breathing'],
             host_immunity=0.,
+            short_range=(),
         ) for activity_type in activity_types]
 
 @pytest.fixture
 def infected_dynamic_expiration():
     expiration_types = ['Breathing', 'Speaking']
-    return [models.InfectedPopulation(
+    return [mc.InfectedPopulation(
             data_registry=data_registry,
             number=1,
             presence=interesting_times,
@@ -94,11 +99,12 @@ def infected_dynamic_expiration():
             virus=models.Virus.types['SARS_CoV_2'],
             expiration=models.Expiration.types[expiration_type],
             host_immunity=0.,
+            short_range=(),
         ) for expiration_type in expiration_types]
 
 @pytest.fixture
 def infected_dynamic_immunity():
-    return [models.InfectedPopulation(
+    return [mc.InfectedPopulation(
             data_registry=data_registry,
             number=1,
             presence=interesting_times,
@@ -107,6 +113,7 @@ def infected_dynamic_immunity():
             virus=models.Virus.types['SARS_CoV_2'],
             expiration=models.Expiration.types['Breathing'],
             host_immunity=i,
+            short_range=(),
         ) for i in [0, 0.9]]
 
 @pytest.fixture
@@ -152,6 +159,20 @@ def short_range_models():
         ) for sr_expiration, sr_activity in zip(sr_expirations, sr_activities))
 
 @pytest.fixture
+def infected_with_short_range(short_range_models):
+    return mc.InfectedPopulation(
+            data_registry=data_registry,
+            number=1,
+            presence=interesting_times,
+            mask=models.Mask.types['Type I'],
+            activity=models.Activity.types['Seated'],
+            virus=models.Virus.types['SARS_CoV_2'],
+            expiration=models.Expiration.types['Breathing'],
+            host_immunity=0.,
+            short_range=short_range_models,
+        )
+
+@pytest.fixture
 def valid_conc_model_tuple(all_infected_populations):
     return tuple(mc.ConcentrationModel(
         data_registry=data_registry,
@@ -159,19 +180,17 @@ def valid_conc_model_tuple(all_infected_populations):
         ventilation = models.AirChange(interesting_times, 100),
         infected = infected_population,
         evaporation_factor=0.3,
-        short_range=(),
     ) for infected_population in all_infected_populations)
 
 @pytest.fixture
-def valid_conc_model_tuple_with_short_range(all_infected_populations, short_range_models):
+def valid_conc_model_tuple_with_short_range(all_infected_populations, infected_with_short_range):
     return tuple(mc.ConcentrationModel(
         data_registry=data_registry,
         room = models.Room(75, models.PiecewiseConstant((0., 24.), (293,))),
         ventilation = models.AirChange(interesting_times, 100),
         infected = infected_population,
         evaporation_factor=0.3,
-        short_range=short_range_models,
-    ) for infected_population in all_infected_populations)
+    ) for infected_population in all_infected_populations+[infected_with_short_range])
 
 def get_exposure_model(concentration_model_tuple) -> mc.ExposureModel:
     return mc.ExposureModel(
@@ -213,8 +232,11 @@ def test_sr_model_concentration(time, valid_conc_model_tuple_with_short_range):
     model = get_exposure_model(valid_conc_model_tuple_with_short_range).build_model(SAMPLE_SIZE)
     concentration = model.concentration(time)
     assert concentration >= 0
-    assert len(model.concentration_model[0].short_range) == 2
-    assert np.all(model.concentration_model[0].short_range_normalization_factor() >= 0)
+    assert isinstance(model.concentration_model[-1].infected.short_range, tuple)
+    assert isinstance(model.concentration_model[-1].infected.short_range[0], models.ShortRangeModel)
+    assert model.concentration_model[0].infected.short_range == ()
+    assert len(model.concentration_model[-1].infected.short_range) == 2
+    assert np.all(model.concentration_model[-1].infected.short_range_normalization_factor() >= 0)
 
 @pytest.mark.parametrize("time", [0., 0.6, 1., 3., 7, 17.])
 def test_long_range_concentration(time, valid_conc_model_tuple):
