@@ -6,7 +6,7 @@ CAiMIRA models the concentration profile of potential virions in enclosed spaces
 The user can set a number of parameters, including room volume, exposure time, activity type, mask-wearing and ventilation.
 The report generated indicates how to avoid exceeding critical concentrations and chains of airborne transmission in spaces such as individual offices, meeting rooms and labs.
 
-The risk assessment tool simulates the airborne spread SARS-CoV-2 virus in a finite volume, assuming a homogenous mixture and a two-stage exhaled jet model, and estimates the risk of COVID-19 infection therein.
+The risk assessment tool simulates the airborne spread SARS-CoV-2 virus in a finite volume, assuming a homogeneous mixture and a two-stage exhaled jet model, and estimates the risk of COVID-19 infection therein.
 The results DO NOT include the other known modes of SARS-CoV-2 transmission, such as fomite or blood-bound.
 Hence, the output from this model is only valid when the other recommended public health & safety instructions are observed, such as good hand hygiene and other barrier measures.
 
@@ -33,6 +33,12 @@ All instructions for installation, deployment, usage, and model assumptions and 
 ## Contributing
 
 Contributions are welcome on our [GitHub repository](https://github.com/CERN/CAiMIRA).
+
+We follow typical [GitHub flow](https://docs.github.com/en/get-started/using-github/github-flow) : 
+- Fork this repository into your personal space.
+- Start a new topical branch for any contribution. Name it descriptively, for example fix-cms-2012-collision-energy.
+- Ideally, test your branch on a local development site to see if everything works correctly.
+- Open a pull request against this repository. 
 
 ## Authors & License
 
