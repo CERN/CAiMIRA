@@ -69,6 +69,7 @@ def known_concentrations(func, func_lim=None, data_registry=DataRegistry()):
         virus=models.Virus.types['SARS_CoV_2_ALPHA'],
         expiration=models.Expiration.types['Speaking'],
         host_immunity=0.,
+        short_range=(),
     )
     normed_func = lambda x: (func(x) /
         dummy_infected_population.emission_rate_per_person_when_present())
@@ -78,7 +79,7 @@ def known_concentrations(func, func_lim=None, data_registry=DataRegistry()):
     else:
         normed_func_lim = normed_func
     return KnownNormedconcentration(data_registry, dummy_room, dummy_ventilation,
-                                dummy_infected_population, 0.3, short_range=(), 
+                                dummy_infected_population, 0.3, 
                                 normed_concentration_function=normed_func, 
                                 normed_concentration_limit_function=normed_func_lim
                                 )
@@ -184,6 +185,7 @@ def conc_model(data_registry):
             # superspreading event, where ejection factor is fixed based
             # on Miller et al. (2020) - 50 represents the infectious dose.
             host_immunity=0.,
+            short_range=(),
         ),
         evaporation_factor=0.3,
     )
@@ -202,6 +204,7 @@ def diameter_dependent_model(conc_model, data_registry) -> models.InfectedPopula
             activity=models.Activity.types['Seated'],
             expiration=expiration_distributions(data_registry)['Breathing'],
             host_immunity=0.,
+            short_range=(),
         ))
 
 
@@ -229,7 +232,7 @@ def cases_model():
     ]
 )
 def test_exposure_model_integral_accuracy(data_registry, exposed_time_interval,
-                                          expected_deposited_exposure, conc_model, sr_model, cases_model):
+                                          expected_deposited_exposure, conc_model, cases_model):
     presence_interval = models.SpecificInterval((exposed_time_interval,))
     population = models.Population(
         10, presence_interval, models.Activity.types['Standing'],
@@ -254,6 +257,7 @@ def test_infectious_dose_vectorisation(sr_model, cases_model, data_registry):
         ),
         expiration=models.Expiration.types['Speaking'],
         host_immunity=0.,
+        short_range=(),
     )
     cm = known_concentrations(lambda t: 0.6)
     cm = replace(cm, infected=infected_population)

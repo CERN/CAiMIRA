@@ -65,9 +65,9 @@ def shared_office_mc(data_registry):
             activity=activity_distributions(data_registry)['Seated'],
             expiration=build_expiration(data_registry, {'Speaking': 0.33, 'Breathing': 0.67}),
             host_immunity=0.,
+            short_range=(),
         ),
         evaporation_factor=0.3,
-        short_range=(),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
@@ -112,9 +112,9 @@ def classroom_mc(data_registry):
             activity=activity_distributions(data_registry)['Light activity'],
             expiration=build_expiration(data_registry, 'Speaking'),
             host_immunity=0.,
+            short_range=(),
         ),
         evaporation_factor=0.3,
-        short_range=(),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
@@ -150,9 +150,9 @@ def ski_cabin_mc(data_registry):
             activity=activity_distributions(data_registry)['Moderate activity'],
             expiration=build_expiration(data_registry, 'Speaking'),
             host_immunity=0.,
+            short_range=(),
         ),
         evaporation_factor=0.3,
-        short_range=(),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
@@ -194,9 +194,9 @@ def skagit_chorale_mc(data_registry):
                 activity=activity_distributions(data_registry)['Moderate activity'],
                 expiration=build_expiration(data_registry, 'Shouting'),
                 host_immunity=0.,
+                short_range=(),
             ),
         evaporation_factor=0.3,
-        short_range=(),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
@@ -238,9 +238,9 @@ def bus_ride_mc(data_registry):
                 activity=activity_distributions(data_registry)['Seated'],
                 expiration=build_expiration(data_registry, 'Speaking'),
                 host_immunity=0.,
+                short_range=(),
             ),
         evaporation_factor=0.3,
-        short_range=(),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
@@ -277,9 +277,9 @@ def gym_mc(data_registry):
             activity=activity_distributions(data_registry)['Heavy exercise'],
             expiration=expiration_distributions(data_registry)['Breathing'],
             host_immunity=0.,
+            short_range=(),
         ),
         evaporation_factor=0.3,
-        short_range=(),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
@@ -316,9 +316,9 @@ def waiting_room_mc(data_registry):
             activity=activity_distributions(data_registry)['Seated'],
             expiration=build_expiration(data_registry, {'Speaking': 0.3, 'Breathing': 0.7}),
             host_immunity=0.,
+            short_range=(),
         ),
         evaporation_factor=0.3,
-        short_range=(),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
@@ -404,9 +404,9 @@ def test_small_shared_office_Geneva(data_registry, mask_type, month, expected_pi
             activity=activity_distributions(data_registry)['Seated'],
             expiration=build_expiration(data_registry, {'Speaking': 0.33, 'Breathing': 0.67}),
             host_immunity=0.,
+            short_range=(),
         ),
         evaporation_factor=0.3,
-        short_range=(),
     )
     exposure_mc = mc.ExposureModel(
         data_registry=data_registry,

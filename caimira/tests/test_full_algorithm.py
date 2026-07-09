@@ -489,9 +489,9 @@ def c_model(short_range=()) -> mc.ConcentrationModel:
             activity=models.Activity.types['Seated'],
             expiration=expiration_distributions(data_registry)['Breathing'],
             host_immunity=0.,
+            short_range=short_range,
         ),
         evaporation_factor=0.3,
-        short_range=short_range,
     )
 
 
@@ -510,9 +510,9 @@ def c_model_distr(short_range=()) -> mc.ConcentrationModel:
             activity=activity_distributions(data_registry)['Seated'],
             expiration=expiration_distributions(data_registry)['Breathing'],
             host_immunity=0.,
+            short_range=short_range,
         ),
         evaporation_factor=0.3,
-        short_range=short_range,
     )
 
 @pytest.fixture
@@ -866,9 +866,9 @@ def c_model_from_parameter(data_registry, f_inf=0.5, viral_load=1e9):
             activity=models.Activity.types['Seated'],
             expiration=expiration_distributions(data_registry)['Breathing'],
             host_immunity=0.,
+            short_range=(),
         ),
         evaporation_factor=0.3,
-        short_range=(),
     )
 
 def exposure_model_from_parameter(data_registry, short_range_bool=True, short_range=None, f_inf=0.5, viral_load=1e9, BR=1.25):
