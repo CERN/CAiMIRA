@@ -370,7 +370,7 @@ def test_concentrations_hourly_dep_adding_artificial_transitions(data_registry, 
 @pytest.mark.parametrize(
     "time",
     (
-        [float(t) for t in np.random.random_sample(10) * 24.]  # type: ignore
+        [float(t) for t in np.random.RandomState(42).random_sample(10) * 24.]  # type: ignore
         + [float(t) for t in np.arange(0, 24.5, 0.5)]
     ),
 )
