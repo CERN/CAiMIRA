@@ -1176,7 +1176,7 @@ class _ConcentrationModelBase:
     def population(self) -> SimplePopulation:
         """
         Population in the room (the emitters of what we compute the
-        concentration of)
+        concentration of).
         """
         raise NotImplementedError("Subclass must implement")
 
@@ -1439,6 +1439,80 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
 
 
 @dataclass(frozen=True)
+class _TotalConcentrationModelBase:
+    """
+    Compute the total concentration resulting from multiple populations of emitters.
+    """
+    data_registry: DataRegistry
+    room: Room
+    ventilation: _VentilationBase
+
+    @property
+    def populations(self) -> typing.Tuple[SimplePopulation, ...]:
+        """
+        Populations in the room (the emitters of what we compute the
+        concentration of).
+        """
+        raise NotImplementedError("Subclass must implement")
+    
+    def concentration_models(self):
+        """
+        Initialize the appropriate _ConcentrationModelBase for each population.
+        """
+        raise NotImplementedError("Subclass must implement")
+
+
+@dataclass(frozen=True)
+class TotalViralConcentrationModel(_TotalConcentrationModelBase):
+    """
+    Compute the total viral concentration resulting from multiple populations of infected.
+    """
+    infected_populations: typing.Tuple[_PopulationWithVirus, ...]
+
+    def __post_init__(self):
+        viruses = [infected.virus for infected in self.infected_populations]
+        virus = viruses[0]
+        if any(v != virus for v in viruses):
+            raise ValueError("All infected must be infected with the same virus.")
+        
+    @property
+    def populations(self) -> typing.Tuple[_PopulationWithVirus, ...]:
+        return self.infected_populations
+    
+    @property
+    def virus(self) -> Virus:
+        return self.infected_populations[0].virus
+
+    def concentration_models(self) -> typing.Tuple[ConcentrationModel, ...]:
+        return tuple(ConcentrationModel(
+            data_registry=self.data_registry,
+            room=self.room,
+            ventilation=self.ventilation,
+            infected=infected,
+        ) for infected in self.infected_populations)
+    
+
+@dataclass(frozen=True)
+class TotalCO2ConcentrationModel(_TotalConcentrationModelBase):
+    """
+    Compute the total CO2 concentration resulting from multiple populations.
+    """
+    CO2_emitting_populations: typing.Tuple[SimplePopulation, ...]
+
+    @property
+    def populations(self) -> typing.Tuple[_PopulationWithVirus, ...]:
+        return self.CO2_emitting_populations
+
+    def concentration_models(self) -> typing.Tuple[CO2ConcentrationModel, ...]:
+        return tuple(CO2ConcentrationModel(
+            data_registry=self.data_registry,
+            room=self.room,
+            ventilation=self.ventilation,
+            CO2_emitters=CO2_emitters,
+        ) for CO2_emitters in self.CO2_emitting_populations)
+
+
+@dataclass(frozen=True)
 class CO2DataModel:
     '''
     The CO2DataModel class models CO2 data based on room volume and capacity, 
@@ -1609,11 +1683,11 @@ class ExposureModel:
 
 
     @property
-    def virus(self):
+    def virus(self) -> Virus:
         return self.concentration_model[0].virus
     
     @property
-    def room(self):
+    def room(self) -> Room:
         return self.concentration_model[0].room
 
     @method_cache
