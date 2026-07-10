@@ -1251,6 +1251,10 @@ class ConcentrationModel(_ConcentrationModelBase):
             + self.ventilation.air_exchange(self.room, time)
         )
 
+    def infectious_virus_removal_rate(self, time: float) -> _VectorisedFloat:
+        # defined for back-compatibility purposes
+        return self.removal_rate(time)
+
 
 @dataclass(frozen=True)
 class CO2ConcentrationModel(_ConcentrationModelBase):
