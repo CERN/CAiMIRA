@@ -1190,14 +1190,6 @@ class _ConcentrationModelBase:
         """
         raise NotImplementedError("Subclass must implement")
 
-    def min_background_concentration(self) -> _VectorisedFloat:
-        """
-        Minimum background concentration in the room for a given scenario
-        (in the same unit as the concentration). Its the value towards which
-        the concentration will decay to.
-        """
-        return self.data_registry.concentration_model['virus_concentration_model']['min_background_concentration'] # type: ignore
-
     def normalization_factor(self) -> _VectorisedFloat:
         """
         Normalization factor (in the same unit as the concentration).
@@ -1227,8 +1219,7 @@ class _ConcentrationModelBase:
         else:
             invRR = np.nan if RR == 0. else 1. / RR # type: ignore
 
-        return (self.population.people_present(time) * invRR / V +
-                self.min_background_concentration()/self.normalization_factor())
+        return self.population.people_present(time) * invRR / V
 
     @method_cache
     def state_change_times(self) -> typing.List[float]:
@@ -1287,7 +1278,7 @@ class _ConcentrationModelBase:
         # The model always starts at t=0, but we avoid running concentration calculations
         # before the first presence as an optimisation.
         if time <= self._first_presence_time():
-            return self.min_background_concentration()/self.normalization_factor()
+            return 0
 
         RR = self.removal_rate(time)
 
@@ -1327,7 +1318,7 @@ class _ConcentrationModelBase:
         normalized by normalization_factor.
         """
         if stop <= self._first_presence_time():
-            return (stop - start)*self.min_background_concentration()/self.normalization_factor()
+            return 0
         change_times = self.state_change_times()
         if stop > change_times[-1]:
             change_times.append(stop)
@@ -1412,11 +1403,6 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
     #: Population in the room emitting CO2
     CO2_emitters: SimplePopulation
 
-    #: CO2 concentration in the atmosphere (in ppm)
-    @property
-    def CO2_atmosphere_concentration(self) -> float:
-        return self.data_registry.concentration_model['CO2_concentration_model']['CO2_atmosphere_concentration'] # type: ignore
-
     #: CO2 fraction in the exhaled air
     @property
     def CO2_fraction_exhaled(self) -> float:
@@ -1428,12 +1414,6 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
 
     def removal_rate(self, time: float) -> _VectorisedFloat:
         return self.ventilation.air_exchange(self.room, time)
-
-    def min_background_concentration(self) -> _VectorisedFloat:
-        """
-        Background CO2 concentration in the atmosphere (in ppm)
-        """
-        return self.CO2_atmosphere_concentration
 
     def normalization_factor(self) -> _VectorisedFloat:
         # normalization by the CO2 exhaled per person.
@@ -1466,6 +1446,14 @@ class _TotalConcentrationModelBase:
         """
         raise NotImplementedError("Subclass must implement")
     
+    def min_background_concentration(self) -> _VectorisedFloat:
+        """
+        Minimum background concentration in the room for a given scenario
+        (in the same unit as the concentration). Its the value towards which
+        the concentration will decay to.
+        """
+        return 0
+    
     def concentration(self, time: float) -> float:
         """
         Total concentration in the room, as a function of time, averaged over all Monte Carlo sampled random variables.
@@ -1476,7 +1464,8 @@ class _TotalConcentrationModelBase:
         for the probability distributions of the Monte Carlo sampled random variables, we must average the concentration 
         from each concentration model over the random variables before adding the final result together. 
         """
-        return sum([np.array(c_model.concentration(time)).mean() for c_model in self.concentration_models])
+        return (sum([np.array(c_model.concentration(time)).mean() for c_model in self.concentration_models]) 
+                + np.array(self.min_background_concentration()).mean())
 
 
 @dataclass(frozen=True)
@@ -1513,6 +1502,15 @@ class TotalViralConcentrationModel(_TotalConcentrationModelBase):
             ventilation=self.ventilation,
             infected=infected,
         ) for infected in self.infected_populations)
+    
+    def min_background_concentration(self) -> _VectorisedFloat:
+        """
+        Minimum background concentration in the room for a given scenario
+        (in the same unit as the concentration). Its the value towards which
+        the concentration will decay to.
+        """
+        return self.data_registry.concentration_model['virus_concentration_model']['min_background_concentration'] # type: ignore
+
     
     def diluted_long_range_concentration(self, interaction, time: float) -> float:
         """
@@ -1592,6 +1590,16 @@ class TotalCO2ConcentrationModel(_TotalConcentrationModelBase):
             ventilation=self.ventilation,
             CO2_emitters=CO2_emitters,
         ) for CO2_emitters in self.CO2_emitting_populations)
+    
+    @property
+    def CO2_atmosphere_concentration(self) -> float:
+        return self.data_registry.concentration_model['CO2_concentration_model']['CO2_atmosphere_concentration'] # type: ignore
+    
+    def min_background_concentration(self) -> _VectorisedFloat:
+        """
+        Background CO2 concentration in the atmosphere (in ppm).
+        """
+        return self.CO2_atmosphere_concentration
 
 
 @dataclass(frozen=True)
@@ -1814,7 +1822,7 @@ class ExposureModel:
         return exposure
 
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
-        deposited_exposure = 0.
+        deposited_exposure = self.min_background_concentration() * (time2 - time1)
 
         for c_model in self.concentration_models:
             diameter = c_model.infected.particle.diameter
