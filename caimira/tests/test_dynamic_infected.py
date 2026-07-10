@@ -230,12 +230,15 @@ def test_population_state_change_times(valid_conc_model_tuple):
 def test_sr_model_concentration(time, valid_conc_model_tuple_with_short_range):
     model = get_exposure_model(valid_conc_model_tuple_with_short_range).build_model(SAMPLE_SIZE)
     concentration = model.concentration(time)
+    infected = model.concentration_model[-1].infected
+    expected_infectious_viral_load_in_sputum = (infected.virus.viral_load_in_sputum * infected.fraction_of_infectious_virus())
     assert concentration >= 0
     assert isinstance(model.concentration_model[-1].infected.short_range, tuple)
     assert isinstance(model.concentration_model[-1].infected.short_range[0], models.ShortRangeModel)
     assert model.concentration_model[0].infected.short_range == ()
     assert len(model.concentration_model[-1].infected.short_range) == 2
     assert np.all(model.concentration_model[-1].infected.short_range_normalization_factor() >= 0)
+    assert np.allclose(model.concentration_model[-1].infected.short_range_normalization_factor(), expected_infectious_viral_load_in_sputum * 10**6)
 
 @pytest.mark.parametrize("time", [0., 0.6, 1., 3., 7, 17.])
 def test_long_range_concentration(time, valid_conc_model_tuple):
@@ -257,7 +260,7 @@ def test_long_range_concentration(time, valid_conc_model_tuple):
         [19, 20.],
     ],
 )
-def test_long_range_deposited_exposure(start, stop, valid_conc_model_tuple):
+def test_long_range_long_range_deposited_exposure(start, stop, valid_conc_model_tuple):
     separate_deposited_exposures = [get_exposure_model((valid_conc_model,)).build_model(SAMPLE_SIZE).deposited_exposure_between_bounds(start, stop) for valid_conc_model in valid_conc_model_tuple]
     exp_model = get_exposure_model(valid_conc_model_tuple).build_model(SAMPLE_SIZE)
     deposited_exposure = exp_model.deposited_exposure_between_bounds(start, stop)
@@ -265,16 +268,6 @@ def test_long_range_deposited_exposure(start, stop, valid_conc_model_tuple):
     assert np.allclose(deposited_exposure, sum(separate_deposited_exposures))
     assert np.allclose(deposited_exposure, long_range_deposited_exposure) # valid_conc_model_tuple has no short-range interactions
     assert deposited_exposure >= 0
-
-@pytest.mark.parametrize("time", [0., 0.6, 1., 3., 7, 10.5, 10.7, 11, 17.])
-def test_sr_model_concentration(time, valid_conc_model_tuple_with_short_range):
-    model = get_exposure_model(valid_conc_model_tuple_with_short_range).build_model(SAMPLE_SIZE)
-    concentration = model.concentration(time)
-    infected = model.concentration_model[-1].infected
-    expected_infectious_viral_load_in_sputum = (infected.virus.viral_load_in_sputum * infected.fraction_of_infectious_virus())
-    assert concentration >= 0
-    assert len(model.concentration_model[-1].infected.short_range) == 2
-    assert np.allclose(model.concentration_model[-1].infected.short_range_normalization_factor(), expected_infectious_viral_load_in_sputum * 10**6)
 
 @pytest.mark.parametrize(
         "start, stop",
