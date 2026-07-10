@@ -51,7 +51,7 @@ else:
 
 from .utils import method_cache
 
-from .dataclass_utils import nested_replace, replace_concentration_model_properties
+from .dataclass_utils import nested_replace
 
 oneoverln2 = 1 / np.log(2)
 # Define types for items supporting vectorisation. In the future this may be replaced
@@ -1924,9 +1924,9 @@ class ExposureModel(TotalViralConcentrationModel):
             # To be on the safe side, a hard coded limit with a safety margin of 2x was set.
             # Therefore we decided a hard limit of 10 infected people.
             for num_infected in range(1, max_num_infected + 1):
-                exposure_model = replace_concentration_model_properties(
-                    self, {'infected.number': num_infected}
-                )
+                exposure_model = nested_replace(self, {"infected_populations": tuple(
+                                                    nested_replace(infected, {'number': num_infected})
+                                                    for infected in self.infected_populations)})
                 prob_ind = exposure_model.individual_infection_probability().mean() / 100
                 n = total_people - num_infected
                 # By means of the total probability rule
@@ -1968,12 +1968,13 @@ class ExposureModel(TotalViralConcentrationModel):
 
         # Create an equivalent exposure model but with precisely
         # one infected case, respecting the presence interval.
-        single_exposure_model = replace_concentration_model_properties(
-            self, {
-                'infected.number': 1,
-                'infected.presence': infected_population.presence_interval(),
-            }
-        )
+
+        single_exposure_model = nested_replace(self, {"infected_populations": tuple(
+                                                    nested_replace(infected, {
+                                                        'number': 1,
+                                                        'presence': infected_population.presence_interval(),
+                                                        })
+                                                    for infected in self.infected_populations)})
         return single_exposure_model.expected_new_cases()
     
 
@@ -1987,6 +1988,7 @@ class ExposureModelGroup:
     """
     data_registry: DataRegistry
 
+    #TODO: initialize with populations of infected, exposed etc, build all objects, and then add methods sorting them into ExposureModel objects
     #: The set of exposure models for each exposed population
     exposure_models: typing.Tuple[ExposureModel, ...]
 
