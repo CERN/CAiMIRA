@@ -1674,16 +1674,11 @@ class CO2DataModel:
 
 
 @dataclass(frozen=True)
-class ExposureModel:
+class ExposureModel(TotalViralConcentrationModel):
     """
     Represents the exposure to a concentration of
     infectious respiratory particles (IRP) in the air.
     """
-    data_registry: DataRegistry
-
-    #: The virus concentration model which this exposure model should consider.
-    concentration_models: typing.Tuple[ConcentrationModel, ...]
-
     #: The population of non-infected people to be used in the model.
     exposed: Population
 
@@ -1714,29 +1709,6 @@ class ExposureModel:
         It also checks that the number of exposed is
         static during the simulation time.
         """
-        if not isinstance(self.concentration_models, tuple):
-            raise ValueError(f"self.concentration_models be a tuple, got {type(self.concentration_models)}.")
-        
-        if not all(isinstance(c_model, ConcentrationModel) for c_model in self.concentration_models):
-            raise ValueError("The self.concentration_models tuple must only contain model.ConcentrationModel objects.")
-        
-        if len(self.concentration_models) == 0:
-            raise ValueError("ExposureModel must contain at least one ConcentrationModel.")
-        
-        viruses = [c_model.virus for c_model in self.concentration_models]
-        virus = viruses[0]
-        if any(v != virus for v in viruses):
-            raise ValueError("All infected must be infected with the same virus.")
-        rooms = [c_model.room for c_model in self.concentration_models]
-        room = rooms[0]
-        if any(r != room for r in rooms):
-            raise ValueError("All concentration models must describe the same room.")
-        
-        # TODO: test that all concentration models have overlapping ventilations
-        #       NOTE: Different concentration models can have different occupancy times, and therefore different
-        #       start and end times for which the ventilation is defined. Therefore, the ventilation objects 
-        #       must overlapp, but not neccecarily be identical.
-
         for c_model in self.concentration_models:
             # Check if the diameter is vectorised.
             if (isinstance(c_model.infected, InfectedPopulation) and not np.isscalar(c_model.infected.expiration.diameter)
@@ -1751,15 +1723,6 @@ class ExposureModel:
         if not isinstance(self.exposed.number, int) or not isinstance(self.exposed.presence, Interval):
             raise TypeError("The exposed number must be an int and presence an Interval. "
                             f"Got {type(self.exposed.number)} and {type(self.exposed.presence)}.")
-
-
-    @property
-    def virus(self) -> Virus:
-        return self.concentration_models[0].virus
-    
-    @property
-    def room(self) -> Room:
-        return self.concentration_models[0].room
 
     @method_cache
     def population_state_change_times(self) -> typing.List[float]:
@@ -1961,7 +1924,7 @@ class ExposureModel:
             # To be on the safe side, a hard coded limit with a safety margin of 2x was set.
             # Therefore we decided a hard limit of 10 infected people.
             for num_infected in range(1, max_num_infected + 1):
-                exposure_model = replace_concentration_models_properties(
+                exposure_model = replace_concentration_model_properties(
                     self, {'infected.number': num_infected}
                 )
                 prob_ind = exposure_model.individual_infection_probability().mean() / 100
