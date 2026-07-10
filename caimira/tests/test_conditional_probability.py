@@ -58,10 +58,16 @@ def test_conditional_prob_inf_given_vl_dist(data_registry, baseline_exposure_mod
     expected_upper_percentiles = []
 
     for vl in viral_loads:
-        model_vl: models.ExposureModel = dataclass_utils.replace_concentration_model_properties(
-            mc_model, {
-                'infected.virus.viral_load_in_sputum' : 10**vl,
-            }
+        infected_populations = tuple(
+            dataclass_utils.nested_replace(
+                infected,
+                {"virus.viral_load_in_sputum": 10**vl},
+            )
+            for infected in mc_model.infected_populations
+        )
+        model_vl: models.ExposureModel = dataclass_utils.nested_replace(
+            mc_model,
+            {"infected_populations": infected_populations},
         )
         pi = model_vl.individual_infection_probability()/100
 
