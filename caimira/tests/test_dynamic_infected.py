@@ -270,11 +270,11 @@ def test_long_range_deposited_exposure(start, stop, valid_conc_model_tuple):
 def test_sr_model_concentration(time, valid_conc_model_tuple_with_short_range):
     model = get_exposure_model(valid_conc_model_tuple_with_short_range).build_model(SAMPLE_SIZE)
     concentration = model.concentration(time)
-    infected = model.concentration_model[0].infected
+    infected = model.concentration_model[-1].infected
     expected_infectious_viral_load_in_sputum = (infected.virus.viral_load_in_sputum * infected.fraction_of_infectious_virus())
     assert concentration >= 0
-    assert len(model.concentration_model[0].short_range) == 2
-    assert np.allclose(model.concentration_model[0].short_range_normalization_factor(), expected_infectious_viral_load_in_sputum * 10**6)
+    assert len(model.concentration_model[-1].infected.short_range) == 2
+    assert np.allclose(model.concentration_model[-1].infected.short_range_normalization_factor(), expected_infectious_viral_load_in_sputum * 10**6)
 
 @pytest.mark.parametrize(
         "start, stop",
