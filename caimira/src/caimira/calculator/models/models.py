@@ -1455,11 +1455,24 @@ class _TotalConcentrationModelBase:
         """
         raise NotImplementedError("Subclass must implement")
     
+    @property
     def concentration_models(self):
         """
         Initialize the appropriate _ConcentrationModelBase for each population.
         """
         raise NotImplementedError("Subclass must implement")
+    
+    def concentration(self, time: float) -> float:
+        """
+        Total concentration in the room, as a function of time, averaged over all Monte Carlo sampled random variables.
+
+        By default, this method only considers long-range concentrations.
+
+        Since the different concentration models may have different parameters (assosiated with their respected populations)
+        for the probability distributions of the Monte Carlo sampled random variables, we must average the concentration 
+        from each concentration model over the random variables before adding the final result together. 
+        """
+        return sum([np.array(c_model.concentration(time)).mean() for c_model in self.concentration_models])
 
 
 @dataclass(frozen=True)
@@ -1468,6 +1481,11 @@ class TotalViralConcentrationModel(_TotalConcentrationModelBase):
     Compute the total viral concentration resulting from multiple populations of infected.
     """
     infected_populations: typing.Tuple[_PopulationWithVirus, ...]
+
+    #: evaporation factor: the particles' diameter is multiplied by this
+    # factor as soon as they are in the air (but AFTER going out of the,
+    # mask, if any).
+    evaporation_factor: float
 
     def __post_init__(self):
         viruses = [infected.virus for infected in self.infected_populations]
@@ -1482,7 +1500,8 @@ class TotalViralConcentrationModel(_TotalConcentrationModelBase):
     @property
     def virus(self) -> Virus:
         return self.infected_populations[0].virus
-
+    
+    @property
     def concentration_models(self) -> typing.Tuple[ConcentrationModel, ...]:
         return tuple(ConcentrationModel(
             data_registry=self.data_registry,
@@ -1491,18 +1510,62 @@ class TotalViralConcentrationModel(_TotalConcentrationModelBase):
             infected=infected,
         ) for infected in self.infected_populations)
     
+    def diluted_long_range_concentration(self, interaction, time: float) -> float:
+        """
+        Component of the short-range concentration consisting of entrainment of the long-range concentration into the 
+        short-range jet, averaged over the particle diameter.
+
+        The result will be be subtracted from the diluted jet concentration to compute the total short-range concentration 
+        component.
+        
+        Because the diluted jet concentration and diluted long-range concentration are both Monte Carlo integrated over 
+        particle diameters from different distributions, we need to average over the particle diameter before combining 
+        them later. Hence, we average over the particle diameter here, yielding a diameter-idependent result. 
+
+        Note that the dilution factor is a diameter-independent random variable. Because we multiply the by the dilution 
+        factor with the diameter-dependent jet concentration in ShortRangeModel._normed_diluted_jet_concentration() before 
+        Monte Carlo averaging, we also multiply the diameter-dependent long-range concentration by the dilution factor before 
+        averaging here.
+        """
+        dilution_factor = interaction.dilution_factor()
+        return sum([np.mean(1/dilution_factor * c_model.concentration(time)) for c_model in self.concentration_models])
+    
+    def concentration(self, time: float) -> float:
+        """
+        Integrated virus exposure concentration, as a function of time.
+
+        It considers the long-range concentration with the
+        contribution of the short-range concentration.
+
+        Since the different ConcentrationModel objects may have different diameter bases drawn 
+        from different distributions, the concentrations from different ConcentrationModel 
+        objects must be averaged over the diameter before summed together.
+        """
+        concentration = super().concentration(time) # long-range concentration
+        for c_model in self.concentration_models:
+            for interaction in c_model.infected.short_range:
+                start, stop = interaction.presence.boundaries()[0]
+                # Verifies if the given time falls within a short-range interaction
+                # NOTE: max one short-range interaction at a time, so the test should just yield true once (TODO check?)
+                if start <= time <= stop:
+                    concentration += np.mean(interaction._normed_diluted_jet_concentration() * c_model.infected.short_range_normalization_factor())
+                    concentration -= self.diluted_long_range_concentration(interaction, time)
+        return concentration
+    
 
 @dataclass(frozen=True)
 class TotalCO2ConcentrationModel(_TotalConcentrationModelBase):
     """
     Compute the total CO2 concentration resulting from multiple populations.
     """
+    #: Populations in the room emitting CO2
     CO2_emitting_populations: typing.Tuple[SimplePopulation, ...]
 
     @property
     def populations(self) -> typing.Tuple[_PopulationWithVirus, ...]:
         return self.CO2_emitting_populations
 
+    @property
     def concentration_models(self) -> typing.Tuple[CO2ConcentrationModel, ...]:
         return tuple(CO2ConcentrationModel(
             data_registry=self.data_registry,
@@ -1730,63 +1793,6 @@ class ExposureModel:
             elif time1 <= start and stop < time2:
                 exposure += c_model.normed_integrated_concentration(start, stop)
         return exposure
-    
-    def long_range_concentration(self, time: float) -> float:
-        """
-        Total virus concentration in the room at long-range, as a function of time, averaged over the particle diameter.
-
-        It only considers the long-range concentration without the
-        contribution of the short-range concentration.
-
-        Since the different ConcentrationModel objects may have different infected with different expirations,
-        they can have different particle diameters bases drawn from different probability distributions.
-        To Monte Carlo integrate correctly over the particle diameter, we must therefore average the concentration 
-        of each ConcentrationModel over the particle diameter before adding together all the contributions from all 
-        the ConcentrationModels.
-        """
-        return sum([np.array(c_model.concentration(time)).mean() for c_model in self.concentration_models])
-    
-    def diluted_long_range_concentration(self, interaction, time: float) -> float:
-        """
-        Component of the short-range concentration consisting of entrainment of the long-range concentration into the 
-        short-range jet, averaged over the particle diameter.
-
-        The result will be be subtracted from the diluted jet concentration to compute the total short-range concentration 
-        component.
-        
-        Because the diluted jet concentration and diluted long-range concentration are both Monte Carlo integrated over 
-        particle diameters from different distributions, we need to average over the particle diameter before combining 
-        them later. Hence, we average over the particle diameter here, yielding a diameter-idependent result. 
-
-        Note that the dilution factor is a diameter-independent random variable. Because we multiply the by the dilution 
-        factor with the diameter-dependent jet concentration in ShortRangeModel._normed_diluted_jet_concentration() before 
-        Monte Carlo averaging, we also multiply the diameter-dependent long-range concentration by the dilution factor before 
-        averaging here.
-        """
-        dilution_factor = interaction.dilution_factor()
-        return sum([np.mean(1/dilution_factor * c_model.concentration(time)) for c_model in self.concentration_models])
-    
-    def concentration(self, time: float) -> float:
-        """
-        Integrated virus exposure concentration, as a function of time.
-
-        It considers the long-range concentration with the
-        contribution of the short-range concentration.
-
-        Since the different ConcentrationModel objects may have different diameter bases drawn 
-        from different distributions, the concentrations from different ConcentrationModel 
-        objects must be averaged over the diameter before summed together.
-        """
-        concentration = self.long_range_concentration(time)
-        for c_model in self.concentration_models:
-            for interaction in c_model.infected.short_range:
-                start, stop = interaction.presence.boundaries()[0]
-                # Verifies if the given time falls within a short-range interaction
-                # NOTE: max one short-range interaction at a time, so the test should just yield true once (TODO check?)
-                if start <= time <= stop:
-                    concentration += np.mean(interaction._normed_diluted_jet_concentration() * c_model.infected.short_range_normalization_factor())
-                    concentration -= self.diluted_long_range_concentration(interaction, time)
-        return concentration
 
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         deposited_exposure = 0.
