@@ -288,14 +288,10 @@ class VirusFormData(FormData):
                 data_registry=self.data_registry,
                 exposure_models = (mc.ExposureModel(
                     data_registry=self.data_registry,
-                    concentration_model=(mc.ConcentrationModel(
-                            data_registry=self.data_registry,
-                            room=room,
-                            ventilation=ventilation,
-                            infected=infected_population,
-                            evaporation_factor=0.3,
-                        ),
-                    ),
+                    room=room,
+                    ventilation=ventilation,
+                    infected=(infected_population,),
+                    evaporation_factor=0.3,
                     exposed=exposed_population,
                     geographical_data=geographical_data,
                     exposed_to_short_range=self.short_range_occupants,
@@ -310,14 +306,10 @@ class VirusFormData(FormData):
                 
                 exposure_model = mc.ExposureModel(
                     data_registry=self.data_registry,
-                    concentration_model=(mc.ConcentrationModel(
-                            data_registry=self.data_registry,
-                            room=room,
-                            ventilation=ventilation,
-                            infected=infected_population,
-                            evaporation_factor=0.3,
-                        ),
-                    ),
+                    room=room,
+                    ventilation=ventilation,
+                    infected=(infected_population,),
+                    evaporation_factor=0.3,
                     exposed=exposed_population,
                     geographical_data=geographical_data,
                     exposed_to_short_range=self.short_range_occupants,
@@ -334,7 +326,7 @@ class VirusFormData(FormData):
         sample_size = sample_size or self.data_registry.monte_carlo['sample_size']
         return self.build_mc_model().build_model(sample_size)
 
-    def build_CO2_model(self, sample_size=None) -> models.CO2ConcentrationModel:
+    def build_total_CO2_model(self, sample_size=None) -> models.CO2ConcentrationModel:
         """
         Builds a CO2 model that considers the type of
         activity and data from the defined population groups.
@@ -355,11 +347,11 @@ class VirusFormData(FormData):
         )
 
         # Builds a CO2 concentration model based on model inputs
-        return mc.CO2ConcentrationModel(
+        return mc.TotalCO2ConcentrationModel(
             data_registry=self.data_registry,
             room=self.initialize_room(),
             ventilation=self.ventilation(),
-            CO2_emitters=population,
+            CO2_emitters=(population,),
         ).build_model(size=sample_size)
 
     def tz_name_and_utc_offset(self) -> typing.Tuple[str, float]:
