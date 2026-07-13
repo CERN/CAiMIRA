@@ -74,7 +74,7 @@ class KnownTotalViralConcentrationModelBase(models._TotalConcentrationModelBase)
         {'viral_load_in_sputum': np.array([5e8, 1e9])},
     ]
 )
-def test_concentration_model_vectorisation(override_params, data_registry):
+def test_total_concentration_model_multiple_infected(override_params, data_registry):
     defaults = {
         'volume': 75,
         'humidity': 0.5,
@@ -82,13 +82,17 @@ def test_concentration_model_vectorisation(override_params, data_registry):
         'viral_load_in_sputum': 1e9
     }
     defaults.update(override_params)
-
     always = models.PeriodicInterval(240, 240)  # TODO: This should be a thing on an interval.
-    c_model = models.TotalViralConcentrationModel(
-        data_registry,
-        models.Room(defaults['volume'], models.PiecewiseConstant((0., 24.), (293,)), defaults['humidity']),
-        models.AirChange(always, defaults['air_change']),
-        (models.InfectedPopulation(
+
+    virus=models.SARSCoV2(
+                viral_load_in_sputum=defaults['viral_load_in_sputum'],
+                infectious_dose=50.,
+                viable_to_RNA_ratio = 0.5,
+                transmissibility_factor=1.0,
+            )
+
+    infected_populations = (
+        models.InfectedPopulation(
             data_registry=data_registry,
             number=1,
             presence=always,
@@ -100,18 +104,38 @@ def test_concentration_model_vectorisation(override_params, data_registry):
                 0.51,
                 0.75,
             ),
-            virus=models.SARSCoV2(
-                viral_load_in_sputum=defaults['viral_load_in_sputum'],
-                infectious_dose=50.,
-                viable_to_RNA_ratio = 0.5,
-                transmissibility_factor=1.0,
-            ),
+            virus=virus,
             expiration=models._ExpirationBase.types['Breathing'],
             host_immunity=0.,
             short_range=(),
-        ),),
+        ),
+        models.InfectedPopulation(
+            data_registry=data_registry,
+            number=2,
+            presence=always,
+            mask=models.Mask.types['No mask'],
+            activity=models.Activity(
+                0.51,
+                0.75,
+            ),
+            virus=virus,
+            expiration=models._ExpirationBase.types['Speaking'],
+            host_immunity=0.,
+            short_range=(),
+        ),
+    )
+    c_model = models.TotalViralConcentrationModel(
+        data_registry,
+        models.Room(defaults['volume'], models.PiecewiseConstant((0., 24.), (293,)), defaults['humidity']),
+        models.AirChange(always, defaults['air_change']),
+        infected_populations,
         evaporation_factor=0.3,
     )
+    assert isinstance(c_model.virus, models.Virus)
+    assert isinstance(c_model.infected_populations, tuple)
+    assert isinstance(c_model.concentration_models, tuple)
+    assert len(c_model.infected_populations) == 2
+    assert len(c_model.concentration_models) == 2
     assert isinstance(c_model.concentration(10), float)
     assert isinstance(c_model.concentration_models[0].concentration_increase(10), np.ndarray)
     assert c_model.concentration_models[0].concentration_increase(10).shape == (2, )
