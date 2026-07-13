@@ -1166,7 +1166,10 @@ class InfectedPopulation(_PopulationWithVirus):
 class _ConcentrationModelBase:
     """
     A generic superclass that contains the methods to calculate the
-    concentration (e.g. viral concentration or CO2 concentration).
+    increase in concentration (e.g. viral concentration or CO2 concentration)
+    compared to the background concentration. That is, we do not consider the 
+    background concentration, only the concentration increase resulting from 
+    emissions.
     """
     data_registry: DataRegistry
     room: Room
@@ -1296,7 +1299,7 @@ class _ConcentrationModelBase:
 
         return curr_conc_state + conc_at_last_state_change * fac
 
-    def concentration(self, time: float) -> _VectorisedFloat:
+    def concentration_increase(self, time: float) -> _VectorisedFloat:
         """
         Total concentration as a function of time. The normalization
         factor has been put back.
@@ -1337,9 +1340,10 @@ class _ConcentrationModelBase:
             )
         return total_normed_concentration
 
-    def integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
+    def integrated_concentration_increase(self, start: float, stop: float) -> _VectorisedFloat:
         """
-        Get the integrated concentration of viruses in the air between the times start and stop.
+        Get the integrated concentration of viruses in the air between the times start and stop,
+        not including the background concentration.
         """
         return (self.normed_integrated_concentration(start, stop) *
                 self.normalization_factor())
@@ -1460,9 +1464,19 @@ class _TotalConcentrationModelBase:
         for the probability distributions of the Monte Carlo sampled random variables, we must average the concentration 
         from each concentration model over the random variables before adding the final result together. 
         """
-        return (sum([np.array(c_model.concentration(time)).mean() for c_model in self.concentration_models]) 
+        return (sum([np.array(c_model.concentration_increase(time)).mean() for c_model in self.concentration_models]) 
                 + np.array(self.min_background_concentration()).mean())
+    
+    def integrated_concentration(self, start: float, stop: float) -> float:
+        """
+        Get the integrated concentration of viruses in the air between the times start and stop.
 
+        Before adding together the contributions from each infeted population, computed by the 
+        corresponding concentration model, we have to integrate over the particle diameter. Therefore, 
+        the result is diameter-independent. 
+        """
+        return (sum([np.array(c_model.integrated_concentration_increase(start, stop)).mean() for c_model in self.concentration_models]) 
+                + (stop - start) * np.array(self.min_background_concentration()).mean())
 
 @dataclass(frozen=True)
 class TotalViralConcentrationModel(_TotalConcentrationModelBase):
@@ -1497,6 +1511,7 @@ class TotalViralConcentrationModel(_TotalConcentrationModelBase):
             room=self.room,
             ventilation=self.ventilation,
             infected=infected,
+            evaporation_factor=self.evaporation_factor,
         ) for infected in self.infected_populations)
     
     def min_background_concentration(self) -> _VectorisedFloat:
