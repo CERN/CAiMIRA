@@ -1616,20 +1616,20 @@ class CO2DataModel:
     def CO2_concentration_model(self, 
                                 exhalation_rate: float, 
                                 ventilation_values: typing.Tuple[float, ...]) -> CO2ConcentrationModel:
-        return CO2ConcentrationModel(
+        return TotalCO2ConcentrationModel(
             data_registry=self.data_registry,
             room=Room(volume=self.room.volume),
             ventilation=CustomVentilation(PiecewiseConstant(
                 self.ventilation_transition_times, ventilation_values)),
-            CO2_emitters=SimplePopulation(
+            CO2_emitting_populations=(SimplePopulation(
                 number=self.occupancy,
                 presence=None,
                 activity=Activity(
                     exhalation_rate=exhalation_rate, inhalation_rate=exhalation_rate),
-            )
+            ),)
         )
 
-    def CO2_concentrations_from_params(self, CO2_concentration_model: CO2ConcentrationModel) -> typing.List[_VectorisedFloat]:
+    def CO2_concentrations_from_params(self, CO2_concentration_model: TotalCO2ConcentrationModel) -> typing.List[_VectorisedFloat]:
         # Calculate the predictive CO2 concentration
         return [CO2_concentration_model.concentration(time) for time in self.times]
 
