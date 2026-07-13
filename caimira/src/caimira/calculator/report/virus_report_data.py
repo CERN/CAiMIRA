@@ -145,7 +145,7 @@ def _calculate_co2_concentration(CO2_model: models.CO2ConcentrationModel, time: 
     Returns the CO2 concentration emitted by all
     the present population.
     """
-    return np.array(CO2_model.concentration(float(time))).mean(), fn_name
+    return CO2_model.concentration(float(time)), fn_name
 
 
 def merge_intervals(intervals: typing.List[typing.List[float]]) -> typing.List[typing.List[float]]:
@@ -277,7 +277,7 @@ def calculate_report_data(form: VirusFormData,
     times = interesting_times(model_group)
     
     # CO2 concentration 
-    CO2_model: models.CO2ConcentrationModel = form.build_CO2_model()
+    CO2_model: models.CO2ConcentrationModel = form.build_total_CO2_model()
 
     # Compute deposited exposures and virus/CO2 concentrations in parallel to increase performance
     deposited_exposures = defaultdict(list)
