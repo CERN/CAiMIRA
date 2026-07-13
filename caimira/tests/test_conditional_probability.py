@@ -12,7 +12,7 @@ oneoverln2 = 1 / np.log(2)
 
 @pytest.fixture
 def baseline_exposure_model(data_registry):
-    concentration_mc = mc.ConcentrationModel(
+    return mc.ExposureModel(
         data_registry=data_registry,
         room=models.Room(volume=50, inside_temp=models.PiecewiseConstant((0., 24.), (298,)), humidity=0.5),
         ventilation=models.MultipleVentilation(
@@ -20,7 +20,7 @@ def baseline_exposure_model(data_registry):
                 models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=0.25),
             )
         ),
-        infected=mc.InfectedPopulation(
+        infected_populations=(mc.InfectedPopulation(
             data_registry=data_registry,
             number=1,
             presence=mc.SpecificInterval(present_times=((0, 3.5), (4.5, 9))),
@@ -30,12 +30,8 @@ def baseline_exposure_model(data_registry):
             expiration=expiration_distributions(data_registry)['Breathing'],
             host_immunity=0.,
             short_range=(),
-        ),
+        ),),
         evaporation_factor=0.3,
-    )
-    return mc.ExposureModel(
-        data_registry=data_registry,
-        concentration_model=(concentration_mc,),
         exposed=mc.Population(
             number=3,
             presence=mc.SpecificInterval(present_times=((0, 3.5), (4.5, 9))),
@@ -48,7 +44,7 @@ def baseline_exposure_model(data_registry):
 
 
 @retry(tries=3)
-def test_conditional_prob_inf_given_vl_dist(data_registry, baseline_exposure_model):
+def test_conditional_prob_inf_given_vl_dist(baseline_exposure_model):
 
     viral_loads = np.array([3., 5., 7., 9.,])
     mc_model: models.ExposureModel = baseline_exposure_model.build_model(2_000_000)
