@@ -17,18 +17,18 @@ from caimira.calculator.models import models
     ]
 )
 def test_fitting_algorithm(data_registry, activity_type, ventilation_active, air_exch, flow_rate_lsp):
-    conc_model = models.CO2ConcentrationModel(
+    conc_model = models.TotalCO2ConcentrationModel(
         data_registry = data_registry,
         room=models.Room(
             volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293,))),
         ventilation=models.CustomVentilation(models.PiecewiseConstant(
                 tuple(ventilation_active), tuple(air_exch))),
-        CO2_emitters=models.SimplePopulation(
+        CO2_emitting_populations=(models.SimplePopulation(
             number=models.IntPiecewiseConstant(transition_times=tuple(
                 [8, 12, 13, 17]), values=tuple([2, 1, 2])),
             presence=None,
             activity=models.Activity.types[activity_type]
-        ),
+        ),),
     )
 
     times = np.linspace(8, 17, 100)
@@ -51,7 +51,7 @@ def test_fitting_algorithm(data_registry, activity_type, ventilation_active, air
     fit_parameters = data_model.CO2_fit_params()
     exhalation_rate = fit_parameters['exhalation_rate']
     npt.assert_almost_equal(
-        exhalation_rate, conc_model.CO2_emitters.activity.exhalation_rate, decimal=2)
+        exhalation_rate, conc_model.CO2_emitting_populations[0].activity.exhalation_rate, decimal=2)
 
     ventilation_values = fit_parameters['ventilation_values']
     npt.assert_allclose(ventilation_values, air_exch, rtol=1e-2)
