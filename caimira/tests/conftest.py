@@ -41,15 +41,34 @@ def baseline_concentration_model(data_registry, baseline_sr_model):
 
 
 @pytest.fixture
-def baseline_exposure_model(data_registry, baseline_concentration_model):
+def baseline_exposure_model(data_registry, baseline_sr_model):
+    infected=models.EmittingPopulation(
+            data_registry=data_registry,
+            number=1,
+            virus=models.Virus.types['SARS_CoV_2'],
+            presence=models.SpecificInterval(((0., 4.), (5., 8.))),
+            mask=models.Mask.types['No mask'],
+            activity=models.Activity.types['Light activity'],
+            known_individual_emission_rate=970 * 50,
+            host_immunity=0.,
+            short_range=baseline_sr_model,
+            # Superspreading event, where ejection factor is fixed based
+            # on Miller et al. (2020) - 50 represents the infectious dose.
+        )
     return models.ExposureModel(
         data_registry=data_registry,
-        concentration_model=(baseline_concentration_model,),
+        room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293,))),
+        ventilation=models.AirChange(
+            active=models.SpecificInterval(((0., 24.), )),
+            air_exch=30.,
+        ),
+        infected_populations=(infected,),
+        evaporation_factor=0.3,
         exposed=models.Population(
             number=1000,
-            presence=baseline_concentration_model.infected.presence,
-            activity=baseline_concentration_model.infected.activity,
-            mask=baseline_concentration_model.infected.mask,
+            presence=infected.presence,
+            activity=infected.activity,
+            mask=infected.mask,
             host_immunity=0.,
         ),
         geographical_data=models.Cases(),
