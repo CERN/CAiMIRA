@@ -916,14 +916,14 @@ def test_population_generation_from_occupancy(baseline_form: virus_validator.Vir
     
     # Assert that the infected population is the same for all the models
     # Type checks
-    assert isinstance(first_group.concentration_model[0].infected, models.InfectedPopulation)
-    assert isinstance(second_group.concentration_model[0].infected, models.InfectedPopulation)
+    assert isinstance(first_group.infected_populations[0], models.InfectedPopulation)
+    assert isinstance(second_group.infected_populations[0], models.InfectedPopulation)
     # Value checks
-    assert first_group.concentration_model[0].infected.number == second_group.concentration_model[0].infected.number
-    assert first_group.concentration_model[0].infected.presence == second_group.concentration_model[0].infected.presence
+    assert first_group.infected_populations[0].number == second_group.infected_populations[0].number
+    assert first_group.infected_populations[0].presence == second_group.infected_populations[0].presence
     
     # Assert the infected population generation (number and presence) from the occupancy input
-    for infected_obj in [first_group.concentration_model[0].infected, second_group.concentration_model[0].infected]:
+    for infected_obj in [first_group.infected_populations[0], second_group.infected_populations[0]]:
         # Type checks
         assert isinstance(infected_obj.number, models.IntPiecewiseConstant)
         assert infected_obj.presence is None
