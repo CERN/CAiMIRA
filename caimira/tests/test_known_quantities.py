@@ -41,7 +41,7 @@ def baseline_periodic_hepa():
 def test_concentrations(baseline_concentration_model):
     # Expected concentrations were computed analytically
     ts = [0, 4, 5, 7, 10]
-    concentrations = [baseline_concentration_model.concentration(float(t)) for t in ts]
+    concentrations = [baseline_concentration_model.concentration_increase(float(t)) for t in ts]
     npt.assert_allclose(
         concentrations,
         [0.000000e+00, 2.046096e+01, 3.846725e-13, 2.046096e+01, 7.231966e-27],
@@ -55,7 +55,7 @@ def test_smooth_concentrations(baseline_concentration_model):
     dx = 0.002
     dy_limit = 0.2  # Anything more than this (in relative) is a bit steep.
     ts = np.arange(0, 10, dx)
-    concentrations = [baseline_concentration_model.concentration(float(t)) for t in ts]
+    concentrations = [baseline_concentration_model.concentration_increase(float(t)) for t in ts]
     assert np.abs(np.diff(concentrations)).max()/np.mean(concentrations) < dy_limit
 
 
@@ -91,7 +91,7 @@ def test_concentrations_startup(data_registry):
     m1 = build_model(data_registry, interval_duration=120)
     m2 = build_model(data_registry, interval_duration=65)
 
-    assert m1.concentration(1.) == m2.concentration(1.)
+    assert m1.concentration_increase(1.) == m2.concentration_increase(1.)
 
 
 def test_r0(baseline_exposure_model):
@@ -207,7 +207,7 @@ def test_windowopening(data_registry, time, expected_value):
     )
 
 
-def build_hourly_dependent_model(
+def build_hourly_dependent_c_model(
         data_registry,
         month,
         intervals_open=((7.5, 8.5),),
@@ -256,6 +256,63 @@ def build_hourly_dependent_model(
     )
     return model
 
+def build_hourly_dependent_exp_model(
+        data_registry,
+        month,
+        intervals_open=((7.5, 8.5),),
+        intervals_presence_infected=((0., 4.), (5., 7.5)),
+        artificial_refinement=False,
+        temperatures=data.GenevaTemperatures_hourly,
+        short_range=(),
+):
+    if artificial_refinement:
+        # 5-fold increase of number of times, WITHOUT interpolation
+        # (hence transparent for the results)
+        refine_factor = 2
+        times_refined = tuple(
+            float(t) for t in np.linspace(
+                0., 24, refine_factor * len(temperatures[month].values) + 1
+            )
+        )
+        temperatures_refined = tuple(np.hstack(
+            [[v] * refine_factor for v in temperatures[month].values]
+        ))
+        outside_temp = models.PiecewiseConstant(times_refined, temperatures_refined)
+    else:
+        outside_temp = temperatures[month]
+
+    model = models.ExposureModel(
+        data_registry=data_registry,
+        room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293, ))),
+        ventilation=models.SlidingWindow(
+            data_registry=data_registry,
+            active=models.SpecificInterval(intervals_open),
+            outside_temp=outside_temp,
+            window_height=1.6, opening_length=0.6,
+        ),
+        infected_populations=(models.EmittingPopulation(
+            data_registry=data_registry,
+            number=1,
+            virus=models.Virus.types['SARS_CoV_2'],
+            presence=models.SpecificInterval(intervals_presence_infected),
+            mask=models.Mask.types['No mask'],
+            activity=models.Activity.types['Light activity'],
+            known_individual_emission_rate=970 * 50,
+            host_immunity=0,
+            short_range=short_range,
+        ),),
+        evaporation_factor=0.3,
+        exposed=models.Population(
+            number=10,
+            presence=models.SpecificInterval(intervals_presence_infected),
+            activity=models.Activity.types['Light activity'],
+            mask=models.Mask.types['No mask'],
+            host_immunity=0.,
+        ),
+        geographical_data=models.Cases(),
+    )
+    return model
+
 
 def build_constant_temp_model(data_registry, outside_temp, intervals_open=((7.5, 8.5),)):
     model = models.ConcentrationModel(
@@ -283,7 +340,7 @@ def build_constant_temp_model(data_registry, outside_temp, intervals_open=((7.5,
     return model
 
 
-def build_hourly_dependent_model_multipleventilation(data_registry, month, intervals_open=((7.5, 8.5),)):
+def build_hourly_dependent_c_model_multipleventilation(data_registry, month, intervals_open=((7.5, 8.5),)):
     vent = models.MultipleVentilation((
         models.SlidingWindow(
             data_registry=data_registry,
@@ -327,9 +384,9 @@ def build_hourly_dependent_model_multipleventilation(data_registry, month, inter
 def test_concentrations_hourly_dep_temp_vs_constant(data_registry, month, temperatures, time):
     # The concentrations should be the same up to 8 AM (time when the
     # temperature changes DURING the window opening).
-    m1 = build_hourly_dependent_model(data_registry, month)
+    m1 = build_hourly_dependent_c_model(data_registry, month)
     m2 = build_constant_temp_model(data_registry, temperatures[7] + 273.15)
-    npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-5)
+    npt.assert_allclose(m1.concentration_increase(time), m2.concentration_increase(time), rtol=1e-5)
 
 @pytest.mark.parametrize(
     "month, temperatures",
@@ -342,18 +399,18 @@ def test_concentrations_hourly_dep_temp_vs_constant(data_registry, month, temper
 def test_concentrations_hourly_dep_temp_startup(data_registry, month, temperatures, time):
     # The concentrations should be the zero up to the first presence time
     # of an infected person.
-    m = build_hourly_dependent_model(
+    m = build_hourly_dependent_c_model(
         data_registry,
         month,
         ((0., 0.5), (1., 1.5), (4., 4.5), (7.5, 8), ),
         ((8., 12.), ),
     )
-    assert m.concentration(time) == 0.
+    assert m.concentration_increase(time) == 0.
 
 
 def test_concentrations_hourly_dep_multipleventilation(data_registry):
-    m = build_hourly_dependent_model_multipleventilation(data_registry, 'Jan')
-    m.concentration(12.)
+    m = build_hourly_dependent_c_model_multipleventilation(data_registry, 'Jan')
+    m.concentration_increase(12.)
 
 
 @pytest.mark.parametrize(
@@ -367,9 +424,9 @@ def test_concentrations_hourly_dep_multipleventilation(data_registry):
 def test_concentrations_hourly_dep_adding_artificial_transitions(data_registry, month_temp_item, time):
     month, temperatures = month_temp_item
     # Adding a second opening inside the first one should not change anything
-    m1 = build_hourly_dependent_model(data_registry, month, intervals_open=((7.5, 8.5), ))
-    m2 = build_hourly_dependent_model(data_registry, month, intervals_open=((7.5, 8.5), (8., 8.1), ))
-    npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-5)
+    m1 = build_hourly_dependent_c_model(data_registry, month, intervals_open=((7.5, 8.5), ))
+    m2 = build_hourly_dependent_c_model(data_registry, month, intervals_open=((7.5, 8.5), (8., 8.1), ))
+    npt.assert_allclose(m1.concentration_increase(time), m2.concentration_increase(time), rtol=1e-5)
 
 
 @pytest.mark.parametrize(
@@ -381,26 +438,10 @@ def test_concentrations_hourly_dep_adding_artificial_transitions(data_registry, 
 )
 def test_concentrations_refine_times(data_registry, time):
     month = 'Jan'
-    m1 = build_hourly_dependent_model(data_registry, month, intervals_open=((0., 24.),))
-    m2 = build_hourly_dependent_model(data_registry, month, intervals_open=((0., 24.),),
+    m1 = build_hourly_dependent_c_model(data_registry, month, intervals_open=((0., 24.),))
+    m2 = build_hourly_dependent_c_model(data_registry, month, intervals_open=((0., 24.),),
                                       artificial_refinement=True)
-    npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-8)
-
-
-def build_exposure_model(data_registry, concentration_model):
-    infected = concentration_model.infected
-    return models.ExposureModel(
-        data_registry=data_registry,
-        concentration_model=(concentration_model,),
-        exposed=models.Population(
-            number=10,
-            presence=infected.presence,
-            activity=infected.activity,
-            mask=infected.mask,
-            host_immunity=0.,
-        ),
-        geographical_data=models.Cases(),
-    )
+    npt.assert_allclose(m1.concentration_increase(time), m2.concentration_increase(time), rtol=1e-8)
 
 
 # Expected deposited exposure were computed with a trapezoidal integration, using
@@ -413,15 +454,12 @@ def build_exposure_model(data_registry, concentration_model):
     ],
 )
 def test_exposure_hourly_dep(data_registry, month, expected_deposited_exposure, baseline_sr_model):
-    m = build_exposure_model(
+    m = build_hourly_dependent_exp_model(
         data_registry,
-        build_hourly_dependent_model(
-            data_registry,
-            month,
-            intervals_open=((0., 24.), ),
-            intervals_presence_infected=((8., 12.), (13., 17.)),
-            short_range=baseline_sr_model,
-        )
+        month,
+        intervals_open=((0., 24.), ),
+        intervals_presence_infected=((8., 12.), (13., 17.)),
+        short_range=baseline_sr_model,
     )
     deposited_exposure = m.deposited_exposure()
     npt.assert_allclose(deposited_exposure, expected_deposited_exposure)
@@ -437,16 +475,13 @@ def test_exposure_hourly_dep(data_registry, month, expected_deposited_exposure, 
     ],
 )
 def test_exposure_hourly_dep_refined(data_registry, month, expected_deposited_exposure, baseline_sr_model):
-    m = build_exposure_model(
+    m = build_hourly_dependent_exp_model(
         data_registry,
-        build_hourly_dependent_model(
-            data_registry,
-            month,
-            intervals_open=((0., 24.),),
-            intervals_presence_infected=((8., 12.), (13., 17.)),
-            temperatures=data.GenevaTemperatures,
-            short_range=baseline_sr_model,
-        )
+        month,
+        intervals_open=((0., 24.),),
+        intervals_presence_infected=((8., 12.), (13., 17.)),
+        temperatures=data.GenevaTemperatures,
+        short_range=baseline_sr_model,
     )
     deposited_exposure = m.deposited_exposure()
     npt.assert_allclose(deposited_exposure, expected_deposited_exposure, rtol=0.02)
