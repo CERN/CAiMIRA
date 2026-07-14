@@ -1543,6 +1543,12 @@ class TotalViralConcentrationModel(_TotalConcentrationModelBase):
         dilution_factor = interaction.dilution_factor()
         return sum([np.mean(1/dilution_factor * c_model.concentration_increase(time)) for c_model in self.concentration_models])
     
+    def long_range_concentration(self, time: float) -> float:
+        """
+        Long-range virus concentration, as a function of time, integrated over the particle diameter.
+        """
+        return super().concentration(time)
+    
     def concentration(self, time: float) -> float:
         """
         Integrated virus exposure concentration, as a function of time.
@@ -1554,7 +1560,7 @@ class TotalViralConcentrationModel(_TotalConcentrationModelBase):
         from different distributions, the concentrations from different ConcentrationModel 
         objects must be averaged over the diameter before summed together.
         """
-        concentration = super().concentration(time) # long-range concentration
+        concentration = self.long_range_concentration(time)
         for c_model in self.concentration_models:
             for interaction in c_model.infected.short_range:
                 start, stop = interaction.presence.boundaries()[0]
