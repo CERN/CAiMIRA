@@ -351,7 +351,7 @@ class VirusFormData(FormData):
             data_registry=self.data_registry,
             room=self.initialize_room(),
             ventilation=self.ventilation(),
-            CO2_emitters=(population,),
+            CO2_emitting_populations=(population,),
         ).build_model(size=sample_size)
 
     def tz_name_and_utc_offset(self) -> typing.Tuple[str, float]:
