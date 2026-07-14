@@ -114,8 +114,8 @@ def _concentrations_with_sr_breathing(form: VirusFormData, model: models.Exposur
     """
     Returns the zoomed viral concentrations.
     """
-    for c_model in model.concentration_model:
-        for index, (start, stop) in enumerate([interaction.presence.boundaries()[0] for interaction in c_model.infected.short_range]):
+    for infected in model.infected_populations:
+        for index, (start, stop) in enumerate([interaction.presence.boundaries()[0] for interaction in infected.short_range]):
             if start <= time <= stop and form.short_range_interactions[model.identifier][index]['expiration'] == 'Breathing':
                 return model.concentration(float(time)), fn_name
     return model.long_range_concentration(float(time)), fn_name
@@ -224,29 +224,22 @@ def group_results(form: VirusFormData, model_group: models.ExposureModelGroup) -
         short_range_interactions: dict = defaultdict(list)
         has_short_range = False
 
-        for concentration_model in single_group.concentration_model:
-            if concentration_model.infected.short_range != ():
+        for infected in single_group.infected_populations:
+            if infected.short_range != ():
                 has_short_range = True
-                for short_range_model in concentration_model.infected.short_range:
+                for short_range_model in infected.short_range:
                     short_range_interactions[short_range_model.expiration.name].extend(
                         short_range_model.presence.boundaries()
                     )
-
         if has_short_range:
             long_range_single_group = dataclass_utils.nested_replace(
                 single_group,
                 {
-                    "concentration_model": tuple(
+                    "infected_populations": tuple(
                         dataclass_utils.nested_replace(
-                            cm,
-                            {
-                                "infected": dataclass_utils.nested_replace(
-                                    cm.infected,
-                                    {"short_range": ()},
-                                )
-                            },
+                            infected, {"short_range": ()},
                         )
-                        for cm in single_group.concentration_model
+                        for infected in single_group.infected_populations
                     )
                 },
             )
@@ -295,7 +288,7 @@ def calculate_report_data(form: VirusFormData,
                 # virus and co2 concentration: takes each time as param, not the interval
                 tasks.append(executor.submit(
                     _calculate_concentration, single_group, time1, fn_name=f"{single_group.identifier}:cn"))
-                if any(c_model.infected.short_range != () for c_model in single_group.concentration_model):
+                if any(infected.short_range != () for infected in single_group.infected_populations):
                     tasks.append(executor.submit(
                         _calculate_long_range_deposited_exposure, single_group, time1, time2, fn_name=f"{single_group.identifier}:de_lr"))
                     tasks.append(executor.submit(
@@ -308,7 +301,7 @@ def calculate_report_data(form: VirusFormData,
         for single_model in model_group.exposure_models:
             tasks.append(executor.submit(_calculate_concentration, 
                         single_model, times[-1], fn_name=f"{single_model.identifier}:cn"))
-            if any(c_model.infected.short_range != () for c_model in single_group.concentration_model):
+            if any(infected.short_range != () for infected in single_group.infected_populations):
                 tasks.append(executor.submit(_concentrations_with_sr_breathing, 
                                              form, single_model, times[-1], fn_name=f"{single_model.identifier}:cn_zoomed"))
                 
@@ -335,7 +328,7 @@ def calculate_report_data(form: VirusFormData,
         results_per_group[single_group.identifier]["concentrations"] = concentrations[single_group.identifier]
         results_per_group[single_group.identifier]["cumulative_doses"] = list(np.cumsum(deposited_exposures[single_group.identifier]))
         # Calculate long_range results when short-range interactions are defined
-        if any(c_model.infected.short_range != () for c_model in single_group.concentration_model):
+        if any(infected.short_range != () for infected in single_group.infected_populations):
             results_per_group[single_group.identifier]["concentrations_zoomed"] = concentrations_zoomed[single_group.identifier]
             results_per_group[single_group.identifier]["long_range_cumulative_doses"] = list(np.cumsum(long_range_deposited_exposures[single_group.identifier]))
     
@@ -472,14 +465,14 @@ def calculate_vl_scenarios_percentiles(model: mc.ExposureModel) -> typing.Dict[s
     for percentil in (0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99):
         vl = np.quantile(viral_load, percentil)
 
-        new_conc_model = copy.deepcopy(model.concentration_model)
-        if isinstance(model.concentration_model, list):
-            new_conc_model = [dataclass_utils.nested_replace(cm, {'infected.virus.viral_load_in_sputum': vl}) for cm in model.concentration_model]
+        new_infected = copy.deepcopy(model.infected_populations)
+        if isinstance(model.infected_populations, tuple):
+            new_infected = [dataclass_utils.nested_replace(infected, {'virus.viral_load_in_sputum': vl}) for infected in model.infected_populations]
         else:
-            cm = model.concentration_model
-            new_conc_model = dataclass_utils.nested_replace(cm, {'infected.virus.viral_load_in_sputum': vl})
+            infected = model.infected_populations[0]
+            new_infected = dataclass_utils.nested_replace(infected, {'virus.viral_load_in_sputum': vl})
 
-        specific_vl_scenario = dataclass_utils.nested_replace(model, {'concentration_model': new_conc_model})
+        specific_vl_scenario = dataclass_utils.nested_replace(model, {'infected_populations': new_infected})
         scenarios[str(vl)] = np.mean(
             specific_vl_scenario.individual_infection_probability())
     return {
