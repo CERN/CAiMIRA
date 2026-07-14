@@ -11,24 +11,21 @@ from caimira.calculator.models import dataclass_utils
 def full_exposure_model(data_registry):
     return models.ExposureModel(
         data_registry=data_registry,
-        concentration_model=(models.ConcentrationModel(
+        room=models.Room(volume=100),
+        ventilation=models.AirChange(
+            active=models.PeriodicInterval(120, 120), air_exch=0.25),
+        infected_populations=(models.InfectedPopulation(
             data_registry=data_registry,
-            room=models.Room(volume=100),
-            ventilation=models.AirChange(
-                active=models.PeriodicInterval(120, 120), air_exch=0.25),
-            infected=models.InfectedPopulation(
-                data_registry=data_registry,
-                number=1,
-                presence=models.SpecificInterval(((8, 12), (13, 17), )),
-                mask=models.Mask.types['No mask'],
-                activity=models.Activity.types['Seated'],
-                expiration=models.Expiration.types['Breathing'],
-                virus=models.Virus.types['SARS_CoV_2'],
-                host_immunity=0.,
-                short_range=(),
-            ),
-            evaporation_factor=0.3,
+            number=1,
+            presence=models.SpecificInterval(((8, 12), (13, 17), )),
+            mask=models.Mask.types['No mask'],
+            activity=models.Activity.types['Seated'],
+            expiration=models.Expiration.types['Breathing'],
+            virus=models.Virus.types['SARS_CoV_2'],
+            host_immunity=0.,
+            short_range=(),
         ),),
+        evaporation_factor=0.3,
         exposed=models.Population(
             number=10,
             presence=models.SpecificInterval(((8, 12), (13, 17), )),
@@ -42,7 +39,7 @@ def full_exposure_model(data_registry):
 
 @pytest.fixture
 def baseline_infected_population(data_registry):
-    return models.InfectedPopulation(
+    return (models.InfectedPopulation(
         data_registry=data_registry,
         number=models.IntPiecewiseConstant(
             (8, 12, 13, 17), (1, 0, 1)),
@@ -53,7 +50,7 @@ def baseline_infected_population(data_registry):
         expiration=models.Expiration.types['Breathing'],
         host_immunity=0.,
         short_range=(),
-    )
+    ),)
 
 
 @pytest.fixture
@@ -77,8 +74,8 @@ def dynamic_population_exposure_model(full_exposure_model, baseline_infected_pop
 def test_population_number(full_exposure_model: models.ExposureModel,
                            baseline_infected_population: models.InfectedPopulation, time: float):
 
-    int_population_number: models.InfectedPopulation = full_exposure_model.concentration_model[0].infected # type: ignore
-    piecewise_population_number: models.InfectedPopulation = baseline_infected_population
+    int_population_number: models.InfectedPopulation = full_exposure_model.concentration_models[0].infected # type: ignore
+    piecewise_population_number: models.InfectedPopulation = baseline_infected_population[0]
 
     with pytest.raises(
         TypeError,
@@ -142,7 +139,7 @@ def test_dynamic_dose(data_registry, full_exposure_model: models.ExposureModel, 
     dynamic_infected: models.ExposureModel = dataclass_utils.nested_replace(
         full_exposure_model,
         {
-            'infected_populations': tuple(models.InfectedPopulation(
+            'infected_populations': (models.InfectedPopulation(
                 data_registry=data_registry,
                 number=models.IntPiecewiseConstant(
                     (8, 10, 12, 13, 17), (1, 2, 0, 3)),
@@ -153,7 +150,7 @@ def test_dynamic_dose(data_registry, full_exposure_model: models.ExposureModel, 
                 expiration=models.Expiration.types['Breathing'],
                 host_immunity=0.,
                 short_range=(),
-            ))
+            ),)
         }
     )
 
