@@ -1541,7 +1541,7 @@ class TotalViralConcentrationModel(_TotalConcentrationModelBase):
         averaging here.
         """
         dilution_factor = interaction.dilution_factor()
-        return sum([np.mean(1/dilution_factor * c_model.concentration(time)) for c_model in self.concentration_models])
+        return sum([np.mean(1/dilution_factor * c_model.concentration_increase(time)) for c_model in self.concentration_models])
     
     def concentration(self, time: float) -> float:
         """
@@ -1724,6 +1724,7 @@ class ExposureModel(TotalViralConcentrationModel):
         It also checks that the number of exposed is
         static during the simulation time.
         """
+        super().__post_init__()
         for c_model in self.concentration_models:
             # Check if the diameter is vectorised.
             if (isinstance(c_model.infected, InfectedPopulation) and not np.isscalar(c_model.infected.expiration.diameter)
