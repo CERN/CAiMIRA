@@ -1581,7 +1581,7 @@ class TotalCO2ConcentrationModel(_TotalConcentrationModelBase):
     CO2_emitting_populations: typing.Tuple[SimplePopulation, ...]
 
     @property
-    def populations(self) -> typing.Tuple[_PopulationWithVirus, ...]:
+    def populations(self) -> typing.Tuple[SimplePopulation, ...]:
         return self.CO2_emitting_populations
 
     @property
@@ -1621,7 +1621,11 @@ class CO2DataModel:
 
     def CO2_concentration_model(self, 
                                 exhalation_rate: float, 
-                                ventilation_values: typing.Tuple[float, ...]) -> CO2ConcentrationModel:
+                                ventilation_values: typing.Tuple[float, ...]) -> TotalCO2ConcentrationModel:
+        """
+        TotalCO2ConcentrationModel with one emitting population. #:TODO allow dynamic occupancy (several emitting populations (defined in init))
+        Use TotalCO2ConcentrationModel and not CO2ConcentrationModel to include the background concentration.
+        """
         return TotalCO2ConcentrationModel(
             data_registry=self.data_registry,
             room=Room(volume=self.room.volume),
@@ -1636,7 +1640,7 @@ class CO2DataModel:
         )
 
     def CO2_concentrations_from_params(self, CO2_concentration_model: TotalCO2ConcentrationModel) -> typing.List[_VectorisedFloat]:
-        # Calculate the predictive CO2 concentration
+        """Calculate the predictive CO2 concentration."""
         return [CO2_concentration_model.concentration(time) for time in self.times]
 
     def CO2_fit_params(self) -> typing.Dict:
@@ -1671,7 +1675,7 @@ class CO2DataModel:
         exhalation_rate = res_dict['x'][0]
         ventilation_values = res_dict['x'][1:] # In ACH
 
-        # Final CO2ConcentrationModel with obtained prediction
+        # Final TotalCO2ConcentrationModel with obtained prediction
         the_CO2_concentration_model = self.CO2_concentration_model(
             exhalation_rate=exhalation_rate, 
             ventilation_values=ventilation_values
