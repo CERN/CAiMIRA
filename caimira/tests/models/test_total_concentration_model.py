@@ -52,7 +52,7 @@ class KnownTotalViralConcentrationModelBase(models._TotalConcentrationModelBase)
         return self.known_populations
     
     @property
-    def concentration_models(self) -> typing.Tuple[models.KnownConcentrationModelBase, ...]:
+    def concentration_models(self) -> typing.Tuple[KnownConcentrationModelBase, ...]:
         return tuple(KnownConcentrationModelBase(
         data_registry=self.data_registry,
         room = self.room,

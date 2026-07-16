@@ -1,4 +1,5 @@
 import re
+import typing
 
 import numpy as np
 import numpy.testing as npt
@@ -72,7 +73,7 @@ def dynamic_population_exposure_model(full_exposure_model, baseline_infected_pop
     [4., 8., 10., 12., 13., 14., 16., 20., 24.],
 )
 def test_population_number(full_exposure_model: models.ExposureModel,
-                           baseline_infected_population: models.InfectedPopulation, time: float):
+                           baseline_infected_population: typing.Tuple[models.InfectedPopulation], time: float):
 
     int_population_number: models.InfectedPopulation = full_exposure_model.concentration_models[0].infected # type: ignore
     piecewise_population_number: models.InfectedPopulation = baseline_infected_population[0]
