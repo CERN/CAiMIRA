@@ -1262,6 +1262,28 @@ class _ConcentrationModelBase:
         calculations for the same time (e.g. at state change times).
         """
         return self._normed_concentration(time)
+    
+    def _normed_concentration_at_last_state_change(self, time: float) -> _VectorisedFloat:
+        """
+        Find concentration at state change times using techniques for solving difference
+        equations.
+
+        Assuming C0 (the concentration at t=0) is zero. If not, add C0*np.exp(-full_sum) / self.normalization_factor().
+        """
+        times = self.state_change_times()
+        times = times[:np.searchsorted(times, time)]
+        # Ventilation rate at all times where either the ventilation or the occupancy changes,
+        # i.e. at all state_change_times except the last state change to match all_dt
+        vent = np.array([self.removal_rate(time) for time in times[1:]])
+        dt = np.diff(np.array(times)) # Length of time intervals
+        if len(vent.shape) == 1: # no sampling, or only one sample, of particle diameter
+            vent_dt = vent * dt
+        else:
+            vent_dt = vent * dt[:, None]
+        result = 0
+        for i in range(len(vent_dt)):
+            result += (1 - np.exp(-vent_dt[i])) * self._normed_concentration_limit(times[i+1]) * np.exp(-np.sum(vent_dt[i+1:], axis=0))
+        return result
 
     def _normed_concentration(self, time: float) -> _VectorisedFloat:
         """
@@ -1282,7 +1304,8 @@ class _ConcentrationModelBase:
         RR = self.removal_rate(time)
 
         t_last_state_change = self.last_state_change(time)
-        conc_at_last_state_change = self._normed_concentration_cached(t_last_state_change)
+
+        conc_at_last_state_change = self._normed_concentration_at_last_state_change(time)
         delta_time = time - t_last_state_change
 
         fac = np.exp(-RR * delta_time)
