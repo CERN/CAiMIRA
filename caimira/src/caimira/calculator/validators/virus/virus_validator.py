@@ -326,7 +326,7 @@ class VirusFormData(FormData):
         sample_size = sample_size or self.data_registry.monte_carlo['sample_size']
         return self.build_mc_model().build_model(sample_size)
 
-    def build_total_CO2_model(self, sample_size=None) -> models.CO2ConcentrationModel:
+    def build_total_CO2_model(self, sample_size=None) -> models.TotalCO2ConcentrationModel:
         """
         Builds a CO2 model that considers the type of
         activity and data from the defined population groups.
