@@ -140,7 +140,7 @@ def _calculate_concentration(model: models.ExposureModel,
     return model.concentration(float(time)), fn_name
 
 
-def _calculate_co2_concentration(CO2_model: models.CO2ConcentrationModel, time: float, fn_name: typing.Optional[str] = None):
+def _calculate_co2_concentration(CO2_model: models.TotalCO2ConcentrationModel, time: float, fn_name: typing.Optional[str] = None):
     """
     Returns the CO2 concentration emitted by all
     the present population.
@@ -270,7 +270,7 @@ def calculate_report_data(form: VirusFormData,
     times = interesting_times(model_group)
     
     # CO2 concentration 
-    CO2_model: models.CO2ConcentrationModel = form.build_total_CO2_model()
+    CO2_model: models.TotalCO2ConcentrationModel = form.build_total_CO2_model()
 
     # Compute deposited exposures and virus/CO2 concentrations in parallel to increase performance
     deposited_exposures = defaultdict(list)
