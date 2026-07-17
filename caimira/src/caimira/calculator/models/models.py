@@ -1440,6 +1440,7 @@ class _TotalConcentrationModelBase:
         raise NotImplementedError("Subclass must implement")
     
     @property
+    @method_cache
     def concentration_models(self):
         """
         Initialize the appropriate _ConcentrationModelBase for each population.
@@ -1505,6 +1506,7 @@ class TotalViralConcentrationModel(_TotalConcentrationModelBase):
         return self.infected_populations[0].virus
     
     @property
+    @method_cache
     def concentration_models(self) -> typing.Tuple[ConcentrationModel, ...]:
         return tuple(ConcentrationModel(
             data_registry=self.data_registry,
@@ -1585,6 +1587,7 @@ class TotalCO2ConcentrationModel(_TotalConcentrationModelBase):
         return self.CO2_emitting_populations
 
     @property
+    @method_cache
     def concentration_models(self) -> typing.Tuple[CO2ConcentrationModel, ...]:
         return tuple(CO2ConcentrationModel(
             data_registry=self.data_registry,
