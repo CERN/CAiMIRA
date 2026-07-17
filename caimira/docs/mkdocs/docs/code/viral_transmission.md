@@ -8,21 +8,23 @@ Along with viral transmission, CAiMIRA also simulates emission, removal, and con
 
 This page details the how the viral transmission is modelled. Details on how the CO_2 concentration is simulated can be found on the page **Computation of the CO<sub>2</sub> Concentration**.
 
-The viral **emission rate** – $\mathrm{vR}(D)$, **removal rate** – $\mathrm{vRR}(D)$, **concentration** – $C(t, D)$, and **dose** $\mathrm{vD(D)}$ are considered for a given aerosol diameter $D$,
-as the behavior of the virus-laden particles in the room environment and inside the respiratory tract are diameter-dependent. The probability of infection is computed from the total viral dose deposited in the respiratory tract
+The viral **emission rate** – $\mathrm{vR}(D)$, **removal rate** – $\mathrm{vRR}(D)$, **concentration** – $C(t, D)$, and **dose** $\mathrm{vD(D)}$ are considered for a given aerosol diameter $D$, as the behavior of the virus-laden particles in the room environment and inside the respiratory tract are diameter-dependent. For computational efficiency, $\mathrm{vR}(D)$, $\mathrm{vRR}(D)$, $C(t, D)$, and $\mathrm{vD(D)}$ are factored into three components: the probability distribution of $D$, a diameter-independent component, and a residual diameter-dependent component. This factorization relies on assumptions about the independence of the underlying random variables (see below).
 
-$$\mathrm{vD^{total}} =\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{vD(D)} \mathrm{d}D$$
+The total, diameter-independent dose exposure $\mathrm{vD^{total}}$ is obtained by Monte Carlon integrating $\mathrm{vD(D)}$ over the particle diameter
 
-which is estimated by Monte Carlo integration (see below). 
-For computational efficiency, the diameter-dependent dose $\mathrm{vD(D)}$ is factored into three components: 
-A probability distribution of $D$, a diameter-independent component, and a remaining diameter-dependent component. 
-Because the viral concentration is a factor of the dose, and the viral emission rate is a factor of the viral concentration, $C(t, D)$ and $\mathrm{vR}(D)$ are also factored into probability distribution of $D$, a diameter-independent component, and a remaining diameter-dependent component (details below).
-Intermediate results for the total viral emission rate $\mathrm{vR}^{total}$, total viral removal rate $\mathrm{vRR}^{total}$, and total viral concentration $\mathrm{C(t)}^{total}$ can also be obtained by integrating over the particle diameter.
+$$
+\begin{equation*}
+\mathrm{vD^{total}} 
+= \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{vD(D)} \mathrm{d}D
+= \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \frac{\mathrm{vD(D)}}{\mathrm{p}_D(D)} \cdot \mathrm{p}_D(D) \mathrm{d}D
+\approx \frac{1}{S}\sum_{i=1}^S \frac{\mathrm{vD(D_i)}}{\mathrm{p}_D(D_i)}
+\end{equation*}
+$$
 
-This page describes the derivation of the equations specifying the emission rate, removal rate, and concentration of virions, as well as the viral dose exposure and probability of infection (see Figure 1). 
-After having derived the full equations, it is described how the computations are devided into different classes and methods in the CAiMIRA implementation for computational efficiency.
+where $S$ is the number of samples of the particle diameter drawn from the probability distribution $\mathrm{p}_D(D)$. The probability of infection is computed from $\mathrm{vD^{total}}$. 
+Intermediate results for the total viral emission rate $\mathrm{vR}^{total}$, total viral removal rate $\mathrm{vRR}^{total}$, and total viral concentration $\mathrm{C(t)}^{total}$ can similarly be obtained by Monte Carlo integrating over the particle diameter. 
 
-In the following, the `caimira.calculator.models.models.py` package is abbreviated as `models` and the `caimira.calculator.models.monte_carlo` package is abbreviated as `monte_carlo`.
+This page describes the mathematical derivation and implementation of the CAiMIRA model. In the following, the `caimira.calculator.models.models.py` package is abbreviated as `models` and the `caimira.calculator.models.monte_carlo` package is abbreviated as `monte_carlo`.
 
 ## Emission 
 ### Derivation of the Analytical Emission Rate
