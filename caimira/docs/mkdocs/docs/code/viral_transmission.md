@@ -1,14 +1,66 @@
 # Physics of Viral Transmission
-
-The CAiMIRA model mimics the physical process of viral transmission through five stages presented in the topmost part of Figure 1: 
-Emission, removal, concentration, dose, and infection probability. 
-Along with viral transmission, CAiMIRA also simulates emission, removal, and concentration of CO_2, as shown in the lower part of Figure 1.
+The CAiMIRA model simulates the physical process of viral transmission through five sequential stages, illustrated by the topmost part of Figure 1: **emission**, **removal**, **concentration**, **dose**, and **infection probability**.
+Along with viral transmission, CAiMIRA also simulates **emission**, **removal**, and **concentration** of CO<sub>2</sub>, as shown in the lowermost part of Figure 1.
+This page details the modelling of viral transmission. The modelling of CO<sub>2</sub> concentrations is detailed on **[Computation of the CO<sub>2</sub> Concentration](./co2_concentration.md)**.
 [![CAiMIRA Structure](CAiMIRA_structure.png)](CAiMIRA_structure.png)
-*Figure 1: Structure of the CAiMIRA model showing the viral transmission and CO_2 simulation processes.*
+*Figure 1: Structure of the CAiMIRA model showing the viral transmission and CO<sub>2</sub> simulation processes.*
 
-This page details the how the viral transmission is modelled. Details on how the CO_2 concentration is simulated can be found on the page **Computation of the CO<sub>2</sub> Concentration**.
+## Model Parameters
+The CAiMIRA model has both deterministic and probabilistic parameters. Values and probability distrubutions for the paramters are stored in `caimira.calculator.store.data_registry`. 
 
-The viral **emission rate** – $\mathrm{vR}(D)$, **removal rate** – $\mathrm{vRR}(D)$, **concentration** – $C(t, D)$, and **dose** $\mathrm{vD(D)}$ are considered for a given aerosol diameter $D$, as the behavior of the virus-laden particles in the room environment and inside the respiratory tract are diameter-dependent. For computational efficiency, $\mathrm{vR}(D)$, $\mathrm{vRR}(D)$, $C(t, D)$, and $\mathrm{vD(D)}$ are factored into three components: the probability distribution of $D$, a diameter-independent component, and a residual diameter-dependent component. This factorization relies on assumptions about the independence of the underlying random variables (see below).
+Some parameters are defined as constant values retrieved from `caimira.calculator.store.data_registry` or hardcoded into the model in `caimira.calculator.models.models.py`. Other parameters, like the room volume, are direcly specified by the user. The remaining paramteres are determined by combining user input and litterature. For example, the user specifies the virus variant and then the litterature-determined transmissibility factor of that specific variant is retrieved from `caimira.calculator.store.data_registry`. 
+
+### Distribution of Random Variables
+The table below lists the parameters that are treated as random variables in CAiMIRA. The probability distribution for each random variable is informed by litterature (see `caimira.calculator.store.data_registry` for details). The rightmost column lists the event-specific parameters (defined by the user) that affect the parameters of the probability distribution.
+
+of the probability distributions are specified for each scenario by the user input.
+
+| Random Variable | Symbol | Probability Distribution| Dependent User Parameters |
+|-------------|--------|-------|-------|
+| Particle diameter | $D$ | Log-normal mixture | Expirational activity of the infected, long-range or short-range interaction |
+| Interpersonal distance | $x$ | Log-normal | None<sup>1</sup> |
+| Viral load inside the infected | $\mathrm{vl_{in}}$ | Gaussian Kernel density estimation from dataset | None<sup>2,3</sup> |
+| Viable to RNA ratio | $\mathrm{r_{in}}$ | Uniform | None<sup>2,3</sup> |
+| Infectious Dose | $\mathrm{ID}_{50}$ | Uniform | None<sup>2</sup> |
+| Exhalation rate of the infected | $\mathrm{BR_{k,out}}$ | log-normal distribution | Physical activity of the infected | 
+| Inhalation rate of the exposed | $\mathrm{BR_{k,in}}$ | log-normal distribution | Physical activity of the exposed |
+| Face mask efficiency of the infected | $\eta_{\mathrm{out}}$ | Uniform | Type of face mask |
+| Face mask efficiency of the exposed | $\eta_{\mathrm{in}}$ | Uniform | Type of face mask |
+
+<sup>1</sup>The interpersonal distance is only a parameter in CAiMIRA when modeling short-range interactions.
+
+<sup>2</sup>Theorietically, the parameters for these probability distribtuions may depend on the virus variant. However, every (COVID-19) virus variants currently implemented is assumed to yield the same viral load, viable to RNA ratio, and infectious dose.
+
+<sup>3</sup>In the future, the product of the viral load and viable to RNA ratio will be replaced by a function sampling values for the viable viral load. By accounting for symptomatic stage of the infected, the new function will reduce the variability of the samples.
+
+We Monte Carlo integrate over the particle diameter (see below). The remaining random variables are Monte Carlo averaged to approximate the expected values.
+
+### Separation of Random Variables
+We improve computational performance by assuming that the particle diameter $D$ and the interpersonal distance $x$ are independent of all the other random variables. 
+
+In general, we have the relation 
+
+$$
+\begin{equation}
+E[Z \cdot Y] = E[Z] \cdot E[Y] + \operatorname{Cov}[Z, Y]
+\end{equation}
+$$
+
+for two random variables $Z$ and $Y$ ($E$ denotes the expected value and $\operatorname{Cov}$ covariance).
+Let $Z$ be a factor containing all variables depending on the particle diameter $D$ as well as the interpersonal distance $x$, and let $Y$ be a factor containing all the remaining random variables. Since we assume $Z$ and $Y$ are independent, the covariance between $Z$ and $Y$ is $0$. Consequently, the relation above reduces to $E[Z \cdot Y] = E[Z] \cdot E[Y]$, or equivalently
+
+$$
+\begin{equation*}
+\int_{-\infty}^{\infty} Z \cdot Y \cdot p_{Z,Y}(Z,Y)=\int_{-\infty}^{\infty} Z \cdot p_{Z}(Z) \cdot \int_{-\infty}^{\infty} Y \cdot p_{Y}(Y).
+\end{equation*}
+$$
+
+Approximating the rightmost expression by Monte Carlo integration/averaging is more efficient than approximating the leftmost side by Monte Carlo integration/averaging. Hence, assuming $Z$ and $Y$ are independent will give better model performance. Faster computations is the motivation for factoring the viral concentration and dose exposure into diameter-dependent ($Z$) and diameter-independent ($Y$) components in the implementation of CAiMIRA in `caimira.calculator.models.models.py` (see below). 
+
+
+### Monte Carlo Integration and Averaging
+
+The viral **emission rate** – $\mathrm{vR}(D)$, **removal rate** – $\lambda_\mathrm{vRR}(D)$, **concentration** – $C(t, D)$, and **dose** $\mathrm{vD(D)}$ are considered for a given aerosol diameter $D$, as the behavior of the virus-laden particles in the room environment and inside the respiratory tract are diameter-dependent. For computational efficiency, $\mathrm{vR}(D)$, $\lambda_\mathrm{vRR}(D)$, $C(t, D)$, and $\mathrm{vD(D)}$ are factored into three components: the probability distribution of $D$, a diameter-independent component, and a residual diameter-dependent component. This factorization relies on assumptions about the independence of the underlying random variables (see below).
 
 The total, diameter-independent dose exposure $\mathrm{vD^{total}}$ is obtained by Monte Carlon integrating $\mathrm{vD(D)}$ over the particle diameter
 
@@ -545,40 +597,6 @@ In case there are no short-range interactions, `models.ExposureModel.deposited_e
 
 Recall that we normalized the concentration by the emission rate for computational efficiency before multiplying by the normalization factor to integrate over the particle diameter. Similarly, the order of computations in `models.ExposureModel.deposited_exposure_between_bounds()` are structured to separate Monte Carlo integration of diamter-dependent and non-diameter dependent random variables for computational efficiency. 
 
-
-
-##### Separation of Random Variables
-We have the following independent random variables in CAiMIRA
-
-1. The particle diameter $D$
-2. The breathing rate $\mathrm{BR_{k}}$ 
-3. Viral load inside the infected $\mathrm{vl_{in}}$
-4. Fraction of infectious virus $f_{\mathrm{inf}}$
-4. Face mask efficiency $\eta$
-6. Dilution factor $S({x})$
-
-We Monte Carlo integrate over the particle diameter. The remaining random variables are also Monte Carlo sampled from their probability distributions and averaged to approximate their expected value. The breathing rate is actually more specifically implemented as the inhalation or the exhalation rate of either the infected or the exposed. Every type of breathing rate follows a log-normal distribution with mean and variance defined by the physical activity of the person breathing. The viral load inside the infected host is sampled from a normal distribution, and the fraction of infectious virus depend on samples from a uniform distribution. In the future, the product of the viral load distribution and the fraction of infectious virus will be replaced by a function sampling values from a probability distribution of the amount of viable virus refined by the stage of infection. Next, there are two random variables for the face mask efficiency - the inwards efficiency and the outwards efficiency - which are both sampled from uniform distributions with lower and upper limits defined by the type of face mask worn. Finally, the dilution factor is a random variable because it depends on the random distance $x$ (see section on the dilution factor for more details).
-
-Assuming there is no correlation between the diameter dependent and non-diameter dependent Monte Carlo random variables, we improve computational performance by Monte Carlo integrating over the diameter dependent variables and average the non-diameter dependent Monte Carlo random variables separately. The separation is the motivation for computing the viral concentration normalized by the diameter-independent random variables (exhalation rate of the infected and viral load inside the infected). In `models.ExposureModel.long_range_deposited_exposure_between_bounds()` (and `models.ExposureModel.deposited_exposure_between_bounds()`) we first perform a Monte Carlo integration over $D$ of the product of 
-- the normalized long-range concentration  $\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{vR(D)}}$ (or short-range concentration $\frac{C_{0, \mathrm{SR}}(D)}{E_c(D)}$), retrieved from `models._ConcentrationModelBase.normed_integrated_concentration()` (or `models.ShortRangeModel._normed_jet_exposure_between_bounds()`)
-- the remaining diameter dependent variables, e.g. the deposition factor $f_{\mathrm{dep}}(D)$. 
-
-Thereafter we multiply by the vectors of Monte Carlo sampled values for the diameter-idependent random variables, and average to finally obtain a single floating point estimate of the dose. The computations are performed separately to estimate the dose exposure at long-range and short-range, before the resulting floats are added to finally compute $\mathrm{vD}^{\mathrm{total}}$. 
-
-
-<details>
-<summary>Independence Assumption</summary>
-
-Generally, for two random variables $X$ and $Y$ we have 
-
-$$E[X \cdot Y] = E[X] \cdot E[Y] + Cov[X, Y],$$
-
-where $E$ stands for the expected value and $Cov$ the covariance. If $X$ and $Y$ are uncorrelated, $Cov[X, Y]=0$. It follows from the definition of expected values that
-
-$$\int_{-\infty}^{\infty} X \cdot Y p_{X,Y}(X,Y)=\int_{-\infty}^{\infty} X p_{X}(X) \cdot \int_{-\infty}^{\infty} Y p_{Y}(Y).$$
-
-Consequently, we can Monte Carlo integrate over $D$ before averaging over the rest of the random variables, assuming they are independent.
-</details>
 
 
 ## Infection Probability
