@@ -47,7 +47,7 @@ E[Z \cdot Y] = E[Z] \cdot E[Y] + \operatorname{Cov}[Z, Y]
 $$
 
 for two random variables $Z$ and $Y$ ($E$ denotes the expected value and $\operatorname{Cov}$ covariance).
-Let $Z$ be a factor containing all variables depending on the particle diameter $D$ as well as the interpersonal distance $x$, and let $Y$ be a factor containing all the remaining random variables. Since we assume $Z$ and $Y$ are independent, the covariance between $Z$ and $Y$ is $0$. Consequently, the relation above reduces to $E[Z \cdot Y] = E[Z] \cdot E[Y]$, or equivalently
+Let $Z$ be a factor containing all variables depending on the particle diameter $D$ as well as the interpersonal distance $x$, and let $Y$ be a factor containing all the remaining random variables. Since we assume $Z$ and $Y$ are independent, the covariance between $Z$ and $Y$ is $0$. Consequently, equation (1) reduces to $E[Z \cdot Y] = E[Z] \cdot E[Y]$, or equivalently
 
 $$
 \begin{equation*}
@@ -58,23 +58,46 @@ $$
 Approximating the rightmost expression by Monte Carlo integration/averaging is more efficient than approximating the leftmost side by Monte Carlo integration/averaging. Hence, assuming $Z$ and $Y$ are independent will give better model performance. Faster computations is the motivation for factoring the viral concentration and dose exposure into diameter-dependent ($Z$) and diameter-independent ($Y$) components in the implementation of CAiMIRA in `caimira.calculator.models.models.py` (see below). 
 
 
-### Monte Carlo Integration and Averaging
+### Monte Carlo Integration over the Particle Diameter
 
-The viral **emission rate** – $\mathrm{vR}(D)$, **removal rate** – $\lambda_\mathrm{vRR}(D)$, **concentration** – $C(t, D)$, and **dose** $\mathrm{vD(D)}$ are considered for a given aerosol diameter $D$, as the behavior of the virus-laden particles in the room environment and inside the respiratory tract are diameter-dependent. For computational efficiency, $\mathrm{vR}(D)$, $\lambda_\mathrm{vRR}(D)$, $C(t, D)$, and $\mathrm{vD(D)}$ are factored into three components: the probability distribution of $D$, a diameter-independent component, and a residual diameter-dependent component. This factorization relies on assumptions about the independence of the underlying random variables (see below).
-
-The total, diameter-independent dose exposure $\mathrm{vD^{total}}$ is obtained by Monte Carlon integrating $\mathrm{vD(D)}$ over the particle diameter
+The viral **emission rate** – $\mathrm{vR}(D)$, **removal rate** – $\lambda_\mathrm{vRR}(D)$, **viral concentration** – $C(t, D)$, and **dose** $\mathrm{vD(D)}$ are considered for a given aerosol diameter $D$, as the behavior of the virus-laden particles in the room environment and inside the respiratory tract are diameter-dependent. To obtain the total total dose exposure $\mathrm{vD^{total}}$ we need sum together the contributions from all particles of all sizes, i.e. integrate over all particle diameters. Because the particle diameter is a random variable with an (assumed) known probability distribution $\mathrm{p}_D(D)$, the integral over $D$ can be approximated by Monte Carlo integration as 
 
 $$
 \begin{equation*}
 \mathrm{vD^{total}} 
 = \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{vD(D)} \mathrm{d}D
 = \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \frac{\mathrm{vD(D)}}{\mathrm{p}_D(D)} \cdot \mathrm{p}_D(D) \mathrm{d}D
+= E\left[\frac{\mathrm{vD(D)}}{\mathrm{p}_D(D)}\right]
 \approx \frac{1}{S}\sum_{i=1}^S \frac{\mathrm{vD(D_i)}}{\mathrm{p}_D(D_i)}
 \end{equation*}
 $$
 
-where $S$ is the number of samples of the particle diameter drawn from the probability distribution $\mathrm{p}_D(D)$. The probability of infection is computed from $\mathrm{vD^{total}}$. 
-Intermediate results for the total viral emission rate $\mathrm{vR}^{total}$, total viral removal rate $\mathrm{vRR}^{total}$, and total viral concentration $\mathrm{C(t)}^{total}$ can similarly be obtained by Monte Carlo integrating over the particle diameter. 
+where $E$ denotes expected value and $S$ is the number of samples of the particle diameter drawn from the probability distribution $\mathrm{p}_D(D)$. Following the same logic, intermediate results for the total viral emission rate $\mathrm{vR}^{total}$, total viral removal rate $\lambda_\mathrm{vRR}^{total}$, and total viral concentration $\mathrm{C(t)}^{total}$ can be computed as
+
+$$
+\begin{equation*}
+\mathrm{vR^{total}}
+\approx \frac{1}{S}\sum_{i=1}^S \frac{\mathrm{vR}(D_i)}{\mathrm{p}_D(D_i)}
+\end{equation*},
+$$
+
+$$
+\begin{equation*}
+\mathrm{\lambda_\mathrm{vRR}^\mathrm{total}}
+\approx \frac{1}{S}\sum_{i=1}^S \frac{\lambda_\mathrm{vRR}(D_i)}{\mathrm{p}_D(D_i)}
+\end{equation*},
+$$
+
+$$
+\begin{equation*}
+C^{total}(t)
+\approx \frac{1}{S}\sum_{i=1}^S \frac{C(t, D_i)}{\mathrm{p}_D(D_i)}
+\end{equation*}.
+$$
+
+We will see below that the most of the constituents in $\mathrm{p}_D(D)$ are linear factors of $\mathrm{vR}(D)$, $C(t, D)$, and $\mathrm{vD(D)}$, which greatly simplifies the computations. 
+
+## Model Stages
 
 This page describes the mathematical derivation and implementation of the CAiMIRA model. In the following, the `caimira.calculator.models.models.py` package is abbreviated as `models` and the `caimira.calculator.models.monte_carlo` package is abbreviated as `monte_carlo`.
 
