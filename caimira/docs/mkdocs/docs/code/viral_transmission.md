@@ -11,27 +11,31 @@ The CAiMIRA model has both deterministic and probabilistic parameters. Values an
 Some parameters are defined as constant values retrieved from `caimira.calculator.store.data_registry` or hardcoded into the model in `caimira.calculator.models.models.py`. Other parameters, like the room volume, are direcly specified by the user. The remaining paramteres are determined by combining user input and litterature. For example, the user specifies the virus variant and then the litterature-determined transmissibility factor of that specific variant is retrieved from `caimira.calculator.store.data_registry`. 
 
 ### Distribution of Random Variables
-The table below lists the parameters that are treated as random variables in CAiMIRA. The probability distribution for each random variable is informed by litterature (see `caimira.calculator.store.data_registry` for details). The rightmost column lists the event-specific parameters (defined by the user) that affect the parameters of the probability distribution.
+The table below lists the parameters that are treated as random variables in CAiMIRA. The type of probability distribution for each random variable is decided from litterature (see `caimira.calculator.store.data_registry` for details), and rightmost column lists which input parameters set by the user that affect the parameters of the probability distribution.
 
 of the probability distributions are specified for each scenario by the user input.
 
 | Random Variable | Symbol | Probability Distribution| Dependent User Parameters |
 |-------------|--------|-------|-------|
-| Particle diameter | $D$ | Log-normal mixture | Expirational activity of the infected, long-range or short-range interaction |
-| Interpersonal distance | $x$ | Log-normal | None<sup>1</sup> |
-| Viral load inside the infected | $\mathrm{vl_{in}}$ | Gaussian Kernel density estimation from dataset | None<sup>2,3</sup> |
-| Viable to RNA ratio | $\mathrm{r_{in}}$ | Uniform | None<sup>2,3</sup> |
-| Infectious Dose | $\mathrm{ID}_{50}$ | Uniform | None<sup>2</sup> |
-| Exhalation rate of the infected | $\mathrm{BR_{k,out}}$ | log-normal distribution | Physical activity of the infected | 
-| Inhalation rate of the exposed | $\mathrm{BR_{k,in}}$ | log-normal distribution | Physical activity of the exposed |
-| Face mask efficiency of the infected | $\eta_{\mathrm{out}}$ | Uniform | Type of face mask |
-| Face mask efficiency of the exposed | $\eta_{\mathrm{in}}$ | Uniform | Type of face mask |
+| Particle diameter | $D$ | Log-normal mixture | Expirational activity of the infected, long-range or short-range interaction<sup>1</sup> |
+| Interpersonal distance | $x$ | Log-normal | None<sup>2</sup> |
+| Viral load inside the infected | $\mathrm{vl_{in}}$ | Gaussian Kernel density estimation from dataset | None<sup>3,4</sup> |
+| Viable to RNA ratio | $\mathrm{r_{in}}$ | Uniform | None<sup>3,4</sup> |
+| Infectious Dose | $\mathrm{ID}_{50}$ | Uniform | None<sup>3</sup> |
+| Exhalation rate (infected) | $\mathrm{BR_{k,out}}$ | log-normal distribution | Physical activity of the infected | 
+| Inhalation rate (exposed) | $\mathrm{BR_{k,in}}$ | log-normal distribution | Physical activity of the exposed |
+| Outwards face mask efficiency (infected's face mask) | $\eta_{\mathrm{out}}$ | Uniform<sup>5</sup> | Type of face mask |
+| Inwards face mask efficiency (exposed's face mask) | $\eta_{\mathrm{in}}$ | Uniform | Type of face mask |
 
-<sup>1</sup>The interpersonal distance is only a parameter in CAiMIRA when modeling short-range interactions.
+<sup>1</sup>The probability distribution of $D$ is truncated using limits that differ between long-range and short-range interactions. The truncation limits are determined solely by the interaction type (long-range or short-range) and not on the exact interpersonal distance.
 
-<sup>2</sup>Theorietically, the parameters for these probability distribtuions may depend on the virus variant. However, every (COVID-19) virus variants currently implemented is assumed to yield the same viral load, viable to RNA ratio, and infectious dose.
+<sup>2</sup>The interpersonal distance is only a parameter in CAiMIRA when including short-range interactions.
 
-<sup>3</sup>In the future, the product of the viral load and viable to RNA ratio will be replaced by a function sampling values for the viable viral load. By accounting for symptomatic stage of the infected, the new function will reduce the variability of the samples.
+<sup>3</sup>Theorietically, the parameters for these probability distribtuions may depend on the virus variant. However, every (COVID-19) virus variants currently implemented is assumed to yield the same viral load, viable to RNA ratio, and infectious dose.
+
+<sup>4</sup>In the future, the product of the viral load and viable to RNA ratio will be replaced by a function sampling values for the viable viral load. By accounting for symptomatic stage of the infected, the new function will reduce the variability of the samples.
+
+<sup>5</sup>The outwards face mask efficiency may either be sampled from a uniform distribution, as indicated above, or a function of the particle diameter. In the latter case, the outwards face mask efficiency should only be considered a function of $D$ and not a separate random variable.
 
 We Monte Carlo integrate over the particle diameter (see below). The remaining random variables are Monte Carlo averaged to approximate the expected values.
 
@@ -96,6 +100,175 @@ C^{total}(t)
 $$
 
 We will see below that the most of the constituents in $\mathrm{p}_D(D)$ are linear factors of $\mathrm{vR}(D)$, $C(t, D)$, and $\mathrm{vD(D)}$, which greatly simplifies the computations. 
+
+### Expected Results
+In the end, we wish to know the *expected* infected probability, number of new cases, etc. To obtain these results, we need to know the expected dose exposure. Lets first define the notation $E_{Z_1, Z_2, ...}$ as the operation of taking the expected value of a function of the random variables $Z_1$, $Z_2$, .... That is,
+
+$$
+\begin{equation*}
+E_{Z_1, Z_2, ...}[f(Z_1, Z_2, ...)] = \int_{-\infty}^{\infty}f(z_1, z_2, ...) \cdot p_{Z_1, Z_2, ...}(z_1, z_2, ...) dz_1dz_2...
+\end{equation*}
+$$
+
+The total dose exposure $\mathrm{vD^{total}}$ is a function of the following random variables: Interpersonal distance $x$, viral load inside the infected $\mathrm{vl_{in}}$, viable to RNA ratio $\mathrm{r_{in}}$, exhalation rate of the infected $\mathrm{BR_{k,out}}$, inhalation rate of the exposed $\mathrm{BR_{k,in}}$, outwards face mask efficiency of the infected $\eta_{\mathrm{out}}$, and inwards face mask efficiency of the exposed $\eta_{\mathrm{in}}$. Taking the expected value over all these random variables, we obtain the expected total dose exposure
+
+$$
+\begin{equation*}
+\widehat{\mathrm{vD^{total}}} = \mathbf{E_{\mathrm{vl_{in}}, \mathrm{r_{in}}, \mathrm{BR_{k,out}}, \mathrm{BR_{k,in}}, \eta_{\mathrm{out}}, \eta_{\mathrm{in}}}}[\mathrm{vD^{total}}]
+\end{equation*}.
+$$
+
+Lets simplify the notation as
+
+$$
+\begin{equation*}
+\widehat{\mathrm{vD^{total}}} = \mathbf{E_{\mathrm{rv}}}[\mathrm{vD^{total}}]
+\end{equation*}.
+$$
+
+We get
+
+$$
+\begin{align*}
+\widehat{\mathrm{vD^{total}}}
+&=\mathbf{E_{\mathrm{rv}}}\left[\int_{-\infty}^{\infty} \mathrm{vD(D)} \mathrm{d}D\right]\\
+&=\mathbf{E_{\mathrm{rv}}}\left[\int_{-\infty}^{\infty}\left(\mathrm{vD}_{\mathrm{LR}}(D) + \sum_{i=1}^{n_\mathrm{SR}}\mathrm{vD}_{\mathrm{SR-LR},i}(D)\right)\mathrm{d}D \right]\\
+&=\mathbf{E_{\mathrm{rv}}}\left[\int_{-\infty}^{\infty}\mathrm{vD}_{\mathrm{LR}}(D)\mathrm{d}D \right]+\sum_{i=1}^{n_\mathrm{SR}}\mathbf{E_{\mathrm{rv}}}\left[\int_{-\infty}^{\infty}\mathrm{vD}_{\mathrm{SR-LR},i}(D)\mathrm{d}D \right]\\
+&=\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}+\sum_{i=1}^{n_\mathrm{SR}}\widehat{\mathrm{vD^{total}}_{\mathrm{SR-LR},i}}\\
+\end{align*}
+$$
+
+Lets consider the first term - the expected long-range dose component - first. We get
+
+$$
+\begin{align*}
+\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}
+&=\mathbf{E_{\mathrm{rv}}}\left[\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\mathrm{vD}_{\mathrm{LR}}(D)\mathrm{d}D \right]\\
+&=\mathbf{E_{\mathrm{rv}}}\left[\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\left(\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k,in}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})\right)\mathrm{d}D \right].
+\end{align*}
+$$
+
+Recall that the long-range concentration $C_{\mathrm{LR}} (t, D)$ has the emission rate
+
+$$
+\begin{equation*}
+\mathrm{vR}(D)= \mathrm{BR}_{\mathrm{k,in}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot E_c(D)
+\end{equation*}
+$$
+
+as a linear component. The diameter-dependent component of the emission rate is
+
+$$
+\begin{equation*}
+E_{c}(D)= N_p(D) \cdot V_p(D) \cdot (1 − η_\mathrm{out}(D))
+\end{equation*}.
+$$
+
+Therefore, the long-range concentration can be factored as
+
+$$
+\begin{equation*}
+C_{\mathrm{LR}} (t, D)=\left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right] \cdot \left[\frac{\mathrm{vR}(D)}{E_{c}(D)}\right]
+\end{equation*}
+$$
+
+where the first component 
+$$
+\begin{equation*}
+\left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right]
+\end{equation*}
+$$
+is a function of the particle diameter and no other random variables. The second component
+
+$$
+\begin{equation*}
+\frac{\mathrm{vR}(D)}{E_{c}(D)} = \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf})
+\end{equation*}
+$$
+
+is a function of all random variables except the particle diameter. Inserting the factorized concentration into the equationg for the long-range dose component we see that
+
+$$
+\begin{align*}
+\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}
+&=\mathbf{E_{\mathrm{rv}}}\left[\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot \left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right]\;\ {d}t \cdot f_{\mathrm{dep}}(D) \mathrm{d}D \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right]\\
+&=\mathbf{E_{\mathrm{rv}}}\left[B \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right]\\
+&=B \cdot \mathbf{E_{\mathrm{rv}}}\left[\mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right].
+\end{align*}
+$$
+
+where the final equality is valid because
+$$
+\begin{align*}
+B
+&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot \left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right]\;\ {d}t \cdot f_{\mathrm{dep}}(D) \mathrm{d}D
+\end{align*}.
+$$
+
+is constant. Recognize that 
+
+$$
+\begin{align*}
+B
+&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D)}{\mathrm{vR}(D)} \cdot E_{c}(D) \mathrm{d}D\\
+&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D)}{\mathrm{vR}(D)} \cdot  V_p(D) \cdot (1 − η_\mathrm{out}(D)) \cdot K \cdot \mathrm{p}_D(D)\mathrm{d}D,
+\end{align*}
+$$
+
+where 
+
+$$
+\begin{equation*}
+K=\int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} N_p(D) \mathrm{d}D
+\end{equation*}.
+$$
+
+is a constant ensuring that 
+
+$$
+\begin{equation*}
+\mathrm{p}_D(D)=\frac{N_p(D)}{K}
+\end{equation*}
+$$
+
+truncated between $D_\mathrm{min}$ and $D_\mathrm{min}$ is a valid probability distribution for $D$. 
+Therefore, $B$ can be approximated by Monte Carlo integration, i.e. we draw $S_D$ samples of $D$ from $\mathrm{p}_D(D)$ and compute
+
+$$
+\begin{equation*}
+B \approx \sum_{i=1}^{S_D} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D_i) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D_i)}{\mathrm{vR}(D_i)} \cdot  V_p(D_i) \cdot (1 − η_\mathrm{out}(D_i)) \cdot K.
+\end{equation*}
+$$
+
+Following similar logic, we approximate
+
+$$
+\begin{aligned}
+\mathbf{E}_{\mathrm{rv}}\!\Big[
+&\mathrm{BR}_{\mathrm{k,out}}
+\cdot \mathrm{vl}_{\mathrm{inf}}
+\cdot \mathrm{r}_{\mathrm{inf}}
+\cdot (1-\mathrm{HI}_{\mathrm{inf}})
+\cdot \mathrm{BR}_{\mathrm{k,in}}
+\cdot (1-\eta_{\mathrm{in}})
+\Big] \\
+&\approx
+\frac{1}{S_{\mathrm{rv}}}
+\sum_{i=1}^{S_{\mathrm{rv}}}
+\mathrm{BR}_{\mathrm{k,out},i}
+\cdot \mathrm{vl}_{\mathrm{inf},i}
+\cdot \mathrm{r}_{\mathrm{inf},i}
+\cdot (1-\mathrm{HI}_{\mathrm{inf},i})
+\cdot \mathrm{BR}_{\mathrm{k,in},i}
+\cdot (1-\eta_{\mathrm{in},i})
+\end{aligned}
+$$
+
+by drawing $S_\mathrm{rv}$ samples from the joint probability distribution $\mathrm{p}_\mathrm{rv}(\mathrm{BR}_{\mathrm{k,out}},\mathrm{vl_{inf}},\mathrm{r_{inf}},\mathrm{HI}_\mathrm{inf},\mathrm{BR}_{\mathrm{k,in}},\eta_{\mathrm{in}})$. Actually, we do not know the joint distribution of all these random variables - we only assume to know the marginal distributions. Therefore, the samples are generated from the marginal distributions. This procedure assumes that all the random variables are mutually independent. 
+
+Lets summarize what we just did. We factored the total expected long-range dose exposure into two components: An integral over the particle diameter and an expected value over all remaining random variables. This factorization improves the computational performance of the model by avioiding nested summations. 
+
+Similarly, we can compute the expecteded short-range dose component, viral concentration, emission rate, and removal rate.
 
 ## Model Stages
 
