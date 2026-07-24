@@ -151,14 +151,6 @@ $$
 \end{equation*},
 $$
 
-with diameter-dependent component
-
-$$
-\begin{equation*}
-E_{c}(D)= N_p(D) \cdot V_p(D) \cdot (1 − η_\mathrm{out}(D))
-\end{equation*},
-$$
-
 can be factored out of the long-range concentration $C_{\mathrm{LR}} (t, D)$. We factor
 
 $$
@@ -167,13 +159,13 @@ C_{\mathrm{LR}} (t, D)=\left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot
 \end{equation*}
 $$
 
-so that the first component 
+so that only the first component is
 $$
 \begin{equation*}
 \left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right]
 \end{equation*}
 $$
-is a function of the particle diameter and no other random variables. The second component
+whereas the second component
 
 $$
 \begin{equation*}
@@ -181,45 +173,107 @@ $$
 \end{equation*}
 $$
 
-is a function of all random variables except the particle diameter. Inserting the factorized concentration into the equationg for the long-range dose component we see that
+is not a function of the particle diameter. Inserting the factorized concentration into the equationg for the long-range dose component we see that
 
 $$
 \begin{align*}
 \widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}
 &=\mathbf{E_{\mathrm{rv}}}\Big[\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot \left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right]\;\ {d}t \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D \\
 & \quad \quad \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \Big]\\
-&=\mathbf{E_{\mathrm{rv}}}\left[B \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right].
+&=\mathbf{E_{\mathrm{rv}}}\left[B(\cdot) \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right].
 \end{align*}
 $$
 
-We can express
+for 
+$$
+\begin{align*}
+B(\cdot)
+&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot \left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right]\;\ {d}t \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D \\
+&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D)}{\mathrm{vR}(D)} \cdot E_{c}(D) \;\ \mathrm{d}D.
+\end{align*}
+$$
+
+Where the notation $B(\cdot)$ is meant to indicate that $B$ may either be a function or a constant value, depending on wheter $η_\mathrm{out}$ is a separate random variable or a fuction of the particle diameter. It follows from the definition of $E_{c}(D)$ and the probability distribution of the particle diameter $\mathrm{p}_D(D)$ that
+
+$$
+E_{c}(D) =
+\begin{cases} 
+V_p(D) \cdot (1 − η_\mathrm{out}) \cdot K \cdot \mathrm{p}_D(D) \hspace{9.5mm} \mathrm{if} \quad η_\mathrm{out} \sim \mathrm{Uniform},\\
+V_p(D) \cdot (1 − η_\mathrm{out}(D)) \cdot K \cdot \mathrm{p}_D(D) \quad  \mathrm{else}.
+\end{cases}
+$$
+
+Consequently, if $η_\mathrm{out}$ is a separate random variable then
+
+$$
+\begin{align*}
+B(η_\mathrm{out})
+&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D)}{\mathrm{vR}(D)} \cdot  V_p(D) \cdot (1 − η_\mathrm{out}) \cdot K \cdot \mathrm{p}_D(D)\;\ \mathrm{d}D \\
+&=(1 − η_\mathrm{out}) \cdot \int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D)}{\mathrm{vR}(D)} \cdot  V_p(D) \cdot K \cdot \mathrm{p}_D(D)\;\ \mathrm{d}D.
+\end{align*}
+$$
+
+Alternatively, $η_\mathrm{out}$ is a function of $D$ so
+
 $$
 \begin{align*}
 B
-&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot \left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right]\;\ {d}t \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D \\
-&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D)}{\mathrm{vR}(D)} \cdot E_{c}(D) \;\ \mathrm{d}D\\
-&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D)}{\mathrm{vR}(D)} \cdot  V_p(D) \cdot (1 − η_\mathrm{out}(D)) \cdot K \cdot \mathrm{p}_D(D)\;\ \mathrm{d}D,
+&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D)}{\mathrm{vR}(D)} \cdot  V_p(D) \cdot (1 − η_\mathrm{out}(D)) \cdot K \cdot \mathrm{p}_D(D)\;\ \mathrm{d}D.
 \end{align*}
 $$
 
-where 
+is a constant. If $B$ is a constant, then
+
+$$
+\begin{align*}
+\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}
+&=\mathbf{E_{\mathrm{rv}}}\left[B \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right]\\
+&=B \cdot \mathbf{E_{\mathrm{rv}}}\left[\mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right].
+\end{align*}
+$$
+
+Otherwise, if $B$ is a function of $η_\mathrm{out}$ we need to assume that $B$ is independent of $\mathrm{BR}_{\mathrm{k,out}}$, $\mathrm{vl_{inf}}$, $\mathrm{r_{inf}}$, $\mathrm{HI}_\mathrm{inf}$, and $\mathrm{BR}_{\mathrm{k,in}}$ to factor
+
+$$
+\begin{align*}
+\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}
+&=\mathbf{E_{\mathrm{rv}}}\left[B(η_\mathrm{out}) \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right]\\
+&=\mathbf{E_{η_\mathrm{out}}}[B(η_\mathrm{out})] \cdot \mathbf{E_{\mathrm{BR}_{\mathrm{k,out}},\mathrm{vl_{inf}},\mathrm{r_{inf}},\mathrm{HI}_\mathrm{inf},\mathrm{BR}_{\mathrm{k,in}},\eta_{\mathrm{in}}}}\left[\mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right].
+\end{align*}
+$$
+
+In summary, we have derived the following definition of the expected long-range dose exposure
+
+$$
+\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}} =
+\begin{cases} 
+\mathbf{E_{η_\mathrm{out}}}[B(η_\mathrm{out})] \cdot \mathbf{E_{\mathrm{rv}}}\left[\mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right] 
+\quad \mathrm{if} \quad η_\mathrm{out} \sim \mathrm{Uniform},\\
+B \cdot \mathbf{E_{\mathrm{rv}}}\left[\mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right] 
+\hspace{5.15cm} \mathrm{else}.
+\end{cases}
+$$
+
+only by assuming $η_\mathrm{out}$ is independent of all other random variables, if it is a separate random variable. For both definitions of $η_\mathrm{out}$, we have managed to gather all variables depending on the particle diameter in an integral over $D$ that contains no other random variables. Thereby, we using Monte Carlo sampling techniques to approximate the expected values and Monte Carlo integral over $D$. 
+
+Drawing and $S_{η_\mathrm{out}}$ samples of $η_\mathrm{out}$ from the distribution of $η_\mathrm{out}$, we approximate
 
 $$
 \begin{equation*}
-K=\int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} N_p(D) \;\ \mathrm{d}D
-\end{equation*}.
-$$
-
-is a constant ensuring that 
-
-$$
-\begin{equation*}
-\mathrm{p}_D(D)=\frac{N_p(D)}{K}
+\mathbf{E_{η_\mathrm{out}}}[η_\mathrm{out}] \approx \frac{1}{S_{η_\mathrm{out}}} \sum_{i=1}^{S_{η_\mathrm{out}}} η_{\mathrm{out},i}.
 \end{equation*}
 $$
 
-truncated between $D_\mathrm{min}$ and $D_\mathrm{min}$ is a valid probability distribution for $D$. 
-In conclusion, $B$ can be approximated by Monte Carlo integration, i.e. we draw $S_D$ samples of $D$ from $\mathrm{p}_D(D)$ to compute
+
+Drawing $S_D$ samples of $D$ from $\mathrm{p}_D(D)$, we Monte Carlo integrate
+
+$$
+\begin{equation*}
+\mathbf{E_{η_\mathrm{out}}}[B(η_\mathrm{out})] \approx (1 − \mathbf{E_{η_\mathrm{out}}}[η_\mathrm{out}]) \cdot \sum_{i=1}^{S_D} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D_i) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D_i)}{\mathrm{vR}(D_i)} \cdot  V_p(D_i) \cdot K
+\end{equation*}.
+$$
+
+or, if $η_\mathrm{out}$ is not a random variable
 
 $$
 \begin{equation*}
@@ -227,18 +281,7 @@ B \approx \sum_{i=1}^{S_D} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mat
 \end{equation*}
 $$
 
-Because $B$ is a constant
-
-$$
-\begin{align*}
-\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}
-
-&=\mathbf{E_{\mathrm{rv}}}\left[B \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right]\\
-&=B \cdot \mathbf{E_{\mathrm{rv}}}\left[\mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right].
-\end{align*}
-$$
-
-The expected value can also be approximated by Monte Carlo sampling: We draw $S_\mathrm{rv}$ samples from the joint probability distribution $\mathrm{p}_\mathrm{rv}(\mathrm{BR}_{\mathrm{k,out}},\mathrm{vl_{inf}},\mathrm{r_{inf}},\mathrm{HI}_\mathrm{inf},\mathrm{BR}_{\mathrm{k,in}},\eta_{\mathrm{in}})$ and compute
+Finally, we draw $S_\mathrm{rv}$ samples from the joint probability distribution $\mathrm{p}_\mathrm{rv}(\mathrm{BR}_{\mathrm{k,out}},\mathrm{vl_{inf}},\mathrm{r_{inf}},\mathrm{HI}_\mathrm{inf},\mathrm{BR}_{\mathrm{k,in}},\eta_{\mathrm{in}})$ to compute
 
 $$
 \begin{aligned}
@@ -249,8 +292,8 @@ $$
 \cdot (1-\mathrm{HI}_{\mathrm{inf}})
 \cdot \mathrm{BR}_{\mathrm{k,in}}
 \cdot (1-\eta_{\mathrm{in}})
-\Big] \\
-&\approx
+\Big]
+\approx
 \frac{1}{S_{\mathrm{rv}}}
 \sum_{i=1}^{S_{\mathrm{rv}}}
 \mathrm{BR}_{\mathrm{k,out},i}
@@ -264,7 +307,49 @@ $$
 
 However, we do not know the joint distribution of all these random variables - we only know the marginal distributions. Therefore, the samples are generated from the marginal distributions. This procedure assumes that all the random variables are mutually independent. 
 
-Lets summarize what we just did. We factored the total expected long-range dose exposure into two components: An integral over the particle diameter and an expected value over all remaining random variables. This factorization improves the computational performance of the model by avioiding nested summations. 
+In the end, we are left with the assumption that all random variables are mutually independent and the Monte Carlo approximation
+
+$$
+\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}} =
+\begin{cases} 
+\Big(
+    1 − \frac{1}{S_{η_\mathrm{out}}} \sum_{i=1}^{S_{η_\mathrm{out}}} η_{\mathrm{out},i}
+\Big) 
+\cdot 
+\Big[
+    \sum_{i=1}^{S_D} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D_i) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D_i)}{\mathrm{vR}(D_i)} \cdot  V_p(D_i) \cdot K
+\Big]
+\cdot 
+\Big[
+    \frac{1}{S_{\mathrm{rv}}}
+    \sum_{i=1}^{S_{\mathrm{rv}}}
+    \mathrm{BR}_{\mathrm{k,out},i}
+    \cdot \mathrm{vl}_{\mathrm{inf},i}
+    \cdot \mathrm{r}_{\mathrm{inf},i}
+    \cdot (1-\mathrm{HI}_{\mathrm{inf},i})
+    \cdot \mathrm{BR}_{\mathrm{k,in},i}
+    \cdot (1-\eta_{\mathrm{in},i})
+\Big]
+\quad \mathrm{if} \quad η_\mathrm{out} \sim \mathrm{Uniform},\\
+\Big[
+    \sum_{i=1}^{S_D} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D_i) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D_i)}{\mathrm{vR}(D_i)} \cdot  V_p(D_i) \cdot (1 − η_\mathrm{out}(D_i)) \cdot K
+\Big]
+\cdot
+\Big[
+    \frac{1}{S_{\mathrm{rv}}}
+    \sum_{i=1}^{S_{\mathrm{rv}}}
+    \mathrm{BR}_{\mathrm{k,out},i}
+    \cdot \mathrm{vl}_{\mathrm{inf},i}
+    \cdot \mathrm{r}_{\mathrm{inf},i}
+    \cdot (1-\mathrm{HI}_{\mathrm{inf},i})
+    \cdot \mathrm{BR}_{\mathrm{k,in},i}
+    \cdot (1-\eta_{\mathrm{in},i})
+\Big]
+\hspace{2.2cm} \mathrm{else}.
+\end{cases}
+$$
+
+Lets summarize what we just did. We factored the total expected long-range dose exposure into an integral over the particle diameter and expected values over all remaining random variables. This factorization improves the computational performance of the model by avioiding nested summations. 
 
 Similarly, we can compute the expecteded short-range dose component, viral concentration, emission rate, and removal rate.
 
