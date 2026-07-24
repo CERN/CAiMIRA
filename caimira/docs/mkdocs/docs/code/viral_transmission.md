@@ -6,14 +6,16 @@ This page details the modelling of viral transmission. The modelling of CO<sub>2
 *Figure 1: Structure of the CAiMIRA model showing the viral transmission and CO<sub>2</sub> simulation processes.*
 
 ## Model Parameters
-The CAiMIRA model has both deterministic and probabilistic parameters. Values and probability distrubutions for the paramters are stored in `caimira.calculator.store.data_registry`. 
+We can devide the parameters of the CAiMIRA model into four categories:
+1. Constant deterministic values
+2. Random variables with constant probability distributions
+3. Adjustable deterministic values
+4. Random variables with adjustable probability distribution
+The two first categories of parameters are "constant" in the sense that they are not adjusted by the user for each specific scenario. The latter two categories are, on the other hand, influenced by user input. Deterministic parameters are treated as single int or float numbers.
 
-Some parameters are defined as constant values retrieved from `caimira.calculator.store.data_registry` or hardcoded into the model in `caimira.calculator.models.models.py`. Other parameters, like the room volume, are direcly specified by the user. The remaining paramteres are determined by combining user input and litterature. For example, the user specifies the virus variant and then the litterature-determined transmissibility factor of that specific variant is retrieved from `caimira.calculator.store.data_registry`. 
+Constant deterministic values are retrieved from `caimira.calculator.store.data_registry` or hardcoded into the model in `caimira.calculator.models.models.py`. Adjustable deterministic variables, like the room volume, are direcly specified by the user.
 
-### Distribution of Random Variables
-The table below lists the parameters that are treated as random variables in CAiMIRA. The type of probability distribution for each random variable is decided from litterature (see `caimira.calculator.store.data_registry` for details), and rightmost column lists which input parameters set by the user that affect the parameters of the probability distribution.
-
-of the probability distributions are specified for each scenario by the user input.
+Random variables are Monte Carlo sampled from probability distributions and stored as _VectorisedFloat or _VectorisedInt. Every random variable is sampled from fixed type of probability distribution defined in `caimira.calculator.store.data_registry`. The table below lists all random variables in CAiMIRA together with the type of probability distribution they are sampled from and, if the probability distribution is adjustable, which user parameters influence the parameters of the probability distribution.
 
 | Random Variable | Symbol | Probability Distribution| Dependent User Parameters |
 |-------------|--------|-------|-------|
@@ -37,7 +39,9 @@ of the probability distributions are specified for each scenario by the user inp
 
 <sup>5</sup>The outwards face mask efficiency may either be sampled from a uniform distribution, as indicated above, or a function of the particle diameter. In the latter case, the outwards face mask efficiency should only be considered a function of $D$ and not a separate random variable.
 
-We Monte Carlo integrate over the particle diameter (see below). The remaining random variables are Monte Carlo averaged to approximate the expected values.
+See `caimira.calculator.store.data_registry` for literature references supporting the parameter definitions.
+
+We Monte Carlo integrate over the particle diameter (see below). The remaining random variables are Monte Carlo averaged to approximate the expected values of the results.
 
 ### Separation of Random Variables
 We improve computational performance by assuming that the particle diameter $D$ and the interpersonal distance $x$ are independent of all the other random variables. 
@@ -101,26 +105,23 @@ $$
 
 We will see below that the most of the constituents in $\mathrm{p}_D(D)$ are linear factors of $\mathrm{vR}(D)$, $C(t, D)$, and $\mathrm{vD(D)}$, which greatly simplifies the computations. 
 
-### Expected Results
-In the end, we wish to know the *expected* infected probability, number of new cases, etc. To obtain these results, we need to know the expected dose exposure. Lets first define the notation $\mathbf{E_{\mathrm{rv}}}[\mathrm{vD^{total}}]$ as the operation of taking the expected value of a function of all the random variables in CAiMIRA.
+### Computation of Expected Results
+The perhaps most interesting result computed by CAiMIRA is the *expected* individual infection probability. The individual infection probability is the probability that a specific exposed becomes infected conditioned on a dose $\mathrm{vD^{total}}$ being deposited in their resporatory tract and the infectious dose being $\mathrm{ID}_{50}$, i.e. the probability $P(I|\mathrm{vD^{total}}, \mathrm{ID}_{50})$ defined by Henriques et al. (2022). Because this probability is already conditioned on specific values of $\mathrm{vD^{total}}$ and $\mathrm{ID}_{50}$, we need to know the expected values of $\mathrm{vD^{total}}$ and $\mathrm{ID}_{50}$ before computing $P(I|\mathrm{vD^{total}}, \mathrm{ID}_{50})$. Computing the expected value of $\mathrm{ID}_{50}$ is easy - it is simply the expected value of a the uniform distribution it follows. 
+
+Computing the expected value of $\mathrm{vD^{total}}$ is more intricate because it is a funciton of all the random variables
+$\mathrm{vl_{inf}}$,
+$\mathrm{r_{inf}}$,
+$\mathrm{BR_{k,out}}$,
+$\mathrm{BR_{k,in}}$, and
+$\eta_{\mathrm{in}}$.
+Furthermore, if $\eta_{\mathrm{out}}$ is a random variable and not a function of the particle diameter, $\mathrm{vD^{total}}$ will also be a function of $\eta_{\mathrm{out}}$. 
+If short-range interactions are included, $\mathrm{vD^{total}}$ will also be a function of one more random variable: the interpersonal distance $x$. Finally, while $\mathrm{vD^{total}}$ is not a function of the particle diameter $D$, computing $\mathrm{vD^{total}}$ requires Monte Carlo integrating over $D$. 
+
+Lets first define the expected value of $\mathrm{vD^{total}}$ as $\widehat{\mathrm{vD^{total}}} = \mathbf{E_{\mathrm{rv}}}[\mathrm{vD^{total}}]$, so  $\mathbf{E_{\mathrm{rv}}}$ is the operation of taking the expected value over all the random variables $\mathrm{vD^{total}}$ is a function of.
 
 The total dose exposure $\mathrm{vD^{total}}$ is a function of the following random variables: Interpersonal distance $x$, viral load inside the infected $\mathrm{vl_{inf}}$, viable to RNA ratio $\mathrm{r_{inf}}$, exhalation rate of the infected $\mathrm{BR_{k,out}}$, inhalation rate of the exposed $\mathrm{BR_{k,in}}$, and inwards face mask efficiency of the exposed $\eta_{\mathrm{in}}$. Taking the expected value over all these random variables, we obtain the expected total dose exposure
 
-$$
-\begin{equation*}
-\widehat{\mathrm{vD^{total}}} = \mathbf{E_{\mathrm{vl_{inf}}, \mathrm{r_{inf}}, \mathrm{BR_{k,out}}, \mathrm{BR_{k,in}} \eta_{\mathrm{in}}}}[\mathrm{vD^{total}}]
-\end{equation*}.
-$$
-
-Lets simplify the notation as
-
-$$
-\begin{equation*}
-\widehat{\mathrm{vD^{total}}} = \mathbf{E_{\mathrm{rv}}}[\mathrm{vD^{total}}]
-\end{equation*}.
-$$
-
-We get
+Using the definition of $\mathrm{vD^{total}}$, we get
 
 $$
 \begin{align*}
@@ -142,23 +143,23 @@ $$
 \end{align*}
 $$
 
-Recall that the long-range concentration $C_{\mathrm{LR}} (t, D)$ has the emission rate
+Recall that the emission rate
 
 $$
 \begin{equation*}
 \mathrm{vR}(D)= \mathrm{BR}_{\mathrm{k,in}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot E_c(D)
-\end{equation*}
+\end{equation*},
 $$
 
-as a linear component. The diameter-dependent component of the emission rate is
+with diameter-dependent component
 
 $$
 \begin{equation*}
 E_{c}(D)= N_p(D) \cdot V_p(D) \cdot (1 − η_\mathrm{out}(D))
-\end{equation*}.
+\end{equation*},
 $$
 
-Therefore, the long-range concentration can be factored as
+can be factored out of the long-range concentration $C_{\mathrm{LR}} (t, D)$. We factor
 
 $$
 \begin{equation*}
@@ -166,7 +167,7 @@ C_{\mathrm{LR}} (t, D)=\left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot
 \end{equation*}
 $$
 
-where the first component 
+so that the first component 
 $$
 \begin{equation*}
 \left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right]
@@ -187,24 +188,15 @@ $$
 \widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}
 &=\mathbf{E_{\mathrm{rv}}}\Big[\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot \left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right]\;\ {d}t \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D \\
 & \quad \quad \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \Big]\\
-&=\mathbf{E_{\mathrm{rv}}}\left[B \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right]\\
-&=B \cdot \mathbf{E_{\mathrm{rv}}}\left[\mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right].
+&=\mathbf{E_{\mathrm{rv}}}\left[B \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right].
 \end{align*}
 $$
 
-where the final equality is valid because
+We can express
 $$
 \begin{align*}
 B
-&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot \left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right]\;\ {d}t \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D
-\end{align*}.
-$$
-
-is constant. Recognize that 
-
-$$
-\begin{align*}
-B
+&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot \left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right]\;\ {d}t \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D \\
 &=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D)}{\mathrm{vR}(D)} \cdot E_{c}(D) \;\ \mathrm{d}D\\
 &=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D)}{\mathrm{vR}(D)} \cdot  V_p(D) \cdot (1 − η_\mathrm{out}(D)) \cdot K \cdot \mathrm{p}_D(D)\;\ \mathrm{d}D,
 \end{align*}
@@ -227,7 +219,7 @@ $$
 $$
 
 truncated between $D_\mathrm{min}$ and $D_\mathrm{min}$ is a valid probability distribution for $D$. 
-Therefore, $B$ can be approximated by Monte Carlo integration, i.e. we draw $S_D$ samples of $D$ from $\mathrm{p}_D(D)$ and compute
+In conclusion, $B$ can be approximated by Monte Carlo integration, i.e. we draw $S_D$ samples of $D$ from $\mathrm{p}_D(D)$ to compute
 
 $$
 \begin{equation*}
@@ -235,7 +227,18 @@ B \approx \sum_{i=1}^{S_D} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mat
 \end{equation*}
 $$
 
-Following similar logic, we approximate
+Because $B$ is a constant
+
+$$
+\begin{align*}
+\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}
+
+&=\mathbf{E_{\mathrm{rv}}}\left[B \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right]\\
+&=B \cdot \mathbf{E_{\mathrm{rv}}}\left[\mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right].
+\end{align*}
+$$
+
+The expected value can also be approximated by Monte Carlo sampling: We draw $S_\mathrm{rv}$ samples from the joint probability distribution $\mathrm{p}_\mathrm{rv}(\mathrm{BR}_{\mathrm{k,out}},\mathrm{vl_{inf}},\mathrm{r_{inf}},\mathrm{HI}_\mathrm{inf},\mathrm{BR}_{\mathrm{k,in}},\eta_{\mathrm{in}})$ and compute
 
 $$
 \begin{aligned}
@@ -259,7 +262,7 @@ $$
 \end{aligned}
 $$
 
-by drawing $S_\mathrm{rv}$ samples from the joint probability distribution $\mathrm{p}_\mathrm{rv}(\mathrm{BR}_{\mathrm{k,out}},\mathrm{vl_{inf}},\mathrm{r_{inf}},\mathrm{HI}_\mathrm{inf},\mathrm{BR}_{\mathrm{k,in}},\eta_{\mathrm{in}})$. Actually, we do not know the joint distribution of all these random variables - we only assume to know the marginal distributions. Therefore, the samples are generated from the marginal distributions. This procedure assumes that all the random variables are mutually independent. 
+However, we do not know the joint distribution of all these random variables - we only know the marginal distributions. Therefore, the samples are generated from the marginal distributions. This procedure assumes that all the random variables are mutually independent. 
 
 Lets summarize what we just did. We factored the total expected long-range dose exposure into two components: An integral over the particle diameter and an expected value over all remaining random variables. This factorization improves the computational performance of the model by avioiding nested summations. 
 
