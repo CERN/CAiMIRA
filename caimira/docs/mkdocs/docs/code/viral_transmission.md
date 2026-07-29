@@ -1,21 +1,22 @@
 # Physics of Viral Transmission
 The CAiMIRA model simulates the physical process of viral transmission through five sequential stages, illustrated by the topmost part of Figure 1: **emission**, **removal**, **concentration**, **dose**, and **infection probability**.
 Along with viral transmission, CAiMIRA also simulates **emission**, **removal**, and **concentration** of CO<sub>2</sub>, as shown in the lowermost part of Figure 1.
-This page details the modelling of viral transmission. The modelling of CO<sub>2</sub> concentrations is detailed on **[Computation of the CO<sub>2</sub> Concentration](./co2_concentration.md)**.
+This page details the modelling of viral transmission. The modelling of CO<sub>2</sub> concentration is detailed on **[Computation of the CO<sub>2</sub> Concentration](./co2_concentration.md)**.
 [![CAiMIRA Structure](CAiMIRA_structure.png)](CAiMIRA_structure.png)
 *Figure 1: Structure of the CAiMIRA model showing the viral transmission and CO<sub>2</sub> simulation processes.*
 
+In the following, `data_registry` refers to `caimira.calculator.store.data_registry`, `models` refers to `caimira.calculator.models.models.py`, and `monte_carlo` refers to `caimira.calculator.models.monte_carlo`.
+
 ## Model Parameters
-We can devide the parameters of the CAiMIRA model into four categories:
+We can divide the parameters of the CAiMIRA model into four categories:
 1. Constant deterministic values
 2. Random variables with constant probability distributions
 3. Adjustable deterministic values
-4. Random variables with adjustable probability distribution
-The two first categories of parameters are "constant" in the sense that they are not adjusted by the user for each specific scenario. The latter two categories are, on the other hand, influenced by user input. Deterministic parameters are treated as single int or float numbers.
+4. Random variables with adjustable probability distributions
 
-Constant deterministic values are retrieved from `caimira.calculator.store.data_registry` or hardcoded into the model in `caimira.calculator.models.models.py`. Adjustable deterministic variables, like the room volume, are direcly specified by the user.
+The two first categories of parameters are "constant" in the sense that they are not adjusted for each specific scenario by the user. The latter two categories are, on the other hand, influenced by user input. Constant deterministic values are retrieved from `data_registry` or hardcoded into the model in `models`. Adjustable deterministic variables, like the room volume, are direcly specified by the user.
 
-Random variables are Monte Carlo sampled from probability distributions and stored as _VectorisedFloat or _VectorisedInt. Every random variable is sampled from fixed type of probability distribution defined in `caimira.calculator.store.data_registry`. The table below lists all random variables in CAiMIRA together with the type of probability distribution they are sampled from and, if the probability distribution is adjustable, which user parameters influence the parameters of the probability distribution.
+Random variables are Monte Carlo sampled from probability distributions and stored as _VectorisedFloat or _VectorisedInt. Every random variable is sampled from fixed type of probability distribution defined in `data_registry`. The table below lists all random variables in CAiMIRA together with the type of probability distribution they are sampled from and, if the probability distribution is adjustable, which user parameters influence the parameters of the probability distribution.
 
 | Random Variable | Symbol | Probability Distribution| Dependent User Parameters |
 |-------------|--------|-------|-------|
@@ -39,386 +40,128 @@ Random variables are Monte Carlo sampled from probability distributions and stor
 
 <sup>5</sup>The outwards face mask efficiency may either be sampled from a uniform distribution, as indicated above, or a function of the particle diameter. In the latter case, the outwards face mask efficiency should only be considered a function of $D$ and not a separate random variable.
 
-See `caimira.calculator.store.data_registry` for literature references supporting the parameter definitions.
+See `data_registry` for literature supporting the parameters.
 
-We Monte Carlo integrate over the particle diameter (see below). The remaining random variables are Monte Carlo averaged to approximate the expected values of the results.
-
-### Separation of Random Variables
-We improve computational performance by assuming that the particle diameter $D$ and the interpersonal distance $x$ are independent of all the other random variables. 
-
-In general, we have the relation 
-
-$$
-\begin{equation}
-E[Z \cdot Y] = E[Z] \cdot E[Y] + \operatorname{Cov}[Z, Y]
-\end{equation}
-$$
-
-for two random variables $Z$ and $Y$ ($E$ denotes the expected value and $\operatorname{Cov}$ covariance).
-Let $Z$ be a factor containing all variables depending on the particle diameter $D$ as well as the interpersonal distance $x$, and let $Y$ be a factor containing all the remaining random variables. Since we assume $Z$ and $Y$ are independent, the covariance between $Z$ and $Y$ is $0$. Consequently, equation (1) reduces to $E[Z \cdot Y] = E[Z] \cdot E[Y]$, or equivalently
-
-$$
-\begin{equation*}
-\int_{-\infty}^{\infty} Z \cdot Y \cdot p_{Z,Y}(Z,Y)=\int_{-\infty}^{\infty} Z \cdot p_{Z}(Z) \cdot \int_{-\infty}^{\infty} Y \cdot p_{Y}(Y).
-\end{equation*}
-$$
-
-Approximating the rightmost expression by Monte Carlo integration/averaging is more efficient than approximating the leftmost side by Monte Carlo integration/averaging. Hence, assuming $Z$ and $Y$ are independent will give better model performance. Faster computations is the motivation for factoring the viral concentration and dose exposure into diameter-dependent ($Z$) and diameter-independent ($Y$) components in the implementation of CAiMIRA in `caimira.calculator.models.models.py` (see below). 
-
-
-### Monte Carlo Integration over the Particle Diameter
-
-The viral **emission rate** – $\mathrm{vR}(D)$, **removal rate** – $\lambda_\mathrm{vRR}(D)$, **viral concentration** – $C(t, D)$, and **dose** $\mathrm{vD(D)}$ are considered for a given aerosol diameter $D$, as the behavior of the virus-laden particles in the room environment and inside the respiratory tract are diameter-dependent. To obtain the total total dose exposure $\mathrm{vD^{total}}$ we need sum together the contributions from all particles of all sizes, i.e. integrate over all particle diameters. Because the particle diameter is a random variable with an (assumed) known probability distribution $\mathrm{p}_D(D)$, the integral over $D$ can be approximated by Monte Carlo integration as 
-
-$$
-\begin{equation*}
-\mathrm{vD^{total}} 
-= \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{vD(D)} \;\ \mathrm{d}D
-= \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \frac{\mathrm{vD(D)}}{\mathrm{p}_D(D)} \cdot \mathrm{p}_D(D) \;\ \mathrm{d}D
-= E\left[\frac{\mathrm{vD(D)}}{\mathrm{p}_D(D)}\right]
-\approx \frac{1}{S}\sum_{i=1}^S \frac{\mathrm{vD(D_i)}}{\mathrm{p}_D(D_i)}
-\end{equation*}
-$$
-
-where $E$ denotes expected value and $S$ is the number of samples of the particle diameter drawn from the probability distribution $\mathrm{p}_D(D)$. Following the same logic, intermediate results for the total viral emission rate $\mathrm{vR}^{total}$, total viral removal rate $\lambda_\mathrm{vRR}^{total}$, and total viral concentration $\mathrm{C(t)}^{total}$ can be computed as
-
-$$
-\begin{equation*}
-\mathrm{vR^{total}}
-\approx \frac{1}{S}\sum_{i=1}^S \frac{\mathrm{vR}(D_i)}{\mathrm{p}_D(D_i)}
-\end{equation*},
-$$
-
-$$
-\begin{equation*}
-\mathrm{\lambda_\mathrm{vRR}^\mathrm{total}}
-\approx \frac{1}{S}\sum_{i=1}^S \frac{\lambda_\mathrm{vRR}(D_i)}{\mathrm{p}_D(D_i)}
-\end{equation*},
-$$
-
-$$
-\begin{equation*}
-C^{total}(t)
-\approx \frac{1}{S}\sum_{i=1}^S \frac{C(t, D_i)}{\mathrm{p}_D(D_i)}
-\end{equation*}.
-$$
-
-We will see below that the most of the constituents in $\mathrm{p}_D(D)$ are linear factors of $\mathrm{vR}(D)$, $C(t, D)$, and $\mathrm{vD(D)}$, which greatly simplifies the computations. 
-
-### Computation of Expected Results
-The perhaps most interesting result computed by CAiMIRA is the *expected* individual infection probability. The individual infection probability is the probability that a specific exposed becomes infected conditioned on a dose $\mathrm{vD^{total}}$ being deposited in their resporatory tract and the infectious dose being $\mathrm{ID}_{50}$, i.e. the probability $P(I|\mathrm{vD^{total}}, \mathrm{ID}_{50})$ defined by Henriques et al. (2022). Because this probability is already conditioned on specific values of $\mathrm{vD^{total}}$ and $\mathrm{ID}_{50}$, we need to know the expected values of $\mathrm{vD^{total}}$ and $\mathrm{ID}_{50}$ before computing $P(I|\mathrm{vD^{total}}, \mathrm{ID}_{50})$. Computing the expected value of $\mathrm{ID}_{50}$ is easy - it is simply the expected value of a the uniform distribution it follows. 
-
-Computing the expected value of $\mathrm{vD^{total}}$ is more intricate because it is a funciton of all the random variables
-$\mathrm{vl_{inf}}$,
-$\mathrm{r_{inf}}$,
-$\mathrm{BR_{k,out}}$,
-$\mathrm{BR_{k,in}}$, and
-$\eta_{\mathrm{in}}$.
-Furthermore, if $\eta_{\mathrm{out}}$ is a random variable and not a function of the particle diameter, $\mathrm{vD^{total}}$ will also be a function of $\eta_{\mathrm{out}}$. 
-If short-range interactions are included, $\mathrm{vD^{total}}$ will also be a function of one more random variable: the interpersonal distance $x$. Finally, while $\mathrm{vD^{total}}$ is not a function of the particle diameter $D$, computing $\mathrm{vD^{total}}$ requires Monte Carlo integrating over $D$. 
-
-Lets first define the expected value of $\mathrm{vD^{total}}$ as $\widehat{\mathrm{vD^{total}}} = \mathbf{E_{\mathrm{rv}}}[\mathrm{vD^{total}}]$, so  $\mathbf{E_{\mathrm{rv}}}$ is the operation of taking the expected value over all the random variables $\mathrm{vD^{total}}$ is a function of.
-
-The total dose exposure $\mathrm{vD^{total}}$ is a function of the following random variables: Interpersonal distance $x$, viral load inside the infected $\mathrm{vl_{inf}}$, viable to RNA ratio $\mathrm{r_{inf}}$, exhalation rate of the infected $\mathrm{BR_{k,out}}$, inhalation rate of the exposed $\mathrm{BR_{k,in}}$, and inwards face mask efficiency of the exposed $\eta_{\mathrm{in}}$. Taking the expected value over all these random variables, we obtain the expected total dose exposure
-
-Using the definition of $\mathrm{vD^{total}}$, we get
-
-$$
-\begin{align*}
-\widehat{\mathrm{vD^{total}}}
-&=\mathbf{E_{\mathrm{rv}}}\left[\int_{-\infty}^{\infty} \mathrm{vD(D)} \;\ \mathrm{d}D\right]\\
-&=\mathbf{E_{\mathrm{rv}}}\left[\int_{-\infty}^{\infty}\left(\mathrm{vD}_{\mathrm{LR}}(D) + \sum_{i=1}^{n_\mathrm{SR}}\mathrm{vD}_{\mathrm{SR-LR},i}(D)\right)\;\ \mathrm{d}D \right]\\
-&=\mathbf{E_{\mathrm{rv}}}\left[\int_{-\infty}^{\infty}\mathrm{vD}_{\mathrm{LR}}(D)\;\ \mathrm{d}D \right]+\sum_{i=1}^{n_\mathrm{SR}}\mathbf{E_{\mathrm{rv}}}\left[\int_{-\infty}^{\infty}\mathrm{vD}_{\mathrm{SR-LR},i}(D)\;\ \mathrm{d}D \right]\\
-&=\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}+\sum_{i=1}^{n_\mathrm{SR}}\widehat{\mathrm{vD^{total}}_{\mathrm{SR-LR},i}}\\
-\end{align*}
-$$
-
-Lets consider the first term - the expected long-range dose component - first. We get
-
-$$
-\begin{align*}
-\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}
-&=\mathbf{E_{\mathrm{rv}}}\left[\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\mathrm{vD}_{\mathrm{LR}}(D)\;\ \mathrm{d}D \right]\\
-&=\mathbf{E_{\mathrm{rv}}}\left[\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k,in}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})\;\ \mathrm{d}D \right].
-\end{align*}
-$$
-
-Recall that the emission rate
-
-$$
-\begin{equation*}
-\mathrm{vR}(D)= \mathrm{BR}_{\mathrm{k,in}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot E_c(D)
-\end{equation*},
-$$
-
-can be factored out of the long-range concentration $C_{\mathrm{LR}} (t, D)$. We factor
-
-$$
-\begin{equation*}
-C_{\mathrm{LR}} (t, D)=\left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right] \cdot \left[\frac{\mathrm{vR}(D)}{E_{c}(D)}\right]
-\end{equation*}
-$$
-
-so that only the first component is
-$$
-\begin{equation*}
-\left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right]
-\end{equation*}
-$$
-whereas the second component
-
-$$
-\begin{equation*}
-\frac{\mathrm{vR}(D)}{E_{c}(D)} = \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf})
-\end{equation*}
-$$
-
-is not a function of the particle diameter. Inserting the factorized concentration into the equationg for the long-range dose component we see that
-
-$$
-\begin{align*}
-\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}
-&=\mathbf{E_{\mathrm{rv}}}\Big[\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot \left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right]\;\ {d}t \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D \\
-& \quad \quad \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \Big]\\
-&=\mathbf{E_{\mathrm{rv}}}\left[B(\cdot) \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right].
-\end{align*}
-$$
-
-for 
-$$
-\begin{align*}
-B(\cdot)
-&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot \left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right]\;\ {d}t \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D \\
-&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D)}{\mathrm{vR}(D)} \cdot E_{c}(D) \;\ \mathrm{d}D.
-\end{align*}
-$$
-
-Where the notation $B(\cdot)$ is meant to indicate that $B$ may either be a function or a constant value, depending on wheter $η_\mathrm{out}$ is a separate random variable or a fuction of the particle diameter. It follows from the definition of $E_{c}(D)$ and the probability distribution of the particle diameter $\mathrm{p}_D(D)$ that
-
-$$
-E_{c}(D) =
-\begin{cases} 
-V_p(D) \cdot (1 − η_\mathrm{out}) \cdot K \cdot \mathrm{p}_D(D) \hspace{9.5mm} \mathrm{if} \quad η_\mathrm{out} \sim \mathrm{Uniform},\\
-V_p(D) \cdot (1 − η_\mathrm{out}(D)) \cdot K \cdot \mathrm{p}_D(D) \quad  \mathrm{else}.
-\end{cases}
-$$
-
-Consequently, if $η_\mathrm{out}$ is a separate random variable then
-
-$$
-\begin{align*}
-B(η_\mathrm{out})
-&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D)}{\mathrm{vR}(D)} \cdot  V_p(D) \cdot (1 − η_\mathrm{out}) \cdot K \cdot \mathrm{p}_D(D)\;\ \mathrm{d}D \\
-&=(1 − η_\mathrm{out}) \cdot \int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D)}{\mathrm{vR}(D)} \cdot  V_p(D) \cdot K \cdot \mathrm{p}_D(D)\;\ \mathrm{d}D.
-\end{align*}
-$$
-
-Alternatively, $η_\mathrm{out}$ is a function of $D$ so
-
-$$
-\begin{align*}
-B
-&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D)}{\mathrm{vR}(D)} \cdot  V_p(D) \cdot (1 − η_\mathrm{out}(D)) \cdot K \cdot \mathrm{p}_D(D)\;\ \mathrm{d}D.
-\end{align*}
-$$
-
-is a constant. If $B$ is a constant, then
-
-$$
-\begin{align*}
-\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}
-&=\mathbf{E_{\mathrm{rv}}}\left[B \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right]\\
-&=B \cdot \mathbf{E_{\mathrm{rv}}}\left[\mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right].
-\end{align*}
-$$
-
-Otherwise, if $B$ is a function of $η_\mathrm{out}$ we need to assume that $B$ is independent of $\mathrm{BR}_{\mathrm{k,out}}$, $\mathrm{vl_{inf}}$, $\mathrm{r_{inf}}$, $\mathrm{HI}_\mathrm{inf}$, and $\mathrm{BR}_{\mathrm{k,in}}$ to factor
-
-$$
-\begin{align*}
-\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}
-&=\mathbf{E_{\mathrm{rv}}}\left[B(η_\mathrm{out}) \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right]\\
-&=\mathbf{E_{η_\mathrm{out}}}[B(η_\mathrm{out})] \cdot \mathbf{E_{\mathrm{BR}_{\mathrm{k,out}},\mathrm{vl_{inf}},\mathrm{r_{inf}},\mathrm{HI}_\mathrm{inf},\mathrm{BR}_{\mathrm{k,in}},\eta_{\mathrm{in}}}}\left[\mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right].
-\end{align*}
-$$
-
-In summary, we have derived the following definition of the expected long-range dose exposure
-
-$$
-\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}} =
-\begin{cases} 
-\mathbf{E_{η_\mathrm{out}}}[B(η_\mathrm{out})] \cdot \mathbf{E_{\mathrm{rv}}}\left[\mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right] 
-\quad \mathrm{if} \quad η_\mathrm{out} \sim \mathrm{Uniform},\\
-B \cdot \mathbf{E_{\mathrm{rv}}}\left[\mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right] 
-\hspace{5.15cm} \mathrm{else}.
-\end{cases}
-$$
-
-only by assuming $η_\mathrm{out}$ is independent of all other random variables, if it is a separate random variable. For both definitions of $η_\mathrm{out}$, we have managed to gather all variables depending on the particle diameter in an integral over $D$ that contains no other random variables. Thereby, we using Monte Carlo sampling techniques to approximate the expected values and Monte Carlo integral over $D$. 
-
-Drawing and $S_{η_\mathrm{out}}$ samples of $η_\mathrm{out}$ from the distribution of $η_\mathrm{out}$, we approximate
-
-$$
-\begin{equation*}
-\mathbf{E_{η_\mathrm{out}}}[η_\mathrm{out}] \approx \frac{1}{S_{η_\mathrm{out}}} \sum_{i=1}^{S_{η_\mathrm{out}}} η_{\mathrm{out},i}.
-\end{equation*}
-$$
-
-
-Drawing $S_D$ samples of $D$ from $\mathrm{p}_D(D)$, we Monte Carlo integrate
-
-$$
-\begin{equation*}
-\mathbf{E_{η_\mathrm{out}}}[B(η_\mathrm{out})] \approx (1 − \mathbf{E_{η_\mathrm{out}}}[η_\mathrm{out}]) \cdot \sum_{i=1}^{S_D} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D_i) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D_i)}{\mathrm{vR}(D_i)} \cdot  V_p(D_i) \cdot K
-\end{equation*}.
-$$
-
-or, if $η_\mathrm{out}$ is not a random variable
-
-$$
-\begin{equation*}
-B \approx \sum_{i=1}^{S_D} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D_i) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D_i)}{\mathrm{vR}(D_i)} \cdot  V_p(D_i) \cdot (1 − η_\mathrm{out}(D_i)) \cdot K.
-\end{equation*}
-$$
-
-Finally, we draw $S_\mathrm{rv}$ samples from the joint probability distribution $\mathrm{p}_\mathrm{rv}(\mathrm{BR}_{\mathrm{k,out}},\mathrm{vl_{inf}},\mathrm{r_{inf}},\mathrm{HI}_\mathrm{inf},\mathrm{BR}_{\mathrm{k,in}},\eta_{\mathrm{in}})$ to compute
-
-$$
-\begin{aligned}
-\mathbf{E}_{\mathrm{rv}}\!\Big[
-&\mathrm{BR}_{\mathrm{k,out}}
-\cdot \mathrm{vl}_{\mathrm{inf}}
-\cdot \mathrm{r}_{\mathrm{inf}}
-\cdot (1-\mathrm{HI}_{\mathrm{inf}})
-\cdot \mathrm{BR}_{\mathrm{k,in}}
-\cdot (1-\eta_{\mathrm{in}})
-\Big]
-\approx
-\frac{1}{S_{\mathrm{rv}}}
-\sum_{i=1}^{S_{\mathrm{rv}}}
-\mathrm{BR}_{\mathrm{k,out},i}
-\cdot \mathrm{vl}_{\mathrm{inf},i}
-\cdot \mathrm{r}_{\mathrm{inf},i}
-\cdot (1-\mathrm{HI}_{\mathrm{inf},i})
-\cdot \mathrm{BR}_{\mathrm{k,in},i}
-\cdot (1-\eta_{\mathrm{in},i})
-\end{aligned}
-$$
-
-However, we do not know the joint distribution of all these random variables - we only know the marginal distributions. Therefore, the samples are generated from the marginal distributions. This procedure assumes that all the random variables are mutually independent. 
-
-In the end, we are left with the assumption that all random variables are mutually independent and the Monte Carlo approximation
-
-$$
-\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}} =
-\begin{cases} 
-\Big(
-    1 − \frac{1}{S_{η_\mathrm{out}}} \sum_{i=1}^{S_{η_\mathrm{out}}} η_{\mathrm{out},i}
-\Big) 
-\cdot 
-\Big[
-    \sum_{i=1}^{S_D} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D_i) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D_i)}{\mathrm{vR}(D_i)} \cdot  V_p(D_i) \cdot K
-\Big]
-\cdot 
-\Big[
-    \frac{1}{S_{\mathrm{rv}}}
-    \sum_{i=1}^{S_{\mathrm{rv}}}
-    \mathrm{BR}_{\mathrm{k,out},i}
-    \cdot \mathrm{vl}_{\mathrm{inf},i}
-    \cdot \mathrm{r}_{\mathrm{inf},i}
-    \cdot (1-\mathrm{HI}_{\mathrm{inf},i})
-    \cdot \mathrm{BR}_{\mathrm{k,in},i}
-    \cdot (1-\eta_{\mathrm{in},i})
-\Big]
-\quad \mathrm{if} \quad η_\mathrm{out} \sim \mathrm{Uniform},\\
-\Big[
-    \sum_{i=1}^{S_D} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D_i) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D_i)}{\mathrm{vR}(D_i)} \cdot  V_p(D_i) \cdot (1 − η_\mathrm{out}(D_i)) \cdot K
-\Big]
-\cdot
-\Big[
-    \frac{1}{S_{\mathrm{rv}}}
-    \sum_{i=1}^{S_{\mathrm{rv}}}
-    \mathrm{BR}_{\mathrm{k,out},i}
-    \cdot \mathrm{vl}_{\mathrm{inf},i}
-    \cdot \mathrm{r}_{\mathrm{inf},i}
-    \cdot (1-\mathrm{HI}_{\mathrm{inf},i})
-    \cdot \mathrm{BR}_{\mathrm{k,in},i}
-    \cdot (1-\eta_{\mathrm{in},i})
-\Big]
-\hspace{2.2cm} \mathrm{else}.
-\end{cases}
-$$
-
-Lets summarize what we just did. We factored the total expected long-range dose exposure into an integral over the particle diameter and expected values over all remaining random variables. This factorization improves the computational performance of the model by avioiding nested summations. 
-
-Similarly, we can compute the expecteded short-range dose component, viral concentration, emission rate, and removal rate.
-
-## Model Stages
-
-This page describes the mathematical derivation and implementation of the CAiMIRA model. In the following, the `caimira.calculator.models.models.py` package is abbreviated as `models` and the `caimira.calculator.models.monte_carlo` package is abbreviated as `monte_carlo`.
+The viral **emission rate** – $\mathrm{vR}(D)$, **removal rate** – $\lambda_\mathrm{vRR}(D)$, **viral concentration** – $C(t, D)$, and **dose** $\mathrm{vD(D)}$ are considered for a given aerosol diameter $D$, as the behavior of the virus-laden particles in the room environment and inside the respiratory tract are diameter-dependent. To obtain the total total dose exposure $\mathrm{vD^{total}}$ we need sum together the contributions from all particles of all sizes, i.e. integrate over all particle diameters. Because the particle diameter is a random variable, the integral over $D$ can be approximated by Monte Carlo integration. The remaining random variables are Monte Carlo averaged to approximate the expected values of the results. The excact procedures for Monte Carlo integration and approximation of expected values by Monte Carlo sampling is presented further down this page, under "Computation of Expected Results". Before that, the mathematical derivation and implementation of the emission rate, removal rate, viral concentration, and dose will be detailed.
 
 ## Emission 
 ### Derivation of the Analytical Emission Rate
 Infectious individuals inside the room are assumed to be the only source of virus. Their emission rate per unit diameter of infectious virus is
 
-$$\mathrm{vR}(D)= {\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot E_c(D)$$
+$$
+\begin{equation*}
+\mathrm{vR}(D)= {\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot E_c(D)
+\end{equation*}
+$$
 
 given the breathing rate ${\mathrm{BR}}_{\mathrm{k}}$ for a constant physical activity $k \in \{\mathrm{Seated}, \mathrm{Standing}, \mathrm{Light},$ $\mathrm{Moderate}, \mathrm{Heavy}\}$. $vl_{\mathrm{in}}$ is the viral load in the respiratory tract (in RNA copies per mL) and $f_{inf}$ is the fraction of infectious virus. 
 $E_c(D)$ represents the volumetric particle emission concentration per unit diameter (in mL/(m<sub>3</sub> .µm)) given by
 
-$$E_{c}(D) = N_p(D) \cdot V_p(D) \cdot (1 − η_\mathrm{out}(D))$$
+$$
+E_{c}(D) =
+\begin{cases} 
+(1 − η_\mathrm{out}) \cdot V_p(D) \cdot N_p(D)  \hspace{9.5mm} \mathrm{if} \quad η_\mathrm{out} \sim \mathrm{Uniform}\\
+(1 − η_\mathrm{out}(D)) \cdot  V_p(D) \cdot N_p(D)  \quad  \mathrm{else}
+\end{cases}
+$$
 
-where $V_p(D)$ is the particles' individual volume and $\eta_{out}$ is the outward mask efficiency. For an expiratory activity $j \subseteq \{\mathrm{Breathing}, \mathrm{Speaking}, \mathrm{Singing}, \mathrm{Shouting}\}$, the number of particles with diameter $D$ is given by 
+where $\eta_{out}$ is the outward mask efficiency and $V_p(D)$ is the particles' individual volume. For an expiratory activity $j \subseteq \{\mathrm{Breathing}, \mathrm{Speaking}, \mathrm{Singing}, \mathrm{Shouting}\}$, the number of particles with diameter $D$ is given by 
 
-$$N_{p}(D)=\sum_{\forall j} \sum_{i \in \{\mathrm{B},\mathrm{L},\mathrm{O}\}} a_j \cdot f_{\mathrm{amp}, j, i} \cdot c_{n,i} \cdot \left[\frac{1}{D\sqrt{2 \pi} \sigma_{D_i}} \exp{-\frac{(\ln D -\mu_{D_i})^2}{2 (\sigma_{D_i})^2}}\right]$$
+$$
+\begin{equation*}
+N_{p}(D)=\sum_{\forall j} \sum_{i \in \{\mathrm{B},\mathrm{L},\mathrm{O}\}} a_j \cdot f_{\mathrm{amp}, j, i} \cdot c_{n,i} \cdot \left[\frac{1}{D\sqrt{2 \pi} \sigma_{D_i}} \exp{-\frac{(\ln D -\mu_{D_i})^2}{2 (\sigma_{D_i})^2}}\right]
+\end{equation*}
+$$
 
 for B = bronchial, L = larynx, O = oral being the sources of the emitted particles. $a_j$ is the fraction of time the infected performes each expiratory activity $j$.
 $c_{n,i}$ is the particle emission concentration, and $\mu_{D_i}$ and $\sigma_{D_i}$ are the mean and standard deviations, respectively, of the log-normal distribution found to fit the number of expired particles with diameter $D$, for $i \in \{\mathrm{B},\mathrm{L},\mathrm{O}\}$ Johnson et al. <sup>[2](#id8)</sup>. 
-$f_{\mathrm{amp}, j, i}$ is the amplitude of the vocalization, set to 5 for $i \in \{L,O\}$ if $j = \{\text{Singing}, \text{Shouting}\}$ and otherwise 1. Note, however, that for $i \in \{L,O\}$ and $j = \text{Breathing}$ $f_{\mathrm{amp}, j, i}$ is set to zero in `caimira.calculator.store.data_registry`, although it is technically the particle emission concentration $c_{n,i}$ that is zero in that case. This technicallity has no effect on the output, it only simplifies the implementation of $c_{n,i}$.
+$f_{\mathrm{amp}, j, i}$ is the amplitude of the vocalization, set to 5 for $i \in \{L,O\}$ if $j = \{\text{Singing}, \text{Shouting}\}$ and otherwise 1. Note, however, that for $i \in \{L,O\}$ and $j = \text{Breathing}$ $f_{\mathrm{amp}, j, i}$ is set to zero in `data_registry`, although it is technically the particle emission concentration $c_{n,i}$ that is zero in that case. This technicallity has no effect on the output, it only simplifies the implementation of $c_{n,i}$.
 
 Note that the diameter-dependence is kept at this stage. Since other parameters downstream in code are also diameter-dependent, the Monte-Carlo integration over the particle diameter is computed at the level of the dose $\mathrm{vD^{total}}$.
 In case one would like to have intermediate results for emission rate, however, one may compute
 
-$$\mathrm{vR}^{total} = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} {\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot E_c(D) \;\ \mathrm{d}D = {\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot E_{c}^{\mathrm{total}}$$
+$$
+\begin{equation*}
+\mathrm{vR}^{total} = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} {\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot E_c(D) \;\ \mathrm{d}D = {\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot E_{c}^{\mathrm{total}}
+\end{equation*}
+$$
 
 for 
 
-$$E_{c}^{\mathrm{total}} = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} E_c(D) \;\ \mathrm{d}D $$
+$$
+\begin{equation*}
+E_{c}^{\mathrm{total}} = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} E_c(D) \;\ \mathrm{d}D 
+\end{equation*}
+$$
 
 using Monte Carlo integration.
 
-### Distribution of the Particle Diameter
-When Monte Carlo integrating over the particle diameter, a probability distribution $\mathrm{p}_D(D)$ is needed for sampling of the particle diameter $D$. 
-Observe that
+### Probability Distribution of $D$
+A detailed description of the Monte Carlo procedures in CAiMIRA is given under "Computation of Expected Results" further down this page. To motivate the implementation of all diameter dependent quantities, however, we need to identify the probability distribution of $D$ as the number of particles $N_p(D)$ normalized by
 
-$$\mathrm{p}_D(D)=\frac{N_p(D)}{K}=\sum_{i \in I(j)} \frac{c_{n,i}}{K}\left[\frac{1}{D\sqrt{2 \pi} \sigma_{D_i}} \exp{-\frac{(\ln D -\mu_{D_i})^2}{2 (\sigma_{D_i})^2}}\right]$$
-for
-$$K=\int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} N_p(D) \;\ \mathrm{d}D $$
-is a mixture distribution: the sum of three truncated and scaled log-normal probability distributions. 
+$$
+\begin{equation*}
+c_n=\int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} N_p(D) \;\ \mathrm{d}D 
+\end{equation*}
+$$
 
-In the CAiMIRA model, $D$ is sampled from $\mathrm{p}_D(D)$ truncated between $D_{\mathrm{min}}$ and $D_{\mathrm{min}}$ when calling the function `monte_carlo.data.expiration_distribution()`, which retrieves the truncated $\mathrm{p}_D(D)$ from `monte_carlo.data.BLOModel`.
+truncated between $D_{\mathrm{min}}$ and $D_{\mathrm{max}}$. In other words, probability distribution of $D$ is the log-normal mixture distribution
 
-<details>
-<summary>Monte Carlo Integration</summary>
+$$
+\begin{equation*}
+\mathrm{p}_D(D)=\frac{N_p(D)}{c_n}=\sum_{i \in I(j)} \frac{c_{n,i}}{c_n}\left[\frac{1}{D\sqrt{2 \pi} \sigma_{D_i}} \exp{-\frac{(\ln D -\mu_{D_i})^2}{2 (\sigma_{D_i})^2}}\right]
+\end{equation*}
+$$
 
-Monte Carlo integration takes advantage of the fact that the expected value of a function g of a random variable D can be approximated by drawing samples {$D_1$, $D_2$, ...,$ D_S$} from the probability distribution $\mathrm{p}_D(D)$ and compute the average. That is,
+truncated between $D_{\mathrm{min}}$ and $D_{\mathrm{min}}$. Using $N_p(D) = c_n \cdot \mathrm{p}_D(D)$, we see that
 
-$$E[g(D)] = \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{g}(D) \cdot \mathrm{p}_D(D) \;\ \mathrm{d}D \approx \frac{1}{S}\sum_{i=1}^S \mathrm{g}(D_i)$$
+$$
+E_{c}(D) =
+\begin{cases} 
+(1 − η_\mathrm{out}) \cdot V_p(D) \cdot c_n \cdot \mathrm{p}_D(D)  \hspace{9.5mm} \mathrm{if} \quad η_\mathrm{out} \sim \mathrm{Uniform}\\
+(1 − η_\mathrm{out}(D)) \cdot  V_p(D) \cdot c_n \cdot \mathrm{p}_D(D)  \quad  \mathrm{else}.
+\end{cases}
+$$
 
-The approximation improves for a larger number of samples. For computational efficiency, however, the number of samples should not be unneccecarily high. The lower the variability of p(D), the less samples are needed to stabilize the results. Therefore, one wish to choose a probability distribution $\mathrm{p}_D(D)$  that contains as much information about D as possible.
-</details>
+Therefore, the Monte Carlo integral is computed as
 
-Note that the analytical integrals approximated by Monte Carlo integration in CAiMIRA does not explisitly include $\mathrm{p}_D(D)$. Analytically, one therefore computes $\frac{1}{S}\sum_{i=1}^S \frac{\mathrm{h}(D_i)}{\mathrm{p}_D(D_i)}$.
-Every quantity $\mathrm{h}(D)$ that is approximated by Monte Carlo integration in the CAiMIRA model has $N_p(D)$ as a linear factor, which will cancel the $N_p(D)$ factor of $\mathrm{p}_D(D)$, the fraction $\frac{\mathrm{h}(D)}{\mathrm{p}_D(D)}$ will not include $N_p(D)$. Essentially, this means $N_p(D)$ is "replaced" by $K$ in the equation for $E_{c}(D)$ in the model implementation. For example, one therefore computes 
+$$
+\begin{align*}
+E_{c}^{\mathrm{total}} 
+= \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} E_{c}(D) \;\ \mathrm{d}D 
+= \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} (1 − η_\mathrm{out}(D)) \cdot  V_p(D) \cdot c_n \cdot \mathrm{p}_D(D) \;\ \mathrm{d}D 
+\approx \frac{1}{S_D}\sum_{i=1}^{S_D} (1 − η_\mathrm{out}(D_i)) \cdot  V_p(D_i) \cdot c_n.
+\end{align*}
+$$
 
-$$E_{c}^{\mathrm{total}} = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} \frac{E_c(D) \cdot K}{N_p(D)} \cdot \mathrm{p}_D(D) \;\ \mathrm{d}D \approx \frac{1}{S}\sum_{i=1}^S \frac{E_c(D) \cdot K}{N_p(D)}.$$
+Where $S_D$ is the total number of Monte Carlo samples of $D$. The samples {$D_1$, $D_2$, ...,$D_{S_D}$} are stored in `models.Expiration` objects created by `monte_carlo.data.expiration_distribution()`, with $\mathrm{p}_D(D)$ being implemented in `monte_carlo.data.BLOModel`.
+
+Similarly, when we later Monte Carlo integrate the viral concentration $C(t,D)$ and dose $\mathrm{vD(D)}$ over $D$, we identify $\mathrm{p}_D(D)$ a linear component of $C(t,D)$ and $\mathrm{vD(D)}$ to compute 
+$$
+\begin{align*}
+C^{\mathrm{total}}(t)
+= \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} C(t,D) \;\ \mathrm{d}D 
+\approx \frac{1}{S}\sum_{i=1}^S \frac{C(t,D)}{\mathrm{p}_D(D)}.
+\end{align*}
+$$
+
+and
+
+$$
+\begin{align*}
+\mathrm{vD}^{\mathrm{total}}
+= \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} \mathrm{vD(D)} \;\ \mathrm{d}D 
+\approx \frac{1}{S}\sum_{i=1}^S \frac{\mathrm{vD(D)}}{\mathrm{p}_D(D)},
+\end{align*}
+$$
+respectively. 
 
 ### Computation of the Emission Rate
 The computation of the emission rate $\mathrm{vR}(D)$ in CAiMIRA can be divided into three steps:
 
 * Calculate the diameter-**independent** component of $\mathrm{vR}(D)$, i.e. ${\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}}$, in `models.InfectedPopulation.emission_rate_per_aerosol_per_person_when_present()`. 
 * Draw S samples {$D_1$, $D_2$, ...,$D_S$} from $\mathrm{p}_D(D)$  (default S = 250 000 samples) when creating an **Expiration** object by calling the function `monte_carlo.data.expiration_distribution()`.
-* Compute the diameter-**dependent** $\frac{E_c(D_i) \cdot K}{N_p(D_i)}$ for every $D_i \in ${$D_1$, $D_2$, ...,$D_S$} in `models.InfectedPopulation.aerosols()`. WRONG, why multiply by $cn$ also?
+* Compute the diameter-**dependent** $(1 − η_\mathrm{out}(D_i)) \cdot  V_p(D_i) \cdot c_n$ for every $D_i \in ${$D_1$, $D_2$, ...,$D_S$} in `models.InfectedPopulation.aerosols()`.
 
 The emission rate (per person infected) $\mathrm{vR(D)}$ can be computed by: `models._PopulationWithVirus.emission_rate_per_person_when_present()`, outputting a vector $[\mathrm{vR(D_1)}, \mathrm{vR(D_2)}, ..., \mathrm{vR(D_S)}]$ who's average is $\mathrm{vR}^{total}$.
 
@@ -426,188 +169,236 @@ By default, however, the diameter-dependence is kept at this stage because more 
 
 The methods for computing the components of the emission rate can be accessed through the class **InfectedPopulation**, representing a population of infected with a certain number of people, all with the same expirational activity, physical activity, virus, face mask, immunity and (incremental) presence. **InfectedPopulation** is initialized an **Expiration** object, an **Activity** object, a **Virus** object, a **Mask** object, a float host_immunity, and an **Interval** object corresponding to those properties. Furthermore, **InfectedPopulation** is initialized with by **DataRegistry** and the integer number of people in the infected population.
 
-The **Expiration** object (`models.Expiration`) represents the expiration of aerosols by an infected person, and is initialized by an S-dimentional array (or a single float if S=1) of the samples {$D_1$, $D_2$, ...,$D_S$} drawn from $\mathrm{p}_D(D)$.The samples {$D_1$, $D_2$, ...,$D_S$} are generated by **CustomKernel** (`monte_carlo.sampleable.CustomKernel`). The **CustomKernel** is built for the distribution $\mathrm{p}_D(D)$ defined by the `distribution()` method of **BLOModel** (`monte_carlo.data.BLOmodel`). **Expiration** is also passed a float $cn$ upon initialization, acting as a scaling factor computed as the integral over every mode in $\{\mathrm{B},\mathrm{L},\mathrm{O}\}$ between $D_{\mathrm{min}}$ and $D_{\mathrm{max}}$ in `BLOModel.integrate()`. The **BLOModel** is initialized by a set of BLO_factors corresponding to the type of expirational activity performed. Consult `monte_carlo.data.expiration_distribution()` for further details on how **Expiration** is initialized.
+The **Expiration** object (`models.Expiration`) represents the expiration of aerosols by an infected person. **Expiration** is initialized by an $S_D$-dimentional array (or a single float if $S_D=1$) of the samples {$D_1$, $D_2$, ...,$D_{S_D}$} drawn from $\mathrm{p}_D(D)$. The samples are generated by **CustomKernel** (`monte_carlo.sampleable.CustomKernel`). The **CustomKernel** is built for the distribution $\mathrm{p}_D(D)$ defined by the `distribution()` method of **BLOModel** (`monte_carlo.data.BLOmodel`). The **BLOModel** is initialized by a set of BLO_factors corresponding to the type of expirational activity performed. **Expiration** also stores the scaling factor $c_n$ computed by `monte_carlo.data.BLOmodel.integrate()`.
 
-In the property `Expiration.particle`, the class **Particle** (representing virus-laden aerosols) is initialized with the array of diameters stored in **Expiration**. **Particle** contains methods for computing the diameter-dependent deposition factor and settling velocity of aerosols, which will be used downstream in the model.
+In `Expiration.particle`, the class **Particle** (representing virus-laden aerosols) is initialized with the array of diameters stored in **Expiration**. **Particle** contains methods for computing the diameter-dependent deposition factor and settling velocity of aerosols, which will be used downstream in the model.
 
 
 ## Removal
 The viral **viral removal rate** is given by
 
-$$\lambda_{\mathrm{vRR}}(t,D) = \lambda_{\mathrm{ACH}}(t)+\lambda_{\mathrm{dep}}(D)+\lambda_{\mathrm{bio}}$$
+$$
+\begin{equation*}
+\lambda_{\mathrm{vRR}}(t,D) = \lambda_{\mathrm{ACH}}(t)+\lambda_{\mathrm{bio}}+\lambda_{\mathrm{dep}}(D)
+\end{equation*}
+$$
 
-where $\lambda_{\mathrm{ACH}}(t)$ is the air exchange per hour, $\\lambda_{\mathrm{dep}}(D)$ is the particle deposition, and $\lambda_{\mathrm{bio}}$ is the biological decay. The diameter-dependent viral removal rate at a given time is calculated by `models.ConcentrationModel.removal_rate()`.
+where $\lambda_{\mathrm{ACH}}(t)$ is the air exchange per hour, $\lambda_{\mathrm{bio}}$ is the biological decay, and 
 
+$$
+\begin{equation*}
+\lambda_{\mathrm{dep}}(D) = \frac{1.88 \cdot 10^{-4} \cdot 3600 \cdot f_{ev}^2}{2.5^2 \cdot h_{inf}} \cdot D^2
+\end{equation*}
+$$
+
+is the particle deposition (per hour) for evaporation factor $f_{ev}$ and the initial hight of the particle (mouth of emittor) $h_{inf}$. 
+
+The diameter-dependent viral removal rate at a given time is calculated by `models.ConcentrationModel.removal_rate()`. The total removal rate over all particle diameters is currently not reported by CAiMIRA, but equals
+
+$$
+\begin{equation*}
+\lambda_{\mathrm{vRR}}(t)^{\mathrm{total}}
+= \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} \lambda_{\mathrm{vRR}}(t,D) \;\ \mathrm{d}D 
+= (\lambda_{\mathrm{ACH}}(t)+\lambda_{\mathrm{bio}}) \cdot (D_{\mathrm{max}} - D_{\mathrm{min}}) + \frac{1.88 \cdot 10^{-4} \cdot 3600 \cdot f_{ev}^2}{3 \cdot 2.5^2 \cdot h_{inf}} \cdot (D_{\mathrm{max}} - D_{\mathrm{min}})^3.
+\end{equation*}
+$$
+
+Note that $\lambda_{\mathrm{vRR}}(t)^{\mathrm{total}}$ does not equal the average of the array returned by `models.ConcentrationModel.removal_rate()` because $\mathrm{p}_D(D)$ is not a component of $\lambda_{\mathrm{vRR}}(t,D)$. 
 
 ## Viral Concentration
-The estimate of the concentration of virus-laden particles in a given room is based on a two-box exposure model:
+The concentration of virus-laden particles in a given room is computed using a two-box exposure model:
 
-* **Box 1** - long-range exposure: also known as the *background* concentration, corresponds to the exposure of airborne virions where the susceptible (exposed) host is more than 2 m away from the infected host(s), considering the result of a mass balance equation between the emission rate of the infected host(s) and the removal rates from the environmental/virological characteristics.
-* **Box 2** - short-range exposure: also known as the *exhaled jet* concentration in close-proximity, corresponds to the exposure of airborne virions where the susceptible (exposed) host is distanced between 0.5 and 2 m from an infected host, considering the result of a two-stage exhaled jet model.
+* **Box 1** - long-range concentration: the viral concentration more than 2 m away from the infected host(s) assuming mass balance between the emission rate of the infected host(s) and the removal rates from the environmental/virological characteristics.
+* **Box 2** - short-range concentration: the *exhaled jet* concentration in close-proximity, computing using a two-stage exhaled jet model where the susceptible (exposed) host is distanced 0.5-2 m from the infected host.
 
-Most of the methods used to calculate the long-range concentration are defined in the superclass `models._ConcentrationModelBase()`, with the abstract methods `removal_rate()`, `min_background_concentration()`, and `normalization_factor()` implemented for **viral** concentrations specifically in the subclass `models.ConcentrationModel()`. Later, we will see that `models.CO2ConcentrationModel()` also inherits from `models._ConcentrationModelBase()`. The short-range virus concentration is modelled by the independent class `models.ShortRangeModel()`.
+### Architecture - Dynamic Infected
+Up untill CAiMIRA v4.19, the viral concentration (and dose exposure etc) was computed assuming all infected hosts had the same emission rate and short-range interactions, meaning the physical activity, expirational activity, face mask, immunity, and presence was assumed identical for all infected hosts. CAiMIRA v4.20 onwards allows "dynamic infected", i.e. individually defined properties (physical activity, expirational activity, face mask, immunity, and presence) for every infected that also may vary over time. This flexibility is implemented by combining several `models._ConcentrationModelBase()` instances in `models._ConcentrationModelBase()`. This section details the architecture of the concentration models following the implementation of dynamic infected.
+
+Consider a scenario where we have two infected hosts (Infected_A and Infected_B) in the room, and lets say the user provides the following information about our infected populations: 
+- Infected_A is present from 8am to 4pm, and performs expirational_activity_A1 from 8am to 9am and expirational_activity_A2 from 9am to 4pm.
+- Infected_B is present from 8am to 11am, and performs expirational_activity_B the whole time. 
+
+Computationally, an infected changing property abruptly is no different from the infected being replaced. Therefore, CAiMIRA defines, from Infected_A, two infected: Infected_A1 present from 8am to 9am performing expirational_activity_A1 and Infected_A2 present from 9am to 4pm performing expirational_activity_A2.
+
+The three infected are passed as instances of **InfectedPopulation** (`models.InfectedPopulation`) to **TotalViralConcentrationModel** (`models.TotalViralConcentrationModel`). **TotalViralConcentrationModel** is a child class of the abstract `models._TotalConcentrationModelBase` computing the long-range concentration for any type of aerosol. The inherited property `models.TotalViralConcentrationModel.concentration_models()` creates three instances of **ConcentrationModel** (`models.ConcentrationModel`) - one for Infected_A1, one for Infected_A2, and one for Infected_B. Each **ConcentrationModel** computes the long-range viral concentration as if its respective infected population was the only source of virions in the room. More precisely, each **ConcentrationModel** computes the concentration *increase* from the minimum background concentration. The total viral concentration in the room is, thereafter, computed in `models.TotalViralConcentrationModel.long_range_concentration()` as the sum of the concentration increase computed by all the **ConcentrationModel** instances and the minimum background concentration. One rational for this arcitecture is that infected with different expirational activities will have different probability distributions of the particle diameter, and must therefore be Monte Carlo integrated separately before added together (details below).
+
+Every single short-range interaction is modelled by an instance of `models.ShortRangeModel()` and passed upon initialization to the **InfectedPopulation**  exhaling the jet. The short-range concentration is then added to the long-range concentraiton in `models.TotalViralConcentrationModel.concentration()`. Note that `models.ShortRangeModel()` has its own instance of **Expiration** because the samples of $D$ are from different $\mathrm{p}_D(D)$ since $D_{\mathrm{max}}$ differs at long-range and short-range. Face masks interupt the exhaled yet stream, so only infected without face masks have short-range interactions.
+
 
 ### Long-Range Compartment
 #### Derivation of the Analytical Long-Range Concentration
-Assuming mass balance, the change in the viral concentration equal the difference between the total emission rate per volume and the total removal rate. If we assume all the infected have the same emission rate, the total emission rate per unit volume is the product of $\mathrm{vR(D)}$ and the number of infected $N_{\mathrm{inf}}$ divided by the room volume $V_r$. The total removal rate is the product of the viral removal rate $\lambda_{\mathrm{vRR}}(t,D)$ and the current viral concentration $C_{\mathrm{LR}}(t, D)$. In conclusion, the viral concentration is described by the ordinary differential equation (ODE)
+Assuming mass balance, the change in the viral concentration equals the difference between the total emission rate per volume and the total removal rate. 
+The total emission rate per volume is simply the sum of the emission rate of every single infected divided by the room volume $V_r$, which can be expressed as $\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{V_r}$ for $n_p$ infected populations where the $n$-th population has $N_{\mathrm{inf},n}$ members with common emission rate $\mathrm{vR}_n(D)$.
+The removal is the product of the current viral removal rate $\lambda_{\mathrm{vRR}}(t,D)$ and viral concentration $C_{\mathrm{LR}}(t, D)$. In conclusion, the viral concentration is described by the ordinary differential equation (ODE)
 
-$$\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} = \frac{\mathrm{vR}(D)\,N_{\mathrm{inf}}}{V_r} - \lambda_{vRR}(D) \cdot C_{\mathrm{LR}}(t, D).$$
+$$
+\begin{equation*}
+\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} = \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{V_r} - \lambda_{vRR}(t, D) \cdot C_{\mathrm{LR}}(t, D).
+\end{equation*}
+$$
 
-Assuming the viral concentration is the only time-dependent variable, this ODE can be solved analytically for a given particle size $D$. The solution might only hold over time intervals $[t_i, t_{i+1}]$ where the assumption that $\lambda_{vRR}(D)$ and $N_{\mathrm{inf}}$ are time-independent holds. In that case, the viral concentration at the end of the previous interval $C_{\mathrm{LR}}(t_i,D)$ can be carried forward as an intital condition to the next interval. 
+Assuming the viral concentration is the only time-dependent variable, this ODE can be solved analytically. The viral removal rate is, however, also time-dependent. We assume $\lambda_{vRR}(t, D)$ is stepwise constant and that we may divide the scenario a finite number of time intervals $[t_i, t_{i+1})$ where $\lambda_{vRR}(t, D)=\lambda_{vRR}(t_i, D)$ is constant. Then, we can solve
+$$
+\begin{equation*}
+\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} = \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{V_r} - \lambda_{vRR}(t_i, D) \cdot C_{\mathrm{LR}}(t, D)
+\end{equation*}
+$$
+
+analytically for $t \in (t_i, t_{i+1}]$. The viral concentration at the end of the last time interval is carried forward as the initial condition for the solution for the next time interval. 
 
 <details>
 <summary>Solving the ODE</summary>
 
-$C_{\mathrm{LR},h}(t, D)=A_1\cdot \exp{-\lambda_{vRR}(D)\cdot t}$ is the homogeneous solution satisfying 
-$\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} + \lambda_{vRR}(D)\cdot\,C_{\mathrm{LR}}(t, D) = 0$.
-Assuming the particular solution is a constant $A_2$ we have the **general solution**
+$C_{\mathrm{LR},h}(t, D)=A_1\cdot \exp{-\lambda_{vRR}(t_i,D)\cdot t}$ is the homogeneous solution satisfying 
+$\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} + \lambda_{vRR}(t_i,D)\cdot\,C_{\mathrm{LR}}(t, D) = 0$.
+Assuming $A_2$ is the constant particular solution the general solution is
 
-$$C_{\mathrm{LR}}(t, D) = A_2 + A_1\cdot C_{\mathrm{LR},h}(t, D) = A_2 + A_1\cdot \exp{-\lambda_{vRR}(D)\cdot t}$$
+$$
+\begin{equation*}
+C_{\mathrm{LR}}(t, D) = A_2 + A_1\cdot C_{\mathrm{LR},h}(t, D) = A_2 + A_1\cdot \exp{-\lambda_{vRR}(t_i,D)\cdot t}
+\end{equation*}
+$$
 
 with derivative
 
-$$\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} = -A_1\cdot \lambda_{vRR}(D) \cdot \exp{-\lambda_{vRR}(D)\cdot t}$$
+$$
+\begin{equation*}
+\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} = -A_1\cdot \lambda_{vRR}(t_i,D) \cdot \exp{-\lambda_{vRR}(t_i,D)\cdot t}.
+\end{equation*}
+$$
 
 Combining the two equations containing $\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t}$ we get
 
-$$C_{\mathrm{LR}}(t, D) = \frac{\mathrm{vR(D)}\,N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r} + A_1\cdot \exp{-\lambda_{vRR}(D)\cdot t},$$
+$$
+\begin{equation*}
+C_{\mathrm{LR}}(t, D) = \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} + A_1\cdot \exp{-\lambda_{vRR}(t_i,D)\cdot t},
+\end{equation*}
+$$
 
 which combined with the general solution yields
 
-$$A_2 = \frac{\mathrm{vR(D)}\,N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r}.$$
+$$
+\begin{equation*}
+A_2 = \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}.
+\end{equation*}
+$$
 
-At the end of the last time interval (at $t=t_i$) the general solution gives
-$C_{\mathrm{LR}}(t_i, D) = A_2 + A_1\cdot \exp{-\lambda_{vRR}(D)\cdot t_i}.$ 
+At the end of the last time interval (at $t=t_i$) the general solution yields
+$C_{\mathrm{LR}}(t_i, D) = A_2 + A_1\cdot \exp{-\lambda_{vRR}(t_i,D)\cdot t_i}$.
 Hence, 
 
-$$A_1 = -\left(\frac{\mathrm{vR(D)}\,N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r}-C_{\mathrm{LR}}(t_i, D)\right) \cdot \exp{\lambda_{vRR}(D)\cdot t_i}.$$
+$$
+\begin{equation*}
+A_1 = \left(C_{\mathrm{LR}}(t_i, D) -\Big(\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}\Big)\right) \cdot \exp{\lambda_{vRR}(t_i,D)\cdot t_i}.
+\end{equation*}
+$$
 </details>
 
-In summary, the analytical solution of the ODE describing the viral concentration, assuming only the concentration is time-dependent, is
+In summary, the analytical solution of the ODE describing the long-range viral concentration for $t \in (t_i, t_{i+1}]$ is
 
-$$C_{\mathrm{LR}}(t, D) = \frac{\mathrm{vR(D)}\,N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{\mathrm{vR(D)}\,N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r}-C_{\mathrm{LR}}(t_i, D)\right) \exp{-\lambda_{vRR}(D)\cdot (t-t_i)}.$$
+$$
+\begin{align*}
+C_{\mathrm{LR}}(t, D) 
+&= \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}
++ \left(C_{\mathrm{LR}}(t_i, D) -\Big(\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}\Big)\right) \cdot \exp{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}\\
+&= C_{\mathrm{LR}}(t_i, D) \cdot \exp{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}
++ \sum_{n=1}^{n_p}\frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} (1-\exp{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}).
+\end{align*}
+$$
 
+Note that if only the $n$-th (emitting) population is present, the concentration would be
 
-Assuming the initial viral concentration $C_0=0$, $\mathrm{vR(D)}$ is a linear component of $C_{\mathrm{LR}}(t, D)$ for all $t$.
-Therefore, we can always compute the normalized concentration at the last time step $\frac{C_{\mathrm{LR}}(t_i, D)}{\mathrm{vR(D)}}$ and $\mathrm{vR(D)}$ separately.
+$$
+\begin{align*}
+C_{\mathrm{LR},n}(t, D) 
+&= C_{\mathrm{LR}}(t_i, D) \cdot \exp{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}
++ \frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} (1-\exp{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}).
+\end{align*}
+$$
+
+We assume that the minimim background viral concentration is zero, i.e. $C_{\mathrm{LR}}(t_0, D) = 0$. 
+It follows by induction that
+$$
+\begin{align*}
+C_{\mathrm{LR}}(t, D) 
+&= \sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D)
+\end{align*}
+$$
+holds at all times (for $t \in (t_i, t_{i+1}]$ for all $i$).
+
+To speed up the computations, we take advantage of $\mathrm{vR}_n(D)$ being a linear component of $C_{\mathrm{LR},n}(t, D)$ so that $\frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)}$ and $\mathrm{vR}_n(D)$ can be computed separatelatey. 
 
 <details>
-<summary>Normalizing $C_{\mathrm{LR}}(t_i, D)$.</summary>
+<summary>Proof that $\mathrm{vR}_n(D)$ is a linear compoent of $C_{\mathrm{LR},n}(t, D)$.</summary>
 
-To show that $\mathrm{vR(D)}$ is a linear component of $C_{\mathrm{LR}}(t_i, D)$, lets find the solution to the difference equation
+Note that
 
-$C_{\mathrm{LR}}(t_{i+1}, D)= \frac{\mathrm{vR(D)}\,N_{\mathrm{inf},i+1}}{\lambda_{vRR,i+1}(D)\,V_r} - \left(\frac{\mathrm{vR(D)}\,N_{\mathrm{inf},i+1}}{\lambda_{vRR,i+1}(D)\,V_r}-C_{\mathrm{LR}}(t_i, D)\right) \exp{-\lambda_{vRR,i+1}(D)\cdot (t_{i+1}-t_i)}$. 
+$$
+\begin{align*}
+C_{\mathrm{LR},n}(t_{i+1}, D) 
+&= C_{\mathrm{LR}}(t_i, D) \cdot \exp{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}
++ \frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} (1-\exp{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}).
+\end{align*}
+$$
 
-Lets first clarify the notation by setting $y_i =C_{\mathrm{LR}}(t_{i}, D)$, $B_{i+1}=\frac{\mathrm{vR(D)}\,N_{\mathrm{inf},i+1}}{\lambda_{vRR,i+1}(D)\,V_r}$, 
-and $K_i = \exp{-\lambda_{vRR,i+1}(D)\cdot (t_{i+1}-t_i)}$. Note that we no longer assume that the number of infected and viral removal rate are time-independent: 
-$B_i$ depends on $i$ because $N_{\mathrm{inf},i+1}$ and/or $\lambda_{vRR,i+1}(D)$ change with $i$. Using the new notation, we get
+is a difference equation. Using standard techniques, we find the solution to be
 
-$y_{i+1}= B_{i+1} - (B_{i+1}-y_i) K_i \quad \Rightarrow \quad y_{i+1} = B_{i+1}(1-K_i)+K_i y_i$
+$$
+\begin{equation*}
+C_{\mathrm{LR},n}(t_{i}, D)
+=C_{\mathrm{LR},n}(t_0, D) 
+\cdot \exp{-\sum_{j=0}^{i-1}\lambda_{vRR}(t_j,D)\cdot (t_{j+1}-t_j)}
++\mathrm{vR}_n(D) \cdot \sum_{m=0}^{i-1}\frac{N_{\mathrm{inf},n}}{\lambda_{vRR}(t_m,D)\,V_r}
+\cdot (1- \exp{-\lambda_{vRR}(t_m,D)\cdot (t_{m+1}-t_m)}) 
+\cdot \exp{-\sum_{j=m+1}^{i-1}\lambda_{vRR}(t_j,D)\cdot (t_{j+1}-t_j)}
+\end{equation*}
+$$
 
-yielding the solution
+Because we assume the initial concentration $C_{\mathrm{LR}}(t_0, D)=0$ the solution simplifies to
 
-$y_i=y_0 \cdot \left(\prod_{j=0}^{i-1} K_j\right)+\sum_{m=0}^{i-1}B_{m+1}\cdot \left(\prod_{j=m+1}^{i-1} K_j\right)(1- K_m)$
+$$
+\begin{equation*}
+C_{\mathrm{LR},n}(t_{i}, D)
+=\mathrm{vR}_n(D) \cdot \sum_{m=0}^{i-1}\frac{N_{\mathrm{inf},n}}{\lambda_{vRR}(t_m,D)\,V_r}
+\cdot (1- \exp{-\lambda_{vRR}(t_m,D)\cdot (t_{m+1}-t_m)}) 
+\cdot \exp{-\sum_{j=m+1}^{i-1}\lambda_{vRR}(t_j,D)\cdot (t_{j+1}-t_j)}
+\end{equation*}
+$$
 
-Observing that 
-
-$\prod_{j=n}^{i-1}K_j = \prod_{j=n}^{i-1}\exp{-\lambda_{vRR,j+1}(D)\cdot (t_{j+1}-t_j)} = \exp{ - \sum_{j=n}^{i-1} \lambda_{vRR,j+1}(D)\cdot(t_{j+1}-t_j)}$,
-
-$t_0=0$, and $y_0=C_{\mathrm{LR}}(0, D)=C_0$ we obtain the solution 
-
-$C_{\mathrm{LR}}(t_i, D)
-=C_0 \cdot \left(\exp{ - \sum_{j=0}^{i-1} \lambda_{vRR,j+1}(D)\cdot(t_{j+1}-t_j)}\right)
-+\sum_{m=0}^{i-1}
-\frac{\mathrm{vR(D)}\,N_{\mathrm{inf},m+1}}{\lambda_{vRR,m+1}(D)\,V_r}
-\cdot \left(\exp{ - \sum_{j=m+1}^{i-1} \lambda_{vRR,j+1}(D)\cdot(t_{j+1}-t_j)}\right)
-\cdot \left(1- \exp{-\lambda_{vRR,m+1}(D)\cdot (t_{m+1}-t_m)}\right)$
-
-Inserting $C_{\mathrm{LR}}(t_i, D)$ into the solution of the mass-balance ODE above, and replacing $N_{\mathrm{inf}}$ and $\lambda_{vRR}$ by $N_{\mathrm{inf},i+1}$ and $\lambda_{vRR,i+1}$, 
-we find an expression for the long range viral concentration that does not require recurrent computations of $C_{\mathrm{LR}}(t_i, D)$.
-The expression will, however, depend on all the stepwise constant values of the number of infected and viral removal rate.
-Computationally, it might be just as efficient to compute $C_{\mathrm{LR}}(t_i, D)$ recurrently, as in CAiMIRA, because we also want to compute the concentration profile.
+where $\mathrm{vR}_n(D)$ clearly is a linear component. Note that the solution for $C_{\mathrm{LR},n}(t_{i}, D)$ can be inserted into the solution of $C_{\mathrm{LR}}(t, D)$ above, 
+and so the long-range concentration can be computed without recurrently computing $C_{\mathrm{LR}}(t_i, D)$ every time the viral removal rate changes. 
+Computing $C_{\mathrm{LR},n}(t_{i}, D)$ by the non-recurrent analytical expression above is, however, also computationally expensive. 
+In fact, experiments indicate computing $C_{\mathrm{LR}}(t_i, D)$ recurrently is the more efficient solution. 
 
 </details>
-
-In CAiMIRA, we compute the normaized concentration $\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{vR(D)}}$ in `models._ConcentrationModelBase._normed_concentration()`. 
-The normalized concentration $\frac{C_{\mathrm{LR}}(t_i, D)}{\mathrm{vR(D)}}$ is computed and stored to be used in the next step by `models._ConcentrationModelBase._normed_concentration_cached()`. 
-
+Each $C_{\mathrm{LR},n}(t, D)$ is computed by its own **ConcentrationModel**, so $n$ **ConcentrationModel** instances are created and combined in **TotalViralConcentrationModel** to compute $C_{\mathrm{LR}}(t, D)$.
+objects handle the computation of $C_{\mathrm{LR}}(t, D)$ assuming all the $N_{\mathrm{inf}}$ infected have the same emission rate. As previously mentioned, the minimum background concentration is not included in **ConcentrationModel**, but is added only later in **TotalViralConcentrationModel**. Therefore, $C_{\mathrm{LR}}(t, D)$ is the viral concentration *increase* from the minimum background concentration. Therefore, $C_{\mathrm{LR}}(t, D)=0$ and $\mathrm{vR(D)}$ is a linear component of $C_{\mathrm{LR}}(t, D)$ for all $t$ (details below) and we can always compute the normalized concentration at the last time step $\frac{C_{\mathrm{LR}}(t_i, D)}{\mathrm{vR(D)}}$ seperately of $\mathrm{vR(D)}$.
 
 
 #### Computation of the Long-Range Concentration
-For computational speed-up purposes we first compute $\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{vR(D)}}$, i.e. the long-range concentration normalized by the emission rate. This diameter-dependent component is later retrieved in `models.ExposureModel` to compute the dose exposure.
+For computational speed-up purposes we first compute $\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{vR(D)}}$, i.e. the long-range concentration normalized by the emission rate, in `models._ConcentrationModelBase._normed_concentration()`. We do so by recursively retrieving the normalized concentration at the last state change from `models._ConcentrationModelBase._normed_concentration_cached()`. The diameter-dependent component of the concentration $\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{vR(D)}}$ is later retrieved in `models.ExposureModel` to compute the dose exposure.
 
-Intermediate results for the long-range viral concentration can be obtained by computing
+Intermediate results for the total long-range viral concentration can be obtained by Monte Carlo integrating over the particle diameter. We compute
 
 * The normalized concentration $\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{vR(D)}}$ in `models._ConcentrationModelBase._normed_concentration()`.
 * The normalization factor $\frac{\mathrm{vR(D)}}{\mathrm{p}_D(D)}$ in `models._PopulationWithVirus.emission_rate_per_person_when_present()`, which is called in `models.ConcentrationModel.normalization_factor()` to override the abstract method `models._ConcentrationModelBase.normalization_factor()`.
 * $\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{p}_D(D)}$ as the product of the two above methods in `models._ConcentrationModelBase.concentration()`.
 
-Averaging the array $\left[\frac{C_{\mathrm{LR}}(t, D_1)}{\mathrm{p}_D(D_1)}, \frac{C_{\mathrm{LR}}(t, D_2)}{\mathrm{p}_D(D_2)}, ..., \frac{C_{\mathrm{LR}}(t, D_S)}{\mathrm{p}_D(D_S)}\right]$ returned by `models._ConcentrationModelBase.concentration()` corresponds to Monte Carlo integrating
+By averaging the array $\left[\frac{C_{\mathrm{LR}}(t, D_1)}{\mathrm{p}_D(D_1)}, \frac{C_{\mathrm{LR}}(t, D_2)}{\mathrm{p}_D(D_2)}, ..., \frac{C_{\mathrm{LR}}(t, D_S)}{\mathrm{p}_D(D_S)}\right]$ returned by `models._ConcentrationModelBase.concentration()` we Monte Carlo integrate
 
-$$C_{\mathrm{LR}}^{\mathrm{total}}(t) = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} C_{\mathrm{LR}}(t, D) \;\ \mathrm{d}D.$$
+$$
+\begin{equation*}
+C_{\mathrm{LR}}^{\mathrm{total}}(t) = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} C_{\mathrm{LR}}(t, D) \;\ \mathrm{d}D.
+\end{equation*}
+$$
 
 For the calculator app report, the total concentration (MC integral over the diameter) is performed only when generating the plot.
 Otherwise, the diameter-dependence continues until we compute the inhaled dose in the `models.ExposureModel` class.
 
-#### Dynamic occupancy
+#### Dynamic Infected *- Multiple Infected Populations*
 The mass-balance equation above assumes the emission rate $\mathrm{vR(D)}$ is the same for all the $N_{\mathrm{inf}}$ infected. Different infected may, however, have different physical activities, expirational activities, face mask, immunity, and presence. Concequently, the viral emission rate $\mathrm{vR(D)}$ and the probability distribution of the particle diameter $\mathrm{p}_{D}(D)$ are not the same for every infected. Lets assume we have $n_p$ different populations of infected, each with $N_{\mathrm{inf},n}$ infected with emission rate $\mathrm{vR}_n(D)$ and particle diameters sampled from $\mathrm{p}_{D,n}(D)$. Then, the mass balance equation describing the evolution of the viral concentration becomes
 
-$$\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} = \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{V_r} - \lambda_{vRR}(D) \cdot C_{\mathrm{LR}}(t, D).$$
-
-Using the exact same procedure and assumptions as for the previous ODE, we find the solution to be
-
-$$C_{\mathrm{LR}}(t, D)= \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r}-C_{\mathrm{LR}}(t_i, D)\right) \exp{-\lambda_{vRR}(D)\cdot (t-t_i)}$$
-
-Note that $C_{\mathrm{LR}}(t_0, D)=0$ and for $t \in [t_0, t_1]$
-
-$$
-\begin{align*}
-C_{\mathrm{LR}}(t, D) 
-&= \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r}-C_{\mathrm{LR}}(t_0, D)\right) \exp{-\lambda_{vRR}(D)\cdot (t-t_0)} \\
-&= \sum_{n=1}^{n_p} \left[\frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} - \frac{\\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} \exp{-\lambda_{vRR}(D)\cdot (t-t_0)} \right] \\
-&=\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t_1, D).
-\end{align*}
-$$
-
-For the final equality, we set $C_{\mathrm{LR},n}(t, D)=\frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} \cdot \left(1-\exp{-\lambda_{vRR}(D)\cdot t_1-t_0}\right)$ to indicate that this expression can be computed by a **ConcentrationModel** object, as described above, because all the $N_{\mathrm{inf},n}$ infected belong to the same **IntectedPopulation**, and thus have the same viral emission rate and samples of $D$. Next, for $t \in [t_1, t_2]$ we have
-
-$$
-\begin{align*}
-C_{\mathrm{LR}}(t, D)
-&= \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r}-C_{\mathrm{LR}}(t_1, D)\right) \exp{-\lambda_{vRR}(D)\cdot (t-t_1)}\\
-&= \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r}-\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t_1, D)\right) \exp{-\lambda_{vRR}(D)\cdot (t-t_1)}\\
-&= \sum_{n=1}^{n_p} \left[ \frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r}-C_{\mathrm{LR},n}(t_1, D)\right) \exp{-\lambda_{vRR}(D)\cdot (t-t_1)} \right] =\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D)
-\end{align*}
-$$
-
-The pattern extends to
-
-$$C_{\mathrm{LR}}(t, D)=\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D)$$
-
-for all $t$, so we may use multiple **ConcentrationModel** objects to compute the total long-range concentration resulting from emissions from different infected populations with different properties. 
-
-<details>
-<summary>Proof that the Pattern Extends</summary>
-
-We prove the proposition
-
-$$C_{\mathrm{LR}}(t, D)=\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D)$$
-
-for all $t$ by induction. We have already proved the proposition for $\forall t \in [t_0, t_2]$. To complete the proof, we must show that the proposition also holds for $\forall t \in [t_2, t_k]$ for $\forall k \in \mathbb{N}$. Assume that the proposition holds for $\forall t \in [t_i, t_{i+1}]$. For $\forall t \in [t_{i+1}, t_{i+2}]$ we then have
-
-$$
-\begin{align*}
-C_{\mathrm{LR}}(t, D)
-&= \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r}-C_{\mathrm{LR}}(t_{i+1}, D)\right) \exp{-\lambda_{vRR}(D)\cdot (t-t_{i+1})} \\
-&= \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r}-\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t_{i+1}, D)\right) \exp{-\lambda_{vRR}(D)\cdot (t-t_{i+1})} \\
-&= \sum_{n=1}^{n_p} \left[ \frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(D)\,V_r}-C_{\mathrm{LR},n}(t_{i+1}, D)\right) \exp{-\lambda_{vRR}(D)\cdot (t-t_{i+1})} \right] \\
-&=\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D)
-\end{align*}
-$$
-
-where we used that the proposition holds for $t=t_{i+1}$ in the second equality. Now that we have shown the proposition being true for $\forall t \in [t_0, t_2]$ and that the proposition being true for $\forall t \in [t_i, t_{i+1}]$  implies that the proposition also holds for $\forall t \in [t_{i+1}, t_{i+2}]$, it follows that the proposition must hold for $\forall t \in [t_0, t_k]$ for $\forall k \in \mathbb{N}$ and so the proof is complete.
-
-</details>
+ß
 
 Using several **ConcentrationModel** objects was motivated by the **InfectedPopulation** objects having different samples of $D$ stored in their **Exporation** object, which cannot be considered equal because they stem from different distributions $\mathrm{p}_{D,n}(D)$. 
 When we Monte Carlo integrate to obtain the total long-range concentration, we compute
@@ -698,7 +489,7 @@ S({x^*})[1+\frac{𝛽_{r,p}(x-x^*)}{𝛽_{r,j}(x+x_{0})}]^3 \quad x > x^*,
 $$
 
 where $x_{0}=\frac{D_m}{2𝛽_{\mathrm{r1}}}$ distance of the virtual origin of the puff-like stage (in $\mathrm{m}$) with $D_m$ being the diameter (in $\mathrm{m}$) of the mouth opening, assumed to be a perfect circle.
-All the $𝛽$-parameters are streamwise and radial penetration coefficients set in `caimira.calculator.store.data_registry`.
+All the $𝛽$-parameters are streamwise and radial penetration coefficients set in `data_registry`.
 The distance $x$ a random variable sampled from a log-normal distribution in `monte_carlo.data.short_range_distances()` and passed as `distance` to `models.ShortRangeModel`. 
 The transition point is defined as 
 
@@ -709,7 +500,7 @@ $φ$ is the (dimensionless) exhalation coefficient, given by the ratio between t
 Assuming the duration of an inhalation and an exhalation are equal, and one starts immediately after the other, $φ=2$. 
 $\mathrm{BR}_{\mathrm{k}}$ is the breathing rate determined by the infected's physical activity during the short-range interaction.
 Next, $u_{0}=\frac{Q_{\mathrm{exh}}}{A_{m}}$ is the expired jet speed (in $\mathrm{m s^{-1}}$), with $A_{m}$ being the area of the mouth opening.
-The time of the transition point $\mathrm{t^*}$ is defined as half a breathing cycle, corresponding to the end of the exhalation period when the jet is interrupted, and set in `caimira.calculator.store.data_registry`.
+The time of the transition point $\mathrm{t^*}$ is defined as half a breathing cycle, corresponding to the end of the exhalation period when the jet is interrupted, and set in `data_registry`.
 Finally, $t_{0} = \frac{\sqrt{\pi} \cdot D_m^3}{8𝛽_{\mathrm{r1}}^2𝛽_{\mathrm{x1}}^2Q_{exh}}$ is the time (in $\mathrm{s}$) corresponding to the distance of the virtual origin of the puff-like stage $x_{0}$.
 
 
@@ -875,6 +666,254 @@ $$\mathrm{vD}^{\mathrm{total}}
 In case there are no short-range interactions, `models.ExposureModel.deposited_exposure_between_bounds()` will yield the same result as `models.ExposureModel.long_range_deposited_exposure_between_bounds()`.
 
 Recall that we normalized the concentration by the emission rate for computational efficiency before multiplying by the normalization factor to integrate over the particle diameter. Similarly, the order of computations in `models.ExposureModel.deposited_exposure_between_bounds()` are structured to separate Monte Carlo integration of diamter-dependent and non-diameter dependent random variables for computational efficiency. 
+
+
+### Computation of Expected Results
+The perhaps most interesting result computed by CAiMIRA is the *expected* individual infection probability. The individual infection probability is the probability that a specific exposed becomes infected conditioned on a dose $\mathrm{vD^{total}}$ being deposited in their resporatory tract and the infectious dose being $\mathrm{ID}_{50}$, i.e. the probability $P(I|\mathrm{vD^{total}}, \mathrm{ID}_{50})$ defined by Henriques et al. (2022). Because this probability is already conditioned on specific values of $\mathrm{vD^{total}}$ and $\mathrm{ID}_{50}$, we need to know the expected values of $\mathrm{vD^{total}}$ and $\mathrm{ID}_{50}$ before computing $P(I|\mathrm{vD^{total}}, \mathrm{ID}_{50})$. Computing the expected value of $\mathrm{ID}_{50}$ is easy - it is simply the expected value of a the uniform distribution it follows. 
+
+Computing the expected value of $\mathrm{vD^{total}}$ is more intricate because it is a funciton of all the random variables
+$\mathrm{vl_{inf}}$,
+$\mathrm{r_{inf}}$,
+$\mathrm{BR_{k,out}}$,
+$\mathrm{BR_{k,in}}$, and
+$\eta_{\mathrm{in}}$.
+Furthermore, if $\eta_{\mathrm{out}}$ is a random variable and not a function of the particle diameter, $\mathrm{vD^{total}}$ will also be a function of $\eta_{\mathrm{out}}$. 
+If short-range interactions are included, $\mathrm{vD^{total}}$ will also be a function of one more random variable: the interpersonal distance $x$. Finally, while $\mathrm{vD^{total}}$ is not a function of the particle diameter $D$, computing $\mathrm{vD^{total}}$ requires Monte Carlo integrating over $D$. 
+
+Lets first define the expected value of $\mathrm{vD^{total}}$ as $\widehat{\mathrm{vD^{total}}} = \mathbf{E_{\mathrm{rv}}}[\mathrm{vD^{total}}]$, so  $\mathbf{E_{\mathrm{rv}}}$ is the operation of taking the expected value over all the random variables $\mathrm{vD^{total}}$ is a function of.
+
+The total dose exposure $\mathrm{vD^{total}}$ is a function of the following random variables: Interpersonal distance $x$, viral load inside the infected $\mathrm{vl_{inf}}$, viable to RNA ratio $\mathrm{r_{inf}}$, exhalation rate of the infected $\mathrm{BR_{k,out}}$, inhalation rate of the exposed $\mathrm{BR_{k,in}}$, and inwards face mask efficiency of the exposed $\eta_{\mathrm{in}}$. Taking the expected value over all these random variables, we obtain the expected total dose exposure
+
+Using the definition of $\mathrm{vD^{total}}$, we get
+
+$$
+\begin{align*}
+\widehat{\mathrm{vD^{total}}}
+&=\mathbf{E_{\mathrm{rv}}}\left[\int_{-\infty}^{\infty} \mathrm{vD(D)} \;\ \mathrm{d}D\right]\\
+&=\mathbf{E_{\mathrm{rv}}}\left[\int_{-\infty}^{\infty}\left(\mathrm{vD}_{\mathrm{LR}}(D) + \sum_{i=1}^{n_\mathrm{SR}}\mathrm{vD}_{\mathrm{SR-LR},i}(D)\right)\;\ \mathrm{d}D \right]\\
+&=\mathbf{E_{\mathrm{rv}}}\left[\int_{-\infty}^{\infty}\mathrm{vD}_{\mathrm{LR}}(D)\;\ \mathrm{d}D \right]+\sum_{i=1}^{n_\mathrm{SR}}\mathbf{E_{\mathrm{rv}}}\left[\int_{-\infty}^{\infty}\mathrm{vD}_{\mathrm{SR-LR},i}(D)\;\ \mathrm{d}D \right]\\
+&=\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}+\sum_{i=1}^{n_\mathrm{SR}}\widehat{\mathrm{vD^{total}}_{\mathrm{SR-LR},i}}\\
+\end{align*}
+$$
+
+Lets consider the first term - the expected long-range dose component - first. We get
+
+$$
+\begin{align*}
+\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}
+&=\mathbf{E_{\mathrm{rv}}}\left[\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\mathrm{vD}_{\mathrm{LR}}(D)\;\ \mathrm{d}D \right]\\
+&=\mathbf{E_{\mathrm{rv}}}\left[\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k,in}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})\;\ \mathrm{d}D \right].
+\end{align*}
+$$
+
+Recall that the emission rate
+
+$$
+\begin{equation*}
+\mathrm{vR}(D)= \mathrm{BR}_{\mathrm{k,in}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot E_c(D)
+\end{equation*},
+$$
+
+can be factored out of the long-range concentration $C_{\mathrm{LR}} (t, D)$. We factor
+
+$$
+\begin{equation*}
+C_{\mathrm{LR}} (t, D)=\left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right] \cdot \left[\frac{\mathrm{vR}(D)}{E_{c}(D)}\right]
+\end{equation*}
+$$
+
+so that only the first component is
+$$
+\begin{equation*}
+\left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right]
+\end{equation*}
+$$
+whereas the second component
+
+$$
+\begin{equation*}
+\frac{\mathrm{vR}(D)}{E_{c}(D)} = \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf})
+\end{equation*}
+$$
+
+is not a function of the particle diameter. Inserting the factorized concentration into the equationg for the long-range dose component we see that
+
+$$
+\begin{align*}
+\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}
+&=\mathbf{E_{\mathrm{rv}}}\Big[\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot \left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right]\;\ {d}t \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D \\
+& \quad \quad \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \Big]\\
+&=\mathbf{E_{\mathrm{rv}}}\left[B(\cdot) \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right].
+\end{align*}
+$$
+
+for 
+$$
+\begin{align*}
+B(\cdot)
+&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot \left[\frac{C_{\mathrm{LR}} (t, D)}{\mathrm{vR}(D)} \cdot E_{c}(D)\right]\;\ {d}t \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D \\
+&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D)}{\mathrm{vR}(D)} \cdot E_{c}(D) \;\ \mathrm{d}D.
+\end{align*}
+$$
+
+Where the notation $B(\cdot)$ is meant to indicate that $B$ may either be a function or a constant value, depending on wheter $η_\mathrm{out}$ is a separate random variable or a fuction of the particle diameter. It follows from the definition of $E_{c}(D)$ and the probability distribution of the particle diameter $\mathrm{p}_D(D)$ that
+
+$$
+E_{c}(D) =
+\begin{cases} 
+V_p(D) \cdot (1 − η_\mathrm{out}) \cdot K \cdot \mathrm{p}_D(D) \hspace{9.5mm} \mathrm{if} \quad η_\mathrm{out} \sim \mathrm{Uniform},\\
+V_p(D) \cdot (1 − η_\mathrm{out}(D)) \cdot K \cdot \mathrm{p}_D(D) \quad  \mathrm{else}.
+\end{cases}
+$$
+
+Consequently, if $η_\mathrm{out}$ is a separate random variable then
+
+$$
+\begin{align*}
+B(η_\mathrm{out})
+&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D)}{\mathrm{vR}(D)} \cdot  V_p(D) \cdot (1 − η_\mathrm{out}) \cdot K \cdot \mathrm{p}_D(D)\;\ \mathrm{d}D \\
+&=(1 − η_\mathrm{out}) \cdot \int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D)}{\mathrm{vR}(D)} \cdot  V_p(D) \cdot K \cdot \mathrm{p}_D(D)\;\ \mathrm{d}D.
+\end{align*}
+$$
+
+Alternatively, $η_\mathrm{out}$ is a function of $D$ so
+
+$$
+\begin{align*}
+B
+&=\int_{\mathrm{D_{min,LR}}}^{\mathrm{D_{max,LR}}}\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D)}{\mathrm{vR}(D)} \cdot  V_p(D) \cdot (1 − η_\mathrm{out}(D)) \cdot K \cdot \mathrm{p}_D(D)\;\ \mathrm{d}D.
+\end{align*}
+$$
+
+is a constant. If $B$ is a constant, then
+
+$$
+\begin{align*}
+\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}
+&=\mathbf{E_{\mathrm{rv}}}\left[B \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right]\\
+&=B \cdot \mathbf{E_{\mathrm{rv}}}\left[\mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right].
+\end{align*}
+$$
+
+Otherwise, if $B$ is a function of $η_\mathrm{out}$ we need to assume that $B$ is independent of $\mathrm{BR}_{\mathrm{k,out}}$, $\mathrm{vl_{inf}}$, $\mathrm{r_{inf}}$, $\mathrm{HI}_\mathrm{inf}$, and $\mathrm{BR}_{\mathrm{k,in}}$ to factor
+
+$$
+\begin{align*}
+\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}
+&=\mathbf{E_{\mathrm{rv}}}\left[B(η_\mathrm{out}) \cdot \mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right]\\
+&=\mathbf{E_{η_\mathrm{out}}}[B(η_\mathrm{out})] \cdot \mathbf{E_{\mathrm{BR}_{\mathrm{k,out}},\mathrm{vl_{inf}},\mathrm{r_{inf}},\mathrm{HI}_\mathrm{inf},\mathrm{BR}_{\mathrm{k,in}},\eta_{\mathrm{in}}}}\left[\mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right].
+\end{align*}
+$$
+
+In summary, we have derived the following definition of the expected long-range dose exposure
+
+$$
+\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}} =
+\begin{cases} 
+\mathbf{E_{η_\mathrm{out}}}[B(η_\mathrm{out})] \cdot \mathbf{E_{\mathrm{rv}}}\left[\mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right] 
+\quad \mathrm{if} \quad η_\mathrm{out} \sim \mathrm{Uniform},\\
+B \cdot \mathbf{E_{\mathrm{rv}}}\left[\mathrm{BR}_{\mathrm{k,out}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf}) \cdot \mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \right] 
+\hspace{5.15cm} \mathrm{else}.
+\end{cases}
+$$
+
+only by assuming $η_\mathrm{out}$ is independent of all other random variables, if it is a separate random variable. For both definitions of $η_\mathrm{out}$, we have managed to gather all variables depending on the particle diameter in an integral over $D$ that contains no other random variables. Thereby, we using Monte Carlo sampling techniques to approximate the expected values and Monte Carlo integral over $D$. 
+
+Drawing $S_{η_\mathrm{out}}$ samples of $η_\mathrm{out}$ from the distribution of $η_\mathrm{out}$, we approximate
+
+$$
+\begin{equation*}
+\mathbf{E_{η_\mathrm{out}}}[η_\mathrm{out}] \approx \frac{1}{S_{η_\mathrm{out}}} \sum_{i=1}^{S_{η_\mathrm{out}}} η_{\mathrm{out},i}.
+\end{equation*}
+$$
+
+Drawing $S_D$ samples of $D$ from $\mathrm{p}_D(D)$, we Monte Carlo integrate
+
+$$
+\begin{equation*}
+\mathbf{E_{η_\mathrm{out}}}[B(η_\mathrm{out})] \approx (1 − \mathbf{E_{η_\mathrm{out}}}[η_\mathrm{out}]) \cdot \sum_{i=1}^{S_D} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D_i) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D_i)}{\mathrm{vR}(D_i)} \cdot  V_p(D_i) \cdot K
+\end{equation*}.
+$$
+
+or, if $η_\mathrm{out}$ is not a random variable
+
+$$
+\begin{equation*}
+B \approx \sum_{i=1}^{S_D} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D_i) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D_i)}{\mathrm{vR}(D_i)} \cdot  V_p(D_i) \cdot (1 − η_\mathrm{out}(D_i)) \cdot K.
+\end{equation*}
+$$
+
+Finally, we draw $S_\mathrm{rv}$ samples from the joint probability distribution $\mathrm{p}_\mathrm{rv}(\mathrm{BR}_{\mathrm{k,out}},\mathrm{vl_{inf}},\mathrm{r_{inf}},\mathrm{HI}_\mathrm{inf},\mathrm{BR}_{\mathrm{k,in}},\eta_{\mathrm{in}})$ to compute
+
+$$
+\begin{aligned}
+\mathbf{E}_{\mathrm{rv}}\!\Big[
+&\mathrm{BR}_{\mathrm{k,out}}
+\cdot \mathrm{vl}_{\mathrm{inf}}
+\cdot \mathrm{r}_{\mathrm{inf}}
+\cdot (1-\mathrm{HI}_{\mathrm{inf}})
+\cdot \mathrm{BR}_{\mathrm{k,in}}
+\cdot (1-\eta_{\mathrm{in}})
+\Big]
+\approx
+\frac{1}{S_{\mathrm{rv}}}
+\sum_{i=1}^{S_{\mathrm{rv}}}
+\mathrm{BR}_{\mathrm{k,out},i}
+\cdot \mathrm{vl}_{\mathrm{inf},i}
+\cdot \mathrm{r}_{\mathrm{inf},i}
+\cdot (1-\mathrm{HI}_{\mathrm{inf},i})
+\cdot \mathrm{BR}_{\mathrm{k,in},i}
+\cdot (1-\eta_{\mathrm{in},i})
+\end{aligned}
+$$
+
+However, we do not know the joint distribution of all these random variables - we only know the marginal distributions. Therefore, the samples are generated from the marginal distributions. This procedure assumes that all the random variables are mutually independent. 
+
+In the end, we are left with the assumption that all random variables are mutually independent and the Monte Carlo approximation
+
+$$
+\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}} =
+\begin{cases} 
+\Big(
+    1 − \frac{1}{S_{η_\mathrm{out}}} \sum_{i=1}^{S_{η_\mathrm{out}}} η_{\mathrm{out},i}
+\Big) 
+\cdot 
+\Big[
+    \sum_{i=1}^{S_D} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D_i) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D_i)}{\mathrm{vR}(D_i)} \cdot  V_p(D_i) \cdot K
+\Big]
+\cdot 
+\Big[
+    \frac{1}{S_{\mathrm{rv}}}
+    \sum_{i=1}^{S_{\mathrm{rv}}}
+    \mathrm{BR}_{\mathrm{k,out},i}
+    \cdot \mathrm{vl}_{\mathrm{inf},i}
+    \cdot \mathrm{r}_{\mathrm{inf},i}
+    \cdot (1-\mathrm{HI}_{\mathrm{inf},i})
+    \cdot \mathrm{BR}_{\mathrm{k,in},i}
+    \cdot (1-\eta_{\mathrm{in},i})
+\Big]
+\quad \mathrm{if} \quad η_\mathrm{out} \sim \mathrm{Uniform},\\
+\Big[
+    \sum_{i=1}^{S_D} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D_i) \;\ {d}t \cdot \frac{f_{\mathrm{dep}}(D_i)}{\mathrm{vR}(D_i)} \cdot  V_p(D_i) \cdot (1 − η_\mathrm{out}(D_i)) \cdot K
+\Big]
+\cdot
+\Big[
+    \frac{1}{S_{\mathrm{rv}}}
+    \sum_{i=1}^{S_{\mathrm{rv}}}
+    \mathrm{BR}_{\mathrm{k,out},i}
+    \cdot \mathrm{vl}_{\mathrm{inf},i}
+    \cdot \mathrm{r}_{\mathrm{inf},i}
+    \cdot (1-\mathrm{HI}_{\mathrm{inf},i})
+    \cdot \mathrm{BR}_{\mathrm{k,in},i}
+    \cdot (1-\eta_{\mathrm{in},i})
+\Big]
+\hspace{2.2cm} \mathrm{else}.
+\end{cases}
+$$
+
+Lets summarize what we just did. We factored the total expected long-range dose exposure into an integral over the particle diameter and expected values over all remaining random variables. This factorization improves the computational performance of the model by avioiding nested summations. 
+
+Similarly, we can compute the expecteded short-range dose component, viral concentration, emission rate, and removal rate.
 
 
 
