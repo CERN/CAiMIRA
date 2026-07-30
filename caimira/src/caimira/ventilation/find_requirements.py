@@ -201,7 +201,7 @@ def get_new_air_exch_from_target_CO2_limit(
 
     return np.mean(abs_CO2_emission / (room_volume * (target - background_concentration)))
 
-def concentration_limit(CO2_models, time, const_air_exch):  
+def concentration_limit(CO2_models: typing.Tuple[models.CO2ConcentrationModel], time: float, const_air_exch: float):  
     limit = CO2_models[0].min_background_concentration()
     for CO2_model in CO2_models:
         V = CO2_model.room.volume
@@ -209,7 +209,7 @@ def concentration_limit(CO2_models, time, const_air_exch):
     return limit
 
 def set_minimal_air_exch_from_target_CO2(
-    CO2_models: typing.Tuple[models.CO2ConcentrationModel], 
+    scenario: ScenarioVar, 
     CO2_target: float,
     target_time: float,
     state_time: typing.Optional[float] = None,
@@ -222,6 +222,9 @@ def set_minimal_air_exch_from_target_CO2(
 
     The number of people present are assumed to constantly equal the number of people present at *state_time*.
     """
+    exposure_model = get_models.get_exposure_model([0], model_response.first_vent_transition_times(scenario), scenario).build_model(1)
+    CO2_models = get_models.get_deterministic_CO2_models(exposure_model)
+
     room_volumes = list(set([CO2_model.room.volume for CO2_model in CO2_models]))
     background_concentrations = list(set([CO2_model.min_background_concentration() for CO2_model in CO2_models]))
     if len(room_volumes) != 1:
@@ -241,7 +244,7 @@ def set_minimal_air_exch_from_target_CO2(
     u = (abs_CO2_emission/room_volume) / (CO2_target - background_concentration)
     w = -target_time*u * np.exp(-target_time*u) # always negative
 
-    return u + 1/target_time * lambertw(w, k=-1).real # output ventilation always real and positive
+    return u + 1/target_time * lambertw(w, k=0).real # output ventilation always real and positive
 
     
 
