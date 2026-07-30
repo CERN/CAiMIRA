@@ -208,26 +208,14 @@ Note that $\lambda_{\mathrm{vRR}}(t)^{\mathrm{total}}$ does not equal the averag
 ## Viral Concentration
 The concentration of virus-laden particles in a given room is computed using a two-box exposure model:
 
-* **Box 1** - long-range concentration: the viral concentration more than 2 m away from the infected host(s) assuming mass balance between the emission rate of the infected host(s) and the removal rates from the environmental/virological characteristics.
-* **Box 2** - short-range concentration: the *exhaled jet* concentration in close-proximity, computing using a two-stage exhaled jet model where the susceptible (exposed) host is distanced 0.5-2 m from the infected host.
+* **Box 1 - Long-Range:** The viral concentration more than 2 m away from the infected host(s) assuming mass balance between the emission rate of the infected host(s) and the removal rates from the environmental/virological characteristics.
+* **Box 2 - Short-Range:** The *exhaled jet* concentration in close-proximity, computed using a two-stage exhaled jet model where the susceptible host (exposed) is distanced 0.5-2 m from the infected host.
 
-### Architecture - Dynamic Infected
-Up untill CAiMIRA v4.19, the viral concentration (and dose exposure etc) was computed assuming all infected hosts had the same emission rate and short-range interactions, meaning the physical activity, expirational activity, face mask, immunity, and presence was assumed identical for all infected hosts. CAiMIRA v4.20 onwards allows "dynamic infected", i.e. individually defined properties (physical activity, expirational activity, face mask, immunity, and presence) for every infected that also may vary over time. This flexibility is implemented by combining several `models._ConcentrationModelBase()` instances in `models._ConcentrationModelBase()`. This section details the architecture of the concentration models following the implementation of dynamic infected.
-
-Consider a scenario where we have two infected hosts (Infected_A and Infected_B) in the room, and lets say the user provides the following information about our infected populations: 
-- Infected_A is present from 8am to 4pm, and performs expirational_activity_A1 from 8am to 9am and expirational_activity_A2 from 9am to 4pm.
-- Infected_B is present from 8am to 11am, and performs expirational_activity_B the whole time. 
-
-Computationally, an infected changing property abruptly is no different from the infected being replaced. Therefore, CAiMIRA defines, from Infected_A, two infected: Infected_A1 present from 8am to 9am performing expirational_activity_A1 and Infected_A2 present from 9am to 4pm performing expirational_activity_A2.
-
-The three infected are passed as instances of **InfectedPopulation** (`models.InfectedPopulation`) to **TotalViralConcentrationModel** (`models.TotalViralConcentrationModel`). **TotalViralConcentrationModel** is a child class of the abstract `models._TotalConcentrationModelBase` computing the long-range concentration for any type of aerosol. The inherited property `models.TotalViralConcentrationModel.concentration_models()` creates three instances of **ConcentrationModel** (`models.ConcentrationModel`) - one for Infected_A1, one for Infected_A2, and one for Infected_B. Each **ConcentrationModel** computes the long-range viral concentration as if its respective infected population was the only source of virions in the room. More precisely, each **ConcentrationModel** computes the concentration *increase* from the minimum background concentration. The total viral concentration in the room is, thereafter, computed in `models.TotalViralConcentrationModel.long_range_concentration()` as the sum of the concentration increase computed by all the **ConcentrationModel** instances and the minimum background concentration. One rational for this arcitecture is that infected with different expirational activities will have different probability distributions of the particle diameter, and must therefore be Monte Carlo integrated separately before added together (details below).
-
-Every single short-range interaction is modelled by an instance of `models.ShortRangeModel()` and passed upon initialization to the **InfectedPopulation**  exhaling the jet. The short-range concentration is then added to the long-range concentraiton in `models.TotalViralConcentrationModel.concentration()`. Note that `models.ShortRangeModel()` has its own instance of **Expiration** because the samples of $D$ are from different $\mathrm{p}_D(D)$ since $D_{\mathrm{max}}$ differs at long-range and short-range. Face masks interupt the exhaled yet stream, so only infected without face masks have short-range interactions.
-
+Because CAiMIRA is only meant to model airborne transmission, interactions where the susceptible and infected hosts are closer than 0.5 m apart are excluded. 
 
 ### Long-Range Compartment
 #### Derivation of the Analytical Long-Range Concentration
-Assuming mass balance, the change in the viral concentration equals the difference between the total emission rate per volume and the total removal rate. 
+Assuming mass balance, the rate of change of the viral concentration equals the difference between the total emission rate per volume and the total removal rate. 
 The total emission rate per volume is simply the sum of the emission rate of every single infected divided by the room volume $V_r$, which can be expressed as $\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{V_r}$ for $n_p$ infected populations where the $n$-th population has $N_{\mathrm{inf},n}$ members with common emission rate $\mathrm{vR}_n(D)$.
 The removal is the product of the current viral removal rate $\lambda_{\mathrm{vRR}}(t,D)$ and viral concentration $C_{\mathrm{LR}}(t, D)$. In conclusion, the viral concentration is described by the ordinary differential equation (ODE)
 
@@ -371,52 +359,54 @@ Computing $C_{\mathrm{LR},n}(t_{i}, D)$ by the non-recurrent analytical expressi
 In fact, experiments indicate computing $C_{\mathrm{LR}}(t_i, D)$ recurrently is the more efficient solution. 
 
 </details>
-Each $C_{\mathrm{LR},n}(t, D)$ is computed by its own **ConcentrationModel**, so $n$ **ConcentrationModel** instances are created and combined in **TotalViralConcentrationModel** to compute $C_{\mathrm{LR}}(t, D)$.
-objects handle the computation of $C_{\mathrm{LR}}(t, D)$ assuming all the $N_{\mathrm{inf}}$ infected have the same emission rate. As previously mentioned, the minimum background concentration is not included in **ConcentrationModel**, but is added only later in **TotalViralConcentrationModel**. Therefore, $C_{\mathrm{LR}}(t, D)$ is the viral concentration *increase* from the minimum background concentration. Therefore, $C_{\mathrm{LR}}(t, D)=0$ and $\mathrm{vR(D)}$ is a linear component of $C_{\mathrm{LR}}(t, D)$ for all $t$ (details below) and we can always compute the normalized concentration at the last time step $\frac{C_{\mathrm{LR}}(t_i, D)}{\mathrm{vR(D)}}$ seperately of $\mathrm{vR(D)}$.
 
+#### Architecture of the Long-Range Concentration Computations
+The arcitecture for computing the long-range viral concentraiton is based on the relation 
+$C_{\mathrm{LR}}(t, D) = \sum_{n=1}^{n_p} C_{\mathrm{LR},n}(t, D)$,
+derived above, showing that the total long-range viral concentration is the sum of the individual concentration contributions from all infected populations. 
 
-#### Computation of the Long-Range Concentration
-For computational speed-up purposes we first compute $\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{vR(D)}}$, i.e. the long-range concentration normalized by the emission rate, in `models._ConcentrationModelBase._normed_concentration()`. We do so by recursively retrieving the normalized concentration at the last state change from `models._ConcentrationModelBase._normed_concentration_cached()`. The diameter-dependent component of the concentration $\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{vR(D)}}$ is later retrieved in `models.ExposureModel` to compute the dose exposure.
+First, CAiMIRA initializes one **InfectedPopulation** for each group of infected with different physical activity, expirational activity, face mask, immunity, or presence. Each group may have a different emission rate, number of occupants, and samples of the particle diameter from differenty parameterized probability distributions. Note that this setup allows infected to abruptly change their properties by defining multiple **InfectedPopulation** instances with non-overlapping presence. For example, a single infected who is speaking from 10 am to 11 am and only breathing after 11 am is described by a the speaking InfectedPopulation_A present from 10 am to 11 am and a breathing InfectedPopulation_B present after 11 am.
 
-Intermediate results for the total long-range viral concentration can be obtained by Monte Carlo integrating over the particle diameter. We compute
-
-* The normalized concentration $\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{vR(D)}}$ in `models._ConcentrationModelBase._normed_concentration()`.
-* The normalization factor $\frac{\mathrm{vR(D)}}{\mathrm{p}_D(D)}$ in `models._PopulationWithVirus.emission_rate_per_person_when_present()`, which is called in `models.ConcentrationModel.normalization_factor()` to override the abstract method `models._ConcentrationModelBase.normalization_factor()`.
-* $\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{p}_D(D)}$ as the product of the two above methods in `models._ConcentrationModelBase.concentration()`.
-
-By averaging the array $\left[\frac{C_{\mathrm{LR}}(t, D_1)}{\mathrm{p}_D(D_1)}, \frac{C_{\mathrm{LR}}(t, D_2)}{\mathrm{p}_D(D_2)}, ..., \frac{C_{\mathrm{LR}}(t, D_S)}{\mathrm{p}_D(D_S)}\right]$ returned by `models._ConcentrationModelBase.concentration()` we Monte Carlo integrate
+Using all the **InfectedPopulation** instances, we initialize a single **TotalViralConcentrationModel** (`models.TotalViralConcentrationModel`). **TotalViralConcentrationModel** is a child class of the abstract `models._TotalConcentrationModelBase` computing the long-range concentration for any type of aerosol. `models.TotalViralConcentrationModel.concentration_models()` instantiates one **ConcentrationModel** (`models.ConcentrationModel`) for each **InfectedPopulation** in **TotalViralConcentrationModel**. Each of these **ConcentrationModel** instances computes the long-range viral concentration, as if the only source of virions was its own **InfectedPopulation**, in `models.ConcentrationModel.concentration_increase`. That is, the $n$-th **ConcentrationModel** computes $C_{\mathrm{LR},n}(t, D)$. Thereafter, the total viral concentration 
 
 $$
-\begin{equation*}
-C_{\mathrm{LR}}^{\mathrm{total}}(t) = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} C_{\mathrm{LR}}(t, D) \;\ \mathrm{d}D.
-\end{equation*}
+\begin{align*}
+C_{\mathrm{LR}}^{\mathrm{total}}(t)
+&= \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} \sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D) \;\ \mathrm{d}D \\
+&= \sum_{n=1}^{n_p}C_{\mathrm{LR},n}^{\mathrm{total}}(t)
+\end{align*}
 $$
 
-For the calculator app report, the total concentration (MC integral over the diameter) is performed only when generating the plot.
-Otherwise, the diameter-dependence continues until we compute the inhaled dose in the `models.ExposureModel` class.
-
-#### Dynamic Infected *- Multiple Infected Populations*
-The mass-balance equation above assumes the emission rate $\mathrm{vR(D)}$ is the same for all the $N_{\mathrm{inf}}$ infected. Different infected may, however, have different physical activities, expirational activities, face mask, immunity, and presence. Concequently, the viral emission rate $\mathrm{vR(D)}$ and the probability distribution of the particle diameter $\mathrm{p}_{D}(D)$ are not the same for every infected. Lets assume we have $n_p$ different populations of infected, each with $N_{\mathrm{inf},n}$ infected with emission rate $\mathrm{vR}_n(D)$ and particle diameters sampled from $\mathrm{p}_{D,n}(D)$. Then, the mass balance equation describing the evolution of the viral concentration becomes
-
-ß
-
-Using several **ConcentrationModel** objects was motivated by the **InfectedPopulation** objects having different samples of $D$ stored in their **Exporation** object, which cannot be considered equal because they stem from different distributions $\mathrm{p}_{D,n}(D)$. 
-When we Monte Carlo integrate to obtain the total long-range concentration, we compute
+is computed in `models.TotalViralConcentrationModel.long_range_concentration()` by Monte Carlo integrating over the particle diameter:
 
 $$
 \begin{align*}
 C_{\mathrm{LR}}^{\mathrm{total}}(t) 
-&= \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} C_{\mathrm{LR}}(t, D) \;\ \mathrm{d}D \\
-&= \sum_{n=1}^{n_p} \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} \frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{p}_{D,n}(D)} \cdot \mathrm{p}_{D,n}(D) \;\ \mathrm{d}D \\
-&\approx \sum_{n=1}^{n_p} \frac{1}{S_n}\sum_{i=1}^{S_n} \frac{C_{\mathrm{LR},n}(t, D_{n,i})}{\mathrm{p}_{D,n}(D_{n,i})}.
+&= \sum_{n=1}^{n_p}C_{\mathrm{LR},n}^{\mathrm{total}}(t) \\
+&= \sum_{n=1}^{n_p}\int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} \frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{p}_{D,n}(D)} \cdot \mathrm{p}_{D,n}(D)\;\ \mathrm{d}D \\
+&\approx \sum_{n=1}^{n_p} \sum_{i=1}^{S_D}\frac{C_{\mathrm{LR},n}(t, D_i)}{\mathrm{p}_{D,n}(D_i)}.
 \end{align*}
 $$
 
+Note that the particle diameter distribution, $\mathrm{p}_{D,n}(D)$, which is factored out of $C_{\mathrm{LR},n}(t,D)$, may have different parameter values for different infected populations (indexed by $n$). Consequently, samples of the particle diameter drawn from different populations are generally not identically distributed. Therefore, we must Monte Carlo integrate each $C_{\mathrm{LR},n}(t,D)$ separately. Indeed, this is one of the major rationales for computing $C_{\mathrm{LR},n}(t,D)$ by separate **ConcentrationModel** for each $n$.
 
-This computation is performed in `models.ExposureModel.long_range_concentration()` and combined with the short-range concentration in `models.ExposureModel.concentration()`.
+For computational speed-up purposes, we separate the computations of $C_{\mathrm{LR},n}(t,D)$ into
+
+* The diameter-dependent normalized concentration $\frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)}$ in `models._ConcentrationModelBase._normed_concentration()`.
+* The diameter-independent normalization factor $\frac{\mathrm{vR}_n(D)}{\mathrm{p}_{D,n}(D)}$ in `models.ConcentrationModel.normalization_factor()`.
+
+The normalization factor has a diameter-dependent component $\frac{E(D)}{\mathrm{p}_{D,n}(D)}$ implemented by `models._PopulationWithVirus.aerosols()` and a diameter-independent component $\mathrm{BR}_{\mathrm{k,in}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf})$ implemented in `models._PopulationWithVirus.emission_rate_per_aerosol_per_person_when_present()`. 
+To compute the final result, we Monte Carlo integrate 
+$\frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)} \cdot \frac{E(D)}{\mathrm{p}_{D,n}(D)}$
+over the particle diameter and then multiply by the diameter independent component of the normalization factor. Recall that $\mathrm{BR}_{\mathrm{k,in}}$, $\mathrm{vl_{inf}}$, and $\mathrm{r_{inf}}$ are Monte Carlo sampled random variables, so we average the final product to approximate the expected long-range concentration.
+
+For the calculator app report, the total concentration (MC integral over the diameter) is performed only when generating the plot.
+Otherwise, the diameter-dependence continues until we compute the inhaled dose in the `models.ExposureModel` class.
 
 
 ### Short-Range Compartment
+The short-range concentration and dose exposure from short-range interactions are modeled using one **ShortRangeModel** (`models.ShortRangeModel`) for each interaction. **ShortRangeModel** computes the jet exhaled by the infected particapating in the short-range interaction. Therefore, **InfectedPopulation** is initialized with a tuple of **ShortRangeModel** instances representing the short-range interactions of that infected host.
+The short-range concentration is computed in `models.TotalViralConcentrationModel.concentration()`. Note that `models.ShortRangeModel()` has its own instance of **Expiration** because the samples of $D$ are from different $\mathrm{p}_D(D)$ since $D_{\mathrm{max}}$ differs at long-range and short-range. Therefore, the diameter-dependent short-range concentration component must also be integrated separately from the long-range concentration. Face masks interupt the exhaled yet stream, so only infected without face masks have short-range interactions.
 #### Derivation of the Analytical Short-Range Concentration
 The viral concentration at short-range is the result of a two-stage exhaled jet model developed by Jia, W. et al. <sup>[1](#id6)</sup> and is expressed as:
 
@@ -761,8 +751,8 @@ Where the notation $B(\cdot)$ is meant to indicate that $B$ may either be a func
 $$
 E_{c}(D) =
 \begin{cases} 
-V_p(D) \cdot (1 − η_\mathrm{out}) \cdot K \cdot \mathrm{p}_D(D) \hspace{9.5mm} \mathrm{if} \quad η_\mathrm{out} \sim \mathrm{Uniform},\\
-V_p(D) \cdot (1 − η_\mathrm{out}(D)) \cdot K \cdot \mathrm{p}_D(D) \quad  \mathrm{else}.
+V_p(D) \cdot (1 − η_\mathrm{out}) \cdot c_n \cdot \mathrm{p}_D(D) \hspace{9.5mm} \mathrm{if} \quad η_\mathrm{out} \sim \mathrm{Uniform},\\
+V_p(D) \cdot (1 − η_\mathrm{out}(D)) \cdot c_n \cdot \mathrm{p}_D(D) \quad  \mathrm{else}.
 \end{cases}
 $$
 
