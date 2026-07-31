@@ -13,23 +13,15 @@ SAMPLE_SIZE = 250_000
 
 
 @pytest.fixture
-def short_range_model(data_registry):
-    return mc_models.ShortRangeModel(data_registry=data_registry,
-                                     activity=activity_distributions(data_registry)['Seated'], # NOTE: not within infected.activity. In the future, this initialization might trigger an error.
-                                     expiration=short_range_expiration_distributions(data_registry)['Breathing'],
-                                     presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
-                                     distance=short_range_distances(data_registry))
-
-
-@pytest.fixture
-def exposure_model(data_registry, short_range_model):
-    return mc_models.ExposureModel(data_registry=data_registry,
+def concentration_model(data_registry) -> mc_models.ConcentrationModel:
+    return mc_models.ConcentrationModel(
+        data_registry=data_registry,
         room=models.Room(volume=75),
         ventilation=models.AirChange(
             active=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
             air_exch=10_000_000.,
         ),
-        infected_populations=(mc_models.InfectedPopulation(
+        infected=mc_models.InfectedPopulation(
             data_registry=data_registry,
             number=1,
             virus=models.Virus.types['SARS_CoV_2'],
@@ -38,28 +30,44 @@ def exposure_model(data_registry, short_range_model):
             activity=models.Activity.types['Light activity'],
             expiration=build_expiration(data_registry, {'Speaking': 0.33, 'Breathing': 0.67}),
             host_immunity=0.,
-            short_range=(short_range_model,),
-        ),),
-        evaporation_factor=0.3,
-            exposed = mc_models.Population(
-            number=1,
-            presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
-            mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light activity'],
-            host_immunity=0.,
         ),
-        geographical_data = models.Cases(),
-        exposed_to_short_range = 1
+        evaporation_factor=0.3,
     )
 
 
-def test_short_range_model_ndarray(short_range_model):
-    sr_model = short_range_model.build_model(SAMPLE_SIZE)
-    assert isinstance(sr_model.dilution_factor(), np.ndarray)
-    assert isinstance(sr_model._normed_jet_origin_concentration(), np.ndarray)
-    assert isinstance(sr_model._normed_diluted_jet_concentration(), np.ndarray)
-    assert np.all(sr_model._normed_diluted_jet_concentration() > 0)
+@pytest.fixture
+def short_range_model(data_registry, concentration_model):
+    return mc_models.ShortRangeModel(data_registry=data_registry,
+                                     infected=concentration_model.infected,
+                                     activity=activity_distributions(data_registry)['Seated'], # NOTE: not within infected.activity. In the future, this initialization might trigger an error.
+                                     expiration=short_range_expiration_distributions(data_registry)['Breathing'],
+                                     presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
+                                     distance=short_range_distances(data_registry))
 
+@pytest.fixture
+def exposure_model(data_registry, concentration_model, short_range_model):
+    return mc_models.ExposureModel(data_registry=data_registry,
+                                     concentration_model=(concentration_model,),
+                                     short_range=(short_range_model,),
+                                     exposed = mc_models.Population(
+                                        number=1,
+                                        presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
+                                        mask=models.Mask.types['No mask'],
+                                        activity=models.Activity.types['Light activity'],
+                                        host_immunity=0.,
+                                    ),
+                                    geographical_data = models.Cases(),
+                                    exposed_to_short_range = 1)
+
+
+def test_short_range_model_ndarray(concentration_model, short_range_model):
+    concentration_model = concentration_model.build_model(SAMPLE_SIZE)
+    model = short_range_model.build_model(SAMPLE_SIZE)
+    assert isinstance(model.dilution_factor(), np.ndarray)
+    assert isinstance(model._normed_jet_origin_concentration(), np.ndarray)
+    assert isinstance(model._normed_diluted_jet_concentration(), np.ndarray)
+    assert isinstance(model.diluted_jet_concentration(), np.ndarray)
+    assert np.all(model.diluted_jet_concentration() > 0)
 
 
 @pytest.mark.parametrize(
@@ -74,6 +82,16 @@ def test_short_range_model_ndarray(short_range_model):
 def test_dilution_factor(data_registry, activity, expected_dilution):
     model = mc_models.ShortRangeModel(
         data_registry=data_registry,
+        infected=mc_models.InfectedPopulation(
+            data_registry=data_registry,
+            number=1,
+            virus=models.Virus.types['SARS_CoV_2'],
+            presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
+            mask=models.Mask.types['No mask'],
+            activity=models.Activity.types[activity],
+            expiration=short_range_expiration_distributions(data_registry)['Breathing'],
+            host_immunity=0.,
+        ),
         activity=models.Activity.types[activity],
         expiration=short_range_expiration_distributions(data_registry)['Breathing'],
         presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
@@ -129,17 +147,12 @@ def test_short_range_concentration(time, expected_short_range_concentration_comp
 
 
 def test_short_range_exposure_with_ndarray_mask(data_registry):
-    sr_model = mc_models.ShortRangeModel(data_registry=data_registry,
-                                         activity=models.Activity.types['Heavy exercise'],                           # NOTE: not within infected.activity. In the future, this initialization might trigger an error.
-                                         expiration=short_range_expiration_distributions(data_registry)['Shouting'], # NOTE: not within infected.expiration. In the future, this initialization might trigger an error.
-                                         presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
-                                         distance=0.854)
-    e_model = mc_models.ExposureModel(
-        data_registry = data_registry,
+    c_model = mc_models.ConcentrationModel(
+        data_registry=data_registry,
         room=models.Room(volume=50, humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
                                      air_exch=10_000_000,),
-        infected_populations=(mc_models.InfectedPopulation(
+        infected=mc_models.InfectedPopulation(
             data_registry=data_registry,
             number=1,
             presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
@@ -148,9 +161,19 @@ def test_short_range_exposure_with_ndarray_mask(data_registry):
             activity=models.Activity.types['Seated'],
             expiration=expiration_distributions(data_registry)['Breathing'],
             host_immunity=0.,
-            short_range=(sr_model,),
-        ),),
+        ),
         evaporation_factor=0.3,
+    )
+    sr_model = mc_models.ShortRangeModel(data_registry=data_registry,
+                                         infected=c_model.infected,
+                                         activity=models.Activity.types['Heavy exercise'],                           # NOTE: not within infected.activity. In the future, this initialization might trigger an error.
+                                         expiration=short_range_expiration_distributions(data_registry)['Shouting'], # NOTE: not within infected.expiration. In the future, this initialization might trigger an error.
+                                         presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
+                                         distance=0.854)
+    e_model = mc_models.ExposureModel(
+        data_registry = data_registry,
+        concentration_model = (c_model,),
+        short_range = (sr_model,),
         exposed = mc_models.Population(
             number=1,
             presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
