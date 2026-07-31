@@ -22,9 +22,8 @@ and [results structure](#results-structure-model-output) of this feature.
 The feature revolves around the concept of a new
 [`ExposureModelGroup`](models.md/#exposuremodelgroup-class) class, which
 encapsulates a set of [`ExposureModel`](models.md/#exposuremodel-class)
-instances. Each `ExposureModel` represents a distinct group of exposed occupants.
+instances. Each `ExposureModel` represents a distinct group of exposed occupants, and contains one `ConcentrationModel` per group of infected occupants. 
 
-The infected are implemented by passing multiple `ConcentrationModel` objects to the `ExposureModel`s in `ExposureModelGroup`, as described in the page Physics of Viral Transmission.
 ### Input Structure
 
 The modelling of dynamic occupancy with the definition of groups is
