@@ -862,10 +862,10 @@ def baseline_model(data_registry: DataRegistry):
                 activity=models.Activity.types['Seated'],
                 expiration=models.Expiration.types['Speaking'],
                 host_immunity=0.,
-                short_range=(),
             ),
             evaporation_factor=0.3,
         ),
+        short_range=(),
         exposed=models.Population(
             number=10,
             presence=models.SpecificInterval(((8.5, 12.5), (13.5, 17.5))),
