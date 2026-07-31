@@ -360,7 +360,7 @@ In fact, experiments indicate computing $C_{\mathrm{LR}}(t_i, D)$ recurrently is
 
 </details>
 
-#### Architecture of the Long-Range Concentration Computations
+#### Computation of the Long-Range Concentration
 The arcitecture for computing the long-range viral concentraiton is based on the relation 
 $C_{\mathrm{LR}}(t, D) = \sum_{n=1}^{n_p} C_{\mathrm{LR},n}(t, D)$,
 derived above, showing that the total long-range viral concentration is the sum of the individual concentration contributions from all infected populations. 
@@ -405,40 +405,49 @@ Otherwise, the diameter-dependence continues until we compute the inhaled dose i
 
 
 ### Short-Range Compartment
-The short-range concentration and dose exposure from short-range interactions are modeled using one **ShortRangeModel** (`models.ShortRangeModel`) for each interaction. **ShortRangeModel** computes the jet exhaled by the infected particapating in the short-range interaction. Therefore, **InfectedPopulation** is initialized with a tuple of **ShortRangeModel** instances representing the short-range interactions of that infected host.
-The short-range concentration is computed in `models.TotalViralConcentrationModel.concentration()`. Note that `models.ShortRangeModel()` has its own instance of **Expiration** because the samples of $D$ are from different $\mathrm{p}_D(D)$ since $D_{\mathrm{max}}$ differs at long-range and short-range. Therefore, the diameter-dependent short-range concentration component must also be integrated separately from the long-range concentration. Face masks interupt the exhaled yet stream, so only infected without face masks have short-range interactions.
 #### Derivation of the Analytical Short-Range Concentration
 The viral concentration at short-range is the result of a two-stage exhaled jet model developed by Jia, W. et al. <sup>[1](#id6)</sup> and is expressed as:
 
-$$C_{\mathrm{SR}}(t, D) 
-= C_{\mathrm{LR}} (t, D) + \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}}(t, D)),$$
+$$
+\begin{equation*}
+C_{\mathrm{SR}}(t, D) 
+= C_{\mathrm{LR}} (t, D) + \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}}(t, D)),
+\end{equation*}
+$$
 
 where $S(x) > 0$ is the dilution factor due to jet dynamics, as a function of the interpersonal distance $x$, and 
 
-$$C_{0, \mathrm{SR}}(D) = \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot E_c(D)$$
+$$
+\begin{equation*}
+C_{0, \mathrm{SR}}(D) = \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot E_c(D)
+\end{equation*}
+$$
 
-is the initial concentration of virions at the mouth/nose outlet during exhalation. Note that $C_{0, \mathrm{SR}}(D)$ is constant over time, except it is set to zero untill (and including) the the start of the short-range interaction and after the end of the short-range interaction.
+is the initial concentration of virions at the mouth/nose outlet during exhalation. Note that $C_{0, \mathrm{SR}}(D)$ is time-independent. In CAiMIRA, however, $C_{0, \mathrm{SR}}(D)$ is set to zero until (and including) the the start of the short-range interaction and after the end of the short-range interaction.
+
+Face masks interupt the yet stream, so only infected without face masks may have short-range interactions. Hence, infected with face masks only contribute to increasing the overall long-range concentration of virions. 
 
 We allow the physical and expirational activity of the infected and exposed to be different at short-range and long-range (in the current frontent, only the expirational activity may be different).
 Also, because smaller particles remain airborn longer than bigger particles, we set $D_{\mathrm{max}}=20\mathrm{μm}$ at long-range and $D_{\mathrm{min}}=100\mathrm{μm}$ at short-range.
-Concequently, $E_c(D)$ has a different $N_p$ for $C_{0, \mathrm{SR}}(D)$ than for $C_{\mathrm{LR}} (t, D)$, so the particle diameters sampled to compute $C_{0, \mathrm{SR}}(D)$ and $C_{\mathrm{LR}} (t, D)$ are drawn from different probability distributions. 
-Lets name the different probability distributions at long-range and short-range $\mathrm{p}_{\mathrm{LR},D}(D)$ and $\mathrm{p}_{\mathrm{SR},D}(D)$.
+Concequently, $E_c(D)$ has a different $N_p$ for $C_{0, \mathrm{SR}}(D)$ than for $C_{\mathrm{LR}} (t, D)$, so the particle diameters sampled to compute $C_{0, \mathrm{SR}}(D)$ are drawn from a different probability distribution than the samples drawn to compute $C_{\mathrm{LR}} (t, D)$. 
+Lets denote the different probability distributions at long-range and short-range $\mathrm{p}_{\mathrm{LR},D}(D)$ and $\mathrm{p}_{\mathrm{SR},D}(D)$.
 
-In CAiMIRA version 4.18.0, we sample the diameters from the different $\mathrm{p}_{\mathrm{LR},D}(D)$ and $\mathrm{p}_{\mathrm{SR},D}(D)$, compute $\frac{C_{\mathrm{LR}}(t, D_i)}{\mathrm{p}_{\mathrm{LR},D}(D_i)}$ and $\frac{C_{0, \mathrm{SR}}(D_j)}{\mathrm{p}_{\mathrm{SR},D}(D_j)}$,
-and interpolate the vector $\left[\frac{C_{\mathrm{LR}}(t, D_1)}{\mathrm{p}_{\mathrm{LR},D}(D_1)}, \frac{C_{\mathrm{LR}}(t, D_2)}{\mathrm{p}_{\mathrm{LR},D}(D_2)}, ..., \frac{C_{\mathrm{LR}}(t, D_{S_N})}{\mathrm{p}_{\mathrm{LR},D}(D_{S_N})}\right]$ 
-to the diameter basis sampled from $\mathrm{p}_{\mathrm{SR},D}(D)$. Thechnically, we then Monte Carlo Integrate
+Up untill (and including) CAiMIRA version 4.19.0, we interpolated the vector $\left[\frac{C_{\mathrm{LR}}(t, D_1)}{\mathrm{p}_{\mathrm{LR},D}(D_1)}, \frac{C_{\mathrm{LR}}(t, D_2)}{\mathrm{p}_{\mathrm{LR},D}(D_2)}, ..., \frac{C_{\mathrm{LR}}(t, D_{S_N})}{\mathrm{p}_{\mathrm{LR},D}(D_{S_N})}\right]$ 
+to the short-range diameter basis sampled from $\mathrm{p}_{\mathrm{SR},D}(D)$. Thereafter, we Monte Carlo integrated
 
 $$
 \begin{align*}
 C_{\mathrm{SR}}^{\mathrm{total}}(t) 
 &= \int_{D_\mathrm{min}}^{D_\mathrm{max}} C_{\mathrm{SR}}(t, D) \;\ \mathrm{d}D \\
 &= \int_{D_\mathrm{min}}^{D_\mathrm{max}} C_{\mathrm{LR}} (t, D) + \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR}}(D) - C_{\mathrm{LR}}(t, D)) \;\ \mathrm{d}D \\
-&\approx \int_{0}^{100\mathrm{μm}} \frac{C_{\mathrm{LR}}(t, D)}{\mathrm{p}_{\mathrm{LR},D}(D)} + \frac{1}{S({x})} \left( \frac{C_{0, \mathrm{SR}}(D) }{\mathrm{p}_{\mathrm{SR},D}(D)} -\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{p}_{\mathrm{LR},D}(D)}\right) \mathrm{p}_{\mathrm{SR},D}(D) \;\ \mathrm{d}D
+&\approx \int_{0}^{100\mathrm{μm}} \left(\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{p}_{\mathrm{LR},D}(D)} + \frac{1}{S({x})} \left( \frac{C_{0, \mathrm{SR}}(D) }{\mathrm{p}_{\mathrm{SR},D}(D)} -\frac{C_{\mathrm{LR}}(t, D)}{\mathrm{p}_{\mathrm{LR},D}(D)}\right)\right) \mathrm{p}_{\mathrm{SR},D}(D) \;\ \mathrm{d}D \\
+&\approx \sum_{i=1}^{S_D} \frac{C_{\mathrm{LR}}(t, D_i)}{\mathrm{p}_{\mathrm{LR},D}(D_i)} + \frac{1}{S({x})} \left( \frac{C_{0, \mathrm{SR}}(D_i) }{\mathrm{p}_{\mathrm{SR},D}(D_i)} -\frac{C_{\mathrm{LR}}(t, D_i)}{\mathrm{p}_{\mathrm{LR},D}(D_i)}\right) 
 \end{align*}
 $$
 
 which is a good approximation if $\mathrm{p}_{\mathrm{LR},D}(D) \approx \mathrm{p}_{\mathrm{SR},D}(D)$ and $\mathrm{p}_{\mathrm{LR},D}(D_i) \approx 0$ for $D_i > 20\mathrm{μm}$.
-In the newer versions of CAiMIRA, however, we aviod the approximation by rather computing
+
+From version 4.20 of CAiMIRA we skip the interpolation and aviod the first approximation completely by computing
 
 $$
 \begin{align*}
@@ -450,7 +459,7 @@ C_{\mathrm{SR}}^{\mathrm{total}}(t)
 \end{align*}
 $$
 
-Note that $C_{\mathrm{SR}}(t, D)$ is the actual concentration at short-range, with the long-range concentration entrained. Hence, one is NOT supposed to add the long-range and short-range concentration on top of each other.
+So we never compute the entire diameter-dependent $C_{\mathrm{SR}}(t, D)$, but Monte Carlo integrate the components with different probability distributions seperately.
 To ease addition of contributions from several, incremental short-range interactions, we define the short-range concentration difference
 
 $$
@@ -464,11 +473,11 @@ $$
 
 For the sake of curiosity, note that that if $S({x}) < \infty$ and $C_{0, \mathrm{SR}}(D)$ is small enough (e.g. zero) then $C_{\mathrm{SR-LR}}^{\mathrm{total}}(t) < 0$, 
 meaning the exhaled jet of a person with a low (or no) viable viral load and/or emission rate contains less virions than the background concentration. 
-In the CAiMIRA model, only the short-range concentration from infectious are modeled, and it seems probable that every infected population has $C_{0, \mathrm{SR}}(D)$ is big enough for $C_{\mathrm{SR-LR}}^{\mathrm{total}}(t) > 0$.
+In the CAiMIRA model, only the short-range concentration from infectious are modeled, and it seems probable that every infected population has $C_{0, \mathrm{SR}}(D)$ large enough for $C_{\mathrm{SR-LR}}^{\mathrm{total}}(t) > 0$.
 
-Finally, note that a short-range interaction is always considered to be between a single infected and a single exposed population. Therefore, there is no "dynamic occupancy" at short-range. In case there are different infectedpopulations and different exposed populations having short-range interactions, these are described by completely separate short-range interactions.
+Finally, note that a short-range interaction is always considered to be between a single infected and a single exposed population. Therefore, there is no "dynamic occupancy" at short-range. The implementation of dynamic occupancy does, however, require special attention to defining excactly who the short-range interactions are between. This is the rational of having short-range interactions beeing a property of **InfectedPopulation**.
 
-#### The Dilution Factor
+##### The Dilution Factor
 This **dilution factor** is given by 
 $$
 S({x}) =
@@ -480,10 +489,14 @@ $$
 
 where $x_{0}=\frac{D_m}{2𝛽_{\mathrm{r1}}}$ distance of the virtual origin of the puff-like stage (in $\mathrm{m}$) with $D_m$ being the diameter (in $\mathrm{m}$) of the mouth opening, assumed to be a perfect circle.
 All the $𝛽$-parameters are streamwise and radial penetration coefficients set in `data_registry`.
-The distance $x$ a random variable sampled from a log-normal distribution in `monte_carlo.data.short_range_distances()` and passed as `distance` to `models.ShortRangeModel`. 
+The distance $x$ a random variable sampled from a log-normal distribution in `monte_carlo.data.short_range_distances()` and passed as `distance` to **ShortRangeModel** (`models.ShortRangeModel`). 
 The transition point is defined as 
 
-$$\mathrm{x^*}=𝛽_{\mathrm{x1}} \cdot \sqrt[4]{Q_{\mathrm{exh}} \cdot u_{0}} \cdot \sqrt{\mathrm{t^*} + t_{0}} - x_{0},$$
+$$
+\begin{equation*}
+\mathrm{x^*}=𝛽_{\mathrm{x1}} \cdot \sqrt[4]{Q_{\mathrm{exh}} \cdot u_{0}} \cdot \sqrt{\mathrm{t^*} + t_{0}} - x_{0},
+\end{equation*}
+$$
 
 where $Q_{\mathrm{exh}}= φ \mathrm{BR}_{\mathrm{k}}$ is the expired flow rate during the expiration period in $\mathrm{m^{3} s^{-1}}$. 
 $φ$ is the (dimensionless) exhalation coefficient, given by the ratio between the total period of a breathing cycle and the duration of the exhalation alone. 
@@ -495,60 +508,49 @@ Finally, $t_{0} = \frac{\sqrt{\pi} \cdot D_m^3}{8𝛽_{\mathrm{r1}}^2𝛽_{\math
 
 
 #### Computation of the Short-Range Concentration
-`models.ShortRangeModel` models the short-range component of the short-range concentration and the **dilution_factor**. 
-Its inputs of`models.ShortRangeModel` are the **infected** population expiering the jet, their **expiration**, their physical **activity**, the **presence time** for the short-range interaction, and the **interpersonal distance** between any the infected and the exposed they are breathing at.
-Note that **infected** is an instance of `models.InfectedPopulation`, which also contains instances of **Expiration** and **Activity**. However, these correspond to the expirational activities and physical activities of the infected during long-range interactions, which may be different from the expiration and activity during short-range interactions.
-Therefore, we generate new **Expiration** and **Activity** objects for **ShortRangeModel** corresponding to the infecteds' behaviour at short range. 
-Even if the expirational activities at long-range and short-range are the same, a new **Expiration** instance is needed at short-range because $D_{\mathrm{max}}$ is different at short-range and long-range, yielding **Expiration** objects with different diameter samples. 
-`models.ShortRangeModel` is kept completely seperate of `models._ConcentrationModelBase`, exce
+The short-range concentration and dose exposure from short-range interactions are modeled using one **ShortRangeModel** (`models.ShortRangeModel`) for each interaction. **ShortRangeModel** stores its own samples of the particle diameter in an **Expiration** object and computes the diameter-dependent component of $C_{0, \mathrm{SR}}(D)$ and the dilution factor $S(x)$. 
+All the short-range interactions of an infected host are passed, upon initialization, as a tuple of **ShortRangeModel** instances to the correct **InfectedPopulation**. The diameter-independent component of the exhaled jet is implemented in `models._PopulationWithVirus.short_range_normalization_factor()`. 
 
 Similarly to the computation of the long-range concentration in `models._ConcentrationModelBase`, we separate the computation of diameter-dependent random variables and diameter-independent random variables for computational efficiency. 
 We compute
-* the normalized viral concentration at the outlet, i.e. $\frac{C_{0, \mathrm{SR}}(D)}{E_c(D)}=\mathrm{vl_{inf}} \cdot f_{\mathrm{inf}}$, in `models.ShortRangeModel._normed_jet_origin_concentration()` 
-* the dilution factor $\frac{1}{S({x})}$ in `models.ShortRangeModel.dilution_factor()` 
-* the normalization factor $\frac{E_c(D)}{\mathrm{p}_{\mathrm{SR},D}(D)}$ in `models.ShortRangeModel.normalization_factor()`.
+* the normalized, diameter-dependent component of the viral concentration at the outlet, i.e. $\frac{C_{0, \mathrm{SR}}(D)}{\mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot \mathrm{p}_{\mathrm{SR},D}(D)}=\frac{E_c(D)}{\mathrm{p}_{\mathrm{SR},D}(D)}$, in `models.ShortRangeModel._normed_jet_origin_concentration()`. 
+* the dilution factor $S(x)$ in `models.ShortRangeModel.dilution_factor()` 
+* the normalization factor $\mathrm{vl_{inf}} \cdot f_{\mathrm{inf}}$ in `models._PopulationWithVirus.short_rage_normalization_factor()` .
 
-The product of the two first methods are returned by `models.ShortRangeModel._normed_jet_origin_concentration()` and sendt to **ExposureModel**, 
-keeping the diameter dependence and separation of random variables because more diameter-dependent variables will be introduced before Monte Carlo integrating to compute the dose exposure. 
-
-If we want intermediate results for the full short-range concentration, e.g. for the report, we integrate the long-range and short-range components over the particle diameter before adding them together. 
-$C_{\mathrm{SR-LR}}^{\mathrm{total}}(t)$ is computed in `models.ShortRangeModel.short_range_concentration_difference()` and added to $C_{\mathrm{LR}}^{\mathrm{total}}(t)$ from `models.ConcentrationModel.concentration()` to compute $C_{\mathrm{SR}}^{\mathrm{total}}(t)$, as explained above. 
-Note that `models.ShortRangeModel` is kept completely seperate of `models._ConcentrationModelBase` untill
-untill an instance of `models.ConcentrationModel` is passed to, and combined with, `models.ShortRangeModel.short_range_concentration_difference()` to compute $C_{\mathrm{SR}}^{\mathrm{total}}(t)$ [MR TODO].
-
-Note that multiple short-range interactions can be defined during a given exposure time. We initialize one **ShortRangeModel** for each interaction.
+The quotient of the two first methods is computed in `models.ShortRangeModel._normed_jet_origin_concentration()`, returning the array [$\frac{C_{0, \mathrm{SR}}(D_1)}{S(x_1)}$, $\frac{C_{0, \mathrm{SR}}(D_2)}{S(x_2)}$, ..., $\frac{C_{0, \mathrm{SR}}(D_{S_N})}{S(x_{S_N})}$] where [$D_1$, $D_2$, ..., $D_{S_N}$] are the Monte Carlo samples of the particle diameter from $\mathrm{p}_{\mathrm{SR},D}(D)$ and [$x_1$, $x_2$, ..., $x_{S_N}$] are the Monte Carlo samples of the interpersonal distance. For consistency, the (entrained) long-range concentration is also divided by the dilution factor while still diameter-dependent, before Monte Carlo integrating over the diameter, in `models.TotalViralConcentrationModel.diluted_long_range_concentration()`. The total short-range concentration, Monte Carlo integrated over the particle diameter, is computed in `models.TotalViralConcentrationModel.concentration()`.
 
 ### Total Viral Concentration
-Different exposed populations may experience different viral concentrations depending on their occupancy periods and the occurrence of short-range interactions. For a given exposed population, the total viral concentration at time $t$ is given by
+Different populations of susceptible hosts may be exposed to different viral concentrations depending on their present times and short-range interactions. The total viral concentration a given population of susceptible hosts is exposed to at at time $t$ is given by
 
-$$C^{\mathrm{total}}(t) = \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}}^{\mathrm{total}}(t) + \sum_{i=1}^{n_\mathrm{SR}}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i}^{\mathrm{total}}(t)$$
+$$
+\begin{equation*}
+C^{\mathrm{total}}(t) = \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}}^{\mathrm{total}}(t) + \sum_{i=1}^{n_\mathrm{SR}}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i}^{\mathrm{total}}(t)
+\end{equation*}
+$$
 
-where $n_\mathrm{SR}$ denotes the total number of short-range interactions experienced by the exposed population during its entire occupancy period. The indicator function
+where $n_\mathrm{SR}$ denotes the total number of short-range interactions the susceptible hosts are involved in during their entire presence. The indicator function
 
 $$
 \mathbf{1}_{t \in T}(t) =
 \begin{cases}
-1, & \text{if } t \in T, \\
-0, & \text{else}
+1 & \text{if } t \in T, \\
+0 & \text{else}
 \end{cases}
 $$
 
-ensures the long-range concentration is only considered for the set of times $T$ when the exposed is inside the room, which is a subset of the time interval $[t_0, t_n]$ from when the exposed first enters at $t_0$ untill they leave for the last time at $t_n$. Similarly, the indicator function associated with the $i$-th short-range interaction is defined as
+checks whether the susceptible host is present at time $t$, whith $T$ consisting of all the times where the susceptible host is present. Similarly, 
 
 $$
 \mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) =
 \begin{cases}
-1, & \text{if } t \in T_{\mathrm{SR},i}, \\
-0, & \text{else},
+1 & \text{if } t \in T_{\mathrm{SR},i}, \\
+0 & \text{else},
 \end{cases}
 $$
 
-where $T_{\mathrm{SR},i} \subseteq T$ is the set of times when the $i$-th short-range interaction occurs. Thus, the contribution $C_{\mathrm{SR-LR},i}^{\mathrm{total}}(t)$ is included in the total concentration only while that short-range interaction is happening. Note, as previously mentioned, that we integrate over the particle diameter before summing together the long-range and short-range contributions to the concentration because we have different probability distributions for the particle diameter at long-range and short-range. For each exposed population, $C^{\mathrm{total}}(t)$ is computed by `models.ExposureModel.concentration()`. 
+checks if $t$ falls within the time interval $T_{\mathrm{SR},i}$ when the $i$-th short-range interaction occurs. Currently, the duration of the short-range interactions $T_{\mathrm{SR},i}$ are assumed to be defines so that $T_{\mathrm{SR},i} \subseteq T$, i.e. only at times when the susceptible hosts are present.
 
-In addition to the viral concentration profile for each exposed population, we have the long-range viral concentration profile which is independent of all the exposed populations. This long-range concentration is computed by `models._ConcentrationModelBase.concentration()`, and also retrieved by `models.ExposureModel.concentration()` for an **ExposureModel** with no short-range interactions.
-
-The viral concentration at long-range and from the perspective of a specific exposed population is plotted over time in the report.
-
+$C^{\mathrm{total}}(t)$ - the viral concentration a specific population of susceptible hosts are exposed to - is computed by `models.TotalConcentrationModel.concentration()`. If there are multiple populations of susceptible hosts, the result for each population of susceptible hosts need is computed by separate **TotalConcentrationModel** instances.
 
 ## Dose
 ### Derivation of the Analytical Dose Exposure
