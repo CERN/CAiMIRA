@@ -38,7 +38,7 @@ Random variables are Monte Carlo sampled from probability distributions and stor
 
 <sup>4</sup>In the future, the product of the viral load and viable to RNA ratio will be replaced by a function sampling values for the viable viral load. By accounting for symptomatic stage of the infected, the new function will reduce the variability of the samples.
 
-<sup>5</sup>The outwards face mask efficiency may either be sampled from a uniform distribution, as indicated above, or a function of the particle diameter. In the latter case, the outwards face mask efficiency should only be considered a function of $D$ and not a separate random variable.
+<sup>5</sup>The outwards face mask efficiency may is sampled from a uniform distribution, as indicated above, if the face mask is 'Cloth'. For the two other face mask options ('FFP2' and 'Type I') $\eta_{\mathrm{out}}$ is a function of the particle diameter and not a separate random variable.
 
 See `data_registry` for literature supporting the parameters.
 
