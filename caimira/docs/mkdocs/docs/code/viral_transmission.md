@@ -216,19 +216,18 @@ Because CAiMIRA is only meant to model airborne transmission, interactions where
 ### Long-Range Compartment
 #### Derivation of the Analytical Long-Range Concentration
 Assuming mass balance, the rate of change of the viral concentration equals the difference between the total emission rate per volume and the total removal rate. 
-The total emission rate per volume is simply the sum of the emission rate of every single infected divided by the room volume $V_r$, which can be expressed as $\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{V_r}$ for $n_p$ infected populations where the $n$-th population has $N_{\mathrm{inf},n}$ members with common emission rate $\mathrm{vR}_n(D)$.
-The removal is the product of the current viral removal rate $\lambda_{\mathrm{vRR}}(t,D)$ and viral concentration $C_{\mathrm{LR}}(t, D)$. In conclusion, the viral concentration is described by the ordinary differential equation (ODE)
+The total emission rate per volume is simply the sum of the emission rate of every single infected divided by the room volume $V_r$, which can be expressed as $\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{V_r}$ for $n_p$ infected populations where the $n$-th population has $N_{\mathrm{inf},n}$ members with common emission rate $\mathrm{vR}_n(D)$. The removal is zero if the current viral concentration $C_{\mathrm{LR}}(t, D)$ equals the minimum background concentration $C_{\mathrm{min}}$. The removal rate is the product of the current viral removal rate $\lambda_{\mathrm{vRR}}(t,D)$ and viral concentration increase from the background concentration, i.e. the difference between the current viral concentration $C_{\mathrm{LR}}(t, D)$ and the minimum background concentration $C_{\mathrm{min}}$. Thereby, the removal is zero whenever $C_{\mathrm{LR}}(t, D)=C_{\mathrm{min}}$. In conclusion, the viral concentration is described by the ordinary differential equation (ODE)
 
 $$
 \begin{equation*}
-\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} = \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{V_r} - \lambda_{vRR}(t, D) \cdot C_{\mathrm{LR}}(t, D).
+\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} = \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{V_r} - \lambda_{vRR}(t, D) \cdot (C_{\mathrm{LR}}(t, D)-C_{\mathrm{min}}).
 \end{equation*}
 $$
 
 Assuming the viral concentration is the only time-dependent variable, this ODE can be solved analytically. The viral removal rate is, however, also time-dependent. We assume $\lambda_{vRR}(t, D)$ is stepwise constant and that we may divide the scenario a finite number of time intervals $[t_i, t_{i+1})$ where $\lambda_{vRR}(t, D)=\lambda_{vRR}(t_i, D)$ is constant. Then, we can solve
 $$
 \begin{equation*}
-\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} = \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{V_r} - \lambda_{vRR}(t_i, D) \cdot C_{\mathrm{LR}}(t, D)
+\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} = \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{V_r} - \lambda_{vRR}(t_i, D) \cdot (C_{\mathrm{LR}}(t, D)-C_{\mathrm{min}})
 \end{equation*}
 $$
 
@@ -259,7 +258,7 @@ Combining the two equations containing $\frac{\partial C_{\mathrm{LR}}(t, D)}{\p
 
 $$
 \begin{equation*}
-C_{\mathrm{LR}}(t, D) = \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} + A_1\cdot \exp{-\lambda_{vRR}(t_i,D)\cdot t},
+C_{\mathrm{LR}}(t, D) = C_{\mathrm{min}}+\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}+ A_1\cdot \exp{-\lambda_{vRR}(t_i,D)\cdot t},
 \end{equation*}
 $$
 
@@ -267,7 +266,7 @@ which combined with the general solution yields
 
 $$
 \begin{equation*}
-A_2 = \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}.
+A_2 = C_{\mathrm{min}}+\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}.
 \end{equation*}
 $$
 
@@ -277,7 +276,7 @@ Hence,
 
 $$
 \begin{equation*}
-A_1 = \left(C_{\mathrm{LR}}(t_i, D) -\Big(\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}\Big)\right) \cdot \exp{\lambda_{vRR}(t_i,D)\cdot t_i}.
+A_1 = \left(C_{\mathrm{LR}}(t_i, D) -\Big(C_{\mathrm{min}}+\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}\Big)\right) \cdot \exp{\lambda_{vRR}(t_i,D)\cdot t_i}.
 \end{equation*}
 $$
 </details>
@@ -287,29 +286,29 @@ In summary, the analytical solution of the ODE describing the long-range viral c
 $$
 \begin{align*}
 C_{\mathrm{LR}}(t, D) 
-&= \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}
-+ \left(C_{\mathrm{LR}}(t_i, D) -\Big(\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}\Big)\right) \cdot \exp{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}\\
-&= C_{\mathrm{LR}}(t_i, D) \cdot \exp{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}
-+ \sum_{n=1}^{n_p}\frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} (1-\exp{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}).
+&= C_{\mathrm{min}}+\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}
++ \left(C_{\mathrm{LR}}(t_i, D) -\Big(C_{\mathrm{min}}+\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}\Big)\right) \cdot \exp{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}\\
+&= C_{\mathrm{min}}+(C_{\mathrm{LR}}(t_i, D)-C_{\mathrm{min}}) \cdot \exp{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}
++\sum_{n=1}^{n_p}\frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}(1-\exp{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}).
 \end{align*}
 $$
 
-Note that if only the $n$-th (emitting) population is present, the concentration would be
+Note that if only the $n$-th (emitting) population is present, the concentration *increase* from $C_{\mathrm{min}}$ at long-range would be
 
 $$
 \begin{align*}
 C_{\mathrm{LR},n}(t, D) 
-&= C_{\mathrm{LR}}(t_i, D) \cdot \exp{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}
+&= (C_{\mathrm{LR}}(t_i, D)-C_{\mathrm{min}}) \cdot \exp{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}
 + \frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} (1-\exp{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}).
 \end{align*}
 $$
 
-We assume that the minimim background viral concentration is zero, i.e. $C_{\mathrm{LR}}(t_0, D) = 0$. 
+We assume that the concentration starts at $C_{\mathrm{min}}$, i.e. $C_{\mathrm{LR}}(t_0, D) = C_{\mathrm{min}}$. 
 It follows by induction that
 $$
 \begin{align*}
 C_{\mathrm{LR}}(t, D) 
-&= \sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D)
+&= C_{\mathrm{min}}+\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D)
 \end{align*}
 $$
 holds at all times (for $t \in (t_i, t_{i+1}]$ for all $i$).
@@ -324,7 +323,7 @@ Note that
 $$
 \begin{align*}
 C_{\mathrm{LR},n}(t_{i+1}, D) 
-&= C_{\mathrm{LR}}(t_i, D) \cdot \exp{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}
+&= (C_{\mathrm{LR}}(t_i, D)-C_{\mathrm{min}}) \cdot \exp{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}
 + \frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} (1-\exp{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}).
 \end{align*}
 $$
@@ -334,7 +333,7 @@ is a difference equation. Using standard techniques, we find the solution to be
 $$
 \begin{equation*}
 C_{\mathrm{LR},n}(t_{i}, D)
-=C_{\mathrm{LR},n}(t_0, D) 
+=(C_{\mathrm{LR},n}(t_0, D) -C_{\mathrm{min}})
 \cdot \exp{-\sum_{j=0}^{i-1}\lambda_{vRR}(t_j,D)\cdot (t_{j+1}-t_j)}
 +\mathrm{vR}_n(D) \cdot \sum_{m=0}^{i-1}\frac{N_{\mathrm{inf},n}}{\lambda_{vRR}(t_m,D)\,V_r}
 \cdot (1- \exp{-\lambda_{vRR}(t_m,D)\cdot (t_{m+1}-t_m)}) 
@@ -342,7 +341,7 @@ C_{\mathrm{LR},n}(t_{i}, D)
 \end{equation*}
 $$
 
-Because we assume the initial concentration $C_{\mathrm{LR}}(t_0, D)=0$ the solution simplifies to
+Because we assume the initial concentration $C_{\mathrm{LR}}(t_0, D)=C_{\mathrm{min}}$ the solution simplifies to
 
 $$
 \begin{equation*}
@@ -362,8 +361,8 @@ In fact, experiments indicate computing $C_{\mathrm{LR}}(t_i, D)$ recurrently is
 
 #### Computation of the Long-Range Concentration
 The arcitecture for computing the long-range viral concentraiton is based on the relation 
-$C_{\mathrm{LR}}(t, D) = \sum_{n=1}^{n_p} C_{\mathrm{LR},n}(t, D)$,
-derived above, showing that the total long-range viral concentration is the sum of the individual concentration contributions from all infected populations. 
+$C_{\mathrm{LR}}(t, D) = C_{\mathrm{min}}+\sum_{n=1}^{n_p} C_{\mathrm{LR},n}(t, D)$,
+derived above, showing that the total long-range viral concentration is the sum of minimum background concentration and the individual concentration contributions from all infected populations. 
 
 First, CAiMIRA initializes one **InfectedPopulation** for each group of infected with different physical activity, expirational activity, face mask, immunity, or presence. Each group may have a different emission rate, number of occupants, and samples of the particle diameter from differenty parameterized probability distributions. Note that this setup allows infected to abruptly change their properties by defining multiple **InfectedPopulation** instances with non-overlapping presence. For example, a single infected who is speaking from 10 am to 11 am and only breathing after 11 am is described by a the speaking InfectedPopulation_A present from 10 am to 11 am and a breathing InfectedPopulation_B present after 11 am.
 
@@ -372,31 +371,30 @@ Using all the **InfectedPopulation** instances, we initialize a single **TotalVi
 $$
 \begin{align*}
 C_{\mathrm{LR}}^{\mathrm{total}}(t)
-&= \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} \sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D) \;\ \mathrm{d}D \\
-&= \sum_{n=1}^{n_p}C_{\mathrm{LR},n}^{\mathrm{total}}(t)
+&= \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} C_{\mathrm{min}}+\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D) \;\ \mathrm{d}D \\
+&= C_{\mathrm{min}}\cdot(D_{\mathrm{max}}-D_{\mathrm{min}})+\sum_{n=1}^{n_p}C_{\mathrm{LR},n}^{\mathrm{total}}(t)
 \end{align*}
 $$
 
-is computed in `models.TotalViralConcentrationModel.long_range_concentration()` by Monte Carlo integrating over the particle diameter:
+is computed in `models.TotalViralConcentrationModel.long_range_concentration()`. Because $C_{\mathrm{min}}$ is only included by **TotalViralConcentrationModel**, and not in **ConcentrationModel**, one should always retrieve the final concentration from **TotalViralConcentration** even when $n=1$. Moving on, $C_{\mathrm{LR},n}^{\mathrm{total}}(t)$ is computed by Monte Carlo integrating over the particle diameter:
 
 $$
-\begin{align*}
-C_{\mathrm{LR}}^{\mathrm{total}}(t) 
-&= \sum_{n=1}^{n_p}C_{\mathrm{LR},n}^{\mathrm{total}}(t) \\
-&= \sum_{n=1}^{n_p}\int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} \frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{p}_{D,n}(D)} \cdot \mathrm{p}_{D,n}(D)\;\ \mathrm{d}D \\
-&\approx \sum_{n=1}^{n_p} \sum_{i=1}^{S_D}\frac{C_{\mathrm{LR},n}(t, D_i)}{\mathrm{p}_{D,n}(D_i)}.
-\end{align*}
+\begin{equation*}
+C_{\mathrm{LR},n}^{\mathrm{total}}(t) 
+= \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} \frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{p}_{D,n}(D)} \cdot \mathrm{p}_{D,n}(D)\;\ \mathrm{d}D 
+\approx  \sum_{i=1}^{S_D}\frac{C_{\mathrm{LR},n}(t, D_i)}{\mathrm{p}_{D,n}(D_i)}.
+\end{equation*}
 $$
 
-Note that the particle diameter distribution, $\mathrm{p}_{D,n}(D)$, which is factored out of $C_{\mathrm{LR},n}(t,D)$, may have different parameter values for different infected populations (indexed by $n$). Consequently, samples of the particle diameter drawn from different populations are generally not identically distributed. Therefore, we must Monte Carlo integrate each $C_{\mathrm{LR},n}(t,D)$ separately. Indeed, this is one of the major rationales for computing $C_{\mathrm{LR},n}(t,D)$ by separate **ConcentrationModel** for each $n$.
+Note that the particle diameter distribution $\mathrm{p}_{D,n}(D)$, which is factored out of $C_{\mathrm{LR},n}(t,D)$, may have different parameter values for different infected populations (indexed by $n$). Consequently, samples of the particle diameter drawn from different populations are generally not identically distributed. Therefore, we Monte Carlo integrate each $C_{\mathrm{LR},n}(t,D)$ separately. Indeed, this is one of the major rationales for computing $C_{\mathrm{LR},n}(t,D)$ by separate **ConcentrationModel** instances.
 
-For computational speed-up purposes, we separate the computations of $C_{\mathrm{LR},n}(t,D)$ into
+Because $C_{\mathrm{LR},n}(t,D)$ includes several Monte Carlo sampled random variables beyond the particle diameter $D$, we separateing the computations of $C_{\mathrm{LR},n}(t,D)$ into
 
-* The diameter-dependent normalized concentration $\frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)}$ in `models._ConcentrationModelBase._normed_concentration()`.
-* The diameter-independent normalization factor $\frac{\mathrm{vR}_n(D)}{\mathrm{p}_{D,n}(D)}$ in `models.ConcentrationModel.normalization_factor()`.
+* a diameter-dependent normalized concentration $\frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)}$ 
+* a normalization factor $\frac{\mathrm{vR}_n(D)}{\mathrm{p}_{D,n}(D)}$
 
-The normalization factor has a diameter-dependent component $\frac{E(D)}{\mathrm{p}_{D,n}(D)}$ implemented by `models._PopulationWithVirus.aerosols()` and a diameter-independent component $\mathrm{BR}_{\mathrm{k,in}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf})$ implemented in `models._PopulationWithVirus.emission_rate_per_aerosol_per_person_when_present()`. 
-To compute the final result, we Monte Carlo integrate 
+will speed up the computations. The diameter-dependent $\frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)}$ is implemented in `models._ConcentrationModelBase._normed_concentration()` and does not include any other random variables than $D$. The normalization factor, implemented in `models.ConcentrationModel.normalization_factor()`, has a diameter-dependent component $\frac{E(D)}{\mathrm{p}_{D,n}(D)}$ implemented by `models._PopulationWithVirus.aerosols()` and a diameter-independent component $\mathrm{BR}_{\mathrm{k,in}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf})$ implemented in `models._PopulationWithVirus.emission_rate_per_aerosol_per_person_when_present()`. 
+To compute the final result, we Monte Carlo integrate the diameter-dependent component
 $\frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)} \cdot \frac{E(D)}{\mathrm{p}_{D,n}(D)}$
 over the particle diameter and then multiply by the diameter independent component of the normalization factor. Recall that $\mathrm{BR}_{\mathrm{k,in}}$, $\mathrm{vl_{inf}}$, and $\mathrm{r_{inf}}$ are Monte Carlo sampled random variables, so we average the final product to approximate the expected long-range concentration.
 
