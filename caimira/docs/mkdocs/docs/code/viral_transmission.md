@@ -522,7 +522,7 @@ Different populations of susceptible hosts may be exposed to different viral con
 
 $$
 \begin{equation*}
-C^{\mathrm{total}}(t) = \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}}^{\mathrm{total}}(t) + \sum_{i=1}^{n_\mathrm{SR}}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i}^{\mathrm{total}}(t)
+C^{\mathrm{total}}(t) = \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}}^{\mathrm{total}}(t) + \sum_{j=1}^{n_\mathrm{SR}}\mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) \cdot C_{\mathrm{SR-LR},j}^{\mathrm{total}}(t)
 \end{equation*}
 $$
 
@@ -539,14 +539,14 @@ $$
 checks whether the susceptible host is present at time $t$, whith $T$ consisting of all the times where the susceptible host is present. Similarly, 
 
 $$
-\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) =
+\mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) =
 \begin{cases}
-1 & \text{if } t \in T_{\mathrm{SR},i}, \\
+1 & \text{if } t \in T_{\mathrm{SR},j}, \\
 0 & \text{else},
 \end{cases}
 $$
 
-checks if $t$ falls within the time interval $T_{\mathrm{SR},i}$ when the $i$-th short-range interaction occurs. Currently, the duration of the short-range interactions $T_{\mathrm{SR},i}$ are assumed to be defines so that $T_{\mathrm{SR},i} \subseteq T$, i.e. only at times when the susceptible hosts are present. we assume the susceptible hosts are only exposed to one short-range interaction at a time (i.e. $\bigcap_{i=1}^{n_\mathrm{SR}}T_{\mathrm{SR},i} = \empty$), because we are not modelling interactions between different exhaled jets. This requirement is not jet made explisit in the backend model (TODO?).
+checks if $t$ falls within the time interval $T_{\mathrm{SR},j}$ when the $j$-th short-range interaction occurs. Currently, the duration of the short-range interactions $T_{\mathrm{SR},j}$ are assumed to be defines so that $T_{\mathrm{SR},j} \subseteq T$, i.e. only at times when the susceptible hosts are present. we assume the susceptible hosts are only exposed to one short-range interaction at a time (i.e. $\bigcap_{j=1}^{n_\mathrm{SR}}T_{\mathrm{SR},j} = \empty$), because we are not modelling interactions between different exhaled jets. This requirement is not jet made explisit in the backend model (TODO?).
 
 $C^{\mathrm{total}}(t)$ - the viral concentration a specific population of susceptible hosts are exposed to - is computed by `models.TotalConcentrationModel.concentration()`. If there are multiple populations of susceptible hosts, the result for each population of susceptible hosts need is computed by separate **TotalConcentrationModel** instances.
 
@@ -556,23 +556,23 @@ The diameter-dependent viral dose deposited in the respiratory tract of an expos
 
 $$
 \begin{equation*}
-\mathrm{vD}(D) = \int_{t_0}^{t_n}C(t, D)\;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}),
+\mathrm{vD}(D) = \int_{t_0}^{t_m}C(t, D)\;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}),
 \end{equation*}
 $$
 
-where $t_0$ is the first time exposed enters and $t_n$ is the last time they leave. $\mathrm{BR}_{\mathrm{k}}$ is the breathing rate of the exposed, $f_{\mathrm{dep}}(D)$ is the deposition factor in the respiratory tract, and $\eta_{\mathrm{in}}$ is the inwards mask efficiency of the face mask worn by the exposed.
+where $t_0$ is the first time exposed enters and $t_m$ is the last time they leave. $\mathrm{BR}_{\mathrm{k}}$ is the breathing rate of the exposed, $f_{\mathrm{dep}}(D)$ is the deposition factor in the respiratory tract, and $\eta_{\mathrm{in}}$ is the inwards mask efficiency of the face mask worn by the exposed.
 $C(t, D)$ is the viral concentration from the perspective of the exposed. 
 When the exposed is inside the room and not engaged in a short-range interaction $C(t, D)=C_{\mathrm{LR}} (t, D)$, 
-and when the exposed is enganging in their $i$-th short-range interaction $C(t, D)=C_{\mathrm{SR},i} (t, D)$. So 
+and when the exposed is enganging in their $j$-th short-range interaction $C(t, D)=C_{\mathrm{SR},j} (t, D)$. So 
 (recall that we assume only one short-range interaction at a time)
 
 $$
 \begin{equation*}
-C(t, D) = \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) + \sum_{i=1}^{n_\mathrm{SR}}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR},i}(D) - C_{\mathrm{LR}}(t, D))
+C(t, D) = \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) + \sum_{j=1}^{n_\mathrm{SR}}\mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) \cdot \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR},j}(D) - C_{\mathrm{LR}}(t, D))
 \end{equation*}
 $$
 
-where the indicator functions and the time intervals $T$ and $T_{\mathrm{SR},i}$ follow the definitions from the previous sections. We have now introduced all diameter-dependent quantities, and all down-stream computations only depend on the total dose exposure
+where the indicator functions and the time intervals $T$ and $T_{\mathrm{SR},j}$ follow the definitions from the previous sections. We have now introduced all diameter-dependent quantities, and all down-stream computations only depend on the total dose exposure
 
 $$
 \begin{equation*}
@@ -585,9 +585,9 @@ Similarly to the computation of the total viral concentration, we account for ha
 $$
 \begin{align*}
 \mathrm{vD}^{\mathrm{total}} 
-&=\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_n}C(t, D)\;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \;\ \mathrm{d}D \\
-&=\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \;\ \mathrm{d}D \\
-&\quad+\sum_{i=1}^{n_\mathrm{SR}}\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_n}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR},i}(D) - C_{\mathrm{LR}}(t, D)) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \;\ \mathrm{d}D
+&=\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_m}C(t, D)\;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \;\ \mathrm{d}D \\
+&=\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_m}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \;\ \mathrm{d}D \\
+&\quad+\sum_{j=1}^{n_\mathrm{SR}}\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_m}\mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) \cdot \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR},j}(D) - C_{\mathrm{LR}}(t, D)) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \;\ \mathrm{d}D
 \end{align*}
 $$
 
@@ -597,13 +597,13 @@ Lets define
 $$
 \begin{equation*}
 \mathrm{vD}_{\mathrm{LR}}(D) 
-=\int_{t_0}^{t_n}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) 
+=\int_{t_0}^{t_m}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) 
 \end{equation*}
 $$
 
 $$
 \begin{equation*}
-\mathrm{vD}_{\mathrm{SR-LR},i}(D)=\int_{t_0}^{t_n}\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR},i}(D) - C_{\mathrm{LR}}(t, D)) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})
+\mathrm{vD}_{\mathrm{SR-LR},j}(D)=\int_{t_0}^{t_m}\mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) \cdot \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR},j}(D) - C_{\mathrm{LR}}(t, D)) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})
 \end{equation*}
 $$
 
@@ -611,7 +611,7 @@ so that
 
 $$
 \begin{equation*}
-\mathrm{vD}^{\mathrm{total}} = \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{LR}}(D)\;\ \mathrm{d}D + \sum_{i=1}^{n_\mathrm{SR}}\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{SR-LR},i}(D)\;\ \mathrm{d}D
+\mathrm{vD}^{\mathrm{total}} = \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{LR}}(D)\;\ \mathrm{d}D + \sum_{j=1}^{n_\mathrm{SR}}\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{SR-LR},j}(D)\;\ \mathrm{d}D
 \end{equation*}
 $$
 
@@ -619,60 +619,63 @@ This separation also makes it easier to compare the importance of long-range vs 
 
 
 #### Long-Range Dose Component
-Recall that we found an analytical solution for $C_{\mathrm{LR}}(t, D)$ by solving an ODE, assuming the viral concentration was the only time-dependent factor. This assumption holds over time intervals $[t_j, t_{j+1}]$. Therefore
+The viral concentration is analytically integrated over the time $t$. Recall that the analytical solution we found for $C_{\mathrm{LR}}(t, D)$ is only valid within time intervals $[t_i, t_{i+1}]$ where the viral removal rate is constant. We compute
 
 $$
 \begin{align*}
-\int_{t_1}^{t_n} C_{\mathrm{LR}}(t, D) \mathrm{d}t
-&=  \sum_{j=1}^n \int_{t_j}^{t_{j+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t \\
-&= \sum_{j=1}^n \int_{t_j}^{t_{j+1}} \left[\mathrm{vR(D)} \cdot \left(\frac{N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r} - \left(\frac{N_{\mathrm{inf}}}{\lambda_{vRR}(D)\,V_r}- \frac{C_{\mathrm{LR},0}(D)}{\mathrm{vR(D)}} \right) \exp{-\lambda_{vRR}(D)\cdot t} \right) \right] \mathrm{d}t \\
-&= \sum_{j=1}^n \frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_j)\,V_r} (t_{j+1}-t_{i}) + \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_j)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_j)t_{j+1}}}{\lambda_{vRR}(D,t_j)} - \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_j)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_j)t_j}}{\lambda_{vRR}(D,t_j)}
+\int_{t_0}^{t_m} C_{\mathrm{LR}}(t, D) \mathrm{d}t
+&=  \sum_{i=1}^m \Big[\int_{t_i}^{t_{i+1}} C_{\mathrm{LR}}(t, D) \;\ \mathrm{d}t \Big]\\
+&=  \sum_{i=1}^m \Big[\int_{t_i}^{t_{i+1}} \Big(C_{\mathrm{min}}+\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D) \Big) \;\ \mathrm{d}t \Big]\\
+&= \sum_{i=1}^m \Big[C_{\mathrm{min}}\cdot(t_{i+1}-t_i)+
+(C_{\mathrm{LR}}(t_i, D)-C_{\mathrm{min}}) \cdot \frac{\exp{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}}{-\lambda_{vRR}} 
++  \sum_{n=1}^{n_p}\frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}  \Big((t_{i+1}-t_i) +\frac{\exp{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}}{\lambda_{vRR}}\Big)\Big]
 \end{align*}
 $$
 
-Lets also assume that the occupancy of the exposed is also constant over $[t_j, t_{j+1}]$ (this can be achieved by redefining $[t_j, t_{j+1}]$ withouth contradicting the previous requirement for $[t_j, t_{j+1}]$). Then, the intdicator function is constant over $[t_j, t_{j+1}]$ so
+Lets also assume that the occupancy of the exposed is also constant over $[t_i, t_{i+1}]$ (this can be achieved by redefining $[t_i, t_{i+1}]$ to shorter intervals without contradicting the previous requirement for $[t_i, t_{i+1}]$). Then, the intdicator function is constant over $[t_i, t_{i+1}]$ so
 
 $$
 \begin{equation*}
-\int_{t_j}^{t_{j+1}} \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}}(t, D) \mathrm{d}t=\mathbf{1}_{t \in T}(t_j) \cdot \int_{t_j}^{t_{j+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t.
+\int_{t_i}^{t_{i+1}} \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}}(t, D) \;\ \mathrm{d}t=\mathbf{1}_{t \in T}(t_i) \cdot \int_{t_i}^{t_{i+1}} C_{\mathrm{LR}}(t, D) \;\ \mathrm{d}t
 \end{equation*}
 $$
 
-In total, the long range dose component is 
+and the long range dose component is 
 
 $$
 \begin{equation*}
-\mathrm{vD}_{\mathrm{LR}}(D) =\sum_{j=1}^n\mathbf{1}_{t_j \in T}(t) \cdot \left( \frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_j)\,V_r} (t_{j+1}-t_{i}) + \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_j)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_j)t_{j+1}}}{\lambda_{vRR}(D,t_j)} - \left(\frac{v_R(D)\,N_{inf}}{\lambda_{vRR}(D, t_j)\,V_r}- C_{\mathrm{LR},0}(D)\right) \frac{\exp{-\lambda_{vRR}(D,t_j)t_j}}{\lambda_{vRR}(D,t_j)}\right) \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})
+\mathrm{vD}_{\mathrm{LR}}(D) =
+\sum_{i=1}^m\mathbf{1}_{t_i \in T}(t_i) \cdot \int_{t_i}^{t_{i+1}} C_{\mathrm{LR}}(t, D) \;\ \mathrm{d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})
 \end{equation*}
 $$
 
 #### Short-Range Dose Component
-Similar to the long-range component, we have 
+Similar to the long-range component, we assume the short-range interactions are also constant over $[t_i, t_{i+1}]$, that is $T_{\mathrm{SR},j}\subseteq[t_i, t_{i+1}]$ so
 
 $$
 \begin{equation*}
-\int_{t_0}^{t_n} \mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot C_{\mathrm{SR-LR},i}(t, D) \mathrm{d}t
-= \mathbf{1}_{t \in T_{\mathrm{SR},i}}(t_j) \cdot \int_{t_j}^{t_{j+1}} C_{\mathrm{SR-LR},i}(t, D) \mathrm{d}t
+\int_{t_i}^{t_{i+1}} \mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) \cdot C_{\mathrm{SR-LR},j}(t, D) \mathrm{d}t
+= \mathbf{1}_{t \in T_{\mathrm{SR},j}}(t_i) \cdot \int_{t_i}^{t_{i+1}} C_{\mathrm{SR-LR},j}(t, D) \mathrm{d}t
 \end{equation*}
 $$
 
-for $[t_j, t_{j+1}]$ defined in the section above. Next,
+Next,
 
 $$
 \begin{equation*}
-\int_{t_j}^{t_{j+1}} \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR},i}(D) - C_{\mathrm{LR}}(t, D)) \mathrm{d}t=\frac{1}{S({x})} \cdot (t_{j+1}-t_j) \cdot C_{0, \mathrm{SR}}(D) -\frac{1}{S({x})} \int_{t_j}^{t_{j+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t
+\int_{t_i}^{t_{i+1}} \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR},j}(D) - C_{\mathrm{LR}}(t, D)) \mathrm{d}t=\frac{1}{S({x})} \cdot (t_{i+1}-t_i) \cdot C_{0, \mathrm{SR}}(D) -\frac{1}{S({x})} \int_{t_i}^{t_{i+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t
 \end{equation*}
 $$
 
-Note that $t \in T_{\mathrm{SR},i} \Rightarrow t \in T$ (i.e. if there is a short-range interaction occuring, the occupants are present). Therefore, $\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) = \mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot \mathbf{1}_{t \in T}(t)$. 
+Note that $t \in T_{\mathrm{SR},j} \Rightarrow t \in T$ (i.e. if there is a short-range interaction occuring, the occupants are present). Therefore, $\mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) = \mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) \cdot \mathbf{1}_{t \in T}(t)$. 
 
 Combining the arguments above, we find that the short-range dose component from the $i$-th short-range interaction is
 
 $$
 \begin{align*}
-\mathrm{vD}_{\mathrm{SR-LR},i}(D)
-&=\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot \frac{1}{S({x})} \cdot \left((t_{j+1}-t_j) \cdot C_{0, \mathrm{SR},i}(D) -\int_{t_j}^{t_{j+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t \right) \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \\
-&=\mathbf{1}_{t \in T_{\mathrm{SR},i}}(t) \cdot \frac{1}{S({x})} \cdot \left(\mathrm{vD}_{0, \mathrm{SR},i}(D)-\mathrm{vD}_{\mathrm{LR}}(D)\right) 
+\mathrm{vD}_{\mathrm{SR-LR},j}(D)
+&=\mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) \cdot \frac{1}{S({x})} \cdot \left((t_{i+1}-t_i) \cdot C_{0, \mathrm{SR},j}(D) -\int_{t_i}^{t_{i+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t \right) \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \\
+&=\mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) \cdot \frac{1}{S({x})} \cdot \left(\mathrm{vD}_{0, \mathrm{SR},j}(D)-\mathrm{vD}_{\mathrm{LR}}(D)\right) 
 \end{align*}
 $$
 
@@ -680,14 +683,14 @@ for
 
 $$
 \begin{equation*}
-\mathrm{vD}_{0, \mathrm{SR},i}(D) = (t_{j+1}-t_j) \cdot C_{0, \mathrm{SR},i}(D) \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}).
+\mathrm{vD}_{0, \mathrm{SR},j}(D) = (t_{i+1}-t_i) \cdot C_{0, \mathrm{SR},j}(D) \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}).
 \end{equation*}
 $$
 
 
 #### Computation of the Dose
 The total dose exposure $\mathrm{vD}^{\mathrm{total}}$ is computed by `models.ExposureModel.deposited_exposure()`. 
-When computing the dose, the time intervals $[t_j, t_{j+1}]$ that we intergrate over are determined to:
+When computing the dose, the time intervals $[t_i, t_{i+1}]$ that we intergrate over are determined to:
 - only include doses from time intervals where the exposed is present
 - only integrate the concentration over time intervals where the occupancy of the infected and ventilation is constant. 
 
@@ -698,7 +701,7 @@ The governing method for computing the dose `models.ExposureModel.deposited_expo
 $$
 \begin{equation*}
 \mathrm{vD}^{\mathrm{total}} 
-= \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{LR}}(D)\;\ \mathrm{d}D + \sum_{i=1}^{n_\mathrm{SR}} \mathbf{1}_{t \in T_{\mathrm{SR},i}}(t_i) \cdot\left[\frac{1}{S({x})} \cdot\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{0, \mathrm{SR},i}(D) \;\ \mathrm{d}D - \frac{1}{S({x})} \cdot \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{LR}}(D)\;\ \mathrm{d}D \right].
+= \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{LR}}(D)\;\ \mathrm{d}D + \sum_{i=1}^{n_\mathrm{SR}} \mathbf{1}_{t \in T_{\mathrm{SR},j}}(t_j) \cdot\left[\frac{1}{S({x})} \cdot\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{0, \mathrm{SR},j}(D) \;\ \mathrm{d}D - \frac{1}{S({x})} \cdot \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{LR}}(D)\;\ \mathrm{d}D \right].
 \end{equation*}
 $$
 
@@ -729,9 +732,9 @@ $$
 \begin{align*}
 \widehat{\mathrm{vD^{total}}}
 &=\mathbf{E_{\mathrm{rv}}}\left[\int_{-\infty}^{\infty} \mathrm{vD(D)} \;\ \mathrm{d}D\right]\\
-&=\mathbf{E_{\mathrm{rv}}}\left[\int_{-\infty}^{\infty}\left(\mathrm{vD}_{\mathrm{LR}}(D) + \sum_{i=1}^{n_\mathrm{SR}}\mathrm{vD}_{\mathrm{SR-LR},i}(D)\right)\;\ \mathrm{d}D \right]\\
-&=\mathbf{E_{\mathrm{rv}}}\left[\int_{-\infty}^{\infty}\mathrm{vD}_{\mathrm{LR}}(D)\;\ \mathrm{d}D \right]+\sum_{i=1}^{n_\mathrm{SR}}\mathbf{E_{\mathrm{rv}}}\left[\int_{-\infty}^{\infty}\mathrm{vD}_{\mathrm{SR-LR},i}(D)\;\ \mathrm{d}D \right]\\
-&=\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}+\sum_{i=1}^{n_\mathrm{SR}}\widehat{\mathrm{vD^{total}}_{\mathrm{SR-LR},i}}\\
+&=\mathbf{E_{\mathrm{rv}}}\left[\int_{-\infty}^{\infty}\left(\mathrm{vD}_{\mathrm{LR}}(D) + \sum_{j=1}^{n_\mathrm{SR}}\mathrm{vD}_{\mathrm{SR-LR},j}(D)\right)\;\ \mathrm{d}D \right]\\
+&=\mathbf{E_{\mathrm{rv}}}\left[\int_{-\infty}^{\infty}\mathrm{vD}_{\mathrm{LR}}(D)\;\ \mathrm{d}D \right]+\sum_{j=1}^{n_\mathrm{SR}}\mathbf{E_{\mathrm{rv}}}\left[\int_{-\infty}^{\infty}\mathrm{vD}_{\mathrm{SR-LR},j}(D)\;\ \mathrm{d}D \right]\\
+&=\widehat{\mathrm{vD^{total}}_{\mathrm{LR}}}+\sum_{j=1}^{n_\mathrm{SR}}\widehat{\mathrm{vD^{total}}_{\mathrm{SR-LR},j}}\\
 \end{align*}
 $$
 
