@@ -216,7 +216,7 @@ Because CAiMIRA is only meant to model airborne transmission, interactions where
 ### Long-Range Compartment
 #### Derivation of the Analytical Long-Range Concentration
 Assuming mass balance, the rate of change of the viral concentration equals the difference between the total emission rate per volume and the total removal rate. 
-The total emission rate per volume is simply the sum of the emission rate of every single infected divided by the room volume $V_r$, which can be expressed as $\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{V_r}$ for $n_p$ infected populations where the $n$-th population has $N_{\mathrm{inf},n}$ members with common emission rate $\mathrm{vR}_n(D)$. The removal is zero if the current viral concentration $C_{\mathrm{LR}}(t, D)$ equals the minimum background concentration $C_{\mathrm{min}}$. The removal rate is the product of the current viral removal rate $\lambda_{\mathrm{vRR}}(t,D)$ and viral concentration increase from the background concentration, i.e. the difference between the current viral concentration $C_{\mathrm{LR}}(t, D)$ and the minimum background concentration $C_{\mathrm{min}}$. Thereby, the removal is zero whenever $C_{\mathrm{LR}}(t, D)=C_{\mathrm{min}}$. In conclusion, the viral concentration is described by the ordinary differential equation (ODE)
+The total emission rate per volume is simply the sum of the emission rate of every single infected divided by the room volume $V_r$, which can be expressed as $\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{V_r}$ for $n_p$ infected populations where the $n$-th population has $N_{\mathrm{inf},n}$ members with common emission rate $\mathrm{vR}_n(D)$. The removal rate is the product of the current viral removal rate $\lambda_{\mathrm{vRR}}(t,D)$ and viral concentration increase from the background concentration, i.e. the difference between the current viral concentration $C_{\mathrm{LR}}(t, D)$ and the minimum background concentration $C_{\mathrm{min}}$. Thereby, the removal is zero whenever $C_{\mathrm{LR}}(t, D)=C_{\mathrm{min}}$. In conclusion, the viral concentration is described by the ordinary differential equation (ODE)
 
 $$
 \begin{equation*}
@@ -224,6 +224,7 @@ $$
 \end{equation*}
 $$
 
+$C_{\mathrm{min}}$ is set to zero in `data_registry`, and may hence be excluded from the above equation to yield the same viral concentration ODE as presented by Henriques, A. et al. <sup>[3](#id8)</sup>. However, a generalized $C_{\mathrm{min}}$ is implemented in CAiMIRA (see `models`) as a value that can be non-zero. Therefore, we include $C_{\mathrm{min}}$ to explain the rational of the implementation.
 Assuming the viral concentration is the only time-dependent variable, this ODE can be solved analytically. The viral removal rate is, however, also time-dependent. We assume $\lambda_{vRR}(t, D)$ is stepwise constant and that we may divide the scenario a finite number of time intervals $[t_i, t_{i+1})$ where $\lambda_{vRR}(t, D)=\lambda_{vRR}(t_i, D)$ is constant. Then, we can solve
 $$
 \begin{equation*}
