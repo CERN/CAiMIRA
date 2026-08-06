@@ -1,180 +1,128 @@
 # Computation of the CO<sub>2</sub> Concentration
-Similarly to the viral concentration, the CO<sub>2</sub> concentration is derived using mass balance. Every occupant emits CO<sub>2</sub> with emission rate proportional to their breathing rate $BR_k$ and fraction of CO<sub>2</sub> in expired breath $f_{CO_2}$. Ventilation ($\lambda_{ACH}$) is the only sink of CO<sub>2</sub>, and the background concentration $C_{out}$ is set to 440 ppm. Hence,
+Similarly to the viral concentration, the CO<sub>2</sub> concentration is derived using mass balance. Every occupant emits CO<sub>2</sub> with emission rate proportional to their breathing (expiration) rate and fraction of CO<sub>2</sub> in expired breath $f_{CO_2}$. We assume $f_{CO_2}$ is constant while the breating rate might vary between each population of occupants, depending on their physical activity. Let $\mathrm{BR}_{\mathrm{out},n}$ denote the breathing rate of the $n$-th population consisting of $N_n$ occupants, and let $n_p$ be the total number of different populations in the room. Ventilation $\lambda_{ACH}(t)$ is the only sink of CO<sub>2</sub>, and the background concentration $C_{out}$ is set to 440 ppm. Hence, the rate of change of the CO<sub>2</sub> concentration is given by the mass balance ODE
 
 $$
-\frac{\mathrm{d}C_{CO_2}}{\mathrm{d}t}
+\begin{equation*}
+\frac{\mathrm{d}C_{CO_2}(t)}{\mathrm{d}t}
 =
-\frac{(N_{inf}+N_{exp}) \cdot f_{CO_2}}{V_r}\cdot BR_k
-+
-\lambda_{ACH}\cdot \left(C_{out}-C_{CO_2}(t)\right).
+\frac{f_{CO_2} \cdot \sum_{n=1}^{n_p}\mathrm{BR}_{\mathrm{out},n} \cdot N_n}{V_r}
+-
+\lambda_{ACH}(t)\cdot \left(C_{CO_2}(t)-C_{\mathrm{out}}\right).
+\end{equation*}
 $$
 
-Assuming the CO<sub>2</sub> concentration is the only time-dependent variable, this equation can be solved analytically using standard techniques for ordinary differential equations (ODEs), yielding the soultion
+Similar as for the viral concentration (see **[Viral Transmission](./viral_transmission.md)**), we can solve this ODE over time intervals $[t_i, t_{i+1}]$ where $\lambda_{ACH}(t)=\lambda_{ACH}(t_i)$, assuming the ventilation is stepwise constant, so that CO<sub>2</sub> concentration is the only time-dependent variable. Using the same standard techniques for solving ODEs as for the viral concentration (see **[Viral Transmission](./viral_transmission.md)**), we get that the solution for $\forall t \in [t_i, t_{i+1}]$ is
 
 $$
+\begin{align*}
 C_{CO_2}(t)
-=
-C_{out}
-+
-\frac{(N_{inf}+N_{exp}) \cdot f_{CO_2}}
-     {V_r\lambda_{ACH}}\cdot BR_k
-+
-\left(
-C_{CO_2}(t_i)
--
-C_{out}
--
-\frac{(N_{inf}+N_{exp}) \cdot f_{CO_2}}
-     {V_r\lambda_{ACH}}\cdot BR_k
-\right)
-\exp(-\lambda_{ACH}(t-t_i)).
+&=
+C_{\mathrm{out}}+(C_{CO_2}(t_i)-C_{\mathrm{out}}) \cdot \exp(-\lambda_{ACH}(t_i)\cdot(t-t_i))\\
+& \quad+\frac{f_{CO_2} \cdot \sum_{n=1}^{n_p}\mathrm{BR}_{\mathrm{out},n} \cdot N_n}{V_r\lambda_{ACH}(t_i)}\cdot (1-\exp(-\lambda_{ACH}(t_i)\cdot(t-t_i)))
+\end{align*}
 $$
 
-$C_{CO_2}(t)$ is calculated stepwise over time intervals $[t_i, t_{i+1}]$ where the assumption that the CO<sub>2</sub> concentration is the only time-dependent variable holds. $C_{CO_2,t_i}$ is the CO<sub>2</sub> concentration at the end of the previous time interval.
-
-<details>
-<summary>Solving the ODE</summary>
-We want to find the analytical solution of 
+where is $C_{CO_2,t_i}$ is the CO<sub>2</sub> concentration carried forward from the end of the previous time interval. Similar to the viral concentration, we observe that 
 
 $$
-\frac{\mathrm{d}C_{CO_2}}{\mathrm{d}t}
-=
-\frac{(N_{inf}+N_{exp}) \cdot f_{CO_2}}{V_r}\cdot BR_k
-+
-\lambda_{ACH}\cdot \left(C_{out}-C_{CO_2}(t)\right).
+\begin{align*}
+C_{CO_2,n}(t)
+&=
+C_{CO_2,n}(t_i) \cdot \exp(-\lambda_{ACH}(t_i)\cdot(t-t_i))+\frac{f_{CO_2} \cdot \mathrm{BR}_{\mathrm{out},n} \cdot N_n}{V_r\lambda_{ACH}(t_i)}\cdot (1-\exp(-\lambda_{ACH}(t_i)\cdot(t-t_i)))
+\end{align*}
 $$
 
-assuming all variables except the CO<sub>2</sub> concentration are time-independent. First, observe that the homogenous solution (satisfying $\frac{\mathrm{d}C_{CO_2}}{\mathrm{d}t}+\lambda_{ACH}\cdot C_{CO_2}(t)=0$) is $C_{CO_2,h}(t)=\exp(-\lambda_{ACH}t)$, and the general solution (for constants $B_1$ and $B_2$) is hence
+is the CO<sub>2</sub> concentration *increase* from $C_{\mathrm{out}}$ resulting from the presence of the $n$-th population only. We assume that the concentration starts at $C_{\mathrm{out}}$, i.e. $C_{CO_2}(t_0) = C_{\mathrm{out}}$. 
+It follows by induction that
 
 $$
-C(t)=B_1+B_2 \cdot C_{CO_2,h}(t) = B_1+B_2 \cdot \exp(-\lambda_{ACH}t)
-$$
-
-Differentiating, we get
-
-$$
-\frac{\mathrm{d}C_{CO_2}}{\mathrm{d}t} = -B_2 \cdot \lambda_{ACH} \cdot \exp(-\lambda_{ACH}t)
-$$
-
-Combining the expressions for $\frac{\mathrm{d}C_{CO_2}}{\mathrm{d}t}$ yields
-
-$$
-B_1 = C_{out}
-+
-\frac{(N_{inf}+N_{exp}) \cdot f_{CO_2}}
-     {V_r\lambda_{ACH}}\cdot BR_k
-$$
-
-so now we know the general solution is
-
-$$
-C(t)=C_{out}
-+
-\frac{(N_{inf}+N_{exp}) \cdot f_{CO_2}}
-     {V_r\lambda_{ACH}}\cdot BR_k+B_2 \cdot C_{CO_2}(t).
-$$
-
-At $t=t_i$ the concentration is  
-$$
-C(t_i)=C_{out}
-+
-\frac{(N_{inf}+N_{exp}) \cdot f_{CO_2}}
-     {V_r\lambda_{ACH}}\cdot BR_k+B_2 \cdot C_{CO_2}(t)
-$$
-
-so
-$$
-B_2 = C_{CO_2}(t_i)
--
-C_{out}
--
-\frac{(N_{inf}+N_{exp}) \cdot f_{CO_2}}
-     {V_r\lambda_{ACH}}\cdot BR_k
-$$
-
-and so the specific solution is
-
-$$
+\begin{align*}
 C_{CO_2}(t)
-=
-C_{out}
-+
-\frac{(N_{inf}+N_{exp}) \cdot f_{CO_2}}
-     {V_r\lambda_{ACH}}\cdot BR_k
-+
-\left(
-C_{CO_2}(t_i)
--
-C_{out}
--
-\frac{(N_{inf}+N_{exp}) \cdot f_{CO_2}}
-     {V_r\lambda_{ACH}}\cdot BR_k
-\right)
-\exp(-\lambda_{ACH}(t-t_i)).
+&=
+C_{\mathrm{out}}+\sum_{n=1}^{n_p}C_{CO_2,n}(t).
+\end{align*}
 $$
 
-as written above.
 
-</details>
 
-Note that the procedure for computing the CO<sub>2</sub> concentration follows the same structure as for computing the viral concentration (see the Physics of Viral Transmission page). Therefore, the class `models.CO2ConcentrationModel` for computing the CO<sub>2</sub> concentration inherits from `models._ConcentrationModelBase`. When computing the concentration in `models._ConcentrationModelBase`, we first normalize by the emission rate. For the CO<sub>2</sub> concentration, the emission rate is the breathing rate $BR_k$. Note that 
+The CO<sub>2</sub> concentration is computed in much the same way as the viral concentration: We approximate the expected total concentration C_{CO_2}(t) in `models.TotalCO2ConcentrationModel.concentration()`, separating the computations into $n_p$ `models.CO2ConcentrationModel` instances which each compute $C_{CO_2,n}(t)$ for the $n$-th population and then adding $C_{\mathrm{out}}$ at the end when summizing all the contributions. Similarly to `models.TotalViralConcentrationModel`, `models.TotalCO2ConcentrationModel` is a subclass of `models._TotalConcentrationModelBase`. Similarly to `models.ConcentrationModel` (computing the viral concentration for a single population), `models.CO2ConcentrationModel` is a subclass of `models._ConcentrationModelBase`. 
+
+The essentail difference between `models.CO2ConcentrationModel` and `models.ConcentrationModel` are the emission rate, implemented in the respective normalization factors, and the removal rate. When computing the concentration in `models._ConcentrationModelBase`, we first normalize by the emission rate per person. For the CO<sub>2</sub> concentration, the emission rate per person is $f_{CO_2} \cdot \sum_{n=1}^{n_p}\mathrm{BR}_{\mathrm{out},n}$. Note that 
 
 $$
-C_{CO_2}(t)-C_{out} = BR_k \cdot f_{CO_2} \left( \frac{(N_{inf}+N_{exp})}
-     {V_r\lambda_{ACH}}
+\begin{equation*}
+\frac{C_{CO_2,n}(t)}{f_{CO_2} \cdot \mathrm{BR}_{\mathrm{out},n}} = \frac{N_n}{V_r\lambda_{ACH}(t_i)}\cdot (1-\exp(-\lambda_{ACH}(t_i)\cdot(t-t_i)))
 +
 \left(
-\frac{C_{CO_2}(t_i)
+\frac{C_{CO_2,n}(t_i)}{f_{CO_2} \cdot \mathrm{BR}_{\mathrm{out},n}}
 -
-C_{out}}{BR_k \cdot f_{CO_2}}
--
-\frac{(N_{inf}+N_{exp})}
+\frac{N_n}
      {V_r\lambda_{ACH}}
 \right)
-\exp(-\lambda_{ACH}(t-t_i)) \right).
+\exp(-\lambda_{ACH}(t-t_i)).
+\end{equation*}
 $$ 
 
-Using induction, we can prove that $BR_k \cdot f_{CO_2}$ always is a linear factor of $C_{CO_2}(t_i)-C_{out}$ as long as $C_{CO_2}(t_0)=C_{out}$. Therefore, $BR_k \cdot f_{CO_2}$ is always a linear factor of $C_{CO_2}(t)-C_{out}$, and so we use `models._ConcentrationModelBase._normed_concentration()` to compute the normalized CO<sub>2</sub> concentration $\frac{C_{CO_2}(t_i)-C_{out}}{BR_k \cdot f_{CO_2}}$. Specifying `models.CO2ConcentrationModel.normalization_factor()` as $BR_k \cdot f_{CO_2}$ and adding the background concentration $C_{out}$ we then use `models._ConcentrationModelBase.concentration()` to compute the full CO<sub>2</sub>  concentration.
+Using induction, we can prove that $f_{CO_2} \cdot \mathrm{BR}_{\mathrm{out},n}$ always is a linear factor of $C_{CO_2,n}(t_i)$ as long as $C_{CO_2,n}(t_0)=0$. Therefore, $f_{CO_2} \cdot \mathrm{BR}_{\mathrm{out},n}$ is always a linear factor of $C_{CO_2,n}(t)$, and so we use `models._ConcentrationModelBase._normed_concentration()` to compute the normalized CO<sub>2</sub> concentration $\frac{{CO_2,n}(t)}{f_{CO_2} \cdot \mathrm{BR}_{\mathrm{out},n}}$. We then specify `models.CO2ConcentrationModel.normalization_factor()` as $f_{CO_2} \cdot \mathrm{BR}_{\mathrm{out},n}$. 
 
-FUTURE UPDATES OF CAiMIRA
-Note that the CO<sub>2</sub> concentration is a random variable since it is a function of the log-normal distributed breathing rate $BR_k$. In the current version of CAiMIRA, $BR_k$ is Monte Carlo sampled. Because $BR_k$ is a linear component of the concentration, however, it can be replaced by its expected value
-
-$$
-E[BR_k]
-=
-\exp\!\left(\mu_k+\frac{\sigma_k^2}{2}\right),
-$$
-
-where $\mu_k$ and $\sigma_k$ are the mean and standard deviation, respectively, of the log-normal distribution of $BR_k$. Hence, the expected CO<sub>2</sub> concentration is given by
+Now, the expected CO<sub>2</sub> concentration increase $C_{CO_2,n}(t)$ is computed by Monte Carlo sampling $\mathrm{BR}_{\mathrm{out},n}$. The total expected CO<sub>2</sub> concentration is then
 
 $$
+\begin{align*}
 E[C_{CO_2}(t)]
-=
-C_{out}
-+
-\frac{(N_{inf}+N_{exp}) \cdot f_{CO_2}}
-     {V_r\lambda_{ACH}}
-\exp\!\left(\mu_k+\frac{\sigma_k^2}{2}\right)
-+
-\left(
-C_{CO_2,0}
--
-C_{out}
--
-\frac{(N_{inf}+N_{exp}) \cdot f_{CO_2}}
-     {V_r\lambda_{ACH}}
-\exp\!\left(\mu_k+\frac{\sigma_k^2}{2}\right)
-\right)
-\exp(-\lambda_{ACH}t).
+&=
+C_{\mathrm{out}}+\sum_{n=1}^{n_p}E[C_{CO_2,n}(t)]\\
+&\approx
+C_{\mathrm{out}}+\sum_{n=1}^{n_p}\frac{1}{S}\sum_{i=1}^{S}
+\left[C_{CO_2,n}(t_i) \cdot \exp(-\lambda_{ACH}(t_i)\cdot(t-t_i))+\frac{f_{CO_2} \cdot \mathrm{BR}_{\mathrm{out},n,i} \cdot N_n}{V_r\lambda_{ACH}(t_i)}\cdot (1-\exp(-\lambda_{ACH}(t_i)\cdot(t-t_i)))\right]\\
+\end{align*}
 $$
 
-<details>
-<summary>Importance of $BR_k$ Being a Linear Component of the Concentration</summary>
-Let $X$ be a random variable, $f$ be a function with input $X$, and $E$ denote the function mapping random variables to their expected value. Generally,
+Note that it is neccecary to complete the Monte Carlo approximation of the expected value of $C_{CO_2,n}(t)$ from each `models.CO2ConcentrationModel` before summizing the contributions from different `models.CO2ConcentrationModel` instances because the parameterization of the distributions $\mathrm{BR}_{\mathrm{out},n}$ is sampled from vary with $n$. 
 
-$f(E[X]) \neq E[f(X)]$
 
-for example, if $f(X)=X^2$ and $X \sim \mathcal{N}(0, \sigma^2)$ then $f(E[X]) =0^2$ whereas $E[f(X)]=E[X^2]=E[X^2]-E[X]^2=Var[X]=\sigma^2$
+## Expected CO<sub>2</sub> Concentration
+NOTE: This is not currently implemented in CAiMIRA.
 
-However, if $f$ is linear, then $f(E[X]) = E[f(X)]$. In our case, $BR_k$ is indeed a linear component of the concentration.
-</details>
+We could actually avoid Monte Carlo sampling when computing the expected CO<sub>2</sub> concentration because the CO<sub>2</sub> concentration is only linearly dependent on random variables $\mathrm{BR}_{\mathrm{out},n}$. To see this, note that the expected CO<sub>2</sub> concentration is given by
+
+$$
+\begin{align*}
+E[C_{CO_2}(t)]
+&=
+C_{\mathrm{out}}+(C_{CO_2}(t_i)-C_{\mathrm{out}}) \cdot \exp(-\lambda_{ACH}(t_i)\cdot(t-t_i))\\
+& \quad+\frac{f_{CO_2} \cdot \sum_{n=1}^{n_p}E[\mathrm{BR}_{\mathrm{out},n}] \cdot N_n}{V_r\lambda_{ACH}(t_i)}\cdot (1-\exp(-\lambda_{ACH}(t_i)\cdot(t-t_i)))
+\end{align*}
+$$
+
+because $\mathrm{BR}_{\mathrm{out},n}$ is a linear component of the concentration. $\mathrm{BR}_{\mathrm{out},n}$ is log-normally distributed with expected value
+
+$$
+\begin{equation*}
+E[\mathrm{BR}_{\mathrm{out},n}]
+=
+\exp\!\left(\mu_n+\frac{\sigma_n^2}{2}\right),
+\end{equation*}
+$$
+
+where $\mu_n$ and $\sigma_n$ are the mean and standard deviation, respectively, of the log-normal distribution of $\mathrm{BR}_{\mathrm{out},n}$. Therefore, we could compute $E[C_{CO_2}(t)]$ completely deterministically. Similarly, we could also compute the variance of the CO<sub>2</sub> concentration deterministically as
+
+$$
+\begin{align*}
+Var[C_{CO_2}(t)]
+&=
+\left(\frac{(N_{inf}+N_{exp}) \cdot f_{CO_2}}{V_r\lambda_{ACH}(t_i)}\right)^2\cdot Var[\mathrm{BR}_{\mathrm{out},n}] \cdot(1-\exp(-\lambda_{ACH}(t_i)\cdot(t-t_i)))^2
+\end{align*}
+$$
+
+where 
+
+$$
+\begin{equation*}
+Var[\mathrm{BR}_{\mathrm{out},n}]
+=
+\left(1-\exp\!\left(\sigma_n^2\right)\right)\exp\!\left(2\mu_n+\sigma_n^2\right),
+\end{equation*}
+$$
+
+is the variance of the log-normally distributed breathing rate $\mathrm{BR}_{\mathrm{out},n}$.
