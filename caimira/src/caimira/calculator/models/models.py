@@ -1675,34 +1675,34 @@ class ExposureModel:
     
     def long_range_concentration(self, time: float) -> float:
         """
-        Total virus concentration in the room at long-range, as a function of time, averaged over the particle diameter.
+        Total virus concentration in the room at long-range, as a function of time, averaged over the particle diameters.
 
         It only considers the long-range concentration without the
         contribution of the short-range concentration.
 
         Since the different ConcentrationModel objects may have different infected with different expirations,
         they can have different particle diameters bases drawn from different probability distributions.
-        To Monte Carlo integrate correctly over the particle diameter, we must therefore average the concentration 
-        of each ConcentrationModel over the particle diameter before adding together all the contributions from all 
+        To Monte-Carlo integrate correctly over the particle diameters, we must therefore average the concentration 
+        of each ConcentrationModel over the particle diameters before adding together all the contributions from all 
         the ConcentrationModels.
         """
         return sum([np.array(c_model.concentration(time)).mean() for c_model in self.concentration_model])
     
     def diluted_long_range_concentration(self, interaction, time: float) -> float:
         """
-        Component of the short-range concentration consisting of entrainment of the long-range concentration into the 
-        short-range jet, averaged over the particle diameter.
+        Component of the short-range concentration consisting of theentrainment of the long-range concentration into the 
+        short-range jet, averaged over the particle diameters.
 
         The result will be be subtracted from the diluted jet concentration to compute the total short-range concentration 
         component.
         
-        Because the diluted jet concentration and diluted long-range concentration are both Monte Carlo integrated over 
-        particle diameters from different distributions, we need to average over the particle diameter before combining 
-        them later. Hence, we average over the particle diameter here, yielding a diameter-idependent result. 
+        Because the diluted jet concentration and diluted long-range concentration are both Monte-Carlo integrated over 
+        particle diameters from different distributions, we need to average over the particle diameters before combining 
+        them. Hence, we average over the particle diameters here, yielding a diameter-independent result. 
 
-        Note that the dilution factor is a diameter-independent random variable. Because we multiply the by the dilution 
+        Note that the dilution factor is a diameter-independent random variable. Because we multiply the dilution 
         factor with the diameter-dependent jet concentration in ShortRangeModel._normed_diluted_jet_concentration() before 
-        Monte Carlo averaging, we also multiply the diameter-dependent long-range concentration by the dilution factor before 
+        Monte-Carlo averaging, we also multiply the diameter-dependent long-range concentration by the dilution factor before 
         averaging here.
         """
         dilution_factor = interaction.dilution_factor()
