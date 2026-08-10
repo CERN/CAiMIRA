@@ -712,9 +712,7 @@ Recall that we normalized the concentration by the emission rate for computation
 
 
 ### Computation of Expected Results
-The perhaps most interesting result computed by CAiMIRA is the *expected* individual infection probability. The individual infection probability is the probability that a specific exposed becomes infected conditioned on a dose $\mathrm{vD^{total}}$ being deposited in their resporatory tract and the infectious dose being $\mathrm{ID}_{50}$, i.e. the probability $P(I|\mathrm{vD^{total}}, \mathrm{ID}_{50})$ defined by Henriques et al. (2022). Because this probability is already conditioned on specific values of $\mathrm{vD^{total}}$ and $\mathrm{ID}_{50}$, we need to know the expected values of $\mathrm{vD^{total}}$ and $\mathrm{ID}_{50}$ before computing $P(I|\mathrm{vD^{total}}, \mathrm{ID}_{50})$. Computing the expected value of $\mathrm{ID}_{50}$ is easy - it is simply the expected value of a the uniform distribution it follows. 
-
-Computing the expected value of $\mathrm{vD^{total}}$ is more intricate because it is a funciton of all the random variables
+Computing the expected value of $\mathrm{vD^{total}}$ is intricate because it is a funciton of all the random variables
 $\mathrm{vl_{inf}}$,
 $\mathrm{r_{inf}}$,
 $\mathrm{BR_{k,out}}$,
