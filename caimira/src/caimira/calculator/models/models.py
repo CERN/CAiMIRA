@@ -1684,8 +1684,8 @@ class ExposureModel:
         particle diameters from different distributions, we need to average over the particle diameter before combining 
         them later. Hence, we average over the particle diameter here, yielding a diameter-idependent result. 
 
-        Note that the dilution factor is a diameter-independent random variable. Because we multiply the by the dilution 
-        factor with the diameter-dependent jet concentration in ShortRangeModel._normed_diluted_jet_concentration() before 
+        Note that the dilution factor is a diameter-independent random variable. Because we multiply the dilution 
+        factor and the diameter-dependent jet concentration in ShortRangeModel._normed_diluted_jet_concentration() before 
         Monte Carlo averaging, we also multiply the diameter-dependent long-range concentration by the dilution factor before 
         averaging here.
         """
