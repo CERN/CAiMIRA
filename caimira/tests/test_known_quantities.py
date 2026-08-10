@@ -84,6 +84,28 @@ def build_model(data_registry, interval_duration):
     )
     return model
 
+def test_no_short_range(data_registry):
+    with pytest.raises(ValueError, match='Short-range interactions not implemented for EmittingPopulation with known emission rate.'):
+        models.EmittingPopulation(
+                data_registry=data_registry,
+                number=1,
+                virus=models.Virus.types['SARS_CoV_2'],
+                presence=models.SpecificInterval(((0., 4.), (5., 8.))),
+                mask=models.Mask.types['No mask'],
+                activity=models.Activity.types['Light activity'],
+                known_individual_emission_rate=970 * 50,
+                host_immunity=0.,
+                short_range=(models.ShortRangeModel(
+                            data_registry = data_registry,
+                            activity = models.Activity.types['Light activity'],
+                            expiration = models.Expiration.types['Breathing'],
+                            presence = models.SpecificInterval(((0., 4.), (5., 8.))),
+                            distance = 0.854,
+                        )),
+                # Superspreading event, where ejection factor is fixed based
+                # on Miller et al. (2020) - 50 represents the infectious dose.
+            )
+    
 
 def test_concentrations_startup(data_registry):
     # The concentrations should be the same until the beginning of the

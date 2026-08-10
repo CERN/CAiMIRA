@@ -1100,6 +1100,10 @@ class EmittingPopulation(_PopulationWithVirus):
     #: The emission rate of a single individual, in virions / h.
     known_individual_emission_rate: float
 
+    def __post_init__(self):
+        if self.short_range != ():
+            raise ValueError("Short-range interactions not implemented for EmittingPopulation with known emission rate.")
+        
     def aerosols(self):
         """
         Total volume of aerosols expired per volume of exhaled air (mL/cm^3).
