@@ -1666,8 +1666,8 @@ class ExposureModel:
 
         Since the different ConcentrationModel objects may have different infected with different expirations,
         they can have different particle diameters bases drawn from different probability distributions.
-        To Monte Carlo integrate correctly over the particle diameter, we must therefore average the concentration 
-        of each ConcentrationModel over the particle diameter before adding together all the contributions from all 
+        To Monte-Carlo integrate correctly over the particle diameters, we must therefore average the concentration 
+        of each ConcentrationModel over the particle diameters before adding together all the contributions from all 
         the ConcentrationModels.
         """
         return sum([np.array(c_model.concentration(time)).mean() for c_model in self.concentration_model])
