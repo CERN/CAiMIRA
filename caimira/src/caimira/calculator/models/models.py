@@ -1564,12 +1564,6 @@ class TotalViralConcentrationModel(_TotalConcentrationModelBase):
         """
         return super().concentration(time)
     
-    def long_range_concentration(self, time: float) -> float:
-        """
-        Long-range virus concentration, as a function of time, integrated over the particle diameter.
-        """
-        return super().concentration(time)
-    
     def concentration(self, time: float) -> float:
         """
         Integrated virus exposure concentration, as a function of time.
