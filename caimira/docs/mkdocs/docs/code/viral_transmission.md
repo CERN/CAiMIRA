@@ -961,11 +961,99 @@ Similarly, we can compute the expecteded short-range dose component, viral conce
 ## Infection Probability
 The CAiMIRA model primarily computes the **Individual Probability**, i.e. the probability that a specific exposed person will be infected. From this probability we can also find the expected number of new cases. Future work will include the **transmission probability**, i.e. the probability that more than one person will be infected. 
 
-Currently, CAiMIRA is best suited for computing the probability of infection assuming deterministic exposure, i.e. knowing excactly who of the occupants are infected. Assuming all the infected and exposed have the same properties (like activity, face mask, occupancy times, etc), we may compute the probability of infection probabilistically, using the incidence rate of the region.
+The probability of infection can be computed assuming deterministic exposure, where it is known exactly who of the occupants are infected, and probabilistic exposure, where we do not know who or how many are infected at the event, only the prevalence of the disease. It is more computationally intensive to compute the probabilistic exposure compared to deterministic exposure.
 
-Efforts are being made to enable computation of the probabilistic probability of infection, i.e. the probability of being infected if we do not know excactly who is infected, for a wider range of scenarios.
+### Deterministic Exposure
+Assume we know exactly which of the occupants are infected and which are exposed. Susceptible hosts (exposed) may have differet properties (physical activity, face mask, immunity, presence) affecting how large a dose they inhale and/or their probability of being infected. The exposed may be grouped into populations with similar properties, so they all have the same probability of infection.
+Let $n_{\mathrm{ep}}$ be the total number of exposed populations, let $k_{\mathrm{dep}}$ denote the number of virions deposited inside a member of the $e$-th population (corresponding to the dose $\mathrm{vD}^\mathrm{{total}}$), and let $I_e$ denote the individual infection probability of a member of the $e$-th population. For each exposed population we compute $\mathrm{vD}_e^\mathrm{{total}}$ as described in the above sections. 
 
-A complete documentation of the computation of the infection probability will follow the planned model updates.
+The individual probability of infection in CAiMIRA is derived from the exponential dose-response model of Watanabe et al. <sup>[4](#id9)</sup> and Haas et al. <sup>[5](#id10)</sup>. 
+
+<details>
+<summary>Derivation of the Exponential Dose-Response Model of Haas et al. </summary>
+
+Let $I_e$ denote the event that the considered individual, belonging to the $e$-th exposed population, becomes infected. Assume that $k_\mathrm{min}$ is the minimum number of virions required to trigger infection, and let $k_e$ denote the number of deposited virions that survive to infect. Thereby, the exposed becomes infected if $k_e \geq k_\mathrm{min}$. That is,
+
+$$
+P(I_e|k_e)
+\begin{cases} 
+1
+\quad \mathrm{if} \quad k_e \geq k_\mathrm{min},\\
+0
+\quad \mathrm{else}.
+\end{cases}
+$$
+
+Using the total probability rule, the individual infection probability for a member of the $e$-th population of exposed is
+
+$$
+\begin{equation*}
+P(I_e)=\sum_{k_e=1}^\infty P(I_e|k_e) \cdot P_0(k_e) = \sum_{k_e=k_\mathrm{min}}^\infty P_0(k_e).
+\end{equation*}
+$$
+
+We need to connect $k_e$ -- the number of virions contributing to infection -- to the viral dose deposited in the respiratory tract of the exposed, i.e. the dose exposure $\mathrm{vD}^\mathrm{{total}}$ derived in the above sections. To simplify the derivation, define $d_e$ as the total number of virions deposited in the respiratory tract of the exposed. $d_e$ is directly related to $\mathrm{vD}^\mathrm{{total}}$ -- the two quantities only differ in unit. By definition, $k_e$ is the number of the $d_e$ virions that survive to trigger infection, so $d_e \geq k_e$ and $d_e - k_e$ would be the number of virions that are deposited in the exposed but do not survive to trigger infection, for example due to immune responses.
+Using the total probability rule again,
+
+$$
+\begin{equation*}
+P_0(k_e)=\int_{k_e}^\infty P_1(d_e) \cdot P_2(k_e|d_e) \mathrm{d}d_e
+\end{equation*}
+$$
+
+Following the derivation of Haas et al. <sup>[5](#id10)</sup>, we estimate $P_1(d_e)$ assuming the virions in a droplet/sample are randomly distributed. Then, the Poisson distribution govern the probability of $d_e$ virions being deposited so
+
+$$
+\begin{equation*}
+P_1(d_e) = \frac{(N_d)^{d_e} \cdot \exp(-N_d)}{(d_e)!}
+\end{equation*}
+$$
+
+where $N_d$ is the average number of virions in a dose.
+To estimate $P_2(k_e|d_e)$, we assume that the survival of a single virion to a target organ is independent of the presence of other virions. Let $r$ be the probability of a single virion surviving to infect. Then, from the binomial theorem,
+
+$$
+\begin{equation*}
+P_2(k_e|d_e) = \frac{(d_e)!(r)^{k_e}(1-r)^{d_e-k_e}}{(d_e-k_e)!(k_e)!}.
+\end{equation*}
+$$
+
+Combining the last four equations, the probability that a specific member of the $e$-th populaiton of exposed becomes infected is 
+
+$$
+\begin{align*}
+P(I_e)
+&=\sum_{k_e=k_\mathrm{min}}^\infty \int_{k_e}^\infty P_1(d_e) \cdot P_2(k_e|d_e) \mathrm{d}d_e\\
+&=\sum_{k_e=k_\mathrm{min}}^\infty \int_{k_e}^\infty \frac{(N_d)^{d_e} \cdot \exp(-N_d)}{(d_e)!} \cdot \frac{(d_e)!(r)^{k_e}(1-r)^{d_e-k_e}}{(d_e-k_e)!(k_e)!} \mathrm{d}d_e\\
+&=\sum_{k_e=k_\mathrm{min}}^\infty \frac{(N_d\cdot r)^{k_e} \cdot \exp{-N_d\cdot r}}{(k_e)!} \int_{k_e}^\infty \frac{[N_d \cdot (1-r)]^{d_e-k_e} \dot \exp{-N_d\cdot (1-r)}}{(d_e-k_e)!} \mathrm{d}d_e\\
+&=\sum_{k_e=k_\mathrm{min}}^\infty \frac{(N_d\cdot r)^{k_e}}{(k_e)!} \cdot \exp{-N_d\cdot r}
+\end{align*}
+$$
+
+where the final equality follows from the second summation being identical to unity, because it is a Poisson distribution with variable $d_e-k_e$ and parameter $N_d \cdot (1-r)N_d \cdot (1-r)$ summized over its entire support. 
+
+Assuming a single virion could be enough to infect, $k_\mathrm{min}=1$. By the definition of the exponential function we thereby have  
+$$
+\begin{align*}
+P(I_e)
+&=\sum_{k_e=1}^\infty \frac{(N_d\cdot r)^{k_e}}{(k_e)!} \cdot \exp{-N_d\cdot r}\\
+&=\Big[\sum_{k_e=0}^\infty \frac{(N_d\cdot r)^{k_e}}{(k_e)!} \cdot \exp{-N_d\cdot r}\Big]-\frac{(N_d\cdot r)^{0}}{(0)!} \cdot \exp{-N_d\cdot r}\\
+&=1-\exp{-N_d\cdot r}
+\end{align*}
+$$
+if we set $0!=1$. 
+
+</details>
+
+In summary, the probability of event $I_e$, denoting the event that a specific individual from the $e$-th exposed population becomes infected, is 
+
+$$
+\begin{equation*}
+P(I_e)=1-\exp{-N_d\cdot r}
+\end{equation*}
+$$
+
+where $N_d$ is the expected number of virions deposited in the respiratory tract of the exposed and $r$ is the probability that a single virion deposited in the respiratory tract of the exposed will survive and reach an organ where it may cause infection.
 
 ## References
 
@@ -981,5 +1069,14 @@ ISSN 0021-8502,
 https://doi.org/10.1016/j.jaerosci.2011.07.009.
 (https://www.sciencedirect.com/science/article/pii/S0021850211001200)
 
-
 * <a id='id8'>**[3]**</a> Henriques, Andre, et al. “Modelling airborne transmission of SARS-CoV-2 using CARA: risk assessment for enclosed spaces.” Interface Focus 12.2 (2022): 20210076. [doi.org/10.1098/rsfs.2021.0076](https://doi.org/10.1098/rsfs.2021.0076)
+
+* <a id='id9'>**[4]**</a> Watanabe, T. et al, 
+“Development of a dose-response model for SARS Coronavirus”
+Risk analysis,
+Volume 30, Issue 7,
+(2010), 
+1129-1138,
+[doi:10.1111/risk.2010.30.issue-7](http://dx.doi.org/10.1111/risk.2010.30.issue-7)
+
+* <a id='id10'>**[5]**</a> Haas, C. N., Rose, J. B., & Gerba, C. P. (2014). "Quantitative microbial risk assessment". John Wiley & Sons. [Google Scholar](https://onlinelibrary.wiley.com/action/getFTRLinkout?url=http%3A%2F%2Fscholar.google.com%2Fscholar_lookup%3Fhl%3Den%26publication_year%3D1999%26author%3DCN%2BHaas%26author%3DJB%2BRose%26author%3DCP%2BGerba%26title%3DQuantitative%2BMicrobial%2BRisk%2BAssessment&doi=10.1111%2Fj.1539-6924.2010.01427.x&linkType=gs&linkLocation=Reference&linkSource=FULL_TEXT)
