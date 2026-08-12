@@ -1108,6 +1108,39 @@ $$
 
 This expression is the basis of all the probabilities of infection computed by CAiMIRA. In particular, we estimate the individual infection probability by Monte Carlo integrating over $\mathrm{vD}_e^\mathrm{total}$ and $\mathrm{ID}_{50}$. 
 
+#### Transmission Probability
+The transmission probability is the probability that the number of new cases $I_{\mathrm{new}}$ is greated than zero, computed as 
+
+$$
+\begin{align*}
+P(I_{\mathrm{new}}>0)
+&=1-P(I_{\mathrm{new}}=0)\\
+&=1-\prod_{e=1}^{n_{ep}}(1-P(I_e))^{N_{exp,e}}
+\end{align*}
+$$
+
+where $n_{ep}$ is the number of exposed populations, $N_{exp,e}$ is the number of exposed in the $e$-th population of exposed and $P(I_e)$ is the individual infection probabillity of each exposed in the $e$-th population. 
+
+Currently, the transmission probability is not computed for deterministic exposure in CAiMIRA.
+
+### Probabilistic Exposure
+#### Individual Infection Probability
+The individual infection probability for probabilistic exposure is currently not implemented in CAiMIRA.
+#### Transmission Probability
+The transmission probability is computed by ... assuming all occupants share the same characteristics (physical activity, expirational activity, face mask, immunity, and presence), i.e. not for dynamic occupancy.
+
+## Other results
+### Expected New Cases
+The expected new cases resulting from the event is
+$$
+\begin{equation*}
+\sum_{e=1}^{n_{ep}} P(I_e) \cdot N_{exp,e}
+\end{equation*}
+$$
+where $n_{ep}$ is the number of exposed populations, $N_{exp,e}$ is the number of exposed in the $e$-th population of exposed and $P(I_e)$ is the individual infection probabillity of each exposed in the $e$-th population.
+
+### Reproduction Number
+
 
 ## References
 
