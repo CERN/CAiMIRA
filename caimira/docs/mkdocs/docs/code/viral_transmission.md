@@ -959,11 +959,12 @@ Similarly, we can compute the expecteded short-range dose component, viral conce
 
 
 ## Infection Probability
-The CAiMIRA model primarily computes the **Individual Probability**, i.e. the probability that a specific exposed person will be infected. From this probability we can also find the expected number of new cases. Future work will include the **transmission probability**, i.e. the probability that more than one person will be infected. 
+The CAiMIRA model primarily computes the **Individual Infection Probability**, i.e. the probability that a specific exposed person will be infected. From this probability we can also find the expected number of new cases. Future work will include the **transmission probability**, i.e. the probability that more than one person will be infected. 
 
 The probability of infection can be computed assuming deterministic exposure, where it is known exactly who of the occupants are infected, and probabilistic exposure, where we do not know who or how many are infected at the event, only the prevalence of the disease. It is more computationally intensive to compute the probabilistic exposure compared to deterministic exposure.
 
 ### Deterministic Exposure
+#### Individual Infection Probability
 Assume we know exactly which of the occupants are infected and which are exposed. Susceptible hosts (exposed) may have differet properties (physical activity, face mask, immunity, presence) affecting how large a dose they inhale and/or their probability of being infected. The exposed may be grouped into populations with similar properties, so they all have the same probability of infection.
 Let $n_{\mathrm{ep}}$ be the total number of exposed populations, let $k_{\mathrm{dep}}$ denote the number of virions deposited inside a member of the $e$-th population (corresponding to the dose $\mathrm{vD}^\mathrm{{total}}$), and let $I_e$ denote the individual infection probability of a member of the $e$-th population. For each exposed population we compute $\mathrm{vD}_e^\mathrm{{total}}$ as described in the above sections. 
 
@@ -1054,6 +1055,59 @@ P(I_e)=1-\exp{-N_d\cdot r}
 $$
 
 where $N_d$ is the expected number of virions deposited in the respiratory tract of the exposed and $r$ is the probability that a single virion deposited in the respiratory tract of the exposed will survive and reach an organ where it may cause infection.
+
+CAiMIRA does not assume to know $N_d$ and $r$ directly, but we indirectly determine the joint effect of $N_d$ and $r$ through four parameters 
+- $\mathrm{vD}_e^\mathrm{total}$: The viral dose deposited in the respiratory tract of a member of the $e$-th population of exposed, computed as described in the above sections.
+- $\mathrm{HI}_{\mathrm{exp},e}$: The host immunity of the exposed occupants.
+- $T_\mathrm{voc}$: The reported increase of transmissinility of a 'variant of concern' (VOC), given by the ratio of basic reproduction numbers between non-VOC strains and the VOC itself <sup>[3](#id8)</sup>.
+- $\mathrm{ID}_{50}$: The (deposited) viral dose causing $50\%$ of a population with no immunity to become infected by a non-VOC strain.
+
+Note that $\mathrm{vD}_e^\mathrm{total}$ and $\mathrm{HI}_{\mathrm{exp},e}$ depend on which exposed population we are considering. $T_\mathrm{voc}$ is constant throughout the scenario because the scenario is run assuming only one virus variant. $\mathrm{ID}_{50}$ is a random variable sampled from a uniform distribution with constant parameters determined by litterature values foud for the population at large, and not specifically for the occupants of the scenario. 
+
+Both $\mathrm{vD}_e^\mathrm{total}$ and $\mathrm{ID}_{50}$ are random variables. $\mathrm{vD}_e^\mathrm{total}$ is a random variable because it is a function over several random variables, as described in previous sections. Using the total probability rule, we have that
+
+$$
+\begin{equation*}
+P(I_e) = \int_0^\infty \int_0^\infty P(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50}) \cdot f_1(\mathrm{vD}_e^\mathrm{total}) \cdot f_2(\mathrm{ID}_{50}) \;\ \mathrm{d}\mathrm{vD}_e^\mathrm{total}\mathrm{d}f_2(\mathrm{ID}_{50})
+\end{equation*}
+$$
+
+where $f_1(\mathrm{vD}_e^\mathrm{total})$ and $f_2(\mathrm{ID}_{50})$ are the probability density functions of $\mathrm{vD}_e^\mathrm{total}$ and $\mathrm{ID}_{50}$, respectively. The integrals are approximated using Monte Carlo integration. 
+
+It remains to derive $P(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})$. Lets first consider a non-VOC strain and a population with no host immunity, so $T_\mathrm{voc}=1$ and $\mathrm{HI}_{\mathrm{exp},e}=0$. Clearly, the expected number of deposited virions $N_d$ must be linearly related to the viral dose deposited in the respiratory tract $\mathrm{vD}_e^\mathrm{total}$. Lets $R$ capture both the conversion factor between $N_d$ and $\mathrm{vD}_e^\mathrm{total}$ and the effect of $r$ so that $N_d\cdot r=R \cdot \mathrm{vD}_e^\mathrm{total}$. Thereby, the exponential dose-response model developed by Haas et al. <sup>[5](#id10)</sup> can be rephrased as 
+
+$$
+\begin{equation*}
+P(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})=1-\exp{-R \cdot \mathrm{vD}_e^\mathrm{total}}
+\end{equation*}
+$$
+
+We determine $R$ using the definition of $\mathrm{ID}_{50}$, informing us that 
+
+$$
+\begin{equation*}
+P(I_e|\mathrm{vD}_e^\mathrm{total}=\mathrm{ID}_{50},\mathrm{ID}_{50}) = 1-\exp{-R \cdot \mathrm{ID}_{50}} = 0.5 \quad \Leftrightarrow \quad R = \frac{\ln{2}}{\mathrm{ID}_{50}}
+\end{equation*}
+$$
+
+So for $T_\mathrm{voc}=1$ and $\mathrm{HI}_{\mathrm{exp},e}=0$
+
+$$
+\begin{equation*}
+P(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})=1-\exp{-\frac{\ln{2} \cdot \mathrm{vD}_e^\mathrm{total}}{\mathrm{ID}_{50}}}.
+\end{equation*}
+$$
+
+Next, we generalize for $T_\mathrm{voc} \in [0,1]$ and $\mathrm{HI}_{\mathrm{exp},e} \in [0,1]$. Observe that, by the parameter definitions, $T_\mathrm{voc}$ and $\mathrm{HI}_{\mathrm{exp},e}$ should be connected to $r$ and therefore accounted for inside the exponential. Clearly, the probability of infection should increase with $T_\mathrm{voc}$ (for more infectious strains) and decrease with $\mathrm{HI}_{\mathrm{exp},e}$ (stronger host immunity). Combining all these observations -- about the structure of the dose-response model and effect and ranges of $T_\mathrm{voc}$ and $\mathrm{HI}_{\mathrm{exp},e}$ -- we choose to define the individual infection probability conditioned on specific values of $\mathrm{vD}_e^\mathrm{total}$ and $\mathrm{ID}_{50}$ as
+
+$$
+\begin{equation*}
+P(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})=1-\exp{-\frac{\ln{2} \cdot \mathrm{vD}_e^\mathrm{total}}{\mathrm{ID}_{50}} \cdot T_\mathrm{voc} \cdot \frac{1}{1-\mathrm{HI}_{\mathrm{exp},e}}}.
+\end{equation*}
+$$
+
+This expression is the basis of all the probabilities of infection computed by CAiMIRA. In particular, we estimate the individual infection probability by Monte Carlo integrating over $\mathrm{vD}_e^\mathrm{total}$ and $\mathrm{ID}_{50}$. 
+
 
 ## References
 
