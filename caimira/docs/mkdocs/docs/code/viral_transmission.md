@@ -1108,6 +1108,18 @@ $$
 
 This expression is the basis of all the probabilities of infection computed by CAiMIRA. In particular, we estimate the individual infection probability by Monte Carlo integrating over $\mathrm{vD}_e^\mathrm{total}$ and $\mathrm{ID}_{50}$. 
 
+In CAiMIRA, the deterministic individual infection probability is computed by `models.ExposureModel.individual_infection_probability()`. Each `models.ExposureModel` instance is linked to a single exposed population. All members of the exposed population either have the same short-range interactions or no short-range interactions. Therefore, `models.ExposureModel.individual_infection_probability()` includes the option to include or exclude short-range interactions, resulting in two deterministic individual infection probability: one for the exposed with short-range interactions and one for the exposed without short-range interactions.
+
+We may choose compute the probability of infection over the entire presense interval $[t_0,t_m]$ of the exposed, or for a subset $[t_i,t_{i+1}]$ of their presence. For example, this could enlighten the effect of short-range interactions vs long-range exposure for viral transmission. `models.ExposureModel._individual_infection_probability_list()` compute the probability of being infected only from the dose ingested during $[t_i,t_{i+1}]$. Thereafter, in `models.ExposureModel.individual_infection_probability()`, the probability of infection from the dose ingested during the entire $[t_0,t_m]$ is computed as
+
+$$
+\begin{equation*}
+P(I_e)=1-\prod_{i=0}^{t_{m-1}} (1-P(I_{e,i}))
+\end{equation*}
+$$
+
+yielding the exact same result as we would have gotten by computing $P(I_e)$ directly using the total $\mathrm{vD}_e^\mathrm{total}$ accumulated over the entire presence of the exposed.
+
 #### Transmission Probability
 The transmission probability is the probability that the number of new cases $I_{\mathrm{new}}$ is greated than zero, computed as 
 
@@ -1121,13 +1133,59 @@ $$
 
 where $n_{ep}$ is the number of exposed populations, $N_{exp,e}$ is the number of exposed in the $e$-th population of exposed and $P(I_e)$ is the individual infection probabillity of each exposed in the $e$-th population. 
 
-Currently, the transmission probability is not computed for deterministic exposure in CAiMIRA.
+Currently, the transmission probability is not computed for deterministic exposure in CAiMIRA. Future work will implement the deterministic transmission probability as a method in `models.ExposureModelGroup` by combining results for all exposed populations computed by their respective `models.ExposureModel` instances.
 
 ### Probabilistic Exposure
 #### Individual Infection Probability
-The individual infection probability for probabilistic exposure is currently not implemented in CAiMIRA.
+For probabilistic exposure, we do not know who or how many of the occupants are infected. What we do know is the probability $p$ that a radom individual you meet is infected. $p$ is set by the user as, for example, the incidence rate of the region. We assume the probability to have $x$ infected persons at the event with $N_\mathrm{occ}$ people follows a binomial distribution, so
+
+$$
+\begin{equation*}
+P_b(x)=\binom{N_\mathrm{occ}}{x}p^x(1-p)^{N_\mathrm{occ}-x}
+\end{equation*}
+$$
+
+We define
+$$
+\begin{equation*}
+p=\frac{\mathrm{number\ of\ circulating\ cases\ in\ region} \cdot \mathrm{ascertainment\ bias}}{\mathrm{total\ population\ in\ region}}
+\end{equation*}
+$$
+
+and let the user set the number of circulating cases in the region, ascertainment bias and total population. The number of circulating cases is intended as new cases reported in the past 7 days, and is corrected by an ascertainment bias $\in [1,10]$. 
+
+Using the total probability rule, the probabilistic individual infection probability for members of the $e$-th group of exposed is given by
+We define
+$$
+\begin{equation*}
+P_{prob}(I_e)=\sum_{i=0}^{N_\mathrm{occ}} P(I_e|x=i) \cdot P_b(x=i)
+\end{equation*}
+$$
+
+where $N_\mathrm{occ}$ is the total number of occupants and $P(I_e|x=i)$ is the individual infection probability we compute knowing exactly how many people at the event are infected. If all occupants have the same characteristics (physical activity, expirational activity, face mask, immunity, and presence), so non-dynamic occupancy, this probability can be computed by CAiMIRA as described under *Deterministic Exposure: Individual Infection Probability* above. Because the probabilistic infection probability requires several deterministic ininfection probabilities to be computed, computing the probabilistic exposure can be computationally expensive. Note that $P_b(x)$ becomes smaller for larger $x$ because $p$ is usually small. If $N_\mathrm{occ}>10$ we reduce the computer power required by approximating
+
+$$
+\begin{equation*}
+P_{prob}(I_e)\approx \sum_{i=0}^{10} P(I_e|x=i) \cdot P_b(x=i).
+\end{equation*}
+$$
+
+However, the error of this approximation increases with increasing $N_\mathrm{occ}$, and also with increasing $p$.
+
+
+The probabilistic individual infection probability for probabilistic exposure is actually not outputed by CAiMIRA, but is used to compute the probabilistic transmission probability in `models.ExposureModel.total_probability_rule()`.
+
 #### Transmission Probability
-The transmission probability is computed by ... assuming all occupants share the same characteristics (physical activity, expirational activity, face mask, immunity, and presence), i.e. not for dynamic occupancy.
+When using probabilistic exposure, CAiMIRA computes the probabilistic transmission probability defined as
+$$
+\begin{align*}
+P_{prob}(I_{\mathrm{new}}>0)
+&=1-P_{prob}(I_{\mathrm{new}}=0)\\
+&=1-\prod_{e=1}^{n_{ep}=1}(1-P_{prob}(I_e))^{N_{exp,e}}
+\end{align*}
+$$
+where we had to set the number of exposed populations $n_{ep}$ to one because probabilistic exposure is not currently implemented for dynamic occupancy.
+The probabilistic transmission probability is computed in `models.ExposureModel.total_probability_rule()`. Future work implementing probabilistic exposure for dynamic occupancy will enable $n_{ep} > 1$, in which case the probabilistic transmission probability would have to be computed in `models.ExposureModelGroup` by combining results for all exposed populations computed by their respective `models.ExposureModel` instances.
 
 ## Other results
 ### Expected New Cases
