@@ -51,25 +51,10 @@ $$
 
 The CO<sub>2</sub> concentration is computed in much the same way as the viral concentration: We approximate the expected total concentration $C_{CO_2}(t)$ in `models.TotalCO2ConcentrationModel.concentration()`, separating the computations into $n_p$ `models.CO2ConcentrationModel` instances which each compute $C_{CO_2,n}(t)$ for the $n$-th population and then adding $C_{\mathrm{out}}$ at the end when summizing all the contributions. Similarly to `models.TotalViralConcentrationModel`, `models.TotalCO2ConcentrationModel` is a subclass of `models._TotalConcentrationModelBase`. Similarly to `models.ConcentrationModel` (computing the viral concentration for a single population), `models.CO2ConcentrationModel` is a subclass of `models._ConcentrationModelBase`. 
 
-The essentail difference between `models.CO2ConcentrationModel` and `models.ConcentrationModel` are the emission rate, implemented in the respective normalization factors, and the removal rate. When computing the concentration in `models._ConcentrationModelBase`, we first normalize by the emission rate per person. For the CO<sub>2</sub> concentration, the emission rate per person is $f_{CO_2} \cdot \sum_{n=1}^{n_p}\mathrm{BR}_{\mathrm{out},n}$. Note that 
-
-$$
-\begin{equation*}
-\frac{C_{CO_2,n}(t)}{f_{CO_2} \cdot \mathrm{BR}_{\mathrm{out},n}} = \frac{N_n}{V_r\lambda_{ACH}(t_i)}\cdot (1-\exp(-\lambda_{ACH}(t_i)\cdot(t-t_i)))
-+
-\left(
-\frac{C_{CO_2,n}(t_i)}{f_{CO_2} \cdot \mathrm{BR}_{\mathrm{out},n}}
--
-\frac{N_n}
-     {V_r\lambda_{ACH}}
-\right)
-\exp(-\lambda_{ACH}(t-t_i)).
-\end{equation*}
-$$ 
-
+The essentail difference between `models.CO2ConcentrationModel` and `models.ConcentrationModel` are the emission rate, implemented in the respective normalization factors, and the removal rate. When computing the concentration in `models._ConcentrationModelBase`, we first normalize by the emission rate per person. For the CO<sub>2</sub> concentration, the emission rate per person is $f_{CO_2} \cdot \sum_{n=1}^{n_p}\mathrm{BR}_{\mathrm{out},n}$. 
 Using induction, we can prove that $f_{CO_2} \cdot \mathrm{BR}_{\mathrm{out},n}$ always is a linear factor of $C_{CO_2,n}(t)$ as long as $C_{CO_2,n}(t_0)=0$, and so we use `models._ConcentrationModelBase._normed_concentration()` to compute the normalized CO<sub>2</sub> concentration $\frac{{CO_2,n}(t)}{f_{CO_2} \cdot \mathrm{BR}_{\mathrm{out},n}}$. We then specify `models.CO2ConcentrationModel.normalization_factor()` as $f_{CO_2} \cdot \mathrm{BR}_{\mathrm{out},n}$. 
 
-Now, the expected CO<sub>2</sub> concentration increase $C_{CO_2,n}(t)$ is computed by Monte Carlo sampling $\mathrm{BR}_{\mathrm{out},n}$. The total expected CO<sub>2</sub> concentration is then
+The expected CO<sub>2</sub> concentration increase $C_{CO_2,n}(t)$ is computed by Monte Carlo sampling $\mathrm{BR}_{\mathrm{out},n}$. The total expected CO<sub>2</sub> concentration is then
 
 $$
 \begin{align*}
