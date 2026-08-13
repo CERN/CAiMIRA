@@ -1851,7 +1851,7 @@ class ExposureModel:
         the exposed have is included.
         If short_range = False, the we only consider long-range dose exposure.
         """
-        return np.sum(self._deposited_exposure_list(short_range), axis=0) * self.repeats
+        return np.sum(self._deposited_exposure_list(short_range), axis=0) * self.repeats # type: ignore
     
     def _individual_infection_probability_list(self, short_range: bool = True) -> list[_VectorisedFloat]:
         """
