@@ -1819,25 +1819,59 @@ class ExposureModel:
 
         return deposited_exposure
 
-    def _deposited_exposure_list(self):
+    def _deposited_exposure_list(self, short_range: bool = True) ->list[_VectorisedFloat]:
         """
-        The number of virus per m^3 deposited on the respiratory tract.
+        The number of virus per m^3 deposited on the respiratory tract of a specific 
+        member of the considered exposed population.
+
+        Each _VectorisedFloat in the list is the dose deposited within two
+        subsequent times in population_state_change_times.
+
+        If short_range = True, the dose exposure from all short-range interactions 
+        the exposed have is included.
+        If short_range = False, the we only consider long-range dose exposure.
         """
         population_change_times = self.population_state_change_times()
         deposited_exposure = []
-        for start, stop in zip(population_change_times[:-1], population_change_times[1:]):
-            deposited_exposure.append(self.deposited_exposure_between_bounds(start, stop))
-        return deposited_exposure
+        if short_range:
+            for start, stop in zip(population_change_times[:-1], population_change_times[1:]):
+                deposited_exposure.append(self.deposited_exposure_between_bounds(start, stop))
+            return deposited_exposure
+        else:
+            for start, stop in zip(population_change_times[:-1], population_change_times[1:]):
+                deposited_exposure.append(self.long_range_deposited_exposure_between_bounds(start, stop))
+            return deposited_exposure
 
-    def deposited_exposure(self) -> _VectorisedFloat:
+    def deposited_exposure(self, short_range: bool = True) -> _VectorisedFloat:
         """
-        The number of virus per m^3 deposited on the respiratory tract.
+        The number of virus per m^3 deposited on the respiratory tract of a specific 
+        member of the considered exposed population, accumulated over the entire 
+        presense of the exposed.
+        If short_range = True, the dose exposure from all short-range interactions 
+        the exposed have is included.
+        If short_range = False, the we only consider long-range dose exposure.
         """
-        return np.sum(self._deposited_exposure_list(), axis=0) * self.repeats
+        return np.sum(self._deposited_exposure_list(short_range), axis=0) * self.repeats
+    
+    def _individual_infection_probability_list(self, short_range: bool = True) -> list[_VectorisedFloat]:
+        """
+        Each _VectorisedFloat element in the list is the probability a specific member of the 
+        considered exposed population would have had of being infected if they only had 
+        been exposed to the dose deposited within two subsequent times in population_state_change_times.
 
-    def _individual_infection_probability_list(self):
+        Each probability is a _VectorisedFloat as it is not yet averaged over the Monte Carlo samples.
+        One should average each _VectorisedFloat to obtain the expected probability of infection 
+        resulting from the dose deposited between to the two subsequent times in population_state_change_times.
+
+        If short_range = True, the probability is computed including dose exposure 
+        from any short-range interactions the exposed might have.
+        If short_range = False, the probability is computing only considering 
+        long-range dose exposure.
+        Note that if no short-range interactions are defined for the exposed, the 
+        value of short_range will yield the same result.
+        """
         # Viral dose (vD)
-        vD_list = self._deposited_exposure_list()
+        vD_list = self._deposited_exposure_list(short_range)
 
         # oneoverln2 multiplied by ID_50 corresponds to ID_63.
         infectious_dose = oneoverln2 * self.virus.infectious_dose
@@ -1847,8 +1881,18 @@ class ExposureModel:
                 self.virus.transmissibility_factor)))) for vD in vD_list]
 
     @method_cache
-    def individual_infection_probability(self) -> _VectorisedFloat:
-        return (1 - np.prod([1 - prob for prob in self._individual_infection_probability_list()], axis = 0)) * 100
+    def individual_infection_probability(self, short_range: bool = True) -> _VectorisedFloat:
+        """
+        The probability that a specific member of the considered exposed population 
+        will be infected.
+        If short_range = True, the probability is computed including dose exposure 
+        from any short-range interactions the exposed might have.
+        If short_range = False, the probability is computing only considering 
+        long-range dose exposure.
+        Note that if no short-range interactions are defined for the exposed, the 
+        value of short_range will yield the same result.
+        """
+        return (1 - np.prod([1 - prob for prob in self._individual_infection_probability_list(short_range)], axis = 0)) * 100
 
     def total_probability_rule(self) -> _VectorisedFloat:
         if len(self.concentration_model) > 1:
@@ -1884,16 +1928,14 @@ class ExposureModel:
     def expected_new_cases(self) -> _VectorisedFloat:
         """
         The expected_new_cases may provide one or two different outputs:
-            1) Long-range exposure: take the individual_infection_probability and multiply by the occupants exposed to long-range. 
+            1) Long-range exposure: take the individual_infection_probability and multiply by the occupants exposed only to long-range concentrations. 
             2) Short- and long-range exposure: take the individual_infection_probability of long-range multiplied by the occupants exposed to long-range only, 
-               plus the individual_infection_probability of short- and long-range multiplied by the occupants exposed to short-range only.
+               and add the individual_infection_probability of short- and long-range multiplied by the occupants who are also exposed to short-range.
         """
         number = self.exposed.number
-        if self.short_range != ():
-            new_cases_long_range = nested_replace(self, {'short_range': [],}).individual_infection_probability() * (number - self.exposed_to_short_range) # type: ignore
-            return (new_cases_long_range + (self.individual_infection_probability() * self.exposed_to_short_range)) / 100
-
-        return self.individual_infection_probability() * number / 100
+        new_cases_long_range = (self.individual_infection_probability(short_range=False) / 100) * (number - self.exposed_to_short_range) # type: ignore
+        new_cases_short_range = (self.individual_infection_probability(short_range=True) / 100) * self.exposed_to_short_range
+        return (new_cases_long_range + new_cases_short_range) 
 
     def reproduction_number(self) -> _VectorisedFloat:
         """
