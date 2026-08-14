@@ -1833,11 +1833,11 @@ class ExposureModel:
         if short_range:
             for start, stop in zip(population_change_times[:-1], population_change_times[1:]):
                 deposited_exposure.append(self.deposited_exposure_between_bounds(start, stop))
-            return np.sum(deposited_exposure, axis=0) * self.repeats
+            return np.sum(deposited_exposure, axis=0) * self.repeats # type: ignore
         else:
             for start, stop in zip(population_change_times[:-1], population_change_times[1:]):
                 deposited_exposure.append(self.long_range_deposited_exposure_between_bounds(start, stop))
-            return np.sum(deposited_exposure, axis=0) * self.repeats
+            return np.sum(deposited_exposure, axis=0) * self.repeats # type: ignore
 
     @method_cache
     def individual_infection_probability(self, short_range: bool = True) -> _VectorisedFloat:
