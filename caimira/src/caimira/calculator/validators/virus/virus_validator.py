@@ -253,10 +253,9 @@ class VirusFormData(FormData):
 
     def build_model(self, sample_size=None) -> models.ExposureModelGroup:
         sample_size = sample_size or self.data_registry.monte_carlo['sample_size']
-        
         room: models.Room = self.initialize_room()
         ventilation: models._VentilationBase = self.ventilation()
-        infected_population: models.InfectedPopulation = self.infected_population().build_model(sample_size)
+        infected_population: models.InfectedPopulation = self.infected_population()
 
         short_range = defaultdict(list)
         if self.short_range_option == "short_range_yes":
@@ -323,7 +322,7 @@ class VirusFormData(FormData):
             return mc.ExposureModelGroup(
                 data_registry=self.data_registry,
                 exposure_models=tuple(exposure_model_set)
-            ).build_model(sample_size)
+                ).build_model(sample_size)
 
     def build_CO2_model(self, sample_size=None) -> models.CO2ConcentrationModel:
         """
