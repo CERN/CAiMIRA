@@ -959,87 +959,137 @@ Similarly, we can compute the expecteded short-range dose component, viral conce
 
 
 ## Infection Probability
-The CAiMIRA model primarily computes the **Individual Infection Probability**, i.e. the probability that a specific exposed person will be infected. From this probability we can also find the expected number of new cases. Future work will include the **transmission probability**, i.e. the probability that more than one person will be infected. 
+The CAiMIRA model computes the **Individual Infection Probability**, i.e. the probability that a specific exposed person will be infected, in `models.ExposureModel.individual_infection_probability()`.
+Summizing the individual infection probability of each exposed, we compute the expected number of new cases in `models.ExposureModel.expected_new_cases()`.
+Up until CAiMIRA version 4.19.0, we only computed the individual infection probability when assuming deterministic exposure, i.e. knowing exactly who is exposed and who is infected.
 
-The probability of infection can be computed assuming deterministic exposure, where it is known exactly who of the occupants are infected, and probabilistic exposure, where we do not know who or how many are infected at the event, only the prevalence of the disease. It is more computationally intensive to compute the probabilistic exposure compared to deterministic exposure.
+Up until version 4.19.0, CAiMIRA also includes the option of assuming probabilistic, rather than deterministic, exposure. 
+Probabilistic exposure does not require the user to know who is infected. 
+Rather, the user defines the probability of occupants being infected, for example as the incidence rate of the region.
+When assuming probabilistic exposure, CAiMIRA version 4.19 and earlier does not compute the individual infection probability.
+Instead, the **Transmission Probability**, defined as the probability that *at least* than one person will be infected, is computed in `models.ExposureModel.total_probability_rule()`.
+
+Future work will allow the computation of both the **Individual Infection Probability** and the **Transmission Probability** using both deterministic and probabilistic exposure. 
+The table below displays the notation of the four infection probabilities we might compute where $I_e$ denotes the event of a specific occupant of the $e$-th population of exposed becoming infected, $I_\mathrm{new}$ is the total number of new infections and $\mathbf{X}$ contain all information of which occupants are infected and exposed at the start of the event.
+|                                  | Deterministic Exposure                               | Probabilistic Exposure              |
+|----------------------------------|-----------------------------------------------------:|------------------------------------:|
+| Individual Infection Probability | $P_e(I_e \mid \mathbf{X})$                           | $P_e(I_e)$                            |
+| Transmission Probability         | $P_\mathrm{tr}(I_\mathrm{new} > 0 \mid \mathbf{X})$  | $P_\mathrm{tr}(I_\mathrm{new} > 0)$ |
+
+As shown in the following sections, we compute the transmission probability from the individual infection probability.
+Using the total probability rule, we will also relate the probabilistic and deterministic exposure so that $P(I_e)$ and $P_\mathrm{tr}(I_\mathrm{new} > 0)$ can be computed from $P(I_e \mid \mathbf{X})$ and $P_\mathrm{tr}(I_\mathrm{new} > 0 \mid \mathbf{X})$, respectively, setting different configurations of $\mathbf{X}$.
+Clearly, it is more computationally intensive to compute the probabilistic exposure than the deterministic exposure.
 
 ### Deterministic Exposure
+Mathematically speaking, assuming deterministic exposure means we know the value of $\mathbf{X}$ describing exactly who is infected and who is exposed at the start of the event. 
+To simplify the computations, we set
+$$
+\begin{equation*}
+P_e^*(I_e)=P(I_e \mid \mathbf{X})
+\end{equation*}
+$$
+and
+$$
+\begin{equation*}
+P_\mathrm{tr}^*(I_\mathrm{new} > 0)=P_\mathrm{tr}(I_\mathrm{new} > 0 \mid \mathbf{X})
+\end{equation*}
+$$
+
 #### Individual Infection Probability
-Assume we know exactly which of the occupants are infected and which are exposed. Susceptible hosts (exposed) may have differet properties (physical activity, face mask, immunity, presence) affecting how large a dose they inhale and/or their probability of being infected. The exposed may be grouped into populations with similar properties, so they all have the same probability of infection.
-Let $n_{\mathrm{ep}}$ be the total number of exposed populations, let $k_{\mathrm{dep}}$ denote the number of virions deposited inside a member of the $e$-th population (corresponding to the dose $\mathrm{vD}^\mathrm{{total}}$), and let $I_e$ denote the individual infection probability of a member of the $e$-th population. For each exposed population we compute $\mathrm{vD}_e^\mathrm{{total}}$ as described in the above sections. 
+Susceptible hosts are grouped into *exposed populations* where every member have identical properties (physical activity, face mask, immunity, short-range interactions, presence). 
+Thus, every single *exposed* in an exposed population are exposed to the same dose and have the same individual infection probability. 
+Across different populations, however, the exposed may have different properties, ingest different viral doses and have different individual infection probabilities. 
+In the following, we therefore let the $e$ subscript denote the variable taking a specific value for the $e$-th exposed population. 
+For example, $P_e^*(I_e)$ is the individual infection probability and $\mathrm{vD}_e^\mathrm{{total}}$ is the viral dose deposited in the respiratory tract of every member of the $e$-th exposed population
 
 The individual probability of infection in CAiMIRA is derived from the exponential dose-response model of Watanabe et al. <sup>[4](#id9)</sup> and Haas et al. <sup>[5](#id10)</sup>. 
 
 <details>
 <summary>Derivation of the Exponential Dose-Response Model of Haas et al. </summary>
 
-Let $I_e$ denote the event that the considered individual, belonging to the $e$-th exposed population, becomes infected. Assume that $k_\mathrm{min}$ is the minimum number of virions required to trigger infection, and let $k_e$ denote the number of deposited virions that survive to infect. Thereby, the exposed becomes infected if $k_e \geq k_\mathrm{min}$. That is,
+Let $I_e$ denote the event that the considered individual, belonging to the $e$-th exposed population, becomes infected. 
+Assume that $k_{\mathrm{min}}$ is the minimum number of virions required to trigger infection, and let $k_e$ denote the number of deposited virions that survive to infect the host. 
+The exposed becomes infected if $k_e \geq k_{\mathrm{min}}$. That is,
 
 $$
-P(I_e|k_e)
+P_e^*(I_e|k_e)
 \begin{cases} 
 1
-\quad \mathrm{if} \quad k_e \geq k_\mathrm{min},\\
+\quad \mathrm{if} \quad k_e \geq k_{\mathrm{min}},\\
 0
 \quad \mathrm{else}.
 \end{cases}
 $$
 
+Note that $k_e$ is *not* the number of attacking virions. 
+Even $k_{\mathrm{min}} = 1$, a single virion attacking may not trigger infection due to immune responses, for example.
+The correct interpretation of $k_e$ is the number of virions that are sucsessfull in their attack and contribute to infection. 
+Hence, if $k_e \geq k_{\mathrm{min}}$ infection will per definition occur, explaining the deterministic relation between $I_e$ and $k_e$ above.
+If $k_{\mathrm{min}} > 1$, it means infection will only be triggered by the joint succsessful attacks of multiple virions. 
+
+
 Using the total probability rule, the individual infection probability for a member of the $e$-th population of exposed is
 
 $$
 \begin{equation*}
-P(I_e)=\sum_{k_e=1}^\infty P(I_e|k_e) \cdot P_0(k_e) = \sum_{k_e=k_\mathrm{min}}^\infty P_0(k_e).
+P_e^*(I_e)=\sum_{k_e=1}^\infty P_e^*(I_e|k_e) \cdot P_{k_e}(k_e) = \sum_{k_e=k_{\mathrm{min}}}^\infty P_{k_e}(k_e).
 \end{equation*}
 $$
 
-We need to connect $k_e$ -- the number of virions contributing to infection -- to the viral dose deposited in the respiratory tract of the exposed, i.e. the dose exposure $\mathrm{vD}^\mathrm{{total}}$ derived in the above sections. To simplify the derivation, define $d_e$ as the total number of virions deposited in the respiratory tract of the exposed. $d_e$ is directly related to $\mathrm{vD}^\mathrm{{total}}$ -- the two quantities only differ in unit. By definition, $k_e$ is the number of the $d_e$ virions that survive to trigger infection, so $d_e \geq k_e$ and $d_e - k_e$ would be the number of virions that are deposited in the exposed but do not survive to trigger infection, for example due to immune responses.
+We need to connect $k_e$ -- the number of virions contributing to infection -- to the viral dose $\mathrm{vD}_e^\mathrm{{total}}$ deposited in the respiratory tract of the exposed derived in the above sections. 
+First, define $d_e$ as the total number of virions deposited in the respiratory tract of the exposed. 
+$d_e$ is directly related to $\mathrm{vD}_e^\mathrm{{total}}$ -- the two quantities only differ in unit. 
+By definition, $k_e$ is the number of the $d_e$ virions that survive to trigger infection, so $d_e \geq k_e$. $d_e - k_e$ would be the number of virions that are deposited in the exposed but do not survive to trigger infection, for example due to immune responses.
 Using the total probability rule again,
 
 $$
 \begin{equation*}
-P_0(k_e)=\int_{k_e}^\infty P_1(d_e) \cdot P_2(k_e|d_e) \mathrm{d}d_e
+P_{k}(k_e)=\int_{k_e}^\infty P_{k|d}(k_e|d_e) \cdot P_{d}(d_e) \mathrm{d}d_e
 \end{equation*}
 $$
 
-Following the derivation of Haas et al. <sup>[5](#id10)</sup>, we estimate $P_1(d_e)$ assuming the virions in a droplet/sample are randomly distributed. Then, the Poisson distribution govern the probability of $d_e$ virions being deposited so
+Following the derivation of Haas et al. <sup>[5](#id10)</sup>, we estimate $P_{k|d}(k_e|d_e)$ assuming that the survival of a single virion to a target organ is independent of the presence of other virions. 
+Let $r$ be the probability of a single virion surviving to infect. 
+Then, from the binomial theorem,
 
 $$
 \begin{equation*}
-P_1(d_e) = \frac{(N_d)^{d_e} \cdot \exp(-N_d)}{(d_e)!}
+P_{k|d}(k_e|d_e) = \frac{(d_e)!(r)^{k_e}(1-r)^{d_e-k_e}}{(d_e-k_e)!(k_e)!}.
 \end{equation*}
 $$
 
-where $N_d$ is the average number of virions in a dose.
-To estimate $P_2(k_e|d_e)$, we assume that the survival of a single virion to a target organ is independent of the presence of other virions. Let $r$ be the probability of a single virion surviving to infect. Then, from the binomial theorem,
+To estimate $P_{d}(d_e)$ we assume that the virions in a droplet/sample are randomly distributed. 
+Then, the Poisson distribution govern the probability of $d_e$ virions being deposited so
 
 $$
 \begin{equation*}
-P_2(k_e|d_e) = \frac{(d_e)!(r)^{k_e}(1-r)^{d_e-k_e}}{(d_e-k_e)!(k_e)!}.
+P_{d}(d_e) = \frac{(N_e)^{d_e} \cdot \exp(-N_e)}{(d_e)!}
 \end{equation*}
 $$
 
+where $N_e$ is the average number of virions in a dose deposited in the respiratory tract of the $e$-th population.
 Combining the last four equations, the probability that a specific member of the $e$-th populaiton of exposed becomes infected is 
 
 $$
 \begin{align*}
-P(I_e)
-&=\sum_{k_e=k_\mathrm{min}}^\infty \int_{k_e}^\infty P_1(d_e) \cdot P_2(k_e|d_e) \mathrm{d}d_e\\
-&=\sum_{k_e=k_\mathrm{min}}^\infty \int_{k_e}^\infty \frac{(N_d)^{d_e} \cdot \exp(-N_d)}{(d_e)!} \cdot \frac{(d_e)!(r)^{k_e}(1-r)^{d_e-k_e}}{(d_e-k_e)!(k_e)!} \mathrm{d}d_e\\
-&=\sum_{k_e=k_\mathrm{min}}^\infty \frac{(N_d\cdot r)^{k_e} \cdot \exp{-N_d\cdot r}}{(k_e)!} \int_{k_e}^\infty \frac{[N_d \cdot (1-r)]^{d_e-k_e} \dot \exp{-N_d\cdot (1-r)}}{(d_e-k_e)!} \mathrm{d}d_e\\
-&=\sum_{k_e=k_\mathrm{min}}^\infty \frac{(N_d\cdot r)^{k_e}}{(k_e)!} \cdot \exp{-N_d\cdot r}
+P_e^*(I_e)
+&=\sum_{k_e=k_{\mathrm{min}}}^\infty \int_{k_e}^\infty P_{k|d}(k_e|d_e) \cdot P_{d}(d_e) \mathrm{d}d_e\\
+&=\sum_{k_e=k_{\mathrm{min}}}^\infty \int_{k_e}^\infty \frac{(d_e)!(r)^{k_e}(1-r)^{d_e-k_e}}{(d_e-k_e)!(k_e)!} \cdot \frac{(N_e)^{d_e} \cdot \exp(-N_e)}{(d_e)!} \mathrm{d}d_e\\
+&=\sum_{k_e=k_{\mathrm{min}}}^\infty \frac{(N_e\cdot r)^{k_e} \cdot \exp{-N_e\cdot r}}{(k_e)!} \int_{k_e}^\infty \frac{[N_e \cdot (1-r)]^{d_e-k_e} \dot \exp{-N_e\cdot (1-r)}}{(d_e-k_e)!} \mathrm{d}d_e\\
+&=\sum_{k_e=k_{\mathrm{min}}}^\infty \frac{(N_e\cdot r)^{k_e}}{(k_e)!} \cdot \exp{-N_e\cdot r}
 \end{align*}
 $$
 
-where the final equality follows from the second summation being identical to unity, because it is a Poisson distribution with variable $d_e-k_e$ and parameter $N_d \cdot (1-r)N_d \cdot (1-r)$ summized over its entire support. 
+where the final equality follows from the second summation being identical to unity, because it is a Poisson distribution (with variable $d_e-k_e$ and parameter $N_e \cdot (1-r)$) summized over its entire support. 
 
-Assuming a single virion could be enough to infect, $k_\mathrm{min}=1$. By the definition of the exponential function we thereby have  
+Assuming a single virion could be enough to infect, $k_{\mathrm{min}}=1$. 
+By the definition of the exponential function we thereby have  
 $$
 \begin{align*}
-P(I_e)
-&=\sum_{k_e=1}^\infty \frac{(N_d\cdot r)^{k_e}}{(k_e)!} \cdot \exp{-N_d\cdot r}\\
-&=\Big[\sum_{k_e=0}^\infty \frac{(N_d\cdot r)^{k_e}}{(k_e)!} \cdot \exp{-N_d\cdot r}\Big]-\frac{(N_d\cdot r)^{0}}{(0)!} \cdot \exp{-N_d\cdot r}\\
-&=1-\exp{-N_d\cdot r}
+P_e^*(I_e)
+&=\sum_{k_e=1}^\infty \frac{(N_e\cdot r)^{k_e}}{(k_e)!} \cdot \exp{-N_e\cdot r}\\
+&=\Big[\sum_{k_e=0}^\infty \frac{(N_e\cdot r)^{k_e}}{(k_e)!} \cdot \exp{-N_e\cdot r}\Big]-\frac{(N_e\cdot r)^{0}}{(0)!} \cdot \exp{-N_e\cdot r}\\
+&=1-\exp{-N_e\cdot r}
 \end{align*}
 $$
 if we set $0!=1$. 
@@ -1050,35 +1100,44 @@ In summary, the probability of event $I_e$, denoting the event that a specific i
 
 $$
 \begin{equation*}
-P(I_e)=1-\exp{-N_d\cdot r}
+P_e^*(I_e)=1-\exp{-N_e\cdot r}
 \end{equation*}
 $$
 
-where $N_d$ is the expected number of virions deposited in the respiratory tract of the exposed and $r$ is the probability that a single virion deposited in the respiratory tract of the exposed will survive and reach an organ where it may cause infection.
+where $N_e$ is the expected number of virions deposited in the respiratory tract of the exposed and $r$ is the probability that a single virion deposited in the respiratory tract of the exposed will survive and reach an organ where it may cause infection.
 
-CAiMIRA does not assume to know $N_d$ and $r$ directly, but we indirectly determine the joint effect of $N_d$ and $r$ through four parameters 
+CAiMIRA does not assume to know $N_e$ and $r$ directly, but we indirectly determine the joint effect of $N_e$ and $r$ through four parameters 
 - $\mathrm{vD}_e^\mathrm{total}$: The viral dose deposited in the respiratory tract of a member of the $e$-th population of exposed, computed as described in the above sections.
 - $\mathrm{HI}_{\mathrm{exp},e}$: The host immunity of the exposed occupants.
 - $T_\mathrm{voc}$: The reported increase of transmissinility of a 'variant of concern' (VOC), given by the ratio of basic reproduction numbers between non-VOC strains and the VOC itself <sup>[3](#id8)</sup>.
-- $\mathrm{ID}_{50}$: The (deposited) viral dose causing $50\%$ of a population with no immunity to become infected by a non-VOC strain.
+- $\mathrm{ID}_{50}$: The (deposited) viral dose of a a non-VOC strain causing $50\%$ of a population with no immunity to become infected.
 
-Note that $\mathrm{vD}_e^\mathrm{total}$ and $\mathrm{HI}_{\mathrm{exp},e}$ depend on which exposed population we are considering. $T_\mathrm{voc}$ is constant throughout the scenario because the scenario is run assuming only one virus variant. $\mathrm{ID}_{50}$ is a random variable sampled from a uniform distribution with constant parameters determined by litterature values foud for the population at large, and not specifically for the occupants of the scenario. 
+Note that $\mathrm{vD}_e^\mathrm{total}$ and $\mathrm{HI}_{\mathrm{exp},e}$ depend on which exposed population we are considering. 
+$T_\mathrm{voc}$ is the same across all populations because the scenario is run assuming one virus variant. 
+$\mathrm{ID}_{50}$ is a random variable sampled from a uniform distribution with constant parameters determined by litterature values foud for the population at large, and not individually for each population. 
 
-Both $\mathrm{vD}_e^\mathrm{total}$ and $\mathrm{ID}_{50}$ are random variables. $\mathrm{vD}_e^\mathrm{total}$ is a random variable because it is a function over several random variables, as described in previous sections. Using the total probability rule, we have that
+Both $\mathrm{vD}_e^\mathrm{total}$ and $\mathrm{ID}_{50}$ are random variables. 
+$\mathrm{vD}_e^\mathrm{total}$ is a random variable because it is a function over several random variables, as described in previous sections. 
+Using the total probability rule, we have that
 
 $$
 \begin{equation*}
-P(I_e) = \int_0^\infty \int_0^\infty P(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50}) \cdot f_1(\mathrm{vD}_e^\mathrm{total}) \cdot f_2(\mathrm{ID}_{50}) \;\ \mathrm{d}\mathrm{vD}_e^\mathrm{total}\mathrm{d}f_2(\mathrm{ID}_{50})
+P_e^*(I_e) = \int_0^\infty \int_0^\infty P_{e'}^*(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50}) \cdot f(\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50}) \;\ \mathrm{d}\mathrm{vD}_e^\mathrm{total}\mathrm{d}\mathrm{ID}_{50}
 \end{equation*}
 $$
 
-where $f_1(\mathrm{vD}_e^\mathrm{total})$ and $f_2(\mathrm{ID}_{50})$ are the probability density functions of $\mathrm{vD}_e^\mathrm{total}$ and $\mathrm{ID}_{50}$, respectively. The integrals are approximated using Monte Carlo integration. 
+where $f(\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})$ is the joiny probability density of $\mathrm{vD}_e^\mathrm{total}$ and $\mathrm{ID}_{50}$, respectively. 
+The integrals are approximated using Monte Carlo integration. 
 
-It remains to derive $P(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})$. Lets first consider a non-VOC strain and a population with no host immunity, so $T_\mathrm{voc}=1$ and $\mathrm{HI}_{\mathrm{exp},e}=0$. Clearly, the expected number of deposited virions $N_d$ must be linearly related to the viral dose deposited in the respiratory tract $\mathrm{vD}_e^\mathrm{total}$. Lets $R$ capture both the conversion factor between $N_d$ and $\mathrm{vD}_e^\mathrm{total}$ and the effect of $r$ so that $N_d\cdot r=R \cdot \mathrm{vD}_e^\mathrm{total}$. Thereby, the exponential dose-response model developed by Haas et al. <sup>[5](#id10)</sup> can be rephrased as 
+It remains to derive $P_{e'}^*(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})$. 
+Lets first consider a non-VOC strain and a population with no host immunity, so $T_\mathrm{voc}=1$ and $\mathrm{HI}_{\mathrm{exp},e}=0$. 
+Clearly, the expected number of deposited virions $N_e$ must be linearly related to the viral dose deposited in the respiratory tract $\mathrm{vD}_e^\mathrm{total}$. 
+Let $R$ capture both the conversion factor between $N_e$ and $\mathrm{vD}_e^\mathrm{total}$ and the effect of $r$ so that $N_e\cdot r=R \cdot \mathrm{vD}_e^\mathrm{total}$. 
+Thereby, the exponential dose-response model developed by Haas et al. <sup>[5](#id10)</sup> can be rephrased as 
 
 $$
 \begin{equation*}
-P(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})=1-\exp{-R \cdot \mathrm{vD}_e^\mathrm{total}}
+P_{e'}(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})=1-\exp{-R \cdot \mathrm{vD}_e^\mathrm{total}}
 \end{equation*}
 $$
 
@@ -1086,7 +1145,7 @@ We determine $R$ using the definition of $\mathrm{ID}_{50}$, informing us that
 
 $$
 \begin{equation*}
-P(I_e|\mathrm{vD}_e^\mathrm{total}=\mathrm{ID}_{50},\mathrm{ID}_{50}) = 1-\exp{-R \cdot \mathrm{ID}_{50}} = 0.5 \quad \Leftrightarrow \quad R = \frac{\ln{2}}{\mathrm{ID}_{50}}
+P_{e'}(I_e|\mathrm{vD}_e^\mathrm{total}=\mathrm{ID}_{50},\mathrm{ID}_{50}) = 1-\exp{-R \cdot \mathrm{ID}_{50}} = 0.5 \quad \Leftrightarrow \quad R = \frac{\ln{2}}{\mathrm{ID}_{50}}
 \end{equation*}
 $$
 
@@ -1094,84 +1153,101 @@ So for $T_\mathrm{voc}=1$ and $\mathrm{HI}_{\mathrm{exp},e}=0$
 
 $$
 \begin{equation*}
-P(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})=1-\exp{-\frac{\ln{2} \cdot \mathrm{vD}_e^\mathrm{total}}{\mathrm{ID}_{50}}}.
+P_{e'}(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})=1-\exp{-\frac{\ln{2} \cdot \mathrm{vD}_e^\mathrm{total}}{\mathrm{ID}_{50}}}.
 \end{equation*}
 $$
 
-Next, we generalize for $T_\mathrm{voc} \in [0,1]$ and $\mathrm{HI}_{\mathrm{exp},e} \in [0,1]$. Observe that, by the parameter definitions, $T_\mathrm{voc}$ and $\mathrm{HI}_{\mathrm{exp},e}$ should be connected to $r$ and therefore accounted for inside the exponential. Clearly, the probability of infection should increase with $T_\mathrm{voc}$ (for more infectious strains) and decrease with $\mathrm{HI}_{\mathrm{exp},e}$ (stronger host immunity). Combining all these observations -- about the structure of the dose-response model and effect and ranges of $T_\mathrm{voc}$ and $\mathrm{HI}_{\mathrm{exp},e}$ -- we choose to define the individual infection probability conditioned on specific values of $\mathrm{vD}_e^\mathrm{total}$ and $\mathrm{ID}_{50}$ as
+Next, we generalize for $T_\mathrm{voc} \in [0,1]$ and $\mathrm{HI}_{\mathrm{exp},e} \in [0,1]$. 
+Observe that, by the parameter definitions, $T_\mathrm{voc}$ and $\mathrm{HI}_{\mathrm{exp},e}$ should be connected to $r$ and therefore accounted for inside the exponential. 
+Clearly, the probability of infection should increase with $T_\mathrm{voc}$ (for more infectious strains) and decrease with $\mathrm{HI}_{\mathrm{exp},e}$ (stronger host immunity). 
+Combining all these observations -- about the structure of the dose-response model and effect and ranges of $T_\mathrm{voc}$ and $\mathrm{HI}_{\mathrm{exp},e}$ -- we choose to define the individual infection probability conditioned on specific values of $\mathrm{vD}_e^\mathrm{total}$ and $\mathrm{ID}_{50}$ as
 
 $$
 \begin{equation*}
-P(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})=1-\exp{-\frac{\ln{2} \cdot \mathrm{vD}_e^\mathrm{total}}{\mathrm{ID}_{50}} \cdot T_\mathrm{voc} \cdot \frac{1}{1-\mathrm{HI}_{\mathrm{exp},e}}}.
+P_{e'}(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})=1-\exp{-\frac{\ln{2} \cdot \mathrm{vD}_e^\mathrm{total}}{\mathrm{ID}_{50}} \cdot T_\mathrm{voc} \cdot \frac{1}{1-\mathrm{HI}_{\mathrm{exp},e}}}.
 \end{equation*}
 $$
 
-This expression is the basis of all the probabilities of infection computed by CAiMIRA. In particular, we estimate the individual infection probability by Monte Carlo integrating over $\mathrm{vD}_e^\mathrm{total}$ and $\mathrm{ID}_{50}$. 
-
-In CAiMIRA, the deterministic individual infection probability is computed by `models.ExposureModel.individual_infection_probability()`. Each `models.ExposureModel` instance is linked to a single exposed population. All members of the exposed population either have the same short-range interactions or no short-range interactions. Therefore, `models.ExposureModel.individual_infection_probability()` includes the option to include or exclude short-range interactions, resulting in two deterministic individual infection probability: one for the exposed with short-range interactions and one for the exposed without short-range interactions.
-
-We may choose compute the probability of infection over the entire presense interval $[t_0,t_m]$ of the exposed, or for a subset $[t_i,t_{i+1}]$ of their presence. For example, this could enlighten the effect of short-range interactions vs long-range exposure for viral transmission. `models.ExposureModel._individual_infection_probability_list()` compute the probability of being infected only from the dose ingested during $[t_i,t_{i+1}]$. Thereafter, in `models.ExposureModel.individual_infection_probability()`, the probability of infection from the dose ingested during the entire $[t_0,t_m]$ is computed as
+This expression is the basis of all the probabilities of infection computed by CAiMIRA. 
+In particular, we estimate the individual infection probability by Monte Carlo integrating over $\mathrm{vD}_e^\mathrm{total}$ and $\mathrm{ID}_{50}$. 
+That is, we draw $S_{\mathrm{rv}}$ samples of $\mathrm{ID}_{50}$ and all the random variables used to compute $\mathrm{vD}_{e}^\mathrm{total}$ from $f(\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})$ to approximate
 
 $$
-\begin{equation*}
-P(I_e)=1-\prod_{i=0}^{t_{m-1}} (1-P(I_{e,i}))
-\end{equation*}
+\begin{align*}
+P_e^*(I_e) 
+&= \int_0^\infty \int_0^\infty P_{e'}^*(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50}) \cdot f(\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50}) \;\ \mathrm{d}\mathrm{vD}_e^\mathrm{total}\mathrm{d}\mathrm{ID}_{50} \\
+&= E_f[P_{e'}^*(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})] \\
+&\approx \sum_{i=1}^{S_{\mathrm{rv}}} P_{e'}^*(I_e|\mathrm{vD}_{e,i}^\mathrm{total},\mathrm{ID}_{50, i})
+\end{align*}
 $$
 
-yielding the exact same result as we would have gotten by computing $P(I_e)$ directly using the total $\mathrm{vD}_e^\mathrm{total}$ accumulated over the entire presence of the exposed.
+
+In CAiMIRA, the deterministic individual infection probability is computed by `models.ExposureModel.individual_infection_probability()`. 
+Each `models.ExposureModel` instance is linked to a single exposed population. 
+All members of the exposed population either have the same short-range interactions or no short-range interactions. 
+Therefore, `models.ExposureModel.individual_infection_probability()` includes the option to include or exclude short-range interactions, resulting in two deterministic individual infection probability: one for the exposed with short-range interactions and one for the exposed without short-range interactions.
 
 #### Transmission Probability
 The transmission probability is the probability that the number of new cases $I_{\mathrm{new}}$ is greated than zero, computed as 
 
 $$
 \begin{align*}
-P(I_{\mathrm{new}}>0)
-&=1-P(I_{\mathrm{new}}=0)\\
-&=1-\prod_{e=1}^{n_{ep}}(1-P(I_e))^{N_{exp,e}}
+P_\mathrm{tr}^*(I_\mathrm{new} > 0)
+&=1-P_\mathrm{tr}^*(I_\mathrm{new} = 0)\\
+&=1-\prod_{e=1}^{n_{ep}}(1-P_e^*(I_e))^{N_{exp,e}}
 \end{align*}
 $$
 
-where $n_{ep}$ is the number of exposed populations, $N_{exp,e}$ is the number of exposed in the $e$-th population of exposed and $P(I_e)$ is the individual infection probabillity of each exposed in the $e$-th population. 
+where $n_{ep}$ is the number of exposed populations, $N_{exp,e}$ is the number of exposed in the $e$-th population of exposed and $P_e^*(I_e)$ is the individual infection probabillity of each exposed in the $e$-th population derived above.
 
-Currently, the transmission probability is not computed for deterministic exposure in CAiMIRA. Future work will implement the deterministic transmission probability as a method in `models.ExposureModelGroup` by combining results for all exposed populations computed by their respective `models.ExposureModel` instances.
+Currently, the transmission probability is not computed for deterministic exposure in CAiMIRA. 
+Future work will implement the deterministic transmission probability as a method in `models.ExposureModelGroup` by combining results for all exposed populations computed by their respective `models.ExposureModel` instances.
 
 ### Probabilistic Exposure
 #### Individual Infection Probability
-For probabilistic exposure, we do not know who or how many of the occupants are infected. What we do know is the probability $p$ that a radom individual you meet is infected. $p$ is set by the user as, for example, the incidence rate of the region. We assume the probability to have $x$ infected persons at the event with $N_\mathrm{occ}$ people follows a binomial distribution, so
-
+For probabilistic exposure, we do not know who or how many of the occupants are infected. 
+Using the total probability rule, the probabilistic individual infection probability for members of the $e$-th group of exposed is given by
 $$
 \begin{equation*}
-P_b(x)=\binom{N_\mathrm{occ}}{x}p^x(1-p)^{N_\mathrm{occ}-x}
+P_e(I_e)=\sum_{\forall \mathbf{X}} P_e^*(I_e)=P(I_e \mid \mathbf{X}) \cdot P_\mathbf{X}(\mathbf{X})
 \end{equation*}
 $$
 
-We define
+where $\mathbf{X}$ describes exactly who among the occupants are infected and $P(I_e \mid \mathbf{X})$ is the individual infection probability we compute knowing who are initially infected. If all occupants have the same characteristics (physical activity, expirational activity, face mask, immunity, and presence), so non-dynamic occupancy, it suffices to know how many are infected, and so the expression above reduces to
+$$
+\begin{equation*}
+P_e(I_e)=\sum_{x=1}^{N_\mathrm{occ}-1} P(I_e \mid X) \cdot P_b(X=x)
+\end{equation*}
+$$
+
+where $N_\mathrm{occ}$ is the total number of occupants and $P_b(X=x)$ is the probability of exactly $x$ occupants starting out as infected. 
+Note that not everyone can be infected (i.e. $P_b(X=N_\mathrm{occ})=0$) because we assume that at least to have at least one exposed (non-infected) to compute the probability of infection for.
+For each $X$, we compute $P(I_e \mid X)$ using `models.ExposureModel.individual_infection_probability()`, initializing `models.ExposureModel` with the number of infected informed by $X$. 
+To compute $P_b(X=x)$, we define 
 $$
 \begin{equation*}
 p=\frac{\mathrm{number\ of\ circulating\ cases\ in\ region} \cdot \mathrm{ascertainment\ bias}}{\mathrm{total\ population\ in\ region}}
 \end{equation*}
 $$
+and let the user set the number of circulating cases in the region, ascertainment bias and total population. 
+The number of circulating cases is intended as new cases reported in the past 7 days, and is corrected by an ascertainment bias $\in [1,10]$. 
+We assume the probability to have $x$ infected persons at the event with $N_\mathrm{occ}$ people follows a binomial distribution, so
 
-and let the user set the number of circulating cases in the region, ascertainment bias and total population. The number of circulating cases is intended as new cases reported in the past 7 days, and is corrected by an ascertainment bias $\in [1,10]$. 
-
-Using the total probability rule, the probabilistic individual infection probability for members of the $e$-th group of exposed is given by
-We define
 $$
 \begin{equation*}
-P_{prob}(I_e)=\sum_{i=0}^{N_\mathrm{occ}} P(I_e|x=i) \cdot P_b(x=i)
+P_b(X=x)=\binom{N_\mathrm{occ}}{x}p^x(1-p)^{N_\mathrm{occ}-x}
 \end{equation*}
 $$
 
-where $N_\mathrm{occ}$ is the total number of occupants and $P(I_e|x=i)$ is the individual infection probability we compute knowing exactly how many people at the event are infected. If all occupants have the same characteristics (physical activity, expirational activity, face mask, immunity, and presence), so non-dynamic occupancy, this probability can be computed by CAiMIRA as described under *Deterministic Exposure: Individual Infection Probability* above. Because the probabilistic infection probability requires several deterministic ininfection probabilities to be computed, computing the probabilistic exposure can be computationally expensive. Note that $P_b(x)$ becomes smaller for larger $x$ because $p$ is usually small. If $N_\mathrm{occ}>10$ we reduce the computer power required by approximating
+Because the probabilistic infection probability requires several deterministic ininfection probabilities to be computed, computing the probabilistic exposure can be computationally expensive. Note that $P_b(X=x)$ becomes smaller for larger $x$ because $p$ is usually small. If $N_\mathrm{occ}>10$ we reduce the computer power required by approximating
 
 $$
 \begin{equation*}
-P_{prob}(I_e)\approx \sum_{i=0}^{10} P(I_e|x=i) \cdot P_b(x=i).
+P_e(I_e)=\sum_{x=1}^{10} P(I_e \mid X) \cdot P_b(X=x).
 \end{equation*}
 $$
 
 However, the error of this approximation increases with increasing $N_\mathrm{occ}$, and also with increasing $p$.
-
 
 The probabilistic individual infection probability for probabilistic exposure is actually not outputed by CAiMIRA, but is used to compute the probabilistic transmission probability in `models.ExposureModel.total_probability_rule()`.
 
@@ -1179,20 +1255,21 @@ The probabilistic individual infection probability for probabilistic exposure is
 When using probabilistic exposure, CAiMIRA computes the probabilistic transmission probability defined as
 $$
 \begin{align*}
-P_{prob}(I_{\mathrm{new}}>0)
-&=1-P_{prob}(I_{\mathrm{new}}=0)\\
-&=1-\prod_{e=1}^{n_{ep}=1}(1-P_{prob}(I_e))^{N_{exp,e}}
+P_\mathrm{tr}(I_\mathrm{new} > 0)
+&=1-P_\mathrm{tr}(I_\mathrm{new} = 0)\\
+&=1-\prod_{e=1}^{n_{ep}=1}(1-P_e(I_e))^{N_{exp,e}}
 \end{align*}
 $$
 where we had to set the number of exposed populations $n_{ep}$ to one because probabilistic exposure is not currently implemented for dynamic occupancy.
-The probabilistic transmission probability is computed in `models.ExposureModel.total_probability_rule()`. Future work implementing probabilistic exposure for dynamic occupancy will enable $n_{ep} > 1$, in which case the probabilistic transmission probability would have to be computed in `models.ExposureModelGroup` by combining results for all exposed populations computed by their respective `models.ExposureModel` instances.
+The probabilistic transmission probability is computed in `models.ExposureModel.total_probability_rule()`. 
+Future work implementing probabilistic exposure for dynamic occupancy will enable $n_{ep} > 1$, in which case the probabilistic transmission probability would have to be computed in `models.ExposureModelGroup` by combining results for all exposed populations computed by their respective `models.ExposureModel` instances.
 
 ## Other results
 ### Expected New Cases
 The expected new cases resulting from the event is
 $$
 \begin{equation*}
-\sum_{e=1}^{n_{ep}} P(I_e) \cdot N_{exp,e}
+\sum_{e=1}^{n_{ep}} P_e(I_e) \cdot N_{exp,e}
 \end{equation*}
 $$
 where $n_{ep}$ is the number of exposed populations, $N_{exp,e}$ is the number of exposed in the $e$-th population of exposed and $P(I_e)$ is the individual infection probabillity of each exposed in the $e$-th population.
