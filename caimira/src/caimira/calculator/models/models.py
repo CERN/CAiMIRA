@@ -1847,7 +1847,7 @@ class ExposureModel:
         from any short-range interactions the exposed might have.
         If short_range = False, the probability is computing only considering 
         long-range dose exposure.
-        Note that if no short-range interactions are defined for the exposed, the 
+        Note that if no short-range interactions are defined for the exposed, 
         this method will yield the same result with both values of short_range
         """
         # Viral dose (vD)
