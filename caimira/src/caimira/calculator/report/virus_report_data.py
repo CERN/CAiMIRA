@@ -479,7 +479,7 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
             FFP2andHEPAalternative = dataclass_utils.replace(
                 form, mask_type='Type I')
             if not (form.hepa_option and form.mask_wearing_option == 'mask_on' and form.mask_type == 'Type I'):
-                scenarios['Base scenario with HEPA filter and Type I masks'] = FFP2andHEPAalternative.build_mc_model()
+                scenarios['Base scenario with HEPA filter and Type I masks'] = FFP2andHEPAalternative.build_model()
         if not FFP2_being_worn and form.hepa_option:
             noHEPAalternative = dataclass_utils.replace(form, mask_type='FFP2')
             noHEPAalternative = dataclass_utils.replace(
@@ -487,7 +487,7 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
             noHEPAalternative = dataclass_utils.replace(
                 noHEPAalternative, hepa_option=False)
             if not (not form.hepa_option and FFP2_being_worn):
-                scenarios['Base scenario without HEPA filter, with FFP2 masks'] = noHEPAalternative.build_mc_model()
+                scenarios['Base scenario without HEPA filter, with FFP2 masks'] = noHEPAalternative.build_model()
 
         # The remaining scenarios are based on Type I masks (possibly not worn)
         # and no HEPA filtration.
@@ -501,15 +501,15 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
             form, mask_wearing_option='mask_off')
 
         if form.ventilation_type == 'mechanical_ventilation':
-            # scenarios['Mechanical ventilation with Type I masks'] = with_mask.build_mc_model()
+            # scenarios['Mechanical ventilation with Type I masks'] = with_mask.build_model()
             if not (form.mask_wearing_option == 'mask_off'):
-                scenarios['Mechanical ventilation without masks'] = without_mask.build_mc_model(
+                scenarios['Mechanical ventilation without masks'] = without_mask.build_model(
                 )
 
         elif form.ventilation_type == 'natural_ventilation':
-            # scenarios['Windows open with Type I masks'] = with_mask.build_mc_model()
+            # scenarios['Windows open with Type I masks'] = with_mask.build_model()
             if not (form.mask_wearing_option == 'mask_off'):
-                scenarios['Windows open without masks'] = without_mask.build_mc_model()
+                scenarios['Windows open without masks'] = without_mask.build_model()
 
         # No matter the ventilation scheme, we include scenarios which don't have any ventilation.
         with_mask_no_vent = dataclass_utils.replace(
@@ -518,9 +518,9 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
             without_mask, ventilation_type='no_ventilation')
 
         if not (form.mask_wearing_option == 'mask_on' and form.mask_type == 'Type I' and form.ventilation_type == 'no_ventilation'):
-            scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_mc_model()
+            scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_model()
         if not (form.mask_wearing_option == 'mask_off' and form.ventilation_type == 'no_ventilation'):
-            scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_mc_model()
+            scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_model()
     else:
         # Adjust the number of exposed people with long-range exposure based on short-range interactions
         if not form.occupancy:
@@ -535,7 +535,7 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
                         # Update the total_people with the adjusted value
                        group['total_people'] = max(0, total_people - short_range_count)
             no_short_range_alternative = dataclass_utils.replace(form, short_range_interactions={}, occupancy=form.occupancy)        
-        scenarios['Base scenario without short-range interactions'] = no_short_range_alternative.build_mc_model()
+        scenarios['Base scenario without short-range interactions'] = no_short_range_alternative.build_model()
 
     for scenario_name, scenario in scenarios.items():
         scenarios[scenario_name] = scenario.exposure_models[0] # type: ignore
@@ -543,13 +543,10 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
 
 
 def scenario_statistics(
-    mc_model: mc.ExposureModel,
+    model: models.ExposureModel,
     sample_times: typing.List[float],
     compute_prob_exposure: bool,
 ):
-    model = mc_model.build_model(
-        size=mc_model.data_registry.monte_carlo['sample_size']
-    )
     
     return {
         'probability_of_infection': np.mean(model.individual_infection_probability()),

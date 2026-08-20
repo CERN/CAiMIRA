@@ -31,7 +31,7 @@ def test_type_annotations():
         msg = (
             'There are missing model implementations in caimira.monte_carlo. '
             'The following definitions are needed:\n  ' +
-            '\n  '.join([f'{model} = build_mc_model(caimira.models.{model})' for model in missing])
+            '\n  '.join([f'{model} = _build_mc_model(caimira.models.{model})' for model in missing])
         )
         pytest.fail(msg)
 
