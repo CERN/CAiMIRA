@@ -1823,21 +1823,20 @@ class ExposureModel:
         """
         The number of virus per m^3 deposited on the respiratory tract of a  
         member of the considered exposed population, accumulated over the entire 
-        presense of the exposed.
+        presence of the exposed.
         If short_range = True, the dose exposure from all short-range interactions 
         the exposed have is included.
-        If short_range = False, the we only consider long-range dose exposure.
+        If short_range = False, then we only consider long-range dose exposure.
         """
         population_change_times = self.population_state_change_times()
         deposited_exposure = []
         if short_range:
             for start, stop in zip(population_change_times[:-1], population_change_times[1:]):
                 deposited_exposure.append(self.deposited_exposure_between_bounds(start, stop))
-            return np.sum(deposited_exposure, axis=0) * self.repeats # type: ignore
         else:
             for start, stop in zip(population_change_times[:-1], population_change_times[1:]):
                 deposited_exposure.append(self.long_range_deposited_exposure_between_bounds(start, stop))
-            return np.sum(deposited_exposure, axis=0) * self.repeats # type: ignore
+        return np.sum(deposited_exposure, axis=0) * self.repeats # type: ignore
 
     @method_cache
     def individual_infection_probability(self, short_range: bool = True) -> _VectorisedFloat:
@@ -1849,7 +1848,7 @@ class ExposureModel:
         If short_range = False, the probability is computing only considering 
         long-range dose exposure.
         Note that if no short-range interactions are defined for the exposed, the 
-        value of short_range will yield the same result.
+        this method will yield the same result with both values of short_range
         """
         # Viral dose (vD)
         vD = self.deposited_exposure(short_range)
