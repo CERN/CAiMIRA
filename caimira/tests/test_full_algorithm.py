@@ -509,7 +509,7 @@ def c_model_distr(data_registry) -> mc.ConcentrationModel:
             activity=activity_distributions(data_registry)['Seated'],
             expiration=expiration_distributions(data_registry)['Breathing'],
             host_immunity=0.,
-        ),
+        ).build_model(SAMPLE_SIZE),
         evaporation_factor=0.3,
     )
 
