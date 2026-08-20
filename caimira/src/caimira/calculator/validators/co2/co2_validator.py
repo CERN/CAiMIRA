@@ -199,7 +199,7 @@ class CO2FormData(FormData):
             vent_states.append(last_time_from_input)
         return tuple(vent_states)
 
-    def build_model(self, sample_size = None) -> models.CO2DataModel:
+    def build_CO2_data_model(self) -> models.CO2DataModel:
         """
         Builds a CO2 data model that considers data
         from the defined population groups.
