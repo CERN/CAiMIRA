@@ -806,7 +806,7 @@ class SimplePopulation:
     situation.
     """
     #: Identifier of the population
-    name: str = ""
+    identifier: str = ""
 
     #: How many in the population.
     number: typing.Union[int, IntPiecewiseConstant]
@@ -1480,7 +1480,7 @@ class CO2DataModel:
             ventilation=CustomVentilation(PiecewiseConstant(
                 self.ventilation_transition_times, ventilation_values)),
             CO2_emitters=SimplePopulation(
-                name="",
+                identifier="",
                 number=self.occupancy,
                 presence=None,
                 activity=Activity(
@@ -1570,8 +1570,9 @@ class ExposureModel:
     #: Total people with short-range interactions
     exposed_to_short_range: int = 0
 
-    #: Unique group identifier
-    identifier: str = 'group_1'
+    @property
+    def identifier(self) -> str:
+        return self.exposed.identifier
 
     #: The number of times the exposure event is repeated (default 1).
     @property
