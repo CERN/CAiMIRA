@@ -124,6 +124,7 @@ def invalid_viruses_conc_model_tuple(infected_dynamic_virus):
         ventilation = models.AirChange(interesting_times, 100),
         infected = infected_population,
         evaporation_factor=0.3,
+        short_range=(),
     ) for infected_population in infected_dynamic_virus)
 
 @pytest.fixture
@@ -137,6 +138,7 @@ def invalid_rooms_conc_model_tuple(all_infected_populations):
         ventilation = models.AirChange(interesting_times, 100),
         infected = all_infected_populations[0],
         evaporation_factor=0.3,
+        short_range=(),
     ) for vol in [75,100])
 
 @pytest.fixture
@@ -158,6 +160,7 @@ def valid_conc_model_tuple(all_infected_populations):
         ventilation = models.AirChange(interesting_times, 100),
         infected = infected_population,
         evaporation_factor=0.3,
+        short_range=(),
     ) for infected_population in all_infected_populations)
 
 def infected_pop(number):
@@ -176,7 +179,6 @@ def get_exposure_model(concentration_model_tuple, short_range=()) -> mc.Exposure
     return mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=concentration_model_tuple,
-        short_range=short_range,
         exposed=mc.Population(
             number=1,
             presence=models.SpecificInterval(present_times=((8.5, 12), (13, 17.5))),

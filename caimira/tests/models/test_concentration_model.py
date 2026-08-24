@@ -81,6 +81,7 @@ def test_concentration_model_vectorisation(override_params, data_registry):
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
+        short_range=(),
     )
     concentrations = c_model.concentration(10)
     assert isinstance(concentrations, np.ndarray)
@@ -105,6 +106,7 @@ def simple_conc_model(data_registry):
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
+        short_range=(),
     )
 
 @pytest.fixture
@@ -125,6 +127,7 @@ def simple_conc_model_extended_presence(data_registry):
             host_immunity=0.,
         ),
         evaporation_factor=0.3,
+        short_range=(),
     )
 
 
