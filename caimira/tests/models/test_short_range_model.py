@@ -15,7 +15,7 @@ SAMPLE_SIZE = 250_000
 def short_range_model(data_registry):
     return mc_models.ShortRangeModel(
         data_registry=data_registry,
-        exposed_name="exposed_1",
+        exposed_identifier="exposed_1",
         activity=activity_distributions(data_registry)['Seated'], # NOTE: not within infected.activity. In the future, this initialization might trigger an error.
         expiration=short_range_expiration_distributions(data_registry)['Breathing'],
         presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
@@ -52,7 +52,7 @@ def exposure_model(data_registry, concentration_model):
         data_registry=data_registry,
         concentration_model=(concentration_model,),
         exposed = mc_models.Population(
-            #name="exposed_1",
+            identifier="exposed_1",
             number=1,
             presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
             mask=models.Mask.types['No mask'],
@@ -84,7 +84,7 @@ def test_short_range_model_ndarray(concentration_model, short_range_model):
 def test_dilution_factor(data_registry, activity, expected_dilution):
     model = mc_models.ShortRangeModel(
         data_registry=data_registry,
-        exposed_name="",
+        exposed_identifier="",
         activity=models.Activity.types[activity],
         expiration=short_range_expiration_distributions(data_registry)['Breathing'],
         presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
@@ -142,7 +142,7 @@ def test_short_range_concentration(time, expected_short_range_concentration_comp
 def test_short_range_exposure_with_ndarray_mask(data_registry):
     sr_model = mc_models.ShortRangeModel(
         data_registry=data_registry,
-        exposed_name="exposed_2",
+        exposed_identifier="exposed_2",
         activity=models.Activity.types['Heavy exercise'],                           # NOTE: not within infected.activity. In the future, this initialization might trigger an error.
         expiration=short_range_expiration_distributions(data_registry)['Shouting'], # NOTE: not within infected.expiration. In the future, this initialization might trigger an error.
         presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
@@ -170,7 +170,7 @@ def test_short_range_exposure_with_ndarray_mask(data_registry):
         data_registry = data_registry,
         concentration_model = (c_model,),
         exposed = mc_models.Population(
-            #name="exposed_2",
+            identifier="exposed_2",
             number=1,
             presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
             mask=models.Mask(η_inhale=np.array([0., 0.3, 0.5])),

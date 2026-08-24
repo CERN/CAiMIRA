@@ -1028,8 +1028,8 @@ class ShortRangeModel:
     '''
     data_registry: DataRegistry
 
-    #: Pointing to the population exposed to the jet
-    exposed_name: str
+    #: Identifier of the population exposed to the jet
+    exposed_identifier: str
 
     #: Physical activity of the infected during this short-range interaction. 
     #  TODO: All types of physical activities in activity must also be in infected.activity (or reasonable).
@@ -1708,13 +1708,13 @@ class ExposureModel:
         concentration = self.long_range_concentration(time)
         for conc_model in self.concentration_model:
             for interaction in conc_model.short_range:
-                # TODO: if interaction.exposed_name == self.exposed.name:
-                start, stop = interaction.presence.boundaries()[0]
-                # Verifies if the given time falls within a short-range interaction
-                # NOTE: max one short-range interaction at a time, so the test should just yield true once (TODO check?)
-                if start <= time <= stop:
-                    concentration += np.mean(interaction._normed_diluted_jet_concentration()*conc_model.short_range_normalization_factor())
-                    concentration -= self.diluted_long_range_concentration(interaction, time)
+                if interaction.exposed_identifier == self.identifier:
+                    start, stop = interaction.presence.boundaries()[0]
+                    # Verifies if the given time falls within a short-range interaction
+                    # NOTE: max one short-range interaction at a time, so the test should just yield true once (TODO check?)
+                    if start <= time <= stop:
+                        concentration += np.mean(interaction._normed_diluted_jet_concentration()*conc_model.short_range_normalization_factor())
+                        concentration -= self.diluted_long_range_concentration(interaction, time)
         return concentration
 
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
@@ -1762,43 +1762,43 @@ class ExposureModel:
         deposited_exposure: _VectorisedFloat = 0.
         for conc_model in self.concentration_model:
             for interaction in conc_model.short_range:
-                # TODO: if interaction.exposed_name == self.exposed.name:
-                # Only adding the additional contribution from the short-range interaction
-                start, stop = interaction.extract_between_bounds(time1, time2)
-                short_range_jet_exposure = interaction._normed_jet_exposure_between_bounds(start, stop)
+                if interaction.exposed_identifier == self.identifier:
+                    # Only adding the additional contribution from the short-range interaction
+                    start, stop = interaction.extract_between_bounds(time1, time2)
+                    short_range_jet_exposure = interaction._normed_jet_exposure_between_bounds(start, stop)
 
-                dilution = interaction.dilution_factor()
+                    dilution = interaction.dilution_factor()
 
-                fdep = interaction.expiration.particle.fraction_deposited(evaporation_factor=1.0)
-                diameter = interaction.expiration.particle.diameter
+                    fdep = interaction.expiration.particle.fraction_deposited(evaporation_factor=1.0)
+                    diameter = interaction.expiration.particle.diameter
 
-                # Aerosols not considered given the formula for the initial
-                # concentration at mouth/nose.
-                if diameter is not None and not np.isscalar(diameter):
-                    # We compute first the mean of all diameter-dependent quantities
-                    # to perform properly the Monte-Carlo integration over
-                    # particle diameters (doing things in another order would
-                    # lead to wrong results for the probability of infection).
-                    this_deposited_exposure = (np.array(short_range_jet_exposure
-                        * fdep).mean())
-                else:
-                    # In the case of a single diameter or no diameter defined,
-                    # one should not take any mean at this stage.
-                    this_deposited_exposure = (short_range_jet_exposure * fdep)
+                    # Aerosols not considered given the formula for the initial
+                    # concentration at mouth/nose.
+                    if diameter is not None and not np.isscalar(diameter):
+                        # We compute first the mean of all diameter-dependent quantities
+                        # to perform properly the Monte-Carlo integration over
+                        # particle diameters (doing things in another order would
+                        # lead to wrong results for the probability of infection).
+                        this_deposited_exposure = (np.array(short_range_jet_exposure
+                            * fdep).mean())
+                    else:
+                        # In the case of a single diameter or no diameter defined,
+                        # one should not take any mean at this stage.
+                        this_deposited_exposure = (short_range_jet_exposure * fdep)
 
-                # Multiply by the (diameter-independent) inhalation rate
-                _deposited_exposure = (this_deposited_exposure *
-                                    interaction.activity.inhalation_rate
-                                    /dilution) 
-                
-                # Then we multiply by the emission rate without the BR contribution (and conversion factor),
-                # and parameters of the vD equation (i.e. n_in).
-                deposited_exposure += _deposited_exposure*(
-                    (conc_model.infected.emission_rate_per_aerosol_per_person_when_present() / (
-                    conc_model.infected.activity.exhalation_rate * 10**6)) *                 
-                    (1 - self.exposed.mask.inhale_efficiency()))
-                
-                deposited_exposure -= self.long_range_deposited_exposure_between_bounds(time1, time2)/dilution
+                    # Multiply by the (diameter-independent) inhalation rate
+                    _deposited_exposure = (this_deposited_exposure *
+                                        interaction.activity.inhalation_rate
+                                        /dilution) 
+                    
+                    # Then we multiply by the emission rate without the BR contribution (and conversion factor),
+                    # and parameters of the vD equation (i.e. n_in).
+                    deposited_exposure += _deposited_exposure*(
+                        (conc_model.infected.emission_rate_per_aerosol_per_person_when_present() / (
+                        conc_model.infected.activity.exhalation_rate * 10**6)) *                 
+                        (1 - self.exposed.mask.inhale_efficiency()))
+                    
+                    deposited_exposure -= self.long_range_deposited_exposure_between_bounds(time1, time2)/dilution
 
             
         # Long-range contributions from all infected populations (including the ones with SR interactions)

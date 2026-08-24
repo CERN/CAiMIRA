@@ -498,7 +498,7 @@ def short_range_models(data_registry) -> typing.Tuple[mc.ShortRangeModel, ...]:
     return (
         mc.ShortRangeModel(
             data_registry = data_registry,
-            exposed_name="group1",
+            exposed_identifier="group1",
             activity = models.Activity.types['Seated'],
             expiration = short_range_expiration_distributions(data_registry)['Speaking'],
             presence = interaction_intervals[0],
@@ -506,7 +506,7 @@ def short_range_models(data_registry) -> typing.Tuple[mc.ShortRangeModel, ...]:
         ),
         mc.ShortRangeModel(
             data_registry = data_registry,
-            exposed_name="group1",
+            exposed_identifier="group1",
             activity = models.Activity.types['Heavy exercise'],
             expiration = short_range_expiration_distributions(data_registry)['Breathing'],
             presence = interaction_intervals[1],
@@ -576,7 +576,7 @@ def c_model_distr_with_sr(data_registry) -> mc.ConcentrationModel:
         short_range=(
             mc.ShortRangeModel(
                 data_registry = data_registry,
-                exposed_name="group2",
+                exposed_identifier="group2",
                 activity = activity_distributions(data_registry)['Seated'],
                 expiration = short_range_expiration_distributions(data_registry)['Breathing'],
                 presence = interaction_intervals[0],
@@ -584,7 +584,7 @@ def c_model_distr_with_sr(data_registry) -> mc.ConcentrationModel:
             ),
             mc.ShortRangeModel(
                 data_registry = data_registry,
-                exposed_name="group2",
+                exposed_identifier="group2",
                 activity = activity_distributions(data_registry)['Seated'],
                 expiration = short_range_expiration_distributions(data_registry)['Speaking'],
                 presence = interaction_intervals[1],
@@ -631,7 +631,7 @@ def expo_sr_model(data_registry, c_model_with_sr) -> mc.ExposureModel:
         data_registry=data_registry,
         concentration_model=(c_model_with_sr,),
         exposed=mc.Population(
-            #name="group1",
+            identifier="group1",
             number=1,
             presence=presence,
             mask=models.Mask.types['No mask'],
@@ -665,7 +665,7 @@ def expo_sr_model_distr(data_registry, c_model_distr_with_sr) -> mc.ExposureMode
         data_registry=data_registry,
         concentration_model=(c_model_distr_with_sr,),
         exposed=mc.Population(
-            #name="group2",
+            identifier="group2",
             number=1,
             presence=presence,
             mask=models.Mask.types['No mask'],
@@ -820,7 +820,7 @@ def test_longrange_exposure_with_distributions(data_registry, c_model_distr):
             data_registry=data_registry,
             concentration_model=(c_model_distr,),
             exposed=mc.Population(
-                #name="",
+                identifier="",
                 number=1,
                 presence=presence,
                 mask=models.Mask.types['No mask'],
@@ -923,7 +923,7 @@ def exposure_model_from_parameter(data_registry, f_inf=0.5, viral_load=1e9, BR=1
         data_registry=data_registry,
         concentration_model=(c_model,),
         exposed=mc.Population(
-            #name="",
+            identifier="",
             number=1,
             presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
             mask=models.Mask.types['No mask'],
