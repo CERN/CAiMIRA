@@ -1021,6 +1021,138 @@ class Cases:
 
 
 @dataclass(frozen=True)
+class ShortRangeModel:
+    '''
+    Based on the two-stage (jet/puff) expiratory jet model by
+    Jia et al (2022) - https://doi.org/10.1016/j.buildenv.2022.109166
+    '''
+    data_registry: DataRegistry
+
+    #: Pointing to the population exposed to the jet
+    exposed_name: str
+
+    #: Physical activity of the infected during this short-range interaction. 
+    #  TODO: All types of physical activities in activity must also be in infected.activity (or reasonable).
+    activity: Activity
+
+    #: Expiratory activity of the infected during this short-range interaction. 
+    #  TODO: Validate that all types of expiratory activities in expiration are also in infected.expiration.
+    #  dmin and dmax are different for expiration and infected.expiration.
+    expiration: Expiration
+
+    #: Short-range interaction time
+    presence: SpecificInterval
+
+    #: Interpersonal distances
+    distance: _VectorisedFloat
+    
+    def dilution_factor(self) -> _VectorisedFloat:
+        '''
+        The dilution factor for the respective expiratory activity type.
+        '''
+        _dilution_factor = self.data_registry.short_range_model['dilution_factor'] 
+        # Average mouth opening diameter (m)
+        mouth_diameter: float = _dilution_factor['mouth_diameter'] # type: ignore
+
+        # Breathing rate, from m3/h to m3/s
+        BR = np.array(self.activity.exhalation_rate/3600.)
+
+        # Exhalation coefficient. Ratio between the duration of a breathing cycle and the duration of
+        # the exhalation.
+        φ: float = _dilution_factor['exhalation_coefficient'] # type: ignore
+
+        # Exhalation airflow, as per Jia et al. (2022)
+        Q_exh: _VectorisedFloat = φ * BR
+
+        # Area of the mouth assuming a perfect circle (m2)
+        Am = np.pi*(mouth_diameter**2)/4
+
+        # Initial velocity of the exhalation airflow (m/s)
+        u0 = np.array(Q_exh/Am)
+
+        # Duration of one breathing cycle
+        breathing_cicle: float = _dilution_factor['breathing_cycle'] # type: ignore
+
+        # Duration of the expiration period(s)
+        tstar: float = breathing_cicle / 2
+
+        # Streamwise and radial penetration coefficients
+        _df_pc = _dilution_factor['penetration_coefficients'] # type: ignore
+        𝛽r1: float = _df_pc['𝛽r1'] # type: ignore
+        𝛽r2: float = _df_pc['𝛽r2'] # type: ignore
+        𝛽x1: float = _df_pc['𝛽x1'] # type: ignore
+
+        # Parameters in the jet-like stage
+        # Position of virtual origin
+        x0 = mouth_diameter/2/𝛽r1
+        # Time of virtual origin
+        t0 = (np.sqrt(np.pi)*(mouth_diameter**3))/(8*(𝛽r1**2)*(𝛽x1**2)*Q_exh)
+        # The transition point, m
+        xstar = np.array(𝛽x1*(Q_exh*u0)**0.25*(tstar + t0)**0.5 - x0)
+        # Dilution factor at the transition point xstar
+        Sxstar = np.array(2*𝛽r1*(xstar+x0)/mouth_diameter)
+
+        distances = np.array(self.distance)
+        factors = np.empty(distances.shape, dtype=np.float64)
+        factors[distances < xstar] = 2*𝛽r1*(distances[distances < xstar]
+                                        + x0)/mouth_diameter
+        factors[distances >= xstar] = Sxstar[distances >= xstar]*(1 +
+            𝛽r2*(distances[distances >= xstar] -
+            xstar[distances >= xstar])/𝛽r1/(xstar[distances >= xstar]
+            + x0))**3
+        return factors
+    
+    def _normed_jet_origin_concentration(self) -> _VectorisedFloat:
+        """
+        The initial jet concentration at the source origin (mouth/nose), normalized by
+        normalization_factor in the ShortRange class (corresponding to the diameter-independent
+        variables). Results in mL.cm^-3.
+        """
+        # The short range origin concentration does not consider the mask contribution.
+        return self.expiration.aerosols(mask=Mask.types['No mask'])
+    
+    def _normed_diluted_jet_concentration(self):
+        return 1/self.dilution_factor()*self._normed_jet_origin_concentration()
+
+    @method_cache
+    def extract_between_bounds(self, time1: float, time2: float) -> typing.Union[None, typing.Tuple[float,float]]:
+        """
+        Extract the bounds of the interval resulting from the
+        intersection of [time1, time2] and the presence interval.
+        If [time1, time2] has nothing common to the presence interval,
+        we return (0, 0).
+        Raise an error if time1 and time2 are not in ascending order.
+        """
+        if time1>time2:
+            raise ValueError("time1 must be less or equal to time2")
+
+        start, stop = self.presence.boundaries()[0]
+        if (stop < time1) or (start > time2):
+            return (0, 0)
+        elif start <= time1 and time2<= stop:
+            return time1, time2
+        elif start <= time1 and stop < time2:
+            return time1, stop
+        elif time1 < start and time2 <= stop:
+            return start, time2
+        elif time1 <= start and stop < time2:
+            return start, stop
+
+    def _normed_jet_exposure_between_bounds(self,
+                    time1: float, time2: float):
+        """
+        Get the part of the integrated short-range concentration of
+        viruses in the air, between the times start and stop, coming
+        from the jet concentration, normalized by normalization_factor, 
+        and without dilution.
+        """
+        start, stop = self.extract_between_bounds(time1, time2)
+        # Note the conversion factor mL.cm^-3 -> mL.m^-3
+        jet_origin = self._normed_jet_origin_concentration() * 10**6
+        return jet_origin * (stop - start)
+
+
+@dataclass(frozen=True)
 class _ConcentrationModelBase:
     """
     A generic superclass that contains the methods to calculate the
@@ -1225,9 +1357,19 @@ class ConcentrationModel(_ConcentrationModelBase):
     # mask, if any).
     evaporation_factor: float
 
+    #: One ShortRangeModel for each short-range interaction the infected in this class is particapating in.
+    #  Information specific to the interaction is retrieved from ShortRangeModel, whereas the neccecary information
+    #  about the infected is retrieved from self.short_range_normalization_factor. Thus, we only initiate each infected
+    #  population once with a single InfectedPopulation.
+    short_range: typing.Tuple[ShortRangeModel, ...]
+
     def __post_init__(self):
         if self.evaporation_factor is None:
             self.evaporation_factor = self.data_registry.expiration_particle['particle']['evaporation_factor']
+
+        for interaction in self.short_range:
+            if interaction.presence.boundaries()[0][0] < self.infected.presence.boundaries()[0][0] or interaction.presence.boundaries()[-1][-1] > self.infected.presence.boundaries()[-1][-1]:
+                raise ValueError("A short-range-interaction cannot last outside the presence of the infected.")
 
     @property
     def population(self) -> InfectedPopulation:
@@ -1256,6 +1398,15 @@ class ConcentrationModel(_ConcentrationModelBase):
     def infectious_virus_removal_rate(self, time: float) -> _VectorisedFloat:
         # defined for back-compatibility purposes
         return self.removal_rate(time)
+
+    def short_range_normalization_factor(self) -> _VectorisedFloat:
+        """
+        The normalization factor applied to the short-range results, containing all information specific to the infected. 
+        It refers to the emission rate per aerosol without accounting for the exhalation rate (viral load and f_inf).
+        Result in (virions.cm^3)/(mL.m^3).
+        """
+        # Re-use the emission rate method divided by the BR contribution. 
+        return self.infected.emission_rate_per_aerosol_per_person_when_present() / self.infected.activity.exhalation_rate
 
 
 @dataclass(frozen=True)
@@ -1294,166 +1445,6 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         # CO2 concentration given in ppm, hence the 1e6 factor.
         return (1e6*self.population.activity.exhalation_rate
                 *self.CO2_fraction_exhaled)
-
-
-@dataclass(frozen=True)
-class ShortRangeModel:
-    '''
-    Based on the two-stage (jet/puff) expiratory jet model by
-    Jia et al (2022) - https://doi.org/10.1016/j.buildenv.2022.109166
-    '''
-    data_registry: DataRegistry
-
-    #: The infected who is exhaling the two-stage jet (or rather, the population that infected belongs to).
-    #  infected.expiration and infected.activity are expirations and activities throughout infected.presence 
-    #  which may last longer than this short-range interaction.
-    infected: InfectedPopulation
-
-    #: Physical activity of the infected during this short-range interaction. 
-    #  TODO: All types of physical activities in activity must also be in infected.activity (or reasonable).
-    activity: Activity
-
-    #: Expiratory activity of the infected during this short-range interaction. 
-    #  TODO: Validate that all types of expiratory activities in expiration are also in infected.expiration.
-    #  dmin and dmax are different for expiration and infected.expiration.
-    expiration: Expiration
-
-    #: Short-range interaction time
-    presence: SpecificInterval
-
-    #: Interpersonal distances
-    distance: _VectorisedFloat
-
-    def __post_init__(self):        
-        if self.presence.boundaries()[0][0] < self.infected.presence.boundaries()[0][0] or self.presence.boundaries()[-1][-1] > self.infected.presence.boundaries()[-1][-1]:
-            raise ValueError("The short-range-interaction cannot last longer than the presence of the infected.")
-    
-    def dilution_factor(self) -> _VectorisedFloat:
-        '''
-        The dilution factor for the respective expiratory activity type.
-        '''
-        _dilution_factor = self.data_registry.short_range_model['dilution_factor'] 
-        # Average mouth opening diameter (m)
-        mouth_diameter: float = _dilution_factor['mouth_diameter'] # type: ignore
-
-        # Breathing rate, from m3/h to m3/s
-        BR = np.array(self.activity.exhalation_rate/3600.)
-
-        # Exhalation coefficient. Ratio between the duration of a breathing cycle and the duration of
-        # the exhalation.
-        φ: float = _dilution_factor['exhalation_coefficient'] # type: ignore
-
-        # Exhalation airflow, as per Jia et al. (2022)
-        Q_exh: _VectorisedFloat = φ * BR
-
-        # Area of the mouth assuming a perfect circle (m2)
-        Am = np.pi*(mouth_diameter**2)/4
-
-        # Initial velocity of the exhalation airflow (m/s)
-        u0 = np.array(Q_exh/Am)
-
-        # Duration of one breathing cycle
-        breathing_cicle: float = _dilution_factor['breathing_cycle'] # type: ignore
-
-        # Duration of the expiration period(s)
-        tstar: float = breathing_cicle / 2
-
-        # Streamwise and radial penetration coefficients
-        _df_pc = _dilution_factor['penetration_coefficients'] # type: ignore
-        𝛽r1: float = _df_pc['𝛽r1'] # type: ignore
-        𝛽r2: float = _df_pc['𝛽r2'] # type: ignore
-        𝛽x1: float = _df_pc['𝛽x1'] # type: ignore
-
-        # Parameters in the jet-like stage
-        # Position of virtual origin
-        x0 = mouth_diameter/2/𝛽r1
-        # Time of virtual origin
-        t0 = (np.sqrt(np.pi)*(mouth_diameter**3))/(8*(𝛽r1**2)*(𝛽x1**2)*Q_exh)
-        # The transition point, m
-        xstar = np.array(𝛽x1*(Q_exh*u0)**0.25*(tstar + t0)**0.5 - x0)
-        # Dilution factor at the transition point xstar
-        Sxstar = np.array(2*𝛽r1*(xstar+x0)/mouth_diameter)
-
-        distances = np.array(self.distance)
-        factors = np.empty(distances.shape, dtype=np.float64)
-        factors[distances < xstar] = 2*𝛽r1*(distances[distances < xstar]
-                                        + x0)/mouth_diameter
-        factors[distances >= xstar] = Sxstar[distances >= xstar]*(1 +
-            𝛽r2*(distances[distances >= xstar] -
-            xstar[distances >= xstar])/𝛽r1/(xstar[distances >= xstar]
-            + x0))**3
-        return factors
-    
-    def _normed_jet_origin_concentration(self) -> _VectorisedFloat:
-        """
-        The initial jet concentration at the source origin (mouth/nose), normalized by
-        normalization_factor in the ShortRange class (corresponding to the diameter-independent
-        variables). Results in mL.cm^-3.
-        """
-        # The short range origin concentration does not consider the mask contribution.
-        return self.expiration.aerosols(mask=Mask.types['No mask'])
-    
-    def _normed_diluted_jet_concentration(self):
-        return 1/self.dilution_factor()*self._normed_jet_origin_concentration()
-
-    def normalization_factor(self) -> _VectorisedFloat:
-        """
-        The normalization factor applied to the short-range results. It refers to the emission
-        rate per aerosol without accounting for the exhalation rate (viral load and f_inf).
-        Result in (virions.cm^3)/(mL.m^3).
-        """
-        # Re-use the emission rate method divided by the BR contribution. 
-        return self.infected.emission_rate_per_aerosol_per_person_when_present() / self.infected.activity.exhalation_rate
-    
-    def jet_origin_concentration(self) -> _VectorisedFloat:
-        """
-        The initial jet concentration at the source origin (mouth/nose).
-        Returns the full result with the diameter dependent and independent variables, in virions/m^3.
-        """
-        return self._normed_jet_origin_concentration() * self.normalization_factor()
-    
-    def diluted_jet_concentration(self) -> _VectorisedFloat:
-        """
-        The diluted short-range component of the viral concentration, in virions/m^3.
-        """
-        return (self._normed_diluted_jet_concentration() * self.normalization_factor())
-
-    @method_cache
-    def extract_between_bounds(self, time1: float, time2: float) -> typing.Union[None, typing.Tuple[float,float]]:
-        """
-        Extract the bounds of the interval resulting from the
-        intersection of [time1, time2] and the presence interval.
-        If [time1, time2] has nothing common to the presence interval,
-        we return (0, 0).
-        Raise an error if time1 and time2 are not in ascending order.
-        """
-        if time1>time2:
-            raise ValueError("time1 must be less or equal to time2")
-
-        start, stop = self.presence.boundaries()[0]
-        if (stop < time1) or (start > time2):
-            return (0, 0)
-        elif start <= time1 and time2<= stop:
-            return time1, time2
-        elif start <= time1 and stop < time2:
-            return time1, stop
-        elif time1 < start and time2 <= stop:
-            return start, time2
-        elif time1 <= start and stop < time2:
-            return start, stop
-
-    def _normed_jet_exposure_between_bounds(self,
-                    time1: float, time2: float):
-        """
-        Get the part of the integrated short-range concentration of
-        viruses in the air, between the times start and stop, coming
-        from the jet concentration, normalized by normalization_factor, 
-        and without dilution.
-        """
-        start, stop = self.extract_between_bounds(time1, time2)
-        # Note the conversion factor mL.cm^-3 -> mL.m^-3
-        jet_origin = self._normed_jet_origin_concentration() * 10**6
-        return jet_origin * (stop - start)
 
 
 @dataclass(frozen=True)
@@ -1557,9 +1548,6 @@ class ExposureModel:
 
     #: The virus concentration model which this exposure model should consider.
     concentration_model: typing.Tuple[ConcentrationModel, ...]
-
-    #: The list of short-range models which this exposure model should consider.
-    short_range: typing.Tuple[ShortRangeModel, ...]
 
     #: The population of non-infected people to be used in the model.
     exposed: Population
@@ -1686,7 +1674,7 @@ class ExposureModel:
         """
         return sum([np.array(c_model.concentration(time)).mean() for c_model in self.concentration_model])
     
-    def diluted_long_range_concentration(self, interaction, time: float) -> float:
+    def diluted_long_range_concentration(self, interaction: ShortRangeModel, time: float) -> float:
         """
         Component of the short-range concentration consisting of theentrainment of the long-range concentration into the 
         short-range jet, averaged over the particle diameters.
@@ -1718,13 +1706,15 @@ class ExposureModel:
         objects must be averaged over the diameter before summed together.
         """
         concentration = self.long_range_concentration(time)
-        for interaction in self.short_range:
-            start, stop = interaction.presence.boundaries()[0]
-            # Verifies if the given time falls within a short-range interaction
-            # NOTE: max one short-range interaction at a time, so the test should just yield true once (TODO check?)
-            if start <= time <= stop:
-                concentration += np.mean(interaction.diluted_jet_concentration())
-                concentration -= self.diluted_long_range_concentration(interaction, time)
+        for conc_model in self.concentration_model:
+            for interaction in conc_model.short_range:
+                # TODO: if interaction.exposed_name == self.exposed.name:
+                start, stop = interaction.presence.boundaries()[0]
+                # Verifies if the given time falls within a short-range interaction
+                # NOTE: max one short-range interaction at a time, so the test should just yield true once (TODO check?)
+                if start <= time <= stop:
+                    concentration += np.mean(interaction._normed_diluted_jet_concentration()*conc_model.short_range_normalization_factor())
+                    concentration -= self.diluted_long_range_concentration(interaction, time)
         return concentration
 
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
@@ -1770,43 +1760,45 @@ class ExposureModel:
         initial deposited exposure.
         """
         deposited_exposure: _VectorisedFloat = 0.
-        for interaction in self.short_range:
-            # Only adding the additional contribution from the short-range interaction
-            start, stop = interaction.extract_between_bounds(time1, time2)
-            short_range_jet_exposure = interaction._normed_jet_exposure_between_bounds(start, stop)
+        for conc_model in self.concentration_model:
+            for interaction in conc_model.short_range:
+                # TODO: if interaction.exposed_name == self.exposed.name:
+                # Only adding the additional contribution from the short-range interaction
+                start, stop = interaction.extract_between_bounds(time1, time2)
+                short_range_jet_exposure = interaction._normed_jet_exposure_between_bounds(start, stop)
 
-            dilution = interaction.dilution_factor()
+                dilution = interaction.dilution_factor()
 
-            fdep = interaction.expiration.particle.fraction_deposited(evaporation_factor=1.0)
-            diameter = interaction.expiration.particle.diameter
+                fdep = interaction.expiration.particle.fraction_deposited(evaporation_factor=1.0)
+                diameter = interaction.expiration.particle.diameter
 
-            # Aerosols not considered given the formula for the initial
-            # concentration at mouth/nose.
-            if diameter is not None and not np.isscalar(diameter):
-                # We compute first the mean of all diameter-dependent quantities
-                # to perform properly the Monte-Carlo integration over
-                # particle diameters (doing things in another order would
-                # lead to wrong results for the probability of infection).
-                this_deposited_exposure = (np.array(short_range_jet_exposure
-                    * fdep).mean())
-            else:
-                # In the case of a single diameter or no diameter defined,
-                # one should not take any mean at this stage.
-                this_deposited_exposure = (short_range_jet_exposure * fdep)
+                # Aerosols not considered given the formula for the initial
+                # concentration at mouth/nose.
+                if diameter is not None and not np.isscalar(diameter):
+                    # We compute first the mean of all diameter-dependent quantities
+                    # to perform properly the Monte-Carlo integration over
+                    # particle diameters (doing things in another order would
+                    # lead to wrong results for the probability of infection).
+                    this_deposited_exposure = (np.array(short_range_jet_exposure
+                        * fdep).mean())
+                else:
+                    # In the case of a single diameter or no diameter defined,
+                    # one should not take any mean at this stage.
+                    this_deposited_exposure = (short_range_jet_exposure * fdep)
 
-            # Multiply by the (diameter-independent) inhalation rate
-            _deposited_exposure = (this_deposited_exposure *
-                                   interaction.activity.inhalation_rate
-                                   /dilution) 
-            
-            # Then we multiply by the emission rate without the BR contribution (and conversion factor),
-            # and parameters of the vD equation (i.e. n_in).
-            deposited_exposure += _deposited_exposure*(
-                (interaction.infected.emission_rate_per_aerosol_per_person_when_present() / (
-                interaction.infected.activity.exhalation_rate * 10**6)) *                 
-                (1 - self.exposed.mask.inhale_efficiency()))
-            
-            deposited_exposure -= self.long_range_deposited_exposure_between_bounds(time1, time2)/dilution
+                # Multiply by the (diameter-independent) inhalation rate
+                _deposited_exposure = (this_deposited_exposure *
+                                    interaction.activity.inhalation_rate
+                                    /dilution) 
+                
+                # Then we multiply by the emission rate without the BR contribution (and conversion factor),
+                # and parameters of the vD equation (i.e. n_in).
+                deposited_exposure += _deposited_exposure*(
+                    (conc_model.infected.emission_rate_per_aerosol_per_person_when_present() / (
+                    conc_model.infected.activity.exhalation_rate * 10**6)) *                 
+                    (1 - self.exposed.mask.inhale_efficiency()))
+                
+                deposited_exposure -= self.long_range_deposited_exposure_between_bounds(time1, time2)/dilution
 
             
         # Long-range contributions from all infected populations (including the ones with SR interactions)
