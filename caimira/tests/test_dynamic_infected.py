@@ -250,15 +250,7 @@ def test_short_range_deposited_exposure(start, stop, valid_conc_model_tuple, sho
 def test_exposure(valid_conc_model_tuple, short_range_models):
     exp_model_no_sr = get_exposure_model(valid_conc_model_tuple).build_model(SAMPLE_SIZE)
     exp_model_with_sr = get_exposure_model(valid_conc_model_tuple, short_range_models).build_model(SAMPLE_SIZE)
-    short_range_deposited_exposure = exp_model_with_sr.deposited_exposure()
-    long_range_deposited_exposure = exp_model_no_sr.deposited_exposure()
-    assert np.all(long_range_deposited_exposure > 0)
-    assert np.all(short_range_deposited_exposure > 0)
-
-def test_p_infection(valid_conc_model_tuple, short_range_models):
-    exp_model_no_sr = get_exposure_model(valid_conc_model_tuple).build_model(SAMPLE_SIZE)
-    exp_model_with_sr = get_exposure_model(valid_conc_model_tuple, short_range_models).build_model(SAMPLE_SIZE)
-    individual_infection_probability_no_sr = exp_model_with_sr.individual_infection_probability()
-    individual_infection_probability_with_sr = exp_model_no_sr.individual_infection_probability()
-    assert np.all(100 > individual_infection_probability_no_sr > 0)
-    assert np.all(100 > individual_infection_probability_with_sr > 0)
+    assert np.all(exp_model_no_sr.deposited_exposure() > 0)
+    assert np.all(exp_model_with_sr.deposited_exposure() > 0)
+    assert np.all(100 > exp_model_with_sr.individual_infection_probability() > 0)
+    assert np.all(100 > exp_model_no_sr.individual_infection_probability() > 0)
