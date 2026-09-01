@@ -160,6 +160,18 @@ def valid_conc_model_tuple(all_infected_populations):
         evaporation_factor=0.3,
     ) for infected_population in all_infected_populations)
 
+def infected_pop(number):
+    return mc.InfectedPopulation(
+        data_registry=data_registry,
+        number=number,
+        presence=interesting_times,
+        mask=models.Mask.types['Type I'],
+        activity=models.Activity.types['Seated'],
+        virus=models.Virus.types['SARS_CoV_2'],
+        expiration=models.Expiration.types['Breathing'],
+        host_immunity=0.,
+    )
+
 def get_exposure_model(concentration_model_tuple, short_range=()) -> mc.ExposureModel:
     return mc.ExposureModel(
         data_registry=data_registry,
@@ -203,8 +215,7 @@ def test_long_range_concentration(time, valid_conc_model_tuple):
     assert concentration >= 0
 
 @pytest.mark.parametrize(
-        "start, stop",
-    [
+    "start, stop", [
         [0., 1],
         [0.6, 2],
         [1, 3.],
@@ -224,9 +235,17 @@ def test_long_range_deposited_exposure(start, stop, valid_conc_model_tuple):
     assert np.allclose(deposited_exposure, long_range_deposited_exposure) # valid_conc_model_tuple has no short-range interactions
     assert deposited_exposure >= 0
 
+
+def test_exposure(valid_conc_model_tuple, short_range_models):
+    exp_model_no_sr = get_exposure_model(valid_conc_model_tuple).build_model(SAMPLE_SIZE)
+    exp_model_with_sr = get_exposure_model(valid_conc_model_tuple, short_range_models).build_model(SAMPLE_SIZE)
+    assert np.all(exp_model_no_sr.deposited_exposure() > 0)
+    assert np.all(exp_model_with_sr.deposited_exposure() > 0)
+    assert np.all(100 > exp_model_with_sr.individual_infection_probability() > 0)
+    assert np.all(100 > exp_model_no_sr.individual_infection_probability() > 0)
+
 @pytest.mark.parametrize(
-        "start, stop",
-    [
+    "start, stop", [
         [0., 1],
         [0.6, 2],
         [1, 3.],
@@ -237,20 +256,54 @@ def test_long_range_deposited_exposure(start, stop, valid_conc_model_tuple):
         [19, 20.],
     ],
 )
-def test_short_range_deposited_exposure(start, stop, valid_conc_model_tuple, short_range_models):
-    exp_model_no_sr = get_exposure_model(valid_conc_model_tuple).build_model(SAMPLE_SIZE)
-    exp_model_with_sr = get_exposure_model(valid_conc_model_tuple, short_range_models).build_model(SAMPLE_SIZE)
-    short_range_deposited_exposure = exp_model_with_sr.deposited_exposure_between_bounds(start, stop)
-    long_range_deposited_exposure = exp_model_with_sr.long_range_deposited_exposure_between_bounds(start, stop)
-    deposited_exposure_no_sr = exp_model_no_sr.deposited_exposure_between_bounds(start, stop)
-    assert np.allclose(deposited_exposure_no_sr, long_range_deposited_exposure)
-    assert np.all(short_range_deposited_exposure >= 0)
+def test_dynamic_exposure(start, stop):
+    short_range_model = (mc.ShortRangeModel(
+        data_registry=data_registry,
+        infected=infected_pop(1), # The number of infected in the population does not matter. Short-range is always with just one infected.
+        expiration=models.Expiration.types['Breathing'],
+        activity=models.Activity.types['Seated'],
+        presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
+        distance=0.854,
+        ),
+    )
+    conc_model_2_infected = mc.ConcentrationModel(
+        data_registry=data_registry,
+        room = models.Room(75, models.PiecewiseConstant((0., 24.), (293,))),
+        ventilation = models.AirChange(interesting_times, 100),
+        infected = infected_pop(2),
+        evaporation_factor=0.3,
+    )
+    conc_model_1_infected = mc.ConcentrationModel(
+        data_registry=data_registry,
+        room = models.Room(75, models.PiecewiseConstant((0., 24.), (293,))),
+        ventilation = models.AirChange(interesting_times, 100),
+        infected = infected_pop(1),
+        evaporation_factor=0.3,
+    )
+    non_dynamic_exp_model_with_sr = get_exposure_model((conc_model_2_infected,), short_range_model).build_model(SAMPLE_SIZE) # short-range with just one infected
+    dynamic_exp_model_with_sr = get_exposure_model((conc_model_1_infected, conc_model_1_infected), short_range_model).build_model(SAMPLE_SIZE) # short-range with just one infected
 
-
-def test_exposure(valid_conc_model_tuple, short_range_models):
-    exp_model_no_sr = get_exposure_model(valid_conc_model_tuple).build_model(SAMPLE_SIZE)
-    exp_model_with_sr = get_exposure_model(valid_conc_model_tuple, short_range_models).build_model(SAMPLE_SIZE)
-    assert np.all(exp_model_no_sr.deposited_exposure() > 0)
-    assert np.all(exp_model_with_sr.deposited_exposure() > 0)
-    assert np.all(100 > exp_model_with_sr.individual_infection_probability() > 0)
-    assert np.all(100 > exp_model_no_sr.individual_infection_probability() > 0)
+    assert np.allclose(
+        non_dynamic_exp_model_with_sr.long_range_deposited_exposure_between_bounds(start, stop),
+        dynamic_exp_model_with_sr.long_range_deposited_exposure_between_bounds(start, stop)
+    )
+    assert np.allclose(
+        non_dynamic_exp_model_with_sr.deposited_exposure_between_bounds(start, stop),
+        dynamic_exp_model_with_sr.deposited_exposure_between_bounds(start, stop)
+    )
+    assert np.allclose(
+            non_dynamic_exp_model_with_sr.deposited_exposure(short_range=False),
+            dynamic_exp_model_with_sr.deposited_exposure(short_range=False)
+        )
+    assert np.allclose(
+        non_dynamic_exp_model_with_sr.deposited_exposure(short_range=True),
+        dynamic_exp_model_with_sr.deposited_exposure(short_range=True)
+    )
+    assert np.allclose(
+            non_dynamic_exp_model_with_sr.individual_infection_probability(short_range=False),
+            dynamic_exp_model_with_sr.individual_infection_probability(short_range=False)
+        )
+    assert np.allclose(
+        non_dynamic_exp_model_with_sr.individual_infection_probability(short_range=True),
+        dynamic_exp_model_with_sr.individual_infection_probability(short_range=True)
+    )
