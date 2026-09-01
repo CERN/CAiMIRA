@@ -236,7 +236,7 @@ def test_long_range_deposited_exposure(start, stop, valid_conc_model_tuple):
     assert deposited_exposure >= 0
 
 
-def test_exposure(valid_conc_model_tuple, short_range_models):
+def test_short_range_exposure(valid_conc_model_tuple, short_range_models):
     exp_model_no_sr = get_exposure_model(valid_conc_model_tuple).build_model(SAMPLE_SIZE)
     exp_model_with_sr = get_exposure_model(valid_conc_model_tuple, short_range_models).build_model(SAMPLE_SIZE)
     assert np.all(exp_model_no_sr.deposited_exposure() > 0)
