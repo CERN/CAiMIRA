@@ -317,7 +317,6 @@ class VirusFormData(FormData):
                     exposed=exposed_population,
                     geographical_data=geographical_data,
                     exposed_to_short_range=self.short_range_occupants,
-                    identifier=exposure_group,
                 )
                 exposure_model_set.append(exposure_model)
 
@@ -572,7 +571,9 @@ class VirusFormData(FormData):
         else:
             host_immunity = 0.
 
+        identifier = exposure_group if exposure_group else "group_1"
         exposed = mc.Population(
+            identifier=identifier,
             number=exposed_occupancy,
             presence=exposed_presence,
             activity=activity,

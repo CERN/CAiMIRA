@@ -799,13 +799,15 @@ Activity.types = {
 }
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class SimplePopulation:
     """
     Represents a group of people all with exactly the same behavior and
     situation.
-
     """
+    #: Identifier of the population
+    identifier: str = ""
+
     #: How many in the population.
     number: typing.Union[int, IntPiecewiseConstant]
 
@@ -844,7 +846,7 @@ class SimplePopulation:
             return int(self.number.value(time))
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class Population(SimplePopulation):
     """
     Represents a group of people all with exactly the same behavior and
@@ -860,7 +862,7 @@ class Population(SimplePopulation):
     host_immunity: float
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class _PopulationWithVirus(Population):
     data_registry: DataRegistry
 
@@ -924,7 +926,7 @@ class _PopulationWithVirus(Population):
         return Particle()
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class EmittingPopulation(_PopulationWithVirus):
     #: The emission rate of a single individual, in virions / h.
     known_individual_emission_rate: float
@@ -947,7 +949,7 @@ class EmittingPopulation(_PopulationWithVirus):
         return self.known_individual_emission_rate
     
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class InfectedPopulation(_PopulationWithVirus):
     #: The type of expiration that is being emitted whilst doing the activity.
     expiration: _ExpirationBase
@@ -1478,6 +1480,7 @@ class CO2DataModel:
             ventilation=CustomVentilation(PiecewiseConstant(
                 self.ventilation_transition_times, ventilation_values)),
             CO2_emitters=SimplePopulation(
+                identifier="",
                 number=self.occupancy,
                 presence=None,
                 activity=Activity(
@@ -1567,8 +1570,9 @@ class ExposureModel:
     #: Total people with short-range interactions
     exposed_to_short_range: int = 0
 
-    #: Unique group identifier
-    identifier: str = 'group_1'
+    @property
+    def identifier(self) -> str:
+        return self.exposed.identifier
 
     #: The number of times the exposure event is repeated (default 1).
     @property
