@@ -142,15 +142,16 @@ def invalid_rooms_conc_model_tuple(all_infected_populations):
     ) for vol in [75,100])
 
 @pytest.fixture
-def short_range_models(infected_dynamic_presence):
-    return tuple(mc.ShortRangeModel(
-        data_registry=data_registry,
-        infected=infected,
-        expiration=models.Expiration.types['Breathing'],
-        activity=models.Activity.types['Seated'],
-        presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
-        distance=0.854
-        ) for infected in infected_dynamic_presence)
+def short_range_models():
+    return (mc.ShortRangeModel(
+            data_registry=data_registry,
+            exposed_identifier="groupA",
+            expiration=models.Expiration.types['Breathing'],
+            activity=models.Activity.types['Seated'],
+            presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
+            distance=0.854
+            ),
+        )
 
 @pytest.fixture
 def valid_conc_model_tuple(all_infected_populations):
@@ -161,6 +162,17 @@ def valid_conc_model_tuple(all_infected_populations):
         infected = infected_population,
         evaporation_factor=0.3,
         short_range=(),
+    ) for infected_population in all_infected_populations)
+
+@pytest.fixture
+def valid_conc_model_tuple_with_short_range(all_infected_populations, short_range_models):
+    return tuple(mc.ConcentrationModel(
+        data_registry=data_registry,
+        room = models.Room(75, models.PiecewiseConstant((0., 24.), (293,))),
+        ventilation = models.AirChange(interesting_times, 100),
+        infected = infected_population,
+        evaporation_factor=0.3,
+        short_range=short_range_models,
     ) for infected_population in all_infected_populations)
 
 def infected_pop(number):
@@ -175,11 +187,12 @@ def infected_pop(number):
         host_immunity=0.,
     )
 
-def get_exposure_model(concentration_model_tuple, short_range=()) -> mc.ExposureModel:
+def get_exposure_model(concentration_model_tuple) -> mc.ExposureModel:
     return mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=concentration_model_tuple,
         exposed=mc.Population(
+            identifier="groupA",
             number=1,
             presence=models.SpecificInterval(present_times=((8.5, 12), (13, 17.5))),
             mask=models.Mask.types['No mask'],
@@ -238,9 +251,9 @@ def test_long_range_deposited_exposure(start, stop, valid_conc_model_tuple):
     assert deposited_exposure >= 0
 
 
-def test_short_range_exposure(valid_conc_model_tuple, short_range_models):
+def test_exposure(valid_conc_model_tuple, valid_conc_model_tuple_with_short_range):
     exp_model_no_sr = get_exposure_model(valid_conc_model_tuple).build_model(SAMPLE_SIZE)
-    exp_model_with_sr = get_exposure_model(valid_conc_model_tuple, short_range_models).build_model(SAMPLE_SIZE)
+    exp_model_with_sr = get_exposure_model(valid_conc_model_tuple_with_short_range).build_model(SAMPLE_SIZE)
     assert np.all(exp_model_no_sr.deposited_exposure() > 0)
     assert np.all(exp_model_with_sr.deposited_exposure() > 0)
     assert np.all(100 > exp_model_with_sr.individual_infection_probability() > 0)
@@ -261,29 +274,44 @@ def test_short_range_exposure(valid_conc_model_tuple, short_range_models):
 def test_dynamic_exposure(start, stop):
     short_range_model = (mc.ShortRangeModel(
         data_registry=data_registry,
-        infected=infected_pop(1), # The number of infected in the population does not matter. Short-range is always with just one infected.
+        exposed_identifier="groupA",
         expiration=models.Expiration.types['Breathing'],
         activity=models.Activity.types['Seated'],
         presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
         distance=0.854,
         ),
     )
-    conc_model_2_infected = mc.ConcentrationModel(
-        data_registry=data_registry,
-        room = models.Room(75, models.PiecewiseConstant((0., 24.), (293,))),
-        ventilation = models.AirChange(interesting_times, 100),
-        infected = infected_pop(2),
-        evaporation_factor=0.3,
+    conc_model_combined_infected = (
+        mc.ConcentrationModel(
+            data_registry=data_registry,
+            room = models.Room(75, models.PiecewiseConstant((0., 24.), (293,))),
+            ventilation = models.AirChange(interesting_times, 100),
+            infected = infected_pop(2),
+            evaporation_factor=0.3,
+            short_range=short_range_model,
+        ),
     )
-    conc_model_1_infected = mc.ConcentrationModel(
-        data_registry=data_registry,
-        room = models.Room(75, models.PiecewiseConstant((0., 24.), (293,))),
-        ventilation = models.AirChange(interesting_times, 100),
-        infected = infected_pop(1),
-        evaporation_factor=0.3,
+    conc_model_split_infected = (
+        mc.ConcentrationModel(
+            data_registry=data_registry,
+            room = models.Room(75, models.PiecewiseConstant((0., 24.), (293,))),
+            ventilation = models.AirChange(interesting_times, 100),
+            infected = infected_pop(1),
+            evaporation_factor=0.3,
+            short_range=(),
+        ),
+        mc.ConcentrationModel(
+            data_registry=data_registry,
+            room = models.Room(75, models.PiecewiseConstant((0., 24.), (293,))),
+            ventilation = models.AirChange(interesting_times, 100),
+            infected = infected_pop(1),
+            evaporation_factor=0.3,
+            short_range=short_range_model,
+        ),
     )
-    non_dynamic_exp_model_with_sr = get_exposure_model((conc_model_2_infected,), short_range_model).build_model(SAMPLE_SIZE) # short-range with just one infected
-    dynamic_exp_model_with_sr = get_exposure_model((conc_model_1_infected, conc_model_1_infected), short_range_model).build_model(SAMPLE_SIZE) # short-range with just one infected
+
+    non_dynamic_exp_model_with_sr = get_exposure_model(conc_model_combined_infected).build_model(SAMPLE_SIZE) # short-range with just one infected
+    dynamic_exp_model_with_sr = get_exposure_model(conc_model_split_infected).build_model(SAMPLE_SIZE) # short-range with just one infected
 
     assert np.allclose(
         non_dynamic_exp_model_with_sr.long_range_deposited_exposure_between_bounds(start, stop),
