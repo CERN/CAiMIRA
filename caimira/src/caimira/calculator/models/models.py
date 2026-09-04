@@ -1592,12 +1592,6 @@ class ExposureModel:
         It also checks that the number of exposed is
         static during the simulation time.
         """
-
-        if len(self.concentration_model) > 1 and len(self.short_range) > 0:
-            # NOTE: since ShortRangeModel has properties expiration and activity, which InfectedPopulation
-            # the short range interaction is with does not have to be defined (?)
-            raise NotImplementedError("Short range interactions with multiple infected populations not yet implemented.")
-        
         viruses = [c_model.virus for c_model in self.concentration_model]
         virus = viruses[0]
         if any(v != virus for v in viruses):
@@ -1777,9 +1771,6 @@ class ExposureModel:
         """
         deposited_exposure: _VectorisedFloat = 0.
         for interaction in self.short_range:
-            if len(self.concentration_model) > 1:
-                raise NotImplementedError("yet to implement dynamic infected for SR interactions")
-
             # Only adding the additional contribution from the short-range interaction
             start, stop = interaction.extract_between_bounds(time1, time2)
             short_range_jet_exposure = interaction._normed_jet_exposure_between_bounds(start, stop)
@@ -1811,8 +1802,8 @@ class ExposureModel:
             # Then we multiply by the emission rate without the BR contribution (and conversion factor),
             # and parameters of the vD equation (i.e. n_in).
             deposited_exposure += _deposited_exposure*(
-                (self.concentration_model[0].infected.emission_rate_per_aerosol_per_person_when_present() / (
-                self.concentration_model[0].infected.activity.exhalation_rate * 10**6)) *                 
+                (interaction.infected.emission_rate_per_aerosol_per_person_when_present() / (
+                interaction.infected.activity.exhalation_rate * 10**6)) *                 
                 (1 - self.exposed.mask.inhale_efficiency()))
             
             deposited_exposure -= self.long_range_deposited_exposure_between_bounds(time1, time2)/dilution
