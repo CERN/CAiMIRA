@@ -1,9 +1,6 @@
 # Physics of Viral Transmission
-The CAiMIRA model simulates the physical process of viral transmission through five sequential stages, illustrated by the topmost part of Figure 1: **emission**, **removal**, **concentration**, **dose**, and **infection probability**.
-Along with viral transmission, CAiMIRA also simulates **emission**, **removal**, and **concentration** of CO<sub>2</sub>, as shown in the lowermost part of Figure 1.
-This page details the modelling of viral transmission. The modelling of CO<sub>2</sub> concentration is detailed on **[Computation of the CO<sub>2</sub> Concentration](./co2_concentration.md)**.
-[![CAiMIRA Structure](CAiMIRA_structure.png)](CAiMIRA_structure.png)
-*Figure 1: Structure of the CAiMIRA model showing the viral transmission and CO<sub>2</sub> simulation processes.*
+The CAiMIRA model simulates the physical process of viral transmission through five sequential stages: **emission**, **removal**, **concentration**, **dose**, and **infection probability**.
+Along with viral transmission, CAiMIRA also simulates **emission**, **removal**, and **concentration** of CO<sub>2</sub> as detailed on **[Computation of the CO<sub>2</sub> Concentration](./co2_concentration.md)**.
 
 In the following, `data_registry` refers to `caimira.calculator.store.data_registry`, `models` refers to `caimira.calculator.models.models.py`, and `monte_carlo` refers to `caimira.calculator.models.monte_carlo`.
 
@@ -141,7 +138,7 @@ $$
 \begin{align*}
 C^{\mathrm{total}}(t)
 = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} C(t,D) \;\ \mathrm{d}D 
-\approx \frac{1}{S}\sum_{i=1}^S \frac{C(t,D)}{\mathrm{p}_D(D)}.
+\approx \frac{1}{S}\sum_{i=1}^S \frac{C(t,D_i)}{\mathrm{p}_D(D_i)}.
 \end{align*}
 $$
 
@@ -151,7 +148,7 @@ $$
 \begin{align*}
 \mathrm{vD}^{\mathrm{total}}
 = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} \mathrm{vD(D)} \;\ \mathrm{d}D 
-\approx \frac{1}{S}\sum_{i=1}^S \frac{\mathrm{vD(D)}}{\mathrm{p}_D(D)},
+\approx \frac{1}{S}\sum_{i=1}^S \frac{\mathrm{vD(D_i)}}{\mathrm{p}_D(D_i)},
 \end{align*}
 $$
 respectively. 
@@ -183,27 +180,50 @@ $$
 \end{equation*}
 $$
 
-where $\lambda_{\mathrm{ACH}}(t)$ is the air exchange per hour, $\lambda_{\mathrm{bio}}$ is the biological decay, and 
+where $\lambda_{\mathrm{ACH}}(t)$ is the air exchange per hour, $\lambda_{\mathrm{bio}}$ is the biological decay, and $\lambda_{\mathrm{dep}}(D)$ is the particle deposition per hour. 
+Different types of ventilation and air filtration systems, such as windows (sliding or hinged) and HEPA filters, can be defined to adjust the air exchange per hour ($\lambda_{\mathrm{ACH}}(t)$). 
+The mechanics of different ventilation systems are modeled by subclasses of `models.Ventilation`.
+The effect of mulitple ventilation systems can be combined to compute the total air exchange per hour using `models.MultipleVentilation`.
+Next, the biological decay is 
 
 $$
 \begin{equation*}
-\lambda_{\mathrm{dep}}(D) = \frac{1.88 \cdot 10^{-4} \cdot 3600 \cdot f_{ev}^2}{2.5^2 \cdot h_{inf}} \cdot D^2
+\lambda_{\mathrm{bio}} = \frac{\ln(2)}{r_{0.5}}
 \end{equation*}
 $$
 
-is the particle deposition (per hour) for evaporation factor $f_{ev}$ and the initial hight of the particle (mouth of emittor) $h_{inf}$. 
+where $r_{0.5}$ is the halflife of the virus, computed for each virus in `models.Virus.halflife()` using values for the inside temperature and humidity. 
+Finally, the particle deposition is computed as
 
-The diameter-dependent viral removal rate at a given time is calculated by `models.ConcentrationModel.removal_rate()`. The total removal rate over all particle diameters is currently not reported by CAiMIRA, but equals
+$$
+\begin{equation*}
+\lambda_{\mathrm{dep}}(D) = \frac{3600}{h_{inf}} \cdot v(D)
+\end{equation*}
+$$
+
+with $h_{inf}$ being the initial hight of the particle (set to $1.5$ as the hight of the mouth/nose of the emittor), and $v(D)$ is the particle settling velocity given by
+
+$$
+\begin{equation*}
+v(D) = 1.88 \cdot 10^{-4} \cdot \Big(\frac{D \cdot f_{ev}}{2.5} \Big)^2
+\end{equation*}
+$$
+
+with $f_{ev}$ being the evaporation factor. 
+The particle settling velocity is computed by `models.Particle.settling_velocity()` and retrieved to compute the full diameter-dependent viral removal rate at a given time ($\lambda_{\mathrm{vRR}}(t,D)$) in `models.ConcentrationModel.removal_rate()`.
+
+The total removal of virions can be computed by Monte Carlo integration as
 
 $$
 \begin{equation*}
 \lambda_{\mathrm{vRR}}(t)^{\mathrm{total}}
-= \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} \lambda_{\mathrm{vRR}}(t,D) \;\ \mathrm{d}D 
-= (\lambda_{\mathrm{ACH}}(t)+\lambda_{\mathrm{bio}}) \cdot (D_{\mathrm{max}} - D_{\mathrm{min}}) + \frac{1.88 \cdot 10^{-4} \cdot 3600 \cdot f_{ev}^2}{3 \cdot 2.5^2 \cdot h_{inf}} \cdot (D_{\mathrm{max}} - D_{\mathrm{min}})^3.
+= \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} \lambda_{\mathrm{vRR}}(t,D) \cdot C(t, D) \;\ \mathrm{d}D 
+\approx \frac{1}{S}\sum_{i=1}^S \frac{\lambda_{\mathrm{vRR}}(t,D_i) \cdot C(t, D_i)}{\mathrm{p}_D(D_i)}
 \end{equation*}
 $$
 
-Note that $\lambda_{\mathrm{vRR}}(t)^{\mathrm{total}}$ does not equal the average of the array returned by `models.ConcentrationModel.removal_rate()` because $\mathrm{p}_D(D)$ is not a component of $\lambda_{\mathrm{vRR}}(t,D)$. 
+where $C(t, D)$ is the viral concentration derived in the next section. 
+Currently, the total removal of virions is not computed in CAiMIRA, as it has not yet been deemed an essential intermediate result to report.
 
 ## Viral Concentration
 The concentration of virus-laden particles in a given room is computed using a two-box exposure model:
