@@ -472,14 +472,16 @@ interaction_intervals = (models.SpecificInterval(present_times=((10.5, 11.0),)),
                          models.SpecificInterval(present_times=((14.5, 15.0),))
                          )
 
-def default_infected(data_registry, virus: models.Virus = models.Virus.types['SARS_CoV_2_DELTA']) -> mc.InfectedPopulation:
+def default_infected(data_registry, virus: typing.Optional[models.Virus] = None) -> mc.InfectedPopulation:
+    if not virus:
+        virus = models.Virus.types['SARS_CoV_2_DELTA']
     return mc.InfectedPopulation(
             data_registry=data_registry,
             number=1,
             presence=presence,
             virus=virus,
             mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Seated'],
+            activity=activity_distributions(data_registry)['Seated'],
             expiration=expiration_distributions(data_registry)['Breathing'],
             host_immunity=0.,
         )
