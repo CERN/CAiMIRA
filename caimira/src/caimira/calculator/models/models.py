@@ -1357,10 +1357,7 @@ class ConcentrationModel(_ConcentrationModelBase):
     # mask, if any).
     evaporation_factor: float
 
-    #: One ShortRangeModel for each short-range interaction the infected in this class is particapating in.
-    #  Information specific to the interaction is retrieved from ShortRangeModel, whereas the neccecary information
-    #  about the infected is retrieved from self.short_range_normalization_factor. Thus, we only initiate each infected
-    #  population once with a single InfectedPopulation.
+    #: The short-range interactions the infected in this class is particapating in.
     short_range: typing.Tuple[ShortRangeModel, ...]
 
     def __post_init__(self):
@@ -1369,7 +1366,7 @@ class ConcentrationModel(_ConcentrationModelBase):
 
         for interaction in self.short_range:
             if interaction.presence.boundaries()[0][0] < self.infected.presence.boundaries()[0][0] or interaction.presence.boundaries()[-1][-1] > self.infected.presence.boundaries()[-1][-1]:
-                raise ValueError("A short-range-interaction cannot last outside the presence of the infected.")
+                raise ValueError("A short-range-interaction cannot lie outside the presence of the infected.")
 
     @property
     def population(self) -> InfectedPopulation:
@@ -1401,8 +1398,7 @@ class ConcentrationModel(_ConcentrationModelBase):
 
     def short_range_normalization_factor(self) -> _VectorisedFloat:
         """
-        The normalization factor applied to the short-range results, containing all information specific to the infected. 
-        It refers to the emission rate per aerosol without accounting for the exhalation rate (viral load and f_inf).
+        For short-range interactions, the infected population parameters intervene only through this factor.
         Result in (virions.cm^3)/(mL.m^3).
         """
         # Re-use the emission rate method divided by the BR contribution. 
