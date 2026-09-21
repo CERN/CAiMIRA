@@ -638,6 +638,17 @@ def simple_c_model(data_registry) -> SimpleConcentrationModel:
         HI                = 0.,
     )
 
+def default_exposed(data_registry, identifier: str, activity=None) -> mc.Population:
+    if not activity:
+        activity = activity_distributions(data_registry)['Seated']
+    return mc.Population(
+            identifier=identifier,
+            number=1,
+            presence=presence,
+            mask=models.Mask.types['No mask'],
+            activity=activity,
+            host_immunity=0.,
+        )
 
 
 @pytest.fixture
@@ -645,14 +656,7 @@ def expo_sr_model(data_registry, c_model_with_sr) -> mc.ExposureModel:
     return mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=(c_model_with_sr,),
-        exposed=mc.Population(
-            identifier="group1",
-            number=1,
-            presence=presence,
-            mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Seated'],
-            host_immunity=0.,
-        ),
+        exposed=default_exposed(data_registry=data_registry, identifier="group1"),
         geographical_data=models.Cases(),
     )
 
@@ -679,14 +683,7 @@ def expo_sr_model_distr(data_registry, c_model_distr_with_sr) -> mc.ExposureMode
     return mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=(c_model_distr_with_sr,),
-        exposed=mc.Population(
-            identifier="group2",
-            number=1,
-            presence=presence,
-            mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Seated'],
-            host_immunity=0.,
-        ),
+        exposed=default_exposed(data_registry=data_registry, identifier="group2"),
         geographical_data=models.Cases(),
     )
 
@@ -755,13 +752,7 @@ def test_longrange_exposure(data_registry, c_model_no_sr):
     expo_model = mc.ExposureModel(
             data_registry=data_registry,
             concentration_model=(c_model_no_sr,),
-            exposed=mc.Population(
-                number=1,
-                presence=presence,
-                mask=models.Mask.types['No mask'],
-                activity=models.Activity.types['Seated'],
-                host_immunity=0.,
-            ),
+            exposed=default_exposed(data_registry=data_registry, identifier=""),
             geographical_data=models.Cases(),
     ).build_model(SAMPLE_SIZE)
     npt.assert_allclose(
@@ -819,14 +810,7 @@ def test_longrange_exposure_with_distributions(data_registry, c_model_distr):
     expo_model = mc.ExposureModel(
             data_registry=data_registry,
             concentration_model=(c_model_distr,),
-            exposed=mc.Population(
-                identifier="",
-                number=1,
-                presence=presence,
-                mask=models.Mask.types['No mask'],
-                activity=activity_distributions(data_registry)['Seated'],
-                host_immunity=0.,
-            ),
+            exposed=default_exposed(data_registry=data_registry, identifier=""),
             geographical_data=models.Cases(),
     ).build_model(SAMPLE_SIZE)
     npt.assert_allclose(
@@ -913,14 +897,7 @@ def exposure_model_from_parameter(data_registry, f_inf=0.5, viral_load=1e9, BR=1
     return mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=(c_model,),
-        exposed=mc.Population(
-            identifier="",
-            number=1,
-            presence=presence,
-            mask=models.Mask.types['No mask'],
-            activity=models.Activity(inhalation_rate=BR, exhalation_rate=1.25),
-            host_immunity=0.,
-        ),
+        exposed=default_exposed(data_registry=data_registry, identifier="", activity=models.Activity(inhalation_rate=BR, exhalation_rate=1.25)),
         geographical_data=models.Cases(),
     ).build_model(SAMPLE_SIZE)
 
