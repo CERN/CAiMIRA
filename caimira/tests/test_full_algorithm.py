@@ -472,9 +472,7 @@ interaction_intervals = (models.SpecificInterval(present_times=((10.5, 11.0),)),
                          models.SpecificInterval(present_times=((14.5, 15.0),))
                          )
 
-def default_infected(data_registry, virus: typing.Optional[models.Virus] = None) -> mc.InfectedPopulation:
-    if not virus:
-        virus = models.Virus.types['SARS_CoV_2_DELTA']
+def default_infected(data_registry, virus) -> mc.InfectedPopulation:
     return mc.InfectedPopulation(
             data_registry=data_registry,
             number=1,
@@ -492,7 +490,7 @@ def c_model_no_sr(data_registry) -> mc.ConcentrationModel:
         data_registry=data_registry,
         room=models.Room(volume=50, inside_temp=models.PiecewiseConstant((0., 24.), (293,)), humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=1.),
-        infected=default_infected(data_registry),
+        infected=default_infected(data_registry=data_registry, virus=models.Virus.types['SARS_CoV_2_DELTA']),
         evaporation_factor=0.3,
         short_range=(),
     )
@@ -598,7 +596,7 @@ def c_model_with_sr(data_registry, short_range_models_with_exposed1) -> mc.Conce
         data_registry=data_registry,
         room=models.Room(volume=50, inside_temp=models.PiecewiseConstant((0., 24.), (293,)), humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=1.),
-        infected=default_infected(data_registry),
+        infected=default_infected(data_registry=data_registry, virus=models.Virus.types['SARS_CoV_2_DELTA']),
         evaporation_factor=0.3,
         short_range=short_range_models_with_exposed1,
     )
@@ -610,16 +608,7 @@ def c_model_distr(data_registry) -> mc.ConcentrationModel:
         room=models.Room(volume=50, humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(
                             period=120, duration=120), air_exch=1.),
-        infected=mc.InfectedPopulation(
-            data_registry=data_registry,
-            number=1,
-            presence=presence,
-            virus=virus_distributions(data_registry)['SARS_CoV_2_DELTA'],
-            mask=models.Mask.types['No mask'],
-            activity=activity_distributions(data_registry)['Seated'],
-            expiration=expiration_distributions(data_registry)['Breathing'],
-            host_immunity=0.,
-        ),
+        infected=default_infected(data_registry=data_registry, virus=virus_distributions(data_registry)['SARS_CoV_2_DELTA']),
         evaporation_factor=0.3,
         short_range=(),
     )
@@ -631,16 +620,7 @@ def c_model_distr_with_sr(data_registry, short_range_models_with_exposed2) -> mc
         room=models.Room(volume=50, humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(
                             period=120, duration=120), air_exch=1.),
-        infected=mc.InfectedPopulation(
-            data_registry=data_registry,
-            number=1,
-            presence=presence,
-            virus=virus_distributions(data_registry)['SARS_CoV_2_DELTA'],
-            mask=models.Mask.types['No mask'],
-            activity=activity_distributions(data_registry)['Seated'],
-            expiration=expiration_distributions(data_registry)['Breathing'],
-            host_immunity=0.,
-        ),
+        infected=default_infected(data_registry=data_registry, virus=virus_distributions(data_registry)['SARS_CoV_2_DELTA']),
         evaporation_factor=0.3,
         short_range=short_range_models_with_exposed2,
     )
@@ -923,7 +903,7 @@ def c_model_from_parameter(data_registry, f_inf=0.5, viral_load=1e9):
         room=models.Room(volume=50, humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
                                      air_exch=10_000_000),
-        infected=default_infected(data_registry, virus=virus),
+        infected=default_infected(data_registry=data_registry, virus=virus),
         evaporation_factor=0.3,
         short_range=(),
     )
