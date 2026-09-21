@@ -467,19 +467,14 @@ class SimpleExposureModel(SimpleConcentrationModel):
                            /(self.ID50 * self.transmissibility) )) * 100.
 
 
-presence = models.SpecificInterval(present_times=((8.5, 12), (13, 17.5)))
+presence = models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5)))
 interaction_intervals = (models.SpecificInterval(present_times=((10.5, 11.0),)),
                          models.SpecificInterval(present_times=((14.5, 15.0),))
                          )
 
-
 @pytest.fixture
-def c_model_no_sr(data_registry) -> mc.ConcentrationModel:
-    return mc.ConcentrationModel(
-        data_registry=data_registry,
-        room=models.Room(volume=50, inside_temp=models.PiecewiseConstant((0., 24.), (293,)), humidity=0.3),
-        ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=1.),
-        infected=mc.InfectedPopulation(
+def infected(data_registry) -> mc.InfectedPopulation:
+    return mc.InfectedPopulation(
             data_registry=data_registry,
             number=1,
             presence=presence,
@@ -488,7 +483,15 @@ def c_model_no_sr(data_registry) -> mc.ConcentrationModel:
             activity=models.Activity.types['Seated'],
             expiration=expiration_distributions(data_registry)['Breathing'],
             host_immunity=0.,
-        ),
+        )
+
+@pytest.fixture
+def c_model_no_sr(data_registry, infected) -> mc.ConcentrationModel:
+    return mc.ConcentrationModel(
+        data_registry=data_registry,
+        room=models.Room(volume=50, inside_temp=models.PiecewiseConstant((0., 24.), (293,)), humidity=0.3),
+        ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=1.),
+        infected=infected,
         evaporation_factor=0.3,
         short_range=(),
     )
@@ -589,21 +592,12 @@ def simple_sr_models_with_exposed2(data_registry) -> typing.Tuple[SimpleShortRan
     )
 
 @pytest.fixture
-def c_model_with_sr(data_registry, short_range_models_with_exposed1) -> mc.ConcentrationModel:
+def c_model_with_sr(data_registry, infected, short_range_models_with_exposed1) -> mc.ConcentrationModel:
     return mc.ConcentrationModel(
         data_registry=data_registry,
         room=models.Room(volume=50, inside_temp=models.PiecewiseConstant((0., 24.), (293,)), humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=1.),
-        infected=mc.InfectedPopulation(
-            data_registry=data_registry,
-            number=1,
-            presence=presence,
-            virus=models.Virus.types['SARS_CoV_2_DELTA'],
-            mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Seated'],
-            expiration=expiration_distributions(data_registry)['Breathing'],
-            host_immunity=0.,
-        ),
+        infected=infected,
         evaporation_factor=0.3,
         short_range=short_range_models_with_exposed1,
     )
@@ -931,7 +925,7 @@ def c_model_from_parameter(data_registry, f_inf=0.5, viral_load=1e9):
         infected=mc.InfectedPopulation(
             data_registry=data_registry,
             number=1,
-            presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
+            presence=presence,
             virus=virus,
             mask=models.Mask.types['No mask'],
             activity=models.Activity.types['Seated'],
@@ -950,7 +944,7 @@ def exposure_model_from_parameter(data_registry, f_inf=0.5, viral_load=1e9, BR=1
         exposed=mc.Population(
             identifier="",
             number=1,
-            presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
+            presence=presence,
             mask=models.Mask.types['No mask'],
             activity=models.Activity(inhalation_rate=BR, exhalation_rate=1.25),
             host_immunity=0.,
