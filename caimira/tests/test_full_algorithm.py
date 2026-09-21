@@ -905,7 +905,7 @@ def exposure_model_from_parameter(data_registry, short_range=(), f_inf=0.5, vira
     return mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=(c_model,),
-        exposed=default_exposed(data_registry=data_registry, identifier="", activity=models.Activity(inhalation_rate=BR, exhalation_rate=1.25)),
+        exposed=default_exposed(data_registry=data_registry, identifier="group1", activity=models.Activity(inhalation_rate=BR, exhalation_rate=1.25)),
         geographical_data=models.Cases(),
     ).build_model(SAMPLE_SIZE)
 
@@ -958,6 +958,7 @@ def test_exposure_scale_with_breathing_rate(data_registry, short_range_models_wi
     """
     e_model_1: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range=short_range_models_with_exposed1, BR=1.25)
     e_model_2: models.ExposureModel = exposure_model_from_parameter(data_registry=data_registry, short_range=short_range_models_with_exposed1_double_activity, BR=2.5)
+    assert e_model_1.deposited_exposure().mean() > e_model_1.deposited_exposure(short_range=False).mean() + 0.02
     np.testing.assert_allclose(
         2*e_model_1.deposited_exposure().mean(),
         e_model_2.deposited_exposure().mean(), rtol=0.02
