@@ -1327,6 +1327,15 @@ class ShortRangeModel:
     def __post_init__(self):        
         if self.presence.boundaries()[0][0] < self.infected.presence.boundaries()[0][0] or self.presence.boundaries()[-1][-1] > self.infected.presence.boundaries()[-1][-1]:
             raise ValueError("The short-range-interaction cannot last longer than the presence of the infected.")
+
+        if (
+            type(self.distance) is not type(self.activity.exhalation_rate)
+            or (
+                not isinstance(self.distance, float)
+                and len(self.distance) != len(self.activity.exhalation_rate)
+            )
+        ):
+            raise TypeError("The short-range distance and exhalation rate (defined from the activity) must either both be treated as random variables or both be set deterministically.")
     
     def dilution_factor(self) -> _VectorisedFloat:
         '''
