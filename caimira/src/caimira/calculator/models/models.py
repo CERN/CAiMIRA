@@ -1357,7 +1357,7 @@ class ConcentrationModel(_ConcentrationModelBase):
     # mask, if any).
     evaporation_factor: float
 
-    #: The short-range interactions the infected in this class is particapating in.
+    #: The short-range interactions the infected in this class is participating in.
     short_range: typing.Tuple[ShortRangeModel, ...]
 
     def __post_init__(self):
