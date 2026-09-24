@@ -253,35 +253,9 @@ class VirusFormData(FormData):
 
     def build_model(self, sample_size=None) -> models.ExposureModelGroup:
         sample_size = sample_size or self.data_registry.monte_carlo['sample_size']
-        
         room: models.Room = self.initialize_room()
         ventilation: models._VentilationBase = self.ventilation()
-        infected_population: models.InfectedPopulation = self.infected_population().build_model(sample_size)
-
-        short_range = defaultdict(list)
-        if self.short_range_option == "short_range_yes":
-            sr_expiration_distributions = short_range_expiration_distributions(self.data_registry)
-            for key, group in self.short_range_interactions.items():
-                for interaction in group:
-                    expiration = sr_expiration_distributions[interaction['expiration']]
-                    presence = self.short_range_interval(interaction)
-                    distances = short_range_distances(self.data_registry)
-                    short_range[key].append(mc.ShortRangeModel(
-                        data_registry=self.data_registry,
-                        infected=infected_population,
-                        activity=infected_population.activity, # TODO: allow specification of SR activity, as implemented in the backend (see doc)
-                        expiration=expiration,
-                        presence=presence,
-                        distance=distances,
-                    ))
-
-        concentration_model: models.ConcentrationModel = mc.ConcentrationModel(
-            data_registry=self.data_registry,
-            room=room,
-            ventilation=ventilation,
-            infected=infected_population,
-            evaporation_factor=0.3,
-        )
+        infected_population: models.InfectedPopulation = self.infected_population()
 
         geographical_data: models.Cases = mc.Cases(
             geographic_population=self.geographic_population,
@@ -290,6 +264,22 @@ class VirusFormData(FormData):
         )
 
         if not self.occupancy:
+            short_range = defaultdict(list)
+            if self.short_range_option == "short_range_yes":
+                sr_expiration_distributions = short_range_expiration_distributions(self.data_registry)
+                for key, group in self.short_range_interactions.items():
+                    for interaction in group:
+                        expiration = sr_expiration_distributions[interaction['expiration']]
+                        presence = self.short_range_interval(interaction)
+                        distances = short_range_distances(self.data_registry)
+                        short_range[key].append(mc.ShortRangeModel(
+                            data_registry=self.data_registry,
+                            exposed_identifier="group_1",
+                            activity=infected_population.activity, # TODO: allow specification of SR activity, as implemented in the backend (see doc)
+                            expiration=expiration,
+                            presence=presence,
+                            distance=distances,
+                        ))
             # Legacy usage - occupancy input is not defined (default empty dict)
             exposed_population = self.exposed_population()
             short_range_tuple = tuple(item for sublist in short_range.values() for item in sublist)
@@ -297,23 +287,56 @@ class VirusFormData(FormData):
                 data_registry=self.data_registry,
                 exposure_models = (mc.ExposureModel(
                     data_registry=self.data_registry,
-                    concentration_model=(concentration_model,),
-                    short_range=short_range_tuple,
-                    exposed=exposed_population,
+                    concentration_model=(
+                        mc.ConcentrationModel(
+                            data_registry=self.data_registry,
+                            room=room,
+                            ventilation=ventilation,
+                            infected=infected_population,
+                            evaporation_factor=0.3,
+                            short_range=short_range_tuple,
+                        ),
+                    ),
+                    exposed=exposed_population,# TODO: add name
                     geographical_data=geographical_data,
                     exposed_to_short_range=self.short_range_occupants,
                 ),)
             ).build_model(sample_size)
+        
         else:
             exposure_model_set = []
             for exposure_group in self.occupancy.keys():
-                sr_models: typing.Tuple[models.ShortRangeModel, ...] = tuple(short_range[exposure_group])
-                exposed_population = self.exposed_population(exposure_group)
+                short_range = defaultdict(list)
+                if self.short_range_option == "short_range_yes":
+                    sr_expiration_distributions = short_range_expiration_distributions(self.data_registry)
+                    for key, group in self.short_range_interactions.items():
+                        for interaction in group:
+                            expiration = sr_expiration_distributions[interaction['expiration']]
+                            presence = self.short_range_interval(interaction)
+                            distances = short_range_distances(self.data_registry)
+                            short_range[key].append(mc.ShortRangeModel(
+                                data_registry=self.data_registry,
+                                exposed_identifier=exposure_group,
+                                activity=infected_population.activity, # TODO: allow specification of SR activity, as implemented in the backend (see doc)
+                                expiration=expiration,
+                                presence=presence,
+                                distance=distances,
+                            ))
 
+                exposed_population = self.exposed_population(exposure_group)
+                sr_models: typing.Tuple[models.ShortRangeModel, ...] = tuple(short_range[exposure_group])
                 exposure_model = mc.ExposureModel(
                     data_registry=self.data_registry,
-                    concentration_model=(concentration_model,),
-                    short_range=sr_models,
+                    concentration_model=(
+                        mc.ConcentrationModel(
+                            data_registry=self.data_registry,
+                            room=room,
+                            ventilation=ventilation,
+                            infected=infected_population,
+                            evaporation_factor=0.3,
+                            short_range=sr_models,
+                        ),
+                    ),
                     exposed=exposed_population,
                     geographical_data=geographical_data,
                     exposed_to_short_range=self.short_range_occupants,
@@ -323,7 +346,7 @@ class VirusFormData(FormData):
             return mc.ExposureModelGroup(
                 data_registry=self.data_registry,
                 exposure_models=tuple(exposure_model_set)
-            ).build_model(sample_size)
+                ).build_model(sample_size)
 
     def build_CO2_model(self, sample_size=None) -> models.CO2ConcentrationModel:
         """
