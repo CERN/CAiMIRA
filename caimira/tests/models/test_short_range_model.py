@@ -71,27 +71,51 @@ def test_short_range_model_ndarray(concentration_model, short_range_model):
     assert np.all(model.diluted_jet_concentration() > 0)
 
 
-def test_invalid_sr_model(data_registry):
+@pytest.mark.parametrize(
+    ("activity_key", "distance_key"),
+    [
+        pytest.param("random", "deterministic", id="random-activity_fixed-distance"),
+        pytest.param("deterministic", "random", id="fixed-activity_random-distance"),
+    ],
+)
+def test_invalid_sr_model(data_registry, activity_key, distance_key):
+    activities = {
+        "random": activity_distributions(data_registry)["Seated"],
+        "deterministic": models.Activity.types["Seated"],
+    }
+    distances = {
+        "random": short_range_distances(data_registry),
+        "deterministic": 0.8,
+    }
+
     infected = mc_models.InfectedPopulation(
         data_registry=data_registry,
         number=1,
-        virus=models.Virus.types['SARS_CoV_2'],
-        presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
-        mask=models.Mask.types['No mask'],
-        activity=activity_distributions(data_registry)['Seated'],
-        expiration=short_range_expiration_distributions(data_registry)['Breathing'],
-        host_immunity=0.,
+        virus=models.Virus.types["SARS_CoV_2"],
+        presence=models.SpecificInterval(
+            present_times=((8.5, 12.5), (13.5, 17.5))
+        ),
+        mask=models.Mask.types["No mask"],
+        activity=activity_distributions(data_registry)["Seated"],
+        expiration=short_range_expiration_distributions(data_registry)["Breathing"],
+        host_immunity=0.0,
     )
-    for activity, distance in zip([activity_distributions(data_registry)['Seated'], models.Activity.types['Seated']], [0.8, short_range_distances(data_registry)]):
-        with pytest.raises(TypeError, match=re.escape("The short-range distance and exhalation rate (defined from the activity) must either both be treated as random variables or both be set deterministically.")):
-            mc_models.ShortRangeModel(
-                data_registry = data_registry,
-                infected=infected,
-                activity = activity,
-                expiration = short_range_expiration_distributions(data_registry)['Speaking'],
-                presence = models.SpecificInterval(present_times=((10.75, 11.0),)),
-                distance = distance,
-            ).build_model(1)
+
+    error_message = (
+        "The short-range distance and exhalation rate (defined from the activity) "
+        "must either both be treated as random variables or both be set "
+        "deterministically."
+    )
+
+    with pytest.raises(TypeError, match=re.escape(error_message)):
+        mc_models.ShortRangeModel(
+            data_registry=data_registry,
+            infected=infected,
+            activity=activities[activity_key],
+            expiration=short_range_expiration_distributions(data_registry)["Speaking"],
+            presence=models.SpecificInterval(present_times=((10.75, 11.0),)),
+            distance=distances[distance_key],
+        ).build_model(1)
 
 
 @pytest.mark.parametrize(
