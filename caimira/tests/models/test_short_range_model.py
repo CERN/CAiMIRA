@@ -90,19 +90,6 @@ def test_invalid_sr_model(data_registry, activity_key, distance_key):
         "deterministic": 0.8,
     }
 
-    infected = mc_models.InfectedPopulation(
-        data_registry=data_registry,
-        number=1,
-        virus=models.Virus.types["SARS_CoV_2"],
-        presence=models.SpecificInterval(
-            present_times=((8.5, 12.5), (13.5, 17.5))
-        ),
-        mask=models.Mask.types["No mask"],
-        activity=activity_distributions(data_registry)["Seated"],
-        expiration=short_range_expiration_distributions(data_registry)["Breathing"],
-        host_immunity=0.0,
-    )
-
     error_message = (
         "The short-range distance and exhalation rate (defined from the activity) "
         "must either both be treated as random variables or both be set "
@@ -112,7 +99,7 @@ def test_invalid_sr_model(data_registry, activity_key, distance_key):
     with pytest.raises(TypeError, match=re.escape(error_message)):
         mc_models.ShortRangeModel(
             data_registry=data_registry,
-            infected=infected,
+            exposed_identifier="",
             activity=activities[activity_key],
             expiration=short_range_expiration_distributions(data_registry)["Speaking"],
             presence=models.SpecificInterval(present_times=((10.75, 11.0),)),
