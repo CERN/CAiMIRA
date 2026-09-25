@@ -1056,7 +1056,7 @@ class ShortRangeModel:
             object.__setattr__(
                 self,
                 "distance",
-                np.full(len(exhalation_rate), self.distance),
+                np.full(len(exhalation_rate), self.distance), # type: ignore
             )
 
         elif exhalation_rate_is_scalar and not distance_is_scalar:
@@ -1065,7 +1065,7 @@ class ShortRangeModel:
                 "activity",
                 replace(
                     self.activity,
-                    exhalation_rate=np.full(len(self.distance), exhalation_rate),
+                    exhalation_rate=np.full(len(self.distance), exhalation_rate), # type: ignore
                 ),
             )
     
