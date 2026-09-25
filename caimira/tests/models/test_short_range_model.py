@@ -78,10 +78,10 @@ def exposure_model(data_registry, concentration_model):
 )
 def test_short_range_distance_dimentions(data_registry, make_args):
     """
-    Tests that the dilution factor can be computed for `ShortRangeModel` instances:
+    Tests that the dilution factor can be computed for `ShortRangeModel` instances with:
 
-    - with an activity whose exhalation rate is sampled via Monte Carlo and a fixed distance; and
-    - with an activity with a fixed exhalation rate and a distance sampled via Monte Carlo.
+    - an activity whose exhalation rate is sampled via Monte Carlo and a fixed distance; and
+    - an activity with a fixed exhalation rate and a distance sampled via Monte Carlo.
 
     This test is motivated by the transition point (`xstar`) for the dilution factor being computed from
     `activity.exhalation_rate`. Dimensionality errors may occur when comparing the distance and `xstar`
