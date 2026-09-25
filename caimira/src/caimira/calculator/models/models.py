@@ -51,7 +51,7 @@ else:
 
 from .utils import method_cache
 
-from .dataclass_utils import nested_replace, replace_concentration_model_properties
+from .dataclass_utils import replace, nested_replace, replace_concentration_model_properties
 
 oneoverln2 = 1 / np.log(2)
 # Define types for items supporting vectorisation. In the future this may be replaced
@@ -1045,6 +1045,29 @@ class ShortRangeModel:
 
     #: Interpersonal distances
     distance: _VectorisedFloat
+
+    def __post_init__(self) -> None:
+        exhalation_rate = self.activity.exhalation_rate
+
+        distance_is_scalar = np.isscalar(self.distance)
+        exhalation_rate_is_scalar = np.isscalar(exhalation_rate)
+
+        if distance_is_scalar and not exhalation_rate_is_scalar:
+            object.__setattr__(
+                self,
+                "distance",
+                np.full(len(exhalation_rate), self.distance),
+            )
+
+        elif exhalation_rate_is_scalar and not distance_is_scalar:
+            object.__setattr__(
+                self,
+                "activity",
+                replace(
+                    self.activity,
+                    exhalation_rate=np.full(len(self.distance), exhalation_rate),
+                ),
+            )
     
     def dilution_factor(self) -> _VectorisedFloat:
         '''

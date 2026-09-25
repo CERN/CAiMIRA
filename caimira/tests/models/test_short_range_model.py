@@ -63,6 +63,42 @@ def exposure_model(data_registry, concentration_model):
         exposed_to_short_range = 1,
     )
 
+@pytest.mark.parametrize(
+    "make_args",
+    [
+        pytest.param(
+            lambda data_registry: (activity_distributions(data_registry)["Seated"], 0.8),
+            id="random-activity_fixed-distance",
+        ),
+        pytest.param(
+            lambda data_registry: (models.Activity.types["Seated"], short_range_distances(data_registry)),
+            id="fixed-activity_random-distance",
+        ),
+    ],
+)
+def test_short_range_distance_dimentions(data_registry, make_args):
+    """
+    Tests that the dilution factor can be computed for `ShortRangeModel` instances:
+
+    - with an activity whose exhalation rate is sampled via Monte Carlo and a fixed distance; and
+    - with an activity with a fixed exhalation rate and a distance sampled via Monte Carlo.
+
+    This test is motivated by the transition point (`xstar`) for the dilution factor being computed from
+    `activity.exhalation_rate`. Dimensionality errors may occur when comparing the distance and `xstar`
+    (as in `ShortRangeModel.dilution_factor`) if one is a Monte Carlo random variable and the other is
+    a fixed value. This test checks that such errors are avoided.
+    """
+    activity, distance = make_args(data_registry)
+    sr_model = mc_models.ShortRangeModel(
+        data_registry=data_registry,
+        exposed_identifier="",
+        activity=activity,
+        expiration=short_range_expiration_distributions(data_registry)["Speaking"],
+        presence=models.SpecificInterval(present_times=((10.75, 11.0),)),
+        distance=distance,
+    ).build_model(2)
+    assert len(sr_model.dilution_factor()) == 2
+
 
 def test_short_range_model_ndarray(concentration_model, short_range_model):
     concentration_model = concentration_model.build_model(SAMPLE_SIZE)
