@@ -20,7 +20,7 @@ LOG = logging.getLogger(__name__)
 
 
 def baseline_model(data_registry: DataRegistry):
-    return models.CO2ConcentrationModel(
+    return models._CO2ConcentrationModel(
         data_registry=data_registry,
         room=models.Room(volume=120, humidity=0.5, inside_temp=models.PiecewiseConstant((0., 24.), (293.15,))),
         ventilation=models.HVACMechanical(active=models.PeriodicInterval(period=120, duration=120), q_air_mech=500),
@@ -87,10 +87,10 @@ class ExposureModelResult(View):
 
         return ax
 
-    def update(self, model: models.CO2ConcentrationModel):
+    def update(self, model: models._CO2ConcentrationModel):
         self.update_plot(model)
 
-    def update_plot(self, model: models.CO2ConcentrationModel):
+    def update_plot(self, model: models._CO2ConcentrationModel):
         resolution = 600
         ts = np.linspace(sorted(model.CO2_emitters.presence_interval().transition_times())[0],
                          sorted(model.CO2_emitters.presence_interval().transition_times())[-1], resolution)
@@ -165,7 +165,7 @@ class ExposureComparisonResult(View):
         )
         self.update_plot(CO2_models, updated_labels)
 
-    def update_plot(self, CO2_models: typing.Tuple[models.CO2ConcentrationModel, ...], labels: typing.Tuple[str, ...]):
+    def update_plot(self, CO2_models: typing.Tuple[models._CO2ConcentrationModel, ...], labels: typing.Tuple[str, ...]):
         self.ax.cla()
 
         start, finish = models_start_end(CO2_models)
@@ -225,9 +225,9 @@ class CO2Application(Controller):
         )
         self.add_scenario('Scenario 1')
 
-    def build_new_model(self, vent: str) -> state.DataclassInstanceState[models.CO2ConcentrationModel]:
+    def build_new_model(self, vent: str) -> state.DataclassInstanceState[models._CO2ConcentrationModel]:
         new_model = state.DataclassInstanceState(
-            models.CO2ConcentrationModel,
+            models._CO2ConcentrationModel,
             state_builder=CAIMIRACO2StateBuilder(data_registry=self._data_registry, selected_ventilation=vent)
         )
         return new_model
@@ -800,7 +800,7 @@ class CAIMIRACO2StateBuilder(CAIMIRAStateBuilder):
         )
         return s
 
-def models_start_end(models: typing.Sequence[models.CO2ConcentrationModel]) -> typing.Tuple[float, float]:
+def models_start_end(models: typing.Sequence[models._CO2ConcentrationModel]) -> typing.Tuple[float, float]:
     """
     Returns the earliest start and latest end time of a collection of v objects
 

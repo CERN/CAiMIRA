@@ -87,12 +87,3 @@ def walk_dataclass(model, name=""):
                 yield item_name, item
                 if dataclasses.is_dataclass(item):
                     yield from walk_dataclass(item, item_name)
-
-def replace_concentration_model_properties(exp_model, replacements):
-    return dataclasses.replace(
-        exp_model,
-        concentration_model=tuple(
-            nested_replace(cm, replacements)
-            for cm in exp_model.concentration_model
-        ),
-    )

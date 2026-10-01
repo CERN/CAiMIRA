@@ -287,15 +287,13 @@ class VirusFormData(FormData):
                 data_registry=self.data_registry,
                 exposure_models = (mc.ExposureModel(
                     data_registry=self.data_registry,
-                    concentration_model=(
-                        mc.ConcentrationModel(
-                            data_registry=self.data_registry,
-                            room=room,
-                            ventilation=ventilation,
-                            infected=infected_population,
-                            evaporation_factor=0.3,
-                            short_range=short_range_tuple,
-                        ),
+                    concentration_model=mc.ViralConcentrationModel(
+                        data_registry=self.data_registry,
+                        room=room,
+                        ventilation=ventilation,
+                        infected_populations=(infected_population,),
+                        evaporation_factor=0.3,
+                        short_range=(short_range_tuple,),
                     ),
                     exposed=exposed_population,# TODO: add name
                     geographical_data=geographical_data,
@@ -327,15 +325,13 @@ class VirusFormData(FormData):
                 sr_models: typing.Tuple[models.ShortRangeModel, ...] = tuple(short_range[exposure_group])
                 exposure_model = mc.ExposureModel(
                     data_registry=self.data_registry,
-                    concentration_model=(
-                        mc.ConcentrationModel(
-                            data_registry=self.data_registry,
-                            room=room,
-                            ventilation=ventilation,
-                            infected=infected_population,
-                            evaporation_factor=0.3,
-                            short_range=sr_models,
-                        ),
+                    concentration_model=mc.ViralConcentrationModel(
+                        data_registry=self.data_registry,
+                        room=room,
+                        ventilation=ventilation,
+                        infected_populations=(infected_population,),
+                        evaporation_factor=0.3,
+                        short_range=(sr_models,),
                     ),
                     exposed=exposed_population,
                     geographical_data=geographical_data,
@@ -348,7 +344,7 @@ class VirusFormData(FormData):
                 exposure_models=tuple(exposure_model_set)
                 ).build_model(sample_size)
 
-    def build_CO2_model(self, sample_size=None) -> models.CO2ConcentrationModel:
+    def build_total_CO2_model(self, sample_size=None) -> models.CO2ConcentrationModel:
         """
         Builds a CO2 model that considers the type of
         activity and data from the defined population groups.
@@ -373,7 +369,7 @@ class VirusFormData(FormData):
             data_registry=self.data_registry,
             room=self.initialize_room(),
             ventilation=self.ventilation(),
-            CO2_emitters=population,
+            CO2_emitting_populations=(population,),
         ).build_model(size=sample_size)
 
     def tz_name_and_utc_offset(self) -> typing.Tuple[str, float]:

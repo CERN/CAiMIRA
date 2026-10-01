@@ -13,10 +13,12 @@ def simple_co2_conc_model(data_registry):
         data_registry=data_registry,
         room=models.Room(200, models.PiecewiseConstant((0., 24.), (293,))),
         ventilation=models.AirChange(models.PeriodicInterval(period=120, duration=120), 0.25),
-        CO2_emitters=models.SimplePopulation(
-            number=5,
-            presence=models.SpecificInterval((([0., 4.], ))),
-            activity=models.Activity.types['Seated'],
+        CO2_emitting_populations=(
+            models.SimplePopulation(
+                number=5,
+                presence=models.SpecificInterval((([0., 4.], ))),
+                activity=models.Activity.types['Seated'],
+            ),
         ),
     )
 
@@ -26,13 +28,17 @@ def simple_co2_conc_model_extended_presence(data_registry):
         data_registry=data_registry,
         room=models.Room(200, models.PiecewiseConstant((0., 24.), (293,))),
         ventilation=models.AirChange(models.PeriodicInterval(period=120, duration=120), 0.25),
-        CO2_emitters=models.SimplePopulation(
-            number=5,
-            presence=models.SpecificInterval((([0., 4.], [20., 20.1]))),
-            activity=models.Activity.types['Seated'],
+        CO2_emitting_populations=(
+            models.SimplePopulation(
+                number=5,
+                presence=models.SpecificInterval((([0., 4.], [20., 20.1]))),
+                activity=models.Activity.types['Seated'],
+            ),
         ),
     )
 
+def test_total_model(simple_co2_conc_model):
+    assert len(simple_co2_conc_model.single_concentration_models) == len(simple_co2_conc_model.CO2_emitting_populations) == 1
 
 @pytest.mark.parametrize(
     "time, expected_co2_concentration", [
@@ -49,6 +55,7 @@ def test_co2_concentration(
     expected_co2_concentration: float,
 ):
     npt.assert_almost_equal(simple_co2_conc_model.concentration(time), expected_co2_concentration)
+    npt.assert_almost_equal(simple_co2_conc_model.concentration(time), simple_co2_conc_model.concentration(time))
 
 
 def test_integrated_concentration(simple_co2_conc_model):
@@ -130,7 +137,7 @@ def test_predictive_model_accuracy(data_registry, scenario_data, room_volume, oc
 
 @pytest.mark.parametrize("time", [4.1,10])
 def test_concentration_limit_last_state_change(simple_co2_conc_model, time):
-    npt.assert_almost_equal(simple_co2_conc_model._normed_concentration_limit(time), simple_co2_conc_model.min_background_concentration()/simple_co2_conc_model.normalization_factor())
+    npt.assert_almost_equal(simple_co2_conc_model.single_concentration_models[0]._normed_concentration_limit(time), 0)
 
 @pytest.mark.parametrize([
     "start",
@@ -148,9 +155,9 @@ def test_concentration_after_last_state_change(simple_co2_conc_model, simple_co2
     equals the concentration results of a model where the emitter will reenter at a later point.
     """
     time = (start+stop)/2
-    npt.assert_almost_equal(simple_co2_conc_model.removal_rate(time), simple_co2_conc_model_extended_presence.removal_rate(time))
+    npt.assert_almost_equal(simple_co2_conc_model.single_concentration_models[0].removal_rate(time), simple_co2_conc_model_extended_presence.single_concentration_models[0].removal_rate(time))
     npt.assert_almost_equal(simple_co2_conc_model.concentration(time), simple_co2_conc_model_extended_presence.concentration(time))
-    npt.assert_almost_equal(simple_co2_conc_model._normed_concentration(time), simple_co2_conc_model_extended_presence._normed_concentration(time))
-    npt.assert_almost_equal(simple_co2_conc_model.normed_integrated_concentration(start, stop), simple_co2_conc_model_extended_presence.normed_integrated_concentration(start, stop))
+    npt.assert_almost_equal(simple_co2_conc_model.single_concentration_models[0]._normed_concentration(time), simple_co2_conc_model_extended_presence.single_concentration_models[0]._normed_concentration(time))
+    npt.assert_almost_equal(simple_co2_conc_model.single_concentration_models[0].normed_integrated_concentration(start, stop), simple_co2_conc_model_extended_presence.single_concentration_models[0].normed_integrated_concentration(start, stop))
     npt.assert_almost_equal(simple_co2_conc_model.integrated_concentration(start, stop), simple_co2_conc_model_extended_presence.integrated_concentration(start, stop))
     

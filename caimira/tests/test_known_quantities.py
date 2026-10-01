@@ -6,10 +6,10 @@ import caimira.calculator.models.models as models
 import caimira.calculator.models.data as data
 
 
-def test_no_mask_superspeading_emission_rate(baseline_concentration_model):
+def test_no_mask_superspeading_emission_rate(baseline_infected):
     expected_rate = 48500.
     npt.assert_allclose(
-        [baseline_concentration_model.infected.emission_rate(float(t)) for t in [0, 1, 4, 4.5, 5, 8, 9]],
+        [baseline_infected.emission_rate(float(t)) for t in [0, 1, 4, 4.5, 5, 8, 9]],
         [0, expected_rate, expected_rate, 0, 0, expected_rate, 0],
         rtol=1e-12
     )
@@ -37,11 +37,14 @@ def baseline_periodic_hepa():
         q_air_mech=514.74,
     )
 
+@pytest.fixture
+def baseline_single_concentration_model(baseline_concentration_model):
+    return baseline_concentration_model.single_concentration_models[0]
 
-def test_concentrations(baseline_concentration_model):
+def test_concentrations(baseline_single_concentration_model):
     # Expected concentrations were computed analytically
     ts = [0, 4, 5, 7, 10]
-    concentrations = [baseline_concentration_model.concentration(float(t)) for t in ts]
+    concentrations = [baseline_single_concentration_model.concentration_increase(float(t)) for t in ts]
     npt.assert_allclose(
         concentrations,
         [0.000000e+00, 2.046096e+01, 3.846725e-13, 2.046096e+01, 7.231966e-27],
@@ -49,18 +52,18 @@ def test_concentrations(baseline_concentration_model):
     )
 
 
-def test_smooth_concentrations(baseline_concentration_model):
+def test_smooth_concentrations(baseline_single_concentration_model):
     # We don't care about the actual concentrations in this test, but rather
     # that the curve itself is smooth.
     dx = 0.002
     dy_limit = 0.2  # Anything more than this (in relative) is a bit steep.
     ts = np.arange(0, 10, dx)
-    concentrations = [baseline_concentration_model.concentration(float(t)) for t in ts]
+    concentrations = [baseline_single_concentration_model.concentration_increase(float(t)) for t in ts]
     assert np.abs(np.diff(concentrations)).max()/np.mean(concentrations) < dy_limit
 
 
 def build_model(data_registry, interval_duration, sr_model=()):
-    model = models.ConcentrationModel(
+    model = models._ViralConcentrationModel(
         data_registry=data_registry,
         room=models.Room(volume=75),
         ventilation=models.HEPAFilter(
@@ -91,7 +94,7 @@ def test_concentrations_startup(data_registry):
     m1 = build_model(data_registry, interval_duration=120)
     m2 = build_model(data_registry, interval_duration=65)
 
-    assert m1.concentration(1.) == m2.concentration(1.)
+    assert m1.concentration_increase(1.) == m2.concentration_increase(1.)
 
 
 def test_r0(baseline_exposure_model):
@@ -207,7 +210,7 @@ def test_windowopening(data_registry, time, expected_value):
     )
 
 
-def build_hourly_dependent_model(
+def build_hourly_dependent_concentration_model(
         data_registry,
         month,
         intervals_open=((7.5, 8.5),),
@@ -232,7 +235,7 @@ def build_hourly_dependent_model(
     else:
         outside_temp = temperatures[month]
 
-    model = models.ConcentrationModel(
+    return models.ViralConcentrationModel(
         data_registry=data_registry,
         room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293, ))),
         ventilation=models.SlidingWindow(
@@ -241,24 +244,25 @@ def build_hourly_dependent_model(
             outside_temp=outside_temp,
             window_height=1.6, opening_length=0.6,
         ),
-        infected=models.EmittingPopulation(
-            data_registry=data_registry,
-            number=1,
-            virus=models.Virus.types['SARS_CoV_2'],
-            presence=models.SpecificInterval(intervals_presence_infected),
-            mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light activity'],
-            known_individual_emission_rate=970 * 50,
-            host_immunity=0,
+        infected_populations=(
+            models.EmittingPopulation(
+                data_registry=data_registry,
+                number=1,
+                virus=models.Virus.types['SARS_CoV_2'],
+                presence=models.SpecificInterval(intervals_presence_infected),
+                mask=models.Mask.types['No mask'],
+                activity=models.Activity.types['Light activity'],
+                known_individual_emission_rate=970 * 50,
+                host_immunity=0,
+            ),
         ),
         evaporation_factor=0.3,
-        short_range=sr_model,
+        short_range=(sr_model,),
     )
-    return model
 
 
-def build_constant_temp_model(data_registry, outside_temp, intervals_open=((7.5, 8.5),),sr_model=(),):
-    model = models.ConcentrationModel(
+def build_constant_temp_concentration_model(data_registry, outside_temp, intervals_open=((7.5, 8.5),),sr_model=(),):
+    return models.ViralConcentrationModel(
         data_registry=data_registry,
         room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293,))),
         ventilation=models.SlidingWindow(
@@ -267,23 +271,24 @@ def build_constant_temp_model(data_registry, outside_temp, intervals_open=((7.5,
             outside_temp=models.PiecewiseConstant((0., 24.), (outside_temp,)),
             window_height=1.6, opening_length=0.6,
         ),
-        infected=models.EmittingPopulation(
-            data_registry=data_registry,
-            number=1,
-            virus=models.Virus.types['SARS_CoV_2'],
-            presence=models.SpecificInterval(((0., 4.), (5., 7.5))),
-            mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light activity'],
-            known_individual_emission_rate=970 * 50,
-            host_immunity=0.,
+        infected_populations=(
+            models.EmittingPopulation(
+                data_registry=data_registry,
+                number=1,
+                virus=models.Virus.types['SARS_CoV_2'],
+                presence=models.SpecificInterval(((0., 4.), (5., 7.5))),
+                mask=models.Mask.types['No mask'],
+                activity=models.Activity.types['Light activity'],
+                known_individual_emission_rate=970 * 50,
+                host_immunity=0.,
+            ),
         ),
         evaporation_factor=0.3,
-        short_range=sr_model,
+        short_range=(sr_model,),
     )
-    return model
 
 
-def build_hourly_dependent_model_multipleventilation(data_registry, month, intervals_open=((7.5, 8.5),), sr_model=()):
+def build_hourly_dependent_concentration_model_multipleventilation(data_registry, month, intervals_open=((7.5, 8.5),), sr_model=()):
     vent = models.MultipleVentilation((
         models.SlidingWindow(
             data_registry=data_registry,
@@ -296,24 +301,25 @@ def build_hourly_dependent_model_multipleventilation(data_registry, month, inter
             q_air_mech=500.,
         ),
     ))
-    model = models.ConcentrationModel(
+    return models.ViralConcentrationModel(
         data_registry=data_registry,
         room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293,))),
         ventilation=vent,
-        infected=models.EmittingPopulation(
-            data_registry=data_registry,
-            number=1,
-            virus=models.Virus.types['SARS_CoV_2'],
-            presence=models.SpecificInterval(((0., 4.), (5., 7.5))),
-            mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light activity'],
-            known_individual_emission_rate=970 * 50,
-            host_immunity=0.,
+        infected_populations=(
+            models.EmittingPopulation(
+                data_registry=data_registry,
+                number=1,
+                virus=models.Virus.types['SARS_CoV_2'],
+                presence=models.SpecificInterval(((0., 4.), (5., 7.5))),
+                mask=models.Mask.types['No mask'],
+                activity=models.Activity.types['Light activity'],
+                known_individual_emission_rate=970 * 50,
+                host_immunity=0.,
+            ),
         ),
         evaporation_factor=0.3,
-        short_range=sr_model,
+        short_range=(sr_model,),
     )
-    return model
 
 
 @pytest.mark.parametrize(
@@ -327,8 +333,8 @@ def build_hourly_dependent_model_multipleventilation(data_registry, month, inter
 def test_concentrations_hourly_dep_temp_vs_constant(data_registry, month, temperatures, time):
     # The concentrations should be the same up to 8 AM (time when the
     # temperature changes DURING the window opening).
-    m1 = build_hourly_dependent_model(data_registry, month)
-    m2 = build_constant_temp_model(data_registry, temperatures[7] + 273.15)
+    m1 = build_hourly_dependent_concentration_model(data_registry, month)
+    m2 = build_constant_temp_concentration_model(data_registry, temperatures[7] + 273.15)
     npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-5)
 
 @pytest.mark.parametrize(
@@ -342,7 +348,7 @@ def test_concentrations_hourly_dep_temp_vs_constant(data_registry, month, temper
 def test_concentrations_hourly_dep_temp_startup(data_registry, month, temperatures, time):
     # The concentrations should be the zero up to the first presence time
     # of an infected person.
-    m = build_hourly_dependent_model(
+    m = build_hourly_dependent_concentration_model(
         data_registry,
         month,
         ((0., 0.5), (1., 1.5), (4., 4.5), (7.5, 8), ),
@@ -352,7 +358,7 @@ def test_concentrations_hourly_dep_temp_startup(data_registry, month, temperatur
 
 
 def test_concentrations_hourly_dep_multipleventilation(data_registry):
-    m = build_hourly_dependent_model_multipleventilation(data_registry, 'Jan')
+    m = build_hourly_dependent_concentration_model_multipleventilation(data_registry, 'Jan')
     m.concentration(12.)
 
 
@@ -367,8 +373,8 @@ def test_concentrations_hourly_dep_multipleventilation(data_registry):
 def test_concentrations_hourly_dep_adding_artificial_transitions(data_registry, month_temp_item, time):
     month, temperatures = month_temp_item
     # Adding a second opening inside the first one should not change anything
-    m1 = build_hourly_dependent_model(data_registry, month, intervals_open=((7.5, 8.5), ))
-    m2 = build_hourly_dependent_model(data_registry, month, intervals_open=((7.5, 8.5), (8., 8.1), ))
+    m1 = build_hourly_dependent_concentration_model(data_registry, month, intervals_open=((7.5, 8.5), ))
+    m2 = build_hourly_dependent_concentration_model(data_registry, month, intervals_open=((7.5, 8.5), (8., 8.1), ))
     npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-5)
 
 
@@ -381,17 +387,17 @@ def test_concentrations_hourly_dep_adding_artificial_transitions(data_registry, 
 )
 def test_concentrations_refine_times(data_registry, time):
     month = 'Jan'
-    m1 = build_hourly_dependent_model(data_registry, month, intervals_open=((0., 24.),))
-    m2 = build_hourly_dependent_model(data_registry, month, intervals_open=((0., 24.),),
+    m1 = build_hourly_dependent_concentration_model(data_registry, month, intervals_open=((0., 24.),))
+    m2 = build_hourly_dependent_concentration_model(data_registry, month, intervals_open=((0., 24.),),
                                       artificial_refinement=True)
     npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-8)
 
 
 def build_exposure_model(data_registry, concentration_model):
-    infected = concentration_model.infected
+    infected = concentration_model.infected_populations[0]
     return models.ExposureModel(
         data_registry=data_registry,
-        concentration_model=(concentration_model,),
+        concentration_model=concentration_model,
         exposed=models.Population(
             number=10,
             presence=infected.presence,
@@ -415,7 +421,7 @@ def build_exposure_model(data_registry, concentration_model):
 def test_exposure_hourly_dep(data_registry, month, expected_deposited_exposure, baseline_sr_model):
     m = build_exposure_model(
         data_registry,
-        build_hourly_dependent_model(
+        build_hourly_dependent_concentration_model(
             data_registry,
             month,
             intervals_open=((0., 24.), ),
@@ -439,7 +445,7 @@ def test_exposure_hourly_dep(data_registry, month, expected_deposited_exposure, 
 def test_exposure_hourly_dep_refined(data_registry, month, expected_deposited_exposure, baseline_sr_model):
     m = build_exposure_model(
         data_registry,
-        build_hourly_dependent_model(
+        build_hourly_dependent_concentration_model(
             data_registry,
             month,
             intervals_open=((0., 24.),),

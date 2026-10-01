@@ -914,20 +914,46 @@ def test_population_generation_from_occupancy(baseline_form: virus_validator.Vir
     assert tuple(second_group.exposed.presence.transition_times()) == (9, 10, 11, 12)
     assert second_group.exposed.presence.boundaries() == ((9, 10), (11, 12))
     
-    # Assert that the infected population is the same for all the models
-    # Type checks
-    assert isinstance(first_group.concentration_model[0].infected, models.InfectedPopulation)
-    assert isinstance(second_group.concentration_model[0].infected, models.InfectedPopulation)
-    # Value checks
-    assert first_group.concentration_model[0].infected.number == second_group.concentration_model[0].infected.number
-    assert first_group.concentration_model[0].infected.presence == second_group.concentration_model[0].infected.presence
-    
-    # Assert the infected population generation (number and presence) from the occupancy input
-    for infected_obj in [first_group.concentration_model[0].infected, second_group.concentration_model[0].infected]:
+    # Assert that the infected populations are the same for all the models
+    assert len(first_group.concentration_model.infected_populations) == len(second_group.concentration_model.infected_populations)
+
+    for first_infected, second_infected in zip(
+        first_group.concentration_model.infected_populations,
+        second_group.concentration_model.infected_populations,
+    ):
         # Type checks
+        assert isinstance(first_infected, models.InfectedPopulation)
+        assert isinstance(second_infected, models.InfectedPopulation)
+
+        # Value checks
+        assert first_infected.number == second_infected.number
+        assert first_infected.presence == second_infected.presence
+
+    # Assert that the infected populations have the same short-range interactions are the same for all the models
+    assert len(first_group.concentration_model.short_range) == len(second_group.concentration_model.short_range)
+    for first_sr, second_sr in zip(
+            first_group.concentration_model.short_range,
+            second_group.concentration_model.short_range,
+        ):
+        assert len(first_sr) == len(second_sr)
+        
+    # Assert infected-population generation (number and presence) from occupancy input
+    for infected_obj in (
+        *first_group.concentration_model.infected_populations,
+        *second_group.concentration_model.infected_populations,
+    ):
+        # Type checks
+        assert isinstance(infected_obj, models.InfectedPopulation)
         assert isinstance(infected_obj.number, models.IntPiecewiseConstant)
         assert infected_obj.presence is None
+
         # Value checks
-        assert infected_obj.number.interval().boundaries() == ((9, 10), (10, 11), (11, 12), (13, 17))
+        assert infected_obj.number.interval().boundaries() == (
+            (9, 10),
+            (10, 11),
+            (11, 12),
+            (13, 17),
+        )
         assert infected_obj.number.transition_times == (9, 10, 11, 12, 13, 17)
-        assert infected_obj.number.values == (3, 2, 3, 0, 2)    
+        assert infected_obj.number.values == (3, 2, 3, 0, 2)
+

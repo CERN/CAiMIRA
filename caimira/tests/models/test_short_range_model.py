@@ -20,29 +20,31 @@ def short_range_model(data_registry):
         expiration=short_range_expiration_distributions(data_registry)['Breathing'],
         presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
         distance=short_range_distances(data_registry),
-        )
+    )
 
 @pytest.fixture
-def concentration_model(data_registry, short_range_model) -> mc_models.ConcentrationModel:
-    return mc_models.ConcentrationModel(
+def concentration_model(data_registry, short_range_model) -> mc_models.ViralConcentrationModel:
+    return mc_models.ViralConcentrationModel(
         data_registry=data_registry,
         room=models.Room(volume=75),
         ventilation=models.AirChange(
             active=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
             air_exch=10_000_000.,
         ),
-        infected=mc_models.InfectedPopulation(
-            data_registry=data_registry,
-            number=1,
-            virus=models.Virus.types['SARS_CoV_2'],
-            presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
-            mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light activity'],
-            expiration=build_expiration(data_registry, {'Speaking': 0.33, 'Breathing': 0.67}),
-            host_immunity=0.,
+        infected_populations=(
+            mc_models.InfectedPopulation(
+                data_registry=data_registry,
+                number=1,
+                virus=models.Virus.types['SARS_CoV_2'],
+                presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
+                mask=models.Mask.types['No mask'],
+                activity=models.Activity.types['Light activity'],
+                expiration=build_expiration(data_registry, {'Speaking': 0.33, 'Breathing': 0.67}),
+                host_immunity=0.,
+            ),
         ),
         evaporation_factor=0.3,
-        short_range=(short_range_model,),
+        short_range=((short_range_model,),),
     )
 
 
@@ -50,7 +52,7 @@ def concentration_model(data_registry, short_range_model) -> mc_models.Concentra
 def exposure_model(data_registry, concentration_model):
     return mc_models.ExposureModel(
         data_registry=data_registry,
-        concentration_model=(concentration_model,),
+        concentration_model=concentration_model,
         exposed = mc_models.Population(
             identifier="exposed_1",
             number=1,
@@ -64,12 +66,13 @@ def exposure_model(data_registry, concentration_model):
     )
 
 
-def test_short_range_model_ndarray(concentration_model, short_range_model):
-    concentration_model = concentration_model.build_model(SAMPLE_SIZE)
-    model = short_range_model.build_model(SAMPLE_SIZE)
-    assert isinstance(model.dilution_factor(), np.ndarray)
-    assert isinstance(model._normed_jet_origin_concentration(), np.ndarray)
-    assert isinstance(model._normed_diluted_jet_concentration(), np.ndarray)
+def test_short_range_model_ndarray(short_range_model):
+    sr_model = short_range_model.build_model(SAMPLE_SIZE)
+    assert isinstance(sr_model.dilution_factor(), np.ndarray)
+    assert isinstance(sr_model._normed_jet_origin_concentration(), np.ndarray)
+    assert isinstance(sr_model._normed_diluted_jet_concentration(), np.ndarray)
+    assert np.all(sr_model._normed_diluted_jet_concentration() > 0)
+
 
 
 @pytest.mark.parametrize(
@@ -131,10 +134,10 @@ def test_extract_between_bounds(short_range_model, time1, time2,
         [12.0, 0.],
     ]
 )
-def test_short_range_concentration(time, expected_short_range_concentration_component, exposure_model):
-    exposure_model = exposure_model.build_model(SAMPLE_SIZE)
+def test_short_range_concentration(time, expected_short_range_concentration_component, concentration_model):
+    concentration_model = concentration_model.build_model(SAMPLE_SIZE)
     np.testing.assert_allclose(
-        np.mean(exposure_model.concentration(time))-np.mean(exposure_model.long_range_concentration(time)),
+        np.mean(concentration_model.concentration(time))-np.mean(concentration_model.long_range_concentration(time)),
         expected_short_range_concentration_component, rtol=0.02
     )
 
@@ -148,27 +151,29 @@ def test_short_range_exposure_with_ndarray_mask(data_registry):
         presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
         distance=0.854,
     )
-    c_model = mc_models.ConcentrationModel(
+    c_model = mc_models.ViralConcentrationModel(
         data_registry=data_registry,
         room=models.Room(volume=50, humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
                                         air_exch=10_000_000,),
-        infected=mc_models.InfectedPopulation(
-            data_registry=data_registry,
-            number=1,
-            presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
-            virus=models.Virus.types['SARS_CoV_2_DELTA'],
-            mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Seated'],
-            expiration=expiration_distributions(data_registry)['Breathing'],
-            host_immunity=0.,
+        infected_populations=(
+            mc_models.InfectedPopulation(
+                data_registry=data_registry,
+                number=1,
+                presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
+                virus=models.Virus.types['SARS_CoV_2_DELTA'],
+                mask=models.Mask.types['No mask'],
+                activity=models.Activity.types['Seated'],
+                expiration=expiration_distributions(data_registry)['Breathing'],
+                host_immunity=0.,
+            ),
         ),
         evaporation_factor=0.3,
-        short_range=(sr_model,),
+        short_range=((sr_model,),),
     )
     e_model = mc_models.ExposureModel(
         data_registry = data_registry,
-        concentration_model = (c_model,),
+        concentration_model = c_model,
         exposed = mc_models.Population(
             identifier="exposed_2",
             number=1,

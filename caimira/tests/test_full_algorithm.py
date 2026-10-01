@@ -29,7 +29,7 @@ ln2 = np.log(2)
 class SimpleConcentrationModel:
     """
     Simple model for the background (long-range) concentration, without
-    all the flexibility of caimira.models.ConcentrationModel.
+    all the flexibility of caimira.models.ViralConcentrationModel.
     For independent, end-to-end testing purposes.
     This assumes no mask wearing, and the same ventilation rate at all
     times.
@@ -485,14 +485,14 @@ def default_infected(data_registry, virus) -> mc.InfectedPopulation:
         )
 
 @pytest.fixture
-def c_model_no_sr(data_registry) -> mc.ConcentrationModel:
-    return mc.ConcentrationModel(
+def c_model_no_sr(data_registry) -> mc.ViralConcentrationModel:
+    return mc.ViralConcentrationModel(
         data_registry=data_registry,
         room=models.Room(volume=50, inside_temp=models.PiecewiseConstant((0., 24.), (293,)), humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=1.),
-        infected=default_infected(data_registry=data_registry, virus=models.Virus.types['SARS_CoV_2_DELTA']),
+        infected_populations=(default_infected(data_registry=data_registry, virus=models.Virus.types['SARS_CoV_2_DELTA']),),
         evaporation_factor=0.3,
-        short_range=(),
+        short_range=((),),
     )
 
 @pytest.fixture
@@ -599,38 +599,38 @@ def simple_sr_models_with_exposed2(data_registry) -> typing.Tuple[SimpleShortRan
     )
 
 @pytest.fixture
-def c_model_with_sr(data_registry, short_range_models_with_exposed1) -> mc.ConcentrationModel:
-    return mc.ConcentrationModel(
+def c_model_with_sr(data_registry, short_range_models_with_exposed1) -> mc.ViralConcentrationModel:
+    return mc.ViralConcentrationModel(
         data_registry=data_registry,
         room=models.Room(volume=50, inside_temp=models.PiecewiseConstant((0., 24.), (293,)), humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=1.),
-        infected=default_infected(data_registry=data_registry, virus=models.Virus.types['SARS_CoV_2_DELTA']),
+        infected_populations=(default_infected(data_registry=data_registry, virus=models.Virus.types['SARS_CoV_2_DELTA']),),
         evaporation_factor=0.3,
-        short_range=short_range_models_with_exposed1,
+        short_range=(short_range_models_with_exposed1,),
     )
 
 @pytest.fixture
-def c_model_distr(data_registry) -> mc.ConcentrationModel:
-    return mc.ConcentrationModel(
+def c_model_distr(data_registry) -> mc._ViralConcentrationModel:
+    return mc.ViralConcentrationModel(
         data_registry=data_registry,
         room=models.Room(volume=50, humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(
                             period=120, duration=120), air_exch=1.),
-        infected=default_infected(data_registry=data_registry, virus=virus_distributions(data_registry)['SARS_CoV_2_DELTA']),
+        infected_populations=(default_infected(data_registry=data_registry, virus=virus_distributions(data_registry)['SARS_CoV_2_DELTA']),),
         evaporation_factor=0.3,
-        short_range=(),
+        short_range=((),),
     )
 
 @pytest.fixture
-def c_model_distr_with_sr(data_registry, short_range_models_with_exposed2) -> mc.ConcentrationModel:
-    return mc.ConcentrationModel(
+def c_model_distr_with_sr(data_registry, short_range_models_with_exposed2) -> mc.ViralConcentrationModel:
+    return mc.ViralConcentrationModel(
         data_registry=data_registry,
         room=models.Room(volume=50, humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(
                             period=120, duration=120), air_exch=1.),
-        infected=default_infected(data_registry=data_registry, virus=virus_distributions(data_registry)['SARS_CoV_2_DELTA']),
+        infected_populations=(default_infected(data_registry=data_registry, virus=virus_distributions(data_registry)['SARS_CoV_2_DELTA']),),
         evaporation_factor=0.3,
-        short_range=short_range_models_with_exposed2,
+        short_range=(short_range_models_with_exposed2,),
     )
 
 @pytest.fixture
@@ -663,7 +663,7 @@ def default_exposed(data_registry, identifier: str, activity=None) -> mc.Populat
 def expo_sr_model(data_registry, c_model_with_sr) -> mc.ExposureModel:
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=(c_model_with_sr,),
+        concentration_model=c_model_with_sr,
         exposed=default_exposed(data_registry=data_registry, identifier="group1"),
         geographical_data=models.Cases(),
     )
@@ -685,12 +685,11 @@ def simple_expo_sr_model(data_registry, simple_sr_models_with_exposed1) -> Simpl
         sr_models         = simple_sr_models_with_exposed1,
     )
 
-
 @pytest.fixture
 def expo_sr_model_distr(data_registry, c_model_distr_with_sr) -> mc.ExposureModel:
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=(c_model_distr_with_sr,),
+        concentration_model=c_model_distr_with_sr,
         exposed=default_exposed(data_registry=data_registry, identifier="group2"),
         geographical_data=models.Cases(),
     )
@@ -734,7 +733,7 @@ def test_longrange_concentration(time,c_model_no_sr,simple_c_model):
 )
 def test_shortrange_concentration(time, expo_sr_model, simple_c_model, simple_sr_models_with_exposed1):
     expo_sr_model=expo_sr_model.build_model(SAMPLE_SIZE)
-    result_sr_model = expo_sr_model.concentration(time) - expo_sr_model.long_range_concentration(time)
+    result_sr_model = expo_sr_model.concentration_model.concentration(time) - expo_sr_model.concentration_model.long_range_concentration(time)
     result_simple_sr_model = np.sum([np.array(
             sr_mod.concentration(simple_c_model,time)).mean()
         for sr_mod in simple_sr_models_with_exposed1])
@@ -759,7 +758,7 @@ def test_longrange_exposure(data_registry, c_model_no_sr):
     )
     expo_model = mc.ExposureModel(
             data_registry=data_registry,
-            concentration_model=(c_model_no_sr,),
+            concentration_model=c_model_no_sr,
             exposed=default_exposed(data_registry=data_registry, identifier=""),
             geographical_data=models.Cases(),
     ).build_model(SAMPLE_SIZE)
@@ -816,10 +815,10 @@ def test_longrange_exposure_with_distributions(data_registry, c_model_distr):
         sr_models         = (),
     )
     expo_model = mc.ExposureModel(
-            data_registry=data_registry,
-            concentration_model=(c_model_distr,),
-            exposed=default_exposed(data_registry=data_registry, identifier=""),
-            geographical_data=models.Cases(),
+        data_registry=data_registry,
+        concentration_model=c_model_distr,
+        exposed=default_exposed(data_registry=data_registry, identifier=""),
+        geographical_data=models.Cases(),
     ).build_model(SAMPLE_SIZE)
     npt.assert_allclose(
         expo_model.deposited_exposure().mean(),
@@ -840,7 +839,7 @@ def test_longrange_exposure_with_distributions(data_registry, c_model_distr):
 )
 def test_concentration_with_shortrange(expo_sr_model,simple_expo_sr_model,time):
     npt.assert_allclose(
-        expo_sr_model.build_model(SAMPLE_SIZE).concentration(time).mean(),
+        expo_sr_model.concentration_model.build_model(SAMPLE_SIZE).concentration(time).mean(),
         simple_expo_sr_model.total_concentration(time).mean(), rtol=TOLERANCE
         )
 
@@ -864,7 +863,7 @@ def test_exposure_with_shortrange(expo_sr_model,simple_expo_sr_model):
 def test_concentration_with_shortrange_and_distributions(
                     expo_sr_model_distr,simple_expo_sr_model_distr,time):
     npt.assert_allclose(
-        expo_sr_model_distr.build_model(SAMPLE_SIZE).concentration(time).mean(),
+        expo_sr_model_distr.concentration_model.build_model(SAMPLE_SIZE).concentration(time).mean(),
         simple_expo_sr_model_distr.total_concentration(time).mean(),
         rtol=TOLERANCE
         )
@@ -890,21 +889,21 @@ def c_model_from_parameter(data_registry, short_range=(), f_inf=0.5, viral_load=
         viable_to_RNA_ratio=f_inf,
         transmissibility_factor=0.51,
     )
-    return mc.ConcentrationModel(
+    return mc.ViralConcentrationModel(
         data_registry=data_registry,
         room=models.Room(volume=50, humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
                                      air_exch=10_000_000),
-        infected=default_infected(data_registry=data_registry, virus=virus),
+        infected_populations=(default_infected(data_registry=data_registry, virus=virus),),
         evaporation_factor=0.3,
-        short_range=short_range,
+        short_range=(short_range,),
     )
 
 def exposure_model_from_parameter(data_registry, short_range=(), f_inf=0.5, viral_load=1e9, BR=1.25):
     c_model = c_model_from_parameter(data_registry, short_range=short_range, f_inf=f_inf, viral_load=viral_load)
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=(c_model,),
+        concentration_model=c_model,
         exposed=default_exposed(data_registry=data_registry, identifier="group1", activity=models.Activity(inhalation_rate=BR, exhalation_rate=1.25)),
         geographical_data=models.Cases(),
     ).build_model(SAMPLE_SIZE)

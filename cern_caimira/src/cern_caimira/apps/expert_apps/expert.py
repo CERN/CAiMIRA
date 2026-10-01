@@ -845,7 +845,7 @@ class ModelWidgets(View):
 def baseline_model(data_registry: DataRegistry):
     return models.ExposureModel(
         data_registry=data_registry,
-        concentration_model=models.ConcentrationModel(
+        concentration_model=models._ViralConcentrationModel(
             data_registry=data_registry,
             room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293.15,))),
             ventilation=models.SlidingWindow(
@@ -879,7 +879,7 @@ def baseline_model(data_registry: DataRegistry):
 
 class CAIMIRAStateBuilder(state.StateBuilder):
     # Note: The methods in this class must correspond to the *type* of the data classes.
-    # For example, build_type__VentilationBase is called when dealing with ConcentrationModel
+    # For example, build_type__VentilationBase is called when dealing with _ViralConcentrationModel
     # types as it has a ventilation: _VentilationBase field.
 
     def __init__(self, data_registry: DataRegistry, selected_ventilation: str):
@@ -1123,7 +1123,7 @@ class MultiModelView(View):
 
 def models_start_end(models: typing.Sequence[models.ExposureModel]) -> typing.Tuple[float, float]:
     """
-    Returns the earliest start and latest end time of a collection of ConcentrationModel objects
+    Returns the earliest start and latest end time of a collection of _ViralConcentrationModel objects
 
     """
     infected_start = min(model.concentration_model.infected.presence_interval().boundaries()[0][0] for model in models)
