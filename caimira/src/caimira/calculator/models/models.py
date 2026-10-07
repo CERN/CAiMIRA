@@ -60,6 +60,9 @@ oneoverln2 = 1 / np.log(2)
 _VectorisedFloat = typing.Union[float, np.ndarray]
 _VectorisedInt = typing.Union[int, np.ndarray]
 
+# shape (n_populations, _VectorisedFloat)
+_MatrixFloat = np.ndarray[float]
+
 Time_t = typing.TypeVar('Time_t', float, int)
 BoundaryPair_t = typing.Tuple[Time_t, Time_t]
 BoundarySequence_t = typing.Union[typing.Tuple[BoundaryPair_t, ...], typing.Tuple]
@@ -845,6 +848,9 @@ class SimplePopulation:
         else:
             return int(self.number.value(time))
 
+    def first_presence_time(self) -> float:
+        return self.presence_interval().boundaries()[0][0]
+
 
 @dataclass(frozen=True, kw_only=True)
 class Population(SimplePopulation):
@@ -1157,26 +1163,55 @@ class _ConcentrationModelBase:
     """
     A generic superclass that contains the methods to calculate the
     concentration (e.g. viral concentration or CO2 concentration).
+
+    Note that min_background_concentration is added at the very end, 
+    and not to the normalized computations of the (integrated) concentration. 
+    Hence, computation of normalized concetrations and the normalization_factor
+    are kept fully separate. 
+
+    The normalization factor instances have dimentionality
+        ``(n_populations, n_samples)`` 
+    where n_samples is the number of MC samples of diameter-independent random 
+    variables. 
+
+    If the aerosol diameter is a random variable, the normalized methods also
+    return arrays with dimentionality
+        ``(n_populations, n_samples)`` 
+
+    Otherwise, if the aerosol diameter is not a random variable, the normalized methods 
+    return arrays with dimentionality
+        ``(n_populations, )`` 
+
+    Because the normalization_factor may have a different shape than normalized methods,
+    it is important to compute the normalization_factor separate of the normalized methods.
+    Therefore, the (non-normalized) min_background_concentration is only included after 
+    multiplying the normalized results with the normalization_factor. 
     """
     data_registry: DataRegistry
     room: Room
     ventilation: _VentilationBase
 
     @property
-    def population(self) -> SimplePopulation:
+    def populations(self) -> typing.Tuple[SimplePopulation, ...]:
         """
         Population in the room (the emitters of what we compute the
         concentration of)
         """
         raise NotImplementedError("Subclass must implement")
 
-    def removal_rate(self, time: float) -> _VectorisedFloat:
+    def people_present(self, time) -> np.array[float]:
+        return np.asarray(
+            [population.people_present(time) for population in self.populations],
+            dtype=np.float64,
+        )[:, np.newaxis]
+    
+    def removal_rate(self, time: float) -> _MatrixFloat:
         """
         Remove rate of the species considered, in h^-1
         """
         raise NotImplementedError("Subclass must implement")
 
-    def min_background_concentration(self) -> _VectorisedFloat:
+    def min_background_concentration(self) -> float:
         """
         Minimum background concentration in the room for a given scenario
         (in the same unit as the concentration). Its the value towards which
@@ -1184,7 +1219,7 @@ class _ConcentrationModelBase:
         """
         return self.data_registry.concentration_model['virus_concentration_model']['min_background_concentration'] # type: ignore
 
-    def normalization_factor(self) -> _VectorisedFloat:
+    def normalization_factor(self) -> _MatrixFloat:
         """
         Normalization factor (in the same unit as the concentration).
         This factor is applied to the normalized concentration only
@@ -1193,7 +1228,7 @@ class _ConcentrationModelBase:
         raise NotImplementedError("Subclass must implement")
 
     @method_cache
-    def _normed_concentration_limit(self, time: float) -> _VectorisedFloat:
+    def _normed_concentration_increase_limit(self, time: float) -> _MatrixFloat:
         """
         Provides a constant that represents the theoretical asymptotic
         value reached by the concentration when time goes to infinity,
@@ -1203,18 +1238,20 @@ class _ConcentrationModelBase:
         can be put back in front of the concentration after the time
         dependence has been solved for.
         """
-        V = self.room.volume
-        RR = self.removal_rate(time)
+        volume = np.asarray(self.room.volume, dtype=np.float64)
+        if volume.ndim == 1:
+            volume = volume[np.newaxis, :]
+        RR = np.asarray(self.removal_rate(time), dtype=np.float64)
 
-        if isinstance(RR, np.ndarray):
-            invRR = np.empty(RR.shape, dtype=np.float64)
-            invRR[RR == 0.] = np.nan
-            invRR[RR != 0.] = 1. / RR[RR != 0.]
-        else:
-            invRR = np.nan if RR == 0. else 1. / RR # type: ignore
-
-        return (self.population.people_present(time) * invRR / V +
-                self.min_background_concentration()/self.normalization_factor())
+        # Set $1 / RR$ to NaN where $RR = 0$, without divide-by-zero warnings.
+        invRR = np.full_like(RR, np.nan, dtype=np.float64)
+        np.divide(
+            1.0,
+            RR,
+            out=invRR,
+            where=RR != 0.0,
+        )
+        return (self.people_present(time) * invRR / self.room.volume)
 
     @method_cache
     def state_change_times(self) -> typing.List[float]:
@@ -1223,16 +1260,10 @@ class _ConcentrationModelBase:
         the times at which their state changes.
         """
         state_change_times = {0.}
-        state_change_times.update(self.population.presence_interval().transition_times())
+        for population in self.populations:
+            state_change_times.update(population.presence_interval().transition_times())
         state_change_times.update(self.ventilation.transition_times(self.room))
         return sorted(state_change_times)
-
-    @method_cache
-    def _first_presence_time(self) -> float:
-        """
-        First presence time. Before that, the concentration is zero.
-        """
-        return self.population.presence_interval().boundaries()[0][0]
 
     def last_state_change(self, time: float) -> float:
         """
@@ -1251,18 +1282,20 @@ class _ConcentrationModelBase:
         return times[t_index]
 
     @method_cache
-    def _normed_concentration_cached(self, time: float) -> _VectorisedFloat:
+    def _normed_concentration_increase_cached(self, time: float) -> _MatrixFloat:
         """
         A cached version of the _normed_concentration method. Use this
         method if you expect that there may be multiple concentration
         calculations for the same time (e.g. at state change times).
         """
-        return self._normed_concentration(time)
+        return self._normed_concentration_increase(time)
 
-    def _normed_concentration(self, time: float) -> _VectorisedFloat:
+    def _normed_concentration_increase(self, time: float) -> _MatrixFloat:
         """
-        Concentration as a function of time, and normalized by
-        normalization_factor.
+        Concentration increase from the min_background_concentration 
+        as a function of time, normalized by normalization_factor, 
+        for each population. 
+
         The formulas used here assume that all parameters (ventilation,
         emission rate) are constant between two state changes - only
         the value of these parameters at the next state change, are used.
@@ -1270,79 +1303,154 @@ class _ConcentrationModelBase:
         Note that time is not vectorised. You can only pass a single float
         to this method.
         """
-        # The model always starts at t=0, but we avoid running concentration calculations
-        # before the first presence as an optimisation.
-        if time <= self._first_presence_time():
-            return self.min_background_concentration()/self.normalization_factor()
-
-        RR = self.removal_rate(time)
+        volume = np.asarray(self.room.volume, dtype=np.float64)
+        if volume.ndim == 1:
+            volume = volume[np.newaxis, :]
 
         t_last_state_change = self.last_state_change(time)
-        conc_at_last_state_change = self._normed_concentration_cached(t_last_state_change)
         delta_time = time - t_last_state_change
+        RR = self.removal_rate(time)
+        if time == 0.0:
+            return np.zeros_like(RR, dtype=np.float64)
+
+        conc_at_last_state_change = self._normed_concentration_increase_cached(
+            t_last_state_change
+        )
+
+        concentration_limit = np.asarray(
+            self._normed_concentration_increase_limit(time),
+            dtype=np.float64,
+        )
+        if concentration_limit.ndim == 1:
+            concentration_limit = concentration_limit[:, np.newaxis]
+
+        people_present = np.asarray(
+            self.people_present(time),
+            dtype=np.float64,
+        )
+        if people_present.ndim == 1:
+            people_present = people_present[:, np.newaxis]
 
         fac = np.exp(-RR * delta_time)
-        if isinstance(RR, np.ndarray):
-            curr_conc_state = np.empty(RR.shape, dtype=np.float64)
-            curr_conc_state[RR == 0.] = delta_time * self.population.people_present(time) / (
-                self.room.volume[RR == 0.] if isinstance(self.room.volume,np.ndarray) else self.room.volume)
-            curr_conc_state[RR != 0.] = self._normed_concentration_limit(time)[RR != 0.] * (1 - fac[RR != 0.])
-        else:
-            if RR == 0.:
-                curr_conc_state = delta_time * self.population.people_present(time) / self.room.volume
-            else:
-                curr_conc_state = self._normed_concentration_limit(time) * (1 - fac)
+        curr_conc_state = np.empty_like(concentration_limit, dtype=np.float64)
 
-        return curr_conc_state + conc_at_last_state_change * fac
+        np.divide(
+            delta_time * people_present,
+            self.room.volume,
+            out=curr_conc_state,
+            where=RR == 0.0,
+        )
 
-    def concentration(self, time: float) -> _VectorisedFloat:
+        np.multiply(
+            concentration_limit,
+            1.0 - fac,
+            out=curr_conc_state,
+            where=RR != 0.0,
+        )
+
+        result = curr_conc_state + conc_at_last_state_change * fac
+
+        before_first_presence = np.asarray(
+            [
+                time <= population.first_presence_time()
+                for population in self.populations
+            ],
+            dtype=bool,
+        )[:, np.newaxis]
+
+        return np.where(before_first_presence, 0.0, result)
+
+    def concentration(self, time: float) -> _MatrixFloat:
         """
-        Total concentration as a function of time. The normalization
+        Total concentration as a function of time, including the 
+        min_background_concentration. The normalization
         factor has been put back.
 
         Note that time is not vectorised. You can only pass a single float
         to this method.
         """
-        return (self._normed_concentration_cached(time) *
-                self.normalization_factor())
+        return (self._normed_concentration_increase_cached(time)*self.normalization_factor()
+                +self.min_background_concentration())
 
     @method_cache
-    def normed_integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
+    def normed_integrated_concentration_increase(self, start: float, stop: float) -> _MatrixFloat:
         """
-        Get the integrated concentration between the times start and stop,
-        normalized by normalization_factor.
+        Get the integrated concentration increase between the times start and stop,
+        not including the min_background_concentration, normalized by normalization_factor.
         """
-        if stop <= self._first_presence_time():
-            return (stop - start)*self.min_background_concentration()/self.normalization_factor()
-        change_times = self.state_change_times()
-        if stop > change_times[-1]:
-            change_times.append(stop)
-        req_start, req_stop = start, stop
-        total_normed_concentration = 0.
-        for interval_start, interval_stop in zip(change_times[:-1], change_times[1:]):
-            if req_start > interval_stop or req_stop < interval_start:
-                continue
-            # Clip the current interval to the requested range.
-            start = max([interval_start, req_start])
-            stop = min([interval_stop, req_stop])
+        change_times = np.asarray(self.state_change_times(), dtype=np.float64)
+        interval_bounds = np.unique(np.concatenate((
+            np.array([start, stop]),
+            change_times[(change_times > start) & (change_times < stop)],
+        )))
 
-            conc_start = self._normed_concentration_cached(start)
-            conc_limit = self._normed_concentration_limit(stop)
-            RR = self.removal_rate(stop)
-            delta_time = stop - start
-            total_normed_concentration += (
-                conc_limit * delta_time +
-                (conc_limit - conc_start) * (np.exp(-RR*delta_time)-1) / RR
+        volume = np.asarray(self.room.volume, dtype=np.float64)
+        if volume.ndim == 1:
+            volume = volume[np.newaxis, :]
+
+        total_normed_concentration = np.zeros_like(self._normed_concentration_increase_cached(start), dtype=np.float64)
+        for interval_start, interval_stop in zip(
+            interval_bounds[:-1],
+            interval_bounds[1:],
+        ):
+            delta_time = interval_stop - interval_start
+
+            conc_start = self._normed_concentration_increase_cached(interval_start)
+            conc_limit = self._normed_concentration_increase_limit(interval_stop)
+            removal_rate = self.removal_rate(interval_stop)
+
+            nonzero_removal = removal_rate != 0.0
+            contribution = np.empty_like(removal_rate, dtype=np.float64)
+
+            np.divide(
+                (conc_limit - conc_start)
+                * np.expm1(-removal_rate * delta_time),
+                removal_rate,
+                out=contribution,
+                where=nonzero_removal,
             )
-        return total_normed_concentration
+            contribution[nonzero_removal] += (
+                conc_limit[nonzero_removal] * delta_time
+            )
+            people_present = self.people_present(interval_stop)
+            zero_removal = ~nonzero_removal
 
-    def integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
-        """
-        Get the integrated concentration of viruses in the air between the times start and stop.
-        """
-        return (self.normed_integrated_concentration(start, stop) *
-                self.normalization_factor())
+            zero_removal_contribution = (
+                conc_start * delta_time
+                + people_present * delta_time ** 2 / (2.0 * volume)
+            )
+            contribution[zero_removal] = (
+                zero_removal_contribution[zero_removal]
+            )
 
+            total_normed_concentration += contribution
+
+        # A population which has not entered before
+        # `stop` contributes no integrated concentration.
+        not_yet_present = np.asarray(
+            [
+                stop <= population.first_presence_time()
+                for population in self.populations
+            ],
+            dtype=bool,
+        )[:, np.newaxis]
+
+        return np.where(not_yet_present, 0.0, total_normed_concentration)
+
+    def integrated_concentration_increase(self, start: float, stop: float) -> _MatrixFloat:
+        """
+        Get the integrated concentration increase, not including the min_background_concentration,
+        of aerosols between the times start and stop.
+        """
+        return (self.normed_integrated_concentration_increase(start, stop)*self.normalization_factor())
+
+    def integrated_concentration(self, start: float, stop: float) -> float:
+        """
+        Get the integrated concentration, including the min_background_concentration,
+        of aerosols between the times start and stop.
+        """
+        return (self.integrated_concentration_increase(start, stop)
+                +(stop-start)*self.min_background_concentration())
 
 @dataclass(frozen=True)
 class ConcentrationModel(_ConcentrationModelBase):
@@ -1350,7 +1458,7 @@ class ConcentrationModel(_ConcentrationModelBase):
     Class used for the computation of the long-range virus concentration.
     """
     #: Infected population in the room, emitting virions
-    infected: InfectedPopulation
+    infected_populations: typing.Tuple[InfectedPopulation, ...]
 
     #: evaporation factor: the particles' diameter is multiplied by this
     # factor as soon as they are in the air (but AFTER going out of the,
@@ -1358,51 +1466,72 @@ class ConcentrationModel(_ConcentrationModelBase):
     evaporation_factor: float
 
     #: The short-range interactions the infected in this class is participating in.
-    short_range: typing.Tuple[ShortRangeModel, ...]
+    short_range: typing.Tuple[typing.Tuple[ShortRangeModel, ...], ...]
 
     def __post_init__(self):
         if self.evaporation_factor is None:
             self.evaporation_factor = self.data_registry.expiration_particle['particle']['evaporation_factor']
 
-        for interaction in self.short_range:
-            if interaction.presence.boundaries()[0][0] < self.infected.presence.boundaries()[0][0] or interaction.presence.boundaries()[-1][-1] > self.infected.presence.boundaries()[-1][-1]:
-                raise ValueError("A short-range-interaction cannot lie outside the presence of the infected.")
+        if any(infected.virus is not self.virus for infected in self.infected_populations):
+            raise ValueError("All infected must be infected with the same virus.")
+
+        for infected, interaction_tuple in zip(self.infected_populations, self.short_range):
+            for interaction in interaction_tuple:
+                if interaction.presence.boundaries()[0][0] < infected.presence.boundaries()[0][0] or interaction.presence.boundaries()[-1][-1] > infected.presence.boundaries()[-1][-1]:
+                    raise ValueError("A short-range-interaction cannot lie outside the presence of the infected.")
 
     @property
-    def population(self) -> InfectedPopulation:
-        return self.infected
+    def populations(self) -> InfectedPopulation:
+        return self.infected_populations
 
     @property
     def virus(self) -> Virus:
-        return self.infected.virus
+        return self.infected_populations[0].virus
 
-    def normalization_factor(self) -> _VectorisedFloat:
+    def normalization_factor(self) -> _MatrixFloat:
         # we normalize by the emission rate
-        return self.infected.emission_rate_per_person_when_present()
+        nf = np.asarray([infected.emission_rate_per_person_when_present()
+            for infected in self.infected_populations],
+            dtype=np.float64,
+        )
+        if nf.ndim == 1:
+            return nf[:, np.newaxis] 
+        else:
+            return nf
 
-    def removal_rate(self, time: float) -> _VectorisedFloat:
+    def removal_rate(self, time: float) -> _MatrixFloat:
         # Equilibrium velocity of particle motion toward the floor
-        vg = self.infected.particle.settling_velocity(self.evaporation_factor)
+        vg = np.asarray([
+            infected.particle.settling_velocity(self.evaporation_factor)
+            for infected in self.infected_populations
+        ], dtype=float)
         # Height of the emission source to the floor - i.e. mouth/nose (m)
         h = 1.5
         # Deposition rate (h^-1)
         k = (vg * 3600) / h
-        return (
+        RR = (
             k + self.virus.decay_constant(self.room.humidity, self.room.inside_temp.value(time))
             + self.ventilation.air_exchange(self.room, time)
         )
+        if RR.ndim == 1:
+            return RR[:, np.newaxis]
+        else:
+            return RR
 
-    def infectious_virus_removal_rate(self, time: float) -> _VectorisedFloat:
-        # defined for back-compatibility purposes
-        return self.removal_rate(time)
-
-    def short_range_normalization_factor(self) -> _VectorisedFloat:
+    def short_range_normalization_factor(self) -> _MatrixFloat:
         """
         For short-range interactions, the infected population parameters intervene only through this factor.
         Result in (virions.cm^3)/(mL.m^3).
         """
         # Re-use the emission rate method divided by the BR contribution. 
-        return self.infected.emission_rate_per_aerosol_per_person_when_present() / self.infected.activity.exhalation_rate
+        sr_nf = np.asarray([
+            infected.emission_rate_per_aerosol_per_person_when_present() / infected.activity.exhalation_rate
+            for infected in self.infected_populations
+        ])
+        if sr_nf.ndim == 1:
+            return sr_nf[:, np.newaxis] 
+        else:
+            return sr_nf
 
 
 @dataclass(frozen=True)
@@ -1411,7 +1540,7 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
     Class used for the computation of the CO2 concentration.
     """
     #: Population in the room emitting CO2
-    CO2_emitters: SimplePopulation
+    CO2_emitting_populations: typing.Tuple[SimplePopulation, ...]
 
     #: CO2 concentration in the atmosphere (in ppm)
     @property
@@ -1424,11 +1553,15 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         return self.data_registry.concentration_model['CO2_concentration_model']['CO2_fraction_exhaled'] # type: ignore
 
     @property
-    def population(self) -> SimplePopulation:
-        return self.CO2_emitters
+    def populations(self) -> typing.Tuple[SimplePopulation, ...]:
+        return self.CO2_emitting_populations
 
     def removal_rate(self, time: float) -> _VectorisedFloat:
-        return self.ventilation.air_exchange(self.room, time)
+        RR = np.asarray([self.ventilation.air_exchange(self.room, time)]*len(self.populations))
+        if RR.ndim == 1:
+            return RR[:, np.newaxis]
+        else:
+            return RR
 
     def min_background_concentration(self) -> _VectorisedFloat:
         """
@@ -1439,9 +1572,15 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
     def normalization_factor(self) -> _VectorisedFloat:
         # normalization by the CO2 exhaled per person.
         # CO2 concentration given in ppm, hence the 1e6 factor.
-        return (1e6*self.population.activity.exhalation_rate
-                *self.CO2_fraction_exhaled)
-
+        nf = np.asarray([
+            1e6*population.activity.exhalation_rate*self.CO2_fraction_exhaled
+            for population in self.populations],
+            dtype=np.float64,
+        )
+        if nf.ndim == 1:
+            return nf[:, np.newaxis] 
+        else:
+            return nf
 
 @dataclass(frozen=True)
 class CO2DataModel:
@@ -1466,18 +1605,20 @@ class CO2DataModel:
             room=Room(volume=self.room.volume),
             ventilation=CustomVentilation(PiecewiseConstant(
                 self.ventilation_transition_times, ventilation_values)),
-            CO2_emitters=SimplePopulation(
-                identifier="",
-                number=self.occupancy,
-                presence=None,
-                activity=Activity(
-                    exhalation_rate=exhalation_rate, inhalation_rate=exhalation_rate),
-            )
+            CO2_emitting_populations=(
+                    SimplePopulation(
+                    identifier="",
+                    number=self.occupancy,
+                    presence=None,
+                    activity=Activity(
+                        exhalation_rate=exhalation_rate, inhalation_rate=exhalation_rate),
+                ),
+            ),
         )
 
     def CO2_concentrations_from_params(self, CO2_concentration_model: CO2ConcentrationModel) -> typing.List[_VectorisedFloat]:
         # Calculate the predictive CO2 concentration
-        return [CO2_concentration_model.concentration(time) for time in self.times]
+        return [CO2_concentration_model.concentration(time).mean() for time in self.times] # Averaging arrays with 1 element
 
     def CO2_fit_params(self) -> typing.Dict:
         if len(self.times) != len(self.CO2_concentrations):

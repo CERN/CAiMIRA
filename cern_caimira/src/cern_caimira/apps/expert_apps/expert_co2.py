@@ -24,10 +24,12 @@ def baseline_model(data_registry: DataRegistry):
         data_registry=data_registry,
         room=models.Room(volume=120, humidity=0.5, inside_temp=models.PiecewiseConstant((0., 24.), (293.15,))),
         ventilation=models.HVACMechanical(active=models.PeriodicInterval(period=120, duration=120), q_air_mech=500),
-        CO2_emitters=models.SimplePopulation(
-            number=10,
-            presence=models.SpecificInterval(((8., 12.), (13., 17.))),
-            activity=models.Activity.types['Seated'],
+        CO2_emitting_populations=(
+            models.SimplePopulation(
+                number=10,
+                presence=models.SpecificInterval(((8., 12.), (13., 17.))),
+                activity=models.Activity.types['Seated'],
+            ),
         ),
     )
 
@@ -92,8 +94,8 @@ class ExposureModelResult(View):
 
     def update_plot(self, model: models.CO2ConcentrationModel):
         resolution = 600
-        ts = np.linspace(sorted(model.CO2_emitters.presence_interval().transition_times())[0],
-                         sorted(model.CO2_emitters.presence_interval().transition_times())[-1], resolution)
+        ts = np.linspace(sorted(model.CO2_emitting_populations[0].presence_interval().transition_times())[0],
+                         sorted(model.CO2_emitting_populations[0].presence_interval().transition_times())[-1], resolution)
         concentration = [model.concentration(t) for t in ts]
 
         if self.concentration_line is None:
@@ -105,19 +107,19 @@ class ExposureModelResult(View):
 
         if self.concentration_area is None:
             self.concentration_area = self.ax.fill_between(x = ts, y1=0, y2=concentration, color="#96cbff",
-                where = ((model.CO2_emitters.presence_interval().boundaries()[0][0] < ts) & (ts < model.CO2_emitters.presence_interval().boundaries()[0][1]) |
-                    (model.CO2_emitters.presence_interval().boundaries()[1][0] < ts) & (ts < model.CO2_emitters.presence_interval().boundaries()[1][1])))
+                where = ((model.CO2_emitting_populations[0].presence_interval().boundaries()[0][0] < ts) & (ts < model.CO2_emitting_populations[0].presence_interval().boundaries()[0][1]) |
+                    (model.CO2_emitting_populations[0].presence_interval().boundaries()[1][0] < ts) & (ts < model.CO2_emitting_populations[0].presence_interval().boundaries()[1][1])))
 
         else:
             self.concentration_area.remove()
             self.concentration_area = self.ax.fill_between(x = ts, y1=0, y2=concentration, color="#96cbff",
-                where = ((model.CO2_emitters.presence_interval().boundaries()[0][0] < ts) & (ts < model.CO2_emitters.presence_interval().boundaries()[0][1]) |
-                    (model.CO2_emitters.presence_interval().boundaries()[1][0] < ts) & (ts < model.CO2_emitters.presence_interval().boundaries()[1][1])))
+                where = ((model.CO2_emitting_populations[0].presence_interval().boundaries()[0][0] < ts) & (ts < model.CO2_emitting_populations[0].presence_interval().boundaries()[0][1]) |
+                    (model.CO2_emitting_populations[0].presence_interval().boundaries()[1][0] < ts) & (ts < model.CO2_emitting_populations[0].presence_interval().boundaries()[1][1])))
 
         concentration_top = max(np.array(concentration))
         self.ax.set_ylim(bottom=model.CO2_atmosphere_concentration * 0.9, top=concentration_top*1.1)
-        self.ax.set_xlim(left = min(model.CO2_emitters.presence_interval().boundaries()[0])*0.95,
-                        right = max(model.CO2_emitters.presence_interval().boundaries()[1])*1.05)
+        self.ax.set_xlim(left = min(model.CO2_emitting_populations[0].presence_interval().boundaries()[0])*0.95,
+                        right = max(model.CO2_emitting_populations[0].presence_interval().boundaries()[1])*1.05)
 
         figure_legends = [mlines.Line2D([], [], color='#3530fe', markersize=15, label='CO₂ concentration'),
                 mlines.Line2D([], [], color='salmon', markersize=15, label='Insufficient level', linestyle='--'),
@@ -128,8 +130,8 @@ class ExposureModelResult(View):
             self.ax.set_ylim(top=concentration_top*1.1)
         else:
             self.ax.set_ylim(top=1550)
-        self.ax.hlines([800, 1500], xmin=min(model.CO2_emitters.presence_interval().boundaries()[0])*0.95,
-                                    xmax=max(model.CO2_emitters.presence_interval().boundaries()[1])*1.05,
+        self.ax.hlines([800, 1500], xmin=min(model.CO2_emitting_populations[0].presence_interval().boundaries()[0])*0.95,
+                                    xmax=max(model.CO2_emitting_populations[0].presence_interval().boundaries()[1])*1.05,
                                     colors=['limegreen', 'salmon'],
                                     linestyles='dashed')
         self.figure.canvas.draw()
@@ -300,9 +302,9 @@ class ModelWidgets(View):
 
     def _build_widget(self, node):
         self.widget.children += (self._build_room(node.room),)
-        self.widget.children += (self._build_population(node.CO2_emitters, node.ventilation),)
+        self.widget.children += (self._build_population(node.CO2_emitting_populations[0], node.ventilation),)
         self.widget.children += (self._build_atmospheric_concentration(node),)
-        self.widget.children += (self._build_ventilation(node.ventilation, node.CO2_emitters),)
+        self.widget.children += (self._build_ventilation(node.ventilation, node.CO2_emitting_populations[0]),)
 
     def _build_atmospheric_concentration(self, node):
         return collapsible([widgets.VBox([
@@ -805,6 +807,6 @@ def models_start_end(models: typing.Sequence[models.CO2ConcentrationModel]) -> t
     Returns the earliest start and latest end time of a collection of v objects
 
     """
-    emitters_start = min(model.CO2_emitters.presence_interval().boundaries()[0][0] for model in models)
-    emitters_finish = min(model.CO2_emitters.presence_interval().boundaries()[-1][1] for model in models)
+    emitters_start = min(model.CO2_emitting_populations[0].presence_interval().boundaries()[0][0] for model in models)
+    emitters_finish = min(model.CO2_emitting_populations[0].presence_interval().boundaries()[-1][1] for model in models)
     return emitters_start, emitters_finish

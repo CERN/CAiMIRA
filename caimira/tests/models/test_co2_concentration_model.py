@@ -4,8 +4,11 @@ import typing
 import pytest
 
 from caimira.calculator.models import models
+import caimira.calculator.models.monte_carlo as mc
 from caimira.calculator.validators.co2.co2_validator import CO2FormData
+from caimira.calculator.models.monte_carlo.data import activity_distributions
 
+SAMPLE_SIZE = 10
 
 @pytest.fixture
 def simple_co2_conc_model(data_registry):
@@ -13,10 +16,12 @@ def simple_co2_conc_model(data_registry):
         data_registry=data_registry,
         room=models.Room(200, models.PiecewiseConstant((0., 24.), (293,))),
         ventilation=models.AirChange(models.PeriodicInterval(period=120, duration=120), 0.25),
-        CO2_emitters=models.SimplePopulation(
-            number=5,
-            presence=models.SpecificInterval((([0., 4.], ))),
-            activity=models.Activity.types['Seated'],
+        CO2_emitting_populations=(
+            models.SimplePopulation(
+                number=5,
+                presence=models.SpecificInterval((([0., 4.], ))),
+                activity=models.Activity.types['Seated'],
+            ),
         ),
     )
 
@@ -26,12 +31,55 @@ def simple_co2_conc_model_extended_presence(data_registry):
         data_registry=data_registry,
         room=models.Room(200, models.PiecewiseConstant((0., 24.), (293,))),
         ventilation=models.AirChange(models.PeriodicInterval(period=120, duration=120), 0.25),
-        CO2_emitters=models.SimplePopulation(
-            number=5,
-            presence=models.SpecificInterval((([0., 4.], [20., 20.1]))),
-            activity=models.Activity.types['Seated'],
+        CO2_emitting_populations=(
+            models.SimplePopulation(
+                number=5,
+                presence=models.SpecificInterval((((0., 4.), (20., 20.1)))),
+                activity=models.Activity.types['Seated'],
+            ),
         ),
     )
+
+@pytest.fixture
+def mc_co2_conc_model(data_registry):
+    return mc.CO2ConcentrationModel(
+        data_registry=data_registry,
+        room=mc.Room(200, mc.PiecewiseConstant((0., 24.), (293,))),
+        ventilation=mc.AirChange(mc.PeriodicInterval(period=120, duration=120), 0.25),
+        CO2_emitting_populations=(
+            mc.SimplePopulation(
+                number=5,
+                presence=mc.SpecificInterval((((0., 4.), (20., 20.1)))),
+                activity=activity_distributions(data_registry)['Seated'],
+            ),
+            mc.SimplePopulation(
+                number=5,
+                presence=mc.SpecificInterval((((0., 4.), (20., 20.1)))),
+                activity=activity_distributions(data_registry)['Seated'],
+            ),
+        ),
+    )
+
+def test_probabilistic_dynamic_co2_model(mc_co2_conc_model):
+    mc_co2_conc_model = mc_co2_conc_model.build_model(SAMPLE_SIZE)
+    assert len(mc_co2_conc_model.populations) == 2
+    assert isinstance(mc_co2_conc_model.min_background_concentration(), float)
+
+    assert isinstance(mc_co2_conc_model.removal_rate(10), np.ndarray)
+    assert isinstance(mc_co2_conc_model._normed_concentration_increase_limit(10), np.ndarray)
+    assert isinstance(mc_co2_conc_model._normed_concentration_increase(10), np.ndarray)
+    assert isinstance(mc_co2_conc_model.normed_integrated_concentration_increase(9,10), np.ndarray)
+    assert isinstance(mc_co2_conc_model.normalization_factor(), np.ndarray)
+    assert isinstance(mc_co2_conc_model.concentration(10), np.ndarray)
+    assert isinstance(mc_co2_conc_model.integrated_concentration(9,10), np.ndarray)
+
+    assert mc_co2_conc_model.removal_rate(10).shape == (len(mc_co2_conc_model.populations), 1)
+    assert mc_co2_conc_model._normed_concentration_increase_limit(10).shape == (len(mc_co2_conc_model.populations), 1)
+    assert mc_co2_conc_model._normed_concentration_increase(10).shape == (len(mc_co2_conc_model.populations), 1)
+    assert mc_co2_conc_model.normed_integrated_concentration_increase(9,10).shape == (len(mc_co2_conc_model.populations), 1)
+    assert mc_co2_conc_model.normalization_factor().shape == (len(mc_co2_conc_model.populations), SAMPLE_SIZE)
+    assert mc_co2_conc_model.concentration(10).shape == (len(mc_co2_conc_model.populations), SAMPLE_SIZE)
+    assert mc_co2_conc_model.integrated_concentration(9,10).shape == (len(mc_co2_conc_model.populations), SAMPLE_SIZE)
 
 
 @pytest.mark.parametrize(
@@ -130,7 +178,7 @@ def test_predictive_model_accuracy(data_registry, scenario_data, room_volume, oc
 
 @pytest.mark.parametrize("time", [4.1,10])
 def test_concentration_limit_last_state_change(simple_co2_conc_model, time):
-    npt.assert_almost_equal(simple_co2_conc_model._normed_concentration_limit(time), simple_co2_conc_model.min_background_concentration()/simple_co2_conc_model.normalization_factor())
+    npt.assert_almost_equal(simple_co2_conc_model._normed_concentration_increase_limit(time), 0)
 
 @pytest.mark.parametrize([
     "start",
@@ -150,7 +198,7 @@ def test_concentration_after_last_state_change(simple_co2_conc_model, simple_co2
     time = (start+stop)/2
     npt.assert_almost_equal(simple_co2_conc_model.removal_rate(time), simple_co2_conc_model_extended_presence.removal_rate(time))
     npt.assert_almost_equal(simple_co2_conc_model.concentration(time), simple_co2_conc_model_extended_presence.concentration(time))
-    npt.assert_almost_equal(simple_co2_conc_model._normed_concentration(time), simple_co2_conc_model_extended_presence._normed_concentration(time))
-    npt.assert_almost_equal(simple_co2_conc_model.normed_integrated_concentration(start, stop), simple_co2_conc_model_extended_presence.normed_integrated_concentration(start, stop))
+    npt.assert_almost_equal(simple_co2_conc_model._normed_concentration_increase(time), simple_co2_conc_model_extended_presence._normed_concentration_increase(time))
+    npt.assert_almost_equal(simple_co2_conc_model.normed_integrated_concentration_increase(start, stop), simple_co2_conc_model_extended_presence.normed_integrated_concentration_increase(start, stop))
     npt.assert_almost_equal(simple_co2_conc_model.integrated_concentration(start, stop), simple_co2_conc_model_extended_presence.integrated_concentration(start, stop))
     
