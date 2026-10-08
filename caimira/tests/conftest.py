@@ -45,15 +45,15 @@ def baseline_concentration_model(data_registry, baseline_infected, baseline_sr_m
 
 
 @pytest.fixture
-def baseline_exposure_model(data_registry, baseline_concentration_model):
+def baseline_exposure_model(data_registry, baseline_concentration_model, baseline_infected):
     return models.ExposureModel(
         data_registry=data_registry,
-        concentration_model=(baseline_concentration_model,),
+        concentration_model=baseline_concentration_model,
         exposed=models.Population(
             number=1000,
-            presence=baseline_concentration_model.infected.presence,
-            activity=baseline_concentration_model.infected.activity,
-            mask=baseline_concentration_model.infected.mask,
+            presence=baseline_infected.presence,
+            activity=baseline_infected.activity,
+            mask=baseline_infected.mask,
             host_immunity=0.,
         ),
         geographical_data=models.Cases(),

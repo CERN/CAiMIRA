@@ -17,6 +17,7 @@ class KnownNormedconcentration(models.ConcentrationModel):
     A ConcentrationModel which is based on pre-known exposure concentrations and
     which therefore doesn't need other components. Useful for testing.
 
+    Only accepts 1 infected population.
     """
     normed_concentration_function: typing.Callable = lambda x: 0
     normed_concentration_limit_function: typing.Callable = normed_concentration_function
@@ -26,7 +27,7 @@ class KnownNormedconcentration(models.ConcentrationModel):
         return 1.e50
 
     def _normed_concentration_limit(self, time: float) -> models._VectorisedFloat:
-        return self.normed_concentration_limit_function(time) * self.infected.number
+        return self.normed_concentration_limit_function(time) * self.infected_populations[0].number
 
     def state_change_times(self):
         return [0., 24.]
@@ -35,7 +36,7 @@ class KnownNormedconcentration(models.ConcentrationModel):
         return 24.
 
     def _normed_concentration(self, time: float) -> models._VectorisedFloat:  # noqa
-        return self.normed_concentration_function(time) * self.infected.number
+        return self.normed_concentration_function(time) * self.infected_populations[0].number
 
 
 halftime = models.PeriodicInterval(120, 60)
@@ -81,9 +82,9 @@ def known_concentrations(func, func_lim=None, data_registry=DataRegistry()):
             data_registry=data_registry, 
             room=dummy_room, 
             ventilation=dummy_ventilation,
-            infected=dummy_infected_population, 
+            infected_populations=(dummy_infected_population,), 
             evaporation_factor=0.3, 
-            short_range=(), 
+            short_range=((),), 
             normed_concentration_function=normed_func, 
             normed_concentration_limit_function=normed_func_lim,
         )
