@@ -8,9 +8,11 @@ import numpy.testing as npt
 import pytest
 from retry import retry
 
+
 import caimira.calculator.models.monte_carlo as mc
 from caimira.calculator.models import models
 from caimira.calculator.models.utils import method_cache
+from caimira.calculator.models.dataclass_utils import nested_replace
 from caimira.calculator.models.models import _VectorisedFloat,Interval,SpecificInterval
 from caimira.calculator.models.monte_carlo.data import (expiration_distributions,
         expiration_BLO_factors,short_range_expiration_distributions,
@@ -490,9 +492,9 @@ def c_model_no_sr(data_registry) -> mc.ConcentrationModel:
         data_registry=data_registry,
         room=models.Room(volume=50, inside_temp=models.PiecewiseConstant((0., 24.), (293,)), humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=1.),
-        infected=default_infected(data_registry=data_registry, virus=models.Virus.types['SARS_CoV_2_DELTA']),
+        infected_populations=(default_infected(data_registry=data_registry, virus=models.Virus.types['SARS_CoV_2_DELTA']),),
         evaporation_factor=0.3,
-        short_range=(),
+        short_range=((),),
     )
 
 @pytest.fixture
@@ -599,15 +601,9 @@ def simple_sr_models_with_exposed2(data_registry) -> typing.Tuple[SimpleShortRan
     )
 
 @pytest.fixture
-def c_model_with_sr(data_registry, short_range_models_with_exposed1) -> mc.ConcentrationModel:
-    return mc.ConcentrationModel(
-        data_registry=data_registry,
-        room=models.Room(volume=50, inside_temp=models.PiecewiseConstant((0., 24.), (293,)), humidity=0.3),
-        ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=1.),
-        infected=default_infected(data_registry=data_registry, virus=models.Virus.types['SARS_CoV_2_DELTA']),
-        evaporation_factor=0.3,
-        short_range=short_range_models_with_exposed1,
-    )
+def c_model_with_sr(c_model_no_sr, short_range_models_with_exposed1) -> mc.ConcentrationModel:
+    return nested_replace(c_model_no_sr, {"short_range": (short_range_models_with_exposed1,)})
+
 
 @pytest.fixture
 def c_model_distr(data_registry) -> mc.ConcentrationModel:
@@ -616,22 +612,14 @@ def c_model_distr(data_registry) -> mc.ConcentrationModel:
         room=models.Room(volume=50, humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(
                             period=120, duration=120), air_exch=1.),
-        infected=default_infected(data_registry=data_registry, virus=virus_distributions(data_registry)['SARS_CoV_2_DELTA']),
+        infected_populations=(default_infected(data_registry=data_registry, virus=virus_distributions(data_registry)['SARS_CoV_2_DELTA']),),
         evaporation_factor=0.3,
-        short_range=(),
+        short_range=((),),
     )
 
 @pytest.fixture
-def c_model_distr_with_sr(data_registry, short_range_models_with_exposed2) -> mc.ConcentrationModel:
-    return mc.ConcentrationModel(
-        data_registry=data_registry,
-        room=models.Room(volume=50, humidity=0.3),
-        ventilation=models.AirChange(active=models.PeriodicInterval(
-                            period=120, duration=120), air_exch=1.),
-        infected=default_infected(data_registry=data_registry, virus=virus_distributions(data_registry)['SARS_CoV_2_DELTA']),
-        evaporation_factor=0.3,
-        short_range=short_range_models_with_exposed2,
-    )
+def c_model_distr_with_sr(c_model_distr, short_range_models_with_exposed2) -> mc.ConcentrationModel:
+    return nested_replace(c_model_distr, {"short_range": (short_range_models_with_exposed2,)})
 
 @pytest.fixture
 def simple_c_model(data_registry) -> SimpleConcentrationModel:
@@ -663,7 +651,7 @@ def default_exposed(data_registry, identifier: str, activity=None) -> mc.Populat
 def expo_sr_model(data_registry, c_model_with_sr) -> mc.ExposureModel:
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=(c_model_with_sr,),
+        concentration_model=c_model_with_sr,
         exposed=default_exposed(data_registry=data_registry, identifier="group1"),
         geographical_data=models.Cases(),
     )
@@ -690,7 +678,7 @@ def simple_expo_sr_model(data_registry, simple_sr_models_with_exposed1) -> Simpl
 def expo_sr_model_distr(data_registry, c_model_distr_with_sr) -> mc.ExposureModel:
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=(c_model_distr_with_sr,),
+        concentration_model=c_model_distr_with_sr,
         exposed=default_exposed(data_registry=data_registry, identifier="group2"),
         geographical_data=models.Cases(),
     )
@@ -721,7 +709,7 @@ def simple_expo_sr_model_distr(data_registry, simple_sr_models_with_exposed2) ->
 @pytest.mark.parametrize(
     "time", np.linspace(8.5,17.5,12),
 )
-def test_longrange_concentration(time,c_model_no_sr,simple_c_model):
+def test_long_range_concentration(time,c_model_no_sr,simple_c_model):
     npt.assert_allclose(
         c_model_no_sr.build_model(SAMPLE_SIZE).concentration(time).mean(),
         simple_c_model.concentration(time), rtol=TOLERANCE
@@ -732,11 +720,11 @@ def test_longrange_concentration(time,c_model_no_sr,simple_c_model):
 @pytest.mark.parametrize(
     "time", [10, 10.7, 11., 12.5, 14.75, 14.9, 17]
 )
-def test_shortrange_concentration(time, expo_sr_model, simple_c_model, simple_sr_models_with_exposed1):
+def test_short_range_concentration(time, expo_sr_model, simple_c_model, simple_sr_models_with_exposed1):
     expo_sr_model=expo_sr_model.build_model(SAMPLE_SIZE)
-    result_sr_model = expo_sr_model.concentration(time) - expo_sr_model.long_range_concentration(time)
+    result_sr_model = np.mean(expo_sr_model.concentration(time) - expo_sr_model.long_range_concentration(time))
     result_simple_sr_model = np.sum([np.array(
-            sr_mod.concentration(simple_c_model,time)).mean()
+            sr_mod.concentration(simple_c_model,time))
         for sr_mod in simple_sr_models_with_exposed1])
     npt.assert_allclose(
         result_sr_model,result_simple_sr_model,rtol=TOLERANCE
@@ -759,7 +747,7 @@ def test_longrange_exposure(data_registry, c_model_no_sr):
     )
     expo_model = mc.ExposureModel(
             data_registry=data_registry,
-            concentration_model=(c_model_no_sr,),
+            concentration_model=c_model_no_sr,
             exposed=default_exposed(data_registry=data_registry, identifier=""),
             geographical_data=models.Cases(),
     ).build_model(SAMPLE_SIZE)
@@ -817,7 +805,7 @@ def test_longrange_exposure_with_distributions(data_registry, c_model_distr):
     )
     expo_model = mc.ExposureModel(
             data_registry=data_registry,
-            concentration_model=(c_model_distr,),
+            concentration_model=c_model_distr,
             exposed=default_exposed(data_registry=data_registry, identifier=""),
             geographical_data=models.Cases(),
     ).build_model(SAMPLE_SIZE)
@@ -895,16 +883,16 @@ def c_model_from_parameter(data_registry, short_range=(), f_inf=0.5, viral_load=
         room=models.Room(volume=50, humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
                                      air_exch=10_000_000),
-        infected=default_infected(data_registry=data_registry, virus=virus),
+        infected_populations=(default_infected(data_registry=data_registry, virus=virus),),
         evaporation_factor=0.3,
-        short_range=short_range,
+        short_range=(short_range,),
     )
 
 def exposure_model_from_parameter(data_registry, short_range=(), f_inf=0.5, viral_load=1e9, BR=1.25):
     c_model = c_model_from_parameter(data_registry, short_range=short_range, f_inf=f_inf, viral_load=viral_load)
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=(c_model,),
+        concentration_model=c_model,
         exposed=default_exposed(data_registry=data_registry, identifier="group1", activity=models.Activity(inhalation_rate=BR, exhalation_rate=1.25)),
         geographical_data=models.Cases(),
     ).build_model(SAMPLE_SIZE)

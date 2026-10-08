@@ -37,7 +37,7 @@ def baseline_exposure_model(data_registry):
     )
     return mc.ExposureModel(
         data_registry=data_registry,
-        concentration_model=(concentration_mc,),
+        concentration_model=concentration_mc,
         exposed=mc.Population(
             number=3,
             presence=mc.SpecificInterval(present_times=((0, 3.5), (4.5, 9))),
@@ -50,7 +50,7 @@ def baseline_exposure_model(data_registry):
 
 
 @retry(tries=3)
-def test_conditional_prob_inf_given_vl_dist(data_registry, baseline_exposure_model):
+def test_conditional_prob_inf_given_vl_dist(baseline_exposure_model):
 
     viral_loads = np.array([3., 5., 7., 9.,])
     mc_model: models.ExposureModel = baseline_exposure_model.build_model(2_000_000)
@@ -60,10 +60,10 @@ def test_conditional_prob_inf_given_vl_dist(data_registry, baseline_exposure_mod
     expected_upper_percentiles = []
 
     for vl in viral_loads:
-        model_vl: models.ExposureModel = dataclass_utils.replace_concentration_model_properties(
-            mc_model, {
-                'infected.virus.viral_load_in_sputum' : 10**vl,
-            }
+        infected = baseline_exposure_model.concentration_model.infected_populations[0]
+        new_infected = dataclass_utils.nested_replace(infected, {"virus.viral_load_in_sputum": 10**vl,}).build_model(2_000_000)
+        model_vl: models.ExposureModel = dataclass_utils.nested_replace(
+            mc_model, {'concentration_model.infected_populations': (new_infected,)}
         )
         pi = model_vl.individual_infection_probability()/100
 

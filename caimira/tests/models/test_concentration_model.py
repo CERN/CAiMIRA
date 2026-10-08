@@ -1,4 +1,5 @@
 import re
+import typing
 
 import numpy as np
 import numpy.testing as npt
@@ -15,7 +16,7 @@ class KnownConcentrationModelBase(models._ConcentrationModelBase):
     redefined with a value taken from new parameters. Useful for testing.
 
     """
-    known_population: models.Population
+    known_populations: typing.Tuple[models.Population, ...]
 
     known_removal_rate: float
 
@@ -24,8 +25,8 @@ class KnownConcentrationModelBase(models._ConcentrationModelBase):
     known_normalization_factor: float
 
     @property
-    def population(self) -> models.Population:
-        return self.known_population
+    def populations(self) -> models.Population:
+        return self.known_populations
 
     def removal_rate(self, time: float) -> float:
         return self.known_removal_rate
@@ -59,29 +60,31 @@ def test_concentration_model_vectorisation(override_params, data_registry):
         data_registry,
         models.Room(defaults['volume'], models.PiecewiseConstant((0., 24.), (293,)), defaults['humidity']),
         models.AirChange(always, defaults['air_change']),
-        models.InfectedPopulation(
-            data_registry=data_registry,
-            number=1,
-            presence=always,
-            mask=models.Mask(
-                factor_exhale=0.95,
-                η_inhale=0.3,
+        (
+            models.InfectedPopulation(
+                data_registry=data_registry,
+                number=1,
+                presence=always,
+                mask=models.Mask(
+                    factor_exhale=0.95,
+                    η_inhale=0.3,
+                ),
+                activity=models.Activity(
+                    0.51,
+                    0.75,
+                ),
+                virus=models.SARSCoV2(
+                    viral_load_in_sputum=defaults['viral_load_in_sputum'],
+                    infectious_dose=50.,
+                    viable_to_RNA_ratio = 0.5,
+                    transmissibility_factor=1.0,
+                ),
+                expiration=models._ExpirationBase.types['Breathing'],
+                host_immunity=0.,
             ),
-            activity=models.Activity(
-                0.51,
-                0.75,
-            ),
-            virus=models.SARSCoV2(
-                viral_load_in_sputum=defaults['viral_load_in_sputum'],
-                infectious_dose=50.,
-                viable_to_RNA_ratio = 0.5,
-                transmissibility_factor=1.0,
-            ),
-            expiration=models._ExpirationBase.types['Breathing'],
-            host_immunity=0.,
         ),
         evaporation_factor=0.3,
-        short_range=(),
+        short_range=((),),
     )
     concentrations = c_model.concentration(10)
     assert isinstance(concentrations, np.ndarray)
@@ -95,18 +98,20 @@ def simple_conc_model(data_registry):
         data_registry=data_registry,
         room = models.Room(75, models.PiecewiseConstant((0., 24.), (293,))),
         ventilation = models.AirChange(interesting_times, 100),
-        infected = models.InfectedPopulation(
-            data_registry=data_registry,
-            number=1,
-            presence=interesting_times,
-            mask=models.Mask.types['Type I'],
-            activity=models.Activity.types['Seated'],
-            virus=models.Virus.types['SARS_CoV_2'],
-            expiration=models.Expiration.types['Breathing'],
-            host_immunity=0.,
+        infected_populations = (
+            models.InfectedPopulation(
+                data_registry=data_registry,
+                number=1,
+                presence=interesting_times,
+                mask=models.Mask.types['Type I'],
+                activity=models.Activity.types['Seated'],
+                virus=models.Virus.types['SARS_CoV_2'],
+                expiration=models.Expiration.types['Breathing'],
+                host_immunity=0.,
+            ),
         ),
         evaporation_factor=0.3,
-        short_range=(),
+        short_range=((),),
     )
 
 @pytest.fixture
@@ -116,18 +121,20 @@ def simple_conc_model_extended_presence(data_registry):
         data_registry=data_registry,
         room = models.Room(75, models.PiecewiseConstant((0., 24.), (293,))),
         ventilation = models.AirChange(ventilation_times, 100),
-        infected = models.InfectedPopulation(
-            data_registry=data_registry,
-            number=1,
-            presence=models.SpecificInterval(([0.5, 1.], [1.1, 2], [2., 3.], [20., 20.001]), ),
-            mask=models.Mask.types['Type I'],
-            activity=models.Activity.types['Seated'],
-            virus=models.Virus.types['SARS_CoV_2'],
-            expiration=models.Expiration.types['Breathing'],
-            host_immunity=0.,
+        infected_populations = (
+            models.InfectedPopulation(
+                data_registry=data_registry,
+                number=1,
+                presence=models.SpecificInterval(([0.5, 1.], [1.1, 2], [2., 3.], [20., 20.001]), ),
+                mask=models.Mask.types['Type I'],
+                activity=models.Activity.types['Seated'],
+                virus=models.Virus.types['SARS_CoV_2'],
+                expiration=models.Expiration.types['Breathing'],
+                host_immunity=0.,
+            ),
         ),
         evaporation_factor=0.3,
-        short_range=(),
+        short_range=((),),
     )
 
 
@@ -135,7 +142,7 @@ def simple_conc_model_extended_presence(data_registry):
 def dummy_population(simple_conc_model) -> models.Population:
     return models.Population(
         number=1,
-        presence=simple_conc_model.infected.presence,
+        presence=simple_conc_model.infected_populations[0].presence,
         mask=models.Mask.types['Type I'],
         activity=models.Activity.types['Seated'],
         host_immunity=0.,
@@ -179,10 +186,10 @@ def test_integrated_concentration(simple_conc_model):
 
 
 # The expected numbers were obtained via the quad integration of the
-# normed_integrated_concentration method with 0 (start) and 2 (stop) as limits.
+# normed_integrated_concentration_increase method with 0 (start) and 2 (stop) as limits.
 @pytest.mark.parametrize([
     "known_min_background_concentration",
-    "expected_normed_integrated_concentration"],
+    "expected_normed_integrated_concentration_increase"],
     [
         [0.0, 0.00018533333708996207],
         [240.0, 48.000185340695275],
@@ -191,31 +198,31 @@ def test_integrated_concentration(simple_conc_model):
         [1000., 200.0001853407918],
     ]
 )
-def test_normed_integrated_concentration_with_background_concentration(
+def test_normed_integrated_concentration_increase_with_background_concentration(
     data_registry: DataRegistry,
     simple_conc_model: models.ConcentrationModel,
     dummy_population: models.Population,
     known_min_background_concentration: float,
-    expected_normed_integrated_concentration: float):
+    expected_normed_integrated_concentration_increase: float):
 
     known_conc_model = KnownConcentrationModelBase(
         data_registry,
         room = simple_conc_model.room,
         ventilation = simple_conc_model.ventilation,
-        known_population = dummy_population,
+        known_populations = (dummy_population,),
         known_removal_rate = 100.,
         known_min_background_concentration = known_min_background_concentration,
         known_normalization_factor = 10.)
-    npt.assert_almost_equal(known_conc_model.normed_integrated_concentration(0, 2), expected_normed_integrated_concentration)
+    npt.assert_almost_equal(known_conc_model.normed_integrated_concentration_increase(0, 2), expected_normed_integrated_concentration_increase)
 
 
 # The expected numbers were obtained via the quad integration of the
-# normed_integrated_concentration method with 0 (start) and 2 (stop) as limits.
+# normed_integrated_concentration_increase method with 0 (start) and 2 (stop) as limits.
 @pytest.mark.parametrize([
     "known_removal_rate",
     "known_min_background_concentration",
     "known_normalization_factor",
-    "expected_normed_integrated_concentration"],
+    "expected_normed_integrated_concentration_increase"],
     [
         [np.array([0.25, 10]), 0.0, 10., np.array([0.012161005755130391, 0.0017333437605308818])],
         [100, np.array([0, 240.0]), 10., np.array([0.00018533333708996207, 48.000185340695275])],
@@ -224,29 +231,29 @@ def test_normed_integrated_concentration_with_background_concentration(
         [np.array([50, 100,]), np.array([1000.,1100.]), np.array([10., 20.]), np.array([200.00036800764332, 110.00018534069527])],
     ]
 )
-def test_normed_integrated_concentration_vectorisation(
+def test_normed_integrated_concentration_increase_vectorisation(
     data_registry: DataRegistry,
     simple_conc_model: models.ConcentrationModel,
     dummy_population: models.Population,
     known_removal_rate: float,
     known_min_background_concentration: float,
     known_normalization_factor: float,
-    expected_normed_integrated_concentration: float):
+    expected_normed_integrated_concentration_increase: float):
 
     known_conc_model = KnownConcentrationModelBase(
         data_registry = data_registry,
         room = simple_conc_model.room,
         ventilation = simple_conc_model.ventilation,
-        known_population = dummy_population,
+        known_populations = (dummy_population,),
         known_removal_rate = known_removal_rate,
         known_min_background_concentration = known_min_background_concentration,
         known_normalization_factor = known_normalization_factor)
 
-    integrated_concentration = known_conc_model.normed_integrated_concentration(0, 2)
+    integrated_concentration = known_conc_model.normed_integrated_concentration_increase(0, 2)
 
     assert isinstance(integrated_concentration, np.ndarray)
     assert integrated_concentration.shape == (2, )
-    npt.assert_almost_equal(integrated_concentration, expected_normed_integrated_concentration)
+    npt.assert_almost_equal(integrated_concentration, expected_normed_integrated_concentration_increase)
 
 
 @pytest.mark.parametrize([
@@ -273,7 +280,7 @@ def test_zero_ventilation_rate(
         data_registry = data_registry,
         room = simple_conc_model.room,
         ventilation = simple_conc_model.ventilation,
-        known_population = dummy_population,
+        known_populations = (dummy_population,),
         known_removal_rate = known_removal_rate,
         known_normalization_factor=1.,
         known_min_background_concentration = known_min_background_concentration)
@@ -283,7 +290,7 @@ def test_zero_ventilation_rate(
 
 @pytest.mark.parametrize("time", [3.1,10])
 def test_concentration_limit_last_state_change(simple_conc_model, time):
-    npt.assert_almost_equal(simple_conc_model._normed_concentration_limit(time), simple_conc_model.min_background_concentration()/simple_conc_model.normalization_factor())
+    npt.assert_almost_equal(simple_conc_model._normed_concentration_increase_limit(time), simple_conc_model.min_background_concentration()/simple_conc_model.normalization_factor())
 
 @pytest.mark.parametrize([
     "start",
@@ -303,6 +310,6 @@ def test_concentration_after_last_state_change(simple_conc_model, simple_conc_mo
     time = (start+stop)/2
     npt.assert_almost_equal(simple_conc_model.removal_rate(time), simple_conc_model_extended_presence.removal_rate(time))
     npt.assert_almost_equal(simple_conc_model.concentration(time), simple_conc_model_extended_presence.concentration(time))
-    npt.assert_almost_equal(simple_conc_model._normed_concentration(time), simple_conc_model_extended_presence._normed_concentration(time))
-    npt.assert_almost_equal(simple_conc_model.normed_integrated_concentration(start, stop), simple_conc_model_extended_presence.normed_integrated_concentration(start, stop))
+    npt.assert_almost_equal(simple_conc_model._normed_concentration_increase(time), simple_conc_model_extended_presence._normed_concentration_increase(time))
+    npt.assert_almost_equal(simple_conc_model.normed_integrated_concentration_increase(start, stop), simple_conc_model_extended_presence.normed_integrated_concentration_increase(start, stop))
     npt.assert_almost_equal(simple_conc_model.integrated_concentration(start, stop), simple_conc_model_extended_presence.integrated_concentration(start, stop))

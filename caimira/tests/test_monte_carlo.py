@@ -6,6 +6,7 @@ import pytest
 import caimira.calculator.models
 import caimira.calculator.models.models
 import caimira.calculator.models.monte_carlo.sampleable
+from caimira.calculator.models import dataclass_utils
 
 MODEL_CLASSES = [
     cls for cls in vars(caimira.calculator.models).values()
@@ -51,47 +52,38 @@ def baseline_mc_concentration_model(data_registry, baseline_mc_sr_model) -> caim
             outside_temp=caimira.calculator.models.models.PiecewiseConstant((0., 24.), (283,)),
             window_height=1.6, opening_length=0.6,
         ),
-        infected=caimira.calculator.models.models.InfectedPopulation(
-            data_registry=data_registry,
-            number=1,
-            virus=caimira.calculator.models.models.Virus.types['SARS_CoV_2'],
-            presence=caimira.calculator.models.models.SpecificInterval(((0., 4.), (5., 8.))),
-            mask=caimira.calculator.models.models.Mask.types['No mask'],
-            activity=caimira.calculator.models.models.Activity.types['Light activity'],
-            expiration=caimira.calculator.models.models.Expiration.types['Breathing'],
-            host_immunity=0.,
+        infected_populations=(
+            caimira.calculator.models.monte_carlo.InfectedPopulation(
+                data_registry=data_registry,
+                number=1,
+                virus=caimira.calculator.models.models.Virus.types['SARS_CoV_2'],
+                presence=caimira.calculator.models.models.SpecificInterval(((0., 4.), (5., 8.))),
+                mask=caimira.calculator.models.models.Mask.types['No mask'],
+                activity=caimira.calculator.models.models.Activity.types['Light activity'],
+                expiration=caimira.calculator.models.models.Expiration.types['Breathing'],
+                host_immunity=0.,
+            ),
         ),
         evaporation_factor=0.3,
-        short_range=baseline_mc_sr_model,
+        short_range=(baseline_mc_sr_model,),
     )
     return mc_model
+
+@pytest.fixture
+def invalid_baseline_mc_concentration_model(baseline_mc_concentration_model) -> caimira.calculator.models.monte_carlo.ConcentrationModel:
+    return dataclass_utils.nested_replace(baseline_mc_concentration_model, {"infected_populations": [baseline_mc_concentration_model.infected_populations[0],]})
 
 
 @pytest.fixture
 def baseline_mc_exposure_model(data_registry, baseline_mc_concentration_model) -> caimira.calculator.models.monte_carlo.ExposureModel:
     return caimira.calculator.models.monte_carlo.ExposureModel(
         data_registry,
-        (baseline_mc_concentration_model,),
+        baseline_mc_concentration_model,
         exposed=caimira.calculator.models.models.Population(
             number=10,
-            presence=baseline_mc_concentration_model.infected.presence,
-            activity=baseline_mc_concentration_model.infected.activity,
-            mask=baseline_mc_concentration_model.infected.mask,
-            host_immunity=0.,
-        ),
-        geographical_data=caimira.calculator.models.models.Cases(),
-    )
-
-@pytest.fixture
-def mc_exposure_model_with_concentration_model_list(data_registry, baseline_mc_concentration_model) -> caimira.calculator.models.monte_carlo.ExposureModel:
-    return caimira.calculator.models.monte_carlo.ExposureModel(
-        data_registry,
-        [baseline_mc_concentration_model],
-        exposed=caimira.calculator.models.models.Population(
-            number=10,
-            presence=baseline_mc_concentration_model.infected.presence,
-            activity=baseline_mc_concentration_model.infected.activity,
-            mask=baseline_mc_concentration_model.infected.mask,
+            presence=baseline_mc_concentration_model.infected_populations[0].presence,
+            activity=baseline_mc_concentration_model.infected_populations[0].activity,
+            mask=baseline_mc_concentration_model.infected_populations[0].mask,
             host_immunity=0.,
         ),
         geographical_data=caimira.calculator.models.models.Cases(),
@@ -115,8 +107,8 @@ def test_build_exposure_model(baseline_mc_exposure_model: caimira.calculator.mod
     assert prob.shape == (7, )
 
 
-def test_no_listed_mc_models(mc_exposure_model_with_concentration_model_list: caimira.calculator.models.monte_carlo.ExposureModel):
+def test_no_listed_mc_models(invalid_baseline_mc_concentration_model: caimira.calculator.models.monte_carlo.ExposureModel):
     with pytest.raises(TypeError, match="MCModelBase instances must be passed directly or as tuples to be " \
                                             "built into `caimira.models` objects, and not as list elements."):
-        mc_exposure_model_with_concentration_model_list.build_model(7)
+        invalid_baseline_mc_concentration_model.build_model(7)
 

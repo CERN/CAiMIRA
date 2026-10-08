@@ -51,7 +51,7 @@ else:
 
 from .utils import method_cache
 
-from .dataclass_utils import nested_replace, replace_concentration_model_properties
+from .dataclass_utils import nested_replace
 
 oneoverln2 = 1 / np.log(2)
 # Define types for items supporting vectorisation. In the future this may be replaced
@@ -1820,7 +1820,7 @@ class ExposureModel:
                     # Verifies if the given time falls within a short-range interaction
                     # NOTE: max one short-range interaction at a time, so the test should just yield true once (TODO check?)
                     if start <= time <= stop:
-                        concentration += np.mean(interaction._normed_diluted_jet_concentration()*short_range_normalization_factor)
+                        concentration += interaction._normed_diluted_jet_concentration()*short_range_normalization_factor
                         concentration -= 1/interaction.dilution_factor() * self.concentration_model.concentration(time)
         return concentration
 
@@ -1956,7 +1956,7 @@ class ExposureModel:
                 self.virus.transmissibility_factor)))) * 100
 
     def total_probability_rule(self) -> _VectorisedFloat:
-        if len(self.concentration_model) > 1:
+        if len(self.concentration_model.infected_populations) > 1:
             raise NotImplementedError("Cannot compute total probability "
                         "(including incidence rate) with dynamic occupancy")
         elif isinstance(self.concentration_model.infected_populations[0].number, IntPiecewiseConstant):
@@ -1973,8 +1973,10 @@ class ExposureModel:
             # To be on the safe side, a hard coded limit with a safety margin of 2x was set.
             # Therefore we decided a hard limit of 10 infected people.
             for num_infected in range(1, max_num_infected + 1):
-                exposure_model = replace_concentration_model_properties(
-                    self, {'infected.number': num_infected}
+                infected = self.concentration_model.infected_populations[0]
+                new_infected = nested_replace(infected, {"number": num_infected})
+                exposure_model = nested_replace(
+                    self, {'concentration_model.infected_populations': (new_infected,)}
                 )
                 prob_ind = exposure_model.individual_infection_probability().mean() / 100
                 n = total_people - num_infected
@@ -2011,11 +2013,10 @@ class ExposureModel:
 
         # Create an equivalent exposure model but with precisely
         # one infected case, respecting the presence interval.
-        single_exposure_model = replace_concentration_model_properties(
-            self, {
-                'infected.number': 1,
-                'infected.presence': infected_population.presence_interval(),
-            }
+        infected = self.concentration_model.infected_populations[0]
+        new_infected = nested_replace(infected, {"number": 1, "presence": infected_population.presence_interval(),})
+        single_exposure_model = nested_replace(
+            self, {'concentration_model.infected_populations': (new_infected,)}
         )
         return single_exposure_model.expected_new_cases()
     

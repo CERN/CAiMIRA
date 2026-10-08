@@ -166,13 +166,13 @@ def test_deterministic_non_dynamic_model(baseline_concentration_model):
     assert isinstance(model._normed_concentration_increase_limit(10), np.ndarray)
     assert isinstance(model.normalization_factor(), np.ndarray)
     assert isinstance(model.concentration(10), np.ndarray)
-    assert isinstance(model.short_range_normalization_factor(), np.ndarray)
+    assert isinstance(model.short_range_normalization_factors(), np.ndarray)
     assert model.removal_rate(10).shape == (len(model.populations), 1)
     assert model._normed_concentration_increase_limit(10).shape == (len(model.populations), 1)
     assert model._normed_concentration_increase(10).shape == (len(model.populations), 1)
     assert model.normalization_factor().shape == (len(model.populations), 1)
     assert model.concentration(10).shape == (len(model.populations), 1)
-    assert model.short_range_normalization_factor().shape == (len(model.populations), 1)
+    assert model.short_range_normalization_factors().shape == (len(model.populations), 1)
 
 def test_probabilistic_dynamic_model(dynamic_mc_model):
     model = dynamic_mc_model.build_model(SAMPLE_SIZE)
@@ -183,13 +183,13 @@ def test_probabilistic_dynamic_model(dynamic_mc_model):
     assert isinstance(model._normed_concentration_increase(10), np.ndarray)
     assert isinstance(model.normalization_factor(), np.ndarray)
     assert isinstance(model.concentration(10), np.ndarray)
-    assert isinstance(model.short_range_normalization_factor(), np.ndarray)
+    assert isinstance(model.short_range_normalization_factors(), np.ndarray)
     assert model.removal_rate(10).shape == (len(model.populations), SAMPLE_SIZE)
     assert model._normed_concentration_increase_limit(10).shape == (len(model.populations), SAMPLE_SIZE)
     assert model._normed_concentration_increase(10).shape == (len(model.populations), SAMPLE_SIZE)
     assert model.normalization_factor().shape == (len(model.populations), SAMPLE_SIZE)
     assert model.concentration(10).shape == (len(model.populations), SAMPLE_SIZE)
-    assert model.short_range_normalization_factor().shape == (len(model.populations), SAMPLE_SIZE)
+    assert model.short_range_normalization_factors().shape == (len(model.populations), SAMPLE_SIZE)
 
 def test_mixed_non_dynamic_model(non_dynamic_mixed_model_tuple):
     for mc_model in non_dynamic_mixed_model_tuple:
@@ -201,7 +201,7 @@ def test_mixed_non_dynamic_model(non_dynamic_mixed_model_tuple):
         assert isinstance(model._normed_concentration_increase(10), np.ndarray)
         assert isinstance(model.normalization_factor(), np.ndarray)
         assert isinstance(model.concentration(10), np.ndarray)
-        assert isinstance(model.short_range_normalization_factor(), np.ndarray)
+        assert isinstance(model.short_range_normalization_factors(), np.ndarray)
         assert model.removal_rate(10).shape in {
             (len(model.populations), SAMPLE_SIZE),
             (len(model.populations), 1)
@@ -222,7 +222,7 @@ def test_mixed_non_dynamic_model(non_dynamic_mixed_model_tuple):
             (len(model.populations), SAMPLE_SIZE),
             (len(model.populations), 1)
         }
-        assert model.short_range_normalization_factor().shape in {
+        assert model.short_range_normalization_factors().shape in {
             (len(model.populations), SAMPLE_SIZE),
             (len(model.populations), 1)
         }
@@ -238,10 +238,10 @@ def test_mixed_non_dynamic_model(non_dynamic_mixed_model_tuple):
 #     assert isinstance(model._normed_concentration_increase(10), np.ndarray)
 #     assert isinstance(model.normalization_factor(), np.ndarray)
 #     assert isinstance(model.concentration(10), np.ndarray)
-#     assert isinstance(model.short_range_normalization_factor(), np.ndarray)
+#     assert isinstance(model.short_range_normalization_factors(), np.ndarray)
 #     assert model.removal_rate(10).shape == (len(model.populations), SAMPLE_SIZE)
 #     assert model._normed_concentration_increase_limit(10).shape == (len(model.populations), SAMPLE_SIZE)
 #     assert model._normed_concentration_increase(10).shape == (len(model.populations), SAMPLE_SIZE)
 #     assert model.normalization_factor().shape == (len(model.populations), SAMPLE_SIZE)
 #     assert model.concentration(10).shape == (len(model.populations), SAMPLE_SIZE)
-#     assert model.short_range_normalization_factor().shape == (len(model.populations), SAMPLE_SIZE)
+#     assert model.short_range_normalization_factors().shape == (len(model.populations), SAMPLE_SIZE)

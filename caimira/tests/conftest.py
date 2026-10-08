@@ -62,9 +62,9 @@ def baseline_exposure_model(data_registry, baseline_concentration_model, baselin
 
 @pytest.fixture
 def exposure_model_w_outside_temp_changes(data_registry, baseline_exposure_model: models.ExposureModel):
-    exp_model = caimira.calculator.models.dataclass_utils.replace_concentration_model_properties(
+    exp_model = caimira.calculator.models.dataclass_utils.nested_replace(
         baseline_exposure_model, {
-            'ventilation': models.SlidingWindow(
+            'concentration_model.ventilation': models.SlidingWindow(
                 data_registry=data_registry,
                 active=models.PeriodicInterval(2.2 * 60, 1.8 * 60),
                 outside_temp=caimira.calculator.models.data.GenevaTemperatures['Jan'],
