@@ -20,18 +20,20 @@ def baseline_exposure_model(data_registry):
                 models.AirChange(active=models.PeriodicInterval(period=120, duration=120), air_exch=0.25),
             )
         ),
-        infected=mc.InfectedPopulation(
-            data_registry=data_registry,
-            number=1,
-            presence=mc.SpecificInterval(present_times=((0, 3.5), (4.5, 9))),
-            virus=virus_distributions(data_registry)['SARS_CoV_2_DELTA'],
-            mask=models.Mask.types['No mask'],
-            activity=activity_distributions(data_registry)['Seated'],
-            expiration=expiration_distributions(data_registry)['Breathing'],
-            host_immunity=0.,
+        infected_populations=(
+            mc.InfectedPopulation(
+                data_registry=data_registry,
+                number=1,
+                presence=mc.SpecificInterval(present_times=((0, 3.5), (4.5, 9))),
+                virus=virus_distributions(data_registry)['SARS_CoV_2_DELTA'],
+                mask=models.Mask.types['No mask'],
+                activity=activity_distributions(data_registry)['Seated'],
+                expiration=expiration_distributions(data_registry)['Breathing'],
+                host_immunity=0.,
+            ),
         ),
         evaporation_factor=0.3,
-        short_range=(),
+        short_range=((),),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
