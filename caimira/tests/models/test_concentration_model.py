@@ -51,7 +51,7 @@ def test_concentration_model_vectorisation(override_params, data_registry):
         'volume': 75,
         'humidity': 0.5,
         'air_change': 100,
-        'viral_load_in_sputum': 1e9
+        'viral_load_in_sputum': np.array([1e9])
     }
     defaults.update(override_params)
 
@@ -86,9 +86,10 @@ def test_concentration_model_vectorisation(override_params, data_registry):
         evaporation_factor=0.3,
         short_range=((),),
     )
+    n_samples = len(defaults['viral_load_in_sputum']) # number of diameter-independent MC samples
     concentrations = c_model.concentration(10)
     assert isinstance(concentrations, np.ndarray)
-    assert concentrations.shape == (2, )
+    assert concentrations.shape == (n_samples, )
 
 
 @pytest.fixture
