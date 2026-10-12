@@ -250,10 +250,13 @@ def test_population_state_change_times(dynamic_conc_model):
 @pytest.mark.parametrize("time", [0., 0.6, 1., 3., 7, 17.])
 def test_long_range_concentration(time, dynamic_conc_model, separate_conc_models):
     separate_concentrations = [separate_conc_model.build_model(SAMPLE_SIZE).concentration(time) for separate_conc_model in separate_conc_models]
-    concentration = dynamic_conc_model.build_model(SAMPLE_SIZE).concentration(time)
+    dynamic_conc_model = dynamic_conc_model.build_model(SAMPLE_SIZE)
+    concentration = dynamic_conc_model.concentration(time)
+    concentration_by_population = dynamic_conc_model.concentration_by_population(time)[:-1,:] # remove final row for min_background_concentration
     assert np.all(concentration.shape == separated_conc.shape for separated_conc in separate_concentrations)
-    assert np.allclose(concentration, np.vstack(separate_concentrations))
-    assert np.allclose(sum(concentration), sum(separate_concentrations))
+    assert np.allclose(concentration_by_population, np.vstack(separate_concentrations))
+    assert np.allclose(concentration, np.vstack(separate_concentrations).sum(axis=0))
+    assert np.allclose(concentration.mean(), np.vstack(separate_concentrations).sum(axis=0).mean())
     assert np.all(concentration >= 0)
 
 @pytest.mark.parametrize(
