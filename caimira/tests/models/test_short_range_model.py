@@ -31,18 +31,20 @@ def concentration_model(data_registry, short_range_model) -> mc_models.Concentra
             active=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
             air_exch=10_000_000.,
         ),
-        infected=mc_models.InfectedPopulation(
-            data_registry=data_registry,
-            number=1,
-            virus=models.Virus.types['SARS_CoV_2'],
-            presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
-            mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light activity'],
-            expiration=build_expiration(data_registry, {'Speaking': 0.33, 'Breathing': 0.67}),
-            host_immunity=0.,
+        infected_populations=(
+            mc_models.InfectedPopulation(
+                data_registry=data_registry,
+                number=1,
+                virus=models.Virus.types['SARS_CoV_2'],
+                presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
+                mask=models.Mask.types['No mask'],
+                activity=models.Activity.types['Light activity'],
+                expiration=build_expiration(data_registry, {'Speaking': 0.33, 'Breathing': 0.67}),
+                host_immunity=0.,
+            ),
         ),
         evaporation_factor=0.3,
-        short_range=(short_range_model,),
+        short_range=((short_range_model,),),
     )
 
 
@@ -50,7 +52,7 @@ def concentration_model(data_registry, short_range_model) -> mc_models.Concentra
 def exposure_model(data_registry, concentration_model):
     return mc_models.ExposureModel(
         data_registry=data_registry,
-        concentration_model=(concentration_model,),
+        concentration_model=concentration_model,
         exposed = mc_models.Population(
             identifier="exposed_1",
             number=1,
@@ -153,22 +155,24 @@ def test_short_range_exposure_with_ndarray_mask(data_registry):
         room=models.Room(volume=50, humidity=0.3),
         ventilation=models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
                                         air_exch=10_000_000,),
-        infected=mc_models.InfectedPopulation(
-            data_registry=data_registry,
-            number=1,
-            presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
-            virus=models.Virus.types['SARS_CoV_2_DELTA'],
-            mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Seated'],
-            expiration=expiration_distributions(data_registry)['Breathing'],
-            host_immunity=0.,
+        infected_populations=(
+            mc_models.InfectedPopulation(
+                data_registry=data_registry,
+                number=1,
+                presence=models.SpecificInterval(present_times=((8.5, 12.5), (13.5, 17.5))),
+                virus=models.Virus.types['SARS_CoV_2_DELTA'],
+                mask=models.Mask.types['No mask'],
+                activity=models.Activity.types['Seated'],
+                expiration=expiration_distributions(data_registry)['Breathing'],
+                host_immunity=0.,
+            ),
         ),
         evaporation_factor=0.3,
-        short_range=(sr_model,),
+        short_range=((sr_model,),),
     )
     e_model = mc_models.ExposureModel(
         data_registry = data_registry,
-        concentration_model = (c_model,),
+        concentration_model = c_model,
         exposed = mc_models.Population(
             identifier="exposed_2",
             number=1,

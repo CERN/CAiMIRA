@@ -25,9 +25,23 @@ def data_registry():
 def baseline_sr_model():
     return ()
 
+@pytest.fixture
+def baseline_infected(data_registry):
+    return models.EmittingPopulation(
+        data_registry=data_registry,
+        number=1,
+        virus=models.Virus.types['SARS_CoV_2'],
+        presence=models.SpecificInterval(((0., 4.), (5., 8.))),
+        mask=models.Mask.types['No mask'],
+        activity=models.Activity.types['Light activity'],
+        known_individual_emission_rate=970 * 50,
+        host_immunity=0.,
+        # Superspreading event, where ejection factor is fixed based
+        # on Miller et al. (2020) - 50 represents the infectious dose.
+    )
 
 @pytest.fixture
-def baseline_concentration_model(data_registry, baseline_sr_model):
+def baseline_concentration_model(data_registry, baseline_infected, baseline_sr_model):
     model = models.ConcentrationModel(
         data_registry=data_registry,
         room=models.Room(
@@ -36,34 +50,23 @@ def baseline_concentration_model(data_registry, baseline_sr_model):
             active=models.SpecificInterval(((0., 24.), )),
             air_exch=30.,
         ),
-        infected=models.EmittingPopulation(
-            data_registry=data_registry,
-            number=1,
-            virus=models.Virus.types['SARS_CoV_2'],
-            presence=models.SpecificInterval(((0., 4.), (5., 8.))),
-            mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light activity'],
-            known_individual_emission_rate=970 * 50,
-            host_immunity=0.,
-            # Superspreading event, where ejection factor is fixed based
-            # on Miller et al. (2020) - 50 represents the infectious dose.
-        ),
+        infected_populations=(baseline_infected,),
         evaporation_factor=0.3,
-        short_range=baseline_sr_model,
+        short_range=(baseline_sr_model,),
     )
     return model
 
 
 @pytest.fixture
-def baseline_exposure_model(data_registry, baseline_concentration_model):
+def baseline_exposure_model(data_registry, baseline_infected, baseline_concentration_model):
     return models.ExposureModel(
         data_registry=data_registry,
-        concentration_model=(baseline_concentration_model,),
+        concentration_model=baseline_concentration_model,
         exposed=models.Population(
             number=1000,
-            presence=baseline_concentration_model.infected.presence,
-            activity=baseline_concentration_model.infected.activity,
-            mask=baseline_concentration_model.infected.mask,
+            presence=baseline_infected.presence,
+            activity=baseline_infected.activity,
+            mask=baseline_infected.mask,
             host_immunity=0.,
         ),
         geographical_data=models.Cases(),
