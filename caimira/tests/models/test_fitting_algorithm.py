@@ -35,7 +35,7 @@ def test_fitting_algorithm(data_registry, activity_type, ventilation_active, air
 
     times = np.linspace(8, 17, 100)
     CO2_concentrations = [
-        conc_model.concentration(float(time))
+        conc_model.concentration(float(time)).mean()
         for time in times
     ]
 
