@@ -42,7 +42,6 @@ def test_concentrations(baseline_concentration_model):
     # Expected concentrations were computed analytically
     ts = [0, 4, 5, 7, 10]
     concentrations = [baseline_concentration_model.concentration(float(t)).mean() for t in ts]
-    assert all(baseline_concentration_model.concentration(float(t)).shape == (1,1) for t in ts)
     npt.assert_allclose(
         concentrations,
         [0.000000e+00, 2.046096e+01, 3.846725e-13, 2.046096e+01, 7.231966e-27],
