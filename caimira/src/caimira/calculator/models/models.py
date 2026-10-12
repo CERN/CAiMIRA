@@ -1385,11 +1385,10 @@ class _ConcentrationModelBase:
             result,
         )
 
-    def concentration(self, time: float) -> _MatrixFloat:
+    def concentration_by_population(self, time: float) -> _MatrixFloat:
         """
-        Total concentration as a function of time, including the 
-        min_background_concentration. The normalization
-        factor has been put back.
+        Concentration contribution from each population, and min_background_concentration,
+        as a function of time. The normalization factor has been put back.
 
         The min_background_concentration is included as an additional row 
         along the n_population dimention (axis=0).
@@ -1426,6 +1425,15 @@ class _ConcentrationModelBase:
             (concentration_increase, min_background_concentration),
             axis=0,
         )
+
+    def concentration(self, time: float) -> _VectorisedFloat:
+        """
+        Total concentration, from all populations and min_background_concentration,
+        as a function of time.
+
+        Returns an array with shape (n_samples,). 
+        """
+        return self.concentration_by_population(time).sum(axis=0)
 
     @method_cache
     def normed_time_integrated_concentration_increase(self, start: float, stop: float) -> _MatrixFloat:
@@ -1508,10 +1516,10 @@ class _ConcentrationModelBase:
 
         return np.where(not_yet_present, 0.0, total_normed_concentration) 
 
-    def integrated_concentration(self, start: float, stop: float) -> _MatrixFloat:
+    def integrated_concentration_by_population(self, start: float, stop: float) -> _MatrixFloat:
         """
-        Get the total integrated concentration, including the min_background_concentration,
-        of aerosols between the times start and stop.
+        Concentration contribution from each population, and min_background_concentration,
+        integrated between the times start and stop. The normalization factor has been put back.
 
         The min_background_concentration is included as an additional row 
         along the n_population dimention (axis=0).
@@ -1545,6 +1553,15 @@ class _ConcentrationModelBase:
             (integrated_concentration_increase, min_background_concentration),
             axis=0,
         )
+
+    def integrated_concentration(self, start: float, stop: float) -> _VectorisedFloat:
+        """
+        Total concentration, from all populations and min_background_concentration,
+        integrated between the times start and stop. 
+
+        Returns an array with shape (n_samples,). 
+        """
+        return self.integrated_concentration_by_population(start, stop).sum(axis=0)
 
 @dataclass(frozen=True)
 class ConcentrationModel(_ConcentrationModelBase):

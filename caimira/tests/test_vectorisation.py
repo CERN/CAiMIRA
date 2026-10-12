@@ -165,8 +165,10 @@ def _test_dimensions(model: models.ConcetrationModel, acceptable_n_samples: list
     assert isinstance(model._normed_concentration_increase_limit(time), np.ndarray)
     assert isinstance(model._normed_concentration_increase(time), np.ndarray)
     assert isinstance(model.normalization_factor(), np.ndarray)
+    assert isinstance(model.concentration_by_population(time), np.ndarray)
     assert isinstance(model.concentration(time), np.ndarray)
     assert isinstance(model.normed_time_integrated_concentration_increase(start,stop), np.ndarray)
+    assert isinstance(model.integrated_concentration_by_population(start,stop), np.ndarray)
     assert isinstance(model.integrated_concentration(start,stop), np.ndarray)
     assert isinstance(model.short_range_normalization_factors(), np.ndarray)
     assert model.volume().shape == (1, 1) # Not yet implemented as a random variable
@@ -186,16 +188,24 @@ def _test_dimensions(model: models.ConcetrationModel, acceptable_n_samples: list
                 (len(model.populations), n_samples)
                 for n_samples in acceptable_n_samples
             }
-    assert model.concentration(time).shape in {
+    assert model.concentration_by_population(time).shape in {
                 (len(model.populations)+1, n_samples)
+                for n_samples in acceptable_n_samples
+            }
+    assert model.concentration(time).shape in {
+                (n_samples,)
                 for n_samples in acceptable_n_samples
             }
     assert model.normed_time_integrated_concentration_increase(start,stop).shape in {
                 (len(model.populations), n_samples)
                 for n_samples in acceptable_n_samples
             }
-    assert model.integrated_concentration(start,stop).shape in {
+    assert model.integrated_concentration_by_population(start,stop).shape in {
                 (len(model.populations)+1, n_samples)
+                for n_samples in acceptable_n_samples
+            }
+    assert model.integrated_concentration(start,stop).shape in {
+                (n_samples,)
                 for n_samples in acceptable_n_samples
             }
     assert model.short_range_normalization_factors().shape in {
