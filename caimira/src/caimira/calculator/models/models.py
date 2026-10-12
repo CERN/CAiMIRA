@@ -1325,12 +1325,9 @@ class _ConcentrationModelBase:
         t_last_state_change = self.last_state_change(time)
         delta_time = time - t_last_state_change
 
-        n_populations = people_present.shape[0]
-        n_diameter_samples = RR.shape[1]
-
         if time == 0.0:
             return np.zeros(
-                (n_populations, n_diameter_samples),
+                RR.shape,
                 dtype=np.float64,
             )
 
