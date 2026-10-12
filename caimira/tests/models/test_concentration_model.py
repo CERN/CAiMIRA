@@ -57,10 +57,10 @@ def test_concentration_model_vectorisation(override_params, data_registry):
 
     always = models.PeriodicInterval(240, 240)  # TODO: This should be a thing on an interval.
     c_model = models.ConcentrationModel(
-        data_registry,
-        models.Room(defaults['volume'], models.PiecewiseConstant((0., 24.), (293,)), defaults['humidity']),
-        models.AirChange(always, defaults['air_change']),
-        (
+        data_registry = data_registry,
+        room = models.Room(defaults['volume'], models.PiecewiseConstant((0., 24.), (293,)), defaults['humidity']),
+        ventilation = models.AirChange(always, defaults['air_change']),
+        infected_populations = (
             models.InfectedPopulation(
                 data_registry=data_registry,
                 number=1,
@@ -186,10 +186,10 @@ def test_integrated_concentration(simple_conc_model):
 
 
 # The expected numbers were obtained via the quad integration of the
-# normed_integrated_concentration_increase method with 0 (start) and 2 (stop) as limits.
+# normed_time_integrated_concentration_increase method with 0 (start) and 2 (stop) as limits.
 @pytest.mark.parametrize([
     "known_min_background_concentration",
-    "expected_normed_integrated_concentration_increase"],
+    "expected_normed_time_integrated_concentration_increase"],
     [
         [0.0, 0.00018533333708996207],
         [240.0, 48.000185340695275],
@@ -198,12 +198,12 @@ def test_integrated_concentration(simple_conc_model):
         [1000., 200.0001853407918],
     ]
 )
-def test_normed_integrated_concentration_increase_with_background_concentration(
+def test_normed_time_integrated_concentration_increase_with_background_concentration(
     data_registry: DataRegistry,
     simple_conc_model: models.ConcentrationModel,
     dummy_population: models.Population,
     known_min_background_concentration: float,
-    expected_normed_integrated_concentration_increase: float):
+    expected_normed_time_integrated_concentration_increase: float):
 
     known_conc_model = KnownConcentrationModelBase(
         data_registry,
@@ -213,16 +213,16 @@ def test_normed_integrated_concentration_increase_with_background_concentration(
         known_removal_rate = 100.,
         known_min_background_concentration = known_min_background_concentration,
         known_normalization_factor = 10.)
-    npt.assert_almost_equal(known_conc_model.normed_integrated_concentration_increase(0, 2), expected_normed_integrated_concentration_increase)
+    npt.assert_almost_equal(known_conc_model.normed_time_integrated_concentration_increase(0, 2), expected_normed_time_integrated_concentration_increase)
 
 
 # The expected numbers were obtained via the quad integration of the
-# normed_integrated_concentration_increase method with 0 (start) and 2 (stop) as limits.
+# normed_time_integrated_concentration_increase method with 0 (start) and 2 (stop) as limits.
 @pytest.mark.parametrize([
     "known_removal_rate",
     "known_min_background_concentration",
     "known_normalization_factor",
-    "expected_normed_integrated_concentration_increase"],
+    "expected_normed_time_integrated_concentration_increase"],
     [
         [np.array([0.25, 10]), 0.0, 10., np.array([0.012161005755130391, 0.0017333437605308818])],
         [100, np.array([0, 240.0]), 10., np.array([0.00018533333708996207, 48.000185340695275])],
@@ -231,14 +231,14 @@ def test_normed_integrated_concentration_increase_with_background_concentration(
         [np.array([50, 100,]), np.array([1000.,1100.]), np.array([10., 20.]), np.array([200.00036800764332, 110.00018534069527])],
     ]
 )
-def test_normed_integrated_concentration_increase_vectorisation(
+def test_normed_time_integrated_concentration_increase_vectorisation(
     data_registry: DataRegistry,
     simple_conc_model: models.ConcentrationModel,
     dummy_population: models.Population,
     known_removal_rate: float,
     known_min_background_concentration: float,
     known_normalization_factor: float,
-    expected_normed_integrated_concentration_increase: float):
+    expected_normed_time_integrated_concentration_increase: float):
 
     known_conc_model = KnownConcentrationModelBase(
         data_registry = data_registry,
@@ -249,11 +249,11 @@ def test_normed_integrated_concentration_increase_vectorisation(
         known_min_background_concentration = known_min_background_concentration,
         known_normalization_factor = known_normalization_factor)
 
-    integrated_concentration = known_conc_model.normed_integrated_concentration_increase(0, 2)
+    integrated_concentration = known_conc_model.normed_time_integrated_concentration_increase(0, 2)
 
     assert isinstance(integrated_concentration, np.ndarray)
     assert integrated_concentration.shape == (2, )
-    npt.assert_almost_equal(integrated_concentration, expected_normed_integrated_concentration_increase)
+    npt.assert_almost_equal(integrated_concentration, expected_normed_time_integrated_concentration_increase)
 
 
 @pytest.mark.parametrize([
@@ -311,5 +311,5 @@ def test_concentration_after_last_state_change(simple_conc_model, simple_conc_mo
     npt.assert_almost_equal(simple_conc_model.removal_rate(time), simple_conc_model_extended_presence.removal_rate(time))
     npt.assert_almost_equal(simple_conc_model.concentration(time), simple_conc_model_extended_presence.concentration(time))
     npt.assert_almost_equal(simple_conc_model._normed_concentration_increase(time), simple_conc_model_extended_presence._normed_concentration_increase(time))
-    npt.assert_almost_equal(simple_conc_model.normed_integrated_concentration_increase(start, stop), simple_conc_model_extended_presence.normed_integrated_concentration_increase(start, stop))
+    npt.assert_almost_equal(simple_conc_model.normed_time_integrated_concentration_increase(start, stop), simple_conc_model_extended_presence.normed_time_integrated_concentration_increase(start, stop))
     npt.assert_almost_equal(simple_conc_model.integrated_concentration(start, stop), simple_conc_model_extended_presence.integrated_concentration(start, stop))

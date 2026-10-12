@@ -1884,20 +1884,20 @@ class ExposureModel:
         The number of virions per meter^3 between any two times, normalized
         by the emission rate of the infected population
         """
-        exposure = np.zeros_like(self.concentration_model.normed_integrated_concentration_increase(self.population_state_change_times()[0], self.population_state_change_times()[1]), dtype=np.float64)
+        exposure = np.zeros_like(self.concentration_model.normed_time_integrated_concentration_increase(self.population_state_change_times()[0], self.population_state_change_times()[1]), dtype=np.float64)
         for start, stop in self.exposed.presence_interval().boundaries():
             if stop < time1:
                 continue
             elif start > time2:
                 break
             elif start <= time1 and time2<= stop:
-                exposure += self.concentration_model.normed_integrated_concentration_increase(time1, time2)
+                exposure += self.concentration_model.normed_time_integrated_concentration_increase(time1, time2)
             elif start <= time1 and stop < time2:
-                exposure += self.concentration_model.normed_integrated_concentration_increase(time1, stop)
+                exposure += self.concentration_model.normed_time_integrated_concentration_increase(time1, stop)
             elif time1 < start and time2 <= stop:
-                exposure += self.concentration_model.normed_integrated_concentration_increase(start, time2)
+                exposure += self.concentration_model.normed_time_integrated_concentration_increase(start, time2)
             elif time1 <= start and stop < time2:
-                exposure += self.concentration_model.normed_integrated_concentration_increase(start, stop)
+                exposure += self.concentration_model.normed_time_integrated_concentration_increase(start, stop)
         return exposure
     
     def long_range_concentration(self, time: float) -> float:
