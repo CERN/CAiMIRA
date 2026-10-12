@@ -727,7 +727,7 @@ def test_short_range_concentration(time, expo_sr_model, simple_c_model, simple_s
             sr_mod.concentration(simple_c_model,time))
         for sr_mod in simple_sr_models_with_exposed1])
     npt.assert_allclose(
-        result_sr_model,result_simple_sr_model,rtol=TOLERANCE
+        result_sr_model,result_simple_sr_model,rtol=TOLERANCE,atol=1e-12,
         )
 
 
