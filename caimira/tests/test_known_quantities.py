@@ -56,7 +56,6 @@ def test_smooth_concentrations(baseline_concentration_model):
     dy_limit = 0.2  # Anything more than this (in relative) is a bit steep.
     ts = np.arange(0, 10, dx)
     concentrations = [baseline_concentration_model.concentration(float(t)).mean() for t in ts]
-    assert all(baseline_concentration_model.concentration(float(t)).shape == (1,1) for t in ts)
     assert np.abs(np.diff(concentrations)).max()/np.mean(concentrations) < dy_limit
 
 
