@@ -249,7 +249,7 @@ class _VentilationBase:
         as part of a state change in the interval (e.g. when air_exchange == 0).
 
         """
-        return 0.
+        return np.asarray([0.])
 
 
 @dataclass(frozen=True)
@@ -325,10 +325,6 @@ class WindowOpening(Ventilation):
         return transitions
 
     def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
-        # If the window is shut, no air is being exchanged.
-        if not self.active.triggered(time):
-            return 0.
-
         # Reminder, no dependence on time in the resulting calculation.
         inside_temp: _VectorisedFloat = room.inside_temp.value(time)
         outside_temp: _VectorisedFloat = self.outside_temp.value(time)
@@ -341,7 +337,12 @@ class WindowOpening(Ventilation):
         temp_gradient = (inside_temp - outside_temp) / outside_temp
         root = np.sqrt(9.81 * self.window_height * temp_gradient)
         window_area = self.window_height * self.opening_length * self.number_of_windows
-        return (3600 / (3 * room.volume)) * self.discharge_coefficient * window_area * root
+        result = (3600 / (3 * room.volume)) * self.discharge_coefficient * window_area * root
+
+        # If the window is shut, no air is being exchanged.
+        if not self.active.triggered(time):
+            return np.zeros_like(result, dtype=np.float64)
+        return result
 
 
 @dataclass(frozen=True)
@@ -408,11 +409,13 @@ class HEPAFilter(Ventilation):
     q_air_mech: _VectorisedFloat
 
     def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
+        # Reminder, no dependence on time in the resulting calculation.
+        result = self.q_air_mech / room.volume
+
         # If the HEPA is off, no air is being exchanged.
         if not self.active.triggered(time):
-            return 0.
-        # Reminder, no dependence on time in the resulting calculation.
-        return self.q_air_mech / room.volume
+            return np.zeros_like(result, dtype=np.float64)
+        return result
 
 
 @dataclass(frozen=True)
@@ -425,11 +428,13 @@ class HVACMechanical(Ventilation):
     q_air_mech: _VectorisedFloat
 
     def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
+        # Reminder, no dependence on time in the resulting calculation.
+        result = self.q_air_mech / room.volume
+
         # If the HVAC is off, no air is being exchanged.
         if not self.active.triggered(time):
-            return 0.
-        # Reminder, no dependence on time in the resulting calculation.
-        return self.q_air_mech / room.volume
+            return np.zeros_like(result, dtype=np.float64)
+        return result
 
 
 @dataclass(frozen=True)
@@ -443,11 +448,12 @@ class AirChange(Ventilation):
 
     def air_exchange(self, room: Room, time: float) -> _VectorisedFloat:
         # No dependence on the room volume.
+        # Reminder, no dependence on time in the resulting calculation.
+        result = self.air_exch
         # If off, no air is being exchanged.
         if not self.active.triggered(time):
-            return 0.
-        # Reminder, no dependence on time in the resulting calculation.
-        return self.air_exch
+            return np.zeros_like(result, dtype=np.float64)
+        return result
 
 
 @dataclass(frozen=True)
@@ -1471,7 +1477,7 @@ class _ConcentrationModelBase:
 
             nonzero_removal = RR != 0.0
             contribution = np.zeros_like(
-                conc_start,
+                total_normed_concentration,
                 dtype=np.float64,
             ) 
 
@@ -1898,7 +1904,8 @@ class ExposureModel:
         The number of virions per meter^3 between any two times, normalized
         by the emission rate of the infected population
         """
-        exposure = np.zeros_like(self.concentration_model.normed_time_integrated_concentration_increase(self.population_state_change_times()[0], self.population_state_change_times()[1]), dtype=np.float64)
+        shape = self.concentration_model.normed_time_integrated_concentration_increase(self.population_state_change_times()[0], self.population_state_change_times()[1])
+        exposure = np.zeros_like(shape, dtype=np.float64)
         for start, stop in self.exposed.presence_interval().boundaries():
             if stop < time1:
                 continue

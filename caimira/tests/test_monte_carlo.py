@@ -93,10 +93,9 @@ def baseline_mc_exposure_model(data_registry, baseline_mc_concentration_model) -
 def test_build_concentration_model(baseline_mc_concentration_model: caimira.calculator.models.monte_carlo.ConcentrationModel):
     model = baseline_mc_concentration_model.build_model(7)
     assert isinstance(model, caimira.calculator.models.models.ConcentrationModel)
-    assert isinstance(model.concentration(time=0.), float)
-    conc = model.concentration(time=1.)
+    conc = model.concentration(time=0.)
     assert isinstance(conc, np.ndarray)
-    assert conc.shape == (7, )
+    assert conc.shape == (7, ) # Monte Carlo sampling of air exchange deciding dimention, other random variables set deterministically here
 
 
 def test_build_exposure_model(baseline_mc_exposure_model: caimira.calculator.models.monte_carlo.ExposureModel):
@@ -104,7 +103,7 @@ def test_build_exposure_model(baseline_mc_exposure_model: caimira.calculator.mod
     assert isinstance(model, caimira.calculator.models.models.ExposureModel)
     prob = model.deposited_exposure()
     assert isinstance(prob, np.ndarray)
-    assert prob.shape == (7, )
+    assert prob.shape == (7, ) # Monte Carlo sampling of air exchange deciding dimention, other random variables set deterministically here
 
 
 def test_no_listed_mc_models(invalid_baseline_mc_concentration_model: caimira.calculator.models.monte_carlo.ExposureModel):
