@@ -129,7 +129,10 @@ def test_multiple_vectorisation():
     t_active = 2
     t_inactive = 4.5
 
-    assert models.MultipleVentilation([v1, v2]).air_exchange(room, t_inactive) == 0
+    assert all(models.MultipleVentilation([v2]).air_exchange(room, t_inactive) == np.asarray(0))
+    assert all(models.MultipleVentilation([v1]).air_exchange(room, t_inactive) == np.asarray(0))
+    with pytest.raises(ValueError, match='operands could not be broadcast together'):
+        models.MultipleVentilation([v1, v2]).air_exchange(room, t_inactive)
     with pytest.raises(ValueError, match='operands could not be broadcast together'):
         models.MultipleVentilation([v1, v2]).air_exchange(room, t_active)
 
