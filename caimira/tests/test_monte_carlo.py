@@ -94,16 +94,25 @@ def test_build_concentration_model(baseline_mc_concentration_model: caimira.calc
     model = baseline_mc_concentration_model.build_model(7)
     assert isinstance(model, caimira.calculator.models.models.ConcentrationModel)
     conc = model.concentration(time=0.)
+    integ_conc = model.normed_time_integrated_concentration_increase(0,8)
     assert isinstance(conc, np.ndarray)
-    assert conc.shape == (7, ) # Monte Carlo sampling of air exchange deciding dimention, other random variables set deterministically here
+    assert conc.shape == (1, ) # Averaging over ventilation samples when integrating over the particle diameter.
+    assert isinstance(integ_conc, np.ndarray)
+    assert integ_conc.shape == (1, 7) # Corresponding to (n_populations, n_ventilation_samples), because averaging over particle diameter (not sampled here) not yet performed.
 
 
 def test_build_exposure_model(baseline_mc_exposure_model: caimira.calculator.models.monte_carlo.ExposureModel):
     model = baseline_mc_exposure_model.build_model(7)
     assert isinstance(model, caimira.calculator.models.models.ExposureModel)
-    prob = model.deposited_exposure()
+    dep = model.deposited_exposure(short_range=False)
+    prob = model.individual_infection_probability()
+    conc = model.concentration(time=0.)
+    assert isinstance(conc, np.ndarray)
+    assert conc.shape == (1, ) # Averaging over ventilation samples when integrating over the particle diameter.
+    assert isinstance(dep, np.ndarray)
+    assert dep.shape == (7, ) # (n_ventilation_samples,)
     assert isinstance(prob, np.ndarray)
-    assert prob.shape == (7, ) # Monte Carlo sampling of air exchange deciding dimention, other random variables set deterministically here
+    assert prob.shape == dep.shape
 
 
 def test_no_listed_mc_models(invalid_baseline_mc_concentration_model: caimira.calculator.models.monte_carlo.ExposureModel):

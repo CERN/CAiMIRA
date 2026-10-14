@@ -9,7 +9,7 @@ from caimira.calculator.models.monte_carlo.data import activity_distributions, v
 SAMPLE_SIZE = 10
 
 @pytest.fixture
-def dynamic_mc_model(data_registry, baseline_sr_model):
+def dynamic_mc_conc_model(data_registry, baseline_sr_model):
     # all random variables (virus, activity, expiration, mask) MC sampled
     virus = virus_distributions(data_registry)['SARS_CoV_2'].build_model(SAMPLE_SIZE)
     return mc.ConcentrationModel(
@@ -124,20 +124,34 @@ def mixed_infected_populations(data_registry, virus):
     )
 
 @pytest.fixture
-def non_dynamic_mixed_models(data_registry, baseline_sr_model):
-    virus = models.Virus.types['SARS_CoV_2'] # deterministic
-    return (
+def non_dynamic_mixed_conc_models(data_registry, baseline_sr_model):
+    viruses = [
+        virus_distributions(data_registry)['SARS_CoV_2'].build_model(SAMPLE_SIZE), # random
+        models.Virus.types['SARS_CoV_2'], # deterministic
+    ]
+    return tuple(
         mc.ConcentrationModel(
             data_registry=data_registry,
-            room=mc.Room(volume=75, inside_temp=mc.PiecewiseConstant((0., 24.), (293,))),
+            room=mc.Room(
+                volume=75,
+                inside_temp=mc.PiecewiseConstant(
+                    (0.0, 24.0),
+                    (293,),
+                ),
+            ),
             ventilation=mc.AirChange(
-                active=mc.SpecificInterval(((0., 24.), )),
-                air_exch=30.,
+                active=mc.SpecificInterval(((0.0, 24.0),)),
+                air_exch=30.0,
             ),
             infected_populations=(infected_population,),
             evaporation_factor=0.3,
             short_range=(baseline_sr_model,),
-        ) for infected_population in mixed_infected_populations(data_registry=data_registry, virus=virus)
+        )
+        for virus in viruses
+        for infected_population in mixed_infected_populations(
+            data_registry=data_registry,
+            virus=virus,
+        )
     )
 
 
@@ -159,7 +173,7 @@ def dynamic_mixed_model(data_registry, baseline_sr_model):
     )
 
 
-def _test_dimensions(model: models.ConcetrationModel, acceptable_n_samples: list[int], time, start, stop):
+def _test_conc_dimensions(model: models.ConcetrationModel, acceptable_n_samples: list[int], time, start, stop):
     assert len(model.populations) == len(model.short_range)
     assert isinstance(model.removal_rate(time), np.ndarray)
     assert isinstance(model._normed_concentration_increase_limit(time), np.ndarray)
@@ -230,7 +244,7 @@ def test_deterministic_non_dynamic_model(
     stop: float,
 ) -> None:
     assert len(baseline_concentration_model.populations) == 1
-    _test_dimensions(
+    _test_conc_dimensions(
         baseline_concentration_model,
         acceptable_n_samples=[1],
         time=time,
@@ -248,15 +262,15 @@ def test_deterministic_non_dynamic_model(
         (12.0, 8.0, 12.0),
     ],
 )
-def test_probabilistic_dynamic_model(
-    dynamic_mc_model,
+def test_probabilistic_dynamic_conc_model(
+    dynamic_mc_conc_model,
     time: float,
     start: float,
     stop: float,
 ) -> None:
-    model = dynamic_mc_model.build_model(SAMPLE_SIZE)
+    model = dynamic_mc_conc_model.build_model(SAMPLE_SIZE)
     assert len(model.populations) == 2
-    _test_dimensions(model, 
+    _test_conc_dimensions(model, 
         acceptable_n_samples=[SAMPLE_SIZE],
         time=time,
         start=start,
@@ -273,16 +287,16 @@ def test_probabilistic_dynamic_model(
         (12.0, 8.0, 12.0),
     ],
 )
-def test_mixed_non_dynamic_model(
-    non_dynamic_mixed_models,
+def test_mixed_non_dynamic_conc_model(
+    non_dynamic_mixed_conc_models,
     time: float,
     start: float,
     stop: float,
 ) -> None:
-    for mc_model in non_dynamic_mixed_models:
+    for mc_model in non_dynamic_mixed_conc_models:
         model = mc_model.build_model(SAMPLE_SIZE)
         assert len(model.populations) == 1
-        _test_dimensions(
+        _test_conc_dimensions(
             model,
             acceptable_n_samples=[1, SAMPLE_SIZE],
             time=time,
@@ -302,7 +316,7 @@ def test_mixed_non_dynamic_model(
 #         (12.0, 8.0, 12.0),
 #     ],
 # )
-# def test_mixed_probabilistic_dynamic_model(
+# def test_mixed_probabilistic_dynamic_conc_model(
 #     dynamic_mixed_model,
 #     time: float,
 #     start: float,
@@ -310,10 +324,139 @@ def test_mixed_non_dynamic_model(
 # ) -> None:
 #     model = dynamic_mixed_model.build_model(SAMPLE_SIZE)
 #     assert len(model.populations) == 7
-#     _test_dimensions(
+#     _test_conc_dimensions(
 #         model,
 #         acceptable_n_samples=[SAMPLE_SIZE],
 #         time=time,
 #         start=start,
 #         stop=stop,
 #     )
+
+@pytest.fixture
+def non_dynamic_mixed_exposure_models(data_registry, non_dynamic_mixed_conc_models):
+    return (
+        mc.ExposureModel(
+            data_registry=data_registry,
+            concentration_model=conc_model,
+            exposed=mc.Population(
+                number=1,
+                presence=mc.SpecificInterval(present_times=((0, 3.5), (4.5, 9))),
+                mask=mask_distributions(data_registry)['Type I'], # random
+                activity=activity_distributions(data_registry)['Seated'], # random
+                host_immunity=0.,
+            ),
+            geographical_data=models.Cases(),
+            exposed_to_short_range=1,
+        ) for conc_model in non_dynamic_mixed_conc_models
+    )
+
+@pytest.fixture
+def dynamic_mc_exposure_model(data_registry, dynamic_mc_conc_model):
+    return mc.ExposureModel(
+        data_registry=data_registry,
+        concentration_model=dynamic_mc_conc_model,
+        exposed=mc.Population(
+            number=1,
+            presence=mc.SpecificInterval(present_times=((0, 3.5), (4.5, 9))),
+            mask=mask_distributions(data_registry)['Type I'], # random
+            activity=activity_distributions(data_registry)['Seated'], # random
+            host_immunity=0.,
+        ),
+        geographical_data=models.Cases(),
+        exposed_to_short_range=1,
+    )
+
+
+def _test_exposure_dimensions(model: models.ExposureModel, acceptable_n_samples: list[int], time, start, stop):
+    assert len(model.infected_populations) == len(model.concentration_model.infected_populations)
+    assert len(model.infected_populations) == len(model.concentration_model.short_range)
+    assert isinstance(model.long_range_fraction_deposited(), np.ndarray)
+    assert isinstance(model.long_range_concentration(time), np.ndarray)
+    assert isinstance(model.concentration(time), np.ndarray)
+    assert isinstance(model._long_range_normed_exposure_between_bounds(start,stop), np.ndarray)
+    assert isinstance(model.long_range_deposited_exposure_between_bounds_by_population(start,stop), np.ndarray)
+    assert isinstance(model.long_range_deposited_exposure_between_bounds(start,stop), np.ndarray)
+    assert isinstance(model.deposited_exposure_between_bounds_by_population(start,stop), np.ndarray)
+    assert isinstance(model.deposited_exposure_between_bounds(start,stop), np.ndarray)
+    assert model.long_range_fraction_deposited().shape in {
+                (len(model.infected_populations), n_samples)
+                for n_samples in acceptable_n_samples
+            } or model.long_range_fraction_deposited().shape == (len(model.infected_populations), )
+    assert model.long_range_concentration(time).shape in {
+                (n_samples,)
+                for n_samples in acceptable_n_samples
+            }
+    assert model.concentration(time).shape == model.long_range_concentration(time).shape
+    assert model._long_range_normed_exposure_between_bounds(start,stop).shape in {
+                (len(model.infected_populations)+0, n_samples)
+                for n_samples in acceptable_n_samples
+            }
+    assert model.long_range_deposited_exposure_between_bounds_by_population(start,stop).shape in {
+                (len(model.infected_populations)+0, n_samples)
+                for n_samples in acceptable_n_samples
+            }
+    assert model.long_range_deposited_exposure_between_bounds(start,stop).shape in {
+                (n_samples,)
+                for n_samples in acceptable_n_samples
+            }
+    assert model.deposited_exposure_between_bounds_by_population(start,stop).shape == model.long_range_deposited_exposure_between_bounds_by_population(start,stop).shape
+    assert model.long_range_deposited_exposure_between_bounds(start,stop).shape == model.deposited_exposure_between_bounds(start,stop).shape
+    assert model.deposited_exposure_between_bounds(start,stop).shape == model.deposited_exposure().shape
+    assert model.deposited_exposure(short_range=True).shape == model.deposited_exposure(short_range=False).shape
+    assert model.deposited_exposure().shape == model.individual_infection_probability().shape
+    assert model.individual_infection_probability(short_range=True).shape == model.individual_infection_probability(short_range=False).shape
+    assert model.expected_new_cases().shape == model.individual_infection_probability().shape
+    #assert model.expected_new_cases().shape == model.reproduction_number().shape
+
+@pytest.mark.parametrize(
+    ("time", "start", "stop"),
+    [
+        (0.0, 0.0, 1.0),
+        (1.0, 0.0, 1.0),
+        (4.0, 1.0, 4.0),
+        (8.0, 4.0, 9.0),
+        (12.0, 8.0, 12.0),
+    ],
+)
+def test_probabilistic_dynamic_exposure_model(
+    dynamic_mc_exposure_model,
+    time: float,
+    start: float,
+    stop: float,
+) -> None:
+    model = dynamic_mc_exposure_model.build_model(SAMPLE_SIZE)
+    assert len(model.infected_populations) == 2
+    _test_exposure_dimensions(model, 
+        acceptable_n_samples=[SAMPLE_SIZE],
+        time=time,
+        start=start,
+        stop=stop,
+    )
+
+@pytest.mark.parametrize(
+    ("time", "start", "stop"),
+    [
+        (0.0, 0.0, 1.0),
+        (1.0, 0.0, 1.0),
+        (4.0, 1.0, 4.0),
+        (8.0, 4.0, 9.0),
+        (12.0, 8.0, 12.0),
+    ],
+)
+def test_mixed_non_dynamic_exposure_model(
+    non_dynamic_mixed_exposure_models,
+    time: float,
+    start: float,
+    stop: float,
+) -> None:
+    for mc_model in non_dynamic_mixed_exposure_models:
+        model = mc_model.build_model(SAMPLE_SIZE)
+        assert len(model.infected_populations) == 1
+        assert model.expected_new_cases().shape == model.reproduction_number().shape # TODO: move test into _test_exposure_dimensions once the reproduction number is implemented for dynamic occupancy
+        _test_exposure_dimensions(
+            model,
+            acceptable_n_samples=[1, SAMPLE_SIZE],
+            time=time,
+            start=start,
+            stop=stop,
+        )
