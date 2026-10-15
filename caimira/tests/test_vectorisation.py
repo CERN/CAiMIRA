@@ -172,9 +172,28 @@ def dynamic_mixed_model(data_registry, baseline_sr_model):
         short_range=(baseline_sr_model,)*len(infected_populations),
     )
 
+@pytest.fixture
+def mc_co2_conc_model(data_registry):
+    return mc.CO2ConcentrationModel(
+        data_registry=data_registry,
+        room=mc.Room(200, mc.PiecewiseConstant((0., 24.), (293,))),
+        ventilation=mc.AirChange(mc.PeriodicInterval(period=120, duration=120), 0.25),
+        CO2_emitting_populations=(
+            mc.SimplePopulation(
+                number=5,
+                presence=mc.SpecificInterval((((0., 4.), (20., 20.1)))),
+                activity=activity_distributions(data_registry)['Seated'],
+            ),
+            mc.SimplePopulation(
+                number=5,
+                presence=mc.SpecificInterval((((0., 4.), (20., 20.1)))),
+                activity=activity_distributions(data_registry)['Seated'],
+            ),
+        ),
+    )
 
-def _test_conc_dimensions(model: models.ConcetrationModel, acceptable_n_samples: list[int], time, start, stop):
-    assert len(model.populations) == len(model.short_range)
+def _test_types(model, time, start, stop):
+    assert isinstance(model.min_background_concentration(), float)
     assert isinstance(model.removal_rate(time), np.ndarray)
     assert isinstance(model._normed_concentration_increase_limit(time), np.ndarray)
     assert isinstance(model._normed_concentration_increase(time), np.ndarray)
@@ -184,6 +203,12 @@ def _test_conc_dimensions(model: models.ConcetrationModel, acceptable_n_samples:
     assert isinstance(model.normed_time_integrated_concentration_increase(start,stop), np.ndarray)
     assert isinstance(model.integrated_concentration_by_population(start,stop), np.ndarray)
     assert isinstance(model.integrated_concentration(start,stop), np.ndarray)
+    assert model.volume().shape == (1, 1) # Not yet implemented as a random variable
+
+
+def _test_conc_dimensions(model: models.ConcetrationModel, acceptable_n_samples: list[int], time, start, stop):
+    _test_types(model, time, start, stop)
+    assert len(model.populations) == len(model.short_range)
     assert isinstance(model.short_range_normalization_factors(), np.ndarray)
     assert model.volume().shape == (1, 1) # Not yet implemented as a random variable
     assert model.removal_rate(time).shape in {
@@ -303,34 +328,37 @@ def test_mixed_non_dynamic_conc_model(
             start=start,
             stop=stop,
         )
-            
 
-# TODO: allow dynamic occupancy where which variables are Monte Carlo samples varies between the populations
-# @pytest.mark.parametrize(
-#     ("time", "start", "stop"),
-#     [
-#         (0.0, 0.0, 1.0),
-#         (1.0, 0.0, 1.0),
-#         (4.0, 1.0, 4.0),
-#         (8.0, 4.0, 9.0),
-#         (12.0, 8.0, 12.0),
-#     ],
-# )
-# def test_mixed_probabilistic_dynamic_conc_model(
-#     dynamic_mixed_model,
-#     time: float,
-#     start: float,
-#     stop: float,
-# ) -> None:
-#     model = dynamic_mixed_model.build_model(SAMPLE_SIZE)
-#     assert len(model.populations) == 7
-#     _test_conc_dimensions(
-#         model,
-#         acceptable_n_samples=[SAMPLE_SIZE],
-#         time=time,
-#         start=start,
-#         stop=stop,
-#     )
+@pytest.mark.parametrize(
+    ("time", "start", "stop"),
+    [
+        (0.0, 0.0, 1.0),
+        (1.0, 0.0, 1.0),
+        (4.0, 1.0, 4.0),
+        (8.0, 4.0, 9.0),
+        (12.0, 8.0, 12.0),
+    ],
+)
+def test_probabilistic_dynamic_co2_model(
+    mc_co2_conc_model,
+    time: float,
+    start: float,
+    stop: float,
+) -> None:
+    model = mc_co2_conc_model.build_model(SAMPLE_SIZE)
+    _test_types(model, time, start, stop)
+    assert len(model.populations) == 2
+    assert model.volume().shape == (1, 1) # Not yet implemented as a random variable
+    assert model.removal_rate(time).shape == (len(model.populations), 1)
+    assert model._normed_concentration_increase_limit(time).shape == (len(model.populations), 1)
+    assert model._normed_concentration_increase(time).shape == (len(model.populations), 1)
+    assert model.normalization_factor().shape == (len(model.populations), SAMPLE_SIZE)
+    assert model.concentration_by_population(time).shape == (len(model.populations)+1, SAMPLE_SIZE)
+    assert model.concentration(time).shape == (SAMPLE_SIZE,)
+    assert model.normed_time_integrated_concentration_increase(start,stop).shape == (len(model.populations), 1)
+    assert model.integrated_concentration_by_population(start,stop).shape == (len(model.populations)+1, SAMPLE_SIZE)
+    assert model.integrated_concentration(start,stop).shape == (SAMPLE_SIZE,)
+
 
 @pytest.fixture
 def non_dynamic_mixed_exposure_models(data_registry, non_dynamic_mixed_conc_models):
@@ -370,36 +398,29 @@ def dynamic_mc_exposure_model(data_registry, dynamic_mc_conc_model):
 def _test_exposure_dimensions(model: models.ExposureModel, acceptable_n_samples: list[int], time, start, stop):
     assert len(model.infected_populations) == len(model.concentration_model.infected_populations)
     assert len(model.infected_populations) == len(model.concentration_model.short_range)
-    assert isinstance(model.long_range_fraction_deposited(), np.ndarray)
     assert isinstance(model.long_range_concentration(time), np.ndarray)
     assert isinstance(model.concentration(time), np.ndarray)
     assert isinstance(model._long_range_normed_exposure_between_bounds(start,stop), np.ndarray)
     assert isinstance(model.long_range_deposited_exposure_between_bounds_by_population(start,stop), np.ndarray)
     assert isinstance(model.long_range_deposited_exposure_between_bounds(start,stop), np.ndarray)
-    assert isinstance(model.deposited_exposure_between_bounds_by_population(start,stop), np.ndarray)
     assert isinstance(model.deposited_exposure_between_bounds(start,stop), np.ndarray)
-    assert model.long_range_fraction_deposited().shape in {
-                (len(model.infected_populations), n_samples)
-                for n_samples in acceptable_n_samples
-            } or model.long_range_fraction_deposited().shape == (len(model.infected_populations), )
     assert model.long_range_concentration(time).shape in {
                 (n_samples,)
                 for n_samples in acceptable_n_samples
             }
     assert model.concentration(time).shape == model.long_range_concentration(time).shape
     assert model._long_range_normed_exposure_between_bounds(start,stop).shape in {
-                (len(model.infected_populations)+0, n_samples)
+                (len(model.infected_populations), n_samples) 
                 for n_samples in acceptable_n_samples
             }
     assert model.long_range_deposited_exposure_between_bounds_by_population(start,stop).shape in {
-                (len(model.infected_populations)+0, n_samples)
+                (len(model.infected_populations)+1, n_samples)
                 for n_samples in acceptable_n_samples
             }
     assert model.long_range_deposited_exposure_between_bounds(start,stop).shape in {
                 (n_samples,)
                 for n_samples in acceptable_n_samples
             }
-    assert model.deposited_exposure_between_bounds_by_population(start,stop).shape == model.long_range_deposited_exposure_between_bounds_by_population(start,stop).shape
     assert model.long_range_deposited_exposure_between_bounds(start,stop).shape == model.deposited_exposure_between_bounds(start,stop).shape
     assert model.deposited_exposure_between_bounds(start,stop).shape == model.deposited_exposure().shape
     assert model.deposited_exposure(short_range=True).shape == model.deposited_exposure(short_range=False).shape
@@ -460,3 +481,5 @@ def test_mixed_non_dynamic_exposure_model(
             start=start,
             stop=stop,
         )
+
+

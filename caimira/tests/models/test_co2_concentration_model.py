@@ -40,47 +40,6 @@ def simple_co2_conc_model_extended_presence(data_registry):
         ),
     )
 
-@pytest.fixture
-def mc_co2_conc_model(data_registry):
-    return mc.CO2ConcentrationModel(
-        data_registry=data_registry,
-        room=mc.Room(200, mc.PiecewiseConstant((0., 24.), (293,))),
-        ventilation=mc.AirChange(mc.PeriodicInterval(period=120, duration=120), 0.25),
-        CO2_emitting_populations=(
-            mc.SimplePopulation(
-                number=5,
-                presence=mc.SpecificInterval((((0., 4.), (20., 20.1)))),
-                activity=activity_distributions(data_registry)['Seated'],
-            ),
-            mc.SimplePopulation(
-                number=5,
-                presence=mc.SpecificInterval((((0., 4.), (20., 20.1)))),
-                activity=activity_distributions(data_registry)['Seated'],
-            ),
-        ),
-    )
-
-def test_probabilistic_dynamic_co2_model(mc_co2_conc_model):
-    mc_co2_conc_model = mc_co2_conc_model.build_model(SAMPLE_SIZE)
-    assert len(mc_co2_conc_model.populations) == 2
-    assert isinstance(mc_co2_conc_model.min_background_concentration(), float)
-
-    assert isinstance(mc_co2_conc_model.removal_rate(10), np.ndarray)
-    assert isinstance(mc_co2_conc_model._normed_concentration_increase_limit(10), np.ndarray)
-    assert isinstance(mc_co2_conc_model._normed_concentration_increase(10), np.ndarray)
-    assert isinstance(mc_co2_conc_model.normed_time_integrated_concentration_increase(9,10), np.ndarray)
-    assert isinstance(mc_co2_conc_model.normalization_factor(), np.ndarray)
-    assert isinstance(mc_co2_conc_model.concentration(10), np.ndarray)
-    assert isinstance(mc_co2_conc_model.integrated_concentration(9,10), np.ndarray)
-
-    assert mc_co2_conc_model.removal_rate(10).shape == (len(mc_co2_conc_model.populations), 1)
-    assert mc_co2_conc_model._normed_concentration_increase_limit(10).shape == (len(mc_co2_conc_model.populations), 1)
-    assert mc_co2_conc_model._normed_concentration_increase(10).shape == (len(mc_co2_conc_model.populations), 1)
-    assert mc_co2_conc_model.normed_time_integrated_concentration_increase(9,10).shape == (len(mc_co2_conc_model.populations), 1)
-    assert mc_co2_conc_model.normalization_factor().shape == (len(mc_co2_conc_model.populations), SAMPLE_SIZE)
-    assert mc_co2_conc_model.concentration(10).shape == (len(mc_co2_conc_model.populations), SAMPLE_SIZE)
-    assert mc_co2_conc_model.integrated_concentration(9,10).shape == (len(mc_co2_conc_model.populations), SAMPLE_SIZE)
-
 
 @pytest.mark.parametrize(
     "time, expected_co2_concentration", [

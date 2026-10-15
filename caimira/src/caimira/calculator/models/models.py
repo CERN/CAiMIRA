@@ -61,7 +61,7 @@ _VectorisedFloat = typing.Union[float, np.ndarray]
 _VectorisedInt = typing.Union[int, np.ndarray]
 
 # shape (n_populations, _VectorisedFloat)
-_MatrixFloat = np.ndarray[float]
+_Matrix = np.ndarray[float]
 
 Time_t = typing.TypeVar('Time_t', float, int)
 BoundaryPair_t = typing.Tuple[Time_t, Time_t]
@@ -1216,7 +1216,7 @@ class _ConcentrationModelBase:
             dtype=np.float64,
         ).reshape(-1, 1)
 
-    def volume(self) -> _MatrixFloat:
+    def volume(self) -> float:
         """
         Room volume. 
         If considered deterministic, the shape can be (1, 1).
@@ -1228,7 +1228,7 @@ class _ConcentrationModelBase:
             dtype=np.float64,
         ).reshape(1, -1)
 
-    def removal_rate(self, time: float) -> _MatrixFloat:
+    def removal_rate(self, time: float) -> _Matrix:
         """
         Remove rate of the species considered, in h^-1.
         Returns array with shape (n_populations, n_diameter_samples).
@@ -1244,7 +1244,7 @@ class _ConcentrationModelBase:
         """
         return self.data_registry.concentration_model['virus_concentration_model']['min_background_concentration'] # type: ignore
 
-    def normalization_factor(self) -> _MatrixFloat:
+    def normalization_factor(self) -> _Matrix:
         """
         Normalization factor (in the same unit as the concentration).
         This factor is applied to the normalized concentration only
@@ -1255,7 +1255,7 @@ class _ConcentrationModelBase:
         raise NotImplementedError("Subclass must implement")
 
     @method_cache
-    def _normed_concentration_increase_limit(self, time: float) -> _MatrixFloat:
+    def _normed_concentration_increase_limit(self, time: float) -> _Matrix:
         """
         Provides a constant that represents the theoretical asymptotic
         value reached by the concentration when time goes to infinity,
@@ -1271,7 +1271,6 @@ class _ConcentrationModelBase:
 
         invRR = np.full_like(RR, np.nan, dtype=np.float64)
         np.divide(1.0, RR, out=invRR, where=(RR != 0.0))
-        
         return people_present * invRR / volume # (n_populations, n_diameter_samples)
 
     @method_cache
@@ -1303,7 +1302,7 @@ class _ConcentrationModelBase:
         return times[t_index]
 
     @method_cache
-    def _normed_concentration_increase_cached(self, time: float) -> _MatrixFloat:
+    def _normed_concentration_increase_cached(self, time: float) -> _Matrix:
         """
         A cached version of the _normed_concentration method. Use this
         method if you expect that there may be multiple concentration
@@ -1311,7 +1310,7 @@ class _ConcentrationModelBase:
         """
         return self._normed_concentration_increase(time) # (n_populations, n_samples)
 
-    def _normed_concentration_increase(self, time: float) -> _MatrixFloat:
+    def _normed_concentration_increase(self, time: float) -> _Matrix:
         """
         Diameter-dependent concentration increase above the min_background_concentration 
         as a function of time, normalized by normalization_factor, for each population. 
@@ -1389,7 +1388,7 @@ class _ConcentrationModelBase:
             result,
         )
 
-    def concentration_by_population(self, time: float) -> _MatrixFloat:
+    def concentration_by_population(self, time: float) -> _Matrix:
         """
         Concentration contribution from each population, and min_background_concentration,
         as a function of time. The normalization factor has been put back.
@@ -1440,7 +1439,7 @@ class _ConcentrationModelBase:
         return self.concentration_by_population(time).sum(axis=0)
 
     @method_cache
-    def normed_time_integrated_concentration_increase(self, start: float, stop: float) -> _MatrixFloat:
+    def normed_time_integrated_concentration_increase(self, start: float, stop: float) -> _Matrix:
         """
         Get the integrated concentration increase between the times start and stop,
         not including the min_background_concentration, normalized by normalization_factor.
@@ -1520,7 +1519,7 @@ class _ConcentrationModelBase:
 
         return np.where(not_yet_present, 0.0, total_normed_concentration) 
 
-    def integrated_concentration_by_population(self, start: float, stop: float) -> _MatrixFloat:
+    def integrated_concentration_by_population(self, start: float, stop: float) -> _Matrix:
         """
         Concentration contribution from each population, and min_background_concentration,
         integrated between the times start and stop. The normalization factor has been put back.
@@ -1548,13 +1547,13 @@ class _ConcentrationModelBase:
 
         # Add row for the min_background_concentration
         n_samples = integrated_concentration_increase.shape[1]
-        min_background_concentration = np.full(
+        integrated_min_background_concentration = np.full(
             (1, n_samples),
-            self.min_background_concentration(),
+            (stop-start)*self.min_background_concentration(),
             dtype=np.float64,
         )
         return np.concatenate(
-            (integrated_concentration_increase, min_background_concentration),
+            (integrated_concentration_increase, integrated_min_background_concentration),
             axis=0,
         )
 
@@ -1603,7 +1602,7 @@ class ConcentrationModel(_ConcentrationModelBase):
     def virus(self) -> Virus:
         return self.infected_populations[0].virus
 
-    def removal_rate(self, time: float) -> _MatrixFloat:
+    def removal_rate(self, time: float) -> _Matrix:
         """Shape (n_populations, n_diameter_samples)."""
         # Equilibrium velocity of particle motion toward the floor
         vg = np.stack(
@@ -1625,7 +1624,7 @@ class ConcentrationModel(_ConcentrationModelBase):
             + self.ventilation.air_exchange(self.room, time)
         )
 
-    def normalization_factor(self) -> _MatrixFloat:
+    def normalization_factor(self) -> _Matrix:
         """
         We normalize the computations by the emission rate, containing
         (almost) all random variables except the particle diameter.
@@ -1646,7 +1645,7 @@ class ConcentrationModel(_ConcentrationModelBase):
             axis=0
         )
 
-    def short_range_normalization_factors(self) -> _MatrixFloat:
+    def short_range_normalization_factors(self) -> _Matrix:
         """
         For short-range interactions, the infected population parameters intervene only through this factor.
         Result in (virions.cm^3)/(mL.m^3).
@@ -1689,7 +1688,7 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
 
     def removal_rate(self, time: float) -> _VectorisedFloat:
         """Shape (n_populations, 1)."""
-        return np.asarray([self.ventilation.air_exchange(self.room, time)]*len(self.populations))
+        return np.asarray([self.ventilation.air_exchange(self.room, time)]*len(self.populations)).reshape(-1,1)
 
     def min_background_concentration(self) -> _VectorisedFloat:
         """
@@ -1849,16 +1848,6 @@ class ExposureModel:
         ventilation, and the virus decay constant, must
         not be given as arrays.
 
-        NOTE: Not sure the above is really a problem. 
-        I do not see a problem with it as long as the number 
-        of samples for the air exchange rate, virus decay
-        constant, and also the room volume (?), equal the 
-        number of diameter samples. However, one should be
-        aware that these parameters are averaged when Monte
-        Carlo integrating over the particle diameter, and 
-        thereby their variance is lost for analysis of the
-        variance of the final result.
-
         It also checks that the number of exposed is
         static during the simulation time.
         """
@@ -1877,6 +1866,20 @@ class ExposureModel:
             raise TypeError("The exposed number must be an int and presence an Interval. "
                             f"Got {type(self.exposed.number)} and {type(self.exposed.presence)}.")
 
+    def monte_carlo_diameter(self) -> bool:
+        """Whether the particle diameter is Monte Carlo sampled."""
+        has_diameter_distribution = np.asarray([
+            infected.particle.diameter is not None
+            and np.ndim(infected.particle.diameter) > 0
+            for infected in self.infected_populations
+        ])
+        if has_diameter_distribution.any() and (~has_diameter_distribution).any():
+            raise ValueError("Mixed scalar and sampled particle diameters are not supported.")
+
+        if has_diameter_distribution.any():
+            return True
+        else:
+            return False
 
     @property
     def virus(self):
@@ -1906,18 +1909,12 @@ class ExposureModel:
 
         return sorted(state_change_times)
 
-    def long_range_fraction_deposited(self) -> np.ndarray[_VectorisedFloat]:
-        """
-        The fraction of particles actually deposited in the respiratory
-        tract (over the total number of particles). It depends on the
-        particle diameter, sampled for each infected population.
-        """
-        return np.asarray([infected.particle.fraction_deposited(self.evaporation_factor) for infected in self.infected_populations])
-
     def _long_range_normed_exposure_between_bounds(self, time1: float, time2: float) -> np.ndarray:
         """
         The number of virions per meter^3 between any two times, normalized
-        by the emission rate of the infected population
+        by the emission rate of the infected population.
+
+        Returns array with shape (n_populations, n_diameter_samples).
         """
         shape_like = self.concentration_model.normed_time_integrated_concentration_increase(self.population_state_change_times()[0], self.population_state_change_times()[1])
         exposure = np.zeros_like(shape_like, dtype=np.float64)
@@ -1926,7 +1923,7 @@ class ExposureModel:
                 continue
             elif start > time2:
                 break
-            elif start <= time1 and time2<= stop:
+            elif start <= time1 and time2 <= stop:
                 exposure += self.concentration_model.normed_time_integrated_concentration_increase(time1, time2)
             elif start <= time1 and stop < time2:
                 exposure += self.concentration_model.normed_time_integrated_concentration_increase(time1, stop)
@@ -1963,152 +1960,110 @@ class ExposureModel:
                         concentration -= 1/interaction.dilution_factor() * self.concentration_model.concentration(time)
         return concentration
 
-    def long_range_deposited_exposure_between_bounds_by_population(self, time1: float, time2: float) -> _VectorisedFloat:
+    def long_range_deposited_exposure_between_bounds_by_population(self, time1: float, time2: float) -> _VectorisedFloat: # TODO: should maybe be cached
         """
-        Returns array with shape (n_populations, n_samples).
-        Where n_samples are the number of MC samples of diameter-independent MC variables.
+        Returns array with shape (n_populations+1, n_samples), or (n_populations+1, ) if no 
+        diameter-independent random variables are Monte Carlo sampled. We add +1 because 
+        the time-integrated minimum background concentration is included as a row.
         """
         normed_exposure = self._long_range_normed_exposure_between_bounds(time1, time2)
-        fdep = self.long_range_fraction_deposited()
-
-        aerosols = np.stack(
-            [infected.aerosols() for infected in self.infected_populations],
-            axis=0,
-        )
-        emission_rate = np.stack(
+        res_diameter_dependent = np.stack(
             [
-                infected.emission_rate_per_aerosol_per_person_when_present()
+                infected.aerosols()*infected.particle.fraction_deposited(self.evaporation_factor) 
                 for infected in self.infected_populations
             ],
             axis=0,
         )
 
-        has_diameter_distribution = np.asarray([ # TODO: in post_init
-            infected.particle.diameter is not None
-            and np.ndim(infected.particle.diameter) > 0
-            for infected in self.infected_populations
-        ])
-
-        deposited = normed_exposure * aerosols * fdep
-
-        deposited_diameter_integrated = np.mean(
-            deposited,
-            axis=1,
-            keepdims=True,
+        if self.monte_carlo_diameter():
+            deposited = np.asarray(np.mean(normed_exposure * res_diameter_dependent, axis=1)).reshape(-1, 1)
+        elif normed_exposure.shape[1] != 1:
+            deposited = np.asarray(normed_exposure * res_diameter_dependent)
+        else:
+            deposited = np.asarray(normed_exposure.flatten() * res_diameter_dependent).reshape(-1, 1)
+        diameter_independent = np.stack(
+            [
+                infected.emission_rate_per_aerosol_per_person_when_present()
+                * self.exposed.activity.inhalation_rate
+                * (1 - self.exposed.mask.inhale_efficiency())
+                for infected in self.infected_populations
+            ],
+            axis=0,
         )
+        if diameter_independent.ndim == 1:
+            diameter_independent=diameter_independent.reshape(-1,1)
 
-        # Keep the unreduced values for scalar/no-diameter populations.
-        deposited = np.where(
-            has_diameter_distribution[:, np.newaxis],
-            deposited_diameter_integrated,
-            deposited,
+        exposure_by_population = np.asarray(deposited * diameter_independent)
+
+        
+        # Add row for the min_background_concentration
+        n_samples = exposure_by_population.shape[1]
+        integrated_min_background_concentration = np.full(
+            (1, n_samples),
+            (time2-time1)*self.concentration_model.min_background_concentration(),
+            dtype=np.float64,
         )
-        return np.asarray(
-            deposited
-            * emission_rate
-            * self.exposed.activity.inhalation_rate
-            * (1 - self.exposed.mask.inhale_efficiency())
+        return np.concatenate(
+            (exposure_by_population, integrated_min_background_concentration),
+            axis=0,
         )
 
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         """Sum over the contributions from all infected populations."""
         return self.long_range_deposited_exposure_between_bounds_by_population(time1, time2).sum(axis=0)
 
-    def deposited_exposure_between_bounds_by_population(self, time1: float, time2: float) -> _VectorisedFloat:
+    def deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
         """
         The number of virus per m^3 deposited on the respiratory tract
-        between any two times.
+        between any two times, including short-range exposure from all short-range interactions.
 
-        Considers a contribution between the short-range and long-range exposures:
+        Considers the contribution from the short-range and long-range exposures:
         It calculates the deposited exposure given a short-range interaction (if any).
         Then, the deposited exposure given the long-range interactions is added to the
         initial deposited exposure.
-
-        Returns array with shape (n_populations, n_samples).
-        Where n_samples are the number of MC samples of diameter-independent MC variables.
         """
-        long_range = self.long_range_deposited_exposure_between_bounds_by_population(time1,time2)
+        deposited_exposure: _VectorisedFloat = 0.
+        for infected, interactions in zip(self.infected_populations, self.concentration_model.short_range):
+            for interaction in interactions:
+                if interaction.exposed_identifier == self.identifier:
+                    # Only adding the additional contribution from the short-range interaction
+                    start, stop = interaction.extract_between_bounds(time1, time2)
+                    short_range_jet_exposure = interaction._normed_jet_exposure_between_bounds(start, stop)
+                    dilution = interaction.dilution_factor()
+                    fdep = interaction.expiration.particle.fraction_deposited(evaporation_factor=1.0)
+                    # Aerosols not considered given the formula for the initial
+                    # concentration at mouth/nose.
+                    if self.monte_carlo_diameter():
+                        # We compute first the mean of all diameter-dependent quantities
+                        # to perform properly the Monte-Carlo integration over
+                        # particle diameters (doing things in another order would
+                        # lead to wrong results for the probability of infection).
+                        this_deposited_exposure = (np.array(short_range_jet_exposure
+                            * fdep).mean())
+                    else:
+                        # In the case of a single diameter or no diameter defined,
+                        # one should not take any mean at this stage.
+                        this_deposited_exposure = (short_range_jet_exposure * fdep)
 
-        deposited = np.array(long_range, copy=True)
+                    # Multiply by the (diameter-independent) inhalation rate
+                    _deposited_exposure = (this_deposited_exposure *
+                                        interaction.activity.inhalation_rate
+                                        /dilution) 
+                    
+                    # Then we multiply by the emission rate without the BR contribution (and conversion factor),
+                    # and parameters of the vD equation (i.e. n_in).
+                    deposited_exposure += _deposited_exposure*(
+                        (infected.emission_rate_per_aerosol_per_person_when_present() / (
+                        infected.activity.exhalation_rate * 10**6)) *                 
+                        (1 - self.exposed.mask.inhale_efficiency()))
+                    
+                    deposited_exposure -= self.long_range_deposited_exposure_between_bounds(time1, time2)/dilution
 
-        # Associate every relevant short-range interaction with its infected population
-        interactions = [
-            (infected_index, infected, interaction)
-            for infected_index, (infected, population_interactions) in enumerate(
-                zip(self.infected_populations, self.concentration_model.short_range)
-            )
-            for interaction in population_interactions
-            if interaction.exposed_identifier == self.identifier
-        ]
+            
+        # Long-range contributions from all infected populations (including the ones with SR interactions)
+        deposited_exposure += self.long_range_deposited_exposure_between_bounds(time1, time2)
 
-        if not interactions:
-            return deposited
-
-        def short_range_contribution(infected, interaction, long_range_exposure):
-            start, stop = interaction.extract_between_bounds(time1, time2)
-            jet_exposure = interaction._normed_jet_exposure_between_bounds(
-                start,
-                stop,
-            )
-
-            dilution = interaction.dilution_factor()
-            particle = interaction.expiration.particle
-
-            fraction_deposited = particle.fraction_deposited(
-                evaporation_factor=1.0,
-            )
-
-            if particle.diameter is not None and not np.isscalar(particle.diameter):
-                # Assuming shape: (n_samples, n_diameters).
-                jet_deposited_exposure = np.mean(
-                    jet_exposure * fraction_deposited,
-                    axis=1,
-                )
-            else:
-                jet_deposited_exposure = jet_exposure * fraction_deposited
-
-            short_range_exposure = (
-                jet_deposited_exposure
-                * interaction.activity.inhalation_rate
-                / dilution
-                * (
-                    infected.emission_rate_per_aerosol_per_person_when_present()
-                    / (infected.activity.exhalation_rate * 10**6)
-                )
-                * (1 - self.exposed.mask.inhale_efficiency())
-            )
-
-            # The jet calculation replaces the diluted long-range exposure during
-            # this short-range interaction.
-            return short_range_exposure - long_range_exposure / dilution
-
-        infected_indices = np.fromiter(
-            (index for index, _, _ in interactions),
-            dtype=int,
-            count=len(interactions),
-        )
-
-        short_range_contributions = np.stack(
-            [
-                short_range_contribution(
-                    infected,
-                    interaction,
-                    long_range[index],
-                )
-                for index, infected, interaction in interactions
-            ],
-            axis=0,
-        )
-
-        # Multiple interactions belonging to one infected population are summed.
-        np.add.at(deposited, infected_indices, short_range_contributions)
-
-        return deposited
-
-
-    def deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorisedFloat:
-        """Sum over the contributions from all infected populations."""
-        return self.deposited_exposure_between_bounds_by_population(time1, time2).sum(axis=0)
+        return deposited_exposure
 
     def deposited_exposure(self, short_range: bool = True) -> _VectorisedFloat:
         """

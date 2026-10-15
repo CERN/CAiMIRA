@@ -254,9 +254,10 @@ def test_long_range_concentration(time, dynamic_conc_model, separate_conc_models
     concentration = dynamic_conc_model.concentration(time)
     concentration_by_population = dynamic_conc_model.concentration_by_population(time)[:-1,:] # remove final row for min_background_concentration
     assert np.all(concentration.shape == separated_conc.shape for separated_conc in separate_concentrations)
-    assert np.allclose(concentration_by_population, np.vstack(separate_concentrations))
-    assert np.allclose(concentration, np.vstack(separate_concentrations).sum(axis=0))
-    assert np.allclose(concentration.mean(), np.vstack(separate_concentrations).sum(axis=0).mean())
+    assert concentration_by_population.shape == np.stack(separate_concentrations).shape
+    assert np.allclose(concentration_by_population, np.stack(separate_concentrations))
+    assert np.allclose(concentration, np.stack(separate_concentrations).sum(axis=0))
+    assert np.allclose(concentration.mean(), np.stack(separate_concentrations).sum(axis=0).mean())
     assert np.all(concentration >= 0)
 
 @pytest.mark.parametrize(
@@ -271,14 +272,32 @@ def test_long_range_concentration(time, dynamic_conc_model, separate_conc_models
         [19, 20.],
     ],
 )
-def test_long_range_deposited_exposure(start, stop, dynamic_conc_model, separate_conc_models):
-    separate_deposited_exposures = [get_exposure_model(separate_conc_model).build_model(SAMPLE_SIZE).deposited_exposure_between_bounds(start, stop) for separate_conc_model in separate_conc_models]
+def test_long_range_deposited_exposure(
+    start, 
+    stop, 
+    dynamic_conc_model, # no short-range interactions
+    separate_conc_models
+):
+    separate_exposure_models = [get_exposure_model(separate_conc_model).build_model(SAMPLE_SIZE) for separate_conc_model in separate_conc_models]
     exp_model = get_exposure_model(dynamic_conc_model).build_model(SAMPLE_SIZE)
+
+    separate_lr_deposited_exposures = [separate_exposure_model.long_range_deposited_exposure_between_bounds(start, stop) for separate_exposure_model in separate_exposure_models]
+    deposited_lr_exposure_by_population = exp_model.long_range_deposited_exposure_between_bounds_by_population(start, stop)
+    deposited_lr_exposure_by_population = deposited_lr_exposure_by_population[:-1] # remove min background concentration dim
+    deposited_lr_exposure = exp_model.long_range_deposited_exposure_between_bounds(start, stop)
+
+    separate_deposited_exposures = [separate_exposure_model.deposited_exposure_between_bounds(start, stop) for separate_exposure_model in separate_exposure_models]
     deposited_exposure = exp_model.deposited_exposure_between_bounds(start, stop)
-    long_range_deposited_exposure = exp_model.long_range_deposited_exposure_between_bounds(start, stop)
-    assert np.allclose(deposited_exposure, sum(separate_deposited_exposures))
-    assert np.allclose(deposited_exposure, long_range_deposited_exposure) # dynamic_conc_model has no short-range interactions
-    assert deposited_exposure >= 0
+
+    assert np.allclose(separate_deposited_exposures, separate_lr_deposited_exposures)
+    assert np.allclose(deposited_exposure, deposited_lr_exposure)
+    assert np.all(deposited_exposure.shape == separated_dep.shape for separated_dep in separate_deposited_exposures)
+
+    assert deposited_lr_exposure_by_population.shape == np.stack(separate_deposited_exposures).shape
+    assert np.allclose(deposited_lr_exposure_by_population, np.stack(separate_deposited_exposures))
+    assert np.allclose(deposited_exposure, np.stack(separate_deposited_exposures).sum(axis=0))
+    assert np.allclose(deposited_exposure.mean(), np.stack(separate_deposited_exposures).sum(axis=0).mean())
+    assert np.all(deposited_exposure >= 0)
 
 
 def test_exposure(dynamic_conc_model, dynamic_conc_model_with_short_range):
@@ -288,6 +307,7 @@ def test_exposure(dynamic_conc_model, dynamic_conc_model_with_short_range):
     assert np.all(exp_model_with_sr.deposited_exposure() > 0)
     assert np.all(100 > exp_model_with_sr.individual_infection_probability() > 0)
     assert np.all(100 > exp_model_no_sr.individual_infection_probability() > 0)
+
 
 @pytest.mark.parametrize(
     "start, stop", [
@@ -306,8 +326,8 @@ def test_dynamic_exposure(infected_dynamic_number, start, stop):
         mc.ShortRangeModel(
             data_registry=data_registry,
             exposed_identifier="groupA",
-            expiration=models.Expiration.types['Breathing'],
-            activity=models.Activity.types['Seated'],
+            expiration=models.Expiration.types['Shouting'],
+            activity=models.Activity.types['Standing'],
             presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
             distance=0.854,
         ),
@@ -325,35 +345,35 @@ def test_dynamic_exposure(infected_dynamic_number, start, stop):
         data_registry=data_registry,
         room = models.Room(75, models.PiecewiseConstant((0., 24.), (293,))),
         ventilation = models.AirChange(interesting_times, 100),
-        infected_populations = (infected_dynamic_number[0], infected_dynamic_number[0], ),
+        infected_populations = (infected_dynamic_number[0], infected_dynamic_number[0],),
         evaporation_factor=0.3,
-        short_range=((),short_range_model,),
-        )
+        short_range=((), short_range_model,),
+    )
 
     non_dynamic_exp_model_with_sr = get_exposure_model(conc_model_combined_infected).build_model(SAMPLE_SIZE) # short-range with just one infected
     dynamic_exp_model_with_sr = get_exposure_model(conc_model_split_infected).build_model(SAMPLE_SIZE) # short-range with just one infected
 
     assert np.allclose(
         non_dynamic_exp_model_with_sr.long_range_deposited_exposure_between_bounds(start, stop),
-        dynamic_exp_model_with_sr.long_range_deposited_exposure_between_bounds(start, stop)
+        dynamic_exp_model_with_sr.long_range_deposited_exposure_between_bounds(start, stop),
     )
     assert np.allclose(
         non_dynamic_exp_model_with_sr.deposited_exposure_between_bounds(start, stop),
-        dynamic_exp_model_with_sr.deposited_exposure_between_bounds(start, stop)
+        dynamic_exp_model_with_sr.deposited_exposure_between_bounds(start, stop),
     )
     assert np.allclose(
-            non_dynamic_exp_model_with_sr.deposited_exposure(short_range=False),
-            dynamic_exp_model_with_sr.deposited_exposure(short_range=False)
-        )
+        non_dynamic_exp_model_with_sr.deposited_exposure(short_range=False),
+        dynamic_exp_model_with_sr.deposited_exposure(short_range=False),
+    )
     assert np.allclose(
         non_dynamic_exp_model_with_sr.deposited_exposure(short_range=True),
-        dynamic_exp_model_with_sr.deposited_exposure(short_range=True)
+        dynamic_exp_model_with_sr.deposited_exposure(short_range=True),
     )
     assert np.allclose(
-            non_dynamic_exp_model_with_sr.individual_infection_probability(short_range=False),
-            dynamic_exp_model_with_sr.individual_infection_probability(short_range=False)
-        )
+        non_dynamic_exp_model_with_sr.individual_infection_probability(short_range=False),
+        dynamic_exp_model_with_sr.individual_infection_probability(short_range=False),
+    )
     assert np.allclose(
         non_dynamic_exp_model_with_sr.individual_infection_probability(short_range=True),
-        dynamic_exp_model_with_sr.individual_infection_probability(short_range=True)
+        dynamic_exp_model_with_sr.individual_infection_probability(short_range=True),
     )
