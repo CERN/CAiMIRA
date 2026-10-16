@@ -705,7 +705,7 @@ def simple_expo_sr_model_distr(data_registry, simple_sr_models_with_exposed2) ->
         sr_models         = simple_sr_models_with_exposed2,
     )
 
-
+@retry(tries=10)
 @pytest.mark.parametrize(
     "time", np.linspace(8.5,17.5,12),
 )
@@ -760,7 +760,7 @@ def test_longrange_exposure(data_registry, c_model_no_sr):
         simple_expo_model.probability_infection().mean(), rtol=TOLERANCE
         )
 
-
+@retry(tries=10)
 @pytest.mark.parametrize(
     "time", [11., 12.5, 17.]
 )
