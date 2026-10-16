@@ -1706,11 +1706,11 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
     def populations(self) -> typing.Tuple[SimplePopulation, ...]:
         return self.CO2_emitting_populations
 
-    def removal_rate(self, time: float) -> _VectorisedFloat:
+    def removal_rate(self, time: float) -> _Matrix:
         """Shape (n_populations, 1)."""
         return np.asarray([self.ventilation.air_exchange(self.room, time)]*len(self.populations)).reshape(-1,1)
 
-    def min_background_concentration(self, n_samples=None) -> _VectorisedFloat:
+    def min_background_concentration(self, n_samples=None) -> _Matrix:
         """
         Background CO2 concentration in the atmosphere (in ppm)
         """
@@ -1722,7 +1722,7 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
             dtype=np.float64,
         )
 
-    def normalization_factor(self) -> _VectorisedFloat:
+    def normalization_factor(self) -> _Matrix:
         """
         Normalization by the CO2 exhaled per person.
         CO2 concentration given in ppm, hence the 1e6 factor.
@@ -1776,7 +1776,7 @@ class CO2DataModel:
             ),
         )
 
-    def CO2_concentrations_from_params(self, CO2_concentration_model: CO2ConcentrationModel) -> typing.List[_VectorisedFloat]:
+    def CO2_concentrations_from_params(self, CO2_concentration_model: CO2ConcentrationModel) -> typing.List[float]:
         # Calculate the predictive CO2 concentration
         return [CO2_concentration_model.concentration(time).mean() for time in self.times] # Averaging arrays with 1 element
 
@@ -1987,7 +1987,7 @@ class ExposureModel:
                         concentration -= 1/interaction.dilution_factor() * self.concentration_model.concentration(time)
         return concentration
 
-    def long_range_deposited_exposure_between_bounds_by_population(self, time1: float, time2: float) -> _VectorisedFloat: # TODO: should maybe be cached
+    def long_range_deposited_exposure_between_bounds_by_population(self, time1: float, time2: float) -> _Matrix:
         """
         Returns array with shape (n_populations+1, n_samples), or (n_populations+1, ) if no 
         diameter-independent random variables are Monte Carlo sampled. We add +1 because 
