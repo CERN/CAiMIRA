@@ -1206,6 +1206,10 @@ class _ConcentrationModelBase:
         """
         raise NotImplementedError("Subclass must implement")
 
+    def monte_carlo_diameter(self) -> bool:
+        """Whether there is a particle diameter that is Monte Carlo sampled."""
+        return False
+
     def people_present(self, time) -> np.array[float]:
         """
         Total number of emittors present at a given time. 
@@ -1216,7 +1220,7 @@ class _ConcentrationModelBase:
             dtype=np.float64,
         ).reshape(-1, 1)
 
-    def volume(self) -> float:
+    def volume(self) -> _Matrix:
         """
         Room volume. 
         If considered deterministic, the shape can be (1, 1).
@@ -1236,13 +1240,20 @@ class _ConcentrationModelBase:
         raise NotImplementedError("Subclass must implement")
 
 
-    def min_background_concentration(self) -> float:
+    def min_background_concentration(self, n_samples=None) -> _Matrix:
         """
         Minimum background concentration in the room for a given scenario
         (in the same unit as the concentration). Its the value towards which
         the concentration will decay to.
         """
-        return self.data_registry.concentration_model['virus_concentration_model']['min_background_concentration'] # type: ignore
+        if not n_samples:
+            n_samples = self.normalization_factor().shape[1]
+        min_background_concentration = self.data_registry.concentration_model['virus_concentration_model']['min_background_concentration']
+        return np.full(
+            (1, n_samples),
+            min_background_concentration,
+            dtype=np.float64,
+        )
 
     def normalization_factor(self) -> _Matrix:
         """
@@ -1418,12 +1429,7 @@ class _ConcentrationModelBase:
         )
 
         # Add row for the min_background_concentration
-        n_samples = concentration_increase.shape[1]
-        min_background_concentration = np.full(
-            (1, n_samples),
-            self.min_background_concentration(),
-            dtype=np.float64,
-        )
+        min_background_concentration = self.min_background_concentration(concentration_increase.shape[1])
         return np.concatenate(
             (concentration_increase, min_background_concentration),
             axis=0,
@@ -1532,11 +1538,13 @@ class _ConcentrationModelBase:
         # Monte Carlo integration over the particle diameter. 
         # Nothing happens if no particle diameter (e.g. for CO2). 
         # Returns shape (n_populations, 1)
-        integrated_normed_concentration_increase = np.mean(
-            self.normed_time_integrated_concentration_increase(start, stop), 
-            axis=1, 
-            keepdims=True
-        )
+        integrated_normed_concentration_increase = self.normed_time_integrated_concentration_increase(start, stop)
+        if self.monte_carlo_diameter():
+            integrated_normed_concentration_increase = np.mean(
+                integrated_normed_concentration_increase, 
+                axis=1, 
+                keepdims=True
+            )
 
         # Put back the normalization_factor of MC sampled random variables. 
         # Returns shape (n_populations, n_samples)
@@ -1546,12 +1554,8 @@ class _ConcentrationModelBase:
         )
 
         # Add row for the min_background_concentration
-        n_samples = integrated_concentration_increase.shape[1]
-        integrated_min_background_concentration = np.full(
-            (1, n_samples),
-            (stop-start)*self.min_background_concentration(),
-            dtype=np.float64,
-        )
+        integrated_min_background_concentration = (stop-start)*self.min_background_concentration(n_samples=integrated_concentration_increase.shape[1])
+
         return np.concatenate(
             (integrated_concentration_increase, integrated_min_background_concentration),
             axis=0,
@@ -1583,6 +1587,7 @@ class ConcentrationModel(_ConcentrationModelBase):
     short_range: typing.Tuple[typing.Tuple[ShortRangeModel, ...], ...]
 
     def __post_init__(self):
+        self.monte_carlo_diameter()
         if self.evaporation_factor is None:
             self.evaporation_factor = self.data_registry.expiration_particle['particle']['evaporation_factor']
 
@@ -1594,6 +1599,21 @@ class ConcentrationModel(_ConcentrationModelBase):
                 if interaction.presence.boundaries()[0][0] < infected.presence.boundaries()[0][0] or interaction.presence.boundaries()[-1][-1] > infected.presence.boundaries()[-1][-1]:
                     raise ValueError("A short-range-interaction cannot lie outside the presence of the infected.")
 
+    def monte_carlo_diameter(self) -> bool:
+        """Whether the particle diameter is Monte Carlo sampled."""
+        has_diameter_distribution = np.asarray([
+                infected.particle.diameter is not None
+                and np.ndim(infected.particle.diameter) > 0
+                for infected in self.infected_populations
+            ])
+        if has_diameter_distribution.any() and (~has_diameter_distribution).any():
+            raise ValueError("Mixed scalar and sampled particle diameters are not supported.")
+
+        if has_diameter_distribution.any():
+            return True
+        else:
+            return False
+        
     @property
     def populations(self) -> InfectedPopulation:
         return self.infected_populations
@@ -1690,11 +1710,17 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         """Shape (n_populations, 1)."""
         return np.asarray([self.ventilation.air_exchange(self.room, time)]*len(self.populations)).reshape(-1,1)
 
-    def min_background_concentration(self) -> _VectorisedFloat:
+    def min_background_concentration(self, n_samples=None) -> _VectorisedFloat:
         """
         Background CO2 concentration in the atmosphere (in ppm)
         """
-        return self.CO2_atmosphere_concentration
+        if not n_samples:
+            n_samples = self.normalization_factor().shape[1]
+        return np.full(
+            (1, n_samples),
+            self.CO2_atmosphere_concentration,
+            dtype=np.float64,
+        )
 
     def normalization_factor(self) -> _VectorisedFloat:
         """
@@ -1851,6 +1877,7 @@ class ExposureModel:
         It also checks that the number of exposed is
         static during the simulation time.
         """
+        self.monte_carlo_diameter()
         for infected in self.infected_populations:
             # Check if the diameter is vectorised.
             if (isinstance(infected, InfectedPopulation) and not np.isscalar(infected.expiration.diameter)
@@ -1997,12 +2024,8 @@ class ExposureModel:
 
         
         # Add row for the min_background_concentration
-        n_samples = exposure_by_population.shape[1]
-        integrated_min_background_concentration = np.full(
-            (1, n_samples),
-            (time2-time1)*self.concentration_model.min_background_concentration(),
-            dtype=np.float64,
-        )
+        integrated_min_background_concentration = (time2-time1)*self.concentration_model.min_background_concentration(exposure_by_population.shape[1])
+
         return np.concatenate(
             (exposure_by_population, integrated_min_background_concentration),
             axis=0,

@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from caimira.calculator.models import models
 from caimira.calculator.store.data_registry import DataRegistry
 
+SAMPLE_SIZE=250_000
+
 @dataclass(frozen=True)
 class KnownConcentrationModelBase(models._ConcentrationModelBase):
     """
@@ -18,24 +20,51 @@ class KnownConcentrationModelBase(models._ConcentrationModelBase):
     """
     known_populations: typing.Tuple[models.Population, ...]
 
-    known_removal_rate: float
+    known_removal_rate: models._VectorizedFloat
 
-    known_min_background_concentration: float
+    known_min_background_concentration: models._VectorizedFloat
 
-    known_normalization_factor: float
+    known_normalization_factor: models._VectorizedFloat
 
     @property
     def populations(self) -> models.Population:
         return self.known_populations
 
-    def removal_rate(self, time: float) -> float:
-        return self.known_removal_rate
+    def removal_rate(self, time: float) -> models._Matrix:
+        """Convert to models._Matrix with dimention matching normalization_factor and min_background_concentration."""
+        if isinstance(self.known_removal_rate, float):
+            if not isinstance(self.known_normalization_factor, float):
+                return (np.ones(len(self.known_normalization_factor))*self.known_removal_rate).reshape(1,-1)
+            elif not isinstance(self.known_min_background_concentration, float):
+                return (np.ones(len(self.known_min_background_concentration))*self.known_removal_rate).reshape(1,-1)
+            return np.asarray([[self.known_removal_rate]])
+        return self.known_removal_rate.reshape(1,-1)
 
-    def min_background_concentration(self) -> float:
-        return self.known_min_background_concentration
+    def min_background_concentration(self, n_samples=None) -> models._Matrix:
+        """Convert to models._Matrix with dimention matching normalization_factor and removal_rate."""
+        if not isinstance(self.known_min_background_concentration, float):
+            return self.known_min_background_concentration.reshape(1,-1)
+        elif n_samples:
+            return np.full(
+                (1, n_samples),
+                self.known_min_background_concentration,
+                dtype=np.float64,
+            )   
+        elif isinstance(self.known_removal_rate, float) and isinstance(self.known_normalization_factor, float):
+            return np.asarray([[self.known_min_background_concentration]])
+        elif not isinstance(self.known_normalization_factor, float):
+            return (np.ones(len(self.known_normalization_factor))*self.known_min_background_concentration).reshape(1,-1)
+        return (np.ones(len(self.known_removal_rate))*self.known_min_background_concentration).reshape(1,-1)
 
-    def normalization_factor(self) -> float:
-        return self.known_normalization_factor
+    def normalization_factor(self) -> models._Matrix:
+        """Convert to models._Matrix with dimention matching min_background_concentration and removal_rate."""
+        if isinstance(self.known_normalization_factor, float):
+            if not isinstance(self.known_removal_rate, float):
+                return (np.ones(len(self.known_removal_rate))*self.known_normalization_factor).reshape(1,-1)
+            elif not isinstance(self.known_min_background_concentration, float):
+                return (np.ones(len(self.known_min_background_concentration))*self.known_normalization_factor).reshape(1,-1)
+            return np.asarray([[self.known_normalization_factor]])
+        return self.known_normalization_factor.reshape(1,-1)
 
 
 @pytest.mark.parametrize(
@@ -174,10 +203,6 @@ def test_last_state_change_time(
     assert simple_conc_model.last_state_change(float(time)) == expected_last_state_change
 
 
-def test_first_presence_time(simple_conc_model):
-    assert simple_conc_model._first_presence_time() == 0.5
-
-
 def test_integrated_concentration(simple_conc_model):
     c1 = simple_conc_model.integrated_concentration(0, 2)
     c2 = simple_conc_model.integrated_concentration(0, 1)
@@ -213,8 +238,9 @@ def test_normed_time_integrated_concentration_increase_with_background_concentra
         known_populations = (dummy_population,),
         known_removal_rate = 100.,
         known_min_background_concentration = known_min_background_concentration,
-        known_normalization_factor = 10.)
-    npt.assert_almost_equal(known_conc_model.normed_time_integrated_concentration_increase(0, 2), expected_normed_time_integrated_concentration_increase)
+        known_normalization_factor = 10.,
+    )
+    npt.assert_almost_equal(known_conc_model.normed_time_integrated_concentration_increase(0, 2)+(2-0)*known_min_background_concentration/10, expected_normed_time_integrated_concentration_increase)
 
 
 # The expected numbers were obtained via the quad integration of the
@@ -223,13 +249,13 @@ def test_normed_time_integrated_concentration_increase_with_background_concentra
     "known_removal_rate",
     "known_min_background_concentration",
     "known_normalization_factor",
-    "expected_normed_time_integrated_concentration_increase"],
+    "expected_normed_time_integrated_concentration"],
     [
-        [np.array([0.25, 10]), 0.0, 10., np.array([0.012161005755130391, 0.0017333437605308818])],
-        [100, np.array([0, 240.0]), 10., np.array([0.00018533333708996207, 48.000185340695275])],
-        [100, 440.0, np.array([10., 20.]), np.array([88.00018534069527, 44.000185340695275])],
-        [np.array([10, 100]), np.array([600., 800.]), 10., np.array([120.00173334473946, 160.0001853406953])],
-        [np.array([50, 100,]), np.array([1000.,1100.]), np.array([10., 20.]), np.array([200.00036800764332, 110.00018534069527])],
+        [np.array([[0.25, 10]]), np.array([[0.0, 0.0]]), np.array([[10., 10.]]), np.array([[0.012161005755130391, 0.0017333437605308818]])],
+        [np.array([[100, 100]]), np.array([[0, 240.0]]), np.array([[10., 10.]]), np.array([[0.00018533333708996207, 48.000185340695275]])],
+        [np.array([[100, 100]]), np.array([[440.0, 440.0]]), np.array([[10., 20.]]), np.array([[88.00018534069527, 44.000185340695275]])],
+        [np.array([[10., 100]]), np.array([[600., 800.]]), 10., np.array([[120.00173334473946, 160.0001853406953]])],
+        [np.array([[50., 100]]), np.array([[1000.,1100.]]), np.array([[10., 20.]]), np.array([[200.00036800764332, 110.00018534069527]])],
     ]
 )
 def test_normed_time_integrated_concentration_increase_vectorisation(
@@ -239,7 +265,7 @@ def test_normed_time_integrated_concentration_increase_vectorisation(
     known_removal_rate: float,
     known_min_background_concentration: float,
     known_normalization_factor: float,
-    expected_normed_time_integrated_concentration_increase: float):
+    expected_normed_time_integrated_concentration: float):
 
     known_conc_model = KnownConcentrationModelBase(
         data_registry = data_registry,
@@ -250,11 +276,14 @@ def test_normed_time_integrated_concentration_increase_vectorisation(
         known_min_background_concentration = known_min_background_concentration,
         known_normalization_factor = known_normalization_factor)
 
-    integrated_concentration = known_conc_model.normed_time_integrated_concentration_increase(0, 2)
+    normed_integrated_concentration = known_conc_model.normed_time_integrated_concentration_increase(0, 2)
+    integrated_concentration = known_conc_model.integrated_concentration(0, 2)
 
-    assert isinstance(integrated_concentration, np.ndarray)
-    assert integrated_concentration.shape == (2, )
-    npt.assert_almost_equal(integrated_concentration, expected_normed_time_integrated_concentration_increase)
+    assert isinstance(normed_integrated_concentration, np.ndarray)
+    assert normed_integrated_concentration.shape == (1, 2)
+    npt.assert_almost_equal(normed_integrated_concentration+(2-0)*known_min_background_concentration/known_normalization_factor, expected_normed_time_integrated_concentration)
+    npt.assert_almost_equal(integrated_concentration, (expected_normed_time_integrated_concentration*known_normalization_factor).flatten())
+
 
 
 @pytest.mark.parametrize([
