@@ -27,8 +27,10 @@ class KnownNormedconcentration(models.ConcentrationModel):
         # Very large decay constant -> same as constant concentration
         return (np.ones(self.n_samples)*1.e50).reshape(1,-1)
 
-    def _normed_concentration_limit(self, time: float) -> models._VectorisedFloat:
-        return (np.ones(self.n_samples)*self.normed_concentration_limit_function(time) * self.infected_populations[0].number).reshape(1,-1)
+    def _normed_concentration_increase_limit(self, time: float) -> models._VectorisedFloat:
+        val = (self.normed_concentration_limit_function(time) * self.infected_populations[0].number
+               - self.min_background_concentration()/self.normalization_factor())
+        return (np.ones(self.n_samples)*val).reshape(1,-1)
 
     def state_change_times(self):
         return [0., 24.]
@@ -36,8 +38,10 @@ class KnownNormedconcentration(models.ConcentrationModel):
     def _next_state_change(self, time: float): # Outdated method, see merge_requests/539
         return 24.
 
-    def _normed_concentration(self, time: float) -> models._VectorisedFloat:  # noqa
-        return (np.ones(self.n_samples)*self.normed_concentration_function(time) * self.infected_populations[0].number).reshape(1,-1)
+    def _normed_concentration_increase(self, time: float) -> models._VectorisedFloat:  # noqa
+        val = (self.normed_concentration_function(time) * self.infected_populations[0].number
+               - self.min_background_concentration()/self.normalization_factor())
+        return (np.ones(self.n_samples)*val).reshape(1,-1)
 
 
 halftime = models.PeriodicInterval(120, 60)
