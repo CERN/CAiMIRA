@@ -195,12 +195,12 @@ def mc_co2_conc_model(data_registry):
 def _test_types(model, time, start, stop):
     assert isinstance(model.min_background_concentration(), np.ndarray)
     assert isinstance(model.removal_rate(time), np.ndarray)
-    assert isinstance(model._normed_concentration_increase_limit(time), np.ndarray)
-    assert isinstance(model._normed_concentration_increase(time), np.ndarray)
+    assert isinstance(model._normed_concentration_addition_limit(time), np.ndarray)
+    assert isinstance(model._normed_concentration_addition(time), np.ndarray)
     assert isinstance(model.normalization_factor(), np.ndarray)
     assert isinstance(model.concentration_by_population(time), np.ndarray)
     assert isinstance(model.concentration(time), np.ndarray)
-    assert isinstance(model.normed_time_integrated_concentration_increase(start,stop), np.ndarray)
+    assert isinstance(model.normed_time_integrated_concentration_addition(start,stop), np.ndarray)
     assert isinstance(model.integrated_concentration_by_population(start,stop), np.ndarray)
     assert isinstance(model.integrated_concentration(start,stop), np.ndarray)
     assert model.volume().shape == (1, 1) # Not yet implemented as a random variable
@@ -215,11 +215,11 @@ def _test_conc_dimensions(model: models.ConcetrationModel, acceptable_n_samples:
                 (len(model.populations), n_samples)
                 for n_samples in acceptable_n_samples
             }
-    assert model._normed_concentration_increase_limit(time).shape in {
+    assert model._normed_concentration_addition_limit(time).shape in {
                 (len(model.populations), n_samples)
                 for n_samples in acceptable_n_samples
             }
-    assert model._normed_concentration_increase(time).shape in {
+    assert model._normed_concentration_addition(time).shape in {
                 (len(model.populations), n_samples)
                 for n_samples in acceptable_n_samples
             }
@@ -235,7 +235,7 @@ def _test_conc_dimensions(model: models.ConcetrationModel, acceptable_n_samples:
                 (n_samples,)
                 for n_samples in acceptable_n_samples
             }
-    assert model.normed_time_integrated_concentration_increase(start,stop).shape in {
+    assert model.normed_time_integrated_concentration_addition(start,stop).shape in {
                 (len(model.populations), n_samples)
                 for n_samples in acceptable_n_samples
             }
@@ -350,12 +350,12 @@ def test_probabilistic_dynamic_co2_model(
     assert len(model.populations) == 2
     assert model.volume().shape == (1, 1) # Not yet implemented as a random variable
     assert model.removal_rate(time).shape == (len(model.populations), 1)
-    assert model._normed_concentration_increase_limit(time).shape == (len(model.populations), 1)
-    assert model._normed_concentration_increase(time).shape == (len(model.populations), 1)
+    assert model._normed_concentration_addition_limit(time).shape == (len(model.populations), 1)
+    assert model._normed_concentration_addition(time).shape == (len(model.populations), 1)
     assert model.normalization_factor().shape == (len(model.populations), SAMPLE_SIZE)
     assert model.concentration_by_population(time).shape == (len(model.populations)+1, SAMPLE_SIZE)
     assert model.concentration(time).shape == (SAMPLE_SIZE,)
-    assert model.normed_time_integrated_concentration_increase(start,stop).shape == (len(model.populations), 1)
+    assert model.normed_time_integrated_concentration_addition(start,stop).shape == (len(model.populations), 1)
     assert model.integrated_concentration_by_population(start,stop).shape == (len(model.populations)+1, SAMPLE_SIZE)
     assert model.integrated_concentration(start,stop).shape == (SAMPLE_SIZE,)
 

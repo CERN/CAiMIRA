@@ -137,7 +137,7 @@ def test_predictive_model_accuracy(data_registry, scenario_data, room_volume, oc
 
 @pytest.mark.parametrize("time", [4.1,10])
 def test_concentration_limit_last_state_change(simple_co2_conc_model, time):
-    npt.assert_almost_equal(simple_co2_conc_model._normed_concentration_increase_limit(time), 0)
+    npt.assert_almost_equal(simple_co2_conc_model._normed_concentration_addition_limit(time), 0)
 
 @pytest.mark.parametrize([
     "start",
@@ -157,7 +157,7 @@ def test_concentration_after_last_state_change(simple_co2_conc_model, simple_co2
     time = (start+stop)/2
     npt.assert_almost_equal(simple_co2_conc_model.removal_rate(time), simple_co2_conc_model_extended_presence.removal_rate(time))
     npt.assert_almost_equal(simple_co2_conc_model.concentration(time), simple_co2_conc_model_extended_presence.concentration(time))
-    npt.assert_almost_equal(simple_co2_conc_model._normed_concentration_increase(time), simple_co2_conc_model_extended_presence._normed_concentration_increase(time))
-    npt.assert_almost_equal(simple_co2_conc_model.normed_time_integrated_concentration_increase(start, stop), simple_co2_conc_model_extended_presence.normed_time_integrated_concentration_increase(start, stop))
+    npt.assert_almost_equal(simple_co2_conc_model._normed_concentration_addition(time), simple_co2_conc_model_extended_presence._normed_concentration_addition(time))
+    npt.assert_almost_equal(simple_co2_conc_model.normed_time_integrated_concentration_addition(start, stop), simple_co2_conc_model_extended_presence.normed_time_integrated_concentration_addition(start, stop))
     npt.assert_almost_equal(simple_co2_conc_model.integrated_concentration(start, stop), simple_co2_conc_model_extended_presence.integrated_concentration(start, stop))
     

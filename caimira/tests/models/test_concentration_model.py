@@ -212,10 +212,10 @@ def test_integrated_concentration(simple_conc_model):
 
 
 # The expected numbers were obtained via the quad integration of the
-# normed_time_integrated_concentration_increase method with 0 (start) and 2 (stop) as limits.
+# normed_time_integrated_concentration_addition method with 0 (start) and 2 (stop) as limits.
 @pytest.mark.parametrize([
     "known_min_background_concentration",
-    "expected_normed_time_integrated_concentration_increase"],
+    "expected_normed_time_integrated_concentration_addition"],
     [
         [0.0, 0.00018533333708996207],
         [240.0, 48.000185340695275],
@@ -224,12 +224,12 @@ def test_integrated_concentration(simple_conc_model):
         [1000., 200.0001853407918],
     ]
 )
-def test_normed_time_integrated_concentration_increase_with_background_concentration(
+def test_normed_time_integrated_concentration_addition_with_background_concentration(
     data_registry: DataRegistry,
     simple_conc_model: models.ConcentrationModel,
     dummy_population: models.Population,
     known_min_background_concentration: float,
-    expected_normed_time_integrated_concentration_increase: float):
+    expected_normed_time_integrated_concentration_addition: float):
 
     known_conc_model = KnownConcentrationModelBase(
         data_registry,
@@ -240,11 +240,11 @@ def test_normed_time_integrated_concentration_increase_with_background_concentra
         known_min_background_concentration = known_min_background_concentration,
         known_normalization_factor = 10.,
     )
-    npt.assert_almost_equal(known_conc_model.normed_time_integrated_concentration_increase(0, 2)+(2-0)*known_min_background_concentration/10, expected_normed_time_integrated_concentration_increase)
+    npt.assert_almost_equal(known_conc_model.normed_time_integrated_concentration_addition(0, 2)+(2-0)*known_min_background_concentration/10, expected_normed_time_integrated_concentration_addition)
 
 
 # The expected numbers were obtained via the quad integration of the
-# normed_time_integrated_concentration_increase method with 0 (start) and 2 (stop) as limits.
+# normed_time_integrated_concentration_addition method with 0 (start) and 2 (stop) as limits.
 @pytest.mark.parametrize([
     "known_removal_rate",
     "known_min_background_concentration",
@@ -258,7 +258,7 @@ def test_normed_time_integrated_concentration_increase_with_background_concentra
         [np.array([[50., 100]]), np.array([[1000.,1100.]]), np.array([[10., 20.]]), np.array([[200.00036800764332, 110.00018534069527]])],
     ]
 )
-def test_normed_time_integrated_concentration_increase_vectorisation(
+def test_normed_time_integrated_concentration_addition_vectorisation(
     data_registry: DataRegistry,
     simple_conc_model: models.ConcentrationModel,
     dummy_population: models.Population,
@@ -276,7 +276,7 @@ def test_normed_time_integrated_concentration_increase_vectorisation(
         known_min_background_concentration = known_min_background_concentration,
         known_normalization_factor = known_normalization_factor)
 
-    normed_integrated_concentration = known_conc_model.normed_time_integrated_concentration_increase(0, 2)
+    normed_integrated_concentration = known_conc_model.normed_time_integrated_concentration_addition(0, 2)
     integrated_concentration = known_conc_model.integrated_concentration(0, 2)
 
     assert isinstance(normed_integrated_concentration, np.ndarray)
@@ -320,7 +320,7 @@ def test_zero_ventilation_rate(
 
 @pytest.mark.parametrize("time", [3.1,10])
 def test_concentration_limit_last_state_change(simple_conc_model, time):
-    npt.assert_almost_equal(simple_conc_model._normed_concentration_increase_limit(time), simple_conc_model.min_background_concentration()/simple_conc_model.normalization_factor())
+    npt.assert_almost_equal(simple_conc_model._normed_concentration_addition_limit(time), simple_conc_model.min_background_concentration()/simple_conc_model.normalization_factor())
 
 @pytest.mark.parametrize([
     "start",
@@ -340,6 +340,6 @@ def test_concentration_after_last_state_change(simple_conc_model, simple_conc_mo
     time = (start+stop)/2
     npt.assert_almost_equal(simple_conc_model.removal_rate(time), simple_conc_model_extended_presence.removal_rate(time))
     npt.assert_almost_equal(simple_conc_model.concentration(time), simple_conc_model_extended_presence.concentration(time))
-    npt.assert_almost_equal(simple_conc_model._normed_concentration_increase(time), simple_conc_model_extended_presence._normed_concentration_increase(time))
-    npt.assert_almost_equal(simple_conc_model.normed_time_integrated_concentration_increase(start, stop), simple_conc_model_extended_presence.normed_time_integrated_concentration_increase(start, stop))
+    npt.assert_almost_equal(simple_conc_model._normed_concentration_addition(time), simple_conc_model_extended_presence._normed_concentration_addition(time))
+    npt.assert_almost_equal(simple_conc_model.normed_time_integrated_concentration_addition(start, stop), simple_conc_model_extended_presence.normed_time_integrated_concentration_addition(start, stop))
     npt.assert_almost_equal(simple_conc_model.integrated_concentration(start, stop), simple_conc_model_extended_presence.integrated_concentration(start, stop))

@@ -94,7 +94,7 @@ def test_build_concentration_model(baseline_mc_concentration_model: caimira.calc
     model = baseline_mc_concentration_model.build_model(7)
     assert isinstance(model, caimira.calculator.models.models.ConcentrationModel)
     conc = model.concentration(time=0.)
-    integ_conc = model.normed_time_integrated_concentration_increase(0,8)
+    integ_conc = model.normed_time_integrated_concentration_addition(0,8)
     assert isinstance(conc, np.ndarray)
     assert conc.shape == (1, ) # Averaging over ventilation samples when integrating over the particle diameter.
     assert isinstance(integ_conc, np.ndarray)
