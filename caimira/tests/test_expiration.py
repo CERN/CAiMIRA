@@ -64,7 +64,7 @@ def test_multiple_wrong_weight_size():
     e_base = models.Expiration(2.5)
     with pytest.raises(
             ValueError,
-            match=re.escape("expirations and weigths must contain the"
+            match=re.escape("expirations and weights must contain the"
                             "same number of elements")
     ):
         e = models.MultipleExpiration([e_base, e_base], weights)

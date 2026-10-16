@@ -23,11 +23,11 @@ class KnownNormedconcentration(models.ConcentrationModel):
     normed_concentration_limit_function: typing.Callable = normed_concentration_function
     n_samples: int = 2 # Same for all random variables. Equals 2 for most tests here.
 
-    def removal_rate(self, time: float) -> models._VectorisedFloat:
+    def removal_rate(self, time: float) -> models._VectorizedFloat:
         # Very large decay constant -> same as constant concentration
         return (np.ones(self.n_samples)*1.e50).reshape(1,-1)
 
-    def _normed_concentration_addition_limit(self, time: float) -> models._VectorisedFloat:
+    def _normed_concentration_addition_limit(self, time: float) -> models._VectorizedFloat:
         val = (self.normed_concentration_limit_function(time) * self.infected_populations[0].number
                - self.min_background_concentration()/self.normalization_factor())
         return (np.ones(self.n_samples)*val).reshape(1,-1)
@@ -38,7 +38,7 @@ class KnownNormedconcentration(models.ConcentrationModel):
     def _next_state_change(self, time: float): # Outdated method, see merge_requests/539
         return 24.
 
-    def _normed_concentration_addition(self, time: float) -> models._VectorisedFloat:  # noqa
+    def _normed_concentration_addition(self, time: float) -> models._VectorizedFloat:  # noqa
         val = (self.normed_concentration_function(time) * self.infected_populations[0].number
                - self.min_background_concentration()/self.normalization_factor())
         return (np.ones(self.n_samples)*val).reshape(1,-1)

@@ -330,10 +330,10 @@ def calculate_report_data(form: VirusFormData,
 
 
 def conditional_prob_inf_given_vl_dist(
-    individual_infection_probability: models._VectorisedFloat,
+    individual_infection_probability: models._VectorizedFloat,
     viral_loads: np.ndarray,
-    specific_vl: models._VectorisedFloat,
-    step: models._VectorisedFloat
+    specific_vl: models._VectorizedFloat,
+    step: models._VectorizedFloat
 ):
 
     pi_means = []
@@ -354,7 +354,7 @@ def conditional_prob_inf_given_vl_dist(
 
 def manufacture_conditional_probability_data(
     exposure_model: models.ExposureModel,
-    individual_infection_probability: models._VectorisedFloat
+    individual_infection_probability: models._VectorizedFloat
 ):
     min_vl = 2
     max_vl = 10
@@ -376,7 +376,7 @@ def manufacture_conditional_probability_data(
     }
 
 
-def uncertainties_plot(individual_infection_probability: models._VectorisedFloat,
+def uncertainties_plot(individual_infection_probability: models._VectorizedFloat,
                        conditional_probability_data: dict):
 
     viral_loads: list = conditional_probability_data['viral_loads']
