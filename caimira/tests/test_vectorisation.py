@@ -193,7 +193,7 @@ def mc_co2_conc_model(data_registry):
     )
 
 def _test_types(model, time, start, stop):
-    assert isinstance(model.min_background_concentration(), float)
+    assert isinstance(model.min_background_concentration(), np.ndarray)
     assert isinstance(model.removal_rate(time), np.ndarray)
     assert isinstance(model._normed_concentration_increase_limit(time), np.ndarray)
     assert isinstance(model._normed_concentration_increase(time), np.ndarray)
