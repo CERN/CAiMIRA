@@ -21,13 +21,14 @@ class KnownNormedconcentration(models.ConcentrationModel):
     """
     normed_concentration_function: typing.Callable = lambda x: 0
     normed_concentration_limit_function: typing.Callable = normed_concentration_function
+    n_samples: int = 2 # Same for all random variables. Equals 2 for most tests here.
 
     def removal_rate(self, time: float) -> models._VectorisedFloat:
         # Very large decay constant -> same as constant concentration
-        return 1.e50
+        return (np.ones(self.n_samples)*1.e50).reshape(1,-1)
 
     def _normed_concentration_limit(self, time: float) -> models._VectorisedFloat:
-        return self.normed_concentration_limit_function(time) * self.infected_populations[0].number
+        return (np.ones(self.n_samples)*self.normed_concentration_limit_function(time) * self.infected_populations[0].number).reshape(1,-1)
 
     def state_change_times(self):
         return [0., 24.]
@@ -36,7 +37,7 @@ class KnownNormedconcentration(models.ConcentrationModel):
         return 24.
 
     def _normed_concentration(self, time: float) -> models._VectorisedFloat:  # noqa
-        return self.normed_concentration_function(time) * self.infected_populations[0].number
+        return (np.ones(self.n_samples)*self.normed_concentration_function(time) * self.infected_populations[0].number).reshape(1,-1)
 
 
 halftime = models.PeriodicInterval(120, 60)
@@ -213,7 +214,7 @@ def diameter_dependent_model(conc_model, data_registry) -> models.InfectedPopula
                 virus=models.Virus.types['SARS_CoV_2_DELTA'],
                 mask=models.Mask.types['No mask'],
                 activity=models.Activity.types['Seated'],
-                expiration=expiration_distributions(data_registry)['Breathing'],
+                expiration=expiration_distributions(data_registry)['Breathing'].build_model(250_000),
                 host_immunity=0.,
             ),
         )
@@ -250,6 +251,7 @@ def test_exposure_model_integral_accuracy(data_registry, exposed_time_interval,
 
 
 def test_infectious_dose_vectorisation(cases_model, data_registry):
+    infectious_doses=np.array([50, 20, 30])
     infected_population = models.InfectedPopulation(
         data_registry=data_registry,
         number=1,
@@ -258,7 +260,7 @@ def test_infectious_dose_vectorisation(cases_model, data_registry):
         activity=models.Activity.types['Standing'],
         virus=models.SARSCoV2(
             viral_load_in_sputum=1e9,
-            infectious_dose=np.array([50, 20, 30]),
+            infectious_dose=infectious_doses,
             viable_to_RNA_ratio = 0.5,
             transmissibility_factor=1.0,
         ),
@@ -267,6 +269,8 @@ def test_infectious_dose_vectorisation(cases_model, data_registry):
     )
     cm = known_concentrations(lambda t: 0.6)
     cm = replace(cm, infected_populations=(infected_population,))
+    print(cm)
+    cm = replace(cm, n_samples=len(infectious_doses))
 
     presence_interval = models.SpecificInterval(((0., 1.),))
     population = models.Population(
