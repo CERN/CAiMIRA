@@ -1349,17 +1349,17 @@ class _ConcentrationModelBase:
         t_last_state_change = self.last_state_change(time)
         delta_time = time - t_last_state_change
 
+        concentration_limit = self._normed_concentration_addition_limit(time)
+
         if time == 0.0:
             return np.zeros(
-                RR.shape,
+                concentration_limit.shape,
                 dtype=np.float64,
             )
 
         conc_at_last_state_change = self._normed_concentration_addition_cached(
             t_last_state_change 
         )
-
-        concentration_limit = self._normed_concentration_addition_limit(time)
 
         fac = np.exp(-RR * delta_time)
 
