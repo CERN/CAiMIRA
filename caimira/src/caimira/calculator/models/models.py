@@ -60,8 +60,17 @@ oneoverln2 = 1 / np.log(2)
 _VectorizedFloat = typing.Union[float, np.ndarray]
 _VectorizedInt = typing.Union[int, np.ndarray]
 
-# shape (n_populations, _VectorizedFloat)
+# shape (n_populations, shape(_VectorizedFloat)) 
+# or (n_populations+1, shape(_VectorizedFloat)) 
+# when the minimum background concentration is also included by one more row.
 _Matrix = np.ndarray[float]
+
+# shape (1, shape(_VectorizedFloat))
+_SingleRowMatrix = np.ndarray[float]
+
+# shape (n_populations, ) or (n_populations+1, )
+# when the minimum background concentration is also included by one more row.
+_VectorizedPopulation = np.ndarray[float]
 
 Time_t = typing.TypeVar('Time_t', float, int)
 BoundaryPair_t = typing.Tuple[Time_t, Time_t]
@@ -1220,27 +1229,26 @@ class _ConcentrationModelBase:
             dtype=np.float64,
         ).reshape(-1, 1)
 
-    def volume(self) -> _Matrix:
+    def volume(self) -> _SingleRowMatrix:
         """
         Room volume. 
         If considered deterministic, the shape can be (1, 1).
         If Monte Carlo sampled, the shape must be (1, n_diameter_samples)
         to match number of diameter samples (if any).
         """
-        return np.asarray(
-            self.room.volume,
-            dtype=np.float64,
-        ).reshape(1, -1)
+        volume: _VectorizedFloat = self.room.volume
+        return np.asarray(volume, dtype=np.float64).reshape(1, -1)
 
     def removal_rate(self, time: float) -> _Matrix:
         """
         Remove rate of the species considered, in h^-1.
-        Returns array with shape (n_populations, n_diameter_samples).
+        Returns array with shape (n_populations, n_diameter_samples)
+        or (n_populations, 1).
         """
         raise NotImplementedError("Subclass must implement")
 
 
-    def min_background_concentration(self, n_samples=None) -> _Matrix:
+    def min_background_concentration(self, n_samples=None) -> _SingleRowMatrix:
         """
         Minimum background concentration in the room for a given scenario
         (in the same unit as the concentration). Its the value towards which
@@ -1255,7 +1263,7 @@ class _ConcentrationModelBase:
             dtype=np.float64,
         )
 
-    def normalization_factor(self) -> _Matrix:
+    def normalization_factor(self) -> typing.Union[_Matrix, _VectorizedPopulation]:
         """
         Normalization factor (in the same unit as the concentration).
         This factor is applied to the normalized concentration only
@@ -1266,7 +1274,7 @@ class _ConcentrationModelBase:
         raise NotImplementedError("Subclass must implement")
 
     @method_cache
-    def _normed_concentration_addition_limit(self, time: float) -> _Matrix:
+    def _normed_concentration_addition_limit(self, time: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
         """
         Provides a constant that represents the theoretical asymptotic
         value reached by the concentration when time goes to infinity,
@@ -1276,13 +1284,13 @@ class _ConcentrationModelBase:
         can be put back in front of the concentration after the time
         dependence has been solved for.
         """
-        volume = self.volume() 
+        volume: _SingleRowMatrix = self.volume() 
         people_present = self.people_present(time)
         RR = self.removal_rate(time)
 
         invRR = np.full_like(RR, np.nan, dtype=np.float64)
         np.divide(1.0, RR, out=invRR, where=(RR != 0.0))
-        return people_present * invRR / volume # (n_populations, n_diameter_samples)
+        return people_present * invRR / volume
 
     @method_cache
     def state_change_times(self) -> typing.List[float]:
@@ -1313,15 +1321,15 @@ class _ConcentrationModelBase:
         return times[t_index]
 
     @method_cache
-    def _normed_concentration_addition_cached(self, time: float) -> _Matrix:
+    def _normed_concentration_addition_cached(self, time: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
         """
         A cached version of the _normed_concentration method. Use this
         method if you expect that there may be multiple concentration
         calculations for the same time (e.g. at state change times).
         """
-        return self._normed_concentration_addition(time) # (n_populations, n_samples)
+        return self._normed_concentration_addition(time)
 
-    def _normed_concentration_addition(self, time: float) -> _Matrix:
+    def _normed_concentration_addition(self, time: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
         """
         Diameter-dependent concentration addition above the min_background_concentration 
         as a function of time, normalized by normalization_factor, for each population. 
@@ -1332,10 +1340,8 @@ class _ConcentrationModelBase:
 
         Note that time is not vectorized. You can only pass a single float
         to this method.
-
-        Output has shape (n_populations, n_diameter_samples)
         """
-        volume = self.volume()
+        volume: _SingleRowMatrix = self.volume()
         people_present = self.people_present(time)
         RR = self.removal_rate(time)
 
@@ -1385,21 +1391,21 @@ class _ConcentrationModelBase:
             + conc_at_last_state_change * fac
         )
 
-        before_first_presence = np.asarray(
+        before_first_presence: _VectorizedPopulation = np.asarray(
             [
                 time <= population.first_presence_time()
                 for population in self.populations
             ],
             dtype=bool,
-        ).reshape(-1, 1)  # (n_populations, 1)
+        )
 
         return np.where(
-            before_first_presence,
+            before_first_presence.reshape(-1, 1),
             0.0,
             result,
         )
 
-    def concentration_by_population(self, time: float) -> _Matrix:
+    def concentration_by_population(self, time: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
         """
         Concentration contribution from each population, and min_background_concentration,
         as a function of time. The normalization factor has been put back.
@@ -1408,13 +1414,12 @@ class _ConcentrationModelBase:
         along the n_population dimension (axis=0).
 
         Note that time is not vectorized. You can only pass a single float
-        to this method.
-
-        Returns an array with shape (n_populations+1, n_samples). 
+        to this method.. 
         """
         # Monte Carlo integration over the particle diameter. 
         # Nothing happens if no particle diameter (e.g. for CO2). 
-        # Returns shape (n_populations, 1)
+        # Returns shape (n_populations, 1) if there is a particle diameter, 
+        # and otherwise (n_populations, )
         diameter_integrated_normed_concentration_addition = np.mean(
             self._normed_concentration_addition_cached(time), 
             axis=1, 
@@ -1422,14 +1427,13 @@ class _ConcentrationModelBase:
         )
 
         # Put back the normalization_factor of MC sampled random variables. 
-        # Returns shape (n_populations, n_samples)
-        concentration_addition = (
+        concentration_addition: typing.Union[_Matrix, _VectorizedPopulation] = (
             diameter_integrated_normed_concentration_addition
             * self.normalization_factor()
         )
 
         # Add row for the min_background_concentration
-        min_background_concentration = self.min_background_concentration(concentration_addition.shape[1])
+        min_background_concentration: _VectorizedFloat = self.min_background_concentration(concentration_addition.shape[1])
         return np.concatenate(
             (concentration_addition, min_background_concentration),
             axis=0,
@@ -1439,25 +1443,21 @@ class _ConcentrationModelBase:
         """
         Total concentration, from all populations and min_background_concentration,
         as a function of time.
-
-        Returns an array with shape (n_samples,). 
         """
         return self.concentration_by_population(time).sum(axis=0)
 
     @method_cache
-    def normed_time_integrated_concentration_addition(self, start: float, stop: float) -> _Matrix:
+    def normed_time_integrated_concentration_addition(self, start: float, stop: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
         """
         Get the integrated concentration addition between the times start and stop,
         not including the min_background_concentration, normalized by normalization_factor.
-
-        Returns array with shape (n_populations, n_diameter_samples).
         """
         if stop < start:
             raise ValueError(
                 f"`stop` ({stop}) must be greater than or equal to "
                 f"`start` ({start})."
             )
-        volume = self.volume() # shape (1,1) or (1, n_diameter_samples)
+        volume: _SingleRowMatrix = self.volume()
         
         change_times = np.asarray(self.state_change_times(), dtype=np.float64)
         interval_bounds = np.unique(np.concatenate((
@@ -1515,25 +1515,23 @@ class _ConcentrationModelBase:
 
         # A population which has not entered before
         # `stop` contributes no integrated concentration.
-        not_yet_present = np.asarray(
+        not_yet_present: _VectorizedPopulation = np.asarray(
             [
                 stop <= population.first_presence_time()
                 for population in self.populations
             ],
             dtype=bool,
-        ).reshape(-1, 1) # (n_populations, 1)
+        )
 
-        return np.where(not_yet_present, 0.0, total_normed_concentration) 
+        return np.where(not_yet_present.reshape(-1, 1), 0.0, total_normed_concentration) 
 
-    def integrated_concentration_by_population(self, start: float, stop: float) -> _Matrix:
+    def integrated_concentration_by_population(self, start: float, stop: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
         """
         Concentration contribution from each population, and min_background_concentration,
         integrated between the times start and stop. The normalization factor has been put back.
 
         The min_background_concentration is included as an additional row 
         along the n_population dimension (axis=0).
-
-        Returns an array with shape (n_populations+1, n_samples).
         """
         # Monte Carlo integration over the particle diameter. 
         # Nothing happens if no particle diameter (e.g. for CO2). 
@@ -1547,14 +1545,13 @@ class _ConcentrationModelBase:
             )
 
         # Put back the normalization_factor of MC sampled random variables. 
-        # Returns shape (n_populations, n_samples)
-        integrated_concentration_addition = (
+        integrated_concentration_addition: typing.Union[_Matrix, _VectorizedPopulation] = (
             integrated_normed_concentration_addition
             * self.normalization_factor()
         )
 
         # Add row for the min_background_concentration
-        integrated_min_background_concentration = (stop-start)*self.min_background_concentration(n_samples=integrated_concentration_addition.shape[1])
+        integrated_min_background_concentration: _VectorizedFloat = (stop-start)*self.min_background_concentration(n_samples=integrated_concentration_addition.shape[1])
 
         return np.concatenate(
             (integrated_concentration_addition, integrated_min_background_concentration),
@@ -1565,8 +1562,6 @@ class _ConcentrationModelBase:
         """
         Total concentration, from all populations and min_background_concentration,
         integrated between the times start and stop. 
-
-        Returns an array with shape (n_samples,). 
         """
         return self.integrated_concentration_by_population(start, stop).sum(axis=0)
 
@@ -1623,7 +1618,6 @@ class ConcentrationModel(_ConcentrationModelBase):
         return self.infected_populations[0].virus
 
     def removal_rate(self, time: float) -> _Matrix:
-        """Shape (n_populations, n_diameter_samples)."""
         # Equilibrium velocity of particle motion toward the floor
         vg = np.stack(
             [
@@ -1644,12 +1638,10 @@ class ConcentrationModel(_ConcentrationModelBase):
             + self.ventilation.air_exchange(self.room, time)
         )
 
-    def normalization_factor(self) -> _Matrix:
+    def normalization_factor(self) -> typing.Union[_Matrix, _VectorizedPopulation]:
         """
         We normalize the computations by the emission rate, containing
         (almost) all random variables except the particle diameter.
-
-        Returns array with shape (n_populations, n_samples). 
         
         n_samples is the number of Monte Carlo samples for the 
         diameter-independent random variables.
@@ -1665,12 +1657,10 @@ class ConcentrationModel(_ConcentrationModelBase):
             axis=0
         )
 
-    def short_range_normalization_factors(self) -> _Matrix:
+    def short_range_normalization_factors(self) -> typing.Union[_Matrix, _VectorizedPopulation]:
         """
         For short-range interactions, the infected population parameters intervene only through this factor.
         Result in (virions.cm^3)/(mL.m^3).
-
-        Returns array with shape (n_populations, n_samples).
         """
         return np.stack(
             [
@@ -1710,7 +1700,7 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         """Shape (n_populations, 1)."""
         return np.asarray([self.ventilation.air_exchange(self.room, time)]*len(self.populations)).reshape(-1,1)
 
-    def min_background_concentration(self, n_samples=None) -> _Matrix:
+    def min_background_concentration(self, n_samples=None) -> _SingleRowMatrix:
         """
         Background CO2 concentration in the atmosphere (in ppm)
         """
@@ -1722,7 +1712,7 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
             dtype=np.float64,
         )
 
-    def normalization_factor(self) -> _Matrix:
+    def normalization_factor(self) -> typing.Union[_Matrix, _VectorizedPopulation]:
         """
         Normalization by the CO2 exhaled per person.
         CO2 concentration given in ppm, hence the 1e6 factor.
@@ -1936,12 +1926,10 @@ class ExposureModel:
 
         return sorted(state_change_times)
 
-    def _long_range_normed_exposure_between_bounds(self, time1: float, time2: float) -> np.ndarray:
+    def _long_range_normed_exposure_between_bounds(self, time1: float, time2: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
         """
         The number of virions per meter^3 between any two times, normalized
         by the emission rate of the infected population.
-
-        Returns array with shape (n_populations, n_diameter_samples).
         """
         shape_like = self.concentration_model.normed_time_integrated_concentration_addition(self.population_state_change_times()[0], self.population_state_change_times()[1])
         exposure = np.zeros_like(shape_like, dtype=np.float64)
@@ -1987,11 +1975,9 @@ class ExposureModel:
                         concentration -= 1/interaction.dilution_factor() * self.concentration_model.concentration(time)
         return concentration
 
-    def long_range_deposited_exposure_between_bounds_by_population(self, time1: float, time2: float) -> _Matrix:
+    def long_range_deposited_exposure_between_bounds_by_population(self, time1: float, time2: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
         """
-        Returns array with shape (n_populations+1, n_samples), or (n_populations+1, ) if no 
-        diameter-independent random variables are Monte Carlo sampled. We add +1 because 
-        the time-integrated minimum background concentration is included as a row.
+        Includes row for time-integrated minimum background concentration (final row).
         """
         normed_exposure = self._long_range_normed_exposure_between_bounds(time1, time2)
         res_diameter_dependent = np.stack(
