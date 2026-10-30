@@ -75,7 +75,7 @@ class KnownConcentrationModelBase(models._ConcentrationModelBase):
         {'viral_load_in_sputum': np.array([5e8, 1e9])},
     ]
 )
-def test_concentration_model_vectorisation(override_params, data_registry):
+def test_concentration_model_vectorization(override_params, data_registry):
     defaults = {
         'volume': 75,
         'humidity': 0.5,
@@ -258,7 +258,7 @@ def test_normed_time_integrated_concentration_addition_with_background_concentra
         [np.array([[50., 100]]), np.array([[1000.,1100.]]), np.array([[10., 20.]]), np.array([[200.00036800764332, 110.00018534069527]])],
     ]
 )
-def test_normed_time_integrated_concentration_addition_vectorisation(
+def test_normed_time_integrated_concentration_addition_vectorization(
     data_registry: DataRegistry,
     simple_conc_model: models.ConcentrationModel,
     dummy_population: models.Population,

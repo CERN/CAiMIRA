@@ -254,7 +254,7 @@ def test_exposure_model_integral_accuracy(data_registry, exposed_time_interval,
     np.testing.assert_allclose(model.deposited_exposure(), expected_deposited_exposure)
 
 
-def test_infectious_dose_vectorisation(cases_model, data_registry):
+def test_infectious_dose_vectorization(cases_model, data_registry):
     infectious_doses=np.array([50, 20, 30])
     infected_population = models.InfectedPopulation(
         data_registry=data_registry,
@@ -356,16 +356,16 @@ def test_probabilistic_exposure_probability(data_registry, exposed_population, c
 
 @pytest.mark.parametrize(
     "volume, outside_temp, window_height, opening_length", [
-        [np.array([50, 100]), models.PiecewiseConstant((0., 24.), (293.,)), 1., 1.,], # Verify (room) volume vectorisation.
+        [np.array([50, 100]), models.PiecewiseConstant((0., 24.), (293.,)), 1., 1.,], # Verify (room) volume vectorization.
         [50, models.PiecewiseConstant((0., 12, 24.),
-            (np.array([293., 300.]), np.array([305., 310.]),)), 1., 1.,], # Verify (ventilation) outside_temp vectorisation.
+            (np.array([293., 300.]), np.array([305., 310.]),)), 1., 1.,], # Verify (ventilation) outside_temp vectorization.
         [50, models.PiecewiseConstant((0., 24.), (293.,)),
-            np.array([1., 0.5]), 1.], # Verify (ventilation) window_height vectorisation.
+            np.array([1., 0.5]), 1.], # Verify (ventilation) window_height vectorization.
         [50, models.PiecewiseConstant((0., 24.), (293.,)),
-            1., np.array([1., 0.5])], # Verify (ventilation) opening_length vectorisation.
+            1., np.array([1., 0.5])], # Verify (ventilation) opening_length vectorization.
     ]
 )
-def test_diameter_vectorisation_window_opening(data_registry, diameter_dependent_model, volume, outside_temp,
+def test_diameter_vectorization_window_opening(data_registry, diameter_dependent_model, volume, outside_temp,
                                                 window_height, opening_length, cases_model):
     concentration = replace(diameter_dependent_model,
         room = models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0., 24.), (293.,)), humidity=0.3),
@@ -382,8 +382,8 @@ def test_diameter_vectorisation_window_opening(data_registry, diameter_dependent
         models.ExposureModel(data_registry, concentration, populations[0], cases_model)
 
 
-def test_diameter_vectorisation_hinged_window(data_registry, diameter_dependent_model, cases_model):
-    # Verify (ventilation) window_width vectorisation.
+def test_diameter_vectorization_hinged_window(data_registry, diameter_dependent_model, cases_model):
+    # Verify (ventilation) window_width vectorization.
     concentration = replace(diameter_dependent_model,
         ventilation = models.HingedWindow(active=models.PeriodicInterval(period=120, duration=120),
                                     outside_temp=models.PiecewiseConstant((0., 24.), (293.,)),
@@ -396,8 +396,8 @@ def test_diameter_vectorisation_hinged_window(data_registry, diameter_dependent_
         models.ExposureModel(data_registry, concentration, populations[0], cases_model)
 
 
-def test_diameter_vectorisation_HEPA_filter(data_registry, diameter_dependent_model, cases_model):
-    # Verify (ventilation) q_air_mech vectorisation.
+def test_diameter_vectorization_HEPA_filter(data_registry, diameter_dependent_model, cases_model):
+    # Verify (ventilation) q_air_mech vectorization.
     concentration = replace(diameter_dependent_model,
         ventilation = models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120),
                                         q_air_mech=np.array([0.5, 1.]))
@@ -407,8 +407,8 @@ def test_diameter_vectorisation_HEPA_filter(data_registry, diameter_dependent_mo
         models.ExposureModel(data_registry, concentration, populations[1], cases_model)
 
 
-def test_diameter_vectorisation_air_change(data_registry, diameter_dependent_model, cases_model):
-    # Verify (ventilation) air_exch vectorisation.
+def test_diameter_vectorization_air_change(data_registry, diameter_dependent_model, cases_model):
+    # Verify (ventilation) air_exch vectorization.
     concentration = replace(diameter_dependent_model,
         ventilation = models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
                                         air_exch=np.array([0.5, 1.]))
@@ -422,16 +422,16 @@ def test_diameter_vectorisation_air_change(data_registry, diameter_dependent_mod
     "volume, inside_temp, humidity, error_message", [
         [np.array([50, 100]), models.PiecewiseConstant((0., 24.), (293.,)), 0.3,
         "If the diameter is an array, none of the ventilation parameters or virus decay constant "
-        "can be arrays at the same time."], # Verify room volume vectorisation
+        "can be arrays at the same time."], # Verify room volume vectorization
         [50, models.PiecewiseConstant((0., 12, 24.), (np.array([293., 300.]), np.array([305., 310.]))), 0.3,
         "If the diameter is an array, none of the ventilation parameters or virus decay constant "
-        "can be arrays at the same time."], # Verify room inside_temp vectorisation
+        "can be arrays at the same time."], # Verify room inside_temp vectorization
         [50, models.PiecewiseConstant((0., 24.), (293.,)), np.array([0.3, 0.5]),
         "If the diameter is an array, none of the ventilation parameters or virus decay constant "
-        "can be arrays at the same time."], # Verify room humidity vectorisation
+        "can be arrays at the same time."], # Verify room humidity vectorization
     ]
 )
-def test_diameter_vectorisation_room(data_registry, diameter_dependent_model, cases_model, volume, inside_temp, humidity, error_message):
+def test_diameter_vectorization_room(data_registry, diameter_dependent_model, cases_model, volume, inside_temp, humidity, error_message):
     concentration = replace(diameter_dependent_model,
         room = models.Room(volume=volume, inside_temp=inside_temp, humidity=humidity),
         ventilation = models.HVACMechanical(active=models.SpecificInterval(((0., 24.), )), q_air_mech=100.))
@@ -446,7 +446,7 @@ def test_diameter_vectorisation_room(data_registry, diameter_dependent_model, ca
         [known_concentrations(lambda t: 18.), np.array([0., 1.]), np.array([67.95037626, 0.])],
     ]
 )
-def test_host_immunity_vectorisation(data_registry, cases_model, cm, host_immunity, expected_probability):
+def test_host_immunity_vectorization(data_registry, cases_model, cm, host_immunity, expected_probability):
     population = models.Population(
             number=10, 
             presence=halftime, 
