@@ -27,16 +27,16 @@ class KnownConcentrationModelBase(models._ConcentrationModelBase):
     known_normalization_factor: models._VectorizedFloat
 
     @property
-    def populations(self) -> models.Population:
+    def populations(self) -> typing.Tuple[models.Population, ...]:
         return self.known_populations
 
     def removal_rate(self, time: float) -> models._Matrix:
         """Convert to models._Matrix with dimention matching normalization_factor and min_background_concentration."""
         if isinstance(self.known_removal_rate, float):
             if not isinstance(self.known_normalization_factor, float):
-                return (np.ones(len(self.known_normalization_factor))*self.known_removal_rate).reshape(1,-1)
+                return (np.ones(len(np.array(self.known_normalization_factor)))*self.known_removal_rate).reshape(1,-1)
             elif not isinstance(self.known_min_background_concentration, float):
-                return (np.ones(len(self.known_min_background_concentration))*self.known_removal_rate).reshape(1,-1)
+                return (np.ones(len(np.array(self.known_min_background_concentration)))*self.known_removal_rate).reshape(1,-1)
             return np.asarray([[self.known_removal_rate]])
         return self.known_removal_rate.reshape(1,-1)
 
@@ -53,16 +53,16 @@ class KnownConcentrationModelBase(models._ConcentrationModelBase):
         elif isinstance(self.known_removal_rate, float) and isinstance(self.known_normalization_factor, float):
             return np.asarray([[self.known_min_background_concentration]])
         elif not isinstance(self.known_normalization_factor, float):
-            return (np.ones(len(self.known_normalization_factor))*self.known_min_background_concentration).reshape(1,-1)
-        return (np.ones(len(self.known_removal_rate))*self.known_min_background_concentration).reshape(1,-1)
+            return (np.ones(len(np.array(self.known_normalization_factor)))*self.known_min_background_concentration).reshape(1,-1)
+        return (np.ones(len(np.array(self.known_removal_rate)))*self.known_min_background_concentration).reshape(1,-1)
 
     def normalization_factor(self) -> models._Matrix:
         """Convert to models._Matrix with dimention matching min_background_concentration and removal_rate."""
         if isinstance(self.known_normalization_factor, float):
             if not isinstance(self.known_removal_rate, float):
-                return (np.ones(len(self.known_removal_rate))*self.known_normalization_factor).reshape(1,-1)
+                return (np.ones(len(np.array(self.known_removal_rate)))*self.known_normalization_factor).reshape(1,-1)
             elif not isinstance(self.known_min_background_concentration, float):
-                return (np.ones(len(self.known_min_background_concentration))*self.known_normalization_factor).reshape(1,-1)
+                return (np.ones(len(np.array(self.known_min_background_concentration)))*self.known_normalization_factor).reshape(1,-1)
             return np.asarray([[self.known_normalization_factor]])
         return self.known_normalization_factor.reshape(1,-1)
 
@@ -282,7 +282,7 @@ def test_normed_time_integrated_concentration_addition_vectorization(
     assert isinstance(normed_integrated_concentration, np.ndarray)
     assert normed_integrated_concentration.shape == (1, 2)
     npt.assert_almost_equal(normed_integrated_concentration+(2-0)*known_min_background_concentration/known_normalization_factor, expected_normed_time_integrated_concentration)
-    npt.assert_almost_equal(integrated_concentration, (expected_normed_time_integrated_concentration*known_normalization_factor).flatten())
+    npt.assert_almost_equal(integrated_concentration, (expected_normed_time_integrated_concentration*known_normalization_factor).flatten()) # type: ignore
 
 
 

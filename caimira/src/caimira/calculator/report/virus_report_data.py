@@ -117,8 +117,8 @@ def _concentrations_with_sr_breathing(form: VirusFormData, model: models.Exposur
     for interactions in model.concentration_model.short_range:
         for index, (start, stop) in enumerate([interaction.presence.boundaries()[0] for interaction in interactions]):
             if start <= time <= stop and form.short_range_interactions[model.identifier][index]['expiration'] == 'Breathing':
-                return model.concentration(float(time)).mean(), fn_name
-    return model.long_range_concentration(float(time)).mean(), fn_name
+                return np.array(model.concentration(float(time))).mean(), fn_name
+    return np.array(model.long_range_concentration(float(time))).mean(), fn_name
 
 
 def _calculate_deposited_exposure(model: models.ExposureModel, 
@@ -137,7 +137,7 @@ def _calculate_concentration(model: models.ExposureModel,
     Returns the concentration of viruses emitted by
     the infected population. Short- and long-range included.
     """
-    return model.concentration(float(time)).mean(), fn_name
+    return np.array(model.concentration(float(time))).mean(), fn_name
 
 
 def _calculate_co2_concentration(CO2_model: models.CO2ConcentrationModel, time: float, fn_name: typing.Optional[str] = None):
@@ -548,7 +548,7 @@ def scenario_statistics(
         'probability_of_infection': np.mean(model.individual_infection_probability()),
         'expected_new_cases': np.mean(model.expected_new_cases()),
         'concentrations': [
-            model.concentration(time).mean()
+            np.array(model.concentration(time)).mean()
             for time in sample_times
         ],
         'prob_probabilistic_exposure': model.total_probability_rule() if compute_prob_exposure else None,

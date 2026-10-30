@@ -1603,7 +1603,7 @@ class ConcentrationModel(_ConcentrationModelBase):
                 and np.ndim(infected.particle.diameter) > 0
                 for infected in self.infected_populations
             ])
-        if has_diameter_distribution.any() and (~has_diameter_distribution).any():
+        if has_diameter_distribution.any() != has_diameter_distribution.all():
             raise ValueError("Mixed scalar and sampled particle diameters are not supported.")
 
         if has_diameter_distribution.any():
@@ -1892,7 +1892,7 @@ class ExposureModel:
             and np.ndim(infected.particle.diameter) > 0
             for infected in self.infected_populations
         ])
-        if has_diameter_distribution.any() and (~has_diameter_distribution).any():
+        if has_diameter_distribution.any() != has_diameter_distribution.all():
             raise ValueError("Mixed scalar and sampled particle diameters are not supported.")
 
         if has_diameter_distribution.any():
