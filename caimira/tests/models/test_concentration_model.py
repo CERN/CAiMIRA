@@ -5,6 +5,7 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 from dataclasses import dataclass
+from caimira.calculator.models.dataclass_utils import nested_replace
 
 from caimira.calculator.models import models
 from caimira.calculator.store.data_registry import DataRegistry
@@ -240,7 +241,14 @@ def test_normed_time_integrated_concentration_addition_with_background_concentra
         known_min_background_concentration = known_min_background_concentration,
         known_normalization_factor = 10.,
     )
-    npt.assert_almost_equal(known_conc_model.normed_time_integrated_concentration_addition(0, 2)+(2-0)*known_min_background_concentration/10, expected_normed_time_integrated_concentration_addition)
+    normed_int_conc_with_normed_background = known_conc_model.normed_time_integrated_concentration_addition(0, 2)+(2-0)*known_min_background_concentration/10
+    npt.assert_almost_equal(normed_int_conc_with_normed_background, expected_normed_time_integrated_concentration_addition)
+
+    # Dynamic infected
+    known_conc_model_two_pop = nested_replace(known_conc_model, {"known_populations": (dummy_population,)*2})
+    normed_int_conc_no_normed_background = known_conc_model_two_pop.normed_time_integrated_concentration_addition(0, 2)
+    expected_normed_int_conc_addition_one_pop = expected_normed_time_integrated_concentration_addition-(2-0)*known_min_background_concentration/10
+    npt.assert_almost_equal(np.sum(normed_int_conc_no_normed_background), 2*expected_normed_int_conc_addition_one_pop)
 
 
 # The expected numbers were obtained via the quad integration of the
@@ -284,6 +292,15 @@ def test_normed_time_integrated_concentration_addition_vectorization(
     npt.assert_almost_equal(normed_integrated_concentration+(2-0)*known_min_background_concentration/known_normalization_factor, expected_normed_time_integrated_concentration)
     npt.assert_almost_equal(integrated_concentration, (expected_normed_time_integrated_concentration*known_normalization_factor).flatten()) # type: ignore
 
+    # Dynamic infected
+    known_conc_model_four_pop = nested_replace(known_conc_model, {"known_populations": (dummy_population,)*4})
+    integrated_concentration_four_pop = known_conc_model_four_pop.integrated_concentration(0, 2)
+    expected_integrated_concentration_four_pop = (
+        4*(expected_normed_time_integrated_concentration*known_normalization_factor)           # min background concentration (integrated over [0,2]) added four times here
+        - 3*(2-0)*known_min_background_concentration                                             # and hence subtracted three times here
+    )[0] # match array dimensions
+    npt.assert_allclose(integrated_concentration_four_pop, expected_integrated_concentration_four_pop, rtol=1e-5)
+
 
 
 @pytest.mark.parametrize([
@@ -315,8 +332,14 @@ def test_zero_ventilation_rate(
         known_normalization_factor=1.,
         known_min_background_concentration = known_min_background_concentration)
 
-    normed_concentration = known_conc_model.concentration(1)
-    assert normed_concentration == pytest.approx(expected_concentration, abs=1e-6)
+    concentration = known_conc_model.concentration(1)
+    assert concentration == pytest.approx(expected_concentration, abs=1e-6)
+
+    # Dynamic infected
+    known_conc_model_with_two_dummy_populations = nested_replace(known_conc_model, {"known_populations": (dummy_population, dummy_population)})
+    concentration_two_pop = known_conc_model_with_two_dummy_populations.concentration(1)
+    expected_concentration_two_pop = 2*expected_concentration - known_min_background_concentration
+    npt.assert_allclose(concentration_two_pop, expected_concentration_two_pop, rtol=1e-5)
 
 @pytest.mark.parametrize("time", [3.1,10])
 def test_concentration_limit_last_state_change(simple_conc_model, time):
