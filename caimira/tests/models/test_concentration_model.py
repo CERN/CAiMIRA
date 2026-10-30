@@ -295,7 +295,7 @@ def test_normed_time_integrated_concentration_addition_vectorization(
     # Dynamic infected
     known_conc_model_four_pop = nested_replace(known_conc_model, {"known_populations": (dummy_population,)*4})
     integrated_concentration_four_pop = known_conc_model_four_pop.integrated_concentration(0, 2)
-    expected_integrated_concentration_four_pop = (
+    expected_integrated_concentration_four_pop = ( # type: ignore
         4*(expected_normed_time_integrated_concentration*known_normalization_factor)           # min background concentration (integrated over [0,2]) added four times here
         - 3*(2-0)*known_min_background_concentration                                             # and hence subtracted three times here
     )[0] # match array dimensions
