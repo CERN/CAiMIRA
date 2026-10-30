@@ -39,6 +39,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 import scipy.stats as sct
 from scipy.optimize import minimize
+from numpy.typing import NDArray
 
 from caimira.calculator.store.data_registry import DataRegistry
 
@@ -63,14 +64,14 @@ _VectorizedInt = typing.Union[int, np.ndarray]
 # shape (n_populations, shape(_VectorizedFloat)) 
 # or (n_populations+1, shape(_VectorizedFloat)) 
 # when the minimum background concentration is also included by one more row.
-_Matrix = np.ndarray[float]
+_Matrix = NDArray[np.float64]
 
 # shape (1, shape(_VectorizedFloat))
-_SingleRowMatrix = np.ndarray[float]
+_SingleRowMatrix = NDArray[np.float64]
 
 # shape (n_populations, ) or (n_populations+1, )
 # when the minimum background concentration is also included by one more row.
-_VectorizedPopulation = np.ndarray[float]
+_VectorizedPopulation = NDArray[np.float64]
 
 Time_t = typing.TypeVar('Time_t', float, int)
 BoundaryPair_t = typing.Tuple[Time_t, Time_t]
@@ -1145,19 +1146,19 @@ class ShortRangeModel:
         we return (0, 0).
         Raise an error if time1 and time2 are not in ascending order.
         """
-        if time1>time2:
+        if time1 > time2:
             raise ValueError("time1 must be less or equal to time2")
 
         start, stop = self.presence.boundaries()[0]
         if (stop < time1) or (start > time2):
             return (0, 0)
-        elif start <= time1 and time2<= stop:
+        elif start <= time1 and time2 <= stop:
             return time1, time2
         elif start <= time1 and stop < time2:
             return time1, stop
         elif time1 < start and time2 <= stop:
             return start, time2
-        elif time1 <= start and stop < time2:
+        else:
             return start, stop
 
     def _normed_jet_exposure_between_bounds(self,
@@ -1219,7 +1220,7 @@ class _ConcentrationModelBase:
         """Whether there is a particle diameter that is Monte Carlo sampled."""
         return False
 
-    def people_present(self, time) -> np.array[float]:
+    def people_present(self, time) -> _Matrix:
         """
         Total number of emitters present at a given time. 
         Returns array with shape (n_populations, 1).
@@ -1535,7 +1536,8 @@ class _ConcentrationModelBase:
         """
         # Monte Carlo integration over the particle diameter. 
         # Nothing happens if no particle diameter (e.g. for CO2). 
-        # Returns shape (n_populations, 1)
+        # Returns shape (n_populations, 1) if there is a particle diameter, 
+        # and otherwise (n_populations, )
         integrated_normed_concentration_addition = self.normed_time_integrated_concentration_addition(start, stop)
         if self.monte_carlo_diameter():
             integrated_normed_concentration_addition = np.mean(
@@ -1610,7 +1612,7 @@ class ConcentrationModel(_ConcentrationModelBase):
             return False
         
     @property
-    def populations(self) -> InfectedPopulation:
+    def populations(self) -> typing.Tuple[InfectedPopulation, ...]:
         return self.infected_populations
 
     @property
@@ -1768,7 +1770,7 @@ class CO2DataModel:
 
     def CO2_concentrations_from_params(self, CO2_concentration_model: CO2ConcentrationModel) -> typing.List[float]:
         # Calculate the predictive CO2 concentration
-        return [CO2_concentration_model.concentration(time).mean() for time in self.times] # Averaging arrays with 1 element
+        return [np.mean(np.asarray(CO2_concentration_model.concentration(time))) for time in self.times] # Averaging arrays with 1 element
 
     def CO2_fit_params(self) -> typing.Dict:
         if len(self.times) != len(self.CO2_concentrations):
