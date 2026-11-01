@@ -7,13 +7,14 @@ from . import make_app
 
 def configure_parser(parser) -> argparse.ArgumentParser:
     parser.add_argument(
-        "--no-debug", help="Don't enable debug mode",
+        "--no-debug",
+        help="Don't enable debug mode",
         action="store_false",
     )
     parser.add_argument(
         "--port",
         help="The port to listen on",
-        default="8080"
+        default="8080",
     )
     return parser
 
