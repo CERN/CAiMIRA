@@ -1,19 +1,20 @@
 # Physics of Viral Transmission
-The CAiMIRA model simulates the physical process of viral transmission through five sequential stages: **emission**, **removal**, **concentration**, **dose**, and **infection probability**.
-Along with viral transmission, CAiMIRA also simulates **emission**, **removal**, and **concentration** of CO<sub>2</sub> as detailed on **[Computation of the CO<sub>2</sub> Concentration](./co2_concentration.md)**.
+The CAiMIRA model simulates the physical process of viral transmission through five sequential stages: 
+**emission**, **removal**, **concentration**, **dose**, and **infection probability**.
+Along with viral transmission, CAiMIRA also simulates **emission**, **removal**, and **concentration** of CO<sub>2</sub> as detailed in **[Computation of the CO<sub>2</sub> Concentration](./co2_concentration.md)**.
 
-In the following, `data_registry` refers to `caimira.calculator.store.data_registry`, `models` refers to `caimira.calculator.models.models.py`, and `monte_carlo` refers to `caimira.calculator.models.monte_carlo`.
+In the following, 
+`data_registry` refers to `caimira.calculator.store.data_registry`, 
+`models` refers to `caimira.calculator.models.models.py`, 
+and `monte_carlo` refers to `caimira.calculator.models.monte_carlo`.
 
 ## Model Parameters
-We can divide the parameters of the CAiMIRA model into four categories:
-1. Constant deterministic values
-2. Random variables with constant probability distributions
-3. Adjustable deterministic values
-4. Random variables with adjustable probability distributions
+The CAiMIRA model relies on about xx deterministic and random variables, of which about xx are defined from information the user gives about the scenario. The exact number of variables included in the computations varies depending on the scenario complexity. Values and probability distributions parameters that are not user-defined are stored in `data_registry` or directly hardcoded into `models`. 
 
-The two first categories of parameters are "constant" in the sense that they are not adjusted for each specific scenario by the user. The latter two categories are, on the other hand, influenced by user input. Constant deterministic values are retrieved from `data_registry` or hardcoded into the model in `models`. Adjustable deterministic variables, like the room volume, are direcly specified by the user.
+Deterministic variables in the CAiMIRA model...
 
-Random variables are Monte Carlo sampled from probability distributions and stored as _VectorisedFloat or _VectorisedInt. Every random variable is sampled from fixed type of probability distribution defined in `data_registry`. The table below lists all random variables in CAiMIRA together with the type of probability distribution they are sampled from and, if the probability distribution is adjustable, which user parameters influence the parameters of the probability distribution.
+Every random variable is Monte Carlo sampled from its fixed type of probability distribution defined in `data_registry`. Thereafter, the sampled values are stored as _VectorisedFloat for computations in `models`. 
+The table below lists all random variables in CAiMIRA together with the type of probability distribution they are sampled from and, if any, the user parameters that can influence the parameters of the probability distribution.
 
 | Random Variable | Symbol | Probability Distribution| Dependent User Parameters |
 |-------------|--------|-------|-------|
@@ -27,19 +28,39 @@ Random variables are Monte Carlo sampled from probability distributions and stor
 | Outwards face mask efficiency (infected's face mask) | $\eta_{\mathrm{out}}$ | Uniform<sup>5</sup> | Type of face mask |
 | Inwards face mask efficiency (exposed's face mask) | $\eta_{\mathrm{in}}$ | Uniform | Type of face mask |
 
-<sup>1</sup>The probability distribution of $D$ is truncated using limits that differ between long-range and short-range interactions. The truncation limits are determined solely by the interaction type (long-range or short-range) and not on the exact interpersonal distance.
+<sup>1</sup>
+The probability distribution of $D$ is truncated using different limits at long-range and short-range.
+The truncation limits are determined solely by the interaction type (long-range or short-range) and not on the exact interpersonal distance.
 
-<sup>2</sup>The interpersonal distance is only a parameter in CAiMIRA when including short-range interactions.
+<sup>2</sup>
+The interpersonal distance is only used when specifying short-range interactions.
 
-<sup>3</sup>Theorietically, the parameters for these probability distribtuions may depend on the virus variant. However, every (COVID-19) virus variants currently implemented is assumed to yield the same viral load, viable to RNA ratio, and infectious dose.
+<sup>3</sup>
+Theoretically, these probability distributions may depend on the virus variant. 
+However, every (COVID-19) virus variants currently implemented in CAiMIRA is assumed to yield the same viral load, viable to RNA ratio, and infectious dose.
 
-<sup>4</sup>In the future, the product of the viral load and viable to RNA ratio will be replaced by a function sampling values for the viable viral load. By accounting for symptomatic stage of the infected, the new function will reduce the variability of the samples.
+<sup>4</sup>
+In the future, the product of the viral load and viable to RNA ratio will be replaced by a function sampling values for the viable viral load. 
+By accounting for symptomatic stage of the infected, the new function will reduce the variability of the samples.
 
-<sup>5</sup>The outwards face mask efficiency may is sampled from a uniform distribution, as indicated above, if the face mask is 'Cloth'. For the two other face mask options ('FFP2' and 'Type I') $\eta_{\mathrm{out}}$ is a function of the particle diameter and not a separate random variable.
+<sup>5</sup>
+The outwards face mask efficiency is sampled from a uniform distribution, as indicated above, only for the 'Cloth' face mask. 
+For the two other face mask options ('FFP2' and 'Type I') $\eta_{\mathrm{out}}$ is a function of the particle diameter and not assumed to be a separate random variable.
 
-See `data_registry` for literature supporting the parameters.
+See `data_registry` for scientific literature supporting the parameters.
 
-The viral **emission rate** – $\mathrm{vR}(D)$, **removal rate** – $\lambda_\mathrm{vRR}(D)$, **viral concentration** – $C(t, D)$, and **dose** $\mathrm{vD(D)}$ are considered for a given aerosol diameter $D$, as the behavior of the virus-laden particles in the room environment and inside the respiratory tract are diameter-dependent. To obtain the total total dose exposure $\mathrm{vD^{total}}$ we need sum together the contributions from all particles of all sizes, i.e. integrate over all particle diameters. Because the particle diameter is a random variable, the integral over $D$ can be approximated by Monte Carlo integration. The remaining random variables are Monte Carlo averaged to approximate the expected values of the results. The excact procedures for Monte Carlo integration and approximation of expected values by Monte Carlo sampling is presented further down this page, under "Computation of Expected Results". Before that, the mathematical derivation and implementation of the emission rate, removal rate, viral concentration, and dose will be detailed.
+Because the dispersion and deposition of virus-laden particles depend on the particle's size, the first four of the five essential stages of the CAiMIRA model are all computed for a given aerosol diameter $D$. That is:
+**emission rate** – $\mathrm{vR}(D)$, 
+**removal rate** – $\lambda_\mathrm{vRR}(D)$, 
+**concentration** – $C(t, D)$, and the
+**dose** $\mathrm{vD(D)}$.
+To obtain the total total contribution from all particle sizes, for example the total dose $\mathrm{vD^{total}}$, we need to integrate over the particle diameter. 
+Because the particle diameter can be considered a random variable, the integral over $D$ can be approximated by Monte Carlo integration as explained further down this page.
+
+Similarly, we compute the **Infection Probability** -- the final, essential stage of the CAiMIRA model -- by Monte Carlo integrating over the total dose $\mathrm{vD^{total}}$. The total dose is a random variable because it depends on all the (diameter-independent) random variables in CAiMIRA, all of which are assumed to be mutually independent. See the section on Infection Probability for further details.
+
+
+Before delving deeper into the exact procedures for Monte Carlo integration, we will now derive the mathematical expressions for the viral emission rate, removal rate, concentration, and dose, as well as present how these quantities are computed `models`.
 
 ## Emission 
 ### Derivation of the Analytical Emission Rate
