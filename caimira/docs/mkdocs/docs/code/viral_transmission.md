@@ -166,7 +166,8 @@ E_{c}^{\mathrm{total}}
 \end{align*}
 $$
 
-Where $S_D$ is the total number of Monte Carlo samples of $D$. The samples {$D_1$, $D_2$, ...,$D_{S_D}$} are stored in `models.Expiration` objects created by `monte_carlo.data.expiration_distribution()`, with $\mathrm{p}_D(D)$ being implemented in `monte_carlo.data.BLOModel`.
+Where $S_D$ is the total number of Monte Carlo samples of $D$. 
+The samples {$D_1$, $D_2$, ...,$D_{S_D}$} are stored in `models.Expiration` objects created by `monte_carlo.data.expiration_distribution()`, with $\mathrm{p}_D(D)$ being implemented in `monte_carlo.data.BLOModel`.
 
 Similarly, when we later Monte Carlo integrate the viral concentration $C(t,D)$ and dose $\mathrm{vD(D)}$ over $D$, we identify $\mathrm{p}_D(D)$ a linear component of $C(t,D)$ and $\mathrm{vD(D)}$ to compute 
 $$
@@ -187,6 +188,39 @@ $$
 \end{align*}
 $$
 respectively. 
+
+<details>
+<summary>How does Monte Carlo integration work?</summary>
+
+Monte Carlo integration is a method for numerically approximating integrals over the range of a random variable. 
+Recall the definition of the expected value of a function $f$ of a continuous random variable $X$ as
+
+$$
+E[f(X)] = \int_{X_{\mathrm{min}}}^{X_{\mathrm{max}}} f(X) \cdot p_X(X)\;\ \mathrm{d}X
+$$
+
+where $p_X$ is a probability density function (pdf) for $X$. 
+Based on the frequentist interpretation of expected values as a long-term averages, we have
+
+$$
+E[f(X)] \approx \frac{1}{S_X}\sum_{i=1}^{S_X} f(X) 
+$$
+
+with better approximations for higher number of samples $S_X$, drawn from the pdf $p_X$. 
+Monte Carlo integration simply combines the relations above 
+
+$$
+\int_{X_{\mathrm{min}}}^{X_{\mathrm{max}}} f(X) \cdot p_X(X)\;\ \mathrm{d}X \approx \frac{1}{S_X}\sum_{i=1}^{S_X} f(X) 
+$$
+
+so that the integral on the left can be approximated by the average on the right by drawing samples of $X$ from $p_X$. 
+The trick of Monte Carlo integration is usually to identify a suitable pdf. 
+Often, there are several options for how to define the pdf. 
+Including more information in the pdf reduces the variability of the samples, and makes the average converge faster towards the true value of the integral.
+
+In the CAiMIRA model, we select the pdf of the random variable $D$ to include the information in $N_p(D)$. 
+Thereby, we reduce the variability of the samples of $D$ and packing part of the computations into the pdf $\mathrm{p}_D$, improving the computational performance.
+</details>
 
 ### Computation of the Emission Rate
 The computation of the emission rate $\mathrm{vR}(D)$ in CAiMIRA can be divided into three steps:
