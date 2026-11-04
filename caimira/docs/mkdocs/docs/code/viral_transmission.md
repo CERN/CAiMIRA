@@ -64,7 +64,8 @@ Before delving deeper into the exact procedures for Monte Carlo integration, we 
 
 ## Emission 
 ### Derivation of the Analytical Emission Rate
-Infectious individuals inside the room are assumed to be the only source of virus. Their emission rate per unit diameter of infectious virus is
+Infectious individuals inside the room are assumed to be the only source of virus. 
+Their emission rate per unit diameter of infectious virus is
 
 $$
 \begin{equation*}
@@ -72,7 +73,9 @@ $$
 \end{equation*}
 $$
 
-given the breathing rate ${\mathrm{BR}}_{\mathrm{k}}$ for a constant physical activity $k \in \{\mathrm{Seated}, \mathrm{Standing}, \mathrm{Light},$ $\mathrm{Moderate}, \mathrm{Heavy}\}$. $vl_{\mathrm{in}}$ is the viral load in the respiratory tract (in RNA copies per mL) and $f_{inf}$ is the fraction of infectious virus. 
+given the breathing rate ${\mathrm{BR}}_{\mathrm{k}}$ for a constant physical activity 
+k $\in \{\mathrm{Seated}, \mathrm{Standing}, \mathrm{Light\ activity}, \mathrm{Moderate\ activity}, \mathrm{Heavy\ exercise}\}$. 
+$\mathrm{vl_{inf}}$ is the viral load in the respiratory tract (in RNA copies per mL) and $f_{inf}$ is the fraction of infectious virus. 
 $E_c(D)$ represents the volumetric particle emission concentration per unit diameter (in mL/(m<sub>3</sub> .µm)) given by
 
 $$
@@ -83,20 +86,29 @@ E_{c}(D) =
 \end{cases}
 $$
 
-where $\eta_{out}$ is the outward mask efficiency and $V_p(D)$ is the particles' individual volume. For an expiratory activity $j \subseteq \{\mathrm{Breathing}, \mathrm{Speaking}, \mathrm{Singing}, \mathrm{Shouting}\}$, the number of particles with diameter $D$ is given by 
+where $\eta_{out}$ is the outward mask efficiency and $V_p(D)$ is the particles' individual volume, assuming the aerosols form a perfect sphere. 
+For an expiratory activity $j \subseteq \{\mathrm{Breathing}, \mathrm{Speaking}, \mathrm{Singing}, \mathrm{Shouting}\}$, the number of particles with diameter $D$ is given by 
 
 $$
 \begin{equation*}
-N_{p}(D)=\sum_{\forall j} \sum_{i \in \{\mathrm{B},\mathrm{L},\mathrm{O}\}} a_j \cdot f_{\mathrm{amp}, j, i} \cdot c_{n,i} \cdot \left[\frac{1}{D\sqrt{2 \pi} \sigma_{D,i}} \exp{-\frac{(\ln D -\mu_{D,i})^2}{2 (\sigma_{D,i})^2}}\right]
+N_{p}(D)=\sum_{\forall j} a_j \cdot \sum_{i \in \{\mathrm{B},\mathrm{L},\mathrm{O}\}} f_{\mathrm{amp}, j, i} \cdot c_{n,i} \cdot \left[\frac{1}{D\sqrt{2 \pi} \sigma_{D,i}} \exp{-\frac{(\ln D -\mu_{D,i})^2}{2 (\sigma_{D,i})^2}}\right]
 \end{equation*}
 $$
 
-for B = bronchial, L = larynx, O = oral being the sources of the emitted particles. $a_j$ is the fraction of time the infected performes each expiratory activity $j$.
-$c_{n,i}$ is the particle emission concentration, and $\mu_{D_i}$ and $\sigma_{D_i}$ are the mean and standard deviations, respectively, of the log-normal distribution found to fit the number of expired particles with diameter $D$, for $i \in \{\mathrm{B},\mathrm{L},\mathrm{O}\}$ Johnson et al. <sup>[2](#id7)</sup>. 
-$f_{\mathrm{amp}, j, i}$ is the amplitude of the vocalization, set to 5 for $i \in \{L,O\}$ if $j = \{\text{Singing}, \text{Shouting}\}$ and otherwise 1. Note, however, that for $i \in \{L,O\}$ and $j = \text{Breathing}$ $f_{\mathrm{amp}, j, i}$ is set to zero in `data_registry`, although it is technically the particle emission concentration $c_{n,i}$ that is zero in that case. This technicallity has no effect on the output, it only simplifies the implementation of $c_{n,i}$.
+where $a_j$ is the fraction of time the infected performs expiratory activity $j$. B = bronchial, L = larynx, O = oral are the sources of the emitted particles within the infected. $c_{n,i}$ is the particle emission concentration, and $\mu_{D_i}$ and $\sigma_{D_i}$ are the mean and standard deviations, respectively, of the log-normal distribution found to fit the number of expired particles with diameter $D$, for $i \in \{\mathrm{B},\mathrm{L},\mathrm{O}\}$ Johnson et al. <sup>[2](#id7)</sup>. 
 
-Note that the diameter-dependence is kept at this stage. Since other parameters downstream in code are also diameter-dependent, the Monte-Carlo integration over the particle diameter is computed at the level of the dose $\mathrm{vD^{total}}$.
-In case one would like to have intermediate results for emission rate, however, one may compute
+$f_{\mathrm{amp}, j, i}$ is the amplitude of the infected's vocalization, and acts to scale the particle emission concentration from each region $i$ based on the expirational activity $j$. 
+Particle emissions from the bronchial region are assumed to be constant across all expiratory activities $j$, meaning $f_{\mathrm{amp},j,\mathrm{B}}=1$ for all $j$. 
+Emissions from the larynx and oral cavity, however, differ between expiratory activities. 
+For $j = \text{Breathing}$, the vocal cords are not vibrating and the oral cavity is not moving, meaning the $\mathrm{L}$ and $\mathrm{O}$ modes are not activated so $f_{\mathrm{amp},\text{Breathing},\mathrm{L}}$ and $f_{\mathrm{amp},\text{Breathing},\mathrm{O}}$ are set to zero. 
+When $j=\text{Speaking}$, the $\mathrm{L}$ and $\mathrm{O}$ modes are activated so $f_{\mathrm{amp},\text{Speaking},\mathrm{L}}$ and $f_{\mathrm{amp},\text{Speaking},\mathrm{O}}$ are set to 1. 
+During $\text{Singing}$ or $\text{Shouting}$, there is increased vibration in the vocal cords and movements in the oral cavity. 
+Consequently, more virus-laden particles are released, so the amplification factors $f_{\mathrm{amp},\text{Singing},\mathrm{L}}$, $f_{\mathrm{amp},\text{Singing},\mathrm{O}}$, $f_{\mathrm{amp},\text{Shouting},\mathrm{L}}$, and $f_{\mathrm{amp},\text{Shouting},\mathrm{O}}$ are set to $5$. 
+Note that $\text{Singing}$ and $\text{Shouting}$ have the same amplification factors for all modes $i$, meaning they are indistinguishable in CAiMIRA.
+
+Note that the emission rate $\mathrm{vR}(D)$ is computed for a specific particle diameter.
+Since other parameters downstream in code are also diameter-dependent, there is no need to Monte Carlo integrate over the particle diameter quite yet, unless one would like to have intermediate results for emission rate. 
+In that case, one may compute
 
 $$
 \begin{equation*}
@@ -112,18 +124,12 @@ E_{c}^{\mathrm{total}} = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} E_c(D) \;\ \
 \end{equation*}
 $$
 
-using Monte Carlo integration.
+by Monte Carlo integration. 
+Note that $\mathrm{vR}^{total}$ is a random variable because ${\mathrm{BR}}_{\mathrm{k}}$ and $\mathrm{vl_{inf}}$ are random variables. 
+The expected value of $\mathrm{vR}^{total}$ can be obtained by averaging over Monte Carlo samples of ${\mathrm{BR}}_{\mathrm{k}}$ and $\mathrm{vl_{inf}}$. Because ${\mathrm{BR}}_{\mathrm{k}}$ and $\mathrm{vl_{inf}}$ are assumed to be mutually independent, they can be drawn from their respective marginal distributions. 
 
 ### Probability Distribution of $D$
-A detailed description of the Monte Carlo procedures in CAiMIRA is given under "Computation of Expected Results" further down this page. To motivate the implementation of all diameter dependent quantities, however, we need to identify the probability distribution of $D$ as the number of particles $N_p(D)$ normalized by
-
-$$
-\begin{equation*}
-c_n=\int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} N_p(D) \;\ \mathrm{d}D 
-\end{equation*}
-$$
-
-truncated between $D_{\mathrm{min}}$ and $D_{\mathrm{max}}$. In other words, probability distribution of $D$ is the log-normal mixture distribution
+'Monte Carlo integration over the particle diameter' already seems to be a recurring theme. To Monte Carlo integrate over the particle diameter $D$, we first need to identify a probability distribution $\mathrm{p}_D(D)$ to sample $D$ from. The distribution $\mathrm{p}_D(D)$ can be defined in different ways. For better computational efficiency, we aim to include as much information as possible in $\mathrm{p}_D(D)$, hence reducing the variability of the samples and number of samples needed. Therefore, we define $\mathrm{p}_D(D)$ by normalizing $N_p(D)$ so that
 
 $$
 \begin{equation*}
@@ -131,7 +137,15 @@ $$
 \end{equation*}
 $$
 
-truncated between $D_{\mathrm{min}}$ and $D_{\mathrm{min}}$. Using $N_p(D) = c_n \cdot \mathrm{p}_D(D)$, we see that
+is a valid log-normal mixture distribution, truncated between $D_{\mathrm{min}}$ and $D_{\mathrm{max}}$, for
+
+$$
+\begin{equation*}
+c_n=\int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} N_p(D) \;\ \mathrm{d}D. 
+\end{equation*}
+$$
+
+Inserting the relation $N_p(D)=c_n \cdot \mathrm{p}_D(D)$ into the formula for the volumetric particle emission, we see that
 
 $$
 E_{c}(D) =
@@ -141,7 +155,7 @@ E_{c}(D) =
 \end{cases}
 $$
 
-Therefore, the Monte Carlo integral is computed as
+Following the principle of Monte Carlo integration, we can therefore compute
 
 $$
 \begin{align*}
