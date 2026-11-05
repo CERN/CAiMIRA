@@ -91,7 +91,7 @@ For an expiratory activity $j \subseteq \{\mathrm{Breathing}, \mathrm{Speaking},
 
 $$
 \begin{equation*}
-N_{p}(D)=\sum_{\forall j} a_j \cdot \sum_{i \in \{\mathrm{B},\mathrm{L},\mathrm{O}\}} f_{\mathrm{amp}, j, i} \cdot c_{n,i} \cdot \left[\frac{1}{D\sqrt{2 \pi} \sigma_{D,i}} \exp{-\frac{(\ln D -\mu_{D,i})^2}{2 (\sigma_{D,i})^2}}\right]
+N_{p}(D)=\sum_{\forall j} a_j \cdot \sum_{i \in \{\mathrm{B},\mathrm{L},\mathrm{O}\}} f_{\mathrm{amp}, j, i} \cdot c_{n,i} \cdot \left[\frac{1}{D\sqrt{2 \pi} \sigma_{D,i}} e^{-\frac{(\ln D -\mu_{D,i})^2}{2 (\sigma_{D,i})^2}}\right]
 \end{equation*}
 $$
 
@@ -133,7 +133,7 @@ The expected value of $\mathrm{vR}^{total}$ can be obtained by averaging over Mo
 
 $$
 \begin{equation*}
-\mathrm{p}_D(D)=\frac{N_p(D)}{c_n}=\sum_{i \in I(j)} \frac{c_{n,i}}{c_n}\left[\frac{1}{D\sqrt{2 \pi} \sigma_{D_i}} \exp{-\frac{(\ln D -\mu_{D_i})^2}{2 (\sigma_{D_i})^2}}\right]
+\mathrm{p}_D(D)=\frac{N_p(D)}{c_n}=\sum_{i \in I(j)} \frac{c_{n,i}}{c_n}\left[\frac{1}{D\sqrt{2 \pi} \sigma_{D_i}} e^{-\frac{(\ln D -\mu_{D_i})^2}{2 (\sigma_{D_i})^2}}\right]
 \end{equation*}
 $$
 
@@ -314,7 +314,7 @@ The concentration of virus-laden particles in a given room is computed using a t
 * **Long-Range Compartment:** The viral concentration more than 2 m away from the infected host(s) assuming mass balance between the emission rate of the infected host(s) and the removal rates from the environmental/virological characteristics.
 * **Short-Range Compartment:** The *exhaled jet* concentration in close-proximity, computed using a two-stage exhaled jet model where the susceptible host (exposed) is distanced 0.5-2 m from the infected host.
 
-Because CAiMIRA is only meant to model airborne transmission, interactions where the susceptible and infected hosts are closer than 0.5 m apart are excluded. 
+Because CAiMIRA is only meant to model airborne transmission, intimate-type interactions where the susceptible and infected hosts are closer than 0.5 m apart are excluded. 
 
 ### Long-Range Compartment
 #### Derivation of the Analytical Long-Range Concentration
@@ -329,25 +329,18 @@ $$
 \end{equation*}
 $$
 
-Assuming the viral concentration is the only time-dependent variable, this ODE can be solved analytically. The viral removal rate is, however, also time-dependent. We assume $\lambda_{vRR}(t, D)$ is stepwise constant and that we may divide the scenario a finite number of time intervals $[t_i, t_{i+1})$ where $\lambda_{vRR}(t, D)=\lambda_{vRR}(t_i, D)$ is constant. Then, we can solve
-$$
-\begin{equation*}
-\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} = \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{V_r} - \lambda_{vRR}(t_i, D) \cdot C_{\mathrm{LR}}(t, D)
-\end{equation*}
-$$
-
-analytically for $t \in (t_i, t_{i+1}]$. The viral concentration at the end of the last time interval is carried forward as the initial condition for the solution for the next time interval. 
+Assuming the viral concentration is the only time-dependent variable, this ODE can be solved analytically. The viral removal rate is, however, also time-dependent. We assume $\lambda_{vRR}(t, D)$ is stepwise constant and that we may divide the scenario a finite number of time intervals $[t_i, t_{i+1})$ where $\lambda_{vRR}(t, D)=\lambda_{vRR}(t_i, D)$ is constant. Then, we can solve the ODE analytically for $t \in (t_i, t_{i+1}]$. The viral concentration at the end of the last time interval is carried forward as the initial condition for the solution for the next time interval. 
 
 <details>
 <summary>Solving the ODE</summary>
 
-$C_{\mathrm{LR},h}(t, D)=A_1\cdot \exp{-\lambda_{vRR}(t_i,D)\cdot t}$ is the homogeneous solution satisfying 
+$C_{\mathrm{LR},h}(t, D)=A_1\cdot e^{-\lambda_{vRR}(t_i,D)\cdot t}$ is the homogeneous solution satisfying 
 $\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} + \lambda_{vRR}(t_i,D)\cdot\,C_{\mathrm{LR}}(t, D) = 0$.
 Assuming $A_2$ is the constant particular solution the general solution is
 
 $$
 \begin{equation*}
-C_{\mathrm{LR}}(t, D) = A_2 + A_1\cdot C_{\mathrm{LR},h}(t, D) = A_2 + A_1\cdot \exp{-\lambda_{vRR}(t_i,D)\cdot t}
+C_{\mathrm{LR}}(t, D) = A_2 + A_1\cdot C_{\mathrm{LR},h}(t, D) = A_2 + A_1\cdot e^{-\lambda_{vRR}(t_i,D)\cdot t}
 \end{equation*}
 $$
 
@@ -355,7 +348,7 @@ with derivative
 
 $$
 \begin{equation*}
-\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} = -A_1\cdot \lambda_{vRR}(t_i,D) \cdot \exp{-\lambda_{vRR}(t_i,D)\cdot t}.
+\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} = -A_1\cdot \lambda_{vRR}(t_i,D) \cdot e^{-\lambda_{vRR}(t_i,D)\cdot t}.
 \end{equation*}
 $$
 
@@ -363,7 +356,7 @@ Combining the two equations containing $\frac{\partial C_{\mathrm{LR}}(t, D)}{\p
 
 $$
 \begin{equation*}
-C_{\mathrm{LR}}(t, D) = \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}+ A_1\cdot \exp{-\lambda_{vRR}(t_i,D)\cdot t},
+C_{\mathrm{LR}}(t, D) = \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}+ A_1\cdot e^{-\lambda_{vRR}(t_i,D)\cdot t},
 \end{equation*}
 $$
 
@@ -376,12 +369,12 @@ A_2 = \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(
 $$
 
 At the end of the last time interval (at $t=t_i$) the general solution yields
-$C_{\mathrm{LR}}(t_i, D) = A_2 + A_1\cdot \exp{-\lambda_{vRR}(t_i,D)\cdot t_i}$.
+$C_{\mathrm{LR}}(t_i, D) = A_2 + A_1\cdot e^{-\lambda_{vRR}(t_i,D)\cdot t_i}$.
 Hence, 
 
 $$
 \begin{equation*}
-A_1 = \left(C_{\mathrm{LR}}(t_i, D) -\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}\right) \cdot \exp{\lambda_{vRR}(t_i,D)\cdot t_i}.
+A_1 = \left(C_{\mathrm{LR}}(t_i, D) -\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}\right) \cdot e^{\lambda_{vRR}(t_i,D)\cdot t_i}.
 \end{equation*}
 $$
 </details>
@@ -392,9 +385,9 @@ $$
 \begin{align*}
 C_{\mathrm{LR}}(t, D) 
 &= \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}
-+ \left(C_{\mathrm{LR}}(t_i, D) -\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}\right) \cdot \exp{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}\\
-&= C_{\mathrm{LR}}(t_i, D)\cdot \exp{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}
-+\sum_{n=1}^{n_p}\frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}(1-\exp{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}).
++ \left(C_{\mathrm{LR}}(t_i, D) -\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}\right) \cdot e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}\\
+&= C_{\mathrm{LR}}(t_i, D)\cdot e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}
++\sum_{n=1}^{n_p}\frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}(1-e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}).
 \end{align*}
 $$
 
@@ -403,8 +396,8 @@ Note that if only the $n$-th (emitting) population is present, the concentration
 $$
 \begin{align*}
 C_{\mathrm{LR},n}(t, D) 
-&= C_{\mathrm{LR},n}(t_i, D) \cdot \exp{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}
-+ \frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} (1-\exp{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}).
+&= C_{\mathrm{LR},n}(t_i, D) \cdot e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}
++ \frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} (1-e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}).
 \end{align*}
 $$
 
@@ -429,8 +422,8 @@ Note that
 $$
 \begin{align*}
 C_{\mathrm{LR},n}(t_{i+1}, D) 
-&= (C_{\mathrm{LR}}(t_i, D)-C_{\mathrm{min}}) \cdot \exp{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}
-+ \frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} (1-\exp{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}).
+&= (C_{\mathrm{LR}}(t_i, D)-C_{\mathrm{min}}) \cdot e^{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}
++ \frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} (1-e^{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}).
 \end{align*}
 $$
 
@@ -440,10 +433,10 @@ $$
 \begin{equation*}
 C_{\mathrm{LR},n}(t_{i}, D)
 =(C_{\mathrm{LR},n}(t_0, D) -C_{\mathrm{min}})
-\cdot \exp{-\sum_{j=0}^{i-1}\lambda_{vRR}(t_j,D)\cdot (t_{j+1}-t_j)}
+\cdot e^{-\sum_{j=0}^{i-1}\lambda_{vRR}(t_j,D)\cdot (t_{j+1}-t_j)}
 +\mathrm{vR}_n(D) \cdot \sum_{m=0}^{i-1}\frac{N_{\mathrm{inf},n}}{\lambda_{vRR}(t_m,D)\,V_r}
-\cdot (1- \exp{-\lambda_{vRR}(t_m,D)\cdot (t_{m+1}-t_m)}) 
-\cdot \exp{-\sum_{j=m+1}^{i-1}\lambda_{vRR}(t_j,D)\cdot (t_{j+1}-t_j)}
+\cdot (1- e^{-\lambda_{vRR}(t_m,D)\cdot (t_{m+1}-t_m)}) 
+\cdot e^{-\sum_{j=m+1}^{i-1}\lambda_{vRR}(t_j,D)\cdot (t_{j+1}-t_j)}
 \end{equation*}
 $$
 
@@ -453,8 +446,8 @@ $$
 \begin{equation*}
 C_{\mathrm{LR},n}(t_{i}, D)
 =\mathrm{vR}_n(D) \cdot \sum_{m=0}^{i-1}\frac{N_{\mathrm{inf},n}}{\lambda_{vRR}(t_m,D)\,V_r}
-\cdot (1- \exp{-\lambda_{vRR}(t_m,D)\cdot (t_{m+1}-t_m)}) 
-\cdot \exp{-\sum_{j=m+1}^{i-1}\lambda_{vRR}(t_j,D)\cdot (t_{j+1}-t_j)}
+\cdot (1- e^{-\lambda_{vRR}(t_m,D)\cdot (t_{m+1}-t_m)}) 
+\cdot e^{-\sum_{j=m+1}^{i-1}\lambda_{vRR}(t_j,D)\cdot (t_{j+1}-t_j)}
 \end{equation*}
 $$
 
@@ -466,7 +459,7 @@ In fact, experiments indicate computing $C_{\mathrm{LR}}(t_i, D)$ recurrently is
 </details>
 
 #### Computation of the Long-Range Concentration
-The arcitecture for computing the long-range viral concentraiton is based on the relation 
+The arcitecture for computing the long-range viral concentrations is based on the relation 
 $C_{\mathrm{LR}}(t, D) = C_{\mathrm{min}}+\sum_{n=1}^{n_p} C_{\mathrm{LR},n}(t, D)$,
 derived above, showing that the total long-range viral concentration is the sum of minimum background concentration and the individual concentration contributions from all infected populations. 
 
@@ -733,8 +726,8 @@ $$
 &=  \sum_{i=1}^m \Big[\int_{t_i}^{t_{i+1}} C_{\mathrm{LR}}(t, D) \;\ \mathrm{d}t \Big]\\
 &=  \sum_{i=1}^m \Big[\int_{t_i}^{t_{i+1}} \Big(C_{\mathrm{min}}+\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D) \Big) \;\ \mathrm{d}t \Big]\\
 &= \sum_{i=1}^m \Big[C_{\mathrm{min}}\cdot(t_{i+1}-t_i)+
-(C_{\mathrm{LR}}(t_i, D)-C_{\mathrm{min}}) \cdot \frac{\exp{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}}{-\lambda_{vRR}} 
-+  \sum_{n=1}^{n_p}\frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}  \Big((t_{i+1}-t_i) +\frac{\exp{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}}{\lambda_{vRR}}\Big)\Big]
+(C_{\mathrm{LR}}(t_i, D)-C_{\mathrm{min}}) \cdot \frac{e^{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}}{-\lambda_{vRR}} 
++  \sum_{n=1}^{n_p}\frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}  \Big((t_{i+1}-t_i) +\frac{e^{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}}{\lambda_{vRR}}\Big)\Big]
 \end{align*}
 $$
 
@@ -1168,7 +1161,7 @@ Then, the Poisson distribution govern the probability of $d_e$ virions being dep
 
 $$
 \begin{equation*}
-P_{d}(d_e) = \frac{(N_e)^{d_e} \cdot \exp(-N_e)}{(d_e)!}
+P_{d}(d_e) = \frac{(N_e)^{d_e} \cdot e^{-N_e}}{(d_e)!}
 \end{equation*}
 $$
 
@@ -1179,9 +1172,9 @@ $$
 \begin{align*}
 P_e^*(I_e)
 &=\sum_{k_e=k_{\mathrm{min}}}^\infty \int_{k_e}^\infty P_{k|d}(k_e|d_e) \cdot P_{d}(d_e) \mathrm{d}d_e\\
-&=\sum_{k_e=k_{\mathrm{min}}}^\infty \int_{k_e}^\infty \frac{(d_e)!(r)^{k_e}(1-r)^{d_e-k_e}}{(d_e-k_e)!(k_e)!} \cdot \frac{(N_e)^{d_e} \cdot \exp(-N_e)}{(d_e)!} \mathrm{d}d_e\\
-&=\sum_{k_e=k_{\mathrm{min}}}^\infty \frac{(N_e\cdot r)^{k_e} \cdot \exp{-N_e\cdot r}}{(k_e)!} \int_{k_e}^\infty \frac{[N_e \cdot (1-r)]^{d_e-k_e} \dot \exp{-N_e\cdot (1-r)}}{(d_e-k_e)!} \mathrm{d}d_e\\
-&=\sum_{k_e=k_{\mathrm{min}}}^\infty \frac{(N_e\cdot r)^{k_e}}{(k_e)!} \cdot \exp{-N_e\cdot r}
+&=\sum_{k_e=k_{\mathrm{min}}}^\infty \int_{k_e}^\infty \frac{(d_e)!(r)^{k_e}(1-r)^{d_e-k_e}}{(d_e-k_e)!(k_e)!} \cdot \frac{(N_e)^{d_e} \cdot e^{-N_e}}{(d_e)!} \mathrm{d}d_e\\
+&=\sum_{k_e=k_{\mathrm{min}}}^\infty \frac{(N_e\cdot r)^{k_e} \cdot e^{-N_e\cdot r}}{(k_e)!} \int_{k_e}^\infty \frac{[N_e \cdot (1-r)]^{d_e-k_e} \dot e^{-N_e\cdot (1-r)}}{(d_e-k_e)!} \mathrm{d}d_e\\
+&=\sum_{k_e=k_{\mathrm{min}}}^\infty \frac{(N_e\cdot r)^{k_e}}{(k_e)!} \cdot e^{-N_e\cdot r}
 \end{align*}
 $$
 
@@ -1192,9 +1185,9 @@ By the definition of the exponential function we thereby have
 $$
 \begin{align*}
 P_e^*(I_e)
-&=\sum_{k_e=1}^\infty \frac{(N_e\cdot r)^{k_e}}{(k_e)!} \cdot \exp{-N_e\cdot r}\\
-&=\Big[\sum_{k_e=0}^\infty \frac{(N_e\cdot r)^{k_e}}{(k_e)!} \cdot \exp{-N_e\cdot r}\Big]-\frac{(N_e\cdot r)^{0}}{(0)!} \cdot \exp{-N_e\cdot r}\\
-&=1-\exp{-N_e\cdot r}
+&=\sum_{k_e=1}^\infty \frac{(N_e\cdot r)^{k_e}}{(k_e)!} \cdot e^{-N_e\cdot r}\\
+&=\Big[\sum_{k_e=0}^\infty \frac{(N_e\cdot r)^{k_e}}{(k_e)!} \cdot e^{-N_e\cdot r}\Big]-\frac{(N_e\cdot r)^{0}}{(0)!} \cdot e^{-N_e\cdot r}\\
+&=1-e^{-N_e\cdot r}
 \end{align*}
 $$
 if we set $0!=1$. 
@@ -1205,7 +1198,7 @@ In summary, the probability of event $I_e$, denoting the event that a specific i
 
 $$
 \begin{equation*}
-P_e^*(I_e)=1-\exp{-N_e\cdot r}
+P_e^*(I_e)=1-e^{-N_e\cdot r}
 \end{equation*}
 $$
 
@@ -1242,7 +1235,7 @@ Thereby, the exponential dose-response model developed by Haas et al. <sup>[5](#
 
 $$
 \begin{equation*}
-P_{e'}(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})=1-\exp{-R \cdot \mathrm{vD}_e^\mathrm{total}}
+P_{e'}(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})=1-e^{-R \cdot \mathrm{vD}_e^\mathrm{total}}
 \end{equation*}
 $$
 
@@ -1250,7 +1243,7 @@ We determine $R$ using the definition of $\mathrm{ID}_{50}$, informing us that
 
 $$
 \begin{equation*}
-P_{e'}(I_e|\mathrm{vD}_e^\mathrm{total}=\mathrm{ID}_{50},\mathrm{ID}_{50}) = 1-\exp{-R \cdot \mathrm{ID}_{50}} = 0.5 \quad \Leftrightarrow \quad R = \frac{\ln{2}}{\mathrm{ID}_{50}}
+P_{e'}(I_e|\mathrm{vD}_e^\mathrm{total}=\mathrm{ID}_{50},\mathrm{ID}_{50}) = 1-e^{-R \cdot \mathrm{ID}_{50}} = 0.5 \quad \Leftrightarrow \quad R = \frac{\ln{2}}{\mathrm{ID}_{50}}
 \end{equation*}
 $$
 
@@ -1258,7 +1251,7 @@ So for $T_\mathrm{voc}=1$ and $\mathrm{HI}_{\mathrm{exp},e}=0$
 
 $$
 \begin{equation*}
-P_{e'}(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})=1-\exp{-\frac{\ln{2} \cdot \mathrm{vD}_e^\mathrm{total}}{\mathrm{ID}_{50}}}.
+P_{e'}(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})=1-e^{-\frac{\ln{2} \cdot \mathrm{vD}_e^\mathrm{total}}{\mathrm{ID}_{50}}}.
 \end{equation*}
 $$
 
@@ -1269,7 +1262,7 @@ Combining all these observations -- about the structure of the dose-response mod
 
 $$
 \begin{equation*}
-P_{e'}(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})=1-\exp{-\frac{\ln{2} \cdot \mathrm{vD}_e^\mathrm{total}}{\mathrm{ID}_{50}} \cdot T_\mathrm{voc} \cdot \frac{1}{1-\mathrm{HI}_{\mathrm{exp},e}}}.
+P_{e'}(I_e|\mathrm{vD}_e^\mathrm{total},\mathrm{ID}_{50})=1-e^{-\frac{\ln{2} \cdot \mathrm{vD}_e^\mathrm{total}}{\mathrm{ID}_{50}} \cdot T_\mathrm{voc} \cdot \frac{1}{1-\mathrm{HI}_{\mathrm{exp},e}}}.
 \end{equation*}
 $$
 
