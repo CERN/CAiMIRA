@@ -250,7 +250,7 @@ In `Expiration.particle`, the class **Particle** (representing virus-laden aeros
 
 
 ## Removal
-The viral **viral removal rate** is given by
+The viral **viral removal rate** [$\text{h}^{-1}$] is given by
 
 $$
 \begin{equation*}
@@ -259,10 +259,13 @@ $$
 $$
 
 where $\lambda_{\mathrm{ACH}}(t)$ is the air exchange per hour, $\lambda_{\mathrm{bio}}$ is the biological decay, and $\lambda_{\mathrm{dep}}(D)$ is the particle deposition per hour. 
-Different types of ventilation and air filtration systems, such as windows (sliding or hinged) and HEPA filters, can be defined to adjust the air exchange per hour ($\lambda_{\mathrm{ACH}}(t)$). 
-The mechanics of different ventilation systems are modeled by subclasses of `models.Ventilation`.
-The effect of mulitple ventilation systems can be combined to compute the total air exchange per hour using `models.MultipleVentilation`.
-Next, the biological decay is 
+
+Ventilation and air filtration systems defined by the user, such as windows (sliding or hinged) and HEPA filters, determines the air exchange per hour ($\lambda_{\mathrm{ACH}}(t)$). 
+Air exchange from windows are modelled (in $\text{m}^{3}\text{h}^{-1}$) from the dimensions and geometry of the window opening and difference in indoor and outdoor temperature, while the effectiveness of filters and other air exchange systems are simply stated by the user (in $\text{m}^{3}\text{h}^{-1}$). 
+The mechanics of different ventilation systems are modeled by subclasses of `models.Ventilation`, and added together in `models.MultipleVentilation`. 
+Dividing by the room volume, all methods `models.Ventilation.air_exchange()` return air exchange values in $\text{h}^{-1}$.
+
+The biological decay is 
 
 $$
 \begin{equation*}
@@ -270,7 +273,8 @@ $$
 \end{equation*}
 $$
 
-where $r_{0.5}$ is the halflife of the virus, computed for each virus in `models.Virus.halflife()` using values for the inside temperature and humidity. 
+where $r_{0.5}$ is the halflife of the virus, computed for each virus in `models.Virus.halflife()` from the inside temperature and humidity. 
+
 Finally, the particle deposition is computed as
 
 $$
@@ -279,7 +283,7 @@ $$
 \end{equation*}
 $$
 
-with $h_{inf}$ being the initial hight of the particle (set to $1.5$ as the hight of the mouth/nose of the emittor), and $v(D)$ is the particle settling velocity given by
+where $h_{inf}$ is the initial hight of the particle (set to $1.5$ as the hight of the mouth/nose of the emitter) and $v(D)$ is the particle settling velocity given by
 
 $$
 \begin{equation*}
@@ -290,17 +294,17 @@ $$
 with $f_{ev}$ being the evaporation factor. 
 The particle settling velocity is computed by `models.Particle.settling_velocity()` and retrieved to compute the full diameter-dependent viral removal rate at a given time ($\lambda_{\mathrm{vRR}}(t,D)$) in `models.ConcentrationModel.removal_rate()`.
 
-The total removal of virions can be computed by Monte Carlo integration as
+The total removal of virions, at a given time, can be computed by Monte Carlo integration as
 
 $$
 \begin{equation*}
 \lambda_{\mathrm{vRR}}(t)^{\mathrm{total}}
 = \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} \lambda_{\mathrm{vRR}}(t,D) \cdot C(t, D) \;\ \mathrm{d}D 
-\approx \frac{1}{S}\sum_{i=1}^S \frac{\lambda_{\mathrm{vRR}}(t,D_i) \cdot C(t, D_i)}{\mathrm{p}_D(D_i)}
+\approx \frac{1}{S_D}\sum_{i=1}^{S_D} \frac{\lambda_{\mathrm{vRR}}(t,D_i) \cdot C(t, D_i)}{\mathrm{p}_D(D_i)}
 \end{equation*}
 $$
 
-where $C(t, D)$ is the viral concentration increase from the constant background concentration, derived in the next section. 
+where $C(t, D)$ is the viral concentration increase from the constant background concentration, derived in the next section, and $S_D$ is the total number of Monte Carlo samples for the particle diameter.
 Note that the removal is zero whenever $C_{\mathrm{LR}}(t, D)=C_{\mathrm{min}}$, i.e. the background concentration is never removed.
 Currently, the total removal of virions is not computed in CAiMIRA, as it has not yet been deemed an essential intermediate result to report.
 
