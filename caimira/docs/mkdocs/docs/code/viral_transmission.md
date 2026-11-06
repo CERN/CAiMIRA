@@ -543,9 +543,6 @@ Additionally, the minimum background concentration is added as a final row to th
 Finally, `models._ConcentrationModelBase.concentration()` sums the contribution from all populations and the background concentration (i.e. adds together all rows in the matrix from `models._ConcentrationModelBase.concentration_by_population()` horizontally), returning values of the random variable $C_{\mathrm{LR}}^{\mathrm{total}}(t)$ as 1D array. 
 Averaging the array returned by `models._ConcentrationModelBase.concentration()` yields a Monte Carlo estimate of the expected value of $C_{\mathrm{LR}}^{\mathrm{total}}(t)$.
 
-For the calculator app report, the total concentration (MC integral over the diameter) is performed only when generating the plot.
-Otherwise, the diameter-dependence continues until we compute the inhaled dose in the `models.ExposureModel` class.
-
 
 ### Short-Range Compartment
 #### Derivation of the Analytical Short-Range Concentration
