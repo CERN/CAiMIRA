@@ -269,11 +269,11 @@ The biological decay is
 
 $$
 \begin{equation*}
-\lambda_{\mathrm{bio}} = \frac{\ln(2)}{r_{0.5}}
+\lambda_{\mathrm{bio}} = \frac{\ln(2)}{t_{\frac{1}{2}}}
 \end{equation*}
 $$
 
-where $r_{0.5}$ is the halflife of the virus, computed for each virus in `models.Virus.halflife()` from the inside temperature and humidity. 
+where $t_{\frac{1}{2}}$ is the halflife of the virus, computed for each virus in `models.Virus.halflife()` from the inside temperature and humidity. 
 
 Finally, the particle deposition is computed as
 
