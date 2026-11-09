@@ -193,15 +193,15 @@ def mc_co2_conc_model(data_registry):
     )
 
 def _test_types(model, time, start, stop):
-    assert isinstance(model.min_background_concentration(), np.ndarray)
+    assert isinstance(model.min_background_concentration(), float)
     assert isinstance(model.removal_rate(time), np.ndarray)
     assert isinstance(model._normed_concentration_addition_limit(time), np.ndarray)
     assert isinstance(model._normed_concentration_addition(time), np.ndarray)
     assert isinstance(model.normalization_factor(), np.ndarray)
-    assert isinstance(model.concentration_by_population(time), np.ndarray)
+    assert isinstance(model.concentration_addition_by_population(time), np.ndarray)
     assert isinstance(model.concentration(time), np.ndarray)
     assert isinstance(model.normed_time_integrated_concentration_addition(start,stop), np.ndarray)
-    assert isinstance(model.integrated_concentration_by_population(start,stop), np.ndarray)
+    assert isinstance(model.integrated_concentration_addition_by_population(start,stop), np.ndarray)
     assert isinstance(model.integrated_concentration(start,stop), np.ndarray)
     assert model.volume().shape == (1, 1)  # type: ignore
 
@@ -227,8 +227,8 @@ def _test_conc_dimensions(model: models.ConcentrationModel, acceptable_n_samples
                 (len(model.populations), n_samples)
                 for n_samples in acceptable_n_samples
             }
-    assert model.concentration_by_population(time).shape in { # type: ignore
-                (len(model.populations)+1, n_samples)
+    assert model.concentration_addition_by_population(time).shape in { # type: ignore
+                (len(model.populations), n_samples)
                 for n_samples in acceptable_n_samples
             }
     assert model.concentration(time).shape in { # type: ignore
@@ -239,8 +239,8 @@ def _test_conc_dimensions(model: models.ConcentrationModel, acceptable_n_samples
                 (len(model.populations), n_samples)
                 for n_samples in acceptable_n_samples
             }
-    assert model.integrated_concentration_by_population(start,stop).shape in { # type: ignore
-                (len(model.populations)+1, n_samples)
+    assert model.integrated_concentration_addition_by_population(start,stop).shape in { # type: ignore
+                (len(model.populations), n_samples)
                 for n_samples in acceptable_n_samples
             }
     assert model.integrated_concentration(start,stop).shape in { # type: ignore
@@ -353,10 +353,10 @@ def test_probabilistic_dynamic_co2_model(
     assert model._normed_concentration_addition_limit(time).shape == (len(model.populations), 1) # type: ignore
     assert model._normed_concentration_addition(time).shape == (len(model.populations), 1) # type: ignore
     assert model.normalization_factor().shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
-    assert model.concentration_by_population(time).shape == (len(model.populations)+1, SAMPLE_SIZE) # type: ignore
+    assert model.concentration_addition_by_population(time).shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
     assert model.concentration(time).shape == (SAMPLE_SIZE,) # type: ignore
     assert model.normed_time_integrated_concentration_addition(start,stop).shape == (len(model.populations), 1) # type: ignore
-    assert model.integrated_concentration_by_population(start,stop).shape == (len(model.populations)+1, SAMPLE_SIZE) # type: ignore
+    assert model.integrated_concentration_addition_by_population(start,stop).shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
     assert model.integrated_concentration(start,stop).shape == (SAMPLE_SIZE,) # type: ignore
 
 
@@ -414,7 +414,7 @@ def _test_exposure_dimensions(model: models.ExposureModel, acceptable_n_samples:
                 for n_samples in acceptable_n_samples
             }
     assert model.long_range_deposited_exposure_between_bounds_by_population(start,stop).shape in { # type: ignore
-                (len(model.infected_populations)+1, n_samples)
+                (len(model.infected_populations), n_samples)
                 for n_samples in acceptable_n_samples
             }
     assert model.long_range_deposited_exposure_between_bounds(start,stop).shape in { # type: ignore

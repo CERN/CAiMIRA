@@ -62,15 +62,12 @@ _VectorizedFloat = typing.Union[float, np.ndarray]
 _VectorizedInt = typing.Union[int, np.ndarray]
 
 # shape (n_populations, shape(_VectorizedFloat)) 
-# or (n_populations+1, shape(_VectorizedFloat)) 
-# when the minimum background concentration is also included by one more row.
 _Matrix = NDArray[np.float64]
 
 # shape (1, shape(_VectorizedFloat))
 _SingleRowMatrix = NDArray[np.float64]
 
-# shape (n_populations, ) or (n_populations+1, )
-# when the minimum background concentration is also included by one more row.
+# shape (n_populations, ) or (n_populations, )
 _VectorizedPopulation = NDArray[np.float64]
 
 Time_t = typing.TypeVar('Time_t', float, int)
@@ -1202,7 +1199,12 @@ class _ConcentrationModelBase:
     Because the normalization_factor may have a different shape than normalized methods,
     it is important to compute the normalization_factor separate of the normalized methods.
     Therefore, the (non-normalized) min_background_concentration is only included after 
-    multiplying the normalized results with the normalization_factor. 
+    multiplying the normalized results with the normalization_factor.
+
+    To further avoid the min_background_concentration being added multiple times when there are 
+    multiple populations, the concentration addition from each population does not include 
+    min_background_concentration and the min_background_concentration is added only after 
+    summing over the concentration additions from each population. 
     """
     data_registry: DataRegistry
     room: Room
@@ -1249,20 +1251,13 @@ class _ConcentrationModelBase:
         raise NotImplementedError("Subclass must implement")
 
 
-    def min_background_concentration(self, n_samples=None) -> _SingleRowMatrix:
+    def min_background_concentration(self, n_samples=None) -> _VectorizedFloat:
         """
         Minimum background concentration in the room for a given scenario
         (in the same unit as the concentration). Its the value towards which
         the concentration will decay to.
         """
-        if not n_samples:
-            n_samples = self.normalization_factor().shape[1]
-        min_background_concentration = self.data_registry.concentration_model['virus_concentration_model']['min_background_concentration']
-        return np.full(
-            (1, n_samples),
-            min_background_concentration,
-            dtype=np.float64,
-        )
+        return self.data_registry.concentration_model['virus_concentration_model']['min_background_concentration']
 
     def normalization_factor(self) -> typing.Union[_Matrix, _VectorizedPopulation]:
         """
@@ -1406,16 +1401,13 @@ class _ConcentrationModelBase:
             result,
         )
 
-    def concentration_by_population(self, time: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
+    def concentration_addition_by_population(self, time: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
         """
-        Concentration contribution from each population, and min_background_concentration,
-        as a function of time. The normalization factor has been put back.
-
-        The min_background_concentration is included as an additional row 
-        along the n_population dimension (axis=0).
+        Concentration addition from each population as a function of time. 
+        The normalization factor has been put back.
 
         Note that time is not vectorized. You can only pass a single float
-        to this method.. 
+        to this method.
         """
         # Monte Carlo integration over the particle diameter. 
         # Nothing happens if no particle diameter (e.g. for CO2). 
@@ -1432,20 +1424,14 @@ class _ConcentrationModelBase:
             diameter_integrated_normed_concentration_addition
             * self.normalization_factor()
         )
-
-        # Add row for the min_background_concentration
-        min_background_concentration: _VectorizedFloat = self.min_background_concentration(concentration_addition.shape[1])
-        return np.concatenate(
-            (concentration_addition, min_background_concentration),
-            axis=0,
-        )
-
+        return concentration_addition
+    
     def concentration(self, time: float) -> _VectorizedFloat:
         """
         Total concentration, from all populations and min_background_concentration,
         as a function of time.
         """
-        return self.concentration_by_population(time).sum(axis=0)
+        return self.concentration_addition_by_population(time).sum(axis=0) + self.min_background_concentration()
 
     @method_cache
     def normed_time_integrated_concentration_addition(self, start: float, stop: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
@@ -1526,13 +1512,10 @@ class _ConcentrationModelBase:
 
         return np.where(not_yet_present.reshape(-1, 1), 0.0, total_normed_concentration) 
 
-    def integrated_concentration_by_population(self, start: float, stop: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
+    def integrated_concentration_addition_by_population(self, start: float, stop: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
         """
-        Concentration contribution from each population, and min_background_concentration,
-        integrated between the times start and stop. The normalization factor has been put back.
-
-        The min_background_concentration is included as an additional row 
-        along the n_population dimension (axis=0).
+        Concentration addition from each population, integrated between the times start and stop. 
+        The normalization factor has been put back.
         """
         # Monte Carlo integration over the particle diameter. 
         # Nothing happens if no particle diameter (e.g. for CO2). 
@@ -1552,20 +1535,15 @@ class _ConcentrationModelBase:
             * self.normalization_factor()
         )
 
-        # Add row for the min_background_concentration
-        integrated_min_background_concentration: _VectorizedFloat = (stop-start)*self.min_background_concentration(n_samples=integrated_concentration_addition.shape[1])
+        return integrated_concentration_addition
 
-        return np.concatenate(
-            (integrated_concentration_addition, integrated_min_background_concentration),
-            axis=0,
-        )
 
     def integrated_concentration(self, start: float, stop: float) -> _VectorizedFloat:
         """
         Total concentration, from all populations and min_background_concentration,
         integrated between the times start and stop. 
         """
-        return self.integrated_concentration_by_population(start, stop).sum(axis=0)
+        return self.integrated_concentration_addition_by_population(start, stop).sum(axis=0) + (stop-start)*self.min_background_concentration()
 
 @dataclass(frozen=True)
 class ConcentrationModel(_ConcentrationModelBase):
@@ -1702,17 +1680,11 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         """Shape (n_populations, 1)."""
         return np.asarray([self.ventilation.air_exchange(self.room, time)]*len(self.populations)).reshape(-1,1)
 
-    def min_background_concentration(self, n_samples=None) -> _SingleRowMatrix:
+    def min_background_concentration(self, n_samples=None) -> _VectorizedFloat:
         """
         Background CO2 concentration in the atmosphere (in ppm)
         """
-        if not n_samples:
-            n_samples = self.normalization_factor().shape[1]
-        return np.full(
-            (1, n_samples),
-            self.CO2_atmosphere_concentration,
-            dtype=np.float64,
-        )
+        return self.CO2_atmosphere_concentration
 
     def normalization_factor(self) -> typing.Union[_Matrix, _VectorizedPopulation]:
         """
@@ -1979,7 +1951,7 @@ class ExposureModel:
 
     def long_range_deposited_exposure_between_bounds_by_population(self, time1: float, time2: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
         """
-        Includes row for time-integrated minimum background concentration (final row).
+        Not including minimum background concentration.
         """
         normed_exposure = self._long_range_normed_exposure_between_bounds(time1, time2)
         res_diameter_dependent = np.stack(
@@ -2008,20 +1980,11 @@ class ExposureModel:
         if diameter_independent.ndim == 1:
             diameter_independent=diameter_independent.reshape(-1,1)
 
-        exposure_by_population = np.asarray(deposited * diameter_independent)
-
-        
-        # Add row for the min_background_concentration
-        integrated_min_background_concentration = (time2-time1)*self.concentration_model.min_background_concentration(exposure_by_population.shape[1])
-
-        return np.concatenate(
-            (exposure_by_population, integrated_min_background_concentration),
-            axis=0,
-        )
+        return np.asarray(deposited * diameter_independent)
 
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorizedFloat:
-        """Sum over the contributions from all infected populations."""
-        return self.long_range_deposited_exposure_between_bounds_by_population(time1, time2).sum(axis=0)
+        """Sum over the contributions from all infected populations, including the minimum background concentration."""
+        return self.long_range_deposited_exposure_between_bounds_by_population(time1, time2).sum(axis=0) + (time2-time1)*self.concentration_model.min_background_concentration()
 
     def deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorizedFloat:
         """
