@@ -136,7 +136,7 @@ def test_extract_between_bounds(short_range_model, time1, time2,
 def test_short_range_concentration(time, expected_short_range_concentration_component, exposure_model):
     exposure_model = exposure_model.build_model(SAMPLE_SIZE)
     np.testing.assert_allclose(
-        np.mean(exposure_model.concentration(time))-np.mean(exposure_model.long_range_concentration(time)),
+        exposure_model.concentration(time)-exposure_model.concentration_model.concentration(time),
         expected_short_range_concentration_component, rtol=0.02
     )
 

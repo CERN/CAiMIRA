@@ -62,13 +62,12 @@ _VectorizedFloat = typing.Union[float, np.ndarray]
 _VectorizedInt = typing.Union[int, np.ndarray]
 
 # shape (n_populations, shape(_VectorizedFloat)) 
-_Matrix = NDArray[np.float64]
+_PopulationMatrix = NDArray[np.float64]
 
-# shape (1, shape(_VectorizedFloat))
-_SingleRowMatrix = NDArray[np.float64]
+# shape (n_populations, )
+_PopulationVector = NDArray[np.float64]
 
-# shape (n_populations, ) or (n_populations, )
-_VectorizedPopulation = NDArray[np.float64]
+_PopulationArray = typing.Union[_PopulationMatrix, _PopulationVector]
 
 Time_t = typing.TypeVar('Time_t', float, int)
 BoundaryPair_t = typing.Tuple[Time_t, Time_t]
@@ -1222,7 +1221,7 @@ class _ConcentrationModelBase:
         """Whether there is a particle diameter that is Monte Carlo sampled."""
         return False
 
-    def people_present(self, time) -> _Matrix:
+    def people_present(self, time) -> _PopulationMatrix:
         """
         Total number of emitters present at a given time. 
         Returns array with shape (n_populations, 1).
@@ -1232,17 +1231,15 @@ class _ConcentrationModelBase:
             dtype=np.float64,
         ).reshape(-1, 1)
 
-    def volume(self) -> _SingleRowMatrix:
+    def volume(self) -> NDArray[np.float64]:
         """
         Room volume. 
-        If considered deterministic, the shape can be (1, 1).
-        If Monte Carlo sampled, the shape must be (1, n_diameter_samples)
-        to match number of diameter samples (if any).
+        Shape (1, shape(_VectorizedFloat))
         """
         volume: _VectorizedFloat = self.room.volume
         return np.asarray(volume, dtype=np.float64).reshape(1, -1)
 
-    def removal_rate(self, time: float) -> _Matrix:
+    def removal_rate(self, time: float) -> _PopulationMatrix:
         """
         Remove rate of the species considered, in h^-1.
         Returns array with shape (n_populations, n_diameter_samples)
@@ -1259,7 +1256,7 @@ class _ConcentrationModelBase:
         """
         return self.data_registry.concentration_model['virus_concentration_model']['min_background_concentration']
 
-    def normalization_factor(self) -> typing.Union[_Matrix, _VectorizedPopulation]:
+    def normalization_factor(self) -> _PopulationArray:
         """
         Normalization factor (in the same unit as the concentration).
         This factor is applied to the normalized concentration only
@@ -1270,7 +1267,7 @@ class _ConcentrationModelBase:
         raise NotImplementedError("Subclass must implement")
 
     @method_cache
-    def _normed_concentration_addition_limit(self, time: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
+    def _normed_concentration_addition_limit(self, time: float) -> _PopulationArray:
         """
         Provides a constant that represents the theoretical asymptotic
         value reached by the concentration when time goes to infinity,
@@ -1280,7 +1277,7 @@ class _ConcentrationModelBase:
         can be put back in front of the concentration after the time
         dependence has been solved for.
         """
-        volume: _SingleRowMatrix = self.volume() 
+        volume = self.volume() 
         people_present = self.people_present(time)
         RR = self.removal_rate(time)
 
@@ -1317,7 +1314,7 @@ class _ConcentrationModelBase:
         return times[t_index]
 
     @method_cache
-    def _normed_concentration_addition_cached(self, time: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
+    def _normed_concentration_addition_cached(self, time: float) -> _PopulationArray:
         """
         A cached version of the _normed_concentration method. Use this
         method if you expect that there may be multiple concentration
@@ -1325,7 +1322,7 @@ class _ConcentrationModelBase:
         """
         return self._normed_concentration_addition(time)
 
-    def _normed_concentration_addition(self, time: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
+    def _normed_concentration_addition(self, time: float) -> _PopulationArray:
         """
         Diameter-dependent concentration addition above the min_background_concentration 
         as a function of time, normalized by normalization_factor, for each population. 
@@ -1337,7 +1334,7 @@ class _ConcentrationModelBase:
         Note that time is not vectorized. You can only pass a single float
         to this method.
         """
-        volume: _SingleRowMatrix = self.volume()
+        volume = self.volume()
         people_present = self.people_present(time)
         RR = self.removal_rate(time)
 
@@ -1387,7 +1384,7 @@ class _ConcentrationModelBase:
             + conc_at_last_state_change * fac
         )
 
-        before_first_presence: _VectorizedPopulation = np.asarray(
+        before_first_presence: _PopulationVector = np.asarray(
             [
                 time <= population.first_presence_time()
                 for population in self.populations
@@ -1401,7 +1398,7 @@ class _ConcentrationModelBase:
             result,
         )
 
-    def concentration_addition_by_population(self, time: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
+    def concentration_addition_by_population(self, time: float) -> _PopulationArray:
         """
         Concentration addition from each population as a function of time. 
         The normalization factor has been put back.
@@ -1409,32 +1406,19 @@ class _ConcentrationModelBase:
         Note that time is not vectorized. You can only pass a single float
         to this method.
         """
-        # Monte Carlo integration over the particle diameter. 
-        # Nothing happens if no particle diameter (e.g. for CO2). 
-        # Returns shape (n_populations, 1) if there is a particle diameter, 
-        # and otherwise (n_populations, )
-        diameter_integrated_normed_concentration_addition = np.mean(
-            self._normed_concentration_addition_cached(time), 
-            axis=1, 
-            keepdims=True
-        )
-
-        # Put back the normalization_factor of MC sampled random variables. 
-        concentration_addition: typing.Union[_Matrix, _VectorizedPopulation] = (
-            diameter_integrated_normed_concentration_addition
-            * self.normalization_factor()
-        )
-        return concentration_addition
+        return self._normed_concentration_addition_cached(time)*self.normalization_factor()
     
     def concentration(self, time: float) -> _VectorizedFloat:
         """
         Total concentration, from all populations and min_background_concentration,
         as a function of time.
+
+        Integrating over the particle diameter and averaging over all random variables. 
         """
-        return self.concentration_addition_by_population(time).sum(axis=0) + self.min_background_concentration()
+        return np.mean(self.concentration_addition_by_population(time).sum(axis=0) + self.min_background_concentration())
 
     @method_cache
-    def normed_time_integrated_concentration_addition(self, start: float, stop: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
+    def normed_time_integrated_concentration_addition(self, start: float, stop: float) -> _PopulationArray:
         """
         Get the integrated concentration addition between the times start and stop,
         not including the min_background_concentration, normalized by normalization_factor.
@@ -1444,7 +1428,7 @@ class _ConcentrationModelBase:
                 f"`stop` ({stop}) must be greater than or equal to "
                 f"`start` ({start})."
             )
-        volume: _SingleRowMatrix = self.volume()
+        volume = self.volume()
         
         change_times = np.asarray(self.state_change_times(), dtype=np.float64)
         interval_bounds = np.unique(np.concatenate((
@@ -1502,7 +1486,7 @@ class _ConcentrationModelBase:
 
         # A population which has not entered before
         # `stop` contributes no integrated concentration.
-        not_yet_present: _VectorizedPopulation = np.asarray(
+        not_yet_present: _PopulationVector = np.asarray(
             [
                 stop <= population.first_presence_time()
                 for population in self.populations
@@ -1512,38 +1496,22 @@ class _ConcentrationModelBase:
 
         return np.where(not_yet_present.reshape(-1, 1), 0.0, total_normed_concentration) 
 
-    def integrated_concentration_addition_by_population(self, start: float, stop: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
+    def integrated_concentration_addition_by_population(self, start: float, stop: float) -> _PopulationArray:
         """
         Concentration addition from each population, integrated between the times start and stop. 
         The normalization factor has been put back.
         """
-        # Monte Carlo integration over the particle diameter. 
-        # Nothing happens if no particle diameter (e.g. for CO2). 
-        # Returns shape (n_populations, 1) if there is a particle diameter, 
-        # and otherwise (n_populations, )
-        integrated_normed_concentration_addition = self.normed_time_integrated_concentration_addition(start, stop)
-        if self.monte_carlo_diameter():
-            integrated_normed_concentration_addition = np.mean(
-                integrated_normed_concentration_addition, 
-                axis=1, 
-                keepdims=True
-            )
-
-        # Put back the normalization_factor of MC sampled random variables. 
-        integrated_concentration_addition: typing.Union[_Matrix, _VectorizedPopulation] = (
-            integrated_normed_concentration_addition
-            * self.normalization_factor()
-        )
-
-        return integrated_concentration_addition
+        return self.normed_time_integrated_concentration_addition(start, stop)*self.normalization_factor()
 
 
     def integrated_concentration(self, start: float, stop: float) -> _VectorizedFloat:
         """
         Total concentration, from all populations and min_background_concentration,
         integrated between the times start and stop. 
+
+        Integrating over the particle diameter and all random variables.
         """
-        return self.integrated_concentration_addition_by_population(start, stop).sum(axis=0) + (stop-start)*self.min_background_concentration()
+        return np.mean(self.integrated_concentration_addition_by_population(start, stop).sum(axis=0) + (stop-start)*self.min_background_concentration())
 
 @dataclass(frozen=True)
 class ConcentrationModel(_ConcentrationModelBase):
@@ -1597,7 +1565,7 @@ class ConcentrationModel(_ConcentrationModelBase):
     def virus(self) -> Virus:
         return self.infected_populations[0].virus
 
-    def removal_rate(self, time: float) -> _Matrix:
+    def removal_rate(self, time: float) -> _PopulationMatrix:
         # Equilibrium velocity of particle motion toward the floor
         vg = np.stack(
             [
@@ -1618,7 +1586,7 @@ class ConcentrationModel(_ConcentrationModelBase):
             + self.ventilation.air_exchange(self.room, time)
         )
 
-    def normalization_factor(self) -> typing.Union[_Matrix, _VectorizedPopulation]:
+    def normalization_factor(self) -> _PopulationArray:
         """
         We normalize the computations by the emission rate, containing
         (almost) all random variables except the particle diameter.
@@ -1637,7 +1605,7 @@ class ConcentrationModel(_ConcentrationModelBase):
             axis=0
         )
 
-    def short_range_normalization_factors(self) -> typing.Union[_Matrix, _VectorizedPopulation]:
+    def short_range_normalization_factors(self) -> _PopulationArray:
         """
         For short-range interactions, the infected population parameters intervene only through this factor.
         Result in (virions.cm^3)/(mL.m^3).
@@ -1676,7 +1644,7 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
     def populations(self) -> typing.Tuple[SimplePopulation, ...]:
         return self.CO2_emitting_populations
 
-    def removal_rate(self, time: float) -> _Matrix:
+    def removal_rate(self, time: float) -> _PopulationMatrix:
         """Shape (n_populations, 1)."""
         return np.asarray([self.ventilation.air_exchange(self.room, time)]*len(self.populations)).reshape(-1,1)
 
@@ -1686,7 +1654,7 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         """
         return self.CO2_atmosphere_concentration
 
-    def normalization_factor(self) -> typing.Union[_Matrix, _VectorizedPopulation]:
+    def normalization_factor(self) -> _PopulationArray:
         """
         Normalization by the CO2 exhaled per person.
         CO2 concentration given in ppm, hence the 1e6 factor.
@@ -1742,7 +1710,7 @@ class CO2DataModel:
 
     def CO2_concentrations_from_params(self, CO2_concentration_model: CO2ConcentrationModel) -> typing.List[float]:
         # Calculate the predictive CO2 concentration
-        return [np.mean(np.asarray(CO2_concentration_model.concentration(time))) for time in self.times] # Averaging arrays with 1 element
+        return [CO2_concentration_model.concentration(time) for time in self.times] # Averaging arrays with 1 element
 
     def CO2_fit_params(self) -> typing.Dict:
         if len(self.times) != len(self.CO2_concentrations):
@@ -1900,7 +1868,7 @@ class ExposureModel:
 
         return sorted(state_change_times)
 
-    def _long_range_normed_exposure_between_bounds(self, time1: float, time2: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
+    def _long_range_normed_exposure_between_bounds(self, time1: float, time2: float) -> _PopulationArray:
         """
         The number of virions per meter^3 between any two times, normalized
         by the emission rate of the infected population.
@@ -1922,22 +1890,16 @@ class ExposureModel:
                 exposure += self.concentration_model.normed_time_integrated_concentration_addition(start, stop)
         return np.asarray(exposure)
     
-    def long_range_concentration(self, time: float) -> _VectorizedFloat:
-        """
-        Total virus concentration in the room at long-range, as a function of time, 
-        integrated over the particle diameters.
-
-        It only considers the long-range concentration without the
-        contribution of the short-range concentration.
-        """
-        return self.concentration_model.concentration(time)
-    
-    def concentration(self, time: float) -> _VectorizedFloat:
+    def concentration(self, time: float) -> float:
         """
         Total virus exposure concentration at short-range, as a function of time, 
         integrated over the particle diameter.
         """
-        concentration = self.long_range_concentration(time)
+        _long_range_concentration = ( # Not yet diameter-integrated or averaged over random variables
+                self.concentration_model.concentration_addition_by_population(time).sum(axis=0) 
+                + self.concentration_model.min_background_concentration()
+        )
+        concentration = np.mean(_long_range_concentration)
         for short_range_normalization_factor, interactions in zip(self.concentration_model.short_range_normalization_factors(), self.concentration_model.short_range):
             for interaction in interactions:
                 if interaction.exposed_identifier == self.identifier:
@@ -1945,11 +1907,11 @@ class ExposureModel:
                     # Verifies if the given time falls within a short-range interaction
                     # NOTE: max one short-range interaction at a time, so the test should just yield true once (TODO check?)
                     if start <= time <= stop:
-                        concentration += interaction._normed_diluted_jet_concentration()*short_range_normalization_factor
-                        concentration -= 1/interaction.dilution_factor() * self.concentration_model.concentration(time)
+                        concentration += np.mean(interaction._normed_diluted_jet_concentration()*short_range_normalization_factor)
+                        concentration -= np.mean(1/interaction.dilution_factor() * _long_range_concentration)
         return concentration
 
-    def long_range_deposited_exposure_between_bounds_by_population(self, time1: float, time2: float) -> typing.Union[_Matrix, _VectorizedPopulation]:
+    def long_range_deposited_exposure_between_bounds_by_population(self, time1: float, time2: float) -> _PopulationArray:
         """
         Not including minimum background concentration.
         """

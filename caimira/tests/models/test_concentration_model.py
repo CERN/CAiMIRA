@@ -31,8 +31,8 @@ class KnownConcentrationModelBase(models._ConcentrationModelBase):
     def populations(self) -> typing.Tuple[models.Population, ...]:
         return self.known_populations
 
-    def removal_rate(self, time: float) -> models._Matrix:
-        """Convert to models._Matrix with dimension matching the normalization_factor."""
+    def removal_rate(self, time: float) -> models._PopulationMatrix:
+        """Convert to models._PopulationMatrix with dimension matching the normalization_factor."""
         if isinstance(self.known_removal_rate, float):
             if not isinstance(self.known_normalization_factor, float):
                 return (np.ones(len(np.array(self.known_normalization_factor)))*self.known_removal_rate).reshape(1,-1)
@@ -42,8 +42,8 @@ class KnownConcentrationModelBase(models._ConcentrationModelBase):
     def min_background_concentration(self) -> models._VectorizedFloat:
         return self.known_min_background_concentration
 
-    def normalization_factor(self) -> models._Matrix:
-        """Convert to models._Matrix with dimension matching the removal_rate."""
+    def normalization_factor(self) -> models._PopulationMatrix:
+        """Convert to models._PopulationMatrix with dimension matching the removal_rate."""
         if isinstance(self.known_normalization_factor, float):
             if not isinstance(self.known_removal_rate, float):
                 return (np.ones(len(np.array(self.known_removal_rate)))*self.known_normalization_factor).reshape(1,-1)
@@ -99,10 +99,7 @@ def test_concentration_model_vectorization(override_params, data_registry):
         evaporation_factor=0.3,
         short_range=((),),
     )
-    n_samples = len(defaults['viral_load_in_sputum']) # number of diameter-independent MC samples
-    concentrations = c_model.concentration(10)
-    assert isinstance(concentrations, np.ndarray)
-    assert concentrations.shape == (n_samples, )
+    assert isinstance(c_model.concentration(10), float)
 
 
 @pytest.fixture
@@ -273,12 +270,12 @@ def test_normed_time_integrated_concentration_addition_vectorization(
     assert isinstance(normed_integrated_concentration, np.ndarray)
     assert normed_integrated_concentration.shape == (1, 2)
     npt.assert_almost_equal(normed_integrated_concentration+(2-0)*known_min_background_concentration/known_normalization_factor, expected_normed_time_integrated_concentration)
-    npt.assert_almost_equal(integrated_concentration, expected_normed_time_integrated_concentration*known_normalization_factor) # type: ignore
+    npt.assert_almost_equal(integrated_concentration, np.mean(expected_normed_time_integrated_concentration*known_normalization_factor)) # type: ignore
 
     # Dynamic infected
     known_conc_model_four_pop = nested_replace(known_conc_model, {"known_populations": (dummy_population,)*4})
     integrated_concentration_four_pop = known_conc_model_four_pop.integrated_concentration(0, 2)
-    expected_integrated_concentration_four_pop = ( # type: ignore
+    expected_integrated_concentration_four_pop = np.mean( # type: ignore
         4*(expected_normed_time_integrated_concentration*known_normalization_factor)           # min background concentration (integrated over [0,2]) added four times here
         - 3*(2-0)*known_min_background_concentration                                           # and hence subtracted three times here
     )

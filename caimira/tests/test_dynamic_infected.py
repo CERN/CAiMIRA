@@ -252,12 +252,11 @@ def test_long_range_concentration(time, dynamic_conc_model, separate_conc_models
     separate_concentrations = [separate_conc_model.build_model(SAMPLE_SIZE).concentration(time) for separate_conc_model in separate_conc_models]
     dynamic_conc_model = dynamic_conc_model.build_model(SAMPLE_SIZE)
     concentration = dynamic_conc_model.concentration(time)
-    concentration_addition_by_population = dynamic_conc_model.concentration_addition_by_population(time) + dynamic_conc_model.min_background_concentration()
+    concentration_addition_by_population = (dynamic_conc_model.concentration_addition_by_population(time) + dynamic_conc_model.min_background_concentration()).flatten()
     assert np.all(concentration.shape == separated_conc.shape for separated_conc in separate_concentrations)
     assert concentration_addition_by_population.shape == np.stack(separate_concentrations).shape
     assert np.allclose(concentration_addition_by_population, np.stack(separate_concentrations))
     assert np.allclose(concentration, np.stack(separate_concentrations).sum(axis=0))
-    assert np.allclose(concentration.mean(), np.stack(separate_concentrations).sum(axis=0).mean())
     assert np.all(concentration >= 0)
 
 @pytest.mark.parametrize(

@@ -41,7 +41,7 @@ def baseline_periodic_hepa():
 def test_concentrations(baseline_concentration_model):
     # Expected concentrations were computed analytically
     ts = [0, 4, 5, 7, 10]
-    concentrations = [baseline_concentration_model.concentration(float(t)).mean() for t in ts]
+    concentrations = [baseline_concentration_model.concentration(float(t)) for t in ts]
     npt.assert_allclose(
         concentrations,
         [0.000000e+00, 2.046096e+01, 3.846725e-13, 2.046096e+01, 7.231966e-27],
@@ -55,7 +55,7 @@ def test_smooth_concentrations(baseline_concentration_model):
     dx = 0.002
     dy_limit = 0.2  # Anything more than this (in relative) is a bit steep.
     ts = np.arange(0, 10, dx)
-    concentrations = [baseline_concentration_model.concentration(float(t)).mean() for t in ts]
+    concentrations = [baseline_concentration_model.concentration(float(t)) for t in ts]
     assert np.abs(np.diff(concentrations)).max()/np.mean(concentrations) < dy_limit
 
 

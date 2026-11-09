@@ -722,7 +722,7 @@ def test_long_range_concentration(time,c_model_no_sr,simple_c_model):
 )
 def test_short_range_concentration(time, expo_sr_model, simple_c_model, simple_sr_models_with_exposed1):
     expo_sr_model=expo_sr_model.build_model(SAMPLE_SIZE)
-    result_sr_model = np.mean(expo_sr_model.concentration(time) - expo_sr_model.long_range_concentration(time))
+    result_sr_model = expo_sr_model.concentration(time) - expo_sr_model.concentration_model.concentration(time)
     result_simple_sr_model = np.sum([np.array(
             sr_mod.concentration(simple_c_model,time))
         for sr_mod in simple_sr_models_with_exposed1])
@@ -779,7 +779,7 @@ def test_longrange_concentration_with_distributions(c_model_distr, time, data_re
         HI                = 0.,
     )
     npt.assert_allclose(
-        c_model_distr.build_model(SAMPLE_SIZE).concentration(time).mean(),
+        c_model_distr.build_model(SAMPLE_SIZE).concentration(time),
         simple_expo_model.concentration(time).mean(), rtol=TOLERANCE
         )
 
@@ -828,7 +828,7 @@ def test_longrange_exposure_with_distributions(data_registry, c_model_distr):
 )
 def test_concentration_with_shortrange(expo_sr_model,simple_expo_sr_model,time):
     npt.assert_allclose(
-        expo_sr_model.build_model(SAMPLE_SIZE).concentration(time).mean(),
+        expo_sr_model.build_model(SAMPLE_SIZE).concentration(time),
         simple_expo_sr_model.total_concentration(time).mean(), rtol=TOLERANCE
         )
 
@@ -852,7 +852,7 @@ def test_exposure_with_shortrange(expo_sr_model,simple_expo_sr_model):
 def test_concentration_with_shortrange_and_distributions(
                     expo_sr_model_distr,simple_expo_sr_model_distr,time):
     npt.assert_allclose(
-        expo_sr_model_distr.build_model(SAMPLE_SIZE).concentration(time).mean(),
+        expo_sr_model_distr.build_model(SAMPLE_SIZE).concentration(time),
         simple_expo_sr_model_distr.total_concentration(time).mean(),
         rtol=TOLERANCE
         )
