@@ -1543,10 +1543,10 @@ class ConcentrationModel(_ConcentrationModelBase):
     def monte_carlo_diameter(self) -> bool:
         """Whether the particle diameter is Monte Carlo sampled."""
         has_diameter_distribution = np.asarray([
-                infected.particle.diameter is not None
-                and np.ndim(infected.particle.diameter) > 0
-                for infected in self.infected_populations
-            ])
+            infected.particle.diameter is not None
+            and np.ndim(infected.particle.diameter) > 0
+            for infected in self.infected_populations
+        ])
         if has_diameter_distribution.any() != has_diameter_distribution.all():
             raise ValueError("Mixed scalar and sampled particle diameters are not supported.")
 
@@ -1821,18 +1821,7 @@ class ExposureModel:
 
     def monte_carlo_diameter(self) -> bool:
         """Whether the particle diameter is Monte Carlo sampled."""
-        has_diameter_distribution = np.asarray([
-            infected.particle.diameter is not None
-            and np.ndim(infected.particle.diameter) > 0
-            for infected in self.infected_populations
-        ])
-        if has_diameter_distribution.any() != has_diameter_distribution.all():
-            raise ValueError("Mixed scalar and sampled particle diameters are not supported.")
-
-        if has_diameter_distribution.any():
-            return True
-        else:
-            return False
+        return self.concentration_model.monte_carlo_diameter()
 
     @property
     def virus(self):
@@ -2117,19 +2106,24 @@ class ExposureModelGroup:
     exposure_models: typing.Tuple[ExposureModel, ...]
 
     def __post_init__(self):
-        """
-        Validate that all ExposureModels have the same list of ConcentrationModels.
-        """
+
+
         n_infected_populations = len(self.exposure_models[0].concentration_model.infected_populations)
         if any(len(exposure_model.concentration_model.infected_populations) != n_infected_populations for exposure_model in self.exposure_models[1:]):
-                raise ValueError("All ExposureModels must have the same number of ConcentrationModels.")
+                raise ValueError("All ExposureModels must have the same number of infected populations.")
         for i in range(n_infected_populations):
             first_infected = self.exposure_models[0].concentration_model.infected_populations[0]
             for model in self.exposure_models[1:]:
                 # Check that the number of infected people and their presence is the same
                 if (model.concentration_model.infected_populations[i].number != first_infected.number or
                     model.concentration_model.infected_populations[i].presence != first_infected.presence):
-                    raise ValueError("All ExposureModels must have the same infected number and presence in each ConcentrationModel.")
+                    raise ValueError("All ExposureModels must have the same infected populations.")
+
+        #TODO: replace the tests above by this stronger test, 
+        # once it is made possible when short_range is a part of ExposureModel and not ConcentrationModel
+        # concentration_model = self.exposure_models[0].concentration_model
+        # if any(exposure_model.concentration_model is not concentration_model for exposure_model in self.exposure_models):
+        #     raise ValueError("All exposure models must describe the same scenario modeled by the same concentration model.")
 
     @method_cache
     def _deposited_exposure_list(self) -> typing.List[_VectorizedFloat]:

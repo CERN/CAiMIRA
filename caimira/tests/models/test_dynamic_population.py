@@ -206,7 +206,7 @@ def test_exposure_model_group_structure(data_registry, full_exposure_model: mode
             ),
         )}
     )
-    with pytest.raises(ValueError, match=re.escape("All ExposureModels must have the same infected number and presence in each ConcentrationModel.")):
+    with pytest.raises(ValueError, match=re.escape("All ExposureModels must have the same infected populations.")):
         models.ExposureModelGroup(data_registry, exposure_models=(full_exposure_model, another_full_exposure_model, ))
 
 
