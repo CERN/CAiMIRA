@@ -5,7 +5,8 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 from dataclasses import dataclass
-from caimira.calculator.models.dataclass_utils import nested_replace
+from caimira.calculator.models.dataclass_utils import replace, nested_replace
+from caimira.calculator.models.monte_carlo.data import expiration_distributions
 
 from caimira.calculator.models import models
 from caimira.calculator.store.data_registry import DataRegistry
@@ -158,6 +159,109 @@ def dummy_population(simple_conc_model) -> models.Population:
         activity=models.Activity.types['Seated'],
         host_immunity=0.,
     )
+
+@pytest.fixture
+def diameter_dependent_model(data_registry) -> models.InfectedPopulation:
+    always = models.SpecificInterval(((0., 24.), ))
+    return models.ConcentrationModel(
+        data_registry=data_registry,
+        room=models.Room(25, models.PiecewiseConstant((0., 24.), (293,))),
+        ventilation=models.AirChange(always, 5),
+        infected_populations = (
+            models.InfectedPopulation(
+                data_registry=data_registry,
+                number=1,
+                presence=models.PeriodicInterval(120, 60),
+                virus=models.Virus.types['SARS_CoV_2_DELTA'],
+                mask=models.Mask.types['No mask'],
+                activity=models.Activity.types['Seated'],
+                expiration=expiration_distributions(data_registry)['Breathing'].build_model(250_000),
+                host_immunity=0.,
+            ),
+        ),
+        evaporation_factor=0.3,
+        short_range=((),),
+    )
+
+@pytest.mark.parametrize(
+    "volume, outside_temp, window_height, opening_length", [
+        [np.array([50, 100]), models.PiecewiseConstant((0., 24.), (293.,)), 1., 1.,], # Verify (room) volume vectorization.
+        [50, models.PiecewiseConstant((0., 12, 24.),
+            (np.array([293., 300.]), np.array([305., 310.]),)), 1., 1.,], # Verify (ventilation) outside_temp vectorization.
+        [50, models.PiecewiseConstant((0., 24.), (293.,)),
+            np.array([1., 0.5]), 1.], # Verify (ventilation) window_height vectorization.
+        [50, models.PiecewiseConstant((0., 24.), (293.,)),
+            1., np.array([1., 0.5])], # Verify (ventilation) opening_length vectorization.
+    ]
+)
+def test_diameter_vectorization_window_opening(data_registry, diameter_dependent_model, volume, outside_temp,
+                                                window_height, opening_length):
+    with pytest.raises(ValueError, match="If the diameter is an array, none of the ventilation parameters "
+                                            "or virus decay constant can be arrays at the same time."):
+        replace(diameter_dependent_model,
+            room = models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0., 24.), (293.,)), humidity=0.3),
+            ventilation=models.SlidingWindow(
+                data_registry=data_registry,
+                active=models.PeriodicInterval(period=120, duration=120),
+                outside_temp=outside_temp,
+                window_height=window_height,
+                opening_length=opening_length
+            ),
+        )
+
+
+def test_diameter_vectorization_hinged_window(diameter_dependent_model):
+    # Verify (ventilation) window_width vectorization.
+    with pytest.raises(ValueError, match="If the diameter is an array, none of the ventilation parameters "
+                                            "or virus decay constant can be arrays at the same time."):
+        replace(diameter_dependent_model,
+            ventilation = models.HingedWindow(active=models.PeriodicInterval(period=120, duration=120),
+                                        outside_temp=models.PiecewiseConstant((0., 24.), (293.,)),
+                                        window_height=1.,
+                                        opening_length=1.,
+                                        window_width=np.array([1., 0.5]))
+        )
+
+
+def test_diameter_vectorization_HEPA_filter(diameter_dependent_model):
+    # Verify (ventilation) q_air_mech vectorization.
+    with pytest.raises(ValueError, match="If the diameter is an array, none of the ventilation parameters "
+                                            "or virus decay constant can be arrays at the same time."):
+        replace(diameter_dependent_model,
+            ventilation = models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120),
+                                            q_air_mech=np.array([0.5, 1.]))
+        )
+
+
+def test_diameter_vectorization_air_change(diameter_dependent_model):
+    # Verify (ventilation) air_exch vectorization.
+    with pytest.raises(ValueError, match="If the diameter is an array, none of the ventilation parameters "
+                                            "or virus decay constant can be arrays at the same time."):
+        replace(diameter_dependent_model,
+            ventilation = models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
+                                            air_exch=np.array([0.5, 1.]))
+        )
+
+
+@pytest.mark.parametrize(
+    "volume, inside_temp, humidity, error_message", [
+        [np.array([50, 100]), models.PiecewiseConstant((0., 24.), (293.,)), 0.3,
+        "If the diameter is an array, none of the ventilation parameters or virus decay constant "
+        "can be arrays at the same time."], # Verify room volume vectorization
+        [50, models.PiecewiseConstant((0., 12, 24.), (np.array([293., 300.]), np.array([305., 310.]))), 0.3,
+        "If the diameter is an array, none of the ventilation parameters or virus decay constant "
+        "can be arrays at the same time."], # Verify room inside_temp vectorization
+        [50, models.PiecewiseConstant((0., 24.), (293.,)), np.array([0.3, 0.5]),
+        "If the diameter is an array, none of the ventilation parameters or virus decay constant "
+        "can be arrays at the same time."], # Verify room humidity vectorization
+    ]
+)
+def test_diameter_vectorization_room(diameter_dependent_model, volume, inside_temp, humidity, error_message):
+    with pytest.raises(ValueError, match=error_message):
+        replace(diameter_dependent_model,
+            room = models.Room(volume=volume, inside_temp=inside_temp, humidity=humidity),
+            ventilation = models.HVACMechanical(active=models.SpecificInterval(((0., 24.), )), q_air_mech=100.)
+        )
 
 def test_invalid_short_range(simple_conc_model):
     with pytest.raises(ValueError, match="'short_range' must contain exactly one tuple of short-range interactions "

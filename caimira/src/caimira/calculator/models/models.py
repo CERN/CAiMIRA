@@ -1521,7 +1521,15 @@ class ConcentrationModel(_ConcentrationModelBase):
     short_range: typing.Tuple[typing.Tuple[ShortRangeModel, ...], ...]
 
     def __post_init__(self):
-        self.monte_carlo_diameter()
+        if (
+            self.monte_carlo_diameter() and not (
+                all(np.isscalar(self.virus.decay_constant(self.room.humidity, self.room.inside_temp.value(time)) + # Check if the diameter-independent elements of the removal_rate method are vectorized.
+                self.ventilation.air_exchange(self.room, time)) for time in self.state_change_times())
+            )
+        ):
+            raise ValueError("If the diameter is an array, none of the ventilation parameters "
+                            "or virus decay constant can be arrays at the same time.")
+        
         if self.evaporation_factor is None:
             self.evaporation_factor = self.data_registry.expiration_particle['particle']['evaporation_factor']
 
@@ -1803,16 +1811,6 @@ class ExposureModel:
         It also checks that the number of exposed is
         static during the simulation time.
         """
-        self.monte_carlo_diameter()
-        for infected in self.infected_populations:
-            # Check if the diameter is vectorized.
-            if (isinstance(infected, InfectedPopulation) and not np.isscalar(infected.expiration.diameter)
-                # Check if the diameter-independent elements of the removal_rate method are vectorized.
-                and not (
-                    all(np.isscalar(self.virus.decay_constant(self.room.humidity, self.room.inside_temp.value(time)) +
-                    self.concentration_model.ventilation.air_exchange(self.room, time)) for time in self.concentration_model.state_change_times()))):
-                raise ValueError("If the diameter is an array, none of the ventilation parameters "
-                                "or virus decay constant can be arrays at the same time.")
         
         # Check if exposed population is static
         if not isinstance(self.exposed.number, int) or not isinstance(self.exposed.presence, Interval):

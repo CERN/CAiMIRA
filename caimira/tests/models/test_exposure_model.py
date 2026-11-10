@@ -366,55 +366,77 @@ def test_probabilistic_exposure_probability(data_registry, exposed_population, c
 )
 def test_diameter_vectorization_window_opening(data_registry, diameter_dependent_model, volume, outside_temp,
                                                 window_height, opening_length, cases_model):
-    concentration = replace(diameter_dependent_model,
-        room = models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0., 24.), (293.,)), humidity=0.3),
-        ventilation=models.SlidingWindow(
-            data_registry=data_registry,
-            active=models.PeriodicInterval(period=120, duration=120),
-            outside_temp=outside_temp,
-            window_height=window_height,
-            opening_length=opening_length
-        ),
-    )
     with pytest.raises(ValueError, match="If the diameter is an array, none of the ventilation parameters "
                                         "or virus decay constant can be arrays at the same time."):
-        models.ExposureModel(data_registry, concentration, populations[0], cases_model)
+        models.ExposureModel(
+            data_registry, 
+            concentration_model=replace(diameter_dependent_model,
+                room = models.Room(volume=volume, inside_temp=models.PiecewiseConstant((0., 24.), (293.,)), humidity=0.3),
+                ventilation=models.SlidingWindow(
+                    data_registry=data_registry,
+                    active=models.PeriodicInterval(period=120, duration=120),
+                    outside_temp=outside_temp,
+                    window_height=window_height,
+                    opening_length=opening_length
+                ),
+            ), 
+            exposed=populations[0], 
+            geographical_data=cases_model,
+        )
 
 
 def test_diameter_vectorization_hinged_window(data_registry, diameter_dependent_model, cases_model):
     # Verify (ventilation) window_width vectorization.
-    concentration = replace(diameter_dependent_model,
-        ventilation = models.HingedWindow(active=models.PeriodicInterval(period=120, duration=120),
-                                    outside_temp=models.PiecewiseConstant((0., 24.), (293.,)),
-                                    window_height=1.,
-                                    opening_length=1.,
-                                    window_width=np.array([1., 0.5]))
-    )
     with pytest.raises(ValueError, match="If the diameter is an array, none of the ventilation parameters "
                                         "or virus decay constant can be arrays at the same time."):
-        models.ExposureModel(data_registry, concentration, populations[0], cases_model)
+                models.ExposureModel(
+            data_registry, 
+            concentration_model=replace(diameter_dependent_model,
+                ventilation = models.HingedWindow(
+                    active=models.PeriodicInterval(period=120, duration=120),
+                    outside_temp=models.PiecewiseConstant((0., 24.), (293.,)),
+                    window_height=1.,
+                    opening_length=1.,
+                    window_width=np.array([1., 0.5])
+                )
+            ),
+            exposed=populations[0], 
+            geographical_data=cases_model,
+        )
 
 
 def test_diameter_vectorization_HEPA_filter(data_registry, diameter_dependent_model, cases_model):
     # Verify (ventilation) q_air_mech vectorization.
-    concentration = replace(diameter_dependent_model,
-        ventilation = models.HEPAFilter(active=models.PeriodicInterval(period=120, duration=120),
-                                        q_air_mech=np.array([0.5, 1.]))
-    )
     with pytest.raises(ValueError, match="If the diameter is an array, none of the ventilation parameters "
                                         "or virus decay constant can be arrays at the same time."):
-        models.ExposureModel(data_registry, concentration, populations[1], cases_model)
+        models.ExposureModel(
+            data_registry=data_registry, 
+            concentration_model=replace(diameter_dependent_model,
+                ventilation = models.HEPAFilter(
+                    active=models.PeriodicInterval(period=120, duration=120),
+                    q_air_mech=np.array([0.5, 1.])
+                )
+            ), 
+            exposed=populations[1], 
+            geographical_data=cases_model,
+        )
 
 
 def test_diameter_vectorization_air_change(data_registry, diameter_dependent_model, cases_model):
     # Verify (ventilation) air_exch vectorization.
-    concentration = replace(diameter_dependent_model,
-        ventilation = models.AirChange(active=models.PeriodicInterval(period=120, duration=120),
-                                        air_exch=np.array([0.5, 1.]))
-    )
     with pytest.raises(ValueError, match="If the diameter is an array, none of the ventilation parameters "
                                         "or virus decay constant can be arrays at the same time."):
-        models.ExposureModel(data_registry, concentration, populations[2], cases_model)
+        models.ExposureModel(
+            data_registry=data_registry, 
+            concentration_model=replace(diameter_dependent_model,
+                ventilation = models.AirChange(
+                    active=models.PeriodicInterval(period=120, duration=120),
+                    air_exch=np.array([0.5, 1.])
+                )
+            ), 
+            exposed=populations[2], 
+            geographical_data=cases_model,
+        )
 
 
 @pytest.mark.parametrize(
@@ -431,11 +453,16 @@ def test_diameter_vectorization_air_change(data_registry, diameter_dependent_mod
     ]
 )
 def test_diameter_vectorization_room(data_registry, diameter_dependent_model, cases_model, volume, inside_temp, humidity, error_message):
-    concentration = replace(diameter_dependent_model,
-        room = models.Room(volume=volume, inside_temp=inside_temp, humidity=humidity),
-        ventilation = models.HVACMechanical(active=models.SpecificInterval(((0., 24.), )), q_air_mech=100.))
     with pytest.raises(ValueError, match=error_message):
-        models.ExposureModel(data_registry, concentration, populations[0], cases_model)
+        models.ExposureModel(
+            data_registry=data_registry, 
+            concentration_model=replace(diameter_dependent_model,
+                room = models.Room(volume=volume, inside_temp=inside_temp, humidity=humidity),
+                ventilation = models.HVACMechanical(active=models.SpecificInterval(((0., 24.), )), q_air_mech=100.)
+            ), 
+        exposed=populations[0], 
+        geographical_data=cases_model,
+    )
 
 
 @pytest.mark.parametrize(
