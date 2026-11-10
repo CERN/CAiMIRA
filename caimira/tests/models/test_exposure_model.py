@@ -273,7 +273,6 @@ def test_infectious_dose_vectorization(cases_model, data_registry):
     )
     cm = known_concentrations(lambda t: 0.6)
     cm = replace(cm, infected_populations=(infected_population,))
-    print(cm)
     cm = replace(cm, n_samples=len(infectious_doses))
 
     presence_interval = models.SpecificInterval(((0., 1.),))

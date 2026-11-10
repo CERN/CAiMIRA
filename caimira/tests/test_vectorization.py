@@ -154,24 +154,6 @@ def non_dynamic_mixed_conc_models(data_registry, baseline_sr_model):
         )
     )
 
-
-@pytest.fixture
-def dynamic_mixed_model(data_registry, baseline_sr_model):
-    virus = virus_distributions(data_registry)['SARS_CoV_2'].build_model(SAMPLE_SIZE) # random
-    virus = models.Virus.types['SARS_CoV_2'] # deterministic
-    infected_populations = mixed_infected_populations(data_registry=data_registry, virus=virus)
-    return mc.ConcentrationModel(
-        data_registry=data_registry,
-        room=mc.Room(volume=75, inside_temp=mc.PiecewiseConstant((0., 24.), (293,))),
-        ventilation=mc.AirChange(
-            active=mc.SpecificInterval(((0., 24.), )),
-            air_exch=30.,
-        ),
-        infected_populations=infected_populations,
-        evaporation_factor=0.3,
-        short_range=(baseline_sr_model,)*len(infected_populations),
-    )
-
 @pytest.fixture
 def mc_co2_conc_model(data_registry):
     return mc.CO2ConcentrationModel(

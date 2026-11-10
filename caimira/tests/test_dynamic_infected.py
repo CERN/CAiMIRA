@@ -116,7 +116,7 @@ def all_infected_populations(infected_dynamic_number, infected_dynamic_presence,
     return tuple(infected_dynamic_number + infected_dynamic_presence + infected_dynamic_mask + infected_dynamic_activity + infected_dynamic_expiration + infected_dynamic_immunity)
 
 @pytest.fixture
-def mismated_viruses_conc_model(infected_dynamic_virus):
+def mismatched_viruses_conc_model(infected_dynamic_virus):
     """
     Invalid concentration models because the infected populations do not all have the same virus.
     """
@@ -230,13 +230,13 @@ def get_exposure_model(concentration_model) -> mc.ExposureModel:
         geographical_data=models.Cases(),
     )
 
-def test_common_params(dynamic_conc_model, mismated_viruses_conc_model):
+def test_common_params(dynamic_conc_model, mismatched_viruses_conc_model):
     """
     Check that an error is raised when initializing an ExposureModel with ConcentrationModels 
     with different viruses and rooms.
     """
     with pytest.raises(ValueError):
-        mismated_viruses_conc_model.build_model(1)
+        mismatched_viruses_conc_model.build_model(1)
     valid_model = dynamic_conc_model.build_model(1)
     assert all([isinstance(infected, models.InfectedPopulation) for infected in valid_model.infected_populations])
     assert isinstance(valid_model.virus, models.Virus)

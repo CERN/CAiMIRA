@@ -1248,7 +1248,7 @@ class _ConcentrationModelBase:
         raise NotImplementedError("Subclass must implement")
 
 
-    def min_background_concentration(self, n_samples=None) -> _VectorizedFloat:
+    def min_background_concentration(self) -> _VectorizedFloat:
         """
         Minimum background concentration in the room for a given scenario
         (in the same unit as the concentration). Its the value towards which
@@ -1408,7 +1408,7 @@ class _ConcentrationModelBase:
         """
         return self._normed_concentration_addition_cached(time)*self.normalization_factor()
     
-    def concentration(self, time: float) -> _VectorizedFloat:
+    def concentration(self, time: float) -> float:
         """
         Total concentration, from all populations and min_background_concentration,
         as a function of time.
@@ -1588,11 +1588,7 @@ class ConcentrationModel(_ConcentrationModelBase):
 
     def normalization_factor(self) -> _PopulationArray:
         """
-        We normalize the computations by the emission rate, containing
-        (almost) all random variables except the particle diameter.
-        
-        n_samples is the number of Monte Carlo samples for the 
-        diameter-independent random variables.
+        We normalize the computations by the emission rate.
         """
         return np.stack(
             [
@@ -1648,7 +1644,7 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         """Shape (n_populations, 1)."""
         return np.asarray([self.ventilation.air_exchange(self.room, time)]*len(self.populations)).reshape(-1,1)
 
-    def min_background_concentration(self, n_samples=None) -> _VectorizedFloat:
+    def min_background_concentration(self) -> _VectorizedFloat:
         """
         Background CO2 concentration in the atmosphere (in ppm)
         """
