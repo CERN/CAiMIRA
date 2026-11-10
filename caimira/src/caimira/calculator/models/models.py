@@ -1528,6 +1528,13 @@ class ConcentrationModel(_ConcentrationModelBase):
         if any(infected.virus is not self.virus for infected in self.infected_populations):
             raise ValueError("All infected must be infected with the same virus.")
 
+        if len(self.infected_populations) != len(self.short_range):
+            raise ValueError(
+                f"'short_range' must contain exactly one tuple of short-range interactions "
+                f"for each infected population. Got {len(self.infected_populations)} infected populations and " \
+                f"{len(self.short_range)} tuples of short-range interactions."
+            )
+
         for infected, interaction_tuple in zip(self.infected_populations, self.short_range):
             for interaction in interaction_tuple:
                 if interaction.presence.boundaries()[0][0] < infected.presence.boundaries()[0][0] or interaction.presence.boundaries()[-1][-1] > infected.presence.boundaries()[-1][-1]:

@@ -159,6 +159,15 @@ def dummy_population(simple_conc_model) -> models.Population:
         host_immunity=0.,
     )
 
+def test_invalid_short_range(simple_conc_model):
+    with pytest.raises(ValueError, match="'short_range' must contain exactly one tuple of short-range interactions "
+            "for each infected population. Got 1 infected populations and " \
+            "2 tuples of short-range interactions."):
+        nested_replace(simple_conc_model, {'short_range': ((),())})
+    with pytest.raises(ValueError, match="'short_range' must contain exactly one tuple of short-range interactions "
+            "for each infected population. Got 1 infected populations and " \
+            "0 tuples of short-range interactions."):
+        nested_replace(simple_conc_model, {'short_range': ()})
 
 @pytest.mark.parametrize(
     "time, expected_last_state_change", [
