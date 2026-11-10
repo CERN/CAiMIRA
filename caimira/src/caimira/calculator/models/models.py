@@ -1254,7 +1254,7 @@ class _ConcentrationModelBase:
         (in the same unit as the concentration). Its the value towards which
         the concentration will decay to.
         """
-        return self.data_registry.concentration_model['virus_concentration_model']['min_background_concentration']
+        return self.data_registry.concentration_model['virus_concentration_model']['min_background_concentration'] # type: ignore
 
     def normalization_factor(self) -> _PopulationArray:
         """
