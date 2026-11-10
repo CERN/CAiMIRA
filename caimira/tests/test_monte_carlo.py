@@ -94,7 +94,7 @@ def test_build_concentration_model(baseline_mc_concentration_model: caimira.calc
     model = baseline_mc_concentration_model.build_model(7)
     assert isinstance(model, caimira.calculator.models.models.ConcentrationModel)
     conc = model.concentration(time=0.)
-    integ_conc = model.normed_time_integrated_concentration_addition(0,8)
+    integ_conc = model.normed_time_integrated_concentration_addition_by_population(0,8)
     assert isinstance(conc, float)
     assert isinstance(integ_conc, np.ndarray)
     assert integ_conc.shape == (1, 7) # Corresponding to (n_populations, n_ventilation_samples)

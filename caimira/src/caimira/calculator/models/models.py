@@ -1267,11 +1267,10 @@ class _ConcentrationModelBase:
         raise NotImplementedError("Subclass must implement")
 
     @method_cache
-    def _normed_concentration_addition_limit(self, time: float) -> _PopulationArray:
+    def _normed_concentration_addition_limit_by_population(self, time: float) -> _PopulationArray:
         """
-        Provides a constant that represents the theoretical asymptotic
-        value reached by the concentration when time goes to infinity,
-        if all parameters were to stay time-independent.
+        Provides the theoretical asymptotic value, for each population, reached by the concentration 
+        when time goes to infinity if all parameters were to stay time-independent.
         This is normalized by the normalization factor, the latter acting as a
         multiplicative constant factor for the concentration model that
         can be put back in front of the concentration after the time
@@ -1314,18 +1313,19 @@ class _ConcentrationModelBase:
         return times[t_index]
 
     @method_cache
-    def _normed_concentration_addition_cached(self, time: float) -> _PopulationArray:
+    def _normed_concentration_addition_by_population_cached(self, time: float) -> _PopulationArray:
         """
-        A cached version of the _normed_concentration method. Use this
-        method if you expect that there may be multiple concentration
+        A cached version of the _normed_concentration_addition_by_population method. U
+        se this method if you expect that there may be multiple concentration
         calculations for the same time (e.g. at state change times).
         """
-        return self._normed_concentration_addition(time)
+        return self._normed_concentration_addition_by_population(time)
 
-    def _normed_concentration_addition(self, time: float) -> _PopulationArray:
+    def _normed_concentration_addition_by_population(self, time: float) -> _PopulationArray:
         """
-        Diameter-dependent concentration addition above the min_background_concentration 
-        as a function of time, normalized by normalization_factor, for each population. 
+        Diameter-dependent concentration addition from each population above the 
+        min_background_concentration, as a function of time and normalized by the
+        normalization_factor. 
 
         The formulas used here assume that all parameters (ventilation,
         emission rate) are constant between two state changes - only
@@ -1341,7 +1341,7 @@ class _ConcentrationModelBase:
         t_last_state_change = self.last_state_change(time)
         delta_time = time - t_last_state_change
 
-        concentration_limit = self._normed_concentration_addition_limit(time)
+        concentration_limit = self._normed_concentration_addition_limit_by_population(time)
 
         if time == 0.0:
             return np.zeros(
@@ -1349,7 +1349,7 @@ class _ConcentrationModelBase:
                 dtype=np.float64,
             )
 
-        conc_at_last_state_change = self._normed_concentration_addition_cached(
+        conc_at_last_state_change = self._normed_concentration_addition_by_population_cached(
             t_last_state_change 
         )
 
@@ -1406,11 +1406,11 @@ class _ConcentrationModelBase:
         Note that time is not vectorized. You can only pass a single float
         to this method.
         """
-        return self._normed_concentration_addition_cached(time)*self.normalization_factor()
+        return self._normed_concentration_addition_by_population_cached(time)*self.normalization_factor()
     
     def concentration(self, time: float) -> float:
         """
-        Total concentration, from all populations and min_background_concentration,
+        Total concentration, from all populations and including the min_background_concentration,
         as a function of time.
 
         Integrating over the particle diameter and averaging over all random variables. 
@@ -1418,9 +1418,9 @@ class _ConcentrationModelBase:
         return np.mean(self.concentration_addition_by_population(time).sum(axis=0) + self.min_background_concentration())
 
     @method_cache
-    def normed_time_integrated_concentration_addition(self, start: float, stop: float) -> _PopulationArray:
+    def normed_time_integrated_concentration_addition_by_population(self, start: float, stop: float) -> _PopulationArray:
         """
-        Get the integrated concentration addition between the times start and stop,
+        Get the integrated concentration addition from each population between the times start and stop,
         not including the min_background_concentration, normalized by normalization_factor.
         """
         if stop < start:
@@ -1437,7 +1437,7 @@ class _ConcentrationModelBase:
         )))
 
         total_normed_concentration = np.zeros_like(
-            self._normed_concentration_addition_cached(start), 
+            self._normed_concentration_addition_by_population_cached(start), 
             dtype=np.float64
         )
 
@@ -1449,8 +1449,8 @@ class _ConcentrationModelBase:
 
             delta_time = interval_stop - interval_start
 
-            conc_start = self._normed_concentration_addition_cached(interval_start)
-            conc_limit = self._normed_concentration_addition_limit(interval_stop)
+            conc_start = self._normed_concentration_addition_by_population_cached(interval_start)
+            conc_limit = self._normed_concentration_addition_limit_by_population(interval_stop)
 
             nonzero_removal = RR != 0.0
             contribution = np.zeros_like(
@@ -1501,12 +1501,12 @@ class _ConcentrationModelBase:
         Concentration addition from each population, integrated between the times start and stop. 
         The normalization factor has been put back.
         """
-        return self.normed_time_integrated_concentration_addition(start, stop)*self.normalization_factor()
+        return self.normed_time_integrated_concentration_addition_by_population(start, stop)*self.normalization_factor()
 
 
     def integrated_concentration(self, start: float, stop: float) -> _VectorizedFloat:
         """
-        Total concentration, from all populations and min_background_concentration,
+        Total concentration, combining additions from all populations and min_background_concentration,
         integrated between the times start and stop. 
 
         Integrating over the particle diameter and all random variables.
@@ -1869,7 +1869,7 @@ class ExposureModel:
         The number of virions per meter^3 between any two times, normalized
         by the emission rate of the infected population.
         """
-        shape_like = self.concentration_model.normed_time_integrated_concentration_addition(self.population_state_change_times()[0], self.population_state_change_times()[1])
+        shape_like = self.concentration_model.normed_time_integrated_concentration_addition_by_population(self.population_state_change_times()[0], self.population_state_change_times()[1])
         exposure = np.zeros_like(shape_like, dtype=np.float64)
         for start, stop in self.exposed.presence_interval().boundaries():
             if stop < time1:
@@ -1877,13 +1877,13 @@ class ExposureModel:
             elif start > time2:
                 break
             elif start <= time1 and time2 <= stop:
-                exposure += self.concentration_model.normed_time_integrated_concentration_addition(time1, time2)
+                exposure += self.concentration_model.normed_time_integrated_concentration_addition_by_population(time1, time2)
             elif start <= time1 and stop < time2:
-                exposure += self.concentration_model.normed_time_integrated_concentration_addition(time1, stop)
+                exposure += self.concentration_model.normed_time_integrated_concentration_addition_by_population(time1, stop)
             elif time1 < start and time2 <= stop:
-                exposure += self.concentration_model.normed_time_integrated_concentration_addition(start, time2)
+                exposure += self.concentration_model.normed_time_integrated_concentration_addition_by_population(start, time2)
             elif time1 <= start and stop < time2:
-                exposure += self.concentration_model.normed_time_integrated_concentration_addition(start, stop)
+                exposure += self.concentration_model.normed_time_integrated_concentration_addition_by_population(start, stop)
         return np.asarray(exposure)
     
     def concentration(self, time: float) -> float:
@@ -1909,6 +1909,7 @@ class ExposureModel:
 
     def long_range_deposited_exposure_between_bounds_by_population(self, time1: float, time2: float) -> _PopulationArray:
         """
+        Long range exposure additions from each population. 
         Not including minimum background concentration.
         """
         normed_exposure = self._long_range_normed_exposure_between_bounds(time1, time2)
