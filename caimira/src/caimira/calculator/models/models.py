@@ -1343,7 +1343,15 @@ class _ConcentrationModelBase:
 
         concentration_limit = self._normed_concentration_addition_limit_by_population(time)
 
-        if time == 0.0:
+        before_first_presence: _PopulationVector = np.asarray(
+            [
+                time <= population.first_presence_time()
+                for population in self.populations
+            ],
+            dtype=bool,
+        )
+
+        if np.all(before_first_presence):
             return np.zeros(
                 concentration_limit.shape,
                 dtype=np.float64,
@@ -1360,9 +1368,10 @@ class _ConcentrationModelBase:
             dtype=np.float64
         )
 
-        zero_removal = np.broadcast_to(
+        zero_removal = np.full_like(
+            curr_conc_state,
             RR == 0.0,
-            curr_conc_state.shape,
+            dtype=bool,
         )
 
         np.divide(
@@ -1382,14 +1391,6 @@ class _ConcentrationModelBase:
         result = (
             curr_conc_state
             + conc_at_last_state_change * fac
-        )
-
-        before_first_presence: _PopulationVector = np.asarray(
-            [
-                time <= population.first_presence_time()
-                for population in self.populations
-            ],
-            dtype=bool,
         )
 
         return np.where(
@@ -1484,17 +1485,7 @@ class _ConcentrationModelBase:
 
             total_normed_concentration += contribution 
 
-        # A population which has not entered before
-        # `stop` contributes no integrated concentration.
-        not_yet_present: _PopulationVector = np.asarray(
-            [
-                stop <= population.first_presence_time()
-                for population in self.populations
-            ],
-            dtype=bool,
-        )
-
-        return np.where(not_yet_present.reshape(-1, 1), 0.0, total_normed_concentration) 
+        return total_normed_concentration
 
     def integrated_concentration_addition_by_population(self, start: float, stop: float) -> _PopulationArray:
         """
