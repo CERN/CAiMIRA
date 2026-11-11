@@ -407,7 +407,8 @@ def test_normed_time_integrated_concentration_addition_by_population_vectorizati
         [0.0001, 240.0, 240. + 0.5/75],
         [1e-6, 240.0, 240 + 0.5/75],
         [0., np.array([240., 240.]), np.array([240. + 0.5/75, 240. + 0.5/75])],
-        [np.array([0.0001, 1e-6]), np.array([240., 240.]), np.array([240. + 0.5/75, 240. + 0.5/75])],
+        [np.array([0., 1e-6]), np.array([240., 240.]), np.array([240. + 0.5/75, 240. + 0.5/75])],
+        [np.array([0, 0.0001, 1e-6]), np.array([240., 240., 240.]), np.array([240. + 0.5/75, 240. + 0.5/75, 240. + 0.5/75])],
     ]
 )
 def test_zero_ventilation_rate(
