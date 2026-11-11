@@ -1487,7 +1487,7 @@ class _ConcentrationModelBase:
 
         return total_normed_concentration
 
-    def integrated_concentration_addition_by_population(self, start: float, stop: float) -> _PopulationArray:
+    def time_integrated_concentration_addition_by_population(self, start: float, stop: float) -> _PopulationArray:
         """
         Concentration addition from each population, integrated between the times start and stop. 
         The normalization factor has been put back.
@@ -1495,14 +1495,14 @@ class _ConcentrationModelBase:
         return self.normed_time_integrated_concentration_addition_by_population(start, stop)*self.normalization_factor()
 
 
-    def integrated_concentration(self, start: float, stop: float) -> _VectorizedFloat:
+    def time_integrated_concentration(self, start: float, stop: float) -> _VectorizedFloat:
         """
         Total concentration, combining additions from all populations and min_background_concentration,
         integrated between the times start and stop. 
 
         Integrating over the particle diameter and all random variables.
         """
-        return np.mean(self.integrated_concentration_addition_by_population(start, stop).sum(axis=0) + (stop-start)*self.min_background_concentration())
+        return np.mean(self.time_integrated_concentration_addition_by_population(start, stop).sum(axis=0) + (stop-start)*self.min_background_concentration())
 
 @dataclass(frozen=True)
 class ConcentrationModel(_ConcentrationModelBase):

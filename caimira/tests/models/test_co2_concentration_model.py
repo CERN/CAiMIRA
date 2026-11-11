@@ -59,9 +59,9 @@ def test_co2_concentration(
 
 
 def test_integrated_concentration(simple_co2_conc_model):
-    c1 = simple_co2_conc_model.integrated_concentration(0, 2)
-    c2 = simple_co2_conc_model.integrated_concentration(0, 1)
-    c3 = simple_co2_conc_model.integrated_concentration(1, 2)
+    c1 = simple_co2_conc_model.time_integrated_concentration(0, 2)
+    c2 = simple_co2_conc_model.time_integrated_concentration(0, 1)
+    c3 = simple_co2_conc_model.time_integrated_concentration(1, 2)
     assert c1 != 0
     npt.assert_almost_equal(c1, c2 + c3)
 
@@ -159,5 +159,5 @@ def test_concentration_after_last_state_change(simple_co2_conc_model, simple_co2
     npt.assert_almost_equal(simple_co2_conc_model.concentration(time), simple_co2_conc_model_extended_presence.concentration(time))
     npt.assert_almost_equal(simple_co2_conc_model._normed_concentration_addition_by_population(time), simple_co2_conc_model_extended_presence._normed_concentration_addition_by_population(time))
     npt.assert_almost_equal(simple_co2_conc_model.normed_time_integrated_concentration_addition_by_population(start, stop), simple_co2_conc_model_extended_presence.normed_time_integrated_concentration_addition_by_population(start, stop))
-    npt.assert_almost_equal(simple_co2_conc_model.integrated_concentration(start, stop), simple_co2_conc_model_extended_presence.integrated_concentration(start, stop))
+    npt.assert_almost_equal(simple_co2_conc_model.time_integrated_concentration(start, stop), simple_co2_conc_model_extended_presence.time_integrated_concentration(start, stop))
     

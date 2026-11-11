@@ -298,52 +298,11 @@ def test_last_state_change_time(
 
 
 def test_integrated_concentration(simple_conc_model):
-    c1 = simple_conc_model.integrated_concentration(0, 2)
-    c2 = simple_conc_model.integrated_concentration(0, 1)
-    c3 = simple_conc_model.integrated_concentration(1, 2)
+    c1 = simple_conc_model.time_integrated_concentration(0, 2)
+    c2 = simple_conc_model.time_integrated_concentration(0, 1)
+    c3 = simple_conc_model.time_integrated_concentration(1, 2)
     assert c1 != 0
     npt.assert_almost_equal(c1, c2 + c3, decimal=15)
-
-
-# The expected numbers were obtained via the quad integration of the
-# normed_time_integrated_concentration_addition_by_population method with 0 (start) and 2 (stop) as limits.
-@pytest.mark.parametrize([
-    "known_min_background_concentration",
-    "expected_normed_time_integrated_concentration_addition_by_population"],
-    [
-        [0.0, 0.00018533333708996207],
-        [240.0, 48.000185340695275],
-        [440.0, 88.00018534069527],
-        [600., 120.00018534069527],
-        [1000., 200.0001853407918],
-    ]
-)
-def test_normed_time_integrated_concentration_addition_by_population_with_background_concentration(
-    data_registry: DataRegistry,
-    simple_conc_model: models.ConcentrationModel,
-    dummy_population: models.Population,
-    known_min_background_concentration: float,
-    expected_normed_time_integrated_concentration_addition_by_population: float):
-
-    known_normalization_factor = 10.
-
-    known_conc_model = KnownConcentrationModelBase(
-        data_registry,
-        room = simple_conc_model.room,
-        ventilation = simple_conc_model.ventilation,
-        known_populations = (dummy_population,),
-        known_removal_rate = 100.,
-        known_min_background_concentration = known_min_background_concentration,
-        known_normalization_factor = known_normalization_factor,
-    )
-    normed_int_conc_with_normed_background = known_conc_model.normed_time_integrated_concentration_addition_by_population(0, 2)+(2-0)*known_min_background_concentration/known_normalization_factor
-    npt.assert_almost_equal(normed_int_conc_with_normed_background, expected_normed_time_integrated_concentration_addition_by_population)
-
-    # Dynamic infected
-    known_conc_model_two_pop = nested_replace(known_conc_model, {"known_populations": (dummy_population,)*2})
-    normed_int_conc_no_normed_background = known_conc_model_two_pop.normed_time_integrated_concentration_addition_by_population(0, 2)
-    expected_normed_int_conc_addition_one_pop = expected_normed_time_integrated_concentration_addition_by_population-(2-0)*known_min_background_concentration/known_normalization_factor
-    npt.assert_almost_equal(np.sum(normed_int_conc_no_normed_background), 2*expected_normed_int_conc_addition_one_pop)
 
 
 # The expected numbers were obtained via the quad integration of the
@@ -352,23 +311,72 @@ def test_normed_time_integrated_concentration_addition_by_population_with_backgr
     "known_removal_rate",
     "known_min_background_concentration",
     "known_normalization_factor",
-    "expected_normed_time_integrated_concentration"],
+    "expected_normed_time_integrated_concentration_addition_one_pop"],
     [
+        [100., 0.0, 10., 0.00018533333708996207],
         [np.array([[0.25, 10]]), np.array([[0.0, 0.0]]), np.array([[10., 10.]]), np.array([[0.012161005755130391, 0.0017333437605308818]])],
-        [np.array([[100, 100]]), np.array([[0, 240.0]]), np.array([[10., 10.]]), np.array([[0.00018533333708996207, 48.000185340695275]])],
-        [np.array([[100, 100]]), np.array([[440.0, 440.0]]), np.array([[10., 20.]]), np.array([[88.00018534069527, 44.000185340695275]])],
-        [np.array([[10., 100]]), np.array([[600., 800.]]), 10., np.array([[120.00173334473946, 160.0001853406953]])],
-        [np.array([[50., 100]]), np.array([[1000.,1100.]]), np.array([[10., 20.]]), np.array([[200.00036800764332, 110.00018534069527]])],
     ]
 )
-def test_normed_time_integrated_concentration_addition_by_population_vectorization(
+def test_normed_time_integrated_concentration_addition_by_population(
+    data_registry: DataRegistry,
+    simple_conc_model: models.ConcentrationModel,
+    dummy_population: models.Population,
+    known_removal_rate,
+    known_min_background_concentration,
+    known_normalization_factor,
+    expected_normed_time_integrated_concentration_addition_one_pop,
+):
+
+    known_conc_model = KnownConcentrationModelBase(
+        data_registry = data_registry,
+        room = simple_conc_model.room,
+        ventilation = simple_conc_model.ventilation,
+        known_populations = (dummy_population,),
+        known_removal_rate = known_removal_rate,
+        known_min_background_concentration = known_min_background_concentration,
+        known_normalization_factor = known_normalization_factor
+    )
+
+    normed_integrated_concentration = known_conc_model.normed_time_integrated_concentration_addition_by_population(0, 2)
+
+    assert isinstance(normed_integrated_concentration, np.ndarray)
+    npt.assert_almost_equal(normed_integrated_concentration, expected_normed_time_integrated_concentration_addition_one_pop)
+
+    # Dynamic infected
+    known_conc_model_four_pop = nested_replace(known_conc_model, {"known_populations": (dummy_population,)*4})
+    normed_integrated_concentration_four_pop = np.sum(known_conc_model_four_pop.normed_time_integrated_concentration_addition_by_population(0, 2), axis=0)
+    expected_integrated_concentration_four_pop = np.asarray(4*(expected_normed_time_integrated_concentration_addition_one_pop)).flatten() # type: ignore
+    npt.assert_allclose(normed_integrated_concentration_four_pop, expected_integrated_concentration_four_pop, rtol=1e-5)
+
+
+# The expected numbers were obtained via the quad integration of the
+# normed_time_integrated_concentration_addition_by_population method with 0 (start) and 2 (stop) as limits.
+@pytest.mark.parametrize([
+    "known_removal_rate",
+    "known_min_background_concentration",
+    "known_normalization_factor",
+    "expected_time_integrated_concentration_one_pop"],
+    [
+        [100., 0.0, 10., 0.0018533333708996207],
+        [100., 240.0, 10., 480.00185340695275],
+        [100., 440.0, 10., 880.0018534069527],
+        [100., 600., 10., 1200.0018534069527],
+        [100., 1000., 10., 2000.001853407918],
+        [np.array([[0.25, 10]]), np.array([[0.0, 0.0]]), np.array([[10., 10.]]), np.array([[0.12161005755130391, 0.017333437605308818]])],
+        [np.array([[100, 100]]), np.array([[0, 240.0]]), np.array([[10., 10.]]), np.array([[0.0018533333708996207, 480.00185340695275]])],
+        [np.array([[100, 100]]), np.array([[440.0, 440.0]]), np.array([[10., 20.]]), np.array([[880.0018534069527, 880.0037068139055]])],
+        [np.array([[10., 100]]), np.array([[600., 800.]]), 10., np.array([[1200.0173334473946, 1600.001853406953]])],
+        [np.array([[50., 100]]), np.array([[1000.,1100.]]), np.array([[10., 20.]]), np.array([[2000.0036800764332, 2200.0037068139054]])],
+    ]
+)
+def test_time_integrated_concentration(
     data_registry: DataRegistry,
     simple_conc_model: models.ConcentrationModel,
     dummy_population: models.Population,
     known_removal_rate: float,
     known_min_background_concentration: float,
     known_normalization_factor: float,
-    expected_normed_time_integrated_concentration: float):
+    expected_time_integrated_concentration_one_pop: float):
 
     known_conc_model = KnownConcentrationModelBase(
         data_registry = data_registry,
@@ -379,22 +387,14 @@ def test_normed_time_integrated_concentration_addition_by_population_vectorizati
         known_min_background_concentration = known_min_background_concentration,
         known_normalization_factor = known_normalization_factor)
 
-    normed_integrated_concentration = known_conc_model.normed_time_integrated_concentration_addition_by_population(0, 2)
-    integrated_concentration = known_conc_model.integrated_concentration(0, 2)
-
-    assert isinstance(normed_integrated_concentration, np.ndarray)
-    assert normed_integrated_concentration.shape == (1, 2)
-    npt.assert_almost_equal(normed_integrated_concentration+(2-0)*known_min_background_concentration/known_normalization_factor, expected_normed_time_integrated_concentration)
-    npt.assert_almost_equal(integrated_concentration, np.mean(expected_normed_time_integrated_concentration*known_normalization_factor)) # type: ignore
+    integrated_concentration = known_conc_model.time_integrated_concentration(0, 2)
+    npt.assert_almost_equal(integrated_concentration, np.mean(expected_time_integrated_concentration_one_pop)) # type: ignore
 
     # Dynamic infected
     known_conc_model_four_pop = nested_replace(known_conc_model, {"known_populations": (dummy_population,)*4})
-    integrated_concentration_four_pop = known_conc_model_four_pop.integrated_concentration(0, 2)
-    expected_integrated_concentration_four_pop = np.mean( # type: ignore
-        4*(expected_normed_time_integrated_concentration*known_normalization_factor)           # min background concentration (integrated over [0,2]) added four times here
-        - 3*(2-0)*known_min_background_concentration                                           # and hence subtracted three times here
-    )
-    npt.assert_allclose(integrated_concentration_four_pop, expected_integrated_concentration_four_pop, rtol=1e-5)
+    integrated_concentration_four_pop = known_conc_model_four_pop.time_integrated_concentration(0, 2)
+    expected_integrated_concentration_four_pop = 4*(expected_time_integrated_concentration_one_pop)-3*(2-0)*known_min_background_concentration # type: ignore
+    npt.assert_allclose(integrated_concentration_four_pop, np.mean(expected_integrated_concentration_four_pop), rtol=1e-5)
 
 
 
@@ -461,4 +461,4 @@ def test_concentration_after_last_state_change(simple_conc_model, simple_conc_mo
     npt.assert_almost_equal(simple_conc_model.concentration(time), simple_conc_model_extended_presence.concentration(time))
     npt.assert_almost_equal(simple_conc_model._normed_concentration_addition_by_population(time), simple_conc_model_extended_presence._normed_concentration_addition_by_population(time))
     npt.assert_almost_equal(simple_conc_model.normed_time_integrated_concentration_addition_by_population(start, stop), simple_conc_model_extended_presence.normed_time_integrated_concentration_addition_by_population(start, stop))
-    npt.assert_almost_equal(simple_conc_model.integrated_concentration(start, stop), simple_conc_model_extended_presence.integrated_concentration(start, stop))
+    npt.assert_almost_equal(simple_conc_model.time_integrated_concentration(start, stop), simple_conc_model_extended_presence.time_integrated_concentration(start, stop))

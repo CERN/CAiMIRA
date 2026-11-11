@@ -184,8 +184,8 @@ def _test_types(model, time, start, stop):
     assert isinstance(model.concentration_addition_by_population(time), np.ndarray)
     assert isinstance(model.concentration(time), float)
     assert isinstance(model.normed_time_integrated_concentration_addition_by_population(start,stop), np.ndarray)
-    assert isinstance(model.integrated_concentration_addition_by_population(start,stop), np.ndarray)
-    assert isinstance(model.integrated_concentration(start,stop), float)
+    assert isinstance(model.time_integrated_concentration_addition_by_population(start,stop), np.ndarray)
+    assert isinstance(model.time_integrated_concentration(start,stop), float)
     assert model.volume().shape == (1, 1)  # type: ignore
 
 
@@ -218,7 +218,7 @@ def _test_conc_dimensions(model: models.ConcentrationModel, acceptable_n_samples
                 (len(model.populations), n_samples)
                 for n_samples in acceptable_n_samples
             }
-    assert model.integrated_concentration_addition_by_population(start,stop).shape in { # type: ignore
+    assert model.time_integrated_concentration_addition_by_population(start,stop).shape in { # type: ignore
                 (len(model.populations), n_samples)
                 for n_samples in acceptable_n_samples
             }
@@ -330,7 +330,7 @@ def test_probabilistic_dynamic_co2_model(
     assert model.normalization_factor().shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
     assert model.concentration_addition_by_population(time).shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
     assert model.normed_time_integrated_concentration_addition_by_population(start,stop).shape == (len(model.populations), 1) # type: ignore
-    assert model.integrated_concentration_addition_by_population(start,stop).shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
+    assert model.time_integrated_concentration_addition_by_population(start,stop).shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
 
 
     mc_co2_conc_model_vectorized_removal = replace(
@@ -353,7 +353,7 @@ def test_probabilistic_dynamic_co2_model(
     assert model.normalization_factor().shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
     assert model.concentration_addition_by_population(time).shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
     assert model.normed_time_integrated_concentration_addition_by_population(start,stop).shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
-    assert model.integrated_concentration_addition_by_population(start,stop).shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
+    assert model.time_integrated_concentration_addition_by_population(start,stop).shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
 
 
 @pytest.fixture
