@@ -1871,7 +1871,7 @@ class ExposureModel:
                 exposure += self.concentration_model.normed_time_integrated_concentration_addition_by_population(start, time2)
             elif time1 <= start and stop < time2:
                 exposure += self.concentration_model.normed_time_integrated_concentration_addition_by_population(start, stop)
-        return np.asarray(exposure)
+        return exposure
     
     def concentration(self, time: float) -> float:
         """
