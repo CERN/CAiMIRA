@@ -32,24 +32,24 @@ class KnownConcentrationModelBase(models._ConcentrationModelBase):
     def populations(self) -> typing.Tuple[models.Population, ...]:
         return self.known_populations
 
-    def removal_rate(self, time: float) -> models._PopulationMatrix:
-        """Convert to models._PopulationMatrix with dimension matching the normalization_factor."""
-        if isinstance(self.known_removal_rate, float):
-            if not isinstance(self.known_normalization_factor, float):
-                return (np.ones(len(np.array(self.known_normalization_factor)))*self.known_removal_rate).reshape(1,-1)
-            return np.asarray([[self.known_removal_rate]])
-        return self.known_removal_rate.reshape(1,-1)
-
     def min_background_concentration(self) -> models._VectorizedFloat:
         return self.known_min_background_concentration
+    
+    def _to_population_matrix(self, value, other) -> models._PopulationMatrix:
+        """
+        Convert 'value' to a models._PopulationMatrix with dimensions matching 'other'.
+        """
+        if isinstance(value, float):
+            if isinstance(other, float):
+                return np.asarray([[value]])
+            return np.full((1, len(other)), value)
+        return value.reshape(1, -1)
+
+    def removal_rate(self, time: float) -> models._PopulationMatrix:
+        return self._to_population_matrix(self.known_removal_rate, self.known_normalization_factor)
 
     def normalization_factor(self) -> models._PopulationMatrix:
-        """Convert to models._PopulationMatrix with dimension matching the removal_rate."""
-        if isinstance(self.known_normalization_factor, float):
-            if not isinstance(self.known_removal_rate, float):
-                return (np.ones(len(np.array(self.known_removal_rate)))*self.known_normalization_factor).reshape(1,-1)
-            return np.asarray([[self.known_normalization_factor]])
-        return self.known_normalization_factor.reshape(1,-1)
+        return self._to_population_matrix(self.known_normalization_factor, self.known_removal_rate)
 
 
 @pytest.mark.parametrize(
@@ -325,6 +325,8 @@ def test_normed_time_integrated_concentration_addition_by_population_with_backgr
     known_min_background_concentration: float,
     expected_normed_time_integrated_concentration_addition_by_population: float):
 
+    known_normalization_factor = 10.
+
     known_conc_model = KnownConcentrationModelBase(
         data_registry,
         room = simple_conc_model.room,
@@ -332,15 +334,15 @@ def test_normed_time_integrated_concentration_addition_by_population_with_backgr
         known_populations = (dummy_population,),
         known_removal_rate = 100.,
         known_min_background_concentration = known_min_background_concentration,
-        known_normalization_factor = 10.,
+        known_normalization_factor = known_normalization_factor,
     )
-    normed_int_conc_with_normed_background = known_conc_model.normed_time_integrated_concentration_addition_by_population(0, 2)+(2-0)*known_min_background_concentration/10
+    normed_int_conc_with_normed_background = known_conc_model.normed_time_integrated_concentration_addition_by_population(0, 2)+(2-0)*known_min_background_concentration/known_normalization_factor
     npt.assert_almost_equal(normed_int_conc_with_normed_background, expected_normed_time_integrated_concentration_addition_by_population)
 
     # Dynamic infected
     known_conc_model_two_pop = nested_replace(known_conc_model, {"known_populations": (dummy_population,)*2})
     normed_int_conc_no_normed_background = known_conc_model_two_pop.normed_time_integrated_concentration_addition_by_population(0, 2)
-    expected_normed_int_conc_addition_one_pop = expected_normed_time_integrated_concentration_addition_by_population-(2-0)*known_min_background_concentration/10
+    expected_normed_int_conc_addition_one_pop = expected_normed_time_integrated_concentration_addition_by_population-(2-0)*known_min_background_concentration/known_normalization_factor
     npt.assert_almost_equal(np.sum(normed_int_conc_no_normed_background), 2*expected_normed_int_conc_addition_one_pop)
 
 
