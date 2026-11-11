@@ -1,10 +1,11 @@
 import pytest
 
 import numpy as np
-
-from caimira.calculator.models import models
-import caimira.calculator.models.monte_carlo as mc
+from caimira.calculator.models.dataclass_utils import replace
 from caimira.calculator.models.monte_carlo.data import activity_distributions, virus_distributions, expiration_distributions, mask_distributions
+
+import caimira.calculator.models.monte_carlo as mc
+from caimira.calculator.models import models
 
 SAMPLE_SIZE = 10
 
@@ -155,7 +156,7 @@ def non_dynamic_mixed_conc_models(data_registry, baseline_sr_model):
     )
 
 @pytest.fixture
-def mc_co2_conc_model(data_registry):
+def mc_co2_conc_model(data_registry) -> mc.CO2ConcentrationModel:
     return mc.CO2ConcentrationModel(
         data_registry=data_registry,
         room=mc.Room(200, mc.PiecewiseConstant((0., 24.), (293,))),
@@ -329,6 +330,29 @@ def test_probabilistic_dynamic_co2_model(
     assert model.normalization_factor().shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
     assert model.concentration_addition_by_population(time).shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
     assert model.normed_time_integrated_concentration_addition_by_population(start,stop).shape == (len(model.populations), 1) # type: ignore
+    assert model.integrated_concentration_addition_by_population(start,stop).shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
+
+
+    mc_co2_conc_model_vectorized_removal = replace(
+        mc_co2_conc_model, 
+        ventilation = models.HingedWindow(
+            active=models.PeriodicInterval(period=120, duration=120),
+            outside_temp=models.PiecewiseConstant((0., 24.), (293.,)),
+            window_height=1.,
+            opening_length=1.,
+            window_width=np.array([1., 0.5,]*int(SAMPLE_SIZE/2)) # length must equal SAMPLE_SIZE
+        ),
+    )
+    model = mc_co2_conc_model_vectorized_removal.build_model(SAMPLE_SIZE)
+    _test_types(model, time, start, stop)
+    assert len(model.populations) == 2
+    assert model.volume().shape == (1, 1) # type: ignore
+    assert model.removal_rate(time).shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
+    assert model._normed_concentration_addition_limit_by_population(time).shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
+    assert model._normed_concentration_addition_by_population(time).shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
+    assert model.normalization_factor().shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
+    assert model.concentration_addition_by_population(time).shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
+    assert model.normed_time_integrated_concentration_addition_by_population(start,stop).shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
     assert model.integrated_concentration_addition_by_population(start,stop).shape == (len(model.populations), SAMPLE_SIZE) # type: ignore
 
 

@@ -1647,8 +1647,10 @@ class CO2ConcentrationModel(_ConcentrationModelBase):
         return self.CO2_emitting_populations
 
     def removal_rate(self, time: float) -> _PopulationMatrix:
-        """Shape (n_populations, 1)."""
-        return np.asarray([self.ventilation.air_exchange(self.room, time)]*len(self.populations)).reshape(-1,1)
+        removal = np.asarray([self.ventilation.air_exchange(self.room, time)]*len(self.populations))
+        if len(removal.shape) == 1:
+            return removal.reshape(-1,1)
+        return removal
 
     def min_background_concentration(self) -> _VectorizedFloat:
         """
