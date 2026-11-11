@@ -301,10 +301,10 @@ def test_long_range_deposited_exposure(
 def test_exposure(dynamic_conc_model, dynamic_conc_model_with_short_range):
     exp_model_no_sr = get_exposure_model(dynamic_conc_model).build_model(SAMPLE_SIZE)
     exp_model_with_sr = get_exposure_model(dynamic_conc_model_with_short_range).build_model(SAMPLE_SIZE)
-    assert np.all(exp_model_no_sr.deposited_exposure() > 0)
+    assert np.allclose(exp_model_no_sr.deposited_exposure(short_range=False), exp_model_with_sr.deposited_exposure(short_range=False))
+    assert np.allclose(exp_model_no_sr.individual_infection_probability(short_range=False), exp_model_with_sr.individual_infection_probability(short_range=False))
     assert np.all(exp_model_with_sr.deposited_exposure() > 0)
     assert np.all(100 > exp_model_with_sr.individual_infection_probability() > 0)
-    assert np.all(100 > exp_model_no_sr.individual_infection_probability() > 0)
 
 
 @pytest.mark.parametrize(
