@@ -281,7 +281,7 @@ def test_long_range_deposited_exposure(
     exp_model = get_exposure_model(dynamic_conc_model).build_model(SAMPLE_SIZE)
 
     separate_lr_deposited_exposures = [separate_exposure_model.long_range_deposited_exposure_between_bounds(start, stop) for separate_exposure_model in separate_exposure_models]
-    deposited_lr_exposure_by_population = exp_model.long_range_deposited_exposure_between_bounds_by_population(start, stop) + (stop-start)*exp_model.concentration_model.min_background_concentration() 
+    deposited_lr_exposure_by_population = exp_model.long_range_deposited_exposure_between_bounds_by_infected_population(start, stop) + (stop-start)*exp_model.concentration_model.min_background_concentration() 
     deposited_lr_exposure = exp_model.long_range_deposited_exposure_between_bounds(start, stop)
 
     separate_deposited_exposures = [separate_exposure_model.deposited_exposure_between_bounds(start, stop) for separate_exposure_model in separate_exposure_models]

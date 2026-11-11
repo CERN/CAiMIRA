@@ -1851,7 +1851,7 @@ class ExposureModel:
 
         return sorted(state_change_times)
 
-    def _long_range_normed_exposure_between_bounds(self, time1: float, time2: float) -> _PopulationArray:
+    def _long_range_normed_exposure_between_bounds_by_infected_population(self, time1: float, time2: float) -> _PopulationArray:
         """
         The number of virions per meter^3 between any two times, normalized
         by the emission rate of the infected population.
@@ -1894,12 +1894,12 @@ class ExposureModel:
                         concentration -= np.mean(1/interaction.dilution_factor() * _long_range_concentration)
         return concentration
 
-    def long_range_deposited_exposure_between_bounds_by_population(self, time1: float, time2: float) -> _PopulationArray:
+    def long_range_deposited_exposure_between_bounds_by_infected_population(self, time1: float, time2: float) -> _PopulationArray:
         """
         Long range exposure additions from each population. 
         Not including minimum background concentration.
         """
-        normed_exposure = self._long_range_normed_exposure_between_bounds(time1, time2)
+        normed_exposure = self._long_range_normed_exposure_between_bounds_by_infected_population(time1, time2)
         res_diameter_dependent = np.stack(
             [
                 infected.aerosols()*infected.particle.fraction_deposited(self.evaporation_factor) 
@@ -1930,7 +1930,7 @@ class ExposureModel:
 
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorizedFloat:
         """Sum over the contributions from all infected populations, including the minimum background concentration."""
-        return self.long_range_deposited_exposure_between_bounds_by_population(time1, time2).sum(axis=0) + (time2-time1)*self.concentration_model.min_background_concentration()
+        return self.long_range_deposited_exposure_between_bounds_by_infected_population(time1, time2).sum(axis=0) + (time2-time1)*self.concentration_model.min_background_concentration()
 
     def deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorizedFloat:
         """
