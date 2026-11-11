@@ -161,7 +161,7 @@ def dummy_population(simple_conc_model) -> models.Population:
     )
 
 @pytest.fixture
-def diameter_dependent_model(data_registry) -> models.InfectedPopulation:
+def diameter_dependent_model(data_registry) -> models.ConcentrationModel:
     always = models.SpecificInterval(((0., 24.), ))
     return models.ConcentrationModel(
         data_registry=data_registry,

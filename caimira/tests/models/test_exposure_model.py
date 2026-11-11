@@ -206,7 +206,7 @@ def conc_model(data_registry, sr_model):
 
 
 @pytest.fixture
-def diameter_dependent_model(conc_model, data_registry) -> models.InfectedPopulation:
+def diameter_dependent_model(conc_model, data_registry) -> models.ConcentrationModel:
     # Generate a diameter dependent model
     return replace(
         conc_model,
