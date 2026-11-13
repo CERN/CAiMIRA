@@ -745,30 +745,18 @@ def baseline_raw_form_data_dynamic_occupancy() -> typing.Dict[str, typing.Union[
                     'activity_type': 'office', # TODO: change to fully specify activity and expiration
                 },
                 {
-                    'identifier': "group_2",
+                    'identifier': 'group_2',
                     'total_people': ...
                 },
             ]
         },
-        'short_range_interactions': [ # allows different activity for infected and exposed, not yet implemented in backend
+        'short_range_interactions': [
             {
-                'exposed': [
-                    {
-                        'identifier': "group_1",
-                        'number': 2,
-                        'activity': '',
-                    },
-                    {
-                        'identifier': "group_2",
-                        'number': 1,
-                        'activity': '',
-                    },
-                ],
-                'infected': {
-                    'identifier': "group_1",
-                    'activity': '',
-                    'expiration': ''
-                },
+                'exposed_id': 'group_1',
+                'n_exposed': 2,
+                'infected_id': 'group_2',
+                'activity': '', # assumed equal for infected and exposed
+                'expiration': '',
                 'distance': '',
                 'duration': [
                     {'start_time': '09:00', 'finish_time': '09:15'},
@@ -776,12 +764,95 @@ def baseline_raw_form_data_dynamic_occupancy() -> typing.Dict[str, typing.Union[
                 ],
             },
             {
-                'exposed': ...
+                'exposed_id': ...
             },
         ],
         'report_options': {
             'conditional_probability_viral_loads': '0', # show infection probability conditional on viral load distribution
             'short_range_option': 'short_range_no', #TODO: binary?
+        }
+    }
+
+def baseline_raw_form_data_dynamic_occupancy() -> typing.Dict[str, typing.Union[str, float]]:
+    # Contains the exact same information as baseline_raw_form_data_dynamic_occupancy, but with redundant variables removed
+    return {
+        'simulation_name': 'Test',
+        'calculator_version': calculator_version,
+        'environment': {
+            # Location
+            'location_name': 'Geneva',
+            'location_latitude': 46.20833,
+            'location_longitude': 6.14275,
+            'room_number': '123',
+            # Room volume
+            'room_volume': '75', # if not 'ceiling_height' and 'floor_area'
+            'ceiling_height': '', # if not 'room_volume'
+            'floor_area': '', # if not 'room_volume'
+            # Temperature
+            'event_month': 'January',
+            'inside_temp': '293.',
+            # Humidity
+            'room_heating_option': '0',
+            'humidity': '0.5',
+            # Ventilation and air filtration
+            'ventilation_type': 'natural_ventilation',
+            'opening_distance': '0.2',
+            'window_height': '2',
+            'window_type': 'window_sliding',
+            'window_width': '2',
+            'windows_duration': '10',
+            'windows_frequency': '60', # <= windows_duration if windows open permanently
+            'windows_number': '1', # TODO: allow different sizes of windows in dict?
+            'mechanical_ventilation_type': '',
+            'air_changes': '',
+            'air_supply': '',
+            'hepa_amount': '250',
+        },
+        'occupancy': {
+            'virus_type': 'SARS_CoV_2', # All infected are infected by the same virus variant
+            'geographic_cases': 0,
+            'geographic_population': 0,
+            'ascertainment_bias': 'confidence_low',
+            'groups': [
+                {
+                    'identifier': "group_1",
+                    'total_people': 5,
+                    'infected': 2,
+                    'presence': [
+                        {'start_time': '09:00', 'finish_time': '12:00'},
+                        {'start_time': '13:00', 'finish_time': '17:00'},
+                    ],
+                    'mask_type': 'Type I', # TODO: rename as mask_option (can also be 'No mask')
+                    'vaccine_type': 'Ad26.COV2.S_(Janssen)',
+                    'vaccine_booster_type': 'AZD1222_(AstraZeneca)',
+                    'activity_type': 'office', # TODO: change to fully specify activity and expiration
+                },
+                {
+                    'identifier': 'group_2',
+                    'total_people': ...
+                },
+            ]
+        },
+        'short_range_interactions': [
+            {
+                'exposed_id': 'group_1',
+                'n_exposed': 2,
+                'infected_id': 'group_2',
+                'activity': '', # assumed equal for infected and exposed
+                'expiration': '',
+                'distance': '',
+                'duration': [
+                    {'start_time': '09:00', 'finish_time': '09:15'},
+                    {'start_time': '11:00', 'finish_time': '12:00'},
+                ],
+            },
+            {
+                'exposed_id': ...
+            },
+        ],
+        'report_options': {
+            'conditional_probability_viral_loads': '0', # show infection probability conditional on viral load distribution
+            'short_range_option': '0', 
         }
     }
 
