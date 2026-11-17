@@ -457,7 +457,7 @@ C_{\mathrm{LR}}(t, D)
 $$
 holds at all times (for $t \in (t_i, t_{i+1}]$ for all $i$).
 
-To speed up the computations, we take advantage of $\mathrm{vR}_n(D)$ being a linear component of $C_{\mathrm{LR},n}(t, D)$ so that $\frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)}$ and $\mathrm{vR}_n(D)$ can be computed separatelatey. 
+To speed up the computations, we take advantage of $\mathrm{vR}_n(D)$ being a linear component of $C_{\mathrm{LR},n}(t, D)$ so that $\frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)}$ and $\mathrm{vR}_n(D)$ can be computed separately. 
 
 <details>
 <summary>Proof that $\mathrm{vR}_n(D)$ is a linear component of $C_{\mathrm{LR},n}(t, D)$.</summary>
