@@ -315,10 +315,10 @@ def test_normed_time_integrated_concentration_addition_by_population(
     data_registry: DataRegistry,
     simple_conc_model: models.ConcentrationModel,
     dummy_population: models.Population,
-    known_removal_rate,
-    known_min_background_concentration,
-    known_normalization_factor,
-    expected_normed_time_integrated_concentration_addition_one_pop,
+    known_removal_rate: models._VectorizedFloat,
+    known_min_background_concentration: models._VectorizedFloat,
+    known_normalization_factor: models._VectorizedFloat,
+    expected_normed_time_integrated_concentration_addition_one_pop: models._VectorizedFloat,
 ):
 
     known_conc_model = KnownConcentrationModelBase(
@@ -367,10 +367,10 @@ def test_time_integrated_concentration(
     data_registry: DataRegistry,
     simple_conc_model: models.ConcentrationModel,
     dummy_population: models.Population,
-    known_removal_rate: float,
-    known_min_background_concentration: float,
-    known_normalization_factor: float,
-    expected_time_integrated_concentration_one_pop: float):
+    known_removal_rate: models._VectorizedFloat,
+    known_min_background_concentration: models._VectorizedFloat,
+    known_normalization_factor: models._VectorizedFloat,
+    expected_time_integrated_concentration_one_pop: models._VectorizedFloat):
 
     known_conc_model = KnownConcentrationModelBase(
         data_registry = data_registry,
@@ -408,9 +408,9 @@ def test_zero_ventilation_rate(
     data_registry: DataRegistry,
     simple_conc_model: models.ConcentrationModel,
     dummy_population: models.Population,
-    known_removal_rate: float,
-    known_min_background_concentration: float,
-    expected_concentration: float):
+    known_removal_rate: models._VectorizedFloat,
+    known_min_background_concentration: models._VectorizedFloat,
+    expected_concentration: models._VectorizedFloat):
 
     known_conc_model = KnownConcentrationModelBase(
         data_registry = data_registry,
