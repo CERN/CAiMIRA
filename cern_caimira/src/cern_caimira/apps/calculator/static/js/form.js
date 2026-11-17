@@ -505,71 +505,10 @@ $("[data-has-radio]").on('change', function(event){
   $($(this).data("has-radio")).click();
 });
 
-function toggle_split_breaks() {
-  $("#DIVinfected_breaks").toggle(this.checked);
-  $("#exposed_break_title").toggle(this.checked);
-  require_lunch("infected_lunch_option_yes", document.getElementById("infected_dont_have_breaks_with_exposed").checked);
-}
 
 /* -------Form validation------- */
 function validate_form(form) {
   var submit = true;
-
-  // Activity times and lunch break times are co-dependent
-  // -> So if 1 fails it doesn't make sense to check the rest
-
-  //Validate all finish times
-  $("input[required].finish_time").each(function() {
-    var activity = $(this).data('lunch-for');
-    if (document.getElementById("infected_dont_have_breaks_with_exposed").checked || activity!="infected") {
-      if (!validateFinishTime(this)) {
-        submit = false;
-      }
-    }
-  });
-
-  //Validate all lunch breaks
-  if (submit) {
-    $("input[required].start_time[data-lunch-for]").each(function() {
-      var activity = $(this).data('lunch-for');
-      if (document.getElementById("infected_dont_have_breaks_with_exposed").checked || activity!="infected") {
-        if (!validateLunchBreak($(this).data('time-group'))) {
-          submit = false;
-        }
-      }
-    });
-  }
-
-  //Check if breaks length >= activity length
-  if (submit) {
-    $("[data-lunch-for]").each(function() {
-      var activity = $(this).data('lunch-for');
-      if (document.getElementById("infected_dont_have_breaks_with_exposed").checked || activity!="infected") {
-        var activityBreaksObj= document.getElementById("activity_breaks");
-        removeErrorFor(activityBreaksObj);
-
-        var lunch_mins = 0;
-        if (document.getElementById(activity+"_lunch_option_yes").checked) {
-          var lunch_start = document.getElementById(activity+"_lunch_start");
-          var lunch_finish = document.getElementById(activity+"_lunch_finish");
-          lunch_mins = parseTimeToMins(lunch_finish.value) - parseTimeToMins(lunch_start.value);
-        }
-
-        var coffee_breaks = parseInt(document.querySelector('input[name="'+activity+'_coffee_break_option"]:checked').value);
-        var coffee_duration = parseInt(document.getElementById(activity+"_coffee_duration").value);
-        var coffee_mins = coffee_breaks * coffee_duration;
-        
-        var activity_start = document.getElementById(activity+"_start");
-        var activity_finish = document.getElementById(activity+"_finish");
-        var activity_mins = parseTimeToMins(activity_finish.value) - parseTimeToMins(activity_start.value);
-
-        if ((lunch_mins + coffee_mins) >= activity_mins) {
-          insertErrorFor(activityBreaksObj, "Length of breaks >= Length of "+activity+" presence");
-          submit = false;
-        }
-      }
-    });
-  }
 
   // Logic for the API requests. Always set humity input as the empty string so that we can profit from the "room_heating_option default" values for humidity.
   if ($("#arve_sensor_no").prop('checked')) {
@@ -1009,13 +948,6 @@ $(document).ready(function () {
   // When the document is ready, deal with the fact that we may be here
   // as a result of a forward/back browser action. If that is the case, update
   // the visibility of some of our inputs.
-
-  // Chrome fix - on back button infected break DIV not shown
-  if (document.getElementById("infected_dont_have_breaks_with_exposed").checked) {
-    $("#DIVinfected_breaks").show();
-    $("#exposed_break_title").show();
-    require_lunch("infected_lunch_option_yes", true);
-  }
 
   //Check all radio buttons previously selected
   $("input[type=radio]:checked").each(function() {require_fields(this)});
