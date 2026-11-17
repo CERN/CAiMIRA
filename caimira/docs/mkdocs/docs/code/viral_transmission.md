@@ -358,14 +358,17 @@ Because CAiMIRA is only meant to model airborne transmission, intimate-type inte
 #### Derivation of the Analytical Long-Range Concentration
 Assuming mass balance, the rate of change of the viral concentration equals the difference between the total emission rate per volume and the total removal rate. 
 The total emission rate per volume is simply the sum of the emission rate of every single infected divided by the room volume $V_r$, which can be expressed as $\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{V_r}$ for $n_p$ infected populations where the $n$-th population has $N_{\mathrm{inf},n}$ members with common emission rate $\mathrm{vR}_n(D)$. 
-The removal rate is the product of the current viral removal rate $\lambda_{\mathrm{vRR}}(t,D)$ and the viral concentration increase $C_{\mathrm{LR}}(t, D)$ from the background concentration $C_{\mathrm{min}}$. 
+The removal rate is the product of the current viral removal rate $\lambda_{\mathrm{vRR}}(t,D)$ and the viral concentration increase from the background concentration given by $C_{\mathrm{LR}}(t, D)-C_{\mathrm{min}}$. 
 In conclusion, the viral concentration is described by the ordinary differential equation (ODE)
 
 $$
 \begin{equation*}
-\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} = \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{V_r} - \lambda_{vRR}(t, D) \cdot C_{\mathrm{LR}}(t, D).
+\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} = \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{V_r} - \lambda_{vRR}(t, D) \cdot (C_{\mathrm{LR}}(t, D)-C_{\mathrm{min}}).
 \end{equation*}
 $$
+
+As the room can be free of virus in the air, $C_{\mathrm{min}}=0$ for viral concentration.
+However, we choose to account for $C_{\mathrm{min}}$ in the formulation of the viral concentration below because the CAiMIRA model architecture is generalized for aerosols with non-zero $C_{\mathrm{min}}$.
 
 Assuming the viral concentration is the only time-dependent variable, this ODE can be solved analytically. 
 The viral removal rate is, however, also time-dependent. 
@@ -377,12 +380,12 @@ The viral concentration at the end of the last time interval is carried forward 
 <summary>Solving the ODE</summary>
 
 $C_{\mathrm{LR},h}(t, D)=A_1\cdot e^{-\lambda_{vRR}(t_i,D)\cdot t}$ is the homogeneous solution satisfying 
-$\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} + \lambda_{vRR}(t_i,D)\cdot\,C_{\mathrm{LR}}(t, D) = 0$.
+$\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} + \lambda_{vRR}(t_i,D)\cdot\,(C_{\mathrm{LR}}(t, D)-C_{\mathrm{min}}) = 0$.
 Assuming $A_2$ is the constant particular solution the general solution is
 
 $$
 \begin{equation*}
-C_{\mathrm{LR}}(t, D) = A_2 + A_1\cdot C_{\mathrm{LR},h}(t, D) = A_2 + A_1\cdot e^{-\lambda_{vRR}(t_i,D)\cdot t}
+C_{\mathrm{LR}}(t, D) = A_2 + C_{\mathrm{LR},h}(t, D) = A_2 + A_1\cdot e^{-\lambda_{vRR}(t_i,D)\cdot t}
 \end{equation*}
 $$
 
@@ -433,12 +436,12 @@ C_{\mathrm{LR}}(t, D)
 \end{align*}
 $$
 
-Note that if only the $n$-th (emitting) population is present, the concentration increase at long-range would be
+We can express the long-range concentration increase resulting from the presence of the n-th population only as
 
 $$
 \begin{align*}
-C_{\mathrm{LR},n}(t, D) 
-&= C_{\mathrm{LR},n}(t_i, D) \cdot e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}
+C_{\mathrm{LR},n}(t, D)
+&= (C_{\mathrm{LR},n}(t_i, D)-C_{\mathrm{min}}) \cdot e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}
 + \frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} (1-e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}).
 \end{align*}
 $$
@@ -449,7 +452,7 @@ It follows by induction that
 $$
 \begin{align*}
 C_{\mathrm{LR}}(t, D) 
-&= \sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D)
+&= C_{\mathrm{min}} + \sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D)
 \end{align*}
 $$
 holds at all times (for $t \in (t_i, t_{i+1}]$ for all $i$).
