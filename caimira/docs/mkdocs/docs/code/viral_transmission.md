@@ -287,11 +287,11 @@ where $h_{inf}$ is the initial hight of the particle (set to $1.5$ as the hight 
 
 $$
 \begin{equation*}
-v(D) = 1.88 \cdot 10^{-4} \cdot \Big(\frac{D \cdot f_{ev}}{2.5} \Big)^2
+v(D) = 1.88 \cdot 10^{-4} \cdot \Big(\frac{D \cdot f_{evp}}{2.5} \Big)^2
 \end{equation*}
 $$
 
-with $f_{ev}$ being the evaporation factor. 
+with $f_{evp}$ being the evaporation factor. 
 The particle settling velocity is computed by `models.Particle.settling_velocity()` and retrieved to compute the full diameter-dependent viral removal rate at a given time ($\lambda_{\mathrm{vRR}}(t,D)$) in `models.ConcentrationModel.removal_rate()`.
 
 The total removal of virions, at a given time, can be computed by Monte Carlo integration as
