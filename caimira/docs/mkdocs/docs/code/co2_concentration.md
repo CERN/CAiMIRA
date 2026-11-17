@@ -29,9 +29,7 @@ Using the same standard techniques for solving ODEs as for the viral concentrati
 $$
 \begin{align*}
 C_{CO_2}(t)
-&=
-C_{\mathrm{out}}+(C_{CO_2}(t_i)-C_{\mathrm{out}}) \cdot e^{-\lambda_{ACH}(t_i)\cdot(t-t_i)}\\
-& \quad+\frac{f_{CO_2} \cdot \sum_{n=1}^{n_p}\mathrm{BR}_{\mathrm{out},n} \cdot N_n}{V_r\lambda_{ACH}(t_i)}\cdot (1-e^{-\lambda_{ACH}(t_i)\cdot(t-t_i)})
+&=C_{CO_2}(t_i) \cdot e^{-\lambda_{ACH}(t_i)\cdot(t-t_i)}+\frac{f_{CO_2} \cdot \sum_{n=1}^{n_p}\mathrm{BR}_{\mathrm{out},n} \cdot N_n}{V_r\lambda_{ACH}(t_i)}\cdot (1-e^{-\lambda_{ACH}(t_i)\cdot(t-t_i)})
 \end{align*}
 $$
 
@@ -42,7 +40,7 @@ $$
 \begin{align*}
 C_{CO_2,n}(t)
 &=
-C_{CO_2,n}(t_i) \cdot e^{-\lambda_{ACH}(t_i)\cdot(t-t_i)}+\frac{f_{CO_2} \cdot \mathrm{BR}_{\mathrm{out},n} \cdot N_n}{V_r\lambda_{ACH}(t_i)}\cdot (1-e^{-\lambda_{ACH}(t_i)\cdot(t-t_i)})
+(C_{CO_2,n}(t_i)-C_{out}) \cdot e^{-\lambda_{ACH}(t_i)\cdot(t-t_i)}+\frac{f_{CO_2} \cdot \mathrm{BR}_{\mathrm{out},n} \cdot N_n}{V_r\lambda_{ACH}(t_i)}\cdot (1-e^{-\lambda_{ACH}(t_i)\cdot(t-t_i)})
 \end{align*}
 $$
 
