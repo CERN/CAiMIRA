@@ -320,6 +320,16 @@ def test_exposure(dynamic_conc_model, dynamic_conc_model_with_short_range):
     ],
 )
 def test_dynamic_exposure(infected_dynamic_number, start, stop):
+    """
+    Test that having two identical infected in the same population yields
+    the same results as having two identical infected distributed in
+    two populations. 
+
+    Note that because a short-range model always models an interaction
+    with just one infected, both conc_model_combined_infected and 
+    conc_model_split_infected describe a scenario where only one 
+    of the infected is involved in a short-range interaction.
+    """
     short_range_model = (
         mc.ShortRangeModel(
             data_registry=data_registry,
@@ -348,8 +358,8 @@ def test_dynamic_exposure(infected_dynamic_number, start, stop):
         short_range=((), short_range_model,),
     )
 
-    non_dynamic_exp_model_with_sr = get_exposure_model(conc_model_combined_infected).build_model(SAMPLE_SIZE) # short-range with just one infected
-    dynamic_exp_model_with_sr = get_exposure_model(conc_model_split_infected).build_model(SAMPLE_SIZE) # short-range with just one infected
+    non_dynamic_exp_model_with_sr = get_exposure_model(conc_model_combined_infected).build_model(SAMPLE_SIZE)
+    dynamic_exp_model_with_sr = get_exposure_model(conc_model_split_infected).build_model(SAMPLE_SIZE)
 
     assert np.allclose(
         non_dynamic_exp_model_with_sr.long_range_deposited_exposure_between_bounds(start, stop),
