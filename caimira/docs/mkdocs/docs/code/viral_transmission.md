@@ -229,12 +229,48 @@ The computation of the emission rate $\mathrm{vR}(D)$ in CAiMIRA can be divided 
 * Compute the diameter-**dependent** $\frac{E_{c}(D_i)}{\mathrm{p}_D(D_i)} = (1 − η_\mathrm{out}(D_i)) \cdot  V_p(D_i) \cdot c_n$ for every $D_i \in ${$D_1$, $D_2$, ...,$D_S$} in `models.InfectedPopulation.aerosols()`.
 * Calculate the diameter-**independent** component of $\mathrm{vR}(D)$, i.e. ${\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}}$, in `models.InfectedPopulation.emission_rate_per_aerosol_per_person_when_present()`.
 
-The emission rate (per person infected) $\mathrm{vR(D)}$ can be computed by: `models._PopulationWithVirus.emission_rate_per_person_when_present()`, outputting a vector $[\mathrm{vR(D_1)}, \mathrm{vR(D_2)}, ..., \mathrm{vR(D_S)}]$ who's average is the expected value of $\mathrm{vR}^{total}$. 
-Each $\mathrm{vR(D_i)}$ in this outputted vector is computed for both a sample of $D$ and specific samples for the diameter-independent random variables. 
-Hence, averaging the vector corresponds to simultaneously Monte Carlo integrating over $D$ and $\mathrm{BR}_{\mathrm{k}}$ and $\mathrm{vl_{inf}}$ (the diameter-independent random variables). 
-This means we need to assume that $D$, $\mathrm{BR}_{\mathrm{k}}$, and $\mathrm{vl_{inf}}$ are independent.
+The emission rate (per person infected) can be computed by: `models._PopulationWithVirus.emission_rate_per_person_when_present()`, outputting a vector $[\frac{\mathrm{vR}(D_2)}{\mathrm{p}_D(D_2)}, \frac{\mathrm{vR}(D_2)}{\mathrm{p}_D(D_2)}, ..., \frac{\mathrm{vR}(D_S)}{\mathrm{p}_D(D_S)}]$ who's average is the expected value of $\mathrm{vR}^{total}$, integrated over the particle diameter and averaged over the diameter-independent random variables. 
+This means we need to assume that the particle diameter, exhalation rate, viral load, and outwards mask efficiency (if random)are independent.
 
-By default, however, the diameter-dependence is kept at this stage because more diameter-dependent variables will be introduced downstream in the model before Monte-Carlo integrating over the aerosol sizes to obtain the dose $\mathrm{vD^{total}}$.
+<details>
+<summary>Because the emission rate is a linear function of the integral over the particle diameter, it is ok to Monte Carlo integrate over the particle diameter and Monte Carlo average over diameter-independent random variables simultaneously. </summary>
+
+$\mathrm{vR}^{total}$ is a random variable as it is a function of the exhalation rate, viral load, and outwards mask efficiency (if random). Taking the expected value $E_{\mathrm{rv}}$ over all these random variables, we get the expected total emission rate
+
+$$
+\begin{equation*}
+E_{\mathrm{rv}}[\mathrm{vR}^{total}] = E_{\mathrm{rv}}\left[E_D\left[\frac{\mathrm{vR}(D)}{\mathrm{p}_D(D)}\right]\right]
+\end{equation*}
+$$
+
+where $E_D$ denotes the expected value over the distribution of $D$. 
+We wish to show that $E_{\mathrm{rv}}[\mathrm{vR}^{total}]= E\left[\frac{\mathrm{vR}(D)}{\mathrm{p}_D(D)}\right]$ where $E$ is the expected value over both the particle diameter distribution and the random variables. 
+
+Consider first the case where the outwards mask efficiency $η_\mathrm{out} \sim \mathrm{Uniform}$. 
+The covariance between $V_p(D) \cdot c_n$ and ${\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot (1 − η_\mathrm{out})$ is zero, because the particle diameter is independent of all the random variables ${\mathrm{BR}}_{\mathrm{k}}$, $\mathrm{vl_{inf}}$, and $η_\mathrm{out}$. 
+Using that the expected value is a linear operator as well as the definition covariance, we have
+
+$$
+\begin{align*}
+E_{\mathrm{rv}}[\mathrm{vR}^{total}] 
+&= E_{\mathrm{rv}}\left[E_D\left[{\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot (1 − η_\mathrm{out}) \cdot V_p(D) \cdot c_n\right]\right]\\
+&= E_D\left[V_p(D) \cdot c_n\right] \cdot E_{\mathrm{rv}}\left[{\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot (1 − η_\mathrm{out})\right]\\
+&= E_D\left[V_p(D) \cdot c_n\right] \cdot E_{\mathrm{rv}}\left[{\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot (1 − η_\mathrm{out})\right]\\
+&\quad + E\left[V_p(D) \cdot c_n \cdot {\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot (1 − η_\mathrm{out})\right] - E_D\left[V_p(D) \cdot c_n\right] \cdot E_{\mathrm{rv}}\left[{\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot (1 − η_\mathrm{out})\right]\\
+&=E\left[V_p(D) \cdot c_n \cdot {\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot (1 − η_\mathrm{out})\right]\\
+&=E\left[\frac{\mathrm{vR}(D)}{\mathrm{p}_D(D)}\right]
+\end{align*}
+$$
+
+The relation $E_{\mathrm{rv}}[\mathrm{vR}^{total}] = E\left[\frac{\mathrm{vR}(D)}{\mathrm{p}_D(D)}\right]$ can easily be shown to hold also when the outwards mask efficiency is diameter-dependent following the same logic.
+To conclude, we can compute the expected total emission rate by simultaneously Monte Carlo integrating over the particle diameter and averaging over the random variables. 
+</details>
+
+For downstream computations, however, the diameter-dependent and diameter independent values are not averaged but kept separate for two reasons
+1. The Monte Carlo integral over the particle diameter for the viral concentration, dose, and infection probability will include more diameter-dependent factors.
+2. The infection probability is not a linear function of the Monte Carlo integral over the particle diameter.
+The importance of second of these points is detailed in the section on infection probability below. 
+
 
 The methods for computing the components of the emission rate can be accessed through the class **InfectedPopulation**, representing a population of infected with a certain number of people, all with the same expiratory activity, physical activity, virus, face mask, host immunity and (incremental) presence. 
 Each of these properties are passed to **InfectedPopulation** as, respectively, an **Expiration** object, an **Activity** object, a **Virus** object, a **Mask** object, a **host_immunity** float, and an **Interval** object.
