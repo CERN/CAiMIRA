@@ -521,38 +521,52 @@
       </select>
     </div>
     </div>
-    
+
     <input type="text" class="form-control d-none" name="precise_activity" value='{}'>
 
     <div style=" margin-right:2rem;">
       <div class="boxMargin pb-0">
-        <div class='sub_title'>Exposed person(s) presence:</div>
-        <div class="split">
+      <div class='sub_title'>Exposed person(s) presence:</div>
+      <div class="split exposed_time_row">
         <div>
           <label class="tabbed mb-0">Start:</label>
-          <input type="time" id="exposed_start" class="start_time" data-time-group="exposed" data-lunch-break="exposed_lunch" name="exposed_start" value="08:30" required>
+          <input type="time" class="start_time" data-time-group="exposed" data-lunch-break="exposed_lunch" name="exposed_start" value="08:30" required>
         </div>
         <div>
           <label class="tabbed mb-0">Finish:</label>
-          <input type="time" id="exposed_finish" class="finish_time" data-time-group="exposed" data-lunch-break="exposed_lunch" name="exposed_finish" value="17:30" required>
+          <input type="time" class="finish_time" data-time-group="exposed" data-lunch-break="exposed_lunch" name="exposed_finish" value="17:30" required>
         </div>
+        <div>
         </div>
+      </div>
+      <div class="split">
+        <div id="exposed_times"></div>
+      </div>
+      <input id="exposed_add_row" class="btn btn-primary" type="button" value="Add row">
       </div>
       <br>
 
       <div class="boxMargin pb-0">
-        <div class='sub_title'>Infected person(s) presence:</div>
-        <div class="split">
+      <div class='sub_title'>Infected person(s) presence:</div>
+      <div class="split infected_time_row">
         <div>
-          <label class="tabbed mb-0">Start: </label> 
-          <input type="time" id="infected_start" class="start_time" data-time-group="infected" data-lunch-break="infected_lunch" name="infected_start" value="08:30" required>
+          <label class="tabbed mb-0">Start:</label>
+          <input type="time" class="start_time" data-time-group="infected" data-lunch-break="infected_lunch" name="infected_start" value="08:30" required>
         </div>
         <div>
-          <label class="tabbed mb-0">Finish: </label>
-          <input type="time" id="infected_finish" class="finish_time" data-time-group="infected" data-lunch-break="infected_lunch" name="infected_finish" value="17:30" required>
+          <label class="tabbed mb-0">Finish:</label>
+          <input type="time" class="finish_time" data-time-group="infected" data-lunch-break="infected_lunch" name="infected_finish" value="17:30" required>
         </div>
+        <div>
         </div>
       </div>
+      <div class="split">
+        <div id="infected_times"></div>
+      </div>
+      <input id="infected_add_row" class="btn btn-primary" type="button" value="Add row">
+      </div>
+
+      
       <br>
     </div>
 
