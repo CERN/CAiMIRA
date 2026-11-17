@@ -1416,7 +1416,8 @@ class _ConcentrationModelBase:
 
         Integrating over the particle diameter and averaging over all random variables. 
         """
-        return np.mean(self.concentration_addition_by_population(time).sum(axis=0) + self.min_background_concentration())
+        expected_contribution_by_population = self.concentration_addition_by_population(time).mean(axis=1)
+        return np.sum(expected_contribution_by_population) + np.mean(self.min_background_concentration())
 
     @method_cache
     def normed_time_integrated_concentration_addition_by_population(self, start: float, stop: float) -> _PopulationArray:
@@ -1502,7 +1503,8 @@ class _ConcentrationModelBase:
 
         Integrating over the particle diameter and all random variables.
         """
-        return np.mean(self.time_integrated_concentration_addition_by_population(start, stop).sum(axis=0) + (stop-start)*self.min_background_concentration())
+        expected_contribution_by_population = self.time_integrated_concentration_addition_by_population(start, stop).mean(axis=1)
+        return np.sum(expected_contribution_by_population) + (stop-start)*np.mean(self.min_background_concentration())
 
 @dataclass(frozen=True)
 class ConcentrationModel(_ConcentrationModelBase):
@@ -1878,11 +1880,8 @@ class ExposureModel:
         Total virus exposure concentration at short-range, as a function of time, 
         integrated over the particle diameter.
         """
-        _long_range_concentration = ( # Not yet diameter-integrated or averaged over random variables
-                self.concentration_model.concentration_addition_by_population(time).sum(axis=0) 
-                + self.concentration_model.min_background_concentration()
-        )
-        concentration = np.mean(_long_range_concentration)
+        _long_range_concentration = self.concentration_model.concentration(time)
+        concentration = _long_range_concentration
         for short_range_normalization_factor, interactions in zip(self.concentration_model.short_range_normalization_factors(), self.concentration_model.short_range):
             for interaction in interactions:
                 if interaction.exposed_identifier == self.identifier:
@@ -1891,7 +1890,7 @@ class ExposureModel:
                     # NOTE: max one short-range interaction at a time, so the test should just yield true once (TODO check?)
                     if start <= time <= stop:
                         concentration += np.mean(interaction._normed_diluted_jet_concentration()*short_range_normalization_factor)
-                        concentration -= np.mean(1/interaction.dilution_factor() * _long_range_concentration)
+                        concentration -= np.mean(1/interaction.dilution_factor()) * _long_range_concentration
         return concentration
 
     def long_range_deposited_exposure_between_bounds_by_infected_population(self, time1: float, time2: float) -> _PopulationArray:
@@ -1930,7 +1929,8 @@ class ExposureModel:
 
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorizedFloat:
         """Sum over the contributions from all infected populations, including the minimum background concentration."""
-        return self.long_range_deposited_exposure_between_bounds_by_infected_population(time1, time2).sum(axis=0) + (time2-time1)*self.concentration_model.min_background_concentration()
+        return (self.long_range_deposited_exposure_between_bounds_by_infected_population(time1, time2).sum(axis=0)
+                + (time2-time1)*np.mean(self.concentration_model.min_background_concentration())) # Average in case of dimension mismatch, OBS: variability in min_background_concentration not accounted for in infection probability
 
     def deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorizedFloat:
         """
