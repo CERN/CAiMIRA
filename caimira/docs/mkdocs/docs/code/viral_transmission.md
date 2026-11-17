@@ -91,22 +91,24 @@ For an expiratory activity $j \subseteq \{\mathrm{Breathing}, \mathrm{Speaking},
 
 $$
 \begin{equation*}
-N_{p}(D)=\sum_{\forall j} a_j \cdot \sum_{i \in \{\mathrm{B},\mathrm{L},\mathrm{O}\}} f_{\mathrm{amp}, j, i} \cdot c_{n,i} \cdot \left[\frac{1}{D\sqrt{2 \pi} \sigma_{D,i}} e^{-\frac{(\ln D -\mu_{D,i})^2}{2 (\sigma_{D,i})^2}}\right]
+N_{p}(D)=\sum_{\forall j} a_j \cdot \sum_{i \in \{\mathrm{B},\mathrm{L},\mathrm{O}\}} f_{j, i} \cdot c_{n,i} \cdot \left[\frac{1}{D\sqrt{2 \pi} \sigma_{D,i}} e^{-\frac{(\ln D -\mu_{D,i})^2}{2 (\sigma_{D,i})^2}}\right]
 \end{equation*}
 $$
 
-where $a_j$ is the fraction of time the infected performs expiratory activity $j$. B = bronchial, L = larynx, O = oral are the sources of the emitted particles within the infected. $c_{n,i}$ is the particle emission concentration, and $\mu_{D_i}$ and $\sigma_{D_i}$ are the mean and standard deviations, respectively, of the log-normal distribution found to fit the number of expired particles with diameter $D$, for $i \in \{\mathrm{B},\mathrm{L},\mathrm{O}\}$ Johnson et al. <sup>[2](#id7)</sup>. 
+where $a_j$ is the fraction of time the infected performs expiratory activity $j$. 
+B = bronchial, L = larynx, O = oral are the sources of the emitted particles within the infected. 
+$c_{n,i}$ is the particle emission concentration, and $\mu_{D_i}$ and $\sigma_{D_i}$ are the mean and standard deviations, respectively, of the log-normal distribution found to fit the number of expired particles with diameter $D$, for $i \in \{\mathrm{B},\mathrm{L},\mathrm{O}\}$ Johnson et al. <sup>[2](#id7)</sup>. Values for $c_{n,i}$, $\mu_{D_i}$, and $\sigma_{D_i}$ are set under *BLOmodel* in `data_registry`.
 
-$f_{\mathrm{amp}, j, i}$ is the amplitude of the infected's vocalization, and acts to scale the particle emission concentration from each region $i$ based on the expiratory activity $j$. 
-Particle emissions from the bronchial region are assumed to be constant across all expiratory activities $j$, meaning $f_{\mathrm{amp},j,\mathrm{B}}=1$ for all $j$. 
+The factor $f_{j, i}$ acts to scale the particle emission concentration from each region $i$ based on the expiratory activity $j$. 
+Particle emissions from the bronchial region are assumed to be constant across all expiratory activities $j$, meaning $f_{j,\mathrm{B}}=1$ for all $j$. 
 Emissions from the larynx and oral cavity, however, differ between expiratory activities. 
-For $j = \text{Breathing}$, the vocal cords are not vibrating and the oral cavity is not moving, meaning the $\mathrm{L}$ and $\mathrm{O}$ modes are not activated so $f_{\mathrm{amp},\text{Breathing},\mathrm{L}}$ and $f_{\mathrm{amp},\text{Breathing},\mathrm{O}}$ are set to zero. 
-When $j=\text{Speaking}$, the $\mathrm{L}$ and $\mathrm{O}$ modes are activated so $f_{\mathrm{amp},\text{Speaking},\mathrm{L}}$ and $f_{\mathrm{amp},\text{Speaking},\mathrm{O}}$ are set to 1. 
+For $j = \text{Breathing}$, the vocal cords are not vibrating and the oral cavity is not moving, meaning the $\mathrm{L}$ and $\mathrm{O}$ modes are not activated so $f_{\text{Breathing},\mathrm{L}}$ and $f_{\text{Breathing},\mathrm{O}}$ are set to zero. 
+When $j=\text{Speaking}$, the $\mathrm{L}$ and $\mathrm{O}$ modes are activated so $f_{\text{Speaking},\mathrm{L}}$ and $f_{\text{Speaking},\mathrm{O}}$ are set to 1. 
 During $\text{Singing}$ or $\text{Shouting}$, there is increased vibration in the vocal cords and movements in the oral cavity. 
-Consequently, more virus-laden particles are released, so the amplification factors $f_{\mathrm{amp},\text{Singing},\mathrm{L}}$, $f_{\mathrm{amp},\text{Singing},\mathrm{O}}$, $f_{\mathrm{amp},\text{Shouting},\mathrm{L}}$, and $f_{\mathrm{amp},\text{Shouting},\mathrm{O}}$ are set to $5$. 
-Note that $\text{Singing}$ and $\text{Shouting}$ have the same amplification factors for all modes $i$, meaning they are indistinguishable in CAiMIRA.
+Consequently, more virus-laden particles are released, so $f_{\text{Singing},\mathrm{L}}$, $f_{\text{Singing},\mathrm{O}}$, $f_{\text{Shouting},\mathrm{L}}$, and $f_{\text{Shouting},\mathrm{O}}$ are set to $5$. 
+Note that $\text{Singing}$ and $\text{Shouting}$ have the same factors for all modes $i$, meaning they are indistinguishable in CAiMIRA. The values of all $f_{j, i}$ are set under *expiration_BLO_factors* in `data_registry`.
 
-Note that the emission rate $\mathrm{vR}(D)$ is computed for a specific particle diameter.
+Note that we compute the diameter-dependent emission rate for a specific particle diameter.
 Since other parameters downstream in code are also diameter-dependent, there is no need to Monte Carlo integrate over the particle diameter quite yet, unless one would like to have intermediate results for emission rate. 
 In that case, one may compute
 
