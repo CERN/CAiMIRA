@@ -11,6 +11,8 @@ from caimira.calculator.models.dataclass_utils import replace
 from caimira.calculator.models.monte_carlo.data import expiration_distributions
 from caimira.calculator.store.data_registry import DataRegistry
 
+SAMPLE_SIZE=250_000
+
 @dataclass(frozen=True)
 class KnownNormedconcentration(models.ConcentrationModel):
     """
@@ -218,7 +220,7 @@ def diameter_dependent_model(conc_model, data_registry) -> models.ConcentrationM
                 virus=models.Virus.types['SARS_CoV_2_DELTA'],
                 mask=models.Mask.types['No mask'],
                 activity=models.Activity.types['Seated'],
-                expiration=expiration_distributions(data_registry)['Breathing'].build_model(250_000),
+                expiration=expiration_distributions(data_registry)['Breathing'].build_model(SAMPLE_SIZE),
                 host_immunity=0.,
             ),
         )

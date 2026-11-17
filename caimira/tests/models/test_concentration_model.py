@@ -176,7 +176,7 @@ def diameter_dependent_model(data_registry) -> models.ConcentrationModel:
                 virus=models.Virus.types['SARS_CoV_2_DELTA'],
                 mask=models.Mask.types['No mask'],
                 activity=models.Activity.types['Seated'],
-                expiration=expiration_distributions(data_registry)['Breathing'].build_model(250_000),
+                expiration=expiration_distributions(data_registry)['Breathing'].build_model(SAMPLE_SIZE),
                 host_immunity=0.,
             ),
         ),
