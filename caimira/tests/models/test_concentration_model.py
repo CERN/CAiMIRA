@@ -37,7 +37,8 @@ class KnownConcentrationModelBase(models._ConcentrationModelBase):
     
     def _to_population_matrix(self, value, other) -> models._PopulationMatrix:
         """
-        Convert 'value' to a models._PopulationMatrix with dimensions matching 'other'.
+        If 'value' is an array, return it reshaped into a models._PopulationMatrix with a single row.
+        Otherwise, convert 'value' to a models._PopulationMatrix with dimensions matching 'other'.
         """
         if isinstance(value, float):
             if isinstance(other, float):
