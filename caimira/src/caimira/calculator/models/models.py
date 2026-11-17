@@ -1716,7 +1716,7 @@ class CO2DataModel:
 
     def CO2_concentrations_from_params(self, CO2_concentration_model: CO2ConcentrationModel) -> typing.List[float]:
         # Calculate the predictive CO2 concentration
-        return [CO2_concentration_model.concentration(time) for time in self.times] # Averaging arrays with 1 element
+        return [CO2_concentration_model.concentration(time) for time in self.times]
 
     def CO2_fit_params(self) -> typing.Dict:
         if len(self.times) != len(self.CO2_concentrations):
