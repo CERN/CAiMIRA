@@ -1144,9 +1144,9 @@ $(document).ready(function () {
   }
 
   // Add a new presence interval (Start/Finish) row for the exposed group.
-  $("#exposed_add_row").on("click", function () {
+  $("#exposed_add_interval").on("click", function () {
     $("#exposed_times").append(`
-      <div class="split exposed_time_row">
+      <div class="split exposed_time_interval">
         <div>
           <label class="tabbed mb-0">Start:</label>
           <input type="time" class="start_time" data-time-group="exposed" data-lunch-break="exposed_lunch" name="exposed_start" value="08:30" required>
@@ -1155,7 +1155,7 @@ $(document).ready(function () {
           <label class="tabbed mb-0">Finish:</label>
           <input type="time" class="finish_time" data-time-group="exposed" data-lunch-break="exposed_lunch" name="exposed_finish" value="17:30" required>
         </div> 
-        <button type="button" class="close remove_exposed_row text-danger" aria-label="Remove row" title="Remove row">
+        <button type="button" class="close remove_exposed_interval text-danger" aria-label="Remove interval" title="Remove interval">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -1163,14 +1163,14 @@ $(document).ready(function () {
   });
 
   // Remove an added row. Delegated, because the rows are created dynamically.
-  $("#exposed_times").on("click", ".remove_exposed_row", function () {
-    $(this).closest(".exposed_time_row").remove();
+  $("#exposed_times").on("click", ".remove_exposed_interval", function () {
+    $(this).closest(".exposed_time_interval").remove();
   });
 
   // Add a new presence interval (Start/Finish) row for the infected group.
-  $("#infected_add_row").on("click", function () {
+  $("#infected_add_interval").on("click", function () {
     $("#infected_times").append(`
-      <div class="split infected_time_row">
+      <div class="split infected_time_interval">
         <div>
           <label class="tabbed mb-0">Start:</label>
           <input type="time" class="start_time" data-time-group="infected" data-lunch-break="infected_lunch" name="infected_start" value="08:30" required>
@@ -1179,7 +1179,7 @@ $(document).ready(function () {
           <label class="tabbed mb-0">Finish:</label>
           <input type="time" class="finish_time" data-time-group="infected" data-lunch-break="infected_lunch" name="infected_finish" value="17:30" required>
         </div> 
-        <button type="button" class="close remove_infected_row text-danger" aria-label="Remove row" title="Remove row">
+        <button type="button" class="close remove_infected_interval text-danger" aria-label="Remove interval" title="Remove interval">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -1187,8 +1187,8 @@ $(document).ready(function () {
   });
 
   // Remove an added row. Delegated, because the rows are created dynamically.
-  $("#infected_times").on("click", ".remove_infected_row", function () {
-    $(this).closest(".infected_time_row").remove();
+  $("#infected_times").on("click", ".remove_infected_interval", function () {
+    $(this).closest(".infected_time_interval").remove();
   });
 
   function inject_sr_interaction(index, value, is_validated) {
