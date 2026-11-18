@@ -1416,8 +1416,8 @@ class _ConcentrationModelBase:
 
         Integrating over the particle diameter and averaging over all random variables. 
         """
-        expected_contribution_by_population = self.concentration_addition_by_population(time).mean(axis=1)
-        return np.sum(expected_contribution_by_population) + np.mean(self.min_background_concentration())
+        contribution_by_population = self.concentration_addition_by_population(time).mean(axis=1)
+        return np.sum(contribution_by_population) + np.mean(self.min_background_concentration())
 
     @method_cache
     def normed_time_integrated_concentration_addition_by_population(self, start: float, stop: float) -> _PopulationArray:
@@ -1503,8 +1503,8 @@ class _ConcentrationModelBase:
 
         Integrating over the particle diameter and all random variables.
         """
-        expected_contribution_by_population = self.time_integrated_concentration_addition_by_population(start, stop).mean(axis=1)
-        return np.sum(expected_contribution_by_population) + (stop-start)*np.mean(self.min_background_concentration())
+        contribution_by_population = self.time_integrated_concentration_addition_by_population(start, stop).mean(axis=1)
+        return np.sum(contribution_by_population) + (stop-start)*np.mean(self.min_background_concentration())
 
 @dataclass(frozen=True)
 class ConcentrationModel(_ConcentrationModelBase):
