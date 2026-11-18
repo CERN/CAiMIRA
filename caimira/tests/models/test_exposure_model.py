@@ -45,11 +45,6 @@ class KnownNormedconcentration(models.ConcentrationModel):
                - self.min_background_concentration()/self.normalization_factor())
         return (np.ones(self.n_samples)*val).reshape(1,-1)
 
-@pytest.fixture
-def error_msg_MC_sampled_diameter_and_removal():
-    return "If the diameter is an array, none of the ventilation parameters or virus decay constant can be arrays at the same time."
-
-
 halftime = models.PeriodicInterval(120, 60)
 populations = [
     # A simple scalar population.

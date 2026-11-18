@@ -184,10 +184,6 @@ def diameter_dependent_model(data_registry) -> models.ConcentrationModel:
         short_range=((),),
     )
 
-@pytest.fixture
-def error_msg_MC_sampled_diameter_and_removal():
-    return "If the diameter is an array, none of the ventilation parameters or virus decay constant can be arrays at the same time."
-
 @pytest.mark.parametrize(
     "volume, outside_temp, window_height, opening_length", [
         [np.array([50, 100]), models.PiecewiseConstant((0., 24.), (293.,)), 1., 1.,], # Verify (room) volume vectorization.
