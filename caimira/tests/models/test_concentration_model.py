@@ -398,6 +398,7 @@ def test_time_integrated_concentration(
         [1e-6, 240.0, 240 + 0.5/75],
         [0., np.array([240., 240.]), 240. + 0.5/75],
         [np.array([0.0001, 1e-6]), np.array([240., 240.]), 240. + 0.5/75],
+        [np.array([0, 0.0001, 1e-6]), np.array([240., 240., 240.]), 240. + 0.5/75]
     ]
 )
 def test_zero_ventilation_rate(
