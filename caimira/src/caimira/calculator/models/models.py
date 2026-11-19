@@ -1123,12 +1123,15 @@ class ShortRangeModel:
         # Dilution factor at the transition point xstar
         Sxstar = np.array(2*𝛽r1*(xstar+x0)/mouth_diameter)
 
-        factors = np.empty(self._distances.shape, dtype=np.float64)
-        factors[self._distances < xstar] = 2*𝛽r1*(self._distances[self._distances < xstar]
+        distances = self._distances
+        before_transition_point = distances < xstar
+        after_transition_point = distances >= xstar
+        factors = np.empty(distances.shape, dtype=np.float64)
+        factors[before_transition_point] = 2*𝛽r1*(distances[before_transition_point]
                                         + x0)/mouth_diameter
-        factors[self._distances >= xstar] = Sxstar[self._distances >= xstar]*(1 +
-            𝛽r2*(self._distances[self._distances >= xstar] -
-            xstar[self._distances >= xstar])/𝛽r1/(xstar[self._distances >= xstar]
+        factors[after_transition_point] = Sxstar[after_transition_point]*(1 +
+            𝛽r2*(distances[after_transition_point] -
+            xstar[after_transition_point])/𝛽r1/(xstar[after_transition_point]
             + x0))**3
         return factors
     
