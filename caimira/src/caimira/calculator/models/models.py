@@ -1064,28 +1064,18 @@ class ShortRangeModel:
     #: Interpersonal distances
     distance: _VectorizedFloat
 
-    def __post_init__(self) -> None:
+    @property
+    def _distances(self):
         exhalation_rate = self.activity.exhalation_rate
+        if np.isscalar(self.distance) and not np.isscalar(exhalation_rate):
+            return np.full(len(exhalation_rate), self.distance)  # type: ignore
+        return np.array(self.distance)
 
-        distance_is_scalar = np.isscalar(self.distance)
-        exhalation_rate_is_scalar = np.isscalar(exhalation_rate)
-
-        if distance_is_scalar and not exhalation_rate_is_scalar:
-            object.__setattr__(
-                self,
-                "distance",
-                np.full(len(exhalation_rate), self.distance), # type: ignore
-            )
-
-        elif exhalation_rate_is_scalar and not distance_is_scalar:
-            object.__setattr__(
-                self,
-                "activity",
-                replace(
-                    self.activity,
-                    exhalation_rate=np.full(len(self.distance), exhalation_rate), # type: ignore
-                ),
-            )
+    @property
+    def _exhalation_rate(self):
+        if np.isscalar(self.activity.exhalation_rate) and not np.isscalar(self.distance):
+            return np.full(len(self.distance), self.activity.exhalation_rate) # type: ignore
+        return self.activity.exhalation_rate
     
     def dilution_factor(self) -> _VectorizedFloat:
         '''
@@ -1096,7 +1086,7 @@ class ShortRangeModel:
         mouth_diameter: float = _dilution_factor['mouth_diameter'] # type: ignore
 
         # Breathing rate, from m3/h to m3/s
-        BR = np.array(self.activity.exhalation_rate/3600.)
+        BR = np.array(self._exhalation_rate/3600.)
 
         # Exhalation coefficient. Ratio between the duration of a breathing cycle and the duration of
         # the exhalation.
@@ -1133,13 +1123,12 @@ class ShortRangeModel:
         # Dilution factor at the transition point xstar
         Sxstar = np.array(2*𝛽r1*(xstar+x0)/mouth_diameter)
 
-        distances = np.array(self.distance)
-        factors = np.empty(distances.shape, dtype=np.float64)
-        factors[distances < xstar] = 2*𝛽r1*(distances[distances < xstar]
+        factors = np.empty(self._distances.shape, dtype=np.float64)
+        factors[self._distances < xstar] = 2*𝛽r1*(self._distances[self._distances < xstar]
                                         + x0)/mouth_diameter
-        factors[distances >= xstar] = Sxstar[distances >= xstar]*(1 +
-            𝛽r2*(distances[distances >= xstar] -
-            xstar[distances >= xstar])/𝛽r1/(xstar[distances >= xstar]
+        factors[self._distances >= xstar] = Sxstar[self._distances >= xstar]*(1 +
+            𝛽r2*(self._distances[self._distances >= xstar] -
+            xstar[self._distances >= xstar])/𝛽r1/(xstar[self._distances >= xstar]
             + x0))**3
         return factors
     
