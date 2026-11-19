@@ -78,7 +78,7 @@ def exposure_model(data_registry, concentration_model):
         ),
     ],
 )
-def test_short_range_distance_dimentions(data_registry, make_args):
+def test_short_range_distance_dimensions(data_registry, make_args):
     """
     Tests that the dilution factor can be computed for `ShortRangeModel` instances with:
 
