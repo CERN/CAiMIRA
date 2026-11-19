@@ -1072,7 +1072,7 @@ class ShortRangeModel:
         return np.array(self.distance)
 
     @property
-    def _exhalation_rate(self):
+    def _exhalation_rates(self):
         if np.isscalar(self.activity.exhalation_rate) and not np.isscalar(self.distance):
             return np.full(len(self.distance), self.activity.exhalation_rate) # type: ignore
         return self.activity.exhalation_rate
@@ -1086,7 +1086,7 @@ class ShortRangeModel:
         mouth_diameter: float = _dilution_factor['mouth_diameter'] # type: ignore
 
         # Breathing rate, from m3/h to m3/s
-        BR = np.array(self._exhalation_rate/3600.)
+        BR = np.array(self._exhalation_rates/3600.)
 
         # Exhalation coefficient. Ratio between the duration of a breathing cycle and the duration of
         # the exhalation.
