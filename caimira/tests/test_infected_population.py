@@ -10,7 +10,7 @@ import caimira.calculator.models.models
         {'exhalation_rate': np.array([0.75, 0.81])},
     ]
 )
-def test_infected_population_vectorisation(override_params, data_registry):
+def test_infected_population_vectorization(override_params, data_registry):
     defaults = {
         'viral_load_in_sputum': 1e9,
         'exhalation_rate': 0.75,
