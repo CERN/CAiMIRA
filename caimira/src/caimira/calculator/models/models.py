@@ -52,7 +52,7 @@ else:
 
 from .utils import method_cache
 
-from .dataclass_utils import nested_replace
+from .dataclass_utils import replace, nested_replace
 
 oneoverln2 = 1 / np.log(2)
 # Define types for items supporting vectorization. In the future this may be replaced
@@ -1063,6 +1063,19 @@ class ShortRangeModel:
 
     #: Interpersonal distances
     distance: _VectorizedFloat
+
+    @property
+    def _distances(self):
+        exhalation_rate = self.activity.exhalation_rate
+        if np.isscalar(self.distance) and not np.isscalar(exhalation_rate):
+            return np.full(len(exhalation_rate), self.distance)  # type: ignore
+        return np.array(self.distance)
+
+    @property
+    def _exhalation_rates(self):
+        if np.isscalar(self.activity.exhalation_rate) and not np.isscalar(self.distance):
+            return np.full(len(self.distance), self.activity.exhalation_rate) # type: ignore
+        return self.activity.exhalation_rate
     
     def dilution_factor(self) -> _VectorizedFloat:
         '''
@@ -1073,7 +1086,7 @@ class ShortRangeModel:
         mouth_diameter: float = _dilution_factor['mouth_diameter'] # type: ignore
 
         # Breathing rate, from m3/h to m3/s
-        BR = np.array(self.activity.exhalation_rate/3600.)
+        BR = np.array(self._exhalation_rates/3600.)
 
         # Exhalation coefficient. Ratio between the duration of a breathing cycle and the duration of
         # the exhalation.
@@ -1110,13 +1123,15 @@ class ShortRangeModel:
         # Dilution factor at the transition point xstar
         Sxstar = np.array(2*𝛽r1*(xstar+x0)/mouth_diameter)
 
-        distances = np.array(self.distance)
+        distances = self._distances
+        before_transition_point = distances < xstar
+        after_transition_point = distances >= xstar
         factors = np.empty(distances.shape, dtype=np.float64)
-        factors[distances < xstar] = 2*𝛽r1*(distances[distances < xstar]
+        factors[before_transition_point] = 2*𝛽r1*(distances[before_transition_point]
                                         + x0)/mouth_diameter
-        factors[distances >= xstar] = Sxstar[distances >= xstar]*(1 +
-            𝛽r2*(distances[distances >= xstar] -
-            xstar[distances >= xstar])/𝛽r1/(xstar[distances >= xstar]
+        factors[after_transition_point] = Sxstar[after_transition_point]*(1 +
+            𝛽r2*(distances[after_transition_point] -
+            xstar[after_transition_point])/𝛽r1/(xstar[after_transition_point]
             + x0))**3
         return factors
     
