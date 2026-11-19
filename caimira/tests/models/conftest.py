@@ -1,5 +1,8 @@
 import pytest
 
+@pytest.fixture
+def error_msg_MC_sampled_diameter_and_removal():
+    return "If the diameter is an array, none of the ventilation parameters or virus decay constant can be arrays at the same time."
 
 @pytest.fixture
 def office_scenario_1_sensor_data():

@@ -5,7 +5,7 @@ import typing
 
 from caimira.calculator.models import models
 
-from .sampleable import SampleableDistribution, _VectorisedFloatOrSampleable
+from .sampleable import SampleableDistribution, _VectorizedFloatOrSampleable
 
 _ModelType = typing.TypeVar('_ModelType')
 dataclass_instance = typing.Any
@@ -63,8 +63,8 @@ def _build_mc_model(model: dataclass_instance) -> typing.Type[MCModelBase[_Model
         # Note: deepcopy not needed here as we aren't mutating entities beyond
         # the top level.
         new_field = copy.copy(field)
-        if field.type is models._VectorisedFloat:  # noqa
-            new_field.type = _VectorisedFloatOrSampleable   # type: ignore
+        if field.type is models._VectorizedFloat:  # noqa
+            new_field.type = _VectorizedFloatOrSampleable   # type: ignore
 
         field_type: typing.Any = new_field.type
 
