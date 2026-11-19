@@ -1046,9 +1046,6 @@ class ShortRangeModel:
     '''
     data_registry: DataRegistry
 
-    #: Identifier of the population exposed to the jet
-    exposed_identifier: str
-
     #: Physical activity of the infected during this short-range interaction. 
     #  TODO: All types of physical activities in activity must also be in infected.activity (or reasonable).
     activity: Activity
@@ -1519,9 +1516,6 @@ class ConcentrationModel(_ConcentrationModelBase):
     # mask, if any).
     evaporation_factor: float
 
-    #: The short-range interactions the infected in this class is participating in.
-    short_range: typing.Tuple[typing.Tuple[ShortRangeModel, ...], ...]
-
     def __post_init__(self):
         if (
             self.monte_carlo_diameter() and not (
@@ -1537,18 +1531,6 @@ class ConcentrationModel(_ConcentrationModelBase):
 
         if any(infected.virus is not self.virus for infected in self.infected_populations):
             raise ValueError("All infected must be infected with the same virus.")
-
-        if len(self.infected_populations) != len(self.short_range):
-            raise ValueError(
-                f"'short_range' must contain exactly one tuple of short-range interactions "
-                f"for each infected population. Got {len(self.infected_populations)} infected populations and " \
-                f"{len(self.short_range)} tuples of short-range interactions."
-            )
-
-        for infected, interaction_tuple in zip(self.infected_populations, self.short_range):
-            for interaction in interaction_tuple:
-                if interaction.presence.boundaries()[0][0] < infected.presence.boundaries()[0][0] or interaction.presence.boundaries()[-1][-1] > infected.presence.boundaries()[-1][-1]:
-                    raise ValueError("A short-range-interaction cannot lie outside the presence of the infected.")
 
     def monte_carlo_diameter(self) -> bool:
         """Whether the particle diameter is Monte Carlo sampled."""
@@ -1602,23 +1584,6 @@ class ConcentrationModel(_ConcentrationModelBase):
             [
                 np.asarray(
                     infected.emission_rate_per_person_when_present(),
-                    dtype=np.float64,
-                ).reshape(-1)
-                for infected in self.infected_populations
-            ], 
-            axis=0
-        )
-
-    def short_range_normalization_factors(self) -> _PopulationArray:
-        """
-        For short-range interactions, the infected population parameters intervene only through this factor.
-        Result in (virions.cm^3)/(mL.m^3).
-        """
-        return np.stack(
-            [
-                np.asarray(
-                    # Re-use the emission rate method divided by the BR contribution. 
-                    infected.emission_rate_per_aerosol_per_person_when_present() / infected.activity.exhalation_rate,
                     dtype=np.float64,
                 ).reshape(-1)
                 for infected in self.infected_populations
@@ -1784,6 +1749,10 @@ class ExposureModel:
     #: The virus concentration model which this exposure model should consider.
     concentration_model: ConcentrationModel
 
+    #: The short-range interactions the exposed in this class is participating in.
+    #: Each tuple corresponds to the interactions with one infected population in concentration_model
+    short_range: typing.Tuple[typing.Tuple[ShortRangeModel, ...], ...]
+
     #: The population of non-infected people to be used in the model.
     exposed: Population
 
@@ -1821,6 +1790,19 @@ class ExposureModel:
             raise TypeError("The exposed number must be an int and presence an Interval. "
                             f"Got {type(self.exposed.number)} and {type(self.exposed.presence)}.")
 
+        if len(self.infected_populations) != len(self.short_range):
+            raise ValueError(
+                f"'short_range' must contain exactly one tuple of short-range interactions "
+                f"for each infected population. Got {len(self.infected_populations)} infected populations and " \
+                f"{len(self.short_range)} tuples of short-range interactions."
+            )
+
+        for infected, interaction_tuple in zip(self.infected_populations, self.short_range):
+            for interaction in interaction_tuple:
+                if interaction.presence.boundaries()[0][0] < infected.presence.boundaries()[0][0] or interaction.presence.boundaries()[-1][-1] > infected.presence.boundaries()[-1][-1]:
+                    raise ValueError("A short-range-interaction cannot lie outside the presence of the infected.")
+
+
     def monte_carlo_diameter(self) -> bool:
         """Whether the particle diameter is Monte Carlo sampled."""
         return self.concentration_model.monte_carlo_diameter()
@@ -1853,6 +1835,23 @@ class ExposureModel:
 
         return sorted(state_change_times)
 
+    def short_range_normalization_factors(self) -> _PopulationArray:
+        """
+        For short-range interactions, the infected population parameters intervene only through this factor.
+        Result in (virions.cm^3)/(mL.m^3).
+        """
+        return np.stack(
+            [
+                np.asarray(
+                    # Re-use the emission rate method divided by the BR contribution. 
+                    infected.emission_rate_per_aerosol_per_person_when_present() / infected.activity.exhalation_rate,
+                    dtype=np.float64,
+                ).reshape(-1)
+                for infected in self.infected_populations
+            ], 
+            axis=0
+        )
+
     def _long_range_normed_exposure_between_bounds_by_infected_population(self, time1: float, time2: float) -> _PopulationArray:
         """
         The number of virions per meter^3 between any two times, normalized
@@ -1882,15 +1881,14 @@ class ExposureModel:
         """
         _long_range_concentration = self.concentration_model.concentration(time)
         concentration = _long_range_concentration
-        for short_range_normalization_factor, interactions in zip(self.concentration_model.short_range_normalization_factors(), self.concentration_model.short_range):
+        for short_range_normalization_factor, interactions in zip(self.short_range_normalization_factors(), self.short_range):
             for interaction in interactions:
-                if interaction.exposed_identifier == self.identifier:
-                    start, stop = interaction.presence.boundaries()[0]
-                    # Verifies if the given time falls within a short-range interaction
-                    # NOTE: max one short-range interaction at a time, so the test should just yield true once (TODO check?)
-                    if start <= time <= stop:
-                        concentration += np.mean(interaction._normed_diluted_jet_concentration()*short_range_normalization_factor)
-                        concentration -= np.mean(1/interaction.dilution_factor()) * _long_range_concentration
+                start, stop = interaction.presence.boundaries()[0]
+                # Verifies if the given time falls within a short-range interaction
+                # NOTE: max one short-range interaction at a time, so the test should just yield true once (TODO check?)
+                if start <= time <= stop:
+                    concentration += np.mean(interaction._normed_diluted_jet_concentration()*short_range_normalization_factor)
+                    concentration -= np.mean(1/interaction.dilution_factor()) * _long_range_concentration
         return concentration
 
     def long_range_deposited_exposure_between_bounds_by_infected_population(self, time1: float, time2: float) -> _PopulationArray:
@@ -1943,41 +1941,40 @@ class ExposureModel:
         initial deposited exposure.
         """
         deposited_exposure: _VectorizedFloat = 0.
-        for infected, interactions in zip(self.infected_populations, self.concentration_model.short_range):
+        for infected, interactions in zip(self.infected_populations, self.short_range):
             for interaction in interactions:
-                if interaction.exposed_identifier == self.identifier:
-                    # Only adding the additional contribution from the short-range interaction
-                    start, stop = interaction.extract_between_bounds(time1, time2)
-                    short_range_jet_exposure = interaction._normed_jet_exposure_between_bounds(start, stop)
-                    dilution = interaction.dilution_factor()
-                    fdep = interaction.expiration.particle.fraction_deposited(evaporation_factor=1.0)
-                    # Aerosols not considered given the formula for the initial
-                    # concentration at mouth/nose.
-                    if self.monte_carlo_diameter():
-                        # We compute first the mean of all diameter-dependent quantities
-                        # to perform properly the Monte-Carlo integration over
-                        # particle diameters (doing things in another order would
-                        # lead to wrong results for the probability of infection).
-                        this_deposited_exposure = (np.array(short_range_jet_exposure
-                            * fdep).mean())
-                    else:
-                        # In the case of a single diameter or no diameter defined,
-                        # one should not take any mean at this stage.
-                        this_deposited_exposure = (short_range_jet_exposure * fdep)
+                # Only adding the additional contribution from the short-range interaction
+                start, stop = interaction.extract_between_bounds(time1, time2)
+                short_range_jet_exposure = interaction._normed_jet_exposure_between_bounds(start, stop)
+                dilution = interaction.dilution_factor()
+                fdep = interaction.expiration.particle.fraction_deposited(evaporation_factor=1.0)
+                # Aerosols not considered given the formula for the initial
+                # concentration at mouth/nose.
+                if self.monte_carlo_diameter():
+                    # We compute first the mean of all diameter-dependent quantities
+                    # to perform properly the Monte-Carlo integration over
+                    # particle diameters (doing things in another order would
+                    # lead to wrong results for the probability of infection).
+                    this_deposited_exposure = (np.array(short_range_jet_exposure
+                        * fdep).mean())
+                else:
+                    # In the case of a single diameter or no diameter defined,
+                    # one should not take any mean at this stage.
+                    this_deposited_exposure = (short_range_jet_exposure * fdep)
 
-                    # Multiply by the (diameter-independent) inhalation rate
-                    _deposited_exposure = (this_deposited_exposure *
-                                        interaction.activity.inhalation_rate
-                                        /dilution) 
-                    
-                    # Then we multiply by the emission rate without the BR contribution (and conversion factor),
-                    # and parameters of the vD equation (i.e. n_in).
-                    deposited_exposure += _deposited_exposure*(
-                        (infected.emission_rate_per_aerosol_per_person_when_present() / (
-                        infected.activity.exhalation_rate * 10**6)) *                 
-                        (1 - self.exposed.mask.inhale_efficiency()))
-                    
-                    deposited_exposure -= self.long_range_deposited_exposure_between_bounds(time1, time2)/dilution
+                # Multiply by the (diameter-independent) inhalation rate
+                _deposited_exposure = (this_deposited_exposure *
+                                    interaction.activity.inhalation_rate
+                                    /dilution) 
+                
+                # Then we multiply by the emission rate without the BR contribution (and conversion factor),
+                # and parameters of the vD equation (i.e. n_in).
+                deposited_exposure += _deposited_exposure*(
+                    (infected.emission_rate_per_aerosol_per_person_when_present() / (
+                    infected.activity.exhalation_rate * 10**6)) *                 
+                    (1 - self.exposed.mask.inhale_efficiency()))
+                
+                deposited_exposure -= self.long_range_deposited_exposure_between_bounds(time1, time2)/dilution
 
             
         # Long-range contributions from all infected populations (including the ones with SR interactions)

@@ -29,7 +29,6 @@ def full_exposure_model(data_registry):
                 ),
             ),
             evaporation_factor=0.3,
-            short_range=((),),
         ),
         exposed=models.Population(
             number=10,
@@ -39,6 +38,7 @@ def full_exposure_model(data_registry):
             host_immunity=0.
         ),
         geographical_data=(),
+        short_range=((),),
     )
 
 

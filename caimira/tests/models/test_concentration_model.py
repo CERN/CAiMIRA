@@ -99,7 +99,6 @@ def test_concentration_model_vectorization(override_params, data_registry):
             ),
         ),
         evaporation_factor=0.3,
-        short_range=((),),
     )
     assert isinstance(c_model.concentration(10), float)
 
@@ -124,7 +123,6 @@ def simple_conc_model(data_registry):
             ),
         ),
         evaporation_factor=0.3,
-        short_range=((),),
     )
 
 @pytest.fixture
@@ -147,7 +145,6 @@ def simple_conc_model_extended_presence(data_registry):
             ),
         ),
         evaporation_factor=0.3,
-        short_range=((),),
     )
 
 
@@ -181,7 +178,6 @@ def diameter_dependent_model(data_registry) -> models.ConcentrationModel:
             ),
         ),
         evaporation_factor=0.3,
-        short_range=((),),
     )
 
 @pytest.mark.parametrize(
@@ -252,16 +248,6 @@ def test_diameter_vectorization_room(diameter_dependent_model, volume, inside_te
             room = models.Room(volume=volume, inside_temp=inside_temp, humidity=humidity),
             ventilation = models.HVACMechanical(active=models.SpecificInterval(((0., 24.), )), q_air_mech=100.)
         )
-
-def test_invalid_short_range(simple_conc_model):
-    with pytest.raises(ValueError, match="'short_range' must contain exactly one tuple of short-range interactions "
-            "for each infected population. Got 1 infected populations and " \
-            "2 tuples of short-range interactions."):
-        nested_replace(simple_conc_model, {'short_range': ((),())})
-    with pytest.raises(ValueError, match="'short_range' must contain exactly one tuple of short-range interactions "
-            "for each infected population. Got 1 infected populations and " \
-            "0 tuples of short-range interactions."):
-        nested_replace(simple_conc_model, {'short_range': ()})
 
 @pytest.mark.parametrize(
     "time, expected_last_state_change", [
