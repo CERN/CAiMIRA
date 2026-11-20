@@ -767,7 +767,7 @@ def baseline_raw_form_data_dynamic_occupancy() -> typing.Dict[str, typing.Union[
         }
     }
 
-def baseline_raw_form_data_dynamic_occupancy() -> typing.Dict[str, typing.Union[str, float]]:
+def reduced_baseline_raw_form_data_dynamic_occupancy() -> typing.Dict[str, typing.Union[str, float]]:
     # Contains the exact same information as baseline_raw_form_data_dynamic_occupancy, but with redundant variables removed
     return {
         'simulation_name': 'Test',
