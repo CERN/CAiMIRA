@@ -274,7 +274,6 @@ class VirusFormData(FormData):
                         distances = short_range_distances(self.data_registry)
                         short_range[key].append(mc.ShortRangeModel(
                             data_registry=self.data_registry,
-                            exposed_identifier="group_1",
                             activity=infected_population.activity, # TODO: allow specification of SR activity, as implemented in the backend (see doc)
                             expiration=expiration,
                             presence=presence,
@@ -293,11 +292,11 @@ class VirusFormData(FormData):
                         ventilation=ventilation,
                         infected_populations=(infected_population,),
                         evaporation_factor=0.3,
-                        short_range=(short_range_tuple,),
                     ),
                     exposed=exposed_population,# TODO: add name
                     geographical_data=geographical_data,
                     exposed_to_short_range=self.short_range_occupants,
+                    short_range=(short_range_tuple,),
                 ),)
             ).build_model(sample_size)
         
@@ -314,7 +313,6 @@ class VirusFormData(FormData):
                             distances = short_range_distances(self.data_registry)
                             short_range[key].append(mc.ShortRangeModel(
                                 data_registry=self.data_registry,
-                                exposed_identifier=exposure_group,
                                 activity=infected_population.activity, # TODO: allow specification of SR activity, as implemented in the backend (see doc)
                                 expiration=expiration,
                                 presence=presence,
@@ -331,11 +329,11 @@ class VirusFormData(FormData):
                         ventilation=ventilation,
                         infected_populations=(infected_population,),
                         evaporation_factor=0.3,
-                        short_range=(sr_models,),
                     ),
                     exposed=exposed_population,
                     geographical_data=geographical_data,
                     exposed_to_short_range=self.short_range_occupants,
+                    short_range=(sr_models,),
                 )
                 exposure_model_set.append(exposure_model)
 

@@ -59,7 +59,7 @@ def test_smooth_concentrations(baseline_concentration_model):
     assert np.abs(np.diff(concentrations)).max()/np.mean(concentrations) < dy_limit
 
 
-def build_model(data_registry, interval_duration, sr_model=()):
+def build_model(data_registry, interval_duration):
     model = models.ConcentrationModel(
         data_registry=data_registry,
         room=models.Room(volume=75),
@@ -82,7 +82,6 @@ def build_model(data_registry, interval_duration, sr_model=()):
             ),
         ),
         evaporation_factor=0.3,
-        short_range=(sr_model,),
     )
     return model
 
@@ -216,7 +215,6 @@ def build_hourly_dependent_model(
         intervals_presence_infected=((0., 4.), (5., 7.5)),
         artificial_refinement=False,
         temperatures=data.GenevaTemperatures_hourly,
-        sr_model=()
 ):
     if artificial_refinement:
         # 5-fold increase of number of times, WITHOUT interpolation
@@ -256,12 +254,11 @@ def build_hourly_dependent_model(
             ),
         ),
         evaporation_factor=0.3,
-        short_range=(sr_model,),
     )
     return model
 
 
-def build_constant_temp_model(data_registry, outside_temp, intervals_open=((7.5, 8.5),),sr_model=(),):
+def build_constant_temp_model(data_registry, outside_temp, intervals_open=((7.5, 8.5),)):
     model = models.ConcentrationModel(
         data_registry=data_registry,
         room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293,))),
@@ -284,12 +281,11 @@ def build_constant_temp_model(data_registry, outside_temp, intervals_open=((7.5,
             ),
         ),
         evaporation_factor=0.3,
-        short_range=(sr_model,),
     )
     return model
 
 
-def build_hourly_dependent_model_multipleventilation(data_registry, month, intervals_open=((7.5, 8.5),), sr_model=()):
+def build_hourly_dependent_model_multipleventilation(data_registry, month, intervals_open=((7.5, 8.5),)):
     vent = models.MultipleVentilation((
         models.SlidingWindow(
             data_registry=data_registry,
@@ -319,7 +315,6 @@ def build_hourly_dependent_model_multipleventilation(data_registry, month, inter
             ),
         ),
         evaporation_factor=0.3,
-        short_range=(sr_model,),
     )
     return model
 
@@ -408,6 +403,7 @@ def build_exposure_model(data_registry, concentration_model):
             host_immunity=0.,
         ),
         geographical_data=models.Cases(),
+        short_range=((),)
     )
 
 
@@ -420,7 +416,7 @@ def build_exposure_model(data_registry, concentration_model):
         ['Jun', 1385.917562],
     ],
 )
-def test_exposure_hourly_dep(data_registry, month, expected_deposited_exposure, baseline_sr_model):
+def test_exposure_hourly_dep(data_registry, month, expected_deposited_exposure):
     m = build_exposure_model(
         data_registry,
         build_hourly_dependent_model(
@@ -428,8 +424,7 @@ def test_exposure_hourly_dep(data_registry, month, expected_deposited_exposure, 
             month,
             intervals_open=((0., 24.), ),
             intervals_presence_infected=((8., 12.), (13., 17.)),
-            sr_model=baseline_sr_model
-        )
+        ),
     )
     deposited_exposure = m.deposited_exposure()
     npt.assert_allclose(deposited_exposure, expected_deposited_exposure)
@@ -444,7 +439,7 @@ def test_exposure_hourly_dep(data_registry, month, expected_deposited_exposure, 
         ['Jun', 1439.267381],
     ],
 )
-def test_exposure_hourly_dep_refined(data_registry, month, expected_deposited_exposure, baseline_sr_model):
+def test_exposure_hourly_dep_refined(data_registry, month, expected_deposited_exposure):
     m = build_exposure_model(
         data_registry,
         build_hourly_dependent_model(
@@ -453,7 +448,6 @@ def test_exposure_hourly_dep_refined(data_registry, month, expected_deposited_ex
             intervals_open=((0., 24.),),
             intervals_presence_infected=((8., 12.), (13., 17.)),
             temperatures=data.GenevaTemperatures,
-            sr_model=baseline_sr_model
         )
     )
     deposited_exposure = m.deposited_exposure()

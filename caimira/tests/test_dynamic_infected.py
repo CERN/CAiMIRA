@@ -126,7 +126,6 @@ def mismatched_viruses_conc_model(infected_dynamic_virus):
         ventilation = models.AirChange(interesting_times, 100),
         infected_populations = infected_dynamic_virus,
         evaporation_factor=0.3,
-        short_range=((),)*len(infected_dynamic_virus),
     )
 
 @pytest.fixture
@@ -135,25 +134,15 @@ def short_range_models():
                 (
                     mc.ShortRangeModel(
                         data_registry=data_registry,
-                        exposed_identifier="groupA",
                         expiration=models.Expiration.types['Breathing'],
                         activity=models.Activity.types['Seated'],
-                        presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
+                        presence=models.SpecificInterval(present_times=((10.5, 10.7),)),
                         distance=0.854
                     ),
                 ),
                 (
                     mc.ShortRangeModel(
                         data_registry=data_registry,
-                        exposed_identifier="groupB",
-                        expiration=models.Expiration.types['Speaking'],
-                        activity=models.Activity.types['Seated'],
-                        presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
-                        distance=0.854
-                    ),
-                    mc.ShortRangeModel(
-                        data_registry=data_registry,
-                        exposed_identifier="groupA",
                         expiration=models.Expiration.types['Shouting'],
                         activity=models.Activity.types['Standing'],
                         presence=models.SpecificInterval(present_times=((10.75, 11.0),)),
@@ -164,15 +153,6 @@ def short_range_models():
                 (
                     mc.ShortRangeModel(
                         data_registry=data_registry,
-                        exposed_identifier="groupB",
-                        expiration=models.Expiration.types['Speaking'],
-                        activity=models.Activity.types['Seated'],
-                        presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
-                        distance=0.854
-                    ),
-                    mc.ShortRangeModel(
-                        data_registry=data_registry,
-                        exposed_identifier="groupA",
                         expiration=models.Expiration.types['Breathing'],
                         activity=models.Activity.types['Standing'],
                         presence=models.SpecificInterval(present_times=((11.5, 12.0),)),
@@ -197,7 +177,6 @@ def dynamic_conc_model(all_infected_populations):
         ventilation = models.AirChange(interesting_times, 100),
         infected_populations = all_infected_populations,
         evaporation_factor=0.3,
-        short_range=((),)*len(all_infected_populations),
     )
 
 @pytest.fixture
@@ -206,16 +185,13 @@ def separate_conc_models(dynamic_conc_model):
         nested_replace(
             dynamic_conc_model, {
                 "infected_populations": (infected,),
-                "short_range": ((),),
             }
         ) for infected in dynamic_conc_model.infected_populations
     )
 
-@pytest.fixture
-def dynamic_conc_model_with_short_range(dynamic_conc_model, short_range_models):
-    return nested_replace(dynamic_conc_model, {"short_range": short_range_models})
-
-def get_exposure_model(concentration_model) -> mc.ExposureModel:
+def get_exposure_model(concentration_model, short_range=None) -> mc.ExposureModel:
+    if not short_range:
+        short_range = ((),)*len(concentration_model.infected_populations)
     return mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=concentration_model,
@@ -228,6 +204,7 @@ def get_exposure_model(concentration_model) -> mc.ExposureModel:
             host_immunity=0.,
         ),
         geographical_data=models.Cases(),
+        short_range=short_range,
     )
 
 def test_common_params(dynamic_conc_model, mismatched_viruses_conc_model):
@@ -298,9 +275,9 @@ def test_long_range_deposited_exposure(
     assert np.all(deposited_exposure >= 0)
 
 
-def test_exposure(dynamic_conc_model, dynamic_conc_model_with_short_range):
+def test_exposure(dynamic_conc_model, short_range_models):
     exp_model_no_sr = get_exposure_model(dynamic_conc_model).build_model(SAMPLE_SIZE)
-    exp_model_with_sr = get_exposure_model(dynamic_conc_model_with_short_range).build_model(SAMPLE_SIZE)
+    exp_model_with_sr = get_exposure_model(dynamic_conc_model, short_range=short_range_models).build_model(SAMPLE_SIZE)
     assert np.allclose(exp_model_no_sr.deposited_exposure(short_range=True), exp_model_no_sr.deposited_exposure(short_range=False))
     assert np.allclose(exp_model_no_sr.deposited_exposure(short_range=True), exp_model_with_sr.deposited_exposure(short_range=False))
     assert np.allclose(exp_model_no_sr.individual_infection_probability(short_range=True), exp_model_no_sr.individual_infection_probability(short_range=False))
@@ -335,7 +312,6 @@ def test_dynamic_exposure(infected_dynamic_number, start, stop):
     short_range_model = (
         mc.ShortRangeModel(
             data_registry=data_registry,
-            exposed_identifier="groupA",
             expiration=models.Expiration.types['Shouting'],
             activity=models.Activity.types['Standing'],
             presence=models.SpecificInterval(present_times=((10.5, 11.0),)),
@@ -348,7 +324,6 @@ def test_dynamic_exposure(infected_dynamic_number, start, stop):
         ventilation = models.AirChange(interesting_times, 100),
         infected_populations = (infected_dynamic_number[1],),
         evaporation_factor=0.3,
-        short_range=(short_range_model,),
     )
 
     conc_model_split_infected = mc.ConcentrationModel(
@@ -357,11 +332,17 @@ def test_dynamic_exposure(infected_dynamic_number, start, stop):
         ventilation = models.AirChange(interesting_times, 100),
         infected_populations = (infected_dynamic_number[0], infected_dynamic_number[0],),
         evaporation_factor=0.3,
-        short_range=((), short_range_model,),
     )
 
-    non_dynamic_exp_model_with_sr = get_exposure_model(conc_model_combined_infected).build_model(SAMPLE_SIZE)
-    dynamic_exp_model_with_sr = get_exposure_model(conc_model_split_infected).build_model(SAMPLE_SIZE)
+    non_dynamic_exp_model_with_sr = get_exposure_model(
+        conc_model_combined_infected,
+        (short_range_model,),
+    ).build_model(SAMPLE_SIZE)
+
+    dynamic_exp_model_with_sr = get_exposure_model(
+        conc_model_split_infected,
+        short_range=((), short_range_model,),
+    ).build_model(SAMPLE_SIZE)
 
     assert np.allclose(
         non_dynamic_exp_model_with_sr.long_range_deposited_exposure_between_bounds(start, stop),

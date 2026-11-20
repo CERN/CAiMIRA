@@ -33,7 +33,6 @@ def baseline_exposure_model(data_registry):
             ),
         ),
         evaporation_factor=0.3,
-        short_range=((),),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
@@ -46,6 +45,7 @@ def baseline_exposure_model(data_registry):
             host_immunity=0.,
         ),
         geographical_data=models.Cases(),
+        short_range=((),),
     )
 
 

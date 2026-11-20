@@ -41,7 +41,7 @@ def baseline_infected(data_registry):
     )
 
 @pytest.fixture
-def baseline_concentration_model(data_registry, baseline_infected, baseline_sr_model):
+def baseline_concentration_model(data_registry, baseline_infected):
     model = models.ConcentrationModel(
         data_registry=data_registry,
         room=models.Room(
@@ -52,13 +52,12 @@ def baseline_concentration_model(data_registry, baseline_infected, baseline_sr_m
         ),
         infected_populations=(baseline_infected,),
         evaporation_factor=0.3,
-        short_range=(baseline_sr_model,),
     )
     return model
 
 
 @pytest.fixture
-def baseline_exposure_model(data_registry, baseline_infected, baseline_concentration_model):
+def baseline_exposure_model(data_registry, baseline_infected, baseline_concentration_model, baseline_sr_model):
     return models.ExposureModel(
         data_registry=data_registry,
         concentration_model=baseline_concentration_model,
@@ -70,6 +69,7 @@ def baseline_exposure_model(data_registry, baseline_infected, baseline_concentra
             host_immunity=0.,
         ),
         geographical_data=models.Cases(),
+        short_range=(baseline_sr_model,),
     )
 
 

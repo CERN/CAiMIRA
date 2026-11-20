@@ -37,11 +37,7 @@ def test_type_annotations():
         pytest.fail(msg)
 
 @pytest.fixture
-def baseline_mc_sr_model() -> caimira.calculator.models.monte_carlo.ShortRangeModel:
-    return ()
-
-@pytest.fixture
-def baseline_mc_concentration_model(data_registry, baseline_mc_sr_model) -> caimira.calculator.models.monte_carlo.ConcentrationModel:
+def baseline_mc_concentration_model(data_registry) -> caimira.calculator.models.monte_carlo.ConcentrationModel:
     mc_model = caimira.calculator.models.monte_carlo.ConcentrationModel(
         data_registry=data_registry,
         room=caimira.calculator.models.monte_carlo.Room(volume=caimira.calculator.models.monte_carlo.sampleable.Normal(75, 20),
@@ -65,7 +61,6 @@ def baseline_mc_concentration_model(data_registry, baseline_mc_sr_model) -> caim
             ),
         ),
         evaporation_factor=0.3,
-        short_range=(baseline_mc_sr_model,),
     )
     return mc_model
 
@@ -87,6 +82,7 @@ def baseline_mc_exposure_model(data_registry, baseline_mc_concentration_model) -
             host_immunity=0.,
         ),
         geographical_data=caimira.calculator.models.models.Cases(),
+        short_range=((),),
     )
 
 
