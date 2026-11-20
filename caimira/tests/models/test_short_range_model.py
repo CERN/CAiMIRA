@@ -92,7 +92,6 @@ def test_short_range_distance_dimensions(data_registry, make_args):
     activity, distance = make_args(data_registry)
     sr_model = mc_models.ShortRangeModel(
         data_registry=data_registry,
-        exposed_identifier="",
         activity=activity,
         expiration=short_range_expiration_distributions(data_registry)["Speaking"],
         presence=models.SpecificInterval(present_times=((10.75, 11.0),)),
