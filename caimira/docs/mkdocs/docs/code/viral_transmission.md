@@ -603,18 +603,23 @@ C_{0, \mathrm{SR}}(D) = \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot E_c(D)
 \end{equation*}
 $$
 
-is the initial concentration of virions at the mouth/nose outlet during exhalation. 
-Note that $C_{0, \mathrm{SR}}(D)$ is time-independent. In CAiMIRA, however, $C_{0, \mathrm{SR}}(D)$ is set to zero until (and including) the the start of the short-range interaction and after the end of the short-range interaction.
+is the initial concentration of virions at the mouth/nose outlet during exhalation, and essentially the emission rate $\mathrm{vR}(D)$ divided by the breathing rate ${\mathrm{BR}}_{\mathrm{k}}$. 
+Note that $C_{0, \mathrm{SR}}(D)$ is time-independent. 
+In CAiMIRA, however, $C_{0, \mathrm{SR}}(D)$ is set to zero until (and including) the the start of the short-range interaction and after the end of the short-range interaction.
 
-Face masks interrupt the yet stream, so only infected without face masks may have short-range interactions. Hence, infected with face masks only contribute to increasing the overall long-range concentration of virions. 
+Face masks interrupt the jet stream, so only infected without face masks may have short-range interactions. 
+Hence, it is hardcoded into the model that any infected in a short-range interaction is not wearing a face mask. 
+Infected who always wears face masks can only contribute to the long-range concentration of virions.
 
-We allow the physical and expiratory activity of the infected and exposed to be different at short-range and long-range (in the current frontend, only the expiratory activity may be different).
-Also, because smaller particles remain airborne longer than bigger particles, we set $D_{\mathrm{max}}=20\mathrm{μm}$ at long-range and $D_{\mathrm{min}}=100\mathrm{μm}$ at short-range.
+We allow the physical and expiratory activity of the infected and exposed to be different at short-range and long-range.
+Due to the fact that these interactions are at short-range droplets might not have time to fully evaporate and hence their average size is larger.
+Since larger particles are associated to more virions (higher density), we decided to have two separate diameter cut-off values: $D_{\mathrm{max}}=20\mathrm{μm}$ at long-range and $D_{\mathrm{min}}=100\mathrm{μm}$ at short-range.
 Consequently, $E_c(D)$ has a different $N_p$ for $C_{0, \mathrm{SR}}(D)$ than for $C_{\mathrm{LR}} (t, D)$, so the particle diameters sampled to compute $C_{0, \mathrm{SR}}(D)$ are drawn from a different probability distribution than the samples drawn to compute $C_{\mathrm{LR}} (t, D)$. 
 Lets denote the different probability distributions at long-range and short-range $\mathrm{p}_{\mathrm{LR},D}(D)$ and $\mathrm{p}_{\mathrm{SR},D}(D)$.
 
-Up until (and including) CAiMIRA version 4.19.0, we interpolated the vector $\left[\frac{C_{\mathrm{LR}}(t, D_1)}{\mathrm{p}_{\mathrm{LR},D}(D_1)}, \frac{C_{\mathrm{LR}}(t, D_2)}{\mathrm{p}_{\mathrm{LR},D}(D_2)}, ..., \frac{C_{\mathrm{LR}}(t, D_{S_N})}{\mathrm{p}_{\mathrm{LR},D}(D_{S_N})}\right]$ 
-to the short-range diameter basis sampled from $\mathrm{p}_{\mathrm{SR},D}(D)$. Thereafter, we Monte Carlo integrated
+Up until CAiMIRA version 4.19.0, we interpolated the vector $\left[\frac{C_{\mathrm{LR}}(t, D_1)}{\mathrm{p}_{\mathrm{LR},D}(D_1)}, \frac{C_{\mathrm{LR}}(t, D_2)}{\mathrm{p}_{\mathrm{LR},D}(D_2)}, ..., \frac{C_{\mathrm{LR}}(t, D_{S_N})}{\mathrm{p}_{\mathrm{LR},D}(D_{S_N})}\right]$ 
+to the short-range diameter basis sampled from $\mathrm{p}_{\mathrm{SR},D}(D)$. 
+Thereafter, we Monte Carlo integrated
 
 $$
 \begin{align*}
@@ -656,10 +661,13 @@ For the sake of curiosity, note that that if $S({x}) < \infty$ and $C_{0, \mathr
 meaning the exhaled jet of a person with a low (or no) viable viral load and/or emission rate contains less virions than the background concentration. 
 In the CAiMIRA model, only the short-range concentration from infectious are modeled, and it seems probable that every infected population has $C_{0, \mathrm{SR}}(D)$ large enough for $C_{\mathrm{SR-LR}}^{\mathrm{total}}(t) > 0$.
 
-Finally, note that a short-range interaction is always considered to be between a single infected and a single exposed population. Therefore, there is no "dynamic occupancy" at short-range. The implementation of dynamic occupancy does, however, require special attention to defining exactly who the short-range interactions are between. This is the rational of having short-range interactions being a property of **InfectedPopulation**.
+Finally, note that a short-range interaction is always considered to be between a single infected and a single exposed population. 
+Therefore, there is no "dynamic occupancy" at short-range. 
+The implementation of dynamic occupancy does, however, require special attention to defining exactly who the short-range interactions are between. 
+This is the rational of having short-range interactions being a property of **InfectedPopulation**.
 
 ##### The Dilution Factor
-This **dilution factor** is given by 
+An essential part of the modelling of short-range interactions is the **dilution factor**, given by 
 $$
 S({x}) =
 \begin{cases} 
@@ -671,7 +679,7 @@ $$
 where $x_{0}=\frac{D_m}{2𝛽_{\mathrm{r1}}}$ distance of the virtual origin of the puff-like stage (in $\mathrm{m}$) with $D_m$ being the diameter (in $\mathrm{m}$) of the mouth opening, assumed to be a perfect circle.
 All the $𝛽$-parameters are streamwise and radial penetration coefficients set in `data_registry`.
 The distance $x$ a random variable sampled from a log-normal distribution in `monte_carlo.data.short_range_distances()` and passed as `distance` to **ShortRangeModel** (`models.ShortRangeModel`). 
-The transition point is defined as 
+The jet-puff transition point is defined as 
 
 $$
 \begin{equation*}
@@ -682,7 +690,7 @@ $$
 where $Q_{\mathrm{exh}}= φ \mathrm{BR}_{\mathrm{k}}$ is the expired flow rate during the expiration period in $\mathrm{m^{3} s^{-1}}$. 
 $φ$ is the (dimensionless) exhalation coefficient, given by the ratio between the total period of a breathing cycle and the duration of the exhalation alone. 
 Assuming the duration of an inhalation and an exhalation are equal, and one starts immediately after the other, $φ=2$. 
-$\mathrm{BR}_{\mathrm{k}}$ is the breathing rate determined by the infected's physical activity during the short-range interaction.
+The breathing rate $\mathrm{BR}_{\mathrm{k}}$ is determined by the infected's physical activity during the short-range interaction.
 Next, $u_{0}=\frac{Q_{\mathrm{exh}}}{A_{m}}$ is the expired jet speed (in $\mathrm{m s^{-1}}$), with $A_{m}$ being the area of the mouth opening.
 The time of the transition point $\mathrm{t^*}$ is defined as half a breathing cycle, corresponding to the end of the exhalation period when the jet is interrupted, and set in `data_registry`.
 Finally, $t_{0} = \frac{\sqrt{\pi} \cdot D_m^3}{8𝛽_{\mathrm{r1}}^2𝛽_{\mathrm{x1}}^2Q_{exh}}$ is the time (in $\mathrm{s}$) corresponding to the distance of the virtual origin of the puff-like stage $x_{0}$.
