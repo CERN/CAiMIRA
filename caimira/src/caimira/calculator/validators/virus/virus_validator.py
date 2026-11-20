@@ -274,7 +274,6 @@ class VirusFormData(FormData):
                         distances = short_range_distances(self.data_registry)
                         short_range[key].append(mc.ShortRangeModel(
                             data_registry=self.data_registry,
-                            exposed_identifier="group_1",
                             activity=infected_population.activity, # TODO: allow specification of SR activity, as implemented in the backend (see doc)
                             expiration=expiration,
                             presence=presence,
@@ -287,19 +286,17 @@ class VirusFormData(FormData):
                 data_registry=self.data_registry,
                 exposure_models = (mc.ExposureModel(
                     data_registry=self.data_registry,
-                    concentration_model=(
-                        mc.ConcentrationModel(
-                            data_registry=self.data_registry,
-                            room=room,
-                            ventilation=ventilation,
-                            infected=infected_population,
-                            evaporation_factor=0.3,
-                            short_range=short_range_tuple,
-                        ),
+                    concentration_model=mc.ConcentrationModel(
+                        data_registry=self.data_registry,
+                        room=room,
+                        ventilation=ventilation,
+                        infected_populations=(infected_population,),
+                        evaporation_factor=0.3,
                     ),
                     exposed=exposed_population,# TODO: add name
                     geographical_data=geographical_data,
                     exposed_to_short_range=self.short_range_occupants,
+                    short_range=(short_range_tuple,),
                 ),)
             ).build_model(sample_size)
         
@@ -316,7 +313,6 @@ class VirusFormData(FormData):
                             distances = short_range_distances(self.data_registry)
                             short_range[key].append(mc.ShortRangeModel(
                                 data_registry=self.data_registry,
-                                exposed_identifier=exposure_group,
                                 activity=infected_population.activity, # TODO: allow specification of SR activity, as implemented in the backend (see doc)
                                 expiration=expiration,
                                 presence=presence,
@@ -327,19 +323,17 @@ class VirusFormData(FormData):
                 sr_models: typing.Tuple[models.ShortRangeModel, ...] = tuple(short_range[exposure_group])
                 exposure_model = mc.ExposureModel(
                     data_registry=self.data_registry,
-                    concentration_model=(
-                        mc.ConcentrationModel(
-                            data_registry=self.data_registry,
-                            room=room,
-                            ventilation=ventilation,
-                            infected=infected_population,
-                            evaporation_factor=0.3,
-                            short_range=sr_models,
-                        ),
+                    concentration_model=mc.ConcentrationModel(
+                        data_registry=self.data_registry,
+                        room=room,
+                        ventilation=ventilation,
+                        infected_populations=(infected_population,),
+                        evaporation_factor=0.3,
                     ),
                     exposed=exposed_population,
                     geographical_data=geographical_data,
                     exposed_to_short_range=self.short_range_occupants,
+                    short_range=(sr_models,),
                 )
                 exposure_model_set.append(exposure_model)
 
@@ -373,7 +367,7 @@ class VirusFormData(FormData):
             data_registry=self.data_registry,
             room=self.initialize_room(),
             ventilation=self.ventilation(),
-            CO2_emitters=population,
+            CO2_emitting_populations=(population,),
         ).build_model(size=sample_size)
 
     def tz_name_and_utc_offset(self) -> typing.Tuple[str, float]:

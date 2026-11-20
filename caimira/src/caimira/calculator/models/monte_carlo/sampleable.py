@@ -157,6 +157,6 @@ class LogCustomKernel(SampleableDistribution):
         return 10 ** kde_model.sample(n_samples=size)[:, 0]
 
 
-_VectorisedFloatOrSampleable = typing.Union[
-    SampleableDistribution, models._VectorisedFloat,
+_VectorizedFloatOrSampleable = typing.Union[
+    SampleableDistribution, models._VectorizedFloat,
 ]
