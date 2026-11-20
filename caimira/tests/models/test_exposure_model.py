@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 from caimira.calculator.models import models
 from caimira.calculator.models.models import ExposureModel
-from caimira.calculator.models.dataclass_utils import replace
+from caimira.calculator.models.dataclass_utils import replace, nested_replace
 from caimira.calculator.models.monte_carlo.data import expiration_distributions
 from caimira.calculator.store.data_registry import DataRegistry
 
@@ -90,7 +90,6 @@ def known_concentrations(func, func_lim=None, data_registry=DataRegistry()):
             ventilation=dummy_ventilation,
             infected_populations=(dummy_infected_population,), 
             evaporation_factor=0.3, 
-            short_range=((),), 
             normed_concentration_function=normed_func, 
             normed_concentration_limit_function=normed_func_lim,
         )
@@ -115,7 +114,7 @@ def known_concentrations(func, func_lim=None, data_registry=DataRegistry()):
     ])
 def test_exposure_model_ndarray(data_registry, population, cm,
                                 expected_exposure, expected_probability, cases_model):
-    model = ExposureModel(data_registry, cm, population, cases_model)
+    model = ExposureModel(data_registry, cm, ((),), population, cases_model)
     np.testing.assert_almost_equal(
         model.deposited_exposure(), expected_exposure
     )
@@ -142,7 +141,7 @@ def test_exposure_model_ndarray_and_float_mix(data_registry, population, expecte
     # normed_concentration_limit(_next_state_change(t)) = np.array([0.6, 0.6]) for all t
     func_lim = lambda t: func(24)
     cm = known_concentrations(func,func_lim)
-    model = ExposureModel(data_registry, cm, population, cases_model)
+    model = ExposureModel(data_registry, cm, ((),), population, cases_model)
 
     np.testing.assert_almost_equal(
         model.deposited_exposure(), expected_deposited_exposure
@@ -159,7 +158,7 @@ def test_exposure_model_ndarray_and_float_mix(data_registry, population, expecte
     ])
 def test_exposure_model_vector(data_registry, population, expected_deposited_exposure, cases_model):
     cm_array = known_concentrations(lambda t: np.array([0.6, 0.6]))
-    model_array = ExposureModel(data_registry, cm_array, population, cases_model)
+    model_array = ExposureModel(data_registry, cm_array, ((),), population, cases_model)
     np.testing.assert_almost_equal(
         model_array.deposited_exposure(), np.array(expected_deposited_exposure)
     )
@@ -167,18 +166,14 @@ def test_exposure_model_vector(data_registry, population, expected_deposited_exp
 
 def test_exposure_model_scalar(data_registry, cases_model):
     cm_scalar = known_concentrations(lambda t: 0.6)
-    model_scalar = ExposureModel(data_registry, cm_scalar, populations[0], cases_model)
+    model_scalar = ExposureModel(data_registry, cm_scalar, ((),), populations[0], cases_model)
     expected_deposited_exposure = 1.52436206
     np.testing.assert_almost_equal(
         model_scalar.deposited_exposure(), expected_deposited_exposure
     )
 
 @pytest.fixture
-def sr_model():
-    return ()
-
-@pytest.fixture
-def conc_model(data_registry, sr_model):
+def conc_model(data_registry):
     interesting_times = models.SpecificInterval(
         ([0., 1.], [1.01, 1.02], [12., 24.]),
     )
@@ -202,7 +197,6 @@ def conc_model(data_registry, sr_model):
             ),
         ),
         evaporation_factor=0.3,
-        short_range=(sr_model,),
     )
 
 
@@ -251,7 +245,7 @@ def test_exposure_model_integral_accuracy(data_registry, exposed_time_interval,
         number=10, presence=presence_interval, activity=models.Activity.types['Standing'],
         mask=models.Mask.types['Type I'], host_immunity=0.,
     )
-    model = ExposureModel(data_registry, conc_model, population, cases_model)
+    model = ExposureModel(data_registry, conc_model, ((),), population, cases_model)
     np.testing.assert_allclose(model.deposited_exposure(), expected_deposited_exposure)
 
 
@@ -281,7 +275,7 @@ def test_infectious_dose_vectorization(cases_model, data_registry):
         number=10, presence=presence_interval, activity=models.Activity.types['Standing'],
         mask=models.Mask.types['Type I'], host_immunity=0.,
     )
-    model = ExposureModel(data_registry, cm, population, cases_model)
+    model = ExposureModel(data_registry, cm, ((),), population, cases_model)
     inf_probability = model.individual_infection_probability()
     assert isinstance(inf_probability, np.ndarray)
     assert inf_probability.shape == (3, )
@@ -347,7 +341,7 @@ def test_probabilistic_exposure_probability(data_registry, exposed_population, c
         mask=models.Mask.types['Type I'], 
         host_immunity=0.,
         )
-    model = ExposureModel(data_registry, cm, population, models.Cases(geographic_population=pop,
+    model = ExposureModel(data_registry, cm, ((),), population, models.Cases(geographic_population=pop,
         geographic_cases=cases, ascertainment_bias=AB),)
     np.testing.assert_allclose(
         model.total_probability_rule(), probabilistic_exposure_probability, rtol=0.05
@@ -382,6 +376,7 @@ def test_diameter_vectorization_window_opening(data_registry, diameter_dependent
             ), 
             exposed=populations[0], 
             geographical_data=cases_model,
+            short_range=((),),
         )
 
 
@@ -401,6 +396,7 @@ def test_diameter_vectorization_hinged_window(data_registry, diameter_dependent_
             ),
             exposed=populations[0], 
             geographical_data=cases_model,
+            short_range=((),),
         )
 
 
@@ -417,6 +413,7 @@ def test_diameter_vectorization_HEPA_filter(data_registry, diameter_dependent_mo
             ), 
             exposed=populations[1], 
             geographical_data=cases_model,
+            short_range=((),),
         )
 
 
@@ -433,6 +430,7 @@ def test_diameter_vectorization_air_change(data_registry, diameter_dependent_mod
             ), 
             exposed=populations[2], 
             geographical_data=cases_model,
+            short_range=((),),
         )
 
 
@@ -453,6 +451,7 @@ def test_diameter_vectorization_room(data_registry, diameter_dependent_model, ca
             ), 
         exposed=populations[0], 
         geographical_data=cases_model,
+        short_range=((),),
     )
 
 
@@ -465,13 +464,13 @@ def test_diameter_vectorization_room(data_registry, diameter_dependent_model, ca
 )
 def test_host_immunity_vectorization(data_registry, cases_model, cm, host_immunity, expected_probability):
     population = models.Population(
-            number=10, 
-            presence=halftime, 
-            activity=models.Activity.types['Standing'],
-            mask=models.Mask(np.array([0.3, 0.35])), 
-            host_immunity=host_immunity,
-            )
-    model = ExposureModel(data_registry, cm, population, cases_model)
+        number=10, 
+        presence=halftime, 
+        activity=models.Activity.types['Standing'],
+        mask=models.Mask(np.array([0.3, 0.35])), 
+        host_immunity=host_immunity,
+    )
+    model = ExposureModel(data_registry, cm, ((),), population, cases_model)
     inf_probability = model.individual_infection_probability()
 
     np.testing.assert_almost_equal(
@@ -479,3 +478,14 @@ def test_host_immunity_vectorization(data_registry, cases_model, cm, host_immuni
     )
     assert isinstance(inf_probability, np.ndarray)
     assert inf_probability.shape == (2, )
+
+def test_invalid_short_range(data_registry, conc_model, cases_model):
+    model = ExposureModel(data_registry, conc_model, ((),), populations[0], cases_model)
+    with pytest.raises(ValueError, match="'short_range' must contain exactly one tuple of short-range interactions "
+            "for each infected population. Got 1 infected populations and " \
+            "2 tuples of short-range interactions."):
+        nested_replace(model, {'short_range': ((),())})
+    with pytest.raises(ValueError, match="'short_range' must contain exactly one tuple of short-range interactions "
+            "for each infected population. Got 1 infected populations and " \
+            "0 tuples of short-range interactions."):
+        nested_replace(model, {'short_range': ()})

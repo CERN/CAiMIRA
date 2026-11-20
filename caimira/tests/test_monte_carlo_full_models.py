@@ -69,7 +69,6 @@ def shared_office_mc(data_registry):
             ),
         ),
         evaporation_factor=0.3,
-        short_range=((),),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
@@ -82,6 +81,7 @@ def shared_office_mc(data_registry):
             host_immunity=0.,
         ),
         geographical_data=models.Cases(),
+        short_range=((),),
     )
 
 
@@ -118,7 +118,6 @@ def classroom_mc(data_registry):
             ),
         ),
         evaporation_factor=0.3,
-        short_range=((),),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
@@ -131,6 +130,7 @@ def classroom_mc(data_registry):
             host_immunity=0.,
         ),
         geographical_data=models.Cases(),
+        short_range=((),),
     )
 
 
@@ -158,7 +158,6 @@ def ski_cabin_mc(data_registry):
             ),
         ),
         evaporation_factor=0.3,
-        short_range=((),),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
@@ -171,6 +170,7 @@ def ski_cabin_mc(data_registry):
             host_immunity=0.,
         ),
         geographical_data=models.Cases(),
+        short_range=((),),
     )
 
 
@@ -204,7 +204,6 @@ def skagit_chorale_mc(data_registry):
             ),
         ),
         evaporation_factor=0.3,
-        short_range=((),),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
@@ -217,6 +216,7 @@ def skagit_chorale_mc(data_registry):
             host_immunity=0.,
         ),
         geographical_data=models.Cases(),
+        short_range=((),),
     )
 
 
@@ -250,7 +250,6 @@ def bus_ride_mc(data_registry):
             ),
         ),
         evaporation_factor=0.3,
-        short_range=((),),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
@@ -263,6 +262,7 @@ def bus_ride_mc(data_registry):
             host_immunity=0.,
         ),
         geographical_data=models.Cases(),
+        short_range=((),),
     )
 
 
@@ -291,7 +291,6 @@ def gym_mc(data_registry):
             ),
         ),
         evaporation_factor=0.3,
-        short_range=((),),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
@@ -304,6 +303,7 @@ def gym_mc(data_registry):
             host_immunity=0.,
         ),
         geographical_data=models.Cases(),
+        short_range=((),),
     )
 
 
@@ -332,7 +332,6 @@ def waiting_room_mc(data_registry):
             ),
         ),
         evaporation_factor=0.3,
-        short_range=((),),
     )
     return mc.ExposureModel(
         data_registry=data_registry,
@@ -345,6 +344,7 @@ def waiting_room_mc(data_registry):
             host_immunity=0.,
         ),
         geographical_data=models.Cases(),
+        short_range=((),),
     )
 
 
@@ -422,7 +422,6 @@ def test_small_shared_office_Geneva(data_registry, mask_type, month, expected_pi
             ),
         ),
         evaporation_factor=0.3,
-        short_range=((),),
     )
     exposure_mc = mc.ExposureModel(
         data_registry=data_registry,
@@ -435,6 +434,7 @@ def test_small_shared_office_Geneva(data_registry, mask_type, month, expected_pi
             host_immunity=0.,
         ),
         geographical_data=models.Cases(),
+        short_range=((),),
     )
     exposure_model = exposure_mc.build_model(size=SAMPLE_SIZE)
     npt.assert_allclose(exposure_model.individual_infection_probability().mean(),

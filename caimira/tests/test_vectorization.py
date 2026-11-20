@@ -52,16 +52,14 @@ def random_non_dynamic_concentration_model(data_registry, baseline_sr_model, ran
         ),
         infected_populations=(random_infected_population,),
         evaporation_factor=0.3,
-        short_range=(baseline_sr_model,),
     )
 
 @pytest.fixture
-def dynamic_mc_conc_model(random_non_dynamic_concentration_model, baseline_sr_model, random_infected_population):
+def dynamic_mc_conc_model(random_non_dynamic_concentration_model, random_infected_population):
     # all random variables (virus, activity, expiration, mask) MC sampled
     n_pop = 2
     return replace(random_non_dynamic_concentration_model, 
         infected_populations=(random_infected_population,)*n_pop,
-        short_range=(baseline_sr_model,)*n_pop,
     )
 
 @pytest.fixture
@@ -108,7 +106,7 @@ def diameter_dependent_conc_models(random_non_dynamic_concentration_model, deter
     ]
 
 @pytest.fixture
-def dynamic_mc_exposure_model(data_registry, dynamic_mc_conc_model):
+def dynamic_mc_exposure_model(data_registry, dynamic_mc_conc_model, baseline_sr_model):
     return mc.ExposureModel(
         data_registry=data_registry,
         concentration_model=dynamic_mc_conc_model,
@@ -121,6 +119,7 @@ def dynamic_mc_exposure_model(data_registry, dynamic_mc_conc_model):
         ),
         geographical_data=models.Cases(),
         exposed_to_short_range=1,
+        short_range=(baseline_sr_model,)*len(dynamic_mc_conc_model.infected_populations),
     )
 
 
@@ -144,20 +143,6 @@ def mc_co2_conc_model(data_registry) -> mc.CO2ConcentrationModel:
         ),
     )
 
-def get_exposure_model(data_registry, conc_model):
-    return mc.ExposureModel(
-            data_registry=data_registry,
-            concentration_model=conc_model,
-            exposed=mc.Population(
-                number=1,
-                presence=mc.SpecificInterval(present_times=((0, 3.5), (4.5, 9))),
-                mask=mask_distributions(data_registry)['Type I'], # random
-                activity=activity_distributions(data_registry)['Seated'], # random
-                host_immunity=0.,
-            ),
-            geographical_data=models.Cases(),
-            exposed_to_short_range=1,
-    )
 
 def _test_conc_model_types(model: models._ConcentrationModelBase, time, start, stop):
     assert isinstance(model.min_background_concentration(), float)
@@ -175,19 +160,12 @@ def _test_conc_model_types(model: models._ConcentrationModelBase, time, start, s
 
 def _test_conc_dimensions(model: models.ConcentrationModel, n_samples: int, time, start, stop):
     _test_conc_model_types(model, time, start, stop)
-    assert len(model.populations) == len(model.short_range)
-    assert isinstance(model.short_range_normalization_factors(), np.ndarray)
     assert model.volume().shape == (1, 1) # type: ignore
 
     deterministic_activity_and_virus: bool = not (
         isinstance(model.infected_populations[0].activity.exhalation_rate, np.ndarray) or 
         isinstance(model.infected_populations[0].virus.viral_load_in_sputum, np.ndarray)
     )
-
-    if deterministic_activity_and_virus:
-        assert model.short_range_normalization_factors().shape == (len(model.populations), 1)
-    else:
-        assert model.short_range_normalization_factors().shape == (len(model.populations), n_samples)
 
     if model.monte_carlo_diameter():
         n_diameters = n_samples
@@ -208,12 +186,22 @@ def _test_conc_dimensions(model: models.ConcentrationModel, n_samples: int, time
 
 def _test_exposure_dimensions(model: models.ExposureModel, n_samples: int, time, start, stop):
     assert len(model.infected_populations) == len(model.concentration_model.infected_populations)
-    assert len(model.infected_populations) == len(model.concentration_model.short_range)
+    assert len(model.infected_populations) == len(model.short_range)
     assert isinstance(model.concentration(time), float)
     assert isinstance(model._long_range_normed_exposure_between_bounds_by_infected_population(start,stop), np.ndarray)
     assert isinstance(model.long_range_deposited_exposure_between_bounds_by_infected_population(start,stop), np.ndarray)
     assert isinstance(model.long_range_deposited_exposure_between_bounds(start,stop), np.ndarray)
     assert isinstance(model.deposited_exposure_between_bounds(start,stop), np.ndarray)
+    assert isinstance(model.short_range_normalization_factors(), np.ndarray)
+
+    deterministic_activity_and_virus: bool = not (
+        isinstance(model.infected_populations[0].activity.exhalation_rate, np.ndarray) or 
+        isinstance(model.infected_populations[0].virus.viral_load_in_sputum, np.ndarray)
+    )
+    if deterministic_activity_and_virus:
+        assert model.short_range_normalization_factors().shape == (len(model.infected_populations), 1)
+    else:
+        assert model.short_range_normalization_factors().shape == (len(model.infected_populations), n_samples)
 
     if model.monte_carlo_diameter():
         assert model._long_range_normed_exposure_between_bounds_by_infected_population(start,stop).shape == (len(model.infected_populations), n_samples) # type: ignore
@@ -333,11 +321,26 @@ def test_all_non_dynamic_models(
         infected = diameter_dependent_model.infected_populations[0]
         diameter_independent_model = replace(diameter_dependent_model, infected_populations = (replace(infected, expiration=deterministic_properties["expiration"]),))
 
-        for model in [diameter_dependent_model, diameter_independent_model]:
-            assert len(model.infected_populations) == 1
-            _test_conc_dimensions(model, SAMPLE_SIZE, time, start, stop)
+        for conc_model in [diameter_dependent_model, diameter_independent_model]:
+            assert len(conc_model.infected_populations) == 1
+            _test_conc_dimensions(conc_model, SAMPLE_SIZE, time, start, stop)
 
-            exposure_model = get_exposure_model(data_registry=data_registry, conc_model=model).build_model(SAMPLE_SIZE)
+            exposure_model = mc.ExposureModel(
+                data_registry=data_registry,
+                concentration_model=conc_model,
+                exposed=mc.Population(
+                    number=1,
+                    presence=mc.SpecificInterval(present_times=((0, 3.5), (4.5, 9))),
+                    mask=mask_distributions(data_registry)['Type I'], # random
+                    activity=activity_distributions(data_registry)['Seated'], # random
+                    host_immunity=0.,
+                ),
+                geographical_data=models.Cases(),
+                exposed_to_short_range=1,
+                short_range=((),)*len(conc_model.infected_populations),
+                
+            ).build_model(SAMPLE_SIZE)
+            
             assert len(exposure_model.infected_populations) == 1
             _test_exposure_dimensions(
                 exposure_model,
