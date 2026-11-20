@@ -224,6 +224,8 @@ In the CAiMIRA model, we select the pdf of the random variable $D$ to include th
 Thereby, we reduce the variability of the samples of $D$ and packing part of the computations into the pdf $\mathrm{p}_D$, improving the computational performance.
 </details>
 
+<br>
+
 ### Computation of the Emission Rate
 The computation of the emission rate $\mathrm{vR}(D)$ in CAiMIRA can be divided into three steps:
  
@@ -236,6 +238,7 @@ This means we need to assume that the particle diameter, exhalation rate, viral 
 
 <details>
 <summary>Because the emission rate is a linear function of the integral over the particle diameter, it is ok to Monte Carlo integrate over the particle diameter and Monte Carlo average over diameter-independent random variables simultaneously. </summary>
+<br>
 
 $\mathrm{vR}^{total}$ is a random variable as it is a function of the exhalation rate, viral load, and outwards mask efficiency (if random). Taking the expected value $E_{\mathrm{rv}}$ over all these random variables, we get the expected total emission rate
 
@@ -267,6 +270,8 @@ $$
 The relation $E_{\mathrm{rv}}[\mathrm{vR}^{total}] = E\left[\frac{\mathrm{vR}(D)}{\mathrm{p}_D(D)}\right]$ can easily be shown to hold also when the outwards mask efficiency is diameter-dependent following the same logic.
 To conclude, we can compute the expected total emission rate by simultaneously Monte Carlo integrating over the particle diameter and averaging over the random variables. 
 </details>
+
+<br>
 
 For downstream computations, however, the diameter-dependent and diameter independent values are not averaged but kept separate for two reasons
 1. The Monte Carlo integral over the particle diameter for the viral concentration, dose, and infection probability will include more diameter-dependent factors.
@@ -372,7 +377,9 @@ However, we choose to account for $C_{\mathrm{min}}$ in the formulation of the v
 
 Assuming the viral concentration is the only time-dependent variable, this ODE can be solved analytically. 
 The viral removal rate is, however, also time-dependent. 
-We assume $\lambda_{vRR}(t, D)$ is stepwise constant and that we may divide the scenario a finite number of time intervals $[t_i, t_{i+1})$ where $\lambda_{vRR}(t, D)=\lambda_{vRR}(t_i, D)$ is constant. 
+We assume $\lambda_{vRR}(t, D)$ is stepwise constant so that we may divide the scenario into a finite number of time intervals where the removal rate is constant. 
+Similarly, the number of infected in each population is also time dependent and stepwise constant, as individuals can leave and re-enter the room. 
+Combining the transition points for the removal rate and the occupancy, we split the full duration of the simulation $[t_0, t_{m})$ into a finite sequence of smaller subintervals $[t_i, t_{i+1})$ where $\lambda_{vRR}(t, D)=\lambda_{vRR}(t_i, D)$ and $N_{\mathrm{inf},n}$ are both constant.
 Then, we can solve the ODE analytically for $t \in (t_i, t_{i+1}]$. 
 The viral concentration at the end of the last time interval is carried forward as the initial condition for the solution for the next time interval. 
 
@@ -380,8 +387,8 @@ The viral concentration at the end of the last time interval is carried forward 
 <summary>Solving the ODE</summary>
 
 $C_{\mathrm{LR},h}(t, D)=A_1\cdot e^{-\lambda_{vRR}(t_i,D)\cdot t}$ is the homogeneous solution satisfying 
-$\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} + \lambda_{vRR}(t_i,D)\cdot\,(C_{\mathrm{LR}}(t, D)-C_{\mathrm{min}}) = 0$.
-Assuming $A_2$ is the constant particular solution the general solution is
+$\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} + \lambda_{vRR}(t_i,D)\cdot\,C_{\mathrm{LR}}(t, D) = 0$.
+Assuming $A_2$ is the constant particular solution, the general solution is
 
 $$
 \begin{equation*}
@@ -401,7 +408,7 @@ Combining the two equations containing $\frac{\partial C_{\mathrm{LR}}(t, D)}{\p
 
 $$
 \begin{equation*}
-C_{\mathrm{LR}}(t, D) = \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}+ A_1\cdot e^{-\lambda_{vRR}(t_i,D)\cdot t},
+C_{\mathrm{LR}}(t, D) = C_{\mathrm{min}} +\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}+ A_1\cdot e^{-\lambda_{vRR}(t_i,D)\cdot t},
 \end{equation*}
 $$
 
@@ -409,7 +416,7 @@ which combined with the general solution yields
 
 $$
 \begin{equation*}
-A_2 = \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}.
+A_2 = C_{\mathrm{min}}+\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}.
 \end{equation*}
 $$
 
@@ -419,32 +426,36 @@ Hence,
 
 $$
 \begin{equation*}
-A_1 = \left(C_{\mathrm{LR}}(t_i, D) -\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}\right) \cdot e^{\lambda_{vRR}(t_i,D)\cdot t_i}.
+A_1 = \left(C_{\mathrm{LR}}(t_i, D) -C_{\mathrm{min}}-\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}\right) \cdot e^{\lambda_{vRR}(t_i,D)\cdot t_i}.
 \end{equation*}
 $$
 </details>
+
+<br>
 
 In summary, the analytical solution of the ODE describing the long-range viral concentration for $t \in (t_i, t_{i+1}]$ is
 
 $$
 \begin{align*}
 C_{\mathrm{LR}}(t, D) 
-&= \frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}
-+ \left(C_{\mathrm{LR}}(t_i, D) -\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}\right) \cdot e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}\\
-&= C_{\mathrm{LR}}(t_i, D)\cdot e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}
+&= C_{\mathrm{min}}+\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}
++ \left(C_{\mathrm{LR}}(t_i, D) -C_{\mathrm{min}}-\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}\right) \cdot e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}\\
+&= C_{\mathrm{min}}+(C_{\mathrm{LR}}(t_i, D)-C_{\mathrm{min}})\cdot e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}
 +\sum_{n=1}^{n_p}\frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}(1-e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}).
 \end{align*}
 $$
 
-We can express the long-range concentration increase resulting from the presence of the n-th population only as
+We can express the long-range concentration increase resulting from the presence of the $n$-th population only as
 
 $$
 \begin{align*}
 C_{\mathrm{LR},n}(t, D)
-&= (C_{\mathrm{LR},n}(t_i, D)-C_{\mathrm{min}}) \cdot e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}
+&= C_{\mathrm{LR},n}(t_i, D) \cdot e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}
 + \frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} (1-e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}).
 \end{align*}
 $$
+
+Note $C_{\mathrm{LR},n}(t, D)$ does not include $C_{\mathrm{min}}$, contrary to the full viral diameter-dependent viral concentration $C_{\mathrm{LR}}(t, D)$
 
 The total concentration increase is the sum of the concentration increases following the presence of each population and the background concentration.
 We assume that the concentration starts at $C_{\mathrm{min}}$ so that the concentration increase starts at $0$. 
@@ -467,7 +478,7 @@ Note that
 $$
 \begin{align*}
 C_{\mathrm{LR},n}(t_{i+1}, D) 
-&= (C_{\mathrm{LR}}(t_i, D)-C_{\mathrm{min}}) \cdot e^{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}
+&= C_{\mathrm{LR},n}(t_i, D) \cdot e^{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}
 + \frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} (1-e^{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}).
 \end{align*}
 $$
@@ -478,7 +489,7 @@ Using standard techniques, we find the solution to be
 $$
 \begin{equation*}
 C_{\mathrm{LR},n}(t_{i}, D)
-=(C_{\mathrm{LR},n}(t_0, D) -C_{\mathrm{min}})
+=C_{\mathrm{LR},n}(t_0, D)
 \cdot e^{-\sum_{j=0}^{i-1}\lambda_{vRR}(t_j,D)\cdot (t_{j+1}-t_j)}
 +\mathrm{vR}_n(D) \cdot \sum_{m=0}^{i-1}\frac{N_{\mathrm{inf},n}}{\lambda_{vRR}(t_m,D)\,V_r}
 \cdot (1- e^{-\lambda_{vRR}(t_m,D)\cdot (t_{m+1}-t_m)}) 
@@ -486,7 +497,7 @@ C_{\mathrm{LR},n}(t_{i}, D)
 \end{equation*}
 $$
 
-Because we assume the initial concentration $C_{\mathrm{LR}}(t_0, D)=C_{\mathrm{min}}$ the solution simplifies to
+It follows from the initial condition $C_{\mathrm{LR}}(t_0, D)=C_{\mathrm{min}}$ that $C_{\mathrm{LR},n}(t_0, D)=0$, so the solution simplifies to
 
 $$
 \begin{equation*}
@@ -505,25 +516,32 @@ In fact, experiments indicate computing $C_{\mathrm{LR}}(t_i, D)$ by the recurre
 
 </details>
 
+<br>
+
 #### Computation of the Long-Range Concentration
 The architecture for computing the long-range viral concentrations is based on the relation 
 $C_{\mathrm{LR}}(t, D) = C_{\mathrm{min}}+\sum_{n=1}^{n_p} C_{\mathrm{LR},n}(t, D)$,
 derived above, showing that the total long-range viral concentration is the sum of the individual concentration contributions from all infected populations and the minimum background concentration.
 
-First, CAiMIRA initializes one **InfectedPopulation** for each group of infected with similar properties, so that all infected within the same **InfectedPopulation** have the same physical activity, expiratory activity, face mask, immunity, presence, and number of occupants. 
-All **InfectedPopulation** instances in the same scenario are assumed to be infected with the exact same **Virus**. 
-Different **InfectedPopulation** instances, however, may have a different physical activities, expiratory activities, face masks, immunities, presences, and number of occupants. 
-Importantly, each **InfectedPopulation** instance will contain its own set of samples of random variables associated with the infected, i.e. the exhalation rate, face mask (if random), and particle diameter.
-Not only are the samples of the random variables different, they may be sampled from different pdfs. 
-Therefore, it would be mathematically incorrect to compute the total diameter-dependent viral concentration $C_{\mathrm{LR}}(t, D)$ with contributions from infected with different expiratory activities. 
-Instead, we must compute and Monte Carlo integrate each $C_{\mathrm{LR},n}(t, D)$ separately. 
+To compute the viral concentration, **InfectedPopulation** instances (one for each infected population) are passed, together with the **Room** and **Ventilation**, to **ConcentrationModel** (`models.ConcentrationModel`). 
+**ConcentrationModel** is a child class of the abstract `models._ConcentrationModelBase` computing the long-range concentration for any type of aerosol. 
+
+For computational efficiency, we separate the computations of $C_{\mathrm{LR},n}(t,D)$ into
+* a diameter-dependent normalized concentration $\frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)}$ 
+* a diameter-independent normalization factor $\frac{\mathrm{vR}_n(D)}{E_{c,n}(D)} = {\mathrm{BR}}_{\mathrm{k},n} \cdot \mathrm{vl}_{\mathrm{inf}} \cdot f_{\mathrm{inf},n}$
+* a diameter-dependent normalization factor $\frac{E_{c,n}(D)}{\mathrm{p}_{D,n}(D)}=(1 − η_{\mathrm{out},n}(D)) \cdot  V_p(D) \cdot c_{n,n}$
+
+The diameter-dependent $\frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)}$ is implemented in `models._ConcentrationModelBase._normed_concentration_addition_by_population()`.
+The full normalization factor $\frac{\mathrm{vR}_n(D)}{\mathrm{p}_{D,n}(D)}$ is implemented in `models._ConcentrationModelBase.normalization_factor()`, which retrieves its diameter-dependent component from `models._PopulationWithVirus.aerosols()`, 
+and its diameter-independent component from in `models._PopulationWithVirus.emission_rate_per_aerosol_per_person_when_present()`. 
+
+All methods including `_by_population` in their name, as well as `models._ConcentrationModelBase.normalization_factor()`, returns a 2D array where the vertical (second) dimension is across the different **InfectedPopulation** instances and the horizontal dimension is across the diameter samples of the **InfectedPopulation**. 
+The computations are vectorized over the populations because each **InfectedPopulation** instance will contain its own set of samples of random variables associated with the infected, i.e. the exhalation rate, face mask (if random), and particle diameter (all **InfectedPopulation** instances in the same scenario are assumed to be infected with the exact same **Virus**).
+Not only are the samples of the random variables in each **InfectedPopulation** different, they may be sampled from different pdfs as different infected populations can have different physical activities, expiratory activities, face masks, immunities, presences, and number of occupants.
+Therefore, we must compute and Monte Carlo integrate the concentration contribution of each infected population separately. 
 
 <details>
-<summary>Why can we not compute the full diameter-dependent viral concentration?</summary>
-
-First of all, note that $C_{\mathrm{LR}}(t, D)$ is a *function* of the particle diameter $D$. 
-The function itself is correct, and would have been unproblematic if we could have solved the integral over the particle diameter analytically. 
-Because we will eventually Monte Carlo integrate it, however, the question arises of which values of $D$ to pass to $C_{\mathrm{LR}}(t, D)$.
+<summary>Why must we Monte Carlo integrate the concentration contributions separately?</summary>
 
 Recall that the probability density of the particle diameter $\mathrm{p}_{D,n}(D)$ (depending on the expiratory activity of the infected) is a linear component of $C_{\mathrm{LR},n}(t, D)$.
 Therefore, the fraction $\frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{p}_{D,n}(D)}$ does not really contain $\mathrm{p}_{D,n}(D)$.
@@ -533,8 +551,8 @@ We only sample diameters from $\mathrm{p}_{D,n}(D)$ to compute the fraction $\fr
 $$
 \begin{align*}
 C_{\mathrm{LR}}^{\mathrm{total}}(t)
-&= \int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} C_{\mathrm{min}}+\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D) \;\ \mathrm{d}D \\
-&= C_{\mathrm{min}}\cdot(D_{\mathrm{max}}-D_{\mathrm{min}})+\sum_{n=1}^{n_p}C_{\mathrm{LR},n}^{\mathrm{total}}(t)
+&= C_{\mathrm{min}}+\int_{D_{\mathrm{min}}}^{D_{\mathrm{max}}} \sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D) \;\ \mathrm{d}D \\
+&= C_{\mathrm{min}}+\sum_{n=1}^{n_p}C_{\mathrm{LR},n}^{\mathrm{total}}(t)
 \end{align*}
 $$
 
@@ -548,41 +566,22 @@ C_{\mathrm{LR},n}^{\mathrm{total}}(t)
 \end{equation*}
 $$
 
-Note that the samples of $D$ depend on which probability density they are sampled from.
-Therefore, there is no general support or distribution for $D$ that holds over all infected populations, which we would have needed to compute the diameter-dependent $C_{\mathrm{LR}}(t, D)$ by Monte Carlo sampling.
-Instead, we avoid the whole problem by Monte Carlo integrating the contributions from each population separately before adding the contributions together to obtain the total viral concentration $C_{\mathrm{LR}}^{\mathrm{total}}(t)$.  
+Because the samples of $D$ come from different pdfs, there is no general support or distribution for $D$ that holds over all infected populations. 
+Therefore, we stick to Monte Carlo integrating the contributions from each population separately before adding the contributions together to obtain the total viral concentration $C_{\mathrm{LR}}^{\mathrm{total}}(t)$.  
+
+The same argument can be made for the diameter-independent random variables: The breathing rates, for example, may be sampled from a different pdfs for different infected populations.
+Therefore we must Monte Carlo average over all random variables connected to the specific **InfectedPopulation** before summing together the concentration contributions across populations.
+
 </details>
 
-To compute the viral concentration, all the **InfectedPopulation** instances are passed, together with the **Room** and **Ventilation**, to **ConcentrationModel** (`models.ConcentrationModel`). 
-**ConcentrationModel** is a child class of the abstract `models._ConcentrationModelBase` computing the long-range concentration for any type of aerosol. 
-The methods in **ConcentrationModel** can be characterized as diameter-dependent or diameter-independent. 
-The diameter-dependent methods in **ConcentrationModel** return 2D arrays, where the vertical (second) dimension is across different **InfectedPopulation** instances and the horizontal dimension is across the diameter samples of an **InfectedPopulation**. 
-The methods returning diameter-dependent values (not yet Monte Carlo integrated) are:
-- `models._ConcentrationModelBase._normed_concentration_addition_limit()`,
-- `models._ConcentrationModelBase._normed_concentration_addition_cached()`, and
-- `models._ConcentrationModelBase._normed_concentration_addition()`.
+<br>
 
-For computational efficiency, we separate the computations of $C_{\mathrm{LR},n}(t,D)$ into
-* a diameter-dependent normalized concentration $\frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)}$ 
-* a diameter-dependent normalization factor $\frac{\mathrm{vR}_n(D)}{E_c(D)} = {\mathrm{BR}}_{\mathrm{k}} \cdot \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}}$
-* a diameter-independent normalization factor $\frac{E_c(D)}{\mathrm{p}_{D,n}(D)}$
-
-The diameter-dependent $\frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)}$ is implemented in `models._ConcentrationModelBase._normed_concentration_addition()`.
-The diameter-dependent normalization factor is implemented in `models._PopulationWithVirus.aerosols()`, 
-and the diameter-independent component $\mathrm{BR}_{\mathrm{k,in}} \cdot \mathrm{vl_{inf}} \cdot \mathrm{r_{inf}} \cdot (1-\mathrm{HI}_\mathrm{inf})$ implemented in `models._PopulationWithVirus.emission_rate_per_aerosol_per_person_when_present()`. The product of these three factors is $\frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{p}_{D,n}(D)}$, which averaged over values of $D$ sampled from $\mathrm{p}_{D,n}(D)$ yields the Monte Carlo estimate of $C_{\mathrm{LR}}^{\mathrm{total}}(t)$. 
-
-Note that none of these methods include the minimum background concentration, which is only introduced after the Monte Carlo integration is complete. 
+We report the evolution of the viral concentration in the room ($C_{\mathrm{LR}}^{\mathrm{total}}(t)$), as an intermediate result. 
+The normed concentrations and normalization factor are multiplied in `models._ConcentrationModelBase.concentration_addition_by_population()` to compute $\frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{p}_{D,n}(D)}$, which averaged over values of $D$ sampled from $\mathrm{p}_{D,n}(D)$ and all random variables yields the Monte Carlo estimate of the expected value of $C_{\mathrm{LR}}^{\mathrm{total}}(t)$ computed in `models._ConcentrationModelBase.concentration()`. 
+The minimum background concentration is only introduced in `models._ConcentrationModelBase.concentration()`, after the Monte Carlo integration and averaging is complete. 
 
 We will introduce more diameter-dependent factors to include in the Monte Carlo integral for the total dose in **ExposureModel**, as explained further down this page. 
 The Monte Carlo integral for the total dose will, therefore, retrieve the diameter-dependent methods of **ConcentrationModel**, and not the Monte Carlo integrated $C_{\mathrm{LR}}^{\mathrm{total}}(t)$.
-
-We report the evolution of the viral concentration in the room ($C_{\mathrm{LR}}^{\mathrm{total}}(t)$), as an intermediate result. 
-To compute the total viral concentration, we first Monte Carlo integrate the concentration additions from each population over their particle diameters. 
-Specifically, the method `models._ConcentrationModelBase.concentration_by_population()` returns a 2D array of values for $C_{\mathrm{LR},n}^{\mathrm{total}}(t)$ where $n$ (the population index) increases along the vertical (second) dimension and the horizontal dimension goes across the Monte Carlo samples of diameter-independent random variables.
-Hence, the output is values of the random variable $C_{\mathrm{LR},n}^{\mathrm{total}}(t)$ for each population.
-Additionally, the minimum background concentration is added as a final row to the returned matrix (so there are $n_p+1$ rows in the returned matrix).
-Finally, `models._ConcentrationModelBase.concentration()` sums the contribution from all populations and the background concentration (i.e. adds together all rows in the matrix from `models._ConcentrationModelBase.concentration_by_population()` horizontally), returning values of the random variable $C_{\mathrm{LR}}^{\mathrm{total}}(t)$ as 1D array. 
-Averaging the array returned by `models._ConcentrationModelBase.concentration()` yields a Monte Carlo estimate of the expected value of $C_{\mathrm{LR}}^{\mathrm{total}}(t)$.
 
 
 ### Short-Range Compartment
@@ -1278,6 +1277,8 @@ $$
 if we set $0!=1$. 
 
 </details>
+
+<br>
 
 In summary, the probability of event $I_e$, denoting the event that a specific individual from the $e$-th exposed population becomes infected, is 
 
