@@ -709,7 +709,8 @@ We compute
 The quotient of the two first methods is computed in `models.ShortRangeModel._normed_jet_origin_concentration()`, returning the array [$\frac{C_{0, \mathrm{SR}}(D_1)}{S(x_1)}$, $\frac{C_{0, \mathrm{SR}}(D_2)}{S(x_2)}$, ..., $\frac{C_{0, \mathrm{SR}}(D_{S_N})}{S(x_{S_N})}$] where [$D_1$, $D_2$, ..., $D_{S_N}$] are the Monte Carlo samples of the particle diameter from $\mathrm{p}_{\mathrm{SR},D}(D)$ and [$x_1$, $x_2$, ..., $x_{S_N}$] are the Monte Carlo samples of the interpersonal distance. For consistency, the (entrained) long-range concentration is also divided by the dilution factor while still diameter-dependent, before Monte Carlo integrating over the diameter, in `models.TotalViralConcentrationModel.diluted_long_range_concentration()`. The total short-range concentration, Monte Carlo integrated over the particle diameter, is computed in `models.TotalViralConcentrationModel.concentration()`.
 
 ### Total Viral Concentration
-Different populations of susceptible hosts may be exposed to different viral concentrations depending on their present times and short-range interactions. The total viral concentration a given population of susceptible hosts is exposed to at at time $t$ is given by
+Different populations of susceptible hosts may be exposed to different viral concentrations depending on their present times and short-range interactions. 
+The total viral concentration a given population of susceptible hosts is exposed to at at time $t$ is given by
 
 $$
 \begin{equation*}
@@ -717,7 +718,8 @@ C^{\mathrm{total}}(t) = \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}}^{\mathrm{t
 \end{equation*}
 $$
 
-where $n_\mathrm{SR}$ denotes the total number of short-range interactions the susceptible hosts are involved in during their entire presence. The indicator function
+where $n_\mathrm{SR}$ denotes the total number of short-range interactions the susceptible hosts are involved in during their entire presence. 
+The indicator function
 
 $$
 \mathbf{1}_{t \in T}(t) =
@@ -727,7 +729,8 @@ $$
 \end{cases}
 $$
 
-checks whether the susceptible host is present at time $t$, whith $T$ consisting of all the times where the susceptible host is present. Similarly, 
+checks whether the susceptible host is present at time $t$, whith $T$ consisting of all the times where the susceptible host is present. 
+Similarly, 
 
 $$
 \mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) =
@@ -737,9 +740,13 @@ $$
 \end{cases}
 $$
 
-checks if $t$ falls within the time interval $T_{\mathrm{SR},j}$ when the $j$-th short-range interaction occurs. Currently, the duration of the short-range interactions $T_{\mathrm{SR},j}$ are assumed to be defines so that $T_{\mathrm{SR},j} \subseteq T$, i.e. only at times when the susceptible hosts are present. we assume the susceptible hosts are only exposed to one short-range interaction at a time (i.e. $\bigcap_{j=1}^{n_\mathrm{SR}}T_{\mathrm{SR},j} = \empty$), because we are not modelling interactions between different exhaled jets. This requirement is not jet made explisit in the backend model (TODO?).
+checks if $t$ falls within the time interval $T_{\mathrm{SR},j}$ when the $j$-th short-range interaction occurs. 
+Currently, the duration of the short-range interactions $T_{\mathrm{SR},j}$ are assumed to be defines so that $T_{\mathrm{SR},j} \subseteq T$, i.e. only at times when the susceptible hosts are present. 
+We assume the susceptible hosts are only exposed to one short-range interaction at a time (i.e. $\bigcap_{j=1}^{n_\mathrm{SR}}T_{\mathrm{SR},j} = \empty$), because we are not modelling interactions between different exhaled jets. 
+This requirement is not jet made explicit in the backend model (TODO?).
 
-$C^{\mathrm{total}}(t)$ - the viral concentration a specific population of susceptible hosts are exposed to - is computed by `models.TotalConcentrationModel.concentration()`. If there are multiple populations of susceptible hosts, the result for each population of susceptible hosts need is computed by separate **TotalConcentrationModel** instances.
+$C^{\mathrm{total}}(t)$ - the viral concentration a specific population of susceptible hosts are exposed to - is computed by `models.TotalConcentrationModel.concentration()`. 
+If there are multiple populations of susceptible hosts, the result for each population of susceptible hosts need is computed by separate **TotalConcentrationModel** instances.
 
 ## Dose
 ### Derivation of the Analytical Dose Exposure
@@ -751,11 +758,11 @@ $$
 \end{equation*}
 $$
 
-where $t_0$ is the first time exposed enters and $t_m$ is the last time they leave. $\mathrm{BR}_{\mathrm{k}}$ is the breathing rate of the exposed, $f_{\mathrm{dep}}(D)$ is the deposition factor in the respiratory tract, and $\eta_{\mathrm{in}}$ is the inwards mask efficiency of the face mask worn by the exposed.
+where $t_0$ is the first time exposed enters the room and $t_m$ is the last time they leave. $\mathrm{BR}_{\mathrm{k}}$ is the breathing rate of the exposed, $f_{\mathrm{dep}}(D)$ is the deposition factor in the respiratory tract, and $\eta_{\mathrm{in}}$ is the inwards mask efficiency of the face mask worn by the exposed.
 $C(t, D)$ is the viral concentration from the perspective of the exposed. 
 When the exposed is inside the room and not engaged in a short-range interaction $C(t, D)=C_{\mathrm{LR}} (t, D)$, 
-and when the exposed is enganging in their $j$-th short-range interaction $C(t, D)=C_{\mathrm{SR},j} (t, D)$. So 
-(recall that we assume only one short-range interaction at a time)
+and when the exposed is enganging in their $j$-th short-range interaction $C(t, D)=C_{\mathrm{SR},j} (t, D)$. 
+As we assume only one short-range interaction at a time
 
 $$
 \begin{equation*}
@@ -763,7 +770,8 @@ C(t, D) = \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) + \sum_{j=1}^{n_\
 \end{equation*}
 $$
 
-where the indicator functions and the time intervals $T$ and $T_{\mathrm{SR},j}$ follow the definitions from the previous sections. We have now introduced all diameter-dependent quantities, and all down-stream computations only depend on the total dose exposure
+where the indicator functions and the time intervals $T$ and $T_{\mathrm{SR},j}$ follow the definitions from the previous sections. 
+We have now introduced all diameter-dependent quantities, and all down-stream computations only depend on the total dose exposure
 
 $$
 \begin{equation*}
@@ -771,7 +779,7 @@ $$
 \end{equation*}
 $$
 
-Similarly to the computation of the total viral concentration, we account for having diferent diameter distributions at long-range and short-range when Monte Carlo integrating $C(t, D)$ over $D$ by separating the dose into a long-range and a short-range component as follows
+Similarly to the computation of the total viral concentration, we account for having different diameter distributions at long-range and short-range when Monte Carlo integrating $C(t, D)$ over $D$ by separating the dose into a long-range and a short-range component as follows
 
 $$
 \begin{align*}
@@ -806,11 +814,14 @@ $$
 \end{equation*}
 $$
 
-This separation also makes it easier to compare the importance of long-range vs short-range interactions for viral transmission. While the integral over the particle diameter $D$ is approximated by Monte Carlo integration, the integral over time $t$ is solved analytically.
+This separation also makes it easier to compare the importance of long-range vs short-range interactions for viral transmission. 
+While the integral over the particle diameter $D$ is approximated by Monte Carlo integration, the integral over time $t$ is solved analytically.
 
 
 #### Long-Range Dose Component
-The viral concentration is analytically integrated over the time $t$. Recall that the analytical solution we found for $C_{\mathrm{LR}}(t, D)$ is only valid within time intervals $[t_i, t_{i+1}]$ where the viral removal rate is constant. We compute
+The viral concentration is analytically integrated over the time $t$. 
+Recall that the analytical solution we found for $C_{\mathrm{LR}}(t, D)$ is only valid within time intervals $[t_i, t_{i+1}]$ where the viral removal rate is constant. 
+We compute
 
 $$
 \begin{align*}
@@ -823,7 +834,8 @@ $$
 \end{align*}
 $$
 
-Lets also assume that the occupancy of the exposed is also constant over $[t_i, t_{i+1}]$ (this can be achieved by redefining $[t_i, t_{i+1}]$ to shorter intervals without contradicting the previous requirement for $[t_i, t_{i+1}]$). Then, the intdicator function is constant over $[t_i, t_{i+1}]$ so
+Lets also assume that the occupancy of the exposed is also constant over $[t_i, t_{i+1}]$ (this can be achieved by redefining $[t_i, t_{i+1}]$ to shorter intervals without contradicting the previous requirement for $[t_i, t_{i+1}]$). 
+Then, the indicator function is constant over $[t_i, t_{i+1}]$ so
 
 $$
 \begin{equation*}
@@ -858,7 +870,8 @@ $$
 \end{equation*}
 $$
 
-Note that $t \in T_{\mathrm{SR},j} \Rightarrow t \in T$ (i.e. if there is a short-range interaction occuring, the occupants are present). Therefore, $\mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) = \mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) \cdot \mathbf{1}_{t \in T}(t)$. 
+Note that $t \in T_{\mathrm{SR},j} \Rightarrow t \in T$ (i.e. if there is a short-range interaction occuring, the occupants are present). 
+Therefore, $\mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) = \mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) \cdot \mathbf{1}_{t \in T}(t)$. 
 
 Combining the arguments above, we find that the short-range dose component from the $i$-th short-range interaction is
 
@@ -881,13 +894,16 @@ $$
 
 #### Computation of the Dose
 The total dose exposure $\mathrm{vD}^{\mathrm{total}}$ is computed by `models.ExposureModel.deposited_exposure()`. 
-When computing the dose, the time intervals $[t_i, t_{i+1}]$ that we intergrate over are determined to:
+When computing the dose, the time intervals $[t_i, t_{i+1}]$ that we integrate over are determined to:
 - only include doses from time intervals where the exposed is present
 - only integrate the concentration over time intervals where the occupancy of the infected and ventilation is constant. 
 
-The first point is ensured by the dose being computed for a list of intervals where the occupancy is constant by `models.ExposureModel._deposited_exposure_list()`, which are then added together in `models.ExposureModel.deposited_exposure()`. Within `models.ExposureModel._deposited_exposure_list()`, after ensuring that we are within a time interval with constant occupancy of the exposed, we call `models.ExposureModel.deposited_exposure_between_bounds()` to compute the total dose exposure for that time interval. 
+The first point is ensured by the dose being computed for a list of intervals where the occupancy is constant by `models.ExposureModel._deposited_exposure_list()`, which are then added together in `models.ExposureModel.deposited_exposure()`. 
+Within `models.ExposureModel._deposited_exposure_list()`, after ensuring that we are within a time interval with constant occupancy of the exposed, we call `models.ExposureModel.deposited_exposure_between_bounds()` to compute the total dose exposure for that time interval. 
 
-The governing method for computing the dose `models.ExposureModel.deposited_exposure_between_bounds()`. There we consider the long-range component and short-range component of the dose separately, summing over the short-range interactions passed to **ExposureModel** to add the $C_{0, \mathrm{SR},i}(D)$ dose contributions and retrieving $\mathrm{vD}_{\mathrm{LR}}(D)$ from `models.ExposureModel.long_range_deposited_exposure_between_bounds()` to compute $\mathrm{vD}^{\mathrm{total}}$. The full Monte Carlo integration over the particle diameter follows
+The governing method for computing the dose is therefore `models.ExposureModel.deposited_exposure_between_bounds()`. 
+There we consider the long-range component and short-range component of the dose separately, summing over the short-range interactions passed to **ExposureModel** to add the $C_{0, \mathrm{SR},i}(D)$ dose contributions and retrieving $\mathrm{vD}_{\mathrm{LR}}(D)$ from `models.ExposureModel.long_range_deposited_exposure_between_bounds()` to compute $\mathrm{vD}^{\mathrm{total}}$. 
+The full Monte Carlo integration over the particle diameter follows
 
 $$
 \begin{equation*}
@@ -898,7 +914,8 @@ $$
 
 In case there are no short-range interactions, `models.ExposureModel.deposited_exposure_between_bounds()` will yield the same result as `models.ExposureModel.long_range_deposited_exposure_between_bounds()`.
 
-Recall that we normalized the concentration by the emission rate for computational efficiency before multiplying by the normalization factor to integrate over the particle diameter. Similarly, the order of computations in `models.ExposureModel.deposited_exposure_between_bounds()` are structured to separate Monte Carlo integration of diamter-dependent and non-diameter dependent random variables for computational efficiency. 
+Recall that we normalized the concentration by the emission rate for computational efficiency before multiplying by the normalization factor to integrate over the particle diameter. 
+Similarly, the order of computations in `models.ExposureModel.deposited_exposure_between_bounds()` are structured to separate Monte Carlo integration of diameter-dependent and non-diameter dependent random variables for computational efficiency. 
 
 
 ### Computation of Expected Results
