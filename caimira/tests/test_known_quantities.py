@@ -6,10 +6,10 @@ import caimira.calculator.models.models as models
 import caimira.calculator.models.data as data
 
 
-def test_no_mask_superspeading_emission_rate(baseline_concentration_model):
+def test_no_mask_superspeading_emission_rate(baseline_infected):
     expected_rate = 48500.
     npt.assert_allclose(
-        [baseline_concentration_model.infected.emission_rate(float(t)) for t in [0, 1, 4, 4.5, 5, 8, 9]],
+        [baseline_infected.emission_rate(float(t)) for t in [0, 1, 4, 4.5, 5, 8, 9]],
         [0, expected_rate, expected_rate, 0, 0, expected_rate, 0],
         rtol=1e-12
     )
@@ -59,7 +59,7 @@ def test_smooth_concentrations(baseline_concentration_model):
     assert np.abs(np.diff(concentrations)).max()/np.mean(concentrations) < dy_limit
 
 
-def build_model(data_registry, interval_duration):
+def build_model(data_registry, interval_duration, sr_model=()):
     model = models.ConcentrationModel(
         data_registry=data_registry,
         room=models.Room(volume=75),
@@ -67,19 +67,22 @@ def build_model(data_registry, interval_duration):
             active=models.PeriodicInterval(period=120, duration=interval_duration),
             q_air_mech=500.,
         ),
-        infected=models.EmittingPopulation(
-            data_registry=data_registry,
-            number=1,
-            virus=models.Virus.types['SARS_CoV_2'],
-            presence=models.SpecificInterval(((0., 4.), (5., 8.))),
-            mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light activity'],
-            known_individual_emission_rate=970 * 50,
-            host_immunity=0.,
-            # Superspreading event, where ejection factor is fixed based
-            # on Miller et al. (2020) - 50 represents the infectious dose.
+        infected_populations=(
+            models.EmittingPopulation(
+                data_registry=data_registry,
+                number=1,
+                virus=models.Virus.types['SARS_CoV_2'],
+                presence=models.SpecificInterval(((0., 4.), (5., 8.))),
+                mask=models.Mask.types['No mask'],
+                activity=models.Activity.types['Light activity'],
+                known_individual_emission_rate=970 * 50,
+                host_immunity=0.,
+                # Superspreading event, where ejection factor is fixed based
+                # on Miller et al. (2020) - 50 represents the infectious dose.
+            ),
         ),
         evaporation_factor=0.3,
+        short_range=(sr_model,),
     )
     return model
 
@@ -212,7 +215,8 @@ def build_hourly_dependent_model(
         intervals_open=((7.5, 8.5),),
         intervals_presence_infected=((0., 4.), (5., 7.5)),
         artificial_refinement=False,
-        temperatures=data.GenevaTemperatures_hourly
+        temperatures=data.GenevaTemperatures_hourly,
+        sr_model=()
 ):
     if artificial_refinement:
         # 5-fold increase of number of times, WITHOUT interpolation
@@ -239,22 +243,25 @@ def build_hourly_dependent_model(
             outside_temp=outside_temp,
             window_height=1.6, opening_length=0.6,
         ),
-        infected=models.EmittingPopulation(
-            data_registry=data_registry,
-            number=1,
-            virus=models.Virus.types['SARS_CoV_2'],
-            presence=models.SpecificInterval(intervals_presence_infected),
-            mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light activity'],
-            known_individual_emission_rate=970 * 50,
-            host_immunity=0,
+        infected_populations=(
+            models.EmittingPopulation(
+                data_registry=data_registry,
+                number=1,
+                virus=models.Virus.types['SARS_CoV_2'],
+                presence=models.SpecificInterval(intervals_presence_infected),
+                mask=models.Mask.types['No mask'],
+                activity=models.Activity.types['Light activity'],
+                known_individual_emission_rate=970 * 50,
+                host_immunity=0,
+            ),
         ),
         evaporation_factor=0.3,
+        short_range=(sr_model,),
     )
     return model
 
 
-def build_constant_temp_model(data_registry, outside_temp, intervals_open=((7.5, 8.5),)):
+def build_constant_temp_model(data_registry, outside_temp, intervals_open=((7.5, 8.5),),sr_model=(),):
     model = models.ConcentrationModel(
         data_registry=data_registry,
         room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293,))),
@@ -264,22 +271,25 @@ def build_constant_temp_model(data_registry, outside_temp, intervals_open=((7.5,
             outside_temp=models.PiecewiseConstant((0., 24.), (outside_temp,)),
             window_height=1.6, opening_length=0.6,
         ),
-        infected=models.EmittingPopulation(
-            data_registry=data_registry,
-            number=1,
-            virus=models.Virus.types['SARS_CoV_2'],
-            presence=models.SpecificInterval(((0., 4.), (5., 7.5))),
-            mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light activity'],
-            known_individual_emission_rate=970 * 50,
-            host_immunity=0.,
+        infected_populations=(
+            models.EmittingPopulation(
+                data_registry=data_registry,
+                number=1,
+                virus=models.Virus.types['SARS_CoV_2'],
+                presence=models.SpecificInterval(((0., 4.), (5., 7.5))),
+                mask=models.Mask.types['No mask'],
+                activity=models.Activity.types['Light activity'],
+                known_individual_emission_rate=970 * 50,
+                host_immunity=0.,
+            ),
         ),
         evaporation_factor=0.3,
+        short_range=(sr_model,),
     )
     return model
 
 
-def build_hourly_dependent_model_multipleventilation(data_registry, month, intervals_open=((7.5, 8.5),)):
+def build_hourly_dependent_model_multipleventilation(data_registry, month, intervals_open=((7.5, 8.5),), sr_model=()):
     vent = models.MultipleVentilation((
         models.SlidingWindow(
             data_registry=data_registry,
@@ -296,17 +306,20 @@ def build_hourly_dependent_model_multipleventilation(data_registry, month, inter
         data_registry=data_registry,
         room=models.Room(volume=75, inside_temp=models.PiecewiseConstant((0., 24.), (293,))),
         ventilation=vent,
-        infected=models.EmittingPopulation(
-            data_registry=data_registry,
-            number=1,
-            virus=models.Virus.types['SARS_CoV_2'],
-            presence=models.SpecificInterval(((0., 4.), (5., 7.5))),
-            mask=models.Mask.types['No mask'],
-            activity=models.Activity.types['Light activity'],
-            known_individual_emission_rate=970 * 50,
-            host_immunity=0.,
+        infected_populations=(
+            models.EmittingPopulation(
+                data_registry=data_registry,
+                number=1,
+                virus=models.Virus.types['SARS_CoV_2'],
+                presence=models.SpecificInterval(((0., 4.), (5., 7.5))),
+                mask=models.Mask.types['No mask'],
+                activity=models.Activity.types['Light activity'],
+                known_individual_emission_rate=970 * 50,
+                host_immunity=0.,
+            ),
         ),
         evaporation_factor=0.3,
+        short_range=(sr_model,),
     )
     return model
 
@@ -382,12 +395,11 @@ def test_concentrations_refine_times(data_registry, time):
     npt.assert_allclose(m1.concentration(time), m2.concentration(time), rtol=1e-8)
 
 
-def build_exposure_model(data_registry, concentration_model, short_range_model):
-    infected = concentration_model.infected
+def build_exposure_model(data_registry, concentration_model):
+    infected = concentration_model.infected_populations[0]
     return models.ExposureModel(
         data_registry=data_registry,
-        concentration_model=(concentration_model,),
-        short_range=short_range_model,
+        concentration_model=concentration_model,
         exposed=models.Population(
             number=10,
             presence=infected.presence,
@@ -415,8 +427,9 @@ def test_exposure_hourly_dep(data_registry, month, expected_deposited_exposure, 
             data_registry,
             month,
             intervals_open=((0., 24.), ),
-            intervals_presence_infected=((8., 12.), (13., 17.))
-        ), baseline_sr_model
+            intervals_presence_infected=((8., 12.), (13., 17.)),
+            sr_model=baseline_sr_model
+        )
     )
     deposited_exposure = m.deposited_exposure()
     npt.assert_allclose(deposited_exposure, expected_deposited_exposure)
@@ -440,7 +453,8 @@ def test_exposure_hourly_dep_refined(data_registry, month, expected_deposited_ex
             intervals_open=((0., 24.),),
             intervals_presence_infected=((8., 12.), (13., 17.)),
             temperatures=data.GenevaTemperatures,
-        ), baseline_sr_model
+            sr_model=baseline_sr_model
+        )
     )
     deposited_exposure = m.deposited_exposure()
     npt.assert_allclose(deposited_exposure, expected_deposited_exposure, rtol=0.02)

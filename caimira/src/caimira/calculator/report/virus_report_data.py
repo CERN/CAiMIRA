@@ -114,10 +114,11 @@ def _concentrations_with_sr_breathing(form: VirusFormData, model: models.Exposur
     """
     Returns the zoomed viral concentrations.
     """
-    for index, (start, stop) in enumerate([interaction.presence.boundaries()[0] for interaction in model.short_range]):
-        if start <= time <= stop and form.short_range_interactions[model.identifier][index]['expiration'] == 'Breathing':
-            return model.concentration(float(time)), fn_name
-    return model.long_range_concentration(float(time)), fn_name
+    for interactions in model.concentration_model.short_range:
+        for index, (start, stop) in enumerate([interaction.presence.boundaries()[0] for interaction in interactions]):
+            if start <= time <= stop and form.short_range_interactions[model.identifier][index]['expiration'] == 'Breathing':
+                return model.concentration(float(time)), fn_name
+    return model.concentration_model.concentration(float(time)), fn_name
 
 
 def _calculate_deposited_exposure(model: models.ExposureModel, 
@@ -144,7 +145,7 @@ def _calculate_co2_concentration(CO2_model: models.CO2ConcentrationModel, time: 
     Returns the CO2 concentration emitted by all
     the present population.
     """
-    return np.array(CO2_model.concentration(float(time))).mean(), fn_name
+    return CO2_model.concentration(float(time)), fn_name
 
 
 def merge_intervals(intervals: typing.List[typing.List[float]]) -> typing.List[typing.List[float]]:
@@ -220,16 +221,18 @@ def group_results(form: VirusFormData, model_group: models.ExposureModelGroup) -
             })
 
         # In case of short-range interactions
-        if single_group.short_range != ():
-            # Short range outputs
-            short_range_interactions: dict = defaultdict(list)
-            for short_range_model in single_group.short_range:
-                short_range_interactions[short_range_model.expiration.name].extend(
-                    short_range_model.presence.boundaries()
-                )
+        if not all(interactions == () for interactions in single_group.concentration_model.short_range):
+            for interactions in single_group.concentration_model.short_range:
+                if interactions != ():
+                    # Short range outputs
+                    short_range_interactions: dict = defaultdict(list)
+                    for short_range_model in interactions:
+                        short_range_interactions[short_range_model.expiration.name].extend(
+                            short_range_model.presence.boundaries()
+                        )
 
-            long_range_single_group = dataclass_utils.nested_replace(
-                single_group, {'short_range': ()}
+            long_range_single_group=dataclass_utils.nested_replace(
+                single_group, {'concentration_model.short_range': ((),)*len(single_group.concentration_model.infected_populations)}
             )
             groups[single_group.identifier].update({
                 "long_range_prob": long_range_single_group.individual_infection_probability().mean(),
@@ -272,7 +275,7 @@ def calculate_report_data(form: VirusFormData,
                 # virus and co2 concentration: takes each time as param, not the interval
                 tasks.append(executor.submit(
                     _calculate_concentration, single_group, time1, fn_name=f"{single_group.identifier}:cn"))
-                if single_group.short_range != ():
+                if not all(interactions == () for interactions in single_group.concentration_model.short_range):
                     tasks.append(executor.submit(
                         _calculate_long_range_deposited_exposure, single_group, time1, time2, fn_name=f"{single_group.identifier}:de_lr"))
                     tasks.append(executor.submit(
@@ -285,7 +288,7 @@ def calculate_report_data(form: VirusFormData,
         for single_model in model_group.exposure_models:
             tasks.append(executor.submit(_calculate_concentration, 
                         single_model, times[-1], fn_name=f"{single_model.identifier}:cn"))
-            if single_group.short_range != ():
+            if not all(interactions == () for interactions in single_group.concentration_model.short_range):
                 tasks.append(executor.submit(_concentrations_with_sr_breathing, 
                                              form, single_model, times[-1], fn_name=f"{single_model.identifier}:cn_zoomed"))
                 
@@ -312,7 +315,7 @@ def calculate_report_data(form: VirusFormData,
         results_per_group[single_group.identifier]["concentrations"] = concentrations[single_group.identifier]
         results_per_group[single_group.identifier]["cumulative_doses"] = list(np.cumsum(deposited_exposures[single_group.identifier]))
         # Calculate long_range results when short-range interactions are defined
-        if single_group.short_range != ():
+        if not all(interactions == () for interactions in single_group.concentration_model.short_range):
             results_per_group[single_group.identifier]["concentrations_zoomed"] = concentrations_zoomed[single_group.identifier]
             results_per_group[single_group.identifier]["long_range_cumulative_doses"] = list(np.cumsum(long_range_deposited_exposures[single_group.identifier]))
     
@@ -327,10 +330,10 @@ def calculate_report_data(form: VirusFormData,
 
 
 def conditional_prob_inf_given_vl_dist(
-    individual_infection_probability: models._VectorisedFloat,
+    individual_infection_probability: models._VectorizedFloat,
     viral_loads: np.ndarray,
-    specific_vl: models._VectorisedFloat,
-    step: models._VectorisedFloat
+    specific_vl: models._VectorizedFloat,
+    step: models._VectorizedFloat
 ):
 
     pi_means = []
@@ -351,7 +354,7 @@ def conditional_prob_inf_given_vl_dist(
 
 def manufacture_conditional_probability_data(
     exposure_model: models.ExposureModel,
-    individual_infection_probability: models._VectorisedFloat
+    individual_infection_probability: models._VectorizedFloat
 ):
     min_vl = 2
     max_vl = 10
@@ -373,7 +376,7 @@ def manufacture_conditional_probability_data(
     }
 
 
-def uncertainties_plot(individual_infection_probability: models._VectorisedFloat,
+def uncertainties_plot(individual_infection_probability: models._VectorizedFloat,
                        conditional_probability_data: dict):
 
     viral_loads: list = conditional_probability_data['viral_loads']
@@ -448,15 +451,8 @@ def calculate_vl_scenarios_percentiles(model: mc.ExposureModel) -> typing.Dict[s
     scenarios = {}
     for percentil in (0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99):
         vl = np.quantile(viral_load, percentil)
-
-        new_conc_model = copy.deepcopy(model.concentration_model)
-        if isinstance(model.concentration_model, list):
-            new_conc_model = [dataclass_utils.nested_replace(cm, {'infected.virus.viral_load_in_sputum': vl}) for cm in model.concentration_model]
-        else:
-            cm = model.concentration_model
-            new_conc_model = dataclass_utils.nested_replace(cm, {'infected.virus.viral_load_in_sputum': vl})
-
-        specific_vl_scenario = dataclass_utils.nested_replace(model, {'concentration_model': new_conc_model})
+        new_infected_populations = (dataclass_utils.nested_replace(infected, {'virus.viral_load_in_sputum': vl}) for infected in model.concentration_model.infected_populations)
+        specific_vl_scenario = dataclass_utils.nested_replace(model, {'concentration_model.infected_populations': new_infected_populations})
         scenarios[str(vl)] = np.mean(
             specific_vl_scenario.individual_infection_probability())
     return {
@@ -479,7 +475,7 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
             FFP2andHEPAalternative = dataclass_utils.replace(
                 form, mask_type='Type I')
             if not (form.hepa_option and form.mask_wearing_option == 'mask_on' and form.mask_type == 'Type I'):
-                scenarios['Base scenario with HEPA filter and Type I masks'] = FFP2andHEPAalternative.build_mc_model()
+                scenarios['Base scenario with HEPA filter and Type I masks'] = FFP2andHEPAalternative.build_model()
         if not FFP2_being_worn and form.hepa_option:
             noHEPAalternative = dataclass_utils.replace(form, mask_type='FFP2')
             noHEPAalternative = dataclass_utils.replace(
@@ -487,7 +483,7 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
             noHEPAalternative = dataclass_utils.replace(
                 noHEPAalternative, hepa_option=False)
             if not (not form.hepa_option and FFP2_being_worn):
-                scenarios['Base scenario without HEPA filter, with FFP2 masks'] = noHEPAalternative.build_mc_model()
+                scenarios['Base scenario without HEPA filter, with FFP2 masks'] = noHEPAalternative.build_model()
 
         # The remaining scenarios are based on Type I masks (possibly not worn)
         # and no HEPA filtration.
@@ -501,15 +497,15 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
             form, mask_wearing_option='mask_off')
 
         if form.ventilation_type == 'mechanical_ventilation':
-            # scenarios['Mechanical ventilation with Type I masks'] = with_mask.build_mc_model()
+            # scenarios['Mechanical ventilation with Type I masks'] = with_mask.build_model()
             if not (form.mask_wearing_option == 'mask_off'):
-                scenarios['Mechanical ventilation without masks'] = without_mask.build_mc_model(
+                scenarios['Mechanical ventilation without masks'] = without_mask.build_model(
                 )
 
         elif form.ventilation_type == 'natural_ventilation':
-            # scenarios['Windows open with Type I masks'] = with_mask.build_mc_model()
+            # scenarios['Windows open with Type I masks'] = with_mask.build_model()
             if not (form.mask_wearing_option == 'mask_off'):
-                scenarios['Windows open without masks'] = without_mask.build_mc_model()
+                scenarios['Windows open without masks'] = without_mask.build_model()
 
         # No matter the ventilation scheme, we include scenarios which don't have any ventilation.
         with_mask_no_vent = dataclass_utils.replace(
@@ -518,9 +514,9 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
             without_mask, ventilation_type='no_ventilation')
 
         if not (form.mask_wearing_option == 'mask_on' and form.mask_type == 'Type I' and form.ventilation_type == 'no_ventilation'):
-            scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_mc_model()
+            scenarios['No ventilation with Type I masks'] = with_mask_no_vent.build_model()
         if not (form.mask_wearing_option == 'mask_off' and form.ventilation_type == 'no_ventilation'):
-            scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_mc_model()
+            scenarios['Neither ventilation nor masks'] = without_mask_or_vent.build_model()
     else:
         # Adjust the number of exposed people with long-range exposure based on short-range interactions
         if not form.occupancy:
@@ -535,7 +531,7 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
                         # Update the total_people with the adjusted value
                        group['total_people'] = max(0, total_people - short_range_count)
             no_short_range_alternative = dataclass_utils.replace(form, short_range_interactions={}, occupancy=form.occupancy)        
-        scenarios['Base scenario without short-range interactions'] = no_short_range_alternative.build_mc_model()
+        scenarios['Base scenario without short-range interactions'] = no_short_range_alternative.build_model()
 
     for scenario_name, scenario in scenarios.items():
         scenarios[scenario_name] = scenario.exposure_models[0] # type: ignore
@@ -543,13 +539,10 @@ def manufacture_alternative_scenarios(form: VirusFormData) -> typing.Dict[str, m
 
 
 def scenario_statistics(
-    mc_model: mc.ExposureModel,
+    model: models.ExposureModel,
     sample_times: typing.List[float],
     compute_prob_exposure: bool,
 ):
-    model = mc_model.build_model(
-        size=mc_model.data_registry.monte_carlo['sample_size']
-    )
     
     return {
         'probability_of_infection': np.mean(model.individual_infection_probability()),

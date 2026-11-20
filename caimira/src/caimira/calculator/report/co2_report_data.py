@@ -10,7 +10,7 @@ def build_initial_plot(
     This method receives the form input and returns the CO2
     plot with the respective transition times.
     '''
-    CO2model: CO2DataModel = form.build_model()
+    CO2model: CO2DataModel = form.build_CO2_data_model()
 
     occupancy_transition_times = list(CO2model.occupancy.transition_times)
 
@@ -43,7 +43,7 @@ def build_fitting_results(
     This method receives the form input and returns the fitting results
     along with the CO2 plot with the predictive CO2.
     '''
-    CO2model: CO2DataModel = form.build_model()
+    CO2model: CO2DataModel = form.build_CO2_data_model()
 
     # Ventilation times after user manipulation from the suggested ventilation state change times.
     ventilation_transition_times = list(CO2model.ventilation_transition_times)
