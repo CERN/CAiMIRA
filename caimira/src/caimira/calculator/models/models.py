@@ -1989,7 +1989,7 @@ class ExposureModel:
                     infected.activity.exhalation_rate * 10**6)) *                 
                     (1 - self.exposed.mask.inhale_efficiency()))
                 
-                deposited_exposure -= self.long_range_deposited_exposure_between_bounds(time1, time2)/dilution
+                deposited_exposure -= self.long_range_deposited_exposure_between_bounds(start, stop)/dilution
 
             
         # Long-range contributions from all infected populations (including the ones with SR interactions)
