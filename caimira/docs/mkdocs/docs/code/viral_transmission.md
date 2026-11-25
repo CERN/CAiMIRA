@@ -472,7 +472,7 @@ holds at all times (for $t \in (t_i, t_{i+1}]$ for all $i$).
 To speed up the computations, we take advantage of $\mathrm{vR}_n(D)$ being a linear component of $C_{\mathrm{LR},n}(t, D)$ so that $\frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)}$ and $\mathrm{vR}_n(D)$ can be computed separately. 
 
 <details>
-<summary>Proof that $\mathrm{vR}_n(D)$ is a linear component of $C_{\mathrm{LR},n}(t, D)$.</summary>
+<summary>Proof that the emission rate is a linear component of the long-range concentration.</summary>
 
 Note that
 
@@ -736,20 +736,39 @@ $$
 \end{equation*}
 $$
 
-where $t_0$ is the first time exposed enters the room and $t_m$ is the last time they leave. $\mathrm{BR}_{\mathrm{k}}$ is the breathing rate of the exposed, $f_{\mathrm{dep}}(D)$ is the deposition factor in the respiratory tract, and $\eta_{\mathrm{in}}$ is the inwards mask efficiency of the face mask worn by the exposed.
-$C(t, D)$ is the viral concentration from the perspective of the exposed. 
-When the exposed is inside the room and not engaged in a short-range interaction $C(t, D)=C_{\mathrm{LR}} (t, D)$, 
-and when the exposed is enganging in their $j$-th short-range interaction $C(t, D)=C_{\mathrm{SR},j} (t, D)$. 
-As we assume only one short-range interaction at a time
+where $t_0$ is the first time exposed enters the room and $t_m$ is the last time they leave. 
+$\mathrm{BR}_{\mathrm{k}}$ is the breathing rate of the exposed, $f_{\mathrm{dep}}(D)$ is the deposition factor in the respiratory tract, and $\eta_{\mathrm{in}}$ is the inwards mask efficiency of the face mask worn by the exposed.
+$C(t, D)$ is the viral concentration from the perspective of the exposed occupant.
+When the exposed occupant is not engaged in a short-range interaction 
 
 $$
 \begin{equation*}
-C(t, D) = \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) + \sum_{j=1}^{n_\mathrm{SR}}\mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) \cdot \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR},j}(D) - C_{\mathrm{LR}}(t, D))
+C(t, D)=C_{\mathrm{LR}} (t, D),
 \end{equation*}
 $$
 
-where the indicator functions and the time intervals $T$ and $T_{\mathrm{SR},j}$ follow the definitions from the previous sections. 
-We have now introduced all diameter-dependent quantities, and all down-stream computations only depend on the total dose exposure
+and when the exposed is engaging in their $j$-th short-range interaction 
+$$
+\begin{equation*}
+C(t, D)=C_{\mathrm{LR}} (t, D)+\frac{1}{S_j({x})}(C_{0, \mathrm{SR},j}(D)-C_{\mathrm{LR}} (t, D)).
+\end{equation*}
+$$
+
+Currently, the minimum background concentration $C_{\mathrm{min}}$ for virions is set to zero in `data_registry`.
+In the future, for example when extending CAiMIRA is extended to new aerosols, it may become important to consider $C_{\mathrm{min}}$ as diameter-dependent.
+The following derivations are, therefore, generalized to consider a diameter-dependent minimum background concentration so 
+
+$$
+\begin{equation*}
+C_{\mathrm{LR}} (t, D)=C_{\mathrm{min}}(D)+\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D).
+\end{equation*}
+$$
+
+To generate values of $C_{\mathrm{min}}(D)$, we need to describe how big the droplets in the minimum background concentration are, for example by a pdf.
+For the case of virus-laden particles, a pdf generating input values to $C_{\mathrm{min}}(D)$ is not (yet) defined as $C_{\mathrm{min}}(D)$ is simply set to zero for all $D$. 
+
+We have now introduced all diameter-dependent quantities.
+All down-stream computations (of the probability of infected and expected new cases, etc) will be computed from the total dose exposure
 
 $$
 \begin{equation*}
@@ -757,118 +776,97 @@ $$
 \end{equation*}
 $$
 
-Similarly to the computation of the total viral concentration, we account for having different diameter distributions at long-range and short-range when Monte Carlo integrating $C(t, D)$ over $D$ by separating the dose into a long-range and a short-range component as follows
+Down-stream computations will Monte Carlo integrate over $\mathrm{vD}^{\mathrm{total}}$ as a random variable. 
+It is, therefore, important to *not* Monte Carlo average over the diameter-independent random variables in $\mathrm{vD}^{\mathrm{total}}$ when we Monte Carlo integrate over the particle diameter.
+For computational efficiency, we compute the Monte Carlo integral over the particle diameter only once, and not several times for different values of diameter-independent random variables.
+This is achieved by factoring all diameter-independent random variables out of the integral over $D$.
+Observe that
+
 
 $$
 \begin{align*}
 \mathrm{vD}^{\mathrm{total}} 
 &=\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_m}C(t, D)\;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \;\ \mathrm{d}D \\
-&=\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_m}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \;\ \mathrm{d}D \\
-&\quad+\sum_{j=1}^{n_\mathrm{SR}}\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_m}\mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) \cdot \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR},j}(D) - C_{\mathrm{LR}}(t, D)) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \;\ \mathrm{d}D
+&=\mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \cdot \Big[\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_m} C_{\mathrm{min}}(D)+C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D \\
+&\quad + \sum_{j=1}^{n_\mathrm{SR}} \frac{1}{S_j({x})} \cdot \Big( \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_{0_j}}^{t_{m_j}} C_{0, \mathrm{SR},j}(D) \;\ {d}t \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D
+- \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_{0_j}}^{t_{m_j}} C_{\mathrm{min}}(D)+C_{\mathrm{LR}}(t, D) \;\ \mathrm{d}t \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D \Big) \Big]\\
+
+&=\mathrm{BR}_{\mathrm{k}} \cdot (1-\eta_{\mathrm{in}}) \cdot \Big[
+    (t_m-t_0) \cdot \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} C_{\mathrm{min}}(D) \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D
+    + \sum_{n=1}^{n_p}\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_0}^{t_m} C_{\mathrm{LR},n}(t, D) \;\ {d}t \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D \\
+    &\quad + \sum_{j=1}^{n_\mathrm{SR}} \frac{1}{S_j({x})} \cdot \Big( (t_{m_j}-t_{0_j}) \cdot \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} C_{0, \mathrm{SR},j}(D) \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D
+    - (t_{m_j}-t_{0_j}) \cdot \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} C_{\mathrm{min}}(D) \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D -
+    \sum_{n=1}^{n_p}\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_{0_j}}^{t_{m_j}} C_{\mathrm{LR},n}(t, D) \;\ \mathrm{d}t \cdot f_{\mathrm{dep}}(D)  \;\ \mathrm{d}D \Big) 
+\Big]\\
 \end{align*}
 $$
 
-
-Lets define
-
-$$
-\begin{equation*}
-\mathrm{vD}_{\mathrm{LR}}(D) 
-=\int_{t_0}^{t_m}\mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}} (t, D) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) 
-\end{equation*}
-$$
+where $[t_{0_j}, t_{m_j}]$ is the duration of the $j$-th short-range interaction.
+We identify four integrals over the particle diameter we might need to separate any diameter-independent random variables out of.
+First, we have
 
 $$
 \begin{equation*}
-\mathrm{vD}_{\mathrm{SR-LR},j}(D)=\int_{t_0}^{t_m}\mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) \cdot \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR},j}(D) - C_{\mathrm{LR}}(t, D)) \;\ {d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})
+\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} C_{\mathrm{min}}(D) \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D = 0
 \end{equation*}
 $$
 
-so that
-
-$$
-\begin{equation*}
-\mathrm{vD}^{\mathrm{total}} = \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{LR}}(D)\;\ \mathrm{d}D + \sum_{j=1}^{n_\mathrm{SR}}\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{SR-LR},j}(D)\;\ \mathrm{d}D
-\end{equation*}
-$$
-
-This separation also makes it easier to compare the importance of long-range vs short-range interactions for viral transmission. 
-While the integral over the particle diameter $D$ is approximated by Monte Carlo integration, the integral over time $t$ is solved analytically.
-
-
-#### Long-Range Dose Component
-The viral concentration is analytically integrated over the time $t$. 
-Recall that the analytical solution we found for $C_{\mathrm{LR}}(t, D)$ is only valid within time intervals $[t_i, t_{i+1}]$ where the viral removal rate is constant. 
-We compute
+because $C_{\mathrm{min}}(D)=0$ for viral concentrations in CAiMIRA.
+Next, we compute
 
 $$
 \begin{align*}
-\int_{t_0}^{t_m} C_{\mathrm{LR}}(t, D) \mathrm{d}t
-&=  \sum_{i=1}^m \Big[\int_{t_i}^{t_{i+1}} C_{\mathrm{LR}}(t, D) \;\ \mathrm{d}t \Big]\\
-&=  \sum_{i=1}^m \Big[\int_{t_i}^{t_{i+1}} \Big(C_{\mathrm{min}}+\sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D) \Big) \;\ \mathrm{d}t \Big]\\
-&= \sum_{i=1}^m \Big[C_{\mathrm{min}}\cdot(t_{i+1}-t_i)+
-(C_{\mathrm{LR}}(t_i, D)-C_{\mathrm{min}}) \cdot \frac{e^{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}}{-\lambda_{vRR}} 
-+  \sum_{n=1}^{n_p}\frac{\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}  \Big((t_{i+1}-t_i) +\frac{e^{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}}{\lambda_{vRR}}\Big)\Big]
+\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} C_{0, \mathrm{SR},j}(D) \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D
+&= \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot E_c(D) \cdot f_{\mathrm{dep}}(D) \;\ \mathrm{d}D\\
+&= \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \frac{E_c(D)}{\mathrm{p}_{\mathrm{SR},D,j}(D)} \cdot f_{\mathrm{dep}}(D) \cdot \mathrm{p}_{\mathrm{SR},D,j}(D) \;\ \mathrm{d}D\\
+&\approx \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot \frac{1}{S_D}\sum_{i=1}^{S_D} \frac{E_c(D_i)}{\mathrm{p}_{\mathrm{SR},D,j}(D_i)} \cdot f_{\mathrm{dep}}(D_i) \\
 \end{align*}
 $$
 
-Lets also assume that the occupancy of the exposed is also constant over $[t_i, t_{i+1}]$ (this can be achieved by redefining $[t_i, t_{i+1}]$ to shorter intervals without contradicting the previous requirement for $[t_i, t_{i+1}]$). 
-Then, the indicator function is constant over $[t_i, t_{i+1}]$ so
+following the principle of Monte Carlo integration.
 
-$$
-\begin{equation*}
-\int_{t_i}^{t_{i+1}} \mathbf{1}_{t \in T}(t) \cdot C_{\mathrm{LR}}(t, D) \;\ \mathrm{d}t=\mathbf{1}_{t \in T}(t_i) \cdot \int_{t_i}^{t_{i+1}} C_{\mathrm{LR}}(t, D) \;\ \mathrm{d}t
-\end{equation*}
-$$
-
-and the long range dose component is 
-
-$$
-\begin{equation*}
-\mathrm{vD}_{\mathrm{LR}}(D) =
-\sum_{i=1}^m\mathbf{1}_{t_i \in T}(t_i) \cdot \int_{t_i}^{t_{i+1}} C_{\mathrm{LR}}(t, D) \;\ \mathrm{d}t \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}})
-\end{equation*}
-$$
-
-#### Short-Range Dose Component
-Similar to the long-range component, we assume the short-range interactions are also constant over $[t_i, t_{i+1}]$, that is $T_{\mathrm{SR},j}\subseteq[t_i, t_{i+1}]$ so
-
-$$
-\begin{equation*}
-\int_{t_i}^{t_{i+1}} \mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) \cdot C_{\mathrm{SR-LR},j}(t, D) \mathrm{d}t
-= \mathbf{1}_{t \in T_{\mathrm{SR},j}}(t_i) \cdot \int_{t_i}^{t_{i+1}} C_{\mathrm{SR-LR},j}(t, D) \mathrm{d}t
-\end{equation*}
-$$
-
-Next,
-
-$$
-\begin{equation*}
-\int_{t_i}^{t_{i+1}} \frac{1}{S({x})} \cdot (C_{0, \mathrm{SR},j}(D) - C_{\mathrm{LR}}(t, D)) \mathrm{d}t=\frac{1}{S({x})} \cdot (t_{i+1}-t_i) \cdot C_{0, \mathrm{SR}}(D) -\frac{1}{S({x})} \int_{t_i}^{t_{i+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t
-\end{equation*}
-$$
-
-Note that $t \in T_{\mathrm{SR},j} \Rightarrow t \in T$ (i.e. if there is a short-range interaction occuring, the occupants are present). 
-Therefore, $\mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) = \mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) \cdot \mathbf{1}_{t \in T}(t)$. 
-
-Combining the arguments above, we find that the short-range dose component from the $i$-th short-range interaction is
+Finally, recall that $\frac{\mathrm{vR}_n(D)}{E_{c,n}(D)} = {\mathrm{BR}}_{\mathrm{k},n} \cdot \mathrm{vl}_{\mathrm{inf}} \cdot f_{\mathrm{inf},n}$ and $\frac{E_{c,n}(D)}{\mathrm{p}_{D,n}(D)}=(1 − η_{\mathrm{out},n}(D)) \cdot  V_p(D) \cdot c_{n,n}$. 
+Therefore, 
 
 $$
 \begin{align*}
-\mathrm{vD}_{\mathrm{SR-LR},j}(D)
-&=\mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) \cdot \frac{1}{S({x})} \cdot \left((t_{i+1}-t_i) \cdot C_{0, \mathrm{SR},j}(D) -\int_{t_i}^{t_{i+1}} C_{\mathrm{LR}}(t, D) \mathrm{d}t \right) \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}) \\
-&=\mathbf{1}_{t \in T_{\mathrm{SR},j}}(t) \cdot \frac{1}{S({x})} \cdot \left(\mathrm{vD}_{0, \mathrm{SR},j}(D)-\mathrm{vD}_{\mathrm{LR}}(D)\right) 
+\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_{0}}^{t_{m}} C_{\mathrm{LR},n}(t, D) \;\ \mathrm{d}t \cdot f_{\mathrm{dep}}(D)  \;\ \mathrm{d}D
+&=\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_{0}}^{t_{m}} \frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)} \cdot \frac{\mathrm{vR}_n(D)}{E_{c,n}(D)}\cdot \frac{E_{c,n}(D)}{\mathrm{p}_{D,n}(D)} \;\ \mathrm{d}t \cdot f_{\mathrm{dep}}(D) \cdot \mathrm{p}_{D,n}(D) \;\ \mathrm{d}D \\
+&={\mathrm{BR}}_{\mathrm{k},n} \cdot \mathrm{vl}_{\mathrm{inf}} \cdot f_{\mathrm{inf},n} \cdot \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_{0}}^{t_{m}} \frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)} \;\ \mathrm{d}t \cdot (1 − η_{\mathrm{out},n}(D)) \cdot  V_p(D) \cdot c_{n,n} \cdot f_{\mathrm{dep}}(D) \cdot \mathrm{p}_{D,n}(D)\;\ \mathrm{d}D \\
+\end{align*}
+$$
+
+Because the analytical solution we found for $C_{\mathrm{LR}}(t, D)$ is only valid within time intervals $[t_i, t_{i+1}]$, the time-integral is analytically solved as
+
+$$
+\begin{align*}
+\int_{t_{0}}^{t_{m}} \frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)} \;\ \mathrm{d}t 
+&=\sum_{i=0}^{m-1} \int_{t_i}^{t_{i+1}} \frac{C_{\mathrm{LR},n}(t_i, D)}{\mathrm{vR}_n(D)} \cdot e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)} 
++ \frac{N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} (1-e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}) \;\ \mathrm{d}t \\
+&=\sum_{i=0}^{m-1} \frac{N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} \cdot (t_{i+1}-t_i) + 
+\Big( \frac{N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}  - \frac{C_{\mathrm{LR},n}(t_i, D)}{\mathrm{vR}_n(D)}\Big) \cdot \frac{e^{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}}{\lambda_{vRR}(t_i,D)}.\\
+\end{align*}
+$$
+
+Similarly,
+
+$$
+\begin{align*}
+\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_{0_j}}^{t_{m_j}} C_{\mathrm{LR},n}(t, D) \;\ \mathrm{d}t \cdot f_{\mathrm{dep}}(D)  \;\ \mathrm{d}D
+&={\mathrm{BR}}_{\mathrm{k},n} \cdot \mathrm{vl}_{\mathrm{inf}} \cdot f_{\mathrm{inf},n} \cdot \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}} \int_{t_{0_j}}^{t_{m_j}} \frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)} \;\ \mathrm{d}t \cdot (1 − η_{\mathrm{out},n}(D)) \cdot  V_p(D) \cdot c_{n,n} \cdot f_{\mathrm{dep}}(D) \cdot \mathrm{p}_{D,n}(D)\;\ \mathrm{d}D \\
 \end{align*}
 $$
 
 for 
-
 $$
-\begin{equation*}
-\mathrm{vD}_{0, \mathrm{SR},j}(D) = (t_{i+1}-t_i) \cdot C_{0, \mathrm{SR},j}(D) \cdot \mathrm{BR}_{\mathrm{k}} \cdot f_{\mathrm{dep}}(D) \cdot (1-\eta_{\mathrm{in}}).
-\end{equation*}
+\begin{align*}
+\int_{t_{0_j}}^{t_{m_j}} \frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)} \;\ \mathrm{d}t 
+&=\sum_{i=0_j}^{m_j-1} \int_{t_i}^{t_{i+1}} \frac{C_{\mathrm{LR},n}(t_i, D)}{\mathrm{vR}_n(D)} \cdot e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)} 
++ \frac{N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} (1-e^{-\lambda_{vRR}(t_i,D)\cdot (t-t_i)}) \;\ \mathrm{d}t \\
+&=\sum_{i=0_j}^{m_j-1} \frac{N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} \cdot (t_{i+1}-t_i) + 
+\Big( \frac{N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r}  - \frac{C_{\mathrm{LR},n}(t_i, D)}{\mathrm{vR}_n(D)}\Big) \cdot \frac{e^{-\lambda_{vRR}(t_i,D)\cdot (t_{i+1}-t_i)}}{\lambda_{vRR}(t_i,D)}.\\
+\end{align*}
 $$
-
 
 #### Computation of the Dose
 The total dose exposure $\mathrm{vD}^{\mathrm{total}}$ is computed by `models.ExposureModel.deposited_exposure()`. 
