@@ -381,11 +381,40 @@ The viral removal rate is, however, also time-dependent.
 We assume $\lambda_{vRR}(t, D)$ is stepwise constant so that we may divide the scenario into a finite number of time intervals where the removal rate is constant. 
 Similarly, the number of infected in each population is also time dependent and stepwise constant, as individuals can leave and re-enter the room. 
 Combining the transition points for the removal rate and the occupancy, we split the full duration of the simulation $[t_0, t_{m})$ into a finite sequence of smaller subintervals $[t_i, t_{i+1})$ where $\lambda_{vRR}(t, D)=\lambda_{vRR}(t_i, D)$ and $N_{\mathrm{inf},n}$ are both constant.
-Then, we can solve the ODE analytically for $t \in (t_i, t_{i+1}]$. 
+Then, we can solve the ODE analytically for $t \in [t_i, t_{i+1}]$. 
 The viral concentration at the end of the last time interval is carried forward as the initial condition for the solution for the next time interval. 
 
 <details>
-<summary>Solving the ODE</summary>
+<summary>Solving the ODE - method 1</summary>
+Clearly
+
+$$
+\begin{equation*}
+\frac{1}{\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{V_r} - \lambda_{vRR}(t, D) \cdot (C_{\mathrm{LR}}(t, D)-C_{\mathrm{min}})}\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} =1
+\end{equation*}
+$$
+
+Integrating both sides, we get
+$$
+\begin{equation*}
+\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i, D)V_r}-(C_{\mathrm{LR}}(t, D)-C_{\mathrm{min}})=K \cdot e^{-\lambda_{vRR}(t_i, D) \cdot t}
+\end{equation*}
+$$
+
+for some constant $K$. 
+Knowing the initial condition $C_{\mathrm{LR}}(t_i, D)$, which is either $C_{\mathrm{LR}}(t_0, D)=C_{\mathrm{min}}$ or computed at the end of the last time-interval $[t_{i-1}, t_{i}]$, we find
+$$
+\begin{equation*}
+K = -\Big( C_{\mathrm{LR}}(t_i, D) -C_{\mathrm{min}}-\frac{\sum_{n=1}^{n_p}\mathrm{vR}_n(D)\,N_{\mathrm{inf},n}}{\lambda_{vRR}(t_i,D)\,V_r} \Big) \cdot e^{\lambda_{vRR}(t_i, D) \cdot t_i}.
+\end{equation*}
+$$
+
+Inserting $K$ into the integrated equation, we find the solution of the ODE.
+
+</details>
+
+<details>
+<summary>Solving the ODE - method 2</summary>
 
 $C_{\mathrm{LR},h}(t, D)=A_1\cdot e^{-\lambda_{vRR}(t_i,D)\cdot t}$ is the homogeneous solution satisfying 
 $\frac{\partial C_{\mathrm{LR}}(t, D)}{\partial t} + \lambda_{vRR}(t_i,D)\cdot\,C_{\mathrm{LR}}(t, D) = 0$.
@@ -434,7 +463,7 @@ $$
 
 <br>
 
-In summary, the analytical solution of the ODE describing the long-range viral concentration for $t \in (t_i, t_{i+1}]$ is
+In summary, the analytical solution of the ODE describing the long-range viral concentration for $t \in [t_i, t_{i+1}]$ is
 
 $$
 \begin{align*}
@@ -467,7 +496,7 @@ C_{\mathrm{LR}}(t, D)
 &= C_{\mathrm{min}} + \sum_{n=1}^{n_p}C_{\mathrm{LR},n}(t, D)
 \end{align*}
 $$
-holds at all times (for $t \in (t_i, t_{i+1}]$ for all $i$).
+holds at all times (for $t \in [t_i, t_{i+1}]$ for all $i$).
 
 To speed up the computations, we take advantage of $\mathrm{vR}_n(D)$ being a linear component of $C_{\mathrm{LR},n}(t, D)$ so that $\frac{C_{\mathrm{LR},n}(t, D)}{\mathrm{vR}_n(D)}$ and $\mathrm{vR}_n(D)$ can be computed separately. 
 
