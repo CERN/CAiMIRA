@@ -633,7 +633,11 @@ C_{\mathrm{SR}}(t, D)
 \end{equation*}
 $$
 
-where $S(x) > 0$ is the dilution factor due to jet dynamics, as a function of the interpersonal distance $x$, and 
+where $S(x) > 0$ is the dilution factor due to jet dynamics, as a function of the interpersonal distance $x$.
+Note that $C_{\mathrm{SR}}(t, D)$ converges to the long-range concentration as $S(x) \rightarrow \infty$.
+We only model short-range jet dynamics up to 2 meters, where $C_{\mathrm{SR}}(t, D) \approx C_{\mathrm{LR}} (t, D)$ and non-modelled effects such as buoyancy probably have acted to steer the jet away from the exposed occupants.
+
+The initial concentration of virions at the mouth/nose outlet during exhalation is
 
 $$
 \begin{equation*}
@@ -641,9 +645,9 @@ C_{0, \mathrm{SR}}(D) = \mathrm{vl_{inf}} \cdot f_{\mathrm{inf}} \cdot E_c(D)
 \end{equation*}
 $$
 
-is the initial concentration of virions at the mouth/nose outlet during exhalation, and essentially the emission rate $\mathrm{vR}(D)$ divided by the breathing rate ${\mathrm{BR}}_{\mathrm{k}}$. 
-Note that $C_{0, \mathrm{SR}}(D)$ is time-independent. 
-In CAiMIRA, however, $C_{0, \mathrm{SR}}(D)$ is set to zero until (and including) the the start of the short-range interaction and after the end of the short-range interaction.
+which is essentially the emission rate $\mathrm{vR}(D)$ divided by the breathing rate ${\mathrm{BR}}_{\mathrm{k}}$. 
+Note that because the long-range concentration is assumed to be homogeneous, the jet origin concentration of a non-infectious person equals the long-range concentration.
+Hence, we assume $C_{0, \mathrm{SR}}(D) \geq C_{\mathrm{LR}} (t, D)$.
 
 Face masks interrupt the jet stream, so only infected without face masks may have short-range interactions. 
 Hence, it is hardcoded into the model that any infected in a short-range interaction is not wearing a face mask. 
@@ -684,11 +688,6 @@ C_{\mathrm{SR}}^{\mathrm{total}}(t)
 $$
 
 So we never compute the entire diameter-dependent $C_{\mathrm{SR}}(t, D)$, but Monte Carlo integrate the components with different probability distributions separately.
-
-For the sake of curiosity, note that that if $S({x}) < \infty$ and $C_{0, \mathrm{SR}}(D)$ is small enough (e.g. zero) then $C_{\mathrm{SR}}^{\mathrm{total}}(t) < C_{\mathrm{LR}}^{\mathrm{total}}(t)$, 
-meaning the exhaled jet of a person with a low (or no) viable viral load and/or emission rate contains less virions than the long-range concentration. 
-In the CAiMIRA model, only the short-range concentration from infectious occupants are modeled, and every infected occupant has $C_{0, \mathrm{SR}}(D)$ large enough for $C_{\mathrm{SR}}^{\mathrm{total}}(t) >> C_{\mathrm{LR}}^{\mathrm{total}}(t)$. 
-Additionally, the dilution factor quickly increases with distance $x$ from the infected source so $C_{\mathrm{SR}}^{\mathrm{total}}(t) \approx C_{\mathrm{LR}}^{\mathrm{total}}(t)$ even when $C_{0, \mathrm{SR}}(D) = 0$.
 
 The dilution factor is defined as
 $$
