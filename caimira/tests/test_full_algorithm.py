@@ -12,7 +12,7 @@ from retry import retry
 import caimira.calculator.models.monte_carlo as mc
 from caimira.calculator.models import models
 from caimira.calculator.models.utils import method_cache
-from caimira.calculator.models.dataclass_utils import nested_replace
+from caimira.calculator.models.dataclass_utils import replace
 from caimira.calculator.models.models import _VectorizedFloat,Interval,SpecificInterval
 from caimira.calculator.models.monte_carlo.data import (expiration_distributions,
         expiration_BLO_factors,short_range_expiration_distributions,
@@ -860,6 +860,30 @@ def test_exposure_with_shortrange_and_distributions(expo_sr_model_distr,
         simple_expo_sr_model_distr.probability_infection().mean(),
         rtol=0.03
         )
+
+def test_short_range_exposure_duration(expo_sr_model, data_registry):
+    # 8h long-range, 30 min short-range
+    short_range_model = mc.ShortRangeModel(
+        data_registry = data_registry,
+        activity = models.Activity.types['Seated'],
+        expiration = short_range_expiration_distributions(data_registry)['Speaking'],
+        presence = interaction_intervals[0],
+        distance = 0.854,
+    )
+    model = replace(expo_sr_model, short_range=((short_range_model,),)).build_model(SAMPLE_SIZE)
+
+    full_exposure = model.deposited_exposure(short_range=True)
+    full_long_range_exposure = model.deposited_exposure(short_range=False)
+
+    interaction_start, interaction_stop = short_range_model.presence.boundaries()[0]
+    short_range_exposure_contribution = (model.deposited_exposure_between_bounds(interaction_start, interaction_stop)
+                                         - model.long_range_deposited_exposure_between_bounds(interaction_start, interaction_stop))
+
+    np.testing.assert_allclose(
+        short_range_exposure_contribution,
+        (full_exposure - full_long_range_exposure), 
+        rtol=0.00002 # sensitive enough to pick up errors in the entrained long-range concentration, which is small compared to the jet origin concentration 
+    )
     
 
 def exposure_model_from_parameter(data_registry, short_range, f_inf=0.5, viral_load=1e9, BR=1.25):
