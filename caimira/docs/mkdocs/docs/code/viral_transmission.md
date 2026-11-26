@@ -736,7 +736,8 @@ $$
 \end{equation*}
 $$
 
-where $t_0$ is the first time exposed enters the room and $t_m$ is the last time they leave. 
+where $t_0$ is the time the exposed person enters the room and $t_m$ is the time they leave. 
+If the exposed person re-enters and leaves multiple times, we simply add together the doses ingested during each presence period.
 $\mathrm{BR}_{\mathrm{k}}$ is the breathing rate of the exposed, $f_{\mathrm{dep}}(D)$ is the deposition factor in the respiratory tract, and $\eta_{\mathrm{in}}$ is the inwards mask efficiency of the face mask worn by the exposed.
 $C(t, D)$ is the viral concentration from the perspective of the exposed occupant.
 When the exposed occupant is not engaged in a short-range interaction 
@@ -754,8 +755,8 @@ C(t, D)=C_{\mathrm{LR}} (t, D)+\frac{1}{S_j({x})}(C_{0, \mathrm{SR},j}(D)-C_{\ma
 \end{equation*}
 $$
 
-Currently, the minimum background concentration $C_{\mathrm{min}}$ for virions is set to zero in `data_registry`.
-In the future, for example when extending CAiMIRA is extended to new aerosols, it may become important to consider $C_{\mathrm{min}}$ as diameter-dependent.
+Currently, the minimum background concentration $C_{\mathrm{min}}$ is set to zero for virions in `data_registry`.
+In the future, for example when extending CAiMIRA to new diameter-dependent aerosols, it may become important to consider $C_{\mathrm{min}}$ as non-zero and diameter-dependent.
 The following derivations are, therefore, generalized to consider a diameter-dependent minimum background concentration so 
 
 $$
@@ -777,15 +778,15 @@ $$
 $$
 
 Down-stream computations will Monte Carlo integrate over $\mathrm{vD}^{\mathrm{total}}$ as a random variable. 
-It is, therefore, important to *not* Monte Carlo average over the diameter-independent random variables in $\mathrm{vD}^{\mathrm{total}}$ when we Monte Carlo integrate over the particle diameter.
+It is, therefore, important to *not* Monte Carlo average over the diameter-independent random variables in $\mathrm{vD}^{\mathrm{total}}$ when we Monte Carlo integrate over the particle diameter, like we did to report intermediate results for the viral concentration.
 For computational efficiency, we compute the Monte Carlo integral over the particle diameter only once, and not several times for different values of diameter-independent random variables.
 This is achieved by factoring all diameter-independent random variables out of the integral over $D$.
 
 <details>
 <summary>Separating the diameter-independent random variables out of the diameter-integral</summary>
 
-The following mathematical description of how all the non-diameter random variables are separated out of the diameter-integrals is the rationale for why we split computations of the concentration and emission rate into diameter-dependent and diameter-independent components in `models._ConcentrationModelBase`.
-The total dose, which is random variable, is 
+The following mathematical description of how all the non-diameter random variables are separated out of the diameter-integrals explains why we split computations of the concentration and emission rate into diameter-dependent and diameter-independent components in `models._ConcentrationModelBase`.
+The total dose (random variable) is 
 
 
 $$
@@ -872,7 +873,8 @@ where the denominator $j$ of the short-range interaction points us to retrieve a
 
 In conclusion, we have now factored the exhalation rate of the exposed, the viral load distribution, and the fraction of infectious virus out of the diameter-integrals. 
 Thereby, the diameter-integrals contain no diameter-independent random variables, so it suffices compute each diameter-integral once by Monte Carlo integration.
-There is one exception, however: The outwards face mask efficiency is a diameter-independent random variable if and only if using the `Cloth` face mask (see `data_registry` and `models.Mask`).
+
+The outwards face mask efficiency is a diameter-independent random variable if and only if using the `Cloth` face mask (see `data_registry` and `models.Mask`).
 Still, the outwards mask efficiency is always included the Monte Carlo integral over the particle diameter and hence Monte Carlo averaged when performing the integration.
 When sampled separately, the outwards face mask efficiency is assumed independent of the particle diameter.
 Therefore, it has been deemed acceptable to always include the outwards mask efficiency in the the Monte Carlo integral over the particle diameter although it slightly reduces the variance of $\mathrm{vD}^{\mathrm{total}}$.
@@ -882,39 +884,20 @@ Therefore, it has been deemed acceptable to always include the outwards mask eff
 <br>
 
 #### Computation of the Dose
-The total dose exposure $\mathrm{vD}^{\mathrm{total}}$ is computed by `models.ExposureModel.deposited_exposure()`. 
-When computing the dose, the time intervals $[t_i, t_{i+1}]$ that we integrate over are determined to:
-- only include doses from time intervals where the exposed is present
-- only integrate the concentration over time intervals where the occupancy of the infected and ventilation is constant. 
+The total dose that members of an exposed population ingests during their whole presence is computed by `models.ExposureModel.deposited_exposure()`, which calls `models.ExposureModel.deposited_exposure_between_bounds()` to compute $\mathrm{vD}^{\mathrm{total}}$ for each time interval the exposed is present. 
+There, we consider the long-range component and short-range component of the dose separately, summing over the short-range interactions passed to **ExposureModel** to add the short-range dose contributions and retrieving the long-range dose exposure from `models.ExposureModel.long_range_deposited_exposure_between_bounds()`. 
 
-The first point is ensured by the dose being computed for a list of intervals where the occupancy is constant by `models.ExposureModel._deposited_exposure_list()`, which are then added together in `models.ExposureModel.deposited_exposure()`. 
-Within `models.ExposureModel._deposited_exposure_list()`, after ensuring that we are within a time interval with constant occupancy of the exposed, we call `models.ExposureModel.deposited_exposure_between_bounds()` to compute the total dose exposure for that time interval. 
+Members of the same exposed population may or may not participate in the short-range interactions passed to their `models.ExposureModel`. 
+In case the exposed does not participate in short-range interactions, a boolean argument `short_range` can be passed to `models.ExposureModel.deposited_exposure()` to retrieve `models.ExposureModel.long_range_deposited_exposure_between_bounds()` only.
 
-The governing method for computing the dose is therefore `models.ExposureModel.deposited_exposure_between_bounds()`. 
-There we consider the long-range component and short-range component of the dose separately, summing over the short-range interactions passed to **ExposureModel** to add the $C_{0, \mathrm{SR},i}(D)$ dose contributions and retrieving $\mathrm{vD}_{\mathrm{LR}}(D)$ from `models.ExposureModel.long_range_deposited_exposure_between_bounds()` to compute $\mathrm{vD}^{\mathrm{total}}$. 
-The full Monte Carlo integration over the particle diameter follows
-
-$$
-\begin{equation*}
-\mathrm{vD}^{\mathrm{total}} 
-= \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{LR}}(D)\;\ \mathrm{d}D + \sum_{i=1}^{n_\mathrm{SR}} \mathbf{1}_{t \in T_{\mathrm{SR},j}}(t_j) \cdot\left[\frac{1}{S({x})} \cdot\int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{0, \mathrm{SR},j}(D) \;\ \mathrm{d}D - \frac{1}{S({x})} \cdot \int_{\mathrm{D_{min}}}^{\mathrm{D_{max}}}\mathrm{vD}_{\mathrm{LR}}(D)\;\ \mathrm{d}D \right].
-\end{equation*}
-$$
-
-In case there are no short-range interactions, `models.ExposureModel.deposited_exposure_between_bounds()` will yield the same result as `models.ExposureModel.long_range_deposited_exposure_between_bounds()`.
-
-Recall that we normalized the concentration by the emission rate for computational efficiency before multiplying by the normalization factor to integrate over the particle diameter. 
-Similarly, the order of computations in `models.ExposureModel.deposited_exposure_between_bounds()` are structured to separate Monte Carlo integration of diameter-dependent and non-diameter dependent random variables for computational efficiency. 
+The computations in `models.ExposureModel.deposited_exposure_between_bounds()` are structured to separate Monte Carlo integration of the diameter-integral and diameter-independent random variables. 
 
 
 ## Infection Probability
-The CAiMIRA model computes the **Individual Infection Probability**, i.e. the probability that a specific exposed person will be infected, in `models.ExposureModel.individual_infection_probability()`.
-Summizing the individual infection probability of each exposed, we compute the expected number of new cases in `models.ExposureModel.expected_new_cases()`.
-Up until CAiMIRA version 4.19.0, we only computed the individual infection probability when assuming deterministic exposure, i.e. knowing exactly who is exposed and who is infected.
+The CAiMIRA model computes the deterministic **Individual Infection Probability**, i.e. the probability that a specific exposed person will be infected knowing exactly who is exposed and who is infected, in `models.ExposureModel.individual_infection_probability()`.
 
-Up until version 4.19.0, CAiMIRA also includes the option of assuming probabilistic, rather than deterministic, exposure. 
-Probabilistic exposure does not require the user to know who is infected. 
-Rather, the user defines the probability of occupants being infected, for example as the incidence rate of the region.
+CAiMIRA also includes the option of assuming probabilistic, rather than deterministic, exposure if the user does not know who is infected. 
+Then, the user defines the probability of occupants being infected, as for example as the incidence rate of the region.
 When assuming probabilistic exposure, CAiMIRA version 4.19 and earlier does not compute the individual infection probability.
 Instead, the **Transmission Probability**, defined as the probability that *at least* than one person will be infected, is computed in `models.ExposureModel.total_probability_rule()`.
 
@@ -925,9 +908,9 @@ The table below displays the notation of the four infection probabilities we mig
 | Individual Infection Probability | $P_e(I_e \mid \mathbf{X})$                           | $P_e(I_e)$                            |
 | Transmission Probability         | $P_\mathrm{tr}(I_\mathrm{new} > 0 \mid \mathbf{X})$  | $P_\mathrm{tr}(I_\mathrm{new} > 0)$ |
 
-As shown in the following sections, we compute the transmission probability from the individual infection probability.
-Using the total probability rule, we will also relate the probabilistic and deterministic exposure so that $P(I_e)$ and $P_\mathrm{tr}(I_\mathrm{new} > 0)$ can be computed from $P(I_e \mid \mathbf{X})$ and $P_\mathrm{tr}(I_\mathrm{new} > 0 \mid \mathbf{X})$, respectively, setting different configurations of $\mathbf{X}$.
-Clearly, it is more computationally intensive to compute the probabilistic exposure than the deterministic exposure.
+The following sections derive the individual infection probability, and the transmission probability from the individual infection probability.
+Using the total probability rule, we will also show that $P(I_e)$ and $P_\mathrm{tr}(I_\mathrm{new} > 0)$ are computed from $P(I_e \mid \mathbf{X})$ and $P_\mathrm{tr}(I_\mathrm{new} > 0 \mid \mathbf{X})$, respectively.
+It is more computationally intensive to compute the probabilities of infection assuming probabilistic exposure than deterministic exposure.
 
 ### Deterministic Exposure
 Mathematically speaking, assuming deterministic exposure means we know the value of $\mathbf{X}$ describing exactly who is infected and who is exposed at the start of the event. 
@@ -958,7 +941,8 @@ The individual probability of infection in CAiMIRA is derived from the exponenti
 
 Let $I_e$ denote the event that the considered individual, belonging to the $e$-th exposed population, becomes infected. 
 Assume that $k_{\mathrm{min}}$ is the minimum number of virions required to trigger infection, and let $k_e$ denote the number of deposited virions that survive to infect the host. 
-The exposed becomes infected if $k_e \geq k_{\mathrm{min}}$. That is,
+The exposed becomes infected if $k_e \geq k_{\mathrm{min}}$. 
+That is,
 
 $$
 P_e^*(I_e|k_e)
@@ -972,9 +956,9 @@ $$
 
 Note that $k_e$ is *not* the number of attacking virions. 
 Even $k_{\mathrm{min}} = 1$, a single virion attacking may not trigger infection due to immune responses, for example.
-The correct interpretation of $k_e$ is the number of virions that are sucsessfull in their attack and contribute to infection. 
+The correct interpretation of $k_e$ is the number of virions that are successful in their attack and contribute to infection. 
 Hence, if $k_e \geq k_{\mathrm{min}}$ infection will per definition occur, explaining the deterministic relation between $I_e$ and $k_e$ above.
-If $k_{\mathrm{min}} > 1$, it means infection will only be triggered by the joint succsessful attacks of multiple virions. 
+If $k_{\mathrm{min}} > 1$, it means infection will only be triggered by the joint successful attacks of multiple virions. 
 
 
 Using the total probability rule, the individual infection probability for a member of the $e$-th population of exposed is
@@ -1017,7 +1001,7 @@ P_{d}(d_e) = \frac{(N_e)^{d_e} \cdot e^{-N_e}}{(d_e)!}
 $$
 
 where $N_e$ is the average number of virions in a dose deposited in the respiratory tract of the $e$-th population.
-Combining the last four equations, the probability that a specific member of the $e$-th populaiton of exposed becomes infected is 
+Combining the last four equations, the probability that a specific member of the $e$-th population of exposed becomes infected is 
 
 $$
 \begin{align*}
@@ -1139,7 +1123,7 @@ All members of the exposed population either have the same short-range interacti
 Therefore, `models.ExposureModel.individual_infection_probability()` includes the option to include or exclude short-range interactions, resulting in two deterministic individual infection probability: one for the exposed with short-range interactions and one for the exposed without short-range interactions.
 
 #### Transmission Probability
-The transmission probability is the probability that the number of new cases $I_{\mathrm{new}}$ is greated than zero, computed as 
+The transmission probability is the probability that the number of new cases $I_{\mathrm{new}}$ is greater than zero, computed as 
 
 $$
 \begin{align*}
@@ -1158,13 +1142,16 @@ Future work will implement the deterministic transmission probability as a metho
 #### Individual Infection Probability
 For probabilistic exposure, we do not know who or how many of the occupants are infected. 
 Using the total probability rule, the probabilistic individual infection probability for members of the $e$-th group of exposed is given by
+
 $$
 \begin{equation*}
 P_e(I_e)=\sum_{\forall \mathbf{X}} P_e^*(I_e)=P(I_e \mid \mathbf{X}) \cdot P_\mathbf{X}(\mathbf{X})
 \end{equation*}
 $$
 
-where $\mathbf{X}$ describes exactly who among the occupants are infected and $P(I_e \mid \mathbf{X})$ is the individual infection probability we compute knowing who are initially infected. If all occupants have the same characteristics (physical activity, expiratory activity, face mask, immunity, and presence), so non-dynamic occupancy, it suffices to know how many are infected, and so the expression above reduces to
+where $\mathbf{X}$ describes exactly who among the occupants are infected and $P(I_e \mid \mathbf{X})$ is the individual infection probability we compute knowing who are initially infected. 
+If all occupants have the same characteristics (physical activity, expiratory activity, face mask, immunity, and presence), so non-dynamic occupancy, it suffices to know how many are infected, and so the expression above reduces to
+
 $$
 \begin{equation*}
 P_e(I_e)=\sum_{x=1}^{N_\mathrm{occ}-1} P(I_e \mid X) \cdot P_b(X=x)
@@ -1190,7 +1177,9 @@ P_b(X=x)=\binom{N_\mathrm{occ}}{x}p^x(1-p)^{N_\mathrm{occ}-x}
 \end{equation*}
 $$
 
-Because the probabilistic infection probability requires several deterministic ininfection probabilities to be computed, computing the probabilistic exposure can be computationally expensive. Note that $P_b(X=x)$ becomes smaller for larger $x$ because $p$ is usually small. If $N_\mathrm{occ}>10$ we reduce the computer power required by approximating
+Because the probabilistic infection probability requires several deterministic ininfection probabilities to be computed, computing the probabilistic exposure can be computationally expensive. 
+Note that $P_b(X=x)$ becomes smaller for larger $x$ because $p$ is usually small. 
+If $N_\mathrm{occ}>10$ we reduce the computer power required by approximating
 
 $$
 \begin{equation*}
@@ -1217,6 +1206,7 @@ Future work implementing probabilistic exposure for dynamic occupancy will enabl
 
 ## Other results
 ### Expected New Cases
+We compute the expected number of new cases in `models.ExposureModel.expected_new_cases()`.
 The expected new cases resulting from the event is
 $$
 \begin{equation*}
