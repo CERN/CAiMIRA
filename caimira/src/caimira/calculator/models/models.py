@@ -37,6 +37,7 @@ import typing
 
 import numpy as np
 from scipy.interpolate import interp1d
+import scipy.integrate as integrate
 import scipy.stats as sct
 from scipy.optimize import minimize
 from numpy.typing import NDArray
@@ -53,6 +54,7 @@ else:
 from .utils import method_cache
 
 from .dataclass_utils import replace, nested_replace
+
 
 oneoverln2 = 1 / np.log(2)
 # Define types for items supporting vectorization. In the future this may be replaced
@@ -1906,6 +1908,54 @@ class ExposureModel:
                     concentration -= np.mean(1/interaction.dilution_factor()) * _long_range_concentration
         return concentration
 
+    def min_background_exposure(
+            self, 
+            time1: float, 
+            time2: float, 
+            dmin: float = 0, 
+            dmax: float = 20, # TODO: set reasonable value
+        ):
+        """
+        Assuming the partible diameter distribution of min_background_concentration is uniform between dmin and dmax,
+        i.e. the min_background_concentration is constant between dmin and dmax and otherwise zero.
+
+        min_background_concentration should be a _VectorizedFloat of Monte Carlo samples from the uniform distribution.
+        """
+        # Assuming the concentration of all particle sizes in the min_background_concentration are the same between dmin and dmax
+        uniform_diameters=None # TODO: sample partible diameters from a uniform distribution between dmin and dmax
+        # TODO: connect background_particle to min_background_concentration (should not be initialized separately)
+        background_particle = Particle(diameter=uniform_diameters) # Particle distribution for min_background_concentration undefined
+        min_background_concentration: _VectorizedFloat = self.concentration_model.min_background_concentration()
+        
+        fdep = background_particle.fraction_deposited(self.evaporation_factor) # = 0.6 if diameter=None
+        diameter_integral = (dmax-dmin)*np.mean(min_background_concentration*fdep)
+        return (
+            (time2-time1)*diameter_integral
+            * self.exposed.activity.inhalation_rate 
+            * (1 - self.exposed.mask.inhale_efficiency())
+        )
+
+    def min_background_exposure(
+            self, 
+            time1: float, 
+            time2: float, 
+            dmin: float = 0, 
+            dmax: float = 20, # TODO: set reasonable value
+        ):
+        """
+        Numerical integration.
+        min_background_concentration is a diameter-dependent function between dmin and dmax.
+        """
+        fdep = lambda diameter: Particle(diameter).fraction_deposited(self.evaporation_factor)
+        deposited_exposure = lambda diameter: fdep(diameter) \
+            *self.concentration_model.min_background_concentration(diameter) # TODO: implement as diameter-dependent function
+        diameter_integral = integrate.quad(deposited_exposure, dmin, dmax)
+        return (
+            (time2-time1)*diameter_integral
+            * self.exposed.activity.inhalation_rate 
+            * (1 - self.exposed.mask.inhale_efficiency())
+        )
+
     def long_range_deposited_exposure_between_bounds_by_infected_population(self, time1: float, time2: float) -> _PopulationArray:
         """
         Long range exposure additions from each population. 
@@ -1943,7 +1993,7 @@ class ExposureModel:
     def long_range_deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorizedFloat:
         """Sum over the contributions from all infected populations, including the minimum background concentration."""
         return (self.long_range_deposited_exposure_between_bounds_by_infected_population(time1, time2).sum(axis=0)
-                + (time2-time1)*np.mean(self.concentration_model.min_background_concentration())) # Average in case of dimension mismatch, OBS: variability in min_background_concentration not accounted for in infection probability
+                + self.min_background_exposure(time1,time2))
 
     def deposited_exposure_between_bounds(self, time1: float, time2: float) -> _VectorizedFloat:
         """
